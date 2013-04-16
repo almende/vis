@@ -10,7 +10,7 @@ Vis.js Library is part of [CHAP](http://chap.almende.com),
 the Common Hybrid Agent Platform, developed by [Almende B.V](http://almende.com).
 
 
-# Install
+## Install
 
 Install via bower:
 
@@ -20,15 +20,15 @@ Or download the library from the github project:
 [https://github.com/almende/vis.git](https://github.com/almende/vis.git).
 
 
-# Load
+## Load
 
 
 To use a component, include the javascript and css file of the component
 in your webpage. For example for the Timeline:
 
 ```html
-<script src="../timeline.js"></script>
-<link href="../timeline.css" rel="stylesheet" type="text/css" />
+<script src="components/vis/bin/timeline/timeline.js"></script>
+<link href="components/vis/bin/timeline/timeline.css" rel="stylesheet" type="text/css" />
 ```
 
 A timeline can be instantiated as:
@@ -42,7 +42,7 @@ and `options` is an optional object with configuration options for the
 component.
 
 
-# Example
+## Example
 
 A basic example on loading a Timeline is shown below. More examples can be
 found in the examples directories of each component.
@@ -52,8 +52,8 @@ found in the examples directories of each component.
 <html>
 <head>
     <title>Timeline basic demo</title>
-    <script src="../timeline.js"></script>
-    <link href="../timeline.css" rel="stylesheet" type="text/css" />
+    <script src="components/vis/bin/timeline/timeline.js"></script>
+    <link href="components/vis/bin/timeline/timeline.css" rel="stylesheet" type="text/css" />
 
     <style type="text/css">
         body, html {
@@ -82,7 +82,7 @@ found in the examples directories of each component.
 ```
 
 
-# Build
+## Build
 
 To build the library from source, clone the project from github
 
@@ -100,3 +100,20 @@ Then, the project can be build by executing jake in the root of the project:
 
 This will build the library for each of the components. The built libraries can
 be found in the directory `bin`, and includes examples.
+
+
+## License
+
+Copyright (C) 2010-2013 Almende B.V.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
