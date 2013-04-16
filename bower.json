@@ -7,6 +7,12 @@
         "type": "git",
         "url": "git://github.com/almende/vis.git"
     },
+    "ignore": [
+        "src",
+        "lib",
+        "test",
+        "package.json"
+    ],
     "dependencies": {},
     "devDependencies": {}
 }
