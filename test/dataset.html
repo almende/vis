@@ -1,0 +1,78 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title></title>
+    <script src="../lib/moment.min.js"></script>
+    <script src="../src/util.js"></script>
+    <script src="../src/events.js"></script>
+    <script src="../src/range.js"></script>
+    <script src="../src/timestep.js"></script>
+    <script src="../src/dataset.js"></script>
+
+    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+
+</head>
+<body>
+    <script>
+        var dataset = new DataSet({
+            fieldId: 'id',
+            fieldTypes: {
+                start: 'ISODate'
+            }
+        });
+
+        // create an anonymous event listener
+        dataset.subscribe('*', function (event, params, id) {
+            console.log('anonymous listener ', event, params, id);
+        });
+
+        // create a named event listener
+        var entityId = '123';
+        dataset.subscribe('*', function (event, params, id) {
+            console.log('named listener ', event, params, id);
+        }, entityId);
+
+        // anonymous put
+        dataset.add([
+            {id: 1, content: 'item 1', start: new Date()},
+            {id: 2, content: 'item 2', start: (new Date()).valueOf()},
+            {id: '3', content: 'item 3', start: (new Date()).toISOString()},
+            {id: 4, content: 'item 4', start: '/Date(1198908717056)/'},
+            {id: 5, content: 'item 5', start: undefined},
+            {content: 'item 6', start: new Date()}
+        ]);
+
+        // named update
+        dataset.update([
+            {id: 1, foo: 'bar'}
+        ], entityId);
+
+        google.load("visualization", "1");
+        google.setOnLoadCallback(function () {
+
+            var table = new google.visualization.DataTable();
+            table.addColumn('datetime', 'start');
+            table.addColumn('datetime', 'end');
+            table.addColumn('string', 'content');
+
+            table.addRows([
+                [new Date(2010,7,23), , 'Conversation<br>' +
+                        '<img src="img/comments-icon.png" style="width:32px; height:32px;">'],
+                [new Date(2010,7,23,23,0,0), , 'Mail from boss<br>' +
+                        '<img src="img/mail-icon.png" style="width:32px; height:32px;">'],
+                [new Date(2010,7,24,16,0,0), , 'Report'],
+                [new Date(2010,7,26), new Date(2010,8,2), 'Traject A'],
+                [new Date(2010,7,28), , 'Memo<br>' +
+                        '<img src="img/notes-edit-icon.png" style="width:48px; height:48px;">'],
+                [new Date(2010,7,29), , 'Phone call<br>' +
+                        '<img src="img/Hardware-Mobile-Phone-icon.png" style="width:32px; height:32px;">'],
+                [new Date(2010,7,31), new Date(2010,8,3), 'Traject B'],
+                [new Date(2010,8,4,12,0,0), , 'Report<br>' +
+                        '<img src="img/attachment-icon.png" style="width:32px; height:32px;">']
+            ]);
+            dataset.add(table);
+        });
+
+    </script>
+</body>
+</html>

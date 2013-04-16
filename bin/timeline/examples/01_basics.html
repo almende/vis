@@ -1,0 +1,62 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Timeline demo</title>
+    <script src="../timeline.js"></script>
+    <link href="../timeline.css" rel="stylesheet" type="text/css" />
+
+    <style>
+        body, html {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            font-family: arial, sans-serif;
+            font-size: 12pt;
+        }
+
+        #visualization {
+            box-sizing: border-box;
+            padding: 10px;
+            width: 100%;
+            height: 300px;
+        }
+
+        #visualization .itemset {
+            /*background: rgba(255, 255, 0, 0.5);*/
+        }
+    </style>
+
+</head>
+<body>
+<div id="visualization"></div>
+
+<script>
+    // create a dataset with items
+    var now = moment().minutes(0).seconds(0).milliseconds(0);
+    var data = new DataSet({
+        fieldTypes: {
+            start: 'Date',
+            end: 'Date'
+        }
+    });
+    data.add([
+        {id: 1, content: 'item 1<br>start', start: now.clone().add('days', 4).toDate()},
+        {id: 2, content: 'item 2', start: now.clone().add('days', -2).toDate() },
+        {id: 3, content: 'item 3', start: now.clone().add('days', 2).toDate()},
+        {id: 4, content: 'item 4', start: now.clone().add('days', 0).toDate(), end: now.clone().add('days', 3).toDate()},
+        {id: 5, content: 'item 5', start: now.clone().add('days', 9).toDate(), type:'point'},
+        {id: 6, content: 'item 6', start: now.clone().add('days', 11).toDate()}
+    ]);
+
+    var container = document.getElementById('visualization');
+    var options = {
+        start: now.clone().add('days', -3).valueOf(),
+        end: now.clone().add('days', 7).valueOf()
+    };
+
+    var timeline = new Timeline(container, data, options);
+
+</script>
+</body>
+</html>

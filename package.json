@@ -1,0 +1,30 @@
+{
+    "name": "vis",
+    "version": "3.0.0-SNAPSHOT",
+    "description": "A dynamic, browser-based visualization library.",
+    "homepage": "https://github.com/almende/vis",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/almende/vis.git"
+    },
+    "keywords": [
+        "visualization",
+        "web based",
+        "browser based",
+        "chart",
+        "linechart",
+        "timeline",
+        "graph",
+        "network",
+        "javascript",
+        "browser"
+    ],
+    "dependencies": {},
+    "devDependencies": {
+        "jake": ">= 0.5.9",
+        "jake-utils": ">= 0.0.18",
+        "uglify-js": ">= 2.2.5",
+        "nodeunit": ">= 0.7.4",
+        "dateable": ">= 0.1.2"
+    }
+}

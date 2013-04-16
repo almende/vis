@@ -1,0 +1,84 @@
+
+.graph .itemset {
+    position: absolute;
+}
+
+
+.graph .item {
+    position: absolute;
+    color: #1A1A1A;
+    border-color: #97B0F8;
+    background-color: #D5DDF6;
+    display: inline-block;
+}
+
+.graph .item.selected {
+    border-color: #FFC200;
+    background-color: #FFF785;
+    z-index: 999;
+}
+
+.graph .item.cluster {
+    /* TODO: use another color or pattern? */
+    background: #97B0F8 url('img/cluster_bg.png');
+    color: white;
+}
+.graph .item.cluster.point {
+    border-color: #D5DDF6;
+}
+
+.graph .item.box {
+    text-align: center;
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 5px;
+    -moz-border-radius: 5px; /* For Firefox 3.6 and older */
+}
+
+.graph .item.point {
+    background: none;
+}
+
+.graph .dot {
+    border: 5px solid #97B0F8;
+    position: absolute;
+    border-radius: 5px;
+    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */
+}
+
+.graph .item.range {
+    overflow: hidden;
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 2px;
+    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */
+}
+
+.graph .item.range .drag-left {
+    cursor: w-resize;
+    z-index: 1000;
+}
+
+.graph .item.range .drag-right {
+    cursor: e-resize;
+    z-index: 1000;
+}
+
+.graph .item.range .content {
+    position: relative;
+    display: inline-block;
+}
+
+.graph .item.line {
+    position: absolute;
+    width: 0;
+    border-left-width: 1px;
+    border-left-style: solid;
+    z-index: -1;
+}
+
+.graph .item .content {
+    margin: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+}

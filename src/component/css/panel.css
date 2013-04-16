@@ -1,0 +1,9 @@
+
+.graph {
+    position: relative;
+    border: 1px solid #bfbfbf;
+}
+
+.graph .panel {
+    position: absolute;
+}

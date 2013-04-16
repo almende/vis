@@ -1,0 +1,47 @@
+/* TODO: better css name, 'graph' is way to generic */
+
+.graph {
+    overflow: hidden;
+}
+
+.graph .axis {
+    position: relative;
+}
+
+.graph .axis .text {
+    position: absolute;
+    color: #4d4d4d;
+    padding: 3px;
+    white-space: nowrap;
+}
+
+.graph .axis .text.measure {
+    position: absolute;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: 0;
+    margin-right: 0;
+    visibility: hidden;
+}
+
+.graph .axis .grid.vertical {
+    position: absolute;
+    width: 0;
+    border-right: 1px solid;
+}
+
+.graph .axis .grid.horizontal {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 0;
+    border-bottom: 1px solid;
+}
+
+.graph .axis .grid.minor {
+    border-color: #e5e5e5;
+}
+
+.graph .axis .grid.major {
+    border-color: #bfbfbf;
+}
