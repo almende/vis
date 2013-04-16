@@ -1,22 +1,23 @@
 {
     "name": "vis",
-    "version": "3.0.0-SNAPSHOT",
+    "version": "0.0.1",
     "description": "A dynamic, browser-based visualization library.",
-    "homepage": "https://github.com/almende/vis",
+    "homepage": "http://visjs.org/",
     "repository": {
         "type": "git",
         "url": "git://github.com/almende/vis.git"
     },
     "keywords": [
+        "vis",
         "visualization",
         "web based",
         "browser based",
+        "javascript",
         "chart",
         "linechart",
         "timeline",
         "graph",
         "network",
-        "javascript",
         "browser"
     ],
     "dependencies": {},

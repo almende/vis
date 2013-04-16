@@ -46,7 +46,7 @@ task('timeline', function () {
             './src/component/itemset.js',
             './src/component/item/*.js',
 
-            './src/visualization/timeline.js',
+            './src/visualization/timeline/timeline.js',
 
             './lib/moment.js'
         ],
@@ -84,7 +84,7 @@ task('timeline', function () {
     });
 
     // copy examples
-    jake.cpR('./src/examples/timeline', './bin/timeline/examples/');
+    jake.cpR('./src/visualization/timeline/examples', './bin/timeline/examples/');
 
     console.log('created timeline library');
 });
