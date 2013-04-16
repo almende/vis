@@ -23,12 +23,11 @@ Or download the library from the github project:
 ## Load
 
 
-To use a component, include the javascript and css file of the component
-in your webpage. For example for the Timeline:
+To use a component, include the javascript and css file of vis in your webpage.
 
 ```html
-<script src="components/vis/bin/timeline/timeline.js"></script>
-<link href="components/vis/bin/timeline/timeline.css" rel="stylesheet" type="text/css" />
+<script src="components/vis/vis.js"></script>
+<link href="components/vis/vis.css" rel="stylesheet" type="text/css" />
 ```
 
 A timeline can be instantiated as:
@@ -45,15 +44,16 @@ component.
 ## Example
 
 A basic example on loading a Timeline is shown below. More examples can be
-found in the examples directories of each component.
+found in the [examples directory](https://github.com/almende/vis/tree/master/examples)
+of the project.
 
 ```html
 <!DOCTYPE HTML>
 <html>
 <head>
     <title>Timeline basic demo</title>
-    <script src="components/vis/bin/timeline/timeline.js"></script>
-    <link href="components/vis/bin/timeline/timeline.css" rel="stylesheet" type="text/css" />
+    <script src="components/vis/vis.js"></script>
+    <link href="components/vis/vis.css" rel="stylesheet" type="text/css" />
 
     <style type="text/css">
         body, html {

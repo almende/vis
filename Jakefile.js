@@ -11,24 +11,22 @@ require('jake-utils');
  * default task
  */
 desc('Execute all tasks: build all libraries');
-task('default', ['timeline'], function () {
+task('default', ['vis'], function () {
     console.log('done');
 });
 
 /**
- * timeline
+ * vis.js, vis.css
  */
-desc('Build the timeline visualization');
-task('timeline', function () {
-    var TIMELINE = './bin/timeline/timeline.js';
-    var TIMELINE_MIN = './bin/timeline/timeline.min.js';
-    var DIR = './bin/timeline';
-    jake.rmRf(DIR);
-    jake.mkdirP(DIR);
+desc('Build the visualization library vis.js');
+task('vis', function () {
+    var VIS = './vis.js';
+    var VIS_MIN = './vis.min.js';
+    var VIS_CSS = './vis.css';
 
     // concatenate the script files
     concat({
-        dest: TIMELINE,
+        dest: VIS,
         src: [
             './src/header.js',
             './src/util.js',
@@ -46,7 +44,7 @@ task('timeline', function () {
             './src/component/itemset.js',
             './src/component/item/*.js',
 
-            './src/visualization/timeline/timeline.js',
+            './src/visualization/timeline.js',
 
             './lib/moment.js'
         ],
@@ -55,7 +53,7 @@ task('timeline', function () {
 
     // concatenate the css files
     concat({
-        dest: './bin/timeline/timeline.css',
+        dest: VIS_CSS,
         src: [
             './src/component/css/panel.css',
             './src/component/css/item.css',
@@ -66,16 +64,16 @@ task('timeline', function () {
 
     // minify javascript
     minify({
-        src: TIMELINE,
-        dest: TIMELINE_MIN,
+        src: VIS,
+        dest: VIS_MIN,
         header: read('./src/header.js')
     });
 
     // update version number and stuff in the javascript files
-    [TIMELINE, TIMELINE_MIN].forEach(function (file) {
+    [VIS, VIS_MIN].forEach(function (file) {
         replace({
             replacements: [
-                {pattern: '@@name',    replacement: 'timeline'},
+                {pattern: '@@name',    replacement: 'vis.js'},
                 {pattern: '@@date',    replacement: today()},
                 {pattern: '@@version', replacement: version()}
             ],
@@ -83,10 +81,7 @@ task('timeline', function () {
         });
     });
 
-    // copy examples
-    jake.cpR('./src/visualization/timeline/examples', './bin/timeline/examples/');
-
-    console.log('created timeline library');
+    console.log('created vis.js library');
 });
 
 /**
