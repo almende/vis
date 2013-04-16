@@ -27,9 +27,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="4"
-     inkscape:cx="42.110097"
-     inkscape:cy="66.949941"
+     inkscape:zoom="1"
+     inkscape:cx="-113.31153"
+     inkscape:cy="88.17545"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -58,7 +58,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -78,7 +78,7 @@
        xml:space="preserve"
        id="flowRoot3757"
        style="font-size:92px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
-       transform="translate(25.084525,901.73727)"><flowRegion
+       transform="translate(18.334525,901.73727)"><flowRegion
          id="flowRegion3759"><rect
            id="rect3761"
            width="161.0782"
@@ -87,7 +87,7 @@
            y="62.239071"
            style="font-size:92px" /></flowRegion><flowPara
          id="flowPara3763"
-         style="font-size:92px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;fill:#ffffff;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Bold">vis</flowPara></flowRoot>    <rect
+         style="font-size:92px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;line-height:125%;fill:#ffffff;font-family:Ubuntu;-inkscape-font-specification:Ubuntu Bold">vis</flowPara></flowRoot>    <rect
        style="fill:#a0c0f0;fill-opacity:1;stroke:none"
        id="rect3765-1"
        width="128"
