@@ -23,11 +23,10 @@ Or download the library from the github project:
 ## Load
 
 
-To use a component, include the javascript and css file of vis in your webpage.
+To use a component, include the javascript file of vis in your webpage.
 
 ```html
 <script src="components/vis/vis.js"></script>
-<link href="components/vis/vis.css" rel="stylesheet" type="text/css" />
 ```
 
 A timeline can be instantiated as:
@@ -53,7 +52,6 @@ of the project.
 <head>
     <title>Timeline basic demo</title>
     <script src="components/vis/vis.js"></script>
-    <link href="components/vis/vis.css" rel="stylesheet" type="text/css" />
 
     <style type="text/css">
         body, html {

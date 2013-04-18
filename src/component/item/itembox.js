@@ -164,7 +164,6 @@ ItemBox.prototype.reflow = function () {
         changed += update(props.line, 'width', dom.line.offsetWidth);
         changed += update(this, 'width', dom.box.offsetWidth);
         changed += update(this, 'height', dom.box.offsetHeight);
-
         if (align == 'right') {
             left = start - this.width;
         }
@@ -260,7 +259,7 @@ ItemBox.prototype.reposition = function () {
             // orientation 'bottom'
             line.style.top = props.line.top + 'px';
             line.style.top = (this.top + this.height) + 'px';
-            line.style.height = (props.dot.top - this.top - this.height) + 'px';
+            line.style.height = Math.max(props.dot.top - this.top - this.height, 0) + 'px';
 
         }
 

@@ -146,7 +146,7 @@ util.cast = function cast(object, type) {
                     return new Date(Number(match[1]));
                 }
                 else {
-                    return new Date(object);
+                    return moment(object).toDate(); // parse string
                 }
             }
             else {
@@ -159,8 +159,8 @@ util.cast = function cast(object, type) {
             if (object instanceof Date) {
                 return object.toISOString();
             }
-            else if (util.isNumber(object) || util.isString(Object)) {
-                return (new Date(object)).toISOString()
+            else if (util.isNumber(object) || util.isString(object)) {
+                return moment(object).toDate().toISOString();
             }
             else {
                 throw new Error(
@@ -172,8 +172,8 @@ util.cast = function cast(object, type) {
             if (object instanceof Date) {
                 return '/Date(' + object.valueOf() + ')/';
             }
-            else if (util.isNumber(object) || util.isString(Object)) {
-                return '/Date(' + (new Date(object)).valueOf() + ')/';
+            else if (util.isNumber(object) || util.isString(object)) {
+                return '/Date(' + moment(object).valueOf() + ')/';
             }
             else {
                 throw new Error(
@@ -190,7 +190,7 @@ util.cast = function cast(object, type) {
 var ASPDateRegex = /^\/?Date\((\-?\d+)/i;
 
 /**
- * Get the type of an object
+ * Get the type of an object, for example util.getType([]) returns 'Array'
  * @param {*} object
  * @return {String} type
  */
@@ -201,9 +201,31 @@ util.getType = function getType(object) {
         if (object == null) {
             return 'null';
         }
-        if (object && object.constructor && object.constructor.name) {
-            return object.constructor.name;
+        if (object instanceof Boolean) {
+            return 'Boolean';
         }
+        if (object instanceof Number) {
+            return 'Number';
+        }
+        if (object instanceof String) {
+            return 'String';
+        }
+        if (object instanceof Array) {
+            return 'Array';
+        }
+        if (object instanceof Date) {
+            return 'Date';
+        }
+        return 'Object';
+    }
+    else if (type == 'number') {
+        return 'Number';
+    }
+    else if (type == 'boolean') {
+        return 'Boolean';
+    }
+    else if (type == 'string') {
+        return 'String';
     }
 
     return type;
@@ -729,4 +751,13 @@ if (!Object.keys) {
             return result;
         }
     })()
+}
+
+// Internet Explorer 8 and older does not support Array.isArray,
+// so we define it here in that case.
+// https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/isArray
+if(!Array.isArray) {
+    Array.isArray = function (vArg) {
+        return Object.prototype.toString.call(vArg) === "[object Array]";
+    };
 }

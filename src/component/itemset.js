@@ -412,5 +412,6 @@ ItemSet.prototype.toTime = function(x) {
  */
 ItemSet.prototype.toScreen = function(time) {
     var conversion = this.conversion;
-    return (time.valueOf() - conversion.offset) * conversion.factor;
+    var s = (time.valueOf() - conversion.offset) * conversion.factor;
+    return s;
 };

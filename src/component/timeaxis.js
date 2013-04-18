@@ -30,7 +30,8 @@ function TimeAxis (parent, depends, options) {
             start: 0,
             end: 0,
             minimumStep: 0
-        }
+        },
+        lineTop: 0
     };
 
     this.options = {
@@ -127,7 +128,9 @@ TimeAxis.prototype.repaint = function () {
         parent.removeChild(frame); //  take frame offline while updating (is almost twice as fast)
 
         var orientation = options.orientation;
-        var defaultTop = (orientation == 'bottom') ? (this.props.parentHeight - this.height) + 'px' : '0px';
+        var defaultTop = (orientation == 'bottom' && this.props.parentHeight && this.height) ?
+            (this.props.parentHeight - this.height) + 'px' :
+            '0px';
         changed += update(frame.style, 'top', asSize(options.top, defaultTop));
         changed += update(frame.style, 'left', asSize(options.left, '0px'));
         changed += update(frame.style, 'width', asSize(options.width, '100%'));
@@ -446,11 +449,11 @@ TimeAxis.prototype.reflow = function () {
                 props.majorLabelTop = props.minorLabelTop + props.minorLabelHeight;
 
                 props.minorLineTop = -this.top;
-                props.minorLineHeight = this.top + props.majorLabelHeight;
+                props.minorLineHeight = Math.max(this.top + props.majorLabelHeight, 0);
                 props.minorLineWidth = 1; // TODO: really calculate width
 
                 props.majorLineTop = -this.top;
-                props.majorLineHeight = this.top + props.minorLabelHeight + props.majorLabelHeight;
+                props.majorLineHeight = Math.max(this.top + props.minorLabelHeight + props.majorLabelHeight, 0);
                 props.majorLineWidth = 1; // TODO: really calculate width
 
                 props.lineTop = 0;
@@ -465,11 +468,11 @@ TimeAxis.prototype.reflow = function () {
                 props.minorLabelTop = props.majorLabelTop + props.majorLabelHeight;
 
                 props.minorLineTop = props.minorLabelTop;
-                props.minorLineHeight = parentHeight - props.majorLabelHeight - this.top;
+                props.minorLineHeight = Math.max(parentHeight - props.majorLabelHeight - this.top);
                 props.minorLineWidth = 1; // TODO: really calculate width
 
                 props.majorLineTop = 0;
-                props.majorLineHeight = parentHeight - this.top;
+                props.majorLineHeight = Math.max(parentHeight - this.top);
                 props.majorLineWidth = 1; // TODO: really calculate width
 
                 props.lineTop = props.majorLabelHeight +  props.minorLabelHeight;

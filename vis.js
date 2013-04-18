@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.0.1
- * @date    2013-04-16
+ * @version 0.0.5
+ * @date    2013-04-18
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -171,7 +171,7 @@ util.cast = function cast(object, type) {
                     return new Date(Number(match[1]));
                 }
                 else {
-                    return new Date(object);
+                    return moment(object).toDate(); // parse string
                 }
             }
             else {
@@ -184,8 +184,8 @@ util.cast = function cast(object, type) {
             if (object instanceof Date) {
                 return object.toISOString();
             }
-            else if (util.isNumber(object) || util.isString(Object)) {
-                return (new Date(object)).toISOString()
+            else if (util.isNumber(object) || util.isString(object)) {
+                return moment(object).toDate().toISOString();
             }
             else {
                 throw new Error(
@@ -197,8 +197,8 @@ util.cast = function cast(object, type) {
             if (object instanceof Date) {
                 return '/Date(' + object.valueOf() + ')/';
             }
-            else if (util.isNumber(object) || util.isString(Object)) {
-                return '/Date(' + (new Date(object)).valueOf() + ')/';
+            else if (util.isNumber(object) || util.isString(object)) {
+                return '/Date(' + moment(object).valueOf() + ')/';
             }
             else {
                 throw new Error(
@@ -215,7 +215,7 @@ util.cast = function cast(object, type) {
 var ASPDateRegex = /^\/?Date\((\-?\d+)/i;
 
 /**
- * Get the type of an object
+ * Get the type of an object, for example util.getType([]) returns 'Array'
  * @param {*} object
  * @return {String} type
  */
@@ -226,9 +226,31 @@ util.getType = function getType(object) {
         if (object == null) {
             return 'null';
         }
-        if (object && object.constructor && object.constructor.name) {
-            return object.constructor.name;
+        if (object instanceof Boolean) {
+            return 'Boolean';
         }
+        if (object instanceof Number) {
+            return 'Number';
+        }
+        if (object instanceof String) {
+            return 'String';
+        }
+        if (object instanceof Array) {
+            return 'Array';
+        }
+        if (object instanceof Date) {
+            return 'Date';
+        }
+        return 'Object';
+    }
+    else if (type == 'number') {
+        return 'Number';
+    }
+    else if (type == 'boolean') {
+        return 'Boolean';
+    }
+    else if (type == 'string') {
+        return 'String';
     }
 
     return type;
@@ -754,6 +776,15 @@ if (!Object.keys) {
             return result;
         }
     })()
+}
+
+// Internet Explorer 8 and older does not support Array.isArray,
+// so we define it here in that case.
+// https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/isArray
+if(!Array.isArray) {
+    Array.isArray = function (vArg) {
+        return Object.prototype.toString.call(vArg) === "[object Array]";
+    };
 }
 
 
@@ -2650,6 +2681,32 @@ Controller.prototype.reflow = function () {
     // TODO: limit the number of nested reflows/repaints, prevent loop
 };
 
+
+/**
+ * load css from contents
+ * @param {String} css
+ */
+var loadCss = function (css) {
+    // get the script location, and built the css file name from the js file name
+    // http://stackoverflow.com/a/2161748/1262753
+    var scripts = document.getElementsByTagName('script');
+    var jsFile = scripts[scripts.length-1].src.split('?')[0];
+    // var cssFile = jsFile.substring(0, jsFile.length - 2) + 'css';
+
+    // inject css
+    // http://stackoverflow.com/questions/524696/how-to-create-a-style-tag-with-javascript
+    var style = document.createElement('style');
+    style.type = 'text/css';
+    if (style.styleSheet){
+        style.styleSheet.cssText = css;
+    } else {
+        style.appendChild(document.createTextNode(css));
+    }
+
+    document.getElementsByTagName('head')[0].appendChild(style);
+};
+
+
 /**
  * Prototype for visual components
  */
@@ -3101,7 +3158,8 @@ function TimeAxis (parent, depends, options) {
             start: 0,
             end: 0,
             minimumStep: 0
-        }
+        },
+        lineTop: 0
     };
 
     this.options = {
@@ -3198,7 +3256,9 @@ TimeAxis.prototype.repaint = function () {
         parent.removeChild(frame); //  take frame offline while updating (is almost twice as fast)
 
         var orientation = options.orientation;
-        var defaultTop = (orientation == 'bottom') ? (this.props.parentHeight - this.height) + 'px' : '0px';
+        var defaultTop = (orientation == 'bottom' && this.props.parentHeight && this.height) ?
+            (this.props.parentHeight - this.height) + 'px' :
+            '0px';
         changed += update(frame.style, 'top', asSize(options.top, defaultTop));
         changed += update(frame.style, 'left', asSize(options.left, '0px'));
         changed += update(frame.style, 'width', asSize(options.width, '100%'));
@@ -3517,11 +3577,11 @@ TimeAxis.prototype.reflow = function () {
                 props.majorLabelTop = props.minorLabelTop + props.minorLabelHeight;
 
                 props.minorLineTop = -this.top;
-                props.minorLineHeight = this.top + props.majorLabelHeight;
+                props.minorLineHeight = Math.max(this.top + props.majorLabelHeight, 0);
                 props.minorLineWidth = 1; // TODO: really calculate width
 
                 props.majorLineTop = -this.top;
-                props.majorLineHeight = this.top + props.minorLabelHeight + props.majorLabelHeight;
+                props.majorLineHeight = Math.max(this.top + props.minorLabelHeight + props.majorLabelHeight, 0);
                 props.majorLineWidth = 1; // TODO: really calculate width
 
                 props.lineTop = 0;
@@ -3536,11 +3596,11 @@ TimeAxis.prototype.reflow = function () {
                 props.minorLabelTop = props.majorLabelTop + props.majorLabelHeight;
 
                 props.minorLineTop = props.minorLabelTop;
-                props.minorLineHeight = parentHeight - props.majorLabelHeight - this.top;
+                props.minorLineHeight = Math.max(parentHeight - props.majorLabelHeight - this.top);
                 props.minorLineWidth = 1; // TODO: really calculate width
 
                 props.majorLineTop = 0;
-                props.majorLineHeight = parentHeight - this.top;
+                props.majorLineHeight = Math.max(parentHeight - this.top);
                 props.majorLineWidth = 1; // TODO: really calculate width
 
                 props.lineTop = props.majorLabelHeight +  props.minorLabelHeight;
@@ -4005,7 +4065,8 @@ ItemSet.prototype.toTime = function(x) {
  */
 ItemSet.prototype.toScreen = function(time) {
     var conversion = this.conversion;
-    return (time.valueOf() - conversion.offset) * conversion.factor;
+    var s = (time.valueOf() - conversion.offset) * conversion.factor;
+    return s;
 };
 
 
@@ -4210,7 +4271,6 @@ ItemBox.prototype.reflow = function () {
         changed += update(props.line, 'width', dom.line.offsetWidth);
         changed += update(this, 'width', dom.box.offsetWidth);
         changed += update(this, 'height', dom.box.offsetHeight);
-
         if (align == 'right') {
             left = start - this.width;
         }
@@ -4306,7 +4366,7 @@ ItemBox.prototype.reposition = function () {
             // orientation 'bottom'
             line.style.top = props.line.top + 'px';
             line.style.top = (this.top + this.height) + 'px';
-            line.style.height = (props.dot.top - this.top - this.height) + 'px';
+            line.style.height = Math.max(props.dot.top - this.top - this.height, 0) + 'px';
 
         }
 
@@ -4464,7 +4524,7 @@ ItemPoint.prototype.reflow = function () {
         else {
             // default or 'bottom'
             var parentHeight = this.parent.height;
-            top = parentHeight - this.height - options.margin.axis;
+            top = Math.max(parentHeight - this.height - options.margin.axis, 0);
         }
         changed += update(this, 'top', top);
         changed += update(this, 'left', start - props.dot.width / 2);
@@ -6265,3 +6325,4 @@ Timeline.prototype.setData = function(data) {
     }
 }).call(this);
 
+loadCss("/* vis.js stylesheet */\n\n.graph {\n    position: relative;\n    border: 1px solid #bfbfbf;\n}\n\n.graph .panel {\n    position: absolute;\n}\n\n.graph .itemset {\n    position: absolute;\n}\n\n\n.graph .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.graph .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.graph .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.graph .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.graph .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.graph .item.point {\n    background: none;\n}\n\n.graph .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range {\n    overflow: hidden;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .content {\n    position: relative;\n    display: inline-block;\n}\n\n.graph .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n    z-index: -1;\n}\n\n.graph .item .content {\n    margin: 5px;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n/* TODO: better css name, 'graph' is way to generic */\n\n.graph {\n    overflow: hidden;\n}\n\n.graph .axis {\n    position: relative;\n}\n\n.graph .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.graph .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.graph .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.graph .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.graph .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.graph .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n");

@@ -147,7 +147,7 @@ ItemPoint.prototype.reflow = function () {
         else {
             // default or 'bottom'
             var parentHeight = this.parent.height;
-            top = parentHeight - this.height - options.margin.axis;
+            top = Math.max(parentHeight - this.height - options.margin.axis, 0);
         }
         changed += update(this, 'top', top);
         changed += update(this, 'left', start - props.dot.width / 2);

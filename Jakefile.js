@@ -22,7 +22,18 @@ desc('Build the visualization library vis.js');
 task('vis', function () {
     var VIS = './vis.js';
     var VIS_MIN = './vis.min.js';
-    var VIS_CSS = './vis.css';
+
+    // concatenate and stringify css files
+    var result = concat({
+        src: [
+            './src/component/css/panel.css',
+            './src/component/css/item.css',
+            './src/component/css/timeaxis.css'
+        ],
+        header: '/* vis.js stylesheet */',
+        separator: '\n'
+    });
+    var cssText = JSON.stringify(result.code);
 
     // concatenate the script files
     concat({
@@ -36,6 +47,7 @@ task('vis', function () {
             './src/stack.js',
             './src/range.js',
             './src/controller.js',
+            './src/module.js',
 
             './src/component/component.js',
             './src/component/panel.js',
@@ -48,18 +60,11 @@ task('vis', function () {
 
             './lib/moment.js'
         ],
-        separator: '\n'
-    });
+        separator: '\n',
 
-    // concatenate the css files
-    concat({
-        dest: VIS_CSS,
-        src: [
-            './src/component/css/panel.css',
-            './src/component/css/item.css',
-            './src/component/css/timeaxis.css'
-        ],
-        separator: '\n'
+        // Note: we insert the css as a string in the javascript code here
+        //       the css will be injected on load of the javascript library
+        footer: 'loadCss(' + cssText + ');'
     });
 
     // minify javascript
