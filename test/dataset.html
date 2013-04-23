@@ -3,6 +3,7 @@
 <head>
     <title></title>
     <script src="../lib/moment.min.js"></script>
+    <script src="../src/module.js"></script>
     <script src="../src/util.js"></script>
     <script src="../src/events.js"></script>
     <script src="../src/range.js"></script>
@@ -14,7 +15,7 @@
 </head>
 <body>
     <script>
-        var dataset = new DataSet({
+        var dataset = new vis.DataSet({
             fieldId: 'id',
             fieldTypes: {
                 start: 'ISODate'

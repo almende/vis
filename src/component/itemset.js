@@ -27,6 +27,8 @@ function ItemSet(parent, depends, options) {
         padding: 5
     };
 
+    this.dom = {};
+
     var me = this;
     this.data = null;  // DataSet
     this.range = null; // Range or Object {start: number, end: number}
@@ -115,6 +117,18 @@ ItemSet.prototype.repaint = function () {
         if (options.className) {
             util.addClassName(frame, util.option.asString(options.className));
         }
+
+        // create background panel
+        var background = document.createElement('div');
+        background.className = 'background';
+        frame.appendChild(background);
+        this.dom.background = background;
+
+        // create foreground panel
+        var foreground = document.createElement('div');
+        foreground.className = 'foreground';
+        frame.appendChild(foreground);
+        this.dom.foreground = foreground;
 
         this.frame = frame;
         changed += 1;
@@ -216,6 +230,22 @@ ItemSet.prototype.repaint = function () {
     });
 
     return (changed > 0);
+};
+
+/**
+ * Get the foreground container element
+ * @return {HTMLElement} foreground
+ */
+ItemSet.prototype.getForeground = function () {
+    return this.dom.foreground;
+};
+
+/**
+ * Get the background container element
+ * @return {HTMLElement} background
+ */
+ItemSet.prototype.getBackground = function () {
+    return this.dom.background;
 };
 
 /**

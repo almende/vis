@@ -32,31 +32,7 @@ var vis = {
 };
 
 /**
- * load css from text
- * @param {String} css    Text containing css
- */
-var loadCss = function (css) {
-    // get the script location, and built the css file name from the js file name
-    // http://stackoverflow.com/a/2161748/1262753
-    var scripts = document.getElementsByTagName('script');
-    // var jsFile = scripts[scripts.length-1].src.split('?')[0];
-    // var cssFile = jsFile.substring(0, jsFile.length - 2) + 'css';
-
-    // inject css
-    // http://stackoverflow.com/questions/524696/how-to-create-a-style-tag-with-javascript
-    var style = document.createElement('style');
-    style.type = 'text/css';
-    if (style.styleSheet){
-        style.styleSheet.cssText = css;
-    } else {
-        style.appendChild(document.createTextNode(css));
-    }
-
-    document.getElementsByTagName('head')[0].appendChild(style);
-};
-
-/**
- * Define CommonJS module exports when not available
+ * CommonJS module exports
  */
 if (typeof exports !== 'undefined') {
     exports = vis;
@@ -81,6 +57,30 @@ if (typeof window !== 'undefined') {
     // attach the module to the window, load as a regular javascript file
     window['vis'] = vis;
 }
+
+/**
+ * load css from text
+ * @param {String} css    Text containing css
+ */
+var loadCss = function (css) {
+    // get the script location, and built the css file name from the js file name
+    // http://stackoverflow.com/a/2161748/1262753
+    var scripts = document.getElementsByTagName('script');
+    // var jsFile = scripts[scripts.length-1].src.split('?')[0];
+    // var cssFile = jsFile.substring(0, jsFile.length - 2) + 'css';
+
+    // inject css
+    // http://stackoverflow.com/questions/524696/how-to-create-a-style-tag-with-javascript
+    var style = document.createElement('style');
+    style.type = 'text/css';
+    if (style.styleSheet){
+        style.styleSheet.cssText = css;
+    } else {
+        style.appendChild(document.createTextNode(css));
+    }
+
+    document.getElementsByTagName('head')[0].appendChild(style);
+};
 
 
 // create namespace
@@ -3793,6 +3793,8 @@ function ItemSet(parent, depends, options) {
         padding: 5
     };
 
+    this.dom = {};
+
     var me = this;
     this.data = null;  // DataSet
     this.range = null; // Range or Object {start: number, end: number}
@@ -3881,6 +3883,18 @@ ItemSet.prototype.repaint = function () {
         if (options.className) {
             util.addClassName(frame, util.option.asString(options.className));
         }
+
+        // create background panel
+        var background = document.createElement('div');
+        background.className = 'background';
+        frame.appendChild(background);
+        this.dom.background = background;
+
+        // create foreground panel
+        var foreground = document.createElement('div');
+        foreground.className = 'foreground';
+        frame.appendChild(foreground);
+        this.dom.foreground = foreground;
 
         this.frame = frame;
         changed += 1;
@@ -3982,6 +3996,22 @@ ItemSet.prototype.repaint = function () {
     });
 
     return (changed > 0);
+};
+
+/**
+ * Get the foreground container element
+ * @return {HTMLElement} foreground
+ */
+ItemSet.prototype.getForeground = function () {
+    return this.dom.foreground;
+};
+
+/**
+ * Get the background container element
+ * @return {HTMLElement} background
+ */
+ItemSet.prototype.getBackground = function () {
+    return this.dom.background;
 };
 
 /**
@@ -4315,21 +4345,27 @@ ItemBox.prototype.repaint = function () {
             if (!this.options && !this.parent) {
                 throw new Error('Cannot repaint item: no parent attached');
             }
-            var parentContainer = this.parent.getContainer();
-            if (!parentContainer) {
-                throw new Error('Cannot repaint time axis: parent has no container element');
+            var foreground = this.parent.getForeground();
+            if (!foreground) {
+                throw new Error('Cannot repaint time axis: ' +
+                    'parent has no foreground container element');
+            }
+            var background = this.parent.getBackground();
+            if (!background) {
+                throw new Error('Cannot repaint time axis: ' +
+                    'parent has no background container element');
             }
 
             if (!dom.box.parentNode) {
-                parentContainer.appendChild(dom.box);
+                foreground.appendChild(dom.box);
                 changed = true;
             }
             if (!dom.line.parentNode) {
-                parentContainer.appendChild(dom.line);
+                background.appendChild(dom.line);
                 changed = true;
             }
             if (!dom.dot.parentNode) {
-                parentContainer.appendChild(dom.dot);
+                foreground.appendChild(dom.dot);
                 changed = true;
             }
 
@@ -4582,13 +4618,15 @@ ItemPoint.prototype.repaint = function () {
             if (!this.options && !this.options.parent) {
                 throw new Error('Cannot repaint item: no parent attached');
             }
-            var parentContainer = this.parent.getContainer();
-            if (!parentContainer) {
-                throw new Error('Cannot repaint time axis: parent has no container element');
+            var foreground = this.parent.getForeground();
+            if (!foreground) {
+                throw new Error('Cannot repaint time axis: ' +
+                    'parent has no foreground container element');
             }
 
             if (!dom.point.parentNode) {
-                parentContainer.appendChild(dom.point);
+                foreground.appendChild(dom.point);
+                foreground.appendChild(dom.point);
                 changed = true;
             }
 
@@ -4787,13 +4825,14 @@ ItemRange.prototype.repaint = function () {
             if (!this.options && !this.options.parent) {
                 throw new Error('Cannot repaint item: no parent attached');
             }
-            var parentContainer = this.parent.getContainer();
-            if (!parentContainer) {
-                throw new Error('Cannot repaint time axis: parent has no container element');
+            var foreground = this.parent.getForeground();
+            if (!foreground) {
+                throw new Error('Cannot repaint time axis: ' +
+                    'parent has no foreground container element');
             }
 
             if (!dom.box.parentNode) {
-                parentContainer.appendChild(dom.box);
+                foreground.appendChild(dom.box);
                 changed = true;
             }
 
@@ -6492,5 +6531,5 @@ vis.Timeline = Timeline;
     }
 }).call(this);
 
-loadCss("/* vis.js stylesheet */\n\n.graph {\n    position: relative;\n    border: 1px solid #bfbfbf;\n}\n\n.graph .panel {\n    position: absolute;\n}\n\n.graph .itemset {\n    position: absolute;\n}\n\n\n.graph .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.graph .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.graph .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.graph .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.graph .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.graph .item.point {\n    background: none;\n}\n\n.graph .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range {\n    overflow: hidden;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .content {\n    position: relative;\n    display: inline-block;\n}\n\n.graph .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n    z-index: -1;\n}\n\n.graph .item .content {\n    margin: 5px;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n/* TODO: better css name, 'graph' is way to generic */\n\n.graph {\n    overflow: hidden;\n}\n\n.graph .axis {\n    position: relative;\n}\n\n.graph .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.graph .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.graph .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.graph .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.graph .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.graph .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n");
+loadCss("/* vis.js stylesheet */\n\n.graph {\n    position: relative;\n    border: 1px solid #bfbfbf;\n}\n\n.graph .panel {\n    position: absolute;\n}\n\n.graph .itemset {\n    position: absolute;\n}\n\n.graph .background {\n}\n\n.graph .foreground {\n}\n\n\n.graph .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.graph .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.graph .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.graph .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.graph .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.graph .item.point {\n    background: none;\n}\n\n.graph .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range {\n    overflow: hidden;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .content {\n    position: relative;\n    display: inline-block;\n}\n\n.graph .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n}\n\n.graph .item .content {\n    margin: 5px;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n/* TODO: better css name, 'graph' is way to generic */\n\n.graph {\n    overflow: hidden;\n}\n\n.graph .axis {\n    position: relative;\n}\n\n.graph .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.graph .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.graph .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.graph .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.graph .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.graph .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n");
 })();

@@ -3,6 +3,12 @@
     position: absolute;
 }
 
+.graph .background {
+}
+
+.graph .foreground {
+}
+
 
 .graph .item {
     position: absolute;
@@ -74,7 +80,6 @@
     width: 0;
     border-left-width: 1px;
     border-left-style: solid;
-    z-index: -1;
 }
 
 .graph .item .content {

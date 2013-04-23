@@ -58,13 +58,14 @@ ItemRange.prototype.repaint = function () {
             if (!this.options && !this.options.parent) {
                 throw new Error('Cannot repaint item: no parent attached');
             }
-            var parentContainer = this.parent.getContainer();
-            if (!parentContainer) {
-                throw new Error('Cannot repaint time axis: parent has no container element');
+            var foreground = this.parent.getForeground();
+            if (!foreground) {
+                throw new Error('Cannot repaint time axis: ' +
+                    'parent has no foreground container element');
             }
 
             if (!dom.box.parentNode) {
-                parentContainer.appendChild(dom.box);
+                foreground.appendChild(dom.box);
                 changed = true;
             }
 

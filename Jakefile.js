@@ -58,6 +58,7 @@ task('vis', function () {
 
             './src/visualization/timeline.js',
 
+            // TODO: do not package moment.js with vis.js.
             './lib/moment.js'
         ],
 

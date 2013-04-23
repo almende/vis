@@ -3,6 +3,7 @@
 <head>
     <title></title>
     <script src="../lib/moment.min.js"></script>
+    <script src="../src/module.js"></script>
     <script src="../src/util.js"></script>
     <script src="../src/events.js"></script>
     <script src="../src/timestep.js"></script>
@@ -54,7 +55,7 @@
     <script>
         // create a dataset with items
         var now = moment().minutes(0).seconds(0).milliseconds(0);
-        var data = new DataSet({
+        var data = new vis.DataSet({
             fieldTypes: {
                 start: 'Date',
                 end: 'Date'
@@ -64,7 +65,9 @@
             {id: 1, content: 'item 1<br>start', start: now.clone().add('days', 4).toDate()},
             {id: 2, content: 'item 2', start: now.clone().add('days', -2).toDate() },
             {id: 3, content: 'item 3', start: now.clone().add('days', 2).toDate()},
-            {id: 4, content: 'item 4', start: now.clone().add('days', 0).toDate(), end: now.clone().add('days', 7).toDate()},
+            {id: 4, content: 'item 4',
+                start: now.clone().add('days', 0).toDate(),
+                end: now.clone().add('days', 17).toDate()},
             {id: 5, content: 'item 5', start: now.clone().add('days', 9).toDate(), type:'point'},
             {id: 6, content: 'item 6', start: now.clone().add('days', 11).toDate()}
         ]);
@@ -79,7 +82,7 @@
             zoomMax: 1000 * 60 * 60 * 24 * 30 * 6    // 6 months
         };
 
-        var timeline = new Timeline(container, data, options);
+        var timeline = new vis.Timeline(container, data, options);
 
     </script>
 </body>
