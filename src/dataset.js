@@ -366,12 +366,57 @@ DataSet.prototype.remove = function (id, senderId) {
  *                            all but this sender's event subscribers.
  */
 DataSet.prototype.clear = function (senderId) {
-    var items = Object.keys(this.data);
+    var ids = Object.keys(this.data);
 
-    this.data = [];
+    this.data = {};
     this.internalIds = {};
 
-    this._trigger('remove', {items: items}, senderId);
+    this._trigger('remove', {items: ids}, senderId);
+};
+
+/**
+ * Find the item with maximum value of a specified field
+ * @param {String} field
+ * @return {Object} item         Item containing max value, or null if no items
+ */
+DataSet.prototype.max = function (field) {
+    var data = this.data,
+        ids = Object.keys(data);
+
+    var max = null;
+    var maxField = null;
+    ids.forEach(function (id) {
+        var item = data[id];
+        var itemField = item[field];
+        if (itemField != null && (!max || itemField > maxField)) {
+            max = item;
+            maxField = itemField;
+        }
+    });
+
+    return max;
+};
+
+/**
+ * Find the item with minimum value of a specified field
+ * @param {String} field
+ */
+DataSet.prototype.min = function (field) {
+    var data = this.data,
+        ids = Object.keys(data);
+
+    var min = null;
+    var minField = null;
+    ids.forEach(function (id) {
+        var item = data[id];
+        var itemField = item[field];
+        if (itemField != null && (!min || itemField < minField)) {
+            min = item;
+            minField = itemField;
+        }
+    });
+
+    return min;
 };
 
 /**

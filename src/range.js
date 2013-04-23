@@ -139,15 +139,15 @@ Range.prototype.setRange = function(start, end) {
  * @private
  */
 Range.prototype._applyRange = function(start, end) {
-    var newStart = util.cast(start, 'Number');
-    var newEnd = util.cast(end, 'Number');
+    var newStart = (start != null) ? util.cast(start, 'Number') : this.start;
+    var newEnd = (end != null) ? util.cast(end, 'Number') : this.end;
     var diff;
 
     // check for valid number
-    if (newStart == null || isNaN(newStart)) {
+    if (isNaN(newStart)) {
         throw new Error('Invalid start "' + start + '"');
     }
-    if (newEnd == null  || isNaN(newEnd)) {
+    if (isNaN(newEnd)) {
         throw new Error('Invalid end "' + end + '"');
     }
 

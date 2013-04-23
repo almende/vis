@@ -31,13 +31,10 @@ function Timeline (container, data, options) {
     this.controller.add(this.main);
 
     // range
-    var now = moment().minutes(0).seconds(0).milliseconds(0);
-    var start = options.start && options.start.valueOf() || now.clone().add('days', -3).valueOf();
-    var end = options.end && options.end.valueOf() || moment(start).clone().add('days', 7).valueOf();
-    // TODO: if start and end are not provided, calculate range from the dataset
+    var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
     this.range = new Range({
-        start: start,
-        end: end
+        start: now.clone().add('days', -3).valueOf(),
+        end:   now.clone().add('days', 4).valueOf()
     });
     // TODO: reckon with options moveable and zoomable
     this.range.subscribe(this.main, 'move', 'horizontal');
@@ -62,11 +59,11 @@ function Timeline (container, data, options) {
 
     // items panel
     this.itemset = new ItemSet(this.main, [this.timeaxis], {
-        orientation: this.options.orientation,
-        range: this.range,
-        data: data
+        orientation: this.options.orientation
     });
     this.itemset.setRange(this.range);
+
+    // set data
     if (data) {
         this.setData(data);
     }
@@ -114,5 +111,30 @@ Timeline.prototype.setOptions = function (options) {
  * @param {DataSet | Array | DataTable} data
  */
 Timeline.prototype.setData = function(data) {
-    this.itemset.setData(data);
+    var dataset = this.itemset.data;
+    if (!dataset) {
+        // first load of data
+        this.itemset.setData(data);
+
+        // apply the data range as range
+        var dataRange = this.itemset.getDataRange();
+
+        // add 5% on both sides
+        var min = dataRange.min;
+        var max = dataRange.max;
+        if (min != null && max != null) {
+            var interval = (max.valueOf() - min.valueOf());
+            min = new Date(min.valueOf() - interval * 0.05);
+            max = new Date(max.valueOf() + interval * 0.05);
+        }
+
+        // apply range if there is a min or max available
+        if (min != null || max != null) {
+            this.range.setRange(min, max);
+        }
+    }
+    else {
+        // updated data
+        this.itemset.setData(data);
+    }
 };

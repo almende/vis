@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.0.5
- * @date    2013-04-18
+ * @date    2013-04-23
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -1723,12 +1723,57 @@ DataSet.prototype.remove = function (id, senderId) {
  *                            all but this sender's event subscribers.
  */
 DataSet.prototype.clear = function (senderId) {
-    var items = Object.keys(this.data);
+    var ids = Object.keys(this.data);
 
-    this.data = [];
+    this.data = {};
     this.internalIds = {};
 
-    this._trigger('remove', {items: items}, senderId);
+    this._trigger('remove', {items: ids}, senderId);
+};
+
+/**
+ * Find the item with maximum value of a specified field
+ * @param {String} field
+ * @return {Object} item         Item containing max value, or null if no items
+ */
+DataSet.prototype.max = function (field) {
+    var data = this.data,
+        ids = Object.keys(data);
+
+    var max = null;
+    var maxField = null;
+    ids.forEach(function (id) {
+        var item = data[id];
+        var itemField = item[field];
+        if (itemField != null && (!max || itemField > maxField)) {
+            max = item;
+            maxField = itemField;
+        }
+    });
+
+    return max;
+};
+
+/**
+ * Find the item with minimum value of a specified field
+ * @param {String} field
+ */
+DataSet.prototype.min = function (field) {
+    var data = this.data,
+        ids = Object.keys(data);
+
+    var min = null;
+    var minField = null;
+    ids.forEach(function (id) {
+        var item = data[id];
+        var itemField = item[field];
+        if (itemField != null && (!min || itemField < minField)) {
+            min = item;
+            minField = itemField;
+        }
+    });
+
+    return min;
 };
 
 /**
@@ -2157,15 +2202,15 @@ Range.prototype.setRange = function(start, end) {
  * @private
  */
 Range.prototype._applyRange = function(start, end) {
-    var newStart = util.cast(start, 'Number');
-    var newEnd = util.cast(end, 'Number');
+    var newStart = (start != null) ? util.cast(start, 'Number') : this.start;
+    var newEnd = (end != null) ? util.cast(end, 'Number') : this.end;
     var diff;
 
     // check for valid number
-    if (newStart == null || isNaN(newStart)) {
+    if (isNaN(newStart)) {
         throw new Error('Invalid start "' + start + '"');
     }
-    if (newEnd == null  || isNaN(newEnd)) {
+    if (isNaN(newEnd)) {
         throw new Error('Invalid end "' + end + '"');
     }
 
@@ -3966,6 +4011,32 @@ ItemSet.prototype.setData = function(data) {
     this._onAdd(ids);
 };
 
+
+/**
+ * Get the data range of the item set.
+ * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
+ *                                          When no minimum is found, min==null
+ *                                          When no maximum is found, max==null
+ */
+ItemSet.prototype.getDataRange = function () {
+    // calculate min from start filed
+    var data = this.data;
+    var min = data.min('start');
+    min = min ? min.start.valueOf() : null;
+
+    // calculate max of both start and end fields
+    var maxStart = data.max('start');
+    var maxEnd = data.max('end');
+    maxStart = maxStart ? maxStart.start.valueOf() : null;
+    maxEnd = maxEnd ? maxEnd.end.valueOf() : null;
+    var max = Math.max(maxStart, maxEnd);
+
+    return {
+        min: new Date(min),
+        max: new Date(max)
+    };
+};
+
 /**
  * Handle updated items
  * @param {Number[]} ids
@@ -4838,13 +4909,10 @@ function Timeline (container, data, options) {
     this.controller.add(this.main);
 
     // range
-    var now = moment().minutes(0).seconds(0).milliseconds(0);
-    var start = options.start && options.start.valueOf() || now.clone().add('days', -3).valueOf();
-    var end = options.end && options.end.valueOf() || moment(start).clone().add('days', 7).valueOf();
-    // TODO: if start and end are not provided, calculate range from the dataset
+    var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
     this.range = new Range({
-        start: start,
-        end: end
+        start: now.clone().add('days', -3).valueOf(),
+        end:   now.clone().add('days', 4).valueOf()
     });
     // TODO: reckon with options moveable and zoomable
     this.range.subscribe(this.main, 'move', 'horizontal');
@@ -4869,11 +4937,11 @@ function Timeline (container, data, options) {
 
     // items panel
     this.itemset = new ItemSet(this.main, [this.timeaxis], {
-        orientation: this.options.orientation,
-        range: this.range,
-        data: data
+        orientation: this.options.orientation
     });
     this.itemset.setRange(this.range);
+
+    // set data
     if (data) {
         this.setData(data);
     }
@@ -4921,7 +4989,32 @@ Timeline.prototype.setOptions = function (options) {
  * @param {DataSet | Array | DataTable} data
  */
 Timeline.prototype.setData = function(data) {
-    this.itemset.setData(data);
+    var dataset = this.itemset.data;
+    if (!dataset) {
+        // first load of data
+        this.itemset.setData(data);
+
+        // apply the data range as range
+        var dataRange = this.itemset.getDataRange();
+
+        // add 5% on both sides
+        var min = dataRange.min;
+        var max = dataRange.max;
+        if (min != null && max != null) {
+            var interval = (max.valueOf() - min.valueOf());
+            min = new Date(min.valueOf() - interval * 0.05);
+            max = new Date(max.valueOf() + interval * 0.05);
+        }
+
+        // apply range if there is a min or max available
+        if (min != null || max != null) {
+            this.range.setRange(min, max);
+        }
+    }
+    else {
+        // updated data
+        this.itemset.setData(data);
+    }
 };
 
 // moment.js

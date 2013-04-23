@@ -313,6 +313,32 @@ ItemSet.prototype.setData = function(data) {
     this._onAdd(ids);
 };
 
+
+/**
+ * Get the data range of the item set.
+ * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
+ *                                          When no minimum is found, min==null
+ *                                          When no maximum is found, max==null
+ */
+ItemSet.prototype.getDataRange = function () {
+    // calculate min from start filed
+    var data = this.data;
+    var min = data.min('start');
+    min = min ? min.start.valueOf() : null;
+
+    // calculate max of both start and end fields
+    var maxStart = data.max('start');
+    var maxEnd = data.max('end');
+    maxStart = maxStart ? maxStart.start.valueOf() : null;
+    maxEnd = maxEnd ? maxEnd.end.valueOf() : null;
+    var max = Math.max(maxStart, maxEnd);
+
+    return {
+        min: new Date(min),
+        max: new Date(max)
+    };
+};
+
 /**
  * Handle updated items
  * @param {Number[]} ids
