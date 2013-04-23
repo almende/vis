@@ -23,11 +23,35 @@ Or download the library from the github project:
 ## Load
 
 
-To use a component, include the javascript file of vis in your webpage.
+To use a component, include the javascript file of vis in your webpage:
 
 ```html
-<script src="components/vis/vis.js"></script>
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script src="components/vis/vis.js"></script>
+</head>
+<body>
+    <script type="text/javascript">
+        // ... load a visualization
+    </script>
+</body>
+</html>
 ```
+
+or load vis.js using require.js:
+
+```js
+require.config({
+    paths: {
+        vis: 'path/to/vis',
+    }
+});
+require(['vis'], function (math) {
+    // ... load a visualization
+});
+```
+
 
 A timeline can be instantiated as:
 

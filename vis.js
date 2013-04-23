@@ -23,6 +23,57 @@
  * the License.
  */
 
+(function () { 
+
+/**
+ * load css from text
+ * @param {String} css    Text containing css
+ */
+var loadCss = function (css) {
+    // get the script location, and built the css file name from the js file name
+    // http://stackoverflow.com/a/2161748/1262753
+    var scripts = document.getElementsByTagName('script');
+    // var jsFile = scripts[scripts.length-1].src.split('?')[0];
+    // var cssFile = jsFile.substring(0, jsFile.length - 2) + 'css';
+
+    // inject css
+    // http://stackoverflow.com/questions/524696/how-to-create-a-style-tag-with-javascript
+    var style = document.createElement('style');
+    style.type = 'text/css';
+    if (style.styleSheet){
+        style.styleSheet.cssText = css;
+    } else {
+        style.appendChild(document.createTextNode(css));
+    }
+
+    document.getElementsByTagName('head')[0].appendChild(style);
+};
+
+/**
+ * Define CommonJS module exports when not available
+ */
+if (typeof exports === 'undefined') {
+    var exports = {};
+}
+if (typeof module === 'undefined') {
+    var module = {
+        exports: exports
+    };
+}
+
+/**
+ * AMD module exports
+ */
+if (typeof(require) != 'undefined' && typeof(define) != 'undefined') {
+    define(function () {
+        return exports;
+    });
+}
+else {
+    // attach the module to the window, load as a regular javascript file
+    window['vis'] = exports;
+}
+
 
 // create namespace
 var util = {};
@@ -788,6 +839,12 @@ if(!Array.isArray) {
 }
 
 
+// export
+if (typeof exports !== 'undefined') {
+    exports.util = util;
+}
+
+
 /**
  * Event listener (singleton)
  */
@@ -903,6 +960,11 @@ var events = {
         }
     }
 };
+
+// exports
+if (typeof exports !== 'undefined') {
+    exports.events = events;
+}
 
 /**
  * @constructor  TimeStep
@@ -1354,6 +1416,11 @@ TimeStep.prototype.getLabelMajor = function(date) {
         default:                        return '';
     }
 };
+
+// export
+if (typeof exports !== 'undefined') {
+    exports.TimeStep = TimeStep;
+}
 
 /**
  * DataSet
@@ -1821,7 +1888,7 @@ DataSet.prototype._castItem = function (item, fieldTypes, fields) {
     if (item) {
         clone = {};
         fieldTypes = fieldTypes || {};
-        
+
         if (fields) {
             // output filtered fields
             util.forEach(item, function (value, field) {
@@ -1902,6 +1969,11 @@ DataSet.prototype._appendRow = function (dataTable, columns, item) {
         dataTable.setValue(row, col, item[field]);
     });
 };
+
+// exports
+if (typeof exports !== 'undefined') {
+    exports.DataSet = DataSet;
+}
 
 /**
  * @constructor Stack
@@ -2060,6 +2132,11 @@ Stack.prototype.collision = function(a, b, margin) {
         (a.top - margin) < (b.top + b.height) &&
         (a.top + a.height + margin) > b.top);
 };
+
+// exports
+if (typeof exports !== 'undefined') {
+    exports.Stack = Stack;
+}
 
 /**
  * @constructor Range
@@ -2586,6 +2663,11 @@ Range.prototype.move = function(moveFactor) {
     this.end = newEnd;
 };
 
+// exports
+if (typeof exports !== 'undefined') {
+    exports.Range = Range;
+}
+
 /**
  * @constructor Controller
  *
@@ -2726,31 +2808,10 @@ Controller.prototype.reflow = function () {
     // TODO: limit the number of nested reflows/repaints, prevent loop
 };
 
-
-/**
- * load css from contents
- * @param {String} css
- */
-var loadCss = function (css) {
-    // get the script location, and built the css file name from the js file name
-    // http://stackoverflow.com/a/2161748/1262753
-    var scripts = document.getElementsByTagName('script');
-    var jsFile = scripts[scripts.length-1].src.split('?')[0];
-    // var cssFile = jsFile.substring(0, jsFile.length - 2) + 'css';
-
-    // inject css
-    // http://stackoverflow.com/questions/524696/how-to-create-a-style-tag-with-javascript
-    var style = document.createElement('style');
-    style.type = 'text/css';
-    if (style.styleSheet){
-        style.styleSheet.cssText = css;
-    } else {
-        style.appendChild(document.createTextNode(css));
-    }
-
-    document.getElementsByTagName('head')[0].appendChild(style);
-};
-
+// export
+if (typeof exports !== 'undefined') {
+    exports.Controller = Controller;
+}
 
 /**
  * Prototype for visual components
@@ -2869,6 +2930,14 @@ Component.prototype.on = function (event, callback) {
     }
 };
 
+// exports
+if (typeof exports !== 'undefined') {
+    if (!('component' in exports)) {
+        exports.component = {};
+    }
+    exports.component.Component = Component;
+}
+
 /**
  * A panel can contain components
  * @param {Component} [parent]
@@ -2970,6 +3039,14 @@ Panel.prototype.reflow = function () {
 
     return (changed > 0);
 };
+
+// exports
+if (typeof exports !== 'undefined') {
+    if (!('component' in exports)) {
+        exports.component = {};
+    }
+    exports.component.Panel = Panel;
+}
 
 /**
  * A root panel can hold components. The root panel must be initialized with
@@ -3171,6 +3248,15 @@ RootPanel.prototype._updateEventEmitters = function () {
         // TODO: be able to move event listeners to a parent when available
     }
 };
+
+// exports
+if (typeof exports !== 'undefined') {
+    if (!('component' in exports)) {
+        exports.component = {};
+    }
+    exports.component.RootPanel = RootPanel;
+}
+
 /**
  * A horizontal time axis
  * @param {Component} parent
@@ -3696,6 +3782,14 @@ TimeAxis.prototype._updateConversion = function() {
     }
 };
 
+// exports
+if (typeof exports !== 'undefined') {
+    if (!('component' in exports)) {
+        exports.component = {};
+    }
+    exports.component.TimeAxis = TimeAxis;
+}
+
 /**
  * An ItemSet holds a set of items and ranges which can be displayed in a
  * range. The width is determined by the parent of the ItemSet, and the height
@@ -4136,9 +4230,16 @@ ItemSet.prototype.toTime = function(x) {
  */
 ItemSet.prototype.toScreen = function(time) {
     var conversion = this.conversion;
-    var s = (time.valueOf() - conversion.offset) * conversion.factor;
-    return s;
+    return (time.valueOf() - conversion.offset) * conversion.factor;
 };
+
+// exports
+if (typeof exports !== 'undefined') {
+    if (!('component' in exports)) {
+        exports.component = {};
+    }
+    exports.component.ItemSet = ItemSet;
+}
 
 
 /**
@@ -4176,6 +4277,18 @@ Item.prototype.unselect = function () {
 
 // create a namespace for all item types
 var itemTypes = {};
+
+// exports
+if (typeof exports !== 'undefined') {
+    if (!('component' in exports)) {
+        exports.component = {};
+    }
+    if (!('item' in exports.component)) {
+        exports.component.item = {};
+    }
+    exports.component.item.Item = Item;
+}
+
 /**
  * @constructor ItemBox
  * @extends Item
@@ -4446,6 +4559,17 @@ ItemBox.prototype.reposition = function () {
     }
 };
 
+// exports
+if (typeof exports !== 'undefined') {
+    if (!('component' in exports)) {
+        exports.component = {};
+    }
+    if (!('item' in exports.component)) {
+        exports.component.item = {};
+    }
+    exports.component.item.ItemBox = ItemBox;
+}
+
 /**
  * @constructor ItemPoint
  * @extends Item
@@ -4655,6 +4779,17 @@ ItemPoint.prototype.reposition = function () {
         dom.dot.style.top = props.dot.top + 'px';
     }
 };
+
+// exports
+if (typeof exports !== 'undefined') {
+    if (!('component' in exports)) {
+        exports.component = {};
+    }
+    if (!('item' in exports.component)) {
+        exports.component.item = {};
+    }
+    exports.component.item.ItemPoint = ItemPoint;
+}
 
 /**
  * @constructor ItemRange
@@ -4876,6 +5011,17 @@ ItemRange.prototype.reposition = function () {
     }
 };
 
+// exports
+if (typeof exports !== 'undefined') {
+    if (!('component' in exports)) {
+        exports.component = {};
+    }
+    if (!('item' in exports.component)) {
+        exports.component.item = {};
+    }
+    exports.component.item.ItemRange = ItemRange;
+}
+
 /**
  * Create a timeline visualization
  * @param {HTMLElement} container
@@ -5016,6 +5162,11 @@ Timeline.prototype.setData = function(data) {
         this.itemset.setData(data);
     }
 };
+
+// exports
+if (typeof exports !== 'undefined') {
+    exports.Timeline = Timeline;
+}
 
 // moment.js
 // version : 2.0.0
@@ -6419,3 +6570,4 @@ Timeline.prototype.setData = function(data) {
 }).call(this);
 
 loadCss("/* vis.js stylesheet */\n\n.graph {\n    position: relative;\n    border: 1px solid #bfbfbf;\n}\n\n.graph .panel {\n    position: absolute;\n}\n\n.graph .itemset {\n    position: absolute;\n}\n\n\n.graph .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.graph .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.graph .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.graph .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.graph .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.graph .item.point {\n    background: none;\n}\n\n.graph .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range {\n    overflow: hidden;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .content {\n    position: relative;\n    display: inline-block;\n}\n\n.graph .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n    z-index: -1;\n}\n\n.graph .item .content {\n    margin: 5px;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n/* TODO: better css name, 'graph' is way to generic */\n\n.graph {\n    overflow: hidden;\n}\n\n.graph .axis {\n    position: relative;\n}\n\n.graph .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.graph .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.graph .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.graph .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.graph .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.graph .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n");
+})();

@@ -522,3 +522,11 @@ TimeAxis.prototype._updateConversion = function() {
         this.conversion = Range.conversion(range.start, range.end, this.width);
     }
 };
+
+// exports
+if (typeof exports !== 'undefined') {
+    if (!('component' in exports)) {
+        exports.component = {};
+    }
+    exports.component.TimeAxis = TimeAxis;
+}

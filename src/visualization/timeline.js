@@ -138,3 +138,8 @@ Timeline.prototype.setData = function(data) {
         this.itemset.setData(data);
     }
 };
+
+// exports
+if (typeof exports !== 'undefined') {
+    exports.Timeline = Timeline;
+}

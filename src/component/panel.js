@@ -99,3 +99,11 @@ Panel.prototype.reflow = function () {
 
     return (changed > 0);
 };
+
+// exports
+if (typeof exports !== 'undefined') {
+    if (!('component' in exports)) {
+        exports.component = {};
+    }
+    exports.component.Panel = Panel;
+}

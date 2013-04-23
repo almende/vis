@@ -217,3 +217,14 @@ ItemRange.prototype.reposition = function () {
         dom.content.style.left = props.content.left + 'px';
     }
 };
+
+// exports
+if (typeof exports !== 'undefined') {
+    if (!('component' in exports)) {
+        exports.component = {};
+    }
+    if (!('item' in exports.component)) {
+        exports.component.item = {};
+    }
+    exports.component.item.ItemRange = ItemRange;
+}

@@ -267,3 +267,14 @@ ItemBox.prototype.reposition = function () {
         dot.style.top = props.dot.top + 'px';
     }
 };
+
+// exports
+if (typeof exports !== 'undefined') {
+    if (!('component' in exports)) {
+        exports.component = {};
+    }
+    if (!('item' in exports.component)) {
+        exports.component.item = {};
+    }
+    exports.component.item.ItemBox = ItemBox;
+}

@@ -1,20 +1,10 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-    <title>Timeline basic demo</title>
+require.config({
+    paths: {
+        vis: '../../../../vis'
+    }
+});
 
-    <style type="text/css">
-        body, html {
-            font-family: sans-serif;
-        }
-    </style>
-
-    <script src="../../vis.js"></script>
-</head>
-<body>
-<div id="visualization"></div>
-
-<script type="text/javascript">
+require(['vis'], function (vis) {
     var container = document.getElementById('visualization');
     var data = [
         {id: 1, content: 'item 1', start: '2013-04-20'},
@@ -26,6 +16,4 @@
     ];
     var options = {};
     var timeline = new vis.Timeline(container, data, options);
-</script>
-</body>
-</html>
+});

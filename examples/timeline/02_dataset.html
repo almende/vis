@@ -28,7 +28,7 @@
 <script>
     // create a dataset with items
     var now = moment().minutes(0).seconds(0).milliseconds(0);
-    var data = new DataSet({
+    var data = new vis.DataSet({
         fieldTypes: {
             start: 'Date',
             end: 'Date'
@@ -49,7 +49,7 @@
         end: now.clone().add('days', 7).valueOf()
     };
 
-    var timeline = new Timeline(container, data, options);
+    var timeline = new vis.Timeline(container, data, options);
 
 </script>
 </body>

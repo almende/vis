@@ -114,3 +114,11 @@ Component.prototype.on = function (event, callback) {
         throw new Error('Cannot attach event: no root panel found');
     }
 };
+
+// exports
+if (typeof exports !== 'undefined') {
+    if (!('component' in exports)) {
+        exports.component = {};
+    }
+    exports.component.Component = Component;
+}

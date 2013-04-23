@@ -155,3 +155,8 @@ Stack.prototype.collision = function(a, b, margin) {
         (a.top - margin) < (b.top + b.height) &&
         (a.top + a.height + margin) > b.top);
 };
+
+// exports
+if (typeof exports !== 'undefined') {
+    exports.Stack = Stack;
+}

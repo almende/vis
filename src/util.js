@@ -761,3 +761,9 @@ if(!Array.isArray) {
         return Object.prototype.toString.call(vArg) === "[object Array]";
     };
 }
+
+
+// export
+if (typeof exports !== 'undefined') {
+    exports.util = util;
+}

@@ -522,3 +522,8 @@ Range.prototype.move = function(moveFactor) {
     this.start = newStart;
     this.end = newEnd;
 };
+
+// exports
+if (typeof exports !== 'undefined') {
+    exports.Range = Range;
+}

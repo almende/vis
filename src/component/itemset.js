@@ -438,6 +438,13 @@ ItemSet.prototype.toTime = function(x) {
  */
 ItemSet.prototype.toScreen = function(time) {
     var conversion = this.conversion;
-    var s = (time.valueOf() - conversion.offset) * conversion.factor;
-    return s;
+    return (time.valueOf() - conversion.offset) * conversion.factor;
 };
+
+// exports
+if (typeof exports !== 'undefined') {
+    if (!('component' in exports)) {
+        exports.component = {};
+    }
+    exports.component.ItemSet = ItemSet;
+}

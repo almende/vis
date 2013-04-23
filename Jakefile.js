@@ -16,7 +16,7 @@ task('default', ['vis'], function () {
 });
 
 /**
- * vis.js, vis.css
+ * build the visualization library vis.js
  */
 desc('Build the visualization library vis.js');
 task('vis', function () {
@@ -39,7 +39,8 @@ task('vis', function () {
     concat({
         dest: VIS,
         src: [
-            './src/header.js',
+            './src/module.js',
+
             './src/util.js',
             './src/events.js',
             './src/timestep.js',
@@ -47,7 +48,6 @@ task('vis', function () {
             './src/stack.js',
             './src/range.js',
             './src/controller.js',
-            './src/module.js',
 
             './src/component/component.js',
             './src/component/panel.js',
@@ -60,11 +60,16 @@ task('vis', function () {
 
             './lib/moment.js'
         ],
+
+        header: read('./src/header.js') + '\n' +
+            '(function () { ', // start of closure
+
         separator: '\n',
 
         // Note: we insert the css as a string in the javascript code here
         //       the css will be injected on load of the javascript library
-        footer: 'loadCss(' + cssText + ');'
+        footer: 'loadCss(' + cssText + ');\n' +
+            '})();' // end of closure
     });
 
     // minify javascript

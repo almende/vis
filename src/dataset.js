@@ -464,7 +464,7 @@ DataSet.prototype._castItem = function (item, fieldTypes, fields) {
     if (item) {
         clone = {};
         fieldTypes = fieldTypes || {};
-        
+
         if (fields) {
             // output filtered fields
             util.forEach(item, function (value, field) {
@@ -545,3 +545,8 @@ DataSet.prototype._appendRow = function (dataTable, columns, item) {
         dataTable.setValue(row, col, item[field]);
     });
 };
+
+// exports
+if (typeof exports !== 'undefined') {
+    exports.DataSet = DataSet;
+}

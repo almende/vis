@@ -198,3 +198,11 @@ RootPanel.prototype._updateEventEmitters = function () {
         // TODO: be able to move event listeners to a parent when available
     }
 };
+
+// exports
+if (typeof exports !== 'undefined') {
+    if (!('component' in exports)) {
+        exports.component = {};
+    }
+    exports.component.RootPanel = RootPanel;
+}

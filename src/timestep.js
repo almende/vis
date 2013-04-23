@@ -448,3 +448,8 @@ TimeStep.prototype.getLabelMajor = function(date) {
         default:                        return '';
     }
 };
+
+// export
+if (typeof exports !== 'undefined') {
+    exports.TimeStep = TimeStep;
+}

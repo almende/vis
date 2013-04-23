@@ -114,3 +114,8 @@ var events = {
         }
     }
 };
+
+// exports
+if (typeof exports !== 'undefined') {
+    exports.events = events;
+}

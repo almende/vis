@@ -34,3 +34,14 @@ Item.prototype.unselect = function () {
 
 // create a namespace for all item types
 var itemTypes = {};
+
+// exports
+if (typeof exports !== 'undefined') {
+    if (!('component' in exports)) {
+        exports.component = {};
+    }
+    if (!('item' in exports.component)) {
+        exports.component.item = {};
+    }
+    exports.component.item.Item = Item;
+}
