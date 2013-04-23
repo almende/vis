@@ -524,6 +524,4 @@ Range.prototype.move = function(moveFactor) {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    exports.Range = Range;
-}
+vis.Range = Range;

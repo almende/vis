@@ -547,6 +547,4 @@ DataSet.prototype._appendRow = function (dataTable, columns, item) {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    exports.DataSet = DataSet;
-}
+vis.DataSet = DataSet;

@@ -116,9 +116,4 @@ Component.prototype.on = function (event, callback) {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    if (!('component' in exports)) {
-        exports.component = {};
-    }
-    exports.component.Component = Component;
-}
+vis.component.Component = Component;

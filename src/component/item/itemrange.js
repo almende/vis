@@ -20,9 +20,6 @@ function ItemRange (parent, data, options) {
 
 ItemRange.prototype = new Item (null, null);
 
-// register the ItemBox in the item types
-itemTypes['range'] = ItemRange;
-
 /**
  * Select the item
  * @override
@@ -219,12 +216,4 @@ ItemRange.prototype.reposition = function () {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    if (!('component' in exports)) {
-        exports.component = {};
-    }
-    if (!('item' in exports.component)) {
-        exports.component.item = {};
-    }
-    exports.component.item.ItemRange = ItemRange;
-}
+vis.component.item.range = ItemRange;

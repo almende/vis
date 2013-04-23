@@ -200,9 +200,4 @@ RootPanel.prototype._updateEventEmitters = function () {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    if (!('component' in exports)) {
-        exports.component = {};
-    }
-    exports.component.RootPanel = RootPanel;
-}
+vis.component.RootPanel = RootPanel;

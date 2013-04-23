@@ -157,6 +157,4 @@ Stack.prototype.collision = function(a, b, margin) {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    exports.Stack = Stack;
-}
+vis.Stack = Stack;

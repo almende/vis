@@ -140,6 +140,4 @@ Timeline.prototype.setData = function(data) {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    exports.Timeline = Timeline;
-}
+vis.Timeline = Timeline;

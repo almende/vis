@@ -25,9 +25,6 @@ function ItemPoint (parent, data, options) {
 
 ItemPoint.prototype = new Item (null, null);
 
-// register the ItemPoint in the item types
-itemTypes['point'] = ItemPoint;
-
 /**
  * Select the item
  * @override
@@ -209,12 +206,4 @@ ItemPoint.prototype.reposition = function () {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    if (!('component' in exports)) {
-        exports.component = {};
-    }
-    if (!('item' in exports.component)) {
-        exports.component.item = {};
-    }
-    exports.component.item.ItemPoint = ItemPoint;
-}
+vis.component.item.point = ItemPoint;

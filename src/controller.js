@@ -138,7 +138,5 @@ Controller.prototype.reflow = function () {
     // TODO: limit the number of nested reflows/repaints, prevent loop
 };
 
-// export
-if (typeof exports !== 'undefined') {
-    exports.Controller = Controller;
-}
+// exports
+vis.Controller = Controller;

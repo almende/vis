@@ -1,3 +1,9 @@
+// Define namespace vis
+var vis = {
+    component: {
+        item: {}
+    }
+};
 
 /**
  * load css from text
@@ -26,24 +32,26 @@ var loadCss = function (css) {
 /**
  * Define CommonJS module exports when not available
  */
-if (typeof exports === 'undefined') {
-    var exports = {};
+if (typeof exports !== 'undefined') {
+    exports = vis;
 }
-if (typeof module === 'undefined') {
-    var module = {
-        exports: exports
-    };
+if (typeof module !== 'undefined') {
+    module.exports = vis;
 }
 
 /**
  * AMD module exports
  */
-if (typeof(require) != 'undefined' && typeof(define) != 'undefined') {
+if (typeof(define) === 'function') {
     define(function () {
-        return exports;
+        return vis;
     });
 }
-else {
+
+/**
+ * Window exports
+ */
+if (typeof window !== 'undefined') {
     // attach the module to the window, load as a regular javascript file
-    window['vis'] = exports;
+    window['vis'] = vis;
 }

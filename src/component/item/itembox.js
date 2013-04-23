@@ -28,9 +28,6 @@ function ItemBox (parent, data, options) {
 
 ItemBox.prototype = new Item (null, null);
 
-// register the ItemBox in the item types
-itemTypes['box'] = ItemBox;
-
 /**
  * Select the item
  * @override
@@ -269,12 +266,4 @@ ItemBox.prototype.reposition = function () {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    if (!('component' in exports)) {
-        exports.component = {};
-    }
-    if (!('item' in exports.component)) {
-        exports.component.item = {};
-    }
-    exports.component.item.ItemBox = ItemBox;
-}
+vis.component.item.box = ItemBox;

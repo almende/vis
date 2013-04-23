@@ -524,9 +524,4 @@ TimeAxis.prototype._updateConversion = function() {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    if (!('component' in exports)) {
-        exports.component = {};
-    }
-    exports.component.TimeAxis = TimeAxis;
-}
+vis.component.TimeAxis = TimeAxis;

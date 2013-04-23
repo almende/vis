@@ -160,7 +160,7 @@ ItemSet.prototype.repaint = function () {
                 var type = itemData.type ||
                     (itemData.start && itemData.end && 'range') ||
                     'box';
-                var constructor = itemTypes[type];
+                var constructor = vis.component.item[type];
 
                 // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
                 if (item) {
@@ -442,9 +442,4 @@ ItemSet.prototype.toScreen = function(time) {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    if (!('component' in exports)) {
-        exports.component = {};
-    }
-    exports.component.ItemSet = ItemSet;
-}
+vis.component.ItemSet = ItemSet;

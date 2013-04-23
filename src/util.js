@@ -764,6 +764,4 @@ if(!Array.isArray) {
 
 
 // export
-if (typeof exports !== 'undefined') {
-    exports.util = util;
-}
+vis.util = util;

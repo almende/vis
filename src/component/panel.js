@@ -101,9 +101,4 @@ Panel.prototype.reflow = function () {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    if (!('component' in exports)) {
-        exports.component = {};
-    }
-    exports.component.Panel = Panel;
-}
+vis.component.Panel = Panel;

@@ -24,6 +24,12 @@
  */
 
 (function () { 
+// Define namespace vis
+var vis = {
+    component: {
+        item: {}
+    }
+};
 
 /**
  * load css from text
@@ -52,26 +58,28 @@ var loadCss = function (css) {
 /**
  * Define CommonJS module exports when not available
  */
-if (typeof exports === 'undefined') {
-    var exports = {};
+if (typeof exports !== 'undefined') {
+    exports = vis;
 }
-if (typeof module === 'undefined') {
-    var module = {
-        exports: exports
-    };
+if (typeof module !== 'undefined') {
+    module.exports = vis;
 }
 
 /**
  * AMD module exports
  */
-if (typeof(require) != 'undefined' && typeof(define) != 'undefined') {
+if (typeof(define) === 'function') {
     define(function () {
-        return exports;
+        return vis;
     });
 }
-else {
+
+/**
+ * Window exports
+ */
+if (typeof window !== 'undefined') {
     // attach the module to the window, load as a regular javascript file
-    window['vis'] = exports;
+    window['vis'] = vis;
 }
 
 
@@ -840,9 +848,7 @@ if(!Array.isArray) {
 
 
 // export
-if (typeof exports !== 'undefined') {
-    exports.util = util;
-}
+vis.util = util;
 
 
 /**
@@ -962,9 +968,7 @@ var events = {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    exports.events = events;
-}
+vis.events = events;
 
 /**
  * @constructor  TimeStep
@@ -1418,9 +1422,7 @@ TimeStep.prototype.getLabelMajor = function(date) {
 };
 
 // export
-if (typeof exports !== 'undefined') {
-    exports.TimeStep = TimeStep;
-}
+vis.TimeStep = TimeStep;
 
 /**
  * DataSet
@@ -1971,9 +1973,7 @@ DataSet.prototype._appendRow = function (dataTable, columns, item) {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    exports.DataSet = DataSet;
-}
+vis.DataSet = DataSet;
 
 /**
  * @constructor Stack
@@ -2134,9 +2134,7 @@ Stack.prototype.collision = function(a, b, margin) {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    exports.Stack = Stack;
-}
+vis.Stack = Stack;
 
 /**
  * @constructor Range
@@ -2664,9 +2662,7 @@ Range.prototype.move = function(moveFactor) {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    exports.Range = Range;
-}
+vis.Range = Range;
 
 /**
  * @constructor Controller
@@ -2808,10 +2804,8 @@ Controller.prototype.reflow = function () {
     // TODO: limit the number of nested reflows/repaints, prevent loop
 };
 
-// export
-if (typeof exports !== 'undefined') {
-    exports.Controller = Controller;
-}
+// exports
+vis.Controller = Controller;
 
 /**
  * Prototype for visual components
@@ -2931,12 +2925,7 @@ Component.prototype.on = function (event, callback) {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    if (!('component' in exports)) {
-        exports.component = {};
-    }
-    exports.component.Component = Component;
-}
+vis.component.Component = Component;
 
 /**
  * A panel can contain components
@@ -3041,12 +3030,7 @@ Panel.prototype.reflow = function () {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    if (!('component' in exports)) {
-        exports.component = {};
-    }
-    exports.component.Panel = Panel;
-}
+vis.component.Panel = Panel;
 
 /**
  * A root panel can hold components. The root panel must be initialized with
@@ -3250,12 +3234,7 @@ RootPanel.prototype._updateEventEmitters = function () {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    if (!('component' in exports)) {
-        exports.component = {};
-    }
-    exports.component.RootPanel = RootPanel;
-}
+vis.component.RootPanel = RootPanel;
 
 /**
  * A horizontal time axis
@@ -3783,12 +3762,7 @@ TimeAxis.prototype._updateConversion = function() {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    if (!('component' in exports)) {
-        exports.component = {};
-    }
-    exports.component.TimeAxis = TimeAxis;
-}
+vis.component.TimeAxis = TimeAxis;
 
 /**
  * An ItemSet holds a set of items and ranges which can be displayed in a
@@ -3952,7 +3926,7 @@ ItemSet.prototype.repaint = function () {
                 var type = itemData.type ||
                     (itemData.start && itemData.end && 'range') ||
                     'box';
-                var constructor = itemTypes[type];
+                var constructor = vis.component.item[type];
 
                 // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
                 if (item) {
@@ -4234,12 +4208,7 @@ ItemSet.prototype.toScreen = function(time) {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    if (!('component' in exports)) {
-        exports.component = {};
-    }
-    exports.component.ItemSet = ItemSet;
-}
+vis.component.ItemSet = ItemSet;
 
 
 /**
@@ -4275,19 +4244,8 @@ Item.prototype.unselect = function () {
     this.selected = false;
 };
 
-// create a namespace for all item types
-var itemTypes = {};
-
 // exports
-if (typeof exports !== 'undefined') {
-    if (!('component' in exports)) {
-        exports.component = {};
-    }
-    if (!('item' in exports.component)) {
-        exports.component.item = {};
-    }
-    exports.component.item.Item = Item;
-}
+vis.component.item.Item = Item;
 
 /**
  * @constructor ItemBox
@@ -4318,9 +4276,6 @@ function ItemBox (parent, data, options) {
 }
 
 ItemBox.prototype = new Item (null, null);
-
-// register the ItemBox in the item types
-itemTypes['box'] = ItemBox;
 
 /**
  * Select the item
@@ -4560,15 +4515,7 @@ ItemBox.prototype.reposition = function () {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    if (!('component' in exports)) {
-        exports.component = {};
-    }
-    if (!('item' in exports.component)) {
-        exports.component.item = {};
-    }
-    exports.component.item.ItemBox = ItemBox;
-}
+vis.component.item.box = ItemBox;
 
 /**
  * @constructor ItemPoint
@@ -4596,9 +4543,6 @@ function ItemPoint (parent, data, options) {
 }
 
 ItemPoint.prototype = new Item (null, null);
-
-// register the ItemPoint in the item types
-itemTypes['point'] = ItemPoint;
 
 /**
  * Select the item
@@ -4781,15 +4725,7 @@ ItemPoint.prototype.reposition = function () {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    if (!('component' in exports)) {
-        exports.component = {};
-    }
-    if (!('item' in exports.component)) {
-        exports.component.item = {};
-    }
-    exports.component.item.ItemPoint = ItemPoint;
-}
+vis.component.item.point = ItemPoint;
 
 /**
  * @constructor ItemRange
@@ -4812,9 +4748,6 @@ function ItemRange (parent, data, options) {
 }
 
 ItemRange.prototype = new Item (null, null);
-
-// register the ItemBox in the item types
-itemTypes['range'] = ItemRange;
 
 /**
  * Select the item
@@ -5012,15 +4945,7 @@ ItemRange.prototype.reposition = function () {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    if (!('component' in exports)) {
-        exports.component = {};
-    }
-    if (!('item' in exports.component)) {
-        exports.component.item = {};
-    }
-    exports.component.item.ItemRange = ItemRange;
-}
+vis.component.item.range = ItemRange;
 
 /**
  * Create a timeline visualization
@@ -5164,9 +5089,7 @@ Timeline.prototype.setData = function(data) {
 };
 
 // exports
-if (typeof exports !== 'undefined') {
-    exports.Timeline = Timeline;
-}
+vis.Timeline = Timeline;
 
 // moment.js
 // version : 2.0.0
