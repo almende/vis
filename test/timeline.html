@@ -39,6 +39,24 @@
 
 </head>
 <body>
+
+    <div>
+        <label for="orientation">Orientation</label>
+        <select id="orientation">
+            <option value="top">top</option>
+            <option value="bottom" selected>bottom</option>
+        </select>
+    </div>
+    <script>
+        var orientation = document.getElementById('orientation');
+        orientation.onchange = function () {
+            timeline.setOptions({
+                orientation: orientation.value
+            });
+        };
+    </script>
+    <br>
+
     <div id="visualization"></div>
 
     <script>
