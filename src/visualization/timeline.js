@@ -50,7 +50,7 @@ function Timeline (container, data, options) {
     // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
 
     // time axis
-    this.timeaxis = new TimeAxis(this.main, null, {
+    this.timeaxis = new TimeAxis(this.main, [], {
         orientation: this.options.orientation,
         range: this.range
     });
@@ -62,12 +62,12 @@ function Timeline (container, data, options) {
         orientation: this.options.orientation
     });
     this.itemset.setRange(this.range);
+    this.controller.add(this.itemset);
 
     // set data
     if (data) {
         this.setData(data);
     }
-    this.controller.add(this.itemset);
 
     this.setOptions(options);
 }

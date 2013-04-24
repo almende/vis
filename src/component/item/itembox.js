@@ -86,7 +86,7 @@ ItemBox.prototype.repaint = function () {
                 changed = true;
             }
             if (!dom.dot.parentNode) {
-                foreground.appendChild(dom.dot);
+                this.parent.dom.axis.appendChild(dom.dot);
                 changed = true;
             }
 

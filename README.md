@@ -97,7 +97,7 @@ of the project.
         {id: 6, content: 'item 6', start: '2013-04-27'}
     ];
     var options = {};
-    var timeline = new Timeline(container, data, options);
+    var timeline = new vis.Timeline(container, data, options);
 </script>
 </body>
 </html>

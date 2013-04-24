@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.0.5
- * @date    2013-04-23
+ * @date    2013-04-24
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -598,6 +598,24 @@ util.option.asBoolean = function (value, defaultValue) {
 
     if (value != null) {
         return (value != false);
+    }
+
+    return defaultValue || null;
+};
+
+/**
+ * Cast a value as number
+ * @param {Boolean | function | undefined} value
+ * @param {Number} [defaultValue]
+ * @returns {Number} number
+ */
+util.option.asNumber = function (value, defaultValue) {
+    if (typeof value == 'function') {
+        value = value();
+    }
+
+    if (value != null) {
+        return Number(value);
     }
 
     return defaultValue || null;
@@ -3896,25 +3914,40 @@ ItemSet.prototype.repaint = function () {
         frame.appendChild(foreground);
         this.dom.foreground = foreground;
 
+        // create axis panel
+        var axis = document.createElement('div');
+        axis.className = 'itemset-axis';
+        //frame.appendChild(axis);
+        this.dom.axis = axis;
+
         this.frame = frame;
         changed += 1;
     }
+
+    if (!this.parent) {
+        throw new Error('Cannot repaint itemset: no parent attached');
+    }
+    var parentContainer = this.parent.getContainer();
+    if (!parentContainer) {
+        throw new Error('Cannot repaint itemset: parent has no container element');
+    }
     if (!frame.parentNode) {
-        if (!this.parent) {
-            throw new Error('Cannot repaint itemset: no parent attached');
-        }
-        var parentContainer = this.parent.getContainer();
-        if (!parentContainer) {
-            throw new Error('Cannot repaint itemset: parent has no container element');
-        }
         parentContainer.appendChild(frame);
         changed += 1;
     }
+    if (!this.dom.axis.parentNode) {
+        parentContainer.appendChild(this.dom.axis);
+        changed += 1;
+    }
 
+    // reposition frame
     changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
     changed += update(frame.style, 'top',    asSize(options.top, '0px'));
     changed += update(frame.style, 'left',   asSize(options.left, '0px'));
     changed += update(frame.style, 'width',  asSize(options.width, '100%'));
+
+    // reposition axis
+    changed += update(this.dom.axis.style, 'top', asSize(options.top, '0px'));
 
     this._updateConversion();
 
@@ -4022,6 +4055,7 @@ ItemSet.prototype.reflow = function () {
     var changed = 0,
         options = this.options,
         update = util.updateProperty,
+        asNumber = util.option.asNumber,
         frame = this.frame;
 
     if (frame) {
@@ -4035,26 +4069,37 @@ ItemSet.prototype.reflow = function () {
         // TODO: only update the stack when there are changed items
         this.stack.update();
 
+        var maxHeight = asNumber(options.maxHeight);
+        var height;
         if (options.height != null) {
-            changed += update(this, 'height', frame.offsetHeight);
+            height = frame.offsetHeight;
+            if (maxHeight != null) {
+                height = Math.min(height, maxHeight);
+            }
+            changed += update(this, 'height', height);
         }
         else {
             // height is not specified, determine the height from the height and positioned items
             var frameHeight = this.height;
-            var maxHeight = 0;
+            height = 0;
             if (options.orientation == 'top') {
                 util.forEach(this.items, function (item) {
-                    maxHeight = Math.max(maxHeight, item.top + item.height);
+                    height = Math.max(height, item.top + item.height);
                 });
             }
             else {
                 // orientation == 'bottom'
                 util.forEach(this.items, function (item) {
-                    maxHeight = Math.max(maxHeight, frameHeight - item.top);
+                    height = Math.max(height, frameHeight - item.top);
                 });
             }
+            height += options.margin.axis;
 
-            changed += update(this, 'height', maxHeight + options.margin.axis);
+            if (maxHeight != null) {
+                height = Math.min(height, maxHeight);
+            }
+
+            changed += update(this, 'height', height);
         }
 
         // calculate height from items
@@ -4365,7 +4410,7 @@ ItemBox.prototype.repaint = function () {
                 changed = true;
             }
             if (!dom.dot.parentNode) {
-                foreground.appendChild(dom.dot);
+                this.parent.dom.axis.appendChild(dom.dot);
                 changed = true;
             }
 
@@ -5038,7 +5083,7 @@ function Timeline (container, data, options) {
     // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
 
     // time axis
-    this.timeaxis = new TimeAxis(this.main, null, {
+    this.timeaxis = new TimeAxis(this.main, [], {
         orientation: this.options.orientation,
         range: this.range
     });
@@ -5050,12 +5095,12 @@ function Timeline (container, data, options) {
         orientation: this.options.orientation
     });
     this.itemset.setRange(this.range);
+    this.controller.add(this.itemset);
 
     // set data
     if (data) {
         this.setData(data);
     }
-    this.controller.add(this.itemset);
 
     this.setOptions(options);
 }
@@ -6531,5 +6576,5 @@ vis.Timeline = Timeline;
     }
 }).call(this);
 
-loadCss("/* vis.js stylesheet */\n\n.graph {\n    position: relative;\n    border: 1px solid #bfbfbf;\n}\n\n.graph .panel {\n    position: absolute;\n}\n\n.graph .itemset {\n    position: absolute;\n}\n\n.graph .background {\n}\n\n.graph .foreground {\n}\n\n\n.graph .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.graph .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.graph .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.graph .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.graph .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.graph .item.point {\n    background: none;\n}\n\n.graph .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range {\n    overflow: hidden;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .content {\n    position: relative;\n    display: inline-block;\n}\n\n.graph .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n}\n\n.graph .item .content {\n    margin: 5px;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n/* TODO: better css name, 'graph' is way to generic */\n\n.graph {\n    overflow: hidden;\n}\n\n.graph .axis {\n    position: relative;\n}\n\n.graph .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.graph .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.graph .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.graph .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.graph .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.graph .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n");
+loadCss("/* vis.js stylesheet */\n\n.graph {\n    position: relative;\n    border: 1px solid #bfbfbf;\n}\n\n.graph .panel {\n    position: absolute;\n}\n\n.graph .itemset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n    overflow: hidden;\n}\n\n.graph .background {\n}\n\n.graph .foreground {\n}\n\n.graph .itemset-axis {\n    position: absolute;\n}\n\n.graph .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.graph .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.graph .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.graph .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.graph .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.graph .item.point {\n    background: none;\n}\n\n.graph .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range {\n    overflow: hidden;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .content {\n    position: relative;\n    display: inline-block;\n}\n\n.graph .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n}\n\n.graph .item .content {\n    margin: 5px;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n/* TODO: better css name, 'graph' is way to generic */\n\n.graph {\n    overflow: hidden;\n}\n\n.graph .axis {\n    position: relative;\n}\n\n.graph .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.graph .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.graph .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.graph .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.graph .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.graph .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n");
 })();

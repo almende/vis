@@ -520,6 +520,24 @@ util.option.asBoolean = function (value, defaultValue) {
 };
 
 /**
+ * Cast a value as number
+ * @param {Boolean | function | undefined} value
+ * @param {Number} [defaultValue]
+ * @returns {Number} number
+ */
+util.option.asNumber = function (value, defaultValue) {
+    if (typeof value == 'function') {
+        value = value();
+    }
+
+    if (value != null) {
+        return Number(value);
+    }
+
+    return defaultValue || null;
+};
+
+/**
  * Cast a value as string
  * @param {String | function | undefined} value
  * @param {String} [defaultValue]

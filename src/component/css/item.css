@@ -1,6 +1,9 @@
 
 .graph .itemset {
     position: absolute;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
 }
 
 .graph .background {
@@ -9,6 +12,9 @@
 .graph .foreground {
 }
 
+.graph .itemset-axis {
+    position: absolute;
+}
 
 .graph .item {
     position: absolute;

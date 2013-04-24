@@ -130,25 +130,40 @@ ItemSet.prototype.repaint = function () {
         frame.appendChild(foreground);
         this.dom.foreground = foreground;
 
+        // create axis panel
+        var axis = document.createElement('div');
+        axis.className = 'itemset-axis';
+        //frame.appendChild(axis);
+        this.dom.axis = axis;
+
         this.frame = frame;
         changed += 1;
     }
+
+    if (!this.parent) {
+        throw new Error('Cannot repaint itemset: no parent attached');
+    }
+    var parentContainer = this.parent.getContainer();
+    if (!parentContainer) {
+        throw new Error('Cannot repaint itemset: parent has no container element');
+    }
     if (!frame.parentNode) {
-        if (!this.parent) {
-            throw new Error('Cannot repaint itemset: no parent attached');
-        }
-        var parentContainer = this.parent.getContainer();
-        if (!parentContainer) {
-            throw new Error('Cannot repaint itemset: parent has no container element');
-        }
         parentContainer.appendChild(frame);
         changed += 1;
     }
+    if (!this.dom.axis.parentNode) {
+        parentContainer.appendChild(this.dom.axis);
+        changed += 1;
+    }
 
+    // reposition frame
     changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
     changed += update(frame.style, 'top',    asSize(options.top, '0px'));
     changed += update(frame.style, 'left',   asSize(options.left, '0px'));
     changed += update(frame.style, 'width',  asSize(options.width, '100%'));
+
+    // reposition axis
+    changed += update(this.dom.axis.style, 'top', asSize(options.top, '0px'));
 
     this._updateConversion();
 
@@ -256,6 +271,7 @@ ItemSet.prototype.reflow = function () {
     var changed = 0,
         options = this.options,
         update = util.updateProperty,
+        asNumber = util.option.asNumber,
         frame = this.frame;
 
     if (frame) {
@@ -269,26 +285,37 @@ ItemSet.prototype.reflow = function () {
         // TODO: only update the stack when there are changed items
         this.stack.update();
 
+        var maxHeight = asNumber(options.maxHeight);
+        var height;
         if (options.height != null) {
-            changed += update(this, 'height', frame.offsetHeight);
+            height = frame.offsetHeight;
+            if (maxHeight != null) {
+                height = Math.min(height, maxHeight);
+            }
+            changed += update(this, 'height', height);
         }
         else {
             // height is not specified, determine the height from the height and positioned items
             var frameHeight = this.height;
-            var maxHeight = 0;
+            height = 0;
             if (options.orientation == 'top') {
                 util.forEach(this.items, function (item) {
-                    maxHeight = Math.max(maxHeight, item.top + item.height);
+                    height = Math.max(height, item.top + item.height);
                 });
             }
             else {
                 // orientation == 'bottom'
                 util.forEach(this.items, function (item) {
-                    maxHeight = Math.max(maxHeight, frameHeight - item.top);
+                    height = Math.max(height, frameHeight - item.top);
                 });
             }
+            height += options.margin.axis;
 
-            changed += update(this, 'height', maxHeight + options.margin.axis);
+            if (maxHeight != null) {
+                height = Math.min(height, maxHeight);
+            }
+
+            changed += update(this, 'height', height);
         }
 
         // calculate height from items
