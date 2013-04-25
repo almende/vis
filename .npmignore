@@ -1,6 +1,7 @@
 node_modules
 src
 test
+tools
 .idea
 component.json
 Jakefile.js

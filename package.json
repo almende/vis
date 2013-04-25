@@ -25,9 +25,9 @@
     },
     "dependencies": {},
     "devDependencies": {
-        "jake": ">= 0.5.9",
-        "jake-utils": ">= 0.0.18",
-        "uglify-js": ">= 2.2.5",
+        "jake": "latest",
+        "jake-utils": "latest",
+        "node-watch": "latest",
         "moment": "latest"
     }
 }

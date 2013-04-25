@@ -3,13 +3,39 @@
 <head>
     <title></title>
     <script>
-        function require() {}
+        var baseUrl = '../src/';
+
+        var modules = [
+            '../node_modules/moment/moment.js',
+
+            'util.js',
+            'events.js',
+            'timestep.js',
+            'dataset.js',
+            'stack.js',
+            'controller.js',
+            'range.js',
+
+            'component/component.js',
+            'component/panel.js',
+            'component/rootpanel.js',
+            'component/timeaxis.js',
+            'component/itemset.js',
+            'component/item/item.js',
+            'component/item/itembox.js',
+            'component/item/itemrange.js',
+            'component/item/itempoint.js',
+
+            'visualization/timeline.js'
+        ];
+
+        function require(name) {
+
+        }
         var module = {
             exports: {}
         };
-        var exports = module.exports;
     </script>
-    <script src="../lib/moment.min.js"></script>
     <script src="../src/module.js"></script>
     <script src="../src/util.js"></script>
     <script src="../src/events.js"></script>

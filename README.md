@@ -12,6 +12,10 @@ the Common Hybrid Agent Platform, developed by [Almende B.V](http://almende.com)
 
 ## Install
 
+Install via npm:
+
+    npm install vis
+
 Install via bower:
 
     bower install vis

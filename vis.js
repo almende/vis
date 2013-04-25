@@ -56,7 +56,7 @@ var vis = {
 
 module.exports = exports = vis;
 
-},{"./dataset":2,"./events":3,"./controller":4,"./range":5,"./stack":6,"./timestep":7,"./util":8,"./component/component":9,"./component/rootpanel":10,"./component/panel":11,"./component/itemset":12,"./component/timeaxis":13,"./visualization/timeline":14}],3:[function(require,module,exports){
+},{"./controller":2,"./dataset":3,"./events":4,"./range":5,"./stack":6,"./timestep":7,"./util":8,"./component/component":9,"./component/panel":10,"./component/rootpanel":11,"./component/itemset":12,"./component/timeaxis":13,"./visualization/timeline":14}],4:[function(require,module,exports){
 /**
  * Event listener (singleton)
  */
@@ -177,8 +177,9 @@ var events = {
 module.exports = exports = events;
 
 },{}],8:[function(require,module,exports){
-
-// create namespace
+/**
+ * utility functions
+ */
 var util = {};
 
 /**
@@ -962,7 +963,7 @@ if(!Array.isArray) {
 // exports
 module.exports = exports = util;
 
-},{}],4:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 var util = require('./util'),
     Component = require('./component/component');
 
@@ -1110,7 +1111,7 @@ Controller.prototype.reflow = function () {
 module.exports = exports = Controller;
 
 
-},{"./util":8,"./component/component":9}],2:[function(require,module,exports){
+},{"./util":8,"./component/component":9}],3:[function(require,module,exports){
 var util = require('./util');
 
 /**
@@ -2196,7 +2197,7 @@ Range.prototype.move = function(moveFactor) {
 // exports
 module.exports = exports = Range;
 
-},{"./util":8,"./events":3}],6:[function(require,module,exports){
+},{"./util":8,"./events":4}],6:[function(require,module,exports){
 var util = require('./util');
 
 /**
@@ -2483,7 +2484,7 @@ Component.prototype.on = function (event, callback) {
 // exports
 module.exports = exports = Component;
 
-},{"./../util":8}],11:[function(require,module,exports){
+},{"./../util":8}],10:[function(require,module,exports){
 var util = require('../util'),
     Component = require('./component');
 
@@ -2592,7 +2593,7 @@ Panel.prototype.reflow = function () {
 // exports
 module.exports = exports = Panel;
 
-},{"../util":8,"./component":9}],10:[function(require,module,exports){
+},{"../util":8,"./component":9}],11:[function(require,module,exports){
 var util = require('../util'),
     Panel = require('./panel');
 
@@ -2800,7 +2801,7 @@ RootPanel.prototype._updateEventEmitters = function () {
 // exports
 module.exports = exports = RootPanel;
 
-},{"../util":8,"./panel":11}],12:[function(require,module,exports){
+},{"./panel":10,"../util":8}],12:[function(require,module,exports){
 var util = require('../util'),
     DataSet = require('../dataset'),
     Panel = require('./panel'),
@@ -3319,7 +3320,7 @@ ItemSet.prototype.toScreen = function(time) {
 // exports
 module.exports = exports = ItemSet;
 
-},{"../util":8,"../dataset":2,"./panel":11,"../stack":6,"./item/itembox":15,"./item/itemrange":16,"./item/itempoint":17}],13:[function(require,module,exports){
+},{"../util":8,"../dataset":3,"./panel":10,"../stack":6,"./item/itembox":15,"./item/itemrange":16,"./item/itempoint":17}],13:[function(require,module,exports){
 var util = require('../util'),
     TimeStep = require('../timestep'),
     Component = require('./component');
@@ -4590,7 +4591,7 @@ ItemBox.prototype.reposition = function () {
 // exports
 module.exports = exports = ItemBox;
 
-},{"./item":19,"../../util":8}],16:[function(require,module,exports){
+},{"../../util":8,"./item":19}],16:[function(require,module,exports){
 var util = require('../../util'),
     Item = require('./item');
 
@@ -6588,7 +6589,7 @@ Timeline.prototype.setData = function(data) {
 // exports
 module.exports = exports = Timeline;
 
-},{"./../util":8,"../range":5,"../controller":4,"../component/component":9,"../component/rootpanel":10,"../component/timeaxis":13,"../component/itemset":12,"moment":18}],19:[function(require,module,exports){
+},{"./../util":8,"../range":5,"../controller":2,"../component/component":9,"../component/rootpanel":11,"../component/timeaxis":13,"../component/itemset":12,"moment":18}],19:[function(require,module,exports){
 var Component = require('../component');
 
 /**

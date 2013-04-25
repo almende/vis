@@ -11,6 +11,7 @@
         "node_modules",
         "src",
         "test",
+        "tools",
         ".idea",
         "Jakefile.js",
         "package.json",

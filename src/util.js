@@ -1,5 +1,6 @@
-
-// create namespace
+/**
+ * utility functions
+ */
 var util = {};
 
 /**
