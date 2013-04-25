@@ -4,7 +4,7 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.0.6
+ * @version 0.0.7
  * @date    2013-04-25
  *
  * @license
@@ -56,7 +56,7 @@ var vis = {
 
 module.exports = exports = vis;
 
-},{"./controller":2,"./range":3,"./dataset":4,"./events":5,"./stack":6,"./util":7,"./timestep":8,"./component/component":9,"./component/panel":10,"./component/rootpanel":11,"./component/itemset":12,"./component/timeaxis":13,"./visualization/timeline":14}],5:[function(require,module,exports){
+},{"./dataset":2,"./events":3,"./controller":4,"./range":5,"./stack":6,"./timestep":7,"./util":8,"./component/component":9,"./component/rootpanel":10,"./component/panel":11,"./component/itemset":12,"./component/timeaxis":13,"./visualization/timeline":14}],3:[function(require,module,exports){
 /**
  * Event listener (singleton)
  */
@@ -176,7 +176,7 @@ var events = {
 // exports
 module.exports = exports = events;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 
 // create namespace
 var util = {};
@@ -962,7 +962,7 @@ if(!Array.isArray) {
 // exports
 module.exports = exports = util;
 
-},{}],2:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 var util = require('./util'),
     Component = require('./component/component');
 
@@ -1110,7 +1110,7 @@ Controller.prototype.reflow = function () {
 module.exports = exports = Controller;
 
 
-},{"./util":7,"./component/component":9}],4:[function(require,module,exports){
+},{"./util":8,"./component/component":9}],2:[function(require,module,exports){
 var util = require('./util');
 
 /**
@@ -1664,7 +1664,7 @@ DataSet.prototype._appendRow = function (dataTable, columns, item) {
 // exports
 module.exports = exports = DataSet;
 
-},{"./util":7}],3:[function(require,module,exports){
+},{"./util":8}],5:[function(require,module,exports){
 var util = require('./util'),
     events = require('./events');
 
@@ -2196,7 +2196,7 @@ Range.prototype.move = function(moveFactor) {
 // exports
 module.exports = exports = Range;
 
-},{"./util":7,"./events":5}],6:[function(require,module,exports){
+},{"./util":8,"./events":3}],6:[function(require,module,exports){
 var util = require('./util');
 
 /**
@@ -2360,7 +2360,7 @@ Stack.prototype.collision = function(a, b, margin) {
 // exports
 module.exports = exports = Stack;
 
-},{"./util":7}],9:[function(require,module,exports){
+},{"./util":8}],9:[function(require,module,exports){
 var util = require('./../util');
 
 /**
@@ -2483,7 +2483,7 @@ Component.prototype.on = function (event, callback) {
 // exports
 module.exports = exports = Component;
 
-},{"./../util":7}],10:[function(require,module,exports){
+},{"./../util":8}],11:[function(require,module,exports){
 var util = require('../util'),
     Component = require('./component');
 
@@ -2592,7 +2592,7 @@ Panel.prototype.reflow = function () {
 // exports
 module.exports = exports = Panel;
 
-},{"../util":7,"./component":9}],11:[function(require,module,exports){
+},{"../util":8,"./component":9}],10:[function(require,module,exports){
 var util = require('../util'),
     Panel = require('./panel');
 
@@ -2800,7 +2800,7 @@ RootPanel.prototype._updateEventEmitters = function () {
 // exports
 module.exports = exports = RootPanel;
 
-},{"../util":7,"./panel":10}],12:[function(require,module,exports){
+},{"../util":8,"./panel":11}],12:[function(require,module,exports){
 var util = require('../util'),
     DataSet = require('../dataset'),
     Panel = require('./panel'),
@@ -3319,7 +3319,7 @@ ItemSet.prototype.toScreen = function(time) {
 // exports
 module.exports = exports = ItemSet;
 
-},{"../dataset":4,"../util":7,"./panel":10,"../stack":6,"./item/itembox":15,"./item/itemrange":16,"./item/itempoint":17}],13:[function(require,module,exports){
+},{"../util":8,"../dataset":2,"./panel":11,"../stack":6,"./item/itembox":15,"./item/itemrange":16,"./item/itempoint":17}],13:[function(require,module,exports){
 var util = require('../util'),
     TimeStep = require('../timestep'),
     Component = require('./component');
@@ -3852,7 +3852,7 @@ TimeAxis.prototype._updateConversion = function() {
 // exports
 module.exports = exports = TimeAxis;
 
-},{"../util":7,"../timestep":8,"./component":9}],8:[function(require,module,exports){
+},{"../util":8,"../timestep":7,"./component":9}],7:[function(require,module,exports){
 var util = require('./util'),
     moment = require('moment');
 
@@ -4310,232 +4310,7 @@ TimeStep.prototype.getLabelMajor = function(date) {
 // exports
 module.exports = exports = TimeStep;
 
-},{"./util":7,"moment":18}],16:[function(require,module,exports){
-var util = require('../../util'),
-    Item = require('./item');
-
-/**
- * @constructor ItemRange
- * @extends Item
- * @param {ItemSet} parent
- * @param {Object} data       Object containing parameters start, end
- *                            content, className.
- * @param {Object} [options]  Options to set initial property values
- *                            // TODO: describe available options
- */
-function ItemRange (parent, data, options) {
-    this.props = {
-        content: {
-            left: 0,
-            width: 0
-        }
-    };
-
-    Item.call(this, parent, data, options);
-}
-
-ItemRange.prototype = new Item (null, null);
-
-/**
- * Select the item
- * @override
- */
-ItemRange.prototype.select = function () {
-    this.selected = true;
-    // TODO: select and unselect
-};
-
-/**
- * Unselect the item
- * @override
- */
-ItemRange.prototype.unselect = function () {
-    this.selected = false;
-    // TODO: select and unselect
-};
-
-/**
- * Repaint the item
- * @return {Boolean} changed
- */
-ItemRange.prototype.repaint = function () {
-    // TODO: make an efficient repaint
-    var changed = false;
-    var dom = this.dom;
-
-    if (this.visible) {
-        if (!dom) {
-            this._create();
-            changed = true;
-        }
-        dom = this.dom;
-
-        if (dom) {
-            if (!this.options && !this.options.parent) {
-                throw new Error('Cannot repaint item: no parent attached');
-            }
-            var foreground = this.parent.getForeground();
-            if (!foreground) {
-                throw new Error('Cannot repaint time axis: ' +
-                    'parent has no foreground container element');
-            }
-
-            if (!dom.box.parentNode) {
-                foreground.appendChild(dom.box);
-                changed = true;
-            }
-
-            // update content
-            if (this.data.content != this.content) {
-                this.content = this.data.content;
-                if (this.content instanceof Element) {
-                    dom.content.innerHTML = '';
-                    dom.content.appendChild(this.content);
-                }
-                else if (this.data.content != undefined) {
-                    dom.content.innerHTML = this.content;
-                }
-                else {
-                    throw new Error('Property "content" missing in item ' + this.data.id);
-                }
-                changed = true;
-            }
-
-            // update class
-            var className = this.data.className ? ('' + this.data.className) : '';
-            if (this.className != className) {
-                this.className = className;
-                dom.box.className = 'item range' + className;
-                changed = true;
-            }
-        }
-    }
-    else {
-        // hide when visible
-        if (dom) {
-            if (dom.box.parentNode) {
-                dom.box.parentNode.removeChild(dom.box);
-                changed = true;
-            }
-        }
-    }
-
-    return changed;
-};
-
-/**
- * Reflow the item: calculate its actual size from the DOM
- * @return {boolean} resized    returns true if the axis is resized
- * @override
- */
-ItemRange.prototype.reflow = function () {
-    if (this.data.start == undefined) {
-        throw new Error('Property "start" missing in item ' + this.data.id);
-    }
-    if (this.data.end == undefined) {
-        throw new Error('Property "end" missing in item ' + this.data.id);
-    }
-
-    var dom = this.dom,
-        props = this.props,
-        options = this.options,
-        parent = this.parent,
-        start = parent.toScreen(this.data.start),
-        end = parent.toScreen(this.data.end),
-        changed = 0;
-
-    if (dom) {
-        var update = util.updateProperty,
-            box = dom.box,
-            parentWidth = parent.width,
-            orientation = options.orientation,
-            contentLeft,
-            top;
-
-        changed += update(props.content, 'width', dom.content.offsetWidth);
-
-        changed += update(this, 'height', box.offsetHeight);
-
-        // limit the width of the this, as browsers cannot draw very wide divs
-        if (start < -parentWidth) {
-            start = -parentWidth;
-        }
-        if (end > 2 * parentWidth) {
-            end = 2 * parentWidth;
-        }
-
-        // when range exceeds left of the window, position the contents at the left of the visible area
-        if (start < 0) {
-            contentLeft = Math.min(-start,
-                (end - start - props.content.width - 2 * options.padding));
-            // TODO: remove the need for options.padding. it's terrible.
-        }
-        else {
-            contentLeft = 0;
-        }
-        changed += update(props.content, 'left', contentLeft);
-
-        if (orientation == 'top') {
-            top = options.margin.axis;
-            changed += update(this, 'top', top);
-        }
-        else {
-            // default or 'bottom'
-            top = parent.height - this.height - options.margin.axis;
-            changed += update(this, 'top', top);
-        }
-
-        changed += update(this, 'left', start);
-        changed += update(this, 'width', Math.max(end - start, 1)); // TODO: reckon with border width;
-    }
-    else {
-        changed += 1;
-    }
-
-    return (changed > 0);
-};
-
-/**
- * Create an items DOM
- * @private
- */
-ItemRange.prototype._create = function () {
-    var dom = this.dom;
-    if (!dom) {
-        this.dom = dom = {};
-        // background box
-        dom.box = document.createElement('div');
-        // className is updated in repaint()
-
-        // contents box
-        dom.content = document.createElement('div');
-        dom.content.className = 'content';
-        dom.box.appendChild(dom.content);
-    }
-};
-
-/**
- * Reposition the item, recalculate its left, top, and width, using the current
- * range and size of the items itemset
- * @override
- */
-ItemRange.prototype.reposition = function () {
-    var dom = this.dom,
-        props = this.props;
-
-    if (dom) {
-        dom.box.style.top = this.top + 'px';
-        dom.box.style.left = this.left + 'px';
-        dom.box.style.width = this.width + 'px';
-
-        dom.content.style.left = props.content.left + 'px';
-    }
-};
-
-// exports
-module.exports = exports = ItemRange;
-
-},{"../../util":7,"./item":19}],15:[function(require,module,exports){
+},{"./util":8,"moment":18}],15:[function(require,module,exports){
 var util = require('../../util'),
     Item = require('./item');
 
@@ -4815,7 +4590,232 @@ ItemBox.prototype.reposition = function () {
 // exports
 module.exports = exports = ItemBox;
 
-},{"../../util":7,"./item":19}],17:[function(require,module,exports){
+},{"./item":19,"../../util":8}],16:[function(require,module,exports){
+var util = require('../../util'),
+    Item = require('./item');
+
+/**
+ * @constructor ItemRange
+ * @extends Item
+ * @param {ItemSet} parent
+ * @param {Object} data       Object containing parameters start, end
+ *                            content, className.
+ * @param {Object} [options]  Options to set initial property values
+ *                            // TODO: describe available options
+ */
+function ItemRange (parent, data, options) {
+    this.props = {
+        content: {
+            left: 0,
+            width: 0
+        }
+    };
+
+    Item.call(this, parent, data, options);
+}
+
+ItemRange.prototype = new Item (null, null);
+
+/**
+ * Select the item
+ * @override
+ */
+ItemRange.prototype.select = function () {
+    this.selected = true;
+    // TODO: select and unselect
+};
+
+/**
+ * Unselect the item
+ * @override
+ */
+ItemRange.prototype.unselect = function () {
+    this.selected = false;
+    // TODO: select and unselect
+};
+
+/**
+ * Repaint the item
+ * @return {Boolean} changed
+ */
+ItemRange.prototype.repaint = function () {
+    // TODO: make an efficient repaint
+    var changed = false;
+    var dom = this.dom;
+
+    if (this.visible) {
+        if (!dom) {
+            this._create();
+            changed = true;
+        }
+        dom = this.dom;
+
+        if (dom) {
+            if (!this.options && !this.options.parent) {
+                throw new Error('Cannot repaint item: no parent attached');
+            }
+            var foreground = this.parent.getForeground();
+            if (!foreground) {
+                throw new Error('Cannot repaint time axis: ' +
+                    'parent has no foreground container element');
+            }
+
+            if (!dom.box.parentNode) {
+                foreground.appendChild(dom.box);
+                changed = true;
+            }
+
+            // update content
+            if (this.data.content != this.content) {
+                this.content = this.data.content;
+                if (this.content instanceof Element) {
+                    dom.content.innerHTML = '';
+                    dom.content.appendChild(this.content);
+                }
+                else if (this.data.content != undefined) {
+                    dom.content.innerHTML = this.content;
+                }
+                else {
+                    throw new Error('Property "content" missing in item ' + this.data.id);
+                }
+                changed = true;
+            }
+
+            // update class
+            var className = this.data.className ? ('' + this.data.className) : '';
+            if (this.className != className) {
+                this.className = className;
+                dom.box.className = 'item range' + className;
+                changed = true;
+            }
+        }
+    }
+    else {
+        // hide when visible
+        if (dom) {
+            if (dom.box.parentNode) {
+                dom.box.parentNode.removeChild(dom.box);
+                changed = true;
+            }
+        }
+    }
+
+    return changed;
+};
+
+/**
+ * Reflow the item: calculate its actual size from the DOM
+ * @return {boolean} resized    returns true if the axis is resized
+ * @override
+ */
+ItemRange.prototype.reflow = function () {
+    if (this.data.start == undefined) {
+        throw new Error('Property "start" missing in item ' + this.data.id);
+    }
+    if (this.data.end == undefined) {
+        throw new Error('Property "end" missing in item ' + this.data.id);
+    }
+
+    var dom = this.dom,
+        props = this.props,
+        options = this.options,
+        parent = this.parent,
+        start = parent.toScreen(this.data.start),
+        end = parent.toScreen(this.data.end),
+        changed = 0;
+
+    if (dom) {
+        var update = util.updateProperty,
+            box = dom.box,
+            parentWidth = parent.width,
+            orientation = options.orientation,
+            contentLeft,
+            top;
+
+        changed += update(props.content, 'width', dom.content.offsetWidth);
+
+        changed += update(this, 'height', box.offsetHeight);
+
+        // limit the width of the this, as browsers cannot draw very wide divs
+        if (start < -parentWidth) {
+            start = -parentWidth;
+        }
+        if (end > 2 * parentWidth) {
+            end = 2 * parentWidth;
+        }
+
+        // when range exceeds left of the window, position the contents at the left of the visible area
+        if (start < 0) {
+            contentLeft = Math.min(-start,
+                (end - start - props.content.width - 2 * options.padding));
+            // TODO: remove the need for options.padding. it's terrible.
+        }
+        else {
+            contentLeft = 0;
+        }
+        changed += update(props.content, 'left', contentLeft);
+
+        if (orientation == 'top') {
+            top = options.margin.axis;
+            changed += update(this, 'top', top);
+        }
+        else {
+            // default or 'bottom'
+            top = parent.height - this.height - options.margin.axis;
+            changed += update(this, 'top', top);
+        }
+
+        changed += update(this, 'left', start);
+        changed += update(this, 'width', Math.max(end - start, 1)); // TODO: reckon with border width;
+    }
+    else {
+        changed += 1;
+    }
+
+    return (changed > 0);
+};
+
+/**
+ * Create an items DOM
+ * @private
+ */
+ItemRange.prototype._create = function () {
+    var dom = this.dom;
+    if (!dom) {
+        this.dom = dom = {};
+        // background box
+        dom.box = document.createElement('div');
+        // className is updated in repaint()
+
+        // contents box
+        dom.content = document.createElement('div');
+        dom.content.className = 'content';
+        dom.box.appendChild(dom.content);
+    }
+};
+
+/**
+ * Reposition the item, recalculate its left, top, and width, using the current
+ * range and size of the items itemset
+ * @override
+ */
+ItemRange.prototype.reposition = function () {
+    var dom = this.dom,
+        props = this.props;
+
+    if (dom) {
+        dom.box.style.top = this.top + 'px';
+        dom.box.style.left = this.left + 'px';
+        dom.box.style.width = this.width + 'px';
+
+        dom.content.style.left = props.content.left + 'px';
+    }
+};
+
+// exports
+module.exports = exports = ItemRange;
+
+},{"../../util":8,"./item":19}],17:[function(require,module,exports){
 var util = require('../../util'),
     Item = require('./item');
 
@@ -5031,7 +5031,7 @@ ItemPoint.prototype.reposition = function () {
 // exports
 module.exports = exports = ItemPoint;
 
-},{"../../util":7,"./item":19}],18:[function(require,module,exports){
+},{"../../util":8,"./item":19}],18:[function(require,module,exports){
 (function(){// moment.js
 // version : 2.0.0
 // author : Tim Wood
@@ -6588,7 +6588,7 @@ Timeline.prototype.setData = function(data) {
 // exports
 module.exports = exports = Timeline;
 
-},{"./../util":7,"../range":3,"../controller":2,"../component/component":9,"../component/rootpanel":11,"../component/timeaxis":13,"../component/itemset":12,"moment":18}],19:[function(require,module,exports){
+},{"./../util":8,"../range":5,"../controller":4,"../component/component":9,"../component/rootpanel":10,"../component/timeaxis":13,"../component/itemset":12,"moment":18}],19:[function(require,module,exports){
 var Component = require('../component');
 
 /**

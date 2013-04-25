@@ -1,6 +1,6 @@
 {
     "name": "vis",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "description": "A dynamic, browser-based visualization library.",
     "homepage": "http://visjs.org/",
     "repository": {
@@ -23,12 +23,11 @@
     "scripts": {
         "prepublish": "jake"
     },
-    "dependencies": {
-        "moment": "latest"
-    },
+    "dependencies": {},
     "devDependencies": {
         "jake": ">= 0.5.9",
         "jake-utils": ">= 0.0.18",
-        "uglify-js": ">= 2.2.5"
+        "uglify-js": ">= 2.2.5",
+        "moment": "latest"
     }
 }

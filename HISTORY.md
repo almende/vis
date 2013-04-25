@@ -2,6 +2,11 @@ vis.js history
 http://visjs.org
 
 
+## 2012-04-25, version 0.0.7
+
+- Sanitized the published packages on npm and bower.
+
+
 ## 2012-04-25, version 0.0.6
 
 - Css is now packaged in the javascript file, and automatically loaded.

@@ -1,0 +1,8 @@
+node_modules
+src
+test
+.idea
+component.json
+Jakefile.js
+.npmignore
+.gitignore
