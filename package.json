@@ -29,8 +29,6 @@
     "devDependencies": {
         "jake": ">= 0.5.9",
         "jake-utils": ">= 0.0.18",
-        "uglify-js": ">= 2.2.5",
-        "nodeunit": ">= 0.7.4",
-        "dateable": ">= 0.1.2"
+        "uglify-js": ">= 2.2.5"
     }
 }

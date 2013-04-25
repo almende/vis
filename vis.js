@@ -56,7 +56,7 @@ var vis = {
 
 module.exports = exports = vis;
 
-},{"./controller":2,"./dataset":3,"./events":4,"./range":5,"./stack":6,"./timestep":7,"./util":8,"./component/component":9,"./component/panel":10,"./component/rootpanel":11,"./component/itemset":12,"./visualization/timeline":13,"./component/timeaxis":14}],4:[function(require,module,exports){
+},{"./controller":2,"./range":3,"./dataset":4,"./events":5,"./stack":6,"./util":7,"./timestep":8,"./component/component":9,"./component/panel":10,"./component/rootpanel":11,"./component/itemset":12,"./component/timeaxis":13,"./visualization/timeline":14}],5:[function(require,module,exports){
 /**
  * Event listener (singleton)
  */
@@ -176,7 +176,7 @@ var events = {
 // exports
 module.exports = exports = events;
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 
 // create namespace
 var util = {};
@@ -1110,7 +1110,7 @@ Controller.prototype.reflow = function () {
 module.exports = exports = Controller;
 
 
-},{"./util":8,"./component/component":9}],3:[function(require,module,exports){
+},{"./util":7,"./component/component":9}],4:[function(require,module,exports){
 var util = require('./util');
 
 /**
@@ -1664,171 +1664,7 @@ DataSet.prototype._appendRow = function (dataTable, columns, item) {
 // exports
 module.exports = exports = DataSet;
 
-},{"./util":8}],6:[function(require,module,exports){
-var util = require('./util');
-
-/**
- * @constructor Stack
- * Stacks items on top of each other.
- * @param {ItemSet} parent
- * @param {Object} [options]
- */
-function Stack (parent, options) {
-    this.parent = parent;
-    this.options = {
-        order: function (a, b) {
-            return (b.width - a.width) || (a.left - b.left);
-        }
-    };
-
-    this.ordered = [];  // ordered items
-
-    this.setOptions(options);
-}
-
-/**
- * Set options for the stack
- * @param {Object} options  Available options:
- *                          {ItemSet} parent
- *                          {Number} margin
- *                          {function} order  Stacking order
- */
-Stack.prototype.setOptions = function (options) {
-    util.extend(this.options, options);
-
-    // TODO: register on data changes at the connected parent itemset, and update the changed part only and immediately
-};
-
-/**
- * Stack the items such that they don't overlap. The items will have a minimal
- * distance equal to options.margin.item.
- */
-Stack.prototype.update = function() {
-    this._order();
-    this._stack();
-};
-
-/**
- * Order the items. The items are ordered by width first, and by left position
- * second.
- * If a custom order function has been provided via the options, then this will
- * be used.
- * @private
- */
-Stack.prototype._order = function() {
-    var items = this.parent.items;
-    if (!items) {
-        throw new Error('Cannot stack items: parent does not contain items');
-    }
-
-    // TODO: store the sorted items, to have less work later on
-    var ordered = [];
-    var index = 0;
-    util.forEach(items, function (item, id) {
-        ordered[index] = item;
-        index++;
-    });
-
-    //if a customer stack order function exists, use it.
-    var order = this.options.order;
-    if (!(typeof this.options.order === 'function')) {
-        throw new Error('Option order must be a function');
-    }
-
-    ordered.sort(order);
-
-    this.ordered = ordered;
-};
-
-/**
- * Adjust vertical positions of the events such that they don't overlap each
- * other.
- * @private
- */
-Stack.prototype._stack = function() {
-    var i,
-        iMax,
-        ordered = this.ordered,
-        options = this.options,
-        axisOnTop = (options.orientation == 'top'),
-        margin = options.margin && options.margin.item || 0;
-
-    // calculate new, non-overlapping positions
-    for (i = 0, iMax = ordered.length; i < iMax; i++) {
-        var item = ordered[i];
-        var collidingItem = null;
-        do {
-            // TODO: optimize checking for overlap. when there is a gap without items,
-            //  you only need to check for items from the next item on, not from zero
-            collidingItem = this.checkOverlap(ordered, i, 0, i - 1, margin);
-            if (collidingItem != null) {
-                // There is a collision. Reposition the event above the colliding element
-                if (axisOnTop) {
-                    item.top = collidingItem.top + collidingItem.height + margin;
-                }
-                else {
-                    item.top = collidingItem.top - item.height - margin;
-                }
-            }
-        } while (collidingItem);
-    }
-};
-
-/**
- * Check if the destiny position of given item overlaps with any
- * of the other items from index itemStart to itemEnd.
- * @param {Array} items     Array with items
- * @param {int}  itemIndex  Number of the item to be checked for overlap
- * @param {int}  itemStart  First item to be checked.
- * @param {int}  itemEnd    Last item to be checked.
- * @return {Object | null}  colliding item, or undefined when no collisions
- * @param {Number} margin   A minimum required margin.
- *                          If margin is provided, the two items will be
- *                          marked colliding when they overlap or
- *                          when the margin between the two is smaller than
- *                          the requested margin.
- */
-Stack.prototype.checkOverlap = function(items, itemIndex, itemStart, itemEnd, margin) {
-    var collision = this.collision;
-
-    // we loop from end to start, as we suppose that the chance of a
-    // collision is larger for items at the end, so check these first.
-    var a = items[itemIndex];
-    for (var i = itemEnd; i >= itemStart; i--) {
-        var b = items[i];
-        if (collision(a, b, margin)) {
-            if (i != itemIndex) {
-                return b;
-            }
-        }
-    }
-
-    return null;
-};
-
-/**
- * Test if the two provided items collide
- * The items must have parameters left, width, top, and height.
- * @param {Component} a     The first item
- * @param {Component} b     The second item
- * @param {Number} margin   A minimum required margin.
- *                          If margin is provided, the two items will be
- *                          marked colliding when they overlap or
- *                          when the margin between the two is smaller than
- *                          the requested margin.
- * @return {boolean}        true if a and b collide, else false
- */
-Stack.prototype.collision = function(a, b, margin) {
-    return ((a.left - margin) < (b.left + b.width) &&
-        (a.left + a.width + margin) > b.left &&
-        (a.top - margin) < (b.top + b.height) &&
-        (a.top + a.height + margin) > b.top);
-};
-
-// exports
-module.exports = exports = Stack;
-
-},{"./util":8}],5:[function(require,module,exports){
+},{"./util":7}],3:[function(require,module,exports){
 var util = require('./util'),
     events = require('./events');
 
@@ -2360,7 +2196,171 @@ Range.prototype.move = function(moveFactor) {
 // exports
 module.exports = exports = Range;
 
-},{"./util":8,"./events":4}],9:[function(require,module,exports){
+},{"./util":7,"./events":5}],6:[function(require,module,exports){
+var util = require('./util');
+
+/**
+ * @constructor Stack
+ * Stacks items on top of each other.
+ * @param {ItemSet} parent
+ * @param {Object} [options]
+ */
+function Stack (parent, options) {
+    this.parent = parent;
+    this.options = {
+        order: function (a, b) {
+            return (b.width - a.width) || (a.left - b.left);
+        }
+    };
+
+    this.ordered = [];  // ordered items
+
+    this.setOptions(options);
+}
+
+/**
+ * Set options for the stack
+ * @param {Object} options  Available options:
+ *                          {ItemSet} parent
+ *                          {Number} margin
+ *                          {function} order  Stacking order
+ */
+Stack.prototype.setOptions = function (options) {
+    util.extend(this.options, options);
+
+    // TODO: register on data changes at the connected parent itemset, and update the changed part only and immediately
+};
+
+/**
+ * Stack the items such that they don't overlap. The items will have a minimal
+ * distance equal to options.margin.item.
+ */
+Stack.prototype.update = function() {
+    this._order();
+    this._stack();
+};
+
+/**
+ * Order the items. The items are ordered by width first, and by left position
+ * second.
+ * If a custom order function has been provided via the options, then this will
+ * be used.
+ * @private
+ */
+Stack.prototype._order = function() {
+    var items = this.parent.items;
+    if (!items) {
+        throw new Error('Cannot stack items: parent does not contain items');
+    }
+
+    // TODO: store the sorted items, to have less work later on
+    var ordered = [];
+    var index = 0;
+    util.forEach(items, function (item, id) {
+        ordered[index] = item;
+        index++;
+    });
+
+    //if a customer stack order function exists, use it.
+    var order = this.options.order;
+    if (!(typeof this.options.order === 'function')) {
+        throw new Error('Option order must be a function');
+    }
+
+    ordered.sort(order);
+
+    this.ordered = ordered;
+};
+
+/**
+ * Adjust vertical positions of the events such that they don't overlap each
+ * other.
+ * @private
+ */
+Stack.prototype._stack = function() {
+    var i,
+        iMax,
+        ordered = this.ordered,
+        options = this.options,
+        axisOnTop = (options.orientation == 'top'),
+        margin = options.margin && options.margin.item || 0;
+
+    // calculate new, non-overlapping positions
+    for (i = 0, iMax = ordered.length; i < iMax; i++) {
+        var item = ordered[i];
+        var collidingItem = null;
+        do {
+            // TODO: optimize checking for overlap. when there is a gap without items,
+            //  you only need to check for items from the next item on, not from zero
+            collidingItem = this.checkOverlap(ordered, i, 0, i - 1, margin);
+            if (collidingItem != null) {
+                // There is a collision. Reposition the event above the colliding element
+                if (axisOnTop) {
+                    item.top = collidingItem.top + collidingItem.height + margin;
+                }
+                else {
+                    item.top = collidingItem.top - item.height - margin;
+                }
+            }
+        } while (collidingItem);
+    }
+};
+
+/**
+ * Check if the destiny position of given item overlaps with any
+ * of the other items from index itemStart to itemEnd.
+ * @param {Array} items     Array with items
+ * @param {int}  itemIndex  Number of the item to be checked for overlap
+ * @param {int}  itemStart  First item to be checked.
+ * @param {int}  itemEnd    Last item to be checked.
+ * @return {Object | null}  colliding item, or undefined when no collisions
+ * @param {Number} margin   A minimum required margin.
+ *                          If margin is provided, the two items will be
+ *                          marked colliding when they overlap or
+ *                          when the margin between the two is smaller than
+ *                          the requested margin.
+ */
+Stack.prototype.checkOverlap = function(items, itemIndex, itemStart, itemEnd, margin) {
+    var collision = this.collision;
+
+    // we loop from end to start, as we suppose that the chance of a
+    // collision is larger for items at the end, so check these first.
+    var a = items[itemIndex];
+    for (var i = itemEnd; i >= itemStart; i--) {
+        var b = items[i];
+        if (collision(a, b, margin)) {
+            if (i != itemIndex) {
+                return b;
+            }
+        }
+    }
+
+    return null;
+};
+
+/**
+ * Test if the two provided items collide
+ * The items must have parameters left, width, top, and height.
+ * @param {Component} a     The first item
+ * @param {Component} b     The second item
+ * @param {Number} margin   A minimum required margin.
+ *                          If margin is provided, the two items will be
+ *                          marked colliding when they overlap or
+ *                          when the margin between the two is smaller than
+ *                          the requested margin.
+ * @return {boolean}        true if a and b collide, else false
+ */
+Stack.prototype.collision = function(a, b, margin) {
+    return ((a.left - margin) < (b.left + b.width) &&
+        (a.left + a.width + margin) > b.left &&
+        (a.top - margin) < (b.top + b.height) &&
+        (a.top + a.height + margin) > b.top);
+};
+
+// exports
+module.exports = exports = Stack;
+
+},{"./util":7}],9:[function(require,module,exports){
 var util = require('./../util');
 
 /**
@@ -2483,7 +2483,7 @@ Component.prototype.on = function (event, callback) {
 // exports
 module.exports = exports = Component;
 
-},{"./../util":8}],10:[function(require,module,exports){
+},{"./../util":7}],10:[function(require,module,exports){
 var util = require('../util'),
     Component = require('./component');
 
@@ -2592,7 +2592,7 @@ Panel.prototype.reflow = function () {
 // exports
 module.exports = exports = Panel;
 
-},{"../util":8,"./component":9}],11:[function(require,module,exports){
+},{"../util":7,"./component":9}],11:[function(require,module,exports){
 var util = require('../util'),
     Panel = require('./panel');
 
@@ -2800,7 +2800,7 @@ RootPanel.prototype._updateEventEmitters = function () {
 // exports
 module.exports = exports = RootPanel;
 
-},{"../util":8,"./panel":10}],12:[function(require,module,exports){
+},{"../util":7,"./panel":10}],12:[function(require,module,exports){
 var util = require('../util'),
     DataSet = require('../dataset'),
     Panel = require('./panel'),
@@ -3319,7 +3319,7 @@ ItemSet.prototype.toScreen = function(time) {
 // exports
 module.exports = exports = ItemSet;
 
-},{"../util":8,"../dataset":3,"./panel":10,"../stack":6,"./item/itembox":15,"./item/itempoint":16,"./item/itemrange":17}],14:[function(require,module,exports){
+},{"../dataset":4,"../util":7,"./panel":10,"../stack":6,"./item/itembox":15,"./item/itemrange":16,"./item/itempoint":17}],13:[function(require,module,exports){
 var util = require('../util'),
     TimeStep = require('../timestep'),
     Component = require('./component');
@@ -3852,7 +3852,7 @@ TimeAxis.prototype._updateConversion = function() {
 // exports
 module.exports = exports = TimeAxis;
 
-},{"../util":8,"../timestep":7,"./component":9}],7:[function(require,module,exports){
+},{"../util":7,"../timestep":8,"./component":9}],8:[function(require,module,exports){
 var util = require('./util'),
     moment = require('moment');
 
@@ -4310,42 +4310,37 @@ TimeStep.prototype.getLabelMajor = function(date) {
 // exports
 module.exports = exports = TimeStep;
 
-},{"./util":8,"moment":18}],16:[function(require,module,exports){
+},{"./util":7,"moment":18}],16:[function(require,module,exports){
 var util = require('../../util'),
     Item = require('./item');
 
 /**
- * @constructor ItemPoint
+ * @constructor ItemRange
  * @extends Item
  * @param {ItemSet} parent
- * @param {Object} data       Object containing parameters start
+ * @param {Object} data       Object containing parameters start, end
  *                            content, className.
  * @param {Object} [options]  Options to set initial property values
  *                            // TODO: describe available options
  */
-function ItemPoint (parent, data, options) {
+function ItemRange (parent, data, options) {
     this.props = {
-        dot: {
-            top: 0,
-            width: 0,
-            height: 0
-        },
         content: {
-            height: 0,
-            marginLeft: 0
+            left: 0,
+            width: 0
         }
     };
 
     Item.call(this, parent, data, options);
 }
 
-ItemPoint.prototype = new Item (null, null);
+ItemRange.prototype = new Item (null, null);
 
 /**
  * Select the item
  * @override
  */
-ItemPoint.prototype.select = function () {
+ItemRange.prototype.select = function () {
     this.selected = true;
     // TODO: select and unselect
 };
@@ -4354,7 +4349,7 @@ ItemPoint.prototype.select = function () {
  * Unselect the item
  * @override
  */
-ItemPoint.prototype.unselect = function () {
+ItemRange.prototype.unselect = function () {
     this.selected = false;
     // TODO: select and unselect
 };
@@ -4363,7 +4358,7 @@ ItemPoint.prototype.unselect = function () {
  * Repaint the item
  * @return {Boolean} changed
  */
-ItemPoint.prototype.repaint = function () {
+ItemRange.prototype.repaint = function () {
     // TODO: make an efficient repaint
     var changed = false;
     var dom = this.dom;
@@ -4385,13 +4380,12 @@ ItemPoint.prototype.repaint = function () {
                     'parent has no foreground container element');
             }
 
-            if (!dom.point.parentNode) {
-                foreground.appendChild(dom.point);
-                foreground.appendChild(dom.point);
+            if (!dom.box.parentNode) {
+                foreground.appendChild(dom.box);
                 changed = true;
             }
 
-            // update contents
+            // update content
             if (this.data.content != this.content) {
                 this.content = this.data.content;
                 if (this.content instanceof Element) {
@@ -4408,11 +4402,10 @@ ItemPoint.prototype.repaint = function () {
             }
 
             // update class
-            var className = (this.data.className? ' ' + this.data.className : '') +
-                (this.selected ? ' selected' : '');
+            var className = this.data.className ? ('' + this.data.className) : '';
             if (this.className != className) {
                 this.className = className;
-                dom.point.className  = 'item point' + className;
+                dom.box.className = 'item range' + className;
                 changed = true;
             }
         }
@@ -4420,8 +4413,8 @@ ItemPoint.prototype.repaint = function () {
     else {
         // hide when visible
         if (dom) {
-            if (dom.point.parentNode) {
-                dom.point.parentNode.removeChild(dom.point);
+            if (dom.box.parentNode) {
+                dom.box.parentNode.removeChild(dom.box);
                 changed = true;
             }
         }
@@ -4435,41 +4428,65 @@ ItemPoint.prototype.repaint = function () {
  * @return {boolean} resized    returns true if the axis is resized
  * @override
  */
-ItemPoint.prototype.reflow = function () {
+ItemRange.prototype.reflow = function () {
     if (this.data.start == undefined) {
         throw new Error('Property "start" missing in item ' + this.data.id);
     }
+    if (this.data.end == undefined) {
+        throw new Error('Property "end" missing in item ' + this.data.id);
+    }
 
-    var update = util.updateProperty,
-        dom = this.dom,
+    var dom = this.dom,
         props = this.props,
         options = this.options,
-        orientation = options.orientation,
-        start = this.parent.toScreen(this.data.start),
-        changed = 0,
-        top;
+        parent = this.parent,
+        start = parent.toScreen(this.data.start),
+        end = parent.toScreen(this.data.end),
+        changed = 0;
 
     if (dom) {
-        changed += update(this, 'width', dom.point.offsetWidth);
-        changed += update(this, 'height', dom.point.offsetHeight);
-        changed += update(props.dot, 'width', dom.dot.offsetWidth);
-        changed += update(props.dot, 'height', dom.dot.offsetHeight);
-        changed += update(props.content, 'height', dom.content.offsetHeight);
+        var update = util.updateProperty,
+            box = dom.box,
+            parentWidth = parent.width,
+            orientation = options.orientation,
+            contentLeft,
+            top;
+
+        changed += update(props.content, 'width', dom.content.offsetWidth);
+
+        changed += update(this, 'height', box.offsetHeight);
+
+        // limit the width of the this, as browsers cannot draw very wide divs
+        if (start < -parentWidth) {
+            start = -parentWidth;
+        }
+        if (end > 2 * parentWidth) {
+            end = 2 * parentWidth;
+        }
+
+        // when range exceeds left of the window, position the contents at the left of the visible area
+        if (start < 0) {
+            contentLeft = Math.min(-start,
+                (end - start - props.content.width - 2 * options.padding));
+            // TODO: remove the need for options.padding. it's terrible.
+        }
+        else {
+            contentLeft = 0;
+        }
+        changed += update(props.content, 'left', contentLeft);
 
         if (orientation == 'top') {
             top = options.margin.axis;
+            changed += update(this, 'top', top);
         }
         else {
             // default or 'bottom'
-            var parentHeight = this.parent.height;
-            top = Math.max(parentHeight - this.height - options.margin.axis, 0);
+            top = parent.height - this.height - options.margin.axis;
+            changed += update(this, 'top', top);
         }
-        changed += update(this, 'top', top);
-        changed += update(this, 'left', start - props.dot.width / 2);
-        changed += update(props.content, 'marginLeft', 1.5 * props.dot.width);
-        //changed += update(props.content, 'marginRight', 0.5 * props.dot.width); // TODO
 
-        changed += update(props.dot, 'top', (this.height - props.dot.height) / 2);
+        changed += update(this, 'left', start);
+        changed += update(this, 'width', Math.max(end - start, 1)); // TODO: reckon with border width;
     }
     else {
         changed += 1;
@@ -4482,24 +4499,18 @@ ItemPoint.prototype.reflow = function () {
  * Create an items DOM
  * @private
  */
-ItemPoint.prototype._create = function () {
+ItemRange.prototype._create = function () {
     var dom = this.dom;
     if (!dom) {
         this.dom = dom = {};
-
         // background box
-        dom.point = document.createElement('div');
+        dom.box = document.createElement('div');
         // className is updated in repaint()
 
-        // contents box, right from the dot
+        // contents box
         dom.content = document.createElement('div');
         dom.content.className = 'content';
-        dom.point.appendChild(dom.content);
-
-        // dot at start
-        dom.dot = document.createElement('div');
-        dom.dot.className  = 'dot';
-        dom.point.appendChild(dom.dot);
+        dom.box.appendChild(dom.content);
     }
 };
 
@@ -4508,25 +4519,23 @@ ItemPoint.prototype._create = function () {
  * range and size of the items itemset
  * @override
  */
-ItemPoint.prototype.reposition = function () {
+ItemRange.prototype.reposition = function () {
     var dom = this.dom,
         props = this.props;
 
     if (dom) {
-        dom.point.style.top = this.top + 'px';
-        dom.point.style.left = this.left + 'px';
+        dom.box.style.top = this.top + 'px';
+        dom.box.style.left = this.left + 'px';
+        dom.box.style.width = this.width + 'px';
 
-        dom.content.style.marginLeft = props.content.marginLeft + 'px';
-        //dom.content.style.marginRight = props.content.marginRight + 'px'; // TODO
-
-        dom.dot.style.top = props.dot.top + 'px';
+        dom.content.style.left = props.content.left + 'px';
     }
 };
 
 // exports
-module.exports = exports = ItemPoint;
+module.exports = exports = ItemRange;
 
-},{"../../util":8,"./item":19}],15:[function(require,module,exports){
+},{"../../util":7,"./item":19}],15:[function(require,module,exports){
 var util = require('../../util'),
     Item = require('./item');
 
@@ -4806,37 +4815,42 @@ ItemBox.prototype.reposition = function () {
 // exports
 module.exports = exports = ItemBox;
 
-},{"../../util":8,"./item":19}],17:[function(require,module,exports){
+},{"../../util":7,"./item":19}],17:[function(require,module,exports){
 var util = require('../../util'),
     Item = require('./item');
 
 /**
- * @constructor ItemRange
+ * @constructor ItemPoint
  * @extends Item
  * @param {ItemSet} parent
- * @param {Object} data       Object containing parameters start, end
+ * @param {Object} data       Object containing parameters start
  *                            content, className.
  * @param {Object} [options]  Options to set initial property values
  *                            // TODO: describe available options
  */
-function ItemRange (parent, data, options) {
+function ItemPoint (parent, data, options) {
     this.props = {
+        dot: {
+            top: 0,
+            width: 0,
+            height: 0
+        },
         content: {
-            left: 0,
-            width: 0
+            height: 0,
+            marginLeft: 0
         }
     };
 
     Item.call(this, parent, data, options);
 }
 
-ItemRange.prototype = new Item (null, null);
+ItemPoint.prototype = new Item (null, null);
 
 /**
  * Select the item
  * @override
  */
-ItemRange.prototype.select = function () {
+ItemPoint.prototype.select = function () {
     this.selected = true;
     // TODO: select and unselect
 };
@@ -4845,7 +4859,7 @@ ItemRange.prototype.select = function () {
  * Unselect the item
  * @override
  */
-ItemRange.prototype.unselect = function () {
+ItemPoint.prototype.unselect = function () {
     this.selected = false;
     // TODO: select and unselect
 };
@@ -4854,7 +4868,7 @@ ItemRange.prototype.unselect = function () {
  * Repaint the item
  * @return {Boolean} changed
  */
-ItemRange.prototype.repaint = function () {
+ItemPoint.prototype.repaint = function () {
     // TODO: make an efficient repaint
     var changed = false;
     var dom = this.dom;
@@ -4876,12 +4890,13 @@ ItemRange.prototype.repaint = function () {
                     'parent has no foreground container element');
             }
 
-            if (!dom.box.parentNode) {
-                foreground.appendChild(dom.box);
+            if (!dom.point.parentNode) {
+                foreground.appendChild(dom.point);
+                foreground.appendChild(dom.point);
                 changed = true;
             }
 
-            // update content
+            // update contents
             if (this.data.content != this.content) {
                 this.content = this.data.content;
                 if (this.content instanceof Element) {
@@ -4898,10 +4913,11 @@ ItemRange.prototype.repaint = function () {
             }
 
             // update class
-            var className = this.data.className ? ('' + this.data.className) : '';
+            var className = (this.data.className? ' ' + this.data.className : '') +
+                (this.selected ? ' selected' : '');
             if (this.className != className) {
                 this.className = className;
-                dom.box.className = 'item range' + className;
+                dom.point.className  = 'item point' + className;
                 changed = true;
             }
         }
@@ -4909,8 +4925,8 @@ ItemRange.prototype.repaint = function () {
     else {
         // hide when visible
         if (dom) {
-            if (dom.box.parentNode) {
-                dom.box.parentNode.removeChild(dom.box);
+            if (dom.point.parentNode) {
+                dom.point.parentNode.removeChild(dom.point);
                 changed = true;
             }
         }
@@ -4924,65 +4940,41 @@ ItemRange.prototype.repaint = function () {
  * @return {boolean} resized    returns true if the axis is resized
  * @override
  */
-ItemRange.prototype.reflow = function () {
+ItemPoint.prototype.reflow = function () {
     if (this.data.start == undefined) {
         throw new Error('Property "start" missing in item ' + this.data.id);
     }
-    if (this.data.end == undefined) {
-        throw new Error('Property "end" missing in item ' + this.data.id);
-    }
 
-    var dom = this.dom,
+    var update = util.updateProperty,
+        dom = this.dom,
         props = this.props,
         options = this.options,
-        parent = this.parent,
-        start = parent.toScreen(this.data.start),
-        end = parent.toScreen(this.data.end),
-        changed = 0;
+        orientation = options.orientation,
+        start = this.parent.toScreen(this.data.start),
+        changed = 0,
+        top;
 
     if (dom) {
-        var update = util.updateProperty,
-            box = dom.box,
-            parentWidth = parent.width,
-            orientation = options.orientation,
-            contentLeft,
-            top;
-
-        changed += update(props.content, 'width', dom.content.offsetWidth);
-
-        changed += update(this, 'height', box.offsetHeight);
-
-        // limit the width of the this, as browsers cannot draw very wide divs
-        if (start < -parentWidth) {
-            start = -parentWidth;
-        }
-        if (end > 2 * parentWidth) {
-            end = 2 * parentWidth;
-        }
-
-        // when range exceeds left of the window, position the contents at the left of the visible area
-        if (start < 0) {
-            contentLeft = Math.min(-start,
-                (end - start - props.content.width - 2 * options.padding));
-            // TODO: remove the need for options.padding. it's terrible.
-        }
-        else {
-            contentLeft = 0;
-        }
-        changed += update(props.content, 'left', contentLeft);
+        changed += update(this, 'width', dom.point.offsetWidth);
+        changed += update(this, 'height', dom.point.offsetHeight);
+        changed += update(props.dot, 'width', dom.dot.offsetWidth);
+        changed += update(props.dot, 'height', dom.dot.offsetHeight);
+        changed += update(props.content, 'height', dom.content.offsetHeight);
 
         if (orientation == 'top') {
             top = options.margin.axis;
-            changed += update(this, 'top', top);
         }
         else {
             // default or 'bottom'
-            top = parent.height - this.height - options.margin.axis;
-            changed += update(this, 'top', top);
+            var parentHeight = this.parent.height;
+            top = Math.max(parentHeight - this.height - options.margin.axis, 0);
         }
+        changed += update(this, 'top', top);
+        changed += update(this, 'left', start - props.dot.width / 2);
+        changed += update(props.content, 'marginLeft', 1.5 * props.dot.width);
+        //changed += update(props.content, 'marginRight', 0.5 * props.dot.width); // TODO
 
-        changed += update(this, 'left', start);
-        changed += update(this, 'width', Math.max(end - start, 1)); // TODO: reckon with border width;
+        changed += update(props.dot, 'top', (this.height - props.dot.height) / 2);
     }
     else {
         changed += 1;
@@ -4995,18 +4987,24 @@ ItemRange.prototype.reflow = function () {
  * Create an items DOM
  * @private
  */
-ItemRange.prototype._create = function () {
+ItemPoint.prototype._create = function () {
     var dom = this.dom;
     if (!dom) {
         this.dom = dom = {};
+
         // background box
-        dom.box = document.createElement('div');
+        dom.point = document.createElement('div');
         // className is updated in repaint()
 
-        // contents box
+        // contents box, right from the dot
         dom.content = document.createElement('div');
         dom.content.className = 'content';
-        dom.box.appendChild(dom.content);
+        dom.point.appendChild(dom.content);
+
+        // dot at start
+        dom.dot = document.createElement('div');
+        dom.dot.className  = 'dot';
+        dom.point.appendChild(dom.dot);
     }
 };
 
@@ -5015,23 +5013,25 @@ ItemRange.prototype._create = function () {
  * range and size of the items itemset
  * @override
  */
-ItemRange.prototype.reposition = function () {
+ItemPoint.prototype.reposition = function () {
     var dom = this.dom,
         props = this.props;
 
     if (dom) {
-        dom.box.style.top = this.top + 'px';
-        dom.box.style.left = this.left + 'px';
-        dom.box.style.width = this.width + 'px';
+        dom.point.style.top = this.top + 'px';
+        dom.point.style.left = this.left + 'px';
 
-        dom.content.style.left = props.content.left + 'px';
+        dom.content.style.marginLeft = props.content.marginLeft + 'px';
+        //dom.content.style.marginRight = props.content.marginRight + 'px'; // TODO
+
+        dom.dot.style.top = props.dot.top + 'px';
     }
 };
 
 // exports
-module.exports = exports = ItemRange;
+module.exports = exports = ItemPoint;
 
-},{"../../util":8,"./item":19}],18:[function(require,module,exports){
+},{"../../util":7,"./item":19}],18:[function(require,module,exports){
 (function(){// moment.js
 // version : 2.0.0
 // author : Tim Wood
@@ -6434,7 +6434,7 @@ module.exports = exports = ItemRange;
 }).call(this);
 
 })()
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var util = require('./../util'),
     moment = require('moment'),
     Range = require('../range'),
@@ -6588,7 +6588,7 @@ Timeline.prototype.setData = function(data) {
 // exports
 module.exports = exports = Timeline;
 
-},{"./../util":8,"../range":5,"../controller":2,"../component/component":9,"../component/rootpanel":11,"../component/timeaxis":14,"../component/itemset":12,"moment":18}],19:[function(require,module,exports){
+},{"./../util":7,"../range":3,"../controller":2,"../component/component":9,"../component/rootpanel":11,"../component/timeaxis":13,"../component/itemset":12,"moment":18}],19:[function(require,module,exports){
 var Component = require('../component');
 
 /**
