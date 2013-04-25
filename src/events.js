@@ -1,4 +1,3 @@
-
 /**
  * Event listener (singleton)
  */
@@ -116,4 +115,4 @@ var events = {
 };
 
 // exports
-vis.events = events;
+module.exports = exports = events;

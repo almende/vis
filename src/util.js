@@ -780,6 +780,5 @@ if(!Array.isArray) {
     };
 }
 
-
-// export
-vis.util = util;
+// exports
+module.exports = exports = util;

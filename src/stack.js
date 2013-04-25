@@ -1,3 +1,5 @@
+var util = require('./util');
+
 /**
  * @constructor Stack
  * Stacks items on top of each other.
@@ -157,4 +159,4 @@ Stack.prototype.collision = function(a, b, margin) {
 };
 
 // exports
-vis.Stack = Stack;
+module.exports = exports = Stack;

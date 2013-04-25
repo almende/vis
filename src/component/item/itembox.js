@@ -1,3 +1,6 @@
+var util = require('../../util'),
+    Item = require('./item');
+
 /**
  * @constructor ItemBox
  * @extends Item
@@ -272,4 +275,4 @@ ItemBox.prototype.reposition = function () {
 };
 
 // exports
-vis.component.item.box = ItemBox;
+module.exports = exports = ItemBox;

@@ -1,3 +1,11 @@
+var util = require('../util'),
+    DataSet = require('../dataset'),
+    Panel = require('./panel'),
+    Stack = require('../stack'),
+    ItemBox = require('./item/itembox'),
+    ItemRange = require('./item/itemrange'),
+    ItemPoint = require('./item/itempoint');
+
 /**
  * An ItemSet holds a set of items and ranges which can be displayed in a
  * range. The width is determined by the parent of the ItemSet, and the height
@@ -53,6 +61,13 @@ function ItemSet(parent, depends, options) {
 }
 
 ItemSet.prototype = new Panel();
+
+// available item types will be registered here
+ItemSet.types = {
+    box: ItemBox,
+    range: ItemRange,
+    point: ItemPoint
+};
 
 /**
  * Set options for the ItemSet. Existing options will be extended/overwritten.
@@ -189,7 +204,7 @@ ItemSet.prototype.repaint = function () {
                 var type = itemData.type ||
                     (itemData.start && itemData.end && 'range') ||
                     'box';
-                var constructor = vis.component.item[type];
+                var constructor = ItemSet.types[type];
 
                 // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
                 if (item) {
@@ -499,4 +514,4 @@ ItemSet.prototype.toScreen = function(time) {
 };
 
 // exports
-vis.component.ItemSet = ItemSet;
+module.exports = exports = ItemSet;

@@ -111,17 +111,25 @@ To build the library from source, clone the project from github
     git clone git://github.com/almende/vis.git
 
 The project uses [jake](https://github.com/mde/jake) as build tool.
+The build script uses [Browserify](http://browserify.org/) to
+bundle the source code into a library,
+and uses [UglifyJS](http://lisperator.net/uglifyjs/) to minify the code.
+The source code uses the module style of node (require and module.exports) to
+organize dependencies.
+
+To install all dependencies and build the library, run `npm install` in the
+root of the project.
+
+    cd vis
+    npm install
+
 To be able to run jake from the command line, jake must be installed globally:
 
     sudo npm install -g jake
 
 Then, the project can be build by executing jake in the root of the project:
 
-    cd vis
     jake
-
-This will build the library for each of the components. The built libraries can
-be found in the directory `bin`, and includes examples.
 
 
 ## License

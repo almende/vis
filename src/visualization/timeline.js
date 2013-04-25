@@ -1,3 +1,12 @@
+var util = require('./../util'),
+    moment = require('moment'),
+    Range = require('../range'),
+    Controller = require('../controller'),
+    Component = require('../component/component'),
+    RootPanel = require('../component/rootpanel'),
+    TimeAxis = require('../component/timeaxis'),
+    ItemSet = require('../component/itemset');
+
 /**
  * Create a timeline visualization
  * @param {HTMLElement} container
@@ -140,4 +149,4 @@ Timeline.prototype.setData = function(data) {
 };
 
 // exports
-vis.Timeline = Timeline;
+module.exports = exports = Timeline;

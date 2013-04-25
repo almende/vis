@@ -1,3 +1,6 @@
+var util = require('./util'),
+    events = require('./events');
+
 /**
  * @constructor Range
  * A Range controls a numeric range with a start and end value.
@@ -524,4 +527,4 @@ Range.prototype.move = function(moveFactor) {
 };
 
 // exports
-vis.Range = Range;
+module.exports = exports = Range;

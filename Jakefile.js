@@ -2,16 +2,20 @@
  * Jake build script
  */
 var jake = require('jake'),
-    fs = require('fs'),
+    browserify = require('browserify'),
     path = require('path');
 
 require('jake-utils');
+
+// constants
+var VIS = './vis.js';
+var VIS_MIN = './vis.min.js';
 
 /**
  * default task
  */
 desc('Execute all tasks: build all libraries');
-task('default', ['vis'], function () {
+task('default', ['build', 'minify'], function () {
     console.log('done');
 });
 
@@ -19,10 +23,7 @@ task('default', ['vis'], function () {
  * build the visualization library vis.js
  */
 desc('Build the visualization library vis.js');
-task('vis', function () {
-    var VIS = './vis.js';
-    var VIS_MIN = './vis.min.js';
-
+task('build', {async: true}, function () {
     // concatenate and stringify css files
     var result = concat({
         src: [
@@ -35,44 +36,36 @@ task('vis', function () {
     });
     var cssText = JSON.stringify(result.code);
 
-    // concatenate the script files
-    concat({
-        dest: VIS,
-        src: [
-            './src/module.js',
+    // bundle the script files
+    // TODO: do not package moment.js with vis.js.
+    var b = browserify();
+    b.add('./src/vis.js');
+    b.bundle({
+        standalone: 'vis'
+    }, function (err, code) {
+        // add header and footer
+        var lib =
+            read('./src/header.js') +
+            code +
+            read('./src/module.js') +
+            '\nloadCss(' + cssText + ');\n';  // inline css
 
-            './src/util.js',
-            './src/events.js',
-            './src/timestep.js',
-            './src/dataset.js',
-            './src/stack.js',
-            './src/range.js',
-            './src/controller.js',
+        // write bundled file
+        write(VIS, lib);
+        console.log('created ' + VIS);
 
-            './src/component/component.js',
-            './src/component/panel.js',
-            './src/component/rootpanel.js',
-            './src/component/timeaxis.js',
-            './src/component/itemset.js',
-            './src/component/item/*.js',
+        // update version number and stuff in the javascript files
+        replacePlaceholders(VIS);
 
-            './src/visualization/timeline.js',
-
-            // TODO: do not package moment.js with vis.js.
-            './lib/moment.js'
-        ],
-
-        header: read('./src/header.js') + '\n' +
-            '(function () { ', // start of closure
-
-        separator: '\n',
-
-        // Note: we insert the css as a string in the javascript code here
-        //       the css will be injected on load of the javascript library
-        footer: 'loadCss(' + cssText + ');\n' +
-            '})();' // end of closure
+        complete();
     });
+});
 
+/**
+ * minify the visualization library vis.js
+ */
+desc('Minify the visualization library vis.js');
+task('minify', function () {
     // minify javascript
     minify({
         src: VIS,
@@ -81,40 +74,22 @@ task('vis', function () {
     });
 
     // update version number and stuff in the javascript files
-    [VIS, VIS_MIN].forEach(function (file) {
-        replace({
-            replacements: [
-                {pattern: '@@name',    replacement: 'vis.js'},
-                {pattern: '@@date',    replacement: today()},
-                {pattern: '@@version', replacement: version()}
-            ],
-            src: file
-        });
-    });
+    replacePlaceholders(VIS_MIN);
 
-    console.log('created vis.js library');
+    console.log('created ' + VIS_MIN);
 });
 
 /**
- * Recursively remove a directory and its files
- * https://gist.github.com/tkihira/2367067
- * @param {String} dir
+ * replace version, date, and name placeholders in the provided file
+ * @param {String} filename
  */
-var rmdir = function(dir) {
-    var list = fs.readdirSync(dir);
-    for(var i = 0; i < list.length; i++) {
-        var filename = path.join(dir, list[i]);
-        var stat = fs.statSync(filename);
-
-        if(filename == "." || filename == "..") {
-            // pass these files
-        } else if(stat.isDirectory()) {
-            // rmdir recursively
-            rmdir(filename);
-        } else {
-            // rm fiilename
-            fs.unlinkSync(filename);
-        }
-    }
-    fs.rmdirSync(dir);
+var replacePlaceholders = function (filename) {
+    replace({
+        replacements: [
+            {pattern: '@@name',    replacement: 'vis.js'},
+            {pattern: '@@date',    replacement: today()},
+            {pattern: '@@version', replacement: version()}
+        ],
+        src: filename
+    });
 };

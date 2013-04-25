@@ -1,19 +1,3 @@
-// Define namespace vis
-var vis = {
-    component: {
-        item: {}
-    }
-};
-
-/**
- * CommonJS module exports
- */
-if (typeof exports !== 'undefined') {
-    exports = vis;
-}
-if (typeof module !== 'undefined') {
-    module.exports = vis;
-}
 
 /**
  * AMD module exports
@@ -22,14 +6,6 @@ if (typeof(define) === 'function') {
     define(function () {
         return vis;
     });
-}
-
-/**
- * Window exports
- */
-if (typeof window !== 'undefined') {
-    // attach the module to the window, load as a regular javascript file
-    window['vis'] = vis;
 }
 
 /**

@@ -1,3 +1,4 @@
+var Component = require('../component');
 
 /**
  * @constructor Item
@@ -33,4 +34,4 @@ Item.prototype.unselect = function () {
 };
 
 // exports
-vis.component.item.Item = Item;
+module.exports = exports = Item;

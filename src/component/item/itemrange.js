@@ -1,3 +1,6 @@
+var util = require('../../util'),
+    Item = require('./item');
+
 /**
  * @constructor ItemRange
  * @extends Item
@@ -217,4 +220,4 @@ ItemRange.prototype.reposition = function () {
 };
 
 // exports
-vis.component.item.range = ItemRange;
+module.exports = exports = ItemRange;

@@ -1,3 +1,6 @@
+var util = require('./util'),
+    Component = require('./component/component');
+
 /**
  * @constructor Controller
  *
@@ -139,4 +142,5 @@ Controller.prototype.reflow = function () {
 };
 
 // exports
-vis.Controller = Controller;
+module.exports = exports = Controller;
+

@@ -1,3 +1,5 @@
+var util = require('./../util');
+
 /**
  * Prototype for visual components
  */
@@ -116,4 +118,4 @@ Component.prototype.on = function (event, callback) {
 };
 
 // exports
-vis.component.Component = Component;
+module.exports = exports = Component;
