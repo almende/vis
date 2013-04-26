@@ -42,7 +42,7 @@ task('build', {async: true}, function () {
     concat({
         dest: VIS_TMP,
         src: [
-            './src/imports.js',
+            './src/module/imports.js',
 
             './src/util.js',
             './src/events.js',
@@ -61,7 +61,7 @@ task('build', {async: true}, function () {
 
             './src/visualization/timeline.js',
 
-            './src/exports.js'
+            './src/module/exports.js'
         ],
 
         separator: '\n',

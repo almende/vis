@@ -1,5 +1,5 @@
 /**
- * vis.js library exports
+ * vis.js module exports
  */
 var vis = {
     util: util,
