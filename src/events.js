@@ -113,6 +113,3 @@ var events = {
         }
     }
 };
-
-// exports
-module.exports = exports = events;

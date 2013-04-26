@@ -1,5 +1,3 @@
-var util = require('./../util');
-
 /**
  * Prototype for visual components
  */
@@ -116,6 +114,3 @@ Component.prototype.on = function (event, callback) {
         throw new Error('Cannot attach event: no root panel found');
     }
 };
-
-// exports
-module.exports = exports = Component;

@@ -1,7 +1,4 @@
-var util = require('./util'),
-    moment = require('moment');
-
-    /**
+/**
  * @constructor  TimeStep
  * The class TimeStep is an iterator for dates. You provide a start date and an
  * end date. The class itself determines the best scale (step size) based on the
@@ -451,6 +448,3 @@ TimeStep.prototype.getLabelMajor = function(date) {
         default:                        return '';
     }
 };
-
-// exports
-module.exports = exports = TimeStep;

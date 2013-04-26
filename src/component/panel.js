@@ -1,6 +1,3 @@
-var util = require('../util'),
-    Component = require('./component');
-
 /**
  * A panel can contain components
  * @param {Component} [parent]
@@ -102,6 +99,3 @@ Panel.prototype.reflow = function () {
 
     return (changed > 0);
 };
-
-// exports
-module.exports = exports = Panel;

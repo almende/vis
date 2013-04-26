@@ -1,6 +1,3 @@
-var util = require('../util'),
-    Panel = require('./panel');
-
 /**
  * A root panel can hold components. The root panel must be initialized with
  * a DOM element as container.
@@ -201,6 +198,3 @@ RootPanel.prototype._updateEventEmitters = function () {
         // TODO: be able to move event listeners to a parent when available
     }
 };
-
-// exports
-module.exports = exports = RootPanel;

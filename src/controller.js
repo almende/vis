@@ -1,6 +1,3 @@
-var util = require('./util'),
-    Component = require('./component/component');
-
 /**
  * @constructor Controller
  *
@@ -140,7 +137,3 @@ Controller.prototype.reflow = function () {
     }
     // TODO: limit the number of nested reflows/repaints, prevent loop
 };
-
-// exports
-module.exports = exports = Controller;
-

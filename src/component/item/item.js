@@ -1,5 +1,3 @@
-var Component = require('../component');
-
 /**
  * @constructor Item
  * @param {ItemSet} parent
@@ -32,6 +30,3 @@ Item.prototype.select = function () {
 Item.prototype.unselect = function () {
     this.selected = false;
 };
-
-// exports
-module.exports = exports = Item;

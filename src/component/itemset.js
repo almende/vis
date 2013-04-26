@@ -1,11 +1,3 @@
-var util = require('../util'),
-    DataSet = require('../dataset'),
-    Panel = require('./panel'),
-    Stack = require('../stack'),
-    ItemBox = require('./item/itembox'),
-    ItemRange = require('./item/itemrange'),
-    ItemPoint = require('./item/itempoint');
-
 /**
  * An ItemSet holds a set of items and ranges which can be displayed in a
  * range. The width is determined by the parent of the ItemSet, and the height
@@ -512,6 +504,3 @@ ItemSet.prototype.toScreen = function(time) {
     var conversion = this.conversion;
     return (time.valueOf() - conversion.offset) * conversion.factor;
 };
-
-// exports
-module.exports = exports = ItemSet;

@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.0.7
- * @date    2013-04-25
+ * @date    2013-04-26
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -25,158 +25,10 @@
 (function(e){if("function"==typeof bootstrap)bootstrap("vis",e);else if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else if("undefined"!=typeof ses){if(!ses.ok())return;ses.makeVis=e}else"undefined"!=typeof window?window.vis=e():global.vis=e()})(function(){var define,ses,bootstrap,module,exports;
 return (function(e,t,n){function i(n,s){if(!t[n]){if(!e[n]){var o=typeof require=="function"&&require;if(!s&&o)return o(n,!0);if(r)return r(n,!0);throw new Error("Cannot find module '"+n+"'")}var u=t[n]={exports:{}};e[n][0].call(u.exports,function(t){var r=e[n][1][t];return i(r?r:t)},u,u.exports)}return t[n].exports}var r=typeof require=="function"&&require;for(var s=0;s<n.length;s++)i(n[s]);return i})({1:[function(require,module,exports){
 /**
- * vis.js library exports
+ * vis.js imports
  */
-var vis = {
-    Controller: require('./controller'),
-    DataSet: require('./dataset'),
-    events: require('./events'),
-    Range: require('./range'),
-    Stack: require('./stack'),
-    TimeStep: require('./timestep'),
-    util: require('./util'),
+var moment = require('moment');
 
-    component: {
-        item: {
-            Item: '../../Item',
-            ItemBox: '../../ItemBox',
-            ItemPoint: '../../ItemPoint',
-            ItemRange: '../../ItemRange'
-        },
-
-        Component: require('./component/component'),
-        Panel: require('./component/panel'),
-        RootPanel: require('./component/rootpanel'),
-        ItemSet: require('./component/itemset'),
-        TimeAxis: require('./component/timeaxis')
-    },
-
-    Timeline: require('./visualization/timeline')
-};
-
-module.exports = exports = vis;
-
-},{"./controller":2,"./dataset":3,"./events":4,"./range":5,"./stack":6,"./timestep":7,"./util":8,"./component/component":9,"./component/panel":10,"./component/rootpanel":11,"./component/itemset":12,"./component/timeaxis":13,"./visualization/timeline":14}],4:[function(require,module,exports){
-/**
- * Event listener (singleton)
- */
-var events = {
-    'listeners': [],
-
-    /**
-     * Find a single listener by its object
-     * @param {Object} object
-     * @return {Number} index  -1 when not found
-     */
-    'indexOf': function (object) {
-        var listeners = this.listeners;
-        for (var i = 0, iMax = this.listeners.length; i < iMax; i++) {
-            var listener = listeners[i];
-            if (listener && listener.object == object) {
-                return i;
-            }
-        }
-        return -1;
-    },
-
-    /**
-     * Add an event listener
-     * @param {Object} object
-     * @param {String} event       The name of an event, for example 'select'
-     * @param {function} callback  The callback method, called when the
-     *                             event takes place
-     */
-    'addListener': function (object, event, callback) {
-        var index = this.indexOf(object);
-        var listener = this.listeners[index];
-        if (!listener) {
-            listener = {
-                'object': object,
-                'events': {}
-            };
-            this.listeners.push(listener);
-        }
-
-        var callbacks = listener.events[event];
-        if (!callbacks) {
-            callbacks = [];
-            listener.events[event] = callbacks;
-        }
-
-        // add the callback if it does not yet exist
-        if (callbacks.indexOf(callback) == -1) {
-            callbacks.push(callback);
-        }
-    },
-
-    /**
-     * Remove an event listener
-     * @param {Object} object
-     * @param {String} event       The name of an event, for example 'select'
-     * @param {function} callback  The registered callback method
-     */
-    'removeListener': function (object, event, callback) {
-        var index = this.indexOf(object);
-        var listener = this.listeners[index];
-        if (listener) {
-            var callbacks = listener.events[event];
-            if (callbacks) {
-                index = callbacks.indexOf(callback);
-                if (index != -1) {
-                    callbacks.splice(index, 1);
-                }
-
-                // remove the array when empty
-                if (callbacks.length == 0) {
-                    delete listener.events[event];
-                }
-            }
-
-            // count the number of registered events. remove listener when empty
-            var count = 0;
-            var events = listener.events;
-            for (var e in events) {
-                if (events.hasOwnProperty(e)) {
-                    count++;
-                }
-            }
-            if (count == 0) {
-                delete this.listeners[index];
-            }
-        }
-    },
-
-    /**
-     * Remove all registered event listeners
-     */
-    'removeAllListeners': function () {
-        this.listeners = [];
-    },
-
-    /**
-     * Trigger an event. All registered event handlers will be called
-     * @param {Object} object
-     * @param {String} event
-     * @param {Object} properties (optional)
-     */
-    'trigger': function (object, event, properties) {
-        var index = this.indexOf(object);
-        var listener = this.listeners[index];
-        if (listener) {
-            var callbacks = listener.events[event];
-            if (callbacks) {
-                for (var i = 0, iMax = callbacks.length; i < iMax; i++) {
-                    callbacks[i](properties);
-                }
-            }
-        }
-    }
-};
-
-// exports
-module.exports = exports = events;
-
-},{}],8:[function(require,module,exports){
 /**
  * utility functions
  */
@@ -771,6 +623,30 @@ util.option.asElement = function (value, defaultValue) {
     return value || defaultValue || null;
 };
 
+/**
+ * load css from text
+ * @param {String} css    Text containing css
+ */
+util.loadCss = function (css) {
+    // get the script location, and built the css file name from the js file name
+    // http://stackoverflow.com/a/2161748/1262753
+    var scripts = document.getElementsByTagName('script');
+    // var jsFile = scripts[scripts.length-1].src.split('?')[0];
+    // var cssFile = jsFile.substring(0, jsFile.length - 2) + 'css';
+
+    // inject css
+    // http://stackoverflow.com/questions/524696/how-to-create-a-style-tag-with-javascript
+    var style = document.createElement('style');
+    style.type = 'text/css';
+    if (style.styleSheet){
+        style.styleSheet.cssText = css;
+    } else {
+        style.appendChild(document.createTextNode(css));
+    }
+
+    document.getElementsByTagName('head')[0].appendChild(style);
+};
+
 
 // Internet Explorer 8 and older does not support Array.indexOf, so we define
 // it here in that case.
@@ -960,159 +836,572 @@ if(!Array.isArray) {
     };
 }
 
-// exports
-module.exports = exports = util;
+/**
+ * Event listener (singleton)
+ */
+var events = {
+    'listeners': [],
 
-},{}],2:[function(require,module,exports){
-var util = require('./util'),
-    Component = require('./component/component');
+    /**
+     * Find a single listener by its object
+     * @param {Object} object
+     * @return {Number} index  -1 when not found
+     */
+    'indexOf': function (object) {
+        var listeners = this.listeners;
+        for (var i = 0, iMax = this.listeners.length; i < iMax; i++) {
+            var listener = listeners[i];
+            if (listener && listener.object == object) {
+                return i;
+            }
+        }
+        return -1;
+    },
+
+    /**
+     * Add an event listener
+     * @param {Object} object
+     * @param {String} event       The name of an event, for example 'select'
+     * @param {function} callback  The callback method, called when the
+     *                             event takes place
+     */
+    'addListener': function (object, event, callback) {
+        var index = this.indexOf(object);
+        var listener = this.listeners[index];
+        if (!listener) {
+            listener = {
+                'object': object,
+                'events': {}
+            };
+            this.listeners.push(listener);
+        }
+
+        var callbacks = listener.events[event];
+        if (!callbacks) {
+            callbacks = [];
+            listener.events[event] = callbacks;
+        }
+
+        // add the callback if it does not yet exist
+        if (callbacks.indexOf(callback) == -1) {
+            callbacks.push(callback);
+        }
+    },
+
+    /**
+     * Remove an event listener
+     * @param {Object} object
+     * @param {String} event       The name of an event, for example 'select'
+     * @param {function} callback  The registered callback method
+     */
+    'removeListener': function (object, event, callback) {
+        var index = this.indexOf(object);
+        var listener = this.listeners[index];
+        if (listener) {
+            var callbacks = listener.events[event];
+            if (callbacks) {
+                index = callbacks.indexOf(callback);
+                if (index != -1) {
+                    callbacks.splice(index, 1);
+                }
+
+                // remove the array when empty
+                if (callbacks.length == 0) {
+                    delete listener.events[event];
+                }
+            }
+
+            // count the number of registered events. remove listener when empty
+            var count = 0;
+            var events = listener.events;
+            for (var e in events) {
+                if (events.hasOwnProperty(e)) {
+                    count++;
+                }
+            }
+            if (count == 0) {
+                delete this.listeners[index];
+            }
+        }
+    },
+
+    /**
+     * Remove all registered event listeners
+     */
+    'removeAllListeners': function () {
+        this.listeners = [];
+    },
+
+    /**
+     * Trigger an event. All registered event handlers will be called
+     * @param {Object} object
+     * @param {String} event
+     * @param {Object} properties (optional)
+     */
+    'trigger': function (object, event, properties) {
+        var index = this.indexOf(object);
+        var listener = this.listeners[index];
+        if (listener) {
+            var callbacks = listener.events[event];
+            if (callbacks) {
+                for (var i = 0, iMax = callbacks.length; i < iMax; i++) {
+                    callbacks[i](properties);
+                }
+            }
+        }
+    }
+};
 
 /**
- * @constructor Controller
+ * @constructor  TimeStep
+ * The class TimeStep is an iterator for dates. You provide a start date and an
+ * end date. The class itself determines the best scale (step size) based on the
+ * provided start Date, end Date, and minimumStep.
  *
- * A Controller controls the reflows and repaints of all visual components
+ * If minimumStep is provided, the step size is chosen as close as possible
+ * to the minimumStep but larger than minimumStep. If minimumStep is not
+ * provided, the scale is set to 1 DAY.
+ * The minimumStep should correspond with the onscreen size of about 6 characters
+ *
+ * Alternatively, you can set a scale by hand.
+ * After creation, you can initialize the class by executing first(). Then you
+ * can iterate from the start date to the end date via next(). You can check if
+ * the end date is reached with the function hasNext(). After each step, you can
+ * retrieve the current date via getCurrent().
+ * The TimeStep has scales ranging from milliseconds, seconds, minutes, hours,
+ * days, to years.
+ *
+ * Version: 1.2
+ *
+ * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
+ *                               or new Date(2010, 9, 21, 23, 45, 00)
+ * @param {Date} [end]           The end date
+ * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
  */
-function Controller () {
-    this.id = util.randomUUID();
-    this.components = {};
+TimeStep = function(start, end, minimumStep) {
+    // variables
+    this.current = new Date();
+    this._start = new Date();
+    this._end = new Date();
 
-    this.repaintTimer = undefined;
-    this.reflowTimer = undefined;
-}
+    this.autoScale  = true;
+    this.scale = TimeStep.SCALE.DAY;
+    this.step = 1;
+
+    // initialize the range
+    this.setRange(start, end, minimumStep);
+};
+
+/// enum scale
+TimeStep.SCALE = {
+    MILLISECOND: 1,
+    SECOND: 2,
+    MINUTE: 3,
+    HOUR: 4,
+    DAY: 5,
+    WEEKDAY: 6,
+    MONTH: 7,
+    YEAR: 8
+};
+
 
 /**
- * Add a component to the controller
- * @param {Component | Controller} component
+ * Set a new range
+ * If minimumStep is provided, the step size is chosen as close as possible
+ * to the minimumStep but larger than minimumStep. If minimumStep is not
+ * provided, the scale is set to 1 DAY.
+ * The minimumStep should correspond with the onscreen size of about 6 characters
+ * @param {Date} start        The start date and time.
+ * @param {Date} end          The end date and time.
+ * @param {int} [minimumStep] Optional. Minimum step size in milliseconds
  */
-Controller.prototype.add = function (component) {
-    // validate the component
-    if (component.id == undefined) {
-        throw new Error('Component has no field id');
-    }
-    if (!(component instanceof Component) && !(component instanceof Controller)) {
-        throw new TypeError('Component must be an instance of ' +
-            'prototype Component or Controller');
+TimeStep.prototype.setRange = function(start, end, minimumStep) {
+    if (!(start instanceof Date) || !(end instanceof Date)) {
+        //throw  "No legal start or end date in method setRange";
+        return;
     }
 
-    // add the component
-    component.controller = this;
-    this.components[component.id] = component;
+    this._start = (start != undefined) ? new Date(start.valueOf()) : new Date();
+    this._end = (end != undefined) ? new Date(end.valueOf()) : new Date();
+
+    if (this.autoScale) {
+        this.setMinimumStep(minimumStep);
+    }
 };
 
 /**
- * Request a reflow. The controller will schedule a reflow
+ * Set the range iterator to the start date.
  */
-Controller.prototype.requestReflow = function () {
-    if (!this.reflowTimer) {
-        var me = this;
-        this.reflowTimer = setTimeout(function () {
-            me.reflowTimer = undefined;
-            me.reflow();
-        }, 0);
+TimeStep.prototype.first = function() {
+    this.current = new Date(this._start.valueOf());
+    this.roundToMinor();
+};
+
+/**
+ * Round the current date to the first minor date value
+ * This must be executed once when the current date is set to start Date
+ */
+TimeStep.prototype.roundToMinor = function() {
+    // round to floor
+    // IMPORTANT: we have no breaks in this switch! (this is no bug)
+    //noinspection FallthroughInSwitchStatementJS
+    switch (this.scale) {
+        case TimeStep.SCALE.YEAR:
+            this.current.setFullYear(this.step * Math.floor(this.current.getFullYear() / this.step));
+            this.current.setMonth(0);
+        case TimeStep.SCALE.MONTH:        this.current.setDate(1);
+        case TimeStep.SCALE.DAY:          // intentional fall through
+        case TimeStep.SCALE.WEEKDAY:      this.current.setHours(0);
+        case TimeStep.SCALE.HOUR:         this.current.setMinutes(0);
+        case TimeStep.SCALE.MINUTE:       this.current.setSeconds(0);
+        case TimeStep.SCALE.SECOND:       this.current.setMilliseconds(0);
+        //case TimeStep.SCALE.MILLISECOND: // nothing to do for milliseconds
+    }
+
+    if (this.step != 1) {
+        // round down to the first minor value that is a multiple of the current step size
+        switch (this.scale) {
+            case TimeStep.SCALE.MILLISECOND:  this.current.setMilliseconds(this.current.getMilliseconds() - this.current.getMilliseconds() % this.step);  break;
+            case TimeStep.SCALE.SECOND:       this.current.setSeconds(this.current.getSeconds() - this.current.getSeconds() % this.step); break;
+            case TimeStep.SCALE.MINUTE:       this.current.setMinutes(this.current.getMinutes() - this.current.getMinutes() % this.step); break;
+            case TimeStep.SCALE.HOUR:         this.current.setHours(this.current.getHours() - this.current.getHours() % this.step); break;
+            case TimeStep.SCALE.WEEKDAY:      // intentional fall through
+            case TimeStep.SCALE.DAY:          this.current.setDate((this.current.getDate()-1) - (this.current.getDate()-1) % this.step + 1); break;
+            case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() - this.current.getMonth() % this.step);  break;
+            case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() - this.current.getFullYear() % this.step); break;
+            default: break;
+        }
     }
 };
 
 /**
- * Request a repaint. The controller will schedule a repaint
+ * Check if the there is a next step
+ * @return {boolean}  true if the current date has not passed the end date
  */
-Controller.prototype.requestRepaint = function () {
-    if (!this.repaintTimer) {
-        var me = this;
-        this.repaintTimer = setTimeout(function () {
-            me.repaintTimer = undefined;
-            me.repaint();
-        }, 0);
-    }
+TimeStep.prototype.hasNext = function () {
+    return (this.current.valueOf() <= this._end.valueOf());
 };
 
 /**
- * Repaint all components
+ * Do the next step
  */
-Controller.prototype.repaint = function () {
-    var changed = false;
+TimeStep.prototype.next = function() {
+    var prev = this.current.valueOf();
 
-    // cancel any running repaint request
-    if (this.repaintTimer) {
-        clearTimeout(this.repaintTimer);
-        this.repaintTimer = undefined;
+    // Two cases, needed to prevent issues with switching daylight savings
+    // (end of March and end of October)
+    if (this.current.getMonth() < 6)   {
+        switch (this.scale) {
+            case TimeStep.SCALE.MILLISECOND:
+
+                this.current = new Date(this.current.valueOf() + this.step); break;
+            case TimeStep.SCALE.SECOND:       this.current = new Date(this.current.valueOf() + this.step * 1000); break;
+            case TimeStep.SCALE.MINUTE:       this.current = new Date(this.current.valueOf() + this.step * 1000 * 60); break;
+            case TimeStep.SCALE.HOUR:
+                this.current = new Date(this.current.valueOf() + this.step * 1000 * 60 * 60);
+                // in case of skipping an hour for daylight savings, adjust the hour again (else you get: 0h 5h 9h ... instead of 0h 4h 8h ...)
+                var h = this.current.getHours();
+                this.current.setHours(h - (h % this.step));
+                break;
+            case TimeStep.SCALE.WEEKDAY:      // intentional fall through
+            case TimeStep.SCALE.DAY:          this.current.setDate(this.current.getDate() + this.step); break;
+            case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() + this.step); break;
+            case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() + this.step); break;
+            default:                      break;
+        }
     }
-
-    var done = {};
-
-    function repaint(component, id) {
-        if (!(id in done)) {
-            // first repaint the components on which this component is dependent
-            if (component.depends) {
-                component.depends.forEach(function (dep) {
-                    repaint(dep, dep.id);
-                });
-            }
-            if (component.parent) {
-                repaint(component.parent, component.parent.id);
-            }
-
-            // repaint the component itself and mark as done
-            changed = component.repaint() || changed;
-            done[id] = true;
+    else {
+        switch (this.scale) {
+            case TimeStep.SCALE.MILLISECOND:  this.current = new Date(this.current.valueOf() + this.step); break;
+            case TimeStep.SCALE.SECOND:       this.current.setSeconds(this.current.getSeconds() + this.step); break;
+            case TimeStep.SCALE.MINUTE:       this.current.setMinutes(this.current.getMinutes() + this.step); break;
+            case TimeStep.SCALE.HOUR:         this.current.setHours(this.current.getHours() + this.step); break;
+            case TimeStep.SCALE.WEEKDAY:      // intentional fall through
+            case TimeStep.SCALE.DAY:          this.current.setDate(this.current.getDate() + this.step); break;
+            case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() + this.step); break;
+            case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() + this.step); break;
+            default:                      break;
         }
     }
 
-    util.forEach(this.components, repaint);
-
-    // immediately reflow when needed
-    if (changed) {
-        this.reflow();
-    }
-    // TODO: limit the number of nested reflows/repaints, prevent loop
-};
-
-/**
- * Reflow all components
- */
-Controller.prototype.reflow = function () {
-    var resized = false;
-
-    // cancel any running repaint request
-    if (this.reflowTimer) {
-        clearTimeout(this.reflowTimer);
-        this.reflowTimer = undefined;
-    }
-
-    var done = {};
-
-    function reflow(component, id) {
-        if (!(id in done)) {
-            // first reflow the components on which this component is dependent
-            if (component.depends) {
-                component.depends.forEach(function (dep) {
-                    reflow(dep, dep.id);
-                });
-            }
-            if (component.parent) {
-                reflow(component.parent, component.parent.id);
-            }
-
-            // reflow the component itself and mark as done
-            resized = component.reflow() || resized;
-            done[id] = true;
+    if (this.step != 1) {
+        // round down to the correct major value
+        switch (this.scale) {
+            case TimeStep.SCALE.MILLISECOND:  if(this.current.getMilliseconds() < this.step) this.current.setMilliseconds(0);  break;
+            case TimeStep.SCALE.SECOND:       if(this.current.getSeconds() < this.step) this.current.setSeconds(0);  break;
+            case TimeStep.SCALE.MINUTE:       if(this.current.getMinutes() < this.step) this.current.setMinutes(0);  break;
+            case TimeStep.SCALE.HOUR:         if(this.current.getHours() < this.step) this.current.setHours(0);  break;
+            case TimeStep.SCALE.WEEKDAY:      // intentional fall through
+            case TimeStep.SCALE.DAY:          if(this.current.getDate() < this.step+1) this.current.setDate(1); break;
+            case TimeStep.SCALE.MONTH:        if(this.current.getMonth() < this.step) this.current.setMonth(0);  break;
+            case TimeStep.SCALE.YEAR:         break; // nothing to do for year
+            default:                break;
         }
     }
 
-    util.forEach(this.components, reflow);
-
-    // immediately repaint when needed
-    if (resized) {
-        this.repaint();
+    // safety mechanism: if current time is still unchanged, move to the end
+    if (this.current.valueOf() == prev) {
+        this.current = new Date(this._end.valueOf());
     }
-    // TODO: limit the number of nested reflows/repaints, prevent loop
 };
 
-// exports
-module.exports = exports = Controller;
+
+/**
+ * Get the current datetime
+ * @return {Date}  current The current date
+ */
+TimeStep.prototype.getCurrent = function() {
+    return this.current;
+};
+
+/**
+ * Set a custom scale. Autoscaling will be disabled.
+ * For example setScale(SCALE.MINUTES, 5) will result
+ * in minor steps of 5 minutes, and major steps of an hour.
+ *
+ * @param {TimeStep.SCALE} newScale
+ *                               A scale. Choose from SCALE.MILLISECOND,
+ *                               SCALE.SECOND, SCALE.MINUTE, SCALE.HOUR,
+ *                               SCALE.WEEKDAY, SCALE.DAY, SCALE.MONTH,
+ *                               SCALE.YEAR.
+ * @param {Number}     newStep   A step size, by default 1. Choose for
+ *                               example 1, 2, 5, or 10.
+ */
+TimeStep.prototype.setScale = function(newScale, newStep) {
+    this.scale = newScale;
+
+    if (newStep > 0) {
+        this.step = newStep;
+    }
+
+    this.autoScale = false;
+};
+
+/**
+ * Enable or disable autoscaling
+ * @param {boolean} enable  If true, autoascaling is set true
+ */
+TimeStep.prototype.setAutoScale = function (enable) {
+    this.autoScale = enable;
+};
 
 
-},{"./util":8,"./component/component":9}],3:[function(require,module,exports){
-var util = require('./util');
+/**
+ * Automatically determine the scale that bests fits the provided minimum step
+ * @param {Number} minimumStep  The minimum step size in milliseconds
+ */
+TimeStep.prototype.setMinimumStep = function(minimumStep) {
+    if (minimumStep == undefined) {
+        return;
+    }
+
+    var stepYear       = (1000 * 60 * 60 * 24 * 30 * 12);
+    var stepMonth      = (1000 * 60 * 60 * 24 * 30);
+    var stepDay        = (1000 * 60 * 60 * 24);
+    var stepHour       = (1000 * 60 * 60);
+    var stepMinute     = (1000 * 60);
+    var stepSecond     = (1000);
+    var stepMillisecond= (1);
+
+    // find the smallest step that is larger than the provided minimumStep
+    if (stepYear*1000 > minimumStep)        {this.scale = TimeStep.SCALE.YEAR;        this.step = 1000;}
+    if (stepYear*500 > minimumStep)         {this.scale = TimeStep.SCALE.YEAR;        this.step = 500;}
+    if (stepYear*100 > minimumStep)         {this.scale = TimeStep.SCALE.YEAR;        this.step = 100;}
+    if (stepYear*50 > minimumStep)          {this.scale = TimeStep.SCALE.YEAR;        this.step = 50;}
+    if (stepYear*10 > minimumStep)          {this.scale = TimeStep.SCALE.YEAR;        this.step = 10;}
+    if (stepYear*5 > minimumStep)           {this.scale = TimeStep.SCALE.YEAR;        this.step = 5;}
+    if (stepYear > minimumStep)             {this.scale = TimeStep.SCALE.YEAR;        this.step = 1;}
+    if (stepMonth*3 > minimumStep)          {this.scale = TimeStep.SCALE.MONTH;       this.step = 3;}
+    if (stepMonth > minimumStep)            {this.scale = TimeStep.SCALE.MONTH;       this.step = 1;}
+    if (stepDay*5 > minimumStep)            {this.scale = TimeStep.SCALE.DAY;         this.step = 5;}
+    if (stepDay*2 > minimumStep)            {this.scale = TimeStep.SCALE.DAY;         this.step = 2;}
+    if (stepDay > minimumStep)              {this.scale = TimeStep.SCALE.DAY;         this.step = 1;}
+    if (stepDay/2 > minimumStep)            {this.scale = TimeStep.SCALE.WEEKDAY;     this.step = 1;}
+    if (stepHour*4 > minimumStep)           {this.scale = TimeStep.SCALE.HOUR;        this.step = 4;}
+    if (stepHour > minimumStep)             {this.scale = TimeStep.SCALE.HOUR;        this.step = 1;}
+    if (stepMinute*15 > minimumStep)        {this.scale = TimeStep.SCALE.MINUTE;      this.step = 15;}
+    if (stepMinute*10 > minimumStep)        {this.scale = TimeStep.SCALE.MINUTE;      this.step = 10;}
+    if (stepMinute*5 > minimumStep)         {this.scale = TimeStep.SCALE.MINUTE;      this.step = 5;}
+    if (stepMinute > minimumStep)           {this.scale = TimeStep.SCALE.MINUTE;      this.step = 1;}
+    if (stepSecond*15 > minimumStep)        {this.scale = TimeStep.SCALE.SECOND;      this.step = 15;}
+    if (stepSecond*10 > minimumStep)        {this.scale = TimeStep.SCALE.SECOND;      this.step = 10;}
+    if (stepSecond*5 > minimumStep)         {this.scale = TimeStep.SCALE.SECOND;      this.step = 5;}
+    if (stepSecond > minimumStep)           {this.scale = TimeStep.SCALE.SECOND;      this.step = 1;}
+    if (stepMillisecond*200 > minimumStep)  {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 200;}
+    if (stepMillisecond*100 > minimumStep)  {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 100;}
+    if (stepMillisecond*50 > minimumStep)   {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 50;}
+    if (stepMillisecond*10 > minimumStep)   {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 10;}
+    if (stepMillisecond*5 > minimumStep)    {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 5;}
+    if (stepMillisecond > minimumStep)      {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 1;}
+};
+
+/**
+ * Snap a date to a rounded value. The snap intervals are dependent on the
+ * current scale and step.
+ * @param {Date} date   the date to be snapped
+ */
+TimeStep.prototype.snap = function(date) {
+    if (this.scale == TimeStep.SCALE.YEAR) {
+        var year = date.getFullYear() + Math.round(date.getMonth() / 12);
+        date.setFullYear(Math.round(year / this.step) * this.step);
+        date.setMonth(0);
+        date.setDate(0);
+        date.setHours(0);
+        date.setMinutes(0);
+        date.setSeconds(0);
+        date.setMilliseconds(0);
+    }
+    else if (this.scale == TimeStep.SCALE.MONTH) {
+        if (date.getDate() > 15) {
+            date.setDate(1);
+            date.setMonth(date.getMonth() + 1);
+            // important: first set Date to 1, after that change the month.
+        }
+        else {
+            date.setDate(1);
+        }
+
+        date.setHours(0);
+        date.setMinutes(0);
+        date.setSeconds(0);
+        date.setMilliseconds(0);
+    }
+    else if (this.scale == TimeStep.SCALE.DAY ||
+        this.scale == TimeStep.SCALE.WEEKDAY) {
+        //noinspection FallthroughInSwitchStatementJS
+        switch (this.step) {
+            case 5:
+            case 2:
+                date.setHours(Math.round(date.getHours() / 24) * 24); break;
+            default:
+                date.setHours(Math.round(date.getHours() / 12) * 12); break;
+        }
+        date.setMinutes(0);
+        date.setSeconds(0);
+        date.setMilliseconds(0);
+    }
+    else if (this.scale == TimeStep.SCALE.HOUR) {
+        switch (this.step) {
+            case 4:
+                date.setMinutes(Math.round(date.getMinutes() / 60) * 60); break;
+            default:
+                date.setMinutes(Math.round(date.getMinutes() / 30) * 30); break;
+        }
+        date.setSeconds(0);
+        date.setMilliseconds(0);
+    } else if (this.scale == TimeStep.SCALE.MINUTE) {
+        //noinspection FallthroughInSwitchStatementJS
+        switch (this.step) {
+            case 15:
+            case 10:
+                date.setMinutes(Math.round(date.getMinutes() / 5) * 5);
+                date.setSeconds(0);
+                break;
+            case 5:
+                date.setSeconds(Math.round(date.getSeconds() / 60) * 60); break;
+            default:
+                date.setSeconds(Math.round(date.getSeconds() / 30) * 30); break;
+        }
+        date.setMilliseconds(0);
+    }
+    else if (this.scale == TimeStep.SCALE.SECOND) {
+        //noinspection FallthroughInSwitchStatementJS
+        switch (this.step) {
+            case 15:
+            case 10:
+                date.setSeconds(Math.round(date.getSeconds() / 5) * 5);
+                date.setMilliseconds(0);
+                break;
+            case 5:
+                date.setMilliseconds(Math.round(date.getMilliseconds() / 1000) * 1000); break;
+            default:
+                date.setMilliseconds(Math.round(date.getMilliseconds() / 500) * 500); break;
+        }
+    }
+    else if (this.scale == TimeStep.SCALE.MILLISECOND) {
+        var step = this.step > 5 ? this.step / 2 : 1;
+        date.setMilliseconds(Math.round(date.getMilliseconds() / step) * step);
+    }
+};
+
+/**
+ * Check if the current value is a major value (for example when the step
+ * is DAY, a major value is each first day of the MONTH)
+ * @return {boolean} true if current date is major, else false.
+ */
+TimeStep.prototype.isMajor = function() {
+    switch (this.scale) {
+        case TimeStep.SCALE.MILLISECOND:
+            return (this.current.getMilliseconds() == 0);
+        case TimeStep.SCALE.SECOND:
+            return (this.current.getSeconds() == 0);
+        case TimeStep.SCALE.MINUTE:
+            return (this.current.getHours() == 0) && (this.current.getMinutes() == 0);
+        // Note: this is no bug. Major label is equal for both minute and hour scale
+        case TimeStep.SCALE.HOUR:
+            return (this.current.getHours() == 0);
+        case TimeStep.SCALE.WEEKDAY: // intentional fall through
+        case TimeStep.SCALE.DAY:
+            return (this.current.getDate() == 1);
+        case TimeStep.SCALE.MONTH:
+            return (this.current.getMonth() == 0);
+        case TimeStep.SCALE.YEAR:
+            return false;
+        default:
+            return false;
+    }
+};
+
+
+/**
+ * Returns formatted text for the minor axislabel, depending on the current
+ * date and the scale. For example when scale is MINUTE, the current time is
+ * formatted as "hh:mm".
+ * @param {Date} [date] custom date. if not provided, current date is taken
+ */
+TimeStep.prototype.getLabelMinor = function(date) {
+    if (date == undefined) {
+        date = this.current;
+    }
+
+    switch (this.scale) {
+        case TimeStep.SCALE.MILLISECOND:  return moment(date).format('SSS');
+        case TimeStep.SCALE.SECOND:       return moment(date).format('s');
+        case TimeStep.SCALE.MINUTE:       return moment(date).format('HH:mm');
+        case TimeStep.SCALE.HOUR:         return moment(date).format('HH:mm');
+        case TimeStep.SCALE.WEEKDAY:      return moment(date).format('ddd D');
+        case TimeStep.SCALE.DAY:          return moment(date).format('D');
+        case TimeStep.SCALE.MONTH:        return moment(date).format('MMM');
+        case TimeStep.SCALE.YEAR:         return moment(date).format('YYYY');
+        default:                          return '';
+    }
+};
+
+
+/**
+ * Returns formatted text for the major axislabel, depending on the current
+ * date and the scale. For example when scale is MINUTE, the major scale is
+ * hours, and the hour will be formatted as "hh".
+ * @param {Date} [date] custom date. if not provided, current date is taken
+ */
+TimeStep.prototype.getLabelMajor = function(date) {
+    if (date == undefined) {
+        date = this.current;
+    }
+
+    //noinspection FallthroughInSwitchStatementJS
+    switch (this.scale) {
+        case TimeStep.SCALE.MILLISECOND:return moment(date).format('HH:mm:ss');
+        case TimeStep.SCALE.SECOND:     return moment(date).format('D MMMM HH:mm');
+        case TimeStep.SCALE.MINUTE:
+        case TimeStep.SCALE.HOUR:       return moment(date).format('ddd D MMMM');
+        case TimeStep.SCALE.WEEKDAY:
+        case TimeStep.SCALE.DAY:        return moment(date).format('MMMM YYYY');
+        case TimeStep.SCALE.MONTH:      return moment(date).format('YYYY');
+        case TimeStep.SCALE.YEAR:       return '';
+        default:                        return '';
+    }
+};
 
 /**
  * DataSet
@@ -1662,12 +1951,163 @@ DataSet.prototype._appendRow = function (dataTable, columns, item) {
     });
 };
 
-// exports
-module.exports = exports = DataSet;
+/**
+ * @constructor Stack
+ * Stacks items on top of each other.
+ * @param {ItemSet} parent
+ * @param {Object} [options]
+ */
+function Stack (parent, options) {
+    this.parent = parent;
+    this.options = {
+        order: function (a, b) {
+            return (b.width - a.width) || (a.left - b.left);
+        }
+    };
 
-},{"./util":8}],5:[function(require,module,exports){
-var util = require('./util'),
-    events = require('./events');
+    this.ordered = [];  // ordered items
+
+    this.setOptions(options);
+}
+
+/**
+ * Set options for the stack
+ * @param {Object} options  Available options:
+ *                          {ItemSet} parent
+ *                          {Number} margin
+ *                          {function} order  Stacking order
+ */
+Stack.prototype.setOptions = function (options) {
+    util.extend(this.options, options);
+
+    // TODO: register on data changes at the connected parent itemset, and update the changed part only and immediately
+};
+
+/**
+ * Stack the items such that they don't overlap. The items will have a minimal
+ * distance equal to options.margin.item.
+ */
+Stack.prototype.update = function() {
+    this._order();
+    this._stack();
+};
+
+/**
+ * Order the items. The items are ordered by width first, and by left position
+ * second.
+ * If a custom order function has been provided via the options, then this will
+ * be used.
+ * @private
+ */
+Stack.prototype._order = function() {
+    var items = this.parent.items;
+    if (!items) {
+        throw new Error('Cannot stack items: parent does not contain items');
+    }
+
+    // TODO: store the sorted items, to have less work later on
+    var ordered = [];
+    var index = 0;
+    util.forEach(items, function (item, id) {
+        ordered[index] = item;
+        index++;
+    });
+
+    //if a customer stack order function exists, use it.
+    var order = this.options.order;
+    if (!(typeof this.options.order === 'function')) {
+        throw new Error('Option order must be a function');
+    }
+
+    ordered.sort(order);
+
+    this.ordered = ordered;
+};
+
+/**
+ * Adjust vertical positions of the events such that they don't overlap each
+ * other.
+ * @private
+ */
+Stack.prototype._stack = function() {
+    var i,
+        iMax,
+        ordered = this.ordered,
+        options = this.options,
+        axisOnTop = (options.orientation == 'top'),
+        margin = options.margin && options.margin.item || 0;
+
+    // calculate new, non-overlapping positions
+    for (i = 0, iMax = ordered.length; i < iMax; i++) {
+        var item = ordered[i];
+        var collidingItem = null;
+        do {
+            // TODO: optimize checking for overlap. when there is a gap without items,
+            //  you only need to check for items from the next item on, not from zero
+            collidingItem = this.checkOverlap(ordered, i, 0, i - 1, margin);
+            if (collidingItem != null) {
+                // There is a collision. Reposition the event above the colliding element
+                if (axisOnTop) {
+                    item.top = collidingItem.top + collidingItem.height + margin;
+                }
+                else {
+                    item.top = collidingItem.top - item.height - margin;
+                }
+            }
+        } while (collidingItem);
+    }
+};
+
+/**
+ * Check if the destiny position of given item overlaps with any
+ * of the other items from index itemStart to itemEnd.
+ * @param {Array} items     Array with items
+ * @param {int}  itemIndex  Number of the item to be checked for overlap
+ * @param {int}  itemStart  First item to be checked.
+ * @param {int}  itemEnd    Last item to be checked.
+ * @return {Object | null}  colliding item, or undefined when no collisions
+ * @param {Number} margin   A minimum required margin.
+ *                          If margin is provided, the two items will be
+ *                          marked colliding when they overlap or
+ *                          when the margin between the two is smaller than
+ *                          the requested margin.
+ */
+Stack.prototype.checkOverlap = function(items, itemIndex, itemStart, itemEnd, margin) {
+    var collision = this.collision;
+
+    // we loop from end to start, as we suppose that the chance of a
+    // collision is larger for items at the end, so check these first.
+    var a = items[itemIndex];
+    for (var i = itemEnd; i >= itemStart; i--) {
+        var b = items[i];
+        if (collision(a, b, margin)) {
+            if (i != itemIndex) {
+                return b;
+            }
+        }
+    }
+
+    return null;
+};
+
+/**
+ * Test if the two provided items collide
+ * The items must have parameters left, width, top, and height.
+ * @param {Component} a     The first item
+ * @param {Component} b     The second item
+ * @param {Number} margin   A minimum required margin.
+ *                          If margin is provided, the two items will be
+ *                          marked colliding when they overlap or
+ *                          when the margin between the two is smaller than
+ *                          the requested margin.
+ * @return {boolean}        true if a and b collide, else false
+ */
+Stack.prototype.collision = function(a, b, margin) {
+    return ((a.left - margin) < (b.left + b.width) &&
+        (a.left + a.width + margin) > b.left &&
+        (a.top - margin) < (b.top + b.height) &&
+        (a.top + a.height + margin) > b.top);
+};
 
 /**
  * @constructor Range
@@ -2194,175 +2634,145 @@ Range.prototype.move = function(moveFactor) {
     this.end = newEnd;
 };
 
-// exports
-module.exports = exports = Range;
-
-},{"./util":8,"./events":4}],6:[function(require,module,exports){
-var util = require('./util');
-
 /**
- * @constructor Stack
- * Stacks items on top of each other.
- * @param {ItemSet} parent
- * @param {Object} [options]
+ * @constructor Controller
+ *
+ * A Controller controls the reflows and repaints of all visual components
  */
-function Stack (parent, options) {
-    this.parent = parent;
-    this.options = {
-        order: function (a, b) {
-            return (b.width - a.width) || (a.left - b.left);
-        }
-    };
+function Controller () {
+    this.id = util.randomUUID();
+    this.components = {};
 
-    this.ordered = [];  // ordered items
-
-    this.setOptions(options);
+    this.repaintTimer = undefined;
+    this.reflowTimer = undefined;
 }
 
 /**
- * Set options for the stack
- * @param {Object} options  Available options:
- *                          {ItemSet} parent
- *                          {Number} margin
- *                          {function} order  Stacking order
+ * Add a component to the controller
+ * @param {Component | Controller} component
  */
-Stack.prototype.setOptions = function (options) {
-    util.extend(this.options, options);
-
-    // TODO: register on data changes at the connected parent itemset, and update the changed part only and immediately
-};
-
-/**
- * Stack the items such that they don't overlap. The items will have a minimal
- * distance equal to options.margin.item.
- */
-Stack.prototype.update = function() {
-    this._order();
-    this._stack();
-};
-
-/**
- * Order the items. The items are ordered by width first, and by left position
- * second.
- * If a custom order function has been provided via the options, then this will
- * be used.
- * @private
- */
-Stack.prototype._order = function() {
-    var items = this.parent.items;
-    if (!items) {
-        throw new Error('Cannot stack items: parent does not contain items');
+Controller.prototype.add = function (component) {
+    // validate the component
+    if (component.id == undefined) {
+        throw new Error('Component has no field id');
+    }
+    if (!(component instanceof Component) && !(component instanceof Controller)) {
+        throw new TypeError('Component must be an instance of ' +
+            'prototype Component or Controller');
     }
 
-    // TODO: store the sorted items, to have less work later on
-    var ordered = [];
-    var index = 0;
-    util.forEach(items, function (item, id) {
-        ordered[index] = item;
-        index++;
-    });
-
-    //if a customer stack order function exists, use it.
-    var order = this.options.order;
-    if (!(typeof this.options.order === 'function')) {
-        throw new Error('Option order must be a function');
-    }
-
-    ordered.sort(order);
-
-    this.ordered = ordered;
+    // add the component
+    component.controller = this;
+    this.components[component.id] = component;
 };
 
 /**
- * Adjust vertical positions of the events such that they don't overlap each
- * other.
- * @private
+ * Request a reflow. The controller will schedule a reflow
  */
-Stack.prototype._stack = function() {
-    var i,
-        iMax,
-        ordered = this.ordered,
-        options = this.options,
-        axisOnTop = (options.orientation == 'top'),
-        margin = options.margin && options.margin.item || 0;
+Controller.prototype.requestReflow = function () {
+    if (!this.reflowTimer) {
+        var me = this;
+        this.reflowTimer = setTimeout(function () {
+            me.reflowTimer = undefined;
+            me.reflow();
+        }, 0);
+    }
+};
 
-    // calculate new, non-overlapping positions
-    for (i = 0, iMax = ordered.length; i < iMax; i++) {
-        var item = ordered[i];
-        var collidingItem = null;
-        do {
-            // TODO: optimize checking for overlap. when there is a gap without items,
-            //  you only need to check for items from the next item on, not from zero
-            collidingItem = this.checkOverlap(ordered, i, 0, i - 1, margin);
-            if (collidingItem != null) {
-                // There is a collision. Reposition the event above the colliding element
-                if (axisOnTop) {
-                    item.top = collidingItem.top + collidingItem.height + margin;
-                }
-                else {
-                    item.top = collidingItem.top - item.height - margin;
-                }
+/**
+ * Request a repaint. The controller will schedule a repaint
+ */
+Controller.prototype.requestRepaint = function () {
+    if (!this.repaintTimer) {
+        var me = this;
+        this.repaintTimer = setTimeout(function () {
+            me.repaintTimer = undefined;
+            me.repaint();
+        }, 0);
+    }
+};
+
+/**
+ * Repaint all components
+ */
+Controller.prototype.repaint = function () {
+    var changed = false;
+
+    // cancel any running repaint request
+    if (this.repaintTimer) {
+        clearTimeout(this.repaintTimer);
+        this.repaintTimer = undefined;
+    }
+
+    var done = {};
+
+    function repaint(component, id) {
+        if (!(id in done)) {
+            // first repaint the components on which this component is dependent
+            if (component.depends) {
+                component.depends.forEach(function (dep) {
+                    repaint(dep, dep.id);
+                });
             }
-        } while (collidingItem);
-    }
-};
-
-/**
- * Check if the destiny position of given item overlaps with any
- * of the other items from index itemStart to itemEnd.
- * @param {Array} items     Array with items
- * @param {int}  itemIndex  Number of the item to be checked for overlap
- * @param {int}  itemStart  First item to be checked.
- * @param {int}  itemEnd    Last item to be checked.
- * @return {Object | null}  colliding item, or undefined when no collisions
- * @param {Number} margin   A minimum required margin.
- *                          If margin is provided, the two items will be
- *                          marked colliding when they overlap or
- *                          when the margin between the two is smaller than
- *                          the requested margin.
- */
-Stack.prototype.checkOverlap = function(items, itemIndex, itemStart, itemEnd, margin) {
-    var collision = this.collision;
-
-    // we loop from end to start, as we suppose that the chance of a
-    // collision is larger for items at the end, so check these first.
-    var a = items[itemIndex];
-    for (var i = itemEnd; i >= itemStart; i--) {
-        var b = items[i];
-        if (collision(a, b, margin)) {
-            if (i != itemIndex) {
-                return b;
+            if (component.parent) {
+                repaint(component.parent, component.parent.id);
             }
+
+            // repaint the component itself and mark as done
+            changed = component.repaint() || changed;
+            done[id] = true;
         }
     }
 
-    return null;
+    util.forEach(this.components, repaint);
+
+    // immediately reflow when needed
+    if (changed) {
+        this.reflow();
+    }
+    // TODO: limit the number of nested reflows/repaints, prevent loop
 };
 
 /**
- * Test if the two provided items collide
- * The items must have parameters left, width, top, and height.
- * @param {Component} a     The first item
- * @param {Component} b     The second item
- * @param {Number} margin   A minimum required margin.
- *                          If margin is provided, the two items will be
- *                          marked colliding when they overlap or
- *                          when the margin between the two is smaller than
- *                          the requested margin.
- * @return {boolean}        true if a and b collide, else false
+ * Reflow all components
  */
-Stack.prototype.collision = function(a, b, margin) {
-    return ((a.left - margin) < (b.left + b.width) &&
-        (a.left + a.width + margin) > b.left &&
-        (a.top - margin) < (b.top + b.height) &&
-        (a.top + a.height + margin) > b.top);
+Controller.prototype.reflow = function () {
+    var resized = false;
+
+    // cancel any running repaint request
+    if (this.reflowTimer) {
+        clearTimeout(this.reflowTimer);
+        this.reflowTimer = undefined;
+    }
+
+    var done = {};
+
+    function reflow(component, id) {
+        if (!(id in done)) {
+            // first reflow the components on which this component is dependent
+            if (component.depends) {
+                component.depends.forEach(function (dep) {
+                    reflow(dep, dep.id);
+                });
+            }
+            if (component.parent) {
+                reflow(component.parent, component.parent.id);
+            }
+
+            // reflow the component itself and mark as done
+            resized = component.reflow() || resized;
+            done[id] = true;
+        }
+    }
+
+    util.forEach(this.components, reflow);
+
+    // immediately repaint when needed
+    if (resized) {
+        this.repaint();
+    }
+    // TODO: limit the number of nested reflows/repaints, prevent loop
 };
-
-// exports
-module.exports = exports = Stack;
-
-},{"./util":8}],9:[function(require,module,exports){
-var util = require('./../util');
 
 /**
  * Prototype for visual components
@@ -2481,13 +2891,6 @@ Component.prototype.on = function (event, callback) {
     }
 };
 
-// exports
-module.exports = exports = Component;
-
-},{"./../util":8}],10:[function(require,module,exports){
-var util = require('../util'),
-    Component = require('./component');
-
 /**
  * A panel can contain components
  * @param {Component} [parent]
@@ -2589,13 +2992,6 @@ Panel.prototype.reflow = function () {
 
     return (changed > 0);
 };
-
-// exports
-module.exports = exports = Panel;
-
-},{"../util":8,"./component":9}],11:[function(require,module,exports){
-var util = require('../util'),
-    Panel = require('./panel');
 
 /**
  * A root panel can hold components. The root panel must be initialized with
@@ -2797,533 +3193,6 @@ RootPanel.prototype._updateEventEmitters = function () {
         // TODO: be able to move event listeners to a parent when available
     }
 };
-
-// exports
-module.exports = exports = RootPanel;
-
-},{"./panel":10,"../util":8}],12:[function(require,module,exports){
-var util = require('../util'),
-    DataSet = require('../dataset'),
-    Panel = require('./panel'),
-    Stack = require('../stack'),
-    ItemBox = require('./item/itembox'),
-    ItemRange = require('./item/itemrange'),
-    ItemPoint = require('./item/itempoint');
-
-/**
- * An ItemSet holds a set of items and ranges which can be displayed in a
- * range. The width is determined by the parent of the ItemSet, and the height
- * is determined by the size of the items.
- * @param {Component} parent
- * @param {Component[]} [depends]   Components on which this components depends
- *                                  (except for the parent)
- * @param {Object} [options]        See ItemSet.setOptions for the available
- *                                  options.
- * @constructor ItemSet
- * @extends Panel
- */
-function ItemSet(parent, depends, options) {
-    this.id = util.randomUUID();
-    this.parent = parent;
-    this.depends = depends;
-
-    // one options object is shared by this itemset and all its items
-    this.options = {
-        style: 'box',
-        align: 'center',
-        orientation: 'bottom',
-        margin: {
-            axis: 20,
-            item: 10
-        },
-        padding: 5
-    };
-
-    this.dom = {};
-
-    var me = this;
-    this.data = null;  // DataSet
-    this.range = null; // Range or Object {start: number, end: number}
-    this.listeners = {
-        'add': function (event, params) {
-            me._onAdd(params.items);
-        },
-        'update': function (event, params) {
-            me._onUpdate(params.items);
-        },
-        'remove': function (event, params) {
-            me._onRemove(params.items);
-        }
-    };
-
-    this.items = {};
-    this.queue = {};      // queue with items to be added/updated/removed
-    this.stack = new Stack(this);
-    this.conversion = null;
-
-    this.setOptions(options);
-}
-
-ItemSet.prototype = new Panel();
-
-// available item types will be registered here
-ItemSet.types = {
-    box: ItemBox,
-    range: ItemRange,
-    point: ItemPoint
-};
-
-/**
- * Set options for the ItemSet. Existing options will be extended/overwritten.
- * @param {Object} [options] The following options are available:
- *                           {String | function} [className]
- *                              class name for the itemset
- *                           {String} [style]
- *                              Default style for the items. Choose from 'box'
- *                              (default), 'point', or 'range'. The default
- *                              Style can be overwritten by individual items.
- *                           {String} align
- *                              Alignment for the items, only applicable for
- *                              ItemBox. Choose 'center' (default), 'left', or
- *                              'right'.
- *                           {String} orientation
- *                              Orientation of the item set. Choose 'top' or
- *                              'bottom' (default).
- *                           {Number} margin.axis
- *                              Margin between the axis and the items in pixels.
- *                              Default is 20.
- *                           {Number} margin.item
- *                              Margin between items in pixels. Default is 10.
- *                           {Number} padding
- *                              Padding of the contents of an item in pixels.
- *                              Must correspond with the items css. Default is 5.
- */
-ItemSet.prototype.setOptions = function (options) {
-    util.extend(this.options, options);
-
-    // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
-
-    this.stack.setOptions(this.options);
-};
-
-/**
- * Set range (start and end).
- * @param {Range | Object} range  A Range or an object containing start and end.
- */
-ItemSet.prototype.setRange = function (range) {
-    if (!(range instanceof Range) && (!range || !range.start || !range.end)) {
-        throw new TypeError('Range must be an instance of Range, ' +
-            'or an object containing start and end.');
-    }
-    this.range = range;
-};
-
-/**
- * Repaint the component
- * @return {Boolean} changed
- */
-ItemSet.prototype.repaint = function () {
-    var changed = 0,
-        update = util.updateProperty,
-        asSize = util.option.asSize,
-        options = this.options,
-        frame = this.frame;
-
-    if (!frame) {
-        frame = document.createElement('div');
-        frame.className = 'itemset';
-
-        if (options.className) {
-            util.addClassName(frame, util.option.asString(options.className));
-        }
-
-        // create background panel
-        var background = document.createElement('div');
-        background.className = 'background';
-        frame.appendChild(background);
-        this.dom.background = background;
-
-        // create foreground panel
-        var foreground = document.createElement('div');
-        foreground.className = 'foreground';
-        frame.appendChild(foreground);
-        this.dom.foreground = foreground;
-
-        // create axis panel
-        var axis = document.createElement('div');
-        axis.className = 'itemset-axis';
-        //frame.appendChild(axis);
-        this.dom.axis = axis;
-
-        this.frame = frame;
-        changed += 1;
-    }
-
-    if (!this.parent) {
-        throw new Error('Cannot repaint itemset: no parent attached');
-    }
-    var parentContainer = this.parent.getContainer();
-    if (!parentContainer) {
-        throw new Error('Cannot repaint itemset: parent has no container element');
-    }
-    if (!frame.parentNode) {
-        parentContainer.appendChild(frame);
-        changed += 1;
-    }
-    if (!this.dom.axis.parentNode) {
-        parentContainer.appendChild(this.dom.axis);
-        changed += 1;
-    }
-
-    // reposition frame
-    changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
-    changed += update(frame.style, 'top',    asSize(options.top, '0px'));
-    changed += update(frame.style, 'left',   asSize(options.left, '0px'));
-    changed += update(frame.style, 'width',  asSize(options.width, '100%'));
-
-    // reposition axis
-    changed += update(this.dom.axis.style, 'top', asSize(options.top, '0px'));
-
-    this._updateConversion();
-
-    var me = this,
-        queue = this.queue,
-        data = this.data,
-        items = this.items,
-        dataOptions = {
-            fields: ['id', 'start', 'end', 'content', 'type']
-        };
-    // TODO: copy options from the itemset itself?
-    // TODO: make orientation dynamically changable for the items
-
-    // show/hide added/changed/removed items
-    Object.keys(queue).forEach(function (id) {
-        var entry = queue[id];
-        var item = entry.item;
-        //noinspection FallthroughInSwitchStatementJS
-        switch (entry.action) {
-            case 'add':
-            case 'update':
-                var itemData = data.get(id, dataOptions);
-                var type = itemData.type ||
-                    (itemData.start && itemData.end && 'range') ||
-                    'box';
-                var constructor = ItemSet.types[type];
-
-                // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
-                if (item) {
-                    // update item
-                    if (!constructor || !(item instanceof constructor)) {
-                        // item type has changed, delete the item
-                        item.visible = false;
-                        changed += item.repaint();
-                        item = null;
-                    }
-                    else {
-                        item.data = itemData; // TODO: create a method item.setData ?
-                        changed += item.repaint();
-                    }
-                }
-
-                if (!item) {
-                    // create item
-                    if (constructor) {
-                        item = new constructor(me, itemData, options);
-                        changed += item.repaint();
-                    }
-                    else {
-                        throw new TypeError('Unknown item type "' + type + '"');
-                    }
-                }
-
-                // update lists
-                items[id] = item;
-                delete queue[id];
-                break;
-
-            case 'remove':
-                if (item) {
-                    // TODO: remove dom of the item
-                    item.visible = false;
-                    changed += item.repaint();
-                }
-
-                // update lists
-                delete items[id];
-                delete queue[id];
-                break;
-
-            default:
-                console.log('Error: unknown action "' + entry.action + '"');
-        }
-    });
-
-    // reposition all items
-    util.forEach(this.items, function (item) {
-        item.reposition();
-    });
-
-    return (changed > 0);
-};
-
-/**
- * Get the foreground container element
- * @return {HTMLElement} foreground
- */
-ItemSet.prototype.getForeground = function () {
-    return this.dom.foreground;
-};
-
-/**
- * Get the background container element
- * @return {HTMLElement} background
- */
-ItemSet.prototype.getBackground = function () {
-    return this.dom.background;
-};
-
-/**
- * Reflow the component
- * @return {Boolean} resized
- */
-ItemSet.prototype.reflow = function () {
-    var changed = 0,
-        options = this.options,
-        update = util.updateProperty,
-        asNumber = util.option.asNumber,
-        frame = this.frame;
-
-    if (frame) {
-        this._updateConversion();
-
-        util.forEach(this.items, function (item) {
-            changed += item.reflow();
-        });
-
-        // TODO: stack.update should be triggered via an event, in stack itself
-        // TODO: only update the stack when there are changed items
-        this.stack.update();
-
-        var maxHeight = asNumber(options.maxHeight);
-        var height;
-        if (options.height != null) {
-            height = frame.offsetHeight;
-            if (maxHeight != null) {
-                height = Math.min(height, maxHeight);
-            }
-            changed += update(this, 'height', height);
-        }
-        else {
-            // height is not specified, determine the height from the height and positioned items
-            var frameHeight = this.height;
-            height = 0;
-            if (options.orientation == 'top') {
-                util.forEach(this.items, function (item) {
-                    height = Math.max(height, item.top + item.height);
-                });
-            }
-            else {
-                // orientation == 'bottom'
-                util.forEach(this.items, function (item) {
-                    height = Math.max(height, frameHeight - item.top);
-                });
-            }
-            height += options.margin.axis;
-
-            if (maxHeight != null) {
-                height = Math.min(height, maxHeight);
-            }
-
-            changed += update(this, 'height', height);
-        }
-
-        // calculate height from items
-        changed += update(this, 'top', frame.offsetTop);
-        changed += update(this, 'left', frame.offsetLeft);
-        changed += update(this, 'width', frame.offsetWidth);
-    }
-    else {
-        changed += 1;
-    }
-
-    return (changed > 0);
-};
-
-/**
- * Set data
- * @param {DataSet | Array | DataTable} data
- */
-ItemSet.prototype.setData = function(data) {
-    // unsubscribe from current dataset
-    var current = this.data;
-    if (current) {
-        util.forEach(this.listeners, function (callback, event) {
-            current.unsubscribe(event, callback);
-        });
-    }
-
-    if (data instanceof DataSet) {
-        this.data = data;
-    }
-    else {
-        this.data = new DataSet({
-            fieldTypes: {
-                start: 'Date',
-                end: 'Date'
-            }
-        });
-        this.data.add(data);
-    }
-
-    var id = this.id;
-    var me = this;
-    util.forEach(this.listeners, function (callback, event) {
-        me.data.subscribe(event, callback, id);
-    });
-
-    var dataItems = this.data.get({filter: ['id']});
-    var ids = [];
-    util.forEach(dataItems, function (dataItem, index) {
-        ids[index] = dataItem.id;
-    });
-    this._onAdd(ids);
-};
-
-
-/**
- * Get the data range of the item set.
- * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
- *                                          When no minimum is found, min==null
- *                                          When no maximum is found, max==null
- */
-ItemSet.prototype.getDataRange = function () {
-    // calculate min from start filed
-    var data = this.data;
-    var min = data.min('start');
-    min = min ? min.start.valueOf() : null;
-
-    // calculate max of both start and end fields
-    var maxStart = data.max('start');
-    var maxEnd = data.max('end');
-    maxStart = maxStart ? maxStart.start.valueOf() : null;
-    maxEnd = maxEnd ? maxEnd.end.valueOf() : null;
-    var max = Math.max(maxStart, maxEnd);
-
-    return {
-        min: new Date(min),
-        max: new Date(max)
-    };
-};
-
-/**
- * Handle updated items
- * @param {Number[]} ids
- * @private
- */
-ItemSet.prototype._onUpdate = function(ids) {
-    this._toQueue(ids, 'update');
-};
-
-/**
- * Handle changed items
- * @param {Number[]} ids
- * @private
- */
-ItemSet.prototype._onAdd = function(ids) {
-    this._toQueue(ids, 'add');
-};
-
-/**
- * Handle removed items
- * @param {Number[]} ids
- * @private
- */
-ItemSet.prototype._onRemove = function(ids) {
-    this._toQueue(ids, 'remove');
-};
-
-/**
- * Put items in the queue to be added/updated/remove
- * @param {Number[]} ids
- * @param {String} action     can be 'add', 'update', 'remove'
- */
-ItemSet.prototype._toQueue = function (ids, action) {
-    var items = this.items;
-    var queue = this.queue;
-    ids.forEach(function (id) {
-        var entry = queue[id];
-        if (entry) {
-            // already queued, update the action of the entry
-            entry.action = action;
-        }
-        else {
-            // not yet queued, add an entry to the queue
-            queue[id] = {
-                item: items[id] || null,
-                action: action
-            };
-        }
-    });
-
-    if (this.controller) {
-        //this.requestReflow();
-        this.requestRepaint();
-    }
-};
-
-/**
- * Calculate the factor and offset to convert a position on screen to the
- * corresponding date and vice versa.
- * After the method _updateConversion is executed once, the methods toTime
- * and toScreen can be used.
- * @private
- */
-ItemSet.prototype._updateConversion = function() {
-    var range = this.range;
-    if (!range) {
-        throw new Error('No range configured');
-    }
-
-    if (range.conversion) {
-        this.conversion = range.conversion(this.width);
-    }
-    else {
-        this.conversion = Range.conversion(range.start, range.end, this.width);
-    }
-};
-
-/**
- * Convert a position on screen (pixels) to a datetime
- * Before this method can be used, the method _updateConversion must be
- * executed once.
- * @param {int}     x    Position on the screen in pixels
- * @return {Date}   time The datetime the corresponds with given position x
- */
-ItemSet.prototype.toTime = function(x) {
-    var conversion = this.conversion;
-    return new Date(x / conversion.factor + conversion.offset);
-};
-
-/**
- * Convert a datetime (Date object) into a position on the screen
- * Before this method can be used, the method _updateConversion must be
- * executed once.
- * @param {Date}   time A date
- * @return {int}   x    The position on the screen in pixels which corresponds
- *                      with the given date.
- */
-ItemSet.prototype.toScreen = function(time) {
-    var conversion = this.conversion;
-    return (time.valueOf() - conversion.offset) * conversion.factor;
-};
-
-// exports
-module.exports = exports = ItemSet;
-
-},{"../util":8,"../dataset":3,"./panel":10,"../stack":6,"./item/itembox":15,"./item/itemrange":16,"./item/itempoint":17}],13:[function(require,module,exports){
-var util = require('../util'),
-    TimeStep = require('../timestep'),
-    Component = require('./component');
 
 /**
  * A horizontal time axis
@@ -3850,470 +3719,545 @@ TimeAxis.prototype._updateConversion = function() {
     }
 };
 
-// exports
-module.exports = exports = TimeAxis;
-
-},{"../util":8,"../timestep":7,"./component":9}],7:[function(require,module,exports){
-var util = require('./util'),
-    moment = require('moment');
-
-    /**
- * @constructor  TimeStep
- * The class TimeStep is an iterator for dates. You provide a start date and an
- * end date. The class itself determines the best scale (step size) based on the
- * provided start Date, end Date, and minimumStep.
- *
- * If minimumStep is provided, the step size is chosen as close as possible
- * to the minimumStep but larger than minimumStep. If minimumStep is not
- * provided, the scale is set to 1 DAY.
- * The minimumStep should correspond with the onscreen size of about 6 characters
- *
- * Alternatively, you can set a scale by hand.
- * After creation, you can initialize the class by executing first(). Then you
- * can iterate from the start date to the end date via next(). You can check if
- * the end date is reached with the function hasNext(). After each step, you can
- * retrieve the current date via getCurrent().
- * The TimeStep has scales ranging from milliseconds, seconds, minutes, hours,
- * days, to years.
- *
- * Version: 1.2
- *
- * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
- *                               or new Date(2010, 9, 21, 23, 45, 00)
- * @param {Date} [end]           The end date
- * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
- */
-TimeStep = function(start, end, minimumStep) {
-    // variables
-    this.current = new Date();
-    this._start = new Date();
-    this._end = new Date();
-
-    this.autoScale  = true;
-    this.scale = TimeStep.SCALE.DAY;
-    this.step = 1;
-
-    // initialize the range
-    this.setRange(start, end, minimumStep);
-};
-
-/// enum scale
-TimeStep.SCALE = {
-    MILLISECOND: 1,
-    SECOND: 2,
-    MINUTE: 3,
-    HOUR: 4,
-    DAY: 5,
-    WEEKDAY: 6,
-    MONTH: 7,
-    YEAR: 8
-};
-
-
 /**
- * Set a new range
- * If minimumStep is provided, the step size is chosen as close as possible
- * to the minimumStep but larger than minimumStep. If minimumStep is not
- * provided, the scale is set to 1 DAY.
- * The minimumStep should correspond with the onscreen size of about 6 characters
- * @param {Date} start        The start date and time.
- * @param {Date} end          The end date and time.
- * @param {int} [minimumStep] Optional. Minimum step size in milliseconds
+ * An ItemSet holds a set of items and ranges which can be displayed in a
+ * range. The width is determined by the parent of the ItemSet, and the height
+ * is determined by the size of the items.
+ * @param {Component} parent
+ * @param {Component[]} [depends]   Components on which this components depends
+ *                                  (except for the parent)
+ * @param {Object} [options]        See ItemSet.setOptions for the available
+ *                                  options.
+ * @constructor ItemSet
+ * @extends Panel
  */
-TimeStep.prototype.setRange = function(start, end, minimumStep) {
-    if (!(start instanceof Date) || !(end instanceof Date)) {
-        //throw  "No legal start or end date in method setRange";
-        return;
-    }
+function ItemSet(parent, depends, options) {
+    this.id = util.randomUUID();
+    this.parent = parent;
+    this.depends = depends;
 
-    this._start = (start != undefined) ? new Date(start.valueOf()) : new Date();
-    this._end = (end != undefined) ? new Date(end.valueOf()) : new Date();
+    // one options object is shared by this itemset and all its items
+    this.options = {
+        style: 'box',
+        align: 'center',
+        orientation: 'bottom',
+        margin: {
+            axis: 20,
+            item: 10
+        },
+        padding: 5
+    };
 
-    if (this.autoScale) {
-        this.setMinimumStep(minimumStep);
-    }
-};
+    this.dom = {};
 
-/**
- * Set the range iterator to the start date.
- */
-TimeStep.prototype.first = function() {
-    this.current = new Date(this._start.valueOf());
-    this.roundToMinor();
-};
-
-/**
- * Round the current date to the first minor date value
- * This must be executed once when the current date is set to start Date
- */
-TimeStep.prototype.roundToMinor = function() {
-    // round to floor
-    // IMPORTANT: we have no breaks in this switch! (this is no bug)
-    //noinspection FallthroughInSwitchStatementJS
-    switch (this.scale) {
-        case TimeStep.SCALE.YEAR:
-            this.current.setFullYear(this.step * Math.floor(this.current.getFullYear() / this.step));
-            this.current.setMonth(0);
-        case TimeStep.SCALE.MONTH:        this.current.setDate(1);
-        case TimeStep.SCALE.DAY:          // intentional fall through
-        case TimeStep.SCALE.WEEKDAY:      this.current.setHours(0);
-        case TimeStep.SCALE.HOUR:         this.current.setMinutes(0);
-        case TimeStep.SCALE.MINUTE:       this.current.setSeconds(0);
-        case TimeStep.SCALE.SECOND:       this.current.setMilliseconds(0);
-        //case TimeStep.SCALE.MILLISECOND: // nothing to do for milliseconds
-    }
-
-    if (this.step != 1) {
-        // round down to the first minor value that is a multiple of the current step size
-        switch (this.scale) {
-            case TimeStep.SCALE.MILLISECOND:  this.current.setMilliseconds(this.current.getMilliseconds() - this.current.getMilliseconds() % this.step);  break;
-            case TimeStep.SCALE.SECOND:       this.current.setSeconds(this.current.getSeconds() - this.current.getSeconds() % this.step); break;
-            case TimeStep.SCALE.MINUTE:       this.current.setMinutes(this.current.getMinutes() - this.current.getMinutes() % this.step); break;
-            case TimeStep.SCALE.HOUR:         this.current.setHours(this.current.getHours() - this.current.getHours() % this.step); break;
-            case TimeStep.SCALE.WEEKDAY:      // intentional fall through
-            case TimeStep.SCALE.DAY:          this.current.setDate((this.current.getDate()-1) - (this.current.getDate()-1) % this.step + 1); break;
-            case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() - this.current.getMonth() % this.step);  break;
-            case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() - this.current.getFullYear() % this.step); break;
-            default: break;
+    var me = this;
+    this.data = null;  // DataSet
+    this.range = null; // Range or Object {start: number, end: number}
+    this.listeners = {
+        'add': function (event, params) {
+            me._onAdd(params.items);
+        },
+        'update': function (event, params) {
+            me._onUpdate(params.items);
+        },
+        'remove': function (event, params) {
+            me._onRemove(params.items);
         }
+    };
+
+    this.items = {};
+    this.queue = {};      // queue with items to be added/updated/removed
+    this.stack = new Stack(this);
+    this.conversion = null;
+
+    this.setOptions(options);
+}
+
+ItemSet.prototype = new Panel();
+
+// available item types will be registered here
+ItemSet.types = {
+    box: ItemBox,
+    range: ItemRange,
+    point: ItemPoint
+};
+
+/**
+ * Set options for the ItemSet. Existing options will be extended/overwritten.
+ * @param {Object} [options] The following options are available:
+ *                           {String | function} [className]
+ *                              class name for the itemset
+ *                           {String} [style]
+ *                              Default style for the items. Choose from 'box'
+ *                              (default), 'point', or 'range'. The default
+ *                              Style can be overwritten by individual items.
+ *                           {String} align
+ *                              Alignment for the items, only applicable for
+ *                              ItemBox. Choose 'center' (default), 'left', or
+ *                              'right'.
+ *                           {String} orientation
+ *                              Orientation of the item set. Choose 'top' or
+ *                              'bottom' (default).
+ *                           {Number} margin.axis
+ *                              Margin between the axis and the items in pixels.
+ *                              Default is 20.
+ *                           {Number} margin.item
+ *                              Margin between items in pixels. Default is 10.
+ *                           {Number} padding
+ *                              Padding of the contents of an item in pixels.
+ *                              Must correspond with the items css. Default is 5.
+ */
+ItemSet.prototype.setOptions = function (options) {
+    util.extend(this.options, options);
+
+    // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
+
+    this.stack.setOptions(this.options);
+};
+
+/**
+ * Set range (start and end).
+ * @param {Range | Object} range  A Range or an object containing start and end.
+ */
+ItemSet.prototype.setRange = function (range) {
+    if (!(range instanceof Range) && (!range || !range.start || !range.end)) {
+        throw new TypeError('Range must be an instance of Range, ' +
+            'or an object containing start and end.');
     }
+    this.range = range;
 };
 
 /**
- * Check if the there is a next step
- * @return {boolean}  true if the current date has not passed the end date
+ * Repaint the component
+ * @return {Boolean} changed
  */
-TimeStep.prototype.hasNext = function () {
-    return (this.current.valueOf() <= this._end.valueOf());
-};
+ItemSet.prototype.repaint = function () {
+    var changed = 0,
+        update = util.updateProperty,
+        asSize = util.option.asSize,
+        options = this.options,
+        frame = this.frame;
 
-/**
- * Do the next step
- */
-TimeStep.prototype.next = function() {
-    var prev = this.current.valueOf();
+    if (!frame) {
+        frame = document.createElement('div');
+        frame.className = 'itemset';
 
-    // Two cases, needed to prevent issues with switching daylight savings
-    // (end of March and end of October)
-    if (this.current.getMonth() < 6)   {
-        switch (this.scale) {
-            case TimeStep.SCALE.MILLISECOND:
+        if (options.className) {
+            util.addClassName(frame, util.option.asString(options.className));
+        }
 
-                this.current = new Date(this.current.valueOf() + this.step); break;
-            case TimeStep.SCALE.SECOND:       this.current = new Date(this.current.valueOf() + this.step * 1000); break;
-            case TimeStep.SCALE.MINUTE:       this.current = new Date(this.current.valueOf() + this.step * 1000 * 60); break;
-            case TimeStep.SCALE.HOUR:
-                this.current = new Date(this.current.valueOf() + this.step * 1000 * 60 * 60);
-                // in case of skipping an hour for daylight savings, adjust the hour again (else you get: 0h 5h 9h ... instead of 0h 4h 8h ...)
-                var h = this.current.getHours();
-                this.current.setHours(h - (h % this.step));
+        // create background panel
+        var background = document.createElement('div');
+        background.className = 'background';
+        frame.appendChild(background);
+        this.dom.background = background;
+
+        // create foreground panel
+        var foreground = document.createElement('div');
+        foreground.className = 'foreground';
+        frame.appendChild(foreground);
+        this.dom.foreground = foreground;
+
+        // create axis panel
+        var axis = document.createElement('div');
+        axis.className = 'itemset-axis';
+        //frame.appendChild(axis);
+        this.dom.axis = axis;
+
+        this.frame = frame;
+        changed += 1;
+    }
+
+    if (!this.parent) {
+        throw new Error('Cannot repaint itemset: no parent attached');
+    }
+    var parentContainer = this.parent.getContainer();
+    if (!parentContainer) {
+        throw new Error('Cannot repaint itemset: parent has no container element');
+    }
+    if (!frame.parentNode) {
+        parentContainer.appendChild(frame);
+        changed += 1;
+    }
+    if (!this.dom.axis.parentNode) {
+        parentContainer.appendChild(this.dom.axis);
+        changed += 1;
+    }
+
+    // reposition frame
+    changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
+    changed += update(frame.style, 'top',    asSize(options.top, '0px'));
+    changed += update(frame.style, 'left',   asSize(options.left, '0px'));
+    changed += update(frame.style, 'width',  asSize(options.width, '100%'));
+
+    // reposition axis
+    changed += update(this.dom.axis.style, 'top', asSize(options.top, '0px'));
+
+    this._updateConversion();
+
+    var me = this,
+        queue = this.queue,
+        data = this.data,
+        items = this.items,
+        dataOptions = {
+            fields: ['id', 'start', 'end', 'content', 'type']
+        };
+    // TODO: copy options from the itemset itself?
+    // TODO: make orientation dynamically changable for the items
+
+    // show/hide added/changed/removed items
+    Object.keys(queue).forEach(function (id) {
+        var entry = queue[id];
+        var item = entry.item;
+        //noinspection FallthroughInSwitchStatementJS
+        switch (entry.action) {
+            case 'add':
+            case 'update':
+                var itemData = data.get(id, dataOptions);
+                var type = itemData.type ||
+                    (itemData.start && itemData.end && 'range') ||
+                    'box';
+                var constructor = ItemSet.types[type];
+
+                // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
+                if (item) {
+                    // update item
+                    if (!constructor || !(item instanceof constructor)) {
+                        // item type has changed, delete the item
+                        item.visible = false;
+                        changed += item.repaint();
+                        item = null;
+                    }
+                    else {
+                        item.data = itemData; // TODO: create a method item.setData ?
+                        changed += item.repaint();
+                    }
+                }
+
+                if (!item) {
+                    // create item
+                    if (constructor) {
+                        item = new constructor(me, itemData, options);
+                        changed += item.repaint();
+                    }
+                    else {
+                        throw new TypeError('Unknown item type "' + type + '"');
+                    }
+                }
+
+                // update lists
+                items[id] = item;
+                delete queue[id];
                 break;
-            case TimeStep.SCALE.WEEKDAY:      // intentional fall through
-            case TimeStep.SCALE.DAY:          this.current.setDate(this.current.getDate() + this.step); break;
-            case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() + this.step); break;
-            case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() + this.step); break;
-            default:                      break;
+
+            case 'remove':
+                if (item) {
+                    // TODO: remove dom of the item
+                    item.visible = false;
+                    changed += item.repaint();
+                }
+
+                // update lists
+                delete items[id];
+                delete queue[id];
+                break;
+
+            default:
+                console.log('Error: unknown action "' + entry.action + '"');
         }
-    }
-    else {
-        switch (this.scale) {
-            case TimeStep.SCALE.MILLISECOND:  this.current = new Date(this.current.valueOf() + this.step); break;
-            case TimeStep.SCALE.SECOND:       this.current.setSeconds(this.current.getSeconds() + this.step); break;
-            case TimeStep.SCALE.MINUTE:       this.current.setMinutes(this.current.getMinutes() + this.step); break;
-            case TimeStep.SCALE.HOUR:         this.current.setHours(this.current.getHours() + this.step); break;
-            case TimeStep.SCALE.WEEKDAY:      // intentional fall through
-            case TimeStep.SCALE.DAY:          this.current.setDate(this.current.getDate() + this.step); break;
-            case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() + this.step); break;
-            case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() + this.step); break;
-            default:                      break;
-        }
-    }
+    });
 
-    if (this.step != 1) {
-        // round down to the correct major value
-        switch (this.scale) {
-            case TimeStep.SCALE.MILLISECOND:  if(this.current.getMilliseconds() < this.step) this.current.setMilliseconds(0);  break;
-            case TimeStep.SCALE.SECOND:       if(this.current.getSeconds() < this.step) this.current.setSeconds(0);  break;
-            case TimeStep.SCALE.MINUTE:       if(this.current.getMinutes() < this.step) this.current.setMinutes(0);  break;
-            case TimeStep.SCALE.HOUR:         if(this.current.getHours() < this.step) this.current.setHours(0);  break;
-            case TimeStep.SCALE.WEEKDAY:      // intentional fall through
-            case TimeStep.SCALE.DAY:          if(this.current.getDate() < this.step+1) this.current.setDate(1); break;
-            case TimeStep.SCALE.MONTH:        if(this.current.getMonth() < this.step) this.current.setMonth(0);  break;
-            case TimeStep.SCALE.YEAR:         break; // nothing to do for year
-            default:                break;
-        }
-    }
+    // reposition all items
+    util.forEach(this.items, function (item) {
+        item.reposition();
+    });
 
-    // safety mechanism: if current time is still unchanged, move to the end
-    if (this.current.valueOf() == prev) {
-        this.current = new Date(this._end.valueOf());
-    }
-};
-
-
-/**
- * Get the current datetime
- * @return {Date}  current The current date
- */
-TimeStep.prototype.getCurrent = function() {
-    return this.current;
+    return (changed > 0);
 };
 
 /**
- * Set a custom scale. Autoscaling will be disabled.
- * For example setScale(SCALE.MINUTES, 5) will result
- * in minor steps of 5 minutes, and major steps of an hour.
- *
- * @param {TimeStep.SCALE} newScale
- *                               A scale. Choose from SCALE.MILLISECOND,
- *                               SCALE.SECOND, SCALE.MINUTE, SCALE.HOUR,
- *                               SCALE.WEEKDAY, SCALE.DAY, SCALE.MONTH,
- *                               SCALE.YEAR.
- * @param {Number}     newStep   A step size, by default 1. Choose for
- *                               example 1, 2, 5, or 10.
+ * Get the foreground container element
+ * @return {HTMLElement} foreground
  */
-TimeStep.prototype.setScale = function(newScale, newStep) {
-    this.scale = newScale;
-
-    if (newStep > 0) {
-        this.step = newStep;
-    }
-
-    this.autoScale = false;
+ItemSet.prototype.getForeground = function () {
+    return this.dom.foreground;
 };
 
 /**
- * Enable or disable autoscaling
- * @param {boolean} enable  If true, autoascaling is set true
+ * Get the background container element
+ * @return {HTMLElement} background
  */
-TimeStep.prototype.setAutoScale = function (enable) {
-    this.autoScale = enable;
-};
-
-
-/**
- * Automatically determine the scale that bests fits the provided minimum step
- * @param {Number} minimumStep  The minimum step size in milliseconds
- */
-TimeStep.prototype.setMinimumStep = function(minimumStep) {
-    if (minimumStep == undefined) {
-        return;
-    }
-
-    var stepYear       = (1000 * 60 * 60 * 24 * 30 * 12);
-    var stepMonth      = (1000 * 60 * 60 * 24 * 30);
-    var stepDay        = (1000 * 60 * 60 * 24);
-    var stepHour       = (1000 * 60 * 60);
-    var stepMinute     = (1000 * 60);
-    var stepSecond     = (1000);
-    var stepMillisecond= (1);
-
-    // find the smallest step that is larger than the provided minimumStep
-    if (stepYear*1000 > minimumStep)        {this.scale = TimeStep.SCALE.YEAR;        this.step = 1000;}
-    if (stepYear*500 > minimumStep)         {this.scale = TimeStep.SCALE.YEAR;        this.step = 500;}
-    if (stepYear*100 > minimumStep)         {this.scale = TimeStep.SCALE.YEAR;        this.step = 100;}
-    if (stepYear*50 > minimumStep)          {this.scale = TimeStep.SCALE.YEAR;        this.step = 50;}
-    if (stepYear*10 > minimumStep)          {this.scale = TimeStep.SCALE.YEAR;        this.step = 10;}
-    if (stepYear*5 > minimumStep)           {this.scale = TimeStep.SCALE.YEAR;        this.step = 5;}
-    if (stepYear > minimumStep)             {this.scale = TimeStep.SCALE.YEAR;        this.step = 1;}
-    if (stepMonth*3 > minimumStep)          {this.scale = TimeStep.SCALE.MONTH;       this.step = 3;}
-    if (stepMonth > minimumStep)            {this.scale = TimeStep.SCALE.MONTH;       this.step = 1;}
-    if (stepDay*5 > minimumStep)            {this.scale = TimeStep.SCALE.DAY;         this.step = 5;}
-    if (stepDay*2 > minimumStep)            {this.scale = TimeStep.SCALE.DAY;         this.step = 2;}
-    if (stepDay > minimumStep)              {this.scale = TimeStep.SCALE.DAY;         this.step = 1;}
-    if (stepDay/2 > minimumStep)            {this.scale = TimeStep.SCALE.WEEKDAY;     this.step = 1;}
-    if (stepHour*4 > minimumStep)           {this.scale = TimeStep.SCALE.HOUR;        this.step = 4;}
-    if (stepHour > minimumStep)             {this.scale = TimeStep.SCALE.HOUR;        this.step = 1;}
-    if (stepMinute*15 > minimumStep)        {this.scale = TimeStep.SCALE.MINUTE;      this.step = 15;}
-    if (stepMinute*10 > minimumStep)        {this.scale = TimeStep.SCALE.MINUTE;      this.step = 10;}
-    if (stepMinute*5 > minimumStep)         {this.scale = TimeStep.SCALE.MINUTE;      this.step = 5;}
-    if (stepMinute > minimumStep)           {this.scale = TimeStep.SCALE.MINUTE;      this.step = 1;}
-    if (stepSecond*15 > minimumStep)        {this.scale = TimeStep.SCALE.SECOND;      this.step = 15;}
-    if (stepSecond*10 > minimumStep)        {this.scale = TimeStep.SCALE.SECOND;      this.step = 10;}
-    if (stepSecond*5 > minimumStep)         {this.scale = TimeStep.SCALE.SECOND;      this.step = 5;}
-    if (stepSecond > minimumStep)           {this.scale = TimeStep.SCALE.SECOND;      this.step = 1;}
-    if (stepMillisecond*200 > minimumStep)  {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 200;}
-    if (stepMillisecond*100 > minimumStep)  {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 100;}
-    if (stepMillisecond*50 > minimumStep)   {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 50;}
-    if (stepMillisecond*10 > minimumStep)   {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 10;}
-    if (stepMillisecond*5 > minimumStep)    {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 5;}
-    if (stepMillisecond > minimumStep)      {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 1;}
+ItemSet.prototype.getBackground = function () {
+    return this.dom.background;
 };
 
 /**
- * Snap a date to a rounded value. The snap intervals are dependent on the
- * current scale and step.
- * @param {Date} date   the date to be snapped
+ * Reflow the component
+ * @return {Boolean} resized
  */
-TimeStep.prototype.snap = function(date) {
-    if (this.scale == TimeStep.SCALE.YEAR) {
-        var year = date.getFullYear() + Math.round(date.getMonth() / 12);
-        date.setFullYear(Math.round(year / this.step) * this.step);
-        date.setMonth(0);
-        date.setDate(0);
-        date.setHours(0);
-        date.setMinutes(0);
-        date.setSeconds(0);
-        date.setMilliseconds(0);
-    }
-    else if (this.scale == TimeStep.SCALE.MONTH) {
-        if (date.getDate() > 15) {
-            date.setDate(1);
-            date.setMonth(date.getMonth() + 1);
-            // important: first set Date to 1, after that change the month.
+ItemSet.prototype.reflow = function () {
+    var changed = 0,
+        options = this.options,
+        update = util.updateProperty,
+        asNumber = util.option.asNumber,
+        frame = this.frame;
+
+    if (frame) {
+        this._updateConversion();
+
+        util.forEach(this.items, function (item) {
+            changed += item.reflow();
+        });
+
+        // TODO: stack.update should be triggered via an event, in stack itself
+        // TODO: only update the stack when there are changed items
+        this.stack.update();
+
+        var maxHeight = asNumber(options.maxHeight);
+        var height;
+        if (options.height != null) {
+            height = frame.offsetHeight;
+            if (maxHeight != null) {
+                height = Math.min(height, maxHeight);
+            }
+            changed += update(this, 'height', height);
         }
         else {
-            date.setDate(1);
+            // height is not specified, determine the height from the height and positioned items
+            var frameHeight = this.height;
+            height = 0;
+            if (options.orientation == 'top') {
+                util.forEach(this.items, function (item) {
+                    height = Math.max(height, item.top + item.height);
+                });
+            }
+            else {
+                // orientation == 'bottom'
+                util.forEach(this.items, function (item) {
+                    height = Math.max(height, frameHeight - item.top);
+                });
+            }
+            height += options.margin.axis;
+
+            if (maxHeight != null) {
+                height = Math.min(height, maxHeight);
+            }
+
+            changed += update(this, 'height', height);
         }
 
-        date.setHours(0);
-        date.setMinutes(0);
-        date.setSeconds(0);
-        date.setMilliseconds(0);
+        // calculate height from items
+        changed += update(this, 'top', frame.offsetTop);
+        changed += update(this, 'left', frame.offsetLeft);
+        changed += update(this, 'width', frame.offsetWidth);
     }
-    else if (this.scale == TimeStep.SCALE.DAY ||
-        this.scale == TimeStep.SCALE.WEEKDAY) {
-        //noinspection FallthroughInSwitchStatementJS
-        switch (this.step) {
-            case 5:
-            case 2:
-                date.setHours(Math.round(date.getHours() / 24) * 24); break;
-            default:
-                date.setHours(Math.round(date.getHours() / 12) * 12); break;
-        }
-        date.setMinutes(0);
-        date.setSeconds(0);
-        date.setMilliseconds(0);
+    else {
+        changed += 1;
     }
-    else if (this.scale == TimeStep.SCALE.HOUR) {
-        switch (this.step) {
-            case 4:
-                date.setMinutes(Math.round(date.getMinutes() / 60) * 60); break;
-            default:
-                date.setMinutes(Math.round(date.getMinutes() / 30) * 30); break;
-        }
-        date.setSeconds(0);
-        date.setMilliseconds(0);
-    } else if (this.scale == TimeStep.SCALE.MINUTE) {
-        //noinspection FallthroughInSwitchStatementJS
-        switch (this.step) {
-            case 15:
-            case 10:
-                date.setMinutes(Math.round(date.getMinutes() / 5) * 5);
-                date.setSeconds(0);
-                break;
-            case 5:
-                date.setSeconds(Math.round(date.getSeconds() / 60) * 60); break;
-            default:
-                date.setSeconds(Math.round(date.getSeconds() / 30) * 30); break;
-        }
-        date.setMilliseconds(0);
-    }
-    else if (this.scale == TimeStep.SCALE.SECOND) {
-        //noinspection FallthroughInSwitchStatementJS
-        switch (this.step) {
-            case 15:
-            case 10:
-                date.setSeconds(Math.round(date.getSeconds() / 5) * 5);
-                date.setMilliseconds(0);
-                break;
-            case 5:
-                date.setMilliseconds(Math.round(date.getMilliseconds() / 1000) * 1000); break;
-            default:
-                date.setMilliseconds(Math.round(date.getMilliseconds() / 500) * 500); break;
-        }
-    }
-    else if (this.scale == TimeStep.SCALE.MILLISECOND) {
-        var step = this.step > 5 ? this.step / 2 : 1;
-        date.setMilliseconds(Math.round(date.getMilliseconds() / step) * step);
-    }
+
+    return (changed > 0);
 };
 
 /**
- * Check if the current value is a major value (for example when the step
- * is DAY, a major value is each first day of the MONTH)
- * @return {boolean} true if current date is major, else false.
+ * Set data
+ * @param {DataSet | Array | DataTable} data
  */
-TimeStep.prototype.isMajor = function() {
-    switch (this.scale) {
-        case TimeStep.SCALE.MILLISECOND:
-            return (this.current.getMilliseconds() == 0);
-        case TimeStep.SCALE.SECOND:
-            return (this.current.getSeconds() == 0);
-        case TimeStep.SCALE.MINUTE:
-            return (this.current.getHours() == 0) && (this.current.getMinutes() == 0);
-        // Note: this is no bug. Major label is equal for both minute and hour scale
-        case TimeStep.SCALE.HOUR:
-            return (this.current.getHours() == 0);
-        case TimeStep.SCALE.WEEKDAY: // intentional fall through
-        case TimeStep.SCALE.DAY:
-            return (this.current.getDate() == 1);
-        case TimeStep.SCALE.MONTH:
-            return (this.current.getMonth() == 0);
-        case TimeStep.SCALE.YEAR:
-            return false;
-        default:
-            return false;
+ItemSet.prototype.setData = function(data) {
+    // unsubscribe from current dataset
+    var current = this.data;
+    if (current) {
+        util.forEach(this.listeners, function (callback, event) {
+            current.unsubscribe(event, callback);
+        });
     }
+
+    if (data instanceof DataSet) {
+        this.data = data;
+    }
+    else {
+        this.data = new DataSet({
+            fieldTypes: {
+                start: 'Date',
+                end: 'Date'
+            }
+        });
+        this.data.add(data);
+    }
+
+    var id = this.id;
+    var me = this;
+    util.forEach(this.listeners, function (callback, event) {
+        me.data.subscribe(event, callback, id);
+    });
+
+    var dataItems = this.data.get({filter: ['id']});
+    var ids = [];
+    util.forEach(dataItems, function (dataItem, index) {
+        ids[index] = dataItem.id;
+    });
+    this._onAdd(ids);
 };
 
 
 /**
- * Returns formatted text for the minor axislabel, depending on the current
- * date and the scale. For example when scale is MINUTE, the current time is
- * formatted as "hh:mm".
- * @param {Date} [date] custom date. if not provided, current date is taken
+ * Get the data range of the item set.
+ * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
+ *                                          When no minimum is found, min==null
+ *                                          When no maximum is found, max==null
  */
-TimeStep.prototype.getLabelMinor = function(date) {
-    if (date == undefined) {
-        date = this.current;
-    }
+ItemSet.prototype.getDataRange = function () {
+    // calculate min from start filed
+    var data = this.data;
+    var min = data.min('start');
+    min = min ? min.start.valueOf() : null;
 
-    switch (this.scale) {
-        case TimeStep.SCALE.MILLISECOND:  return moment(date).format('SSS');
-        case TimeStep.SCALE.SECOND:       return moment(date).format('s');
-        case TimeStep.SCALE.MINUTE:       return moment(date).format('HH:mm');
-        case TimeStep.SCALE.HOUR:         return moment(date).format('HH:mm');
-        case TimeStep.SCALE.WEEKDAY:      return moment(date).format('ddd D');
-        case TimeStep.SCALE.DAY:          return moment(date).format('D');
-        case TimeStep.SCALE.MONTH:        return moment(date).format('MMM');
-        case TimeStep.SCALE.YEAR:         return moment(date).format('YYYY');
-        default:                          return '';
-    }
+    // calculate max of both start and end fields
+    var maxStart = data.max('start');
+    var maxEnd = data.max('end');
+    maxStart = maxStart ? maxStart.start.valueOf() : null;
+    maxEnd = maxEnd ? maxEnd.end.valueOf() : null;
+    var max = Math.max(maxStart, maxEnd);
+
+    return {
+        min: new Date(min),
+        max: new Date(max)
+    };
 };
-
 
 /**
- * Returns formatted text for the major axislabel, depending on the current
- * date and the scale. For example when scale is MINUTE, the major scale is
- * hours, and the hour will be formatted as "hh".
- * @param {Date} [date] custom date. if not provided, current date is taken
+ * Handle updated items
+ * @param {Number[]} ids
+ * @private
  */
-TimeStep.prototype.getLabelMajor = function(date) {
-    if (date == undefined) {
-        date = this.current;
-    }
+ItemSet.prototype._onUpdate = function(ids) {
+    this._toQueue(ids, 'update');
+};
 
-    //noinspection FallthroughInSwitchStatementJS
-    switch (this.scale) {
-        case TimeStep.SCALE.MILLISECOND:return moment(date).format('HH:mm:ss');
-        case TimeStep.SCALE.SECOND:     return moment(date).format('D MMMM HH:mm');
-        case TimeStep.SCALE.MINUTE:
-        case TimeStep.SCALE.HOUR:       return moment(date).format('ddd D MMMM');
-        case TimeStep.SCALE.WEEKDAY:
-        case TimeStep.SCALE.DAY:        return moment(date).format('MMMM YYYY');
-        case TimeStep.SCALE.MONTH:      return moment(date).format('YYYY');
-        case TimeStep.SCALE.YEAR:       return '';
-        default:                        return '';
+/**
+ * Handle changed items
+ * @param {Number[]} ids
+ * @private
+ */
+ItemSet.prototype._onAdd = function(ids) {
+    this._toQueue(ids, 'add');
+};
+
+/**
+ * Handle removed items
+ * @param {Number[]} ids
+ * @private
+ */
+ItemSet.prototype._onRemove = function(ids) {
+    this._toQueue(ids, 'remove');
+};
+
+/**
+ * Put items in the queue to be added/updated/remove
+ * @param {Number[]} ids
+ * @param {String} action     can be 'add', 'update', 'remove'
+ */
+ItemSet.prototype._toQueue = function (ids, action) {
+    var items = this.items;
+    var queue = this.queue;
+    ids.forEach(function (id) {
+        var entry = queue[id];
+        if (entry) {
+            // already queued, update the action of the entry
+            entry.action = action;
+        }
+        else {
+            // not yet queued, add an entry to the queue
+            queue[id] = {
+                item: items[id] || null,
+                action: action
+            };
+        }
+    });
+
+    if (this.controller) {
+        //this.requestReflow();
+        this.requestRepaint();
     }
 };
 
-// exports
-module.exports = exports = TimeStep;
+/**
+ * Calculate the factor and offset to convert a position on screen to the
+ * corresponding date and vice versa.
+ * After the method _updateConversion is executed once, the methods toTime
+ * and toScreen can be used.
+ * @private
+ */
+ItemSet.prototype._updateConversion = function() {
+    var range = this.range;
+    if (!range) {
+        throw new Error('No range configured');
+    }
 
-},{"./util":8,"moment":18}],15:[function(require,module,exports){
-var util = require('../../util'),
-    Item = require('./item');
+    if (range.conversion) {
+        this.conversion = range.conversion(this.width);
+    }
+    else {
+        this.conversion = Range.conversion(range.start, range.end, this.width);
+    }
+};
+
+/**
+ * Convert a position on screen (pixels) to a datetime
+ * Before this method can be used, the method _updateConversion must be
+ * executed once.
+ * @param {int}     x    Position on the screen in pixels
+ * @return {Date}   time The datetime the corresponds with given position x
+ */
+ItemSet.prototype.toTime = function(x) {
+    var conversion = this.conversion;
+    return new Date(x / conversion.factor + conversion.offset);
+};
+
+/**
+ * Convert a datetime (Date object) into a position on the screen
+ * Before this method can be used, the method _updateConversion must be
+ * executed once.
+ * @param {Date}   time A date
+ * @return {int}   x    The position on the screen in pixels which corresponds
+ *                      with the given date.
+ */
+ItemSet.prototype.toScreen = function(time) {
+    var conversion = this.conversion;
+    return (time.valueOf() - conversion.offset) * conversion.factor;
+};
+
+/**
+ * @constructor Item
+ * @param {ItemSet} parent
+ * @param {Object} data       Object containing (optional) parameters type,
+ *                            start, end, content, group, className.
+ * @param {Object} [options]  Options to set initial property values
+ *                            // TODO: describe available options
+ */
+function Item (parent, data, options) {
+    this.parent = parent;
+    this.data = data;
+    this.selected = false;
+    this.visible = true;
+    this.dom = null;
+    this.options = options;
+}
+
+Item.prototype = new Component();
+
+/**
+ * Select current item
+ */
+Item.prototype.select = function () {
+    this.selected = true;
+};
+
+/**
+ * Unselect current item
+ */
+Item.prototype.unselect = function () {
+    this.selected = false;
+};
 
 /**
  * @constructor ItemBox
@@ -4588,12 +4532,214 @@ ItemBox.prototype.reposition = function () {
     }
 };
 
-// exports
-module.exports = exports = ItemBox;
+/**
+ * @constructor ItemPoint
+ * @extends Item
+ * @param {ItemSet} parent
+ * @param {Object} data       Object containing parameters start
+ *                            content, className.
+ * @param {Object} [options]  Options to set initial property values
+ *                            // TODO: describe available options
+ */
+function ItemPoint (parent, data, options) {
+    this.props = {
+        dot: {
+            top: 0,
+            width: 0,
+            height: 0
+        },
+        content: {
+            height: 0,
+            marginLeft: 0
+        }
+    };
 
-},{"../../util":8,"./item":19}],16:[function(require,module,exports){
-var util = require('../../util'),
-    Item = require('./item');
+    Item.call(this, parent, data, options);
+}
+
+ItemPoint.prototype = new Item (null, null);
+
+/**
+ * Select the item
+ * @override
+ */
+ItemPoint.prototype.select = function () {
+    this.selected = true;
+    // TODO: select and unselect
+};
+
+/**
+ * Unselect the item
+ * @override
+ */
+ItemPoint.prototype.unselect = function () {
+    this.selected = false;
+    // TODO: select and unselect
+};
+
+/**
+ * Repaint the item
+ * @return {Boolean} changed
+ */
+ItemPoint.prototype.repaint = function () {
+    // TODO: make an efficient repaint
+    var changed = false;
+    var dom = this.dom;
+
+    if (this.visible) {
+        if (!dom) {
+            this._create();
+            changed = true;
+        }
+        dom = this.dom;
+
+        if (dom) {
+            if (!this.options && !this.options.parent) {
+                throw new Error('Cannot repaint item: no parent attached');
+            }
+            var foreground = this.parent.getForeground();
+            if (!foreground) {
+                throw new Error('Cannot repaint time axis: ' +
+                    'parent has no foreground container element');
+            }
+
+            if (!dom.point.parentNode) {
+                foreground.appendChild(dom.point);
+                foreground.appendChild(dom.point);
+                changed = true;
+            }
+
+            // update contents
+            if (this.data.content != this.content) {
+                this.content = this.data.content;
+                if (this.content instanceof Element) {
+                    dom.content.innerHTML = '';
+                    dom.content.appendChild(this.content);
+                }
+                else if (this.data.content != undefined) {
+                    dom.content.innerHTML = this.content;
+                }
+                else {
+                    throw new Error('Property "content" missing in item ' + this.data.id);
+                }
+                changed = true;
+            }
+
+            // update class
+            var className = (this.data.className? ' ' + this.data.className : '') +
+                (this.selected ? ' selected' : '');
+            if (this.className != className) {
+                this.className = className;
+                dom.point.className  = 'item point' + className;
+                changed = true;
+            }
+        }
+    }
+    else {
+        // hide when visible
+        if (dom) {
+            if (dom.point.parentNode) {
+                dom.point.parentNode.removeChild(dom.point);
+                changed = true;
+            }
+        }
+    }
+
+    return changed;
+};
+
+/**
+ * Reflow the item: calculate its actual size from the DOM
+ * @return {boolean} resized    returns true if the axis is resized
+ * @override
+ */
+ItemPoint.prototype.reflow = function () {
+    if (this.data.start == undefined) {
+        throw new Error('Property "start" missing in item ' + this.data.id);
+    }
+
+    var update = util.updateProperty,
+        dom = this.dom,
+        props = this.props,
+        options = this.options,
+        orientation = options.orientation,
+        start = this.parent.toScreen(this.data.start),
+        changed = 0,
+        top;
+
+    if (dom) {
+        changed += update(this, 'width', dom.point.offsetWidth);
+        changed += update(this, 'height', dom.point.offsetHeight);
+        changed += update(props.dot, 'width', dom.dot.offsetWidth);
+        changed += update(props.dot, 'height', dom.dot.offsetHeight);
+        changed += update(props.content, 'height', dom.content.offsetHeight);
+
+        if (orientation == 'top') {
+            top = options.margin.axis;
+        }
+        else {
+            // default or 'bottom'
+            var parentHeight = this.parent.height;
+            top = Math.max(parentHeight - this.height - options.margin.axis, 0);
+        }
+        changed += update(this, 'top', top);
+        changed += update(this, 'left', start - props.dot.width / 2);
+        changed += update(props.content, 'marginLeft', 1.5 * props.dot.width);
+        //changed += update(props.content, 'marginRight', 0.5 * props.dot.width); // TODO
+
+        changed += update(props.dot, 'top', (this.height - props.dot.height) / 2);
+    }
+    else {
+        changed += 1;
+    }
+
+    return (changed > 0);
+};
+
+/**
+ * Create an items DOM
+ * @private
+ */
+ItemPoint.prototype._create = function () {
+    var dom = this.dom;
+    if (!dom) {
+        this.dom = dom = {};
+
+        // background box
+        dom.point = document.createElement('div');
+        // className is updated in repaint()
+
+        // contents box, right from the dot
+        dom.content = document.createElement('div');
+        dom.content.className = 'content';
+        dom.point.appendChild(dom.content);
+
+        // dot at start
+        dom.dot = document.createElement('div');
+        dom.dot.className  = 'dot';
+        dom.point.appendChild(dom.dot);
+    }
+};
+
+/**
+ * Reposition the item, recalculate its left, top, and width, using the current
+ * range and size of the items itemset
+ * @override
+ */
+ItemPoint.prototype.reposition = function () {
+    var dom = this.dom,
+        props = this.props;
+
+    if (dom) {
+        dom.point.style.top = this.top + 'px';
+        dom.point.style.left = this.left + 'px';
+
+        dom.content.style.marginLeft = props.content.marginLeft + 'px';
+        //dom.content.style.marginRight = props.content.marginRight + 'px'; // TODO
+
+        dom.dot.style.top = props.dot.top + 'px';
+    }
+};
 
 /**
  * @constructor ItemRange
@@ -4813,226 +4959,208 @@ ItemRange.prototype.reposition = function () {
     }
 };
 
-// exports
-module.exports = exports = ItemRange;
-
-},{"../../util":8,"./item":19}],17:[function(require,module,exports){
-var util = require('../../util'),
-    Item = require('./item');
-
 /**
- * @constructor ItemPoint
- * @extends Item
- * @param {ItemSet} parent
- * @param {Object} data       Object containing parameters start
- *                            content, className.
- * @param {Object} [options]  Options to set initial property values
- *                            // TODO: describe available options
+ * Create a timeline visualization
+ * @param {HTMLElement} container
+ * @param {DataSet | Array | DataTable} [data]
+ * @param {Object} [options]  See Timeline.setOptions for the available options.
+ * @constructor
  */
-function ItemPoint (parent, data, options) {
-    this.props = {
-        dot: {
-            top: 0,
-            width: 0,
-            height: 0
-        },
-        content: {
-            height: 0,
-            marginLeft: 0
-        }
+function Timeline (container, data, options) {
+    var me = this;
+    this.options = {
+        orientation: 'bottom',
+        zoomMin: 10,     // milliseconds
+        zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000, // milliseconds
+        moveable: true,
+        zoomable: true
     };
 
-    Item.call(this, parent, data, options);
+    // controller
+    this.controller = new Controller();
+
+    // main panel
+    if (!container) {
+        throw new Error('No container element provided');
+    }
+    this.main = new RootPanel(container, {
+        autoResize: false,
+        height: function () {
+            return me.timeaxis.height + me.itemset.height;
+        }
+    });
+    this.controller.add(this.main);
+
+    // range
+    var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
+    this.range = new Range({
+        start: now.clone().add('days', -3).valueOf(),
+        end:   now.clone().add('days', 4).valueOf()
+    });
+    // TODO: reckon with options moveable and zoomable
+    this.range.subscribe(this.main, 'move', 'horizontal');
+    this.range.subscribe(this.main, 'zoom', 'horizontal');
+    this.range.on('rangechange', function () {
+        // TODO: fix the delay in reflow/repaint, does not feel snappy
+        me.controller.requestReflow();
+    });
+    this.range.on('rangechanged', function () {
+        me.controller.requestReflow();
+    });
+
+    // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
+
+    // time axis
+    this.timeaxis = new TimeAxis(this.main, [], {
+        orientation: this.options.orientation,
+        range: this.range
+    });
+    this.timeaxis.setRange(this.range);
+    this.controller.add(this.timeaxis);
+
+    // items panel
+    this.itemset = new ItemSet(this.main, [this.timeaxis], {
+        orientation: this.options.orientation
+    });
+    this.itemset.setRange(this.range);
+    this.controller.add(this.itemset);
+
+    // set data
+    if (data) {
+        this.setData(data);
+    }
+
+    this.setOptions(options);
 }
 
-ItemPoint.prototype = new Item (null, null);
-
 /**
- * Select the item
- * @override
+ * Set options
+ * @param {Object} options  TODO: describe the available options
  */
-ItemPoint.prototype.select = function () {
-    this.selected = true;
-    // TODO: select and unselect
-};
+Timeline.prototype.setOptions = function (options) {
+    util.extend(this.options, options);
 
-/**
- * Unselect the item
- * @override
- */
-ItemPoint.prototype.unselect = function () {
-    this.selected = false;
-    // TODO: select and unselect
-};
+    // update options the timeaxis
+    this.timeaxis.setOptions(this.options);
 
-/**
- * Repaint the item
- * @return {Boolean} changed
- */
-ItemPoint.prototype.repaint = function () {
-    // TODO: make an efficient repaint
-    var changed = false;
-    var dom = this.dom;
+    // update options for the range
+    this.range.setOptions(this.options);
 
-    if (this.visible) {
-        if (!dom) {
-            this._create();
-            changed = true;
-        }
-        dom = this.dom;
-
-        if (dom) {
-            if (!this.options && !this.options.parent) {
-                throw new Error('Cannot repaint item: no parent attached');
-            }
-            var foreground = this.parent.getForeground();
-            if (!foreground) {
-                throw new Error('Cannot repaint time axis: ' +
-                    'parent has no foreground container element');
-            }
-
-            if (!dom.point.parentNode) {
-                foreground.appendChild(dom.point);
-                foreground.appendChild(dom.point);
-                changed = true;
-            }
-
-            // update contents
-            if (this.data.content != this.content) {
-                this.content = this.data.content;
-                if (this.content instanceof Element) {
-                    dom.content.innerHTML = '';
-                    dom.content.appendChild(this.content);
-                }
-                else if (this.data.content != undefined) {
-                    dom.content.innerHTML = this.content;
-                }
-                else {
-                    throw new Error('Property "content" missing in item ' + this.data.id);
-                }
-                changed = true;
-            }
-
-            // update class
-            var className = (this.data.className? ' ' + this.data.className : '') +
-                (this.selected ? ' selected' : '');
-            if (this.className != className) {
-                this.className = className;
-                dom.point.className  = 'item point' + className;
-                changed = true;
-            }
+    // update options the itemset
+    var top,
+        me = this;
+    if (this.options.orientation == 'top') {
+        top = function () {
+            return me.timeaxis.height;
         }
     }
     else {
-        // hide when visible
-        if (dom) {
-            if (dom.point.parentNode) {
-                dom.point.parentNode.removeChild(dom.point);
-                changed = true;
-            }
+        top = function () {
+            return me.main.height - me.timeaxis.height - me.itemset.height;
         }
     }
+    this.itemset.setOptions({
+        orientation: this.options.orientation,
+        top: top
+    });
 
-    return changed;
+    this.controller.repaint();
 };
 
 /**
- * Reflow the item: calculate its actual size from the DOM
- * @return {boolean} resized    returns true if the axis is resized
- * @override
+ * Set data
+ * @param {DataSet | Array | DataTable} data
  */
-ItemPoint.prototype.reflow = function () {
-    if (this.data.start == undefined) {
-        throw new Error('Property "start" missing in item ' + this.data.id);
-    }
+Timeline.prototype.setData = function(data) {
+    var dataset = this.itemset.data;
+    if (!dataset) {
+        // first load of data
+        this.itemset.setData(data);
 
-    var update = util.updateProperty,
-        dom = this.dom,
-        props = this.props,
-        options = this.options,
-        orientation = options.orientation,
-        start = this.parent.toScreen(this.data.start),
-        changed = 0,
-        top;
+        // apply the data range as range
+        var dataRange = this.itemset.getDataRange();
 
-    if (dom) {
-        changed += update(this, 'width', dom.point.offsetWidth);
-        changed += update(this, 'height', dom.point.offsetHeight);
-        changed += update(props.dot, 'width', dom.dot.offsetWidth);
-        changed += update(props.dot, 'height', dom.dot.offsetHeight);
-        changed += update(props.content, 'height', dom.content.offsetHeight);
-
-        if (orientation == 'top') {
-            top = options.margin.axis;
+        // add 5% on both sides
+        var min = dataRange.min;
+        var max = dataRange.max;
+        if (min != null && max != null) {
+            var interval = (max.valueOf() - min.valueOf());
+            min = new Date(min.valueOf() - interval * 0.05);
+            max = new Date(max.valueOf() + interval * 0.05);
         }
-        else {
-            // default or 'bottom'
-            var parentHeight = this.parent.height;
-            top = Math.max(parentHeight - this.height - options.margin.axis, 0);
-        }
-        changed += update(this, 'top', top);
-        changed += update(this, 'left', start - props.dot.width / 2);
-        changed += update(props.content, 'marginLeft', 1.5 * props.dot.width);
-        //changed += update(props.content, 'marginRight', 0.5 * props.dot.width); // TODO
 
-        changed += update(props.dot, 'top', (this.height - props.dot.height) / 2);
+        // apply range if there is a min or max available
+        if (min != null || max != null) {
+            this.range.setRange(min, max);
+        }
     }
     else {
-        changed += 1;
-    }
-
-    return (changed > 0);
-};
-
-/**
- * Create an items DOM
- * @private
- */
-ItemPoint.prototype._create = function () {
-    var dom = this.dom;
-    if (!dom) {
-        this.dom = dom = {};
-
-        // background box
-        dom.point = document.createElement('div');
-        // className is updated in repaint()
-
-        // contents box, right from the dot
-        dom.content = document.createElement('div');
-        dom.content.className = 'content';
-        dom.point.appendChild(dom.content);
-
-        // dot at start
-        dom.dot = document.createElement('div');
-        dom.dot.className  = 'dot';
-        dom.point.appendChild(dom.dot);
+        // updated data
+        this.itemset.setData(data);
     }
 };
 
 /**
- * Reposition the item, recalculate its left, top, and width, using the current
- * range and size of the items itemset
- * @override
+ * vis.js library exports
  */
-ItemPoint.prototype.reposition = function () {
-    var dom = this.dom,
-        props = this.props;
+var vis = {
+    util: util,
+    events: events,
 
-    if (dom) {
-        dom.point.style.top = this.top + 'px';
-        dom.point.style.left = this.left + 'px';
+    Controller: Controller,
+    DataSet: DataSet,
+    Range: Range,
+    Stack: Stack,
+    TimeStep: TimeStep,
 
-        dom.content.style.marginLeft = props.content.marginLeft + 'px';
-        //dom.content.style.marginRight = props.content.marginRight + 'px'; // TODO
+    components: {
+        items: {
+            Item: Item,
+            ItemBox: ItemBox,
+            ItemPoint: ItemPoint,
+            ItemRange: ItemRange
+        },
 
-        dom.dot.style.top = props.dot.top + 'px';
-    }
+        Component: Component,
+        Panel: Panel,
+        RootPanel: RootPanel,
+        ItemSet: ItemSet,
+        TimeAxis: TimeAxis
+    },
+
+    Timeline: Timeline
 };
 
-// exports
-module.exports = exports = ItemPoint;
+/**
+ * CommonJS module exports
+ */
+if (typeof exports !== 'undefined') {
+    exports = vis;
+}
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+    module.exports = vis;
+}
 
-},{"../../util":8,"./item":19}],18:[function(require,module,exports){
+/**
+ * AMD module exports
+ */
+if (typeof(define) === 'function') {
+    define(function () {
+        return vis;
+    });
+}
+
+/**
+ * Window exports
+ */
+if (typeof window !== 'undefined') {
+    // attach the module to the window, load as a regular javascript file
+    window['vis'] = vis;
+}
+
+util.loadCss("/* vis.js stylesheet */\n\n.graph {\n    position: relative;\n    border: 1px solid #bfbfbf;\n}\n\n.graph .panel {\n    position: absolute;\n}\n\n.graph .itemset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n    overflow: hidden;\n}\n\n.graph .background {\n}\n\n.graph .foreground {\n}\n\n.graph .itemset-axis {\n    position: absolute;\n}\n\n.graph .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.graph .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.graph .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.graph .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.graph .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.graph .item.point {\n    background: none;\n}\n\n.graph .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range {\n    overflow: hidden;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .content {\n    position: relative;\n    display: inline-block;\n}\n\n.graph .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n}\n\n.graph .item .content {\n    margin: 5px;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n/* TODO: better css name, 'graph' is way to generic */\n\n.graph {\n    overflow: hidden;\n}\n\n.graph .axis {\n    position: relative;\n}\n\n.graph .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.graph .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.graph .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.graph .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.graph .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.graph .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n");
+
+},{"moment":2}],2:[function(require,module,exports){
 (function(){// moment.js
 // version : 2.0.0
 // author : Tim Wood
@@ -6435,233 +6563,6 @@ module.exports = exports = ItemPoint;
 }).call(this);
 
 })()
-},{}],14:[function(require,module,exports){
-var util = require('./../util'),
-    moment = require('moment'),
-    Range = require('../range'),
-    Controller = require('../controller'),
-    Component = require('../component/component'),
-    RootPanel = require('../component/rootpanel'),
-    TimeAxis = require('../component/timeaxis'),
-    ItemSet = require('../component/itemset');
-
-/**
- * Create a timeline visualization
- * @param {HTMLElement} container
- * @param {DataSet | Array | DataTable} [data]
- * @param {Object} [options]  See Timeline.setOptions for the available options.
- * @constructor
- */
-function Timeline (container, data, options) {
-    var me = this;
-    this.options = {
-        orientation: 'bottom',
-        zoomMin: 10,     // milliseconds
-        zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000, // milliseconds
-        moveable: true,
-        zoomable: true
-    };
-
-    // controller
-    this.controller = new Controller();
-
-    // main panel
-    if (!container) {
-        throw new Error('No container element provided');
-    }
-    this.main = new RootPanel(container, {
-        autoResize: false,
-        height: function () {
-            return me.timeaxis.height + me.itemset.height;
-        }
-    });
-    this.controller.add(this.main);
-
-    // range
-    var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
-    this.range = new Range({
-        start: now.clone().add('days', -3).valueOf(),
-        end:   now.clone().add('days', 4).valueOf()
-    });
-    // TODO: reckon with options moveable and zoomable
-    this.range.subscribe(this.main, 'move', 'horizontal');
-    this.range.subscribe(this.main, 'zoom', 'horizontal');
-    this.range.on('rangechange', function () {
-        // TODO: fix the delay in reflow/repaint, does not feel snappy
-        me.controller.requestReflow();
-    });
-    this.range.on('rangechanged', function () {
-        me.controller.requestReflow();
-    });
-
-    // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
-
-    // time axis
-    this.timeaxis = new TimeAxis(this.main, [], {
-        orientation: this.options.orientation,
-        range: this.range
-    });
-    this.timeaxis.setRange(this.range);
-    this.controller.add(this.timeaxis);
-
-    // items panel
-    this.itemset = new ItemSet(this.main, [this.timeaxis], {
-        orientation: this.options.orientation
-    });
-    this.itemset.setRange(this.range);
-    this.controller.add(this.itemset);
-
-    // set data
-    if (data) {
-        this.setData(data);
-    }
-
-    this.setOptions(options);
-}
-
-/**
- * Set options
- * @param {Object} options  TODO: describe the available options
- */
-Timeline.prototype.setOptions = function (options) {
-    util.extend(this.options, options);
-
-    // update options the timeaxis
-    this.timeaxis.setOptions(this.options);
-
-    // update options for the range
-    this.range.setOptions(this.options);
-
-    // update options the itemset
-    var top,
-        me = this;
-    if (this.options.orientation == 'top') {
-        top = function () {
-            return me.timeaxis.height;
-        }
-    }
-    else {
-        top = function () {
-            return me.main.height - me.timeaxis.height - me.itemset.height;
-        }
-    }
-    this.itemset.setOptions({
-        orientation: this.options.orientation,
-        top: top
-    });
-
-    this.controller.repaint();
-};
-
-/**
- * Set data
- * @param {DataSet | Array | DataTable} data
- */
-Timeline.prototype.setData = function(data) {
-    var dataset = this.itemset.data;
-    if (!dataset) {
-        // first load of data
-        this.itemset.setData(data);
-
-        // apply the data range as range
-        var dataRange = this.itemset.getDataRange();
-
-        // add 5% on both sides
-        var min = dataRange.min;
-        var max = dataRange.max;
-        if (min != null && max != null) {
-            var interval = (max.valueOf() - min.valueOf());
-            min = new Date(min.valueOf() - interval * 0.05);
-            max = new Date(max.valueOf() + interval * 0.05);
-        }
-
-        // apply range if there is a min or max available
-        if (min != null || max != null) {
-            this.range.setRange(min, max);
-        }
-    }
-    else {
-        // updated data
-        this.itemset.setData(data);
-    }
-};
-
-// exports
-module.exports = exports = Timeline;
-
-},{"./../util":8,"../range":5,"../controller":2,"../component/component":9,"../component/rootpanel":11,"../component/timeaxis":13,"../component/itemset":12,"moment":18}],19:[function(require,module,exports){
-var Component = require('../component');
-
-/**
- * @constructor Item
- * @param {ItemSet} parent
- * @param {Object} data       Object containing (optional) parameters type,
- *                            start, end, content, group, className.
- * @param {Object} [options]  Options to set initial property values
- *                            // TODO: describe available options
- */
-function Item (parent, data, options) {
-    this.parent = parent;
-    this.data = data;
-    this.selected = false;
-    this.visible = true;
-    this.dom = null;
-    this.options = options;
-}
-
-Item.prototype = new Component();
-
-/**
- * Select current item
- */
-Item.prototype.select = function () {
-    this.selected = true;
-};
-
-/**
- * Unselect current item
- */
-Item.prototype.unselect = function () {
-    this.selected = false;
-};
-
-// exports
-module.exports = exports = Item;
-
-},{"../component":9}]},{},[1])(1)
+},{}]},{},[1])(1)
 });
 ;
-/**
- * AMD module exports
- */
-if (typeof(define) === 'function') {
-    define(function () {
-        return vis;
-    });
-}
-
-/**
- * load css from text
- * @param {String} css    Text containing css
- */
-var loadCss = function (css) {
-    // get the script location, and built the css file name from the js file name
-    // http://stackoverflow.com/a/2161748/1262753
-    var scripts = document.getElementsByTagName('script');
-    // var jsFile = scripts[scripts.length-1].src.split('?')[0];
-    // var cssFile = jsFile.substring(0, jsFile.length - 2) + 'css';
-
-    // inject css
-    // http://stackoverflow.com/questions/524696/how-to-create-a-style-tag-with-javascript
-    var style = document.createElement('style');
-    style.type = 'text/css';
-    if (style.styleSheet){
-        style.styleSheet.cssText = css;
-    } else {
-        style.appendChild(document.createTextNode(css));
-    }
-
-    document.getElementsByTagName('head')[0].appendChild(style);
-};
-
-loadCss("/* vis.js stylesheet */\n\n.graph {\n    position: relative;\n    border: 1px solid #bfbfbf;\n}\n\n.graph .panel {\n    position: absolute;\n}\n\n.graph .itemset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n    overflow: hidden;\n}\n\n.graph .background {\n}\n\n.graph .foreground {\n}\n\n.graph .itemset-axis {\n    position: absolute;\n}\n\n.graph .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.graph .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.graph .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.graph .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.graph .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.graph .item.point {\n    background: none;\n}\n\n.graph .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range {\n    overflow: hidden;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .content {\n    position: relative;\n    display: inline-block;\n}\n\n.graph .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n}\n\n.graph .item .content {\n    margin: 5px;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n/* TODO: better css name, 'graph' is way to generic */\n\n.graph {\n    overflow: hidden;\n}\n\n.graph .axis {\n    position: relative;\n}\n\n.graph .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.graph .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.graph .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.graph .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.graph .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.graph .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n");

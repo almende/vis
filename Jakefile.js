@@ -3,12 +3,14 @@
  */
 var jake = require('jake'),
     browserify = require('browserify'),
-    path = require('path');
+    path = require('path'),
+    fs = require('fs');
 
 require('jake-utils');
 
 // constants
 var VIS = './vis.js';
+var VIS_TMP = './vis.js.tmp';
 var VIS_MIN = './vis.min.js';
 
 /**
@@ -36,23 +38,56 @@ task('build', {async: true}, function () {
     });
     var cssText = JSON.stringify(result.code);
 
+    // concatenate the script files
+    concat({
+        dest: VIS_TMP,
+        src: [
+            './src/imports.js',
+
+            './src/util.js',
+            './src/events.js',
+            './src/timestep.js',
+            './src/dataset.js',
+            './src/stack.js',
+            './src/range.js',
+            './src/controller.js',
+
+            './src/component/component.js',
+            './src/component/panel.js',
+            './src/component/rootpanel.js',
+            './src/component/timeaxis.js',
+            './src/component/itemset.js',
+            './src/component/item/*.js',
+
+            './src/visualization/timeline.js',
+
+            './src/exports.js'
+        ],
+
+        separator: '\n',
+
+        // Note: we insert the css as a string in the javascript code here
+        //       the css will be injected on load of the javascript library
+        footer: '// inject css\n' +
+            'util.loadCss(' + cssText + ');\n'
+    });
+
     // bundle the script files
     // TODO: do not package moment.js with vis.js.
     var b = browserify();
-    b.add('./src/vis.js');
+    b.add(VIS_TMP);
     b.bundle({
         standalone: 'vis'
     }, function (err, code) {
         // add header and footer
-        var lib =
-            read('./src/header.js') +
-            code +
-            read('./src/module.js') +
-            '\nloadCss(' + cssText + ');\n';  // inline css
+        var lib = read('./src/header.js') + code;
 
         // write bundled file
         write(VIS, lib);
         console.log('created ' + VIS);
+
+        // remove temporary file
+        fs.unlinkSync(VIS_TMP);
 
         // update version number and stuff in the javascript files
         replacePlaceholders(VIS);

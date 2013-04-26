@@ -1,6 +1,3 @@
-var util = require('../../util'),
-    Item = require('./item');
-
 /**
  * @constructor ItemRange
  * @extends Item
@@ -218,6 +215,3 @@ ItemRange.prototype.reposition = function () {
         dom.content.style.left = props.content.left + 'px';
     }
 };
-
-// exports
-module.exports = exports = ItemRange;

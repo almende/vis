@@ -1,6 +1,3 @@
-var util = require('../../util'),
-    Item = require('./item');
-
 /**
  * @constructor ItemBox
  * @extends Item
@@ -273,6 +270,3 @@ ItemBox.prototype.reposition = function () {
         dot.style.top = props.dot.top + 'px';
     }
 };
-
-// exports
-module.exports = exports = ItemBox;

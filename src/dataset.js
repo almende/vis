@@ -1,5 +1,3 @@
-var util = require('./util');
-
 /**
  * DataSet
  *
@@ -547,6 +545,3 @@ DataSet.prototype._appendRow = function (dataTable, columns, item) {
         dataTable.setValue(row, col, item[field]);
     });
 };
-
-// exports
-module.exports = exports = DataSet;

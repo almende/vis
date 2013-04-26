@@ -1,7 +1,3 @@
-var util = require('../util'),
-    TimeStep = require('../timestep'),
-    Component = require('./component');
-
 /**
  * A horizontal time axis
  * @param {Component} parent
@@ -526,6 +522,3 @@ TimeAxis.prototype._updateConversion = function() {
         this.conversion = Range.conversion(range.start, range.end, this.width);
     }
 };
-
-// exports
-module.exports = exports = TimeAxis;
