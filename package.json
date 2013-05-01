@@ -21,7 +21,8 @@
         "browser"
     ],
     "scripts": {
-        "prepublish": "jake"
+        "prepublish": "jake",
+        "test": "jake test --trace"
     },
     "dependencies": {},
     "devDependencies": {

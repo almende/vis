@@ -597,9 +597,13 @@ util.option.asElement = function (value, defaultValue) {
  * @param {String} css    Text containing css
  */
 util.loadCss = function (css) {
+    if (typeof document === 'undefined') {
+        return;
+    }
+
     // get the script location, and built the css file name from the js file name
     // http://stackoverflow.com/a/2161748/1262753
-    var scripts = document.getElementsByTagName('script');
+    // var scripts = document.getElementsByTagName('script');
     // var jsFile = scripts[scripts.length-1].src.split('?')[0];
     // var cssFile = jsFile.substring(0, jsFile.length - 2) + 'css';
 
