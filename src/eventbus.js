@@ -11,15 +11,19 @@ function EventBus() {
  * @param {String | RegExp} event   The event can be a regular expression, or
  *                                  a string with wildcards, like 'server.*'.
  * @param {function} callback.      Callback are called with three parameters:
- *                                  {String} event, {Object} [data],
- *                                  {*} [source]
+ *                                  {String} event, {*} [data], {*} [source]
  * @param {*} [target]
  * @returns {String} id    A subscription id
  */
 EventBus.prototype.on = function (event, callback, target) {
+    var regexp = (event instanceof RegExp) ?
+        event :
+        new RegExp(event.replace('*', '\\w+'));
+
     var subscription = {
         id:       util.randomUUID(),
-        event:    event instanceof RegExp ? event : new RegExp(event.replace('*', '\\w+')),
+        event:    event,
+        regexp:   regexp,
         callback: (typeof callback === 'function') ? callback : null,
         target:   target
     };
@@ -31,13 +35,34 @@ EventBus.prototype.on = function (event, callback, target) {
 
 /**
  * Unsubscribe from an event
- * @param {String} id   subscription id
+ * @param {String | Object} filter   Filter for subscriptions to be removed
+ *                                   Filter can be a string containing a
+ *                                   subscription id, or an object containing
+ *                                   one or more of the fields id, event,
+ *                                   callback, and target.
  */
-EventBus.prototype.off = function (id) {
+EventBus.prototype.off = function (filter) {
     var i = 0;
     while (i < this.subscriptions.length) {
         var subscription = this.subscriptions[i];
-        if (subscription.id == id) {
+
+        var match = true;
+        if (filter instanceof Object) {
+            // filter is an object. All fields must match
+            for (var prop in filter) {
+                if (filter.hasOwnProperty(prop)) {
+                    if (filter[prop] !== subscription[prop]) {
+                        match = false;
+                    }
+                }
+            }
+        }
+        else {
+            // filter is a string, filter on id
+            match = (subscription.id == filter);
+        }
+
+        if (match) {
             this.subscriptions.splice(i, 1);
         }
         else {
@@ -49,13 +74,13 @@ EventBus.prototype.off = function (id) {
 /**
  * Emit an event
  * @param {String} event
- * @param {Object} [data]
+ * @param {*} [data]
  * @param {*} [source]
  */
 EventBus.prototype.emit = function (event, data, source) {
     for (var i =0; i < this.subscriptions.length; i++) {
         var subscription = this.subscriptions[i];
-        if (subscription.event.test(event)) {
+        if (subscription.regexp.test(event)) {
             if (subscription.callback) {
                 subscription.callback(event, data, source);
             }

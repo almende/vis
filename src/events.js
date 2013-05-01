@@ -1,6 +1,7 @@
 /**
  * Event listener (singleton)
  */
+// TODO: replace usage of the event listener for the EventBus
 var events = {
     'listeners': [],
 

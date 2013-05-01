@@ -20,15 +20,18 @@ function Component () {
  * set.
  * @param {Object} options  Available parameters:
  *                          {String | function} [className]
+ *                          {EventBus} [eventBus]
  *                          {String | Number | function} [left]
  *                          {String | Number | function} [top]
  *                          {String | Number | function} [width]
  *                          {String | Number | function} [height]
  */
 Component.prototype.setOptions = function(options) {
-    if (options) {
-        util.extend(this.options, options);
+    if (!options) {
+        return;
     }
+
+    util.extend(this.options, options);
 
     if (this.controller) {
         this.requestRepaint();
@@ -96,21 +99,5 @@ Component.prototype.requestReflow = function () {
     else {
         throw new Error('Cannot request a reflow: no controller configured');
         // TODO: just do a reflow when no parent is configured?
-    }
-};
-
-/**
- * Event handler
- * @param {String} event       name of the event, for example 'click', 'mousemove'
- * @param {function} callback  callback handler, invoked with the raw HTML Event
- *                             as parameter.
- */
-Component.prototype.on = function (event, callback) {
-    // TODO: rethink the way of event delegation
-    if (this.parent) {
-        this.parent.on(event, callback);
-    }
-    else {
-        throw new Error('Cannot attach event: no root panel found');
     }
 };

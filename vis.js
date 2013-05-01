@@ -840,9 +840,37 @@ if(!Array.isArray) {
     };
 }
 
+// Internet Explorer 8 and older does not support Function.bind,
+// so we define it here in that case.
+// https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/bind
+if (!Function.prototype.bind) {
+    Function.prototype.bind = function (oThis) {
+        if (typeof this !== "function") {
+            // closest thing possible to the ECMAScript 5 internal IsCallable function
+            throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
+        }
+
+        var aArgs = Array.prototype.slice.call(arguments, 1),
+            fToBind = this,
+            fNOP = function () {},
+            fBound = function () {
+                return fToBind.apply(this instanceof fNOP && oThis
+                    ? this
+                    : oThis,
+                    aArgs.concat(Array.prototype.slice.call(arguments)));
+            };
+
+        fNOP.prototype = this.prototype;
+        fBound.prototype = new fNOP();
+
+        return fBound;
+    };
+}
+
 /**
  * Event listener (singleton)
  */
+// TODO: replace usage of the event listener for the EventBus
 var events = {
     'listeners': [],
 
@@ -2651,15 +2679,19 @@ function EventBus() {
  * @param {String | RegExp} event   The event can be a regular expression, or
  *                                  a string with wildcards, like 'server.*'.
  * @param {function} callback.      Callback are called with three parameters:
- *                                  {String} event, {Object} [data],
- *                                  {*} [source]
+ *                                  {String} event, {*} [data], {*} [source]
  * @param {*} [target]
  * @returns {String} id    A subscription id
  */
 EventBus.prototype.on = function (event, callback, target) {
+    var regexp = (event instanceof RegExp) ?
+        event :
+        new RegExp(event.replace('*', '\\w+'));
+
     var subscription = {
         id:       util.randomUUID(),
-        event:    event instanceof RegExp ? event : new RegExp(event.replace('*', '\\w+')),
+        event:    event,
+        regexp:   regexp,
         callback: (typeof callback === 'function') ? callback : null,
         target:   target
     };
@@ -2671,13 +2703,34 @@ EventBus.prototype.on = function (event, callback, target) {
 
 /**
  * Unsubscribe from an event
- * @param {String} id   subscription id
+ * @param {String | Object} filter   Filter for subscriptions to be removed
+ *                                   Filter can be a string containing a
+ *                                   subscription id, or an object containing
+ *                                   one or more of the fields id, event,
+ *                                   callback, and target.
  */
-EventBus.prototype.off = function (id) {
+EventBus.prototype.off = function (filter) {
     var i = 0;
     while (i < this.subscriptions.length) {
         var subscription = this.subscriptions[i];
-        if (subscription.id == id) {
+
+        var match = true;
+        if (filter instanceof Object) {
+            // filter is an object. All fields must match
+            for (var prop in filter) {
+                if (filter.hasOwnProperty(prop)) {
+                    if (filter[prop] !== subscription[prop]) {
+                        match = false;
+                    }
+                }
+            }
+        }
+        else {
+            // filter is a string, filter on id
+            match = (subscription.id == filter);
+        }
+
+        if (match) {
             this.subscriptions.splice(i, 1);
         }
         else {
@@ -2689,13 +2742,13 @@ EventBus.prototype.off = function (id) {
 /**
  * Emit an event
  * @param {String} event
- * @param {Object} [data]
+ * @param {*} [data]
  * @param {*} [source]
  */
 EventBus.prototype.emit = function (event, data, source) {
     for (var i =0; i < this.subscriptions.length; i++) {
         var subscription = this.subscriptions[i];
-        if (subscription.event.test(event)) {
+        if (subscription.regexp.test(event)) {
             if (subscription.callback) {
                 subscription.callback(event, data, source);
             }
@@ -2865,15 +2918,18 @@ function Component () {
  * set.
  * @param {Object} options  Available parameters:
  *                          {String | function} [className]
+ *                          {EventBus} [eventBus]
  *                          {String | Number | function} [left]
  *                          {String | Number | function} [top]
  *                          {String | Number | function} [width]
  *                          {String | Number | function} [height]
  */
 Component.prototype.setOptions = function(options) {
-    if (options) {
-        util.extend(this.options, options);
+    if (!options) {
+        return;
     }
+
+    util.extend(this.options, options);
 
     if (this.controller) {
         this.requestRepaint();
@@ -2941,22 +2997,6 @@ Component.prototype.requestReflow = function () {
     else {
         throw new Error('Cannot request a reflow: no controller configured');
         // TODO: just do a reflow when no parent is configured?
-    }
-};
-
-/**
- * Event handler
- * @param {String} event       name of the event, for example 'click', 'mousemove'
- * @param {function} callback  callback handler, invoked with the raw HTML Event
- *                             as parameter.
- */
-Component.prototype.on = function (event, callback) {
-    // TODO: rethink the way of event delegation
-    if (this.parent) {
-        this.parent.on(event, callback);
-    }
-    else {
-        throw new Error('Cannot attach event: no root panel found');
     }
 };
 

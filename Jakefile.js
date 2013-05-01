@@ -79,6 +79,10 @@ task('build', {async: true}, function () {
     b.bundle({
         standalone: 'vis'
     }, function (err, code) {
+        if(err) {
+            throw err;
+        }
+
         // add header and footer
         var lib = read('./src/header.js') + code;
 
