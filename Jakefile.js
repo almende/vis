@@ -26,7 +26,7 @@ task('default', ['build', 'minify'], function () {
  */
 desc('Build the visualization library vis.js');
 task('build', {async: true}, function () {
-    // concatenate and stringify css files
+    // concatenate and stringify the css files
     var result = concat({
         src: [
             './src/component/css/panel.css',
@@ -72,8 +72,7 @@ task('build', {async: true}, function () {
             'util.loadCss(' + cssText + ');\n'
     });
 
-    // bundle the script files
-    // TODO: do not package moment.js with vis.js.
+    // bundle the concatenated script and dependencies into one file
     var b = browserify();
     b.add(VIS_TMP);
     b.bundle({
@@ -121,7 +120,6 @@ task('minify', function () {
 var replacePlaceholders = function (filename) {
     replace({
         replacements: [
-            {pattern: '@@name',    replacement: 'vis.js'},
             {pattern: '@@date',    replacement: today()},
             {pattern: '@@version', replacement: version()}
         ],

@@ -57,8 +57,8 @@ TimeStep.SCALE = {
  * to the minimumStep but larger than minimumStep. If minimumStep is not
  * provided, the scale is set to 1 DAY.
  * The minimumStep should correspond with the onscreen size of about 6 characters
- * @param {Date} start        The start date and time.
- * @param {Date} end          The end date and time.
+ * @param {Date} [start]      The start date and time.
+ * @param {Date} [end]        The end date and time.
  * @param {int} [minimumStep] Optional. Minimum step size in milliseconds
  */
 TimeStep.prototype.setRange = function(start, end, minimumStep) {
@@ -234,7 +234,7 @@ TimeStep.prototype.setAutoScale = function (enable) {
 
 /**
  * Automatically determine the scale that bests fits the provided minimum step
- * @param {Number} minimumStep  The minimum step size in milliseconds
+ * @param {Number} [minimumStep]  The minimum step size in milliseconds
  */
 TimeStep.prototype.setMinimumStep = function(minimumStep) {
     if (minimumStep == undefined) {
@@ -425,7 +425,7 @@ TimeStep.prototype.getLabelMinor = function(date) {
 
 
 /**
- * Returns formatted text for the major axislabel, depending on the current
+ * Returns formatted text for the major axis label, depending on the current
  * date and the scale. For example when scale is MINUTE, the major scale is
  * hours, and the hour will be formatted as "hh".
  * @param {Date} [date] custom date. if not provided, current date is taken

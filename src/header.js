@@ -1,5 +1,5 @@
 /**
- * @@name
+ * vis.js
  * https://github.com/almende/vis
  *
  * A dynamic, browser-based visualization library.
