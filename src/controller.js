@@ -32,28 +32,43 @@ Controller.prototype.add = function (component) {
 
 /**
  * Request a reflow. The controller will schedule a reflow
+ * @param {Boolean} [force]     If true, an immediate reflow is forced. Default
+ *                              is false.
  */
-Controller.prototype.requestReflow = function () {
-    if (!this.reflowTimer) {
-        var me = this;
-        this.reflowTimer = setTimeout(function () {
-            me.reflowTimer = undefined;
-            me.reflow();
-        }, 0);
+Controller.prototype.requestReflow = function (force) {
+    if (force) {
+        this.reflow();
+    }
+    else {
+        if (!this.reflowTimer) {
+            var me = this;
+            this.reflowTimer = setTimeout(function () {
+                me.reflowTimer = undefined;
+                me.reflow();
+            }, 0);
+        }
     }
 };
 
 /**
  * Request a repaint. The controller will schedule a repaint
+ * @param {Boolean} [force]    If true, an immediate repaint is forced. Default
+ *                             is false.
  */
-Controller.prototype.requestRepaint = function () {
-    if (!this.repaintTimer) {
-        var me = this;
-        this.repaintTimer = setTimeout(function () {
-            me.repaintTimer = undefined;
-            me.repaint();
-        }, 0);
+Controller.prototype.requestRepaint = function (force) {
+    if (force) {
+        this.repaint();
     }
+    else {
+        if (!this.repaintTimer) {
+            var me = this;
+            this.repaintTimer = setTimeout(function () {
+                me.repaintTimer = undefined;
+                me.repaint();
+            }, 0);
+        }
+    }
+
 };
 
 /**

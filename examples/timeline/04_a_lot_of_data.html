@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Timeline demo</title>
+    <title>Timeline demo - a lot of data</title>
 
     <style>
         body, html {
@@ -23,6 +23,14 @@
     <script src="../../vis.js"></script>
 </head>
 <body>
+<p>
+    Test with a lot of data
+</p>
+<p>
+    <label for="count">Number of items</label>
+    <input id="count" value="100">
+    <input id="draw" type="button" value="draw">
+</p>
 <div id="visualization"></div>
 
 <script>
@@ -34,14 +42,20 @@
             end: 'Date'
         }
     });
-    data.add([
-        {id: 1, content: 'item 1<br>start', start: now.clone().add('days', 4).toDate()},
-        {id: 2, content: 'item 2', start: now.clone().add('days', -2).toDate() },
-        {id: 3, content: 'item 3', start: now.clone().add('days', 2).toDate()},
-        {id: 4, content: 'item 4', start: now.clone().add('days', 0).toDate(), end: now.clone().add('days', 3).toDate()},
-        {id: 5, content: 'item 5', start: now.clone().add('days', 9).toDate(), type:'point'},
-        {id: 6, content: 'item 6', start: now.clone().add('days', 11).toDate()}
-    ]);
+
+    // create data
+    function createData() {
+        var count = parseInt(document.getElementById('count').value) || 100;
+        var newData = [];
+        for (var i = 0; i < count; i++) {
+            newData.push({id: i, content: 'item ' + i, start: now.clone().add('days', i).toDate()});
+        }
+        data.clear();
+        data.add(newData);
+    }
+    createData();
+
+    document.getElementById('draw').onclick = createData;
 
     var container = document.getElementById('visualization');
     var options = {

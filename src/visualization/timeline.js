@@ -40,11 +40,12 @@ function Timeline (container, data, options) {
     this.range.subscribe(this.main, 'move', 'horizontal');
     this.range.subscribe(this.main, 'zoom', 'horizontal');
     this.range.on('rangechange', function () {
-        // TODO: fix the delay in reflow/repaint, does not feel snappy
-        me.controller.requestReflow();
+        var force = true;
+        me.controller.requestReflow(force);
     });
     this.range.on('rangechanged', function () {
-        me.controller.requestReflow();
+        var force = true;
+        me.controller.requestReflow(force);
     });
 
     // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
