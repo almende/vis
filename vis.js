@@ -125,15 +125,18 @@ util.extend = function (a, b) {
 
 /**
  * Cast an object to another type
- * @param {Boolean | Number | String | Date | Null | undefined} object
+ * @param {Boolean | Number | String | Date | Moment | Null | undefined} object
  * @param {String | function | undefined} type   Name of the type or a cast
  *                                               function. Available types:
  *                                               'Boolean', 'Number', 'String',
- *                                               'Date', ISODate', 'ASPDate'.
+ *                                               'Date', 'Moment', ISODate',
+ *                                               'ASPDate'.
  * @return {*} object
  * @throws Error
  */
 util.cast = function cast(object, type) {
+    var match;
+
     if (object === undefined) {
         return undefined;
     }
@@ -169,13 +172,16 @@ util.cast = function cast(object, type) {
             if (object instanceof Date) {
                 return new Date(object.valueOf());
             }
+            else if (moment.isMoment(object)) {
+                return new Date(object.valueOf());
+            }
             if (util.isString(object)) {
                 // parse ASP.Net Date pattern,
                 // for example '/Date(1198908717056)/' or '/Date(1198908717056-0700)/'
                 // code from http://momentjs.com/
-                var match = ASPDateRegex.exec(object);
+                match = ASPDateRegex.exec(object);
                 if (match) {
-                    return new Date(Number(match[1]));
+                    return new Date(Number(match[1])); // parse number
                 }
                 else {
                     return moment(object).toDate(); // parse string
@@ -187,9 +193,40 @@ util.cast = function cast(object, type) {
                         ' to type Date');
             }
 
+        case 'Moment':
+            if (util.isNumber(object)) {
+                return moment(object);
+            }
+            if (object instanceof Date) {
+                return moment(object.valueOf());
+            }
+            else if (moment.isMoment(object)) {
+                return moment.clone();
+            }
+            if (util.isString(object)) {
+                // parse ASP.Net Date pattern,
+                // for example '/Date(1198908717056)/' or '/Date(1198908717056-0700)/'
+                // code from http://momentjs.com/
+                match = ASPDateRegex.exec(object);
+                if (match) {
+                    return moment(Number(match[1])); // parse number
+                }
+                else {
+                    return moment(object); // parse string
+                }
+            }
+            else {
+                throw new Error(
+                    'Cannot cast object of type ' + util.getType(object) +
+                        ' to type Date');
+            }
+
         case 'ISODate':
             if (object instanceof Date) {
                 return object.toISOString();
+            }
+            else if (moment.isMoment(object)) {
+                return object.toDate().toISOString();
             }
             else if (util.isNumber(object) || util.isString(object)) {
                 return moment(object).toDate().toISOString();
