@@ -23,10 +23,7 @@ function Timeline (container, data, options) {
         throw new Error('No container element provided');
     }
     this.main = new RootPanel(container, {
-        autoResize: false,
-        height: function () {
-            return me.timeaxis.height + me.itemset.height;
-        }
+        autoResize: false
     });
     this.controller.add(this.main);
 
@@ -65,12 +62,13 @@ function Timeline (container, data, options) {
     this.itemset.setRange(this.range);
     this.controller.add(this.itemset);
 
+    // set options (must take place before setting the data)
+    this.setOptions(options);
+
     // set data
     if (data) {
         this.setData(data);
     }
-
-    this.setOptions(options);
 }
 
 /**
@@ -87,21 +85,54 @@ Timeline.prototype.setOptions = function (options) {
     this.range.setOptions(this.options);
 
     // update options the itemset
-    var top,
+    var itemsTop,
+        itemsHeight,
+        mainHeight,
+        maxHeight,
         me = this;
+
     if (this.options.orientation == 'top') {
-        top = function () {
+        itemsTop = function () {
             return me.timeaxis.height;
         }
     }
     else {
-        top = function () {
+        itemsTop = function () {
             return me.main.height - me.timeaxis.height - me.itemset.height;
         }
     }
+
+    if (options.height) {
+        // fixed height
+        mainHeight = options.height;
+        itemsHeight = function () {
+            return me.main.height - me.timeaxis.height;
+        };
+    }
+    else {
+        // auto height
+        mainHeight = function () {
+            return me.timeaxis.height + me.itemset.height;
+        };
+        itemsHeight = null;
+    }
+
+    // TODO: maxHeight should be a string in px or %
+    if (options.maxHeight) {
+        maxHeight = function () {
+            return options.maxHeight - me.timeaxis.height;
+        }
+    }
+
+    this.main.setOptions({
+        height: mainHeight
+    });
+
     this.itemset.setOptions({
         orientation: this.options.orientation,
-        top: top
+        top: itemsTop,
+        height: itemsHeight,
+        maxHeight: maxHeight
     });
 
     this.controller.repaint();
@@ -117,21 +148,31 @@ Timeline.prototype.setData = function(data) {
         // first load of data
         this.itemset.setData(data);
 
-        // apply the data range as range
-        var dataRange = this.itemset.getDataRange();
+        if (this.options.start == undefined || this.options.end == undefined) {
+            // apply the data range as range
+            var dataRange = this.itemset.getDataRange();
 
-        // add 5% on both sides
-        var min = dataRange.min;
-        var max = dataRange.max;
-        if (min != null && max != null) {
-            var interval = (max.valueOf() - min.valueOf());
-            min = new Date(min.valueOf() - interval * 0.05);
-            max = new Date(max.valueOf() + interval * 0.05);
-        }
+            // add 5% on both sides
+            var min = dataRange.min;
+            var max = dataRange.max;
+            if (min != null && max != null) {
+                var interval = (max.valueOf() - min.valueOf());
+                min = new Date(min.valueOf() - interval * 0.05);
+                max = new Date(max.valueOf() + interval * 0.05);
+            }
 
-        // apply range if there is a min or max available
-        if (min != null || max != null) {
-            this.range.setRange(min, max);
+            // override specified start and/or end date
+            if (this.options.start != undefined) {
+                min = new Date(this.options.start.valueOf());
+            }
+            if (this.options.end != undefined) {
+                max = new Date(this.options.end.valueOf());
+            }
+
+            // apply range if there is a min or max available
+            if (min != null || max != null) {
+                this.range.setRange(min, max);
+            }
         }
     }
     else {

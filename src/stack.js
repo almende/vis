@@ -8,7 +8,27 @@ function Stack (parent, options) {
     this.parent = parent;
     this.options = {
         order: function (a, b) {
-            return (b.width - a.width) || (a.left - b.left);
+            //return (b.width - a.width) || (a.left - b.left);  // TODO: cleanup
+            // Order: ranges over non-ranges, ranged ordered by width, and
+            // lastly ordered by start.
+            if (a instanceof ItemRange) {
+                if (b instanceof ItemRange) {
+                    var aInt = (a.data.end - a.data.start);
+                    var bInt = (b.data.end - b.data.start);
+                    return (aInt - bInt) || (a.data.start - b.data.start);
+                }
+                else {
+                    return -1;
+                }
+            }
+            else {
+                if (b instanceof ItemRange) {
+                    return 1;
+                }
+                else {
+                    return (a.data.start - b.data.start);
+                }
+            }
         }
     };
 
@@ -55,9 +75,11 @@ Stack.prototype._order = function() {
     // TODO: store the sorted items, to have less work later on
     var ordered = [];
     var index = 0;
-    util.forEach(items, function (item, id) {
-        ordered[index] = item;
-        index++;
+    util.forEach(items, function (item) {
+        if (item.isVisible()) {
+            ordered[index] = item;
+            index++;
+        }
     });
 
     //if a customer stack order function exists, use it.

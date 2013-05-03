@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.0.7
- * @date    2013-05-02
+ * @date    2013-05-03
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -1993,7 +1993,27 @@ function Stack (parent, options) {
     this.parent = parent;
     this.options = {
         order: function (a, b) {
-            return (b.width - a.width) || (a.left - b.left);
+            //return (b.width - a.width) || (a.left - b.left);  // TODO: cleanup
+            // Order: ranges over non-ranges, ranged ordered by width, and
+            // lastly ordered by start.
+            if (a instanceof ItemRange) {
+                if (b instanceof ItemRange) {
+                    var aInt = (a.data.end - a.data.start);
+                    var bInt = (b.data.end - b.data.start);
+                    return (aInt - bInt) || (a.data.start - b.data.start);
+                }
+                else {
+                    return -1;
+                }
+            }
+            else {
+                if (b instanceof ItemRange) {
+                    return 1;
+                }
+                else {
+                    return (a.data.start - b.data.start);
+                }
+            }
         }
     };
 
@@ -2040,9 +2060,11 @@ Stack.prototype._order = function() {
     // TODO: store the sorted items, to have less work later on
     var ordered = [];
     var index = 0;
-    util.forEach(items, function (item, id) {
-        ordered[index] = item;
-        index++;
+    util.forEach(items, function (item) {
+        if (item.isVisible()) {
+            ordered[index] = item;
+            index++;
+        }
     });
 
     //if a customer stack order function exists, use it.
@@ -2826,7 +2848,6 @@ Controller.prototype.requestRepaint = function (force) {
             }, 0);
         }
     }
-
 };
 
 /**
@@ -4047,14 +4068,13 @@ ItemSet.prototype.repaint = function () {
                 if (item) {
                     // update item
                     if (!constructor || !(item instanceof constructor)) {
-                        // item type has changed, delete the item
-                        item.visible = false;
-                        changed += item.repaint();
+                        // item type has changed, hide and delete the item
+                        changed += item.hide();
                         item = null;
                     }
                     else {
                         item.data = itemData; // TODO: create a method item.setData ?
-                        changed += item.repaint();
+                        changed++;
                     }
                 }
 
@@ -4062,7 +4082,7 @@ ItemSet.prototype.repaint = function () {
                     // create item
                     if (constructor) {
                         item = new constructor(me, itemData, options);
-                        changed += item.repaint();
+                        changed++;
                     }
                     else {
                         throw new TypeError('Unknown item type "' + type + '"');
@@ -4076,9 +4096,8 @@ ItemSet.prototype.repaint = function () {
 
             case 'remove':
                 if (item) {
-                    // TODO: remove dom of the item
-                    item.visible = false;
-                    changed += item.repaint();
+                    // remove DOM of the item
+                    changed += item.hide();
                 }
 
                 // update lists
@@ -4091,9 +4110,15 @@ ItemSet.prototype.repaint = function () {
         }
     });
 
-    // reposition all items
+    // reposition all items. Show items only when in the visible area
     util.forEach(this.items, function (item) {
-        item.reposition();
+        if (item.isVisible()) {
+            changed += item.show();
+            item.reposition();
+        }
+        else {
+            changed += item.hide();
+        }
     });
 
     return (changed > 0);
@@ -4113,6 +4138,14 @@ ItemSet.prototype.getForeground = function () {
  */
 ItemSet.prototype.getBackground = function () {
     return this.dom.background;
+};
+
+/**
+ * Get the axis container element
+ * @return {HTMLElement} axis
+ */
+ItemSet.prototype.getAxis = function () {
+    return this.dom.axis;
 };
 
 /**
@@ -4141,34 +4174,29 @@ ItemSet.prototype.reflow = function () {
         var height;
         if (options.height != null) {
             height = frame.offsetHeight;
-            if (maxHeight != null) {
-                height = Math.min(height, maxHeight);
-            }
-            changed += update(this, 'height', height);
         }
         else {
             // height is not specified, determine the height from the height and positioned items
-            var frameHeight = this.height;
             height = 0;
+            var visibleItems = this.stack.ordered; // TODO: not so nice way to get the filtered items
             if (options.orientation == 'top') {
-                util.forEach(this.items, function (item) {
+                util.forEach(visibleItems, function (item) {
                     height = Math.max(height, item.top + item.height);
                 });
             }
             else {
                 // orientation == 'bottom'
-                util.forEach(this.items, function (item) {
+                var frameHeight = this.height;
+                util.forEach(visibleItems, function (item) {
                     height = Math.max(height, frameHeight - item.top);
                 });
             }
             height += options.margin.axis;
-
-            if (maxHeight != null) {
-                height = Math.min(height, maxHeight);
-            }
-
-            changed += update(this, 'height', height);
         }
+        if (maxHeight != null) {
+            height = Math.min(height, maxHeight);
+        }
+        changed += update(this, 'height', height);
 
         // calculate height from items
         changed += update(this, 'top', frame.offsetTop);
@@ -4195,6 +4223,7 @@ ItemSet.prototype.setData = function(data) {
         });
     }
 
+    // TODO: first remove current data
     if (data instanceof DataSet) {
         this.data = data;
     }
@@ -4362,12 +4391,14 @@ function Item (parent, data, options) {
     this.parent = parent;
     this.data = data;
     this.selected = false;
-    this.visible = true;
     this.dom = null;
     this.options = options;
-}
 
-Item.prototype = new Component();
+    this.top = 0;
+    this.left = 0;
+    this.width = 0;
+    this.height = 0;
+}
 
 /**
  * Select current item
@@ -4381,6 +4412,49 @@ Item.prototype.select = function () {
  */
 Item.prototype.unselect = function () {
     this.selected = false;
+};
+
+/**
+ * Show the Item in the DOM (when not already visible)
+ * @return {Boolean} changed
+ */
+Item.prototype.show = function () {
+    return false;
+};
+
+/**
+ * Hide the Item from the DOM (when visible)
+ * @return {Boolean} changed
+ */
+Item.prototype.hide = function () {
+    return false;
+};
+
+/**
+ * Determine whether the item is visible in its parent window.
+ * @return {Boolean} visible
+ */
+Item.prototype.isVisible = function () {
+    // should be implemented by the item
+    return false;
+};
+
+/**
+ * Repaint the item
+ * @return {Boolean} changed
+ */
+Item.prototype.repaint = function () {
+    // should be implemented by the item
+    return false;
+};
+
+/**
+ * Reflow the item
+ * @return {Boolean} resized
+ */
+Item.prototype.reflow = function () {
+    // should be implemented by the item
+    return false;
 };
 
 /**
@@ -4440,88 +4514,127 @@ ItemBox.prototype.repaint = function () {
     var changed = false;
     var dom = this.dom;
 
-    if (this.visible) {
-        if (!dom) {
-            this._create();
+    if (!dom) {
+        this._create();
+        dom = this.dom;
+        changed = true;
+    }
+
+    if (dom) {
+        if (!this.options && !this.parent) {
+            throw new Error('Cannot repaint item: no parent attached');
+        }
+        var foreground = this.parent.getForeground();
+        if (!foreground) {
+            throw new Error('Cannot repaint time axis: ' +
+                'parent has no foreground container element');
+        }
+        var background = this.parent.getBackground();
+        if (!background) {
+            throw new Error('Cannot repaint time axis: ' +
+                'parent has no background container element');
+        }
+        var axis = this.parent.getAxis();
+        if (!background) {
+            throw new Error('Cannot repaint time axis: ' +
+                'parent has no axis container element');
+        }
+
+        if (!dom.box.parentNode) {
+            foreground.appendChild(dom.box);
             changed = true;
         }
-        dom = this.dom;
-
-        if (dom) {
-            if (!this.options && !this.parent) {
-                throw new Error('Cannot repaint item: no parent attached');
-            }
-            var foreground = this.parent.getForeground();
-            if (!foreground) {
-                throw new Error('Cannot repaint time axis: ' +
-                    'parent has no foreground container element');
-            }
-            var background = this.parent.getBackground();
-            if (!background) {
-                throw new Error('Cannot repaint time axis: ' +
-                    'parent has no background container element');
-            }
-
-            if (!dom.box.parentNode) {
-                foreground.appendChild(dom.box);
-                changed = true;
-            }
-            if (!dom.line.parentNode) {
-                background.appendChild(dom.line);
-                changed = true;
-            }
-            if (!dom.dot.parentNode) {
-                this.parent.dom.axis.appendChild(dom.dot);
-                changed = true;
-            }
-
-            // update contents
-            if (this.data.content != this.content) {
-                this.content = this.data.content;
-                if (this.content instanceof Element) {
-                    dom.content.innerHTML = '';
-                    dom.content.appendChild(this.content);
-                }
-                else if (this.data.content != undefined) {
-                    dom.content.innerHTML = this.content;
-                }
-                else {
-                    throw new Error('Property "content" missing in item ' + this.data.id);
-                }
-                changed = true;
-            }
-
-            // update class
-            var className = (this.data.className? ' ' + this.data.className : '') +
-                (this.selected ? ' selected' : '');
-            if (this.className != className) {
-                this.className = className;
-                dom.box.className = 'item box' + className;
-                dom.line.className = 'item line' + className;
-                dom.dot.className  = 'item dot' + className;
-                changed = true;
-            }
+        if (!dom.line.parentNode) {
+            background.appendChild(dom.line);
+            changed = true;
         }
-    }
-    else {
-        // hide when visible
-        if (dom) {
-            if (dom.box.parentNode) {
-                dom.box.parentNode.removeChild(dom.box);
-                changed = true;
+        if (!dom.dot.parentNode) {
+            axis.appendChild(dom.dot);
+            changed = true;
+        }
+
+        // update contents
+        if (this.data.content != this.content) {
+            this.content = this.data.content;
+            if (this.content instanceof Element) {
+                dom.content.innerHTML = '';
+                dom.content.appendChild(this.content);
             }
-            if (dom.line.parentNode) {
-                dom.line.parentNode.removeChild(dom.line);
-                changed = true;
+            else if (this.data.content != undefined) {
+                dom.content.innerHTML = this.content;
             }
-            if (dom.dot.parentNode) {
-                dom.dot.parentNode.removeChild(dom.dot);
-                changed = true;
+            else {
+                throw new Error('Property "content" missing in item ' + this.data.id);
             }
+            changed = true;
+        }
+
+        // update class
+        var className = (this.data.className? ' ' + this.data.className : '') +
+            (this.selected ? ' selected' : '');
+        if (this.className != className) {
+            this.className = className;
+            dom.box.className = 'item box' + className;
+            dom.line.className = 'item line' + className;
+            dom.dot.className  = 'item dot' + className;
+            changed = true;
         }
     }
 
     return changed;
+};
+
+/**
+ * Show the item in the DOM (when not already visible). The items DOM will
+ * be created when needed.
+ * @return {Boolean} changed
+ */
+ItemBox.prototype.show = function () {
+    if (!this.dom || !this.dom.box.parentNode) {
+        return this.repaint();
+    }
+    else {
+        return false;
+    }
+};
+
+/**
+ * Hide the item from the DOM (when visible)
+ * @return {Boolean} changed
+ */
+ItemBox.prototype.hide = function () {
+    var changed = false,
+        dom = this.dom;
+    if (dom) {
+        if (dom.box.parentNode) {
+            dom.box.parentNode.removeChild(dom.box);
+            changed = true;
+        }
+        if (dom.line.parentNode) {
+            dom.line.parentNode.removeChild(dom.line);
+        }
+        if (dom.dot.parentNode) {
+            dom.dot.parentNode.removeChild(dom.dot);
+        }
+    }
+    return changed;
+};
+
+/**
+ * Determine whether the item is visible in its parent window.
+ * @return {Boolean} visible
+ */
+// TODO: determine isVisible during the reflow
+ItemBox.prototype.isVisible = function () {
+    var data = this.data,
+        range = this.parent && this.parent.range;
+    if (data && range) {
+        // TODO: account for the width of the item. Take some margin
+        return (data.start > range.start) && (data.start < range.end);
+    }
+    else {
+        return false;
+    }
 };
 
 /**
@@ -4545,48 +4658,50 @@ ItemBox.prototype.reflow = function () {
         top,
         left;
 
-    if (dom) {
-        changed += update(props.dot, 'height', dom.dot.offsetHeight);
-        changed += update(props.dot, 'width', dom.dot.offsetWidth);
-        changed += update(props.line, 'width', dom.line.offsetWidth);
-        changed += update(props.line, 'width', dom.line.offsetWidth);
-        changed += update(this, 'width', dom.box.offsetWidth);
-        changed += update(this, 'height', dom.box.offsetHeight);
-        if (align == 'right') {
-            left = start - this.width;
-        }
-        else if (align == 'left') {
-            left = start;
+    if (this.isVisible()) {
+        if (dom) {
+            changed += update(props.dot, 'height', dom.dot.offsetHeight);
+            changed += update(props.dot, 'width', dom.dot.offsetWidth);
+            changed += update(props.line, 'width', dom.line.offsetWidth);
+            changed += update(props.line, 'width', dom.line.offsetWidth);
+            changed += update(this, 'width', dom.box.offsetWidth);
+            changed += update(this, 'height', dom.box.offsetHeight);
+            if (align == 'right') {
+                left = start - this.width;
+            }
+            else if (align == 'left') {
+                left = start;
+            }
+            else {
+                // default or 'center'
+                left = start - this.width / 2;
+            }
+            update(this, 'left', left);
+
+            update(props.line, 'left', start - props.line.width / 2);
+            update(props.dot, 'left', start - props.dot.width / 2);
+            if (orientation == 'top') {
+                top = options.margin.axis;
+
+                update(this, 'top', top);
+                update(props.line, 'top', 0);
+                update(props.line, 'height', top);
+                update(props.dot, 'top', -props.dot.height / 2);
+            }
+            else {
+                // default or 'bottom'
+                var parentHeight = this.parent.height;
+                top = parentHeight - this.height - options.margin.axis;
+
+                update(this, 'top', top);
+                update(props.line, 'top', top + this.height);
+                update(props.line, 'height', Math.max(options.margin.axis, 0));
+                update(props.dot, 'top', parentHeight - props.dot.height / 2);
+            }
         }
         else {
-            // default or 'center'
-            left = start - this.width / 2;
+            changed += 1;
         }
-        changed += update(this, 'left', left);
-
-        changed += update(props.line, 'left', start - props.line.width / 2);
-        changed += update(props.dot, 'left', start - props.dot.width / 2);
-        if (orientation == 'top') {
-            top = options.margin.axis;
-
-            changed += update(this, 'top', top);
-            changed += update(props.line, 'top', 0);
-            changed += update(props.line, 'height', top);
-            changed += update(props.dot, 'top', -props.dot.height / 2);
-        }
-        else {
-            // default or 'bottom'
-            var parentHeight = this.parent.height;
-            top = parentHeight - this.height - options.margin.axis;
-
-            changed += update(this, 'top', top);
-            changed += update(props.line, 'top', top + this.height);
-            changed += update(props.line, 'height', Math.max(options.margin.axis, 0));
-            changed += update(props.dot, 'top', parentHeight - props.dot.height / 2);
-        }
-    }
-    else {
-        changed += 1;
     }
 
     return (changed > 0);
@@ -4710,66 +4825,102 @@ ItemPoint.prototype.repaint = function () {
     var changed = false;
     var dom = this.dom;
 
-    if (this.visible) {
-        if (!dom) {
-            this._create();
+    if (!dom) {
+        this._create();
+        dom = this.dom;
+        changed = true;
+    }
+
+    if (dom) {
+        if (!this.options && !this.options.parent) {
+            throw new Error('Cannot repaint item: no parent attached');
+        }
+        var foreground = this.parent.getForeground();
+        if (!foreground) {
+            throw new Error('Cannot repaint time axis: ' +
+                'parent has no foreground container element');
+        }
+
+        if (!dom.point.parentNode) {
+            foreground.appendChild(dom.point);
+            foreground.appendChild(dom.point);
             changed = true;
         }
-        dom = this.dom;
 
-        if (dom) {
-            if (!this.options && !this.options.parent) {
-                throw new Error('Cannot repaint item: no parent attached');
+        // update contents
+        if (this.data.content != this.content) {
+            this.content = this.data.content;
+            if (this.content instanceof Element) {
+                dom.content.innerHTML = '';
+                dom.content.appendChild(this.content);
             }
-            var foreground = this.parent.getForeground();
-            if (!foreground) {
-                throw new Error('Cannot repaint time axis: ' +
-                    'parent has no foreground container element');
+            else if (this.data.content != undefined) {
+                dom.content.innerHTML = this.content;
             }
-
-            if (!dom.point.parentNode) {
-                foreground.appendChild(dom.point);
-                foreground.appendChild(dom.point);
-                changed = true;
+            else {
+                throw new Error('Property "content" missing in item ' + this.data.id);
             }
-
-            // update contents
-            if (this.data.content != this.content) {
-                this.content = this.data.content;
-                if (this.content instanceof Element) {
-                    dom.content.innerHTML = '';
-                    dom.content.appendChild(this.content);
-                }
-                else if (this.data.content != undefined) {
-                    dom.content.innerHTML = this.content;
-                }
-                else {
-                    throw new Error('Property "content" missing in item ' + this.data.id);
-                }
-                changed = true;
-            }
-
-            // update class
-            var className = (this.data.className? ' ' + this.data.className : '') +
-                (this.selected ? ' selected' : '');
-            if (this.className != className) {
-                this.className = className;
-                dom.point.className  = 'item point' + className;
-                changed = true;
-            }
+            changed = true;
         }
-    }
-    else {
-        // hide when visible
-        if (dom) {
-            if (dom.point.parentNode) {
-                dom.point.parentNode.removeChild(dom.point);
-                changed = true;
-            }
+
+        // update class
+        var className = (this.data.className? ' ' + this.data.className : '') +
+            (this.selected ? ' selected' : '');
+        if (this.className != className) {
+            this.className = className;
+            dom.point.className  = 'item point' + className;
+            changed = true;
         }
     }
 
     return changed;
+};
+
+/**
+ * Show the item in the DOM (when not already visible). The items DOM will
+ * be created when needed.
+ * @return {Boolean} changed
+ */
+ItemPoint.prototype.show = function () {
+    if (!this.dom || !this.dom.point.parentNode) {
+        return this.repaint();
+    }
+    else {
+        return false;
+    }
+};
+
+/**
+ * Hide the item from the DOM (when visible)
+ * @return {Boolean} changed
+ */
+ItemPoint.prototype.hide = function () {
+    var changed = false,
+        dom = this.dom;
+    if (dom) {
+        if (dom.point.parentNode) {
+            dom.point.parentNode.removeChild(dom.point);
+            changed = true;
+        }
+    }
+    return changed;
+};
+
+/**
+ * Determine whether the item is visible in its parent window.
+ * @return {Boolean} visible
+ */
+// TODO: determine isVisible during the reflow
+ItemPoint.prototype.isVisible = function () {
+    var data = this.data,
+        range = this.parent && this.parent.range;
+    if (data && range) {
+        // TODO: account for the width of the item. Take some margin
+        return (data.start > range.start) && (data.start < range.end);
+    }
+    else {
+        return false;
+    }
 };
 
 /**
@@ -4914,64 +5065,100 @@ ItemRange.prototype.repaint = function () {
     var changed = false;
     var dom = this.dom;
 
-    if (this.visible) {
-        if (!dom) {
-            this._create();
+    if (!dom) {
+        this._create();
+        dom = this.dom;
+        changed = true;
+    }
+
+    if (dom) {
+        if (!this.options && !this.options.parent) {
+            throw new Error('Cannot repaint item: no parent attached');
+        }
+        var foreground = this.parent.getForeground();
+        if (!foreground) {
+            throw new Error('Cannot repaint time axis: ' +
+                'parent has no foreground container element');
+        }
+
+        if (!dom.box.parentNode) {
+            foreground.appendChild(dom.box);
             changed = true;
         }
-        dom = this.dom;
 
-        if (dom) {
-            if (!this.options && !this.options.parent) {
-                throw new Error('Cannot repaint item: no parent attached');
+        // update content
+        if (this.data.content != this.content) {
+            this.content = this.data.content;
+            if (this.content instanceof Element) {
+                dom.content.innerHTML = '';
+                dom.content.appendChild(this.content);
             }
-            var foreground = this.parent.getForeground();
-            if (!foreground) {
-                throw new Error('Cannot repaint time axis: ' +
-                    'parent has no foreground container element');
+            else if (this.data.content != undefined) {
+                dom.content.innerHTML = this.content;
             }
-
-            if (!dom.box.parentNode) {
-                foreground.appendChild(dom.box);
-                changed = true;
+            else {
+                throw new Error('Property "content" missing in item ' + this.data.id);
             }
-
-            // update content
-            if (this.data.content != this.content) {
-                this.content = this.data.content;
-                if (this.content instanceof Element) {
-                    dom.content.innerHTML = '';
-                    dom.content.appendChild(this.content);
-                }
-                else if (this.data.content != undefined) {
-                    dom.content.innerHTML = this.content;
-                }
-                else {
-                    throw new Error('Property "content" missing in item ' + this.data.id);
-                }
-                changed = true;
-            }
-
-            // update class
-            var className = this.data.className ? ('' + this.data.className) : '';
-            if (this.className != className) {
-                this.className = className;
-                dom.box.className = 'item range' + className;
-                changed = true;
-            }
+            changed = true;
         }
-    }
-    else {
-        // hide when visible
-        if (dom) {
-            if (dom.box.parentNode) {
-                dom.box.parentNode.removeChild(dom.box);
-                changed = true;
-            }
+
+        // update class
+        var className = this.data.className ? ('' + this.data.className) : '';
+        if (this.className != className) {
+            this.className = className;
+            dom.box.className = 'item range' + className;
+            changed = true;
         }
     }
 
     return changed;
+};
+
+/**
+ * Show the item in the DOM (when not already visible). The items DOM will
+ * be created when needed.
+ * @return {Boolean} changed
+ */
+ItemRange.prototype.show = function () {
+    if (!this.dom || !this.dom.box.parentNode) {
+        return this.repaint();
+    }
+    else {
+        return false;
+    }
+};
+
+/**
+ * Hide the item from the DOM (when visible)
+ * @return {Boolean} changed
+ */
+ItemRange.prototype.hide = function () {
+    var changed = false,
+        dom = this.dom;
+    if (dom) {
+        if (dom.box.parentNode) {
+            dom.box.parentNode.removeChild(dom.box);
+            changed = true;
+        }
+    }
+    return changed;
+};
+
+/**
+ * Determine whether the item is visible in its parent window.
+ * @return {Boolean} visible
+ */
+// TODO: determine isVisible during the reflow
+ItemRange.prototype.isVisible = function () {
+    var data = this.data,
+        range = this.parent && this.parent.range;
+    if (data && range) {
+        // TODO: account for the width of the item. Take some margin
+        return (data.start < range.end) && (data.end > range.start);
+    }
+    else {
+        return false;
+    }
 };
 
 /**
@@ -4995,52 +5182,54 @@ ItemRange.prototype.reflow = function () {
         end = parent.toScreen(this.data.end),
         changed = 0;
 
-    if (dom) {
-        var update = util.updateProperty,
-            box = dom.box,
-            parentWidth = parent.width,
-            orientation = options.orientation,
-            contentLeft,
-            top;
+    if (this.isVisible()) {
+        if (dom) {
+            var update = util.updateProperty,
+                box = dom.box,
+                parentWidth = parent.width,
+                orientation = options.orientation,
+                contentLeft,
+                top;
 
-        changed += update(props.content, 'width', dom.content.offsetWidth);
+            changed += update(props.content, 'width', dom.content.offsetWidth);
 
-        changed += update(this, 'height', box.offsetHeight);
+            changed += update(this, 'height', box.offsetHeight);
 
-        // limit the width of the this, as browsers cannot draw very wide divs
-        if (start < -parentWidth) {
-            start = -parentWidth;
-        }
-        if (end > 2 * parentWidth) {
-            end = 2 * parentWidth;
-        }
+            // limit the width of the this, as browsers cannot draw very wide divs
+            if (start < -parentWidth) {
+                start = -parentWidth;
+            }
+            if (end > 2 * parentWidth) {
+                end = 2 * parentWidth;
+            }
 
-        // when range exceeds left of the window, position the contents at the left of the visible area
-        if (start < 0) {
-            contentLeft = Math.min(-start,
-                (end - start - props.content.width - 2 * options.padding));
-            // TODO: remove the need for options.padding. it's terrible.
+            // when range exceeds left of the window, position the contents at the left of the visible area
+            if (start < 0) {
+                contentLeft = Math.min(-start,
+                    (end - start - props.content.width - 2 * options.padding));
+                // TODO: remove the need for options.padding. it's terrible.
+            }
+            else {
+                contentLeft = 0;
+            }
+            changed += update(props.content, 'left', contentLeft);
+
+            if (orientation == 'top') {
+                top = options.margin.axis;
+                changed += update(this, 'top', top);
+            }
+            else {
+                // default or 'bottom'
+                top = parent.height - this.height - options.margin.axis;
+                changed += update(this, 'top', top);
+            }
+
+            changed += update(this, 'left', start);
+            changed += update(this, 'width', Math.max(end - start, 1)); // TODO: reckon with border width;
         }
         else {
-            contentLeft = 0;
+            changed += 1;
         }
-        changed += update(props.content, 'left', contentLeft);
-
-        if (orientation == 'top') {
-            top = options.margin.axis;
-            changed += update(this, 'top', top);
-        }
-        else {
-            // default or 'bottom'
-            top = parent.height - this.height - options.margin.axis;
-            changed += update(this, 'top', top);
-        }
-
-        changed += update(this, 'left', start);
-        changed += update(this, 'width', Math.max(end - start, 1)); // TODO: reckon with border width;
-    }
-    else {
-        changed += 1;
     }
 
     return (changed > 0);
@@ -5108,10 +5297,7 @@ function Timeline (container, data, options) {
         throw new Error('No container element provided');
     }
     this.main = new RootPanel(container, {
-        autoResize: false,
-        height: function () {
-            return me.timeaxis.height + me.itemset.height;
-        }
+        autoResize: false
     });
     this.controller.add(this.main);
 
@@ -5150,12 +5336,13 @@ function Timeline (container, data, options) {
     this.itemset.setRange(this.range);
     this.controller.add(this.itemset);
 
+    // set options (must take place before setting the data)
+    this.setOptions(options);
+
     // set data
     if (data) {
         this.setData(data);
     }
-
-    this.setOptions(options);
 }
 
 /**
@@ -5172,21 +5359,54 @@ Timeline.prototype.setOptions = function (options) {
     this.range.setOptions(this.options);
 
     // update options the itemset
-    var top,
+    var itemsTop,
+        itemsHeight,
+        mainHeight,
+        maxHeight,
         me = this;
+
     if (this.options.orientation == 'top') {
-        top = function () {
+        itemsTop = function () {
             return me.timeaxis.height;
         }
     }
     else {
-        top = function () {
+        itemsTop = function () {
             return me.main.height - me.timeaxis.height - me.itemset.height;
         }
     }
+
+    if (options.height) {
+        // fixed height
+        mainHeight = options.height;
+        itemsHeight = function () {
+            return me.main.height - me.timeaxis.height;
+        };
+    }
+    else {
+        // auto height
+        mainHeight = function () {
+            return me.timeaxis.height + me.itemset.height;
+        };
+        itemsHeight = null;
+    }
+
+    // TODO: maxHeight should be a string in px or %
+    if (options.maxHeight) {
+        maxHeight = function () {
+            return options.maxHeight - me.timeaxis.height;
+        }
+    }
+
+    this.main.setOptions({
+        height: mainHeight
+    });
+
     this.itemset.setOptions({
         orientation: this.options.orientation,
-        top: top
+        top: itemsTop,
+        height: itemsHeight,
+        maxHeight: maxHeight
     });
 
     this.controller.repaint();
@@ -5202,21 +5422,31 @@ Timeline.prototype.setData = function(data) {
         // first load of data
         this.itemset.setData(data);
 
-        // apply the data range as range
-        var dataRange = this.itemset.getDataRange();
+        if (this.options.start == undefined || this.options.end == undefined) {
+            // apply the data range as range
+            var dataRange = this.itemset.getDataRange();
 
-        // add 5% on both sides
-        var min = dataRange.min;
-        var max = dataRange.max;
-        if (min != null && max != null) {
-            var interval = (max.valueOf() - min.valueOf());
-            min = new Date(min.valueOf() - interval * 0.05);
-            max = new Date(max.valueOf() + interval * 0.05);
-        }
+            // add 5% on both sides
+            var min = dataRange.min;
+            var max = dataRange.max;
+            if (min != null && max != null) {
+                var interval = (max.valueOf() - min.valueOf());
+                min = new Date(min.valueOf() - interval * 0.05);
+                max = new Date(max.valueOf() + interval * 0.05);
+            }
 
-        // apply range if there is a min or max available
-        if (min != null || max != null) {
-            this.range.setRange(min, max);
+            // override specified start and/or end date
+            if (this.options.start != undefined) {
+                min = new Date(this.options.start.valueOf());
+            }
+            if (this.options.end != undefined) {
+                max = new Date(this.options.end.valueOf());
+            }
+
+            // apply range if there is a min or max available
+            if (min != null || max != null) {
+                this.range.setRange(min, max);
+            }
         }
     }
     else {

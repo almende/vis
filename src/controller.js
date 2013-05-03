@@ -68,7 +68,6 @@ Controller.prototype.requestRepaint = function (force) {
             }, 0);
         }
     }
-
 };
 
 /**

@@ -55,88 +55,127 @@ ItemBox.prototype.repaint = function () {
     var changed = false;
     var dom = this.dom;
 
-    if (this.visible) {
-        if (!dom) {
-            this._create();
+    if (!dom) {
+        this._create();
+        dom = this.dom;
+        changed = true;
+    }
+
+    if (dom) {
+        if (!this.options && !this.parent) {
+            throw new Error('Cannot repaint item: no parent attached');
+        }
+        var foreground = this.parent.getForeground();
+        if (!foreground) {
+            throw new Error('Cannot repaint time axis: ' +
+                'parent has no foreground container element');
+        }
+        var background = this.parent.getBackground();
+        if (!background) {
+            throw new Error('Cannot repaint time axis: ' +
+                'parent has no background container element');
+        }
+        var axis = this.parent.getAxis();
+        if (!background) {
+            throw new Error('Cannot repaint time axis: ' +
+                'parent has no axis container element');
+        }
+
+        if (!dom.box.parentNode) {
+            foreground.appendChild(dom.box);
             changed = true;
         }
-        dom = this.dom;
-
-        if (dom) {
-            if (!this.options && !this.parent) {
-                throw new Error('Cannot repaint item: no parent attached');
-            }
-            var foreground = this.parent.getForeground();
-            if (!foreground) {
-                throw new Error('Cannot repaint time axis: ' +
-                    'parent has no foreground container element');
-            }
-            var background = this.parent.getBackground();
-            if (!background) {
-                throw new Error('Cannot repaint time axis: ' +
-                    'parent has no background container element');
-            }
-
-            if (!dom.box.parentNode) {
-                foreground.appendChild(dom.box);
-                changed = true;
-            }
-            if (!dom.line.parentNode) {
-                background.appendChild(dom.line);
-                changed = true;
-            }
-            if (!dom.dot.parentNode) {
-                this.parent.dom.axis.appendChild(dom.dot);
-                changed = true;
-            }
-
-            // update contents
-            if (this.data.content != this.content) {
-                this.content = this.data.content;
-                if (this.content instanceof Element) {
-                    dom.content.innerHTML = '';
-                    dom.content.appendChild(this.content);
-                }
-                else if (this.data.content != undefined) {
-                    dom.content.innerHTML = this.content;
-                }
-                else {
-                    throw new Error('Property "content" missing in item ' + this.data.id);
-                }
-                changed = true;
-            }
-
-            // update class
-            var className = (this.data.className? ' ' + this.data.className : '') +
-                (this.selected ? ' selected' : '');
-            if (this.className != className) {
-                this.className = className;
-                dom.box.className = 'item box' + className;
-                dom.line.className = 'item line' + className;
-                dom.dot.className  = 'item dot' + className;
-                changed = true;
-            }
+        if (!dom.line.parentNode) {
+            background.appendChild(dom.line);
+            changed = true;
         }
-    }
-    else {
-        // hide when visible
-        if (dom) {
-            if (dom.box.parentNode) {
-                dom.box.parentNode.removeChild(dom.box);
-                changed = true;
+        if (!dom.dot.parentNode) {
+            axis.appendChild(dom.dot);
+            changed = true;
+        }
+
+        // update contents
+        if (this.data.content != this.content) {
+            this.content = this.data.content;
+            if (this.content instanceof Element) {
+                dom.content.innerHTML = '';
+                dom.content.appendChild(this.content);
             }
-            if (dom.line.parentNode) {
-                dom.line.parentNode.removeChild(dom.line);
-                changed = true;
+            else if (this.data.content != undefined) {
+                dom.content.innerHTML = this.content;
             }
-            if (dom.dot.parentNode) {
-                dom.dot.parentNode.removeChild(dom.dot);
-                changed = true;
+            else {
+                throw new Error('Property "content" missing in item ' + this.data.id);
             }
+            changed = true;
+        }
+
+        // update class
+        var className = (this.data.className? ' ' + this.data.className : '') +
+            (this.selected ? ' selected' : '');
+        if (this.className != className) {
+            this.className = className;
+            dom.box.className = 'item box' + className;
+            dom.line.className = 'item line' + className;
+            dom.dot.className  = 'item dot' + className;
+            changed = true;
         }
     }
 
     return changed;
+};
+
+/**
+ * Show the item in the DOM (when not already visible). The items DOM will
+ * be created when needed.
+ * @return {Boolean} changed
+ */
+ItemBox.prototype.show = function () {
+    if (!this.dom || !this.dom.box.parentNode) {
+        return this.repaint();
+    }
+    else {
+        return false;
+    }
+};
+
+/**
+ * Hide the item from the DOM (when visible)
+ * @return {Boolean} changed
+ */
+ItemBox.prototype.hide = function () {
+    var changed = false,
+        dom = this.dom;
+    if (dom) {
+        if (dom.box.parentNode) {
+            dom.box.parentNode.removeChild(dom.box);
+            changed = true;
+        }
+        if (dom.line.parentNode) {
+            dom.line.parentNode.removeChild(dom.line);
+        }
+        if (dom.dot.parentNode) {
+            dom.dot.parentNode.removeChild(dom.dot);
+        }
+    }
+    return changed;
+};
+
+/**
+ * Determine whether the item is visible in its parent window.
+ * @return {Boolean} visible
+ */
+// TODO: determine isVisible during the reflow
+ItemBox.prototype.isVisible = function () {
+    var data = this.data,
+        range = this.parent && this.parent.range;
+    if (data && range) {
+        // TODO: account for the width of the item. Take some margin
+        return (data.start > range.start) && (data.start < range.end);
+    }
+    else {
+        return false;
+    }
 };
 
 /**
@@ -160,48 +199,50 @@ ItemBox.prototype.reflow = function () {
         top,
         left;
 
-    if (dom) {
-        changed += update(props.dot, 'height', dom.dot.offsetHeight);
-        changed += update(props.dot, 'width', dom.dot.offsetWidth);
-        changed += update(props.line, 'width', dom.line.offsetWidth);
-        changed += update(props.line, 'width', dom.line.offsetWidth);
-        changed += update(this, 'width', dom.box.offsetWidth);
-        changed += update(this, 'height', dom.box.offsetHeight);
-        if (align == 'right') {
-            left = start - this.width;
-        }
-        else if (align == 'left') {
-            left = start;
+    if (this.isVisible()) {
+        if (dom) {
+            changed += update(props.dot, 'height', dom.dot.offsetHeight);
+            changed += update(props.dot, 'width', dom.dot.offsetWidth);
+            changed += update(props.line, 'width', dom.line.offsetWidth);
+            changed += update(props.line, 'width', dom.line.offsetWidth);
+            changed += update(this, 'width', dom.box.offsetWidth);
+            changed += update(this, 'height', dom.box.offsetHeight);
+            if (align == 'right') {
+                left = start - this.width;
+            }
+            else if (align == 'left') {
+                left = start;
+            }
+            else {
+                // default or 'center'
+                left = start - this.width / 2;
+            }
+            update(this, 'left', left);
+
+            update(props.line, 'left', start - props.line.width / 2);
+            update(props.dot, 'left', start - props.dot.width / 2);
+            if (orientation == 'top') {
+                top = options.margin.axis;
+
+                update(this, 'top', top);
+                update(props.line, 'top', 0);
+                update(props.line, 'height', top);
+                update(props.dot, 'top', -props.dot.height / 2);
+            }
+            else {
+                // default or 'bottom'
+                var parentHeight = this.parent.height;
+                top = parentHeight - this.height - options.margin.axis;
+
+                update(this, 'top', top);
+                update(props.line, 'top', top + this.height);
+                update(props.line, 'height', Math.max(options.margin.axis, 0));
+                update(props.dot, 'top', parentHeight - props.dot.height / 2);
+            }
         }
         else {
-            // default or 'center'
-            left = start - this.width / 2;
+            changed += 1;
         }
-        changed += update(this, 'left', left);
-
-        changed += update(props.line, 'left', start - props.line.width / 2);
-        changed += update(props.dot, 'left', start - props.dot.width / 2);
-        if (orientation == 'top') {
-            top = options.margin.axis;
-
-            changed += update(this, 'top', top);
-            changed += update(props.line, 'top', 0);
-            changed += update(props.line, 'height', top);
-            changed += update(props.dot, 'top', -props.dot.height / 2);
-        }
-        else {
-            // default or 'bottom'
-            var parentHeight = this.parent.height;
-            top = parentHeight - this.height - options.margin.axis;
-
-            changed += update(this, 'top', top);
-            changed += update(props.line, 'top', top + this.height);
-            changed += update(props.line, 'height', Math.max(options.margin.axis, 0));
-            changed += update(props.dot, 'top', parentHeight - props.dot.height / 2);
-        }
-    }
-    else {
-        changed += 1;
     }
 
     return (changed > 0);

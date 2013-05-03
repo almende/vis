@@ -202,14 +202,13 @@ ItemSet.prototype.repaint = function () {
                 if (item) {
                     // update item
                     if (!constructor || !(item instanceof constructor)) {
-                        // item type has changed, delete the item
-                        item.visible = false;
-                        changed += item.repaint();
+                        // item type has changed, hide and delete the item
+                        changed += item.hide();
                         item = null;
                     }
                     else {
                         item.data = itemData; // TODO: create a method item.setData ?
-                        changed += item.repaint();
+                        changed++;
                     }
                 }
 
@@ -217,7 +216,7 @@ ItemSet.prototype.repaint = function () {
                     // create item
                     if (constructor) {
                         item = new constructor(me, itemData, options);
-                        changed += item.repaint();
+                        changed++;
                     }
                     else {
                         throw new TypeError('Unknown item type "' + type + '"');
@@ -231,9 +230,8 @@ ItemSet.prototype.repaint = function () {
 
             case 'remove':
                 if (item) {
-                    // TODO: remove dom of the item
-                    item.visible = false;
-                    changed += item.repaint();
+                    // remove DOM of the item
+                    changed += item.hide();
                 }
 
                 // update lists
@@ -246,9 +244,15 @@ ItemSet.prototype.repaint = function () {
         }
     });
 
-    // reposition all items
+    // reposition all items. Show items only when in the visible area
     util.forEach(this.items, function (item) {
-        item.reposition();
+        if (item.isVisible()) {
+            changed += item.show();
+            item.reposition();
+        }
+        else {
+            changed += item.hide();
+        }
     });
 
     return (changed > 0);
@@ -268,6 +272,14 @@ ItemSet.prototype.getForeground = function () {
  */
 ItemSet.prototype.getBackground = function () {
     return this.dom.background;
+};
+
+/**
+ * Get the axis container element
+ * @return {HTMLElement} axis
+ */
+ItemSet.prototype.getAxis = function () {
+    return this.dom.axis;
 };
 
 /**
@@ -296,34 +308,29 @@ ItemSet.prototype.reflow = function () {
         var height;
         if (options.height != null) {
             height = frame.offsetHeight;
-            if (maxHeight != null) {
-                height = Math.min(height, maxHeight);
-            }
-            changed += update(this, 'height', height);
         }
         else {
             // height is not specified, determine the height from the height and positioned items
-            var frameHeight = this.height;
             height = 0;
+            var visibleItems = this.stack.ordered; // TODO: not so nice way to get the filtered items
             if (options.orientation == 'top') {
-                util.forEach(this.items, function (item) {
+                util.forEach(visibleItems, function (item) {
                     height = Math.max(height, item.top + item.height);
                 });
             }
             else {
                 // orientation == 'bottom'
-                util.forEach(this.items, function (item) {
+                var frameHeight = this.height;
+                util.forEach(visibleItems, function (item) {
                     height = Math.max(height, frameHeight - item.top);
                 });
             }
             height += options.margin.axis;
-
-            if (maxHeight != null) {
-                height = Math.min(height, maxHeight);
-            }
-
-            changed += update(this, 'height', height);
         }
+        if (maxHeight != null) {
+            height = Math.min(height, maxHeight);
+        }
+        changed += update(this, 'height', height);
 
         // calculate height from items
         changed += update(this, 'top', frame.offsetTop);
@@ -350,6 +357,7 @@ ItemSet.prototype.setData = function(data) {
         });
     }
 
+    // TODO: first remove current data
     if (data instanceof DataSet) {
         this.data = data;
     }

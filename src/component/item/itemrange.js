@@ -47,64 +47,100 @@ ItemRange.prototype.repaint = function () {
     var changed = false;
     var dom = this.dom;
 
-    if (this.visible) {
-        if (!dom) {
-            this._create();
+    if (!dom) {
+        this._create();
+        dom = this.dom;
+        changed = true;
+    }
+
+    if (dom) {
+        if (!this.options && !this.options.parent) {
+            throw new Error('Cannot repaint item: no parent attached');
+        }
+        var foreground = this.parent.getForeground();
+        if (!foreground) {
+            throw new Error('Cannot repaint time axis: ' +
+                'parent has no foreground container element');
+        }
+
+        if (!dom.box.parentNode) {
+            foreground.appendChild(dom.box);
             changed = true;
         }
-        dom = this.dom;
 
-        if (dom) {
-            if (!this.options && !this.options.parent) {
-                throw new Error('Cannot repaint item: no parent attached');
+        // update content
+        if (this.data.content != this.content) {
+            this.content = this.data.content;
+            if (this.content instanceof Element) {
+                dom.content.innerHTML = '';
+                dom.content.appendChild(this.content);
             }
-            var foreground = this.parent.getForeground();
-            if (!foreground) {
-                throw new Error('Cannot repaint time axis: ' +
-                    'parent has no foreground container element');
+            else if (this.data.content != undefined) {
+                dom.content.innerHTML = this.content;
             }
-
-            if (!dom.box.parentNode) {
-                foreground.appendChild(dom.box);
-                changed = true;
+            else {
+                throw new Error('Property "content" missing in item ' + this.data.id);
             }
-
-            // update content
-            if (this.data.content != this.content) {
-                this.content = this.data.content;
-                if (this.content instanceof Element) {
-                    dom.content.innerHTML = '';
-                    dom.content.appendChild(this.content);
-                }
-                else if (this.data.content != undefined) {
-                    dom.content.innerHTML = this.content;
-                }
-                else {
-                    throw new Error('Property "content" missing in item ' + this.data.id);
-                }
-                changed = true;
-            }
-
-            // update class
-            var className = this.data.className ? ('' + this.data.className) : '';
-            if (this.className != className) {
-                this.className = className;
-                dom.box.className = 'item range' + className;
-                changed = true;
-            }
+            changed = true;
         }
-    }
-    else {
-        // hide when visible
-        if (dom) {
-            if (dom.box.parentNode) {
-                dom.box.parentNode.removeChild(dom.box);
-                changed = true;
-            }
+
+        // update class
+        var className = this.data.className ? ('' + this.data.className) : '';
+        if (this.className != className) {
+            this.className = className;
+            dom.box.className = 'item range' + className;
+            changed = true;
         }
     }
 
     return changed;
+};
+
+/**
+ * Show the item in the DOM (when not already visible). The items DOM will
+ * be created when needed.
+ * @return {Boolean} changed
+ */
+ItemRange.prototype.show = function () {
+    if (!this.dom || !this.dom.box.parentNode) {
+        return this.repaint();
+    }
+    else {
+        return false;
+    }
+};
+
+/**
+ * Hide the item from the DOM (when visible)
+ * @return {Boolean} changed
+ */
+ItemRange.prototype.hide = function () {
+    var changed = false,
+        dom = this.dom;
+    if (dom) {
+        if (dom.box.parentNode) {
+            dom.box.parentNode.removeChild(dom.box);
+            changed = true;
+        }
+    }
+    return changed;
+};
+
+/**
+ * Determine whether the item is visible in its parent window.
+ * @return {Boolean} visible
+ */
+// TODO: determine isVisible during the reflow
+ItemRange.prototype.isVisible = function () {
+    var data = this.data,
+        range = this.parent && this.parent.range;
+    if (data && range) {
+        // TODO: account for the width of the item. Take some margin
+        return (data.start < range.end) && (data.end > range.start);
+    }
+    else {
+        return false;
+    }
 };
 
 /**
@@ -128,52 +164,54 @@ ItemRange.prototype.reflow = function () {
         end = parent.toScreen(this.data.end),
         changed = 0;
 
-    if (dom) {
-        var update = util.updateProperty,
-            box = dom.box,
-            parentWidth = parent.width,
-            orientation = options.orientation,
-            contentLeft,
-            top;
+    if (this.isVisible()) {
+        if (dom) {
+            var update = util.updateProperty,
+                box = dom.box,
+                parentWidth = parent.width,
+                orientation = options.orientation,
+                contentLeft,
+                top;
 
-        changed += update(props.content, 'width', dom.content.offsetWidth);
+            changed += update(props.content, 'width', dom.content.offsetWidth);
 
-        changed += update(this, 'height', box.offsetHeight);
+            changed += update(this, 'height', box.offsetHeight);
 
-        // limit the width of the this, as browsers cannot draw very wide divs
-        if (start < -parentWidth) {
-            start = -parentWidth;
-        }
-        if (end > 2 * parentWidth) {
-            end = 2 * parentWidth;
-        }
+            // limit the width of the this, as browsers cannot draw very wide divs
+            if (start < -parentWidth) {
+                start = -parentWidth;
+            }
+            if (end > 2 * parentWidth) {
+                end = 2 * parentWidth;
+            }
 
-        // when range exceeds left of the window, position the contents at the left of the visible area
-        if (start < 0) {
-            contentLeft = Math.min(-start,
-                (end - start - props.content.width - 2 * options.padding));
-            // TODO: remove the need for options.padding. it's terrible.
+            // when range exceeds left of the window, position the contents at the left of the visible area
+            if (start < 0) {
+                contentLeft = Math.min(-start,
+                    (end - start - props.content.width - 2 * options.padding));
+                // TODO: remove the need for options.padding. it's terrible.
+            }
+            else {
+                contentLeft = 0;
+            }
+            changed += update(props.content, 'left', contentLeft);
+
+            if (orientation == 'top') {
+                top = options.margin.axis;
+                changed += update(this, 'top', top);
+            }
+            else {
+                // default or 'bottom'
+                top = parent.height - this.height - options.margin.axis;
+                changed += update(this, 'top', top);
+            }
+
+            changed += update(this, 'left', start);
+            changed += update(this, 'width', Math.max(end - start, 1)); // TODO: reckon with border width;
         }
         else {
-            contentLeft = 0;
+            changed += 1;
         }
-        changed += update(props.content, 'left', contentLeft);
-
-        if (orientation == 'top') {
-            top = options.margin.axis;
-            changed += update(this, 'top', top);
-        }
-        else {
-            // default or 'bottom'
-            top = parent.height - this.height - options.margin.axis;
-            changed += update(this, 'top', top);
-        }
-
-        changed += update(this, 'left', start);
-        changed += update(this, 'width', Math.max(end - start, 1)); // TODO: reckon with border width;
-    }
-    else {
-        changed += 1;
     }
 
     return (changed > 0);

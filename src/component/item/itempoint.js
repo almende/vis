@@ -52,66 +52,102 @@ ItemPoint.prototype.repaint = function () {
     var changed = false;
     var dom = this.dom;
 
-    if (this.visible) {
-        if (!dom) {
-            this._create();
+    if (!dom) {
+        this._create();
+        dom = this.dom;
+        changed = true;
+    }
+
+    if (dom) {
+        if (!this.options && !this.options.parent) {
+            throw new Error('Cannot repaint item: no parent attached');
+        }
+        var foreground = this.parent.getForeground();
+        if (!foreground) {
+            throw new Error('Cannot repaint time axis: ' +
+                'parent has no foreground container element');
+        }
+
+        if (!dom.point.parentNode) {
+            foreground.appendChild(dom.point);
+            foreground.appendChild(dom.point);
             changed = true;
         }
-        dom = this.dom;
 
-        if (dom) {
-            if (!this.options && !this.options.parent) {
-                throw new Error('Cannot repaint item: no parent attached');
+        // update contents
+        if (this.data.content != this.content) {
+            this.content = this.data.content;
+            if (this.content instanceof Element) {
+                dom.content.innerHTML = '';
+                dom.content.appendChild(this.content);
             }
-            var foreground = this.parent.getForeground();
-            if (!foreground) {
-                throw new Error('Cannot repaint time axis: ' +
-                    'parent has no foreground container element');
+            else if (this.data.content != undefined) {
+                dom.content.innerHTML = this.content;
             }
-
-            if (!dom.point.parentNode) {
-                foreground.appendChild(dom.point);
-                foreground.appendChild(dom.point);
-                changed = true;
+            else {
+                throw new Error('Property "content" missing in item ' + this.data.id);
             }
-
-            // update contents
-            if (this.data.content != this.content) {
-                this.content = this.data.content;
-                if (this.content instanceof Element) {
-                    dom.content.innerHTML = '';
-                    dom.content.appendChild(this.content);
-                }
-                else if (this.data.content != undefined) {
-                    dom.content.innerHTML = this.content;
-                }
-                else {
-                    throw new Error('Property "content" missing in item ' + this.data.id);
-                }
-                changed = true;
-            }
-
-            // update class
-            var className = (this.data.className? ' ' + this.data.className : '') +
-                (this.selected ? ' selected' : '');
-            if (this.className != className) {
-                this.className = className;
-                dom.point.className  = 'item point' + className;
-                changed = true;
-            }
+            changed = true;
         }
-    }
-    else {
-        // hide when visible
-        if (dom) {
-            if (dom.point.parentNode) {
-                dom.point.parentNode.removeChild(dom.point);
-                changed = true;
-            }
+
+        // update class
+        var className = (this.data.className? ' ' + this.data.className : '') +
+            (this.selected ? ' selected' : '');
+        if (this.className != className) {
+            this.className = className;
+            dom.point.className  = 'item point' + className;
+            changed = true;
         }
     }
 
     return changed;
+};
+
+/**
+ * Show the item in the DOM (when not already visible). The items DOM will
+ * be created when needed.
+ * @return {Boolean} changed
+ */
+ItemPoint.prototype.show = function () {
+    if (!this.dom || !this.dom.point.parentNode) {
+        return this.repaint();
+    }
+    else {
+        return false;
+    }
+};
+
+/**
+ * Hide the item from the DOM (when visible)
+ * @return {Boolean} changed
+ */
+ItemPoint.prototype.hide = function () {
+    var changed = false,
+        dom = this.dom;
+    if (dom) {
+        if (dom.point.parentNode) {
+            dom.point.parentNode.removeChild(dom.point);
+            changed = true;
+        }
+    }
+    return changed;
+};
+
+/**
+ * Determine whether the item is visible in its parent window.
+ * @return {Boolean} visible
+ */
+// TODO: determine isVisible during the reflow
+ItemPoint.prototype.isVisible = function () {
+    var data = this.data,
+        range = this.parent && this.parent.range;
+    if (data && range) {
+        // TODO: account for the width of the item. Take some margin
+        return (data.start > range.start) && (data.start < range.end);
+    }
+    else {
+        return false;
+    }
 };
 
 /**
