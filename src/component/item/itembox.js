@@ -32,7 +32,7 @@ ItemBox.prototype = new Item (null, null);
  * Select the item
  * @override
  */
-ItemBox.prototype.select = function () {
+ItemBox.prototype.select = function select() {
     this.selected = true;
     // TODO: select and unselect
 };
@@ -41,7 +41,7 @@ ItemBox.prototype.select = function () {
  * Unselect the item
  * @override
  */
-ItemBox.prototype.unselect = function () {
+ItemBox.prototype.unselect = function unselect() {
     this.selected = false;
     // TODO: select and unselect
 };
@@ -50,7 +50,7 @@ ItemBox.prototype.unselect = function () {
  * Repaint the item
  * @return {Boolean} changed
  */
-ItemBox.prototype.repaint = function () {
+ItemBox.prototype.repaint = function repaint() {
     // TODO: make an efficient repaint
     var changed = false;
     var dom = this.dom;
@@ -130,7 +130,7 @@ ItemBox.prototype.repaint = function () {
  * be created when needed.
  * @return {Boolean} changed
  */
-ItemBox.prototype.show = function () {
+ItemBox.prototype.show = function show() {
     if (!this.dom || !this.dom.box.parentNode) {
         return this.repaint();
     }
@@ -143,7 +143,7 @@ ItemBox.prototype.show = function () {
  * Hide the item from the DOM (when visible)
  * @return {Boolean} changed
  */
-ItemBox.prototype.hide = function () {
+ItemBox.prototype.hide = function hide() {
     var changed = false,
         dom = this.dom;
     if (dom) {
@@ -162,45 +162,48 @@ ItemBox.prototype.hide = function () {
 };
 
 /**
- * Determine whether the item is visible in its parent window.
- * @return {Boolean} visible
- */
-// TODO: determine isVisible during the reflow
-ItemBox.prototype.isVisible = function () {
-    var data = this.data,
-        range = this.parent && this.parent.range;
-    if (data && range) {
-        // TODO: account for the width of the item. Take some margin
-        return (data.start > range.start) && (data.start < range.end);
-    }
-    else {
-        return false;
-    }
-};
-
-/**
  * Reflow the item: calculate its actual size and position from the DOM
  * @return {boolean} resized    returns true if the axis is resized
  * @override
  */
-ItemBox.prototype.reflow = function () {
+ItemBox.prototype.reflow = function reflow() {
+    var changed = 0,
+        update,
+        dom,
+        props,
+        options,
+        start,
+        align,
+        orientation,
+        top,
+        left,
+        data,
+        range;
+
     if (this.data.start == undefined) {
         throw new Error('Property "start" missing in item ' + this.data.id);
     }
 
-    var update = util.updateProperty,
-        dom = this.dom,
-        props = this.props,
-        options = this.options,
-        start = this.parent.toScreen(this.data.start),
-        align = options && options.align,
-        orientation = options.orientation,
-        changed = 0,
-        top,
-        left;
+    data = this.data;
+    range = this.parent && this.parent.range;
+    if (data && range) {
+        // TODO: account for the width of the item. Take some margin
+        this.visible = (data.start > range.start) && (data.start < range.end);
+    }
+    else {
+        this.visible = false;
+    }
 
-    if (this.isVisible()) {
+    if (this.visible) {
+        dom = this.dom;
         if (dom) {
+            update = util.updateProperty;
+            props = this.props;
+            options = this.options;
+            start = this.parent.toScreen(this.data.start);
+            align = options && options.align;
+            orientation = options.orientation;
+
             changed += update(props.dot, 'height', dom.dot.offsetHeight);
             changed += update(props.dot, 'width', dom.dot.offsetWidth);
             changed += update(props.line, 'width', dom.line.offsetWidth);
@@ -252,7 +255,7 @@ ItemBox.prototype.reflow = function () {
  * Create an items DOM
  * @private
  */
-ItemBox.prototype._create = function () {
+ItemBox.prototype._create = function _create() {
     var dom = this.dom;
     if (!dom) {
         this.dom = dom = {};
@@ -281,7 +284,7 @@ ItemBox.prototype._create = function () {
  * range and size of the items itemset
  * @override
  */
-ItemBox.prototype.reposition = function () {
+ItemBox.prototype.reposition = function reposition() {
     var dom = this.dom,
         props = this.props,
         orientation = this.options.orientation;

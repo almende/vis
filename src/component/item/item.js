@@ -9,10 +9,11 @@
 function Item (parent, data, options) {
     this.parent = parent;
     this.data = data;
-    this.selected = false;
     this.dom = null;
     this.options = options;
 
+    this.selected = false;
+    this.visible = false;
     this.top = 0;
     this.left = 0;
     this.width = 0;
@@ -22,14 +23,14 @@ function Item (parent, data, options) {
 /**
  * Select current item
  */
-Item.prototype.select = function () {
+Item.prototype.select = function select() {
     this.selected = true;
 };
 
 /**
  * Unselect current item
  */
-Item.prototype.unselect = function () {
+Item.prototype.unselect = function unselect() {
     this.selected = false;
 };
 
@@ -37,7 +38,7 @@ Item.prototype.unselect = function () {
  * Show the Item in the DOM (when not already visible)
  * @return {Boolean} changed
  */
-Item.prototype.show = function () {
+Item.prototype.show = function show() {
     return false;
 };
 
@@ -45,16 +46,7 @@ Item.prototype.show = function () {
  * Hide the Item from the DOM (when visible)
  * @return {Boolean} changed
  */
-Item.prototype.hide = function () {
-    return false;
-};
-
-/**
- * Determine whether the item is visible in its parent window.
- * @return {Boolean} visible
- */
-Item.prototype.isVisible = function () {
-    // should be implemented by the item
+Item.prototype.hide = function hide() {
     return false;
 };
 
@@ -62,7 +54,7 @@ Item.prototype.isVisible = function () {
  * Repaint the item
  * @return {Boolean} changed
  */
-Item.prototype.repaint = function () {
+Item.prototype.repaint = function repaint() {
     // should be implemented by the item
     return false;
 };
@@ -71,7 +63,7 @@ Item.prototype.repaint = function () {
  * Reflow the item
  * @return {Boolean} resized
  */
-Item.prototype.reflow = function () {
+Item.prototype.reflow = function reflow() {
     // should be implemented by the item
     return false;
 };

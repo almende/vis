@@ -361,15 +361,19 @@ util.removeClassName = function removeClassname(elem, className) {
  *                                  callback(value, index, object)
  */
 util.forEach = function forEach (object, callback) {
+    var i,
+        len;
     if (object instanceof Array) {
         // array
-        object.forEach(callback);
+        for (i = 0, len = object.length; i < len; i++) {
+            callback(object[i], i, object);
+        }
     }
     else {
         // object
-        for (var key in object) {
-            if (object.hasOwnProperty(key)) {
-                callback(object[key], key, object);
+        for (i in object) {
+            if (object.hasOwnProperty(i)) {
+                callback(object[i], i, object);
             }
         }
     }

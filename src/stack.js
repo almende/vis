@@ -44,7 +44,7 @@ function Stack (parent, options) {
  *                          {Number} margin
  *                          {function} order  Stacking order
  */
-Stack.prototype.setOptions = function (options) {
+Stack.prototype.setOptions = function setOptions (options) {
     util.extend(this.options, options);
 
     // TODO: register on data changes at the connected parent itemset, and update the changed part only and immediately
@@ -54,7 +54,7 @@ Stack.prototype.setOptions = function (options) {
  * Stack the items such that they don't overlap. The items will have a minimal
  * distance equal to options.margin.item.
  */
-Stack.prototype.update = function() {
+Stack.prototype.update = function update() {
     this._order();
     this._stack();
 };
@@ -66,7 +66,7 @@ Stack.prototype.update = function() {
  * be used.
  * @private
  */
-Stack.prototype._order = function() {
+Stack.prototype._order = function _order () {
     var items = this.parent.items;
     if (!items) {
         throw new Error('Cannot stack items: parent does not contain items');
@@ -75,8 +75,9 @@ Stack.prototype._order = function() {
     // TODO: store the sorted items, to have less work later on
     var ordered = [];
     var index = 0;
+    // items is a map (no array)
     util.forEach(items, function (item) {
-        if (item.isVisible()) {
+        if (item.visible) {
             ordered[index] = item;
             index++;
         }
@@ -98,7 +99,7 @@ Stack.prototype._order = function() {
  * other.
  * @private
  */
-Stack.prototype._stack = function() {
+Stack.prototype._stack = function _stack () {
     var i,
         iMax,
         ordered = this.ordered,
@@ -141,7 +142,8 @@ Stack.prototype._stack = function() {
  *                          when the margin between the two is smaller than
  *                          the requested margin.
  */
-Stack.prototype.checkOverlap = function(items, itemIndex, itemStart, itemEnd, margin) {
+Stack.prototype.checkOverlap = function checkOverlap (items, itemIndex,
+                                                      itemStart, itemEnd, margin) {
     var collision = this.collision;
 
     // we loop from end to start, as we suppose that the chance of a
@@ -171,7 +173,7 @@ Stack.prototype.checkOverlap = function(items, itemIndex, itemStart, itemEnd, ma
  *                          the requested margin.
  * @return {boolean}        true if a and b collide, else false
  */
-Stack.prototype.collision = function(a, b, margin) {
+Stack.prototype.collision = function collision (a, b, margin) {
     return ((a.left - margin) < (b.left + b.width) &&
         (a.left + a.width + margin) > b.left &&
         (a.top - margin) < (b.top + b.height) &&

@@ -392,15 +392,19 @@ util.removeClassName = function removeClassname(elem, className) {
  *                                  callback(value, index, object)
  */
 util.forEach = function forEach (object, callback) {
+    var i,
+        len;
     if (object instanceof Array) {
         // array
-        object.forEach(callback);
+        for (i = 0, len = object.length; i < len; i++) {
+            callback(object[i], i, object);
+        }
     }
     else {
         // object
-        for (var key in object) {
-            if (object.hasOwnProperty(key)) {
-                callback(object[key], key, object);
+        for (i in object) {
+            if (object.hasOwnProperty(i)) {
+                callback(object[i], i, object);
             }
         }
     }
@@ -2029,7 +2033,7 @@ function Stack (parent, options) {
  *                          {Number} margin
  *                          {function} order  Stacking order
  */
-Stack.prototype.setOptions = function (options) {
+Stack.prototype.setOptions = function setOptions (options) {
     util.extend(this.options, options);
 
     // TODO: register on data changes at the connected parent itemset, and update the changed part only and immediately
@@ -2039,7 +2043,7 @@ Stack.prototype.setOptions = function (options) {
  * Stack the items such that they don't overlap. The items will have a minimal
  * distance equal to options.margin.item.
  */
-Stack.prototype.update = function() {
+Stack.prototype.update = function update() {
     this._order();
     this._stack();
 };
@@ -2051,7 +2055,7 @@ Stack.prototype.update = function() {
  * be used.
  * @private
  */
-Stack.prototype._order = function() {
+Stack.prototype._order = function _order () {
     var items = this.parent.items;
     if (!items) {
         throw new Error('Cannot stack items: parent does not contain items');
@@ -2060,8 +2064,9 @@ Stack.prototype._order = function() {
     // TODO: store the sorted items, to have less work later on
     var ordered = [];
     var index = 0;
+    // items is a map (no array)
     util.forEach(items, function (item) {
-        if (item.isVisible()) {
+        if (item.visible) {
             ordered[index] = item;
             index++;
         }
@@ -2083,7 +2088,7 @@ Stack.prototype._order = function() {
  * other.
  * @private
  */
-Stack.prototype._stack = function() {
+Stack.prototype._stack = function _stack () {
     var i,
         iMax,
         ordered = this.ordered,
@@ -2126,7 +2131,8 @@ Stack.prototype._stack = function() {
  *                          when the margin between the two is smaller than
  *                          the requested margin.
  */
-Stack.prototype.checkOverlap = function(items, itemIndex, itemStart, itemEnd, margin) {
+Stack.prototype.checkOverlap = function checkOverlap (items, itemIndex,
+                                                      itemStart, itemEnd, margin) {
     var collision = this.collision;
 
     // we loop from end to start, as we suppose that the chance of a
@@ -2156,7 +2162,7 @@ Stack.prototype.checkOverlap = function(items, itemIndex, itemStart, itemEnd, ma
  *                          the requested margin.
  * @return {boolean}        true if a and b collide, else false
  */
-Stack.prototype.collision = function(a, b, margin) {
+Stack.prototype.collision = function collision (a, b, margin) {
     return ((a.left - margin) < (b.left + b.width) &&
         (a.left + a.width + margin) > b.left &&
         (a.top - margin) < (b.top + b.height) &&
@@ -3876,6 +3882,7 @@ TimeAxis.prototype._updateConversion = function() {
  * @constructor ItemSet
  * @extends Panel
  */
+// TODO: improve performance by replacing all Array.forEach with a for loop
 function ItemSet(parent, depends, options) {
     this.id = util.randomUUID();
     this.parent = parent;
@@ -3952,7 +3959,7 @@ ItemSet.types = {
  *                              Padding of the contents of an item in pixels.
  *                              Must correspond with the items css. Default is 5.
  */
-ItemSet.prototype.setOptions = function (options) {
+ItemSet.prototype.setOptions = function setOptions(options) {
     util.extend(this.options, options);
 
     // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
@@ -3964,7 +3971,7 @@ ItemSet.prototype.setOptions = function (options) {
  * Set range (start and end).
  * @param {Range | Object} range  A Range or an object containing start and end.
  */
-ItemSet.prototype.setRange = function (range) {
+ItemSet.prototype.setRange = function setRange(range) {
     if (!(range instanceof Range) && (!range || !range.start || !range.end)) {
         throw new TypeError('Range must be an instance of Range, ' +
             'or an object containing start and end.');
@@ -3976,7 +3983,7 @@ ItemSet.prototype.setRange = function (range) {
  * Repaint the component
  * @return {Boolean} changed
  */
-ItemSet.prototype.repaint = function () {
+ItemSet.prototype.repaint = function repaint() {
     var changed = 0,
         update = util.updateProperty,
         asSize = util.option.asSize,
@@ -4112,7 +4119,7 @@ ItemSet.prototype.repaint = function () {
 
     // reposition all items. Show items only when in the visible area
     util.forEach(this.items, function (item) {
-        if (item.isVisible()) {
+        if (item.visible) {
             changed += item.show();
             item.reposition();
         }
@@ -4128,7 +4135,7 @@ ItemSet.prototype.repaint = function () {
  * Get the foreground container element
  * @return {HTMLElement} foreground
  */
-ItemSet.prototype.getForeground = function () {
+ItemSet.prototype.getForeground = function getForeground() {
     return this.dom.foreground;
 };
 
@@ -4136,7 +4143,7 @@ ItemSet.prototype.getForeground = function () {
  * Get the background container element
  * @return {HTMLElement} background
  */
-ItemSet.prototype.getBackground = function () {
+ItemSet.prototype.getBackground = function getBackground() {
     return this.dom.background;
 };
 
@@ -4144,7 +4151,7 @@ ItemSet.prototype.getBackground = function () {
  * Get the axis container element
  * @return {HTMLElement} axis
  */
-ItemSet.prototype.getAxis = function () {
+ItemSet.prototype.getAxis = function getAxis() {
     return this.dom.axis;
 };
 
@@ -4152,7 +4159,7 @@ ItemSet.prototype.getAxis = function () {
  * Reflow the component
  * @return {Boolean} resized
  */
-ItemSet.prototype.reflow = function () {
+ItemSet.prototype.reflow = function reflow () {
     var changed = 0,
         options = this.options,
         update = util.updateProperty,
@@ -4214,7 +4221,7 @@ ItemSet.prototype.reflow = function () {
  * Set data
  * @param {DataSet | Array | DataTable} data
  */
-ItemSet.prototype.setData = function(data) {
+ItemSet.prototype.setData = function setData(data) {
     // unsubscribe from current dataset
     var current = this.data;
     if (current) {
@@ -4258,7 +4265,7 @@ ItemSet.prototype.setData = function(data) {
  *                                          When no minimum is found, min==null
  *                                          When no maximum is found, max==null
  */
-ItemSet.prototype.getDataRange = function () {
+ItemSet.prototype.getDataRange = function getDataRange() {
     // calculate min from start filed
     var data = this.data;
     var min = data.min('start');
@@ -4282,7 +4289,7 @@ ItemSet.prototype.getDataRange = function () {
  * @param {Number[]} ids
  * @private
  */
-ItemSet.prototype._onUpdate = function(ids) {
+ItemSet.prototype._onUpdate = function _onUpdate(ids) {
     this._toQueue(ids, 'update');
 };
 
@@ -4291,7 +4298,7 @@ ItemSet.prototype._onUpdate = function(ids) {
  * @param {Number[]} ids
  * @private
  */
-ItemSet.prototype._onAdd = function(ids) {
+ItemSet.prototype._onAdd = function _onAdd(ids) {
     this._toQueue(ids, 'add');
 };
 
@@ -4300,7 +4307,7 @@ ItemSet.prototype._onAdd = function(ids) {
  * @param {Number[]} ids
  * @private
  */
-ItemSet.prototype._onRemove = function(ids) {
+ItemSet.prototype._onRemove = function _onRemove(ids) {
     this._toQueue(ids, 'remove');
 };
 
@@ -4309,7 +4316,7 @@ ItemSet.prototype._onRemove = function(ids) {
  * @param {Number[]} ids
  * @param {String} action     can be 'add', 'update', 'remove'
  */
-ItemSet.prototype._toQueue = function (ids, action) {
+ItemSet.prototype._toQueue = function _toQueue(ids, action) {
     var items = this.items;
     var queue = this.queue;
     ids.forEach(function (id) {
@@ -4340,7 +4347,7 @@ ItemSet.prototype._toQueue = function (ids, action) {
  * and toScreen can be used.
  * @private
  */
-ItemSet.prototype._updateConversion = function() {
+ItemSet.prototype._updateConversion = function _updateConversion() {
     var range = this.range;
     if (!range) {
         throw new Error('No range configured');
@@ -4361,7 +4368,7 @@ ItemSet.prototype._updateConversion = function() {
  * @param {int}     x    Position on the screen in pixels
  * @return {Date}   time The datetime the corresponds with given position x
  */
-ItemSet.prototype.toTime = function(x) {
+ItemSet.prototype.toTime = function toTime(x) {
     var conversion = this.conversion;
     return new Date(x / conversion.factor + conversion.offset);
 };
@@ -4374,7 +4381,7 @@ ItemSet.prototype.toTime = function(x) {
  * @return {int}   x    The position on the screen in pixels which corresponds
  *                      with the given date.
  */
-ItemSet.prototype.toScreen = function(time) {
+ItemSet.prototype.toScreen = function toScreen(time) {
     var conversion = this.conversion;
     return (time.valueOf() - conversion.offset) * conversion.factor;
 };
@@ -4390,10 +4397,11 @@ ItemSet.prototype.toScreen = function(time) {
 function Item (parent, data, options) {
     this.parent = parent;
     this.data = data;
-    this.selected = false;
     this.dom = null;
     this.options = options;
 
+    this.selected = false;
+    this.visible = false;
     this.top = 0;
     this.left = 0;
     this.width = 0;
@@ -4403,14 +4411,14 @@ function Item (parent, data, options) {
 /**
  * Select current item
  */
-Item.prototype.select = function () {
+Item.prototype.select = function select() {
     this.selected = true;
 };
 
 /**
  * Unselect current item
  */
-Item.prototype.unselect = function () {
+Item.prototype.unselect = function unselect() {
     this.selected = false;
 };
 
@@ -4418,7 +4426,7 @@ Item.prototype.unselect = function () {
  * Show the Item in the DOM (when not already visible)
  * @return {Boolean} changed
  */
-Item.prototype.show = function () {
+Item.prototype.show = function show() {
     return false;
 };
 
@@ -4426,16 +4434,7 @@ Item.prototype.show = function () {
  * Hide the Item from the DOM (when visible)
  * @return {Boolean} changed
  */
-Item.prototype.hide = function () {
-    return false;
-};
-
-/**
- * Determine whether the item is visible in its parent window.
- * @return {Boolean} visible
- */
-Item.prototype.isVisible = function () {
-    // should be implemented by the item
+Item.prototype.hide = function hide() {
     return false;
 };
 
@@ -4443,7 +4442,7 @@ Item.prototype.isVisible = function () {
  * Repaint the item
  * @return {Boolean} changed
  */
-Item.prototype.repaint = function () {
+Item.prototype.repaint = function repaint() {
     // should be implemented by the item
     return false;
 };
@@ -4452,7 +4451,7 @@ Item.prototype.repaint = function () {
  * Reflow the item
  * @return {Boolean} resized
  */
-Item.prototype.reflow = function () {
+Item.prototype.reflow = function reflow() {
     // should be implemented by the item
     return false;
 };
@@ -4491,7 +4490,7 @@ ItemBox.prototype = new Item (null, null);
  * Select the item
  * @override
  */
-ItemBox.prototype.select = function () {
+ItemBox.prototype.select = function select() {
     this.selected = true;
     // TODO: select and unselect
 };
@@ -4500,7 +4499,7 @@ ItemBox.prototype.select = function () {
  * Unselect the item
  * @override
  */
-ItemBox.prototype.unselect = function () {
+ItemBox.prototype.unselect = function unselect() {
     this.selected = false;
     // TODO: select and unselect
 };
@@ -4509,7 +4508,7 @@ ItemBox.prototype.unselect = function () {
  * Repaint the item
  * @return {Boolean} changed
  */
-ItemBox.prototype.repaint = function () {
+ItemBox.prototype.repaint = function repaint() {
     // TODO: make an efficient repaint
     var changed = false;
     var dom = this.dom;
@@ -4589,7 +4588,7 @@ ItemBox.prototype.repaint = function () {
  * be created when needed.
  * @return {Boolean} changed
  */
-ItemBox.prototype.show = function () {
+ItemBox.prototype.show = function show() {
     if (!this.dom || !this.dom.box.parentNode) {
         return this.repaint();
     }
@@ -4602,7 +4601,7 @@ ItemBox.prototype.show = function () {
  * Hide the item from the DOM (when visible)
  * @return {Boolean} changed
  */
-ItemBox.prototype.hide = function () {
+ItemBox.prototype.hide = function hide() {
     var changed = false,
         dom = this.dom;
     if (dom) {
@@ -4621,45 +4620,48 @@ ItemBox.prototype.hide = function () {
 };
 
 /**
- * Determine whether the item is visible in its parent window.
- * @return {Boolean} visible
- */
-// TODO: determine isVisible during the reflow
-ItemBox.prototype.isVisible = function () {
-    var data = this.data,
-        range = this.parent && this.parent.range;
-    if (data && range) {
-        // TODO: account for the width of the item. Take some margin
-        return (data.start > range.start) && (data.start < range.end);
-    }
-    else {
-        return false;
-    }
-};
-
-/**
  * Reflow the item: calculate its actual size and position from the DOM
  * @return {boolean} resized    returns true if the axis is resized
  * @override
  */
-ItemBox.prototype.reflow = function () {
+ItemBox.prototype.reflow = function reflow() {
+    var changed = 0,
+        update,
+        dom,
+        props,
+        options,
+        start,
+        align,
+        orientation,
+        top,
+        left,
+        data,
+        range;
+
     if (this.data.start == undefined) {
         throw new Error('Property "start" missing in item ' + this.data.id);
     }
 
-    var update = util.updateProperty,
-        dom = this.dom,
-        props = this.props,
-        options = this.options,
-        start = this.parent.toScreen(this.data.start),
-        align = options && options.align,
-        orientation = options.orientation,
-        changed = 0,
-        top,
-        left;
+    data = this.data;
+    range = this.parent && this.parent.range;
+    if (data && range) {
+        // TODO: account for the width of the item. Take some margin
+        this.visible = (data.start > range.start) && (data.start < range.end);
+    }
+    else {
+        this.visible = false;
+    }
 
-    if (this.isVisible()) {
+    if (this.visible) {
+        dom = this.dom;
         if (dom) {
+            update = util.updateProperty;
+            props = this.props;
+            options = this.options;
+            start = this.parent.toScreen(this.data.start);
+            align = options && options.align;
+            orientation = options.orientation;
+
             changed += update(props.dot, 'height', dom.dot.offsetHeight);
             changed += update(props.dot, 'width', dom.dot.offsetWidth);
             changed += update(props.line, 'width', dom.line.offsetWidth);
@@ -4711,7 +4713,7 @@ ItemBox.prototype.reflow = function () {
  * Create an items DOM
  * @private
  */
-ItemBox.prototype._create = function () {
+ItemBox.prototype._create = function _create() {
     var dom = this.dom;
     if (!dom) {
         this.dom = dom = {};
@@ -4740,7 +4742,7 @@ ItemBox.prototype._create = function () {
  * range and size of the items itemset
  * @override
  */
-ItemBox.prototype.reposition = function () {
+ItemBox.prototype.reposition = function reposition() {
     var dom = this.dom,
         props = this.props,
         orientation = this.options.orientation;
@@ -4802,7 +4804,7 @@ ItemPoint.prototype = new Item (null, null);
  * Select the item
  * @override
  */
-ItemPoint.prototype.select = function () {
+ItemPoint.prototype.select = function select() {
     this.selected = true;
     // TODO: select and unselect
 };
@@ -4811,7 +4813,7 @@ ItemPoint.prototype.select = function () {
  * Unselect the item
  * @override
  */
-ItemPoint.prototype.unselect = function () {
+ItemPoint.prototype.unselect = function unselect() {
     this.selected = false;
     // TODO: select and unselect
 };
@@ -4820,7 +4822,7 @@ ItemPoint.prototype.unselect = function () {
  * Repaint the item
  * @return {Boolean} changed
  */
-ItemPoint.prototype.repaint = function () {
+ItemPoint.prototype.repaint = function repaint() {
     // TODO: make an efficient repaint
     var changed = false;
     var dom = this.dom;
@@ -4881,7 +4883,7 @@ ItemPoint.prototype.repaint = function () {
  * be created when needed.
  * @return {Boolean} changed
  */
-ItemPoint.prototype.show = function () {
+ItemPoint.prototype.show = function show() {
     if (!this.dom || !this.dom.point.parentNode) {
         return this.repaint();
     }
@@ -4894,7 +4896,7 @@ ItemPoint.prototype.show = function () {
  * Hide the item from the DOM (when visible)
  * @return {Boolean} changed
  */
-ItemPoint.prototype.hide = function () {
+ItemPoint.prototype.hide = function hide() {
     var changed = false,
         dom = this.dom;
     if (dom) {
@@ -4907,65 +4909,69 @@ ItemPoint.prototype.hide = function () {
 };
 
 /**
- * Determine whether the item is visible in its parent window.
- * @return {Boolean} visible
- */
-// TODO: determine isVisible during the reflow
-ItemPoint.prototype.isVisible = function () {
-    var data = this.data,
-        range = this.parent && this.parent.range;
-    if (data && range) {
-        // TODO: account for the width of the item. Take some margin
-        return (data.start > range.start) && (data.start < range.end);
-    }
-    else {
-        return false;
-    }
-};
-
-/**
  * Reflow the item: calculate its actual size from the DOM
  * @return {boolean} resized    returns true if the axis is resized
  * @override
  */
-ItemPoint.prototype.reflow = function () {
+ItemPoint.prototype.reflow = function reflow() {
+    var changed = 0,
+        update,
+        dom,
+        props,
+        options,
+        orientation,
+        start,
+        top,
+        data,
+        range;
+
     if (this.data.start == undefined) {
         throw new Error('Property "start" missing in item ' + this.data.id);
     }
 
-    var update = util.updateProperty,
-        dom = this.dom,
-        props = this.props,
-        options = this.options,
-        orientation = options.orientation,
-        start = this.parent.toScreen(this.data.start),
-        changed = 0,
-        top;
-
-    if (dom) {
-        changed += update(this, 'width', dom.point.offsetWidth);
-        changed += update(this, 'height', dom.point.offsetHeight);
-        changed += update(props.dot, 'width', dom.dot.offsetWidth);
-        changed += update(props.dot, 'height', dom.dot.offsetHeight);
-        changed += update(props.content, 'height', dom.content.offsetHeight);
-
-        if (orientation == 'top') {
-            top = options.margin.axis;
-        }
-        else {
-            // default or 'bottom'
-            var parentHeight = this.parent.height;
-            top = Math.max(parentHeight - this.height - options.margin.axis, 0);
-        }
-        changed += update(this, 'top', top);
-        changed += update(this, 'left', start - props.dot.width / 2);
-        changed += update(props.content, 'marginLeft', 1.5 * props.dot.width);
-        //changed += update(props.content, 'marginRight', 0.5 * props.dot.width); // TODO
-
-        changed += update(props.dot, 'top', (this.height - props.dot.height) / 2);
+    data = this.data;
+    range = this.parent && this.parent.range;
+    if (data && range) {
+        // TODO: account for the width of the item. Take some margin
+        this.visible = (data.start > range.start) && (data.start < range.end);
     }
     else {
-        changed += 1;
+        this.visible = false;
+    }
+
+    if (this.visible) {
+        dom = this.dom;
+        if (dom) {
+            update = util.updateProperty;
+            props = this.props;
+            options = this.options;
+            orientation = options.orientation;
+            start = this.parent.toScreen(this.data.start);
+
+            changed += update(this, 'width', dom.point.offsetWidth);
+            changed += update(this, 'height', dom.point.offsetHeight);
+            changed += update(props.dot, 'width', dom.dot.offsetWidth);
+            changed += update(props.dot, 'height', dom.dot.offsetHeight);
+            changed += update(props.content, 'height', dom.content.offsetHeight);
+
+            if (orientation == 'top') {
+                top = options.margin.axis;
+            }
+            else {
+                // default or 'bottom'
+                var parentHeight = this.parent.height;
+                top = Math.max(parentHeight - this.height - options.margin.axis, 0);
+            }
+            changed += update(this, 'top', top);
+            changed += update(this, 'left', start - props.dot.width / 2);
+            changed += update(props.content, 'marginLeft', 1.5 * props.dot.width);
+            //changed += update(props.content, 'marginRight', 0.5 * props.dot.width); // TODO
+
+            changed += update(props.dot, 'top', (this.height - props.dot.height) / 2);
+        }
+        else {
+            changed += 1;
+        }
     }
 
     return (changed > 0);
@@ -4975,7 +4981,7 @@ ItemPoint.prototype.reflow = function () {
  * Create an items DOM
  * @private
  */
-ItemPoint.prototype._create = function () {
+ItemPoint.prototype._create = function _create() {
     var dom = this.dom;
     if (!dom) {
         this.dom = dom = {};
@@ -5001,7 +5007,7 @@ ItemPoint.prototype._create = function () {
  * range and size of the items itemset
  * @override
  */
-ItemPoint.prototype.reposition = function () {
+ItemPoint.prototype.reposition = function reposition() {
     var dom = this.dom,
         props = this.props;
 
@@ -5042,7 +5048,7 @@ ItemRange.prototype = new Item (null, null);
  * Select the item
  * @override
  */
-ItemRange.prototype.select = function () {
+ItemRange.prototype.select = function select() {
     this.selected = true;
     // TODO: select and unselect
 };
@@ -5051,7 +5057,7 @@ ItemRange.prototype.select = function () {
  * Unselect the item
  * @override
  */
-ItemRange.prototype.unselect = function () {
+ItemRange.prototype.unselect = function unselect() {
     this.selected = false;
     // TODO: select and unselect
 };
@@ -5060,7 +5066,7 @@ ItemRange.prototype.unselect = function () {
  * Repaint the item
  * @return {Boolean} changed
  */
-ItemRange.prototype.repaint = function () {
+ItemRange.prototype.repaint = function repaint() {
     // TODO: make an efficient repaint
     var changed = false;
     var dom = this.dom;
@@ -5119,7 +5125,7 @@ ItemRange.prototype.repaint = function () {
  * be created when needed.
  * @return {Boolean} changed
  */
-ItemRange.prototype.show = function () {
+ItemRange.prototype.show = function show() {
     if (!this.dom || !this.dom.box.parentNode) {
         return this.repaint();
     }
@@ -5132,7 +5138,7 @@ ItemRange.prototype.show = function () {
  * Hide the item from the DOM (when visible)
  * @return {Boolean} changed
  */
-ItemRange.prototype.hide = function () {
+ItemRange.prototype.hide = function hide() {
     var changed = false,
         dom = this.dom;
     if (dom) {
@@ -5145,28 +5151,27 @@ ItemRange.prototype.hide = function () {
 };
 
 /**
- * Determine whether the item is visible in its parent window.
- * @return {Boolean} visible
- */
-// TODO: determine isVisible during the reflow
-ItemRange.prototype.isVisible = function () {
-    var data = this.data,
-        range = this.parent && this.parent.range;
-    if (data && range) {
-        // TODO: account for the width of the item. Take some margin
-        return (data.start < range.end) && (data.end > range.start);
-    }
-    else {
-        return false;
-    }
-};
-
-/**
  * Reflow the item: calculate its actual size from the DOM
  * @return {boolean} resized    returns true if the axis is resized
  * @override
  */
-ItemRange.prototype.reflow = function () {
+ItemRange.prototype.reflow = function reflow() {
+    var changed = 0,
+        dom,
+        props,
+        options,
+        parent,
+        start,
+        end,
+        data,
+        range,
+        update,
+        box,
+        parentWidth,
+        contentLeft,
+        orientation,
+        top;
+
     if (this.data.start == undefined) {
         throw new Error('Property "start" missing in item ' + this.data.id);
     }
@@ -5174,22 +5179,28 @@ ItemRange.prototype.reflow = function () {
         throw new Error('Property "end" missing in item ' + this.data.id);
     }
 
-    var dom = this.dom,
-        props = this.props,
-        options = this.options,
-        parent = this.parent,
-        start = parent.toScreen(this.data.start),
-        end = parent.toScreen(this.data.end),
-        changed = 0;
+    data = this.data;
+    range = this.parent && this.parent.range;
+    if (data && range) {
+        // TODO: account for the width of the item. Take some margin
+        this.visible = (data.start < range.end) && (data.end > range.start);
+    }
+    else {
+        this.visible = false;
+    }
 
-    if (this.isVisible()) {
+    if (this.visible) {
+        dom = this.dom;
         if (dom) {
-            var update = util.updateProperty,
-                box = dom.box,
-                parentWidth = parent.width,
-                orientation = options.orientation,
-                contentLeft,
-                top;
+            props = this.props;
+            options = this.options;
+            parent = this.parent;
+            start = parent.toScreen(this.data.start);
+            end = parent.toScreen(this.data.end);
+            update = util.updateProperty;
+            box = dom.box;
+            parentWidth = parent.width;
+            orientation = options.orientation;
 
             changed += update(props.content, 'width', dom.content.offsetWidth);
 
@@ -5239,7 +5250,7 @@ ItemRange.prototype.reflow = function () {
  * Create an items DOM
  * @private
  */
-ItemRange.prototype._create = function () {
+ItemRange.prototype._create = function _create() {
     var dom = this.dom;
     if (!dom) {
         this.dom = dom = {};
@@ -5259,7 +5270,7 @@ ItemRange.prototype._create = function () {
  * range and size of the items itemset
  * @override
  */
-ItemRange.prototype.reposition = function () {
+ItemRange.prototype.reposition = function reposition() {
     var dom = this.dom,
         props = this.props;
 

@@ -10,6 +10,7 @@
  * @constructor ItemSet
  * @extends Panel
  */
+// TODO: improve performance by replacing all Array.forEach with a for loop
 function ItemSet(parent, depends, options) {
     this.id = util.randomUUID();
     this.parent = parent;
@@ -86,7 +87,7 @@ ItemSet.types = {
  *                              Padding of the contents of an item in pixels.
  *                              Must correspond with the items css. Default is 5.
  */
-ItemSet.prototype.setOptions = function (options) {
+ItemSet.prototype.setOptions = function setOptions(options) {
     util.extend(this.options, options);
 
     // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
@@ -98,7 +99,7 @@ ItemSet.prototype.setOptions = function (options) {
  * Set range (start and end).
  * @param {Range | Object} range  A Range or an object containing start and end.
  */
-ItemSet.prototype.setRange = function (range) {
+ItemSet.prototype.setRange = function setRange(range) {
     if (!(range instanceof Range) && (!range || !range.start || !range.end)) {
         throw new TypeError('Range must be an instance of Range, ' +
             'or an object containing start and end.');
@@ -110,7 +111,7 @@ ItemSet.prototype.setRange = function (range) {
  * Repaint the component
  * @return {Boolean} changed
  */
-ItemSet.prototype.repaint = function () {
+ItemSet.prototype.repaint = function repaint() {
     var changed = 0,
         update = util.updateProperty,
         asSize = util.option.asSize,
@@ -246,7 +247,7 @@ ItemSet.prototype.repaint = function () {
 
     // reposition all items. Show items only when in the visible area
     util.forEach(this.items, function (item) {
-        if (item.isVisible()) {
+        if (item.visible) {
             changed += item.show();
             item.reposition();
         }
@@ -262,7 +263,7 @@ ItemSet.prototype.repaint = function () {
  * Get the foreground container element
  * @return {HTMLElement} foreground
  */
-ItemSet.prototype.getForeground = function () {
+ItemSet.prototype.getForeground = function getForeground() {
     return this.dom.foreground;
 };
 
@@ -270,7 +271,7 @@ ItemSet.prototype.getForeground = function () {
  * Get the background container element
  * @return {HTMLElement} background
  */
-ItemSet.prototype.getBackground = function () {
+ItemSet.prototype.getBackground = function getBackground() {
     return this.dom.background;
 };
 
@@ -278,7 +279,7 @@ ItemSet.prototype.getBackground = function () {
  * Get the axis container element
  * @return {HTMLElement} axis
  */
-ItemSet.prototype.getAxis = function () {
+ItemSet.prototype.getAxis = function getAxis() {
     return this.dom.axis;
 };
 
@@ -286,7 +287,7 @@ ItemSet.prototype.getAxis = function () {
  * Reflow the component
  * @return {Boolean} resized
  */
-ItemSet.prototype.reflow = function () {
+ItemSet.prototype.reflow = function reflow () {
     var changed = 0,
         options = this.options,
         update = util.updateProperty,
@@ -348,7 +349,7 @@ ItemSet.prototype.reflow = function () {
  * Set data
  * @param {DataSet | Array | DataTable} data
  */
-ItemSet.prototype.setData = function(data) {
+ItemSet.prototype.setData = function setData(data) {
     // unsubscribe from current dataset
     var current = this.data;
     if (current) {
@@ -392,7 +393,7 @@ ItemSet.prototype.setData = function(data) {
  *                                          When no minimum is found, min==null
  *                                          When no maximum is found, max==null
  */
-ItemSet.prototype.getDataRange = function () {
+ItemSet.prototype.getDataRange = function getDataRange() {
     // calculate min from start filed
     var data = this.data;
     var min = data.min('start');
@@ -416,7 +417,7 @@ ItemSet.prototype.getDataRange = function () {
  * @param {Number[]} ids
  * @private
  */
-ItemSet.prototype._onUpdate = function(ids) {
+ItemSet.prototype._onUpdate = function _onUpdate(ids) {
     this._toQueue(ids, 'update');
 };
 
@@ -425,7 +426,7 @@ ItemSet.prototype._onUpdate = function(ids) {
  * @param {Number[]} ids
  * @private
  */
-ItemSet.prototype._onAdd = function(ids) {
+ItemSet.prototype._onAdd = function _onAdd(ids) {
     this._toQueue(ids, 'add');
 };
 
@@ -434,7 +435,7 @@ ItemSet.prototype._onAdd = function(ids) {
  * @param {Number[]} ids
  * @private
  */
-ItemSet.prototype._onRemove = function(ids) {
+ItemSet.prototype._onRemove = function _onRemove(ids) {
     this._toQueue(ids, 'remove');
 };
 
@@ -443,7 +444,7 @@ ItemSet.prototype._onRemove = function(ids) {
  * @param {Number[]} ids
  * @param {String} action     can be 'add', 'update', 'remove'
  */
-ItemSet.prototype._toQueue = function (ids, action) {
+ItemSet.prototype._toQueue = function _toQueue(ids, action) {
     var items = this.items;
     var queue = this.queue;
     ids.forEach(function (id) {
@@ -474,7 +475,7 @@ ItemSet.prototype._toQueue = function (ids, action) {
  * and toScreen can be used.
  * @private
  */
-ItemSet.prototype._updateConversion = function() {
+ItemSet.prototype._updateConversion = function _updateConversion() {
     var range = this.range;
     if (!range) {
         throw new Error('No range configured');
@@ -495,7 +496,7 @@ ItemSet.prototype._updateConversion = function() {
  * @param {int}     x    Position on the screen in pixels
  * @return {Date}   time The datetime the corresponds with given position x
  */
-ItemSet.prototype.toTime = function(x) {
+ItemSet.prototype.toTime = function toTime(x) {
     var conversion = this.conversion;
     return new Date(x / conversion.factor + conversion.offset);
 };
@@ -508,7 +509,7 @@ ItemSet.prototype.toTime = function(x) {
  * @return {int}   x    The position on the screen in pixels which corresponds
  *                      with the given date.
  */
-ItemSet.prototype.toScreen = function(time) {
+ItemSet.prototype.toScreen = function toScreen(time) {
     var conversion = this.conversion;
     return (time.valueOf() - conversion.offset) * conversion.factor;
 };

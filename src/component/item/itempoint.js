@@ -29,7 +29,7 @@ ItemPoint.prototype = new Item (null, null);
  * Select the item
  * @override
  */
-ItemPoint.prototype.select = function () {
+ItemPoint.prototype.select = function select() {
     this.selected = true;
     // TODO: select and unselect
 };
@@ -38,7 +38,7 @@ ItemPoint.prototype.select = function () {
  * Unselect the item
  * @override
  */
-ItemPoint.prototype.unselect = function () {
+ItemPoint.prototype.unselect = function unselect() {
     this.selected = false;
     // TODO: select and unselect
 };
@@ -47,7 +47,7 @@ ItemPoint.prototype.unselect = function () {
  * Repaint the item
  * @return {Boolean} changed
  */
-ItemPoint.prototype.repaint = function () {
+ItemPoint.prototype.repaint = function repaint() {
     // TODO: make an efficient repaint
     var changed = false;
     var dom = this.dom;
@@ -108,7 +108,7 @@ ItemPoint.prototype.repaint = function () {
  * be created when needed.
  * @return {Boolean} changed
  */
-ItemPoint.prototype.show = function () {
+ItemPoint.prototype.show = function show() {
     if (!this.dom || !this.dom.point.parentNode) {
         return this.repaint();
     }
@@ -121,7 +121,7 @@ ItemPoint.prototype.show = function () {
  * Hide the item from the DOM (when visible)
  * @return {Boolean} changed
  */
-ItemPoint.prototype.hide = function () {
+ItemPoint.prototype.hide = function hide() {
     var changed = false,
         dom = this.dom;
     if (dom) {
@@ -134,65 +134,69 @@ ItemPoint.prototype.hide = function () {
 };
 
 /**
- * Determine whether the item is visible in its parent window.
- * @return {Boolean} visible
- */
-// TODO: determine isVisible during the reflow
-ItemPoint.prototype.isVisible = function () {
-    var data = this.data,
-        range = this.parent && this.parent.range;
-    if (data && range) {
-        // TODO: account for the width of the item. Take some margin
-        return (data.start > range.start) && (data.start < range.end);
-    }
-    else {
-        return false;
-    }
-};
-
-/**
  * Reflow the item: calculate its actual size from the DOM
  * @return {boolean} resized    returns true if the axis is resized
  * @override
  */
-ItemPoint.prototype.reflow = function () {
+ItemPoint.prototype.reflow = function reflow() {
+    var changed = 0,
+        update,
+        dom,
+        props,
+        options,
+        orientation,
+        start,
+        top,
+        data,
+        range;
+
     if (this.data.start == undefined) {
         throw new Error('Property "start" missing in item ' + this.data.id);
     }
 
-    var update = util.updateProperty,
-        dom = this.dom,
-        props = this.props,
-        options = this.options,
-        orientation = options.orientation,
-        start = this.parent.toScreen(this.data.start),
-        changed = 0,
-        top;
-
-    if (dom) {
-        changed += update(this, 'width', dom.point.offsetWidth);
-        changed += update(this, 'height', dom.point.offsetHeight);
-        changed += update(props.dot, 'width', dom.dot.offsetWidth);
-        changed += update(props.dot, 'height', dom.dot.offsetHeight);
-        changed += update(props.content, 'height', dom.content.offsetHeight);
-
-        if (orientation == 'top') {
-            top = options.margin.axis;
-        }
-        else {
-            // default or 'bottom'
-            var parentHeight = this.parent.height;
-            top = Math.max(parentHeight - this.height - options.margin.axis, 0);
-        }
-        changed += update(this, 'top', top);
-        changed += update(this, 'left', start - props.dot.width / 2);
-        changed += update(props.content, 'marginLeft', 1.5 * props.dot.width);
-        //changed += update(props.content, 'marginRight', 0.5 * props.dot.width); // TODO
-
-        changed += update(props.dot, 'top', (this.height - props.dot.height) / 2);
+    data = this.data;
+    range = this.parent && this.parent.range;
+    if (data && range) {
+        // TODO: account for the width of the item. Take some margin
+        this.visible = (data.start > range.start) && (data.start < range.end);
     }
     else {
-        changed += 1;
+        this.visible = false;
+    }
+
+    if (this.visible) {
+        dom = this.dom;
+        if (dom) {
+            update = util.updateProperty;
+            props = this.props;
+            options = this.options;
+            orientation = options.orientation;
+            start = this.parent.toScreen(this.data.start);
+
+            changed += update(this, 'width', dom.point.offsetWidth);
+            changed += update(this, 'height', dom.point.offsetHeight);
+            changed += update(props.dot, 'width', dom.dot.offsetWidth);
+            changed += update(props.dot, 'height', dom.dot.offsetHeight);
+            changed += update(props.content, 'height', dom.content.offsetHeight);
+
+            if (orientation == 'top') {
+                top = options.margin.axis;
+            }
+            else {
+                // default or 'bottom'
+                var parentHeight = this.parent.height;
+                top = Math.max(parentHeight - this.height - options.margin.axis, 0);
+            }
+            changed += update(this, 'top', top);
+            changed += update(this, 'left', start - props.dot.width / 2);
+            changed += update(props.content, 'marginLeft', 1.5 * props.dot.width);
+            //changed += update(props.content, 'marginRight', 0.5 * props.dot.width); // TODO
+
+            changed += update(props.dot, 'top', (this.height - props.dot.height) / 2);
+        }
+        else {
+            changed += 1;
+        }
     }
 
     return (changed > 0);
@@ -202,7 +206,7 @@ ItemPoint.prototype.reflow = function () {
  * Create an items DOM
  * @private
  */
-ItemPoint.prototype._create = function () {
+ItemPoint.prototype._create = function _create() {
     var dom = this.dom;
     if (!dom) {
         this.dom = dom = {};
@@ -228,7 +232,7 @@ ItemPoint.prototype._create = function () {
  * range and size of the items itemset
  * @override
  */
-ItemPoint.prototype.reposition = function () {
+ItemPoint.prototype.reposition = function reposition() {
     var dom = this.dom,
         props = this.props;
 

@@ -24,7 +24,7 @@ ItemRange.prototype = new Item (null, null);
  * Select the item
  * @override
  */
-ItemRange.prototype.select = function () {
+ItemRange.prototype.select = function select() {
     this.selected = true;
     // TODO: select and unselect
 };
@@ -33,7 +33,7 @@ ItemRange.prototype.select = function () {
  * Unselect the item
  * @override
  */
-ItemRange.prototype.unselect = function () {
+ItemRange.prototype.unselect = function unselect() {
     this.selected = false;
     // TODO: select and unselect
 };
@@ -42,7 +42,7 @@ ItemRange.prototype.unselect = function () {
  * Repaint the item
  * @return {Boolean} changed
  */
-ItemRange.prototype.repaint = function () {
+ItemRange.prototype.repaint = function repaint() {
     // TODO: make an efficient repaint
     var changed = false;
     var dom = this.dom;
@@ -101,7 +101,7 @@ ItemRange.prototype.repaint = function () {
  * be created when needed.
  * @return {Boolean} changed
  */
-ItemRange.prototype.show = function () {
+ItemRange.prototype.show = function show() {
     if (!this.dom || !this.dom.box.parentNode) {
         return this.repaint();
     }
@@ -114,7 +114,7 @@ ItemRange.prototype.show = function () {
  * Hide the item from the DOM (when visible)
  * @return {Boolean} changed
  */
-ItemRange.prototype.hide = function () {
+ItemRange.prototype.hide = function hide() {
     var changed = false,
         dom = this.dom;
     if (dom) {
@@ -127,28 +127,27 @@ ItemRange.prototype.hide = function () {
 };
 
 /**
- * Determine whether the item is visible in its parent window.
- * @return {Boolean} visible
- */
-// TODO: determine isVisible during the reflow
-ItemRange.prototype.isVisible = function () {
-    var data = this.data,
-        range = this.parent && this.parent.range;
-    if (data && range) {
-        // TODO: account for the width of the item. Take some margin
-        return (data.start < range.end) && (data.end > range.start);
-    }
-    else {
-        return false;
-    }
-};
-
-/**
  * Reflow the item: calculate its actual size from the DOM
  * @return {boolean} resized    returns true if the axis is resized
  * @override
  */
-ItemRange.prototype.reflow = function () {
+ItemRange.prototype.reflow = function reflow() {
+    var changed = 0,
+        dom,
+        props,
+        options,
+        parent,
+        start,
+        end,
+        data,
+        range,
+        update,
+        box,
+        parentWidth,
+        contentLeft,
+        orientation,
+        top;
+
     if (this.data.start == undefined) {
         throw new Error('Property "start" missing in item ' + this.data.id);
     }
@@ -156,22 +155,28 @@ ItemRange.prototype.reflow = function () {
         throw new Error('Property "end" missing in item ' + this.data.id);
     }
 
-    var dom = this.dom,
-        props = this.props,
-        options = this.options,
-        parent = this.parent,
-        start = parent.toScreen(this.data.start),
-        end = parent.toScreen(this.data.end),
-        changed = 0;
+    data = this.data;
+    range = this.parent && this.parent.range;
+    if (data && range) {
+        // TODO: account for the width of the item. Take some margin
+        this.visible = (data.start < range.end) && (data.end > range.start);
+    }
+    else {
+        this.visible = false;
+    }
 
-    if (this.isVisible()) {
+    if (this.visible) {
+        dom = this.dom;
         if (dom) {
-            var update = util.updateProperty,
-                box = dom.box,
-                parentWidth = parent.width,
-                orientation = options.orientation,
-                contentLeft,
-                top;
+            props = this.props;
+            options = this.options;
+            parent = this.parent;
+            start = parent.toScreen(this.data.start);
+            end = parent.toScreen(this.data.end);
+            update = util.updateProperty;
+            box = dom.box;
+            parentWidth = parent.width;
+            orientation = options.orientation;
 
             changed += update(props.content, 'width', dom.content.offsetWidth);
 
@@ -221,7 +226,7 @@ ItemRange.prototype.reflow = function () {
  * Create an items DOM
  * @private
  */
-ItemRange.prototype._create = function () {
+ItemRange.prototype._create = function _create() {
     var dom = this.dom;
     if (!dom) {
         this.dom = dom = {};
@@ -241,7 +246,7 @@ ItemRange.prototype._create = function () {
  * range and size of the items itemset
  * @override
  */
-ItemRange.prototype.reposition = function () {
+ItemRange.prototype.reposition = function reposition() {
     var dom = this.dom,
         props = this.props;
 
