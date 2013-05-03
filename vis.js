@@ -126,11 +126,9 @@ util.extend = function (a, b) {
 /**
  * Cast an object to another type
  * @param {Boolean | Number | String | Date | Moment | Null | undefined} object
- * @param {String | function | undefined} type   Name of the type or a cast
- *                                               function. Available types:
- *                                               'Boolean', 'Number', 'String',
- *                                               'Date', 'Moment', ISODate',
- *                                               'ASPDate'.
+ * @param {String | undefined} type   Name of the type. Available types:
+ *                                    'Boolean', 'Number', 'String',
+ *                                    'Date', 'Moment', ISODate', 'ASPDate'.
  * @return {*} object
  * @throws Error
  */
@@ -147,8 +145,8 @@ util.cast = function cast(object, type) {
     if (!type) {
         return object;
     }
-    if (typeof type == 'function') {
-        return type(object);
+    if (!(typeof type === 'string') && !(type instanceof String)) {
+        throw new Error('Type must be a string');
     }
 
     //noinspection FallthroughInSwitchStatementJS
