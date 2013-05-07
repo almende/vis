@@ -377,7 +377,7 @@ DataSet.prototype.clear = function (senderId) {
 /**
  * Find the item with maximum value of a specified field
  * @param {String} field
- * @return {Object} item         Item containing max value, or null if no items
+ * @return {Object | null} item  Item containing max value, or null if no items
  */
 DataSet.prototype.max = function (field) {
     var data = this.data,
@@ -400,6 +400,7 @@ DataSet.prototype.max = function (field) {
 /**
  * Find the item with minimum value of a specified field
  * @param {String} field
+ * @return {Object | null} item  Item containing max value, or null if no items
  */
 DataSet.prototype.min = function (field) {
     var data = this.data,
@@ -417,6 +418,41 @@ DataSet.prototype.min = function (field) {
     });
 
     return min;
+};
+
+/**
+ * Find all distinct values of a specified field
+ * @param {String} field
+ * @return {Array} values  Array containing all distinct values. If the data
+ *                         items do not contain the specified field, an array
+ *                         containing a single value undefined is returned.
+ *                         The returned array is unordered.
+ */
+DataSet.prototype.distinct = function (field) {
+    var data = this.data,
+        values = [],
+        fieldType = this.options.fieldTypes[field],
+        count = 0;
+
+    for (var prop in data) {
+        if (data.hasOwnProperty(prop)) {
+            var item = data[prop];
+            var value = util.cast(item[field], fieldType);
+            var exists = false;
+            for (var i = 0; i < count; i++) {
+                if (values[i] == value) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                values[count] = value;
+                count++;
+            }
+        }
+    }
+
+    return values;
 };
 
 /**
