@@ -28,7 +28,6 @@
     "devDependencies": {
         "jake": "latest",
         "jake-utils": "latest",
-        "node-watch": "latest",
         "moment": "latest"
     }
 }

@@ -571,7 +571,7 @@ util.option.asNumber = function (value, defaultValue) {
     }
 
     if (value != null) {
-        return Number(value);
+        return Number(value) || defaultValue || null;
     }
 
     return defaultValue || null;

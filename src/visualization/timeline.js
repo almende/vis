@@ -117,10 +117,13 @@ Timeline.prototype.setOptions = function (options) {
         itemsHeight = null;
     }
 
-    // TODO: maxHeight should be a string in px or %
-    if (options.maxHeight) {
+    // TODO: maxHeight should be a string in px or % (currently only accepts a number)
+    if (this.options.maxHeight) {
+        if (!util.isNumber(this.options.maxHeight)) {
+            throw new TypeError('Number expected for property maxHeight');
+        }
         maxHeight = function () {
-            return options.maxHeight - me.timeaxis.height;
+            return me.options.maxHeight - me.timeaxis.height;
         }
     }
 

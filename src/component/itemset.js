@@ -312,21 +312,19 @@ ItemSet.prototype.reflow = function reflow () {
         }
         else {
             // height is not specified, determine the height from the height and positioned items
-            height = 0;
             var visibleItems = this.stack.ordered; // TODO: not so nice way to get the filtered items
-            if (options.orientation == 'top') {
+            if (visibleItems.length) {
+                var min = visibleItems[0].top;
+                var max = visibleItems[0].top + visibleItems[0].height;
                 util.forEach(visibleItems, function (item) {
-                    height = Math.max(height, item.top + item.height);
+                    min = Math.min(min, item.top);
+                    max = Math.max(max, (item.top + item.height));
                 });
+                height = (max - min) + options.margin.axis + options.margin.item;
             }
             else {
-                // orientation == 'bottom'
-                var frameHeight = this.height;
-                util.forEach(visibleItems, function (item) {
-                    height = Math.max(height, frameHeight - item.top);
-                });
+                height = options.margin.axis + options.margin.item;
             }
-            height += options.margin.axis;
         }
         if (maxHeight != null) {
             height = Math.min(height, maxHeight);

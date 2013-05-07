@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.0.8
- * @date    2013-05-03
+ * @date    2013-05-07
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -602,7 +602,7 @@ util.option.asNumber = function (value, defaultValue) {
     }
 
     if (value != null) {
-        return Number(value);
+        return Number(value) || defaultValue || null;
     }
 
     return defaultValue || null;
@@ -1853,7 +1853,7 @@ DataSet.prototype.clear = function (senderId) {
 /**
  * Find the item with maximum value of a specified field
  * @param {String} field
- * @return {Object} item         Item containing max value, or null if no items
+ * @return {Object | null} item  Item containing max value, or null if no items
  */
 DataSet.prototype.max = function (field) {
     var data = this.data,
@@ -1876,6 +1876,7 @@ DataSet.prototype.max = function (field) {
 /**
  * Find the item with minimum value of a specified field
  * @param {String} field
+ * @return {Object | null} item  Item containing max value, or null if no items
  */
 DataSet.prototype.min = function (field) {
     var data = this.data,
@@ -1893,6 +1894,41 @@ DataSet.prototype.min = function (field) {
     });
 
     return min;
+};
+
+/**
+ * Find all distinct values of a specified field
+ * @param {String} field
+ * @return {Array} values  Array containing all distinct values. If the data
+ *                         items do not contain the specified field, an array
+ *                         containing a single value undefined is returned.
+ *                         The returned array is unordered.
+ */
+DataSet.prototype.distinct = function (field) {
+    var data = this.data,
+        values = [],
+        fieldType = this.options.fieldTypes[field],
+        count = 0;
+
+    for (var prop in data) {
+        if (data.hasOwnProperty(prop)) {
+            var item = data[prop];
+            var value = util.cast(item[field], fieldType);
+            var exists = false;
+            for (var i = 0; i < count; i++) {
+                if (values[i] == value) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                values[count] = value;
+                count++;
+            }
+        }
+    }
+
+    return values;
 };
 
 /**
@@ -4219,21 +4255,19 @@ ItemSet.prototype.reflow = function reflow () {
         }
         else {
             // height is not specified, determine the height from the height and positioned items
-            height = 0;
             var visibleItems = this.stack.ordered; // TODO: not so nice way to get the filtered items
-            if (options.orientation == 'top') {
+            if (visibleItems.length) {
+                var min = visibleItems[0].top;
+                var max = visibleItems[0].top + visibleItems[0].height;
                 util.forEach(visibleItems, function (item) {
-                    height = Math.max(height, item.top + item.height);
+                    min = Math.min(min, item.top);
+                    max = Math.max(max, (item.top + item.height));
                 });
+                height = (max - min) + options.margin.axis + options.margin.item;
             }
             else {
-                // orientation == 'bottom'
-                var frameHeight = this.height;
-                util.forEach(visibleItems, function (item) {
-                    height = Math.max(height, frameHeight - item.top);
-                });
+                height = options.margin.axis + options.margin.item;
             }
-            height += options.margin.axis;
         }
         if (maxHeight != null) {
             height = Math.min(height, maxHeight);
@@ -5437,10 +5471,13 @@ Timeline.prototype.setOptions = function (options) {
         itemsHeight = null;
     }
 
-    // TODO: maxHeight should be a string in px or %
-    if (options.maxHeight) {
+    // TODO: maxHeight should be a string in px or % (currently only accepts a number)
+    if (this.options.maxHeight) {
+        if (!util.isNumber(this.options.maxHeight)) {
+            throw new TypeError('Number expected for property maxHeight');
+        }
         maxHeight = function () {
-            return options.maxHeight - me.timeaxis.height;
+            return me.options.maxHeight - me.timeaxis.height;
         }
     }
 
