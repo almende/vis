@@ -218,7 +218,8 @@ DataSet.prototype.update = function (data, senderId) {
  *                                          {String} [type]
  *                                              'DataTable' or 'Array' (default)
  *                                          {Object.<String, String>} [fieldTypes]
- *                                          {String[]} [fields]  filter fields
+ *                                          {String[]} [fields] filter fields
+ *                                          {function} [filter] filter items
  * @param {Array | DataTable} [data]        If provided, items will be appended
  *                                          to this array or table. Required
  *                                          in case of Google DataTable
@@ -228,6 +229,8 @@ DataSet.prototype.update = function (data, senderId) {
 DataSet.prototype.get = function (ids, options, data) {
     var me = this;
 
+    // TODO: simplify handling the inputs. It's quite a mess right now...
+
     // shift arguments when first argument contains the options
     if (util.getType(ids) == 'Object') {
         data = options;
@@ -235,20 +238,9 @@ DataSet.prototype.get = function (ids, options, data) {
         ids = undefined;
     }
 
-    // merge field types
-    var fieldTypes = {};
-    if (this.options && this.options.fieldTypes) {
-        util.forEach(this.options.fieldTypes, function (value, field) {
-            fieldTypes[field] = value;
-        });
-    }
-    if (options && options.fieldTypes) {
-        util.forEach(options.fieldTypes, function (value, field) {
-            fieldTypes[field] = value;
-        });
-    }
-
-    var fields = options ? options.fields : undefined;
+    var fieldTypes = this._mergeFieldTypes(options && options.fieldTypes);
+    var fields = options && options.fields;
+    var filter = options && options.filter;
 
     // determine the return type
     var type;
@@ -277,7 +269,10 @@ DataSet.prototype.get = function (ids, options, data) {
         if (ids == undefined) {
             // return all data
             util.forEach(this.data, function (item) {
-                me._appendRow(data, columns, me._castItem(item));
+                var castedItem = me._castItem(item);
+                if (!castedItem || filter(castedItem)) {
+                    me._appendRow(data, columns, castedItem);
+                }
             });
         }
         else if (util.isNumber(ids) || util.isString(ids)) {
@@ -286,8 +281,10 @@ DataSet.prototype.get = function (ids, options, data) {
         }
         else if (ids instanceof Array) {
             ids.forEach(function (id) {
-                var item = me._castItem(me.data[id], fieldTypes, fields);
-                me._appendRow(data, columns, item);
+                var castedItem = me._castItem(me.data[id], fieldTypes, fields);
+                if (!castedItem || filter(castedItem)) {
+                    me._appendRow(data, columns, castedItem);
+                }
             });
         }
         else {
@@ -301,7 +298,10 @@ DataSet.prototype.get = function (ids, options, data) {
         if (ids == undefined) {
             // return all data
             util.forEach(this.data, function (item) {
-                data.push(me._castItem(item, fieldTypes, fields));
+                var castedItem = me._castItem(item, fieldTypes, fields);
+                if (!filter || filter(castedItem)) {
+                    data.push(castedItem);
+                }
             });
         }
         else if (util.isNumber(ids) || util.isString(ids)) {
@@ -310,7 +310,10 @@ DataSet.prototype.get = function (ids, options, data) {
         }
         else if (ids instanceof Array) {
             ids.forEach(function (id) {
-                data.push(me._castItem(me.data[id], fieldTypes, fields));
+                var castedItem = me._castItem(me.data[id], fieldTypes, fields);
+                if (!filter || filter(castedItem)) {
+                    data.push(castedItem);
+                }
             });
         }
         else {
@@ -320,6 +323,82 @@ DataSet.prototype.get = function (ids, options, data) {
     }
 
     return data;
+};
+
+/**
+ * Execute a callback function for every item in the dataset.
+ * The order of the items is not determined.
+ * @param {function} callback
+ * @param {Object} [options]            Available options:
+ *                                      {Object.<String, String>} [fieldTypes]
+ *                                      {String[]} [fields] filter fields
+ *                                      {function} [filter] filter items
+ */
+DataSet.prototype.forEach = function (callback, options) {
+    var fieldTypes = this._mergeFieldTypes(options && options.fieldTypes);
+    var fields = options && options.fields;
+    var filter = options && options.filter;
+    var me = this;
+
+    util.forEach(this.data, function (item, id) {
+        var castedItem = me._castItem(item, fieldTypes, fields);
+        if (!filter || filter(castedItem)) {
+            callback(castedItem, id);
+        }
+    });
+};
+
+/**
+ * Map every item in the dataset.
+ * @param {function} callback
+ * @param {Object} [options]            Available options:
+ *                                      {Object.<String, String>} [fieldTypes]
+ *                                      {String[]} [fields] filter fields
+ *                                      {function} [filter] filter items
+ * @return {Object[]} mappedItems
+ */
+DataSet.prototype.map = function (callback, options) {
+    var fieldTypes = this._mergeFieldTypes(options && options.fieldTypes);
+    var fields = options && options.fields;
+    var filter = options && options.filter;
+    var me = this;
+    var mappedItems = [];
+
+    util.forEach(this.data, function (item, id) {
+        var castedItem = me._castItem(item, fieldTypes, fields);
+        if (!filter || filter(castedItem)) {
+            var mappedItem = callback(castedItem, id);
+            mappedItems.push(mappedItem);
+        }
+    });
+
+    return mappedItems;
+};
+
+/**
+ * Merge the provided field types with the datasets fieldtypes
+ * @param {Object} fieldTypes
+ * @returns {Object} mergedFieldTypes
+ * @private
+ */
+DataSet.prototype._mergeFieldTypes = function (fieldTypes) {
+    var merged = {};
+
+    // extend with the datasets fieldTypes
+    if (this.options && this.options.fieldTypes) {
+        util.forEach(this.options.fieldTypes, function (value, field) {
+            merged[field] = value;
+        });
+    }
+
+    // extend with provided fieldTypes
+    if (fieldTypes) {
+        util.forEach(fieldTypes, function (value, field) {
+            merged[field] = value;
+        });
+    }
+
+    return merged;
 };
 
 /**
