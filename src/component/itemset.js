@@ -348,15 +348,27 @@ ItemSet.prototype.reflow = function reflow () {
  * @param {DataSet | Array | DataTable} data
  */
 ItemSet.prototype.setData = function setData(data) {
+    var me = this,
+        dataItems,
+        ids;
+
     // unsubscribe from current dataset
     var current = this.data;
     if (current) {
         util.forEach(this.listeners, function (callback, event) {
             current.unsubscribe(event, callback);
         });
+
+        // remove all drawn items
+        dataItems = current.get({fields: ['id']});
+        ids = [];
+        util.forEach(dataItems, function (dataItem, index) {
+            ids[index] = dataItem.id;
+        });
+        this._onRemove(ids);
     }
 
-    // TODO: first remove current data
+    // replace the dataset
     if (data instanceof DataSet) {
         this.data = data;
     }
@@ -370,14 +382,15 @@ ItemSet.prototype.setData = function setData(data) {
         this.data.add(data);
     }
 
+    // subscribe to new dataset
     var id = this.id;
-    var me = this;
     util.forEach(this.listeners, function (callback, event) {
         me.data.subscribe(event, callback, id);
     });
 
-    var dataItems = this.data.get({filter: ['id']});
-    var ids = [];
+    // draw all new items
+    dataItems = this.data.get({fields: ['id']});
+    ids = [];
     util.forEach(dataItems, function (dataItem, index) {
         ids[index] = dataItem.id;
     });
