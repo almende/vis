@@ -55,16 +55,11 @@ function Timeline (container, items, options) {
     this.timeaxis.setRange(this.range);
     this.controller.add(this.timeaxis);
 
-    // contents panel containing the items.
-    // Is an ItemSet by default, can be changed to a GroupSet
-    this.content = new ItemSet(this.main, [this.timeaxis], {
-        orientation: this.options.orientation
-    });
-    this.content.setRange(this.range);
-    this.controller.add(this.content);
+    // create itemset or groupset
+    this.setGroups(null);
 
-    this.items = null;      // data
-    this.groups = null;     // data
+    this.items = null;      // DataSet
+    this.groups = null;     // DataSet
 
     // set options (must take place before setting the data)
     if (options) {
@@ -108,9 +103,9 @@ Timeline.prototype.setOptions = function (options) {
         }
     }
 
-    if (options.height) {
+    if (this.options.height) {
         // fixed height
-        mainHeight = options.height;
+        mainHeight = this.options.height;
         itemsHeight = function () {
             return me.main.height - me.timeaxis.height;
         };
@@ -149,44 +144,58 @@ Timeline.prototype.setOptions = function (options) {
 
 /**
  * Set items
- * @param {vis.DataSet | Array | DataTable} items
+ * @param {vis.DataSet | Array | DataTable | null} items
  */
 Timeline.prototype.setItems = function(items) {
-    var current = this.content.getItems();
-    if (!current) {
-        // initial load of data
-        this.content.setItems(items);
+    var initialLoad = (this.items == null);
 
-        if (this.options.start == undefined || this.options.end == undefined) {
-            // apply the data range as range
-            var dataRange = this.content.getItemRange();
-
-            // add 5% on both sides
-            var min = dataRange.min;
-            var max = dataRange.max;
-            if (min != null && max != null) {
-                var interval = (max.valueOf() - min.valueOf());
-                min = new Date(min.valueOf() - interval * 0.05);
-                max = new Date(max.valueOf() + interval * 0.05);
-            }
-
-            // override specified start and/or end date
-            if (this.options.start != undefined) {
-                min = new Date(this.options.start.valueOf());
-            }
-            if (this.options.end != undefined) {
-                max = new Date(this.options.end.valueOf());
-            }
-
-            // apply range if there is a min or max available
-            if (min != null || max != null) {
-                this.range.setRange(min, max);
-            }
-        }
+    // convert to type DataSet when needed
+    var newItemSet;
+    if (!items) {
+        newItemSet = null;
     }
-    else {
-        // updated data
-        this.content.setItems(items);
+    else if (items instanceof DataSet) {
+        newItemSet = items;
+    }
+    if (!(items instanceof DataSet)) {
+        newItemSet = new DataSet({
+            fieldTypes: {
+                start: 'Date',
+                end: 'Date'
+            }
+        });
+        newItemSet.add(items);
+    }
+
+    // set items
+    this.items = newItemSet;
+    this.content.setItems(newItemSet);
+
+    if (initialLoad && (this.options.start == undefined || this.options.end == undefined)) {
+        // apply the data range as range
+        var dataRange = this.getItemRange();
+
+        // add 5% on both sides
+        var min = dataRange.min;
+        var max = dataRange.max;
+        if (min != null && max != null) {
+            var interval = (max.valueOf() - min.valueOf());
+            min = new Date(min.valueOf() - interval * 0.05);
+            max = new Date(max.valueOf() + interval * 0.05);
+        }
+
+        // override specified start and/or end date
+        if (this.options.start != undefined) {
+            min = new Date(this.options.start.valueOf());
+        }
+        if (this.options.end != undefined) {
+            max = new Date(this.options.end.valueOf());
+        }
+
+        // apply range if there is a min or max available
+        if (min != null || max != null) {
+            this.range.setRange(min, max);
+        }
     }
 };
 
@@ -195,7 +204,74 @@ Timeline.prototype.setItems = function(items) {
  * @param {vis.DataSet | Array | DataTable} groups
  */
 Timeline.prototype.setGroups = function(groups) {
-    // TODO: cleanup previous groups or itemset
-
     this.groups = groups;
+
+    // switch content type between ItemSet or GroupSet when needed
+    var type = this.groups ? GroupSet : ItemSet;
+    if (!(this.content instanceof type)) {
+        // remove old content set
+        if (this.content) {
+            this.content.hide();
+            if (this.content.setItems) {
+                this.content.setItems();
+            }
+            if (this.content.setGroups) {
+                this.content.setGroups();
+            }
+            this.controller.remove(this.content);
+        }
+
+        // create new content set
+        this.content = new type(this.main, [this.timeaxis]);
+        if (this.content.setRange) {
+            this.content.setRange(this.range);
+        }
+        if (this.content.setItems) {
+            this.content.setItems(this.items);
+        }
+        if (this.content.setGroups) {
+            this.content.setGroups(this.groups);
+        }
+        this.controller.add(this.content);
+        this.setOptions(this.options);
+    }
+};
+
+/**
+ * Get the data range of the item set.
+ * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
+ *                                          When no minimum is found, min==null
+ *                                          When no maximum is found, max==null
+ */
+Timeline.prototype.getItemRange = function getItemRange() {
+    // calculate min from start filed
+    var items = this.items,
+        min = null,
+        max = null;
+
+    if (items) {
+        // calculate the minimum value of the field 'start'
+        var minItem = items.min('start');
+        min = minItem ? minItem.start.valueOf() : null;
+
+        // calculate maximum value of fields 'start' and 'end'
+        var maxStartItem = items.max('start');
+        if (maxStartItem) {
+            max = maxStartItem.start.valueOf();
+        }
+        var maxEndItem = items.max('end');
+        if (maxEndItem) {
+            if (max == null) {
+                max = maxEndItem.end.valueOf();
+            }
+            else {
+                max = Math.max(max, maxEndItem.end.valueOf());
+            }
+        }
+    }
+
+    return {
+        min: (min != null) ? new Date(min) : null,
+        max: (max != null) ? new Date(max) : null
+    };
 };

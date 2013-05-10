@@ -1,0 +1,28 @@
+
+.graph .itemset {
+    position: absolute;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.graph .groupset .itemset {
+    position: relative;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.graph .background {
+}
+
+.graph .foreground {
+}
+
+.graph .itemset-axis {
+    position: absolute;
+}
+
+.graph .groupset .itemset-axis {
+    position: relative;
+}

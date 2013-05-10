@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.0.8
- * @date    2013-05-08
+ * @date    2013-05-10
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -2206,7 +2206,7 @@ Stack.prototype.update = function update() {
  * @private
  */
 Stack.prototype._order = function _order () {
-    var items = this.parent.items;
+    var items = this.parent.contents;
     if (!items) {
         throw new Error('Cannot stack items: parent does not contain items');
     }
@@ -2949,9 +2949,9 @@ function Controller () {
 
 /**
  * Add a component to the controller
- * @param {Component | Controller} component
+ * @param {Component} component
  */
-Controller.prototype.add = function (component) {
+Controller.prototype.add = function add(component) {
     // validate the component
     if (component.id == undefined) {
         throw new Error('Component has no field id');
@@ -2967,11 +2967,30 @@ Controller.prototype.add = function (component) {
 };
 
 /**
+ * Remove a component from the controller
+ * @param {Component | String} component
+ */
+Controller.prototype.remove = function remove(component) {
+    var id;
+    for (id in this.components) {
+        if (this.components.hasOwnProperty(id)) {
+            if (id == component || this.components[id] == component) {
+                break;
+            }
+        }
+    }
+
+    if (id) {
+        delete this.components[id];
+    }
+};
+
+/**
  * Request a reflow. The controller will schedule a reflow
  * @param {Boolean} [force]     If true, an immediate reflow is forced. Default
  *                              is false.
  */
-Controller.prototype.requestReflow = function (force) {
+Controller.prototype.requestReflow = function requestReflow(force) {
     if (force) {
         this.reflow();
     }
@@ -2991,7 +3010,7 @@ Controller.prototype.requestReflow = function (force) {
  * @param {Boolean} [force]    If true, an immediate repaint is forced. Default
  *                             is false.
  */
-Controller.prototype.requestRepaint = function (force) {
+Controller.prototype.requestRepaint = function requestRepaint(force) {
     if (force) {
         this.repaint();
     }
@@ -3009,7 +3028,7 @@ Controller.prototype.requestRepaint = function (force) {
 /**
  * Repaint all components
  */
-Controller.prototype.repaint = function () {
+Controller.prototype.repaint = function repaint() {
     var changed = false;
 
     // cancel any running repaint request
@@ -3050,7 +3069,7 @@ Controller.prototype.repaint = function () {
 /**
  * Reflow all components
  */
-Controller.prototype.reflow = function () {
+Controller.prototype.reflow = function reflow() {
     var resized = false;
 
     // cancel any running repaint request
@@ -3116,7 +3135,7 @@ function Component () {
  *                          {String | Number | function} [width]
  *                          {String | Number | function} [height]
  */
-Component.prototype.setOptions = function(options) {
+Component.prototype.setOptions = function setOptions(options) {
     if (!options) {
         return;
     }
@@ -3135,7 +3154,7 @@ Component.prototype.setOptions = function(options) {
  * that case null is returned.
  * @returns {HTMLElement | null} container
  */
-Component.prototype.getContainer = function () {
+Component.prototype.getContainer = function getContainer() {
     // should be implemented by the component
     return null;
 };
@@ -3144,7 +3163,7 @@ Component.prototype.getContainer = function () {
  * Get the frame element of the component, the outer HTML DOM element.
  * @returns {HTMLElement | null} frame
  */
-Component.prototype.getFrame = function () {
+Component.prototype.getFrame = function getFrame() {
     return this.frame;
 };
 
@@ -3152,7 +3171,7 @@ Component.prototype.getFrame = function () {
  * Repaint the component
  * @return {Boolean} changed
  */
-Component.prototype.repaint = function () {
+Component.prototype.repaint = function repaint() {
     // should be implemented by the component
     return false;
 };
@@ -3161,15 +3180,43 @@ Component.prototype.repaint = function () {
  * Reflow the component
  * @return {Boolean} resized
  */
-Component.prototype.reflow = function () {
+Component.prototype.reflow = function reflow() {
     // should be implemented by the component
     return false;
 };
 
 /**
+ * Hide the component from the DOM
+ * @return {Boolean} changed
+ */
+Component.prototype.hide = function hide() {
+    if (this.frame && this.frame.parentNode) {
+        this.frame.parentNode.removeChild(this.frame);
+        return true;
+    }
+    else {
+        return false;
+    }
+};
+
+/**
+ * Show the component in the DOM (when not already visible).
+ * A repaint will be executed when the component is not visible
+ * @return {Boolean} changed
+ */
+Component.prototype.show = function show() {
+    if (!this.frame || !this.frame.parentNode) {
+        return this.repaint();
+    }
+    else {
+        return false;
+    }
+};
+
+/**
  * Request a repaint. The controller will schedule a repaint
  */
-Component.prototype.requestRepaint = function () {
+Component.prototype.requestRepaint = function requestRepaint() {
     if (this.controller) {
         this.controller.requestRepaint();
     }
@@ -3182,7 +3229,7 @@ Component.prototype.requestRepaint = function () {
 /**
  * Request a reflow. The controller will schedule a reflow
  */
-Component.prototype.requestReflow = function () {
+Component.prototype.requestReflow = function requestReflow() {
     if (this.controller) {
         this.controller.requestReflow();
     }
@@ -4053,8 +4100,9 @@ function ItemSet(parent, depends, options) {
     this.dom = {};
 
     var me = this;
-    this.data = null;  // DataSet
+    this.items = null;  // DataSet
     this.range = null; // Range or Object {start: number, end: number}
+
     this.listeners = {
         'add': function (event, params) {
             me._onAdd(params.items);
@@ -4067,12 +4115,14 @@ function ItemSet(parent, depends, options) {
         }
     };
 
-    this.items = {};
-    this.queue = {};      // queue with items to be added/updated/removed
+    this.contents = {};    // object with an Item for every data item
+    this.queue = {};       // queue with id/actions: 'add', 'update', 'delete'
     this.stack = new Stack(this);
     this.conversion = null;
 
-    this.setOptions(options);
+    if (options) {
+        this.setOptions(options);
+    }
 }
 
 ItemSet.prototype = new Panel();
@@ -4199,8 +4249,8 @@ ItemSet.prototype.repaint = function repaint() {
 
     var me = this,
         queue = this.queue,
-        data = this.data,
         items = this.items,
+        contents = this.contents,
         dataOptions = {
             fields: ['id', 'start', 'end', 'content', 'type']
         };
@@ -4209,13 +4259,16 @@ ItemSet.prototype.repaint = function repaint() {
 
     // show/hide added/changed/removed items
     Object.keys(queue).forEach(function (id) {
-        var entry = queue[id];
-        var item = entry.item;
+        //var entry = queue[id];
+        var action = queue[id];
+        var item = contents[id];
+        //var item = entry.item;
         //noinspection FallthroughInSwitchStatementJS
-        switch (entry.action) {
+        switch (action) {
             case 'add':
             case 'update':
-                var itemData = data.get(id, dataOptions);
+                var itemData = items.get(id, dataOptions);
+
                 var type = itemData.type ||
                     (itemData.start && itemData.end && 'range') ||
                     'box';
@@ -4247,7 +4300,7 @@ ItemSet.prototype.repaint = function repaint() {
                 }
 
                 // update lists
-                items[id] = item;
+                contents[id] = item;
                 delete queue[id];
                 break;
 
@@ -4258,17 +4311,17 @@ ItemSet.prototype.repaint = function repaint() {
                 }
 
                 // update lists
-                delete items[id];
+                delete contents[id];
                 delete queue[id];
                 break;
 
             default:
-                console.log('Error: unknown action "' + entry.action + '"');
+                console.log('Error: unknown action "' + action + '"');
         }
     });
 
     // reposition all items. Show items only when in the visible area
-    util.forEach(this.items, function (item) {
+    util.forEach(this.contents, function (item) {
         if (item.visible) {
             changed += item.show();
             item.reposition();
@@ -4319,7 +4372,7 @@ ItemSet.prototype.reflow = function reflow () {
     if (frame) {
         this._updateConversion();
 
-        util.forEach(this.items, function (item) {
+        util.forEach(this.contents, function (item) {
             changed += item.reflow();
         });
 
@@ -4366,16 +4419,36 @@ ItemSet.prototype.reflow = function reflow () {
 };
 
 /**
- * Set data
- * @param {DataSet | Array | DataTable} data
+ * Hide this component from the DOM
+ * @return {Boolean} changed
  */
-ItemSet.prototype.setData = function setData(data) {
+ItemSet.prototype.hide = function hide() {
+    var changed = false;
+
+    // remove the DOM
+    if (this.frame && this.frame.parentNode) {
+        this.frame.parentNode.removeChild(this.frame);
+        changed = true;
+    }
+    if (this.dom.axis && this.dom.axis.parentNode) {
+        this.dom.axis.parentNode.removeChild(this.dom.axis);
+        changed = true;
+    }
+
+    return changed;
+};
+
+/**
+ * Set items
+ * @param {vis.DataSet | null} items
+ */
+ItemSet.prototype.setItems = function setItems(items) {
     var me = this,
         dataItems,
         ids;
 
     // unsubscribe from current dataset
-    var current = this.data;
+    var current = this.items;
     if (current) {
         util.forEach(this.listeners, function (callback, event) {
             current.unsubscribe(event, callback);
@@ -4391,58 +4464,39 @@ ItemSet.prototype.setData = function setData(data) {
     }
 
     // replace the dataset
-    if (data instanceof DataSet) {
-        this.data = data;
+    if (!items) {
+        this.items = null;
+    }
+    else if (items instanceof DataSet) {
+        this.items = items;
     }
     else {
-        this.data = new DataSet({
-            fieldTypes: {
-                start: 'Date',
-                end: 'Date'
-            }
-        });
-        this.data.add(data);
+        throw new TypeError('Data must be an instance of DataSet');
     }
 
-    // subscribe to new dataset
-    var id = this.id;
-    util.forEach(this.listeners, function (callback, event) {
-        me.data.subscribe(event, callback, id);
-    });
+    if (this.items) {
+        // subscribe to new dataset
+        var id = this.id;
+        util.forEach(this.listeners, function (callback, event) {
+            me.items.subscribe(event, callback, id);
+        });
 
-    // draw all new items
-    dataItems = this.data.get({fields: ['id']});
-    ids = [];
-    util.forEach(dataItems, function (dataItem, index) {
-        ids[index] = dataItem.id;
-    });
-    this._onAdd(ids);
+        // draw all new items
+        dataItems = this.items.get({fields: ['id']});
+        ids = [];
+        util.forEach(dataItems, function (dataItem, index) {
+            ids[index] = dataItem.id;
+        });
+        this._onAdd(ids);
+    }
 };
 
-
 /**
- * Get the data range of the item set.
- * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
- *                                          When no minimum is found, min==null
- *                                          When no maximum is found, max==null
+ * Get the current items items
+ * @returns {vis.DataSet | null}
  */
-ItemSet.prototype.getDataRange = function getDataRange() {
-    // calculate min from start filed
-    var data = this.data;
-    var min = data.min('start');
-    min = min ? min.start.valueOf() : null;
-
-    // calculate max of both start and end fields
-    var maxStart = data.max('start');
-    var maxEnd = data.max('end');
-    maxStart = maxStart ? maxStart.start.valueOf() : null;
-    maxEnd = maxEnd ? maxEnd.end.valueOf() : null;
-    var max = Math.max(maxStart, maxEnd);
-
-    return {
-        min: new Date(min),
-        max: new Date(max)
-    };
+ItemSet.prototype.getItems = function getItems() {
+    return this.items;
 };
 
 /**
@@ -4451,6 +4505,7 @@ ItemSet.prototype.getDataRange = function getDataRange() {
  * @private
  */
 ItemSet.prototype._onUpdate = function _onUpdate(ids) {
+    console.log('onUpdate', ids)
     this._toQueue(ids, 'update');
 };
 
@@ -4478,21 +4533,9 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
  * @param {String} action     can be 'add', 'update', 'remove'
  */
 ItemSet.prototype._toQueue = function _toQueue(ids, action) {
-    var items = this.items;
     var queue = this.queue;
     ids.forEach(function (id) {
-        var entry = queue[id];
-        if (entry) {
-            // already queued, update the action of the entry
-            entry.action = action;
-        }
-        else {
-            // not yet queued, add an entry to the queue
-            queue[id] = {
-                item: items[id] || null,
-                action: action
-            };
-        }
+        queue[id] = action;
     });
 
     if (this.controller) {
@@ -5445,13 +5488,403 @@ ItemRange.prototype.reposition = function reposition() {
 };
 
 /**
+ * An GroupSet holds a set of groups
+ * @param {Component} parent
+ * @param {Component[]} [depends]   Components on which this components depends
+ *                                  (except for the parent)
+ * @param {Object} [options]        See GroupSet.setOptions for the available
+ *                                  options.
+ * @constructor GroupSet
+ * @extends Panel
+ */
+function GroupSet(parent, depends, options) {
+    this.id = util.randomUUID();
+    this.parent = parent;
+    this.depends = depends;
+
+    this.options = {};
+
+    this.range = null;  // Range or Object {start: number, end: number}
+    this.items = null;  // dataset with items
+    this.groups = null; // dataset with groups
+
+    this.contents = {};  // object with an ItemSet for every group
+
+    // changes in groups are queued
+    this.queue = {};
+
+    var me = this;
+    this.listeners = {
+        'add': function (event, params) {
+            me._onAdd(params.items);
+        },
+        'update': function (event, params) {
+            me._onUpdate(params.items);
+        },
+        'remove': function (event, params) {
+            me._onRemove(params.items);
+        }
+    };
+
+    if (options) {
+        this.setOptions(options);
+    }
+}
+
+GroupSet.prototype = new Panel();
+
+/**
+ * Set options for the ItemSet. Existing options will be extended/overwritten.
+ * @param {Object} [options] The following options are available:
+ *                           TODO: describe options
+ */
+GroupSet.prototype.setOptions = function setOptions(options) {
+    util.extend(this.options, options);
+
+    // TODO: implement options
+};
+
+GroupSet.prototype.setRange = function (range) {
+    // TODO: implement setRange
+};
+
+/**
+ * Set items
+ * @param {vis.DataSet | null} items
+ */
+GroupSet.prototype.setItems = function setItems(items) {
+    this.items = items;
+
+    util.forEach(this.contents, function (group) {
+        group.setItems(items);
+    });
+
+};
+
+/**
+ * Get items
+ * @return {vis.DataSet | null} items
+ */
+GroupSet.prototype.getItems = function getItems() {
+    return this.items;
+};
+
+/**
+ * Set range (start and end).
+ * @param {Range | Object} range  A Range or an object containing start and end.
+ */
+GroupSet.prototype.setRange = function setRange(range) {
+    this.range = range;
+};
+
+/**
+ * Set groups
+ * @param {vis.DataSet} groups
+ */
+GroupSet.prototype.setGroups = function setGroups(groups) {
+    var me = this,
+        dataGroups,
+        ids;
+
+    // unsubscribe from current dataset
+    if (this.groups) {
+        util.forEach(this.listeners, function (callback, event) {
+            me.groups.unsubscribe(event, callback);
+        });
+
+        // remove all drawn groups
+        dataGroups = this.groups.get({fields: ['id']});
+        ids = [];
+        util.forEach(dataGroups, function (dataGroup, index) {
+            ids[index] = dataGroup.id;
+        });
+        this._onRemove(ids);
+    }
+
+    // replace the dataset
+    if (!groups) {
+        this.groups = null;
+    }
+    else if (groups instanceof DataSet) {
+        this.groups = groups;
+    }
+    else {
+        this.groups = new DataSet({
+            fieldTypes: {
+                start: 'Date',
+                end: 'Date'
+            }
+        });
+        this.groups.add(groups);
+    }
+
+    if (this.groups) {
+        // subscribe to new dataset
+        var id = this.id;
+        util.forEach(this.listeners, function (callback, event) {
+            me.groups.subscribe(event, callback, id);
+        });
+
+        // draw all new groups
+        dataGroups = this.groups.get({fields: ['id']});
+        ids = [];
+        util.forEach(dataGroups, function (dataGroup, index) {
+            ids[index] = dataGroup.id;
+        });
+        this._onAdd(ids);
+    }
+};
+
+/**
+ * Get groups
+ * @return {vis.DataSet | null} groups
+ */
+GroupSet.prototype.getGroups = function getGroups() {
+    return this.groups;
+};
+
+/**
+ * Repaint the component
+ * @return {Boolean} changed
+ */
+GroupSet.prototype.repaint = function repaint() {
+    var changed = 0,
+        update = util.updateProperty,
+        asSize = util.option.asSize,
+        options = this.options,
+        frame = this.frame;
+
+    if (!frame) {
+        frame = document.createElement('div');
+        frame.className = 'groupset';
+
+        if (options.className) {
+            util.addClassName(frame, util.option.asString(options.className));
+        }
+
+        this.frame = frame;
+        changed += 1;
+    }
+
+    if (!this.parent) {
+        throw new Error('Cannot repaint groupset: no parent attached');
+    }
+    var parentContainer = this.parent.getContainer();
+    if (!parentContainer) {
+        throw new Error('Cannot repaint groupset: parent has no container element');
+    }
+    if (!frame.parentNode) {
+        parentContainer.appendChild(frame);
+        changed += 1;
+    }
+
+    // reposition frame
+    changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
+    changed += update(frame.style, 'top',    asSize(options.top, '0px'));
+    changed += update(frame.style, 'left',   asSize(options.left, '0px'));
+    changed += update(frame.style, 'width',  asSize(options.width, '100%'));
+
+    var me = this,
+        queue = this.queue,
+        items = this.items,
+        contents = this.contents,
+        groups = this.groups,
+        dataOptions = {
+            fields: ['id', 'content']
+        };
+
+    // show/hide added/changed/removed items
+    Object.keys(queue).forEach(function (id) {
+        var entry = queue[id];
+        var group = entry.item;
+        //noinspection FallthroughInSwitchStatementJS
+        switch (entry.action) {
+            case 'add':
+                // TODO: create group
+                group = new ItemSet(me);
+                group.setRange(me.range);
+                group.setItems(me.items);
+
+                // update lists
+                contents[id] = group;
+                delete queue[id];
+                break;
+
+            case 'update':
+                // TODO: update group
+
+                // update lists
+                contents[id] = group;
+                delete queue[id];
+                break;
+
+            case 'remove':
+                if (group) {
+                    // remove DOM of the group
+                    changed += group.hide();
+                }
+
+                // update lists
+                delete contents[id];
+                delete queue[id];
+                break;
+
+            default:
+                console.log('Error: unknown action "' + entry.action + '"');
+        }
+    });
+
+    // reposition all groups
+    util.forEach(this.contents, function (group) {
+        changed += group.repaint();
+    });
+
+    return (changed > 0);
+};
+
+/**
+ * Get container element
+ * @return {HTMLElement} container
+ */
+GroupSet.prototype.getContainer = function getContainer() {
+    // TODO: replace later on with container element for holding itemsets
+    return this.frame;
+};
+
+/**
+ * Reflow the component
+ * @return {Boolean} resized
+ */
+GroupSet.prototype.reflow = function reflow() {
+    var changed = 0,
+        options = this.options,
+        update = util.updateProperty,
+        asNumber = util.option.asNumber,
+        frame = this.frame;
+
+    if (frame) {
+        // reposition all groups
+        util.forEach(this.contents, function (group) {
+            changed += group.reflow();
+        });
+
+        var maxHeight = asNumber(options.maxHeight);
+        var height;
+        if (options.height != null) {
+            height = frame.offsetHeight;
+        }
+        else {
+            // height is not specified, calculate the sum of the height of all groups
+            height = 0;
+            util.forEach(this.contents, function (group) {
+                height += group.height;
+            });
+        }
+        if (maxHeight != null) {
+            height = Math.min(height, maxHeight);
+        }
+        changed += update(this, 'height', height);
+
+        changed += update(this, 'top', frame.offsetTop);
+        changed += update(this, 'left', frame.offsetLeft);
+        changed += update(this, 'width', frame.offsetWidth);
+    }
+
+    return (changed > 0);
+};
+
+/**
+ * Hide the component from the DOM
+ * @return {Boolean} changed
+ */
+GroupSet.prototype.hide = function hide() {
+    if (this.frame && this.frame.parentNode) {
+        this.frame.parentNode.removeChild(this.frame);
+        return true;
+    }
+    else {
+        return false;
+    }
+};
+
+/**
+ * Show the component in the DOM (when not already visible).
+ * A repaint will be executed when the component is not visible
+ * @return {Boolean} changed
+ */
+GroupSet.prototype.show = function show() {
+    if (!this.frame || !this.frame.parentNode) {
+        return this.repaint();
+    }
+    else {
+        return false;
+    }
+};
+
+/**
+ * Handle updated groups
+ * @param {Number[]} ids
+ * @private
+ */
+GroupSet.prototype._onUpdate = function _onUpdate(ids) {
+    this._toQueue(ids, 'update');
+};
+
+/**
+ * Handle changed groups
+ * @param {Number[]} ids
+ * @private
+ */
+GroupSet.prototype._onAdd = function _onAdd(ids) {
+    this._toQueue(ids, 'add');
+};
+
+/**
+ * Handle removed groups
+ * @param {Number[]} ids
+ * @private
+ */
+GroupSet.prototype._onRemove = function _onRemove(ids) {
+    this._toQueue(ids, 'remove');
+};
+
+/**
+ * Put groups in the queue to be added/updated/remove
+ * @param {Number[]} ids
+ * @param {String} action     can be 'add', 'update', 'remove'
+ */
+GroupSet.prototype._toQueue = function _toQueue(ids, action) {
+    var groups = this.groups;
+    var queue = this.queue;
+    ids.forEach(function (id) {
+        var entry = queue[id];
+        if (entry) {
+            // already queued, update the action of the entry
+            entry.action = action;
+        }
+        else {
+            // not yet queued, add an entry to the queue
+            queue[id] = {
+                item: groups[id] || null,
+                action: action
+            };
+        }
+    });
+
+    if (this.controller) {
+        //this.requestReflow();
+        this.requestRepaint();
+    }
+};
+
+/**
  * Create a timeline visualization
  * @param {HTMLElement} container
- * @param {DataSet | Array | DataTable} [data]
+ * @param {vis.DataSet | Array | DataTable} [items]
  * @param {Object} [options]  See Timeline.setOptions for the available options.
  * @constructor
  */
-function Timeline (container, data, options) {
+function Timeline (container, items, options) {
     var me = this;
     this.options = {
         orientation: 'bottom',
@@ -5501,19 +5934,20 @@ function Timeline (container, data, options) {
     this.timeaxis.setRange(this.range);
     this.controller.add(this.timeaxis);
 
-    // items panel
-    this.itemset = new ItemSet(this.main, [this.timeaxis], {
-        orientation: this.options.orientation
-    });
-    this.itemset.setRange(this.range);
-    this.controller.add(this.itemset);
+    // create itemset or groupset
+    this.setGroups(null);
+
+    this.items = null;      // DataSet
+    this.groups = null;     // DataSet
 
     // set options (must take place before setting the data)
-    this.setOptions(options);
+    if (options) {
+        this.setOptions(options);
+    }
 
     // set data
-    if (data) {
-        this.setData(data);
+    if (items) {
+        this.setItems(items);
     }
 }
 
@@ -5530,7 +5964,7 @@ Timeline.prototype.setOptions = function (options) {
     // update options for the range
     this.range.setOptions(this.options);
 
-    // update options the itemset
+    // update options the content
     var itemsTop,
         itemsHeight,
         mainHeight,
@@ -5544,13 +5978,13 @@ Timeline.prototype.setOptions = function (options) {
     }
     else {
         itemsTop = function () {
-            return me.main.height - me.timeaxis.height - me.itemset.height;
+            return me.main.height - me.timeaxis.height - me.content.height;
         }
     }
 
-    if (options.height) {
+    if (this.options.height) {
         // fixed height
-        mainHeight = options.height;
+        mainHeight = this.options.height;
         itemsHeight = function () {
             return me.main.height - me.timeaxis.height;
         };
@@ -5558,7 +5992,7 @@ Timeline.prototype.setOptions = function (options) {
     else {
         // auto height
         mainHeight = function () {
-            return me.timeaxis.height + me.itemset.height;
+            return me.timeaxis.height + me.content.height;
         };
         itemsHeight = null;
     }
@@ -5577,7 +6011,7 @@ Timeline.prototype.setOptions = function (options) {
         height: mainHeight
     });
 
-    this.itemset.setOptions({
+    this.content.setOptions({
         orientation: this.options.orientation,
         top: itemsTop,
         height: itemsHeight,
@@ -5588,46 +6022,137 @@ Timeline.prototype.setOptions = function (options) {
 };
 
 /**
- * Set data
- * @param {DataSet | Array | DataTable} data
+ * Set items
+ * @param {vis.DataSet | Array | DataTable | null} items
  */
-Timeline.prototype.setData = function(data) {
-    var dataset = this.itemset.data;
-    if (!dataset) {
-        // first load of data
-        this.itemset.setData(data);
+Timeline.prototype.setItems = function(items) {
+    var initialLoad = (this.items == null);
 
-        if (this.options.start == undefined || this.options.end == undefined) {
-            // apply the data range as range
-            var dataRange = this.itemset.getDataRange();
-
-            // add 5% on both sides
-            var min = dataRange.min;
-            var max = dataRange.max;
-            if (min != null && max != null) {
-                var interval = (max.valueOf() - min.valueOf());
-                min = new Date(min.valueOf() - interval * 0.05);
-                max = new Date(max.valueOf() + interval * 0.05);
+    // convert to type DataSet when needed
+    var newItemSet;
+    if (!items) {
+        newItemSet = null;
+    }
+    else if (items instanceof DataSet) {
+        newItemSet = items;
+    }
+    if (!(items instanceof DataSet)) {
+        newItemSet = new DataSet({
+            fieldTypes: {
+                start: 'Date',
+                end: 'Date'
             }
+        });
+        newItemSet.add(items);
+    }
 
-            // override specified start and/or end date
-            if (this.options.start != undefined) {
-                min = new Date(this.options.start.valueOf());
-            }
-            if (this.options.end != undefined) {
-                max = new Date(this.options.end.valueOf());
-            }
+    // set items
+    this.items = newItemSet;
+    this.content.setItems(newItemSet);
 
-            // apply range if there is a min or max available
-            if (min != null || max != null) {
-                this.range.setRange(min, max);
+    if (initialLoad && (this.options.start == undefined || this.options.end == undefined)) {
+        // apply the data range as range
+        var dataRange = this.getItemRange();
+
+        // add 5% on both sides
+        var min = dataRange.min;
+        var max = dataRange.max;
+        if (min != null && max != null) {
+            var interval = (max.valueOf() - min.valueOf());
+            min = new Date(min.valueOf() - interval * 0.05);
+            max = new Date(max.valueOf() + interval * 0.05);
+        }
+
+        // override specified start and/or end date
+        if (this.options.start != undefined) {
+            min = new Date(this.options.start.valueOf());
+        }
+        if (this.options.end != undefined) {
+            max = new Date(this.options.end.valueOf());
+        }
+
+        // apply range if there is a min or max available
+        if (min != null || max != null) {
+            this.range.setRange(min, max);
+        }
+    }
+};
+
+/**
+ * Set groups
+ * @param {vis.DataSet | Array | DataTable} groups
+ */
+Timeline.prototype.setGroups = function(groups) {
+    this.groups = groups;
+
+    // switch content type between ItemSet or GroupSet when needed
+    var type = this.groups ? GroupSet : ItemSet;
+    if (!(this.content instanceof type)) {
+        // remove old content set
+        if (this.content) {
+            this.content.hide();
+            if (this.content.setItems) {
+                this.content.setItems();
+            }
+            if (this.content.setGroups) {
+                this.content.setGroups();
+            }
+            this.controller.remove(this.content);
+        }
+
+        // create new content set
+        this.content = new type(this.main, [this.timeaxis]);
+        if (this.content.setRange) {
+            this.content.setRange(this.range);
+        }
+        if (this.content.setItems) {
+            this.content.setItems(this.items);
+        }
+        if (this.content.setGroups) {
+            this.content.setGroups(this.groups);
+        }
+        this.controller.add(this.content);
+        this.setOptions(this.options);
+    }
+};
+
+/**
+ * Get the data range of the item set.
+ * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
+ *                                          When no minimum is found, min==null
+ *                                          When no maximum is found, max==null
+ */
+Timeline.prototype.getItemRange = function getItemRange() {
+    // calculate min from start filed
+    var items = this.items,
+        min = null,
+        max = null;
+
+    if (items) {
+        // calculate the minimum value of the field 'start'
+        var minItem = items.min('start');
+        min = minItem ? minItem.start.valueOf() : null;
+
+        // calculate maximum value of fields 'start' and 'end'
+        var maxStartItem = items.max('start');
+        if (maxStartItem) {
+            max = maxStartItem.start.valueOf();
+        }
+        var maxEndItem = items.max('end');
+        if (maxEndItem) {
+            if (max == null) {
+                max = maxEndItem.end.valueOf();
+            }
+            else {
+                max = Math.max(max, maxEndItem.end.valueOf());
             }
         }
     }
-    else {
-        // updated data
-        this.itemset.setData(data);
-    }
+
+    return {
+        min: (min != null) ? new Date(min) : null,
+        max: (max != null) ? new Date(max) : null
+    };
 };
 
 /**
@@ -5690,7 +6215,7 @@ if (typeof window !== 'undefined') {
 }
 
 // inject css
-util.loadCss("/* vis.js stylesheet */\n\n.graph {\n    position: relative;\n    border: 1px solid #bfbfbf;\n}\n\n.graph .panel {\n    position: absolute;\n}\n\n.graph .itemset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n    overflow: hidden;\n}\n\n.graph .background {\n}\n\n.graph .foreground {\n}\n\n.graph .itemset-axis {\n    position: absolute;\n}\n\n.graph .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.graph .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.graph .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.graph .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.graph .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.graph .item.point {\n    background: none;\n}\n\n.graph .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range {\n    overflow: hidden;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .content {\n    position: relative;\n    display: inline-block;\n}\n\n.graph .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n}\n\n.graph .item .content {\n    margin: 5px;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n/* TODO: better css name, 'graph' is way to generic */\n\n.graph {\n    overflow: hidden;\n}\n\n.graph .axis {\n    position: relative;\n}\n\n.graph .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.graph .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.graph .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.graph .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.graph .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.graph .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n");
+util.loadCss("/* vis.js stylesheet */\n\n.graph {\n    position: relative;\n    border: 1px solid #bfbfbf;\n}\n\n.graph .panel {\n    position: absolute;\n}\n\n.graph .groupset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n    overflow: hidden;\n}\n\n\n.graph .itemset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n    overflow: hidden;\n}\n\n.graph .groupset .itemset {\n    position: relative;\n    padding: 0;\n    margin: 0;\n    overflow: hidden;\n}\n\n.graph .background {\n}\n\n.graph .foreground {\n}\n\n.graph .itemset-axis {\n    position: absolute;\n}\n\n.graph .groupset .itemset-axis {\n    position: relative;\n}\n\n.graph .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.graph .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.graph .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.graph .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.graph .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.graph .item.point {\n    background: none;\n}\n\n.graph .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range {\n    overflow: hidden;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .content {\n    position: relative;\n    display: inline-block;\n}\n\n.graph .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n}\n\n.graph .item .content {\n    margin: 5px;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n/* TODO: better css name, 'graph' is way to generic */\n\n.graph {\n    overflow: hidden;\n}\n\n.graph .axis {\n    position: relative;\n}\n\n.graph .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.graph .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.graph .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.graph .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.graph .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.graph .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n");
 
 },{"moment":2}],2:[function(require,module,exports){
 (function(){// moment.js

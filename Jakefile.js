@@ -30,6 +30,8 @@ task('build', {async: true}, function () {
     var result = concat({
         src: [
             './src/component/css/panel.css',
+            './src/component/css/groupset.css',
+            './src/component/css/itemset.css',
             './src/component/css/item.css',
             './src/component/css/timeaxis.css'
         ],
@@ -59,6 +61,7 @@ task('build', {async: true}, function () {
             './src/component/timeaxis.js',
             './src/component/itemset.js',
             './src/component/item/*.js',
+            './src/component/groupset.js',
 
             './src/visualization/timeline.js',
 

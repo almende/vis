@@ -67,7 +67,7 @@ Stack.prototype.update = function update() {
  * @private
  */
 Stack.prototype._order = function _order () {
-    var items = this.parent.items;
+    var items = this.parent.contents;
     if (!items) {
         throw new Error('Cannot stack items: parent does not contain items');
     }

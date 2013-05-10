@@ -31,8 +31,9 @@ function ItemSet(parent, depends, options) {
     this.dom = {};
 
     var me = this;
-    this.data = null;  // DataSet
+    this.items = null;  // DataSet
     this.range = null; // Range or Object {start: number, end: number}
+
     this.listeners = {
         'add': function (event, params) {
             me._onAdd(params.items);
@@ -45,8 +46,8 @@ function ItemSet(parent, depends, options) {
         }
     };
 
-    this.items = {};
-    this.queue = {};      // queue with items to be added/updated/removed
+    this.contents = {};    // object with an Item for every data item
+    this.queue = {};       // queue with id/actions: 'add', 'update', 'delete'
     this.stack = new Stack(this);
     this.conversion = null;
 
@@ -179,8 +180,8 @@ ItemSet.prototype.repaint = function repaint() {
 
     var me = this,
         queue = this.queue,
-        data = this.data,
         items = this.items,
+        contents = this.contents,
         dataOptions = {
             fields: ['id', 'start', 'end', 'content', 'type']
         };
@@ -189,13 +190,16 @@ ItemSet.prototype.repaint = function repaint() {
 
     // show/hide added/changed/removed items
     Object.keys(queue).forEach(function (id) {
-        var entry = queue[id];
-        var item = entry.item;
+        //var entry = queue[id];
+        var action = queue[id];
+        var item = contents[id];
+        //var item = entry.item;
         //noinspection FallthroughInSwitchStatementJS
-        switch (entry.action) {
+        switch (action) {
             case 'add':
             case 'update':
-                var itemData = data.get(id, dataOptions);
+                var itemData = items.get(id, dataOptions);
+
                 var type = itemData.type ||
                     (itemData.start && itemData.end && 'range') ||
                     'box';
@@ -227,7 +231,7 @@ ItemSet.prototype.repaint = function repaint() {
                 }
 
                 // update lists
-                items[id] = item;
+                contents[id] = item;
                 delete queue[id];
                 break;
 
@@ -238,17 +242,17 @@ ItemSet.prototype.repaint = function repaint() {
                 }
 
                 // update lists
-                delete items[id];
+                delete contents[id];
                 delete queue[id];
                 break;
 
             default:
-                console.log('Error: unknown action "' + entry.action + '"');
+                console.log('Error: unknown action "' + action + '"');
         }
     });
 
     // reposition all items. Show items only when in the visible area
-    util.forEach(this.items, function (item) {
+    util.forEach(this.contents, function (item) {
         if (item.visible) {
             changed += item.show();
             item.reposition();
@@ -299,7 +303,7 @@ ItemSet.prototype.reflow = function reflow () {
     if (frame) {
         this._updateConversion();
 
-        util.forEach(this.items, function (item) {
+        util.forEach(this.contents, function (item) {
             changed += item.reflow();
         });
 
@@ -367,15 +371,15 @@ ItemSet.prototype.hide = function hide() {
 
 /**
  * Set items
- * @param {vis.DataSet | Array | DataTable | null} data
+ * @param {vis.DataSet | null} items
  */
-ItemSet.prototype.setItems = function setItems(data) {
+ItemSet.prototype.setItems = function setItems(items) {
     var me = this,
         dataItems,
         ids;
 
     // unsubscribe from current dataset
-    var current = this.data;
+    var current = this.items;
     if (current) {
         util.forEach(this.listeners, function (callback, event) {
             current.unsubscribe(event, callback);
@@ -391,31 +395,25 @@ ItemSet.prototype.setItems = function setItems(data) {
     }
 
     // replace the dataset
-    if (!data) {
-        this.data = null;
+    if (!items) {
+        this.items = null;
     }
-    else if (data instanceof DataSet) {
-        this.data = data;
+    else if (items instanceof DataSet) {
+        this.items = items;
     }
     else {
-        this.data = new DataSet({
-            fieldTypes: {
-                start: 'Date',
-                end: 'Date'
-            }
-        });
-        this.data.add(data);
+        throw new TypeError('Data must be an instance of DataSet');
     }
 
-    if (this.data) {
+    if (this.items) {
         // subscribe to new dataset
         var id = this.id;
         util.forEach(this.listeners, function (callback, event) {
-            me.data.subscribe(event, callback, id);
+            me.items.subscribe(event, callback, id);
         });
 
         // draw all new items
-        dataItems = this.data.get({fields: ['id']});
+        dataItems = this.items.get({fields: ['id']});
         ids = [];
         util.forEach(dataItems, function (dataItem, index) {
             ids[index] = dataItem.id;
@@ -425,45 +423,11 @@ ItemSet.prototype.setItems = function setItems(data) {
 };
 
 /**
- * Get the current items data
- * @returns {vis.DataSet}
+ * Get the current items items
+ * @returns {vis.DataSet | null}
  */
 ItemSet.prototype.getItems = function getItems() {
-    return this.data;
-};
-
-/**
- * Get the data range of the item set.
- * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
- *                                          When no minimum is found, min==null
- *                                          When no maximum is found, max==null
- */
-ItemSet.prototype.getItemRange = function getItemRange() {
-    // calculate min from start filed
-    var data = this.data;
-    var minItem = data.min('start');
-    var min = minItem ? minItem.start.valueOf() : null;
-
-    // calculate max of both start and end fields
-    var max = null;
-    var maxStartItem = data.max('start');
-    if (maxStartItem) {
-        max = maxStartItem.start.valueOf();
-    }
-    var maxEndItem = data.max('end');
-    if (maxEndItem) {
-        if (max == null) {
-            max = maxEndItem.end.valueOf();
-        }
-        else {
-            max = Math.max(max, maxEndItem.end.valueOf());
-        }
-    }
-
-    return {
-        min: (min != null) ? new Date(min) : null,
-        max: (max != null) ? new Date(max) : null
-    };
+    return this.items;
 };
 
 /**
@@ -472,6 +436,7 @@ ItemSet.prototype.getItemRange = function getItemRange() {
  * @private
  */
 ItemSet.prototype._onUpdate = function _onUpdate(ids) {
+    console.log('onUpdate', ids)
     this._toQueue(ids, 'update');
 };
 
@@ -499,21 +464,9 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
  * @param {String} action     can be 'add', 'update', 'remove'
  */
 ItemSet.prototype._toQueue = function _toQueue(ids, action) {
-    var items = this.items;
     var queue = this.queue;
     ids.forEach(function (id) {
-        var entry = queue[id];
-        if (entry) {
-            // already queued, update the action of the entry
-            entry.action = action;
-        }
-        else {
-            // not yet queued, add an entry to the queue
-            queue[id] = {
-                item: items[id] || null,
-                action: action
-            };
-        }
+        queue[id] = action;
     });
 
     if (this.controller) {
