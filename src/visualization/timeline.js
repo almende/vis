@@ -1,11 +1,11 @@
 /**
  * Create a timeline visualization
  * @param {HTMLElement} container
- * @param {DataSet | Array | DataTable} [data]
+ * @param {vis.DataSet | Array | DataTable} [items]
  * @param {Object} [options]  See Timeline.setOptions for the available options.
  * @constructor
  */
-function Timeline (container, data, options) {
+function Timeline (container, items, options) {
     var me = this;
     this.options = {
         orientation: 'bottom',
@@ -55,19 +55,25 @@ function Timeline (container, data, options) {
     this.timeaxis.setRange(this.range);
     this.controller.add(this.timeaxis);
 
-    // items panel
-    this.itemset = new ItemSet(this.main, [this.timeaxis], {
+    // contents panel containing the items.
+    // Is an ItemSet by default, can be changed to a GroupSet
+    this.content = new ItemSet(this.main, [this.timeaxis], {
         orientation: this.options.orientation
     });
-    this.itemset.setRange(this.range);
-    this.controller.add(this.itemset);
+    this.content.setRange(this.range);
+    this.controller.add(this.content);
+
+    this.items = null;      // data
+    this.groups = null;     // data
 
     // set options (must take place before setting the data)
-    this.setOptions(options);
+    if (options) {
+        this.setOptions(options);
+    }
 
     // set data
-    if (data) {
-        this.setData(data);
+    if (items) {
+        this.setItems(items);
     }
 }
 
@@ -84,7 +90,7 @@ Timeline.prototype.setOptions = function (options) {
     // update options for the range
     this.range.setOptions(this.options);
 
-    // update options the itemset
+    // update options the content
     var itemsTop,
         itemsHeight,
         mainHeight,
@@ -98,7 +104,7 @@ Timeline.prototype.setOptions = function (options) {
     }
     else {
         itemsTop = function () {
-            return me.main.height - me.timeaxis.height - me.itemset.height;
+            return me.main.height - me.timeaxis.height - me.content.height;
         }
     }
 
@@ -112,7 +118,7 @@ Timeline.prototype.setOptions = function (options) {
     else {
         // auto height
         mainHeight = function () {
-            return me.timeaxis.height + me.itemset.height;
+            return me.timeaxis.height + me.content.height;
         };
         itemsHeight = null;
     }
@@ -131,7 +137,7 @@ Timeline.prototype.setOptions = function (options) {
         height: mainHeight
     });
 
-    this.itemset.setOptions({
+    this.content.setOptions({
         orientation: this.options.orientation,
         top: itemsTop,
         height: itemsHeight,
@@ -142,18 +148,18 @@ Timeline.prototype.setOptions = function (options) {
 };
 
 /**
- * Set data
- * @param {DataSet | Array | DataTable} data
+ * Set items
+ * @param {vis.DataSet | Array | DataTable} items
  */
-Timeline.prototype.setData = function(data) {
-    var dataset = this.itemset.data;
-    if (!dataset) {
-        // first load of data
-        this.itemset.setData(data);
+Timeline.prototype.setItems = function(items) {
+    var current = this.content.getItems();
+    if (!current) {
+        // initial load of data
+        this.content.setItems(items);
 
         if (this.options.start == undefined || this.options.end == undefined) {
             // apply the data range as range
-            var dataRange = this.itemset.getDataRange();
+            var dataRange = this.content.getItemRange();
 
             // add 5% on both sides
             var min = dataRange.min;
@@ -180,6 +186,16 @@ Timeline.prototype.setData = function(data) {
     }
     else {
         // updated data
-        this.itemset.setData(data);
+        this.content.setItems(items);
     }
+};
+
+/**
+ * Set groups
+ * @param {vis.DataSet | Array | DataTable} groups
+ */
+Timeline.prototype.setGroups = function(groups) {
+    // TODO: cleanup previous groups or itemset
+
+    this.groups = groups;
 };

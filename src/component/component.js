@@ -26,7 +26,7 @@ function Component () {
  *                          {String | Number | function} [width]
  *                          {String | Number | function} [height]
  */
-Component.prototype.setOptions = function(options) {
+Component.prototype.setOptions = function setOptions(options) {
     if (!options) {
         return;
     }
@@ -45,7 +45,7 @@ Component.prototype.setOptions = function(options) {
  * that case null is returned.
  * @returns {HTMLElement | null} container
  */
-Component.prototype.getContainer = function () {
+Component.prototype.getContainer = function getContainer() {
     // should be implemented by the component
     return null;
 };
@@ -54,7 +54,7 @@ Component.prototype.getContainer = function () {
  * Get the frame element of the component, the outer HTML DOM element.
  * @returns {HTMLElement | null} frame
  */
-Component.prototype.getFrame = function () {
+Component.prototype.getFrame = function getFrame() {
     return this.frame;
 };
 
@@ -62,7 +62,7 @@ Component.prototype.getFrame = function () {
  * Repaint the component
  * @return {Boolean} changed
  */
-Component.prototype.repaint = function () {
+Component.prototype.repaint = function repaint() {
     // should be implemented by the component
     return false;
 };
@@ -71,15 +71,43 @@ Component.prototype.repaint = function () {
  * Reflow the component
  * @return {Boolean} resized
  */
-Component.prototype.reflow = function () {
+Component.prototype.reflow = function reflow() {
     // should be implemented by the component
     return false;
 };
 
 /**
+ * Hide the component from the DOM
+ * @return {Boolean} changed
+ */
+Component.prototype.hide = function hide() {
+    if (this.frame && this.frame.parentNode) {
+        this.frame.parentNode.removeChild(this.frame);
+        return true;
+    }
+    else {
+        return false;
+    }
+};
+
+/**
+ * Show the component in the DOM (when not already visible).
+ * A repaint will be executed when the component is not visible
+ * @return {Boolean} changed
+ */
+Component.prototype.show = function show() {
+    if (!this.frame || !this.frame.parentNode) {
+        return this.repaint();
+    }
+    else {
+        return false;
+    }
+};
+
+/**
  * Request a repaint. The controller will schedule a repaint
  */
-Component.prototype.requestRepaint = function () {
+Component.prototype.requestRepaint = function requestRepaint() {
     if (this.controller) {
         this.controller.requestRepaint();
     }
@@ -92,7 +120,7 @@ Component.prototype.requestRepaint = function () {
 /**
  * Request a reflow. The controller will schedule a reflow
  */
-Component.prototype.requestReflow = function () {
+Component.prototype.requestReflow = function requestReflow() {
     if (this.controller) {
         this.controller.requestReflow();
     }

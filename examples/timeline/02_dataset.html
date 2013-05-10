@@ -25,13 +25,13 @@
     var now = moment().minutes(0).seconds(0).milliseconds(0);
 
     // create a dataset with items
-    var data = new vis.DataSet({
+    var items = new vis.DataSet({
         fieldTypes: {
             start: 'Date',
             end: 'Date'
         }
     });
-    data.add([
+    items.add([
         {id: 1, content: 'item 1<br>start', start: now.clone().add('days', 4)},
         {id: 2, content: 'item 2', start: now.clone().add('days', -2)},
         {id: 3, content: 'item 3', start: now.clone().add('days', 2)},
@@ -47,7 +47,7 @@
         height: '100%'
     };
 
-    var timeline = new vis.Timeline(container, data, options);
+    var timeline = new vis.Timeline(container, items, options);
 
 </script>
 </body>

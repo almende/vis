@@ -50,7 +50,9 @@ function ItemSet(parent, depends, options) {
     this.stack = new Stack(this);
     this.conversion = null;
 
-    this.setOptions(options);
+    if (options) {
+        this.setOptions(options);
+    }
 }
 
 ItemSet.prototype = new Panel();
@@ -344,10 +346,30 @@ ItemSet.prototype.reflow = function reflow () {
 };
 
 /**
- * Set data
- * @param {DataSet | Array | DataTable} data
+ * Hide this component from the DOM
+ * @return {Boolean} changed
  */
-ItemSet.prototype.setData = function setData(data) {
+ItemSet.prototype.hide = function hide() {
+    var changed = false;
+
+    // remove the DOM
+    if (this.frame && this.frame.parentNode) {
+        this.frame.parentNode.removeChild(this.frame);
+        changed = true;
+    }
+    if (this.dom.axis && this.dom.axis.parentNode) {
+        this.dom.axis.parentNode.removeChild(this.dom.axis);
+        changed = true;
+    }
+
+    return changed;
+};
+
+/**
+ * Set items
+ * @param {vis.DataSet | Array | DataTable | null} data
+ */
+ItemSet.prototype.setItems = function setItems(data) {
     var me = this,
         dataItems,
         ids;
@@ -369,7 +391,10 @@ ItemSet.prototype.setData = function setData(data) {
     }
 
     // replace the dataset
-    if (data instanceof DataSet) {
+    if (!data) {
+        this.data = null;
+    }
+    else if (data instanceof DataSet) {
         this.data = data;
     }
     else {
@@ -382,21 +407,30 @@ ItemSet.prototype.setData = function setData(data) {
         this.data.add(data);
     }
 
-    // subscribe to new dataset
-    var id = this.id;
-    util.forEach(this.listeners, function (callback, event) {
-        me.data.subscribe(event, callback, id);
-    });
+    if (this.data) {
+        // subscribe to new dataset
+        var id = this.id;
+        util.forEach(this.listeners, function (callback, event) {
+            me.data.subscribe(event, callback, id);
+        });
 
-    // draw all new items
-    dataItems = this.data.get({fields: ['id']});
-    ids = [];
-    util.forEach(dataItems, function (dataItem, index) {
-        ids[index] = dataItem.id;
-    });
-    this._onAdd(ids);
+        // draw all new items
+        dataItems = this.data.get({fields: ['id']});
+        ids = [];
+        util.forEach(dataItems, function (dataItem, index) {
+            ids[index] = dataItem.id;
+        });
+        this._onAdd(ids);
+    }
 };
 
+/**
+ * Get the current items data
+ * @returns {vis.DataSet}
+ */
+ItemSet.prototype.getItems = function getItems() {
+    return this.data;
+};
 
 /**
  * Get the data range of the item set.
@@ -404,22 +438,31 @@ ItemSet.prototype.setData = function setData(data) {
  *                                          When no minimum is found, min==null
  *                                          When no maximum is found, max==null
  */
-ItemSet.prototype.getDataRange = function getDataRange() {
+ItemSet.prototype.getItemRange = function getItemRange() {
     // calculate min from start filed
     var data = this.data;
-    var min = data.min('start');
-    min = min ? min.start.valueOf() : null;
+    var minItem = data.min('start');
+    var min = minItem ? minItem.start.valueOf() : null;
 
     // calculate max of both start and end fields
-    var maxStart = data.max('start');
-    var maxEnd = data.max('end');
-    maxStart = maxStart ? maxStart.start.valueOf() : null;
-    maxEnd = maxEnd ? maxEnd.end.valueOf() : null;
-    var max = Math.max(maxStart, maxEnd);
+    var max = null;
+    var maxStartItem = data.max('start');
+    if (maxStartItem) {
+        max = maxStartItem.start.valueOf();
+    }
+    var maxEndItem = data.max('end');
+    if (maxEndItem) {
+        if (max == null) {
+            max = maxEndItem.end.valueOf();
+        }
+        else {
+            max = Math.max(max, maxEndItem.end.valueOf());
+        }
+    }
 
     return {
-        min: new Date(min),
-        max: new Date(max)
+        min: (min != null) ? new Date(min) : null,
+        max: (max != null) ? new Date(max) : null
     };
 };
 

@@ -54,7 +54,7 @@
 
     // create data and a Timeline
     var container = document.getElementById('visualization');
-    var data = [
+    var items = [
         {id: 1, content: item1, start: '2013-04-20'},
         {id: 2, content: item2, start: '2013-04-14'},
         {id: 3, content: item3, start: '2013-04-18'},
@@ -63,7 +63,7 @@
         {id: 6, content: item6, start: '2013-04-27'}
     ];
     var options = {};
-    var timeline = new vis.Timeline(container, data, options);
+    var timeline = new vis.Timeline(container, items, options);
 </script>
 </body>
 </html>
