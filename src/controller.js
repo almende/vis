@@ -13,9 +13,9 @@ function Controller () {
 
 /**
  * Add a component to the controller
- * @param {Component | Controller} component
+ * @param {Component} component
  */
-Controller.prototype.add = function (component) {
+Controller.prototype.add = function add(component) {
     // validate the component
     if (component.id == undefined) {
         throw new Error('Component has no field id');
@@ -31,11 +31,30 @@ Controller.prototype.add = function (component) {
 };
 
 /**
+ * Remove a component from the controller
+ * @param {Component | String} component
+ */
+Controller.prototype.remove = function remove(component) {
+    var id;
+    for (id in this.components) {
+        if (this.components.hasOwnProperty(id)) {
+            if (id == component || this.components[id] == component) {
+                break;
+            }
+        }
+    }
+
+    if (id) {
+        delete this.components[id];
+    }
+};
+
+/**
  * Request a reflow. The controller will schedule a reflow
  * @param {Boolean} [force]     If true, an immediate reflow is forced. Default
  *                              is false.
  */
-Controller.prototype.requestReflow = function (force) {
+Controller.prototype.requestReflow = function requestReflow(force) {
     if (force) {
         this.reflow();
     }
@@ -55,7 +74,7 @@ Controller.prototype.requestReflow = function (force) {
  * @param {Boolean} [force]    If true, an immediate repaint is forced. Default
  *                             is false.
  */
-Controller.prototype.requestRepaint = function (force) {
+Controller.prototype.requestRepaint = function requestRepaint(force) {
     if (force) {
         this.repaint();
     }
@@ -73,7 +92,7 @@ Controller.prototype.requestRepaint = function (force) {
 /**
  * Repaint all components
  */
-Controller.prototype.repaint = function () {
+Controller.prototype.repaint = function repaint() {
     var changed = false;
 
     // cancel any running repaint request
@@ -114,7 +133,7 @@ Controller.prototype.repaint = function () {
 /**
  * Reflow all components
  */
-Controller.prototype.reflow = function () {
+Controller.prototype.reflow = function reflow() {
     var resized = false;
 
     // cancel any running repaint request
