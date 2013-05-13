@@ -381,7 +381,7 @@ TimeAxis.prototype._repaintMeasureChars = function () {
     var dom = this.dom,
         text;
 
-    if (!dom.characterMinor) {
+    if (!dom.measureCharMinor) {
         text = document.createTextNode('0');
         var measureCharMinor = document.createElement('DIV');
         measureCharMinor.className = 'text minor measure';
@@ -391,7 +391,7 @@ TimeAxis.prototype._repaintMeasureChars = function () {
         dom.measureCharMinor = measureCharMinor;
     }
 
-    if (!dom.characterMajor) {
+    if (!dom.measureCharMajor) {
         text = document.createTextNode('0');
         var measureCharMajor = document.createElement('DIV');
         measureCharMajor.className = 'text major measure';
