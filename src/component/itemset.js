@@ -168,13 +168,15 @@ ItemSet.prototype.repaint = function repaint() {
     }
 
     // reposition frame
-    changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
-    changed += update(frame.style, 'top',    asSize(options.top, '0px'));
     changed += update(frame.style, 'left',   asSize(options.left, '0px'));
+    changed += update(frame.style, 'top',    asSize(options.top, '0px'));
     changed += update(frame.style, 'width',  asSize(options.width, '100%'));
+    changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
 
     // reposition axis
-    changed += update(this.dom.axis.style, 'top', asSize(options.top, '0px'));
+    changed += update(this.dom.axis.style, 'left', asSize(options.left, '0px'));
+    changed += update(this.dom.axis.style, 'top',  (this.height + this.top) + 'px');
+    changed += update(this.dom.axis.style, 'width',  asSize(options.width, '100%'));
 
     this._updateConversion();
 
@@ -436,7 +438,6 @@ ItemSet.prototype.getItems = function getItems() {
  * @private
  */
 ItemSet.prototype._onUpdate = function _onUpdate(ids) {
-    console.log('onUpdate', ids)
     this._toQueue(ids, 'update');
 };
 

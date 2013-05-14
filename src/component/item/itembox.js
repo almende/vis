@@ -207,7 +207,8 @@ ItemBox.prototype.reflow = function reflow() {
             changed += update(props.dot, 'height', dom.dot.offsetHeight);
             changed += update(props.dot, 'width', dom.dot.offsetWidth);
             changed += update(props.line, 'width', dom.line.offsetWidth);
-            changed += update(props.line, 'width', dom.line.offsetWidth);
+            changed += update(props.line, 'height', dom.line.offsetHeight);
+            changed += update(props.line, 'top', dom.line.offsetTop);
             changed += update(this, 'width', dom.box.offsetWidth);
             changed += update(this, 'height', dom.box.offsetHeight);
             if (align == 'right') {
@@ -224,13 +225,11 @@ ItemBox.prototype.reflow = function reflow() {
 
             update(props.line, 'left', start - props.line.width / 2);
             update(props.dot, 'left', start - props.dot.width / 2);
+            update(props.dot, 'top', -props.dot.height / 2);
             if (orientation == 'top') {
                 top = options.margin.axis;
 
                 update(this, 'top', top);
-                update(props.line, 'top', 0);
-                update(props.line, 'height', top);
-                update(props.dot, 'top', -props.dot.height / 2);
             }
             else {
                 // default or 'bottom'
@@ -238,9 +237,6 @@ ItemBox.prototype.reflow = function reflow() {
                 top = parentHeight - this.height - options.margin.axis;
 
                 update(this, 'top', top);
-                update(props.line, 'top', top + this.height);
-                update(props.line, 'height', Math.max(options.margin.axis, 0));
-                update(props.dot, 'top', parentHeight - props.dot.height / 2);
             }
         }
         else {
@@ -304,10 +300,9 @@ ItemBox.prototype.reposition = function reposition() {
         }
         else {
             // orientation 'bottom'
-            line.style.top = props.line.top + 'px';
             line.style.top = (this.top + this.height) + 'px';
-            line.style.height = Math.max(props.dot.top - this.top - this.height, 0) + 'px';
-
+            line.style.height = Math.max(this.parent.height - this.top - this.height +
+                this.props.dot.height / 2, 0) + 'px';
         }
 
         dot.style.left = props.dot.left + 'px';

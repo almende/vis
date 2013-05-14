@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.0.8
- * @date    2013-05-10
+ * @date    2013-05-14
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -109,14 +109,15 @@ util.randomUUID = function randomUUID () {
 };
 
 /**
- * Extend object a with the properties of object b
+ * Extend object a with the properties of object b.
+ * Only properties with defined values are copied
  * @param {Object} a
  * @param {Object} b
  * @return {Object} a
  */
 util.extend = function (a, b) {
     for (var prop in b) {
-        if (b.hasOwnProperty(prop)) {
+        if (b.hasOwnProperty(prop) && b[prop] !== undefined) {
             a[prop] = b[prop];
         }
     }
@@ -3925,7 +3926,7 @@ TimeAxis.prototype._repaintMeasureChars = function () {
     var dom = this.dom,
         text;
 
-    if (!dom.characterMinor) {
+    if (!dom.measureCharMinor) {
         text = document.createTextNode('0');
         var measureCharMinor = document.createElement('DIV');
         measureCharMinor.className = 'text minor measure';
@@ -3935,7 +3936,7 @@ TimeAxis.prototype._repaintMeasureChars = function () {
         dom.measureCharMinor = measureCharMinor;
     }
 
-    if (!dom.characterMajor) {
+    if (!dom.measureCharMajor) {
         text = document.createTextNode('0');
         var measureCharMajor = document.createElement('DIV');
         measureCharMajor.className = 'text major measure';
@@ -4237,13 +4238,15 @@ ItemSet.prototype.repaint = function repaint() {
     }
 
     // reposition frame
-    changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
-    changed += update(frame.style, 'top',    asSize(options.top, '0px'));
     changed += update(frame.style, 'left',   asSize(options.left, '0px'));
+    changed += update(frame.style, 'top',    asSize(options.top, '0px'));
     changed += update(frame.style, 'width',  asSize(options.width, '100%'));
+    changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
 
     // reposition axis
-    changed += update(this.dom.axis.style, 'top', asSize(options.top, '0px'));
+    changed += update(this.dom.axis.style, 'left', asSize(options.left, '0px'));
+    changed += update(this.dom.axis.style, 'top',  (this.height + this.top) + 'px');
+    changed += update(this.dom.axis.style, 'width',  asSize(options.width, '100%'));
 
     this._updateConversion();
 
@@ -4505,7 +4508,6 @@ ItemSet.prototype.getItems = function getItems() {
  * @private
  */
 ItemSet.prototype._onUpdate = function _onUpdate(ids) {
-    console.log('onUpdate', ids)
     this._toQueue(ids, 'update');
 };
 
@@ -4869,7 +4871,8 @@ ItemBox.prototype.reflow = function reflow() {
             changed += update(props.dot, 'height', dom.dot.offsetHeight);
             changed += update(props.dot, 'width', dom.dot.offsetWidth);
             changed += update(props.line, 'width', dom.line.offsetWidth);
-            changed += update(props.line, 'width', dom.line.offsetWidth);
+            changed += update(props.line, 'height', dom.line.offsetHeight);
+            changed += update(props.line, 'top', dom.line.offsetTop);
             changed += update(this, 'width', dom.box.offsetWidth);
             changed += update(this, 'height', dom.box.offsetHeight);
             if (align == 'right') {
@@ -4886,13 +4889,11 @@ ItemBox.prototype.reflow = function reflow() {
 
             update(props.line, 'left', start - props.line.width / 2);
             update(props.dot, 'left', start - props.dot.width / 2);
+            update(props.dot, 'top', -props.dot.height / 2);
             if (orientation == 'top') {
                 top = options.margin.axis;
 
                 update(this, 'top', top);
-                update(props.line, 'top', 0);
-                update(props.line, 'height', top);
-                update(props.dot, 'top', -props.dot.height / 2);
             }
             else {
                 // default or 'bottom'
@@ -4900,9 +4901,6 @@ ItemBox.prototype.reflow = function reflow() {
                 top = parentHeight - this.height - options.margin.axis;
 
                 update(this, 'top', top);
-                update(props.line, 'top', top + this.height);
-                update(props.line, 'height', Math.max(options.margin.axis, 0));
-                update(props.dot, 'top', parentHeight - props.dot.height / 2);
             }
         }
         else {
@@ -4966,10 +4964,9 @@ ItemBox.prototype.reposition = function reposition() {
         }
         else {
             // orientation 'bottom'
-            line.style.top = props.line.top + 'px';
             line.style.top = (this.top + this.height) + 'px';
-            line.style.height = Math.max(props.dot.top - this.top - this.height, 0) + 'px';
-
+            line.style.height = Math.max(this.parent.height - this.top - this.height +
+                this.props.dot.height / 2, 0) + 'px';
         }
 
         dot.style.left = props.dot.left + 'px';
@@ -5508,9 +5505,9 @@ function GroupSet(parent, depends, options) {
     this.items = null;  // dataset with items
     this.groups = null; // dataset with groups
 
-    this.contents = {};  // object with an ItemSet for every group
+    this.contents = [];  // array with groups
 
-    // changes in groups are queued
+    // changes in groups are queued  key/value map containing id/action
     this.queue = {};
 
     var me = this;
@@ -5542,6 +5539,11 @@ GroupSet.prototype.setOptions = function setOptions(options) {
     util.extend(this.options, options);
 
     // TODO: implement options
+
+    var me = this;
+    util.forEach(this.contents, function (group) {
+        group.itemset.setOptions(me.options);
+    });
 };
 
 GroupSet.prototype.setRange = function (range) {
@@ -5556,9 +5558,8 @@ GroupSet.prototype.setItems = function setItems(items) {
     this.items = items;
 
     util.forEach(this.contents, function (group) {
-        group.setItems(items);
+        group.itemset.setItems(items);
     });
-
 };
 
 /**
@@ -5694,49 +5695,88 @@ GroupSet.prototype.repaint = function repaint() {
         };
 
     // show/hide added/changed/removed items
-    Object.keys(queue).forEach(function (id) {
-        var entry = queue[id];
-        var group = entry.item;
-        //noinspection FallthroughInSwitchStatementJS
-        switch (entry.action) {
-            case 'add':
-                // TODO: create group
-                group = new ItemSet(me);
-                group.setRange(me.range);
-                group.setItems(me.items);
+    var ids = Object.keys(queue);
+    if (ids.length) {
+        ids.forEach(function (id) {
+            var action = queue[id];
 
-                // update lists
-                contents[id] = group;
-                delete queue[id];
-                break;
-
-            case 'update':
-                // TODO: update group
-
-                // update lists
-                contents[id] = group;
-                delete queue[id];
-                break;
-
-            case 'remove':
-                if (group) {
-                    // remove DOM of the group
-                    changed += group.hide();
+            // find group
+            var group = null;
+            var groupIndex = -1;
+            for (var i = 0; i < contents.length; i++) {
+                if (contents[i].id == id) {
+                    group = contents[i];
+                    groupIndex = i;
+                    break;
                 }
+            }
 
-                // update lists
-                delete contents[id];
-                delete queue[id];
-                break;
+            //noinspection FallthroughInSwitchStatementJS
+            switch (action) {
+                case 'add':
+                case 'update':
+                    // group does not yet exist
+                    if (!group) {
+                        var itemset = new ItemSet(me);
+                        itemset.setOptions(util.extend({
+                            top: function () {
+                                return 0; // TODO
+                            }
+                        }, me.options));
+                        itemset.setRange(me.range);
+                        itemset.setItems(me.items);
+                        me.controller.add(itemset);
 
-            default:
-                console.log('Error: unknown action "' + entry.action + '"');
-        }
-    });
+                        group = {
+                            id: id,
+                            data: groups.get(id),
+                            itemset: itemset
+                        };
+                        contents.push(group);
+                    }
+
+                    delete queue[id];
+                    break;
+
+                case 'remove':
+                    if (group) {
+                        // remove DOM of the group
+                        changed += group.itemset.hide();
+                        group.itemset.setItems();
+                        me.controller.remove(group.itemset);
+
+                        // remove group itself
+                        contents.splice(groupIndex, 1);
+                    }
+
+                    // update lists
+                    delete queue[id];
+                    break;
+
+                default:
+                    console.log('Error: unknown action "' + action + '"');
+            }
+        });
+
+        // update the top position (TODO: optimize, needed only when groups are added/removed/reordered
+        var prevGroup = null;
+        util.forEach(this.contents, function (group) {
+            var prevItemset = prevGroup && prevGroup.itemset;
+            if (prevItemset) {
+                group.itemset.options.top = function () {
+                    return prevItemset.top + prevItemset.height;
+                }
+            }
+            else {
+                group.itemset.options.top = 0;
+            }
+            prevGroup = group;
+        });
+    }
 
     // reposition all groups
     util.forEach(this.contents, function (group) {
-        changed += group.repaint();
+        changed += group.itemset.repaint();
     });
 
     return (changed > 0);
@@ -5765,7 +5805,7 @@ GroupSet.prototype.reflow = function reflow() {
     if (frame) {
         // reposition all groups
         util.forEach(this.contents, function (group) {
-            changed += group.reflow();
+            changed += group.itemset.reflow();
         });
 
         var maxHeight = asNumber(options.maxHeight);
@@ -5777,7 +5817,7 @@ GroupSet.prototype.reflow = function reflow() {
             // height is not specified, calculate the sum of the height of all groups
             height = 0;
             util.forEach(this.contents, function (group) {
-                height += group.height;
+                height += group.itemset.height;
             });
         }
         if (maxHeight != null) {
@@ -5854,21 +5894,9 @@ GroupSet.prototype._onRemove = function _onRemove(ids) {
  * @param {String} action     can be 'add', 'update', 'remove'
  */
 GroupSet.prototype._toQueue = function _toQueue(ids, action) {
-    var groups = this.groups;
     var queue = this.queue;
     ids.forEach(function (id) {
-        var entry = queue[id];
-        if (entry) {
-            // already queued, update the action of the entry
-            entry.action = action;
-        }
-        else {
-            // not yet queued, add an entry to the queue
-            queue[id] = {
-                item: groups[id] || null,
-                action: action
-            };
-        }
+        queue[id] = action;
     });
 
     if (this.controller) {
@@ -5959,10 +5987,19 @@ Timeline.prototype.setOptions = function (options) {
     util.extend(this.options, options);
 
     // update options the timeaxis
-    this.timeaxis.setOptions(this.options);
+    this.timeaxis.setOptions({
+        orientation: this.options.orientation,
+        showMinorLabels: this.options.showMinorLabels,
+        showMajorLabels: this.options.showMajorLabels
+    });
 
     // update options for the range
-    this.range.setOptions(this.options);
+    this.range.setOptions({
+        min: this.options.min,
+        max: this.options.max,
+        zoomMin: this.options.zoomMin,
+        zoomMax: this.options.zoomMax
+    });
 
     // update options the content
     var itemsTop,
@@ -6092,10 +6129,10 @@ Timeline.prototype.setGroups = function(groups) {
         if (this.content) {
             this.content.hide();
             if (this.content.setItems) {
-                this.content.setItems();
+                this.content.setItems(); // disconnect from items
             }
             if (this.content.setGroups) {
-                this.content.setGroups();
+                this.content.setGroups(); // disconnect from groups
             }
             this.controller.remove(this.content);
         }
@@ -6215,7 +6252,7 @@ if (typeof window !== 'undefined') {
 }
 
 // inject css
-util.loadCss("/* vis.js stylesheet */\n\n.graph {\n    position: relative;\n    border: 1px solid #bfbfbf;\n}\n\n.graph .panel {\n    position: absolute;\n}\n\n.graph .groupset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n    overflow: hidden;\n}\n\n\n.graph .itemset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n    overflow: hidden;\n}\n\n.graph .groupset .itemset {\n    position: relative;\n    padding: 0;\n    margin: 0;\n    overflow: hidden;\n}\n\n.graph .background {\n}\n\n.graph .foreground {\n}\n\n.graph .itemset-axis {\n    position: absolute;\n}\n\n.graph .groupset .itemset-axis {\n    position: relative;\n}\n\n.graph .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.graph .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.graph .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.graph .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.graph .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.graph .item.point {\n    background: none;\n}\n\n.graph .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range {\n    overflow: hidden;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .content {\n    position: relative;\n    display: inline-block;\n}\n\n.graph .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n}\n\n.graph .item .content {\n    margin: 5px;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n/* TODO: better css name, 'graph' is way to generic */\n\n.graph {\n    overflow: hidden;\n}\n\n.graph .axis {\n    position: relative;\n}\n\n.graph .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.graph .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.graph .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.graph .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.graph .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.graph .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n");
+util.loadCss("/* vis.js stylesheet */\n\n.graph {\n    position: relative;\n    border: 1px solid #bfbfbf;\n}\n\n.graph .panel {\n    position: absolute;\n}\n\n.graph .groupset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n}\n\n\n.graph .itemset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n    overflow: hidden;\n}\n\n.graph .background {\n}\n\n.graph .foreground {\n}\n\n.graph .itemset-axis {\n    position: absolute;\n}\n\n.graph .groupset .itemset-axis {\n    border-top: 1px solid #bfbfbf;\n}\n\n.graph .groupset .itemset-axis:last-child {\n    border-top: none;\n}\n\n\n.graph .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.graph .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.graph .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.graph .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.graph .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.graph .item.point {\n    background: none;\n}\n\n.graph .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range {\n    overflow: hidden;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .content {\n    position: relative;\n    display: inline-block;\n}\n\n.graph .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n}\n\n.graph .item .content {\n    margin: 5px;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n/* TODO: better css name, 'graph' is way to generic */\n\n.graph {\n    overflow: hidden;\n}\n\n.graph .axis {\n    position: relative;\n}\n\n.graph .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.graph .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.graph .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.graph .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.graph .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.graph .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n");
 
 },{"moment":2}],2:[function(require,module,exports){
 (function(){// moment.js

@@ -19,9 +19,9 @@ function GroupSet(parent, depends, options) {
     this.items = null;  // dataset with items
     this.groups = null; // dataset with groups
 
-    this.contents = {};  // object with an ItemSet for every group
+    this.contents = [];  // array with groups
 
-    // changes in groups are queued
+    // changes in groups are queued  key/value map containing id/action
     this.queue = {};
 
     var me = this;
@@ -53,6 +53,11 @@ GroupSet.prototype.setOptions = function setOptions(options) {
     util.extend(this.options, options);
 
     // TODO: implement options
+
+    var me = this;
+    util.forEach(this.contents, function (group) {
+        group.itemset.setOptions(me.options);
+    });
 };
 
 GroupSet.prototype.setRange = function (range) {
@@ -67,9 +72,8 @@ GroupSet.prototype.setItems = function setItems(items) {
     this.items = items;
 
     util.forEach(this.contents, function (group) {
-        group.setItems(items);
+        group.itemset.setItems(items);
     });
-
 };
 
 /**
@@ -205,49 +209,88 @@ GroupSet.prototype.repaint = function repaint() {
         };
 
     // show/hide added/changed/removed items
-    Object.keys(queue).forEach(function (id) {
-        var entry = queue[id];
-        var group = entry.item;
-        //noinspection FallthroughInSwitchStatementJS
-        switch (entry.action) {
-            case 'add':
-                // TODO: create group
-                group = new ItemSet(me);
-                group.setRange(me.range);
-                group.setItems(me.items);
+    var ids = Object.keys(queue);
+    if (ids.length) {
+        ids.forEach(function (id) {
+            var action = queue[id];
 
-                // update lists
-                contents[id] = group;
-                delete queue[id];
-                break;
-
-            case 'update':
-                // TODO: update group
-
-                // update lists
-                contents[id] = group;
-                delete queue[id];
-                break;
-
-            case 'remove':
-                if (group) {
-                    // remove DOM of the group
-                    changed += group.hide();
+            // find group
+            var group = null;
+            var groupIndex = -1;
+            for (var i = 0; i < contents.length; i++) {
+                if (contents[i].id == id) {
+                    group = contents[i];
+                    groupIndex = i;
+                    break;
                 }
+            }
 
-                // update lists
-                delete contents[id];
-                delete queue[id];
-                break;
+            //noinspection FallthroughInSwitchStatementJS
+            switch (action) {
+                case 'add':
+                case 'update':
+                    // group does not yet exist
+                    if (!group) {
+                        var itemset = new ItemSet(me);
+                        itemset.setOptions(util.extend({
+                            top: function () {
+                                return 0; // TODO
+                            }
+                        }, me.options));
+                        itemset.setRange(me.range);
+                        itemset.setItems(me.items);
+                        me.controller.add(itemset);
 
-            default:
-                console.log('Error: unknown action "' + entry.action + '"');
-        }
-    });
+                        group = {
+                            id: id,
+                            data: groups.get(id),
+                            itemset: itemset
+                        };
+                        contents.push(group);
+                    }
+
+                    delete queue[id];
+                    break;
+
+                case 'remove':
+                    if (group) {
+                        // remove DOM of the group
+                        changed += group.itemset.hide();
+                        group.itemset.setItems();
+                        me.controller.remove(group.itemset);
+
+                        // remove group itself
+                        contents.splice(groupIndex, 1);
+                    }
+
+                    // update lists
+                    delete queue[id];
+                    break;
+
+                default:
+                    console.log('Error: unknown action "' + action + '"');
+            }
+        });
+
+        // update the top position (TODO: optimize, needed only when groups are added/removed/reordered
+        var prevGroup = null;
+        util.forEach(this.contents, function (group) {
+            var prevItemset = prevGroup && prevGroup.itemset;
+            if (prevItemset) {
+                group.itemset.options.top = function () {
+                    return prevItemset.top + prevItemset.height;
+                }
+            }
+            else {
+                group.itemset.options.top = 0;
+            }
+            prevGroup = group;
+        });
+    }
 
     // reposition all groups
     util.forEach(this.contents, function (group) {
-        changed += group.repaint();
+        changed += group.itemset.repaint();
     });
 
     return (changed > 0);
@@ -276,7 +319,7 @@ GroupSet.prototype.reflow = function reflow() {
     if (frame) {
         // reposition all groups
         util.forEach(this.contents, function (group) {
-            changed += group.reflow();
+            changed += group.itemset.reflow();
         });
 
         var maxHeight = asNumber(options.maxHeight);
@@ -288,7 +331,7 @@ GroupSet.prototype.reflow = function reflow() {
             // height is not specified, calculate the sum of the height of all groups
             height = 0;
             util.forEach(this.contents, function (group) {
-                height += group.height;
+                height += group.itemset.height;
             });
         }
         if (maxHeight != null) {
@@ -365,21 +408,9 @@ GroupSet.prototype._onRemove = function _onRemove(ids) {
  * @param {String} action     can be 'add', 'update', 'remove'
  */
 GroupSet.prototype._toQueue = function _toQueue(ids, action) {
-    var groups = this.groups;
     var queue = this.queue;
     ids.forEach(function (id) {
-        var entry = queue[id];
-        if (entry) {
-            // already queued, update the action of the entry
-            entry.action = action;
-        }
-        else {
-            // not yet queued, add an entry to the queue
-            queue[id] = {
-                item: groups[id] || null,
-                action: action
-            };
-        }
+        queue[id] = action;
     });
 
     if (this.controller) {

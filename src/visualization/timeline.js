@@ -80,10 +80,19 @@ Timeline.prototype.setOptions = function (options) {
     util.extend(this.options, options);
 
     // update options the timeaxis
-    this.timeaxis.setOptions(this.options);
+    this.timeaxis.setOptions({
+        orientation: this.options.orientation,
+        showMinorLabels: this.options.showMinorLabels,
+        showMajorLabels: this.options.showMajorLabels
+    });
 
     // update options for the range
-    this.range.setOptions(this.options);
+    this.range.setOptions({
+        min: this.options.min,
+        max: this.options.max,
+        zoomMin: this.options.zoomMin,
+        zoomMax: this.options.zoomMax
+    });
 
     // update options the content
     var itemsTop,
@@ -213,10 +222,10 @@ Timeline.prototype.setGroups = function(groups) {
         if (this.content) {
             this.content.hide();
             if (this.content.setItems) {
-                this.content.setItems();
+                this.content.setItems(); // disconnect from items
             }
             if (this.content.setGroups) {
-                this.content.setGroups();
+                this.content.setGroups(); // disconnect from groups
             }
             this.controller.remove(this.content);
         }
