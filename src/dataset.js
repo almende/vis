@@ -25,12 +25,15 @@
  * - add/remove/update data
  * - gives triggers upon changes in the data
  * - can  import/export data in various data formats
+ *
  * @param {Object} [options]   Available options:
  *                             {String} fieldId Field name of the id in the
  *                                              items, 'id' by default.
  *                             {Object.<String, String} fieldTypes
  *                                              A map with field names as key,
  *                                              and the field type as value.
+ *                             TODO: implement an option for a  default order
+ * @constructor DataSet
  */
 function DataSet (options) {
     var me = this;
@@ -209,38 +212,62 @@ DataSet.prototype.update = function (data, senderId) {
 };
 
 /**
- * Get a data item or multiple items
- * @param {String | Number | Array | Object} [ids]   Id of a single item, or an
- *                                          array with multiple id's, or
- *                                          undefined or an Object with options
- *                                          to retrieve all data.
- * @param {Object} [options]                Available options:
- *                                          {String} [type]
- *                                              'DataTable' or 'Array' (default)
- *                                          {Object.<String, String>} [fieldTypes]
- *                                          {String[]} [fields] filter fields
- *                                          {function} [filter] filter items
- * @param {Array | DataTable} [data]        If provided, items will be appended
- *                                          to this array or table. Required
- *                                          in case of Google DataTable
- * @return {Array | Object | DataTable | null} data
+ * Get a data item or multiple items.
+ *
+ * Usage:
+ *
+ *     get()
+ *     get(options: Object)
+ *     get(options: Object, data: Array | DataTable)
+ *
+ *     get(id: Number | String)
+ *     get(id: Number | String, options: Object)
+ *     get(id: Number | String, options: Object, data: Array | DataTable)
+ *
+ *     get(ids: Number[] | String[])
+ *     get(ids: Number[] | String[], options: Object)
+ *     get(ids: Number[] | String[], options: Object, data: Array | DataTable)
+ *
+ * Where:
+ *
+ * {Number | String} id         The id of an item
+ * {Number[] | String{}} ids    An array with ids of items
+ * {Object} options             An Object with options. Available options:
+ *                              {String} [type] Type of data to be returned. Can
+ *                                              be 'DataTable' or 'Array' (default)
+ *                              {Object.<String, String>} [fieldTypes]
+ *                              {String[]} [fields] field names to be returned
+ *                              {function} [filter] filter items
+ *                              TODO: implement an option order
+ * {Array | DataTable} [data]   If provided, items will be appended to this
+ *                              array or table. Required in case of Google
+ *                              DataTable.
+ *
  * @throws Error
  */
-DataSet.prototype.get = function (ids, options, data) {
+DataSet.prototype.get = function (args) {
     var me = this;
 
-    // TODO: simplify handling the inputs. It's quite a mess right now...
-
-    // shift arguments when first argument contains the options
-    if (util.getType(ids) == 'Object') {
-        data = options;
-        options = ids;
-        ids = undefined;
+    // parse the arguments
+    var id, ids, options, data;
+    var firstType = util.getType(arguments[0]);
+    if (firstType == 'String' || firstType == 'Number') {
+        // get(id [, options] [, data])
+        id = arguments[0];
+        options = arguments[1];
+        data = arguments[2];
     }
-
-    var fieldTypes = this._mergeFieldTypes(options && options.fieldTypes);
-    var fields = options && options.fields;
-    var filter = options && options.filter;
+    else if (firstType == 'Array') {
+        // get(ids [, options] [, data])
+        ids = arguments[0];
+        options = arguments[1];
+        data = arguments[2];
+    }
+    else {
+        // get([, options] [, data])
+        options = arguments[0];
+        data = arguments[1];
+    }
 
     // determine the return type
     var type;
@@ -263,11 +290,30 @@ DataSet.prototype.get = function (ids, options, data) {
         type = 'Array';
     }
 
+    // get options
+    var fieldTypes = this._mergeFieldTypes(options && options.fieldTypes);
+    var fields = options && options.fields;
+    var filter = options && options.filter;
+
     if (type == 'DataTable') {
         // return a Google DataTable
         var columns = this._getColumnNames(data);
-        if (ids == undefined) {
-            // return all data
+        if (id != undefined) {
+            // return a single item
+            var item = me._castItem(me.data[id], fieldTypes, fields);
+            this._appendRow(data, columns, item);
+        }
+        else if (ids != undefined) {
+            // return a subset of items
+            ids.forEach(function (id) {
+                var castedItem = me._castItem(me.data[id], fieldTypes, fields);
+                if (!castedItem || filter(castedItem)) {
+                    me._appendRow(data, columns, castedItem);
+                }
+            });
+        }
+        else {
+            // return all items
             util.forEach(this.data, function (item) {
                 var castedItem = me._castItem(item);
                 if (!castedItem || filter(castedItem)) {
@@ -275,50 +321,34 @@ DataSet.prototype.get = function (ids, options, data) {
                 }
             });
         }
-        else if (util.isNumber(ids) || util.isString(ids)) {
-            var item = me._castItem(me.data[ids], fieldTypes, fields);
-            this._appendRow(data, columns, item);
+    }
+    else {
+        // return an array
+        if (!data) {
+            data = [];
         }
-        else if (ids instanceof Array) {
+
+        if (id != undefined) {
+            // return a single item
+            return this._castItem(me.data[id], fieldTypes, fields);
+        }
+        else if (ids != undefined) {
+            // return a subset of items
             ids.forEach(function (id) {
                 var castedItem = me._castItem(me.data[id], fieldTypes, fields);
-                if (!castedItem || filter(castedItem)) {
-                    me._appendRow(data, columns, castedItem);
+                if (!filter || filter(castedItem)) {
+                    data.push(castedItem);
                 }
             });
         }
         else {
-            throw new TypeError('Parameter "ids" must be ' +
-                'undefined, a String, Number, or Array');
-        }
-    }
-    else {
-        // return an array
-        data = data || [];
-        if (ids == undefined) {
-            // return all data
+            // return all items
             util.forEach(this.data, function (item) {
                 var castedItem = me._castItem(item, fieldTypes, fields);
                 if (!filter || filter(castedItem)) {
                     data.push(castedItem);
                 }
             });
-        }
-        else if (util.isNumber(ids) || util.isString(ids)) {
-            // return a single item
-            return this._castItem(me.data[ids], fieldTypes, fields);
-        }
-        else if (ids instanceof Array) {
-            ids.forEach(function (id) {
-                var castedItem = me._castItem(me.data[id], fieldTypes, fields);
-                if (!filter || filter(castedItem)) {
-                    data.push(castedItem);
-                }
-            });
-        }
-        else {
-            throw new TypeError('Parameter "ids" must be ' +
-                'undefined, a String, Number, or Array');
         }
     }
 
@@ -355,6 +385,7 @@ DataSet.prototype.forEach = function (callback, options) {
  *                                      {Object.<String, String>} [fieldTypes]
  *                                      {String[]} [fields] filter fields
  *                                      {function} [filter] filter items
+ *                                      TODO: implement an option order
  * @return {Object[]} mappedItems
  */
 DataSet.prototype.map = function (callback, options) {
