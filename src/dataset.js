@@ -128,13 +128,14 @@ DataSet.prototype._trigger = function (event, params, senderId) {
 };
 
 /**
- * Add data. Existing items with the same id will be overwritten.
+ * Add data.
+ * Adding an item will fail when there already is an item with the same id.
  * @param {Object | Array | DataTable} data
  * @param {String} [senderId] Optional sender id, used to trigger events for
  *                            all but this sender's event subscribers.
  */
 DataSet.prototype.add = function (data, senderId) {
-    var items = [],
+    var addedItems = [],
         id,
         me = this;
 
@@ -142,7 +143,7 @@ DataSet.prototype.add = function (data, senderId) {
         // Array
         data.forEach(function (item) {
             var id = me._addItem(item);
-            items.push(id);
+            addedItems.push(id);
         });
     }
     else if (util.isDataTable(data)) {
@@ -154,37 +155,53 @@ DataSet.prototype.add = function (data, senderId) {
                 item[field] = data.getValue(row, col);
             });
             id = me._addItem(item);
-            items.push(id);
+            addedItems.push(id);
         }
     }
     else if (data instanceof Object) {
         // Single item
         id = me._addItem(data);
-        items.push(id);
+        addedItems.push(id);
     }
     else {
         throw new Error('Unknown dataType');
     }
 
-    this._trigger('add', {items: items}, senderId);
+    if (addedItems.length) {
+        this._trigger('add', {items: addedItems}, senderId);
+    }
 };
 
 /**
- * Update existing items. Items with the same id will be merged
+ * Update existing items. When an item does not exist, it will be created
  * @param {Object | Array | DataTable} data
  * @param {String} [senderId] Optional sender id, used to trigger events for
  *                            all but this sender's event subscribers.
  */
 DataSet.prototype.update = function (data, senderId) {
-    var items = [],
-        id,
-        me = this;
+    var addedItems = [],
+        updatedItems = [],
+        me = this,
+        fieldId = me.fieldId;
+
+    var addOrUpdate = function (item) {
+        var id = item[fieldId];
+        if (me.data[id]) {
+            // update item
+            id = me._updateItem(item);
+            updatedItems.push(id);
+        }
+        else {
+            // add new item
+            id = me._addItem(item);
+            addedItems.push(id);
+        }
+    };
 
     if (data instanceof Array) {
         // Array
         data.forEach(function (item) {
-            var id = me._updateItem(item);
-            items.push(id);
+            addOrUpdate(item);
         });
     }
     else if (util.isDataTable(data)) {
@@ -195,20 +212,23 @@ DataSet.prototype.update = function (data, senderId) {
             columns.forEach(function (field, col) {
                 item[field] = data.getValue(row, col);
             });
-            id = me._updateItem(item);
-            items.push(id);
+            addOrUpdate(item);
         }
     }
     else if (data instanceof Object) {
         // Single item
-        id = me._updateItem(data);
-        items.push(id);
+        addOrUpdate(data);
     }
     else {
         throw new Error('Unknown dataType');
     }
 
-    this._trigger('update', {items: items}, senderId);
+    if (addedItems.length) {
+        this._trigger('add', {items: addedItems}, senderId);
+    }
+    if (updatedItems.length) {
+        this._trigger('update', {items: updatedItems}, senderId);
+    }
 };
 
 /**
@@ -440,19 +460,19 @@ DataSet.prototype._mergeFieldTypes = function (fieldTypes) {
  *                            all but this sender's event subscribers.
  */
 DataSet.prototype.remove = function (id, senderId) {
-    var items = [],
+    var removedItems = [],
         me = this;
 
     if (util.isNumber(id) || util.isString(id)) {
         delete this.data[id];
         delete this.internalIds[id];
-        items.push(id);
+        removedItems.push(id);
     }
     else if (id instanceof Array) {
         id.forEach(function (id) {
             me.remove(id);
         });
-        items = items.concat(id);
+        removedItems = items.concat(id);
     }
     else if (id instanceof Object) {
         // search for the object
@@ -461,13 +481,15 @@ DataSet.prototype.remove = function (id, senderId) {
                 if (this.data[i] == id) {
                     delete this.data[i];
                     delete this.internalIds[i];
-                    items.push(i);
+                    removedItems.push(i);
                 }
             }
         }
     }
 
-    this._trigger('remove', {items: items}, senderId);
+    if (removedItems.length) {
+        this._trigger('remove', {items: removedItems}, senderId);
+    }
 };
 
 /**
@@ -566,18 +588,25 @@ DataSet.prototype.distinct = function (field) {
 };
 
 /**
- * Add a single item
+ * Add a single item. Will fail when an item with the same id already exists.
  * @param {Object} item
  * @return {String} id
  * @private
  */
 DataSet.prototype._addItem = function (item) {
     var id = item[this.fieldId];
-    if (id == undefined) {
+
+    if (id != undefined) {
+        // check whether this id is already taken
+        if (this.data[id]) {
+            // item already exists
+            throw new Error('Cannot add item: item with id ' + id + ' already exists');
+        }
+    }
+    else {
         // generate an id
         id = util.randomUUID();
         item[this.fieldId] = id;
-
         this.internalIds[id] = item;
     }
 
@@ -589,7 +618,6 @@ DataSet.prototype._addItem = function (item) {
         }
     }
     this.data[id] = d;
-    //TODO: fail when an item with this id already exists?
 
     return id;
 };
@@ -636,7 +664,9 @@ DataSet.prototype._castItem = function (item, fieldTypes, fields) {
 };
 
 /**
- * Update a single item: merge with existing item
+ * Update a single item: merge with existing item.
+ * Will fail when the item has no id, or when there does not exist an item
+ * with the same id.
  * @param {Object} item
  * @return {String} id
  * @private
@@ -644,21 +674,20 @@ DataSet.prototype._castItem = function (item, fieldTypes, fields) {
 DataSet.prototype._updateItem = function (item) {
     var id = item[this.fieldId];
     if (id == undefined) {
-        throw new Error('Item has no id (item: ' + JSON.stringify(item) + ')');
+        throw new Error('Cannot update item: item has no id (item: ' + JSON.stringify(item) + ')');
     }
     var d = this.data[id];
-    if (d) {
-        // merge with current item
-        for (var field in item) {
-            if (item.hasOwnProperty(field)) {
-                var type = this.fieldTypes[field];  // type may be undefined
-                d[field] = util.cast(item[field], type);
-            }
-        }
+    if (!d) {
+        // item doesn't exist
+        throw new Error('Cannot update item: no item with id ' + id + ' found');
     }
-    else {
-        // create new item
-        this._addItem(item);
+
+    // merge with current item
+    for (var field in item) {
+        if (item.hasOwnProperty(field)) {
+            var type = this.fieldTypes[field];  // type may be undefined
+            d[field] = util.cast(item[field], type);
+        }
     }
 
     return id;
