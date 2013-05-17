@@ -102,9 +102,7 @@ DataSet.prototype.unsubscribe = function (event, callback) {
  * Trigger an event
  * @param {String} event
  * @param {Object | null} params
- * @param {String} [senderId]       Optional id of the sender. The event will
- *                                  be triggered for all subscribers except the
- *                                  sender itself.
+ * @param {String} [senderId]       Optional id of the sender.
  * @private
  */
 DataSet.prototype._trigger = function (event, params, senderId) {
@@ -121,7 +119,7 @@ DataSet.prototype._trigger = function (event, params, senderId) {
     }
 
     subscribers.forEach(function (listener) {
-        if (listener.id != senderId && listener.callback) {
+        if (listener.callback) {
             listener.callback(event, params, senderId || null);
         }
     });
@@ -131,8 +129,7 @@ DataSet.prototype._trigger = function (event, params, senderId) {
  * Add data.
  * Adding an item will fail when there already is an item with the same id.
  * @param {Object | Array | DataTable} data
- * @param {String} [senderId] Optional sender id, used to trigger events for
- *                            all but this sender's event subscribers.
+ * @param {String} [senderId] Optional sender id
  */
 DataSet.prototype.add = function (data, senderId) {
     var addedItems = [],
@@ -175,8 +172,7 @@ DataSet.prototype.add = function (data, senderId) {
 /**
  * Update existing items. When an item does not exist, it will be created
  * @param {Object | Array | DataTable} data
- * @param {String} [senderId] Optional sender id, used to trigger events for
- *                            all but this sender's event subscribers.
+ * @param {String} [senderId] Optional sender id
  */
 DataSet.prototype.update = function (data, senderId) {
     var addedItems = [],
@@ -456,8 +452,7 @@ DataSet.prototype._mergeFieldTypes = function (fieldTypes) {
  * Remove an object by pointer or by id
  * @param {String | Number | Object | Array} id   Object or id, or an array with
  *                                                objects or ids to be removed
- * @param {String} [senderId] Optional sender id, used to trigger events for
- *                            all but this sender's event subscribers.
+ * @param {String} [senderId] Optional sender id
  */
 DataSet.prototype.remove = function (id, senderId) {
     var removedItems = [],
@@ -494,8 +489,7 @@ DataSet.prototype.remove = function (id, senderId) {
 
 /**
  * Clear the data
- * @param {String} [senderId] Optional sender id, used to trigger events for
- *                            all but this sender's event subscribers.
+ * @param {String} [senderId] Optional sender id
  */
 DataSet.prototype.clear = function (senderId) {
     var ids = Object.keys(this.data);
