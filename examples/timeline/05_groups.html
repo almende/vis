@@ -23,32 +23,30 @@
 
 <script>
     var now = moment().minutes(0).seconds(0).milliseconds(0);
+    var groupCount = 3;
+    var itemCount = 20;
 
     // create a dataset with items
     var items = new vis.DataSet();
-    items.add([
-        {id: 1, content: 'item 1<br>start', start: now.clone().add('days', 4)},
-        {id: 2, content: 'item 2', start: now.clone().add('days', -2)},
-        {id: 3, content: 'item 3', start: now.clone().add('days', 2)},
-        {id: 4, content: 'item 4', start: now.clone().add('days', 0), end: now.clone().add('days', 3).toDate()},
-        {id: 5, content: 'item 5', start: now.clone().add('days', 9), type:'point'},
-        {id: 6, content: 'item 6', start: now.clone().add('days', 11)}
-    ]);
+    for (var i = 0; i < itemCount; i++) {
+        var start = now.clone().add('hours', Math.random() * 200);
+        var group = Math.floor(Math.random() * groupCount);
+        items.add({
+            id: i,
+            group: group,
+            content: 'item ' + i,
+            start: start,
+            type: 'point'
+        });
+    }
 
     var groups = new vis.DataSet();
-    groups.add([
-        {id: 1, content: 'Group 1'},
-        {id: 2, content: 'Group 2'},
-        {id: 3, content: 'Group 3'},
-        {id: 4, content: 'Group 4'}
-    ]);
+    for (var g = 0; g < groupCount; g++) {
+        groups.add({id: g, content: 'Group ' + g});
+    }
 
     var container = document.getElementById('visualization');
-    var options = {
-        start: now.clone().add('days', -3),
-        end: now.clone().add('days', 7)
-        //height: '100%'
-    };
+    var options = {};
 
     var timeline = new vis.Timeline(container);
     timeline.setOptions(options);

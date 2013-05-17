@@ -35,14 +35,20 @@ function ItemSet(parent, depends, options) {
     this.range = null; // Range or Object {start: number, end: number}
 
     this.listeners = {
-        'add': function (event, params) {
-            me._onAdd(params.items);
+        'add': function (event, params, senderId) {
+            if (senderId != me.id) {
+                me._onAdd(params.items);
+            }
         },
-        'update': function (event, params) {
-            me._onUpdate(params.items);
+        'update': function (event, params, senderId) {
+            if (senderId != me.id) {
+                me._onUpdate(params.items);
+            }
         },
-        'remove': function (event, params) {
-            me._onRemove(params.items);
+        'remove': function (event, params, senderId) {
+            if (senderId != me.id) {
+                me._onRemove(params.items);
+            }
         }
     };
 
@@ -400,7 +406,7 @@ ItemSet.prototype.setItems = function setItems(items) {
     if (!items) {
         this.items = null;
     }
-    else if (items instanceof DataSet) {
+    else if (items instanceof DataSet || items instanceof DataView) {
         this.items = items;
     }
     else {

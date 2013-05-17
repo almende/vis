@@ -323,7 +323,7 @@ DataSet.prototype.get = function (args) {
             // return a subset of items
             ids.forEach(function (id) {
                 var castedItem = me._castItem(me.data[id], fieldTypes, fields);
-                if (!castedItem || filter(castedItem)) {
+                if (!castedItem || filter(castedItem)) { // TODO: filter should be applied on the casted item but with all fields
                     me._appendRow(data, columns, castedItem);
                 }
             });
@@ -332,7 +332,7 @@ DataSet.prototype.get = function (args) {
             // return all items
             util.forEach(this.data, function (item) {
                 var castedItem = me._castItem(item);
-                if (!castedItem || filter(castedItem)) {
+                if (!castedItem || filter(castedItem)) {    // TODO: filter should be applied on the casted item but with all fields
                     me._appendRow(data, columns, castedItem);
                 }
             });
@@ -352,7 +352,7 @@ DataSet.prototype.get = function (args) {
             // return a subset of items
             ids.forEach(function (id) {
                 var castedItem = me._castItem(me.data[id], fieldTypes, fields);
-                if (!filter || filter(castedItem)) {
+                if (!filter || filter(castedItem)) {    // TODO: filter should be applied on the casted item but with all fields
                     data.push(castedItem);
                 }
             });
@@ -361,7 +361,7 @@ DataSet.prototype.get = function (args) {
             // return all items
             util.forEach(this.data, function (item) {
                 var castedItem = me._castItem(item, fieldTypes, fields);
-                if (!filter || filter(castedItem)) {
+                if (!filter || filter(castedItem)) {    // TODO: filter should be applied on the casted item but with all fields
                     data.push(castedItem);
                 }
             });

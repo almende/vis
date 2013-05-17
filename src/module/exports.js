@@ -7,6 +7,7 @@ var vis = {
 
     Controller: Controller,
     DataSet: DataSet,
+    DataView: DataView,
     Range: Range,
     Stack: Stack,
     TimeStep: TimeStep,

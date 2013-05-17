@@ -50,6 +50,7 @@ task('build', {async: true}, function () {
             './src/events.js',
             './src/timestep.js',
             './src/dataset.js',
+            './src/dataview.js',
             './src/stack.js',
             './src/range.js',
             './src/eventbus.js',

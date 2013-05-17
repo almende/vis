@@ -78,18 +78,22 @@ util.randomUUID = function randomUUID () {
 };
 
 /**
- * Extend object a with the properties of object b.
+ * Extend object a with the properties of object b or a series of objects
  * Only properties with defined values are copied
  * @param {Object} a
- * @param {Object} b
+ * @param {... Object} b
  * @return {Object} a
  */
 util.extend = function (a, b) {
-    for (var prop in b) {
-        if (b.hasOwnProperty(prop) && b[prop] !== undefined) {
-            a[prop] = b[prop];
+    for (var i = 1, len = arguments.length; i < len; i++) {
+        var other = arguments[i];
+        for (var prop in other) {
+            if (other.hasOwnProperty(prop) && other[prop] !== undefined) {
+                a[prop] = other[prop];
+            }
         }
     }
+
     return a;
 };
 

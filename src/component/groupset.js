@@ -239,6 +239,11 @@ GroupSet.prototype.repaint = function repaint() {
                         }, me.options));
                         itemset.setRange(me.range);
                         itemset.setItems(me.items);
+                        /* TODO: create a DataView for every group
+                        itemset.setItems(new DataView(me.items, {filter: function (item) {
+                            return item.group == id;
+                        }}));
+                        */
                         me.controller.add(itemset);
 
                         group = {
