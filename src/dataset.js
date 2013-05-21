@@ -44,14 +44,17 @@ function DataSet (options) {
     this.fieldTypes = {};                           // field types by field name
 
     if (this.options.fieldTypes) {
-        util.forEach(this.options.fieldTypes, function (value, field) {
-            if (value == 'Date' || value == 'ISODate' || value == 'ASPDate') {
-                me.fieldTypes[field] = 'Date';
+        for (var field in this.options.fieldTypes) {
+            if (this.options.fieldTypes.hasOwnProperty(field)) {
+                var value = this.options.fieldTypes[field];
+                if (value == 'Date' || value == 'ISODate' || value == 'ASPDate') {
+                    this.fieldTypes[field] = 'Date';
+                }
+                else {
+                    this.fieldTypes[field] = value;
+                }
             }
-            else {
-                me.fieldTypes[field] = value;
-            }
-        });
+        }
     }
 
     // event subscribers
@@ -118,11 +121,12 @@ DataSet.prototype._trigger = function (event, params, senderId) {
         subscribers = subscribers.concat(this.subscribers['*']);
     }
 
-    subscribers.forEach(function (listener) {
-        if (listener.callback) {
-            listener.callback(event, params, senderId || null);
+    for (var i = 0; i < subscribers.length; i++) {
+        var subscriber = subscribers[i];
+        if (subscriber.callback) {
+            subscriber.callback(event, params, senderId || null);
         }
-    });
+    }
 };
 
 /**
@@ -138,19 +142,21 @@ DataSet.prototype.add = function (data, senderId) {
 
     if (data instanceof Array) {
         // Array
-        data.forEach(function (item) {
-            var id = me._addItem(item);
+        for (var i = 0, len = data.length; i < len; i++) {
+            id = me._addItem(data[i]);
             addedItems.push(id);
-        });
+        }
     }
     else if (util.isDataTable(data)) {
         // Google DataTable
         var columns = this._getColumnNames(data);
         for (var row = 0, rows = data.getNumberOfRows(); row < rows; row++) {
             var item = {};
-            columns.forEach(function (field, col) {
+            for (var col = 0, cols = columns.length; col < cols; col++) {
+                var field = columns[col];
                 item[field] = data.getValue(row, col);
-            });
+            }
+
             id = me._addItem(item);
             addedItems.push(id);
         }
@@ -196,18 +202,20 @@ DataSet.prototype.update = function (data, senderId) {
 
     if (data instanceof Array) {
         // Array
-        data.forEach(function (item) {
-            addOrUpdate(item);
-        });
+        for (var i = 0, len = data.length; i < len; i++) {
+            addOrUpdate(data[i]);
+        }
     }
     else if (util.isDataTable(data)) {
         // Google DataTable
         var columns = this._getColumnNames(data);
         for (var row = 0, rows = data.getNumberOfRows(); row < rows; row++) {
             var item = {};
-            columns.forEach(function (field, col) {
+            for (var col = 0, cols = columns.length; col < cols; col++) {
+                var field = columns[col];
                 item[field] = data.getValue(row, col);
-            });
+            }
+
             addOrUpdate(item);
         }
     }
@@ -307,11 +315,7 @@ DataSet.prototype.get = function (args) {
     }
 
     // build options
-    var itemOptions = {
-        fieldTypes: this._mergeFieldTypes(options && options.fieldTypes),
-        fields: options && options.fields,
-        filter: options && options.filter
-    };
+    var itemOptions = this._composeItemOptions(options);
 
     var item, itemId, i, len;
     if (type == 'DataTable') {
@@ -390,17 +394,18 @@ DataSet.prototype.get = function (args) {
  *                                      {function} [filter] filter items
  */
 DataSet.prototype.forEach = function (callback, options) {
-    var fieldTypes = this._mergeFieldTypes(options && options.fieldTypes);
-    var fields = options && options.fields;
-    var filter = options && options.filter;
-    var me = this;
+    var itemOptions = this._composeItemOptions(options),
+        data = this.data,
+        item;
 
-    util.forEach(this.data, function (item, id) {
-        var item = me._castItem(item, fieldTypes, fields);
-        if (!filter || filter(item)) {
-            callback(item, id);
+    for (var id in data) {
+        if (data.hasOwnProperty(id)) {
+            item = this._getItem(id, itemOptions);
+            if (item) {
+                callback(item, id);
+            }
         }
-    });
+    }
 };
 
 /**
@@ -414,47 +419,55 @@ DataSet.prototype.forEach = function (callback, options) {
  * @return {Object[]} mappedItems
  */
 DataSet.prototype.map = function (callback, options) {
-    var fieldTypes = this._mergeFieldTypes(options && options.fieldTypes);
-    var fields = options && options.fields;
-    var filter = options && options.filter;
-    var me = this;
-    var mappedItems = [];
+    var itemOptions = this._composeItemOptions(options),
+        mappedItems = [],
+        data = this.data,
+        item;
 
-    util.forEach(this.data, function (item, id) {
-        var item = me._castItem(item, fieldTypes, fields);
-        if (!filter || filter(item)) {
-            var mappedItem = callback(item, id);
-            mappedItems.push(mappedItem);
+    for (var id in data) {
+        if (data.hasOwnProperty(id)) {
+            item = this._getItem(id, itemOptions);
+            if (item) {
+                mappedItems.push(callback(item, id));
+            }
         }
-    });
+    }
 
     return mappedItems;
 };
 
 /**
- * Merge the provided field types with the datasets fieldtypes
- * @param {Object} fieldTypes
- * @returns {Object} mergedFieldTypes
+ * Build an option set for getting an item. Options will be merged by the
+ * default options of the dataset.
+ * @param {Object} options
+ * @returns {Object} itemOptions
  * @private
  */
-DataSet.prototype._mergeFieldTypes = function (fieldTypes) {
-    var merged = {};
+DataSet.prototype._composeItemOptions = function (options) {
+    var itemOptions = {},
+        field;
 
-    // extend with the datasets fieldTypes
-    if (this.options && this.options.fieldTypes) {
-        util.forEach(this.options.fieldTypes, function (value, field) {
-            merged[field] = value;
-        });
+    if (options) {
+        // get the default field types
+        itemOptions.fieldTypes = {};
+        if (this.options && this.options.fieldTypes) {
+            util.extend(itemOptions.fieldTypes, this.options.fieldTypes);
+        }
+
+        // extend field types with provided types
+        if (options.fieldTypes) {
+            util.extend(itemOptions.fieldTypes, options.fieldTypes);
+        }
+
+        if (options.fields) {
+            itemOptions.fields = options.fields;
+        }
+        if (options.filter) {
+            itemOptions.filter = options.filter;
+        }
     }
 
-    // extend with provided fieldTypes
-    if (fieldTypes) {
-        util.forEach(fieldTypes, function (value, field) {
-            merged[field] = value;
-        });
-    }
-
-    return merged;
+    return itemOptions;
 };
 
 /**
@@ -465,7 +478,7 @@ DataSet.prototype._mergeFieldTypes = function (fieldTypes) {
  */
 DataSet.prototype.remove = function (id, senderId) {
     var removedItems = [],
-        me = this;
+        i, len;
 
     if (util.isNumber(id) || util.isString(id)) {
         delete this.data[id];
@@ -473,14 +486,14 @@ DataSet.prototype.remove = function (id, senderId) {
         removedItems.push(id);
     }
     else if (id instanceof Array) {
-        id.forEach(function (id) {
-            me.remove(id);
-        });
+        for (i = 0, len = id.length; i < len; i++) {
+            this.remove(id[i]);
+        }
         removedItems = items.concat(id);
     }
     else if (id instanceof Object) {
         // search for the object
-        for (var i in this.data) {
+        for (i in this.data) {
             if (this.data.hasOwnProperty(i)) {
                 if (this.data[i] == id) {
                     delete this.data[i];
@@ -516,18 +529,19 @@ DataSet.prototype.clear = function (senderId) {
  */
 DataSet.prototype.max = function (field) {
     var data = this.data,
-        ids = Object.keys(data);
+        max = null,
+        maxField = null;
 
-    var max = null;
-    var maxField = null;
-    ids.forEach(function (id) {
-        var item = data[id];
-        var itemField = item[field];
-        if (itemField != null && (!max || itemField > maxField)) {
-            max = item;
-            maxField = itemField;
+    for (var id in data) {
+        if (data.hasOwnProperty(id)) {
+            var item = data[id];
+            var itemField = item[field];
+            if (itemField != null && (!max || itemField > maxField)) {
+                max = item;
+                maxField = itemField;
+            }
         }
-    });
+    }
 
     return max;
 };
@@ -539,18 +553,19 @@ DataSet.prototype.max = function (field) {
  */
 DataSet.prototype.min = function (field) {
     var data = this.data,
-        ids = Object.keys(data);
+        min = null,
+        minField = null;
 
-    var min = null;
-    var minField = null;
-    ids.forEach(function (id) {
-        var item = data[id];
-        var itemField = item[field];
-        if (itemField != null && (!min || itemField < minField)) {
-            min = item;
-            minField = itemField;
+    for (var id in data) {
+        if (data.hasOwnProperty(id)) {
+            var item = data[id];
+            var itemField = item[field];
+            if (itemField != null && (!min || itemField < minField)) {
+                min = item;
+                minField = itemField;
+            }
         }
-    });
+    }
 
     return min;
 };
@@ -633,7 +648,7 @@ DataSet.prototype._addItem = function (item) {
  *                          {String[]} fields   Filter fields
  *                          {function} filter   Filter item, returns null if
  *                                              item does not match the filter
- * @return {Object | null} castedItem
+ * @return {Object | null} item
  * @private
  */
 DataSet.prototype._getItem = function (id, options) {
@@ -728,7 +743,7 @@ DataSet.prototype._updateItem = function (item) {
 /**
  * Get an array with the column names of a Google DataTable
  * @param {DataTable} dataTable
- * @return {Array} columnNames
+ * @return {String[]} columnNames
  * @private
  */
 DataSet.prototype._getColumnNames = function (dataTable) {
@@ -748,7 +763,9 @@ DataSet.prototype._getColumnNames = function (dataTable) {
  */
 DataSet.prototype._appendRow = function (dataTable, columns, item) {
     var row = dataTable.addRow();
-    columns.forEach(function (field, col) {
+
+    for (var col = 0, cols = columns.length; col < cols; col++) {
+        var field = columns[col];
         dataTable.setValue(row, col, item[field]);
-    });
+    }
 };
