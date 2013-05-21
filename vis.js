@@ -1517,7 +1517,7 @@ TimeStep.prototype.getLabelMajor = function(date) {
  * @constructor DataSet
  */
 function DataSet (options) {
-    var me = this;
+    this.id = util.randomUUID();
 
     this.options = options || {};
     this.data = {};                                 // map with data indexed by id
@@ -2303,7 +2303,10 @@ DataSet.prototype._appendRow = function (dataTable, columns, item) {
  * @constructor DataView
  */
 function DataView (data, options) {
+    this.id = util.randomUUID();
+
     this.data = null;
+    this.ids = {}; // ids of the items currently in memory (just contains a boolean true)
     this.options = options || {};
     this.fieldId = 'id'; // name of the field containing id
     this.subscribers = {}; // event subscribers
@@ -2329,12 +2332,14 @@ DataView.prototype.setData = function (data) {
             this.data.unsubscribe('*', this.listener);
         }
 
-        // trigger a remove of all drawn items
-        dataItems = this.get({fields: [this.fieldId, 'group']});
+        // trigger a remove of all items in memory
         ids = [];
-        for (i = 0, len = dataItems.length; i < len; i++) {
-            ids[i] = dataItems[i].id;
+        for (var id in this.ids) {
+            if (this.ids.hasOwnProperty(id)) {
+                ids.push(id);
+            }
         }
+        this.ids = {};
         this._trigger('remove', {items: ids});
     }
 
@@ -2347,10 +2352,10 @@ DataView.prototype.setData = function (data) {
             'id';
 
         // trigger an add of all added items
-        dataItems = this.get({fields: [this.fieldId, 'group']});
-        ids = [];
-        for (i = 0, len = dataItems.length; i < len; i++) {
-            ids[i] = dataItems[i].id;
+        ids = this.data.getIds({filter: this.options && this.options.filter});
+        for (i = 0, len = ids.length; i < len; i++) {
+            id = ids[i];
+            this.ids[id] = true;
         }
         this._trigger('add', {items: ids});
 
@@ -2482,27 +2487,78 @@ DataView.prototype.getIds = function (options) {
  * @private
  */
 DataView.prototype._onEvent = function (event, params, senderId) {
-    var items = params && params.items,
+    var i, len, id, item,
+        ids = params && params.items,
         data = this.data,
-        fieldId = this.fieldId,
-        filter = this.options.filter,
-        filteredItems = [];
+        added = [],
+        updated = [],
+        removed = [];
 
-    if (items && data && filter) {
-        filteredItems = data.get(items, {
-            filter: filter
-        }).map(function (item) {
-            return item[fieldId];
-        });
+    if (ids && data) {
+        switch (event) {
+            case 'add':
+                // filter the ids of the added items
+                for (i = 0, len = ids.length; i < len; i++) {
+                    id = ids[i];
+                    item = this.get(id);
+                    if (item) {
+                        this.ids[id] = true;
+                        added.push(id);
+                    }
+                }
 
-        // TODO: dataview must trigger events from its own point of view:
-        //       a changed item can be:
-        //       - added to the filtered set
-        //       - removed from the filtered set
-        //       - changed in the filtered set
+                break;
 
-        if (filteredItems.length) {
-            this._trigger(event, {items: filteredItems}, senderId);
+            case 'update':
+                // determine the event from the views viewpoint: an updated
+                // item can be added, updated, or removed from this view.
+                for (i = 0, len = ids.length; i < len; i++) {
+                    id = ids[i];
+                    item = this.get(id);
+
+                    if (item) {
+                        if (this.ids[id]) {
+                            updated.push(id);
+                        }
+                        else {
+                            this.ids[id] = true;
+                            added.push(id);
+                        }
+                    }
+                    else {
+                        if (this.ids[id]) {
+                            delete this.ids[id];
+                            removed.push(id);
+                        }
+                        else {
+                            // nothing interesting for me :-(
+                        }
+                    }
+                }
+
+                break;
+
+            case 'remove':
+                // filter the ids of the removed items
+                for (i = 0, len = ids.length; i < len; i++) {
+                    id = ids[i];
+                    if (this.ids[id]) {
+                        delete this.ids[id];
+                        removed.push(id);
+                    }
+                }
+
+                break;
+        }
+
+        if (added.length) {
+            this._trigger('add', {items: added}, senderId);
+        }
+        if (updated.length) {
+            this._trigger('update', {items: updated}, senderId);
+        }
+        if (removed.length) {
+            this._trigger('remove', {items: removed}, senderId);
         }
     }
 };

@@ -36,7 +36,7 @@
  * @constructor DataSet
  */
 function DataSet (options) {
-    var me = this;
+    this.id = util.randomUUID();
 
     this.options = options || {};
     this.data = {};                                 // map with data indexed by id
