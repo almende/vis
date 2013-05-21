@@ -31,8 +31,8 @@ function ItemSet(parent, depends, options) {
     this.dom = {};
 
     var me = this;
-    this.items = null;  // DataSet
-    this.range = null; // Range or Object {start: number, end: number}
+    this.itemsData = null;  // DataSet
+    this.range = null;      // Range or Object {start: number, end: number}
 
     this.listeners = {
         'add': function (event, params, senderId) {
@@ -52,7 +52,7 @@ function ItemSet(parent, depends, options) {
         }
     };
 
-    this.contents = {};    // object with an Item for every data item
+    this.items = {};    // object with an Item for every data item
     this.queue = {};       // queue with id/actions: 'add', 'update', 'delete'
     this.stack = new Stack(this);
     this.conversion = null;
@@ -193,10 +193,10 @@ ItemSet.prototype.repaint = function repaint() {
 
     var me = this,
         queue = this.queue,
+        itemsData = this.itemsData,
         items = this.items,
-        contents = this.contents,
         dataOptions = {
-            fields: [(items && items.fieldId || 'id'), 'start', 'end', 'content', 'type']
+            fields: [(itemsData && itemsData.fieldId || 'id'), 'start', 'end', 'content', 'type']
         };
     // TODO: copy options from the itemset itself?
 
@@ -204,13 +204,13 @@ ItemSet.prototype.repaint = function repaint() {
     Object.keys(queue).forEach(function (id) {
         //var entry = queue[id];
         var action = queue[id];
-        var item = contents[id];
+        var item = items[id];
         //var item = entry.item;
         //noinspection FallthroughInSwitchStatementJS
         switch (action) {
             case 'add':
             case 'update':
-                var itemData = items && items.get(id, dataOptions);
+                var itemData = itemsData && itemsData.get(id, dataOptions);
 
                 if (itemData) {
                     var type = itemData.type ||
@@ -243,7 +243,7 @@ ItemSet.prototype.repaint = function repaint() {
                         }
                     }
 
-                    contents[id] = item;
+                    items[id] = item;
                 }
 
                 // update queue
@@ -257,7 +257,7 @@ ItemSet.prototype.repaint = function repaint() {
                 }
 
                 // update lists
-                delete contents[id];
+                delete items[id];
                 delete queue[id];
                 break;
 
@@ -267,7 +267,7 @@ ItemSet.prototype.repaint = function repaint() {
     });
 
     // reposition all items. Show items only when in the visible area
-    util.forEach(this.contents, function (item) {
+    util.forEach(this.items, function (item) {
         if (item.visible) {
             changed += item.show();
             item.reposition();
@@ -318,7 +318,7 @@ ItemSet.prototype.reflow = function reflow () {
     if (frame) {
         this._updateConversion();
 
-        util.forEach(this.contents, function (item) {
+        util.forEach(this.items, function (item) {
             changed += item.reflow();
         });
 
@@ -390,52 +390,40 @@ ItemSet.prototype.hide = function hide() {
  */
 ItemSet.prototype.setItems = function setItems(items) {
     var me = this,
-        dataItems,
-        fieldId,
         ids;
 
     // unsubscribe from current dataset
-    var current = this.items;
+    var current = this.itemsData;
     if (current) {
         util.forEach(this.listeners, function (callback, event) {
             current.unsubscribe(event, callback);
         });
 
         // remove all drawn items
-        fieldId = this.items.fieldId;
-        dataItems = current.get({fields: [fieldId]});
-        ids = [];
-        util.forEach(dataItems, function (dataItem, index) {
-            ids[index] = dataItem[fieldId];
-        });
+        ids = current.getIds();
         this._onRemove(ids);
     }
 
     // replace the dataset
     if (!items) {
-        this.items = null;
+        this.itemsData = null;
     }
     else if (items instanceof DataSet || items instanceof DataView) {
-        this.items = items;
+        this.itemsData = items;
     }
     else {
         throw new TypeError('Data must be an instance of DataSet');
     }
 
-    if (this.items) {
+    if (this.itemsData) {
         // subscribe to new dataset
         var id = this.id;
         util.forEach(this.listeners, function (callback, event) {
-            me.items.subscribe(event, callback, id);
+            me.itemsData.subscribe(event, callback, id);
         });
 
         // draw all new items
-        fieldId = this.items.fieldId;
-        dataItems = this.items.get({fields: [fieldId]});
-        ids = [];
-        util.forEach(dataItems, function (dataItem, index) {
-            ids[index] = dataItem[fieldId];
-        });
+        ids = this.itemsData.getIds();
         this._onAdd(ids);
     }
 };
@@ -445,7 +433,7 @@ ItemSet.prototype.setItems = function setItems(items) {
  * @returns {vis.DataSet | null}
  */
 ItemSet.prototype.getItems = function getItems() {
-    return this.items;
+    return this.itemsData;
 };
 
 /**

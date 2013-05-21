@@ -58,8 +58,8 @@ function Timeline (container, items, options) {
     // create itemset or groupset
     this.setGroups(null);
 
-    this.items = null;      // DataSet
-    this.groups = null;     // DataSet
+    this.itemsData = null;      // DataSet
+    this.groupsData = null;     // DataSet
 
     // set options (must take place before setting the data)
     if (options) {
@@ -156,7 +156,7 @@ Timeline.prototype.setOptions = function (options) {
  * @param {vis.DataSet | Array | DataTable | null} items
  */
 Timeline.prototype.setItems = function(items) {
-    var initialLoad = (this.items == null);
+    var initialLoad = (this.itemsData == null);
 
     // convert to type DataSet when needed
     var newItemSet;
@@ -177,7 +177,7 @@ Timeline.prototype.setItems = function(items) {
     }
 
     // set items
-    this.items = newItemSet;
+    this.itemsData = newItemSet;
     this.content.setItems(newItemSet);
 
     if (initialLoad && (this.options.start == undefined || this.options.end == undefined)) {
@@ -213,10 +213,10 @@ Timeline.prototype.setItems = function(items) {
  * @param {vis.DataSet | Array | DataTable} groups
  */
 Timeline.prototype.setGroups = function(groups) {
-    this.groups = groups;
+    this.groupsData = groups;
 
     // switch content type between ItemSet or GroupSet when needed
-    var type = this.groups ? GroupSet : ItemSet;
+    var type = this.groupsData ? GroupSet : ItemSet;
     if (!(this.content instanceof type)) {
         // remove old content set
         if (this.content) {
@@ -236,10 +236,10 @@ Timeline.prototype.setGroups = function(groups) {
             this.content.setRange(this.range);
         }
         if (this.content.setItems) {
-            this.content.setItems(this.items);
+            this.content.setItems(this.itemsData);
         }
         if (this.content.setGroups) {
-            this.content.setGroups(this.groups);
+            this.content.setGroups(this.groupsData);
         }
         this.controller.add(this.content);
         this.setOptions(this.options);
@@ -254,21 +254,21 @@ Timeline.prototype.setGroups = function(groups) {
  */
 Timeline.prototype.getItemRange = function getItemRange() {
     // calculate min from start filed
-    var items = this.items,
+    var itemsData = this.itemsData,
         min = null,
         max = null;
 
-    if (items) {
+    if (itemsData) {
         // calculate the minimum value of the field 'start'
-        var minItem = items.min('start');
+        var minItem = itemsData.min('start');
         min = minItem ? minItem.start.valueOf() : null;
 
         // calculate maximum value of fields 'start' and 'end'
-        var maxStartItem = items.max('start');
+        var maxStartItem = itemsData.max('start');
         if (maxStartItem) {
             max = maxStartItem.start.valueOf();
         }
-        var maxEndItem = items.max('end');
+        var maxEndItem = itemsData.max('end');
         if (maxEndItem) {
             if (max == null) {
                 max = maxEndItem.end.valueOf();

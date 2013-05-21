@@ -15,11 +15,11 @@ function GroupSet(parent, depends, options) {
 
     this.options = {};
 
-    this.range = null;  // Range or Object {start: number, end: number}
-    this.items = null;  // dataset with items
-    this.groups = null; // dataset with groups
+    this.range = null;      // Range or Object {start: number, end: number}
+    this.itemsData = null;  // DataSet with items
+    this.groupsData = null; // DataSet with groups
 
-    this.contents = [];  // array with groups
+    this.groups = [];  // array with groups
 
     // changes in groups are queued  key/value map containing id/action
     this.queue = {};
@@ -55,7 +55,7 @@ GroupSet.prototype.setOptions = function setOptions(options) {
     // TODO: implement options
 
     var me = this;
-    util.forEach(this.contents, function (group) {
+    util.forEach(this.groups, function (group) {
         group.itemset.setOptions(me.options);
     });
 };
@@ -69,9 +69,9 @@ GroupSet.prototype.setRange = function (range) {
  * @param {vis.DataSet | null} items
  */
 GroupSet.prototype.setItems = function setItems(items) {
-    this.items = items;
+    this.itemsData = items;
 
-    util.forEach(this.contents, function (group) {
+    util.forEach(this.groups, function (group) {
         group.view.setData(items);
     });
 };
@@ -81,7 +81,7 @@ GroupSet.prototype.setItems = function setItems(items) {
  * @return {vis.DataSet | null} items
  */
 GroupSet.prototype.getItems = function getItems() {
-    return this.items;
+    return this.itemsData;
 };
 
 /**
@@ -98,54 +98,45 @@ GroupSet.prototype.setRange = function setRange(range) {
  */
 GroupSet.prototype.setGroups = function setGroups(groups) {
     var me = this,
-        dataGroups,
         ids;
 
     // unsubscribe from current dataset
-    if (this.groups) {
+    if (this.groupsData) {
         util.forEach(this.listeners, function (callback, event) {
-            me.groups.unsubscribe(event, callback);
+            me.groupsData.unsubscribe(event, callback);
         });
 
         // remove all drawn groups
-        dataGroups = this.groups.get({fields: ['id']});
-        ids = [];
-        util.forEach(dataGroups, function (dataGroup, index) {
-            ids[index] = dataGroup.id;
-        });
+        ids = this.groupsData.getIds();
         this._onRemove(ids);
     }
 
     // replace the dataset
     if (!groups) {
-        this.groups = null;
+        this.groupsData = null;
     }
     else if (groups instanceof DataSet) {
-        this.groups = groups;
+        this.groupsData = groups;
     }
     else {
-        this.groups = new DataSet({
+        this.groupsData = new DataSet({
             fieldTypes: {
                 start: 'Date',
                 end: 'Date'
             }
         });
-        this.groups.add(groups);
+        this.groupsData.add(groups);
     }
 
-    if (this.groups) {
+    if (this.groupsData) {
         // subscribe to new dataset
         var id = this.id;
         util.forEach(this.listeners, function (callback, event) {
-            me.groups.subscribe(event, callback, id);
+            me.groupsData.subscribe(event, callback, id);
         });
 
         // draw all new groups
-        dataGroups = this.groups.get({fields: ['id']});
-        ids = [];
-        util.forEach(dataGroups, function (dataGroup, index) {
-            ids[index] = dataGroup.id;
-        });
+        ids = this.groupsData.getIds();
         this._onAdd(ids);
     }
 };
@@ -155,7 +146,7 @@ GroupSet.prototype.setGroups = function setGroups(groups) {
  * @return {vis.DataSet | null} groups
  */
 GroupSet.prototype.getGroups = function getGroups() {
-    return this.groups;
+    return this.groupsData;
 };
 
 /**
@@ -201,9 +192,9 @@ GroupSet.prototype.repaint = function repaint() {
 
     var me = this,
         queue = this.queue,
-        items = this.items,
-        contents = this.contents,
+        itemsData = this.itemsData,
         groups = this.groups,
+        groupsData = this.groupsData,
         dataOptions = {
             fields: ['id', 'content']
         };
@@ -217,9 +208,9 @@ GroupSet.prototype.repaint = function repaint() {
             // find group
             var group = null;
             var groupIndex = -1;
-            for (var i = 0; i < contents.length; i++) {
-                if (contents[i].id == id) {
-                    group = contents[i];
+            for (var i = 0; i < groups.length; i++) {
+                if (groups[i].id == id) {
+                    group = groups[i];
                     groupIndex = i;
                     break;
                 }
@@ -234,7 +225,7 @@ GroupSet.prototype.repaint = function repaint() {
                         var itemset = new ItemSet(me);
                         itemset.setOptions(me.options);
                         itemset.setRange(me.range);
-                        var view = new DataView(me.items, {filter: function (item) {
+                        var view = new DataView(me.itemsData, {filter: function (item) {
                             return item.group == id;
                         }});
                         itemset.setItems(view);
@@ -245,11 +236,11 @@ GroupSet.prototype.repaint = function repaint() {
                             view: view,
                             itemset: itemset
                         };
-                        contents.push(group);
+                        groups.push(group);
                     }
 
                     // update group data
-                    group.data = groups.get(id);
+                    group.data = groupsData.get(id);
 
                     delete queue[id];
                     break;
@@ -262,7 +253,7 @@ GroupSet.prototype.repaint = function repaint() {
                         me.controller.remove(group.itemset);
 
                         // remove group itself
-                        contents.splice(groupIndex, 1);
+                        groups.splice(groupIndex, 1);
                     }
 
                     // update lists
@@ -276,7 +267,7 @@ GroupSet.prototype.repaint = function repaint() {
 
         // update the top position (TODO: optimize, needed only when groups are added/removed/reordered
         var prevGroup = null;
-        util.forEach(this.contents, function (group) {
+        util.forEach(this.groups, function (group) {
             var prevItemset = prevGroup && prevGroup.itemset;
             if (prevItemset) {
                 group.itemset.options.top = function () {
@@ -291,7 +282,7 @@ GroupSet.prototype.repaint = function repaint() {
     }
 
     // reposition all groups
-    util.forEach(this.contents, function (group) {
+    util.forEach(this.groups, function (group) {
         changed += group.itemset.repaint();
     });
 
@@ -320,7 +311,7 @@ GroupSet.prototype.reflow = function reflow() {
 
     if (frame) {
         // reposition all groups
-        util.forEach(this.contents, function (group) {
+        util.forEach(this.groups, function (group) {
             changed += group.itemset.reflow();
         });
 
@@ -332,7 +323,7 @@ GroupSet.prototype.reflow = function reflow() {
         else {
             // height is not specified, calculate the sum of the height of all groups
             height = 0;
-            util.forEach(this.contents, function (group) {
+            util.forEach(this.groups, function (group) {
                 height += group.itemset.height;
             });
         }

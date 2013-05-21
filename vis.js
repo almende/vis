@@ -2637,7 +2637,7 @@ Stack.prototype.update = function update() {
  * @private
  */
 Stack.prototype._order = function _order () {
-    var items = this.parent.contents;
+    var items = this.parent.items;
     if (!items) {
         throw new Error('Cannot stack items: parent does not contain items');
     }
@@ -4531,8 +4531,8 @@ function ItemSet(parent, depends, options) {
     this.dom = {};
 
     var me = this;
-    this.items = null;  // DataSet
-    this.range = null; // Range or Object {start: number, end: number}
+    this.itemsData = null;  // DataSet
+    this.range = null;      // Range or Object {start: number, end: number}
 
     this.listeners = {
         'add': function (event, params, senderId) {
@@ -4552,7 +4552,7 @@ function ItemSet(parent, depends, options) {
         }
     };
 
-    this.contents = {};    // object with an Item for every data item
+    this.items = {};    // object with an Item for every data item
     this.queue = {};       // queue with id/actions: 'add', 'update', 'delete'
     this.stack = new Stack(this);
     this.conversion = null;
@@ -4693,10 +4693,10 @@ ItemSet.prototype.repaint = function repaint() {
 
     var me = this,
         queue = this.queue,
+        itemsData = this.itemsData,
         items = this.items,
-        contents = this.contents,
         dataOptions = {
-            fields: [(items && items.fieldId || 'id'), 'start', 'end', 'content', 'type']
+            fields: [(itemsData && itemsData.fieldId || 'id'), 'start', 'end', 'content', 'type']
         };
     // TODO: copy options from the itemset itself?
 
@@ -4704,13 +4704,13 @@ ItemSet.prototype.repaint = function repaint() {
     Object.keys(queue).forEach(function (id) {
         //var entry = queue[id];
         var action = queue[id];
-        var item = contents[id];
+        var item = items[id];
         //var item = entry.item;
         //noinspection FallthroughInSwitchStatementJS
         switch (action) {
             case 'add':
             case 'update':
-                var itemData = items && items.get(id, dataOptions);
+                var itemData = itemsData && itemsData.get(id, dataOptions);
 
                 if (itemData) {
                     var type = itemData.type ||
@@ -4743,7 +4743,7 @@ ItemSet.prototype.repaint = function repaint() {
                         }
                     }
 
-                    contents[id] = item;
+                    items[id] = item;
                 }
 
                 // update queue
@@ -4757,7 +4757,7 @@ ItemSet.prototype.repaint = function repaint() {
                 }
 
                 // update lists
-                delete contents[id];
+                delete items[id];
                 delete queue[id];
                 break;
 
@@ -4767,7 +4767,7 @@ ItemSet.prototype.repaint = function repaint() {
     });
 
     // reposition all items. Show items only when in the visible area
-    util.forEach(this.contents, function (item) {
+    util.forEach(this.items, function (item) {
         if (item.visible) {
             changed += item.show();
             item.reposition();
@@ -4818,7 +4818,7 @@ ItemSet.prototype.reflow = function reflow () {
     if (frame) {
         this._updateConversion();
 
-        util.forEach(this.contents, function (item) {
+        util.forEach(this.items, function (item) {
             changed += item.reflow();
         });
 
@@ -4890,52 +4890,40 @@ ItemSet.prototype.hide = function hide() {
  */
 ItemSet.prototype.setItems = function setItems(items) {
     var me = this,
-        dataItems,
-        fieldId,
         ids;
 
     // unsubscribe from current dataset
-    var current = this.items;
+    var current = this.itemsData;
     if (current) {
         util.forEach(this.listeners, function (callback, event) {
             current.unsubscribe(event, callback);
         });
 
         // remove all drawn items
-        fieldId = this.items.fieldId;
-        dataItems = current.get({fields: [fieldId]});
-        ids = [];
-        util.forEach(dataItems, function (dataItem, index) {
-            ids[index] = dataItem[fieldId];
-        });
+        ids = current.getIds();
         this._onRemove(ids);
     }
 
     // replace the dataset
     if (!items) {
-        this.items = null;
+        this.itemsData = null;
     }
     else if (items instanceof DataSet || items instanceof DataView) {
-        this.items = items;
+        this.itemsData = items;
     }
     else {
         throw new TypeError('Data must be an instance of DataSet');
     }
 
-    if (this.items) {
+    if (this.itemsData) {
         // subscribe to new dataset
         var id = this.id;
         util.forEach(this.listeners, function (callback, event) {
-            me.items.subscribe(event, callback, id);
+            me.itemsData.subscribe(event, callback, id);
         });
 
         // draw all new items
-        fieldId = this.items.fieldId;
-        dataItems = this.items.get({fields: [fieldId]});
-        ids = [];
-        util.forEach(dataItems, function (dataItem, index) {
-            ids[index] = dataItem[fieldId];
-        });
+        ids = this.itemsData.getIds();
         this._onAdd(ids);
     }
 };
@@ -4945,7 +4933,7 @@ ItemSet.prototype.setItems = function setItems(items) {
  * @returns {vis.DataSet | null}
  */
 ItemSet.prototype.getItems = function getItems() {
-    return this.items;
+    return this.itemsData;
 };
 
 /**
@@ -5947,11 +5935,11 @@ function GroupSet(parent, depends, options) {
 
     this.options = {};
 
-    this.range = null;  // Range or Object {start: number, end: number}
-    this.items = null;  // dataset with items
-    this.groups = null; // dataset with groups
+    this.range = null;      // Range or Object {start: number, end: number}
+    this.itemsData = null;  // DataSet with items
+    this.groupsData = null; // DataSet with groups
 
-    this.contents = [];  // array with groups
+    this.groups = [];  // array with groups
 
     // changes in groups are queued  key/value map containing id/action
     this.queue = {};
@@ -5987,7 +5975,7 @@ GroupSet.prototype.setOptions = function setOptions(options) {
     // TODO: implement options
 
     var me = this;
-    util.forEach(this.contents, function (group) {
+    util.forEach(this.groups, function (group) {
         group.itemset.setOptions(me.options);
     });
 };
@@ -6001,9 +5989,9 @@ GroupSet.prototype.setRange = function (range) {
  * @param {vis.DataSet | null} items
  */
 GroupSet.prototype.setItems = function setItems(items) {
-    this.items = items;
+    this.itemsData = items;
 
-    util.forEach(this.contents, function (group) {
+    util.forEach(this.groups, function (group) {
         group.view.setData(items);
     });
 };
@@ -6013,7 +6001,7 @@ GroupSet.prototype.setItems = function setItems(items) {
  * @return {vis.DataSet | null} items
  */
 GroupSet.prototype.getItems = function getItems() {
-    return this.items;
+    return this.itemsData;
 };
 
 /**
@@ -6030,54 +6018,45 @@ GroupSet.prototype.setRange = function setRange(range) {
  */
 GroupSet.prototype.setGroups = function setGroups(groups) {
     var me = this,
-        dataGroups,
         ids;
 
     // unsubscribe from current dataset
-    if (this.groups) {
+    if (this.groupsData) {
         util.forEach(this.listeners, function (callback, event) {
-            me.groups.unsubscribe(event, callback);
+            me.groupsData.unsubscribe(event, callback);
         });
 
         // remove all drawn groups
-        dataGroups = this.groups.get({fields: ['id']});
-        ids = [];
-        util.forEach(dataGroups, function (dataGroup, index) {
-            ids[index] = dataGroup.id;
-        });
+        ids = this.groupsData.getIds();
         this._onRemove(ids);
     }
 
     // replace the dataset
     if (!groups) {
-        this.groups = null;
+        this.groupsData = null;
     }
     else if (groups instanceof DataSet) {
-        this.groups = groups;
+        this.groupsData = groups;
     }
     else {
-        this.groups = new DataSet({
+        this.groupsData = new DataSet({
             fieldTypes: {
                 start: 'Date',
                 end: 'Date'
             }
         });
-        this.groups.add(groups);
+        this.groupsData.add(groups);
     }
 
-    if (this.groups) {
+    if (this.groupsData) {
         // subscribe to new dataset
         var id = this.id;
         util.forEach(this.listeners, function (callback, event) {
-            me.groups.subscribe(event, callback, id);
+            me.groupsData.subscribe(event, callback, id);
         });
 
         // draw all new groups
-        dataGroups = this.groups.get({fields: ['id']});
-        ids = [];
-        util.forEach(dataGroups, function (dataGroup, index) {
-            ids[index] = dataGroup.id;
-        });
+        ids = this.groupsData.getIds();
         this._onAdd(ids);
     }
 };
@@ -6087,7 +6066,7 @@ GroupSet.prototype.setGroups = function setGroups(groups) {
  * @return {vis.DataSet | null} groups
  */
 GroupSet.prototype.getGroups = function getGroups() {
-    return this.groups;
+    return this.groupsData;
 };
 
 /**
@@ -6133,9 +6112,9 @@ GroupSet.prototype.repaint = function repaint() {
 
     var me = this,
         queue = this.queue,
-        items = this.items,
-        contents = this.contents,
+        itemsData = this.itemsData,
         groups = this.groups,
+        groupsData = this.groupsData,
         dataOptions = {
             fields: ['id', 'content']
         };
@@ -6149,9 +6128,9 @@ GroupSet.prototype.repaint = function repaint() {
             // find group
             var group = null;
             var groupIndex = -1;
-            for (var i = 0; i < contents.length; i++) {
-                if (contents[i].id == id) {
-                    group = contents[i];
+            for (var i = 0; i < groups.length; i++) {
+                if (groups[i].id == id) {
+                    group = groups[i];
                     groupIndex = i;
                     break;
                 }
@@ -6166,7 +6145,7 @@ GroupSet.prototype.repaint = function repaint() {
                         var itemset = new ItemSet(me);
                         itemset.setOptions(me.options);
                         itemset.setRange(me.range);
-                        var view = new DataView(me.items, {filter: function (item) {
+                        var view = new DataView(me.itemsData, {filter: function (item) {
                             return item.group == id;
                         }});
                         itemset.setItems(view);
@@ -6177,11 +6156,11 @@ GroupSet.prototype.repaint = function repaint() {
                             view: view,
                             itemset: itemset
                         };
-                        contents.push(group);
+                        groups.push(group);
                     }
 
                     // update group data
-                    group.data = groups.get(id);
+                    group.data = groupsData.get(id);
 
                     delete queue[id];
                     break;
@@ -6194,7 +6173,7 @@ GroupSet.prototype.repaint = function repaint() {
                         me.controller.remove(group.itemset);
 
                         // remove group itself
-                        contents.splice(groupIndex, 1);
+                        groups.splice(groupIndex, 1);
                     }
 
                     // update lists
@@ -6208,7 +6187,7 @@ GroupSet.prototype.repaint = function repaint() {
 
         // update the top position (TODO: optimize, needed only when groups are added/removed/reordered
         var prevGroup = null;
-        util.forEach(this.contents, function (group) {
+        util.forEach(this.groups, function (group) {
             var prevItemset = prevGroup && prevGroup.itemset;
             if (prevItemset) {
                 group.itemset.options.top = function () {
@@ -6223,7 +6202,7 @@ GroupSet.prototype.repaint = function repaint() {
     }
 
     // reposition all groups
-    util.forEach(this.contents, function (group) {
+    util.forEach(this.groups, function (group) {
         changed += group.itemset.repaint();
     });
 
@@ -6252,7 +6231,7 @@ GroupSet.prototype.reflow = function reflow() {
 
     if (frame) {
         // reposition all groups
-        util.forEach(this.contents, function (group) {
+        util.forEach(this.groups, function (group) {
             changed += group.itemset.reflow();
         });
 
@@ -6264,7 +6243,7 @@ GroupSet.prototype.reflow = function reflow() {
         else {
             // height is not specified, calculate the sum of the height of all groups
             height = 0;
-            util.forEach(this.contents, function (group) {
+            util.forEach(this.groups, function (group) {
                 height += group.itemset.height;
             });
         }
@@ -6413,8 +6392,8 @@ function Timeline (container, items, options) {
     // create itemset or groupset
     this.setGroups(null);
 
-    this.items = null;      // DataSet
-    this.groups = null;     // DataSet
+    this.itemsData = null;      // DataSet
+    this.groupsData = null;     // DataSet
 
     // set options (must take place before setting the data)
     if (options) {
@@ -6511,7 +6490,7 @@ Timeline.prototype.setOptions = function (options) {
  * @param {vis.DataSet | Array | DataTable | null} items
  */
 Timeline.prototype.setItems = function(items) {
-    var initialLoad = (this.items == null);
+    var initialLoad = (this.itemsData == null);
 
     // convert to type DataSet when needed
     var newItemSet;
@@ -6532,7 +6511,7 @@ Timeline.prototype.setItems = function(items) {
     }
 
     // set items
-    this.items = newItemSet;
+    this.itemsData = newItemSet;
     this.content.setItems(newItemSet);
 
     if (initialLoad && (this.options.start == undefined || this.options.end == undefined)) {
@@ -6568,10 +6547,10 @@ Timeline.prototype.setItems = function(items) {
  * @param {vis.DataSet | Array | DataTable} groups
  */
 Timeline.prototype.setGroups = function(groups) {
-    this.groups = groups;
+    this.groupsData = groups;
 
     // switch content type between ItemSet or GroupSet when needed
-    var type = this.groups ? GroupSet : ItemSet;
+    var type = this.groupsData ? GroupSet : ItemSet;
     if (!(this.content instanceof type)) {
         // remove old content set
         if (this.content) {
@@ -6591,10 +6570,10 @@ Timeline.prototype.setGroups = function(groups) {
             this.content.setRange(this.range);
         }
         if (this.content.setItems) {
-            this.content.setItems(this.items);
+            this.content.setItems(this.itemsData);
         }
         if (this.content.setGroups) {
-            this.content.setGroups(this.groups);
+            this.content.setGroups(this.groupsData);
         }
         this.controller.add(this.content);
         this.setOptions(this.options);
@@ -6609,21 +6588,21 @@ Timeline.prototype.setGroups = function(groups) {
  */
 Timeline.prototype.getItemRange = function getItemRange() {
     // calculate min from start filed
-    var items = this.items,
+    var itemsData = this.itemsData,
         min = null,
         max = null;
 
-    if (items) {
+    if (itemsData) {
         // calculate the minimum value of the field 'start'
-        var minItem = items.min('start');
+        var minItem = itemsData.min('start');
         min = minItem ? minItem.start.valueOf() : null;
 
         // calculate maximum value of fields 'start' and 'end'
-        var maxStartItem = items.max('start');
+        var maxStartItem = itemsData.max('start');
         if (maxStartItem) {
             max = maxStartItem.start.valueOf();
         }
-        var maxEndItem = items.max('end');
+        var maxEndItem = itemsData.max('end');
         if (maxEndItem) {
             if (max == null) {
                 max = maxEndItem.end.valueOf();
