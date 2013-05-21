@@ -306,36 +306,43 @@ DataSet.prototype.get = function (args) {
         type = 'Array';
     }
 
-    // get options
-    var fieldTypes = this._mergeFieldTypes(options && options.fieldTypes);
-    var fields = options && options.fields;
-    var filter = options && options.filter;
+    // build options
+    var itemOptions = {
+        fieldTypes: this._mergeFieldTypes(options && options.fieldTypes),
+        fields: options && options.fields,
+        filter: options && options.filter
+    };
 
+    var item, itemId, i, len;
     if (type == 'DataTable') {
         // return a Google DataTable
         var columns = this._getColumnNames(data);
         if (id != undefined) {
             // return a single item
-            var item = me._castItem(me.data[id], fieldTypes, fields);
-            this._appendRow(data, columns, item);
+            item = me._getItem(id, itemOptions);
+            if (item) {
+                this._appendRow(data, columns, item);
+            }
         }
         else if (ids != undefined) {
             // return a subset of items
-            ids.forEach(function (id) {
-                var castedItem = me._castItem(me.data[id], fieldTypes, fields);
-                if (!castedItem || filter(castedItem)) { // TODO: filter should be applied on the casted item but with all fields
-                    me._appendRow(data, columns, castedItem);
+            for (i = 0, len = ids.length; i < len; i++) {
+                item = me._getItem(ids[i], itemOptions);
+                if (item) {
+                    me._appendRow(data, columns, item);
                 }
-            });
+            }
         }
         else {
             // return all items
-            util.forEach(this.data, function (item) {
-                var castedItem = me._castItem(item);
-                if (!castedItem || filter(castedItem)) {    // TODO: filter should be applied on the casted item but with all fields
-                    me._appendRow(data, columns, castedItem);
+            for (itemId in this.data) {
+                if (this.data.hasOwnProperty(itemId)) {
+                    item = me._getItem(itemId, itemOptions);
+                    if (item) {
+                        me._appendRow(data, columns, item);
+                    }
                 }
-            });
+            }
         }
     }
     else {
@@ -346,25 +353,27 @@ DataSet.prototype.get = function (args) {
 
         if (id != undefined) {
             // return a single item
-            return this._castItem(me.data[id], fieldTypes, fields);
+            return me._getItem(id, itemOptions);
         }
         else if (ids != undefined) {
             // return a subset of items
-            ids.forEach(function (id) {
-                var castedItem = me._castItem(me.data[id], fieldTypes, fields);
-                if (!filter || filter(castedItem)) {    // TODO: filter should be applied on the casted item but with all fields
-                    data.push(castedItem);
+            for (i = 0, len = ids.length; i < len; i++) {
+                item = me._getItem(ids[i], itemOptions);
+                if (item) {
+                    data.push(item);
                 }
-            });
+            }
         }
         else {
             // return all items
-            util.forEach(this.data, function (item) {
-                var castedItem = me._castItem(item, fieldTypes, fields);
-                if (!filter || filter(castedItem)) {    // TODO: filter should be applied on the casted item but with all fields
-                    data.push(castedItem);
+            for (itemId in this.data) {
+                if (this.data.hasOwnProperty(itemId)) {
+                    item = me._getItem(itemId, itemOptions);
+                    if (item) {
+                        data.push(item);
+                    }
                 }
-            });
+            }
         }
     }
 
@@ -387,9 +396,9 @@ DataSet.prototype.forEach = function (callback, options) {
     var me = this;
 
     util.forEach(this.data, function (item, id) {
-        var castedItem = me._castItem(item, fieldTypes, fields);
-        if (!filter || filter(castedItem)) {
-            callback(castedItem, id);
+        var item = me._castItem(item, fieldTypes, fields);
+        if (!filter || filter(item)) {
+            callback(item, id);
         }
     });
 };
@@ -412,9 +421,9 @@ DataSet.prototype.map = function (callback, options) {
     var mappedItems = [];
 
     util.forEach(this.data, function (item, id) {
-        var castedItem = me._castItem(item, fieldTypes, fields);
-        if (!filter || filter(castedItem)) {
-            var mappedItem = callback(castedItem, id);
+        var item = me._castItem(item, fieldTypes, fields);
+        if (!filter || filter(item)) {
+            var mappedItem = callback(item, id);
             mappedItems.push(mappedItem);
         }
     });
@@ -617,44 +626,73 @@ DataSet.prototype._addItem = function (item) {
 };
 
 /**
- * Cast and filter the fields of an item
- * @param {Object | undefined} item
- * @param {Object.<String, String>} [fieldTypes]
- * @param {String[]} [fields]
+ * Get, cast and filter an item
+ * @param {String} id
+ * @param {Object} options  Available options:
+ *                          {Object.<String, String>} fieldTypes  Cast field types
+ *                          {String[]} fields   Filter fields
+ *                          {function} filter   Filter item, returns null if
+ *                                              item does not match the filter
  * @return {Object | null} castedItem
  * @private
  */
-DataSet.prototype._castItem = function (item, fieldTypes, fields) {
-    var clone,
+DataSet.prototype._getItem = function (id, options) {
+    var field, value;
+
+    // get the item from the dataset
+    var raw = this.data[id];
+    if (!raw) {
+        return null;
+    }
+
+    // cast the items field types
+    var casted = {},
         fieldId = this.fieldId,
         internalIds = this.internalIds;
-
-    if (item) {
-        clone = {};
-        fieldTypes = fieldTypes || {};
-
-        if (fields) {
-            // output filtered fields
-            util.forEach(item, function (value, field) {
-                if (fields.indexOf(field) != -1) {
-                    clone[field] = util.cast(value, fieldTypes[field]);
+    if (options.fieldTypes) {
+        var fieldTypes = options.fieldTypes;
+        for (field in raw) {
+            if (raw.hasOwnProperty(field)) {
+                value = raw[field];
+                // output all fields, except internal ids
+                if ((field != fieldId) || !(value in internalIds)) {
+                    casted[field] = util.cast(value, fieldTypes[field]);
                 }
-            });
-        }
-        else {
-            // output all fields, except internal ids
-            util.forEach(item, function (value, field) {
-                if (field != fieldId || !(value in internalIds)) {
-                    clone[field] = util.cast(value, fieldTypes[field]);
-                }
-            });
+            }
         }
     }
     else {
-        clone = null;
+        // no field types specified, no casting needed
+        for (field in raw) {
+            if (raw.hasOwnProperty(field)) {
+                value = raw[field];
+                // output all fields, except internal ids
+                if ((field != fieldId) || !(value in internalIds)) {
+                    casted[field] = value;
+                }
+            }
+        }
     }
 
-    return clone;
+    // apply item filter
+    if (options.filter && !options.filter(casted)) {
+        return null;
+    }
+
+    // apply fields filter
+    if (options.fields) {
+        var filtered = {},
+            fields = options.fields;
+        for (field in casted) {
+            if (casted.hasOwnProperty(field) && (fields.indexOf(field) != -1)) {
+                filtered[field] = casted[field];
+            }
+        }
+        return filtered;
+    }
+    else {
+        return casted;
+    }
 };
 
 /**
