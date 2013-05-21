@@ -202,7 +202,7 @@ ItemBox.prototype.reflow = function reflow() {
             options = this.options;
             start = this.parent.toScreen(this.data.start);
             align = options && options.align;
-            orientation = options.orientation;
+            orientation = options && options.orientation;
 
             changed += update(props.dot, 'height', dom.dot.offsetHeight);
             changed += update(props.dot, 'width', dom.dot.offsetWidth);

@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.0.8
- * @date    2013-05-17
+ * @date    2013-05-21
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -1525,14 +1525,17 @@ function DataSet (options) {
     this.fieldTypes = {};                           // field types by field name
 
     if (this.options.fieldTypes) {
-        util.forEach(this.options.fieldTypes, function (value, field) {
-            if (value == 'Date' || value == 'ISODate' || value == 'ASPDate') {
-                me.fieldTypes[field] = 'Date';
+        for (var field in this.options.fieldTypes) {
+            if (this.options.fieldTypes.hasOwnProperty(field)) {
+                var value = this.options.fieldTypes[field];
+                if (value == 'Date' || value == 'ISODate' || value == 'ASPDate') {
+                    this.fieldTypes[field] = 'Date';
+                }
+                else {
+                    this.fieldTypes[field] = value;
+                }
             }
-            else {
-                me.fieldTypes[field] = value;
-            }
-        });
+        }
     }
 
     // event subscribers
@@ -1599,11 +1602,12 @@ DataSet.prototype._trigger = function (event, params, senderId) {
         subscribers = subscribers.concat(this.subscribers['*']);
     }
 
-    subscribers.forEach(function (listener) {
-        if (listener.callback) {
-            listener.callback(event, params, senderId || null);
+    for (var i = 0; i < subscribers.length; i++) {
+        var subscriber = subscribers[i];
+        if (subscriber.callback) {
+            subscriber.callback(event, params, senderId || null);
         }
-    });
+    }
 };
 
 /**
@@ -1619,19 +1623,21 @@ DataSet.prototype.add = function (data, senderId) {
 
     if (data instanceof Array) {
         // Array
-        data.forEach(function (item) {
-            var id = me._addItem(item);
+        for (var i = 0, len = data.length; i < len; i++) {
+            id = me._addItem(data[i]);
             addedItems.push(id);
-        });
+        }
     }
     else if (util.isDataTable(data)) {
         // Google DataTable
         var columns = this._getColumnNames(data);
         for (var row = 0, rows = data.getNumberOfRows(); row < rows; row++) {
             var item = {};
-            columns.forEach(function (field, col) {
+            for (var col = 0, cols = columns.length; col < cols; col++) {
+                var field = columns[col];
                 item[field] = data.getValue(row, col);
-            });
+            }
+
             id = me._addItem(item);
             addedItems.push(id);
         }
@@ -1677,18 +1683,20 @@ DataSet.prototype.update = function (data, senderId) {
 
     if (data instanceof Array) {
         // Array
-        data.forEach(function (item) {
-            addOrUpdate(item);
-        });
+        for (var i = 0, len = data.length; i < len; i++) {
+            addOrUpdate(data[i]);
+        }
     }
     else if (util.isDataTable(data)) {
         // Google DataTable
         var columns = this._getColumnNames(data);
         for (var row = 0, rows = data.getNumberOfRows(); row < rows; row++) {
             var item = {};
-            columns.forEach(function (field, col) {
+            for (var col = 0, cols = columns.length; col < cols; col++) {
+                var field = columns[col];
                 item[field] = data.getValue(row, col);
-            });
+            }
+
             addOrUpdate(item);
         }
     }
@@ -1787,36 +1795,39 @@ DataSet.prototype.get = function (args) {
         type = 'Array';
     }
 
-    // get options
-    var fieldTypes = this._mergeFieldTypes(options && options.fieldTypes);
-    var fields = options && options.fields;
-    var filter = options && options.filter;
+    // build options
+    var itemOptions = this._composeItemOptions(options);
 
+    var item, itemId, i, len;
     if (type == 'DataTable') {
         // return a Google DataTable
         var columns = this._getColumnNames(data);
         if (id != undefined) {
             // return a single item
-            var item = me._castItem(me.data[id], fieldTypes, fields);
-            this._appendRow(data, columns, item);
+            item = me._getItem(id, itemOptions);
+            if (item) {
+                this._appendRow(data, columns, item);
+            }
         }
         else if (ids != undefined) {
             // return a subset of items
-            ids.forEach(function (id) {
-                var castedItem = me._castItem(me.data[id], fieldTypes, fields);
-                if (!castedItem || filter(castedItem)) { // TODO: filter should be applied on the casted item but with all fields
-                    me._appendRow(data, columns, castedItem);
+            for (i = 0, len = ids.length; i < len; i++) {
+                item = me._getItem(ids[i], itemOptions);
+                if (item) {
+                    me._appendRow(data, columns, item);
                 }
-            });
+            }
         }
         else {
             // return all items
-            util.forEach(this.data, function (item) {
-                var castedItem = me._castItem(item);
-                if (!castedItem || filter(castedItem)) {    // TODO: filter should be applied on the casted item but with all fields
-                    me._appendRow(data, columns, castedItem);
+            for (itemId in this.data) {
+                if (this.data.hasOwnProperty(itemId)) {
+                    item = me._getItem(itemId, itemOptions);
+                    if (item) {
+                        me._appendRow(data, columns, item);
+                    }
                 }
-            });
+            }
         }
     }
     else {
@@ -1827,29 +1838,71 @@ DataSet.prototype.get = function (args) {
 
         if (id != undefined) {
             // return a single item
-            return this._castItem(me.data[id], fieldTypes, fields);
+            return me._getItem(id, itemOptions);
         }
         else if (ids != undefined) {
             // return a subset of items
-            ids.forEach(function (id) {
-                var castedItem = me._castItem(me.data[id], fieldTypes, fields);
-                if (!filter || filter(castedItem)) {    // TODO: filter should be applied on the casted item but with all fields
-                    data.push(castedItem);
+            for (i = 0, len = ids.length; i < len; i++) {
+                item = me._getItem(ids[i], itemOptions);
+                if (item) {
+                    data.push(item);
                 }
-            });
+            }
         }
         else {
             // return all items
-            util.forEach(this.data, function (item) {
-                var castedItem = me._castItem(item, fieldTypes, fields);
-                if (!filter || filter(castedItem)) {    // TODO: filter should be applied on the casted item but with all fields
-                    data.push(castedItem);
+            for (itemId in this.data) {
+                if (this.data.hasOwnProperty(itemId)) {
+                    item = me._getItem(itemId, itemOptions);
+                    if (item) {
+                        data.push(item);
+                    }
                 }
-            });
+            }
         }
     }
 
     return data;
+};
+
+/**
+ * Get ids of all items or from a filtered set of items.
+ * @param {Object} [options]    An Object with options. Available options:
+ *                              {function} [filter] filter items
+ *                              TODO: implement an option order
+ * @return {Array} ids
+ */
+DataSet.prototype.getIds = function (options) {
+    var data = this.data,
+        id,
+        item,
+        ids = [];
+
+    if (options && options.filter) {
+        // get filtered items
+        var itemOptions = this._composeItemOptions({
+            filter: options && options.filter
+        });
+        for (id in data) {
+            if (data.hasOwnProperty(id)) {
+                item = this._getItem(id, itemOptions);
+                if (item) {
+                    ids.push(item[this.fieldId]);
+                }
+            }
+        }
+    }
+    else {
+        // get all items
+        for (id in data) {
+            if (data.hasOwnProperty(id)) {
+                item = data[id];
+                ids.push(item[this.fieldId]);
+            }
+        }
+    }
+
+    return ids;
 };
 
 /**
@@ -1860,19 +1913,21 @@ DataSet.prototype.get = function (args) {
  *                                      {Object.<String, String>} [fieldTypes]
  *                                      {String[]} [fields] filter fields
  *                                      {function} [filter] filter items
+ *                                      TODO: implement an option order
  */
 DataSet.prototype.forEach = function (callback, options) {
-    var fieldTypes = this._mergeFieldTypes(options && options.fieldTypes);
-    var fields = options && options.fields;
-    var filter = options && options.filter;
-    var me = this;
+    var itemOptions = this._composeItemOptions(options),
+        data = this.data,
+        item;
 
-    util.forEach(this.data, function (item, id) {
-        var castedItem = me._castItem(item, fieldTypes, fields);
-        if (!filter || filter(castedItem)) {
-            callback(castedItem, id);
+    for (var id in data) {
+        if (data.hasOwnProperty(id)) {
+            item = this._getItem(id, itemOptions);
+            if (item) {
+                callback(item, id);
+            }
         }
-    });
+    }
 };
 
 /**
@@ -1886,47 +1941,55 @@ DataSet.prototype.forEach = function (callback, options) {
  * @return {Object[]} mappedItems
  */
 DataSet.prototype.map = function (callback, options) {
-    var fieldTypes = this._mergeFieldTypes(options && options.fieldTypes);
-    var fields = options && options.fields;
-    var filter = options && options.filter;
-    var me = this;
-    var mappedItems = [];
+    var itemOptions = this._composeItemOptions(options),
+        mappedItems = [],
+        data = this.data,
+        item;
 
-    util.forEach(this.data, function (item, id) {
-        var castedItem = me._castItem(item, fieldTypes, fields);
-        if (!filter || filter(castedItem)) {
-            var mappedItem = callback(castedItem, id);
-            mappedItems.push(mappedItem);
+    for (var id in data) {
+        if (data.hasOwnProperty(id)) {
+            item = this._getItem(id, itemOptions);
+            if (item) {
+                mappedItems.push(callback(item, id));
+            }
         }
-    });
+    }
 
     return mappedItems;
 };
 
 /**
- * Merge the provided field types with the datasets fieldtypes
- * @param {Object} fieldTypes
- * @returns {Object} mergedFieldTypes
+ * Build an option set for getting an item. Options will be merged by the
+ * default options of the dataset.
+ * @param {Object} options
+ * @returns {Object} itemOptions
  * @private
  */
-DataSet.prototype._mergeFieldTypes = function (fieldTypes) {
-    var merged = {};
+DataSet.prototype._composeItemOptions = function (options) {
+    var itemOptions = {},
+        field;
 
-    // extend with the datasets fieldTypes
-    if (this.options && this.options.fieldTypes) {
-        util.forEach(this.options.fieldTypes, function (value, field) {
-            merged[field] = value;
-        });
+    if (options) {
+        // get the default field types
+        itemOptions.fieldTypes = {};
+        if (this.options && this.options.fieldTypes) {
+            util.extend(itemOptions.fieldTypes, this.options.fieldTypes);
+        }
+
+        // extend field types with provided types
+        if (options.fieldTypes) {
+            util.extend(itemOptions.fieldTypes, options.fieldTypes);
+        }
+
+        if (options.fields) {
+            itemOptions.fields = options.fields;
+        }
+        if (options.filter) {
+            itemOptions.filter = options.filter;
+        }
     }
 
-    // extend with provided fieldTypes
-    if (fieldTypes) {
-        util.forEach(fieldTypes, function (value, field) {
-            merged[field] = value;
-        });
-    }
-
-    return merged;
+    return itemOptions;
 };
 
 /**
@@ -1937,7 +2000,7 @@ DataSet.prototype._mergeFieldTypes = function (fieldTypes) {
  */
 DataSet.prototype.remove = function (id, senderId) {
     var removedItems = [],
-        me = this;
+        i, len;
 
     if (util.isNumber(id) || util.isString(id)) {
         delete this.data[id];
@@ -1945,14 +2008,14 @@ DataSet.prototype.remove = function (id, senderId) {
         removedItems.push(id);
     }
     else if (id instanceof Array) {
-        id.forEach(function (id) {
-            me.remove(id);
-        });
+        for (i = 0, len = id.length; i < len; i++) {
+            this.remove(id[i]);
+        }
         removedItems = items.concat(id);
     }
     else if (id instanceof Object) {
         // search for the object
-        for (var i in this.data) {
+        for (i in this.data) {
             if (this.data.hasOwnProperty(i)) {
                 if (this.data[i] == id) {
                     delete this.data[i];
@@ -1988,18 +2051,19 @@ DataSet.prototype.clear = function (senderId) {
  */
 DataSet.prototype.max = function (field) {
     var data = this.data,
-        ids = Object.keys(data);
+        max = null,
+        maxField = null;
 
-    var max = null;
-    var maxField = null;
-    ids.forEach(function (id) {
-        var item = data[id];
-        var itemField = item[field];
-        if (itemField != null && (!max || itemField > maxField)) {
-            max = item;
-            maxField = itemField;
+    for (var id in data) {
+        if (data.hasOwnProperty(id)) {
+            var item = data[id];
+            var itemField = item[field];
+            if (itemField != null && (!max || itemField > maxField)) {
+                max = item;
+                maxField = itemField;
+            }
         }
-    });
+    }
 
     return max;
 };
@@ -2011,18 +2075,19 @@ DataSet.prototype.max = function (field) {
  */
 DataSet.prototype.min = function (field) {
     var data = this.data,
-        ids = Object.keys(data);
+        min = null,
+        minField = null;
 
-    var min = null;
-    var minField = null;
-    ids.forEach(function (id) {
-        var item = data[id];
-        var itemField = item[field];
-        if (itemField != null && (!min || itemField < minField)) {
-            min = item;
-            minField = itemField;
+    for (var id in data) {
+        if (data.hasOwnProperty(id)) {
+            var item = data[id];
+            var itemField = item[field];
+            if (itemField != null && (!min || itemField < minField)) {
+                min = item;
+                minField = itemField;
+            }
         }
-    });
+    }
 
     return min;
 };
@@ -2098,44 +2163,73 @@ DataSet.prototype._addItem = function (item) {
 };
 
 /**
- * Cast and filter the fields of an item
- * @param {Object | undefined} item
- * @param {Object.<String, String>} [fieldTypes]
- * @param {String[]} [fields]
- * @return {Object | null} castedItem
+ * Get, cast and filter an item
+ * @param {String} id
+ * @param {Object} options  Available options:
+ *                          {Object.<String, String>} fieldTypes  Cast field types
+ *                          {String[]} fields   Filter fields
+ *                          {function} filter   Filter item, returns null if
+ *                                              item does not match the filter
+ * @return {Object | null} item
  * @private
  */
-DataSet.prototype._castItem = function (item, fieldTypes, fields) {
-    var clone,
+DataSet.prototype._getItem = function (id, options) {
+    var field, value;
+
+    // get the item from the dataset
+    var raw = this.data[id];
+    if (!raw) {
+        return null;
+    }
+
+    // cast the items field types
+    var casted = {},
         fieldId = this.fieldId,
         internalIds = this.internalIds;
-
-    if (item) {
-        clone = {};
-        fieldTypes = fieldTypes || {};
-
-        if (fields) {
-            // output filtered fields
-            util.forEach(item, function (value, field) {
-                if (fields.indexOf(field) != -1) {
-                    clone[field] = util.cast(value, fieldTypes[field]);
+    if (options.fieldTypes) {
+        var fieldTypes = options.fieldTypes;
+        for (field in raw) {
+            if (raw.hasOwnProperty(field)) {
+                value = raw[field];
+                // output all fields, except internal ids
+                if ((field != fieldId) || !(value in internalIds)) {
+                    casted[field] = util.cast(value, fieldTypes[field]);
                 }
-            });
-        }
-        else {
-            // output all fields, except internal ids
-            util.forEach(item, function (value, field) {
-                if (field != fieldId || !(value in internalIds)) {
-                    clone[field] = util.cast(value, fieldTypes[field]);
-                }
-            });
+            }
         }
     }
     else {
-        clone = null;
+        // no field types specified, no casting needed
+        for (field in raw) {
+            if (raw.hasOwnProperty(field)) {
+                value = raw[field];
+                // output all fields, except internal ids
+                if ((field != fieldId) || !(value in internalIds)) {
+                    casted[field] = value;
+                }
+            }
+        }
     }
 
-    return clone;
+    // apply item filter
+    if (options.filter && !options.filter(casted)) {
+        return null;
+    }
+
+    // apply fields filter
+    if (options.fields) {
+        var filtered = {},
+            fields = options.fields;
+        for (field in casted) {
+            if (casted.hasOwnProperty(field) && (fields.indexOf(field) != -1)) {
+                filtered[field] = casted[field];
+            }
+        }
+        return filtered;
+    }
+    else {
+        return casted;
+    }
 };
 
 /**
@@ -2171,7 +2265,7 @@ DataSet.prototype._updateItem = function (item) {
 /**
  * Get an array with the column names of a Google DataTable
  * @param {DataTable} dataTable
- * @return {Array} columnNames
+ * @return {String[]} columnNames
  * @private
  */
 DataSet.prototype._getColumnNames = function (dataTable) {
@@ -2191,9 +2285,11 @@ DataSet.prototype._getColumnNames = function (dataTable) {
  */
 DataSet.prototype._appendRow = function (dataTable, columns, item) {
     var row = dataTable.addRow();
-    columns.forEach(function (field, col) {
+
+    for (var col = 0, cols = columns.length; col < cols; col++) {
+        var field = columns[col];
         dataTable.setValue(row, col, item[field]);
-    });
+    }
 };
 
 /**
@@ -2208,16 +2304,14 @@ DataSet.prototype._appendRow = function (dataTable, columns, item) {
  */
 function DataView (data, options) {
     this.data = null;
+    this.options = options || {};
+    this.fieldId = 'id'; // name of the field containing id
+    this.subscribers = {}; // event subscribers
 
     var me = this;
     this.listener = function () {
         me._onEvent.apply(me, arguments);
     };
-
-    this.options = options || {};
-
-    // event subscribers
-    this.subscribers = {};
 
     this.setData(data);
 }
@@ -2227,16 +2321,43 @@ function DataView (data, options) {
  * @param {DataSet | DataView} data
  */
 DataView.prototype.setData = function (data) {
-    // unsubscribe from current dataset
-    if (this.data && this.data.unsubscribe) {
-        this.data.unsubscribe('*', this.listener);
+    var ids, dataItems, i, len;
+
+    if (this.data) {
+        // unsubscribe from current dataset
+        if (this.data.unsubscribe) {
+            this.data.unsubscribe('*', this.listener);
+        }
+
+        // trigger a remove of all drawn items
+        dataItems = this.get({fields: [this.fieldId, 'group']});
+        ids = [];
+        for (i = 0, len = dataItems.length; i < len; i++) {
+            ids[i] = dataItems[i].id;
+        }
+        this._trigger('remove', {items: ids});
     }
 
     this.data = data;
 
-    // subscribe to new dataset
-    if (this.data && this.data.subscribe) {
-        this.data.subscribe('*', this.listener);
+    if (this.data) {
+        // update fieldId
+        this.fieldId = this.options.fieldId ||
+            (this.data && this.data.options && this.data.options.fieldId) ||
+            'id';
+
+        // trigger an add of all added items
+        dataItems = this.get({fields: [this.fieldId, 'group']});
+        ids = [];
+        for (i = 0, len = dataItems.length; i < len; i++) {
+            ids[i] = dataItems[i].id;
+        }
+        this._trigger('add', {items: ids});
+
+        // subscribe to new dataset
+        if (this.data.subscribe) {
+            this.data.subscribe('*', this.listener);
+        }
     }
 };
 
@@ -2308,7 +2429,47 @@ DataView.prototype.get = function (args) {
     }
     getArguments.push(viewOptions);
     getArguments.push(data);
-    return this.data.get.apply(this.data, getArguments);
+
+    return this.data && this.data.get.apply(this.data, getArguments);
+};
+
+/**
+ * Get ids of all items or from a filtered set of items.
+ * @param {Object} [options]    An Object with options. Available options:
+ *                              {function} [filter] filter items
+ *                              TODO: implement an option order
+ * @return {Array} ids
+ */
+DataView.prototype.getIds = function (options) {
+    var ids;
+
+    if (this.data) {
+        var defaultFilter = this.options.filter;
+        var filter;
+
+        if (options && options.filter) {
+            if (defaultFilter) {
+                filter = function (item) {
+                    return defaultFilter(item) && options.filter(item);
+                }
+            }
+            else {
+                filter = options.filter;
+            }
+        }
+        else {
+            filter = defaultFilter;
+        }
+
+        ids = this.data.getIds({
+            filter: filter
+        });
+    }
+    else {
+        ids = [];
+    }
+
+    return ids;
 };
 
 /**
@@ -2323,8 +2484,7 @@ DataView.prototype.get = function (args) {
 DataView.prototype._onEvent = function (event, params, senderId) {
     var items = params && params.items,
         data = this.data,
-        fieldId = this.options.fieldId ||
-            (this.data && this.data.options && this.data.options.fieldId) || 'id',
+        fieldId = this.fieldId,
         filter = this.options.filter,
         filteredItems = [];
 
@@ -2332,8 +2492,14 @@ DataView.prototype._onEvent = function (event, params, senderId) {
         filteredItems = data.get(items, {
             filter: filter
         }).map(function (item) {
-            return item.id;
+            return item[fieldId];
         });
+
+        // TODO: dataview must trigger events from its own point of view:
+        //       a changed item can be:
+        //       - added to the filtered set
+        //       - removed from the filtered set
+        //       - changed in the filtered set
 
         if (filteredItems.length) {
             this._trigger(event, {items: filteredItems}, senderId);
@@ -4459,8 +4625,13 @@ ItemSet.prototype.repaint = function repaint() {
 
     // reposition axis
     changed += update(this.dom.axis.style, 'left', asSize(options.left, '0px'));
-    changed += update(this.dom.axis.style, 'top',  (this.height + this.top) + 'px');
     changed += update(this.dom.axis.style, 'width',  asSize(options.width, '100%'));
+    if (this.options.orientation == 'bottom') {
+        changed += update(this.dom.axis.style, 'top',  (this.height + this.top) + 'px');
+    }
+    else { // orientation == 'top'
+        changed += update(this.dom.axis.style, 'top', this.top + 'px');
+    }
 
     this._updateConversion();
 
@@ -4469,10 +4640,9 @@ ItemSet.prototype.repaint = function repaint() {
         items = this.items,
         contents = this.contents,
         dataOptions = {
-            fields: ['id', 'start', 'end', 'content', 'type']
+            fields: [(items && items.fieldId || 'id'), 'start', 'end', 'content', 'type']
         };
     // TODO: copy options from the itemset itself?
-    // TODO: make orientation dynamically changable for the items
 
     // show/hide added/changed/removed items
     Object.keys(queue).forEach(function (id) {
@@ -4484,40 +4654,43 @@ ItemSet.prototype.repaint = function repaint() {
         switch (action) {
             case 'add':
             case 'update':
-                var itemData = items.get(id, dataOptions);
+                var itemData = items && items.get(id, dataOptions);
 
-                var type = itemData.type ||
-                    (itemData.start && itemData.end && 'range') ||
-                    'box';
-                var constructor = ItemSet.types[type];
+                if (itemData) {
+                    var type = itemData.type ||
+                        (itemData.start && itemData.end && 'range') ||
+                        'box';
+                    var constructor = ItemSet.types[type];
 
-                // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
-                if (item) {
-                    // update item
-                    if (!constructor || !(item instanceof constructor)) {
-                        // item type has changed, hide and delete the item
-                        changed += item.hide();
-                        item = null;
+                    // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
+                    if (item) {
+                        // update item
+                        if (!constructor || !(item instanceof constructor)) {
+                            // item type has changed, hide and delete the item
+                            changed += item.hide();
+                            item = null;
+                        }
+                        else {
+                            item.data = itemData; // TODO: create a method item.setData ?
+                            changed++;
+                        }
                     }
-                    else {
-                        item.data = itemData; // TODO: create a method item.setData ?
-                        changed++;
+
+                    if (!item) {
+                        // create item
+                        if (constructor) {
+                            item = new constructor(me, itemData, options);
+                            changed++;
+                        }
+                        else {
+                            throw new TypeError('Unknown item type "' + type + '"');
+                        }
                     }
+
+                    contents[id] = item;
                 }
 
-                if (!item) {
-                    // create item
-                    if (constructor) {
-                        item = new constructor(me, itemData, options);
-                        changed++;
-                    }
-                    else {
-                        throw new TypeError('Unknown item type "' + type + '"');
-                    }
-                }
-
-                // update lists
-                contents[id] = item;
+                // update queue
                 delete queue[id];
                 break;
 
@@ -4662,6 +4835,7 @@ ItemSet.prototype.hide = function hide() {
 ItemSet.prototype.setItems = function setItems(items) {
     var me = this,
         dataItems,
+        fieldId,
         ids;
 
     // unsubscribe from current dataset
@@ -4672,10 +4846,11 @@ ItemSet.prototype.setItems = function setItems(items) {
         });
 
         // remove all drawn items
-        dataItems = current.get({fields: ['id']});
+        fieldId = this.items.fieldId;
+        dataItems = current.get({fields: [fieldId]});
         ids = [];
         util.forEach(dataItems, function (dataItem, index) {
-            ids[index] = dataItem.id;
+            ids[index] = dataItem[fieldId];
         });
         this._onRemove(ids);
     }
@@ -4699,10 +4874,11 @@ ItemSet.prototype.setItems = function setItems(items) {
         });
 
         // draw all new items
-        dataItems = this.items.get({fields: ['id']});
+        fieldId = this.items.fieldId;
+        dataItems = this.items.get({fields: [fieldId]});
         ids = [];
         util.forEach(dataItems, function (dataItem, index) {
-            ids[index] = dataItem.id;
+            ids[index] = dataItem[fieldId];
         });
         this._onAdd(ids);
     }
@@ -4722,7 +4898,7 @@ ItemSet.prototype.getItems = function getItems() {
  * @private
  */
 ItemSet.prototype._onUpdate = function _onUpdate(ids) {
-    this._toQueue(ids, 'update');
+    this._toQueue('update', ids);
 };
 
 /**
@@ -4731,7 +4907,7 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
  * @private
  */
 ItemSet.prototype._onAdd = function _onAdd(ids) {
-    this._toQueue(ids, 'add');
+    this._toQueue('add', ids);
 };
 
 /**
@@ -4740,15 +4916,15 @@ ItemSet.prototype._onAdd = function _onAdd(ids) {
  * @private
  */
 ItemSet.prototype._onRemove = function _onRemove(ids) {
-    this._toQueue(ids, 'remove');
+    this._toQueue('remove', ids);
 };
 
 /**
  * Put items in the queue to be added/updated/remove
- * @param {Number[]} ids
  * @param {String} action     can be 'add', 'update', 'remove'
+ * @param {Number[]} ids
  */
-ItemSet.prototype._toQueue = function _toQueue(ids, action) {
+ItemSet.prototype._toQueue = function _toQueue(action, ids) {
     var queue = this.queue;
     ids.forEach(function (id) {
         queue[id] = action;
@@ -5080,7 +5256,7 @@ ItemBox.prototype.reflow = function reflow() {
             options = this.options;
             start = this.parent.toScreen(this.data.start);
             align = options && options.align;
-            orientation = options.orientation;
+            orientation = options && options.orientation;
 
             changed += update(props.dot, 'height', dom.dot.offsetHeight);
             changed += update(props.dot, 'width', dom.dot.offsetWidth);
@@ -5772,7 +5948,7 @@ GroupSet.prototype.setItems = function setItems(items) {
     this.items = items;
 
     util.forEach(this.contents, function (group) {
-        group.itemset.setItems(items);
+        group.view.setData(items);
     });
 };
 
@@ -5929,30 +6105,27 @@ GroupSet.prototype.repaint = function repaint() {
             switch (action) {
                 case 'add':
                 case 'update':
-                    // group does not yet exist
                     if (!group) {
+                        // group does not yet exist, create a group
                         var itemset = new ItemSet(me);
-                        itemset.setOptions(util.extend({
-                            top: function () {
-                                return 0; // TODO
-                            }
-                        }, me.options));
+                        itemset.setOptions(me.options);
                         itemset.setRange(me.range);
-                        itemset.setItems(me.items);
-                        /* TODO: create a DataView for every group
-                        itemset.setItems(new DataView(me.items, {filter: function (item) {
+                        var view = new DataView(me.items, {filter: function (item) {
                             return item.group == id;
-                        }}));
-                        */
+                        }});
+                        itemset.setItems(view);
                         me.controller.add(itemset);
 
                         group = {
                             id: id,
-                            data: groups.get(id),
+                            view: view,
                             itemset: itemset
                         };
                         contents.push(group);
                     }
+
+                    // update group data
+                    group.data = groups.get(id);
 
                     delete queue[id];
                     break;

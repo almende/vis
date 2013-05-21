@@ -72,7 +72,7 @@ GroupSet.prototype.setItems = function setItems(items) {
     this.items = items;
 
     util.forEach(this.contents, function (group) {
-        group.itemset.setItems(items);
+        group.view.setData(items);
     });
 };
 
@@ -229,30 +229,27 @@ GroupSet.prototype.repaint = function repaint() {
             switch (action) {
                 case 'add':
                 case 'update':
-                    // group does not yet exist
                     if (!group) {
+                        // group does not yet exist, create a group
                         var itemset = new ItemSet(me);
-                        itemset.setOptions(util.extend({
-                            top: function () {
-                                return 0; // TODO
-                            }
-                        }, me.options));
+                        itemset.setOptions(me.options);
                         itemset.setRange(me.range);
-                        itemset.setItems(me.items);
-                        /* TODO: create a DataView for every group
-                        itemset.setItems(new DataView(me.items, {filter: function (item) {
+                        var view = new DataView(me.items, {filter: function (item) {
                             return item.group == id;
-                        }}));
-                        */
+                        }});
+                        itemset.setItems(view);
                         me.controller.add(itemset);
 
                         group = {
                             id: id,
-                            data: groups.get(id),
+                            view: view,
                             itemset: itemset
                         };
                         contents.push(group);
                     }
+
+                    // update group data
+                    group.data = groups.get(id);
 
                     delete queue[id];
                     break;

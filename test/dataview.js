@@ -55,3 +55,11 @@ groups.update({id:5, content: 'Item 5 (changed)'});
 assert.equal(groupsTriggerCount, 2);
 assert.equal(group2TriggerCount, 1);
 
+// detach the view from groups
+group2.setData(null);
+assert.equal(groupsTriggerCount, 2);
+assert.equal(group2TriggerCount, 2);
+
+groups.update({id:2, content: 'Item 2 (changed again)'});
+assert.equal(groupsTriggerCount, 3);
+assert.equal(group2TriggerCount, 2);

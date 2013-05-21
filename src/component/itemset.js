@@ -181,8 +181,13 @@ ItemSet.prototype.repaint = function repaint() {
 
     // reposition axis
     changed += update(this.dom.axis.style, 'left', asSize(options.left, '0px'));
-    changed += update(this.dom.axis.style, 'top',  (this.height + this.top) + 'px');
     changed += update(this.dom.axis.style, 'width',  asSize(options.width, '100%'));
+    if (this.options.orientation == 'bottom') {
+        changed += update(this.dom.axis.style, 'top',  (this.height + this.top) + 'px');
+    }
+    else { // orientation == 'top'
+        changed += update(this.dom.axis.style, 'top', this.top + 'px');
+    }
 
     this._updateConversion();
 
@@ -191,10 +196,9 @@ ItemSet.prototype.repaint = function repaint() {
         items = this.items,
         contents = this.contents,
         dataOptions = {
-            fields: ['id', 'start', 'end', 'content', 'type']
+            fields: [(items && items.fieldId || 'id'), 'start', 'end', 'content', 'type']
         };
     // TODO: copy options from the itemset itself?
-    // TODO: make orientation dynamically changable for the items
 
     // show/hide added/changed/removed items
     Object.keys(queue).forEach(function (id) {
@@ -206,40 +210,43 @@ ItemSet.prototype.repaint = function repaint() {
         switch (action) {
             case 'add':
             case 'update':
-                var itemData = items.get(id, dataOptions);
+                var itemData = items && items.get(id, dataOptions);
 
-                var type = itemData.type ||
-                    (itemData.start && itemData.end && 'range') ||
-                    'box';
-                var constructor = ItemSet.types[type];
+                if (itemData) {
+                    var type = itemData.type ||
+                        (itemData.start && itemData.end && 'range') ||
+                        'box';
+                    var constructor = ItemSet.types[type];
 
-                // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
-                if (item) {
-                    // update item
-                    if (!constructor || !(item instanceof constructor)) {
-                        // item type has changed, hide and delete the item
-                        changed += item.hide();
-                        item = null;
+                    // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
+                    if (item) {
+                        // update item
+                        if (!constructor || !(item instanceof constructor)) {
+                            // item type has changed, hide and delete the item
+                            changed += item.hide();
+                            item = null;
+                        }
+                        else {
+                            item.data = itemData; // TODO: create a method item.setData ?
+                            changed++;
+                        }
                     }
-                    else {
-                        item.data = itemData; // TODO: create a method item.setData ?
-                        changed++;
+
+                    if (!item) {
+                        // create item
+                        if (constructor) {
+                            item = new constructor(me, itemData, options);
+                            changed++;
+                        }
+                        else {
+                            throw new TypeError('Unknown item type "' + type + '"');
+                        }
                     }
+
+                    contents[id] = item;
                 }
 
-                if (!item) {
-                    // create item
-                    if (constructor) {
-                        item = new constructor(me, itemData, options);
-                        changed++;
-                    }
-                    else {
-                        throw new TypeError('Unknown item type "' + type + '"');
-                    }
-                }
-
-                // update lists
-                contents[id] = item;
+                // update queue
                 delete queue[id];
                 break;
 
@@ -384,6 +391,7 @@ ItemSet.prototype.hide = function hide() {
 ItemSet.prototype.setItems = function setItems(items) {
     var me = this,
         dataItems,
+        fieldId,
         ids;
 
     // unsubscribe from current dataset
@@ -394,10 +402,11 @@ ItemSet.prototype.setItems = function setItems(items) {
         });
 
         // remove all drawn items
-        dataItems = current.get({fields: ['id']});
+        fieldId = this.items.fieldId;
+        dataItems = current.get({fields: [fieldId]});
         ids = [];
         util.forEach(dataItems, function (dataItem, index) {
-            ids[index] = dataItem.id;
+            ids[index] = dataItem[fieldId];
         });
         this._onRemove(ids);
     }
@@ -421,10 +430,11 @@ ItemSet.prototype.setItems = function setItems(items) {
         });
 
         // draw all new items
-        dataItems = this.items.get({fields: ['id']});
+        fieldId = this.items.fieldId;
+        dataItems = this.items.get({fields: [fieldId]});
         ids = [];
         util.forEach(dataItems, function (dataItem, index) {
-            ids[index] = dataItem.id;
+            ids[index] = dataItem[fieldId];
         });
         this._onAdd(ids);
     }
@@ -444,7 +454,7 @@ ItemSet.prototype.getItems = function getItems() {
  * @private
  */
 ItemSet.prototype._onUpdate = function _onUpdate(ids) {
-    this._toQueue(ids, 'update');
+    this._toQueue('update', ids);
 };
 
 /**
@@ -453,7 +463,7 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
  * @private
  */
 ItemSet.prototype._onAdd = function _onAdd(ids) {
-    this._toQueue(ids, 'add');
+    this._toQueue('add', ids);
 };
 
 /**
@@ -462,15 +472,15 @@ ItemSet.prototype._onAdd = function _onAdd(ids) {
  * @private
  */
 ItemSet.prototype._onRemove = function _onRemove(ids) {
-    this._toQueue(ids, 'remove');
+    this._toQueue('remove', ids);
 };
 
 /**
  * Put items in the queue to be added/updated/remove
- * @param {Number[]} ids
  * @param {String} action     can be 'add', 'update', 'remove'
+ * @param {Number[]} ids
  */
-ItemSet.prototype._toQueue = function _toQueue(ids, action) {
+ItemSet.prototype._toQueue = function _toQueue(action, ids) {
     var queue = this.queue;
     ids.forEach(function (id) {
         queue[id] = action;

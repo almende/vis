@@ -10,16 +10,14 @@
  */
 function DataView (data, options) {
     this.data = null;
+    this.options = options || {};
+    this.fieldId = 'id'; // name of the field containing id
+    this.subscribers = {}; // event subscribers
 
     var me = this;
     this.listener = function () {
         me._onEvent.apply(me, arguments);
     };
-
-    this.options = options || {};
-
-    // event subscribers
-    this.subscribers = {};
 
     this.setData(data);
 }
@@ -29,16 +27,43 @@ function DataView (data, options) {
  * @param {DataSet | DataView} data
  */
 DataView.prototype.setData = function (data) {
-    // unsubscribe from current dataset
-    if (this.data && this.data.unsubscribe) {
-        this.data.unsubscribe('*', this.listener);
+    var ids, dataItems, i, len;
+
+    if (this.data) {
+        // unsubscribe from current dataset
+        if (this.data.unsubscribe) {
+            this.data.unsubscribe('*', this.listener);
+        }
+
+        // trigger a remove of all drawn items
+        dataItems = this.get({fields: [this.fieldId, 'group']});
+        ids = [];
+        for (i = 0, len = dataItems.length; i < len; i++) {
+            ids[i] = dataItems[i].id;
+        }
+        this._trigger('remove', {items: ids});
     }
 
     this.data = data;
 
-    // subscribe to new dataset
-    if (this.data && this.data.subscribe) {
-        this.data.subscribe('*', this.listener);
+    if (this.data) {
+        // update fieldId
+        this.fieldId = this.options.fieldId ||
+            (this.data && this.data.options && this.data.options.fieldId) ||
+            'id';
+
+        // trigger an add of all added items
+        dataItems = this.get({fields: [this.fieldId, 'group']});
+        ids = [];
+        for (i = 0, len = dataItems.length; i < len; i++) {
+            ids[i] = dataItems[i].id;
+        }
+        this._trigger('add', {items: ids});
+
+        // subscribe to new dataset
+        if (this.data.subscribe) {
+            this.data.subscribe('*', this.listener);
+        }
     }
 };
 
@@ -110,7 +135,47 @@ DataView.prototype.get = function (args) {
     }
     getArguments.push(viewOptions);
     getArguments.push(data);
-    return this.data.get.apply(this.data, getArguments);
+
+    return this.data && this.data.get.apply(this.data, getArguments);
+};
+
+/**
+ * Get ids of all items or from a filtered set of items.
+ * @param {Object} [options]    An Object with options. Available options:
+ *                              {function} [filter] filter items
+ *                              TODO: implement an option order
+ * @return {Array} ids
+ */
+DataView.prototype.getIds = function (options) {
+    var ids;
+
+    if (this.data) {
+        var defaultFilter = this.options.filter;
+        var filter;
+
+        if (options && options.filter) {
+            if (defaultFilter) {
+                filter = function (item) {
+                    return defaultFilter(item) && options.filter(item);
+                }
+            }
+            else {
+                filter = options.filter;
+            }
+        }
+        else {
+            filter = defaultFilter;
+        }
+
+        ids = this.data.getIds({
+            filter: filter
+        });
+    }
+    else {
+        ids = [];
+    }
+
+    return ids;
 };
 
 /**
@@ -125,8 +190,7 @@ DataView.prototype.get = function (args) {
 DataView.prototype._onEvent = function (event, params, senderId) {
     var items = params && params.items,
         data = this.data,
-        fieldId = this.options.fieldId ||
-            (this.data && this.data.options && this.data.options.fieldId) || 'id',
+        fieldId = this.fieldId,
         filter = this.options.filter,
         filteredItems = [];
 
@@ -134,8 +198,14 @@ DataView.prototype._onEvent = function (event, params, senderId) {
         filteredItems = data.get(items, {
             filter: filter
         }).map(function (item) {
-            return item.id;
+            return item[fieldId];
         });
+
+        // TODO: dataview must trigger events from its own point of view:
+        //       a changed item can be:
+        //       - added to the filtered set
+        //       - removed from the filtered set
+        //       - changed in the filtered set
 
         if (filteredItems.length) {
             this._trigger(event, {items: filteredItems}, senderId);

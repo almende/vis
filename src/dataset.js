@@ -385,6 +385,46 @@ DataSet.prototype.get = function (args) {
 };
 
 /**
+ * Get ids of all items or from a filtered set of items.
+ * @param {Object} [options]    An Object with options. Available options:
+ *                              {function} [filter] filter items
+ *                              TODO: implement an option order
+ * @return {Array} ids
+ */
+DataSet.prototype.getIds = function (options) {
+    var data = this.data,
+        id,
+        item,
+        ids = [];
+
+    if (options && options.filter) {
+        // get filtered items
+        var itemOptions = this._composeItemOptions({
+            filter: options && options.filter
+        });
+        for (id in data) {
+            if (data.hasOwnProperty(id)) {
+                item = this._getItem(id, itemOptions);
+                if (item) {
+                    ids.push(item[this.fieldId]);
+                }
+            }
+        }
+    }
+    else {
+        // get all items
+        for (id in data) {
+            if (data.hasOwnProperty(id)) {
+                item = data[id];
+                ids.push(item[this.fieldId]);
+            }
+        }
+    }
+
+    return ids;
+};
+
+/**
  * Execute a callback function for every item in the dataset.
  * The order of the items is not determined.
  * @param {function} callback
@@ -392,6 +432,7 @@ DataSet.prototype.get = function (args) {
  *                                      {Object.<String, String>} [fieldTypes]
  *                                      {String[]} [fields] filter fields
  *                                      {function} [filter] filter items
+ *                                      TODO: implement an option order
  */
 DataSet.prototype.forEach = function (callback, options) {
     var itemOptions = this._composeItemOptions(options),
