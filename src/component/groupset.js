@@ -280,12 +280,14 @@ GroupSet.prototype.reflow = function reflow() {
         options = this.options,
         update = util.updateProperty,
         asNumber = util.option.asNumber,
+        asSize = util.option.asSize,
         frame = this.frame;
 
     if (frame) {
         var maxHeight = asNumber(options.maxHeight);
+        var fixedHeight = (asSize(options.height) != null);
         var height;
-        if (options.height != null) {
+        if (fixedHeight) {
             height = frame.offsetHeight;
         }
         else {

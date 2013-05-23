@@ -28,6 +28,16 @@ function Timeline (container, items, options) {
         throw new Error('No container element provided');
     }
     var mainOptions = Object.create(this.options);
+    mainOptions.height = function () {
+        if (me.options.height) {
+            // fixed height
+            return me.options.height;
+        }
+        else {
+            // auto height
+            return me.timeaxis.height + me.content.height;
+        }
+    };
     this.main = new RootPanel(container, mainOptions);
     this.controller.add(this.main);
 
@@ -81,58 +91,6 @@ Timeline.prototype.setOptions = function (options) {
     if (options) {
         util.extend(this.options, options);
     }
-
-    var itemsTop,
-        itemsHeight,
-        mainHeight,
-        maxHeight,
-        me = this;
-
-    if (this.options.orientation == 'top') {
-        itemsTop = function () {
-            return me.timeaxis.height;
-        }
-    }
-    else {
-        itemsTop = function () {
-            return me.main.height - me.timeaxis.height - me.content.height;
-        }
-    }
-
-    if (this.options.height) {
-        // fixed height
-        mainHeight = this.options.height;
-        itemsHeight = function () {
-            return me.main.height - me.timeaxis.height;
-        };
-    }
-    else {
-        // auto height
-        mainHeight = function () {
-            return me.timeaxis.height + me.content.height;
-        };
-        itemsHeight = null;
-    }
-
-    // TODO: maxHeight should be a string in px or % (currently only accepts a number)
-    if (this.options.maxHeight) {
-        if (!util.isNumber(this.options.maxHeight)) {
-            throw new TypeError('Number expected for property maxHeight');
-        }
-        maxHeight = function () {
-            return me.options.maxHeight - me.timeaxis.height;
-        }
-    }
-
-    this.main.setOptions({
-        height: mainHeight
-    });
-
-    this.content.setOptions({
-        top: itemsTop,
-        height: itemsHeight,
-        maxHeight: maxHeight
-    });
 
     this.controller.repaint();
 };
@@ -199,6 +157,7 @@ Timeline.prototype.setItems = function(items) {
  * @param {vis.DataSet | Array | DataTable} groups
  */
 Timeline.prototype.setGroups = function(groups) {
+    var me = this;
     this.groupsData = groups;
 
     // switch content type between ItemSet or GroupSet when needed
@@ -217,7 +176,36 @@ Timeline.prototype.setGroups = function(groups) {
         }
 
         // create new content set
-        this.content = new type(this.main, [this.timeaxis]);
+        var options = {
+            top: function () {
+                if (me.options.orientation == 'top') {
+                    return me.timeaxis.height;
+                }
+                else {
+                    return me.main.height - me.timeaxis.height - me.content.height;
+                }
+            },
+            height: function () {
+                if (me.options.height) {
+                    return me.main.height - me.timeaxis.height;
+                }
+                else {
+                    return null;
+                }
+            },
+            maxHeight: function () {
+                if (me.options.maxHeight) {
+                    if (!util.isNumber(me.options.maxHeight)) {
+                        throw new TypeError('Number expected for property maxHeight');
+                    }
+                    return me.options.maxHeight - me.timeaxis.height;
+                }
+                else {
+                    return null;
+                }
+            }
+        };
+        this.content = new type(this.main, [this.timeaxis], options);
         if (this.content.setRange) {
             this.content.setRange(this.range);
         }
@@ -228,7 +216,6 @@ Timeline.prototype.setGroups = function(groups) {
             this.content.setGroups(this.groupsData);
         }
         this.controller.add(this.content);
-        this.setOptions(this.options);
     }
 };
 

@@ -317,6 +317,7 @@ ItemSet.prototype.reflow = function reflow () {
         marginItem = options.margin && options.margin.item || this.defaultOptions.margin.item,
         update = util.updateProperty,
         asNumber = util.option.asNumber,
+        asSize = util.option.asSize,
         frame = this.frame;
 
     if (frame) {
@@ -331,8 +332,9 @@ ItemSet.prototype.reflow = function reflow () {
         this.stack.update();
 
         var maxHeight = asNumber(options.maxHeight);
+        var fixedHeight = (asSize(options.height) != null);
         var height;
-        if (options.height != null) {
+        if (fixedHeight) {
             height = frame.offsetHeight;
         }
         else {
