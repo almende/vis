@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.0.8
- * @date    2013-05-21
+ * @date    2013-05-23
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -5919,6 +5919,91 @@ ItemRange.prototype.reposition = function reposition() {
 };
 
 /**
+ * @constructor Group
+ * @param {GroupSet} parent
+ * @param {Number | String} groupId
+ * @param {Object} [options]  Options to set initial property values
+ *                            // TODO: describe available options
+ * @extends Component
+ */
+function Group (parent, groupId, options) {
+    this.id = util.randomUUID();
+    this.parent = parent;
+
+    this.groupId = groupId;
+    this.itemsData = null;  // DataSet
+    this.items = null;      // ItemSet
+    this.options = {};
+
+    this.top = 0;
+    this.left = 0;
+    this.width = 0;
+    this.height = 0;
+
+    this.setOptions(options);
+}
+
+Group.prototype = new Component();
+
+Group.prototype.setOptions = function setOptions(options) {
+    if (options) {
+        util.extend(this.options, options);
+
+        if (this.items) {
+            this.items.setOptions(this.options);
+        }
+    }
+};
+
+/**
+ * Set item set for the group. The group will create a view on the itemset,
+ * filtered by the groups id.
+ * @param {DataSet | DataView} items
+ */
+Group.prototype.setItems = function setItems(items) {
+    if (this.items) {
+        // remove current item set
+        this.items.hide();
+        this.items.setItems();
+
+        this.parent.controller.remove(this.items);
+    }
+
+    if (items || true) {
+        var groupId = this.groupId;
+
+        this.items = new ItemSet(this.parent);
+        //this.items.setOptions(this.options); // TODO: copy only a specific set of options
+        this.items.setRange(this.parent.range);
+
+        this.view = new DataView(items, {
+            filter: function (item) {
+                return item.group == groupId;
+            }
+        });
+        this.items.setItems(this.view);
+
+        this.parent.controller.add(this.items);
+    }
+};
+
+/**
+ * Repaint the item
+ * @return {Boolean} changed
+ */
+Group.prototype.repaint = function repaint() {
+    return false;
+};
+
+/**
+ * Reflow the item
+ * @return {Boolean} resized
+ */
+Group.prototype.reflow = function reflow() {
+    return false;
+};
+
+/**
  * An GroupSet holds a set of groups
  * @param {Component} parent
  * @param {Component[]} [depends]   Components on which this components depends
@@ -5974,10 +6059,14 @@ GroupSet.prototype.setOptions = function setOptions(options) {
 
     // TODO: implement options
 
+    /* TODO: only apply known options to the itemsets, must not override options.top
     var me = this;
     util.forEach(this.groups, function (group) {
-        group.itemset.setOptions(me.options);
+        if (group.items) {
+            group.items.setOptions(me.options);
+        }
     });
+    */
 };
 
 GroupSet.prototype.setRange = function (range) {
@@ -5992,7 +6081,7 @@ GroupSet.prototype.setItems = function setItems(items) {
     this.itemsData = items;
 
     util.forEach(this.groups, function (group) {
-        group.view.setData(items);
+        group.setItems(items);
     });
 };
 
@@ -6112,12 +6201,8 @@ GroupSet.prototype.repaint = function repaint() {
 
     var me = this,
         queue = this.queue,
-        itemsData = this.itemsData,
         groups = this.groups,
-        groupsData = this.groupsData,
-        dataOptions = {
-            fields: ['id', 'content']
-        };
+        groupsData = this.groupsData;
 
     // show/hide added/changed/removed items
     var ids = Object.keys(queue);
@@ -6141,39 +6226,25 @@ GroupSet.prototype.repaint = function repaint() {
                 case 'add':
                 case 'update':
                     if (!group) {
-                        // group does not yet exist, create a group
-                        var itemset = new ItemSet(me);
-                        itemset.setOptions(me.options);
-                        itemset.setRange(me.range);
-                        var view = new DataView(me.itemsData, {filter: function (item) {
-                            return item.group == id;
-                        }});
-                        itemset.setItems(view);
-                        me.controller.add(itemset);
-
-                        group = {
-                            id: id,
-                            view: view,
-                            itemset: itemset
-                        };
+                        var options = util.extend({}, me.options, {top: 0});
+                        group = new Group(me, id, options);
+                        group.setItems(me.itemsData); // attach items data
                         groups.push(group);
+
+                        me.controller.add(group);
                     }
 
-                    // update group data
-                    group.data = groupsData.get(id);
+                    // TODO: update group data
 
                     delete queue[id];
                     break;
 
                 case 'remove':
                     if (group) {
-                        // remove DOM of the group
-                        changed += group.itemset.hide();
-                        group.itemset.setItems();
-                        me.controller.remove(group.itemset);
-
-                        // remove group itself
+                        group.setItems(); // detach items data
                         groups.splice(groupIndex, 1);
+
+                        me.controller.remove(group);
                     }
 
                     // update lists
@@ -6185,25 +6256,31 @@ GroupSet.prototype.repaint = function repaint() {
             }
         });
 
-        // update the top position (TODO: optimize, needed only when groups are added/removed/reordered
-        var prevGroup = null;
-        util.forEach(this.groups, function (group) {
-            var prevItemset = prevGroup && prevGroup.itemset;
-            if (prevItemset) {
-                group.itemset.options.top = function () {
-                    return prevItemset.top + prevItemset.height;
+        // the groupset depends on each of the groups
+        //this.depends = this.groups; // TODO: gives a circular reference through the parent
+
+    }
+
+    // TODO: the functions for top should be re-created only when groups are changed! (must be put inside the if-block above)
+    // update the top position (TODO: optimize, needed only when groups are added/removed/reordered
+    // TODO: apply dependencies of the groupset
+    var prevGroup = null;
+    util.forEach(this.groups, function (group) {
+        // TODO: top function must be applied to the group instead of the groups itemset.
+        //       the group must then apply it to its itemset
+        //      (right now the created function top is removed when the group replaces its itemset
+        var prevItems = prevGroup && prevGroup.items;
+        if (group.items) {
+            if (prevItems) {
+                group.items.options.top = function () {
+                    return prevItems.top + prevItems.height;
                 }
             }
             else {
-                group.itemset.options.top = 0;
+                group.items.options.top = 0;
             }
-            prevGroup = group;
-        });
-    }
-
-    // reposition all groups
-    util.forEach(this.groups, function (group) {
-        changed += group.itemset.repaint();
+        }
+        prevGroup = group;
     });
 
     return (changed > 0);
@@ -6230,11 +6307,6 @@ GroupSet.prototype.reflow = function reflow() {
         frame = this.frame;
 
     if (frame) {
-        // reposition all groups
-        util.forEach(this.groups, function (group) {
-            changed += group.itemset.reflow();
-        });
-
         var maxHeight = asNumber(options.maxHeight);
         var height;
         if (options.height != null) {
@@ -6244,7 +6316,9 @@ GroupSet.prototype.reflow = function reflow() {
             // height is not specified, calculate the sum of the height of all groups
             height = 0;
             util.forEach(this.groups, function (group) {
-                height += group.itemset.height;
+                if (group.items) {
+                    height += group.items.height;
+                }
             });
         }
         if (maxHeight != null) {

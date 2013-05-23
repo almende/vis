@@ -62,6 +62,7 @@ task('build', {async: true}, function () {
             './src/component/timeaxis.js',
             './src/component/itemset.js',
             './src/component/item/*.js',
+            './src/component/group.js',
             './src/component/groupset.js',
 
             './src/visualization/timeline.js',
