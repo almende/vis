@@ -13,7 +13,7 @@ function GroupSet(parent, depends, options) {
     this.parent = parent;
     this.depends = depends;
 
-    this.options = {};
+    this.options = Object.create(parent && parent.options || null);
 
     this.range = null;      // Range or Object {start: number, end: number}
     this.itemsData = null;  // DataSet with items
@@ -37,31 +37,20 @@ function GroupSet(parent, depends, options) {
         }
     };
 
-    if (options) {
-        this.setOptions(options);
-    }
+    this.setOptions(options);
 }
 
 GroupSet.prototype = new Panel();
 
 /**
- * Set options for the ItemSet. Existing options will be extended/overwritten.
+ * Set options for the GroupSet. Existing options will be extended/overwritten.
  * @param {Object} [options] The following options are available:
  *                           TODO: describe options
  */
 GroupSet.prototype.setOptions = function setOptions(options) {
-    util.extend(this.options, options);
-
-    // TODO: implement options
-
-    /* TODO: only apply known options to the itemsets, must not override options.top
-    var me = this;
-    util.forEach(this.groups, function (group) {
-        if (group.items) {
-            group.items.setOptions(me.options);
-        }
-    });
-    */
+    if (options) {
+        util.extend(this.options, options);
+    }
 };
 
 GroupSet.prototype.setRange = function (range) {
@@ -75,7 +64,7 @@ GroupSet.prototype.setRange = function (range) {
 GroupSet.prototype.setItems = function setItems(items) {
     this.itemsData = items;
 
-    util.forEach(this.groups, function (group) {
+    this.groups.forEach(function (group) {
         group.setItems(items);
     });
 };
@@ -168,8 +157,9 @@ GroupSet.prototype.repaint = function repaint() {
         frame = document.createElement('div');
         frame.className = 'groupset';
 
-        if (options.className) {
-            util.addClassName(frame, util.option.asString(options.className));
+        var className = options.className;
+        if (className) {
+            util.addClassName(frame, util.option.asString(className));
         }
 
         this.frame = frame;
@@ -221,8 +211,7 @@ GroupSet.prototype.repaint = function repaint() {
                 case 'add':
                 case 'update':
                     if (!group) {
-                        var options = util.extend({}, me.options, {top: 0});
-                        group = new Group(me, id, options);
+                        group = new Group(me, id);
                         group.setItems(me.itemsData); // attach items data
                         groups.push(group);
 
@@ -254,29 +243,21 @@ GroupSet.prototype.repaint = function repaint() {
         // the groupset depends on each of the groups
         //this.depends = this.groups; // TODO: gives a circular reference through the parent
 
-    }
-
-    // TODO: the functions for top should be re-created only when groups are changed! (must be put inside the if-block above)
-    // update the top position (TODO: optimize, needed only when groups are added/removed/reordered
-    // TODO: apply dependencies of the groupset
-    var prevGroup = null;
-    util.forEach(this.groups, function (group) {
-        // TODO: top function must be applied to the group instead of the groups itemset.
-        //       the group must then apply it to its itemset
-        //      (right now the created function top is removed when the group replaces its itemset
-        var prevItems = prevGroup && prevGroup.items;
-        if (group.items) {
-            if (prevItems) {
-                group.items.options.top = function () {
-                    return prevItems.top + prevItems.height;
+        // TODO: apply dependencies of the groupset
+        this.groups.forEach(function (group, index) {
+            var prevGroup = me.groups[index - 1],
+                top = 0;
+            if (prevGroup) {
+                top = function () {
+                    return prevGroup.top + prevGroup.height;
                 }
             }
-            else {
-                group.items.options.top = 0;
-            }
-        }
-        prevGroup = group;
-    });
+            group.setOptions({
+                top: top
+            });
+        });
+
+    }
 
     return (changed > 0);
 };
@@ -310,10 +291,8 @@ GroupSet.prototype.reflow = function reflow() {
         else {
             // height is not specified, calculate the sum of the height of all groups
             height = 0;
-            util.forEach(this.groups, function (group) {
-                if (group.items) {
-                    height += group.items.height;
-                }
+            this.groups.forEach(function (group) {
+                height += group.height;
             });
         }
         if (maxHeight != null) {

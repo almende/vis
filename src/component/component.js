@@ -27,16 +27,32 @@ function Component () {
  *                          {String | Number | function} [height]
  */
 Component.prototype.setOptions = function setOptions(options) {
-    if (!options) {
-        return;
-    }
+    if (options) {
+        util.extend(this.options, options);
 
-    util.extend(this.options, options);
-
-    if (this.controller) {
-        this.requestRepaint();
-        this.requestReflow();
+        if (this.controller) {
+            this.requestRepaint();
+            this.requestReflow();
+        }
     }
+};
+
+/**
+ * Get an option value by name
+ * The function will first check this.options object, and else will check
+ * this.defaultOptions.
+ * @param {String} name
+ * @return {*} value
+ */
+Component.prototype.getOption = function getOption(name) {
+    var value;
+    if (this.options) {
+        value = this.options[name];
+    }
+    if (value === undefined && this.defaultOptions) {
+        value = this.defaultOptions[name];
+    }
+    return value;
 };
 
 /**

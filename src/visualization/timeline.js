@@ -9,10 +9,15 @@ function Timeline (container, items, options) {
     var me = this;
     this.options = {
         orientation: 'bottom',
+        min: null,
+        max: null,
         zoomMin: 10,     // milliseconds
         zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000, // milliseconds
         moveable: true,
-        zoomable: true
+        zoomable: true,
+        showMinorLabels: true,
+        showMajorLabels: true,
+        autoResize: false
     };
 
     // controller
@@ -22,9 +27,8 @@ function Timeline (container, items, options) {
     if (!container) {
         throw new Error('No container element provided');
     }
-    this.main = new RootPanel(container, {
-        autoResize: false
-    });
+    var mainOptions = Object.create(this.options);
+    this.main = new RootPanel(container, mainOptions);
     this.controller.add(this.main);
 
     // range
@@ -48,10 +52,9 @@ function Timeline (container, items, options) {
     // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
 
     // time axis
-    this.timeaxis = new TimeAxis(this.main, [], {
-        orientation: this.options.orientation,
-        range: this.range
-    });
+    var timeaxisOptions = Object.create(this.options);
+    timeaxisOptions.range = this.range;
+    this.timeaxis = new TimeAxis(this.main, [], timeaxisOptions);
     this.timeaxis.setRange(this.range);
     this.controller.add(this.timeaxis);
 
@@ -62,9 +65,7 @@ function Timeline (container, items, options) {
     this.groupsData = null;     // DataSet
 
     // set options (must take place before setting the data)
-    if (options) {
-        this.setOptions(options);
-    }
+    this.setOptions(options);
 
     // set data
     if (items) {
@@ -77,24 +78,10 @@ function Timeline (container, items, options) {
  * @param {Object} options  TODO: describe the available options
  */
 Timeline.prototype.setOptions = function (options) {
-    util.extend(this.options, options);
+    if (options) {
+        util.extend(this.options, options);
+    }
 
-    // update options the timeaxis
-    this.timeaxis.setOptions({
-        orientation: this.options.orientation,
-        showMinorLabels: this.options.showMinorLabels,
-        showMajorLabels: this.options.showMajorLabels
-    });
-
-    // update options for the range
-    this.range.setOptions({
-        min: this.options.min,
-        max: this.options.max,
-        zoomMin: this.options.zoomMin,
-        zoomMax: this.options.zoomMax
-    });
-
-    // update options the content
     var itemsTop,
         itemsHeight,
         mainHeight,
@@ -142,7 +129,6 @@ Timeline.prototype.setOptions = function (options) {
     });
 
     this.content.setOptions({
-        orientation: this.options.orientation,
         top: itemsTop,
         height: itemsHeight,
         maxHeight: maxHeight

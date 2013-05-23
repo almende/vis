@@ -2,12 +2,13 @@
  * @constructor ItemPoint
  * @extends Item
  * @param {ItemSet} parent
- * @param {Object} data       Object containing parameters start
- *                            content, className.
- * @param {Object} [options]  Options to set initial property values
- *                            // TODO: describe available options
+ * @param {Object} data             Object containing parameters start
+ *                                  content, className.
+ * @param {Object} [options]        Options to set initial property values
+ * @param {Object} [defaultOptions] default options
+ *                                  // TODO: describe available options
  */
-function ItemPoint (parent, data, options) {
+function ItemPoint (parent, data, options, defaultOptions) {
     this.props = {
         dot: {
             top: 0,
@@ -20,7 +21,7 @@ function ItemPoint (parent, data, options) {
         }
     };
 
-    Item.call(this, parent, data, options);
+    Item.call(this, parent, data, options, defaultOptions);
 }
 
 ItemPoint.prototype = new Item (null, null);
@@ -59,7 +60,7 @@ ItemPoint.prototype.repaint = function repaint() {
     }
 
     if (dom) {
-        if (!this.options && !this.options.parent) {
+        if (!this.parent) {
             throw new Error('Cannot repaint item: no parent attached');
         }
         var foreground = this.parent.getForeground();
@@ -144,6 +145,7 @@ ItemPoint.prototype.reflow = function reflow() {
         dom,
         props,
         options,
+        margin,
         orientation,
         start,
         top,
@@ -170,7 +172,8 @@ ItemPoint.prototype.reflow = function reflow() {
             update = util.updateProperty;
             props = this.props;
             options = this.options;
-            orientation = options.orientation;
+            orientation = options.orientation || this.defaultOptions.orientation;
+            margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
             start = this.parent.toScreen(this.data.start);
 
             changed += update(this, 'width', dom.point.offsetWidth);
@@ -180,12 +183,12 @@ ItemPoint.prototype.reflow = function reflow() {
             changed += update(props.content, 'height', dom.content.offsetHeight);
 
             if (orientation == 'top') {
-                top = options.margin.axis;
+                top = margin;
             }
             else {
                 // default or 'bottom'
                 var parentHeight = this.parent.height;
-                top = Math.max(parentHeight - this.height - options.margin.axis, 0);
+                top = Math.max(parentHeight - this.height - margin, 0);
             }
             changed += update(this, 'top', top);
             changed += update(this, 'left', start - props.dot.width / 2);

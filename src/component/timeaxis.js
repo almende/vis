@@ -34,7 +34,8 @@ function TimeAxis (parent, depends, options) {
         lineTop: 0
     };
 
-    this.options = {
+    this.options = Object.create(parent && parent.options || null);
+    this.defaultOptions = {
         orientation: 'bottom',  // supported: 'top', 'bottom'
         // TODO: implement timeaxis orientations 'left' and 'right'
         showMinorLabels: true,
@@ -51,7 +52,9 @@ TimeAxis.prototype = new Component();
 
 // TODO: comment options
 TimeAxis.prototype.setOptions = function (options) {
-    util.extend(this.options, options);
+    if (options) {
+        util.extend(this.options, options);
+    }
 };
 
 /**
@@ -97,6 +100,7 @@ TimeAxis.prototype.repaint = function () {
         update = util.updateProperty,
         asSize = util.option.asSize,
         options = this.options,
+        orientation = this.getOption('orientation'),
         props = this.props,
         step = this.step;
 
@@ -106,7 +110,7 @@ TimeAxis.prototype.repaint = function () {
         this.frame = frame;
         changed += 1;
     }
-    frame.className = 'axis ' + options.orientation;
+    frame.className = 'axis ' + orientation;
     // TODO: custom className?
 
     if (!frame.parentNode) {
@@ -127,7 +131,6 @@ TimeAxis.prototype.repaint = function () {
         var beforeChild = frame.nextSibling;
         parent.removeChild(frame); //  take frame offline while updating (is almost twice as fast)
 
-        var orientation = options.orientation;
         var defaultTop = (orientation == 'bottom' && this.props.parentHeight && this.height) ?
             (this.props.parentHeight - this.height) + 'px' :
             '0px';
@@ -153,11 +156,11 @@ TimeAxis.prototype.repaint = function () {
 
                 // TODO: lines must have a width, such that we can create css backgrounds
 
-                if (options.showMinorLabels) {
+                if (this.getOption('showMinorLabels')) {
                     this._repaintMinorText(x, step.getLabelMinor());
                 }
 
-                if (isMajor && options.showMajorLabels) {
+                if (isMajor && this.getOption('showMajorLabels')) {
                     if (x > 0) {
                         if (xFirstMajorLabel == undefined) {
                             xFirstMajorLabel = x;
@@ -174,7 +177,7 @@ TimeAxis.prototype.repaint = function () {
             }
 
             // create a major label on the left when needed
-            if (options.showMajorLabels) {
+            if (this.getOption('showMajorLabels')) {
                 var leftTime = this.toTime(0),
                     leftText = step.getLabelMajor(leftTime),
                     widthText = leftText.length * (props.majorCharWidth || 10) + 10; // upper bound estimation
@@ -346,7 +349,7 @@ TimeAxis.prototype._repaintLine = function() {
         options = this.options;
 
     // line before all axis elements
-    if (options.showMinorLabels || options.showMajorLabels) {
+    if (this.getOption('showMinorLabels') || this.getOption('showMajorLabels')) {
         if (line) {
             // put this line at the end of all childs
             frame.removeChild(line);
@@ -422,8 +425,8 @@ TimeAxis.prototype.reflow = function () {
 
         // calculate size of a character
         var props = this.props,
-            showMinorLabels = this.options.showMinorLabels,
-            showMajorLabels = this.options.showMajorLabels,
+            showMinorLabels = this.getOption('showMinorLabels'),
+            showMajorLabels = this.getOption('showMajorLabels'),
             measureCharMinor = this.dom.measureCharMinor,
             measureCharMajor = this.dom.measureCharMajor;
         if (measureCharMinor) {
@@ -440,7 +443,7 @@ TimeAxis.prototype.reflow = function () {
             props.parentHeight = parentHeight;
             changed += 1;
         }
-        switch (this.options.orientation) {
+        switch (this.getOption('orientation')) {
             case 'bottom':
                 props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
                 props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
@@ -480,7 +483,7 @@ TimeAxis.prototype.reflow = function () {
                 break;
 
             default:
-                throw new Error('Unkown orientation "' + this.options.orientation + '"');
+                throw new Error('Unkown orientation "' + this.getOption('orientation') + '"');
         }
 
         var height = props.minorLabelHeight + props.majorLabelHeight;

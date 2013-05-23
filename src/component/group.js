@@ -13,7 +13,8 @@ function Group (parent, groupId, options) {
     this.groupId = groupId;
     this.itemsData = null;  // DataSet
     this.items = null;      // ItemSet
-    this.options = {};
+    this.options = Object.create(parent && parent.options || null);
+    this.options.top = 0;
 
     this.top = 0;
     this.left = 0;
@@ -28,11 +29,16 @@ Group.prototype = new Component();
 Group.prototype.setOptions = function setOptions(options) {
     if (options) {
         util.extend(this.options, options);
-
-        if (this.items) {
-            this.items.setOptions(this.options);
-        }
     }
+};
+
+/**
+ * Get the container element of the panel, which can be used by a child to
+ * add its own widgets.
+ * @returns {HTMLElement} container
+ */
+Group.prototype.getContainer = function () {
+    return this.parent.getContainer();
 };
 
 /**
@@ -52,8 +58,7 @@ Group.prototype.setItems = function setItems(items) {
     if (items || true) {
         var groupId = this.groupId;
 
-        this.items = new ItemSet(this.parent);
-        //this.items.setOptions(this.options); // TODO: copy only a specific set of options
+        this.items = new ItemSet(this);
         this.items.setRange(this.parent.range);
 
         this.view = new DataView(items, {
@@ -80,5 +85,11 @@ Group.prototype.repaint = function repaint() {
  * @return {Boolean} resized
  */
 Group.prototype.reflow = function reflow() {
-    return false;
+    var changed = 0,
+        update = util.updateProperty;
+
+    changed += update(this, 'top',    this.items ? this.items.top : 0);
+    changed += update(this, 'height', this.items ? this.items.height : 0);
+
+    return (changed > 0);
 };

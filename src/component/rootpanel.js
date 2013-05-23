@@ -9,7 +9,9 @@
 function RootPanel(container, options) {
     this.id = util.randomUUID();
     this.container = container;
-    this.options = {
+
+    this.options = Object.create(options || null);
+    this.defaultOptions = {
         autoResize: true
     };
 
@@ -28,13 +30,15 @@ RootPanel.prototype = new Panel();
  *                              {String | Number | function} [top]
  *                              {String | Number | function} [width]
  *                              {String | Number | function} [height]
- *                              {String | Number | function} [height]
  *                              {Boolean | function} [autoResize]
  */
 RootPanel.prototype.setOptions = function (options) {
-    util.extend(this.options, options);
+    if (options) {
+        util.extend(this.options, options);
+    }
 
-    if (this.options.autoResize) {
+    var autoResize = this.getOption('autoResize');
+    if (autoResize) {
         this._watch();
     }
     else {
@@ -56,8 +60,9 @@ RootPanel.prototype.repaint = function () {
         frame = document.createElement('div');
         frame.className = 'graph panel';
 
-        if (options.className) {
-            util.addClassName(frame, util.option.asString(options.className));
+        var className = options.className;
+        if (className) {
+            util.addClassName(frame, util.option.asString(className));
         }
 
         this.frame = frame;
@@ -114,7 +119,8 @@ RootPanel.prototype._watch = function () {
     this._unwatch();
 
     var checkSize = function () {
-        if (!me.options.autoResize) {
+        var autoResize = me.getOption('autoResize');
+        if (!autoResize) {
             // stop watching when the option autoResize is changed to false
             me._unwatch();
             return;

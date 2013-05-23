@@ -17,7 +17,8 @@ function ItemSet(parent, depends, options) {
     this.depends = depends;
 
     // one options object is shared by this itemset and all its items
-    this.options = {
+    this.options = Object.create(parent && parent.options || null);
+    this.defaultOptions = {
         style: 'box',
         align: 'center',
         orientation: 'bottom',
@@ -57,9 +58,7 @@ function ItemSet(parent, depends, options) {
     this.stack = new Stack(this);
     this.conversion = null;
 
-    if (options) {
-        this.setOptions(options);
-    }
+    this.setOptions(options);
 }
 
 ItemSet.prototype = new Panel();
@@ -97,11 +96,11 @@ ItemSet.types = {
  *                              Must correspond with the items css. Default is 5.
  */
 ItemSet.prototype.setOptions = function setOptions(options) {
-    util.extend(this.options, options);
+    if (options) {
+        util.extend(this.options, options);
+    }
 
     // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
-
-    this.stack.setOptions(this.options);
 };
 
 /**
@@ -125,14 +124,17 @@ ItemSet.prototype.repaint = function repaint() {
         update = util.updateProperty,
         asSize = util.option.asSize,
         options = this.options,
+        orientation = this.getOption('orientation'),
+        defaultOptions = this.defaultOptions,
         frame = this.frame;
 
     if (!frame) {
         frame = document.createElement('div');
         frame.className = 'itemset';
 
-        if (options.className) {
-            util.addClassName(frame, util.option.asString(options.className));
+        var className = options.className;
+        if (className) {
+            util.addClassName(frame, util.option.asString(className));
         }
 
         // create background panel
@@ -182,7 +184,7 @@ ItemSet.prototype.repaint = function repaint() {
     // reposition axis
     changed += update(this.dom.axis.style, 'left', asSize(options.left, '0px'));
     changed += update(this.dom.axis.style, 'width',  asSize(options.width, '100%'));
-    if (this.options.orientation == 'bottom') {
+    if (orientation == 'bottom') {
         changed += update(this.dom.axis.style, 'top',  (this.height + this.top) + 'px');
     }
     else { // orientation == 'top'
@@ -235,7 +237,7 @@ ItemSet.prototype.repaint = function repaint() {
                     if (!item) {
                         // create item
                         if (constructor) {
-                            item = new constructor(me, itemData, options);
+                            item = new constructor(me, itemData, options, defaultOptions);
                             changed++;
                         }
                         else {
@@ -311,6 +313,8 @@ ItemSet.prototype.getAxis = function getAxis() {
 ItemSet.prototype.reflow = function reflow () {
     var changed = 0,
         options = this.options,
+        marginAxis = options.margin && options.margin.axis || this.defaultOptions.margin.axis,
+        marginItem = options.margin && options.margin.item || this.defaultOptions.margin.item,
         update = util.updateProperty,
         asNumber = util.option.asNumber,
         frame = this.frame;
@@ -341,10 +345,10 @@ ItemSet.prototype.reflow = function reflow () {
                     min = Math.min(min, item.top);
                     max = Math.max(max, (item.top + item.height));
                 });
-                height = (max - min) + options.margin.axis + options.margin.item;
+                height = (max - min) + marginAxis + marginItem;
             }
             else {
-                height = options.margin.axis + options.margin.item;
+                height = marginAxis + marginItem;
             }
         }
         if (maxHeight != null) {

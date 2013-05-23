@@ -2,12 +2,13 @@
  * @constructor ItemBox
  * @extends Item
  * @param {ItemSet} parent
- * @param {Object} data       Object containing parameters start
- *                            content, className.
- * @param {Object} [options]  Options to set initial property values
- *                            // TODO: describe available options
+ * @param {Object} data             Object containing parameters start
+ *                                  content, className.
+ * @param {Object} [options]        Options to set initial property values
+ * @param {Object} [defaultOptions] default options
+ *                                  // TODO: describe available options
  */
-function ItemBox (parent, data, options) {
+function ItemBox (parent, data, options, defaultOptions) {
     this.props = {
         dot: {
             left: 0,
@@ -23,7 +24,7 @@ function ItemBox (parent, data, options) {
         }
     };
 
-    Item.call(this, parent, data, options);
+    Item.call(this, parent, data, options, defaultOptions);
 }
 
 ItemBox.prototype = new Item (null, null);
@@ -62,7 +63,7 @@ ItemBox.prototype.repaint = function repaint() {
     }
 
     if (dom) {
-        if (!this.options && !this.parent) {
+        if (!this.parent) {
             throw new Error('Cannot repaint item: no parent attached');
         }
         var foreground = this.parent.getForeground();
@@ -172,6 +173,7 @@ ItemBox.prototype.reflow = function reflow() {
         dom,
         props,
         options,
+        margin,
         start,
         align,
         orientation,
@@ -201,8 +203,9 @@ ItemBox.prototype.reflow = function reflow() {
             props = this.props;
             options = this.options;
             start = this.parent.toScreen(this.data.start);
-            align = options && options.align;
-            orientation = options && options.orientation;
+            align = options.align || this.defaultOptions.align;
+            margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
+            orientation = options.orientation || this.defaultOptions.orientation;
 
             changed += update(props.dot, 'height', dom.dot.offsetHeight);
             changed += update(props.dot, 'width', dom.dot.offsetWidth);
@@ -227,14 +230,14 @@ ItemBox.prototype.reflow = function reflow() {
             update(props.dot, 'left', start - props.dot.width / 2);
             update(props.dot, 'top', -props.dot.height / 2);
             if (orientation == 'top') {
-                top = options.margin.axis;
+                top = margin;
 
                 update(this, 'top', top);
             }
             else {
                 // default or 'bottom'
                 var parentHeight = this.parent.height;
-                top = parentHeight - this.height - options.margin.axis;
+                top = parentHeight - this.height - margin;
 
                 update(this, 'top', top);
             }
@@ -283,7 +286,7 @@ ItemBox.prototype._create = function _create() {
 ItemBox.prototype.reposition = function reposition() {
     var dom = this.dom,
         props = this.props,
-        orientation = this.options.orientation;
+        orientation = this.options.orientation || this.defaultOptions.orientation;
 
     if (dom) {
         var box = dom.box,

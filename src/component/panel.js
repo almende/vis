@@ -16,12 +16,28 @@ function Panel(parent, depends, options) {
     this.id = util.randomUUID();
     this.parent = parent;
     this.depends = depends;
-    this.options = {};
+
+    this.options = Object.create(parent && parent.options || null);
 
     this.setOptions(options);
 }
 
 Panel.prototype = new Component();
+
+/**
+ * Set options. Will extend the current options.
+ * @param {Object} [options]    Available parameters:
+ *                              {String | function} [className]
+ *                              {String | Number | function} [left]
+ *                              {String | Number | function} [top]
+ *                              {String | Number | function} [width]
+ *                              {String | Number | function} [height]
+ */
+Panel.prototype.setOptions = function (options) {
+    if (options) {
+        util.extend(this.options, options);
+    }
+};
 
 /**
  * Get the container element of the panel, which can be used by a child to
@@ -46,12 +62,13 @@ Panel.prototype.repaint = function () {
         frame = document.createElement('div');
         frame.className = 'panel';
 
-        if (options.className) {
-            if (typeof options.className == 'function') {
-                util.addClassName(frame, String(options.className()));
+        var className = options.className;
+        if (className) {
+            if (typeof className == 'function') {
+                util.addClassName(frame, String(className()));
             }
             else {
-                util.addClassName(frame, String(options.className));
+                util.addClassName(frame, String(className));
             }
         }
 

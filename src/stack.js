@@ -6,7 +6,9 @@
  */
 function Stack (parent, options) {
     this.parent = parent;
-    this.options = {
+
+    this.options = Object.create(parent && parent.options || 0);
+    this.defaultOptions = {
         order: function (a, b) {
             //return (b.width - a.width) || (a.left - b.left);  // TODO: cleanup
             // Order: ranges over non-ranges, ranged ordered by width, and
@@ -29,6 +31,9 @@ function Stack (parent, options) {
                     return (a.data.start - b.data.start);
                 }
             }
+        },
+        margin: {
+            item: 10
         }
     };
 
@@ -84,8 +89,8 @@ Stack.prototype._order = function _order () {
     });
 
     //if a customer stack order function exists, use it.
-    var order = this.options.order;
-    if (!(typeof this.options.order === 'function')) {
+    var order = this.options.order || this.defaultOptions.order;
+    if (!(typeof order === 'function')) {
         throw new Error('Option order must be a function');
     }
 
@@ -104,8 +109,16 @@ Stack.prototype._stack = function _stack () {
         iMax,
         ordered = this.ordered,
         options = this.options,
-        axisOnTop = (options.orientation == 'top'),
-        margin = options.margin && options.margin.item || 0;
+        orientation = options.orientation || this.defaultOptions.orientation,
+        axisOnTop = (orientation == 'top'),
+        margin;
+
+    if (options.margin && options.margin.item !== undefined) {
+        margin = options.margin.item;
+    }
+    else {
+        margin = this.defaultOptions.margin.item
+    }
 
     // calculate new, non-overlapping positions
     for (i = 0, iMax = ordered.length; i < iMax; i++) {

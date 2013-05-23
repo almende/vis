@@ -911,6 +911,18 @@ if (!Function.prototype.bind) {
     };
 }
 
+// https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Object/create
+if (!Object.create) {
+    Object.create = function (o) {
+        if (arguments.length > 1) {
+            throw new Error('Object.create implementation only accepts the first parameter.');
+        }
+        function F() {}
+        F.prototype = o;
+        return new F();
+    };
+}
+
 /**
  * Event listener (singleton)
  */
@@ -2576,7 +2588,9 @@ DataView.prototype._trigger = DataSet.prototype._trigger;
  */
 function Stack (parent, options) {
     this.parent = parent;
-    this.options = {
+
+    this.options = Object.create(parent && parent.options || 0);
+    this.defaultOptions = {
         order: function (a, b) {
             //return (b.width - a.width) || (a.left - b.left);  // TODO: cleanup
             // Order: ranges over non-ranges, ranged ordered by width, and
@@ -2599,6 +2613,9 @@ function Stack (parent, options) {
                     return (a.data.start - b.data.start);
                 }
             }
+        },
+        margin: {
+            item: 10
         }
     };
 
@@ -2654,8 +2671,8 @@ Stack.prototype._order = function _order () {
     });
 
     //if a customer stack order function exists, use it.
-    var order = this.options.order;
-    if (!(typeof this.options.order === 'function')) {
+    var order = this.options.order || this.defaultOptions.order;
+    if (!(typeof order === 'function')) {
         throw new Error('Option order must be a function');
     }
 
@@ -2674,8 +2691,16 @@ Stack.prototype._stack = function _stack () {
         iMax,
         ordered = this.ordered,
         options = this.options,
-        axisOnTop = (options.orientation == 'top'),
-        margin = options.margin && options.margin.item || 0;
+        orientation = options.orientation || this.defaultOptions.orientation,
+        axisOnTop = (orientation == 'top'),
+        margin;
+
+    if (options.margin && options.margin.item !== undefined) {
+        margin = options.margin.item;
+    }
+    else {
+        margin = this.defaultOptions.margin.item
+    }
 
     // calculate new, non-overlapping positions
     for (i = 0, iMax = ordered.length; i < iMax; i++) {
@@ -3567,16 +3592,32 @@ function Component () {
  *                          {String | Number | function} [height]
  */
 Component.prototype.setOptions = function setOptions(options) {
-    if (!options) {
-        return;
-    }
+    if (options) {
+        util.extend(this.options, options);
 
-    util.extend(this.options, options);
-
-    if (this.controller) {
-        this.requestRepaint();
-        this.requestReflow();
+        if (this.controller) {
+            this.requestRepaint();
+            this.requestReflow();
+        }
     }
+};
+
+/**
+ * Get an option value by name
+ * The function will first check this.options object, and else will check
+ * this.defaultOptions.
+ * @param {String} name
+ * @return {*} value
+ */
+Component.prototype.getOption = function getOption(name) {
+    var value;
+    if (this.options) {
+        value = this.options[name];
+    }
+    if (value === undefined && this.defaultOptions) {
+        value = this.defaultOptions[name];
+    }
+    return value;
 };
 
 /**
@@ -3688,12 +3729,28 @@ function Panel(parent, depends, options) {
     this.id = util.randomUUID();
     this.parent = parent;
     this.depends = depends;
-    this.options = {};
+
+    this.options = Object.create(parent && parent.options || null);
 
     this.setOptions(options);
 }
 
 Panel.prototype = new Component();
+
+/**
+ * Set options. Will extend the current options.
+ * @param {Object} [options]    Available parameters:
+ *                              {String | function} [className]
+ *                              {String | Number | function} [left]
+ *                              {String | Number | function} [top]
+ *                              {String | Number | function} [width]
+ *                              {String | Number | function} [height]
+ */
+Panel.prototype.setOptions = function (options) {
+    if (options) {
+        util.extend(this.options, options);
+    }
+};
 
 /**
  * Get the container element of the panel, which can be used by a child to
@@ -3718,12 +3775,13 @@ Panel.prototype.repaint = function () {
         frame = document.createElement('div');
         frame.className = 'panel';
 
-        if (options.className) {
-            if (typeof options.className == 'function') {
-                util.addClassName(frame, String(options.className()));
+        var className = options.className;
+        if (className) {
+            if (typeof className == 'function') {
+                util.addClassName(frame, String(className()));
             }
             else {
-                util.addClassName(frame, String(options.className));
+                util.addClassName(frame, String(className));
             }
         }
 
@@ -3783,7 +3841,9 @@ Panel.prototype.reflow = function () {
 function RootPanel(container, options) {
     this.id = util.randomUUID();
     this.container = container;
-    this.options = {
+
+    this.options = Object.create(options || null);
+    this.defaultOptions = {
         autoResize: true
     };
 
@@ -3802,13 +3862,15 @@ RootPanel.prototype = new Panel();
  *                              {String | Number | function} [top]
  *                              {String | Number | function} [width]
  *                              {String | Number | function} [height]
- *                              {String | Number | function} [height]
  *                              {Boolean | function} [autoResize]
  */
 RootPanel.prototype.setOptions = function (options) {
-    util.extend(this.options, options);
+    if (options) {
+        util.extend(this.options, options);
+    }
 
-    if (this.options.autoResize) {
+    var autoResize = this.getOption('autoResize');
+    if (autoResize) {
         this._watch();
     }
     else {
@@ -3830,8 +3892,9 @@ RootPanel.prototype.repaint = function () {
         frame = document.createElement('div');
         frame.className = 'graph panel';
 
-        if (options.className) {
-            util.addClassName(frame, util.option.asString(options.className));
+        var className = options.className;
+        if (className) {
+            util.addClassName(frame, util.option.asString(className));
         }
 
         this.frame = frame;
@@ -3888,7 +3951,8 @@ RootPanel.prototype._watch = function () {
     this._unwatch();
 
     var checkSize = function () {
-        if (!me.options.autoResize) {
+        var autoResize = me.getOption('autoResize');
+        if (!autoResize) {
             // stop watching when the option autoResize is changed to false
             me._unwatch();
             return;
@@ -4009,7 +4073,8 @@ function TimeAxis (parent, depends, options) {
         lineTop: 0
     };
 
-    this.options = {
+    this.options = Object.create(parent && parent.options || null);
+    this.defaultOptions = {
         orientation: 'bottom',  // supported: 'top', 'bottom'
         // TODO: implement timeaxis orientations 'left' and 'right'
         showMinorLabels: true,
@@ -4026,7 +4091,9 @@ TimeAxis.prototype = new Component();
 
 // TODO: comment options
 TimeAxis.prototype.setOptions = function (options) {
-    util.extend(this.options, options);
+    if (options) {
+        util.extend(this.options, options);
+    }
 };
 
 /**
@@ -4072,6 +4139,7 @@ TimeAxis.prototype.repaint = function () {
         update = util.updateProperty,
         asSize = util.option.asSize,
         options = this.options,
+        orientation = this.getOption('orientation'),
         props = this.props,
         step = this.step;
 
@@ -4081,7 +4149,7 @@ TimeAxis.prototype.repaint = function () {
         this.frame = frame;
         changed += 1;
     }
-    frame.className = 'axis ' + options.orientation;
+    frame.className = 'axis ' + orientation;
     // TODO: custom className?
 
     if (!frame.parentNode) {
@@ -4102,7 +4170,6 @@ TimeAxis.prototype.repaint = function () {
         var beforeChild = frame.nextSibling;
         parent.removeChild(frame); //  take frame offline while updating (is almost twice as fast)
 
-        var orientation = options.orientation;
         var defaultTop = (orientation == 'bottom' && this.props.parentHeight && this.height) ?
             (this.props.parentHeight - this.height) + 'px' :
             '0px';
@@ -4128,11 +4195,11 @@ TimeAxis.prototype.repaint = function () {
 
                 // TODO: lines must have a width, such that we can create css backgrounds
 
-                if (options.showMinorLabels) {
+                if (this.getOption('showMinorLabels')) {
                     this._repaintMinorText(x, step.getLabelMinor());
                 }
 
-                if (isMajor && options.showMajorLabels) {
+                if (isMajor && this.getOption('showMajorLabels')) {
                     if (x > 0) {
                         if (xFirstMajorLabel == undefined) {
                             xFirstMajorLabel = x;
@@ -4149,7 +4216,7 @@ TimeAxis.prototype.repaint = function () {
             }
 
             // create a major label on the left when needed
-            if (options.showMajorLabels) {
+            if (this.getOption('showMajorLabels')) {
                 var leftTime = this.toTime(0),
                     leftText = step.getLabelMajor(leftTime),
                     widthText = leftText.length * (props.majorCharWidth || 10) + 10; // upper bound estimation
@@ -4321,7 +4388,7 @@ TimeAxis.prototype._repaintLine = function() {
         options = this.options;
 
     // line before all axis elements
-    if (options.showMinorLabels || options.showMajorLabels) {
+    if (this.getOption('showMinorLabels') || this.getOption('showMajorLabels')) {
         if (line) {
             // put this line at the end of all childs
             frame.removeChild(line);
@@ -4397,8 +4464,8 @@ TimeAxis.prototype.reflow = function () {
 
         // calculate size of a character
         var props = this.props,
-            showMinorLabels = this.options.showMinorLabels,
-            showMajorLabels = this.options.showMajorLabels,
+            showMinorLabels = this.getOption('showMinorLabels'),
+            showMajorLabels = this.getOption('showMajorLabels'),
             measureCharMinor = this.dom.measureCharMinor,
             measureCharMajor = this.dom.measureCharMajor;
         if (measureCharMinor) {
@@ -4415,7 +4482,7 @@ TimeAxis.prototype.reflow = function () {
             props.parentHeight = parentHeight;
             changed += 1;
         }
-        switch (this.options.orientation) {
+        switch (this.getOption('orientation')) {
             case 'bottom':
                 props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
                 props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
@@ -4455,7 +4522,7 @@ TimeAxis.prototype.reflow = function () {
                 break;
 
             default:
-                throw new Error('Unkown orientation "' + this.options.orientation + '"');
+                throw new Error('Unkown orientation "' + this.getOption('orientation') + '"');
         }
 
         var height = props.minorLabelHeight + props.majorLabelHeight;
@@ -4517,7 +4584,8 @@ function ItemSet(parent, depends, options) {
     this.depends = depends;
 
     // one options object is shared by this itemset and all its items
-    this.options = {
+    this.options = Object.create(parent && parent.options || null);
+    this.defaultOptions = {
         style: 'box',
         align: 'center',
         orientation: 'bottom',
@@ -4557,9 +4625,7 @@ function ItemSet(parent, depends, options) {
     this.stack = new Stack(this);
     this.conversion = null;
 
-    if (options) {
-        this.setOptions(options);
-    }
+    this.setOptions(options);
 }
 
 ItemSet.prototype = new Panel();
@@ -4597,11 +4663,11 @@ ItemSet.types = {
  *                              Must correspond with the items css. Default is 5.
  */
 ItemSet.prototype.setOptions = function setOptions(options) {
-    util.extend(this.options, options);
+    if (options) {
+        util.extend(this.options, options);
+    }
 
     // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
-
-    this.stack.setOptions(this.options);
 };
 
 /**
@@ -4625,14 +4691,17 @@ ItemSet.prototype.repaint = function repaint() {
         update = util.updateProperty,
         asSize = util.option.asSize,
         options = this.options,
+        orientation = this.getOption('orientation'),
+        defaultOptions = this.defaultOptions,
         frame = this.frame;
 
     if (!frame) {
         frame = document.createElement('div');
         frame.className = 'itemset';
 
-        if (options.className) {
-            util.addClassName(frame, util.option.asString(options.className));
+        var className = options.className;
+        if (className) {
+            util.addClassName(frame, util.option.asString(className));
         }
 
         // create background panel
@@ -4682,7 +4751,7 @@ ItemSet.prototype.repaint = function repaint() {
     // reposition axis
     changed += update(this.dom.axis.style, 'left', asSize(options.left, '0px'));
     changed += update(this.dom.axis.style, 'width',  asSize(options.width, '100%'));
-    if (this.options.orientation == 'bottom') {
+    if (orientation == 'bottom') {
         changed += update(this.dom.axis.style, 'top',  (this.height + this.top) + 'px');
     }
     else { // orientation == 'top'
@@ -4735,7 +4804,7 @@ ItemSet.prototype.repaint = function repaint() {
                     if (!item) {
                         // create item
                         if (constructor) {
-                            item = new constructor(me, itemData, options);
+                            item = new constructor(me, itemData, options, defaultOptions);
                             changed++;
                         }
                         else {
@@ -4811,6 +4880,8 @@ ItemSet.prototype.getAxis = function getAxis() {
 ItemSet.prototype.reflow = function reflow () {
     var changed = 0,
         options = this.options,
+        marginAxis = options.margin && options.margin.axis || this.defaultOptions.margin.axis,
+        marginItem = options.margin && options.margin.item || this.defaultOptions.margin.item,
         update = util.updateProperty,
         asNumber = util.option.asNumber,
         frame = this.frame;
@@ -4841,10 +4912,10 @@ ItemSet.prototype.reflow = function reflow () {
                     min = Math.min(min, item.top);
                     max = Math.max(max, (item.top + item.height));
                 });
-                height = (max - min) + options.margin.axis + options.margin.item;
+                height = (max - min) + marginAxis + marginItem;
             }
             else {
-                height = options.margin.axis + options.margin.item;
+                height = marginAxis + marginItem;
             }
         }
         if (maxHeight != null) {
@@ -5029,16 +5100,18 @@ ItemSet.prototype.toScreen = function toScreen(time) {
 /**
  * @constructor Item
  * @param {ItemSet} parent
- * @param {Object} data       Object containing (optional) parameters type,
- *                            start, end, content, group, className.
- * @param {Object} [options]  Options to set initial property values
- *                            // TODO: describe available options
+ * @param {Object} data             Object containing (optional) parameters type,
+ *                                  start, end, content, group, className.
+ * @param {Object} [options]        Options to set initial property values
+ * @param {Object} [defaultOptions] default options
+ *                                  // TODO: describe available options
  */
-function Item (parent, data, options) {
+function Item (parent, data, options, defaultOptions) {
     this.parent = parent;
     this.data = data;
     this.dom = null;
-    this.options = options;
+    this.options = options || {};
+    this.defaultOptions = defaultOptions || {};
 
     this.selected = false;
     this.visible = false;
@@ -5100,12 +5173,13 @@ Item.prototype.reflow = function reflow() {
  * @constructor ItemBox
  * @extends Item
  * @param {ItemSet} parent
- * @param {Object} data       Object containing parameters start
- *                            content, className.
- * @param {Object} [options]  Options to set initial property values
- *                            // TODO: describe available options
+ * @param {Object} data             Object containing parameters start
+ *                                  content, className.
+ * @param {Object} [options]        Options to set initial property values
+ * @param {Object} [defaultOptions] default options
+ *                                  // TODO: describe available options
  */
-function ItemBox (parent, data, options) {
+function ItemBox (parent, data, options, defaultOptions) {
     this.props = {
         dot: {
             left: 0,
@@ -5121,7 +5195,7 @@ function ItemBox (parent, data, options) {
         }
     };
 
-    Item.call(this, parent, data, options);
+    Item.call(this, parent, data, options, defaultOptions);
 }
 
 ItemBox.prototype = new Item (null, null);
@@ -5160,7 +5234,7 @@ ItemBox.prototype.repaint = function repaint() {
     }
 
     if (dom) {
-        if (!this.options && !this.parent) {
+        if (!this.parent) {
             throw new Error('Cannot repaint item: no parent attached');
         }
         var foreground = this.parent.getForeground();
@@ -5270,6 +5344,7 @@ ItemBox.prototype.reflow = function reflow() {
         dom,
         props,
         options,
+        margin,
         start,
         align,
         orientation,
@@ -5299,8 +5374,9 @@ ItemBox.prototype.reflow = function reflow() {
             props = this.props;
             options = this.options;
             start = this.parent.toScreen(this.data.start);
-            align = options && options.align;
-            orientation = options && options.orientation;
+            align = options.align || this.defaultOptions.align;
+            margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
+            orientation = options.orientation || this.defaultOptions.orientation;
 
             changed += update(props.dot, 'height', dom.dot.offsetHeight);
             changed += update(props.dot, 'width', dom.dot.offsetWidth);
@@ -5325,14 +5401,14 @@ ItemBox.prototype.reflow = function reflow() {
             update(props.dot, 'left', start - props.dot.width / 2);
             update(props.dot, 'top', -props.dot.height / 2);
             if (orientation == 'top') {
-                top = options.margin.axis;
+                top = margin;
 
                 update(this, 'top', top);
             }
             else {
                 // default or 'bottom'
                 var parentHeight = this.parent.height;
-                top = parentHeight - this.height - options.margin.axis;
+                top = parentHeight - this.height - margin;
 
                 update(this, 'top', top);
             }
@@ -5381,7 +5457,7 @@ ItemBox.prototype._create = function _create() {
 ItemBox.prototype.reposition = function reposition() {
     var dom = this.dom,
         props = this.props,
-        orientation = this.options.orientation;
+        orientation = this.options.orientation || this.defaultOptions.orientation;
 
     if (dom) {
         var box = dom.box,
@@ -5412,12 +5488,13 @@ ItemBox.prototype.reposition = function reposition() {
  * @constructor ItemPoint
  * @extends Item
  * @param {ItemSet} parent
- * @param {Object} data       Object containing parameters start
- *                            content, className.
- * @param {Object} [options]  Options to set initial property values
- *                            // TODO: describe available options
+ * @param {Object} data             Object containing parameters start
+ *                                  content, className.
+ * @param {Object} [options]        Options to set initial property values
+ * @param {Object} [defaultOptions] default options
+ *                                  // TODO: describe available options
  */
-function ItemPoint (parent, data, options) {
+function ItemPoint (parent, data, options, defaultOptions) {
     this.props = {
         dot: {
             top: 0,
@@ -5430,7 +5507,7 @@ function ItemPoint (parent, data, options) {
         }
     };
 
-    Item.call(this, parent, data, options);
+    Item.call(this, parent, data, options, defaultOptions);
 }
 
 ItemPoint.prototype = new Item (null, null);
@@ -5469,7 +5546,7 @@ ItemPoint.prototype.repaint = function repaint() {
     }
 
     if (dom) {
-        if (!this.options && !this.options.parent) {
+        if (!this.parent) {
             throw new Error('Cannot repaint item: no parent attached');
         }
         var foreground = this.parent.getForeground();
@@ -5554,6 +5631,7 @@ ItemPoint.prototype.reflow = function reflow() {
         dom,
         props,
         options,
+        margin,
         orientation,
         start,
         top,
@@ -5580,7 +5658,8 @@ ItemPoint.prototype.reflow = function reflow() {
             update = util.updateProperty;
             props = this.props;
             options = this.options;
-            orientation = options.orientation;
+            orientation = options.orientation || this.defaultOptions.orientation;
+            margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
             start = this.parent.toScreen(this.data.start);
 
             changed += update(this, 'width', dom.point.offsetWidth);
@@ -5590,12 +5669,12 @@ ItemPoint.prototype.reflow = function reflow() {
             changed += update(props.content, 'height', dom.content.offsetHeight);
 
             if (orientation == 'top') {
-                top = options.margin.axis;
+                top = margin;
             }
             else {
                 // default or 'bottom'
                 var parentHeight = this.parent.height;
-                top = Math.max(parentHeight - this.height - options.margin.axis, 0);
+                top = Math.max(parentHeight - this.height - margin, 0);
             }
             changed += update(this, 'top', top);
             changed += update(this, 'left', start - props.dot.width / 2);
@@ -5661,12 +5740,13 @@ ItemPoint.prototype.reposition = function reposition() {
  * @constructor ItemRange
  * @extends Item
  * @param {ItemSet} parent
- * @param {Object} data       Object containing parameters start, end
- *                            content, className.
- * @param {Object} [options]  Options to set initial property values
- *                            // TODO: describe available options
+ * @param {Object} data             Object containing parameters start, end
+ *                                  content, className.
+ * @param {Object} [options]        Options to set initial property values
+ * @param {Object} [defaultOptions] default options
+ *                                  // TODO: describe available options
  */
-function ItemRange (parent, data, options) {
+function ItemRange (parent, data, options, defaultOptions) {
     this.props = {
         content: {
             left: 0,
@@ -5674,7 +5754,7 @@ function ItemRange (parent, data, options) {
         }
     };
 
-    Item.call(this, parent, data, options);
+    Item.call(this, parent, data, options, defaultOptions);
 }
 
 ItemRange.prototype = new Item (null, null);
@@ -5713,7 +5793,7 @@ ItemRange.prototype.repaint = function repaint() {
     }
 
     if (dom) {
-        if (!this.options && !this.options.parent) {
+        if (!this.parent) {
             throw new Error('Cannot repaint item: no parent attached');
         }
         var foreground = this.parent.getForeground();
@@ -5795,6 +5875,8 @@ ItemRange.prototype.reflow = function reflow() {
         dom,
         props,
         options,
+        margin,
+        padding,
         parent,
         start,
         end,
@@ -5835,7 +5917,9 @@ ItemRange.prototype.reflow = function reflow() {
             update = util.updateProperty;
             box = dom.box;
             parentWidth = parent.width;
-            orientation = options.orientation;
+            orientation = options.orientation || this.defaultOptions.orientation;
+            margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
+            padding = options.padding || this.defaultOptions.padding;
 
             changed += update(props.content, 'width', dom.content.offsetWidth);
 
@@ -5852,7 +5936,7 @@ ItemRange.prototype.reflow = function reflow() {
             // when range exceeds left of the window, position the contents at the left of the visible area
             if (start < 0) {
                 contentLeft = Math.min(-start,
-                    (end - start - props.content.width - 2 * options.padding));
+                    (end - start - props.content.width - 2 * padding));
                 // TODO: remove the need for options.padding. it's terrible.
             }
             else {
@@ -5861,12 +5945,12 @@ ItemRange.prototype.reflow = function reflow() {
             changed += update(props.content, 'left', contentLeft);
 
             if (orientation == 'top') {
-                top = options.margin.axis;
+                top = margin;
                 changed += update(this, 'top', top);
             }
             else {
                 // default or 'bottom'
-                top = parent.height - this.height - options.margin.axis;
+                top = parent.height - this.height - margin;
                 changed += update(this, 'top', top);
             }
 
@@ -5933,7 +6017,8 @@ function Group (parent, groupId, options) {
     this.groupId = groupId;
     this.itemsData = null;  // DataSet
     this.items = null;      // ItemSet
-    this.options = {};
+    this.options = Object.create(parent && parent.options || null);
+    this.options.top = 0;
 
     this.top = 0;
     this.left = 0;
@@ -5948,11 +6033,16 @@ Group.prototype = new Component();
 Group.prototype.setOptions = function setOptions(options) {
     if (options) {
         util.extend(this.options, options);
-
-        if (this.items) {
-            this.items.setOptions(this.options);
-        }
     }
+};
+
+/**
+ * Get the container element of the panel, which can be used by a child to
+ * add its own widgets.
+ * @returns {HTMLElement} container
+ */
+Group.prototype.getContainer = function () {
+    return this.parent.getContainer();
 };
 
 /**
@@ -5972,8 +6062,7 @@ Group.prototype.setItems = function setItems(items) {
     if (items || true) {
         var groupId = this.groupId;
 
-        this.items = new ItemSet(this.parent);
-        //this.items.setOptions(this.options); // TODO: copy only a specific set of options
+        this.items = new ItemSet(this);
         this.items.setRange(this.parent.range);
 
         this.view = new DataView(items, {
@@ -6000,7 +6089,13 @@ Group.prototype.repaint = function repaint() {
  * @return {Boolean} resized
  */
 Group.prototype.reflow = function reflow() {
-    return false;
+    var changed = 0,
+        update = util.updateProperty;
+
+    changed += update(this, 'top',    this.items ? this.items.top : 0);
+    changed += update(this, 'height', this.items ? this.items.height : 0);
+
+    return (changed > 0);
 };
 
 /**
@@ -6018,7 +6113,7 @@ function GroupSet(parent, depends, options) {
     this.parent = parent;
     this.depends = depends;
 
-    this.options = {};
+    this.options = Object.create(parent && parent.options || null);
 
     this.range = null;      // Range or Object {start: number, end: number}
     this.itemsData = null;  // DataSet with items
@@ -6042,31 +6137,20 @@ function GroupSet(parent, depends, options) {
         }
     };
 
-    if (options) {
-        this.setOptions(options);
-    }
+    this.setOptions(options);
 }
 
 GroupSet.prototype = new Panel();
 
 /**
- * Set options for the ItemSet. Existing options will be extended/overwritten.
+ * Set options for the GroupSet. Existing options will be extended/overwritten.
  * @param {Object} [options] The following options are available:
  *                           TODO: describe options
  */
 GroupSet.prototype.setOptions = function setOptions(options) {
-    util.extend(this.options, options);
-
-    // TODO: implement options
-
-    /* TODO: only apply known options to the itemsets, must not override options.top
-    var me = this;
-    util.forEach(this.groups, function (group) {
-        if (group.items) {
-            group.items.setOptions(me.options);
-        }
-    });
-    */
+    if (options) {
+        util.extend(this.options, options);
+    }
 };
 
 GroupSet.prototype.setRange = function (range) {
@@ -6080,7 +6164,7 @@ GroupSet.prototype.setRange = function (range) {
 GroupSet.prototype.setItems = function setItems(items) {
     this.itemsData = items;
 
-    util.forEach(this.groups, function (group) {
+    this.groups.forEach(function (group) {
         group.setItems(items);
     });
 };
@@ -6173,8 +6257,9 @@ GroupSet.prototype.repaint = function repaint() {
         frame = document.createElement('div');
         frame.className = 'groupset';
 
-        if (options.className) {
-            util.addClassName(frame, util.option.asString(options.className));
+        var className = options.className;
+        if (className) {
+            util.addClassName(frame, util.option.asString(className));
         }
 
         this.frame = frame;
@@ -6226,8 +6311,7 @@ GroupSet.prototype.repaint = function repaint() {
                 case 'add':
                 case 'update':
                     if (!group) {
-                        var options = util.extend({}, me.options, {top: 0});
-                        group = new Group(me, id, options);
+                        group = new Group(me, id);
                         group.setItems(me.itemsData); // attach items data
                         groups.push(group);
 
@@ -6259,29 +6343,21 @@ GroupSet.prototype.repaint = function repaint() {
         // the groupset depends on each of the groups
         //this.depends = this.groups; // TODO: gives a circular reference through the parent
 
-    }
-
-    // TODO: the functions for top should be re-created only when groups are changed! (must be put inside the if-block above)
-    // update the top position (TODO: optimize, needed only when groups are added/removed/reordered
-    // TODO: apply dependencies of the groupset
-    var prevGroup = null;
-    util.forEach(this.groups, function (group) {
-        // TODO: top function must be applied to the group instead of the groups itemset.
-        //       the group must then apply it to its itemset
-        //      (right now the created function top is removed when the group replaces its itemset
-        var prevItems = prevGroup && prevGroup.items;
-        if (group.items) {
-            if (prevItems) {
-                group.items.options.top = function () {
-                    return prevItems.top + prevItems.height;
+        // TODO: apply dependencies of the groupset
+        this.groups.forEach(function (group, index) {
+            var prevGroup = me.groups[index - 1],
+                top = 0;
+            if (prevGroup) {
+                top = function () {
+                    return prevGroup.top + prevGroup.height;
                 }
             }
-            else {
-                group.items.options.top = 0;
-            }
-        }
-        prevGroup = group;
-    });
+            group.setOptions({
+                top: top
+            });
+        });
+
+    }
 
     return (changed > 0);
 };
@@ -6315,10 +6391,8 @@ GroupSet.prototype.reflow = function reflow() {
         else {
             // height is not specified, calculate the sum of the height of all groups
             height = 0;
-            util.forEach(this.groups, function (group) {
-                if (group.items) {
-                    height += group.items.height;
-                }
+            this.groups.forEach(function (group) {
+                height += group.height;
             });
         }
         if (maxHeight != null) {
@@ -6417,10 +6491,15 @@ function Timeline (container, items, options) {
     var me = this;
     this.options = {
         orientation: 'bottom',
+        min: null,
+        max: null,
         zoomMin: 10,     // milliseconds
         zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000, // milliseconds
         moveable: true,
-        zoomable: true
+        zoomable: true,
+        showMinorLabels: true,
+        showMajorLabels: true,
+        autoResize: false
     };
 
     // controller
@@ -6430,9 +6509,8 @@ function Timeline (container, items, options) {
     if (!container) {
         throw new Error('No container element provided');
     }
-    this.main = new RootPanel(container, {
-        autoResize: false
-    });
+    var mainOptions = Object.create(this.options);
+    this.main = new RootPanel(container, mainOptions);
     this.controller.add(this.main);
 
     // range
@@ -6456,10 +6534,9 @@ function Timeline (container, items, options) {
     // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
 
     // time axis
-    this.timeaxis = new TimeAxis(this.main, [], {
-        orientation: this.options.orientation,
-        range: this.range
-    });
+    var timeaxisOptions = Object.create(this.options);
+    timeaxisOptions.range = this.range;
+    this.timeaxis = new TimeAxis(this.main, [], timeaxisOptions);
     this.timeaxis.setRange(this.range);
     this.controller.add(this.timeaxis);
 
@@ -6470,9 +6547,7 @@ function Timeline (container, items, options) {
     this.groupsData = null;     // DataSet
 
     // set options (must take place before setting the data)
-    if (options) {
-        this.setOptions(options);
-    }
+    this.setOptions(options);
 
     // set data
     if (items) {
@@ -6485,24 +6560,10 @@ function Timeline (container, items, options) {
  * @param {Object} options  TODO: describe the available options
  */
 Timeline.prototype.setOptions = function (options) {
-    util.extend(this.options, options);
+    if (options) {
+        util.extend(this.options, options);
+    }
 
-    // update options the timeaxis
-    this.timeaxis.setOptions({
-        orientation: this.options.orientation,
-        showMinorLabels: this.options.showMinorLabels,
-        showMajorLabels: this.options.showMajorLabels
-    });
-
-    // update options for the range
-    this.range.setOptions({
-        min: this.options.min,
-        max: this.options.max,
-        zoomMin: this.options.zoomMin,
-        zoomMax: this.options.zoomMax
-    });
-
-    // update options the content
     var itemsTop,
         itemsHeight,
         mainHeight,
@@ -6550,7 +6611,6 @@ Timeline.prototype.setOptions = function (options) {
     });
 
     this.content.setOptions({
-        orientation: this.options.orientation,
         top: itemsTop,
         height: itemsHeight,
         maxHeight: maxHeight
@@ -6754,7 +6814,7 @@ if (typeof window !== 'undefined') {
 }
 
 // inject css
-util.loadCss("/* vis.js stylesheet */\n\n.graph {\n    position: relative;\n    border: 1px solid #bfbfbf;\n}\n\n.graph .panel {\n    position: absolute;\n}\n\n.graph .groupset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n}\n\n\n.graph .itemset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n    overflow: hidden;\n}\n\n.graph .background {\n}\n\n.graph .foreground {\n}\n\n.graph .itemset-axis {\n    position: absolute;\n}\n\n.graph .groupset .itemset-axis {\n    border-top: 1px solid #bfbfbf;\n}\n\n.graph .groupset .itemset-axis:last-child {\n    border-top: none;\n}\n\n\n.graph .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.graph .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.graph .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.graph .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.graph .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.graph .item.point {\n    background: none;\n}\n\n.graph .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range {\n    overflow: hidden;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .content {\n    position: relative;\n    display: inline-block;\n}\n\n.graph .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n}\n\n.graph .item .content {\n    margin: 5px;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n/* TODO: better css name, 'graph' is way to generic */\n\n.graph {\n    overflow: hidden;\n}\n\n.graph .axis {\n    position: relative;\n}\n\n.graph .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.graph .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.graph .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.graph .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.graph .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.graph .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n");
+util.loadCss("/* vis.js stylesheet */\n\n.graph {\n    position: relative;\n    border: 1px solid #bfbfbf;\n}\n\n.graph .panel {\n    position: absolute;\n}\n\n.graph .groupset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n}\n\n\n.graph .itemset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n    overflow: hidden;\n}\n\n.graph .background {\n}\n\n.graph .foreground {\n}\n\n.graph .itemset-axis {\n    position: absolute;\n}\n\n.graph .groupset .itemset-axis {\n    border-top: 1px solid #bfbfbf;\n}\n\n/* TODO: with orientation=='bottom', this will more or less overlap with timeline axis\n.graph .groupset .itemset-axis:last-child {\n    border-top: none;\n}\n*/\n\n\n.graph .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.graph .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.graph .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.graph .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.graph .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.graph .item.point {\n    background: none;\n}\n\n.graph .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range {\n    overflow: hidden;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .content {\n    position: relative;\n    display: inline-block;\n}\n\n.graph .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n}\n\n.graph .item .content {\n    margin: 5px;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n/* TODO: better css name, 'graph' is way to generic */\n\n.graph {\n    overflow: hidden;\n}\n\n.graph .axis {\n    position: relative;\n}\n\n.graph .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.graph .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.graph .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.graph .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.graph .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.graph .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n");
 
 },{"moment":2}],2:[function(require,module,exports){
 (function(){// moment.js
