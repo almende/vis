@@ -199,7 +199,7 @@ GroupSet.prototype.repaint = function repaint() {
             var group = null;
             var groupIndex = -1;
             for (var i = 0; i < groups.length; i++) {
-                if (groups[i].id == id) {
+                if (groups[i].groupId == id) {
                     group = groups[i];
                     groupIndex = i;
                     break;
@@ -249,6 +249,7 @@ GroupSet.prototype.repaint = function repaint() {
                 top = 0;
             if (prevGroup) {
                 top = function () {
+                    // TODO: top must reckon with options.maxHeight
                     return prevGroup.top + prevGroup.height;
                 }
             }
@@ -257,6 +258,7 @@ GroupSet.prototype.repaint = function repaint() {
             });
         });
 
+        changed++;
     }
 
     return (changed > 0);

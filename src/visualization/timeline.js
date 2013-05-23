@@ -23,7 +23,7 @@ function Timeline (container, items, options) {
     // controller
     this.controller = new Controller();
 
-    // main panel
+    // root panel
     if (!container) {
         throw new Error('No container element provided');
     }
@@ -38,8 +38,8 @@ function Timeline (container, items, options) {
             return me.timeaxis.height + me.content.height;
         }
     };
-    this.main = new RootPanel(container, mainOptions);
-    this.controller.add(this.main);
+    this.root = new RootPanel(container, mainOptions);
+    this.controller.add(this.root);
 
     // range
     var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
@@ -48,8 +48,8 @@ function Timeline (container, items, options) {
         end:   now.clone().add('days', 4).valueOf()
     });
     // TODO: reckon with options moveable and zoomable
-    this.range.subscribe(this.main, 'move', 'horizontal');
-    this.range.subscribe(this.main, 'zoom', 'horizontal');
+    this.range.subscribe(this.root, 'move', 'horizontal');
+    this.range.subscribe(this.root, 'zoom', 'horizontal');
     this.range.on('rangechange', function () {
         var force = true;
         me.controller.requestReflow(force);
@@ -64,7 +64,7 @@ function Timeline (container, items, options) {
     // time axis
     var timeaxisOptions = Object.create(this.options);
     timeaxisOptions.range = this.range;
-    this.timeaxis = new TimeAxis(this.main, [], timeaxisOptions);
+    this.timeaxis = new TimeAxis(this.root, [], timeaxisOptions);
     this.timeaxis.setRange(this.range);
     this.controller.add(this.timeaxis);
 
@@ -92,6 +92,7 @@ Timeline.prototype.setOptions = function (options) {
         util.extend(this.options, options);
     }
 
+    this.controller.reflow();
     this.controller.repaint();
 };
 
@@ -182,12 +183,12 @@ Timeline.prototype.setGroups = function(groups) {
                     return me.timeaxis.height;
                 }
                 else {
-                    return me.main.height - me.timeaxis.height - me.content.height;
+                    return me.root.height - me.timeaxis.height - me.content.height;
                 }
             },
             height: function () {
                 if (me.options.height) {
-                    return me.main.height - me.timeaxis.height;
+                    return me.root.height - me.timeaxis.height;
                 }
                 else {
                     return null;
@@ -205,7 +206,7 @@ Timeline.prototype.setGroups = function(groups) {
                 }
             }
         };
-        this.content = new type(this.main, [this.timeaxis], options);
+        this.content = new type(this.root, [this.timeaxis], options);
         if (this.content.setRange) {
             this.content.setRange(this.range);
         }

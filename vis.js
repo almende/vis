@@ -6018,7 +6018,7 @@ function Group (parent, groupId, options) {
 
     this.groupId = groupId;
     this.itemsData = null;  // DataSet
-    this.items = null;      // ItemSet
+    this.itemset = null;    // ItemSet
     this.options = Object.create(parent && parent.options || null);
     this.options.top = 0;
 
@@ -6053,28 +6053,29 @@ Group.prototype.getContainer = function () {
  * @param {DataSet | DataView} items
  */
 Group.prototype.setItems = function setItems(items) {
-    if (this.items) {
+    if (this.itemset) {
         // remove current item set
-        this.items.hide();
-        this.items.setItems();
+        this.itemset.hide();
+        this.itemset.setItems();
 
-        this.parent.controller.remove(this.items);
+        this.parent.controller.remove(this.itemset);
+        this.itemset = null;
     }
 
-    if (items || true) {
+    if (items) {
         var groupId = this.groupId;
 
-        this.items = new ItemSet(this);
-        this.items.setRange(this.parent.range);
+        this.itemset = new ItemSet(this);
+        this.itemset.setRange(this.parent.range);
 
         this.view = new DataView(items, {
             filter: function (item) {
                 return item.group == groupId;
             }
         });
-        this.items.setItems(this.view);
+        this.itemset.setItems(this.view);
 
-        this.parent.controller.add(this.items);
+        this.parent.controller.add(this.itemset);
     }
 };
 
@@ -6094,8 +6095,8 @@ Group.prototype.reflow = function reflow() {
     var changed = 0,
         update = util.updateProperty;
 
-    changed += update(this, 'top',    this.items ? this.items.top : 0);
-    changed += update(this, 'height', this.items ? this.items.height : 0);
+    changed += update(this, 'top',    this.itemset ? this.itemset.top : 0);
+    changed += update(this, 'height', this.itemset ? this.itemset.height : 0);
 
     return (changed > 0);
 };
@@ -6301,7 +6302,7 @@ GroupSet.prototype.repaint = function repaint() {
             var group = null;
             var groupIndex = -1;
             for (var i = 0; i < groups.length; i++) {
-                if (groups[i].id == id) {
+                if (groups[i].groupId == id) {
                     group = groups[i];
                     groupIndex = i;
                     break;
@@ -6351,6 +6352,7 @@ GroupSet.prototype.repaint = function repaint() {
                 top = 0;
             if (prevGroup) {
                 top = function () {
+                    // TODO: top must reckon with options.maxHeight
                     return prevGroup.top + prevGroup.height;
                 }
             }
@@ -6359,6 +6361,7 @@ GroupSet.prototype.repaint = function repaint() {
             });
         });
 
+        changed++;
     }
 
     return (changed > 0);
@@ -6509,7 +6512,7 @@ function Timeline (container, items, options) {
     // controller
     this.controller = new Controller();
 
-    // main panel
+    // root panel
     if (!container) {
         throw new Error('No container element provided');
     }
@@ -6524,8 +6527,8 @@ function Timeline (container, items, options) {
             return me.timeaxis.height + me.content.height;
         }
     };
-    this.main = new RootPanel(container, mainOptions);
-    this.controller.add(this.main);
+    this.root = new RootPanel(container, mainOptions);
+    this.controller.add(this.root);
 
     // range
     var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
@@ -6534,8 +6537,8 @@ function Timeline (container, items, options) {
         end:   now.clone().add('days', 4).valueOf()
     });
     // TODO: reckon with options moveable and zoomable
-    this.range.subscribe(this.main, 'move', 'horizontal');
-    this.range.subscribe(this.main, 'zoom', 'horizontal');
+    this.range.subscribe(this.root, 'move', 'horizontal');
+    this.range.subscribe(this.root, 'zoom', 'horizontal');
     this.range.on('rangechange', function () {
         var force = true;
         me.controller.requestReflow(force);
@@ -6550,7 +6553,7 @@ function Timeline (container, items, options) {
     // time axis
     var timeaxisOptions = Object.create(this.options);
     timeaxisOptions.range = this.range;
-    this.timeaxis = new TimeAxis(this.main, [], timeaxisOptions);
+    this.timeaxis = new TimeAxis(this.root, [], timeaxisOptions);
     this.timeaxis.setRange(this.range);
     this.controller.add(this.timeaxis);
 
@@ -6578,6 +6581,7 @@ Timeline.prototype.setOptions = function (options) {
         util.extend(this.options, options);
     }
 
+    this.controller.reflow();
     this.controller.repaint();
 };
 
@@ -6668,12 +6672,12 @@ Timeline.prototype.setGroups = function(groups) {
                     return me.timeaxis.height;
                 }
                 else {
-                    return me.main.height - me.timeaxis.height - me.content.height;
+                    return me.root.height - me.timeaxis.height - me.content.height;
                 }
             },
             height: function () {
                 if (me.options.height) {
-                    return me.main.height - me.timeaxis.height;
+                    return me.root.height - me.timeaxis.height;
                 }
                 else {
                     return null;
@@ -6691,7 +6695,7 @@ Timeline.prototype.setGroups = function(groups) {
                 }
             }
         };
-        this.content = new type(this.main, [this.timeaxis], options);
+        this.content = new type(this.root, [this.timeaxis], options);
         if (this.content.setRange) {
             this.content.setRange(this.range);
         }

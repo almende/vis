@@ -12,7 +12,7 @@ function Group (parent, groupId, options) {
 
     this.groupId = groupId;
     this.itemsData = null;  // DataSet
-    this.items = null;      // ItemSet
+    this.itemset = null;    // ItemSet
     this.options = Object.create(parent && parent.options || null);
     this.options.top = 0;
 
@@ -47,28 +47,29 @@ Group.prototype.getContainer = function () {
  * @param {DataSet | DataView} items
  */
 Group.prototype.setItems = function setItems(items) {
-    if (this.items) {
+    if (this.itemset) {
         // remove current item set
-        this.items.hide();
-        this.items.setItems();
+        this.itemset.hide();
+        this.itemset.setItems();
 
-        this.parent.controller.remove(this.items);
+        this.parent.controller.remove(this.itemset);
+        this.itemset = null;
     }
 
-    if (items || true) {
+    if (items) {
         var groupId = this.groupId;
 
-        this.items = new ItemSet(this);
-        this.items.setRange(this.parent.range);
+        this.itemset = new ItemSet(this);
+        this.itemset.setRange(this.parent.range);
 
         this.view = new DataView(items, {
             filter: function (item) {
                 return item.group == groupId;
             }
         });
-        this.items.setItems(this.view);
+        this.itemset.setItems(this.view);
 
-        this.parent.controller.add(this.items);
+        this.parent.controller.add(this.itemset);
     }
 };
 
@@ -88,8 +89,8 @@ Group.prototype.reflow = function reflow() {
     var changed = 0,
         update = util.updateProperty;
 
-    changed += update(this, 'top',    this.items ? this.items.top : 0);
-    changed += update(this, 'height', this.items ? this.items.height : 0);
+    changed += update(this, 'top',    this.itemset ? this.itemset.top : 0);
+    changed += update(this, 'height', this.itemset ? this.itemset.height : 0);
 
     return (changed > 0);
 };
