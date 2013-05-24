@@ -32,7 +32,6 @@
  *                             {Object.<String, String} fieldTypes
  *                                              A map with field names as key,
  *                                              and the field type as value.
- *                             TODO: implement an option for a  default order
  * @constructor DataSet
  */
 function DataSet (options) {
@@ -262,7 +261,8 @@ DataSet.prototype.update = function (data, senderId) {
  *                              {Object.<String, String>} [fieldTypes]
  *                              {String[]} [fields] field names to be returned
  *                              {function} [filter] filter items
- *                              TODO: implement an option order
+ *                              {String | function} [order] Order the items by
+ *                                  a field name or custom sort function.
  * {Array | DataTable} [data]   If provided, items will be appended to this
  *                              array or table. Required in case of Google
  *                              DataTable.
@@ -315,108 +315,171 @@ DataSet.prototype.get = function (args) {
     }
 
     // build options
-    var itemOptions = this._composeItemOptions(options);
+    var fieldTypes = options && options.fieldTypes || this.options.fieldTypes;
+    var filter = options && options.filter;
+    var items = [], item, itemId, i, len;
 
-    var item, itemId, i, len;
-    if (type == 'DataTable') {
-        // return a Google DataTable
-        var columns = this._getColumnNames(data);
-        if (id != undefined) {
-            // return a single item
-            item = me._getItem(id, itemOptions);
-            if (item) {
-                this._appendRow(data, columns, item);
-            }
+    // cast items
+    if (id != undefined) {
+        // return a single item
+        item = me._getItem(id, fieldTypes);
+        if (filter && !filter(item)) {
+            item = null;
         }
-        else if (ids != undefined) {
-            // return a subset of items
-            for (i = 0, len = ids.length; i < len; i++) {
-                item = me._getItem(ids[i], itemOptions);
-                if (item) {
-                    me._appendRow(data, columns, item);
-                }
-            }
-        }
-        else {
-            // return all items
-            for (itemId in this.data) {
-                if (this.data.hasOwnProperty(itemId)) {
-                    item = me._getItem(itemId, itemOptions);
-                    if (item) {
-                        me._appendRow(data, columns, item);
-                    }
-                }
+    }
+    else if (ids != undefined) {
+        // return a subset of items
+        for (i = 0, len = ids.length; i < len; i++) {
+            item = me._getItem(ids[i], fieldTypes);
+            if (!filter || filter(item)) {
+                items.push(item);
             }
         }
     }
     else {
-        // return an array
-        if (!data) {
-            data = [];
-        }
-
-        if (id != undefined) {
-            // return a single item
-            return me._getItem(id, itemOptions);
-        }
-        else if (ids != undefined) {
-            // return a subset of items
-            for (i = 0, len = ids.length; i < len; i++) {
-                item = me._getItem(ids[i], itemOptions);
-                if (item) {
-                    data.push(item);
-                }
-            }
-        }
-        else {
-            // return all items
-            for (itemId in this.data) {
-                if (this.data.hasOwnProperty(itemId)) {
-                    item = me._getItem(itemId, itemOptions);
-                    if (item) {
-                        data.push(item);
-                    }
+        // return all items
+        for (itemId in this.data) {
+            if (this.data.hasOwnProperty(itemId)) {
+                item = me._getItem(itemId, fieldTypes);
+                if (!filter || filter(item)) {
+                    items.push(item);
                 }
             }
         }
     }
 
-    return data;
+    // order the results
+    if (options && options.order && id == undefined) {
+        this._sort(items, options.order);
+    }
+
+    // filter fields of the items
+    if (options && options.fields) {
+        var fields = options.fields;
+        if (id != undefined) {
+            item = this._filterFields(item, fields);
+        }
+        else {
+            for (i = 0, len = items.length; i < len; i++) {
+                items[i] = this._filterFields(items[i], fields);
+            }
+        }
+    }
+
+    // return the results
+    if (type == 'DataTable') {
+        var columns = this._getColumnNames(data);
+        if (id != undefined) {
+            // append a single item to the data table
+            me._appendRow(data, columns, item);
+        }
+        else {
+            // copy the items to the provided data table
+            for (i = 0, len = items.length; i < len; i++) {
+                me._appendRow(data, columns, items[i]);
+            }
+        }
+        return data;
+    }
+    else {
+        // return an array
+        if (id != undefined) {
+            // a single item
+            return item;
+        }
+        else {
+            // multiple items
+            if (data) {
+                // copy the items to the provided array
+                for (i = 0, len = items.length; i < len; i++) {
+                    data.push(items[i]);
+                }
+                return data;
+            }
+            else {
+                // just return our array
+                return items;
+            }
+        }
+    }
 };
 
 /**
  * Get ids of all items or from a filtered set of items.
  * @param {Object} [options]    An Object with options. Available options:
  *                              {function} [filter] filter items
- *                              TODO: implement an option order
+ *                              {String | function} [order] Order the items by
+ *                                  a field name or custom sort function.
  * @return {Array} ids
  */
 DataSet.prototype.getIds = function (options) {
     var data = this.data,
+        filter = options && options.filter,
+        order = options && options.order,
+        fieldTypes = options && options.fieldTypes || this.options.fieldTypes,
+        i,
+        len,
         id,
         item,
+        items,
         ids = [];
 
-    if (options && options.filter) {
+    if (filter) {
         // get filtered items
-        var itemOptions = this._composeItemOptions({
-            filter: options && options.filter
-        });
-        for (id in data) {
-            if (data.hasOwnProperty(id)) {
-                item = this._getItem(id, itemOptions);
-                if (item) {
-                    ids.push(item[this.fieldId]);
+        if (order) {
+            // create ordered list
+            items = [];
+            for (id in data) {
+                if (data.hasOwnProperty(id)) {
+                    item = this._getItem(id, fieldTypes);
+                    if (filter(item)) {
+                        items.push(item);
+                    }
+                }
+            }
+
+            this._sort(items, order);
+
+            for (i = 0, len = items.length; i < len; i++) {
+                ids[i] = items[i][this.fieldId];
+            }
+        }
+        else {
+            // create unordered list
+            for (id in data) {
+                if (data.hasOwnProperty(id)) {
+                    item = this._getItem(id, fieldTypes);
+                    if (filter(item)) {
+                        ids.push(item[this.fieldId]);
+                    }
                 }
             }
         }
     }
     else {
         // get all items
-        for (id in data) {
-            if (data.hasOwnProperty(id)) {
-                item = data[id];
-                ids.push(item[this.fieldId]);
+        if (order) {
+            // create an ordered list
+            items = [];
+            for (id in data) {
+                if (data.hasOwnProperty(id)) {
+                    items.push(data[id]);
+                }
+            }
+
+            this._sort(items, order);
+
+            for (i = 0, len = items.length; i < len; i++) {
+                ids[i] = items[i][this.fieldId];
+            }
+        }
+        else {
+            // create unordered list
+            for (id in data) {
+                if (data.hasOwnProperty(id)) {
+                    item = data[id];
+                    ids.push(item[this.fieldId]);
+                }
             }
         }
     }
@@ -428,22 +491,38 @@ DataSet.prototype.getIds = function (options) {
  * Execute a callback function for every item in the dataset.
  * The order of the items is not determined.
  * @param {function} callback
- * @param {Object} [options]            Available options:
- *                                      {Object.<String, String>} [fieldTypes]
- *                                      {String[]} [fields] filter fields
- *                                      {function} [filter] filter items
- *                                      TODO: implement an option order
+ * @param {Object} [options]    Available options:
+ *                              {Object.<String, String>} [fieldTypes]
+ *                              {String[]} [fields] filter fields
+ *                              {function} [filter] filter items
+ *                              {String | function} [order] Order the items by
+ *                                  a field name or custom sort function.
  */
 DataSet.prototype.forEach = function (callback, options) {
-    var itemOptions = this._composeItemOptions(options),
+    var filter = options && options.filter,
+        fieldTypes = options && options.fieldTypes || this.options.fieldTypes,
         data = this.data,
-        item;
+        item,
+        id;
 
-    for (var id in data) {
-        if (data.hasOwnProperty(id)) {
-            item = this._getItem(id, itemOptions);
-            if (item) {
-                callback(item, id);
+    if (options && options.order) {
+        // execute forEach on ordered list
+        var items = this.get(options);
+
+        for (var i = 0, len = items.length; i < len; i++) {
+            item = items[i];
+            id = item[this.fieldId];
+            callback(item, id);
+        }
+    }
+    else {
+        // unordered
+        for (id in data) {
+            if (data.hasOwnProperty(id)) {
+                item = this._getItem(id, fieldTypes);
+                if (!filter || filter(item)) {
+                    callback(item, id);
+                }
             }
         }
     }
@@ -452,63 +531,83 @@ DataSet.prototype.forEach = function (callback, options) {
 /**
  * Map every item in the dataset.
  * @param {function} callback
- * @param {Object} [options]            Available options:
- *                                      {Object.<String, String>} [fieldTypes]
- *                                      {String[]} [fields] filter fields
- *                                      {function} [filter] filter items
- *                                      TODO: implement an option order
+ * @param {Object} [options]    Available options:
+ *                              {Object.<String, String>} [fieldTypes]
+ *                              {String[]} [fields] filter fields
+ *                              {function} [filter] filter items
+ *                              {String | function} [order] Order the items by
+ *                                  a field name or custom sort function.
  * @return {Object[]} mappedItems
  */
 DataSet.prototype.map = function (callback, options) {
-    var itemOptions = this._composeItemOptions(options),
+    var filter = options && options.filter,
+        fieldTypes = options && options.fieldTypes || this.options.fieldTypes,
         mappedItems = [],
         data = this.data,
         item;
 
+    // cast and filter items
     for (var id in data) {
         if (data.hasOwnProperty(id)) {
-            item = this._getItem(id, itemOptions);
-            if (item) {
+            item = this._getItem(id, fieldTypes);
+            if (!filter || filter(item)) {
                 mappedItems.push(callback(item, id));
             }
         }
+    }
+
+    // order items
+    if (options && options.order) {
+        this._sort(mappedItems, options.order);
     }
 
     return mappedItems;
 };
 
 /**
- * Build an option set for getting an item. Options will be merged by the
- * default options of the dataset.
- * @param {Object} options
- * @returns {Object} itemOptions
+ * Filter the fields of an item
+ * @param {Object} item
+ * @param {String[]} fields     Field names
+ * @return {Object} filteredItem
  * @private
  */
-DataSet.prototype._composeItemOptions = function (options) {
-    var itemOptions = {},
-        field;
+DataSet.prototype._filterFields = function (item, fields) {
+    var filteredItem = {};
 
-    if (options) {
-        // get the default field types
-        itemOptions.fieldTypes = {};
-        if (this.options && this.options.fieldTypes) {
-            util.extend(itemOptions.fieldTypes, this.options.fieldTypes);
-        }
-
-        // extend field types with provided types
-        if (options.fieldTypes) {
-            util.extend(itemOptions.fieldTypes, options.fieldTypes);
-        }
-
-        if (options.fields) {
-            itemOptions.fields = options.fields;
-        }
-        if (options.filter) {
-            itemOptions.filter = options.filter;
+    for (var field in item) {
+        if (item.hasOwnProperty(field) && (fields.indexOf(field) != -1)) {
+            filteredItem[field] = item[field];
         }
     }
 
-    return itemOptions;
+    return filteredItem;
+};
+
+/**
+ * Sort the provided array with items
+ * @param {Object[]} items
+ * @param {String | function} order      A field name or custom sort function.
+ * @private
+ */
+DataSet.prototype._sort = function (items, order) {
+    if (util.isString(order)) {
+        // order by provided field name
+        var name = order; // field name
+        items.sort(function (a, b) {
+            var av = a[name];
+            var bv = b[name];
+            return (av > bv) ? 1 : ((av < bv) ? -1 : 0);
+        });
+    }
+    else if (typeof order === 'function') {
+        // order by sort function
+        items.sort(order);
+    }
+    // TODO: extend order by an Object {field:String, direction:String}
+    //       where direction can be 'asc' or 'desc'
+    else {
+        throw new TypeError('Order must be a function or a string');
+    }
 };
 
 /**
@@ -682,17 +781,13 @@ DataSet.prototype._addItem = function (item) {
 };
 
 /**
- * Get, cast and filter an item
+ * Get an item. Fields can be casted to a specific type
  * @param {String} id
- * @param {Object} options  Available options:
- *                          {Object.<String, String>} fieldTypes  Cast field types
- *                          {String[]} fields   Filter fields
- *                          {function} filter   Filter item, returns null if
- *                                              item does not match the filter
+ * @param {Object.<String, String>} [fieldTypes]  Cast field types
  * @return {Object | null} item
  * @private
  */
-DataSet.prototype._getItem = function (id, options) {
+DataSet.prototype._getItem = function (id, fieldTypes) {
     var field, value;
 
     // get the item from the dataset
@@ -705,8 +800,7 @@ DataSet.prototype._getItem = function (id, options) {
     var casted = {},
         fieldId = this.fieldId,
         internalIds = this.internalIds;
-    if (options.fieldTypes) {
-        var fieldTypes = options.fieldTypes;
+    if (fieldTypes) {
         for (field in raw) {
             if (raw.hasOwnProperty(field)) {
                 value = raw[field];
@@ -730,25 +824,7 @@ DataSet.prototype._getItem = function (id, options) {
         }
     }
 
-    // apply item filter
-    if (options.filter && !options.filter(casted)) {
-        return null;
-    }
-
-    // apply fields filter
-    if (options.fields) {
-        var filtered = {},
-            fields = options.fields;
-        for (field in casted) {
-            if (casted.hasOwnProperty(field) && (fields.indexOf(field) != -1)) {
-                filtered[field] = casted[field];
-            }
-        }
-        return filtered;
-    }
-    else {
-        return casted;
-    }
+    return casted;
 };
 
 /**

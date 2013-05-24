@@ -101,4 +101,47 @@ data.clear();
 assert.equal(data.get().length, 0);
 
 
+// test filtering and sorting
+data = new vis.DataSet();
+data.add([
+    {id:1, age: 30, group: 2},
+    {id:2, age: 25, group: 4},
+    {id:3, age: 17, group: 2},
+    {id:4, age: 27, group: 3}
+]);
+
+assert.deepEqual(data.get({order: 'age'}), [
+    {id:3, age: 17, group: 2},
+    {id:2, age: 25, group: 4},
+    {id:4, age: 27, group: 3},
+    {id:1, age: 30, group: 2}
+]);
+assert.deepEqual(data.getIds({order: 'age'}), [3,2,4,1]);
+
+assert.deepEqual(data.get({order: 'age', fields: ['id']}), [
+    {id:3},
+    {id:2},
+    {id:4},
+    {id:1}
+]);
+
+assert.deepEqual(data.get({
+    order: 'age',
+    filter: function (item) {
+        return item.group == 2;
+    },
+    fields: ['id']
+}), [
+    {id:3},
+    {id:1}
+]);
+assert.deepEqual(data.getIds({
+    order: 'age',
+    filter: function (item) {
+        return (item.group == 2);
+    }
+}), [3,1]);
+
+
+
 // TODO: extensively test DataSet

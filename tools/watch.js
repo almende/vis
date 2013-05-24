@@ -24,7 +24,7 @@ function rebuild() {
 
 // watch for changes in the code, rebuilt vis.js automatically
 watch(WATCH_FOLDER, function(filename) {
-    console.log(filename, ' changed');
+    console.log(filename + ' changed');
     rebuild();
 });
 

@@ -99,7 +99,8 @@ DataView.prototype.setData = function (data) {
  *                              {Object.<String, String>} [fieldTypes]
  *                              {String[]} [fields] field names to be returned
  *                              {function} [filter] filter items
- *                              TODO: implement an option order
+ *                              {String | function} [order] Order the items by
+ *                                  a field name or custom sort function.
  * {Array | DataTable} [data]   If provided, items will be appended to this
  *                              array or table. Required in case of Google
  *                              DataTable.
@@ -148,7 +149,8 @@ DataView.prototype.get = function (args) {
  * Get ids of all items or from a filtered set of items.
  * @param {Object} [options]    An Object with options. Available options:
  *                              {function} [filter] filter items
- *                              TODO: implement an option order
+ *                              {String | function} [order] Order the items by
+ *                                  a field name or custom sort function.
  * @return {Array} ids
  */
 DataView.prototype.getIds = function (options) {
@@ -173,7 +175,8 @@ DataView.prototype.getIds = function (options) {
         }
 
         ids = this.data.getIds({
-            filter: filter
+            filter: filter,
+            order: options && options.order
         });
     }
     else {
