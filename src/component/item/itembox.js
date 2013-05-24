@@ -224,22 +224,22 @@ ItemBox.prototype.reflow = function reflow() {
                 // default or 'center'
                 left = start - this.width / 2;
             }
-            update(this, 'left', left);
+            changed += update(this, 'left', left);
 
-            update(props.line, 'left', start - props.line.width / 2);
-            update(props.dot, 'left', start - props.dot.width / 2);
-            update(props.dot, 'top', -props.dot.height / 2);
+            changed += update(props.line, 'left', start - props.line.width / 2);
+            changed += update(props.dot, 'left', start - props.dot.width / 2);
+            changed += update(props.dot, 'top', -props.dot.height / 2);
             if (orientation == 'top') {
                 top = margin;
 
-                update(this, 'top', top);
+                changed += update(this, 'top', top);
             }
             else {
                 // default or 'bottom'
                 var parentHeight = this.parent.height;
                 top = parentHeight - this.height - margin;
 
-                update(this, 'top', top);
+                changed += update(this, 'top', top);
             }
         }
         else {

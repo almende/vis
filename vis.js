@@ -3834,7 +3834,7 @@ function RootPanel(container, options) {
     this.id = util.randomUUID();
     this.container = container;
 
-    this.options = options || {}
+    this.options = options || {};
     this.defaultOptions = {
         autoResize: true
     };
@@ -4793,6 +4793,9 @@ ItemSet.prototype.repaint = function repaint() {
                         }
                     }
 
+                    // force a repaint (not only a reposition)
+                    item.repaint();
+
                     items[id] = item;
                 }
 
@@ -5378,22 +5381,22 @@ ItemBox.prototype.reflow = function reflow() {
                 // default or 'center'
                 left = start - this.width / 2;
             }
-            update(this, 'left', left);
+            changed += update(this, 'left', left);
 
-            update(props.line, 'left', start - props.line.width / 2);
-            update(props.dot, 'left', start - props.dot.width / 2);
-            update(props.dot, 'top', -props.dot.height / 2);
+            changed += update(props.line, 'left', start - props.line.width / 2);
+            changed += update(props.dot, 'left', start - props.dot.width / 2);
+            changed += update(props.dot, 'top', -props.dot.height / 2);
             if (orientation == 'top') {
                 top = margin;
 
-                update(this, 'top', top);
+                changed += update(this, 'top', top);
             }
             else {
                 // default or 'bottom'
                 var parentHeight = this.parent.height;
                 top = parentHeight - this.height - margin;
 
-                update(this, 'top', top);
+                changed += update(this, 'top', top);
             }
         }
         else {
@@ -6468,7 +6471,7 @@ GroupSet.prototype._toQueue = function _toQueue(ids, action) {
  */
 function Timeline (container, items, options) {
     var me = this;
-    this.options = {
+    this.options = util.extend({
         orientation: 'bottom',
         min: null,
         max: null,
@@ -6479,7 +6482,7 @@ function Timeline (container, items, options) {
         showMinorLabels: true,
         showMajorLabels: true,
         autoResize: false
-    };
+    }, options);
 
     // controller
     this.controller = new Controller();

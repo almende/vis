@@ -40,14 +40,14 @@
     <script>
         // create a dataset with items
         var now = moment().minutes(0).seconds(0).milliseconds(0);
-        var data = new vis.DataSet({
+        var items = new vis.DataSet({
             fieldTypes: {
                 start: 'Date',
                 end: 'Date'
             },
             fieldId: '_id'
         });
-        data.add([
+        items.add([
             {_id: 1, content: 'item 1<br>start', start: now.clone().add('days', 4).toDate()},
             {_id: 2, content: 'item 2', start: now.clone().add('days', -2).toDate() },
             {_id: 3, content: 'item 3', start: now.clone().add('days', 2).toDate()},
@@ -60,16 +60,17 @@
 
         var container = document.getElementById('visualization');
         var options = {
+            //orientation: 'top',
             //start: now.clone().add('days', -7).valueOf(),
             //end: now.clone().add('days', 7).valueOf(),
+            //maxHeight: 200,
             min: moment('2013-01-01').valueOf(),
             max: moment('2013-12-31').valueOf(),
-            //maxHeight: 200,
             zoomMin: 1000 * 60 * 60 * 24,            // 1 day
             zoomMax: 1000 * 60 * 60 * 24 * 30 * 6    // 6 months
         };
 
-        var timeline = new vis.Timeline(container, data, options);
+        var timeline = new vis.Timeline(container, items, options);
 
     </script>
 </body>

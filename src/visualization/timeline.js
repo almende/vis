@@ -7,7 +7,7 @@
  */
 function Timeline (container, items, options) {
     var me = this;
-    this.options = {
+    this.options = util.extend({
         orientation: 'bottom',
         min: null,
         max: null,
@@ -18,7 +18,7 @@ function Timeline (container, items, options) {
         showMinorLabels: true,
         showMajorLabels: true,
         autoResize: false
-    };
+    }, options);
 
     // controller
     this.controller = new Controller();

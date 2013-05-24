@@ -239,6 +239,9 @@ ItemSet.prototype.repaint = function repaint() {
                         }
                     }
 
+                    // force a repaint (not only a reposition)
+                    item.repaint();
+
                     items[id] = item;
                 }
 

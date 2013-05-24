@@ -10,7 +10,7 @@ function RootPanel(container, options) {
     this.id = util.randomUUID();
     this.container = container;
 
-    this.options = options || {}
+    this.options = options || {};
     this.defaultOptions = {
         autoResize: true
     };
