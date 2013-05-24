@@ -7,7 +7,7 @@
 function Stack (parent, options) {
     this.parent = parent;
 
-    this.options = Object.create(parent && parent.options || 0);
+    this.options = options || {};
     this.defaultOptions = {
         order: function (a, b) {
             //return (b.width - a.width) || (a.left - b.left);  // TODO: cleanup
@@ -38,8 +38,6 @@ function Stack (parent, options) {
     };
 
     this.ordered = [];  // ordered items
-
-    this.setOptions(options);
 }
 
 /**

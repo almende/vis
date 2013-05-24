@@ -18,9 +18,9 @@ function Range(options) {
         zoomMax: null
     };
 
-    this.setOptions(options);
-
     this.listeners = [];
+
+    this.setOptions(options);
 }
 
 /**

@@ -62,7 +62,7 @@ function Timeline (container, items, options) {
     // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
 
     // time axis
-    var timeaxisOptions = Object.create(this.options);
+    var timeaxisOptions = Object.create(mainOptions);
     timeaxisOptions.range = this.range;
     this.timeaxis = new TimeAxis(this.root, [], timeaxisOptions);
     this.timeaxis.setRange(this.range);
@@ -73,9 +73,6 @@ function Timeline (container, items, options) {
 
     this.itemsData = null;      // DataSet
     this.groupsData = null;     // DataSet
-
-    // set options (must take place before setting the data)
-    this.setOptions(options);
 
     // set data
     if (items) {
@@ -177,7 +174,8 @@ Timeline.prototype.setGroups = function(groups) {
         }
 
         // create new content set
-        var options = {
+        var options = Object.create(this.options);
+        util.extend(options, {
             top: function () {
                 if (me.options.orientation == 'top') {
                     return me.timeaxis.height;
@@ -205,7 +203,7 @@ Timeline.prototype.setGroups = function(groups) {
                     return null;
                 }
             }
-        };
+        });
         this.content = new type(this.root, [this.timeaxis], options);
         if (this.content.setRange) {
             this.content.setRange(this.range);

@@ -34,7 +34,7 @@ function TimeAxis (parent, depends, options) {
         lineTop: 0
     };
 
-    this.options = Object.create(parent && parent.options || null);
+    this.options = options || {};
     this.defaultOptions = {
         orientation: 'bottom',  // supported: 'top', 'bottom'
         // TODO: implement timeaxis orientations 'left' and 'right'
@@ -44,18 +44,12 @@ function TimeAxis (parent, depends, options) {
 
     this.conversion = null;
     this.range = null;
-
-    this.setOptions(options);
 }
 
 TimeAxis.prototype = new Component();
 
 // TODO: comment options
-TimeAxis.prototype.setOptions = function (options) {
-    if (options) {
-        util.extend(this.options, options);
-    }
-};
+TimeAxis.prototype.setOptions = Component.prototype.setOptions;
 
 /**
  * Set a range (start and end)

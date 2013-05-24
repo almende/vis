@@ -17,9 +17,7 @@ function Panel(parent, depends, options) {
     this.parent = parent;
     this.depends = depends;
 
-    this.options = Object.create(parent && parent.options || null);
-
-    this.setOptions(options);
+    this.options = options || {};
 }
 
 Panel.prototype = new Component();
@@ -33,11 +31,7 @@ Panel.prototype = new Component();
  *                              {String | Number | function} [width]
  *                              {String | Number | function} [height]
  */
-Panel.prototype.setOptions = function (options) {
-    if (options) {
-        util.extend(this.options, options);
-    }
-};
+Panel.prototype.setOptions = Component.prototype.setOptions;
 
 /**
  * Get the container element of the panel, which can be used by a child to

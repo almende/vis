@@ -13,7 +13,7 @@ function GroupSet(parent, depends, options) {
     this.parent = parent;
     this.depends = depends;
 
-    this.options = Object.create(parent && parent.options || null);
+    this.options = options || {};
 
     this.range = null;      // Range or Object {start: number, end: number}
     this.itemsData = null;  // DataSet with items
@@ -36,8 +36,6 @@ function GroupSet(parent, depends, options) {
             me._onRemove(params.items);
         }
     };
-
-    this.setOptions(options);
 }
 
 GroupSet.prototype = new Panel();
@@ -47,11 +45,7 @@ GroupSet.prototype = new Panel();
  * @param {Object} [options] The following options are available:
  *                           TODO: describe options
  */
-GroupSet.prototype.setOptions = function setOptions(options) {
-    if (options) {
-        util.extend(this.options, options);
-    }
-};
+GroupSet.prototype.setOptions = Component.prototype.setOptions;
 
 GroupSet.prototype.setRange = function (range) {
     // TODO: implement setRange
@@ -211,7 +205,8 @@ GroupSet.prototype.repaint = function repaint() {
                 case 'add':
                 case 'update':
                     if (!group) {
-                        group = new Group(me, id);
+                        var groupOptions = Object.create(me.options);
+                        group = new Group(me, id, groupOptions);
                         group.setItems(me.itemsData); // attach items data
                         groups.push(group);
 

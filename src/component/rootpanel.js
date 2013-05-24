@@ -10,14 +10,12 @@ function RootPanel(container, options) {
     this.id = util.randomUUID();
     this.container = container;
 
-    this.options = Object.create(options || null);
+    this.options = options || {}
     this.defaultOptions = {
         autoResize: true
     };
 
     this.listeners = {}; // event listeners
-
-    this.setOptions(options);
 }
 
 RootPanel.prototype = new Panel();
@@ -32,19 +30,7 @@ RootPanel.prototype = new Panel();
  *                              {String | Number | function} [height]
  *                              {Boolean | function} [autoResize]
  */
-RootPanel.prototype.setOptions = function (options) {
-    if (options) {
-        util.extend(this.options, options);
-    }
-
-    var autoResize = this.getOption('autoResize');
-    if (autoResize) {
-        this._watch();
-    }
-    else {
-        this._unwatch();
-    }
-};
+RootPanel.prototype.setOptions = Component.prototype.setOptions;
 
 /**
  * Repaint the component
@@ -82,6 +68,7 @@ RootPanel.prototype.repaint = function () {
     changed += update(frame.style, 'height', asSize(options.height, '100%'));
 
     this._updateEventEmitters();
+    this._updateWatch();
 
     return (changed > 0);
 };
@@ -106,6 +93,20 @@ RootPanel.prototype.reflow = function () {
     }
 
     return (changed > 0);
+};
+
+/**
+ * Update watching for resize, depending on the current option
+ * @private
+ */
+RootPanel.prototype._updateWatch = function () {
+    var autoResize = this.getOption('autoResize');
+    if (autoResize) {
+        this._watch();
+    }
+    else {
+        this._unwatch();
+    }
 };
 
 /**

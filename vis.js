@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.0.8
- * @date    2013-05-23
+ * @date    2013-05-24
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -2589,7 +2589,7 @@ DataView.prototype._trigger = DataSet.prototype._trigger;
 function Stack (parent, options) {
     this.parent = parent;
 
-    this.options = Object.create(parent && parent.options || 0);
+    this.options = options || {};
     this.defaultOptions = {
         order: function (a, b) {
             //return (b.width - a.width) || (a.left - b.left);  // TODO: cleanup
@@ -2620,8 +2620,6 @@ function Stack (parent, options) {
     };
 
     this.ordered = [];  // ordered items
-
-    this.setOptions(options);
 }
 
 /**
@@ -2795,9 +2793,9 @@ function Range(options) {
         zoomMax: null
     };
 
-    this.setOptions(options);
-
     this.listeners = [];
+
+    this.setOptions(options);
 }
 
 /**
@@ -3730,9 +3728,7 @@ function Panel(parent, depends, options) {
     this.parent = parent;
     this.depends = depends;
 
-    this.options = Object.create(parent && parent.options || null);
-
-    this.setOptions(options);
+    this.options = options || {};
 }
 
 Panel.prototype = new Component();
@@ -3746,11 +3742,7 @@ Panel.prototype = new Component();
  *                              {String | Number | function} [width]
  *                              {String | Number | function} [height]
  */
-Panel.prototype.setOptions = function (options) {
-    if (options) {
-        util.extend(this.options, options);
-    }
-};
+Panel.prototype.setOptions = Component.prototype.setOptions;
 
 /**
  * Get the container element of the panel, which can be used by a child to
@@ -3842,14 +3834,12 @@ function RootPanel(container, options) {
     this.id = util.randomUUID();
     this.container = container;
 
-    this.options = Object.create(options || null);
+    this.options = options || {}
     this.defaultOptions = {
         autoResize: true
     };
 
     this.listeners = {}; // event listeners
-
-    this.setOptions(options);
 }
 
 RootPanel.prototype = new Panel();
@@ -3864,19 +3854,7 @@ RootPanel.prototype = new Panel();
  *                              {String | Number | function} [height]
  *                              {Boolean | function} [autoResize]
  */
-RootPanel.prototype.setOptions = function (options) {
-    if (options) {
-        util.extend(this.options, options);
-    }
-
-    var autoResize = this.getOption('autoResize');
-    if (autoResize) {
-        this._watch();
-    }
-    else {
-        this._unwatch();
-    }
-};
+RootPanel.prototype.setOptions = Component.prototype.setOptions;
 
 /**
  * Repaint the component
@@ -3914,6 +3892,7 @@ RootPanel.prototype.repaint = function () {
     changed += update(frame.style, 'height', asSize(options.height, '100%'));
 
     this._updateEventEmitters();
+    this._updateWatch();
 
     return (changed > 0);
 };
@@ -3938,6 +3917,20 @@ RootPanel.prototype.reflow = function () {
     }
 
     return (changed > 0);
+};
+
+/**
+ * Update watching for resize, depending on the current option
+ * @private
+ */
+RootPanel.prototype._updateWatch = function () {
+    var autoResize = this.getOption('autoResize');
+    if (autoResize) {
+        this._watch();
+    }
+    else {
+        this._unwatch();
+    }
 };
 
 /**
@@ -4073,7 +4066,7 @@ function TimeAxis (parent, depends, options) {
         lineTop: 0
     };
 
-    this.options = Object.create(parent && parent.options || null);
+    this.options = options || {};
     this.defaultOptions = {
         orientation: 'bottom',  // supported: 'top', 'bottom'
         // TODO: implement timeaxis orientations 'left' and 'right'
@@ -4083,18 +4076,12 @@ function TimeAxis (parent, depends, options) {
 
     this.conversion = null;
     this.range = null;
-
-    this.setOptions(options);
 }
 
 TimeAxis.prototype = new Component();
 
 // TODO: comment options
-TimeAxis.prototype.setOptions = function (options) {
-    if (options) {
-        util.extend(this.options, options);
-    }
-};
+TimeAxis.prototype.setOptions = Component.prototype.setOptions;
 
 /**
  * Set a range (start and end)
@@ -4584,7 +4571,7 @@ function ItemSet(parent, depends, options) {
     this.depends = depends;
 
     // one options object is shared by this itemset and all its items
-    this.options = Object.create(parent && parent.options || null);
+    this.options = options || {};
     this.defaultOptions = {
         style: 'box',
         align: 'center',
@@ -4622,10 +4609,10 @@ function ItemSet(parent, depends, options) {
 
     this.items = {};    // object with an Item for every data item
     this.queue = {};       // queue with id/actions: 'add', 'update', 'delete'
-    this.stack = new Stack(this);
+    this.stack = new Stack(this, Object.create(this.options));
     this.conversion = null;
 
-    this.setOptions(options);
+    // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
 }
 
 ItemSet.prototype = new Panel();
@@ -4662,13 +4649,7 @@ ItemSet.types = {
  *                              Padding of the contents of an item in pixels.
  *                              Must correspond with the items css. Default is 5.
  */
-ItemSet.prototype.setOptions = function setOptions(options) {
-    if (options) {
-        util.extend(this.options, options);
-    }
-
-    // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
-};
+ItemSet.prototype.setOptions = Component.prototype.setOptions;
 
 /**
  * Set range (start and end).
@@ -6019,24 +6000,19 @@ function Group (parent, groupId, options) {
     this.groupId = groupId;
     this.itemsData = null;  // DataSet
     this.itemset = null;    // ItemSet
-    this.options = Object.create(parent && parent.options || null);
+    this.options = options || {};
     this.options.top = 0;
 
     this.top = 0;
     this.left = 0;
     this.width = 0;
     this.height = 0;
-
-    this.setOptions(options);
 }
 
 Group.prototype = new Component();
 
-Group.prototype.setOptions = function setOptions(options) {
-    if (options) {
-        util.extend(this.options, options);
-    }
-};
+// TODO: comment
+Group.prototype.setOptions = Component.prototype.setOptions;
 
 /**
  * Get the container element of the panel, which can be used by a child to
@@ -6065,7 +6041,8 @@ Group.prototype.setItems = function setItems(items) {
     if (items) {
         var groupId = this.groupId;
 
-        this.itemset = new ItemSet(this);
+        var itemsetOptions = Object.create(this.options);
+        this.itemset = new ItemSet(this, null, itemsetOptions);
         this.itemset.setRange(this.parent.range);
 
         this.view = new DataView(items, {
@@ -6116,7 +6093,7 @@ function GroupSet(parent, depends, options) {
     this.parent = parent;
     this.depends = depends;
 
-    this.options = Object.create(parent && parent.options || null);
+    this.options = options || {};
 
     this.range = null;      // Range or Object {start: number, end: number}
     this.itemsData = null;  // DataSet with items
@@ -6139,8 +6116,6 @@ function GroupSet(parent, depends, options) {
             me._onRemove(params.items);
         }
     };
-
-    this.setOptions(options);
 }
 
 GroupSet.prototype = new Panel();
@@ -6150,11 +6125,7 @@ GroupSet.prototype = new Panel();
  * @param {Object} [options] The following options are available:
  *                           TODO: describe options
  */
-GroupSet.prototype.setOptions = function setOptions(options) {
-    if (options) {
-        util.extend(this.options, options);
-    }
-};
+GroupSet.prototype.setOptions = Component.prototype.setOptions;
 
 GroupSet.prototype.setRange = function (range) {
     // TODO: implement setRange
@@ -6314,7 +6285,8 @@ GroupSet.prototype.repaint = function repaint() {
                 case 'add':
                 case 'update':
                     if (!group) {
-                        group = new Group(me, id);
+                        var groupOptions = Object.create(me.options);
+                        group = new Group(me, id, groupOptions);
                         group.setItems(me.itemsData); // attach items data
                         groups.push(group);
 
@@ -6551,7 +6523,7 @@ function Timeline (container, items, options) {
     // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
 
     // time axis
-    var timeaxisOptions = Object.create(this.options);
+    var timeaxisOptions = Object.create(mainOptions);
     timeaxisOptions.range = this.range;
     this.timeaxis = new TimeAxis(this.root, [], timeaxisOptions);
     this.timeaxis.setRange(this.range);
@@ -6562,9 +6534,6 @@ function Timeline (container, items, options) {
 
     this.itemsData = null;      // DataSet
     this.groupsData = null;     // DataSet
-
-    // set options (must take place before setting the data)
-    this.setOptions(options);
 
     // set data
     if (items) {
@@ -6666,7 +6635,8 @@ Timeline.prototype.setGroups = function(groups) {
         }
 
         // create new content set
-        var options = {
+        var options = Object.create(this.options);
+        util.extend(options, {
             top: function () {
                 if (me.options.orientation == 'top') {
                     return me.timeaxis.height;
@@ -6694,7 +6664,7 @@ Timeline.prototype.setGroups = function(groups) {
                     return null;
                 }
             }
-        };
+        });
         this.content = new type(this.root, [this.timeaxis], options);
         if (this.content.setRange) {
             this.content.setRange(this.range);

@@ -17,7 +17,7 @@ function ItemSet(parent, depends, options) {
     this.depends = depends;
 
     // one options object is shared by this itemset and all its items
-    this.options = Object.create(parent && parent.options || null);
+    this.options = options || {};
     this.defaultOptions = {
         style: 'box',
         align: 'center',
@@ -55,10 +55,10 @@ function ItemSet(parent, depends, options) {
 
     this.items = {};    // object with an Item for every data item
     this.queue = {};       // queue with id/actions: 'add', 'update', 'delete'
-    this.stack = new Stack(this);
+    this.stack = new Stack(this, Object.create(this.options));
     this.conversion = null;
 
-    this.setOptions(options);
+    // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
 }
 
 ItemSet.prototype = new Panel();
@@ -95,13 +95,7 @@ ItemSet.types = {
  *                              Padding of the contents of an item in pixels.
  *                              Must correspond with the items css. Default is 5.
  */
-ItemSet.prototype.setOptions = function setOptions(options) {
-    if (options) {
-        util.extend(this.options, options);
-    }
-
-    // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
-};
+ItemSet.prototype.setOptions = Component.prototype.setOptions;
 
 /**
  * Set range (start and end).

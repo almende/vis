@@ -13,24 +13,19 @@ function Group (parent, groupId, options) {
     this.groupId = groupId;
     this.itemsData = null;  // DataSet
     this.itemset = null;    // ItemSet
-    this.options = Object.create(parent && parent.options || null);
+    this.options = options || {};
     this.options.top = 0;
 
     this.top = 0;
     this.left = 0;
     this.width = 0;
     this.height = 0;
-
-    this.setOptions(options);
 }
 
 Group.prototype = new Component();
 
-Group.prototype.setOptions = function setOptions(options) {
-    if (options) {
-        util.extend(this.options, options);
-    }
-};
+// TODO: comment
+Group.prototype.setOptions = Component.prototype.setOptions;
 
 /**
  * Get the container element of the panel, which can be used by a child to
@@ -59,7 +54,8 @@ Group.prototype.setItems = function setItems(items) {
     if (items) {
         var groupId = this.groupId;
 
-        this.itemset = new ItemSet(this);
+        var itemsetOptions = Object.create(this.options);
+        this.itemset = new ItemSet(this, null, itemsetOptions);
         this.itemset.setRange(this.parent.range);
 
         this.view = new DataView(items, {
