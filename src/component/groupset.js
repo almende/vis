@@ -19,7 +19,7 @@ function GroupSet(parent, depends, options) {
     this.itemsData = null;  // DataSet with items
     this.groupsData = null; // DataSet with groups
 
-    this.groups = [];  // array with groups
+    this.groups = {};       // map with groups
 
     // changes in groups are queued  key/value map containing id/action
     this.queue = {};
@@ -43,6 +43,7 @@ GroupSet.prototype = new Panel();
 /**
  * Set options for the GroupSet. Existing options will be extended/overwritten.
  * @param {Object} [options] The following options are available:
+ *                           {String | function} groupsOrder
  *                           TODO: describe options
  */
 GroupSet.prototype.setOptions = Component.prototype.setOptions;
@@ -58,9 +59,12 @@ GroupSet.prototype.setRange = function (range) {
 GroupSet.prototype.setItems = function setItems(items) {
     this.itemsData = items;
 
-    this.groups.forEach(function (group) {
-        group.setItems(items);
-    });
+    for (var id in this.groups) {
+        if (this.groups.hasOwnProperty(id)) {
+            var group = this.groups[id];
+            group.setItems(items);
+        }
+    }
 };
 
 /**
@@ -188,17 +192,7 @@ GroupSet.prototype.repaint = function repaint() {
     if (ids.length) {
         ids.forEach(function (id) {
             var action = queue[id];
-
-            // find group
-            var group = null;
-            var groupIndex = -1;
-            for (var i = 0; i < groups.length; i++) {
-                if (groups[i].groupId == id) {
-                    group = groups[i];
-                    groupIndex = i;
-                    break;
-                }
-            }
+            var group = groups[id];
 
             //noinspection FallthroughInSwitchStatementJS
             switch (action) {
@@ -208,12 +202,13 @@ GroupSet.prototype.repaint = function repaint() {
                         var groupOptions = Object.create(me.options);
                         group = new Group(me, id, groupOptions);
                         group.setItems(me.itemsData); // attach items data
-                        groups.push(group);
+                        groups[id] = group;
 
                         me.controller.add(group);
                     }
 
                     // TODO: update group data
+                    group.data = groupsData.get(id);
 
                     delete queue[id];
                     break;
@@ -221,7 +216,7 @@ GroupSet.prototype.repaint = function repaint() {
                 case 'remove':
                     if (group) {
                         group.setItems(); // detach items data
-                        groups.splice(groupIndex, 1);
+                        delete groups[id];
 
                         me.controller.remove(group);
                     }
@@ -239,19 +234,25 @@ GroupSet.prototype.repaint = function repaint() {
         //this.depends = this.groups; // TODO: gives a circular reference through the parent
 
         // TODO: apply dependencies of the groupset
-        this.groups.forEach(function (group, index) {
-            var prevGroup = me.groups[index - 1],
-                top = 0;
-            if (prevGroup) {
-                top = function () {
-                    // TODO: top must reckon with options.maxHeight
-                    return prevGroup.top + prevGroup.height;
-                }
-            }
-            group.setOptions({
-                top: top
-            });
+
+        // update the top positions of the groups in the correct order
+        var orderedGroups = this.groupsData.getIds({
+            order: this.options.groupsOrder
         });
+        for (var i = 0; i < orderedGroups.length; i++) {
+            (function (group, prevGroup) {
+                var top = 0;
+                if (prevGroup) {
+                    top = function () {
+                        // TODO: top must reckon with options.maxHeight
+                        return prevGroup.top + prevGroup.height;
+                    }
+                }
+                group.setOptions({
+                    top: top
+                });
+            })(groups[orderedGroups[i]], groups[orderedGroups[i - 1]]);
+        }
 
         changed++;
     }
@@ -290,9 +291,13 @@ GroupSet.prototype.reflow = function reflow() {
         else {
             // height is not specified, calculate the sum of the height of all groups
             height = 0;
-            this.groups.forEach(function (group) {
-                height += group.height;
-            });
+
+            for (var id in this.groups) {
+                if (this.groups.hasOwnProperty(id)) {
+                    var group = this.groups[id];
+                    height += group.height;
+                }
+            }
         }
         if (maxHeight != null) {
             height = Math.min(height, maxHeight);

@@ -26,6 +26,13 @@
     var groupCount = 3;
     var itemCount = 20;
 
+    // create a dataset with groups
+    var names = ['John', 'Alston', 'Lee', 'Grant'];
+    var groups = new vis.DataSet();
+    for (var g = 0; g < groupCount; g++) {
+        groups.add({id: g, content: names[g]});
+    }
+
     // create a dataset with items
     var items = new vis.DataSet();
     for (var i = 0; i < itemCount; i++) {
@@ -34,19 +41,18 @@
         items.add({
             id: i,
             group: group,
-            content: 'item ' + i,
+            content: 'item ' + i +
+                    ' <span style="color:#97B0F8;">(' + names[group] + ')</span>',
             start: start,
             type: 'box'
         });
     }
 
-    var groups = new vis.DataSet();
-    for (var g = 0; g < groupCount; g++) {
-        groups.add({id: g, content: 'Group ' + g});
-    }
-
+    // create visualization
     var container = document.getElementById('visualization');
-    var options = {};
+    var options = {
+        groupsOrder: 'content'
+    };
 
     var timeline = new vis.Timeline(container);
     timeline.setOptions(options);
