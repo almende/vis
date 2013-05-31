@@ -65,7 +65,7 @@ task('build', {async: true}, function () {
             './src/component/group.js',
             './src/component/groupset.js',
 
-            './src/visualization/timeline.js',
+            './src/timeline.js',
 
             './src/module/exports.js'
         ],
@@ -89,7 +89,7 @@ task('build', {async: true}, function () {
         }
 
         // add header and footer
-        var lib = read('./src/header.js') + code;
+        var lib = read('./src/module/header.js') + code;
 
         // write bundled file
         write(VIS, lib);
@@ -114,7 +114,7 @@ task('minify', function () {
     minify({
         src: VIS,
         dest: VIS_MIN,
-        header: read('./src/header.js')
+        header: read('./src/module/header.js')
     });
 
     // update version number and stuff in the javascript files
