@@ -22,17 +22,11 @@
 
         // Called when the Visualization API is loaded.
         function draw() {
-            // Create and populate a data table.
-            nodes = new google.visualization.DataTable();
-            nodes.addColumn('number', 'id');
-            nodes.addColumn('string', 'text');
-            nodes.addColumn('number', 'group');
+            var from, to;
 
-            edges = new google.visualization.DataTable();
-            edges.addColumn('number', 'from');
-            edges.addColumn('number', 'to');
-            edges.addColumn('number', 'length');
-            edges.addColumn('string', 'color');
+            nodes = [];
+            edges = [];
+
             var color = 'gray';
             var len = undefined;
 
@@ -42,21 +36,30 @@
             var groupMin = 0;
             var groupMax = parseInt(document.getElementById('groupCount').value);
             var group = groupMin;
-            var groupLeader = new Array(); // will contain the node id with the most links of each group
+            var groupLeader = []; // will contain the node id with the most links of each group
             while (group < groupMax) {
                 // randomly create some nodes
                 var i = 0;
                 var cols = parseInt(Math.sqrt(nodeCount));
-                var connectionCount = new Array();
+                var connectionCount = [];
                 while (i < nodeCount) {
-                    nodes.addRow([i + nodeOffset, i + nodeOffset + '', group]);
+                    nodes.push({
+                        id: i + nodeOffset,
+                        text: String(i + nodeOffset),
+                        group: group
+                    });
                     connectionCount[i] = 0;
 
                     // create links in a scale-free-graph way
                     if (i == 1) {
-                        var from = i;
-                        var to = 0;
-                        edges.addRow([from + nodeOffset, to + nodeOffset, len, color]);
+                        from = i;
+                        to = 0;
+                        edges.push({
+                            from: from + nodeOffset,
+                            to: to + nodeOffset,
+                            length: len,
+                            color: color
+                        });
                         connectionCount[from]++;
                         connectionCount[to]++;
                     }
@@ -70,9 +73,14 @@
                             j++;
                         }
 
-                        var from = i;
-                        var to = j;
-                        edges.addRow([from + nodeOffset, to + nodeOffset, len, color]);
+                        from = i;
+                        to = j;
+                        edges.push({
+                            from: from + nodeOffset,
+                            to: to + nodeOffset,
+                            length: len,
+                            color: color
+                        });
                         connectionCount[from]++;
                         connectionCount[to]++;
                     }
@@ -82,16 +90,24 @@
 
                 // calculate the node with the most number of connections
                 var leader = 0;
-                for (c in connectionCount) {
-                    if (connectionCount[c] > connectionCount[leader])
-                        leader = parseInt(c);
+                for (var c in connectionCount) {
+                    if (connectionCount.hasOwnProperty(c)) {
+                        if (connectionCount[c] > connectionCount[leader]) {
+                            leader = parseInt(c);
+                        }
+                    }
                 }
 
                 if (group > groupMin) {
                     // connect to the leader of this group to the leader of a random other group
-                    var from = leader + nodeOffset;
-                    var to = groupLeader[groupMin + parseInt(Math.random() * (group - groupMin))];
-                    edges.addRow([from, to, len, color]);
+                    from = leader + nodeOffset;
+                    to = groupLeader[groupMin + parseInt(Math.random() * (group - groupMin))];
+                    edges.push({
+                        from: from,
+                        to: to,
+                        length: len,
+                        color: color
+                    });
                 }
 
                 // add this leader to the list
@@ -123,7 +139,7 @@
     </script>
 </head>
 
-<body>
+<body onload="draw()">
 <form onsubmit= "javascript: draw(); return false;">
     Number of groups:
     <input type="text" value="6" id="groupCount" style="width: 50px;">
@@ -135,6 +151,5 @@
 
 <div id="mygraph"></div>
 
-<div id="info"></div>
 </body>
 </html>

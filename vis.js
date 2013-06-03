@@ -6891,12 +6891,11 @@ function Graph (container) {
 /**
  * Main drawing logic. This is the function that needs to be called
  * in the html page, to draw the Network.
- * Note that Object DataTable is defined in google.visualization.DataTable
  *
  * A data table with the events must be provided, and an options table.
- * @param {google.visualization.DataTable | Array} [nodes]     The data containing the nodes.
- * @param {google.visualization.DataTable | Array} [edges]     The data containing the edges.
- * @param {google.visualization.DataTable | Array} [packages]  The data containing the packages
+ * @param {Array} [nodes]     The data containing the nodes.
+ * @param {Array} [edges]     The data containing the edges.
+ * @param {Array} [packages]  The data containing the packages
  * @param {Object} options                                     A name/value map containing settings
  */
 Graph.prototype.draw = function(nodes, edges, packages, options) {
@@ -7877,63 +7876,16 @@ Graph.prototype._setSize = function(width, height) {
 };
 
 /**
- * Convert a Google DataTable to a Javascript Array
- * @param {google.visualization.DataTable} table
- * @return {Array} array
- */
-Graph.tableToArray = function(table) {
-    var array = [];
-    var col;
-
-    // read the column names
-    var colCount = table.getNumberOfColumns();
-    var cols = {};
-    for (col = 0; col < colCount; col++) {
-        var label = table.getColumnLabel(col);
-        cols[label] = col;
-    }
-
-    var rowCount = table.getNumberOfRows();
-    for (var i = 0; i < rowCount; i++) {
-        // copy all properties from the table columns to an object
-        var properties = {};
-        for (col in cols) {
-            if (cols.hasOwnProperty(col)) {
-                properties[col] = table.getValue(i, cols[col]);
-            }
-        }
-
-        array.push(properties);
-    }
-
-    return array;
-};
-
-/**
  * Append nodes
  * Nodes with a duplicate id will be replaced
- * @param {google.visualization.DataTable | Array} nodesTable  The data containing the nodes.
+ * @param {Array} nodes  The data containing the nodes.
  */
-Graph.prototype.addNodes = function(nodesTable) {
-    var table;
-    if (typeof google !== 'undefined' && google.visualization && google.visualization.DataTable &&
-        nodesTable instanceof google.visualization.DataTable) {
-        // Google DataTable.
-        // Convert to a Javascript Array
-        table = Graph.tableToArray(nodesTable);
-    }
-    else if (Graph.isArray(nodesTable)){
-        // Javascript Array
-        table = nodesTable;
-    }
-    else {
-        return;
-    }
+Graph.prototype.addNodes = function(nodes) {
 
     var hasValues = false;
-    var rowCount = table.length;
+    var rowCount = nodes.length;
     for (var i = 0; i < rowCount; i++) {
-        var properties = table[i];
+        var properties = nodes[i];
 
         if (properties.value != undefined) {
             hasValues = true;
@@ -7955,34 +7907,21 @@ Graph.prototype.addNodes = function(nodesTable) {
 
 /**
  * Load all nodes by reading the data table nodesTable
- * Note that Object DataTable is defined in google.visualization.DataTable
- * @param {google.visualization.DataTable | Array} nodesTable    The data containing the nodes.
+ * @param {Array} nodes    The data containing the nodes.
  */
-Graph.prototype.setNodes = function(nodesTable) {
-    var table;
-    if (typeof google !== 'undefined' && google.visualization && google.visualization.DataTable &&
-        nodesTable instanceof google.visualization.DataTable) {
-        // Google DataTable.
-        // Convert to a Javascript Array
-        table = Graph.tableToArray(nodesTable);
-    }
-    else if (Graph.isArray(nodesTable)){
-        // Javascript Array
-        table = nodesTable;
-    }
-    else {
+Graph.prototype.setNodes = function(nodes) {
+    this.selection = [];
+    this.nodes = [];
+    this.hasMovingNodes = false;
+    if (!nodes) {
         return;
     }
-
-    this.hasMovingNodes = false;
-    this.nodesTable = table;
-    this.nodes = [];
-    this.selection = [];
+    this.nodesTable = nodes;
 
     var hasValues = false;
-    var rowCount = table.length;
+    var rowCount = nodes.length;
     for (var i = 0; i < rowCount; i++) {
-        var properties = table[i];
+        var properties = nodes[i];
 
         if (properties.value != undefined) {
             hasValues = true;
@@ -8200,33 +8139,20 @@ Graph.prototype._findNodeByRow = function (row) {
 
 /**
  * Load edges by reading the data table
- * Note that Object DataTable is defined in google.visualization.DataTable
- * @param {google.visualization.DataTable | Array}      edgesTable    The data containing the edges.
+ * @param {Array}      edges    The data containing the edges.
  */
-Graph.prototype.setEdges = function(edgesTable) {
-    var table;
-    if (typeof google !== 'undefined' && google.visualization && google.visualization.DataTable &&
-        edgesTable instanceof google.visualization.DataTable) {
-        // Google DataTable.
-        // Convert to a Javascript Array
-        table = Graph.tableToArray(edgesTable);
-    }
-    else if (Graph.isArray(edgesTable)){
-        // Javascript Array
-        table = edgesTable;
-    }
-    else {
-        return;
-    }
-
-    this.edgesTable = table;
+Graph.prototype.setEdges = function(edges) {
     this.edges = [];
     this.hasMovingEdges = false;
+    if (!edges) {
+        return;
+    }
+    this.edgesTable = edges;
 
     var hasValues = false;
-    var rowCount = table.length;
+    var rowCount = edges.length;
     for (var i = 0; i < rowCount; i++) {
-        var properties = table[i];
+        var properties = edges[i];
 
         if (properties.from === undefined) {
             throw "Column 'from' missing in table with edges (row " + i + ")";
@@ -8253,30 +8179,14 @@ Graph.prototype.setEdges = function(edgesTable) {
 
 /**
  * Load edges by reading the data table
- * Note that Object DataTable is defined in google.visualization.DataTable
- * @param {google.visualization.DataTable | Array}      edgesTable    The data containing the edges.
+ * @param {Array}      edges    The data containing the edges.
  */
-Graph.prototype.addEdges = function(edgesTable) {
-    var table;
-    if (typeof google !== 'undefined' && google.visualization && google.visualization.DataTable &&
-        edgesTable instanceof google.visualization.DataTable) {
-        // Google DataTable.
-        // Convert to a Javascript Array
-        table = Graph.tableToArray(edgesTable);
-    }
-    else if (Graph.isArray(edgesTable)){
-        // Javascript Array
-        table = edgesTable;
-    }
-    else {
-        return;
-    }
-
+Graph.prototype.addEdges = function(edges) {
     var hasValues = false;
-    var rowCount = table.length;
+    var rowCount = edges.length;
     for (var i = 0; i < rowCount; i++) {
         // copy all properties
-        var properties = table[i];
+        var properties = edges[i];
 
         if (properties.from === undefined) {
             throw "Column 'from' missing in table with edges (row " + i + ")";
@@ -8495,28 +8405,12 @@ Graph.prototype._findEdgeByRow = function (row) {
 /**
  * Append packages
  * Packages with a duplicate id will be replaced
- * Note that Object DataTable is defined in google.visualization.DataTable
- * @param {google.visualization.DataTable | Array}   packagesTable    The data containing the packages.
+ * @param {Array}   packages    The data containing the packages.
  */
-Graph.prototype.addPackages = function(packagesTable) {
-    var table;
-    if (typeof google !== 'undefined' && google.visualization && google.visualization.DataTable &&
-        packagesTable instanceof google.visualization.DataTable) {
-        // Google DataTable.
-        // Convert to a Javascript Array
-        table = Graph.tableToArray(packagesTable);
-    }
-    else if (Graph.isArray(packagesTable)){
-        // Javascript Array
-        table = packagesTable;
-    }
-    else {
-        return;
-    }
-
-    var rowCount = table.length;
+Graph.prototype.addPackages = function(packages) {
+    var rowCount = packages.length;
     for (var i = 0; i < rowCount; i++) {
-        var properties = table[i];
+        var properties = packages[i];
 
         if (properties.from === undefined) {
             throw "Column 'from' missing in table with packages (row " + i + ")";
@@ -8537,31 +8431,18 @@ Graph.prototype.addPackages = function(packagesTable) {
 /**
  * Set a new packages table
  * Packages with a duplicate id will be replaced
- * Note that Object DataTable is defined in google.visualization.DataTable
- * @param {google.visualization.DataTable | Array}   packagesTable    The data containing the packages.
+ * @param {Array}   packages    The data containing the packages.
  */
-Graph.prototype.setPackages = function(packagesTable) {
-    var table;
-    if (typeof google !== 'undefined' && google.visualization && google.visualization.DataTable &&
-        packagesTable instanceof google.visualization.DataTable) {
-        // Google DataTable.
-        // Convert to a Javascript Array
-        table = Graph.tableToArray(packagesTable);
-    }
-    else if (Graph.isArray(packagesTable)){
-        // Javascript Array
-        table = packagesTable;
-    }
-    else {
+Graph.prototype.setPackages = function(packages) {
+    this.packages = [];
+    if (!packages) {
         return;
     }
+    this.packagesTable = packages;
 
-    this.packagesTable = table;
-    this.packages = [];
-
-    var rowCount = table.length;
+    var rowCount = packages.length;
     for (var i = 0; i < rowCount; i++) {
-        var properties = table[i];
+        var properties = packages[i];
 
         if (properties.from === undefined) {
             throw "Column 'from' missing in table with packages (row " + i + ")";
@@ -8769,25 +8650,6 @@ Graph.prototype._findPackage = function (id) {
 Graph.prototype._findPackageByRow = function (row) {
     return this.packages[row];
 };
-
-/**
- * Retrieve an object which maps the column ids by their names
- * For example a table with columns [id, name, value] will return an
- * object {"id": 0, "name": 1, "value": 2}
- * @param {google.visualization.DataTable} table    A google datatable
- * @return {Object} columnIds   An object
- */
-// TODO: cleanup this unused method
-Graph.prototype._getColumnNames = function (table) {
-    var colCount = table.getNumberOfColumns();
-    var cols = {};
-    for (var col = 0; col < colCount; col++) {
-        var label = table.getColumnLabel(col);
-        cols[label] = col;
-    }
-    return cols;
-};
-
 
 /**
  * Update the values of all object in the given array according to the current
@@ -11126,7 +10988,7 @@ Graph.Package.prototype.setProperties = function(properties, constants) {
         return;
     }
 
-    // note that the provided properties can also be null, when they come from the Google DataTable
+    // note that the provided properties can also be null
     if (properties.from != undefined) {this.from = this.graph._getNode(properties.from);}
     if (properties.to != undefined) {this.to = this.graph._getNode(properties.to);}
 
