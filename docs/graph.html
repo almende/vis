@@ -2,17 +2,13 @@
 <html>
 
 <head>
-    <title>Graph documentation</title>
+    <title>vis.js | graph documentation</title>
     <link rel='stylesheet' href='css/style.css' type='text/css' />
 
-    <link href="prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="prettify/prettify.js"></script>
+    <link href="css/prettify.css" type="text/css" rel="stylesheet" />
+    <link href='css/style.css' type='text/css' rel='stylesheet'>
 
-    <style>
-        pre.prettyprint {
-            border-color: lightgray;
-        }
-    </style>
+    <script type="text/javascript" src="lib/prettify/prettify.js"></script>
 </head>
 
 <body onload="prettyPrint();">
@@ -73,50 +69,50 @@
 </p>
 
 <pre class="prettyprint lang-html">&lt;!doctype html&gt;
-    &lt;html&gt;
-    &lt;head&gt;
-        &lt;title&gt;Graph | Basic usage&lt;/title&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Graph | Basic usage&lt;/title&gt;
 
-        &lt;script type="text/javascript" src="../../vis.js"&gt;&lt;/script&gt;
-    &lt;/head&gt;
+    &lt;script type="text/javascript" src="../../vis.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
 
-    &lt;body&gt;
+&lt;body&gt;
 
-    &lt;div id="mygraph"&gt;&lt;/div&gt;
+&lt;div id="mygraph"&gt;&lt;/div&gt;
 
-    &lt;script type="text/javascript"&gt;
-        // create an array with nodes
-        var nodes = [
-            {id: 1, text: 'Node 1'},
-            {id: 2, text: 'Node 2'},
-            {id: 3, text: 'Node 3'},
-            {id: 4, text: 'Node 4'},
-            {id: 5, text: 'Node 5'}
-        ];
+&lt;script type="text/javascript"&gt;
+    // create an array with nodes
+    var nodes = [
+        {id: 1, text: 'Node 1'},
+        {id: 2, text: 'Node 2'},
+        {id: 3, text: 'Node 3'},
+        {id: 4, text: 'Node 4'},
+        {id: 5, text: 'Node 5'}
+    ];
 
-        // create an array with edges
-        var edges = [
-            {from: 1, to: 2},
-            {from: 1, to: 3},
-            {from: 2, to: 4},
-            {from: 2, to: 5}
-        ];
+    // create an array with edges
+    var edges = [
+        {from: 1, to: 2},
+        {from: 1, to: 3},
+        {from: 2, to: 4},
+        {from: 2, to: 5}
+    ];
 
-        // create a graph
-        var container = document.getElementById('mygraph');
-        var data= {
-            nodes: nodes,
-            edges: edges,
-        };
-        var options = {
-            width: '400px',
-            height: '400px'
-        };
-        var graph = new vis.Graph(container, data, options);
-    &lt;/script&gt;
+    // create a graph
+    var container = document.getElementById('mygraph');
+    var data= {
+        nodes: nodes,
+        edges: edges,
+    };
+    var options = {
+        width: '400px',
+        height: '400px'
+    };
+    var graph = new vis.Graph(container, data, options);
+&lt;/script&gt;
 
-    &lt;/body&gt;
-    &lt;/html&gt;
+&lt;/body&gt;
+&lt;/html&gt;
 </pre>
 
 
@@ -131,7 +127,7 @@
 </pre>
 
 
-The class name of the Graph is <code>vis.Graph</code>.
+The constructor of the Graph is <code>vis.Graph</code>.
 <pre class="prettyprint lang-js">var graph = new vis.Graph(container, data, options);</pre>
 
 The constructor accepts three parameters:
@@ -174,10 +170,10 @@ The constructor accepts three parameters:
 <pre class="prettyprint lang-js">
 var nodes = [
     {
-      'id': 1,
-      'text': 'Node 1'
+        'id': 1,
+        'text': 'Node 1'
     },
-    // ... more data
+    // ... more nodes
 ];
 </pre>
 
@@ -363,12 +359,12 @@ var nodes = [
     A JavaScript Array with edges is constructed as:
 </p>
 <pre class="prettyprint lang-js">
-var edges= [
+var edges = [
     {
-      'from': 1,
-      'to': 3
+        'from': 1,
+        'to': 3
     },
-    // ... more data
+    // ... more edges
 ];
 </pre>
 
@@ -424,7 +420,7 @@ var edges= [
         <td>String</td>
         <td>"black"</td>
         <td>Font color for the text label of the link.
-        Only applicable when "text" is defined.</td>
+            Only applicable when "text" is defined.</td>
     </tr>
 
     <tr>
@@ -525,20 +521,20 @@ var edges= [
 
 
 <table>
-<tr>
-    <th>Method</th>
-    <th>Return Type</th>
-    <th>Description</th>
-</tr>
-<tr>
-    <td>vis.util.parseDOT(data)</td>
-    <td>Object</td>
-    <td>
-        Parse a string containing data in DOT language into a JSON object.
-        The returned object contains two arrays, <code>nodes</code>,
-        <code>edges</code>, containing the parsed nodes and edges.
-    </td>
-</tr>
+    <tr>
+        <th>Method</th>
+        <th>Return Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>vis.util.parseDOT(data)</td>
+        <td>Object</td>
+        <td>
+            Parse a string containing data in DOT language into a JSON object.
+            The returned object contains two arrays, <code>nodes</code>,
+            <code>edges</code>, containing the parsed nodes and edges.
+        </td>
+    </tr>
     <tr>
         <td>vis.util.DOTToGraph(data)</td>
         <td>Object</td>
@@ -553,7 +549,7 @@ var edges= [
 </table>
 
 <p>
-Example usage:
+    Example usage:
 </p>
 
 <pre class="prettyprint lang-js">
@@ -831,25 +827,25 @@ var options = {
 
 <pre class="prettyprint lang-js">
 var options = {
-  // ...
+    // ...
 
-  'groups': {
-    'mygroup': {
-      'style': 'circle',
-      'borderColor': 'black',
-      'backgroundColor': 'white',
-      'fontColor': 'red',
-      'fontSize': 18,
-      'highlightColor': 'yellow'
+    groups: {
+        mygroup: {
+            style: 'circle',
+            borderColor: 'black',
+            backgroundColor: 'white',
+            fontColor: 'red',
+            fontSize: 18,
+            highlightColor: 'yellow'
+        }
+        // add more groups here
     }
-    // add more groups here
-  }
 };
 
 var nodes = [
     {id: 1, text: 'Node 1'},                    // will get the default style
     {id: 2, text: 'Node 2', group: 'mygroup'},  // will get the style from 'mygroup'
-    // ... more data
+    // ... more nodes
 ];
 </pre>
 
@@ -1005,14 +1001,14 @@ var nodes = [
 
 <pre class="prettyprint lang-js">
 function onselect() {
-  var sel = graph.getSelection();
+    var sel = graph.getSelection();
 
-  var info = 'selected row(s): ';
-  for (var i = 0; i &lt; sel.length; i++) {
-    info += sel[i].row + ' ';
-  }
+    var info = 'selected row(s): ';
+    for (var i = 0; i &lt; sel.length; i++) {
+        info += sel[i].row + ' ';
+    }
 
-  alert(info);
+    alert(info);
 }
 
 vis.events.addListener(graph, 'select', onselect);
