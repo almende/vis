@@ -92,6 +92,7 @@ function Graph (container, data, options) {
  *                         {Options} [options] Object with options
  */
 Graph.prototype.setData = function(data) {
+    // set options
     this.setOptions(data && data.options);
 
     // set all data

@@ -29,11 +29,11 @@ task('build', {async: true}, function () {
     // concatenate and stringify the css files
     var result = concat({
         src: [
-            './src/component/css/panel.css',
-            './src/component/css/groupset.css',
-            './src/component/css/itemset.css',
-            './src/component/css/item.css',
-            './src/component/css/timeaxis.css'
+            './src/timeline/component/css/panel.css',
+            './src/timeline/component/css/groupset.css',
+            './src/timeline/component/css/itemset.css',
+            './src/timeline/component/css/item.css',
+            './src/timeline/component/css/timeaxis.css'
         ],
         header: '/* vis.js stylesheet */',
         separator: '\n'
@@ -48,24 +48,23 @@ task('build', {async: true}, function () {
 
             './src/util.js',
             './src/events.js',
-            './src/TimeStep.js',
+            './src/EventBus.js',
             './src/DataSet.js',
             './src/DataView.js',
-            './src/Stack.js',
-            './src/Range.js',
-            './src/EventBus.js',
-            './src/Controller.js',
 
-            './src/component/Component.js',
-            './src/component/Panel.js',
-            './src/component/RootPanel.js',
-            './src/component/TimeAxis.js',
-            './src/component/ItemSet.js',
-            './src/component/item/*.js',
-            './src/component/Group.js',
-            './src/component/GroupSet.js',
-
-            './src/Timeline.js',
+            './src/timeline/TimeStep.js',
+            './src/timeline/Stack.js',
+            './src/timeline/Range.js',
+            './src/timeline/Controller.js',
+            './src/timeline/component/Component.js',
+            './src/timeline/component/Panel.js',
+            './src/timeline/component/RootPanel.js',
+            './src/timeline/component/TimeAxis.js',
+            './src/timeline/component/ItemSet.js',
+            './src/timeline/component/item/*.js',
+            './src/timeline/component/Group.js',
+            './src/timeline/component/GroupSet.js',
+            './src/timeline/Timeline.js',
 
             './src/graph/dotparser.js',
             './src/graph/shapes.js',
