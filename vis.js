@@ -9752,18 +9752,6 @@ Graph.Edge.prototype.setProperties = function(properties, constants) {
     else if (this.style === 'arrow-end') {
         this.animation = false;
     }
-    else if (this.style === 'moving-arrows') {
-        this.arrows = [];
-        var arrowCount = 3; // TODO: make customizable
-        for (var a = 0; a < arrowCount; a++) {
-            this.arrows.push(a / arrowCount);
-        }
-        this.animation = true;
-    }
-    else if (this.style === 'moving-dot') {
-        this.dot = 0.0;
-        this.animation = true;
-    }
     else {
         this.animation = false;
     }
@@ -9773,8 +9761,6 @@ Graph.Edge.prototype.setProperties = function(properties, constants) {
         case 'line':          this.draw = this._drawLine; break;
         case 'arrow':         this.draw = this._drawArrow; break;
         case 'arrow-end':     this.draw = this._drawArrowEnd; break;
-        case 'moving-arrows': this.draw = this._drawMovingArrows; break;
-        case 'moving-dot':    this.draw = this._drawMovingDot; break;
         case 'dash-line':     this.draw = this._drawDashLine; break;
         default:              this.draw = this._drawLine; break;
     }
@@ -10198,62 +10184,6 @@ Graph.Edge.prototype._pointOnCircle = function (x, y, radius, percentage) {
         y: y - radius * Math.sin(angle)
     }
 };
-
-/**
- * Redraw a edge as a line with a moving arrow
- * Draw this edge in the given canvas
- * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
- * @param {CanvasRenderingContext2D}   ctx
- */
-Graph.Edge.prototype._drawMovingArrows = function(ctx) {
-    this._drawArrow(ctx);
-
-    for (var a in this.arrows) {
-        if (this.arrows.hasOwnProperty(a)) {
-            this.arrows[a] += 0.02;  // TODO determine speed from interval
-            if (this.arrows[a] > 1.0) this.arrows[a] = 0.0;
-        }
-    }
-};
-
-/**
- * Redraw a edge as a line with a moving dot
- * Draw this edge in the given canvas
- * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
- * @param {CanvasRenderingContext2D}   ctx
- */
-Graph.Edge.prototype._drawMovingDot = function(ctx) {
-    // set style
-    ctx.strokeStyle = this.color;
-    ctx.fillStyle = this.color;
-    ctx.lineWidth = this._getLineWidth();
-
-    // draw line
-    var point;
-    if (this.from != this.to) {
-        this._line(ctx);
-
-        // draw dot
-        var radius = 4 + this.width * 2;
-        point = this._pointOnLine(this.dot);
-        ctx.circle(point.x, point.y, radius);
-        ctx.fill();
-
-        // move the dot to the next position
-        this.dot += 0.05;  // TODO determine speed from interval
-        if (this.dot > 1.0) this.dot = 0.0;
-
-        // draw text
-        if (this.text) {
-            point = this._pointOnLine(0.5);
-            this._text(ctx, this.text, point.x, point.y);
-        }
-    }
-    else {
-        // TODO: moving dot for a circular edge
-    }
-};
-
 
 /**
  * Redraw a edge as a line with an arrow
