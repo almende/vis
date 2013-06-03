@@ -43,7 +43,6 @@
     <li><a href="#Loading">Loading</a></li>
     <li><a href="#Data_Format">Data Format</a></li>
     <li><a href="#Data_Import">Data Import</a></li>
-    <li><a href="#Dynamic_Data">Dynamic Data</a></li>
     <li><a href="#Configuration_Options">Configuration Options</a></li>
     <li><a href="#Methods">Methods</a></li>
     <li><a href="#Events">Events</a></li>
@@ -1215,106 +1214,6 @@ var nodes = [
 </table>
 
 
-
-<h2><a name="Dynamic_Data"></a>Dynamic Data</h2>
-
-<p>
-    The Graph is normally rendered using the method <code>setData</code>.
-    The graph can handle dynamic data in two ways:
-</p>
-<ul>
-    <li>
-        <b>Animation</b>
-        A set with historical data can be animated over time.
-    </li>
-    <li>
-        <b>Changeset</b>
-        A drawn Graph can be updated by appending a changeset to the Graph.
-    </li>
-</ul>
-
-
-<h3><a name="Animation"></a>Animation</h3>
-<p>
-    Historical data can be animated over time.
-    To create an animation, the data sets with nodes, edges, and
-    packages must have a property <code>timestamp</code>,
-    and has a property <code>action</code> describing the
-    <a href="#Changeset">change</a> (create, update, or delete).
-    The Graph will automatically create an animation which runs from
-    the earliest to the latest encountered timestamp.
-    When the Graph is rendered at a certain timestamp,
-    all elements with a timestamp older than the current time will be rendered,
-    and all elements without a timestamp.
-</p>
-
-<p>
-    The animation state and speed can be manipulated using methods
-    <code>animationSetAcceleration</code>,
-    <code>animationSetDuration</code>,
-    <code>animationSetFramerate</code>,
-    <code>animationStart</code>,
-    and <code>animationStop</code>.
-</p>
-
-<p>
-    The following package table shows how to change the state of a package over time:
-</p>
-
-<pre class="prettyprint lang-js">
-var packageTable = new google.visualization.DataTable();
-packageTable.addColumn('number', 'id');
-packageTable.addColumn('number', 'from');
-packageTable.addColumn('number', 'to');
-packageTable.addColumn('string', 'action');
-packageTable.addColumn('string', 'title');
-packageTable.addColumn('number', 'progress');
-packageTable.addColumn('datetime', 'timestamp');
-
-// package with id 7 moved over time from node 1 to node 2
-//                   id, from, to, action,  title,              progress,  timestamp
-packageTable.addRow([7,  1,    2, 'create', 'Copy data [0%]',   0.00,      new Date(2012,6,4,14,0,0)]);
-packageTable.addRow([7,  1,    2, 'update', 'Copy data [10%]',  0.10,      new Date(2012,6,4,14,10,0)]);
-packageTable.addRow([7,  1,    2, 'update', 'Copy data [20%]',  0.20,      new Date(2012,6,4,14,15,0)]);
-packageTable.addRow([7,  1,    2, 'update', 'Copy data [50%]',  0.50,      new Date(2012,6,4,14,20,0)]);
-packageTable.addRow([7,  1,    2, 'update', 'Copy data [80%]',  0.80,      new Date(2012,6,4,14,30,0)]);
-packageTable.addRow([7,  1,    2, 'update', 'Copy data [100%]', 1.00,      new Date(2012,6,4,14,35,0)]);
-packageTable.addRow([7,  1,    2, 'delete', undefined,          undefined, new Date(2012,6,4,14,40,0)]);
-</pre>
-
-<h3><a name="Changeset"></a>Changeset</h3>
-<p>
-    The data of a rendered Graph can be changed dynamically.
-    Data can be updated by appending a changeset to the Graph
-    using methods <code>addNodes</code>, <code>addEdges</code>, and <code>addPackages</code>.
-
-    The appended data can contain new nodes, edges, and packages, but can
-    also adjust existing elements.
-    For example, the title of a Node or the width of a link can be updated.
-</p>
-
-<p>
-    The changeset is a regular Array like used
-    The <code>action</code> property describes one of the following changes
-</p>
-<ul>
-    <li>
-        <b>create</b> Create an element (node, link, or package).
-        When the new element has an id which already exists, the existing
-        element will be overwritten.
-    </li>
-    <li>
-        <b>update</b> Update an element, create when not existing.
-        Only applicable when the element has an id.
-    </li>
-    <li>
-        <b>delete</b> Delete an existing element.
-        Only applicable when
-    </li>
-</ul>
-
-
-
 <h2><a name="Methods"></a>Methods</h2>
 <p>
     Graph supports the following methods.
@@ -1325,38 +1224,6 @@ packageTable.addRow([7,  1,    2, 'delete', undefined,          undefined, new D
         <th>Method</th>
         <th>Return Type</th>
         <th>Description</th>
-    </tr>
-
-    <tr>
-        <td>addEdges(edges)</td>
-        <td>none</td>
-        <td>Dynamically appends edges to the graph.
-            Parameter edges contains an Array.
-            A link can be created, updated, or deleted by specifying the property
-            <code>action</code> and choose a value <code>create</code>,
-            <code>update</code>, or <code>delete</code>.
-        </td>
-    </tr>
-
-    <tr>
-        <td>addNodes(nodes)</td>
-        <td>none</td>
-        <td>Dynamically adds nodes to the graph.
-            Parameter nodes contains an Array.
-            A node can be created, updated, or deleted by specifying the property
-            <code>action</code> and choose a value <code>create</code>,
-            <code>update</code>, or <code>delete</code>.
-    </tr>
-
-    <tr>
-        <td>addPackages(packages)</td>
-        <td>none</td>
-        <td>Dynamically appends packages to the graph.
-            Parameter packages contains an Array.
-            A package can be created, updated, or deleted by specifying the property
-            <code>action</code> and choose a value <code>create</code>,
-            <code>update</code>, or <code>delete</code>.
-        </td>
     </tr>
 
     <tr>
@@ -1404,6 +1271,14 @@ packageTable.addRow([7,  1,    2, 'delete', undefined,          undefined, new D
         <td>Loads data. Parameter <code>data</code> is an object containing
             nodes, edges, and options. Parameters nodes, edges are an Array.
             Options is a name-value map and is optional.
+        </td>
+    </tr>
+
+    <tr>
+        <td>setOptions(options)</td>
+        <td>none</td>
+        <td>Set options for the graph. The available options are described in
+            the section <a href="#Configuration_Options">Configuration Options</a>.
         </td>
     </tr>
 

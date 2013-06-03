@@ -7870,36 +7870,6 @@ Graph.prototype._setSize = function(width, height) {
 };
 
 /**
- * Append nodes
- * Nodes with a duplicate id will be replaced
- * @param {Array} nodes  The data containing the nodes.
- */
-Graph.prototype.addNodes = function(nodes) {
-
-    var hasValues = false;
-    var rowCount = nodes.length;
-    for (var i = 0; i < rowCount; i++) {
-        var properties = nodes[i];
-
-        if (properties.value != undefined) {
-            hasValues = true;
-        }
-        if (properties.id == undefined) {
-            throw "Column 'id' missing in table with nodes (row " + i + ")";
-        }
-
-        this._createNode(properties);
-    }
-
-    // calculate scaling function when value is provided
-    if (hasValues) {
-        this._updateValueRange(this.nodes);
-    }
-
-    this.start();
-};
-
-/**
  * Load all nodes by reading the data table nodesTable
  * @param {Array} nodes    The data containing the nodes.
  */
@@ -7937,8 +7907,7 @@ Graph.prototype.setNodes = function(nodes) {
 
 /**
  * Filter the current nodes table for nodes with a timestamp older than given
- * timestamp. Can only be used for nodes added via setNodes(), not via
- * addNodes().
+ * timestamp.
  * @param {*} [timestamp]    If timestamp is undefined, all nodes are shown
  */
 Graph.prototype._filterNodes = function(timestamp) {
@@ -8170,44 +8139,9 @@ Graph.prototype.setEdges = function(edges) {
     }
 };
 
-
-/**
- * Load edges by reading the data table
- * @param {Array}      edges    The data containing the edges.
- */
-Graph.prototype.addEdges = function(edges) {
-    var hasValues = false;
-    var rowCount = edges.length;
-    for (var i = 0; i < rowCount; i++) {
-        // copy all properties
-        var properties = edges[i];
-
-        if (properties.from === undefined) {
-            throw "Column 'from' missing in table with edges (row " + i + ")";
-        }
-        if (properties.to === undefined) {
-            throw "Column 'to' missing in table with edges (row " + i + ")";
-        }
-        if (properties.value != undefined) {
-            hasValues = true;
-        }
-
-        this._createEdge(properties);
-    }
-
-    // calculate scaling function when value is provided
-    if (hasValues) {
-        this._updateValueRange(this.edges);
-    }
-
-    this.start();
-};
-
-
 /**
  * Filter the current edges table for edges with a timestamp below given
- * timestamp. Can only be used for edges added via setEdges(), not via
- * addEdges().
+ * timestamp.
  * @param {*} [timestamp]  If timestamp is undefined, all edges are shown
  */
 Graph.prototype._filterEdges = function(timestamp) {
@@ -8397,32 +8331,6 @@ Graph.prototype._findEdgeByRow = function (row) {
 };
 
 /**
- * Append packages
- * Packages with a duplicate id will be replaced
- * @param {Array}   packages    The data containing the packages.
- */
-Graph.prototype.addPackages = function(packages) {
-    var rowCount = packages.length;
-    for (var i = 0; i < rowCount; i++) {
-        var properties = packages[i];
-
-        if (properties.from === undefined) {
-            throw "Column 'from' missing in table with packages (row " + i + ")";
-        }
-        if (properties.to === undefined) {
-            throw "Column 'to' missing in table with packages (row " + i + ")";
-        }
-
-        this._createPackage(properties);
-    }
-
-    // calculate scaling function when value is provided
-    this._updateValueRange(this.packages);
-
-    this.start();
-};
-
-/**
  * Set a new packages table
  * Packages with a duplicate id will be replaced
  * @param {Array}   packages    The data containing the packages.
@@ -8461,8 +8369,7 @@ Graph.prototype.setPackages = function(packages) {
 
 /**
  * Filter the current package table for packages with a timestamp below given
- * timestamp. Can only be used for packages added via setPackages(), not via
- * addPackages().
+ * timestamp.
  * @param {*} [timestamp] If timestamp is undefined, all packages are shown
  */
 Graph.prototype._filterPackages = function(timestamp) {
