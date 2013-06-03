@@ -7047,10 +7047,10 @@ Graph.prototype._create = function () {
     var onmousemove = function (event) {me._onMouseMoveTitle(event);};
     var onmousewheel = function (event) {me._onMouseWheel(event);};
     var ontouchstart = function (event) {me._onTouchStart(event);};
-    Graph.addEventListener(this.frame.canvas, "mousedown", onmousedown);
-    Graph.addEventListener(this.frame.canvas, "mousemove", onmousemove);
-    Graph.addEventListener(this.frame.canvas, "mousewheel", onmousewheel);
-    Graph.addEventListener(this.frame.canvas, "touchstart", ontouchstart);
+    vis.util.addEventListener(this.frame.canvas, "mousedown", onmousedown);
+    vis.util.addEventListener(this.frame.canvas, "mousemove", onmousemove);
+    vis.util.addEventListener(this.frame.canvas, "mousewheel", onmousewheel);
+    vis.util.addEventListener(this.frame.canvas, "touchstart", ontouchstart);
 
     // add the frame to the container element
     this.containerElement.appendChild(this.frame);
@@ -7118,19 +7118,19 @@ Graph.prototype._onMouseDown = function (event) {
     var me = this;
     if (!this.onmousemove) {
         this.onmousemove = function (event) {me._onMouseMove(event);};
-        Graph.addEventListener(document, "mousemove", me.onmousemove);
+        vis.util.addEventListener(document, "mousemove", me.onmousemove);
     }
     if (!this.onmouseup) {
         this.onmouseup = function (event) {me._onMouseUp(event);};
-        Graph.addEventListener(document, "mouseup", me.onmouseup);
+        vis.util.addEventListener(document, "mouseup", me.onmouseup);
     }
-    Graph.preventDefault(event);
+    vis.util.preventDefault(event);
 
     // store the start x and y position of the mouse
     this.startMouseX = event.clientX || event.targetTouches[0].clientX;
     this.startMouseY = event.clientY || event.targetTouches[0].clientY;
-    this.startFrameLeft = Graph._getAbsoluteLeft(this.frame.canvas);
-    this.startFrameTop = Graph._getAbsoluteTop(this.frame.canvas);
+    this.startFrameLeft = vis.util.getAbsoluteLeft(this.frame.canvas);
+    this.startFrameTop = vis.util.getAbsoluteTop(this.frame.canvas);
     this.startTranslation = this._getTranslation();
 
     this.ctrlKeyDown = event.ctrlKey;
@@ -7243,7 +7243,7 @@ Graph.prototype._onMouseMove = function (event) {
         this.moved = true;
     }
 
-    Graph.preventDefault(event);
+    vis.util.preventDefault(event);
 };
 
 /**
@@ -7258,14 +7258,14 @@ Graph.prototype._onMouseUp = function (event) {
 
     // remove event listeners here, important for Safari
     if (this.onmousemove) {
-        Graph.removeEventListener(document, "mousemove", this.onmousemove);
+        vis.util.removeEventListener(document, "mousemove", this.onmousemove);
         this.onmousemove = undefined;
     }
     if (this.onmouseup) {
-        Graph.removeEventListener(document, "mouseup",   this.onmouseup);
+        vis.util.removeEventListener(document, "mouseup",   this.onmouseup);
         this.onmouseup = undefined;
     }
-    Graph.preventDefault(event);
+    vis.util.preventDefault(event);
 
     // check selected nodes
     var endMouseX = event.clientX || this.mouseX || 0;
@@ -7350,8 +7350,8 @@ Graph.prototype._onMouseWheel = function(event) {
             scaleNew = 10;
         }
 
-        var frameLeft = Graph._getAbsoluteLeft(this.frame.canvas);
-        var frameTop = Graph._getAbsoluteTop(this.frame.canvas);
+        var frameLeft = vis.util.getAbsoluteLeft(this.frame.canvas);
+        var frameTop = vis.util.getAbsoluteTop(this.frame.canvas);
         var x = mouseX - frameLeft;
         var y = mouseY - frameTop;
 
@@ -7368,7 +7368,7 @@ Graph.prototype._onMouseWheel = function(event) {
     // Prevent default actions caused by mouse wheel.
     // That might be ugly, but we handle scrolls somehow
     // anyway, so don't bother here...
-    Graph.preventDefault(event);
+    vis.util.preventDefault(event);
 };
 
 
@@ -7380,8 +7380,8 @@ Graph.prototype._onMouseMoveTitle = function (event) {
 
     var startMouseX = event.clientX;
     var startMouseY = event.clientY;
-    this.startFrameLeft = this.startFrameLeft || Graph._getAbsoluteLeft(this.frame.canvas);
-    this.startFrameTop = this.startFrameTop || Graph._getAbsoluteTop(this.frame.canvas);
+    this.startFrameLeft = this.startFrameLeft || vis.util.getAbsoluteLeft(this.frame.canvas);
+    this.startFrameTop = this.startFrameTop || vis.util.getAbsoluteTop(this.frame.canvas);
 
     var x = startMouseX - this.startFrameLeft;
     var y = startMouseY - this.startFrameTop;
@@ -7497,7 +7497,7 @@ Graph.prototype._checkHidePopup = function (x, y) {
  * Event handler for touchstart event on mobile devices
  */
 Graph.prototype._onTouchStart = function(event) {
-    Graph.preventDefault(event);
+    vis.util.preventDefault(event);
 
     if (this.touchDown) {
         // if already moving, return
@@ -7508,11 +7508,11 @@ Graph.prototype._onTouchStart = function(event) {
     var me = this;
     if (!this.ontouchmove) {
         this.ontouchmove = function (event) {me._onTouchMove(event);};
-        Graph.addEventListener(document, "touchmove", this.ontouchmove);
+        vis.util.addEventListener(document, "touchmove", this.ontouchmove);
     }
     if (!this.ontouchend) {
         this.ontouchend   = function (event) {me._onTouchEnd(event);};
-        Graph.addEventListener(document, "touchend", this.ontouchend);
+        vis.util.addEventListener(document, "touchend", this.ontouchend);
     }
 
     this._onMouseDown(event);
@@ -7522,7 +7522,7 @@ Graph.prototype._onTouchStart = function(event) {
  * Event handler for touchmove event on mobile devices
  */
 Graph.prototype._onTouchMove = function(event) {
-    Graph.preventDefault(event);
+    vis.util.preventDefault(event);
     this._onMouseMove(event);
 };
 
@@ -7530,16 +7530,16 @@ Graph.prototype._onTouchMove = function(event) {
  * Event handler for touchend event on mobile devices
  */
 Graph.prototype._onTouchEnd = function(event) {
-    Graph.preventDefault(event);
+    vis.util.preventDefault(event);
 
     this.touchDown = false;
 
     if (this.ontouchmove) {
-        Graph.removeEventListener(document, "touchmove", this.ontouchmove);
+        vis.util.removeEventListener(document, "touchmove", this.ontouchmove);
         this.ontouchmove = undefined;
     }
     if (this.ontouchend) {
-        Graph.removeEventListener(document, "touchend", this.ontouchend);
+        vis.util.removeEventListener(document, "touchend", this.ontouchend);
         this.ontouchend = undefined;
     }
 
@@ -8400,7 +8400,7 @@ Graph.prototype._doStabilize = function() {
     while (!stable && count < this.constants.maxIterations) {
         this._calculateForces();
         this._discreteStepNodes();
-        stable = !this.isMoving(vmin);
+        stable = !this._isMoving(vmin);
         count++;
     }
 
@@ -8551,7 +8551,7 @@ Graph.prototype._calculateForces = function(nodeId) {
  * @param {number} vmin   the minimum velocity considered as "moving"
  * @return {boolean}      true if moving, false if non of the nodes is moving
  */
-Graph.prototype.isMoving = function(vmin) {
+Graph.prototype._isMoving = function(vmin) {
     // TODO: ismoving does not work well: should check the kinetic energy, not its velocity
     var nodes = this.nodes;
     for (var n = 0, nMax = nodes.length; n < nMax; n++) {
@@ -8583,7 +8583,7 @@ Graph.prototype.start = function() {
         this._discreteStepNodes();
 
         var vmin = this.constants.minVelocity;
-        this.moving = this.isMoving(vmin);
+        this.moving = this._isMoving(vmin);
     }
 
     if (this.moving) {
@@ -8611,131 +8611,6 @@ Graph.prototype.stop = function () {
         this.timer = undefined;
     }
 };
-
-
-
-/**--------------------------------------------------------------------------**/
-
-
-/**
- * Add and event listener. Works for all browsers
- * @param {Element}     element    An html element
- * @param {String}      action     The action, for example "click",
- *                                 without the prefix "on"
- * @param {function}    listener   The callback function to be executed
- * @param {boolean}     useCapture
- */
-Graph.addEventListener = function (element, action, listener, useCapture) {
-    if (element.addEventListener) {
-        if (useCapture === undefined)
-            useCapture = false;
-
-        if (action === "mousewheel" && navigator.userAgent.indexOf("Firefox") >= 0) {
-            action = "DOMMouseScroll";  // For Firefox
-        }
-
-        element.addEventListener(action, listener, useCapture);
-    } else {
-        element.attachEvent("on" + action, listener);  // IE browsers
-    }
-};
-
-/**
- * Remove an event listener from an element
- * @param {Element}  element   An html dom element
- * @param {string}       action    The name of the event, for example "mousedown"
- * @param {function}     listener  The listener function
- * @param {boolean}      useCapture
- */
-Graph.removeEventListener = function(element, action, listener, useCapture) {
-    if (element.removeEventListener) {
-        // non-IE browsers
-        if (useCapture === undefined)
-            useCapture = false;
-
-        if (action === "mousewheel" && navigator.userAgent.indexOf("Firefox") >= 0) {
-            action = "DOMMouseScroll";  // For Firefox
-        }
-
-        element.removeEventListener(action, listener, useCapture);
-    } else {
-        // IE browsers
-        element.detachEvent("on" + action, listener);
-    }
-};
-
-
-/**
- * Stop event propagation
- */
-Graph.stopPropagation = function (event) {
-    if (!event)
-        event = window.event;
-
-    if (event.stopPropagation) {
-        event.stopPropagation();  // non-IE browsers
-    }
-    else {
-        event.cancelBubble = true;  // IE browsers
-    }
-};
-
-
-/**
- * Cancels the event if it is cancelable, without stopping further propagation of the event.
- */
-Graph.preventDefault = function (event) {
-    if (!event)
-        event = window.event;
-
-    if (event.preventDefault) {
-        event.preventDefault();  // non-IE browsers
-    }
-    else {
-        event.returnValue = false;  // IE browsers
-    }
-};
-
-/**
- * Retrieve the absolute left value of a DOM element
- * @param {Element} elem    A dom element, for example a div
- * @return {number} left        The absolute left position of this element
- *                              in the browser page.
- */
-Graph._getAbsoluteLeft = function(elem) {
-    var left = 0;
-    while( elem != null ) {
-        left += elem.offsetLeft;
-        left -= elem.scrollLeft;
-        elem = elem.offsetParent;
-    }
-    if (!document.body.scrollLeft && window.pageXOffset) {
-        // FF
-        left -= window.pageXOffset;
-    }
-    return left;
-};
-
-/**
- * Retrieve the absolute top value of a DOM element
- * @param {Element} elem    A dom element, for example a div
- * @return {number} top         The absolute top position of this element
- *                              in the browser page.
- */
-Graph._getAbsoluteTop = function(elem) {
-    var top = 0;
-    while( elem != null ) {
-        top += elem.offsetTop;
-        top -= elem.scrollTop;
-        elem = elem.offsetParent;
-    }
-    if (!document.body.scrollTop && window.pageYOffset) {
-        // FF
-        top -= window.pageYOffset;
-    }
-    return top;
-};
-
 
 
 /**--------------------------------------------------------------------------**/
