@@ -63,7 +63,12 @@
                 }
             }
 
-            // specify options
+            // create a graph
+            var container = document.getElementById('mygraph');
+            var data = {
+                nodes: nodes,
+                edges: edges
+            };
             var options = {
                 width: '600px',
                 height: '600px',
@@ -72,12 +77,7 @@
                 },
                 stabilize: false
             };
-
-            // create a graph
-            graph = new vis.Graph(document.getElementById('mygraph'));
-
-            // draw data
-            graph.draw(nodes, edges, options);
+            graph = new vis.Graph(container, data, options);
 
             // add event listeners
             vis.events.addListener(graph, 'select', function(params) {

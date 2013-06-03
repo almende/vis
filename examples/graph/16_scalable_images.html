@@ -52,7 +52,12 @@
                 {from: 2, to: 7, value: 4, title: '4 emails per week'}
             ];
 
-            // specify options
+            // create a graph
+            var container = document.getElementById('mygraph');
+            var data = {
+                nodes: nodes,
+                edges: edges
+            };
             var options = {
                 width:  '600px',
                 height: '600px',
@@ -64,12 +69,7 @@
                     color: 'lightgray'
                 }
             };
-
-            // Instantiate our graph object.
-            graph = new vis.Graph(document.getElementById('mygraph'));
-
-            // Draw our graph with the created data and options
-            graph.draw(nodes, edges, options);
+            graph = new vis.Graph(container, data, options);
         }
     </script>
 </head>

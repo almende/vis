@@ -33,7 +33,7 @@
             border: 1px solid #d3d3d3;
         }
 
-        #graph {
+        #mygraph {
             float: left;
             width: 100%;
             height: 100%;
@@ -69,7 +69,7 @@
             <textarea id="data"></textarea>
         </td>
         <td>
-            <div id="graph"></div>
+            <div id="mygraph"></div>
         </td>
     </tr>
 </table>
@@ -90,22 +90,18 @@
     // parse and draw the data
     function draw () {
         try {
-            // create a graph
-            graph = new vis.Graph(document.getElementById('graph'));
-
             txtError.innerHTML = '';
 
             // parse the data from DOT-notation
             data = vis.Graph.util.DOTToGraph(txtData.value);
 
-            // draw the data in the graph view
-            var options = data.options;
-            options.width = '100%';
-            //options.links.length = options.links.length;
-            options.height = '100%';
-            //options.nodes.radius = 20;
-            //options.links.width = 2;
-            graph.draw(data.nodes, data.edges, options);
+            // create a graph
+            var container = document.getElementById('mygraph');
+            var options = {
+                width: '100%',
+                height: '100%'
+            };
+            graph = new vis.Graph(container, data, options);
         }
         catch (err) {
             // set the cursor at the position where the error occurred

@@ -103,17 +103,17 @@
             {from: 2, to: 5}
         ];
 
-        // specify options
+        // create a graph
+        var container = document.getElementById('mygraph');
+        var data= {
+            nodes: nodes,
+            edges: edges,
+        };
         var options = {
             width: '400px',
             height: '400px'
         };
-
-        // create a graph
-        var graph = new vis.Graph(document.getElementById('mygraph'));
-
-        // draw the graph with the created data and options
-        graph.draw(nodes, edges, options);
+        var graph = new vis.Graph(container, data, options);
     &lt;/script&gt;
 
     &lt;/body&gt;
@@ -132,38 +132,41 @@
 </pre>
 
 
-The class name of the Graph is <code>vis.Graph</code>
-<pre class="prettyprint lang-js">var graph = new vis.Graph(container);</pre>
+The class name of the Graph is <code>vis.Graph</code>.
+<pre class="prettyprint lang-js">var graph = new vis.Graph(container, data, options);</pre>
 
-After being loaded, the graph can be drawn via the function <code>draw()</code>,
-provided with data and options.
-<pre class="prettyprint lang-js">graph.draw(nodes, edges, packages, options);</pre>
-where <code>nodes</code>, <code>edges</code>, and <code>packages</code> are
-an <code>Array</code>, and <code>options</code> is a name-value map in the
-JSON format. Both <code>edges</code> and <code>packages</code> are optional.
-
-
-
+The constructor accepts three parameters:
+<ul>
+    <li>
+        <code>container</code> is the DOM element in which to create the graph.
+    </li>
+    <li>
+        <code>data</code> is an Object containing properties <code>nodes</code> and
+        <code>edges</code>, which both contain an array with objects.
+        Optionally, data may contain an <code>options</code> object.
+        The parameter <code>data</code> is optional, data can also be set using
+        the method <code>setData</code>.
+    </li>
+    <li>
+        <code>options</code> is an optional Object containing a name-value map
+        with options. Options can also be set using the method
+        <code>setOptions</code>.
+    </li>
+</ul>
 
 <h2><a name="Data_Format"></a>Data Format</h2>
 <p>
-    Graph accepts the following data
+    The Graph draws nodes and edges, which are both an Array with objects.
+    This section describes the data format of nodes and edges.
 </p>
-<ul>
-    <li><b>Nodes</b>. An array which defines the nodes. Required.</li>
-    <li><b>Edges</b>. An array which defines edges between nodes. Optional.</li>
-    <li><b>Packages</b>. An array which defines static and/or interactive packages
-        moving between nodes. Required.</li>
-</ul>
 
 <h3>Nodes</h3>
 
 <p>
-    The node array is required for the graph visualization.
-
-    The array must contain at least a property <code>id</code>.
-    The array can have extra properties, used to define the type and style of
-    individual nodes.
+    Nodes typically have an <code>id</code> and <code>text</code>.
+    A node must contain at least a property <code>id</code>.
+    Nodes can have extra properties, used to define the type and style the
+    nodes.
 </p>
 
 <p>
@@ -181,7 +184,7 @@ var nodes = [
 
 
 <p>
-    The node properties are defined as:
+    Nodes support the following properties:
 </p>
 
 <table>
@@ -372,10 +375,10 @@ var nodes = [
 <h3>Edges</h3>
 
 <p>
-    The array with edges must at least contain properties <code>from</code> and
-    <code>to</code>.
-    The array can have extra properties, used to define the type and style of
-    individual edges.
+    Edges are connections between nodes.
+    An edge must at least contain properties <code>from</code> and
+    <code>to</code>, both referring to the <code>id</code> of a node.
+    Edges can have extra properties, used to define the type and style.
 </p>
 
 <p>
@@ -392,7 +395,7 @@ var edges= [
 </pre>
 
 <p>
-    The edge properties are defined as:
+    Edges support the following properties:
 </p>
 
 <table>
@@ -769,7 +772,7 @@ var packages = [
             containing with nodes and edges in the format of Graph.
             The returned object contains parameters <code>nodes</code>,
             <code>edges</code>, and <code>options</code>, which can be used
-            directly to draw a graph using <code>draw(nodes, edges, options)</code>.
+            directly to draw a graph using <code>setData(data)</code>.
         </td>
     </tr>
 </table>
@@ -779,15 +782,12 @@ Example usage:
 </p>
 
 <pre class="prettyprint lang-js">
-    // create a graph view
-    var graph = new vis.Graph(container);
-
     // parse data in DOT-notation
     var dot = 'digraph {1 -> 1 -> 2; 2 -> 3; 2 -- 4; 2 -> 1 }';
-    data = vis.Graph.util.DOTToGraph(dot);
+    var data = vis.Graph.util.DOTToGraph(dot);
 
-    // draw the data
-    graph.draw(data.nodes, data.edges, data.options);
+    // create a graph
+    var graph = new vis.Graph(container, data);
 </pre>
 
 
@@ -1219,7 +1219,7 @@ var nodes = [
 <h2><a name="Dynamic_Data"></a>Dynamic Data</h2>
 
 <p>
-    The Graph is normally rendered using the method <code>draw</code>.
+    The Graph is normally rendered using the method <code>setData</code>.
     The graph can handle dynamic data in two ways:
 </p>
 <ul>
@@ -1399,12 +1399,11 @@ packageTable.addRow([7,  1,    2, 'delete', undefined,          undefined, new D
     </tr>
 
     <tr>
-        <td>draw(nodes, edges, packages, options)</td>
+        <td>setData(data)</td>
         <td>none</td>
-        <td>Loads data, sets the provided options, and draws the graph.
-            Parameters nodes, edges, and packages are an Array,
-            and options is a name-value map in the JSON format.
-            Both edges and packages are optional and can be left undefined.
+        <td>Loads data. Parameter <code>data</code> is an object containing
+            nodes, edges, and options. Parameters nodes, edges are an Array.
+            Options is a name-value map and is optional.
         </td>
     </tr>
 
@@ -1420,8 +1419,7 @@ packageTable.addRow([7,  1,    2, 'delete', undefined,          undefined, new D
     <tr>
         <td>redraw()</td>
         <td>none</td>
-        <td>Redraw the graph. Useful after the camera position is changed externally,
-            when data is changed, or when the layout of the webpage changed.</td>
+        <td>Redraw the graph. Useful when the layout of the webpage changed.</td>
     </tr>
 
     <tr>
@@ -1515,7 +1513,7 @@ vis.events.addListener(graph, 'select', onselect);
         <td>ready</td>
         <td>The graph is loaded and ready for external method calls.
             If you want to interact with the graph, and call methods after you draw it,
-            you should set up a listener for this event before you call the draw method,
+            you should set up a listener for this event before you call the setData method,
             and call them only after the event was fired.</td>
         <td>none</td>
     </tr>

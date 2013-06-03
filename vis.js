@@ -6810,8 +6810,12 @@ Timeline.prototype.getItemRange = function getItemRange() {
  * Create a graph visualization connecting nodes via edges.
  * @param {Element} container   The DOM element in which the Graph will
  *                                  be created. Normally a div element.
+ * @param {Object} data         An object containing parameters
+ *                              {Array} nodes
+ *                              {Array} edges
+ * @param {Object} options      Options
  */
-function Graph (container) {
+function Graph (container, data, options) {
     // create variables and set default values
     this.containerElement = container;
     this.width = "100%";
@@ -6886,46 +6890,58 @@ function Graph (container) {
 
     // create a frame and canvas
     this._create();
-};
+
+    // apply options
+    this.setOptions(options);
+
+    // draw data
+    this.setData(data);
+}
 
 /**
  * Main drawing logic. This is the function that needs to be called
  * in the html page, to draw the Network.
  *
  * A data table with the events must be provided, and an options table.
- * @param {Array} [nodes]     The data containing the nodes.
- * @param {Array} [edges]     The data containing the edges.
- * @param {Array} [packages]  The data containing the packages
- * @param {Object} options                                     A name/value map containing settings
+ * @param {Object} data    Object containing parameters:
+ *                         {Array} nodes     Array with nodes
+ *                         {Array} edges     Array with edges
+ *                         {Options} [options] Object with options
  */
-Graph.prototype.draw = function(nodes, edges, packages, options) {
-    var nodesTable, edgesTable, packagesTable;
-    // correctly read the parameters. edges and packages are optional.
-    if (options != undefined) {
-        nodesTable = nodes;
-        edgesTable = edges;
-        packagesTable = packages;
-    }
-    else if (packages != undefined) {
-        nodesTable = nodes;
-        edgesTable = edges;
-        packagesTable = undefined;
-        options = packages;
-    }
-    else if (edges != undefined) {
-        nodesTable = nodes;
-        edgesTable = undefined;
-        packagesTable = undefined;
-        options = edges;
-    }
-    else if (nodes != undefined) {
-        nodesTable = undefined;
-        edgesTable = undefined;
-        packagesTable = undefined;
-        options = nodes;
+Graph.prototype.setData = function(data) {
+    if (data.options) {
+        this.setOptions(data.options);
     }
 
-    if (options != undefined) {
+    // set all data
+    this.hasTimestamps = false;
+    this.setNodes(data.nodes);
+    this.setEdges(data.edges);
+    this.setPackages(data.packages);
+
+    this._reposition(); // TODO: bad solution
+    if (this.stabilize) {
+        this._doStabilize();
+    }
+    this.start();
+
+    // create an onload callback method for the images
+    var network = this;
+    var callback = function () {
+        network._redraw();
+    };
+    this.images.setOnloadCallback(callback);
+
+    // fire the ready event
+    this.trigger('ready');
+};
+
+/**
+ * Set options
+ * @param {Object} options
+ */
+Graph.prototype.setOptions = function (options) {
+    if (options) {
         // retrieve parameter values
         if (options.width != undefined)           {this.width = options.width;}
         if (options.height != undefined)          {this.height = options.height;}
@@ -6996,35 +7012,13 @@ Graph.prototype.draw = function(nodes, edges, packages, options) {
                 }
             }
         }
-    }
 
-    this._setBackgroundColor(options.backgroundColor);
+        this._setBackgroundColor(options.backgroundColor);
+    }
 
     this._setSize(this.width, this.height);
     this._setTranslation(0, 0);
     this._setScale(1.0);
-
-    // set all data
-    this.hasTimestamps = false;
-    this.setNodes(nodesTable);
-    this.setEdges(edgesTable);
-    this.setPackages(packagesTable);
-
-    this._reposition(); // TODO: bad solution
-    if (this.stabilize) {
-        this._doStabilize();
-    }
-    this.start();
-
-    // create an onload callback method for the images
-    var network = this;
-    var callback = function () {
-        network._redraw();
-    };
-    this.images.setOnloadCallback(callback);
-
-    // fire the ready event
-    this.trigger('ready');
 };
 
 /**

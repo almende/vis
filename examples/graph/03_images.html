@@ -54,18 +54,18 @@
                 edges.push({from: 3, to: i, length: LENGTH_SUB});
             }
 
-            // specify options
+            // create a graph
+            var container = document.getElementById('mygraph');
+            var data = {
+                nodes: nodes,
+                edges: edges
+            };
             var options = {
                 width: '600px',
                 height: '600px',
                 stabilize: false   // stabilize positions before displaying
             };
-
-            // create a graph
-            graph = new vis.Graph(document.getElementById('mygraph'));
-
-            // draw data
-            graph.draw(nodes, edges, options);
+            graph = new vis.Graph(container, data, options);
         }
     </script>
 </head>

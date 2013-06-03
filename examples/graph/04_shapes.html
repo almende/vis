@@ -49,18 +49,18 @@
                 }
             }
 
-            // specify options
+            // create a graph
+            var container = document.getElementById('mygraph');
+            var data = {
+                nodes: nodes,
+                edges: edges
+            };
             var options = {
                 width:  '780px',
                 height: '600px',
                 stabilize: false
             };
-
-            // Instantiate our graph object.
-            graph = new vis.Graph(document.getElementById('mygraph'));
-
-            // Draw our graph with the created data and options
-            graph.draw(nodes, edges, options);
+            graph = new vis.Graph(container, data, options);
         }
     </script>
 </head>

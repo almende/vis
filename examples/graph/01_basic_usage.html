@@ -28,17 +28,17 @@
         {from: 2, to: 5}
     ];
 
-    // specify options
+    // create a graph
+    var container = document.getElementById('mygraph');
+    var data = {
+        nodes: nodes,
+        edges: edges
+    };
     var options = {
         width: '400px',
         height: '400px'
     };
-
-    // create a graph
-    var graph = new vis.Graph(document.getElementById('mygraph'));
-
-    // draw the graph with the created data and options
-    graph.draw(nodes, edges, options);
+    var graph = new vis.Graph(container, data, options);
 </script>
 
 </body>
