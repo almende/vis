@@ -66,6 +66,14 @@ task('build', {async: true}, function () {
             './src/component/GroupSet.js',
 
             './src/Timeline.js',
+
+            './src/graph/dotparser.js',
+            './src/graph/shapes.js',
+            './src/graph/Node.js',
+            './src/graph/Edge.js',
+            './src/graph/Popup.js',
+            './src/graph/Groups.js',
+            './src/graph/Images.js',
             './src/graph/Graph.js',
 
             './src/module/exports.js'

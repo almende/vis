@@ -531,7 +531,7 @@ var edges= [
     <th>Description</th>
 </tr>
 <tr>
-    <td>vis.Graph.util.parseDOT(data)</td>
+    <td>vis.util.parseDOT(data)</td>
     <td>Object</td>
     <td>
         Parse a string containing data in DOT language into a JSON object.
@@ -540,7 +540,7 @@ var edges= [
     </td>
 </tr>
     <tr>
-        <td>vis.Graph.util.DOTToGraph(data)</td>
+        <td>vis.util.DOTToGraph(data)</td>
         <td>Object</td>
         <td>
             Convert a string containing a graph in DOT language into a map
@@ -559,7 +559,7 @@ Example usage:
 <pre class="prettyprint lang-js">
     // parse data in DOT-notation
     var dot = 'digraph {1 -> 1 -> 2; 2 -> 3; 2 -- 4; 2 -> 1 }';
-    var data = vis.Graph.util.DOTToGraph(dot);
+    var data = vis.util.DOTToGraph(dot);
 
     // create a graph
     var graph = new vis.Graph(container, data);

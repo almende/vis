@@ -28,6 +28,14 @@ var vis = {
         TimeAxis: TimeAxis
     },
 
+    graph: {
+        Node: Node,
+        Edge: Edge,
+        Popup: Popup,
+        Groups: Groups,
+        Images: Images
+    },
+
     Timeline: Timeline,
     Graph: Graph
 };

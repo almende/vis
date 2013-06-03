@@ -6805,6 +6805,2090 @@ Timeline.prototype.getItemRange = function getItemRange() {
     };
 };
 
+
+/**
+ * Parse a text source containing data in DOT language into a JSON object.
+ * The object contains two lists: one with nodes and one with edges.
+ * @param {String} data     Text containing a graph in DOT-notation
+ * @return {Object} json    An object containing two parameters:
+ *                          {Object[]} nodes
+ *                          {Object[]} edges
+ */
+util.parseDOT = function (data) {
+    /**
+     * Test whether given character is a whitespace character
+     * @param {String} c
+     * @return {Boolean} isWhitespace
+     */
+    function isWhitespace(c) {
+        return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+    }
+
+    /**
+     * Test whether given character is a delimeter
+     * @param {String} c
+     * @return {Boolean} isDelimeter
+     */
+    function isDelimeter(c) {
+        return '[]{}();,=->'.indexOf(c) != -1;
+    }
+
+    var i = -1;  // current index in the data
+    var c = '';  // current character in the data
+
+    /**
+     * Read the next character from the data
+     */
+    function next() {
+        i++;
+        c = data[i];
+    }
+
+    /**
+     * Preview the next character in the data
+     * @returns {String} nextChar
+     */
+    function previewNext () {
+        return data[i + 1];
+    }
+
+    /**
+     * Preview the next character in the data
+     * @returns {String} nextChar
+     */
+    function previewPrevious () {
+        return data[i + 1];
+    }
+
+    /**
+     * Get a text description of the the current index in the data
+     * @return {String} desc
+     */
+    function pos() {
+        return '(char ' + i + ')';
+    }
+
+    /**
+     * Skip whitespace and comments
+     */
+    function parseWhitespace() {
+        // skip whitespace
+        while (c && isWhitespace(c)) {
+            next();
+        }
+
+        // test for comment
+        var cNext = data[i + 1];
+        var cPrev = data[i - 1];
+        var c2 = c + cNext;
+        if (c2 == '/*') {
+            // block comment. skip until the block is closed
+            while (c && !(c == '*' && data[i + 1] == '/')) {
+                next();
+            }
+            next();
+            next();
+
+            parseWhitespace();
+        }
+        else if (c2 == '//' || (c == '#' && cPrev == '\n')) {
+            // line comment. skip until the next return
+            while (c && c != '\n') {
+                next();
+            }
+            next();
+            parseWhitespace();
+        }
+    }
+
+    /**
+     * Parse a string
+     * The string may be enclosed by double quotes
+     * @return {String | undefined} value
+     */
+    function parseString() {
+        parseWhitespace();
+
+        var name = '';
+        if (c == '"') {
+            next();
+            while (c && c != '"') {
+                name += c;
+                next();
+            }
+            next(); // skip the closing quote
+        }
+        else {
+            while (c && !isWhitespace(c) && !isDelimeter(c)) {
+                name += c;
+                next();
+            }
+
+            // cast string to number or boolean
+            var number = Number(name);
+            if (!isNaN(number)) {
+                name = number;
+            }
+            else if (name == 'true') {
+                name = true;
+            }
+            else if (name == 'false') {
+                name = false;
+            }
+            else if (name == 'null') {
+                name = null;
+            }
+        }
+
+        return name;
+    }
+
+    /**
+     * Parse a value, can be a string, number, or boolean.
+     * The value may be enclosed by double quotes
+     * @return {String | Number | Boolean | undefined} value
+     */
+    function parseValue() {
+        parseWhitespace();
+
+        if (c == '"') {
+            return parseString();
+        }
+        else {
+            var value = parseString();
+            if (value != undefined) {
+                // cast string to number or boolean
+                var number = Number(value);
+                if (!isNaN(number)) {
+                    value = number;
+                }
+                else if (value == 'true') {
+                    value = true;
+                }
+                else if (value == 'false') {
+                    value = false;
+                }
+                else if (value == 'null') {
+                    value = null;
+                }
+            }
+            return value;
+        }
+    }
+
+    /**
+     * Parse a set with attributes,
+     * for example [label="1.000", style=solid]
+     * @return {Object | undefined} attr
+     */
+    function parseAttributes() {
+        parseWhitespace();
+
+        if (c == '[') {
+            next();
+            var attr = {};
+            while (c && c != ']') {
+                parseWhitespace();
+
+                var name = parseString();
+                if (!name) {
+                    throw new SyntaxError('Attribute name expected ' + pos());
+                }
+
+                parseWhitespace();
+                if (c != '=') {
+                    throw new SyntaxError('Equal sign = expected ' + pos());
+                }
+                next();
+
+                var value = parseValue();
+                if (!value) {
+                    throw new SyntaxError('Attribute value expected ' + pos());
+                }
+                attr[name] = value;
+
+                parseWhitespace();
+
+                if (c ==',') {
+                    next();
+                }
+            }
+            next();
+
+            return attr;
+        }
+        else {
+            return undefined;
+        }
+    }
+
+    /**
+     * Parse a directed or undirected arrow '->' or '--'
+     * @return {String | undefined} arrow
+     */
+    function parseArrow() {
+        parseWhitespace();
+
+        if (c == '-') {
+            next();
+            if (c == '>' || c == '-') {
+                var arrow = '-' + c;
+                next();
+                return arrow;
+            }
+            else {
+                throw new SyntaxError('Arrow "->" or "--" expected ' + pos());
+            }
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Parse a line separator ';'
+     * @return {String | undefined} separator
+     */
+    function parseSeparator() {
+        parseWhitespace();
+
+        if (c == ';') {
+            next();
+            return ';';
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Merge all properties of object b into object b
+     * @param {Object} a
+     * @param {Object} b
+     */
+    function merge (a, b) {
+        if (a && b) {
+            for (var name in b) {
+                if (b.hasOwnProperty(name)) {
+                    a[name] = b[name];
+                }
+            }
+        }
+    }
+
+    var nodeMap = {};
+    var edgeList = [];
+
+    /**
+     * Register a node with attributes
+     * @param {String} id
+     * @param {Object} [attr]
+     */
+    function addNode(id, attr) {
+        var node = {
+            id: String(id),
+            attr: attr || {}
+        };
+        if (!nodeMap[id]) {
+            nodeMap[id] = node;
+        }
+        else {
+            merge(nodeMap[id].attr, node.attr);
+        }
+    }
+
+    /**
+     * Register an edge
+     * @param {String} from
+     * @param {String} to
+     * @param {String} type    A string "->" or "--"
+     * @param {Object} [attr]
+     */
+    function addEdge(from, to, type, attr) {
+        edgeList.push({
+            from: String(from),
+            to: String(to),
+            type: type,
+            attr: attr || {}
+        });
+    }
+
+    // find the opening curly bracket
+    next();
+    while (c && c != '{') {
+        next();
+    }
+    if (c != '{') {
+        throw new SyntaxError('Invalid data. Curly bracket { expected ' + pos())
+    }
+    next();
+
+    // parse all data until a closing curly bracket is encountered
+    while (c && c != '}') {
+        // parse node id and optional node attributes
+        var id = parseString();
+        if (id == undefined) {
+            throw new SyntaxError('String with id expected ' + pos());
+        }
+        var attr = parseAttributes();
+        addNode(id, attr);
+
+        // TODO: parse global attributes "graph", "node", "edge"
+
+        // parse arrow
+        var type = parseArrow();
+        while (type) {
+            // parse node id
+            var prevId = id;
+            id = parseString();
+            if (id == undefined) {
+                throw new SyntaxError('String with id expected ' + pos());
+            }
+            addNode(id);
+
+            // parse edge attributes and register edge
+            attr = parseAttributes();
+            addEdge(prevId, id, type, attr);
+
+            // parse next arrow (optional)
+            type = parseArrow();
+        }
+
+        // parse separator (optional)
+        parseSeparator();
+
+        parseWhitespace();
+    }
+    if (c != '}') {
+        throw new SyntaxError('Invalid data. Curly bracket } expected');
+    }
+
+    // crop data between the curly brackets
+    var start = data.indexOf('{');
+    var end = data.indexOf('}', start);
+    var text = (start != -1 && end != -1) ? data.substring(start + 1, end) : undefined;
+
+    if (!text) {
+        throw new Error('Invalid data. no curly brackets containing data found');
+    }
+
+    // return the results
+    var nodeList = [];
+    for (id in nodeMap) {
+        if (nodeMap.hasOwnProperty(id)) {
+            nodeList.push(nodeMap[id]);
+        }
+    }
+    return {
+        nodes: nodeList,
+        edges: edgeList
+    }
+};
+
+/**
+ * Convert a string containing a graph in DOT language into a map containing
+ * with nodes and edges in the format of graph.
+ * @param {String} data         Text containing a graph in DOT-notation
+ * @return {Object} graphData
+ */
+util.DOTToGraph = function (data) {
+    // parse the DOT file
+    var dotData = util.parseDOT(data);
+    var graphData = {
+        nodes: [],
+        edges: [],
+        options: {
+            nodes: {},
+            edges: {}
+        }
+    };
+
+    /**
+     * Merge the properties of object b into object a, and adjust properties
+     * not supported by Graph (for example replace "shape" with "style"
+     * @param {Object} a
+     * @param {Object} b
+     * @param {Array} [ignore]   Optional array with property names to be ignored
+     */
+    function merge (a, b, ignore) {
+        for (var prop in b) {
+            if (b.hasOwnProperty(prop) && (!ignore || ignore.indexOf(prop) == -1)) {
+                a[prop] = b[prop];
+            }
+        }
+
+        // Convert aliases to configuration settings supported by Graph
+        if (a.label) {
+            a.text = a.label;
+            delete a.label;
+        }
+        if (a.shape) {
+            a.style = a.shape;
+            delete a.shape;
+        }
+    }
+
+    dotData.nodes.forEach(function (node) {
+        if (node.id.toLowerCase() == 'graph') {
+            merge(graphData.options, node.attr);
+        }
+        else if (node.id.toLowerCase() == 'node') {
+            merge(graphData.options.nodes, node.attr);
+        }
+        else if (node.id.toLowerCase() == 'edge') {
+            merge(graphData.options.edges, node.attr);
+        }
+        else {
+            var graphNode = {};
+            graphNode.id = node.id;
+            graphNode.text = node.id;
+            merge(graphNode, node.attr);
+            graphData.nodes.push(graphNode);
+        }
+    });
+
+    dotData.edges.forEach(function (edge) {
+        var graphEdge = {};
+        graphEdge.from = edge.from;
+        graphEdge.to = edge.to;
+        graphEdge.text = edge.id;
+        graphEdge.style = (edge.type == '->') ? 'arrow-end' : 'line';
+        merge(graphEdge, edge.attr);
+        graphData.edges.push(graphEdge);
+    });
+
+    return graphData;
+};
+
+/**
+ * Canvas shapes used by the Graph
+ */
+if (typeof CanvasRenderingContext2D !== 'undefined') {
+
+    /**
+     * Draw a circle shape
+     */
+    CanvasRenderingContext2D.prototype.circle = function(x, y, r) {
+        this.beginPath();
+        this.arc(x, y, r, 0, 2*Math.PI, false);
+    };
+
+    /**
+     * Draw a square shape
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r   size, width and height of the square
+     */
+    CanvasRenderingContext2D.prototype.square = function(x, y, r) {
+        this.beginPath();
+        this.rect(x - r, y - r, r * 2, r * 2);
+    };
+
+    /**
+     * Draw a triangle shape
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r   radius, half the length of the sides of the triangle
+     */
+    CanvasRenderingContext2D.prototype.triangle = function(x, y, r) {
+        // http://en.wikipedia.org/wiki/Equilateral_triangle
+        this.beginPath();
+
+        var s = r * 2;
+        var s2 = s / 2;
+        var ir = Math.sqrt(3) / 6 * s;      // radius of inner circle
+        var h = Math.sqrt(s * s - s2 * s2); // height
+
+        this.moveTo(x, y - (h - ir));
+        this.lineTo(x + s2, y + ir);
+        this.lineTo(x - s2, y + ir);
+        this.lineTo(x, y - (h - ir));
+        this.closePath();
+    };
+
+    /**
+     * Draw a triangle shape in downward orientation
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r radius
+     */
+    CanvasRenderingContext2D.prototype.triangleDown = function(x, y, r) {
+        // http://en.wikipedia.org/wiki/Equilateral_triangle
+        this.beginPath();
+
+        var s = r * 2;
+        var s2 = s / 2;
+        var ir = Math.sqrt(3) / 6 * s;      // radius of inner circle
+        var h = Math.sqrt(s * s - s2 * s2); // height
+
+        this.moveTo(x, y + (h - ir));
+        this.lineTo(x + s2, y - ir);
+        this.lineTo(x - s2, y - ir);
+        this.lineTo(x, y + (h - ir));
+        this.closePath();
+    };
+
+    /**
+     * Draw a star shape, a star with 5 points
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r   radius, half the length of the sides of the triangle
+     */
+    CanvasRenderingContext2D.prototype.star = function(x, y, r) {
+        // http://www.html5canvastutorials.com/labs/html5-canvas-star-spinner/
+        this.beginPath();
+
+        for (var n = 0; n < 10; n++) {
+            var radius = (n % 2 === 0) ? r * 1.3 : r * 0.5;
+            this.lineTo(
+                x + radius * Math.sin(n * 2 * Math.PI / 10),
+                y - radius * Math.cos(n * 2 * Math.PI / 10)
+            );
+        }
+
+        this.closePath();
+    };
+
+    /**
+     * http://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-on-html-canvas
+     */
+    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+        var r2d = Math.PI/180;
+        if( w - ( 2 * r ) < 0 ) { r = ( w / 2 ); } //ensure that the radius isn't too large for x
+        if( h - ( 2 * r ) < 0 ) { r = ( h / 2 ); } //ensure that the radius isn't too large for y
+        this.beginPath();
+        this.moveTo(x+r,y);
+        this.lineTo(x+w-r,y);
+        this.arc(x+w-r,y+r,r,r2d*270,r2d*360,false);
+        this.lineTo(x+w,y+h-r);
+        this.arc(x+w-r,y+h-r,r,0,r2d*90,false);
+        this.lineTo(x+r,y+h);
+        this.arc(x+r,y+h-r,r,r2d*90,r2d*180,false);
+        this.lineTo(x,y+r);
+        this.arc(x+r,y+r,r,r2d*180,r2d*270,false);
+    };
+
+    /**
+     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
+     */
+    CanvasRenderingContext2D.prototype.ellipse = function(x, y, w, h) {
+        var kappa = .5522848,
+            ox = (w / 2) * kappa, // control point offset horizontal
+            oy = (h / 2) * kappa, // control point offset vertical
+            xe = x + w,           // x-end
+            ye = y + h,           // y-end
+            xm = x + w / 2,       // x-middle
+            ym = y + h / 2;       // y-middle
+
+        this.beginPath();
+        this.moveTo(x, ym);
+        this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+        this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+        this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+        this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+    };
+
+
+
+    /**
+     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
+     */
+    CanvasRenderingContext2D.prototype.database = function(x, y, w, h) {
+        var f = 1/3;
+        var wEllipse = w;
+        var hEllipse = h * f;
+
+        var kappa = .5522848,
+            ox = (wEllipse / 2) * kappa, // control point offset horizontal
+            oy = (hEllipse / 2) * kappa, // control point offset vertical
+            xe = x + wEllipse,           // x-end
+            ye = y + hEllipse,           // y-end
+            xm = x + wEllipse / 2,       // x-middle
+            ym = y + hEllipse / 2,       // y-middle
+            ymb = y + (h - hEllipse/2),  // y-midlle, bottom ellipse
+            yeb = y + h;                 // y-end, bottom ellipse
+
+        this.beginPath();
+        this.moveTo(xe, ym);
+
+        this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+        this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+
+        this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+        this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+
+        this.lineTo(xe, ymb);
+
+        this.bezierCurveTo(xe, ymb + oy, xm + ox, yeb, xm, yeb);
+        this.bezierCurveTo(xm - ox, yeb, x, ymb + oy, x, ymb);
+
+        this.lineTo(x, ym);
+    };
+
+
+    /**
+     * Draw an arrow point (no line)
+     */
+    CanvasRenderingContext2D.prototype.arrow = function(x, y, angle, length) {
+        // tail
+        var xt = x - length * Math.cos(angle);
+        var yt = y - length * Math.sin(angle);
+
+        // inner tail
+        // TODO: allow to customize different shapes
+        var xi = x - length * 0.9 * Math.cos(angle);
+        var yi = y - length * 0.9 * Math.sin(angle);
+
+        // left
+        var xl = xt + length / 3 * Math.cos(angle + 0.5 * Math.PI);
+        var yl = yt + length / 3 * Math.sin(angle + 0.5 * Math.PI);
+
+        // right
+        var xr = xt + length / 3 * Math.cos(angle - 0.5 * Math.PI);
+        var yr = yt + length / 3 * Math.sin(angle - 0.5 * Math.PI);
+
+        this.beginPath();
+        this.moveTo(x, y);
+        this.lineTo(xl, yl);
+        this.lineTo(xi, yi);
+        this.lineTo(xr, yr);
+        this.closePath();
+    };
+
+    /**
+     * Sets up the dashedLine functionality for drawing
+     * Original code came from http://stackoverflow.com/questions/4576724/dotted-stroke-in-canvas
+     * @author David Jordan
+     * @date 2012-08-08
+     */
+    CanvasRenderingContext2D.prototype.dashedLine = function(x,y,x2,y2,dashArray){
+        if (!dashArray) dashArray=[10,5];
+        if (dashLength==0) dashLength = 0.001; // Hack for Safari
+        var dashCount = dashArray.length;
+        this.moveTo(x, y);
+        var dx = (x2-x), dy = (y2-y);
+        var slope = dy/dx;
+        var distRemaining = Math.sqrt( dx*dx + dy*dy );
+        var dashIndex=0, draw=true;
+        while (distRemaining>=0.1){
+            var dashLength = dashArray[dashIndex++%dashCount];
+            if (dashLength > distRemaining) dashLength = distRemaining;
+            var xStep = Math.sqrt( dashLength*dashLength / (1 + slope*slope) );
+            if (dx<0) xStep = -xStep;
+            x += xStep;
+            y += slope*xStep;
+            this[draw ? 'lineTo' : 'moveTo'](x,y);
+            distRemaining -= dashLength;
+            draw = !draw;
+        }
+    };
+
+    // TODO: add diamond shape
+}
+
+/**
+ * @class Node
+ * A node. A node can be connected to other nodes via one or multiple edges.
+ * @param {object} properties An object containing properties for the node. All
+ *                            properties are optional, except for the id.
+ *                              {number} id     Id of the node. Required
+ *                              {string} text   Title for the node
+ *                              {number} x      Horizontal position of the node
+ *                              {number} y      Vertical position of the node
+ *                              {string} style  Drawing style, available:
+ *                                              "database", "circle", "rect",
+ *                                              "image", "text", "dot", "star",
+ *                                              "triangle", "triangleDown",
+ *                                              "square"
+ *                              {string} image  An image url
+ *                              {string} title  An title text, can be HTML
+ *                              {anytype} group A group name or number
+ * @param {Graph.Images} imagelist    A list with images. Only needed
+ *                                            when the node has an image
+ * @param {Graph.Groups} grouplist    A list with groups. Needed for
+ *                                            retrieving group properties
+ * @param {Object}               constants    An object with default values for
+ *                                            example for the color
+ */
+function Node(properties, imagelist, grouplist, constants) {
+    this.selected = false;
+
+    this.edges = []; // all edges connected to this node
+    this.group = constants.nodes.group;
+
+    this.fontSize = constants.nodes.fontSize;
+    this.fontFace = constants.nodes.fontFace;
+    this.fontColor = constants.nodes.fontColor;
+
+    this.borderColor = constants.nodes.borderColor;
+    this.backgroundColor = constants.nodes.backgroundColor;
+    this.highlightColor = constants.nodes.highlightColor;
+
+    // set defaults for the properties
+    this.id = undefined;
+    this.style = constants.nodes.style;
+    this.image = constants.nodes.image;
+    this.x = 0;
+    this.y = 0;
+    this.xFixed = false;
+    this.yFixed = false;
+    this.radius = constants.nodes.radius;
+    this.radiusFixed = false;
+    this.radiusMin = constants.nodes.radiusMin;
+    this.radiusMax = constants.nodes.radiusMax;
+
+    this.imagelist = imagelist;
+    this.grouplist = grouplist;
+
+    this.setProperties(properties, constants);
+
+    // mass, force, velocity
+    this.mass = 50;  // kg (mass is adjusted for the number of connected edges)
+    this.fx = 0.0;  // external force x
+    this.fy = 0.0;  // external force y
+    this.vx = 0.0;  // velocity x
+    this.vy = 0.0;  // velocity y
+    this.minForce = constants.minForce;
+    this.damping = 0.9; // damping factor
+};
+
+/**
+ * Attach a edge to the node
+ * @param {Edge} edge
+ */
+Node.prototype.attachEdge = function(edge) {
+    this.edges.push(edge);
+    this._updateMass();
+};
+
+/**
+ * Detach a edge from the node
+ * @param {Edge} edge
+ */
+Node.prototype.detachEdge = function(edge) {
+    var index = this.edges.indexOf(edge);
+    if (index != -1) {
+        this.edges.splice(index, 1);
+    }
+    this._updateMass();
+};
+
+/**
+ * Update the nodes mass, which is determined by the number of edges connecting
+ * to it (more edges -> heavier node).
+ * @private
+ */
+Node.prototype._updateMass = function() {
+    this.mass = 50 + 20 * this.edges.length; // kg
+};
+
+/**
+ * Set or overwrite properties for the node
+ * @param {Object} properties an object with properties
+ * @param {Object} constants  and object with default, global properties
+ */
+Node.prototype.setProperties = function(properties, constants) {
+    if (!properties) {
+        return;
+    }
+
+    // basic properties
+    if (properties.id != undefined)        {this.id = properties.id;}
+    if (properties.text != undefined)      {this.text = properties.text;}
+    if (properties.title != undefined)     {this.title = properties.title;}
+    if (properties.group != undefined)     {this.group = properties.group;}
+    if (properties.x != undefined)         {this.x = properties.x;}
+    if (properties.y != undefined)         {this.y = properties.y;}
+    if (properties.value != undefined)     {this.value = properties.value;}
+
+    if (this.id === undefined) {
+        throw "Node must have an id";
+    }
+
+    // copy group properties
+    if (this.group) {
+        var groupObj = this.grouplist.get(this.group);
+        for (var prop in groupObj) {
+            if (groupObj.hasOwnProperty(prop)) {
+                this[prop] = groupObj[prop];
+            }
+        }
+    }
+
+    // individual style properties
+    if (properties.style != undefined)          {this.style = properties.style;}
+    if (properties.image != undefined)          {this.image = properties.image;}
+    if (properties.radius != undefined)         {this.radius = properties.radius;}
+    if (properties.borderColor != undefined)    {this.borderColor = properties.borderColor;}
+    if (properties.backgroundColor != undefined){this.backgroundColor = properties.backgroundColor;}
+    if (properties.highlightColor != undefined) {this.highlightColor = properties.highlightColor;}
+    if (properties.fontColor != undefined)      {this.fontColor = properties.fontColor;}
+    if (properties.fontSize != undefined)       {this.fontSize = properties.fontSize;}
+    if (properties.fontFace != undefined)       {this.fontFace = properties.fontFace;}
+
+
+    if (this.image != undefined) {
+        if (this.imagelist) {
+            this.imageObj = this.imagelist.load(this.image);
+        }
+        else {
+            throw "No imagelist provided";
+        }
+    }
+
+    this.xFixed = this.xFixed || (properties.x != undefined);
+    this.yFixed = this.yFixed || (properties.y != undefined);
+    this.radiusFixed = this.radiusFixed || (properties.radius != undefined);
+
+    if (this.style == 'image') {
+        this.radiusMin = constants.nodes.widthMin;
+        this.radiusMax = constants.nodes.widthMax;
+    }
+
+    // choose draw method depending on the style
+    var style = this.style;
+    switch (style) {
+        case 'database':      this.draw = this._drawDatabase; this.resize = this._resizeDatabase; break;
+        case 'rect':          this.draw = this._drawRect; this.resize = this._resizeRect; break;
+        case 'circle':        this.draw = this._drawCircle; this.resize = this._resizeCircle; break;
+        // TODO: add ellipse shape
+        // TODO: add diamond shape
+        case 'image':         this.draw = this._drawImage; this.resize = this._resizeImage; break;
+        case 'text':          this.draw = this._drawText; this.resize = this._resizeText; break;
+        case 'dot':           this.draw = this._drawDot; this.resize = this._resizeShape; break;
+        case 'square':        this.draw = this._drawSquare; this.resize = this._resizeShape; break;
+        case 'triangle':      this.draw = this._drawTriangle; this.resize = this._resizeShape; break;
+        case 'triangleDown':  this.draw = this._drawTriangleDown; this.resize = this._resizeShape; break;
+        case 'star':          this.draw = this._drawStar; this.resize = this._resizeShape; break;
+        default:              this.draw = this._drawRect; this.resize = this._resizeRect; break;
+    }
+
+    // reset the size of the node, this can be changed
+    this._reset();
+};
+
+/**
+ * select this node
+ */
+Node.prototype.select = function() {
+    this.selected = true;
+    this._reset();
+};
+
+/**
+ * unselect this node
+ */
+Node.prototype.unselect = function() {
+    this.selected = false;
+    this._reset();
+};
+
+/**
+ * Reset the calculated size of the node, forces it to recalculate its size
+ */
+Node.prototype._reset = function() {
+    this.width = undefined;
+    this.height = undefined;
+};
+
+/**
+ * get the title of this node.
+ * @return {string} title    The title of the node, or undefined when no title
+ *                           has been set.
+ */
+Node.prototype.getTitle = function() {
+    return this.title;
+};
+
+/**
+ * Calculate the distance to the border of the Node
+ * @param {CanvasRenderingContext2D}   ctx
+ * @param {Number} angle        Angle in radians
+ * @returns {number} distance   Distance to the border in pixels
+ */
+Node.prototype.distanceToBorder = function (ctx, angle) {
+    var borderWidth = 1;
+
+    if (!this.width) {
+        this.resize(ctx);
+    }
+
+    //noinspection FallthroughInSwitchStatementJS
+    switch (this.style) {
+        case 'circle':
+        case 'dot':
+            return this.radius + borderWidth;
+
+        // TODO: implement distanceToBorder for database
+        // TODO: implement distanceToBorder for triangle
+        // TODO: implement distanceToBorder for triangleDown
+
+        case 'rect':
+        case 'image':
+        case 'text':
+        default:
+            if (this.width) {
+                return Math.min(
+                    Math.abs(this.width / 2 / Math.cos(angle)),
+                    Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
+                // TODO: reckon with border radius too in case of rect
+            }
+            else {
+                return 0;
+            }
+
+    }
+
+    // TODO: implement calculation of distance to border for all shapes
+};
+
+/**
+ * Set forces acting on the node
+ * @param {number} fx   Force in horizontal direction
+ * @param {number} fy   Force in vertical direction
+ */
+Node.prototype._setForce = function(fx, fy) {
+    this.fx = fx;
+    this.fy = fy;
+};
+
+/**
+ * Add forces acting on the node
+ * @param {number} fx   Force in horizontal direction
+ * @param {number} fy   Force in vertical direction
+ */
+Node.prototype._addForce = function(fx, fy) {
+    this.fx += fx;
+    this.fy += fy;
+};
+
+/**
+ * Perform one discrete step for the node
+ * @param {number} interval    Time interval in seconds
+ */
+Node.prototype.discreteStep = function(interval) {
+    if (!this.xFixed) {
+        var dx   = -this.damping * this.vx;     // damping force
+        var ax   = (this.fx + dx) / this.mass;  // acceleration
+        this.vx += ax / interval;               // velocity
+        this.x  += this.vx / interval;          // position
+    }
+
+    if (!this.yFixed) {
+        var dy   = -this.damping * this.vy;     // damping force
+        var ay   = (this.fy + dy) / this.mass;  // acceleration
+        this.vy += ay / interval;               // velocity
+        this.y  += this.vy / interval;          // position
+    }
+};
+
+
+/**
+ * Check if this node has a fixed x and y position
+ * @return {boolean}      true if fixed, false if not
+ */
+Node.prototype.isFixed = function() {
+    return (this.xFixed && this.yFixed);
+};
+
+/**
+ * Check if this node is moving
+ * @param {number} vmin   the minimum velocity considered as "moving"
+ * @return {boolean}      true if moving, false if it has no velocity
+ */
+// TODO: replace this method with calculating the kinetic energy
+Node.prototype.isMoving = function(vmin) {
+    return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin ||
+        (!this.xFixed && Math.abs(this.fx) > this.minForce) ||
+        (!this.yFixed && Math.abs(this.fy) > this.minForce));
+};
+
+/**
+ * check if this node is selecte
+ * @return {boolean} selected   True if node is selected, else false
+ */
+Node.prototype.isSelected = function() {
+    return this.selected;
+};
+
+/**
+ * Retrieve the value of the node. Can be undefined
+ * @return {Number} value
+ */
+Node.prototype.getValue = function() {
+    return this.value;
+};
+
+/**
+ * Calculate the distance from the nodes location to the given location (x,y)
+ * @param {Number} x
+ * @param {Number} y
+ * @return {Number} value
+ */
+Node.prototype.getDistance = function(x, y) {
+    var dx = this.x - x,
+        dy = this.y - y;
+    return Math.sqrt(dx * dx + dy * dy);
+};
+
+
+/**
+ * Adjust the value range of the node. The node will adjust it's radius
+ * based on its value.
+ * @param {Number} min
+ * @param {Number} max
+ */
+Node.prototype.setValueRange = function(min, max) {
+    if (!this.radiusFixed && this.value !== undefined) {
+        var scale = (this.radiusMax - this.radiusMin) / (max - min);
+        this.radius = (this.value - min) * scale + this.radiusMin;
+    }
+};
+
+/**
+ * Draw this node in the given canvas
+ * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+ * @param {CanvasRenderingContext2D}   ctx
+ */
+Node.prototype.draw = function(ctx) {
+    throw "Draw method not initialized for node";
+};
+
+/**
+ * Recalculate the size of this node in the given canvas
+ * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+ * @param {CanvasRenderingContext2D}   ctx
+ */
+Node.prototype.resize = function(ctx) {
+    throw "Resize method not initialized for node";
+};
+
+/**
+ * Check if this object is overlapping with the provided object
+ * @param {Object} obj   an object with parameters left, top, right, bottom
+ * @return {boolean}     True if location is located on node
+ */
+Node.prototype.isOverlappingWith = function(obj) {
+    return (this.left          < obj.right &&
+        this.left + this.width > obj.left &&
+        this.top               < obj.bottom &&
+        this.top + this.height > obj.top);
+};
+
+Node.prototype._resizeImage = function (ctx) {
+    // TODO: pre calculate the image size
+    if (!this.width) {  // undefined or 0
+        var width, height;
+        if (this.value) {
+            var scale = this.imageObj.height / this.imageObj.width;
+            width = this.radius || this.imageObj.width;
+            height = this.radius * scale || this.imageObj.height;
+        }
+        else {
+            width = this.imageObj.width;
+            height = this.imageObj.height;
+        }
+        this.width  = width;
+        this.height = height;
+    }
+};
+
+Node.prototype._drawImage = function (ctx) {
+    this._resizeImage(ctx);
+
+    this.left   = this.x - this.width / 2;
+    this.top    = this.y - this.height / 2;
+
+    var yText;
+    if (this.imageObj) {
+        ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
+        yText = this.y + this.height / 2;
+    }
+    else {
+        // image still loading... just draw the text for now
+        yText = this.y;
+    }
+
+    this._text(ctx, this.text, this.x, yText, undefined, "top");
+};
+
+
+Node.prototype._resizeRect = function (ctx) {
+    if (!this.width) {
+        var margin = 5;
+        var textSize = this.getTextSize(ctx);
+        this.width = textSize.width + 2 * margin;
+        this.height = textSize.height + 2 * margin;
+    }
+};
+
+Node.prototype._drawRect = function (ctx) {
+    this._resizeRect(ctx);
+
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    ctx.strokeStyle = this.borderColor;
+    ctx.fillStyle = this.selected ? this.highlightColor : this.backgroundColor;
+    ctx.lineWidth = this.selected ? 2.0 : 1.0;
+    ctx.roundRect(this.left, this.top, this.width, this.height, this.radius);
+    ctx.fill();
+    ctx.stroke();
+
+    this._text(ctx, this.text, this.x, this.y);
+};
+
+
+Node.prototype._resizeDatabase = function (ctx) {
+    if (!this.width) {
+        var margin = 5;
+        var textSize = this.getTextSize(ctx);
+        var size = textSize.width + 2 * margin;
+        this.width = size;
+        this.height = size;
+    }
+};
+
+Node.prototype._drawDatabase = function (ctx) {
+    this._resizeDatabase(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    ctx.strokeStyle = this.borderColor;
+    ctx.fillStyle = this.selected ? this.highlightColor : this.backgroundColor;
+    ctx.lineWidth = this.selected ? 2.0 : 1.0;
+    ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
+    ctx.fill();
+    ctx.stroke();
+
+    this._text(ctx, this.text, this.x, this.y);
+};
+
+
+Node.prototype._resizeCircle = function (ctx) {
+    if (!this.width) {
+        var margin = 5;
+        var textSize = this.getTextSize(ctx);
+        var diameter = Math.max(textSize.width, textSize.height) + 2 * margin;
+        this.radius = diameter / 2;
+
+        this.width = diameter;
+        this.height = diameter;
+    }
+};
+
+Node.prototype._drawCircle = function (ctx) {
+    this._resizeCircle(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    ctx.strokeStyle = this.borderColor;
+    ctx.fillStyle = this.selected ? this.highlightColor : this.backgroundColor;
+    ctx.lineWidth = this.selected ? 2.0 : 1.0;
+    ctx.circle(this.x, this.y, this.radius);
+    ctx.fill();
+    ctx.stroke();
+
+    this._text(ctx, this.text, this.x, this.y);
+};
+
+Node.prototype._drawDot = function (ctx) {
+    this._drawShape(ctx, 'circle');
+};
+
+Node.prototype._drawTriangle = function (ctx) {
+    this._drawShape(ctx, 'triangle');
+};
+
+Node.prototype._drawTriangleDown = function (ctx) {
+    this._drawShape(ctx, 'triangleDown');
+};
+
+Node.prototype._drawSquare = function (ctx) {
+    this._drawShape(ctx, 'square');
+};
+
+Node.prototype._drawStar = function (ctx) {
+    this._drawShape(ctx, 'star');
+};
+
+Node.prototype._resizeShape = function (ctx) {
+    if (!this.width) {
+        var size = 2 * this.radius;
+        this.width = size;
+        this.height = size;
+    }
+};
+
+Node.prototype._drawShape = function (ctx, shape) {
+    this._resizeShape(ctx);
+
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    ctx.strokeStyle = this.borderColor;
+    ctx.fillStyle = this.selected ? this.highlightColor : this.backgroundColor;
+    ctx.lineWidth = this.selected ? 2.0 : 1.0;
+
+    ctx[shape](this.x, this.y, this.radius);
+    ctx.fill();
+    ctx.stroke();
+
+    if (this.text) {
+        this._text(ctx, this.text, this.x, this.y + this.height / 2, undefined, 'top');
+    }
+};
+
+Node.prototype._resizeText = function (ctx) {
+    if (!this.width) {
+        var margin = 5;
+        var textSize = this.getTextSize(ctx);
+        this.width = textSize.width + 2 * margin;
+        this.height = textSize.height + 2 * margin;
+    }
+};
+
+Node.prototype._drawText = function (ctx) {
+    this._resizeText(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    this._text(ctx, this.text, this.x, this.y);
+};
+
+
+Node.prototype._text = function (ctx, text, x, y, align, baseline) {
+    if (text) {
+        ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
+        ctx.fillStyle = this.fontColor || "black";
+        ctx.textAlign = align || "center";
+        ctx.textBaseline = baseline || "middle";
+
+        var lines = text.split('\n'),
+            lineCount = lines.length,
+            fontSize = (this.fontSize + 4),
+            yLine = y + (1 - lineCount) / 2 * fontSize;
+
+        for (var i = 0; i < lineCount; i++) {
+            ctx.fillText(lines[i], x, yLine);
+            yLine += fontSize;
+        }
+    }
+};
+
+
+Node.prototype.getTextSize = function(ctx) {
+    if (this.text != undefined) {
+        ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
+
+        var lines = this.text.split('\n'),
+            height = (this.fontSize + 4) * lines.length,
+            width = 0;
+
+        for (var i = 0, iMax = lines.length; i < iMax; i++) {
+            width = Math.max(width, ctx.measureText(lines[i]).width);
+        }
+
+        return {"width": width, "height": height};
+    }
+    else {
+        return {"width": 0, "height": 0};
+    }
+};
+
+/**
+ * @class Edge
+ *
+ * A edge connects two nodes
+ * @param {Object} properties     Object with properties. Must contain
+ *                                At least properties from and to.
+ *                                Available properties: from (number),
+ *                                to (number), color (string),
+ *                                width (number), style (string),
+ *                                length (number), title (string)
+ * @param {Graph} graph A graph object, used to find and edge to
+ *                                nodes.
+ * @param {Object} constants      An object with default values for
+ *                                example for the color
+ */
+function Edge (properties, graph, constants) {
+    if (!graph) {
+        throw "No graph provided";
+    }
+    this.graph = graph;
+
+    // initialize constants
+    this.widthMin = constants.edges.widthMin;
+    this.widthMax = constants.edges.widthMax;
+
+    // initialize variables
+    this.id     = undefined;
+    this.style  = constants.edges.style;
+    this.title  = undefined;
+    this.width  = constants.edges.width;
+    this.value  = undefined;
+    this.length = constants.edges.length;
+
+    // Added to support dashed lines
+    // David Jordan
+    // 2012-08-08
+    this.dashlength = constants.edges.dashlength;
+    this.dashgap = constants.edges.dashgap;
+    this.altdashlength  = constants.edges.altdashlength;
+
+    this.stiffness = undefined; // depends on the length of the edge
+    this.color  = constants.edges.color;
+    this.widthFixed = false;
+    this.lengthFixed = false;
+
+    this.setProperties(properties, constants);
+};
+
+/**
+ * Set or overwrite properties for the edge
+ * @param {Object} properties  an object with properties
+ * @param {Object} constants   and object with default, global properties
+ */
+Edge.prototype.setProperties = function(properties, constants) {
+    if (!properties) {
+        return;
+    }
+
+    if (properties.from != undefined) {this.from = this.graph._getNode(properties.from);}
+    if (properties.to != undefined) {this.to = this.graph._getNode(properties.to);}
+
+    if (properties.id != undefined)         {this.id = properties.id;}
+    if (properties.style != undefined)      {this.style = properties.style;}
+    if (properties.text != undefined)       {this.text = properties.text;}
+    if (this.text) {
+        this.fontSize = constants.edges.fontSize;
+        this.fontFace = constants.edges.fontFace;
+        this.fontColor = constants.edges.fontColor;
+        if (properties.fontColor != undefined)  {this.fontColor = properties.fontColor;}
+        if (properties.fontSize != undefined)   {this.fontSize = properties.fontSize;}
+        if (properties.fontFace != undefined)   {this.fontFace = properties.fontFace;}
+    }
+    if (properties.title != undefined)      {this.title = properties.title;}
+    if (properties.width != undefined)      {this.width = properties.width;}
+    if (properties.value != undefined)      {this.value = properties.value;}
+    if (properties.length != undefined)     {this.length = properties.length;}
+
+    // Added to support dashed lines
+    // David Jordan
+    // 2012-08-08
+    if (properties.dashlength != undefined) {this.dashlength = properties.dashlength;}
+    if (properties.dashgap != undefined) {this.dashgap = properties.dashgap;}
+    if (properties.altdashlength != undefined) {this.altdashlength = properties.altdashlength;}
+
+    if (properties.color != undefined) {this.color = properties.color;}
+
+    if (!this.from) {
+        throw "Node with id " + properties.from + " not found";
+    }
+    if (!this.to) {
+        throw "Node with id " + properties.to + " not found";
+    }
+
+    this.widthFixed = this.widthFixed || (properties.width != undefined);
+    this.lengthFixed = this.lengthFixed || (properties.length != undefined);
+
+    this.stiffness = 1 / this.length;
+
+    // initialize animation
+    if (this.style === 'arrow') {
+        this.arrows = [0.5];
+    }
+
+    // set draw method based on style
+    switch (this.style) {
+        case 'line':          this.draw = this._drawLine; break;
+        case 'arrow':         this.draw = this._drawArrow; break;
+        case 'arrow-end':     this.draw = this._drawArrowEnd; break;
+        case 'dash-line':     this.draw = this._drawDashLine; break;
+        default:              this.draw = this._drawLine; break;
+    }
+};
+
+/**
+ * get the title of this edge.
+ * @return {string} title    The title of the edge, or undefined when no title
+ *                           has been set.
+ */
+Edge.prototype.getTitle = function() {
+    return this.title;
+};
+
+
+/**
+ * Retrieve the value of the edge. Can be undefined
+ * @return {Number} value
+ */
+Edge.prototype.getValue = function() {
+    return this.value;
+};
+
+/**
+ * Adjust the value range of the edge. The edge will adjust it's width
+ * based on its value.
+ * @param {Number} min
+ * @param {Number} max
+ */
+Edge.prototype.setValueRange = function(min, max) {
+    if (!this.widthFixed && this.value !== undefined) {
+        var factor = (this.widthMax - this.widthMin) / (max - min);
+        this.width = (this.value - min) * factor + this.widthMin;
+    }
+};
+
+/**
+ * Redraw a edge
+ * Draw this edge in the given canvas
+ * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+ * @param {CanvasRenderingContext2D}   ctx
+ */
+Edge.prototype.draw = function(ctx) {
+    throw "Method draw not initialized in edge";
+};
+
+/**
+ * Check if this object is overlapping with the provided object
+ * @param {Object} obj   an object with parameters left, top
+ * @return {boolean}     True if location is located on the edge
+ */
+Edge.prototype.isOverlappingWith = function(obj) {
+    var distMax = 10;
+
+    var xFrom = this.from.x;
+    var yFrom = this.from.y;
+    var xTo = this.to.x;
+    var yTo = this.to.y;
+    var xObj = obj.left;
+    var yObj = obj.top;
+
+
+    var dist = Edge._dist(xFrom, yFrom, xTo, yTo, xObj, yObj);
+
+    return (dist < distMax);
+};
+
+
+/**
+ * Redraw a edge as a line
+ * Draw this edge in the given canvas
+ * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+ * @param {CanvasRenderingContext2D}   ctx
+ */
+Edge.prototype._drawLine = function(ctx) {
+    // set style
+    ctx.strokeStyle = this.color;
+    ctx.lineWidth = this._getLineWidth();
+
+    var point;
+    if (this.from != this.to) {
+        // draw line
+        this._line(ctx);
+
+        // draw text
+        if (this.text) {
+            point = this._pointOnLine(0.5);
+            this._text(ctx, this.text, point.x, point.y);
+        }
+    }
+    else {
+        var radius = this.length / 2 / Math.PI;
+        var x, y;
+        var node = this.from;
+        if (!node.width) {
+            node.resize(ctx);
+        }
+        if (node.width > node.height) {
+            x = node.x + node.width / 2;
+            y = node.y - radius;
+        }
+        else {
+            x = node.x + radius;
+            y = node.y - node.height / 2;
+        }
+        this._circle(ctx, x, y, radius);
+        point = this._pointOnCircle(x, y, radius, 0.5);
+        this._text(ctx, this.text, point.x, point.y);
+    }
+};
+
+/**
+ * Get the line width of the edge. Depends on width and whether one of the
+ * connected nodes is selected.
+ * @return {Number} width
+ * @private
+ */
+Edge.prototype._getLineWidth = function() {
+    if (this.from.selected || this.to.selected) {
+        return Math.min(this.width * 2, this.widthMax);
+    }
+    else {
+        return this.width;
+    }
+};
+
+/**
+ * Draw a line between two nodes
+ * @param {CanvasRenderingContext2D} ctx
+ * @private
+ */
+Edge.prototype._line = function (ctx) {
+    // draw a straight line
+    ctx.beginPath();
+    ctx.moveTo(this.from.x, this.from.y);
+    ctx.lineTo(this.to.x, this.to.y);
+    ctx.stroke();
+};
+
+/**
+ * Draw a line from a node to itself, a circle
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Number} x
+ * @param {Number} y
+ * @param {Number} radius
+ * @private
+ */
+Edge.prototype._circle = function (ctx, x, y, radius) {
+    // draw a circle
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+    ctx.stroke();
+};
+
+/**
+ * Draw text with white background and with the middle at (x, y)
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {String} text
+ * @param {Number} x
+ * @param {Number} y
+ */
+Edge.prototype._text = function (ctx, text, x, y) {
+    if (text) {
+        // TODO: cache the calculated size
+        ctx.font = ((this.from.selected || this.to.selected) ? "bold " : "") +
+            this.fontSize + "px " + this.fontFace;
+        ctx.fillStyle = 'white';
+        var width = ctx.measureText(this.text).width;
+        var height = this.fontSize;
+        var left = x - width / 2;
+        var top = y - height / 2;
+
+        ctx.fillRect(left, top, width, height);
+
+        // draw text
+        ctx.fillStyle = this.fontColor || "black";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.fillText(this.text, left, top);
+    }
+};
+
+/**
+ * Redraw a edge as a dashed line
+ * Draw this edge in the given canvas
+ * @author David Jordan
+ * @date 2012-08-08
+ * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+ * @param {CanvasRenderingContext2D}   ctx
+ */
+Edge.prototype._drawDashLine = function(ctx) {
+    // set style
+    ctx.strokeStyle = this.color;
+    ctx.lineWidth = this._getLineWidth();
+
+    // draw dashed line
+    ctx.beginPath();
+    ctx.lineCap = 'round';
+    if (this.altdashlength != undefined) //If an alt dash value has been set add to the array this value
+    {
+        ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,[this.dashlength,this.dashgap,this.altdashlength,this.dashgap]);
+    }
+    else if (this.dashlength != undefined && this.dashgap != undefined) //If a dash and gap value has been set add to the array this value
+    {
+        ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,[this.dashlength,this.dashgap]);
+    }
+    else //If all else fails draw a line
+    {
+        ctx.moveTo(this.from.x, this.from.y);
+        ctx.lineTo(this.to.x, this.to.y);
+    }
+    ctx.stroke();
+
+    // draw text
+    if (this.text) {
+        var point = this._pointOnLine(0.5);
+        this._text(ctx, this.text, point.x, point.y);
+    }
+};
+
+/**
+ * Get a point on a line
+ * @param {Number} percentage. Value between 0 (line start) and 1 (line end)
+ * @return {Object} point
+ * @private
+ */
+Edge.prototype._pointOnLine = function (percentage) {
+    return {
+        x: (1 - percentage) * this.from.x + percentage * this.to.x,
+        y: (1 - percentage) * this.from.y + percentage * this.to.y
+    }
+};
+
+/**
+ * Get a point on a circle
+ * @param {Number} x
+ * @param {Number} y
+ * @param {Number} radius
+ * @param {Number} percentage. Value between 0 (line start) and 1 (line end)
+ * @return {Object} point
+ * @private
+ */
+Edge.prototype._pointOnCircle = function (x, y, radius, percentage) {
+    var angle = (percentage - 3/8) * 2 * Math.PI;
+    return {
+        x: x + radius * Math.cos(angle),
+        y: y - radius * Math.sin(angle)
+    }
+};
+
+/**
+ * Redraw a edge as a line with an arrow
+ * Draw this edge in the given canvas
+ * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+ * @param {CanvasRenderingContext2D}   ctx
+ */
+Edge.prototype._drawArrow = function(ctx) {
+    var point;
+    // set style
+    ctx.strokeStyle = this.color;
+    ctx.fillStyle = this.color;
+    ctx.lineWidth = this._getLineWidth();
+
+    if (this.from != this.to) {
+        // draw line
+        this._line(ctx);
+
+        // draw all arrows
+        var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
+        var length = 10 + 5 * this.width; // TODO: make customizable?
+        for (var a in this.arrows) {
+            if (this.arrows.hasOwnProperty(a)) {
+                point = this._pointOnLine(this.arrows[a]);
+                ctx.arrow(point.x, point.y, angle, length);
+                ctx.fill();
+                ctx.stroke();
+            }
+        }
+
+        // draw text
+        if (this.text) {
+            point = this._pointOnLine(0.5);
+            this._text(ctx, this.text, point.x, point.y);
+        }
+    }
+    else {
+        // draw circle
+        var radius = this.length / 2 / Math.PI;
+        var x, y;
+        var node = this.from;
+        if (!node.width) {
+            node.resize(ctx);
+        }
+        if (node.width > node.height) {
+            x = node.x + node.width / 2;
+            y = node.y - radius;
+        }
+        else {
+            x = node.x + radius;
+            y = node.y - node.height / 2;
+        }
+        this._circle(ctx, x, y, radius);
+
+        // draw all arrows
+        var angle = 0.2 * Math.PI;
+        var length = 10 + 5 * this.width; // TODO: make customizable?
+        for (var a in this.arrows) {
+            if (this.arrows.hasOwnProperty(a)) {
+                point = this._pointOnCircle(x, y, radius, this.arrows[a]);
+                ctx.arrow(point.x, point.y, angle, length);
+                ctx.fill();
+                ctx.stroke();
+            }
+        }
+
+        // draw text
+        if (this.text) {
+            point = this._pointOnCircle(x, y, radius, 0.5);
+            this._text(ctx, this.text, point.x, point.y);
+        }
+    }
+};
+
+
+
+/**
+ * Redraw a edge as a line with an arrow
+ * Draw this edge in the given canvas
+ * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+ * @param {CanvasRenderingContext2D}   ctx
+ */
+Edge.prototype._drawArrowEnd = function(ctx) {
+    // set style
+    ctx.strokeStyle = this.color;
+    ctx.fillStyle = this.color;
+    ctx.lineWidth = this._getLineWidth();
+
+    // draw line
+    var angle, length;
+    if (this.from != this.to) {
+        // calculate length and angle of the line
+        angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
+        var dx = (this.to.x - this.from.x);
+        var dy = (this.to.y - this.from.y);
+        var lEdge = Math.sqrt(dx * dx + dy * dy);
+
+        var lFrom = this.to.distanceToBorder(ctx, angle + Math.PI);
+        var pFrom = (lEdge - lFrom) / lEdge;
+        var xFrom = (pFrom) * this.from.x + (1 - pFrom) * this.to.x;
+        var yFrom = (pFrom) * this.from.y + (1 - pFrom) * this.to.y;
+
+        var lTo = this.to.distanceToBorder(ctx, angle);
+        var pTo = (lEdge - lTo) / lEdge;
+        var xTo = (1 - pTo) * this.from.x + pTo * this.to.x;
+        var yTo = (1 - pTo) * this.from.y + pTo * this.to.y;
+
+        ctx.beginPath();
+        ctx.moveTo(xFrom, yFrom);
+        ctx.lineTo(xTo, yTo);
+        ctx.stroke();
+
+        // draw arrow at the end of the line
+        length = 10 + 5 * this.width; // TODO: make customizable?
+        ctx.arrow(xTo, yTo, angle, length);
+        ctx.fill();
+        ctx.stroke();
+
+        // draw text
+        if (this.text) {
+            var point = this._pointOnLine(0.5);
+            this._text(ctx, this.text, point.x, point.y);
+        }
+    }
+    else {
+        // draw circle
+        var radius = this.length / 2 / Math.PI;
+        var x, y, arrow;
+        var node = this.from;
+        if (!node.width) {
+            node.resize(ctx);
+        }
+        if (node.width > node.height) {
+            x = node.x + node.width / 2;
+            y = node.y - radius;
+            arrow = {
+                x: x,
+                y: node.y,
+                angle: 0.9 * Math.PI
+            };
+        }
+        else {
+            x = node.x + radius;
+            y = node.y - node.height / 2;
+            arrow = {
+                x: node.x,
+                y: y,
+                angle: 0.6 * Math.PI
+            };
+        }
+        ctx.beginPath();
+        // TODO: do not draw a circle, but an arc
+        // TODO: similarly, for a line without arrows, draw to the border of the nodes instead of the center
+        ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+        ctx.stroke();
+
+        // draw all arrows
+        length = 10 + 5 * this.width; // TODO: make customizable?
+        ctx.arrow(arrow.x, arrow.y, arrow.angle, length);
+        ctx.fill();
+        ctx.stroke();
+
+        // draw text
+        if (this.text) {
+            point = this._pointOnCircle(x, y, radius, 0.5);
+            this._text(ctx, this.text, point.x, point.y);
+        }
+    }
+};
+
+
+
+/**
+ * Calculate the distance between a point (x3,y3) and a line segment from
+ * (x1,y1) to (x2,y2).
+ * http://stackoverflow.com/questions/849211/shortest-distancae-between-a-point-and-a-line-segment
+ * @param {number} x1
+ * @param {number} y1
+ * @param {number} x2
+ * @param {number} y2
+ * @param {number} x3
+ * @param {number} y3
+ */
+Edge._dist = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
+    var px = x2-x1,
+        py = y2-y1,
+        something = px*px + py*py,
+        u =  ((x3 - x1) * px + (y3 - y1) * py) / something;
+
+    if (u > 1) {
+        u = 1;
+    }
+    else if (u < 0) {
+        u = 0;
+    }
+
+    var x = x1 + u * px,
+        y = y1 + u * py,
+        dx = x - x3,
+        dy = y - y3;
+
+    //# Note: If the actual distance does not matter,
+    //# if you only want to compare what this function
+    //# returns to other results of this function, you
+    //# can just return the squared distance instead
+    //# (i.e. remove the sqrt) to gain a little performance
+
+    return Math.sqrt(dx*dx + dy*dy);
+};
+
+/**
+ * Popup is a class to create a popup window with some text
+ * @param {Element}  container     The container object.
+ * @param {Number} [x]
+ * @param {Number} [y]
+ * @param {String} [text]
+ */
+function Popup(container, x, y, text) {
+    if (container) {
+        this.container = container;
+    }
+    else {
+        this.container = document.body;
+    }
+    this.x = 0;
+    this.y = 0;
+    this.padding = 5;
+
+    if (x !== undefined && y !== undefined ) {
+        this.setPosition(x, y);
+    }
+    if (text !== undefined) {
+        this.setText(text);
+    }
+
+    // create the frame
+    this.frame = document.createElement("div");
+    var style = this.frame.style;
+    style.position = "absolute";
+    style.visibility = "hidden";
+    style.border = "1px solid #666";
+    style.color = "black";
+    style.padding = this.padding + "px";
+    style.backgroundColor = "#FFFFC6";
+    style.borderRadius = "3px";
+    style.MozBorderRadius = "3px";
+    style.WebkitBorderRadius = "3px";
+    style.boxShadow = "3px 3px 10px rgba(128, 128, 128, 0.5)";
+    style.whiteSpace = "nowrap";
+    this.container.appendChild(this.frame);
+};
+
+/**
+ * @param {number} x   Horizontal position of the popup window
+ * @param {number} y   Vertical position of the popup window
+ */
+Popup.prototype.setPosition = function(x, y) {
+    this.x = parseInt(x);
+    this.y = parseInt(y);
+};
+
+/**
+ * Set the text for the popup window. This can be HTML code
+ * @param {string} text
+ */
+Popup.prototype.setText = function(text) {
+    this.frame.innerHTML = text;
+};
+
+/**
+ * Show the popup window
+ * @param {boolean} show    Optional. Show or hide the window
+ */
+Popup.prototype.show = function (show) {
+    if (show === undefined) {
+        show = true;
+    }
+
+    if (show) {
+        var height = this.frame.clientHeight;
+        var width =  this.frame.clientWidth;
+        var maxHeight = this.frame.parentNode.clientHeight;
+        var maxWidth = this.frame.parentNode.clientWidth;
+
+        var top = (this.y - height);
+        if (top + height + this.padding > maxHeight) {
+            top = maxHeight - height - this.padding;
+        }
+        if (top < this.padding) {
+            top = this.padding;
+        }
+
+        var left = this.x;
+        if (left + width + this.padding > maxWidth) {
+            left = maxWidth - width - this.padding;
+        }
+        if (left < this.padding) {
+            left = this.padding;
+        }
+
+        this.frame.style.left = left + "px";
+        this.frame.style.top = top + "px";
+        this.frame.style.visibility = "visible";
+    }
+    else {
+        this.hide();
+    }
+};
+
+/**
+ * Hide the popup window
+ */
+Popup.prototype.hide = function () {
+    this.frame.style.visibility = "hidden";
+};
+
+/**
+ * @class Groups
+ * This class can store groups and properties specific for groups.
+ */
+Groups = function () {
+    this.clear();
+    this.defaultIndex = 0;
+};
+
+
+/**
+ * default constants for group colors
+ */
+Groups.DEFAULT = [
+    {"borderColor": "#2B7CE9", "backgroundColor": "#97C2FC", "highlightColor": "#D2E5FF"}, // blue
+    {"borderColor": "#FFA500", "backgroundColor": "#FFFF00", "highlightColor": "#FFFFA3"}, // yellow
+    {"borderColor": "#FA0A10", "backgroundColor": "#FB7E81", "highlightColor": "#FFAFB1"}, // red
+    {"borderColor": "#41A906", "backgroundColor": "#7BE141", "highlightColor": "#A1EC76"}, // green
+    {"borderColor": "#E129F0", "backgroundColor": "#EB7DF4", "highlightColor": "#F0B3F5"}, // magenta
+    {"borderColor": "#7C29F0", "backgroundColor": "#AD85E4", "highlightColor": "#D3BDF0"}, // purple
+    {"borderColor": "#C37F00", "backgroundColor": "#FFA807", "highlightColor": "#FFCA66"}, // orange
+    {"borderColor": "#4220FB", "backgroundColor": "#6E6EFD", "highlightColor": "#9B9BFD"}, // darkblue
+    {"borderColor": "#FD5A77", "backgroundColor": "#FFC0CB", "highlightColor": "#FFD1D9"}, // pink
+    {"borderColor": "#4AD63A", "backgroundColor": "#C2FABC", "highlightColor": "#E6FFE3"}  // mint
+];
+
+
+/**
+ * Clear all groups
+ */
+Groups.prototype.clear = function () {
+    this.groups = {};
+    this.groups.length = function()
+    {
+        var i = 0;
+        for ( var p in this ) {
+            if (this.hasOwnProperty(p)) {
+                i++;
+            }
+        }
+        return i;
+    }
+};
+
+
+/**
+ * get group properties of a groupname. If groupname is not found, a new group
+ * is added.
+ * @param {*} groupname        Can be a number, string, Date, etc.
+ * @return {Object} group      The created group, containing all group properties
+ */
+Groups.prototype.get = function (groupname) {
+    var group = this.groups[groupname];
+
+    if (group == undefined) {
+        // create new group
+        var index = this.defaultIndex % Groups.DEFAULT.length;
+        this.defaultIndex++;
+        group = {};
+        group.borderColor     = Groups.DEFAULT[index].borderColor;
+        group.backgroundColor = Groups.DEFAULT[index].backgroundColor;
+        group.highlightColor  = Groups.DEFAULT[index].highlightColor;
+        this.groups[groupname] = group;
+    }
+
+    return group;
+};
+
+/**
+ * Add a custom group style
+ * @param {String} groupname
+ * @param {Object} style       An object containing borderColor,
+ *                             backgroundColor, etc.
+ * @return {Object} group      The created group object
+ */
+Groups.prototype.add = function (groupname, style) {
+    this.groups[groupname] = style;
+    return style;
+};
+
+/**
+ * @class Images
+ * This class loads images and keeps them stored.
+ */
+Images = function () {
+    this.images = {};
+
+    this.callback = undefined;
+};
+
+/**
+ * Set an onload callback function. This will be called each time an image
+ * is loaded
+ * @param {function} callback
+ */
+Images.prototype.setOnloadCallback = function(callback) {
+    this.callback = callback;
+};
+
+/**
+ *
+ * @param {string} url          Url of the image
+ * @return {Image} img          The image object
+ */
+Images.prototype.load = function(url) {
+    var img = this.images[url];
+    if (img == undefined) {
+        // create the image
+        var images = this;
+        img = new Image();
+        this.images[url] = img;
+        img.onload = function() {
+            if (images.callback) {
+                images.callback(this);
+            }
+        };
+        img.src = url;
+    }
+
+    return img;
+};
+
 /**
  * @constructor Graph
  * Create a graph visualization, displaying nodes and edges.
@@ -6864,10 +8948,10 @@ function Graph (container, data, options) {
         "maxIterations": 1000  // maximum number of iteration to stabilize
     };
 
-    this.nodes = [];     // array with Node objects
-    this.edges = [];     // array with Edge objects
-    this.images = new Graph.Images();     // object with images
-    this.groups = new Graph.Groups();     // object with groups
+    this.nodes = [];            // array with Node objects
+    this.edges = [];            // array with Edge objects
+    this.images = new Images(); // object with images
+    this.groups = new Groups(); // object with groups
 
     // properties of the data
     this.moving = false;    // True if any of the nodes have an undefined position
@@ -7453,7 +9537,7 @@ Graph.prototype._checkShowPopup = function (x, y) {
         if (this.popupNode != lastPopupNode) {
             var me = this;
             if (!me.popup) {
-                me.popup = new Graph.Popup(me.frame);
+                me.popup = new Popup(me.frame);
             }
 
             // adjust a small offset such that the mouse cursor is located in the
@@ -7873,7 +9957,7 @@ Graph.prototype._createNode = function(properties) {
 
     if (action === "create") {
         // create the node
-        newNode = new Graph.Node(properties, this.images, this.groups, this.constants);
+        newNode = new Node(properties, this.images, this.groups, this.constants);
         id = properties.id;
         index = (id !== undefined) ? this._findNode(id) : undefined;
 
@@ -7926,7 +10010,7 @@ Graph.prototype._createNode = function(properties) {
         }
         else {
             // create node
-            newNode = new Graph.Node(properties, this.images, this.groups, this.constants);
+            newNode = new Node(properties, this.images, this.groups, this.constants);
             this.nodes.push(newNode);
 
             if (!newNode.isFixed()) {
@@ -7981,7 +10065,7 @@ Graph.prototype._findNode = function (id) {
 /**
  * Find a node by its rowNumber
  * @param {Number} row                   Row number of the node
- * @return {Graph.Node} node     The node with the given row number, or
+ * @return {Node} node     The node with the given row number, or
  *                                       undefined when not found.
  */
 Graph.prototype._findNodeByRow = function (row) {
@@ -8039,7 +10123,7 @@ Graph.prototype._createEdge = function(properties) {
         // create the edge, or replace it if already existing
         id = properties.id;
         index = (id !== undefined) ? this._findEdge(id) : undefined;
-        edge = new Graph.Edge(properties, this, this.constants);
+        edge = new Edge(properties, this, this.constants);
 
         if (index !== undefined) {
             // replace existing edge
@@ -8075,7 +10159,7 @@ Graph.prototype._createEdge = function(properties) {
         }
         else {
             // add new edge
-            edge = new Graph.Edge(properties, this, this.constants);
+            edge = new Edge(properties, this, this.constants);
             edge.from.attachEdge(edge);
             edge.to.attachEdge(edge);
             this.edges.push(edge);
@@ -8143,7 +10227,7 @@ Graph.prototype._findEdge = function (id) {
 /**
  * Find a edge by its row
  * @param {Number} row          Row of the edge
- * @return {Graph.Edge} the found edge, or undefined when not found
+ * @return {Edge} the found edge, or undefined when not found
  */
 Graph.prototype._findEdgeByRow = function (row) {
     return this.edges[row];
@@ -8612,2224 +10696,6 @@ Graph.prototype.stop = function () {
     }
 };
 
-
-/**--------------------------------------------------------------------------**/
-
-
-/**
- * @class Node
- * A node. A node can be connected to other nodes via one or multiple edges.
- * @param {object} properties An object containing properties for the node. All
- *                            properties are optional, except for the id.
- *                              {number} id     Id of the node. Required
- *                              {string} text   Title for the node
- *                              {number} x      Horizontal position of the node
- *                              {number} y      Vertical position of the node
- *                              {string} style  Drawing style, available:
- *                                              "database", "circle", "rect",
- *                                              "image", "text", "dot", "star",
- *                                              "triangle", "triangleDown",
- *                                              "square"
- *                              {string} image  An image url
- *                              {string} title  An title text, can be HTML
- *                              {anytype} group A group name or number
- * @param {Graph.Images} imagelist    A list with images. Only needed
- *                                            when the node has an image
- * @param {Graph.Groups} grouplist    A list with groups. Needed for
- *                                            retrieving group properties
- * @param {Object}               constants    An object with default values for
- *                                            example for the color
- */
-Graph.Node = function (properties, imagelist, grouplist, constants) {
-    this.selected = false;
-
-    this.edges = []; // all edges connected to this node
-    this.group = constants.nodes.group;
-
-    this.fontSize = constants.nodes.fontSize;
-    this.fontFace = constants.nodes.fontFace;
-    this.fontColor = constants.nodes.fontColor;
-
-    this.borderColor = constants.nodes.borderColor;
-    this.backgroundColor = constants.nodes.backgroundColor;
-    this.highlightColor = constants.nodes.highlightColor;
-
-    // set defaults for the properties
-    this.id = undefined;
-    this.style = constants.nodes.style;
-    this.image = constants.nodes.image;
-    this.x = 0;
-    this.y = 0;
-    this.xFixed = false;
-    this.yFixed = false;
-    this.radius = constants.nodes.radius;
-    this.radiusFixed = false;
-    this.radiusMin = constants.nodes.radiusMin;
-    this.radiusMax = constants.nodes.radiusMax;
-
-    this.imagelist = imagelist;
-    this.grouplist = grouplist;
-
-    this.setProperties(properties, constants);
-
-    // mass, force, velocity
-    this.mass = 50;  // kg (mass is adjusted for the number of connected edges)
-    this.fx = 0.0;  // external force x
-    this.fy = 0.0;  // external force y
-    this.vx = 0.0;  // velocity x
-    this.vy = 0.0;  // velocity y
-    this.minForce = constants.minForce;
-    this.damping = 0.9; // damping factor
-};
-
-/**
- * Attach a edge to the node
- * @param {Graph.Edge} edge
- */
-Graph.Node.prototype.attachEdge = function(edge) {
-    this.edges.push(edge);
-    this._updateMass();
-};
-
-/**
- * Detach a edge from the node
- * @param {Graph.Edge} edge
- */
-Graph.Node.prototype.detachEdge = function(edge) {
-    var index = this.edges.indexOf(edge);
-    if (index != -1) {
-        this.edges.splice(index, 1);
-    }
-    this._updateMass();
-};
-
-/**
- * Update the nodes mass, which is determined by the number of edges connecting
- * to it (more edges -> heavier node).
- * @private
- */
-Graph.Node.prototype._updateMass = function() {
-    this.mass = 50 + 20 * this.edges.length; // kg
-};
-
-/**
- * Set or overwrite properties for the node
- * @param {Object} properties an object with properties
- * @param {Object} constants  and object with default, global properties
- */
-Graph.Node.prototype.setProperties = function(properties, constants) {
-    if (!properties) {
-        return;
-    }
-
-    // basic properties
-    if (properties.id != undefined)        {this.id = properties.id;}
-    if (properties.text != undefined)      {this.text = properties.text;}
-    if (properties.title != undefined)     {this.title = properties.title;}
-    if (properties.group != undefined)     {this.group = properties.group;}
-    if (properties.x != undefined)         {this.x = properties.x;}
-    if (properties.y != undefined)         {this.y = properties.y;}
-    if (properties.value != undefined)     {this.value = properties.value;}
-
-    if (this.id === undefined) {
-        throw "Node must have an id";
-    }
-
-    // copy group properties
-    if (this.group) {
-        var groupObj = this.grouplist.get(this.group);
-        for (var prop in groupObj) {
-            if (groupObj.hasOwnProperty(prop)) {
-                this[prop] = groupObj[prop];
-            }
-        }
-    }
-
-    // individual style properties
-    if (properties.style != undefined)          {this.style = properties.style;}
-    if (properties.image != undefined)          {this.image = properties.image;}
-    if (properties.radius != undefined)         {this.radius = properties.radius;}
-    if (properties.borderColor != undefined)    {this.borderColor = properties.borderColor;}
-    if (properties.backgroundColor != undefined){this.backgroundColor = properties.backgroundColor;}
-    if (properties.highlightColor != undefined) {this.highlightColor = properties.highlightColor;}
-    if (properties.fontColor != undefined)      {this.fontColor = properties.fontColor;}
-    if (properties.fontSize != undefined)       {this.fontSize = properties.fontSize;}
-    if (properties.fontFace != undefined)       {this.fontFace = properties.fontFace;}
-
-
-    if (this.image != undefined) {
-        if (this.imagelist) {
-            this.imageObj = this.imagelist.load(this.image);
-        }
-        else {
-            throw "No imagelist provided";
-        }
-    }
-
-    this.xFixed = this.xFixed || (properties.x != undefined);
-    this.yFixed = this.yFixed || (properties.y != undefined);
-    this.radiusFixed = this.radiusFixed || (properties.radius != undefined);
-
-    if (this.style == 'image') {
-        this.radiusMin = constants.nodes.widthMin;
-        this.radiusMax = constants.nodes.widthMax;
-    }
-
-    // choose draw method depending on the style
-    var style = this.style;
-    switch (style) {
-        case 'database':      this.draw = this._drawDatabase; this.resize = this._resizeDatabase; break;
-        case 'rect':          this.draw = this._drawRect; this.resize = this._resizeRect; break;
-        case 'circle':        this.draw = this._drawCircle; this.resize = this._resizeCircle; break;
-        // TODO: add ellipse shape
-        // TODO: add diamond shape
-        case 'image':         this.draw = this._drawImage; this.resize = this._resizeImage; break;
-        case 'text':          this.draw = this._drawText; this.resize = this._resizeText; break;
-        case 'dot':           this.draw = this._drawDot; this.resize = this._resizeShape; break;
-        case 'square':        this.draw = this._drawSquare; this.resize = this._resizeShape; break;
-        case 'triangle':      this.draw = this._drawTriangle; this.resize = this._resizeShape; break;
-        case 'triangleDown':  this.draw = this._drawTriangleDown; this.resize = this._resizeShape; break;
-        case 'star':          this.draw = this._drawStar; this.resize = this._resizeShape; break;
-        default:              this.draw = this._drawRect; this.resize = this._resizeRect; break;
-    }
-
-    // reset the size of the node, this can be changed
-    this._reset();
-};
-
-/**
- * select this node
- */
-Graph.Node.prototype.select = function() {
-    this.selected = true;
-    this._reset();
-};
-
-/**
- * unselect this node
- */
-Graph.Node.prototype.unselect = function() {
-    this.selected = false;
-    this._reset();
-};
-
-/**
- * Reset the calculated size of the node, forces it to recalculate its size
- */
-Graph.Node.prototype._reset = function() {
-    this.width = undefined;
-    this.height = undefined;
-};
-
-/**
- * get the title of this node.
- * @return {string} title    The title of the node, or undefined when no title
- *                           has been set.
- */
-Graph.Node.prototype.getTitle = function() {
-    return this.title;
-};
-
-/**
- * Calculate the distance to the border of the Node
- * @param {CanvasRenderingContext2D}   ctx
- * @param {Number} angle        Angle in radians
- * @returns {number} distance   Distance to the border in pixels
- */
-Graph.Node.prototype.distanceToBorder = function (ctx, angle) {
-    var borderWidth = 1;
-
-    if (!this.width) {
-        this.resize(ctx);
-    }
-
-    //noinspection FallthroughInSwitchStatementJS
-    switch (this.style) {
-        case 'circle':
-        case 'dot':
-            return this.radius + borderWidth;
-
-        // TODO: implement distanceToBorder for database
-        // TODO: implement distanceToBorder for triangle
-        // TODO: implement distanceToBorder for triangleDown
-
-        case 'rect':
-        case 'image':
-        case 'text':
-        default:
-            if (this.width) {
-                return Math.min(
-                    Math.abs(this.width / 2 / Math.cos(angle)),
-                    Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
-                // TODO: reckon with border radius too in case of rect
-            }
-            else {
-                return 0;
-            }
-
-    }
-
-    // TODO: implement calculation of distance to border for all shapes
-};
-
-/**
- * Set forces acting on the node
- * @param {number} fx   Force in horizontal direction
- * @param {number} fy   Force in vertical direction
- */
-Graph.Node.prototype._setForce = function(fx, fy) {
-    this.fx = fx;
-    this.fy = fy;
-};
-
-/**
- * Add forces acting on the node
- * @param {number} fx   Force in horizontal direction
- * @param {number} fy   Force in vertical direction
- */
-Graph.Node.prototype._addForce = function(fx, fy) {
-    this.fx += fx;
-    this.fy += fy;
-};
-
-/**
- * Perform one discrete step for the node
- * @param {number} interval    Time interval in seconds
- */
-Graph.Node.prototype.discreteStep = function(interval) {
-    if (!this.xFixed) {
-        var dx   = -this.damping * this.vx;     // damping force
-        var ax   = (this.fx + dx) / this.mass;  // acceleration
-        this.vx += ax / interval;               // velocity
-        this.x  += this.vx / interval;          // position
-    }
-
-    if (!this.yFixed) {
-        var dy   = -this.damping * this.vy;     // damping force
-        var ay   = (this.fy + dy) / this.mass;  // acceleration
-        this.vy += ay / interval;               // velocity
-        this.y  += this.vy / interval;          // position
-    }
-};
-
-
-/**
- * Check if this node has a fixed x and y position
- * @return {boolean}      true if fixed, false if not
- */
-Graph.Node.prototype.isFixed = function() {
-    return (this.xFixed && this.yFixed);
-};
-
-/**
- * Check if this node is moving
- * @param {number} vmin   the minimum velocity considered as "moving"
- * @return {boolean}      true if moving, false if it has no velocity
- */
-// TODO: replace this method with calculating the kinetic energy
-Graph.Node.prototype.isMoving = function(vmin) {
-    return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin ||
-        (!this.xFixed && Math.abs(this.fx) > this.minForce) ||
-        (!this.yFixed && Math.abs(this.fy) > this.minForce));
-};
-
-/**
- * check if this node is selecte
- * @return {boolean} selected   True if node is selected, else false
- */
-Graph.Node.prototype.isSelected = function() {
-    return this.selected;
-};
-
-/**
- * Retrieve the value of the node. Can be undefined
- * @return {Number} value
- */
-Graph.Node.prototype.getValue = function() {
-    return this.value;
-};
-
-/**
- * Calculate the distance from the nodes location to the given location (x,y)
- * @param {Number} x
- * @param {Number} y
- * @return {Number} value
- */
-Graph.Node.prototype.getDistance = function(x, y) {
-    var dx = this.x - x,
-        dy = this.y - y;
-    return Math.sqrt(dx * dx + dy * dy);
-};
-
-
-/**
- * Adjust the value range of the node. The node will adjust it's radius
- * based on its value.
- * @param {Number} min
- * @param {Number} max
- */
-Graph.Node.prototype.setValueRange = function(min, max) {
-    if (!this.radiusFixed && this.value !== undefined) {
-        var scale = (this.radiusMax - this.radiusMin) / (max - min);
-        this.radius = (this.value - min) * scale + this.radiusMin;
-    }
-};
-
-/**
- * Draw this node in the given canvas
- * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
- * @param {CanvasRenderingContext2D}   ctx
- */
-Graph.Node.prototype.draw = function(ctx) {
-    throw "Draw method not initialized for node";
-};
-
-/**
- * Recalculate the size of this node in the given canvas
- * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
- * @param {CanvasRenderingContext2D}   ctx
- */
-Graph.Node.prototype.resize = function(ctx) {
-    throw "Resize method not initialized for node";
-};
-
-/**
- * Check if this object is overlapping with the provided object
- * @param {Object} obj   an object with parameters left, top, right, bottom
- * @return {boolean}     True if location is located on node
- */
-Graph.Node.prototype.isOverlappingWith = function(obj) {
-    return (this.left          < obj.right &&
-        this.left + this.width > obj.left &&
-        this.top               < obj.bottom &&
-        this.top + this.height > obj.top);
-};
-
-Graph.Node.prototype._resizeImage = function (ctx) {
-    // TODO: pre calculate the image size
-    if (!this.width) {  // undefined or 0
-        var width, height;
-        if (this.value) {
-            var scale = this.imageObj.height / this.imageObj.width;
-            width = this.radius || this.imageObj.width;
-            height = this.radius * scale || this.imageObj.height;
-        }
-        else {
-            width = this.imageObj.width;
-            height = this.imageObj.height;
-        }
-        this.width  = width;
-        this.height = height;
-    }
-};
-
-Graph.Node.prototype._drawImage = function (ctx) {
-    this._resizeImage(ctx);
-
-    this.left   = this.x - this.width / 2;
-    this.top    = this.y - this.height / 2;
-
-    var yText;
-    if (this.imageObj) {
-        ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
-        yText = this.y + this.height / 2;
-    }
-    else {
-        // image still loading... just draw the text for now
-        yText = this.y;
-    }
-
-    this._text(ctx, this.text, this.x, yText, undefined, "top");
-};
-
-
-Graph.Node.prototype._resizeRect = function (ctx) {
-    if (!this.width) {
-        var margin = 5;
-        var textSize = this.getTextSize(ctx);
-        this.width = textSize.width + 2 * margin;
-        this.height = textSize.height + 2 * margin;
-    }
-};
-
-Graph.Node.prototype._drawRect = function (ctx) {
-    this._resizeRect(ctx);
-
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    ctx.strokeStyle = this.borderColor;
-    ctx.fillStyle = this.selected ? this.highlightColor : this.backgroundColor;
-    ctx.lineWidth = this.selected ? 2.0 : 1.0;
-    ctx.roundRect(this.left, this.top, this.width, this.height, this.radius);
-    ctx.fill();
-    ctx.stroke();
-
-    this._text(ctx, this.text, this.x, this.y);
-};
-
-
-Graph.Node.prototype._resizeDatabase = function (ctx) {
-    if (!this.width) {
-        var margin = 5;
-        var textSize = this.getTextSize(ctx);
-        var size = textSize.width + 2 * margin;
-        this.width = size;
-        this.height = size;
-    }
-};
-
-Graph.Node.prototype._drawDatabase = function (ctx) {
-    this._resizeDatabase(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    ctx.strokeStyle = this.borderColor;
-    ctx.fillStyle = this.selected ? this.highlightColor : this.backgroundColor;
-    ctx.lineWidth = this.selected ? 2.0 : 1.0;
-    ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
-    ctx.fill();
-    ctx.stroke();
-
-    this._text(ctx, this.text, this.x, this.y);
-};
-
-
-Graph.Node.prototype._resizeCircle = function (ctx) {
-    if (!this.width) {
-        var margin = 5;
-        var textSize = this.getTextSize(ctx);
-        var diameter = Math.max(textSize.width, textSize.height) + 2 * margin;
-        this.radius = diameter / 2;
-
-        this.width = diameter;
-        this.height = diameter;
-    }
-};
-
-Graph.Node.prototype._drawCircle = function (ctx) {
-    this._resizeCircle(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    ctx.strokeStyle = this.borderColor;
-    ctx.fillStyle = this.selected ? this.highlightColor : this.backgroundColor;
-    ctx.lineWidth = this.selected ? 2.0 : 1.0;
-    ctx.circle(this.x, this.y, this.radius);
-    ctx.fill();
-    ctx.stroke();
-
-    this._text(ctx, this.text, this.x, this.y);
-};
-
-Graph.Node.prototype._drawDot = function (ctx) {
-    this._drawShape(ctx, 'circle');
-};
-
-Graph.Node.prototype._drawTriangle = function (ctx) {
-    this._drawShape(ctx, 'triangle');
-};
-
-Graph.Node.prototype._drawTriangleDown = function (ctx) {
-    this._drawShape(ctx, 'triangleDown');
-};
-
-Graph.Node.prototype._drawSquare = function (ctx) {
-    this._drawShape(ctx, 'square');
-};
-
-Graph.Node.prototype._drawStar = function (ctx) {
-    this._drawShape(ctx, 'star');
-};
-
-Graph.Node.prototype._resizeShape = function (ctx) {
-    if (!this.width) {
-        var size = 2 * this.radius;
-        this.width = size;
-        this.height = size;
-    }
-};
-
-Graph.Node.prototype._drawShape = function (ctx, shape) {
-    this._resizeShape(ctx);
-
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    ctx.strokeStyle = this.borderColor;
-    ctx.fillStyle = this.selected ? this.highlightColor : this.backgroundColor;
-    ctx.lineWidth = this.selected ? 2.0 : 1.0;
-
-    ctx[shape](this.x, this.y, this.radius);
-    ctx.fill();
-    ctx.stroke();
-
-    if (this.text) {
-        this._text(ctx, this.text, this.x, this.y + this.height / 2, undefined, 'top');
-    }
-};
-
-Graph.Node.prototype._resizeText = function (ctx) {
-    if (!this.width) {
-        var margin = 5;
-        var textSize = this.getTextSize(ctx);
-        this.width = textSize.width + 2 * margin;
-        this.height = textSize.height + 2 * margin;
-    }
-};
-
-Graph.Node.prototype._drawText = function (ctx) {
-    this._resizeText(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    this._text(ctx, this.text, this.x, this.y);
-};
-
-
-Graph.Node.prototype._text = function (ctx, text, x, y, align, baseline) {
-    if (text) {
-        ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
-        ctx.fillStyle = this.fontColor || "black";
-        ctx.textAlign = align || "center";
-        ctx.textBaseline = baseline || "middle";
-
-        var lines = text.split('\n'),
-            lineCount = lines.length,
-            fontSize = (this.fontSize + 4),
-            yLine = y + (1 - lineCount) / 2 * fontSize;
-
-        for (var i = 0; i < lineCount; i++) {
-            ctx.fillText(lines[i], x, yLine);
-            yLine += fontSize;
-        }
-    }
-};
-
-
-Graph.Node.prototype.getTextSize = function(ctx) {
-    if (this.text != undefined) {
-        ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
-
-        var lines = this.text.split('\n'),
-            height = (this.fontSize + 4) * lines.length,
-            width = 0;
-
-        for (var i = 0, iMax = lines.length; i < iMax; i++) {
-            width = Math.max(width, ctx.measureText(lines[i]).width);
-        }
-
-        return {"width": width, "height": height};
-    }
-    else {
-        return {"width": 0, "height": 0};
-    }
-};
-
-
-
-/**--------------------------------------------------------------------------**/
-
-
-/**
- * @class Edge
- *
- * A edge connects two nodes
- * @param {Object} properties     Object with properties. Must contain
- *                                At least properties from and to.
- *                                Available properties: from (number),
- *                                to (number), color (string),
- *                                width (number), style (string),
- *                                length (number), title (string)
- * @param {Graph} graph A graph object, used to find and edge to
- *                                nodes.
- * @param {Object} constants      An object with default values for
- *                                example for the color
- */
-Graph.Edge = function (properties, graph, constants) {
-    if (!graph) {
-        throw "No graph provided";
-    }
-    this.graph = graph;
-
-    // initialize constants
-    this.widthMin = constants.edges.widthMin;
-    this.widthMax = constants.edges.widthMax;
-
-    // initialize variables
-    this.id     = undefined;
-    this.style  = constants.edges.style;
-    this.title  = undefined;
-    this.width  = constants.edges.width;
-    this.value  = undefined;
-    this.length = constants.edges.length;
-
-    // Added to support dashed lines
-    // David Jordan
-    // 2012-08-08
-    this.dashlength = constants.edges.dashlength;
-    this.dashgap = constants.edges.dashgap;
-    this.altdashlength  = constants.edges.altdashlength;
-
-    this.stiffness = undefined; // depends on the length of the edge
-    this.color  = constants.edges.color;
-    this.widthFixed = false;
-    this.lengthFixed = false;
-
-    this.setProperties(properties, constants);
-};
-
-/**
- * Set or overwrite properties for the edge
- * @param {Object} properties  an object with properties
- * @param {Object} constants   and object with default, global properties
- */
-Graph.Edge.prototype.setProperties = function(properties, constants) {
-    if (!properties) {
-        return;
-    }
-
-    if (properties.from != undefined) {this.from = this.graph._getNode(properties.from);}
-    if (properties.to != undefined) {this.to = this.graph._getNode(properties.to);}
-
-    if (properties.id != undefined)         {this.id = properties.id;}
-    if (properties.style != undefined)      {this.style = properties.style;}
-    if (properties.text != undefined)       {this.text = properties.text;}
-    if (this.text) {
-        this.fontSize = constants.edges.fontSize;
-        this.fontFace = constants.edges.fontFace;
-        this.fontColor = constants.edges.fontColor;
-        if (properties.fontColor != undefined)  {this.fontColor = properties.fontColor;}
-        if (properties.fontSize != undefined)   {this.fontSize = properties.fontSize;}
-        if (properties.fontFace != undefined)   {this.fontFace = properties.fontFace;}
-    }
-    if (properties.title != undefined)      {this.title = properties.title;}
-    if (properties.width != undefined)      {this.width = properties.width;}
-    if (properties.value != undefined)      {this.value = properties.value;}
-    if (properties.length != undefined)     {this.length = properties.length;}
-
-    // Added to support dashed lines
-    // David Jordan
-    // 2012-08-08
-    if (properties.dashlength != undefined) {this.dashlength = properties.dashlength;}
-    if (properties.dashgap != undefined) {this.dashgap = properties.dashgap;}
-    if (properties.altdashlength != undefined) {this.altdashlength = properties.altdashlength;}
-
-    if (properties.color != undefined) {this.color = properties.color;}
-
-    if (!this.from) {
-        throw "Node with id " + properties.from + " not found";
-    }
-    if (!this.to) {
-        throw "Node with id " + properties.to + " not found";
-    }
-
-    this.widthFixed = this.widthFixed || (properties.width != undefined);
-    this.lengthFixed = this.lengthFixed || (properties.length != undefined);
-
-    this.stiffness = 1 / this.length;
-
-    // initialize animation
-    if (this.style === 'arrow') {
-        this.arrows = [0.5];
-    }
-
-    // set draw method based on style
-    switch (this.style) {
-        case 'line':          this.draw = this._drawLine; break;
-        case 'arrow':         this.draw = this._drawArrow; break;
-        case 'arrow-end':     this.draw = this._drawArrowEnd; break;
-        case 'dash-line':     this.draw = this._drawDashLine; break;
-        default:              this.draw = this._drawLine; break;
-    }
-};
-
-/**
- * get the title of this edge.
- * @return {string} title    The title of the edge, or undefined when no title
- *                           has been set.
- */
-Graph.Edge.prototype.getTitle = function() {
-    return this.title;
-};
-
-
-/**
- * Retrieve the value of the edge. Can be undefined
- * @return {Number} value
- */
-Graph.Edge.prototype.getValue = function() {
-    return this.value;
-}
-
-/**
- * Adjust the value range of the edge. The edge will adjust it's width
- * based on its value.
- * @param {Number} min
- * @param {Number} max
- */
-Graph.Edge.prototype.setValueRange = function(min, max) {
-    if (!this.widthFixed && this.value !== undefined) {
-        var factor = (this.widthMax - this.widthMin) / (max - min);
-        this.width = (this.value - min) * factor + this.widthMin;
-    }
-};
-
-
-/**
- * Check if the length is fixed.
- * @return {boolean} lengthFixed   True if the length is fixed, else false
- */
-Graph.Edge.prototype.isLengthFixed = function() {
-    return this.lengthFixed;
-};
-
-/**
- * Retrieve the length of the edge. Can be undefined
- * @return {Number} length
- */
-Graph.Edge.prototype.getLength = function() {
-    return this.length;
-};
-
-/**
- * Adjust the length of the edge. This can only be done when the length
- * is not fixed (which is the case when the edge is created with a length property)
- * @param {Number} length
- */
-Graph.Edge.prototype.setLength = function(length) {
-    if (!this.lengthFixed) {
-        this.length = length;
-    }
-};
-
-/**
- * Retrieve the length of the edges dashes. Can be undefined
- * @author David Jordan
- * @date 2012-08-08
- * @return {Number} dashlength
- */
-Graph.Edge.prototype.getDashLength = function() {
-    return this.dashlength;
-};
-
-/**
- * Adjust the length of the edges dashes.
- * @author David Jordan
- * @date 2012-08-08
- * @param {Number} dashlength
- */
-Graph.Edge.prototype.setDashLength = function(dashlength) {
-    this.dashlength = dashlength;
-};
-
-/**
- * Retrieve the length of the edges dashes gaps. Can be undefined
- * @author David Jordan
- * @date 2012-08-08
- * @return {Number} dashgap
- */
-Graph.Edge.prototype.getDashGap = function() {
-    return this.dashgap;
-};
-
-/**
- * Adjust the length of the edges dashes gaps.
- * @author David Jordan
- * @date 2012-08-08
- * @param {Number} dashgap
- */
-Graph.Edge.prototype.setDashGap = function(dashgap) {
-    this.dashgap = dashgap;
-};
-
-/**
- * Retrieve the length of the edges alternate dashes. Can be undefined
- * @author David Jordan
- * @date 2012-08-08
- * @return {Number} altdashlength
- */
-Graph.Edge.prototype.getAltDashLength = function() {
-    return this.altdashlength;
-};
-
-/**
- * Adjust the length of the edges alternate dashes.
- * @author David Jordan
- * @date 2012-08-08
- * @param {Number} altdashlength
- */
-Graph.Edge.prototype.setAltDashLength = function(altdashlength) {
-    this.altdashlength = altdashlength;
-};
-
-
-
-/**
- * Redraw a edge
- * Draw this edge in the given canvas
- * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
- * @param {CanvasRenderingContext2D}   ctx
- */
-Graph.Edge.prototype.draw = function(ctx) {
-    throw "Method draw not initialized in edge";
-};
-
-
-/**
- * Check if this object is overlapping with the provided object
- * @param {Object} obj   an object with parameters left, top
- * @return {boolean}     True if location is located on the edge
- */
-Graph.Edge.prototype.isOverlappingWith = function(obj) {
-    var distMax = 10;
-
-    var xFrom = this.from.x;
-    var yFrom = this.from.y;
-    var xTo = this.to.x;
-    var yTo = this.to.y;
-    var xObj = obj.left;
-    var yObj = obj.top;
-
-
-    var dist = Graph._dist(xFrom, yFrom, xTo, yTo, xObj, yObj);
-
-    return (dist < distMax);
-};
-
-/**
- * Calculate the distance between a point (x3,y3) and a line segment from
- * (x1,y1) to (x2,y2).
- * http://stackoverflow.com/questions/849211/shortest-distancae-between-a-point-and-a-line-segment
- * @param {number} x1
- * @param {number} y1
- * @param {number} x2
- * @param {number} y2
- * @param {number} x3
- * @param {number} y3
- */
-Graph._dist = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
-    var px = x2-x1,
-        py = y2-y1,
-        something = px*px + py*py,
-        u =  ((x3 - x1) * px + (y3 - y1) * py) / something;
-
-    if (u > 1) {
-        u = 1;
-    }
-    else if (u < 0) {
-        u = 0;
-    }
-
-    var x = x1 + u * px,
-        y = y1 + u * py,
-        dx = x - x3,
-        dy = y - y3;
-
-    //# Note: If the actual distance does not matter,
-    //# if you only want to compare what this function
-    //# returns to other results of this function, you
-    //# can just return the squared distance instead
-    //# (i.e. remove the sqrt) to gain a little performance
-
-    return Math.sqrt(dx*dx + dy*dy);
-};
-
-/**
- * Redraw a edge as a line
- * Draw this edge in the given canvas
- * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
- * @param {CanvasRenderingContext2D}   ctx
- */
-Graph.Edge.prototype._drawLine = function(ctx) {
-    // set style
-    ctx.strokeStyle = this.color;
-    ctx.lineWidth = this._getLineWidth();
-
-    var point;
-    if (this.from != this.to) {
-        // draw line
-        this._line(ctx);
-
-        // draw text
-        if (this.text) {
-            point = this._pointOnLine(0.5);
-            this._text(ctx, this.text, point.x, point.y);
-        }
-    }
-    else {
-        var radius = this.length / 2 / Math.PI;
-        var x, y;
-        var node = this.from;
-        if (!node.width) {
-            node.resize(ctx);
-        }
-        if (node.width > node.height) {
-            x = node.x + node.width / 2;
-            y = node.y - radius;
-        }
-        else {
-            x = node.x + radius;
-            y = node.y - node.height / 2;
-        }
-        this._circle(ctx, x, y, radius);
-        point = this._pointOnCircle(x, y, radius, 0.5);
-        this._text(ctx, this.text, point.x, point.y);
-    }
-};
-
-/**
- * Get the line width of the edge. Depends on width and whether one of the
- * connected nodes is selected.
- * @return {Number} width
- * @private
- */
-Graph.Edge.prototype._getLineWidth = function() {
-    if (this.from.selected || this.to.selected) {
-        return Math.min(this.width * 2, this.widthMax);
-    }
-    else {
-        return this.width;
-    }
-};
-
-/**
- * Draw a line between two nodes
- * @param {CanvasRenderingContext2D} ctx
- * @private
- */
-Graph.Edge.prototype._line = function (ctx) {
-    // draw a straight line
-    ctx.beginPath();
-    ctx.moveTo(this.from.x, this.from.y);
-    ctx.lineTo(this.to.x, this.to.y);
-    ctx.stroke();
-};
-
-/**
- * Draw a line from a node to itself, a circle
- * @param {CanvasRenderingContext2D} ctx
- * @param {Number} x
- * @param {Number} y
- * @param {Number} radius
- * @private
- */
-Graph.Edge.prototype._circle = function (ctx, x, y, radius) {
-    // draw a circle
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-    ctx.stroke();
-};
-
-/**
- * Draw text with white background and with the middle at (x, y)
- * @param {CanvasRenderingContext2D} ctx
- * @param {String} text
- * @param {Number} x
- * @param {Number} y
- */
-Graph.Edge.prototype._text = function (ctx, text, x, y) {
-    if (text) {
-        // TODO: cache the calculated size
-        ctx.font = ((this.from.selected || this.to.selected) ? "bold " : "") +
-            this.fontSize + "px " + this.fontFace;
-        ctx.fillStyle = 'white';
-        var width = ctx.measureText(this.text).width;
-        var height = this.fontSize;
-        var left = x - width / 2;
-        var top = y - height / 2;
-
-        ctx.fillRect(left, top, width, height);
-
-        // draw text
-        ctx.fillStyle = this.fontColor || "black";
-        ctx.textAlign = "left";
-        ctx.textBaseline = "top";
-        ctx.fillText(this.text, left, top);
-    }
-};
-
-/**
- * Sets up the dashedLine functionality for drawing
- * Original code came from http://stackoverflow.com/questions/4576724/dotted-stroke-in-canvas
- * @author David Jordan
- * @date 2012-08-08
- */
-var CP = (typeof window !== 'undefined') &&
-    window.CanvasRenderingContext2D &&
-    CanvasRenderingContext2D.prototype;
-if (CP && CP.lineTo){
-    CP.dashedLine = function(x,y,x2,y2,dashArray){
-        if (!dashArray) dashArray=[10,5];
-        if (dashLength==0) dashLength = 0.001; // Hack for Safari
-        var dashCount = dashArray.length;
-        this.moveTo(x, y);
-        var dx = (x2-x), dy = (y2-y);
-        var slope = dy/dx;
-        var distRemaining = Math.sqrt( dx*dx + dy*dy );
-        var dashIndex=0, draw=true;
-        while (distRemaining>=0.1){
-            var dashLength = dashArray[dashIndex++%dashCount];
-            if (dashLength > distRemaining) dashLength = distRemaining;
-            var xStep = Math.sqrt( dashLength*dashLength / (1 + slope*slope) );
-            if (dx<0) xStep = -xStep;
-            x += xStep
-            y += slope*xStep;
-            this[draw ? 'lineTo' : 'moveTo'](x,y);
-            distRemaining -= dashLength;
-            draw = !draw;
-        }
-    }
-}
-
-/**
- * Redraw a edge as a dashed line
- * Draw this edge in the given canvas
- * @author David Jordan
- * @date 2012-08-08
- * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
- * @param {CanvasRenderingContext2D}   ctx
- */
-Graph.Edge.prototype._drawDashLine = function(ctx) {
-    // set style
-    ctx.strokeStyle = this.color;
-    ctx.lineWidth = this._getLineWidth();
-
-    // draw dashed line
-    ctx.beginPath();
-    ctx.lineCap = 'round';
-    if (this.altdashlength != undefined) //If an alt dash value has been set add to the array this value
-    {
-        ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,[this.dashlength,this.dashgap,this.altdashlength,this.dashgap]);
-    }
-    else if (this.dashlength != undefined && this.dashgap != undefined) //If a dash and gap value has been set add to the array this value
-    {
-        ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,[this.dashlength,this.dashgap]);
-    }
-    else //If all else fails draw a line
-    {
-        ctx.moveTo(this.from.x, this.from.y);
-        ctx.lineTo(this.to.x, this.to.y);
-    }
-    ctx.stroke();
-
-    // draw text
-    if (this.text) {
-        var point = this._pointOnLine(0.5);
-        this._text(ctx, this.text, point.x, point.y);
-    }
-};
-
-/**
- * Get a point on a line
- * @param {Number} percentage. Value between 0 (line start) and 1 (line end)
- * @return {Object} point
- * @private
- */
-Graph.Edge.prototype._pointOnLine = function (percentage) {
-    return {
-        x: (1 - percentage) * this.from.x + percentage * this.to.x,
-        y: (1 - percentage) * this.from.y + percentage * this.to.y
-    }
-};
-
-/**
- * Get a point on a circle
- * @param {Number} x
- * @param {Number} y
- * @param {Number} radius
- * @param {Number} percentage. Value between 0 (line start) and 1 (line end)
- * @return {Object} point
- * @private
- */
-Graph.Edge.prototype._pointOnCircle = function (x, y, radius, percentage) {
-    var angle = (percentage - 3/8) * 2 * Math.PI;
-    return {
-        x: x + radius * Math.cos(angle),
-        y: y - radius * Math.sin(angle)
-    }
-};
-
-/**
- * Redraw a edge as a line with an arrow
- * Draw this edge in the given canvas
- * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
- * @param {CanvasRenderingContext2D}   ctx
- */
-Graph.Edge.prototype._drawArrow = function(ctx) {
-    var point;
-    // set style
-    ctx.strokeStyle = this.color;
-    ctx.fillStyle = this.color;
-    ctx.lineWidth = this._getLineWidth();
-
-    if (this.from != this.to) {
-        // draw line
-        this._line(ctx);
-
-        // draw all arrows
-        var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
-        var length = 10 + 5 * this.width; // TODO: make customizable?
-        for (var a in this.arrows) {
-            if (this.arrows.hasOwnProperty(a)) {
-                point = this._pointOnLine(this.arrows[a]);
-                ctx.arrow(point.x, point.y, angle, length);
-                ctx.fill();
-                ctx.stroke();
-            }
-        }
-
-        // draw text
-        if (this.text) {
-            point = this._pointOnLine(0.5);
-            this._text(ctx, this.text, point.x, point.y);
-        }
-    }
-    else {
-        // draw circle
-        var radius = this.length / 2 / Math.PI;
-        var x, y;
-        var node = this.from;
-        if (!node.width) {
-            node.resize(ctx);
-        }
-        if (node.width > node.height) {
-            x = node.x + node.width / 2;
-            y = node.y - radius;
-        }
-        else {
-            x = node.x + radius;
-            y = node.y - node.height / 2;
-        }
-        this._circle(ctx, x, y, radius);
-
-        // draw all arrows
-        var angle = 0.2 * Math.PI;
-        var length = 10 + 5 * this.width; // TODO: make customizable?
-        for (var a in this.arrows) {
-            if (this.arrows.hasOwnProperty(a)) {
-                point = this._pointOnCircle(x, y, radius, this.arrows[a]);
-                ctx.arrow(point.x, point.y, angle, length);
-                ctx.fill();
-                ctx.stroke();
-            }
-        }
-
-        // draw text
-        if (this.text) {
-            point = this._pointOnCircle(x, y, radius, 0.5);
-            this._text(ctx, this.text, point.x, point.y);
-        }
-    }
-};
-
-
-
-/**
- * Redraw a edge as a line with an arrow
- * Draw this edge in the given canvas
- * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
- * @param {CanvasRenderingContext2D}   ctx
- */
-Graph.Edge.prototype._drawArrowEnd = function(ctx) {
-    // set style
-    ctx.strokeStyle = this.color;
-    ctx.fillStyle = this.color;
-    ctx.lineWidth = this._getLineWidth();
-
-    // draw line
-    var angle, length;
-    if (this.from != this.to) {
-        // calculate length and angle of the line
-        angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
-        var dx = (this.to.x - this.from.x);
-        var dy = (this.to.y - this.from.y);
-        var lEdge = Math.sqrt(dx * dx + dy * dy);
-
-        var lFrom = this.to.distanceToBorder(ctx, angle + Math.PI);
-        var pFrom = (lEdge - lFrom) / lEdge;
-        var xFrom = (pFrom) * this.from.x + (1 - pFrom) * this.to.x;
-        var yFrom = (pFrom) * this.from.y + (1 - pFrom) * this.to.y;
-
-        var lTo = this.to.distanceToBorder(ctx, angle);
-        var pTo = (lEdge - lTo) / lEdge;
-        var xTo = (1 - pTo) * this.from.x + pTo * this.to.x;
-        var yTo = (1 - pTo) * this.from.y + pTo * this.to.y;
-
-        ctx.beginPath();
-        ctx.moveTo(xFrom, yFrom);
-        ctx.lineTo(xTo, yTo);
-        ctx.stroke();
-
-        // draw arrow at the end of the line
-        length = 10 + 5 * this.width; // TODO: make customizable?
-        ctx.arrow(xTo, yTo, angle, length);
-        ctx.fill();
-        ctx.stroke();
-
-        // draw text
-        if (this.text) {
-            var point = this._pointOnLine(0.5);
-            this._text(ctx, this.text, point.x, point.y);
-        }
-    }
-    else {
-        // draw circle
-        var radius = this.length / 2 / Math.PI;
-        var x, y, arrow;
-        var node = this.from;
-        if (!node.width) {
-            node.resize(ctx);
-        }
-        if (node.width > node.height) {
-            x = node.x + node.width / 2;
-            y = node.y - radius;
-            arrow = {
-                x: x,
-                y: node.y,
-                angle: 0.9 * Math.PI
-            };
-        }
-        else {
-            x = node.x + radius;
-            y = node.y - node.height / 2;
-            arrow = {
-                x: node.x,
-                y: y,
-                angle: 0.6 * Math.PI
-            };
-        }
-        ctx.beginPath();
-        // TODO: do not draw a circle, but an arc
-        // TODO: similarly, for a line without arrows, draw to the border of the nodes instead of the center
-        ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-        ctx.stroke();
-
-        // draw all arrows
-        length = 10 + 5 * this.width; // TODO: make customizable?
-        ctx.arrow(arrow.x, arrow.y, arrow.angle, length);
-        ctx.fill();
-        ctx.stroke();
-
-        // draw text
-        if (this.text) {
-            point = this._pointOnCircle(x, y, radius, 0.5);
-            this._text(ctx, this.text, point.x, point.y);
-        }
-    }
-
-};
-
-/**--------------------------------------------------------------------------**/
-
-
-/**
- * @class Images
- * This class loades images and keeps them stored.
- */
-Graph.Images = function () {
-    this.images = {};
-
-    this.callback = undefined;
-};
-
-/**
- * Set an onload callback function. This will be called each time an image
- * is loaded
- * @param {function} callback
- */
-Graph.Images.prototype.setOnloadCallback = function(callback) {
-    this.callback = callback;
-};
-
-
-/**
- *
- * @param {string} url          Url of the image
- * @return {Image} img          The image object
- */
-Graph.Images.prototype.load = function(url) {
-    var img = this.images[url];
-    if (img == undefined) {
-        // create the image
-        var images = this;
-        img = new Image();
-        this.images[url] = img;
-        img.onload = function() {
-            if (images.callback) {
-                images.callback(this);
-            }
-        };
-        img.src = url;
-    }
-
-    return img;
-};
-
-
-/**--------------------------------------------------------------------------**/
-
-
-/**
- * @class Groups
- * This class can store groups and properties specific for groups.
- */
-Graph.Groups = function () {
-    this.clear();
-    this.defaultIndex = 0;
-};
-
-
-/**
- * default constants for group colors
- */
-Graph.Groups.DEFAULT = [
-    {"borderColor": "#2B7CE9", "backgroundColor": "#97C2FC", "highlightColor": "#D2E5FF"}, // blue
-    {"borderColor": "#FFA500", "backgroundColor": "#FFFF00", "highlightColor": "#FFFFA3"}, // yellow
-    {"borderColor": "#FA0A10", "backgroundColor": "#FB7E81", "highlightColor": "#FFAFB1"}, // red
-    {"borderColor": "#41A906", "backgroundColor": "#7BE141", "highlightColor": "#A1EC76"}, // green
-    {"borderColor": "#E129F0", "backgroundColor": "#EB7DF4", "highlightColor": "#F0B3F5"}, // magenta
-    {"borderColor": "#7C29F0", "backgroundColor": "#AD85E4", "highlightColor": "#D3BDF0"}, // purple
-    {"borderColor": "#C37F00", "backgroundColor": "#FFA807", "highlightColor": "#FFCA66"}, // orange
-    {"borderColor": "#4220FB", "backgroundColor": "#6E6EFD", "highlightColor": "#9B9BFD"}, // darkblue
-    {"borderColor": "#FD5A77", "backgroundColor": "#FFC0CB", "highlightColor": "#FFD1D9"}, // pink
-    {"borderColor": "#4AD63A", "backgroundColor": "#C2FABC", "highlightColor": "#E6FFE3"}  // mint
-];
-
-
-/**
- * Clear all groups
- */
-Graph.Groups.prototype.clear = function () {
-    this.groups = {};
-    this.groups.length = function()
-    {
-        var i = 0;
-        for ( var p in this ) {
-            if (this.hasOwnProperty(p)) {
-                i++;
-            }
-        }
-        return i;
-    }
-};
-
-
-/**
- * get group properties of a groupname. If groupname is not found, a new group
- * is added.
- * @param {*} groupname        Can be a number, string, Date, etc.
- * @return {Object} group      The created group, containing all group properties
- */
-Graph.Groups.prototype.get = function (groupname) {
-    var group = this.groups[groupname];
-
-    if (group == undefined) {
-        // create new group
-        var index = this.defaultIndex % Graph.Groups.DEFAULT.length;
-        this.defaultIndex++;
-        group = {};
-        group.borderColor     = Graph.Groups.DEFAULT[index].borderColor;
-        group.backgroundColor = Graph.Groups.DEFAULT[index].backgroundColor;
-        group.highlightColor  = Graph.Groups.DEFAULT[index].highlightColor;
-        this.groups[groupname] = group;
-    }
-
-    return group;
-};
-
-/**
- * Add a custom group style
- * @param {String} groupname
- * @param {Object} style       An object containing borderColor,
- *                             backgroundColor, etc.
- * @return {Object} group      The created group object
- */
-Graph.Groups.prototype.add = function (groupname, style) {
-    this.groups[groupname] = style;
-    return style;
-};
-
-/**
- * Check if given object is a Javascript Array
- * @param {*} obj
- * @return {Boolean} isArray    true if the given object is an array
- */
-// See http://stackoverflow.com/questions/2943805/javascript-instanceof-typeof-in-gwt-jsni
-Graph.isArray = function (obj) {
-    if (obj instanceof Array) {
-        return true;
-    }
-    return (Object.prototype.toString.call(obj) === '[object Array]');
-};
-
-
-
-/**--------------------------------------------------------------------------**/
-
-
-/**
- * Popup is a class to create a popup window with some text
- * @param {Element}  container     The container object.
- * @param {Number} x
- * @param {Number} y
- * @param {String} text
- */
-Graph.Popup = function (container, x, y, text) {
-    if (container) {
-        this.container = container;
-    }
-    else {
-        this.container = document.body;
-    }
-    this.x = 0;
-    this.y = 0;
-    this.padding = 5;
-
-    if (x !== undefined && y !== undefined ) {
-        this.setPosition(x, y);
-    }
-    if (text !== undefined) {
-        this.setText(text);
-    }
-
-    // create the frame
-    this.frame = document.createElement("div");
-    var style = this.frame.style;
-    style.position = "absolute";
-    style.visibility = "hidden";
-    style.border = "1px solid #666";
-    style.color = "black";
-    style.padding = this.padding + "px";
-    style.backgroundColor = "#FFFFC6";
-    style.borderRadius = "3px";
-    style.MozBorderRadius = "3px";
-    style.WebkitBorderRadius = "3px";
-    style.boxShadow = "3px 3px 10px rgba(128, 128, 128, 0.5)";
-    style.whiteSpace = "nowrap";
-    this.container.appendChild(this.frame);
-};
-
-/**
- * @param {number} x   Horizontal position of the popup window
- * @param {number} y   Vertical position of the popup window
- */
-Graph.Popup.prototype.setPosition = function(x, y) {
-    this.x = parseInt(x);
-    this.y = parseInt(y);
-};
-
-/**
- * Set the text for the popup window. This can be HTML code
- * @param {string} text
- */
-Graph.Popup.prototype.setText = function(text) {
-    this.frame.innerHTML = text;
-};
-
-/**
- * Show the popup window
- * @param {boolean} show    Optional. Show or hide the window
- */
-Graph.Popup.prototype.show = function (show) {
-    if (show === undefined) {
-        show = true;
-    }
-
-    if (show) {
-        var height = this.frame.clientHeight;
-        var width =  this.frame.clientWidth;
-        var maxHeight = this.frame.parentNode.clientHeight;
-        var maxWidth = this.frame.parentNode.clientWidth;
-
-        var top = (this.y - height);
-        if (top + height + this.padding > maxHeight) {
-            top = maxHeight - height - this.padding;
-        }
-        if (top < this.padding) {
-            top = this.padding;
-        }
-
-        var left = this.x;
-        if (left + width + this.padding > maxWidth) {
-            left = maxWidth - width - this.padding;
-        }
-        if (left < this.padding) {
-            left = this.padding;
-        }
-
-        this.frame.style.left = left + "px";
-        this.frame.style.top = top + "px";
-        this.frame.style.visibility = "visible";
-    }
-    else {
-        this.hide();
-    }
-};
-
-/**
- * Hide the popup window
- */
-Graph.Popup.prototype.hide = function () {
-    this.frame.style.visibility = "hidden";
-};
-
-
-/**--------------------------------------------------------------------------**/
-
-if (typeof CanvasRenderingContext2D !== 'undefined') {
-    /**
-     * Draw a circle shape
-     */
-    CanvasRenderingContext2D.prototype.circle = function(x, y, r) {
-        this.beginPath();
-        this.arc(x, y, r, 0, 2*Math.PI, false);
-    };
-
-    /**
-     * Draw a square shape
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   size, width and height of the square
-     */
-    CanvasRenderingContext2D.prototype.square = function(x, y, r) {
-        this.beginPath();
-        this.rect(x - r, y - r, r * 2, r * 2);
-    };
-
-    /**
-     * Draw a triangle shape
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   radius, half the length of the sides of the triangle
-     */
-    CanvasRenderingContext2D.prototype.triangle = function(x, y, r) {
-        // http://en.wikipedia.org/wiki/Equilateral_triangle
-        this.beginPath();
-
-        var s = r * 2;
-        var s2 = s / 2;
-        var ir = Math.sqrt(3) / 6 * s;      // radius of inner circle
-        var h = Math.sqrt(s * s - s2 * s2); // height
-
-        this.moveTo(x, y - (h - ir));
-        this.lineTo(x + s2, y + ir);
-        this.lineTo(x - s2, y + ir);
-        this.lineTo(x, y - (h - ir));
-        this.closePath();
-    };
-
-    /**
-     * Draw a triangle shape in downward orientation
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r radius
-     */
-    CanvasRenderingContext2D.prototype.triangleDown = function(x, y, r) {
-        // http://en.wikipedia.org/wiki/Equilateral_triangle
-        this.beginPath();
-
-        var s = r * 2;
-        var s2 = s / 2;
-        var ir = Math.sqrt(3) / 6 * s;      // radius of inner circle
-        var h = Math.sqrt(s * s - s2 * s2); // height
-
-        this.moveTo(x, y + (h - ir));
-        this.lineTo(x + s2, y - ir);
-        this.lineTo(x - s2, y - ir);
-        this.lineTo(x, y + (h - ir));
-        this.closePath();
-    };
-
-    /**
-     * Draw a star shape, a star with 5 points
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   radius, half the length of the sides of the triangle
-     */
-    CanvasRenderingContext2D.prototype.star = function(x, y, r) {
-        // http://www.html5canvastutorials.com/labs/html5-canvas-star-spinner/
-        this.beginPath();
-
-        for (var n = 0; n < 10; n++) {
-            var radius = (n % 2 === 0) ? r * 1.3 : r * 0.5;
-            this.lineTo(
-                x + radius * Math.sin(n * 2 * Math.PI / 10),
-                y - radius * Math.cos(n * 2 * Math.PI / 10)
-            );
-        }
-
-        this.closePath();
-    };
-
-    /**
-     * http://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-on-html-canvas
-     */
-    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-        var r2d = Math.PI/180;
-        if( w - ( 2 * r ) < 0 ) { r = ( w / 2 ); } //ensure that the radius isn't too large for x
-        if( h - ( 2 * r ) < 0 ) { r = ( h / 2 ); } //ensure that the radius isn't too large for y
-        this.beginPath();
-        this.moveTo(x+r,y);
-        this.lineTo(x+w-r,y);
-        this.arc(x+w-r,y+r,r,r2d*270,r2d*360,false);
-        this.lineTo(x+w,y+h-r);
-        this.arc(x+w-r,y+h-r,r,0,r2d*90,false);
-        this.lineTo(x+r,y+h);
-        this.arc(x+r,y+h-r,r,r2d*90,r2d*180,false);
-        this.lineTo(x,y+r);
-        this.arc(x+r,y+r,r,r2d*180,r2d*270,false);
-    };
-
-    /**
-     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
-     */
-    CanvasRenderingContext2D.prototype.ellipse = function(x, y, w, h) {
-        var kappa = .5522848,
-            ox = (w / 2) * kappa, // control point offset horizontal
-            oy = (h / 2) * kappa, // control point offset vertical
-            xe = x + w,           // x-end
-            ye = y + h,           // y-end
-            xm = x + w / 2,       // x-middle
-            ym = y + h / 2;       // y-middle
-
-        this.beginPath();
-        this.moveTo(x, ym);
-        this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-        this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
-        this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-        this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
-    };
-
-
-
-    /**
-     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
-     */
-    CanvasRenderingContext2D.prototype.database = function(x, y, w, h) {
-        var f = 1/3;
-        var wEllipse = w;
-        var hEllipse = h * f;
-
-        var kappa = .5522848,
-            ox = (wEllipse / 2) * kappa, // control point offset horizontal
-            oy = (hEllipse / 2) * kappa, // control point offset vertical
-            xe = x + wEllipse,           // x-end
-            ye = y + hEllipse,           // y-end
-            xm = x + wEllipse / 2,       // x-middle
-            ym = y + hEllipse / 2,       // y-middle
-            ymb = y + (h - hEllipse/2),  // y-midlle, bottom ellipse
-            yeb = y + h;                 // y-end, bottom ellipse
-
-        this.beginPath();
-        this.moveTo(xe, ym);
-
-        this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-        this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
-
-        this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-        this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
-
-        this.lineTo(xe, ymb);
-
-        this.bezierCurveTo(xe, ymb + oy, xm + ox, yeb, xm, yeb);
-        this.bezierCurveTo(xm - ox, yeb, x, ymb + oy, x, ymb);
-
-        this.lineTo(x, ym);
-    };
-
-
-    /**
-     * Draw an arrow point (no line)
-     */
-    CanvasRenderingContext2D.prototype.arrow = function(x, y, angle, length) {
-        // tail
-        var xt = x - length * Math.cos(angle);
-        var yt = y - length * Math.sin(angle);
-
-        // inner tail
-        // TODO: allow to customize different shapes
-        var xi = x - length * 0.9 * Math.cos(angle);
-        var yi = y - length * 0.9 * Math.sin(angle);
-
-        // left
-        var xl = xt + length / 3 * Math.cos(angle + 0.5 * Math.PI);
-        var yl = yt + length / 3 * Math.sin(angle + 0.5 * Math.PI);
-
-        // right
-        var xr = xt + length / 3 * Math.cos(angle - 0.5 * Math.PI);
-        var yr = yt + length / 3 * Math.sin(angle - 0.5 * Math.PI);
-
-        this.beginPath();
-        this.moveTo(x, y);
-        this.lineTo(xl, yl);
-        this.lineTo(xi, yi);
-        this.lineTo(xr, yr);
-        this.closePath();
-    };
-
-
-    // TODO: add diamond shape
-}
-
-
-/*----------------------------------------------------------------------------*/
-
-// utility methods
-Graph.util = {};
-
-/**
- * Parse a text source containing data in DOT language into a JSON object.
- * The object contains two lists: one with nodes and one with edges.
- * @param {String} data     Text containing a graph in DOT-notation
- * @return {Object} json    An object containing two parameters:
- *                          {Object[]} nodes
- *                          {Object[]} edges
- */
-Graph.util.parseDOT = function (data) {
-    /**
-     * Test whether given character is a whitespace character
-     * @param {String} c
-     * @return {Boolean} isWhitespace
-     */
-    function isWhitespace(c) {
-        return c == ' ' || c == '\t' || c == '\n' || c == '\r';
-    }
-
-    /**
-     * Test whether given character is a delimeter
-     * @param {String} c
-     * @return {Boolean} isDelimeter
-     */
-    function isDelimeter(c) {
-        return '[]{}();,=->'.indexOf(c) != -1;
-    }
-
-    var i = -1;  // current index in the data
-    var c = '';  // current character in the data
-
-    /**
-     * Read the next character from the data
-     */
-    function next() {
-        i++;
-        c = data[i];
-    }
-
-    /**
-     * Preview the next character in the data
-     * @returns {String} nextChar
-     */
-    function previewNext () {
-        return data[i + 1];
-    }
-
-    /**
-     * Preview the next character in the data
-     * @returns {String} nextChar
-     */
-    function previewPrevious () {
-        return data[i + 1];
-    }
-
-    /**
-     * Get a text description of the the current index in the data
-     * @return {String} desc
-     */
-    function pos() {
-        return '(char ' + i + ')';
-    }
-
-    /**
-     * Skip whitespace and comments
-     */
-    function parseWhitespace() {
-        // skip whitespace
-        while (c && isWhitespace(c)) {
-            next();
-        }
-
-        // test for comment
-        var cNext = data[i + 1];
-        var cPrev = data[i - 1];
-        var c2 = c + cNext;
-        if (c2 == '/*') {
-            // block comment. skip until the block is closed
-            while (c && !(c == '*' && data[i + 1] == '/')) {
-                next();
-            }
-            next();
-            next();
-
-            parseWhitespace();
-        }
-        else if (c2 == '//' || (c == '#' && cPrev == '\n')) {
-            // line comment. skip until the next return
-            while (c && c != '\n') {
-                next();
-            }
-            next();
-            parseWhitespace();
-        }
-    }
-
-    /**
-     * Parse a string
-     * The string may be enclosed by double quotes
-     * @return {String | undefined} value
-     */
-    function parseString() {
-        parseWhitespace();
-
-        var name = '';
-        if (c == '"') {
-            next();
-            while (c && c != '"') {
-                name += c;
-                next();
-            }
-            next(); // skip the closing quote
-        }
-        else {
-            while (c && !isWhitespace(c) && !isDelimeter(c)) {
-                name += c;
-                next();
-            }
-
-            // cast string to number or boolean
-            var number = Number(name);
-            if (!isNaN(number)) {
-                name = number;
-            }
-            else if (name == 'true') {
-                name = true;
-            }
-            else if (name == 'false') {
-                name = false;
-            }
-            else if (name == 'null') {
-                name = null;
-            }
-        }
-
-        return name;
-    }
-
-    /**
-     * Parse a value, can be a string, number, or boolean.
-     * The value may be enclosed by double quotes
-     * @return {String | Number | Boolean | undefined} value
-     */
-    function parseValue() {
-        parseWhitespace();
-
-        if (c == '"') {
-            return parseString();
-        }
-        else {
-            var value = parseString();
-            if (value != undefined) {
-                // cast string to number or boolean
-                var number = Number(value);
-                if (!isNaN(number)) {
-                    value = number;
-                }
-                else if (value == 'true') {
-                    value = true;
-                }
-                else if (value == 'false') {
-                    value = false;
-                }
-                else if (value == 'null') {
-                    value = null;
-                }
-            }
-            return value;
-        }
-    }
-
-    /**
-     * Parse a set with attributes,
-     * for example [label="1.000", style=solid]
-     * @return {Object | undefined} attr
-     */
-    function parseAttributes() {
-        parseWhitespace();
-
-        if (c == '[') {
-            next();
-            var attr = {};
-            while (c && c != ']') {
-                parseWhitespace();
-
-                var name = parseString();
-                if (!name) {
-                    throw new SyntaxError('Attribute name expected ' + pos());
-                }
-
-                parseWhitespace();
-                if (c != '=') {
-                    throw new SyntaxError('Equal sign = expected ' + pos());
-                }
-                next();
-
-                var value = parseValue();
-                if (!value) {
-                    throw new SyntaxError('Attribute value expected ' + pos());
-                }
-                attr[name] = value;
-
-                parseWhitespace();
-
-                if (c ==',') {
-                    next();
-                }
-            }
-            next();
-
-            return attr;
-        }
-        else {
-            return undefined;
-        }
-    }
-
-    /**
-     * Parse a directed or undirected arrow '->' or '--'
-     * @return {String | undefined} arrow
-     */
-    function parseArrow() {
-        parseWhitespace();
-
-        if (c == '-') {
-            next();
-            if (c == '>' || c == '-') {
-                var arrow = '-' + c;
-                next();
-                return arrow;
-            }
-            else {
-                throw new SyntaxError('Arrow "->" or "--" expected ' + pos());
-            }
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Parse a line separator ';'
-     * @return {String | undefined} separator
-     */
-    function parseSeparator() {
-        parseWhitespace();
-
-        if (c == ';') {
-            next();
-            return ';';
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Merge all properties of object b into object b
-     * @param {Object} a
-     * @param {Object} b
-     */
-    function merge (a, b) {
-        if (a && b) {
-            for (var name in b) {
-                if (b.hasOwnProperty(name)) {
-                    a[name] = b[name];
-                }
-            }
-        }
-    }
-
-    var nodeMap = {};
-    var edgeList = [];
-
-    /**
-     * Register a node with attributes
-     * @param {String} id
-     * @param {Object} [attr]
-     */
-    function addNode(id, attr) {
-        var node = {
-            id: String(id),
-            attr: attr || {}
-        };
-        if (!nodeMap[id]) {
-            nodeMap[id] = node;
-        }
-        else {
-            merge(nodeMap[id].attr, node.attr);
-        }
-    }
-
-    /**
-     * Register an edge
-     * @param {String} from
-     * @param {String} to
-     * @param {String} type    A string "->" or "--"
-     * @param {Object} [attr]
-     */
-    function addEdge(from, to, type, attr) {
-        edgeList.push({
-            from: String(from),
-            to: String(to),
-            type: type,
-            attr: attr || {}
-        });
-    }
-
-    // find the opening curly bracket
-    next();
-    while (c && c != '{') {
-        next();
-    }
-    if (c != '{') {
-        throw new SyntaxError('Invalid data. Curly bracket { expected ' + pos())
-    }
-    next();
-
-    // parse all data until a closing curly bracket is encountered
-    while (c && c != '}') {
-        // parse node id and optional node attributes
-        var id = parseString();
-        if (id == undefined) {
-            throw new SyntaxError('String with id expected ' + pos());
-        }
-        var attr = parseAttributes();
-        addNode(id, attr);
-
-        // TODO: parse global attributes "graph", "node", "edge"
-
-        // parse arrow
-        var type = parseArrow();
-        while (type) {
-            // parse node id
-            var prevId = id;
-            id = parseString();
-            if (id == undefined) {
-                throw new SyntaxError('String with id expected ' + pos());
-            }
-            addNode(id);
-
-            // parse edge attributes and register edge
-            attr = parseAttributes();
-            addEdge(prevId, id, type, attr);
-
-            // parse next arrow (optional)
-            type = parseArrow();
-        }
-
-        // parse separator (optional)
-        parseSeparator();
-
-        parseWhitespace();
-    }
-    if (c != '}') {
-        throw new SyntaxError('Invalid data. Curly bracket } expected');
-    }
-
-    // crop data between the curly brackets
-    var start = data.indexOf('{');
-    var end = data.indexOf('}', start);
-    var text = (start != -1 && end != -1) ? data.substring(start + 1, end) : undefined;
-
-    if (!text) {
-        throw new Error('Invalid data. no curly brackets containing data found');
-    }
-
-    // return the results
-    var nodeList = [];
-    for (id in nodeMap) {
-        if (nodeMap.hasOwnProperty(id)) {
-            nodeList.push(nodeMap[id]);
-        }
-    }
-    return {
-        nodes: nodeList,
-        edges: edgeList
-    }
-};
-
-/**
- * Convert a string containing a graph in DOT language into a map containing
- * with nodes and edges in the format of graph.
- * @param {String} data         Text containing a graph in DOT-notation
- * @return {Object} graphData
- */
-Graph.util.DOTToGraph = function (data) {
-    // parse the DOT file
-    var dotData = Graph.util.parseDOT(data);
-    var graphData = {
-        nodes: [],
-        edges: [],
-        options: {
-            nodes: {},
-            edges: {}
-        }
-    };
-
-    /**
-     * Merge the properties of object b into object a, and adjust properties
-     * not supported by Graph (for example replace "shape" with "style"
-     * @param {Object} a
-     * @param {Object} b
-     * @param {Array} [ignore]   Optional array with property names to be ignored
-     */
-    function merge (a, b, ignore) {
-        for (var prop in b) {
-            if (b.hasOwnProperty(prop) && (!ignore || ignore.indexOf(prop) == -1)) {
-                a[prop] = b[prop];
-            }
-        }
-
-        // Convert aliases to configuration settings supported by Graph
-        if (a.label) {
-            a.text = a.label;
-            delete a.label;
-        }
-        if (a.shape) {
-            a.style = a.shape;
-            delete a.shape;
-        }
-    }
-
-    dotData.nodes.forEach(function (node) {
-        if (node.id.toLowerCase() == 'graph') {
-            merge(graphData.options, node.attr);
-        }
-        else if (node.id.toLowerCase() == 'node') {
-            merge(graphData.options.nodes, node.attr);
-        }
-        else if (node.id.toLowerCase() == 'edge') {
-            merge(graphData.options.edges, node.attr);
-        }
-        else {
-            var graphNode = {};
-            graphNode.id = node.id;
-            graphNode.text = node.id;
-            merge(graphNode, node.attr);
-            graphData.nodes.push(graphNode);
-        }
-    });
-
-    dotData.edges.forEach(function (edge) {
-        var graphEdge = {};
-        graphEdge.from = edge.from;
-        graphEdge.to = edge.to;
-        graphEdge.text = edge.id;
-        graphEdge.style = (edge.type == '->') ? 'arrow-end' : 'line';
-        merge(graphEdge, edge.attr);
-        graphData.edges.push(graphEdge);
-    });
-
-    return graphData;
-};
-
 /**
  * vis.js module exports
  */
@@ -10858,6 +10724,14 @@ var vis = {
         RootPanel: RootPanel,
         ItemSet: ItemSet,
         TimeAxis: TimeAxis
+    },
+
+    graph: {
+        Node: Node,
+        Edge: Edge,
+        Popup: Popup,
+        Groups: Groups,
+        Images: Images
     },
 
     Timeline: Timeline,

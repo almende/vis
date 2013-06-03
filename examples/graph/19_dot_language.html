@@ -20,7 +20,7 @@
 <script type="text/javascript">
     // parse data in DOT-notation
     var dot = 'digraph {node[shape=circle]; 1 -> 1 -> 2; 2 -> 3; 2 -- 4; 2 -> 1 }';
-    var data = vis.Graph.util.DOTToGraph(dot);
+    var data = vis.util.DOTToGraph(dot);
 
     // create a graph
     var container = document.getElementById('mygraph');
