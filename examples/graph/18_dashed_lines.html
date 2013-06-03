@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+    <title>Graph | Dashed lines</title>
+
+    <style type="text/css">
+        body {
+            font: 10pt sans;
+        }
+    </style>
+
+    <script type="text/javascript" src="../../vis.js"></script>
+
+    <script type="text/javascript">
+        // Called on page load
+        function draw() {
+            var nodes = [
+                {id: 1, text: "dashed\nline\nexamples"},
+                {id: 2, text: "default"},
+                {id: 3, text: "dashlength: 20\ndashgap: 20"},
+                {id: 4, text: "dashlength: 20\ndashgap: 5"},
+                {id: 5, text: "dashlength: 5\ndashgap: 20"},
+                {id: 6, text: "dashlength: 20\ndashgap: 5\naltdashlength: 5"}
+            ];
+            var edges = [
+                {from: 1, to: 2, style: "dash-line"},
+                {from: 1, to: 3, style: "dash-line", dashlength: 20, dashgap: 20},
+                {from: 1, to: 4, style: "dash-line", dashlength: 20, dashgap: 5},
+                {from: 1, to: 5, style: "dash-line", dashlength: 5, dashgap: 20},
+                {from: 1, to: 6, style: "dash-line", dashlength: 20, dashgap: 5, altdashlength: 5}
+            ];
+
+
+            // create the graph
+            var container = document.getElementById('mygraph');
+            var data = {
+                nodes: nodes,
+                edges: edges
+            };
+            var options = {
+                width: '600px',
+                height: '600px',
+                edges: {
+                    length: 200
+                },
+                stabilize: false
+            };
+            var graph = new vis.Graph(container, data, options);
+        }
+    </script>
+</head>
+
+<body onload="draw();">
+    <p>
+        This example shows the different options for dashed lines.
+    </p>
+
+    <div id="mygraph"></div>
+</body>
+</html>
