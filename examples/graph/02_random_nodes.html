@@ -1,0 +1,105 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Graph | Random nodes</title>
+
+    <style type="text/css">
+        body {
+            font: 10pt sans;
+        }
+    </style>
+
+    <script type="text/javascript" src="../../vis.js"></script>
+
+    <script type="text/javascript">
+        var nodes = null;
+        var edges = null;
+        var graph = null;
+
+        function draw() {
+            nodes = [];
+            edges = [];
+            var connectionCount = [];
+
+            // randomly create some nodes and edges
+            var nodeCount = document.getElementById('nodeCount').value;
+            for (var i = 0; i < nodeCount; i++) {
+                nodes.push({
+                    'id': i,
+                    'text': String(i)
+                });
+
+                connectionCount[i] = 0;
+
+                // create edges in a scale-free-graph way
+                if (i == 1) {
+                    var from = i;
+                    var to = 0;
+                    edges.push({
+                        'from': from,
+                        'to': to
+                    });
+                    connectionCount[from]++;
+                    connectionCount[to]++;
+                }
+                else if (i > 1) {
+                    var conn = edges.length * 2;
+                    var rand = Math.floor(Math.random() * conn);
+                    var cum = 0;
+                    var j = 0;
+                    while (j < connectionCount.length && cum < rand) {
+                        cum += connectionCount[j];
+                        j++;
+                    }
+
+                    var from = i;
+                    var to = j;
+                    edges.push({
+                        'from': from,
+                        'to': to
+                    });
+                    connectionCount[from]++;
+                    connectionCount[to]++;
+                }
+            }
+
+            // specify options
+            var options = {
+                width: '600px',
+                height: '600px',
+                edges: {
+                    length: 50
+                },
+                stabilize: false
+            };
+
+            // create a graph
+            graph = new vis.Graph(document.getElementById('mygraph'));
+
+            // draw data
+            graph.draw(nodes, edges, options);
+
+            // add event listeners
+            vis.events.addListener(graph, 'select', function(params) {
+                document.getElementById('selection').innerHTML =
+                        'Selection: ' + JSON.stringify(graph.getSelection());
+            });
+        }
+    </script>
+</head>
+
+<body onload="draw();">
+
+<form onsubmit="draw(); return false;">
+    <label for="nodeCount">Number of nodes:</label>
+    <input id="nodeCount" type="text" value="25" style="width: 50px;">
+    <input type="submit" value="Go">
+</form>
+<br>
+
+<div id="mygraph"></div>
+
+<p id="selection"></p>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Graph | Images</title>
+
+    <style type="text/css">
+        body {font: 10pt arial;}
+    </style>
+
+    <script type="text/javascript" src="../../vis.js"></script>
+
+    <script type="text/javascript">
+        var nodes = null;
+        var edges = null;
+        var graph = null;
+
+        var DIR = 'img/refresh-cl/';
+        var LENGTH_MAIN = 150;
+        var LENGTH_SUB = 50;
+
+        // Called when the Visualization API is loaded.
+        function draw() {
+            // Create a data table with nodes.
+            nodes = [];
+
+            // Create a data table with links.
+            edges = [];
+
+            nodes.push({id: 1, text: 'Main', image: DIR + 'Network-Pipe-icon.png', style: 'image'});
+            nodes.push({id: 2, text: 'Office', image: DIR + 'Network-Pipe-icon.png', style: 'image'});
+            nodes.push({id: 3, text: 'Wireless', image: DIR + 'Network-Pipe-icon.png', style: 'image'});
+            edges.push({from: 1, to: 2, length: LENGTH_MAIN});
+            edges.push({from: 1, to: 3, length: LENGTH_MAIN});
+
+            for (var i = 4; i <= 7; i++) {
+                nodes.push({id: i, text: 'Computer', image: DIR + 'Hardware-My-Computer-3-icon.png', style: 'image'});
+                edges.push({from: 2, to: i, length: LENGTH_SUB});
+            }
+
+            nodes.push({id: 101, text: 'Printer', image: DIR + 'Hardware-Printer-Blue-icon.png', style: 'image'});
+            edges.push({from: 2, to: 101, length: LENGTH_SUB});
+
+            nodes.push({id: 102, text: 'Laptop', image: DIR + 'Hardware-Laptop-1-icon.png', style: 'image'});
+            edges.push({from: 3, to: 102, length: LENGTH_SUB});
+
+            nodes.push({id: 103, text: 'graph drive', image: DIR + 'Network-Drive-icon.png', style: 'image'});
+            edges.push({from: 1, to: 103, length: LENGTH_SUB});
+
+            nodes.push({id: 104, text: 'Internet', image: DIR + 'System-Firewall-2-icon.png', style: 'image'});
+            edges.push({from: 1, to: 104, length: LENGTH_SUB});
+
+            for (var i = 200; i <= 201; i++ ) {
+                nodes.push({id: i, text: 'Smartphone', image: DIR + 'Hardware-My-PDA-02-icon.png', style: 'image'});
+                edges.push({from: 3, to: i, length: LENGTH_SUB});
+            }
+
+            // specify options
+            var options = {
+                width: '600px',
+                height: '600px',
+                stabilize: false   // stabilize positions before displaying
+            };
+
+            // create a graph
+            graph = new vis.Graph(document.getElementById('mygraph'));
+
+            // draw data
+            graph.draw(nodes, edges, options);
+        }
+    </script>
+</head>
+
+<body onload="draw()">
+
+<div id="mygraph"></div>
+
+</body>
+</html>

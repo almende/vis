@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Graph | Shapes</title>
+
+    <style type="text/css">
+        body {
+            font: 10pt arial;
+        }
+    </style>
+
+    <script type="text/javascript" src="../../vis.js"></script>
+
+    <script type="text/javascript">
+        var nodes = null;
+        var edges = null;
+        var graph = null;
+
+        function draw() {
+            nodes = [
+                {id: 1, text: 'circle', style: 'circle', group: 'group_x'},
+                {id: 2, text: 'circle', style: 'circle', group: 'group_x'},
+                {id: 3, text: 'database', style: 'database', group: 'group_x'},
+                {id: 4, text: 'rect', style: 'rect', group: 'group_x'}
+            ];
+
+            edges = [
+                {from: 3, to: 1, style: 'arrow', width: 1},
+                {from: 1, to: 4, style: 'moving-dot', width: 1},
+                {from: 1, to: 2, style: 'moving-arrows', width: 2}
+            ];
+
+            var mainId = 5;
+            nodes.push({id: mainId, text: 'styles\nand\nsizes', style: 'rect', group: 'group_main'});
+            var styles = ['dot', 'square', 'triangle', 'triangleDown', 'star'];
+            var id = 6;
+            for (var size = 1; size < 4; size++) {
+                var groupId = id;
+                nodes.push({id: id, text: 'size ' + size, style: 'rect', group: 'group' + size});
+                edges.push({from: mainId, to: groupId, color: 'gray', width: size});
+                id++;
+
+                for (var i in styles) {
+                    if (styles.hasOwnProperty(i)) {
+                        nodes.push({id: id, value: size, text: styles[i], style: styles[i], group: 'group' + size});
+                        edges.push({from: groupId, to: id, color: 'gray', width: size});
+                        id++;
+                    }
+                }
+            }
+
+            // specify options
+            var options = {
+                width:  '780px',
+                height: '600px',
+                stabilize: false
+            };
+
+            // Instantiate our graph object.
+            graph = new vis.Graph(document.getElementById('mygraph'));
+
+            // Draw our graph with the created data and options
+            graph.draw(nodes, edges, options);
+        }
+    </script>
+</head>
+
+<body onload="draw()">
+<div id="mygraph"></div>
+
+<div id="info"></div>
+</body>
+</html>

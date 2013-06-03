@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Graph | Selections</title>
+
+    <script type="text/javascript" src="../../vis.js"></script>
+</head>
+
+<body>
+
+<div id="mygraph"></div>
+<div id="info"></div>
+
+<script type="text/javascript">
+    // create an array with nodes
+    var nodes = [
+        {id: 1, text: 'Node 1'},
+        {id: 2, text: 'Node 2'},
+        {id: 3, text: 'Node 3'},
+        {id: 4, text: 'Node 4'},
+        {id: 5, text: 'Node 5'}
+    ];
+
+    // create an array with edges
+    var edges = [
+        {from: 1, to: 2},
+        {from: 1, to: 3},
+        {from: 2, to: 4},
+        {from: 2, to: 5}
+    ];
+
+    // specify options
+    var options = {
+        width: '400px',
+        height: '400px'
+    };
+
+    // create a graph
+    var graph = new vis.Graph(document.getElementById('mygraph'));
+
+    // draw the graph with the created data and options
+    graph.draw(nodes, edges, options);
+
+    // add event listener
+    function onSelect() {
+        var selection = graph.getSelection();
+
+        var info = 'selection: ';
+        selection.forEach(function (s) {
+            info += s.row + ' ';
+        });
+
+        document.getElementById('info').innerHTML += info + '<br>';
+    }
+    vis.events.addListener(graph, 'select', onSelect);
+
+    // set initial selection (row based, zero-based)
+    var selection = [
+        {'row': 2},
+        {'row': 3},
+        {'row': 4}
+    ];
+    graph.setSelection(selection);
+</script>
+
+</body>
+</html>

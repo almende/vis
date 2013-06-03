@@ -28,7 +28,8 @@ var vis = {
         TimeAxis: TimeAxis
     },
 
-    Timeline: Timeline
+    Timeline: Timeline,
+    Graph: Graph
 };
 
 /**

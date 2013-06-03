@@ -1,0 +1,96 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Graph | Social Network</title>
+
+    <style>
+        body {font: 10pt arial;}
+    </style>
+
+    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+    <script type="text/javascript" src="../../vis.js"></script>
+
+    <script type="text/javascript">
+        var nodes = null;
+        var edges = null;
+        var graph = null;
+
+        var DIR = 'img/soft-scraps-icons/';
+
+        google.load('visualization', '1');
+
+        // Set callback to run when API is loaded
+        google.setOnLoadCallback(drawVisualization);
+
+        // Called when the Visualization API is loaded.
+        function drawVisualization() {
+            // Create a data table with nodes.
+            nodes = new google.visualization.DataTable();
+            nodes.addColumn('number', 'id');
+            nodes.addColumn('string', 'text');   // optional
+            nodes.addColumn('string', 'image');  // optional
+            nodes.addColumn('string', 'style');   // optional
+
+            // Create a data table with links.
+            edges = new google.visualization.DataTable();
+            edges.addColumn('number', 'from');
+            edges.addColumn('number', 'to');
+            edges.addColumn('number', 'value');  // optional
+            edges.addColumn('string', 'color');  // optional
+            edges.addColumn('number', 'length');  // optional
+
+            // create people
+            nodes.addRow([1, 'Algie', DIR + 'Smiley-Angry-icon.png', 'image']);
+            nodes.addRow([2, 'Alston', DIR + 'Smiley-Grin-icon.png', 'image']);
+            nodes.addRow([3, 'Barney', DIR + 'User-Administrator-Blue-icon.png', 'image']);
+            nodes.addRow([4, 'Coley', DIR + 'User-Administrator-Green-icon.png', 'image']);
+            nodes.addRow([5, 'Grant', DIR + 'User-Coat-Blue-icon.png', 'image']);
+            nodes.addRow([6, 'Langdon', DIR + 'User-Coat-Green-icon.png', 'image']);
+            nodes.addRow([7, 'Lee', DIR + 'User-Coat-Red-icon.png', 'image']);
+            nodes.addRow([8, 'Merlin', DIR + 'User-Executive-Green-icon.png', 'image']);
+            nodes.addRow([9, 'Mick', DIR + 'User-Preppy-Blue-icon.png', 'image']);
+            nodes.addRow([10, 'Tod', DIR + 'User-Preppy-Red-icon.png', 'image']);
+
+            // create connections
+            var color = '#BFBFBF';
+            var len = 100; // pixels
+            var len = undefined;
+            edges.addRow([2, 8, 3, color, len]);
+            edges.addRow([2, 9, 5, color, len]);
+            edges.addRow([2, 10, 1, color, len]);
+            edges.addRow([4, 6, 8, color, len]);
+            edges.addRow([5, 7, 2, color, len]);
+            edges.addRow([4, 5, 1, color, len]);
+            edges.addRow([9, 10, 2, color, len]);
+            edges.addRow([2, 3, 6, color, len]);
+            edges.addRow([3, 9, 4, color, len]);
+            edges.addRow([5, 3, 1, color, len]);
+            edges.addRow([2, 7, 4, color, len]);
+
+            // specify options
+            var options = {
+                width:  '600px',
+                height: '600px',
+                backgroundColor: {
+                    fill: '#F3F3F3'
+                }
+            };
+
+            // Instantiate our graph object.
+            graph = new vis.Graph(document.getElementById('mygraph'));
+
+            // Draw our graph with the created data and options
+            graph.draw(nodes, edges, options);
+        }
+    </script>
+</head>
+
+<body>
+<div id="mygraph"></div>
+<p>
+    Icons: <a href="http://www.deleket.com/" target="_blank">Scrap Icons by Deleket</a>
+</p>
+
+<div id="info"></div>
+</body>
+</html>

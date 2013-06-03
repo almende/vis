@@ -1,0 +1,140 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Graph | Groups</title>
+
+    <style>
+        body {font: 10pt arial;}
+    </style>
+
+    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+    <script type="text/javascript" src="../../vis.js"></script>
+
+    <script type="text/javascript">
+        var nodes = null;
+        var edges = null;
+        var graph = null;
+
+        google.load('visualization', '1');
+
+        // Set callback to run when API is loaded
+        google.setOnLoadCallback(draw);
+
+        // Called when the Visualization API is loaded.
+        function draw() {
+            // Create and populate a data table.
+            nodes = new google.visualization.DataTable();
+            nodes.addColumn('number', 'id');
+            nodes.addColumn('string', 'text');
+            nodes.addColumn('number', 'group');
+
+            edges = new google.visualization.DataTable();
+            edges.addColumn('number', 'from');
+            edges.addColumn('number', 'to');
+            edges.addColumn('number', 'length');
+            edges.addColumn('string', 'color');
+            var color = 'gray';
+            var len = undefined;
+
+            // randomly create some nodes
+            var nodeCount = parseInt(document.getElementById('nodeCount').value);
+            var nodeOffset = 0;
+            var groupMin = 0;
+            var groupMax = parseInt(document.getElementById('groupCount').value);
+            var group = groupMin;
+            var groupLeader = new Array(); // will contain the node id with the most links of each group
+            while (group < groupMax) {
+                // randomly create some nodes
+                var i = 0;
+                var cols = parseInt(Math.sqrt(nodeCount));
+                var connectionCount = new Array();
+                while (i < nodeCount) {
+                    nodes.addRow([i + nodeOffset, i + nodeOffset + '', group]);
+                    connectionCount[i] = 0;
+
+                    // create links in a scale-free-graph way
+                    if (i == 1) {
+                        var from = i;
+                        var to = 0;
+                        edges.addRow([from + nodeOffset, to + nodeOffset, len, color]);
+                        connectionCount[from]++;
+                        connectionCount[to]++;
+                    }
+                    else if (i > 1) {
+                        var conn = (i - 1) * 2;
+                        var rand = Math.floor(Math.random() * conn);
+                        var cum = 0;
+                        var j = 0;
+                        while (j < connectionCount.length && cum < rand) {
+                            cum += connectionCount[j];
+                            j++;
+                        }
+
+                        var from = i;
+                        var to = j;
+                        edges.addRow([from + nodeOffset, to + nodeOffset, len, color]);
+                        connectionCount[from]++;
+                        connectionCount[to]++;
+                    }
+
+                    i++;
+                }
+
+                // calculate the node with the most number of connections
+                var leader = 0;
+                for (c in connectionCount) {
+                    if (connectionCount[c] > connectionCount[leader])
+                        leader = parseInt(c);
+                }
+
+                if (group > groupMin) {
+                    // connect to the leader of this group to the leader of a random other group
+                    var from = leader + nodeOffset;
+                    var to = groupLeader[groupMin + parseInt(Math.random() * (group - groupMin))];
+                    edges.addRow([from, to, len, color]);
+                }
+
+                // add this leader to the list
+                groupLeader[group] = leader + nodeOffset;
+
+                nodeOffset += nodeCount;
+                group++;
+            }
+
+            // specify options
+            var options = {
+                width:  '600px',
+                height: '600px',
+                stabilize: false,
+                nodes: {
+                    style: 'dot'
+                },
+                edges: {
+                    length: 50
+                }
+            };
+
+            // Instantiate our graph object.
+            graph = new vis.Graph(document.getElementById('mygraph'));
+
+            // Draw our graph with the created data and options
+            graph.draw(nodes, edges, options);
+        }
+    </script>
+</head>
+
+<body>
+<form onsubmit= "javascript: draw(); return false;">
+    Number of groups:
+    <input type="text" value="6" id="groupCount" style="width: 50px;">
+    Number of nodes per group:
+    <input type="text" value="7" id="nodeCount" style="width: 50px;">
+    <input type="submit" value="Go">
+</form>
+<br>
+
+<div id="mygraph"></div>
+
+<div id="info"></div>
+</body>
+</html>

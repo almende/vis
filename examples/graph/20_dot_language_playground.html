@@ -1,0 +1,212 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Graph | DOT language playground</title>
+
+    <script type="text/javascript" src="../../vis.js"></script>
+
+    <style type="text/css">
+        body, html {
+            font: 10pt sans;
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            color: #4d4d4d;
+        }
+
+        #frame {
+            width: 100%;
+            height: 99%;
+        }
+        #frame td {
+            padding: 10px;
+        }
+        #error {
+            color: red;
+        }
+
+        #data {
+            float: left;
+            width: 100%;
+            height: 100%;
+            border: 1px solid #d3d3d3;
+        }
+
+        #graph {
+            float: left;
+            width: 100%;
+            height: 100%;
+        }
+
+        textarea.example {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<table id="frame">
+    <col width="50%">
+    <col width="50%">
+    <tr>
+        <td colspan="2" style="height: 50px;">
+            <h1>Directed graph from data in DOT language</h1>
+            <div>
+                <a href="javascript: drawExample('example1')">example 1</a>
+                <a href="javascript: drawExample('example2')">example 2</a>
+                <a href="javascript: drawExample('example3')">example 3</a>
+            </div>
+            <div>
+                <br>
+                <button id="draw">Draw</button>
+                <span id="error"></span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <textarea id="data"></textarea>
+        </td>
+        <td>
+            <div id="graph"></div>
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+    var graph, data;
+
+    var btnDraw = document.getElementById('draw');
+    var txtData = document.getElementById('data');
+    var txtError = document.getElementById('error');
+    btnDraw.onclick = draw;
+
+    // resize the graph when window resizes
+    window.onresize = function () {
+        graph.redraw()
+    };
+
+    // parse and draw the data
+    function draw () {
+        try {
+            // create a graph
+            graph = new vis.Graph(document.getElementById('graph'));
+
+            txtError.innerHTML = '';
+
+            // parse the data from DOT-notation
+            data = vis.Graph.util.DOTToGraph(txtData.value);
+
+            // draw the data in the graph view
+            var options = data.options;
+            options.width = '100%';
+            //options.links.length = options.links.length;
+            options.height = '100%';
+            //options.nodes.radius = 20;
+            //options.links.width = 2;
+            graph.draw(data.nodes, data.edges, options);
+        }
+        catch (err) {
+            // set the cursor at the position where the error occurred
+            var match = /\(char (.*)\)/.exec(err);
+            if (match) {
+                var pos = Number(match[1]);
+                if(txtData.setSelectionRange) {
+                    txtData.focus();
+                    txtData.setSelectionRange(pos, pos);
+                }
+            }
+
+            // show an error message
+            txtError.innerHTML =  err.toString();
+        }
+    }
+
+    /**
+     * Draw an example
+     * @param {String} id HTML id of the textarea containing the example code
+     */
+    function drawExample(id) {
+        txtData.value = document.getElementById(id).value;
+        draw();
+    }
+</script>
+
+<textarea id="example1" class="example">
+digraph {
+    node [style=circle fontSize=16]
+    edge [length=100, color=gray, fontColor=black]
+
+    A -> A[text=0.5];
+    B -> B[text=1.2] -> C[text=0.7] -- A;
+    B -> D;
+    D -> B;
+    D -> C;
+    D -> E[text=0.2];
+    F -> F;
+    A [
+        fontColor=red,
+        borderColor=red,
+        backgroundColor=white,
+        highlightColor=white
+    ]
+}
+</textarea>
+
+<textarea id="example2" class="example">
+digraph topology
+{
+    node[shape=circle fontSize=12]
+    edge[length=170 fontSize=12]
+    "10.0.255.1" -> "10.0.255.3"[label="1.000"];
+    "10.0.255.1" -> "10.0.255.2"[label="1.000"];
+    "10.0.255.1" -> "10.0.255.2"[label="1.000"];
+    "10.0.255.1" -> "10.0.255.3"[label="1.000"];
+    "10.0.255.2" -> "10.0.255.1"[label="1.000"];
+    "10.0.255.2" -> "10.0.255.3"[label="1.000"];
+    "10.0.255.3" -> "10.0.255.1"[label="1.000"];
+    "10.0.255.3" -> "10.0.255.2"[label="1.000"];
+    "10.0.255.3" -> "10.0.3.0/24"[label="HNA", style=solid];
+    "10.0.3.0/24"[shape=rect];
+    "10.0.255.2" -> "10.0.2.0/24"[label="HNA"];
+    "10.0.2.0/24"[shape=rect];
+    "10.0.255.1" -> "10.0.1.0/24"[label="HNA"];
+    "10.0.1.0/24"[shape=rect];
+}
+</textarea>
+
+<textarea id="example3" class="example">
+digraph G  {
+    // note: not all attributes are recognized and supported by Network
+    //       unrecognized attributes are ignored
+
+    node[width=.25,height=.375,fontsize=15]
+    node [style=filled fillcolor=#F1AAF0]
+    0-> 0 ;
+    1-> 1 ;
+    2-> 2 ;
+    3-> 3 ;
+    4-> 4 ;
+    5-> 5 ;
+    6-> 6 ;
+    7-> 5 ;
+    8-> 8 ;
+    9-> 9 ;
+    10-> 10 ;
+    11-> 10 ;
+    12-> 12 ;
+    13-> 5 ;
+    14-> 10 ;
+    15-> 0 ;
+}
+</textarea>
+
+<script>
+
+    // draw example1 now
+    drawExample('example1');
+</script>
+
+</body>
+</html>

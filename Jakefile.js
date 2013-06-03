@@ -66,6 +66,7 @@ task('build', {async: true}, function () {
             './src/component/groupset.js',
 
             './src/timeline.js',
+            './src/graph/graph.js',
 
             './src/module/exports.js'
         ],
