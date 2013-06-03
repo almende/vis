@@ -1,0 +1,1532 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Graph documentation</title>
+    <link rel='stylesheet' href='css/style.css' type='text/css' />
+
+    <link href="prettify/prettify.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="prettify/prettify.js"></script>
+
+    <style>
+        pre.prettyprint {
+            border-color: lightgray;
+        }
+    </style>
+</head>
+
+<body onload="prettyPrint();">
+<div id="container">
+
+<h1>Graph documentation</h1>
+
+<table>
+    <tr>
+        <td>Author</td>
+        <td>Jos de Jong, <a href="http://www.almende.com" target="_blank">Almende B.V.</a></td>
+    </tr>
+    <tr>
+        <td>Webpage</td>
+        <td><a href="http://visjs.org" target="_blank">http://visjs.org</a></td>
+    </tr>
+    <tr>
+        <td>License</td>
+        <td> <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License, Version 2.0</a></td>
+    </tr>
+</table>
+
+
+<h2><a name="Contents"></a>Contents</h2>
+<ul>
+    <li><a href="#Overview">Overview</a></li>
+    <li><a href="#Example">Example</a></li>
+    <li><a href="#Loading">Loading</a></li>
+    <li><a href="#Data_Format">Data Format</a></li>
+    <li><a href="#Data_Import">Data Import</a></li>
+    <li><a href="#Dynamic_Data">Dynamic Data</a></li>
+    <li><a href="#Configuration_Options">Configuration Options</a></li>
+    <li><a href="#Methods">Methods</a></li>
+    <li><a href="#Events">Events</a></li>
+    <li><a href="#Data_Policy">Data Policy</a></li>
+</ul>
+
+<h2><a name="Overview"></a>Overview</h2>
+<p>
+    Graph is a visualization to display graphs and networks consisting of nodes
+    and edges. The visualization is easy to use and supports custom styles,
+    colors, sizes, images, and more.
+</p>
+
+<p>
+    The graph visualization works smooth on any modern browser for up to a
+    few hundred nodes and edges.
+</p>
+
+<p>
+    To get started with Graph, install or download the
+    <a href="http://visjs.org" target="_blank">vis.js</a> library.
+</p>
+
+<h2><a name="Example"></a>Example</h2>
+<p>
+    Here a basic graph example. More examples can be found in the
+    <a href="../examples" target="_blank">examples directory</a>.
+</p>
+
+<pre class="prettyprint lang-html">&lt;!doctype html&gt;
+    &lt;html&gt;
+    &lt;head&gt;
+        &lt;title&gt;Graph | Basic usage&lt;/title&gt;
+
+        &lt;script type="text/javascript" src="../../vis.js"&gt;&lt;/script&gt;
+    &lt;/head&gt;
+
+    &lt;body&gt;
+
+    &lt;div id="mygraph"&gt;&lt;/div&gt;
+
+    &lt;script type="text/javascript"&gt;
+        // create an array with nodes
+        var nodes = [
+            {id: 1, text: 'Node 1'},
+            {id: 2, text: 'Node 2'},
+            {id: 3, text: 'Node 3'},
+            {id: 4, text: 'Node 4'},
+            {id: 5, text: 'Node 5'}
+        ];
+
+        // create an array with edges
+        var edges = [
+            {from: 1, to: 2},
+            {from: 1, to: 3},
+            {from: 2, to: 4},
+            {from: 2, to: 5}
+        ];
+
+        // specify options
+        var options = {
+            width: '400px',
+            height: '400px'
+        };
+
+        // create a graph
+        var graph = new vis.Graph(document.getElementById('mygraph'));
+
+        // draw the graph with the created data and options
+        graph.draw(nodes, edges, options);
+    &lt;/script&gt;
+
+    &lt;/body&gt;
+    &lt;/html&gt;
+</pre>
+
+
+<h2><a name="Loading"></a>Loading</h2>
+<p>
+    Install or download the <a href="http://visjs.org" target="_blank">vis.js</a> library.
+    in a subfolder of your project. Include the library script in the head of your html code:
+</p>
+
+<pre class="prettyprint lang-html">
+&lt;script type="text/javascript" src="vis/vis.js"&gt;&lt;/script&gt;
+</pre>
+
+
+The class name of the Graph is <code>vis.Graph</code>
+<pre class="prettyprint lang-js">var graph = new vis.Graph(container);</pre>
+
+After being loaded, the graph can be drawn via the function <code>draw()</code>,
+provided with data and options.
+<pre class="prettyprint lang-js">graph.draw(nodes, edges, packages, options);</pre>
+where <code>nodes</code>, <code>edges</code>, and <code>packages</code> are
+an <code>Array</code>, and <code>options</code> is a name-value map in the
+JSON format. Both <code>edges</code> and <code>packages</code> are optional.
+
+
+
+
+<h2><a name="Data_Format"></a>Data Format</h2>
+<p>
+    Graph accepts the following data
+</p>
+<ul>
+    <li><b>Nodes</b>. An array which defines the nodes. Required.</li>
+    <li><b>Edges</b>. An array which defines edges between nodes. Optional.</li>
+    <li><b>Packages</b>. An array which defines static and/or interactive packages
+        moving between nodes. Required.</li>
+</ul>
+
+<h3>Nodes</h3>
+
+<p>
+    The node array is required for the graph visualization.
+
+    The array must contain at least a property <code>id</code>.
+    The array can have extra properties, used to define the type and style of
+    individual nodes.
+</p>
+
+<p>
+    A JavaScript Array with nodes is constructed like:
+</p>
+<pre class="prettyprint lang-js">
+var nodes = [
+    {
+      'id': 1,
+      'text': 'Node 1'
+    },
+    // ... more data
+];
+</pre>
+
+
+<p>
+    The node properties are defined as:
+</p>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>action</td>
+        <td>string</td>
+        <td>no</td>
+        <td>By specifying <code>action</code>, a node can be created, updated,
+            or deleted. This is useful in combination with <code>timestamp</code>
+            to animate history, or for dynamically updating the graph.
+
+            Available values are: <code>create</code>,
+            <code>update</code> (default), or <code>delete</code>.
+        </td>
+    </tr>
+
+    <tr>
+        <td>backgroundColor</td>
+        <td>String</td>
+        <td>"#97C2FC"</td>
+        <td>Background color for the node.</td>
+    </tr>
+
+    <tr>
+        <td>borderColor</td>
+        <td>String</td>
+        <td>"#2B7CE9"</td>
+        <td>Border color for the node.</td>
+    </tr>
+
+    <tr>
+        <td>group</td>
+        <td>*</td>
+        <td>no</td>
+        <td>A group number or name. The type can be <code>number</code>,
+            <code>string</code>, or an other type. All nodes with the same group get
+            the same color schema.</td>
+    </tr>
+
+    <tr>
+        <td>fontColor</td>
+        <td>String</td>
+        <td>"black"</td>
+        <td>Font color for text in the node.</td>
+    </tr>
+
+    <tr>
+        <td>fontFace</td>
+        <td>String</td>
+        <td>"sans"</td>
+        <td>Font face for text in the node, for example "verdana" or "arial".</td>
+    </tr>
+
+    <tr>
+        <td>fontSize</td>
+        <td>Number</td>
+        <td>14</td>
+        <td>Font size in pixels for text in the node.</td>
+    </tr>
+
+    <tr>
+        <td>highlightColor</td>
+        <td>String</td>
+        <td>"#D2E5FF"</td>
+        <td>Background color of the node when selected.</td>
+    </tr>
+
+    <tr>
+        <td>id</td>
+        <td>*</td>
+        <td>yes</td>
+        <td>A unique id for this node.
+            Nodes may not have duplicate id's.
+            Id's do not need to be consecutive.
+            An id is normally a number, but may be any type.</td>
+    </tr>
+
+    <tr>
+        <td>image</td>
+        <td>string</td>
+        <td>no</td>
+        <td>Url of an image. Only applicable when the style of the node is
+            <code>image</code>.</td>
+    </tr>
+
+    <tr>
+        <td>radius</td>
+        <td>number</td>
+        <td>no</td>
+        <td>Radius for the node. Applicable for all styles except <code>rect</code>,
+            <code>circle</code>, and <code>database</code>.
+            The value of <code>radius</code> will override a value in
+            property <code>value</code>.</td>
+    </tr>
+
+    <tr>
+        <td>style</td>
+        <td>string</td>
+        <td>no</td>
+        <td>Define the shape for the node.
+            Choose from <code>rect</code> (default), <code>circle</code>,
+            <code>database</code>, <code>image</code>, <code>text</code>,
+            <code>dot</code>, <code>star</code>, <code>triangle</code>,
+            <code>triangleDown</code>, and <code>square</code>.
+            <br><br>
+
+            In case of <code>image</code>, a property with name <code>image</code> must
+            be provided, containing image urls.
+            <br><br>
+
+            The shapes <code>dot</code>, <code>star</code>, <code>triangle</code>,
+            <code>triangleDown</code>, and <code>square</code>, are scalable.
+            The size is determined by the properties <code>radius</code> or
+            <code>value</code>.
+            <br><br>
+
+            When a property <code>text</code> is provided,
+            this text will be displayed inside the shape in case of styles
+            <code>rect</code>, <code>circle</code>, and <code>database</code>.
+            For all other shapes, the text will be displayed right below the shape.
+
+        </td>
+    </tr>
+
+    <tr>
+        <td>text</td>
+        <td>string</td>
+        <td>no</td>
+        <td>Text to be displayed in the node or under the image of the node.
+            Multiple lines can be separated by a newline character <code>\n</code> .</td>
+    </tr>
+
+    <tr>
+        <td>timestamp</td>
+        <td>Date | Number</td>
+        <td>no</td>
+        <td>Timestamp used for filtering nodes when animating.
+            See section <a href="#Animation">Animation</a> for more information.</td>
+    </tr>
+
+    <tr>
+        <td>title</td>
+        <td>string</td>
+        <td>no</td>
+        <td>Title to be displayed when the user hovers over the node.
+            The title can contain HTML code.</td>
+    </tr>
+
+    <tr>
+        <td>value</td>
+        <td>number</td>
+        <td>no</td>
+        <td>A value for the node.
+            The radius of the nodes will be scaled automatically from minimum to
+            maximum value.
+            Only applicable when the style of the node is <code>dot</code>.
+            If a <code>radius</code> is provided for the node too, it will override the
+            radius calculated from the value.</td>
+    </tr>
+
+    <tr>
+        <td>x</td>
+        <td>number</td>
+        <td>no</td>
+        <td>Horizontal position in pixels.
+            The horizontal position of the node will be fixed.
+            The vertical position y may remain undefined.</td>
+    </tr>
+    <tr>
+        <td>y</td>
+        <td>number</td>
+        <td>no</td>
+        <td>Vertical position in pixels.
+            The vertical position of the node will be fixed.
+            The horizontal position x may remain undefined.</td>
+    </tr>
+
+</table>
+
+
+<h3>Edges</h3>
+
+<p>
+    The array with edges must at least contain properties <code>from</code> and
+    <code>to</code>.
+    The array can have extra properties, used to define the type and style of
+    individual edges.
+</p>
+
+<p>
+    A JavaScript Array with edges is constructed as:
+</p>
+<pre class="prettyprint lang-js">
+var edges= [
+    {
+      'from': 1,
+      'to': 3
+    },
+    // ... more data
+];
+</pre>
+
+<p>
+    The edge properties are defined as:
+</p>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>action</td>
+        <td>string</td>
+        <td>no</td>
+        <td>By specifying <code>action</code>, a link can be created, updated,
+            or deleted. This is useful in combination with <code>timestamp</code>
+            to animate history, or for dynamically updating the graph.
+
+            An action on a link can only be used when the link has an id.
+
+            Available values are: <code>create</code> (default),
+            <code>update</code>, or <code>delete</code>.
+
+        </td>
+    </tr>
+
+    <tr>
+        <td>altdashlength</td>
+        <td>number</td>
+        <td>no</td>
+        <td>Length of the alternated dash in pixels on a dashed line.
+            Specifying <code>altdashlength</code> allows for creating
+            a dashed line with a dash-dot style, for example when
+            <code>dashlength=10</code> and <code>altdashlength=5</code>.
+            See also the option <code>dashlength</code>.
+            Only applicable when the line style is <code>dash-line</code>.</td>
+    </tr>
+
+    <tr>
+        <td>color</td>
+        <td>string</td>
+        <td>no</td>
+        <td>A HTML color for the link.</td>
+    </tr>
+
+    <tr>
+        <td>dashlength</td>
+        <td>number</td>
+        <td>no</td>
+        <td>Length of a dash in pixels on a dashed line.
+            Only applicable when the line style is <code>dash-line</code>.</td>
+    </tr>
+
+    <tr>
+        <td>dashgap</td>
+        <td>number</td>
+        <td>no</td>
+        <td>Length of a gap in pixels on a dashed line.
+            Only applicable when the line style is <code>dash-line</code>.</td>
+    </tr>
+
+    <tr>
+        <td>fontColor</td>
+        <td>String</td>
+        <td>"black"</td>
+        <td>Font color for the text label of the link.
+        Only applicable when "text" is defined.</td>
+    </tr>
+
+    <tr>
+        <td>fontFace</td>
+        <td>String</td>
+        <td>"sans"</td>
+        <td>Font face for the text label of the link,
+            for example "verdana" or "arial".
+            Only applicable when "text" is defined.</td>
+    </tr>
+
+    <tr>
+        <td>fontSize</td>
+        <td>Number</td>
+        <td>14</td>
+        <td>Font size in pixels for the text label of the link.
+            Only applicable when "text" is defined.</td>
+    </tr>
+
+    <tr>
+        <td>from</td>
+        <td>*</td>
+        <td>yes</td>
+        <td>The id of a node where the link starts. The type must correspond with
+            the type of the node id's. This is normally a number, but can be any
+            type.</td>
+    </tr>
+
+    <tr>
+        <td>length</td>
+        <td>number</td>
+        <td>no</td>
+        <td>The length of the link in pixels.</td>
+    </tr>
+
+    <tr>
+        <td>style</td>
+        <td>string</td>
+        <td>no</td>
+        <td>Define a drawing style for the link.
+            Choose from <code>line</code> (default), <code>arrow</code>,
+            <code>arrow-end</code>, <code>moving-arrows</code>,
+            or <code>dash-line</code>.
+        </td>
+    </tr>
+
+    <tr>
+        <td>text</td>
+        <td>string</td>
+        <td>no</td>
+        <td>Text to be displayed halfway the link.</td>
+    </tr>
+
+    <tr>
+        <td>timestamp</td>
+        <td>Date | Number</td>
+        <td>no</td>
+        <td>Timestamp used for filtering edges when animating.
+            See section <a href="#Animation">Animation</a> for more information.</td>
+    </tr>
+
+    <tr>
+        <td>title</td>
+        <td>string</td>
+        <td>no</td>
+        <td>Title to be displayed when the user hovers over the link.
+            The title can contain HTML code.</td>
+    </tr>
+
+    <tr>
+        <td>to</td>
+        <td>*</td>
+        <td>yes</td>
+        <td>The id of a node where the link ends. The type must correspond with
+            the type of the node id's. This is normally a number, but can be any
+            type.</td>
+    </tr>
+    <tr>
+        <td>value</td>
+        <td>number</td>
+        <td>no</td>
+        <td>A value for the link.
+            The width of the edges will be scaled automatically from minimum to
+            maximum value.
+            If a <code>width</code> is provided for the link too, it will override the
+            width calculated from the value.</td>
+    </tr>
+
+    <tr>
+        <td>width</td>
+        <td>number</td>
+        <td>no</td>
+        <td>Width of the line in pixels. The <code>width</code> will
+            override a specified <code>value</code>, if a <code>value</code> is
+            specified too.</td>
+    </tr>
+</table>
+
+
+
+<h3>Packages</h3>
+<p>
+    The array with packages must at least contain properties <code>from</code> and
+    <code>to</code>.
+    The array can have extra properties, used to define the type and style of
+    individual packages.
+</p>
+
+<p>
+    There are two types of packages:
+</p>
+
+<ul>
+    <li><b>Automatic</b>. When no value for the <code>progress</code> is provided,
+        the package is automatically moved from start node to end node, and deleted
+        once it has reached the end node. The duration can be customized by setting
+        a value for <code>duration</code>.</li>
+    <li><b>Manual</b>. When a value for the <code>progress</code> is provided,
+        the package is positioned at the given progress between start and end node.
+        The progress can be updated dynamically via the method <code>addPackages</code>,
+        and can be deleted via the method <code>deletePackage</code>. Manual packages
+        must have an id specified, in order to be able to update and delete them lateron.
+</ul>
+
+<p>
+    A JavaScript Array with packages is constructed as:
+</p>
+<pre class="prettyprint lang-js">
+var packages = [
+    {
+        'from': 1,
+        'to': 3
+    }
+    // ... more data
+];
+</pre>
+
+
+<p>
+    The package properties are defined as:
+</p>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>action</td>
+        <td>string</td>
+        <td>no</td>
+        <td>By specifying <code>action</code>, a package can be created or deleted.
+
+            Available values are: <code>create</code> (default),
+            <code>update</code>, or <code>delete</code>.
+
+            When a package is created with an id which already exists, the existing
+            package will be updated. The <code>action</code> property can be used in
+            combination with <code>timestamp</code> to animate history.
+        </td>
+    </tr>
+
+    <tr>
+        <td>color</td>
+        <td>string</td>
+        <td>no</td>
+        <td>A HTML color for the package.</td>
+    </tr>
+    <tr>
+        <td>duration</td>
+        <td>number</td>
+        <td>no</td>
+        <td>Duration in seconds the animation of the package moving from start to
+            end node. Only applicable when progress is not provided.
+        </td>
+    </tr>
+
+    <tr>
+        <td>from</td>
+        <td>*</td>
+        <td>yes</td>
+        <td>The id of a node where the link starts. The type must correspond with
+            the type of the node id's. This is normally a number, but can be any
+            type.</td>
+    </tr>
+
+    <tr>
+        <td>id</td>
+        <td>*</td>
+        <td>yes</td>
+        <td>A unique id for the package. Packages cannot have duplicate id's.
+            An id is required for packages with manually defined progress,
+            in order to be able to update or delete them lateron.
+        </td>
+    </tr>
+    <tr>
+        <td>image</td>
+        <td>string</td>
+        <td>no</td>
+        <td>Url of an image. Only applicable when style is <code>image</code>.</td>
+    </tr>
+
+    <tr>
+        <td>progress</td>
+        <td>number</td>
+        <td>no</td>
+        <td>A number between 0 and 1 which determines the progress of the package
+            between the start and end node. If progress is defined, the package must
+            also have an id defined.
+        </td>
+    </tr>
+
+    <tr>
+        <td>radius</td>
+        <td>number</td>
+        <td>no</td>
+        <td>The radius of the package. Only applicable when style is <code>dot</code>.</td>
+    </tr>
+
+    <tr>
+        <td>style</td>
+        <td>string</td>
+        <td>no</td>
+        <td>Define a drawing style for the package.
+            Choose from <code>dot</code> (default), <code>image</code>,
+            <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, or
+            <code>square</code>.
+
+            In case of an image, a property with image url must be provided in the package.
+        </td>
+    </tr>
+
+    <tr>
+        <td>title</td>
+        <td>string</td>
+        <td>no</td>
+        <td>Title to be displayed when the user hovers over the package.
+            The title can contain HTML code.</td>
+    </tr>
+
+    <tr>
+        <td>to</td>
+        <td>*</td>
+        <td>yes</td>
+        <td>The id of a node where the link ends. The type must correspond with
+            the type of the node id's. This is normally a number, but can be any
+            type.</td>
+    </tr>
+
+    <tr>
+        <td>timestamp</td>
+        <td>Date or number</td>
+        <td>no</td>
+        <td>The time on which this package is added or removed.
+            Only applicable in combination with the property <code>action</code>.
+            When timestamp is provided, a slider with start and stop button is created
+            to enable playing history.
+        </td>
+    </tr>
+
+    <tr>
+        <td>value</td>
+        <td>number</td>
+        <td>no</td>
+        <td>A value for the package.
+            The radius of the packages will be scaled automatically from minimum to
+            maximum value.
+            Only applicable when the style of the node is <code>dot</code>.
+            If a parameter <code>radius</code> is provided for the node too,
+            this will override the radius calculated from the value.</td>
+    </tr>
+
+</table>
+
+<h2><a name="Data_Import"></a>Data Import</h2>
+
+<p>
+    Graph contains parser to import data in the
+    <a href="http://en.wikipedia.org/wiki/DOT_language" target="_blank">DOT language</a>.
+    There following methods are available:
+</p>
+
+
+<table>
+<tr>
+    <th>Method</th>
+    <th>Return Type</th>
+    <th>Description</th>
+</tr>
+<tr>
+    <td>vis.Graph.util.parseDOT(data)</td>
+    <td>Object</td>
+    <td>
+        Parse a string containing data in DOT language into a JSON object.
+        The returned object contains two arrays, <code>nodes</code>,
+        <code>edges</code>, containing the parsed nodes and edges.
+    </td>
+</tr>
+    <tr>
+        <td>vis.Graph.util.DOTToGraph(data)</td>
+        <td>Object</td>
+        <td>
+            Convert a string containing a graph in DOT language into a map
+            containing with nodes and edges in the format of Graph.
+            The returned object contains parameters <code>nodes</code>,
+            <code>edges</code>, and <code>options</code>, which can be used
+            directly to draw a graph using <code>draw(nodes, edges, options)</code>.
+        </td>
+    </tr>
+</table>
+
+<p>
+Example usage:
+</p>
+
+<pre class="prettyprint lang-js">
+    // create a graph view
+    var graph = new vis.Graph(container);
+
+    // parse data in DOT-notation
+    var dot = 'digraph {1 -> 1 -> 2; 2 -> 3; 2 -- 4; 2 -> 1 }';
+    data = vis.Graph.util.DOTToGraph(dot);
+
+    // draw the data
+    graph.draw(data.nodes, data.edges, data.options);
+</pre>
+
+
+<h2><a name="Configuration_Options"></a>Configuration Options</h2>
+
+<p>
+    Options can be used to customize the graph. Options are defined as a JSON object.
+    All options are optional.
+</p>
+
+<pre class="prettyprint lang-js">
+var options = {
+    'width':  '100%',
+    'height': '400px',
+    'edges': {
+        'color': 'red',
+        'width': 2
+    }
+};
+</pre>
+
+<p>
+    The following options are available.
+</p>
+
+<table>
+<tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+</tr>
+
+<tr>
+    <td>backgroundColor</td>
+    <td>String or Object</td>
+    <td>"white"</td>
+    <td>The background color for the main area of the chart.
+        Can be either a simple HTML color string, for example: 'red' or '#00cc00',
+        or an object with optional properties stroke, strokeWidth, and fill.</td>
+</tr>
+<tr>
+    <td>backgroundColor.stroke</td>
+    <td>String</td>
+    <td>"#666"</td>
+    <td>The color of the chart border, as an HTML color string.</td>
+</tr>
+<tr>
+    <td>backgroundColor.strokeWidth</td>
+    <td>Number</td>
+    <td>1</td>
+    <td>The border width, in pixels.</td>
+</tr>
+<tr>
+    <td>backgroundColor.fill</td>
+    <td>String</td>
+    <td>"white"</td>
+    <td>The chart fill color, as an HTML color string.</td>
+</tr>
+
+<tr>
+    <td>groups</td>
+    <td>Object</td>
+    <td>none</td>
+    <td>It is possible to specify custom styles for groups.
+        Each node assigned a group gets the specified style.
+        See <a href="#Groups">Groups</a> for an overview of the available styles
+        and an example.
+    </td>
+</tr>
+
+<tr>
+    <td>height</td>
+    <td>String</td>
+    <td>"400px"</td>
+    <td>The height of the graph in pixels or as a percentage.</td>
+</tr>
+
+<tr>
+    <td>edges.altdashlength</td>
+    <td>number</td>
+    <td>none</td>
+    <td>Length of the alternated dash in pixels on a dashed line.
+        Specifying <code>altdashlength</code> allows for creating
+        a dashed line with a dash-dot style, for example when
+        <code>dashlength=10</code> and <code>altdashlength=5</code>.
+        See also the option <code>dashlength</code>.
+        Only applicable when the line style is <code>dash-line</code>.</td>
+</tr>
+
+<tr>
+    <td>edges.color</td>
+    <td>String</td>
+    <td>"#2B7CE9"</td>
+    <td>The default color of a link.</td>
+</tr>
+
+<tr>
+    <td>edges.dashlength</td>
+    <td>number</td>
+    <td>10</td>
+    <td>Length of a dash in pixels on a dashed line.
+        Only applicable when the line style is <code>dash-line</code>.</td>
+</tr>
+
+<tr>
+    <td>edges.dashgap</td>
+    <td>number</td>
+    <td>5</td>
+    <td>Length of a gap in pixels on a dashed line.
+        Only applicable when the line style is <code>dash-line</code>.</td>
+</tr>
+
+<tr>
+    <td>edges.length</td>
+    <td>Number</td>
+    <td>100</td>
+    <td>The default length of a link.</td>
+</tr>
+<tr>
+    <td>edges.style</td>
+    <td>String</td>
+    <td>"line"</td>
+    <td>The default style of a link.
+        Choose from <code>line</code> (default), <code>arrow</code>,
+        <code>moving-arrows</code>, <code>dash-line</code>.</td>
+</tr>
+<tr>
+    <td>edges.width</td>
+    <td>Number</td>
+    <td>1</td>
+    <td>The default width of a link.</td>
+</tr>
+
+<tr>
+    <td>nodes.borderColor</td>
+    <td>String</td>
+    <td>"#2B7CE9"</td>
+    <td>Default border color of the nodes</td>
+</tr>
+
+<tr>
+    <td>nodes.backgroundColor</td>
+    <td>String</td>
+    <td>"#97C2FC"</td>
+    <td>Default background color of the nodes</td>
+</tr>
+<tr>
+    <td>nodes.highlightColor</td>
+    <td>String</td>
+    <td>"#D2E5FF"</td>
+    <td>Default background color of the node when the node is selected.</td>
+</tr>
+
+<tr>
+    <td>nodes.fontColor</td>
+    <td>String</td>
+    <td>"black"</td>
+    <td>Default font color for text in the nodes.</td>
+</tr>
+<tr>
+    <td>nodes.fontFace</td>
+    <td>String</td>
+    <td>"sans"</td>
+    <td>Default font face for text in the nodes, for example "verdana" or "arial".</td>
+</tr>
+<tr>
+    <td>nodes.fontSize</td>
+    <td>Number</td>
+    <td>14</td>
+    <td>Default font size in pixels for text in the nodes.</td>
+</tr>
+<tr>
+    <td>nodes.group</td>
+    <td>String</td>
+    <td>none</td>
+    <td>Default group for the nodes.</td>
+</tr>
+<tr>
+    <td>nodes.image</td>
+    <td>String</td>
+    <td>none</td>
+    <td>Default image url for the nodes. only applicable with style <code>image</code>.</td>
+</tr>
+
+<tr>
+    <td>nodes.widthMin</td>
+    <td>Number</td>
+    <td>16</td>
+    <td>The minimum width for a scaled image. Only applicable with style <code>image</code>.</td>
+</tr>
+<tr>
+    <td>nodes.widthMax</td>
+    <td>Number</td>
+    <td>64</td>
+    <td>The maximum width for a scaled image. Only applicable with style <code>image</code>.</td>
+</tr>
+
+<tr>
+    <td>nodes.style</td>
+    <td>String</td>
+    <td>"rect"</td>
+    <td>The default style for all nodes.
+        Choose from <code>rect</code> (default), <code>circle</code>,
+        <code>database</code>, <code>image</code>, <code>text</code>, <code>dot</code>.
+        This style can be overridden by a group style, or by a style of an individual node.</td>
+</tr>
+<tr>
+    <td>nodes.radius</td>
+    <td>Number</td>
+    <td>5</td>
+    <td>The default radius for a node. Only applicable with style <code>dot</code>.</td>
+</tr>
+<tr>
+    <td>nodes.radiusMin</td>
+    <td>Number</td>
+    <td>5</td>
+    <td>The minimum radius for a scaled node. Only applicable with style <code>dot</code>.</td>
+</tr>
+<tr>
+    <td>nodes.radiusMax</td>
+    <td>Number</td>
+    <td>20</td>
+    <td>The maximum radius for a scaled node. Only applicable with style <code>dot</code>.</td>
+</tr>
+
+<tr>
+    <td>packages.color</td>
+    <td>String</td>
+    <td>"#2B7CE9"</td>
+    <td>Default color for all packages</td>
+</tr>
+<tr>
+    <td>packages.duration</td>
+    <td>Number</td>
+    <td>1.0</td>
+    <td>Default duration of animated packages in seconds.</td>
+</tr>
+<tr>
+    <td>packages.image</td>
+    <td>String</td>
+    <td>none</td>
+    <td>Default image for all packages.
+        Style of the packages must be set to <code>image</code></td>
+</tr>
+
+<tr>
+    <td>packages.widthMin</td>
+    <td>Number</td>
+    <td>16</td>
+    <td>The minimum width for a scaled package. Only applicable with style <code>image</code>.</td>
+</tr>
+<tr>
+    <td>packages.widthMax</td>
+    <td>Number</td>
+    <td>64</td>
+    <td>The maximum width for a scaled package. Only applicable with style <code>image</code>.</td>
+</tr>
+
+<tr>
+    <td>packages.radius</td>
+    <td>Number</td>
+    <td>5</td>
+    <td>Default radius for all packages.</td>
+</tr>
+<tr>
+    <td>packages.radiusMin</td>
+    <td>Number</td>
+    <td>5</td>
+    <td>The minimum radius for a scaled package. Only applicable with style <code>dot</code>.</td>
+</tr>
+<tr>
+    <td>packages.radiusMax</td>
+    <td>Number</td>
+    <td>20</td>
+    <td>The maximum radius for a scaled package. Only applicable with style <code>dot</code>.</td>
+</tr>
+
+<tr>
+    <td>packages.style</td>
+    <td>String</td>
+    <td>"dot"</td>
+    <td>Default style for all packages.
+        Choose from <code>dot</code> (default) or <code>image</code>.
+        In case of an image, a property with image url must be provided in the package.</td>
+</tr>
+
+<tr>
+    <td>selectable</td>
+    <td>Boolean</td>
+    <td>true</td>
+    <td>If true, nodes in the graph can be selected by clicking them, or
+        by keeping the <code>Shift</code> key down and dragging a selection area around them.
+        When the <code>Ctrl</code> key is down, the new selection is appended to the
+        previous selection. If not, the new selection replaces the previous selection.</td>
+</tr>
+
+<tr>
+    <td>stabilize</td>
+    <td>Boolean</td>
+    <td>true</td>
+    <td>If true, the graph is stabilized before displaying it. If false,
+        the nodes move to a stabe position visibly in an animated way.</td>
+</tr>
+
+<tr>
+    <td>width</td>
+    <td>String</td>
+    <td>"400px"</td>
+    <td>The width of the graph in pixels or as a percentage.</td>
+</tr>
+
+</table>
+
+<br>
+
+<h3><a name="Groups"></a>Groups</h3>
+
+<p>It is possible to specify custom styles for groups of nodes.
+    Each node having assigned to this group gets the specified style.
+    The options <code>groups</code> is an object containing one or multiple groups,
+    identified by a unique string, the groupname.
+</p>
+<p>
+    A group can have the following styles:
+</p>
+
+<pre class="prettyprint lang-js">
+var options = {
+  // ...
+
+  'groups': {
+    'mygroup': {
+      'style': 'circle',
+      'borderColor': 'black',
+      'backgroundColor': 'white',
+      'fontColor': 'red',
+      'fontSize': 18,
+      'highlightColor': 'yellow'
+    }
+    // add more groups here
+  }
+};
+
+var nodes = [
+    {id: 1, text: 'Node 1'},                    // will get the default style
+    {id: 2, text: 'Node 2', group: 'mygroup'},  // will get the style from 'mygroup'
+    // ... more data
+];
+</pre>
+
+
+<p>The following styles are available for groups:</p>
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>borderColor</td>
+        <td>String</td>
+        <td>"#2B7CE9"</td>
+        <td>Border color of the node</td>
+    </tr>
+
+    <tr>
+        <td>backgroundColor</td>
+        <td>String</td>
+        <td>"#97C2FC"</td>
+        <td>Background color of the node</td>
+    </tr>
+    <tr>
+        <td>highlightColor</td>
+        <td>String</td>
+        <td>"#D2E5FF"</td>
+        <td>Background color of the node when the node is selected.</td>
+    </tr>
+    <tr>
+        <td>image</td>
+        <td>String</td>
+        <td>none</td>
+        <td>Default image for the nodes. Only applicable in combination with
+            style <code>image</code>.</td>
+    </tr>
+
+    <tr>
+        <td>fontColor</td>
+        <td>String</td>
+        <td>"black"</td>
+        <td>Font color of the node.</td>
+    </tr>
+    <tr>
+        <td>fontFace</td>
+        <td>String</td>
+        <td>"sans"</td>
+        <td>Font name of the node, for example "verdana" or "arial".</td>
+    </tr>
+    <tr>
+        <td>fontSize</td>
+        <td>Number</td>
+        <td>14</td>
+        <td>Font size for the node in pixels.</td>
+    </tr>
+    <tr>
+        <td>style</td>
+        <td>String</td>
+        <td>"rect"</td>
+        <td>Choose from <code>rect</code> (default), <code>circle</code>,
+            <code>database</code>, <code>image</code>, <code>text</code>,
+            <code>dot</code>.
+            In case of image, a property with name image must be provided, containing
+            image urls.</td>
+    </tr>
+    <tr>
+        <td>radius</td>
+        <td>Number</td>
+        <td>5</td>
+        <td>Default radius for the node. Only applicable in combination with
+            styles <code>rect</code> and <code>dot</code>.</td>
+    </tr>
+
+</table>
+
+
+
+<h2><a name="Dynamic_Data"></a>Dynamic Data</h2>
+
+<p>
+    The Graph is normally rendered using the method <code>draw</code>.
+    The graph can handle dynamic data in two ways:
+</p>
+<ul>
+    <li>
+        <b>Animation</b>
+        A set with historical data can be animated over time.
+    </li>
+    <li>
+        <b>Changeset</b>
+        A drawn Graph can be updated by appending a changeset to the Graph.
+    </li>
+</ul>
+
+
+<h3><a name="Animation"></a>Animation</h3>
+<p>
+    Historical data can be animated over time.
+    To create an animation, the data sets with nodes, edges, and
+    packages must have a property <code>timestamp</code>,
+    and has a property <code>action</code> describing the
+    <a href="#Changeset">change</a> (create, update, or delete).
+    The Graph will automatically create an animation which runs from
+    the earliest to the latest encountered timestamp.
+    When the Graph is rendered at a certain timestamp,
+    all elements with a timestamp older than the current time will be rendered,
+    and all elements without a timestamp.
+</p>
+
+<p>
+    The animation state and speed can be manipulated using methods
+    <code>animationSetAcceleration</code>,
+    <code>animationSetDuration</code>,
+    <code>animationSetFramerate</code>,
+    <code>animationStart</code>,
+    and <code>animationStop</code>.
+</p>
+
+<p>
+    The following package table shows how to change the state of a package over time:
+</p>
+
+<pre class="prettyprint lang-js">
+var packageTable = new google.visualization.DataTable();
+packageTable.addColumn('number', 'id');
+packageTable.addColumn('number', 'from');
+packageTable.addColumn('number', 'to');
+packageTable.addColumn('string', 'action');
+packageTable.addColumn('string', 'title');
+packageTable.addColumn('number', 'progress');
+packageTable.addColumn('datetime', 'timestamp');
+
+// package with id 7 moved over time from node 1 to node 2
+//                   id, from, to, action,  title,              progress,  timestamp
+packageTable.addRow([7,  1,    2, 'create', 'Copy data [0%]',   0.00,      new Date(2012,6,4,14,0,0)]);
+packageTable.addRow([7,  1,    2, 'update', 'Copy data [10%]',  0.10,      new Date(2012,6,4,14,10,0)]);
+packageTable.addRow([7,  1,    2, 'update', 'Copy data [20%]',  0.20,      new Date(2012,6,4,14,15,0)]);
+packageTable.addRow([7,  1,    2, 'update', 'Copy data [50%]',  0.50,      new Date(2012,6,4,14,20,0)]);
+packageTable.addRow([7,  1,    2, 'update', 'Copy data [80%]',  0.80,      new Date(2012,6,4,14,30,0)]);
+packageTable.addRow([7,  1,    2, 'update', 'Copy data [100%]', 1.00,      new Date(2012,6,4,14,35,0)]);
+packageTable.addRow([7,  1,    2, 'delete', undefined,          undefined, new Date(2012,6,4,14,40,0)]);
+</pre>
+
+<h3><a name="Changeset"></a>Changeset</h3>
+<p>
+    The data of a rendered Graph can be changed dynamically.
+    Data can be updated by appending a changeset to the Graph
+    using methods <code>addNodes</code>, <code>addEdges</code>, and <code>addPackages</code>.
+
+    The appended data can contain new nodes, edges, and packages, but can
+    also adjust existing elements.
+    For example, the title of a Node or the width of a link can be updated.
+</p>
+
+<p>
+    The changeset is a regular Array like used
+    The <code>action</code> property describes one of the following changes
+</p>
+<ul>
+    <li>
+        <b>create</b> Create an element (node, link, or package).
+        When the new element has an id which already exists, the existing
+        element will be overwritten.
+    </li>
+    <li>
+        <b>update</b> Update an element, create when not existing.
+        Only applicable when the element has an id.
+    </li>
+    <li>
+        <b>delete</b> Delete an existing element.
+        Only applicable when
+    </li>
+</ul>
+
+
+
+<h2><a name="Methods"></a>Methods</h2>
+<p>
+    Graph supports the following methods.
+</p>
+
+<table>
+    <tr>
+        <th>Method</th>
+        <th>Return Type</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>addEdges(edges)</td>
+        <td>none</td>
+        <td>Dynamically appends edges to the graph.
+            Parameter edges contains an Array.
+            A link can be created, updated, or deleted by specifying the property
+            <code>action</code> and choose a value <code>create</code>,
+            <code>update</code>, or <code>delete</code>.
+        </td>
+    </tr>
+
+    <tr>
+        <td>addNodes(nodes)</td>
+        <td>none</td>
+        <td>Dynamically adds nodes to the graph.
+            Parameter nodes contains an Array.
+            A node can be created, updated, or deleted by specifying the property
+            <code>action</code> and choose a value <code>create</code>,
+            <code>update</code>, or <code>delete</code>.
+    </tr>
+
+    <tr>
+        <td>addPackages(packages)</td>
+        <td>none</td>
+        <td>Dynamically appends packages to the graph.
+            Parameter packages contains an Array.
+            A package can be created, updated, or deleted by specifying the property
+            <code>action</code> and choose a value <code>create</code>,
+            <code>update</code>, or <code>delete</code>.
+        </td>
+    </tr>
+
+    <tr>
+        <td>animationSetAcceleration(acceleration)</td>
+        <td>none</td>
+        <td>Set the time acceleration for animation of history.
+            Only applicable when packages with a timestamp are available.
+            When acceleration is 1, history is played in real time.
+            And for example acceleration of 10 will play history then times the speed of
+            real time.</td>
+    </tr>
+    <tr>
+        <td>animationSetDuration(duration)</td>
+        <td>none</td>
+        <td>Duration of the animation in seconds.
+            Only applicable when packages with a timestamp are available.
+            The animation speed is scaled such that the total duration of playing the
+            history equals the set duration.</td>
+    </tr>
+    <tr>
+        <td>animationSetFramerate(framerate)</td>
+        <td>none</td>
+        <td>Set the framerate in frames per second for animation of history.
+            Only applicable when packages with a timestamp are available.
+        </td>
+    </tr>
+    <tr>
+        <td>animationStart()</td>
+        <td>none</td>
+        <td>Start animation of history.
+            Only applicable when packages with a timestamp are available.
+        </td>
+    </tr>
+    <tr>
+        <td>animationStop()</td>
+        <td>none</td>
+        <td>Stop animation of history.
+            Only applicable when packages with a timestamp are available.
+        </td>
+    </tr>
+
+    <tr>
+        <td>draw(nodes, edges, packages, options)</td>
+        <td>none</td>
+        <td>Loads data, sets the provided options, and draws the graph.
+            Parameters nodes, edges, and packages are an Array,
+            and options is a name-value map in the JSON format.
+            Both edges and packages are optional and can be left undefined.
+        </td>
+    </tr>
+
+    <tr>
+        <td>getSelection()</td>
+        <td>Array of selection elements</td>
+        <td>Standard <code>getSelection()</code> implementation.
+            Returns an array with one or multiple selections. Each selection contains
+            the property <code>row</code>. The selections are not ordered.
+        </td>
+    </tr>
+
+    <tr>
+        <td>redraw()</td>
+        <td>none</td>
+        <td>Redraw the graph. Useful after the camera position is changed externally,
+            when data is changed, or when the layout of the webpage changed.</td>
+    </tr>
+
+    <tr>
+        <td>setSelection(selection)</td>
+        <td>none</td>
+        <td>Standard <code>setSelection(selection)</code> implementation.
+            <code>selection</code> is an array with selection elements. The visualization
+            accepts one or multiple selection elements, which must have the property <code>row</code>.
+            Example usage: <code>graph.setSelection([{"row": 3}]);</code>.
+        </td>
+    </tr>
+
+    <tr>
+        <td>setSize(width, height)</td>
+        <td>none</td>
+        <td>Parameters <code>width</code> and <code>height</code> are strings,
+            containing a new size for the visualization. Size can be provided in pixels
+            or in percentages.</td>
+    </tr>
+
+    <tr>
+        <td>start()</td>
+        <td>none</td>
+        <td>Start animation.
+            Only applicable when there are animated edges or nodes,
+            or when the nodes are not yet moved to a stable position.</td>
+    </tr>
+
+    <tr>
+        <td>stop()</td>
+        <td>none</td>
+        <td>Stop animation.
+            Only applicable when there are animated edges or nodes.</td>
+    </tr>
+
+</table>
+
+<h2><a name="Events"></a>Events</h2>
+<p>
+    Graph fires events after one or multiple nodes are selected.
+    The event can be catched by creating a listener.
+</p>
+
+<p>
+    Here an example on how to catch a <code>select</code> event.
+</p>
+
+<pre class="prettyprint lang-js">
+function onselect() {
+  var sel = graph.getSelection();
+
+  var info = 'selected row(s): ';
+  for (var i = 0; i &lt; sel.length; i++) {
+    info += sel[i].row + ' ';
+  }
+
+  alert(info);
+}
+
+vis.events.addListener(graph, 'select', onselect);
+</pre>
+
+<p>
+    The following events are available.
+</p>
+
+<table>
+    <col width="10%">
+    <col width="60%">
+    <col width="30%">
+
+    <tr>
+        <th>name</th>
+        <th>Description</th>
+        <th>Properties</th>
+    </tr>
+
+    <tr>
+        <td>select</td>
+        <td>Fired after the user selects or unselects a node by clicking it,
+            or when selecting a number of nodes by dragging a selection area
+            around them. Not fired when the method <code>setSelection</code>
+            is executed. The corresponding rows in the Array are selected.
+            <br>
+            The selected rows can be retrieved via the method <code>getSelection</code>.
+        </td>
+        <td>none</td>
+    </tr>
+
+    <tr>
+        <td>ready</td>
+        <td>The graph is loaded and ready for external method calls.
+            If you want to interact with the graph, and call methods after you draw it,
+            you should set up a listener for this event before you call the draw method,
+            and call them only after the event was fired.</td>
+        <td>none</td>
+    </tr>
+</table>
+
+
+<h2><a name="Data_Policy"></a>Data Policy</h2>
+<p>
+    All code and data are processed and rendered in the browser. No data is sent to any server.
+</p>
+
+</div>
+</body>
+</html>
