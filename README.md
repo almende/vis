@@ -4,7 +4,15 @@ vis.js
 Vis.js is a dynamic, browser based visualization library.
 The library is designed to be easy to use, to handle large amounts
 of dynamic data, and to enable manipulation of the data.
-The library consists of Timeline, LineChart, LineChart3d, Graph, and Treegrid.
+The library consists of the following components:
+
+- Timeline. Display different types of data on a timeline.
+  The timeline and the items on the timeline can be interactively moved,
+  zoomed, and manipulated.
+- Graph. Display a graph of network with nodes and edges.
+- DataSet and DataView. A flexible key/value based data set.
+  Add, update, and remove items. Subscribe on changes in the data set.
+  Filter, order, and cast data.
 
 Vis.js Library is part of [CHAP](http://chap.almende.com),
 the Common Hybrid Agent Platform, developed by [Almende B.V](http://almende.com).
@@ -27,7 +35,7 @@ Or download the library from the github project:
 ## Load
 
 
-To use a component, include the javascript file of vis in your webpage:
+To use a component, include the javascript file of vis in your web page:
 
 ```html
 <!DOCTYPE HTML>
@@ -60,7 +68,7 @@ require(['vis'], function (math) {
 A timeline can be instantiated as:
 
 ```js
-var timeline = new Timeline(container, data, options);
+var timeline = new vis.Timeline(container, data, options);
 ```
 
 Where `container` is an HTML element, `data` is an Array with data or a DataSet,

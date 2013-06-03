@@ -2,6 +2,11 @@ vis.js history
 http://visjs.org
 
 
+## version 0.0.9
+
+- First working version of the Graph imported from the old library.
+
+
 ## 2013-05-03, version 0.0.8
 
 - Performance improvements: only visible items are rendered.
@@ -22,5 +27,5 @@ http://visjs.org
 
 ## 2013-04-16, version 0.0.5
 
-- First working version of the Timeline
+- First working version of the Timeline.
 - Website created.

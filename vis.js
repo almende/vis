@@ -8948,10 +8948,15 @@ function Graph (container, data, options) {
         "maxIterations": 1000  // maximum number of iteration to stabilize
     };
 
+    var graph = this;
     this.nodes = [];            // array with Node objects
     this.edges = [];            // array with Edge objects
-    this.images = new Images(); // object with images
+
     this.groups = new Groups(); // object with groups
+    this.images = new Images(); // object with images
+    this.images.setOnloadCallback(function () {
+        graph._redraw();
+    });
 
     // properties of the data
     this.moving = false;    // True if any of the nodes have an undefined position
@@ -8970,39 +8975,25 @@ function Graph (container, data, options) {
 }
 
 /**
- * Main drawing logic. This is the function that needs to be called
- * in the html page, to draw the Graph.
+ * Set nodes and edges, and optionally options as well.
  *
- * A data table with the events must be provided, and an options table.
  * @param {Object} data    Object containing parameters:
  *                         {Array} nodes     Array with nodes
  *                         {Array} edges     Array with edges
  *                         {Options} [options] Object with options
  */
 Graph.prototype.setData = function(data) {
-    if (data.options) {
-        this.setOptions(data.options);
-    }
+    this.setOptions(data && data.options);
 
     // set all data
-    this.setNodes(data.nodes);
-    this.setEdges(data.edges);
+    this._setNodes(data && data.nodes);
+    this._setEdges(data && data.edges);
 
-    this._reposition(); // TODO: bad solution
+    // find a stable position or start animating to a stable position
     if (this.stabilize) {
         this._doStabilize();
     }
     this.start();
-
-    // create an onload callback method for the images
-    var graph = this;
-    var callback = function () {
-        graph._redraw();
-    };
-    this.images.setOnloadCallback(callback);
-
-    // fire the ready event
-    this.trigger('ready');
 };
 
 /**
@@ -9081,7 +9072,7 @@ Graph.prototype.setOptions = function (options) {
 
 /**
  * fire an event
- * @param {String} event   The name of an event, for example "select" or "ready"
+ * @param {String} event   The name of an event, for example "select"
  * @param {Object} params  Optional object with event parameters
  */
 Graph.prototype.trigger = function (event, params) {
@@ -9911,17 +9902,17 @@ Graph.prototype._setSize = function(width, height) {
 };
 
 /**
- * Load all nodes by reading the data table nodesTable
- * @param {Array} nodes    The data containing the nodes.
+ * Set a data set with nodes for the graph
+ * @param {Array} nodes         The data containing the nodes.
+ * @private
  */
-Graph.prototype.setNodes = function(nodes) {
+Graph.prototype._setNodes = function(nodes) {
     this.selection = [];
     this.nodes = [];
     this.moving = false;
     if (!nodes) {
         return;
     }
-    this.nodesTable = nodes;
 
     var hasValues = false;
     var rowCount = nodes.length;
@@ -9941,6 +9932,9 @@ Graph.prototype.setNodes = function(nodes) {
     if (hasValues) {
         this._updateValueRange(this.nodes);
     }
+
+    // give the nodes some first (random) position
+    this._reposition(); // TODO: bad solution
 };
 
 /**
@@ -10075,13 +10069,13 @@ Graph.prototype._findNodeByRow = function (row) {
 /**
  * Load edges by reading the data table
  * @param {Array}      edges    The data containing the edges.
+ * @private
  */
-Graph.prototype.setEdges = function(edges) {
+Graph.prototype._setEdges = function(edges) {
     this.edges = [];
     if (!edges) {
         return;
     }
-    this.edgesTable = edges;
 
     var hasValues = false;
     var rowCount = edges.length;
@@ -10490,7 +10484,7 @@ Graph.prototype._doStabilize = function() {
 
     var end = new Date();
 
-    //console.log("Stabilized in " + (end-start) + " ms, " + count + " iterations" ); // TODO: cleanup
+    // console.log("Stabilized in " + (end-start) + " ms, " + count + " iterations" ); // TODO: cleanup
 };
 
 /**
