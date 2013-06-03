@@ -6858,17 +6858,6 @@ function Graph (container, data, options) {
             "dashlength": 10,
             "dashgap": 5
         },
-        "packages": {
-            "radius": 5,
-            "radiusMin": 5,
-            "radiusMax": 10,
-            "style": "dot",
-            "color": "#2B7CE9",
-            "image": undefined,
-            "widthMin": 16, // px
-            "widthMax": 64, // px
-            "duration": 1.0   // seconds
-        },
         "minForce": 0.05,
         "minVelocity": 0.02,   // px/s
         "maxIterations": 1000  // maximum number of iteration to stabilize
@@ -6876,14 +6865,12 @@ function Graph (container, data, options) {
 
     this.nodes = [];     // array with Node objects
     this.edges = [];     // array with Edge objects
-    this.packages = [];  // array with all Package packages
     this.images = new Graph.Images();     // object with images
     this.groups = new Graph.Groups();     // object with groups
 
     // properties of the data
     this.hasMovingEdges = false;    // True if one or more of the edges or nodes have an animation
     this.hasMovingNodes = false;    // True if any of the nodes have an undefined position
-    this.hasMovingPackages = false; // True if there are one or more packages
 
     this.selection = [];
     this.timer = undefined;
@@ -6917,7 +6904,6 @@ Graph.prototype.setData = function(data) {
     this.hasTimestamps = false;
     this.setNodes(data.nodes);
     this.setEdges(data.edges);
-    this.setPackages(data.packages);
 
     this._reposition(); // TODO: bad solution
     if (this.stabilize) {
@@ -6979,6 +6965,7 @@ Graph.prototype.setOptions = function (options) {
                 this.constants.edges.altdashlength   = options.edges.altdashlength;
             }
         }
+
         if (options.nodes) {
             for (prop in options.nodes) {
                 if (options.nodes.hasOwnProperty(prop)) {
@@ -6989,18 +6976,6 @@ Graph.prototype.setOptions = function (options) {
             /*
              if (options.nodes.widthMin) this.constants.nodes.radiusMin = options.nodes.widthMin;
              if (options.nodes.widthMax) this.constants.nodes.radiusMax = options.nodes.widthMax;
-             */
-        }
-        if (options.packages) {
-            for (prop in options.packages) {
-                if (options.packages.hasOwnProperty(prop)) {
-                    this.constants.packages[prop] = options.packages[prop];
-                }
-            }
-
-            /*
-             if (options.packages.widthMin) this.constants.packages.radiusMin = options.packages.widthMin;
-             if (options.packages.widthMax) this.constants.packages.radiusMax = options.packages.widthMax;
              */
         }
 
@@ -7399,8 +7374,7 @@ Graph.prototype._onMouseWheel = function(event) {
 
 
 /**
- * Mouse move handler for checking whether the title moves over a node or
- * package with a title.
+ * Mouse move handler for checking whether the title moves over a node with a title.
  */
 Graph.prototype._onMouseMoveTitle = function (event) {
     event = event || window.event;
@@ -7433,8 +7407,8 @@ Graph.prototype._onMouseMoveTitle = function (event) {
 };
 
 /**
- * Check if there is an element on the given position in the network (
- * (a node, package, or edge). If so, and if this element has a title,
+ * Check if there is an element on the given position in the network
+ * (a node or edge). If so, and if this element has a title,
  * show a popup window with its title.
  *
  * @param {number} x
@@ -7450,18 +7424,6 @@ Graph.prototype._checkShowPopup = function (x, y) {
 
     var i, len;
     var lastPopupNode = this.popupNode;
-
-    if (this.popupNode == undefined) {
-        // search the packages for overlap
-
-        for (i = 0, len = this.packages.length; i < len; i++) {
-            var p = this.packages[i];
-            if (p.getTitle() != undefined && p.isOverlappingWith(obj)) {
-                this.popupNode = p;
-                break;
-            }
-        }
-    }
 
     if (this.popupNode == undefined) {
         // search the nodes for overlap, select the top one in case of multiple nodes
@@ -7961,7 +7923,7 @@ Graph.prototype._filterNodes = function(timestamp) {
 
 /**
  * Create a node with the given properties
- * If the new node has an id identical to an existing package, the existing
+ * If the new node has an id identical to an existing node, the existing
  * node will be overwritten.
  * The properties can contain a property "action", which can have values
  * "create", "update", or "delete"
@@ -7987,7 +7949,7 @@ Graph.prototype._createNode = function(properties) {
                 this._unselectNodes([{'row': index}], false);
             }
 
-            /* TODO: implement this? -> will give performance issues, searching all edges and node...
+            /* TODO: implement this? -> will give performance issues, searching all edges and nodes...
              // update edges linking to this node
              var edgesTable = this.edges;
              for (var i = 0, iMax = edgesTable.length; i < iMax; i++) {
@@ -7997,18 +7959,6 @@ Graph.prototype._createNode = function(properties) {
              }
              if (edge.to == oldNode) {
              edge.to = newNode;
-             }
-             }
-
-             // update packages linking to this node
-             var packagesTable = this.packages;
-             for (var i = 0, iMax = packagesTable.length; i < iMax; i++) {
-             var package = packagesTable[i];
-             if (package.from == oldNode) {
-             package.from = newNode;
-             }
-             if (package.to == oldNode) {
-             package.to = newNode;
              }
              }
              */
@@ -8149,7 +8099,7 @@ Graph.prototype._filterEdges = function(timestamp) {
         return;
     }
 
-    // remove existing packages with a too new timestamp
+    // remove existing edges with a too new timestamp
     if (timestamp !== undefined) {
         var ls = this.edges;
         var l = 0;
@@ -8284,22 +8234,20 @@ Graph.prototype._createEdge = function(properties) {
 };
 
 /**
- * Update the edge to oldNode in all edges and packages.
+ * Update the references to oldNode in all edges.
  * @param {Node} oldNode
  * @param {Node} newNode
  */
 // TODO: start utilizing this method _updateNodeReferences
 Graph.prototype._updateNodeReferences = function(oldNode, newNode) {
-    var arrays = [this.edges, this.packages];
-    for (var a = 0, aMax = arrays.length; a < aMax; a++) {
-        var array = arrays[a];
-        for (var i = 0, iMax = array.length; i < iMax; i++) {
-            if (array.from === oldNode) {
-                array.from = newNode;
-            }
-            if (array.to === oldNode) {
-                array.to = newNode;
-            }
+    var edges = this.edges;
+    for (var i = 0, iMax = edges.length; i < iMax; i++) {
+        var edge = edges[i];
+        if (edge.from === oldNode) {
+            edge.from = newNode;
+        }
+        if (edge.to === oldNode) {
+            edge.to = newNode;
         }
     }
 };
@@ -8331,231 +8279,9 @@ Graph.prototype._findEdgeByRow = function (row) {
 };
 
 /**
- * Set a new packages table
- * Packages with a duplicate id will be replaced
- * @param {Array}   packages    The data containing the packages.
- */
-Graph.prototype.setPackages = function(packages) {
-    this.packages = [];
-    if (!packages) {
-        return;
-    }
-    this.packagesTable = packages;
-
-    var rowCount = packages.length;
-    for (var i = 0; i < rowCount; i++) {
-        var properties = packages[i];
-
-        if (properties.from === undefined) {
-            throw "Column 'from' missing in table with packages (row " + i + ")";
-        }
-        if (properties.to === undefined) {
-            throw "Column 'to' missing in table with packages (row " + i + ")";
-        }
-        if (properties.timestamp) {
-            this.hasTimestamps = this.hasTimestamps || properties.timestamp;
-        }
-
-        this._createPackage(properties);
-    }
-
-    // calculate scaling function when value is provided
-    this._updateValueRange(this.packages);
-
-    /* TODO: adjust examples and documentation for this?
-     this.start();
-     */
-};
-
-/**
- * Filter the current package table for packages with a timestamp below given
- * timestamp.
- * @param {*} [timestamp] If timestamp is undefined, all packages are shown
- */
-Graph.prototype._filterPackages = function(timestamp) {
-    if (this.packagesTable == undefined) {
-        return;
-    }
-
-    // remove all current packages
-    this.packages = [];
-
-    /* TODO: cleanup
-     // remove existing packages with a too new timestamp
-     if (timestamp !== undefined) {
-     var packages = this.packages;
-     var p = 0;
-     while (p < packages.length) {
-     var package = packages[p];
-     var t = package.timestamp;
-
-     if (t !== undefined &&  t > timestamp ) {
-     // remove this package
-     packages.splice(p, 1);
-     }
-     else {
-     p++;
-     }
-     }
-     }
-     */
-
-    // add all packages with an old enough timestamp
-    var table = this.packagesTable;
-    var rowCount = table.length;
-    for (var i = 0; i < rowCount; i++) {
-        var properties = table[i];
-
-        if (properties.from === undefined) {
-            throw "Column 'from' missing in table with packages (row " + i + ")";
-        }
-        if (properties.to === undefined) {
-            throw "Column 'to' missing in table with packages (row " + i + ")";
-        }
-        // check what the timestamp is
-        var pTimestamp = properties.timestamp ? properties.timestamp : undefined;
-
-        var visible = true;
-        if (pTimestamp !== undefined && timestamp !== undefined && pTimestamp > timestamp) {
-            visible = false;
-        }
-
-        if (visible === true) {
-            if (properties.progress == undefined) {
-                // when no progress is provided, we need to add our own progress
-                var duration = properties.duration || this.constants.packages.duration; // seconds
-
-                var diff = (timestamp.getTime() - pTimestamp.getTime()) / 1000; // seconds
-                if (diff < duration) {
-                    // copy the properties, and fill in the current progress based on the
-                    // timestamp and the duration
-                    var original = properties;
-                    properties = {};
-                    for (var j in original) {
-                        if (original.hasOwnProperty(j)) {
-                            properties[j] = original[j];
-                        }
-                    }
-
-                    properties.progress = diff / duration;  // scale 0-1
-                }
-                else {
-                    visible = false;
-                }
-            }
-        }
-
-        if (visible === true) {
-            // create or update the package
-            this._createPackage(properties);
-        }
-    }
-
-    this.start();
-};
-
-/**
- * Create a package with the given properties
- * If the new package has an id identical to an existing package, the existing
- * package will be overwritten.
- * The properties can contain a property "action", which can have values
- * "create", "update", or "delete"
- * @param {Object} properties   An object with properties
- */
-Graph.prototype._createPackage = function(properties) {
-    var action = properties.action ? properties.action : "create";
-    var id, index, newPackage;
-
-    if (action === "create") {
-        // create the package
-        id = properties.id;
-        index = (id !== undefined) ? this._findPackage(id) : undefined;
-        newPackage = new Graph.Package(properties, this, this.images, this.constants);
-
-        if (index !== undefined) {
-            // replace existing package
-            this.packages[index] = newPackage;
-        }
-        else {
-            // add new package
-            this.packages.push(newPackage);
-        }
-
-        if (newPackage.isMoving()) {
-            this.hasMovingPackages = true;
-        }
-    }
-    else if (action === "update") {
-        // update a package, or create it when not existing
-        id = properties.id;
-        if (id === undefined) {
-            throw "Cannot update a edge without id";
-        }
-
-        index = this._findPackage(id);
-        if (index !== undefined) {
-            // update existing package
-            this.packages[index].setProperties(properties, this.constants);
-        }
-        else {
-            // add new package
-            newPackage = new Graph.Package(properties, this, this.images, this.constants);
-            this.packages.push(newPackage);
-            if (newPackage.isMoving()) {
-                this.hasMovingPackages = true;
-            }
-        }
-    }
-    else if (action === "delete") {
-        // delete existing package
-        id = properties.id;
-        if (id === undefined) {
-            throw "Cannot delete package without its id";
-        }
-
-        index = this._findPackage(id);
-        if (index !== undefined) {
-            this.packages.splice(index, 1);
-        }
-        else {
-            throw "Package with id " + id + " not found";
-        }
-    }
-    else {
-        throw "Unknown action " + action + ". Choose 'create', 'update', or 'delete'.";
-    }
-};
-
-/**
- * Find a package by its id.
- * @param {Number} id
- * @return {Number} index    Index of the package in the array this.packages,
- *                           or undefined when not found
- */
-Graph.prototype._findPackage = function (id) {
-    var packages = this.packages;
-    for (var n = 0, len = packages.length; n < len; n++) {
-        if (packages[n].id === id) {
-            return n;
-        }
-    }
-
-    return undefined;
-};
-
-/**
- * Find a package by its row
- * @param {Number} row          Row of the package
- * @return {Graph.Package} the found package, or undefined when not found
- */
-Graph.prototype._findPackageByRow = function (row) {
-    return this.packages[row];
-};
-
-/**
  * Update the values of all object in the given array according to the current
  * value range of the objects in the array.
- * @param {Array} array.  An array with objects like Edges, Nodes, or Packages
+ * @param {Array} array.  An array with objects like Edges or Nodes
  *                        The objects must have a method getValue() and
  *                        setValueRange(min, max).
  */
@@ -8584,19 +8310,18 @@ Graph.prototype._updateValueRange = function(array) {
 
 
 /**
- * Set the current timestamp. All packages with a timestamp smaller or equal
+ * Set the current timestamp. All nodes and edges with a timestamp smaller or equal
  * than the given timestamp will be drawn.
  * @param {Date | Number} timestamp
  */
 Graph.prototype.setTimestamp = function(timestamp) {
     this._filterNodes(timestamp);
     this._filterEdges(timestamp);
-    this._filterPackages(timestamp);
 };
 
 
 /**
- * Get the range of all timestamps defined in the nodes, edges and packages
+ * Get the range of all timestamps defined in the nodes and edges
  * @return {Object}   A range object, containing parameters start and end.
  */
 Graph.prototype._getRange = function() {
@@ -8624,31 +8349,6 @@ Graph.prototype._getRange = function() {
                     range.start = range.start ? Math.min(timestamp, range.start) : timestamp;
                     range.end = range.end ? Math.max(timestamp, range.end) : timestamp;
                 }
-            }
-        }
-    }
-
-    // calculate the range for the packagesTable by hand. In case of packages
-    // without a progress provided, we need to calculate the end time by hand.
-    if (this.packagesTable) {
-        var packagesTable = this.packagesTable;
-        for (var row = 0, len = packagesTable.length; row < len; row ++) {
-            var pkg = packagesTable[row],
-                timestamp = pkg.timestamp,
-                progress = pkg.progress,
-                duration = pkg.duration || this.constants.packages.duration;
-
-            // convert to number
-            if (timestamp instanceof Date) {
-                timestamp = timestamp.getTime();
-            }
-
-            if (timestamp != undefined) {
-                var start = timestamp,
-                    end = progress ? timestamp : (timestamp + duration * 1000);
-
-                range.start = range.start ? Math.min(start, range.start) : start;
-                range.end = range.end ? Math.max(end, range.end) : end;
             }
         }
     }
@@ -8745,7 +8445,6 @@ Graph.prototype._redraw = function() {
 
     this._drawEdges(ctx);
     this._drawNodes(ctx);
-    this._drawPackages(ctx);
     this._drawSlider();
 
     // restore original scaling and translation
@@ -8866,19 +8565,6 @@ Graph.prototype._drawEdges = function(ctx) {
         edges[i].draw(ctx);
     }
 };
-
-/**
- * Redraw all packages
- * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
- * @param {CanvasRenderingContext2D}   ctx
- */
-Graph.prototype._drawPackages = function(ctx) {
-    var packages = this.packages;
-    for (var i = 0, iMax = packages.length; i < iMax; i++) {
-        packages[i].draw(ctx);
-    }
-};
-
 
 /**
  * Redraw the filter
@@ -9175,42 +8861,8 @@ Graph.prototype._discreteStepNodes = function() {
     }
 };
 
-
 /**
- * Perform one discrete step for all packages
- */
-Graph.prototype._discreteStepPackages = function() {
-    var interval = this.refreshRate / 1000.0; // in seconds
-    var packages = this.packages;
-    for (var n = 0, nMax = packages.length; n < nMax; n++) {
-        packages[n].discreteStep(interval);
-    }
-};
-
-
-/**
- * Cleanup finished packages.
- * also checks if there are moving packages
- */
-Graph.prototype._deleteFinishedPackages = function() {
-    var n = 0;
-    var hasMovingPackages = false;
-    while (n < this.packages.length) {
-        if (this.packages[n].isFinished()) {
-            this.packages.splice(n, 1);
-            n--;
-        }
-        else if (this.packages[n].isMoving()) {
-            hasMovingPackages = true;
-        }
-        n++;
-    }
-
-    this.hasMovingPackages = hasMovingPackages;
-};
-
-/**
- * Start animating nodes, edges, and packages.
+ * Start animating nodes and edges
  */
 Graph.prototype.start = function() {
     if (this.hasMovingNodes) {
@@ -9221,12 +8873,7 @@ Graph.prototype.start = function() {
         this.hasMovingNodes = this.isMoving(vmin);
     }
 
-    if (this.hasMovingPackages) {
-        this._discreteStepPackages();
-        this._deleteFinishedPackages();
-    }
-
-    if (this.hasMovingNodes || this.hasMovingEdges || this.hasMovingPackages) {
+    if (this.hasMovingNodes || this.hasMovingEdges) {
         // start animation. only start timer if it is not already running
         if (!this.timer) {
             var graph = this;
@@ -9243,7 +8890,7 @@ Graph.prototype.start = function() {
 };
 
 /**
- * Stop animating nodes, edges, and packages.
+ * Stop animating nodes and edges.
  */
 Graph.prototype.stop = function () {
     if (this.timer) {
@@ -10823,334 +10470,6 @@ Graph.Images.prototype.load = function(url) {
 
     return img;
 };
-
-
-/**--------------------------------------------------------------------------**/
-
-
-/**
- * @class Package
- * This class contains one package
- *
- * @param {number} properties  Properties for the package. Optional. Available
- *                             properties are: id {number}, title {string},
- *                             style {string} with available values "dot" and
- *                             "image", radius {number}, image {string},
- *                             color {string}, progress {number} with a value
- *                             between 0-1, duration {number}, timestamp {number
- *                             or Date}.
- * @param {Graph}      graph        The graph object, used to find
- *                                            and edge to nodes.
- * @param {Graph.Images} imagelist    An Images object. Only needed
- *                                            when the package has style 'image'
- * @param {Object}               constants    An object with default values for
- *                                            example for the color
- */
-Graph.Package = function (properties, graph, imagelist, constants) {
-    if (graph == undefined) {
-        throw "No graph provided";
-    }
-
-    // constants
-    this.radiusMin = constants.packages.radiusMin;
-    this.radiusMax = constants.packages.radiusMax;
-    this.imagelist = imagelist;
-    this.graph = graph;
-
-    // initialize variables
-    this.id =        undefined;
-    this.from =      undefined;
-    this.to =        undefined;
-    this.title =     undefined;
-    this.style =     constants.packages.style;
-    this.radius =    constants.packages.radius;
-    this.color =     constants.packages.color;
-    this.image =     constants.packages.image;
-    this.value =     undefined;
-    this.progress =  0.0;
-    this.timestamp = undefined;
-    this.duration = constants.packages.duration;
-    this.autoProgress = true;
-    this.radiusFixed = false;
-
-    // set properties
-    this.setProperties(properties, constants);
-};
-
-Graph.Package.DEFAULT_DURATION = 1.0; // seconds
-
-/**
- * Set or overwrite properties for the package
- * @param {Object} properties an object with properties
- * @param {Object} constants  and object with default, global properties
- */
-Graph.Package.prototype.setProperties = function(properties, constants) {
-    if (!properties) {
-        return;
-    }
-
-    // note that the provided properties can also be null
-    if (properties.from != undefined) {this.from = this.graph._getNode(properties.from);}
-    if (properties.to != undefined) {this.to = this.graph._getNode(properties.to);}
-
-    if (!this.from) {
-        throw "Node with id " + properties.from + " not found";
-    }
-    if (!this.to) {
-        throw "Node with id " + properties.to + " not found";
-    }
-
-    if (properties.id != undefined) {this.id = properties.id;}
-    if (properties.title != undefined) {this.title = properties.title;}
-    if (properties.style != undefined) {this.style = properties.style;}
-    if (properties.radius != undefined) {this.radius = properties.radius;}
-    if (properties.value != undefined) {this.value = properties.value;}
-    if (properties.image != undefined) {this.image = properties.image;}
-    if (properties.color != undefined) {this.color = properties.color;}
-    if (properties.dashlength != undefined) {this.dashlength = properties.dashlength;}
-    if (properties.dashgap != undefined) {this.dashgap = properties.dashgap;}
-    if (properties.altdashlength != undefined) {this.altdashlength = properties.altdashlength;}
-    if (properties.progress != undefined) {this.progress = properties.progress;}
-    if (properties.timestamp != undefined) {this.timestamp = properties.timestamp;}
-    if (properties.duration != undefined) {this.duration = properties.duration;}
-
-    this.radiusFixed = this.radiusFixed || (properties.radius != undefined);
-    this.autoProgress = (this.autoProgress == true) ? (properties.progress == undefined) : false;
-
-    if (this.style == 'image') {
-        this.radiusMin = constants.packages.widthMin;
-        this.radiusMax = constants.packages.widthMax;
-    }
-
-    // handle progress
-    if (this.progress < 0.0) {this.progress = 0.0;}
-    if (this.progress > 1.0) {this.progress = 1.0;}
-
-    // handle image
-    if (this.image != undefined) {
-        if (this.imagelist) {
-            this.imageObj = this.imagelist.load(this.image);
-        }
-        else {
-            throw "No imagelist provided";
-        }
-    }
-
-    // choose draw method depending on the style
-    switch (this.style) {
-        // TODO: add more styles
-        case 'dot':         this.draw = this._drawDot; break;
-        case 'square':      this.draw = this._drawSquare; break;
-        case 'triangle':    this.draw = this._drawTriangle; break;
-        case 'triangleDown':this.draw = this._drawTriangleDown; break;
-        case 'star':        this.draw = this._drawStar; break;
-        case 'image':       this.draw = this._drawImage; break;
-        default:            this.draw = this._drawDot; break;
-    }
-};
-
-/**
- * Set a new value for the progress of the package
- * @param {number} progress    A value between 0 and 1
- */
-Graph.Package.prototype.setProgress = function (progress) {
-    this.progress = progress;
-    this.autoProgress = false;
-};
-
-/**
- * Check if a package is finished, if it has reached its destination.
- * If so, the package can be removed.
- * Only packages with automatically animated progress can be finished
- * @return {boolean}    true if finished, else false.
- */
-Graph.Package.prototype.isFinished = function () {
-    return (this.autoProgress == true && this.progress >= 1.0);
-};
-
-/**
- * Check if this package is moving.
- * A packages moves when it has automatic progress and not yet reached its
- * destination.
- * @return {boolean}    true if moving, else false.
- */
-Graph.Package.prototype.isMoving = function () {
-    return (this.autoProgress || this.isFinished());
-};
-
-
-/**
- * Perform one discrete step for the package. Only applicable when the
- * package has no manually set, fixed progress.
- * @param {number} interval    Time interval in seconds
- */
-Graph.Package.prototype.discreteStep = function(interval) {
-    if (this.autoProgress == true) {
-        this.progress += (parseFloat(interval) / this.duration);
-
-        if (this.progress > 1.0)
-            this.progress = 1.0;
-    }
-};
-
-
-/**
- * Draw this package in the given canvas
- * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
- * @param {CanvasRenderingContext2D}   ctx
- */
-Graph.Package.prototype.draw = function(ctx) {
-    throw "Draw method not initialized for package";
-};
-
-
-/**
- * Check if this object is overlapping with the provided object
- * @param {Object} obj   an object with parameters left, top, right, bottom
- * @return {boolean}     True if location is located on node
- */
-Graph.Package.prototype.isOverlappingWith = function(obj) {
-    // radius minimum 10px else it is too hard to get your mouse at the exact right position
-    var radius = Math.max(this.radius, 10);
-    var pos = this._getPosition();
-
-    return (pos.x - radius < obj.right &&
-        pos.x + radius > obj.left &&
-        pos.y - radius < obj.bottom &&
-        pos.y + radius > obj.top);
-};
-
-/**
- * Calculate the current position of the package
- * @return {Object} position    The object has parameters x and y.
- */
-Graph.Package.prototype._getPosition = function() {
-    return {
-        "x" : (1 - this.progress) * this.from.x + this.progress * this.to.x,
-        "y" : (1 - this.progress) * this.from.y + this.progress * this.to.y
-    };
-};
-
-
-/**
- * get the title of this package.
- * @return {string} title    The title of the package, or undefined when no
- *                           title has been set.
- */
-Graph.Package.prototype.getTitle = function() {
-    return this.title;
-};
-
-/**
- * Retrieve the value of the package. Can be undefined
- * @return {Number} value
- */
-Graph.Package.prototype.getValue = function() {
-    return this.value;
-};
-
-/**
- * Calculate the distance from the packages location to the given location (x,y)
- * @param {Number} x
- * @param {Number} y
- * @return {Number} value
- */
-Graph.Package.prototype.getDistance = function(x, y) {
-    var pos = this._getPosition(),
-        dx = pos.x - x,
-        dy = pos.y - y;
-    return Math.sqrt(dx * dx + dy * dy);
-};
-
-/**
- * Adjust the value range of the package. The package will adjust it's radius
- * based on its value.
- * @param {Number} min
- * @param {Number} max
- */
-Graph.Package.prototype.setValueRange = function(min, max) {
-    if (!this.radiusFixed && this.value !== undefined) {
-        var factor = (this.radiusMax - this.radiusMin) / (max - min);
-        this.radius = (this.value - min) * factor + this.radiusMin;
-    }
-};
-
-
-
-/**
- * Redraw a package as a dot
- * Draw this edge in the given canvas
- * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
- * @param {CanvasRenderingContext2D}   ctx
- */
-/* TODO: cleanup
- Graph.Package.prototype._drawDot = function(ctx) {
- // set style
- ctx.fillStyle = this.color;
- // draw dot
- var pos = this._getPosition();
- ctx.circle(pos.x, pos.y, this.radius);
- ctx.fill();
- }
- */
-
-Graph.Package.prototype._drawDot = function (ctx) {
-    this._drawShape(ctx, 'circle');
-};
-
-Graph.Package.prototype._drawTriangle = function (ctx) {
-    this._drawShape(ctx, 'triangle');
-};
-
-Graph.Package.prototype._drawTriangleDown = function (ctx) {
-    this._drawShape(ctx, 'triangleDown');
-};
-
-Graph.Package.prototype._drawSquare = function (ctx) {
-    this._drawShape(ctx, 'square');
-};
-
-Graph.Package.prototype._drawStar = function (ctx) {
-    this._drawShape(ctx, 'star');
-};
-
-Graph.Package.prototype._drawShape = function (ctx, shape) {
-    // set style
-    ctx.fillStyle = this.color;
-
-    // draw shape
-    var pos = this._getPosition();
-    ctx[shape](pos.x, pos.y, this.radius);
-    ctx.fill();
-};
-
-/**
- * Redraw a package as an image
- * Draw this edge in the given canvas
- * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
- * @param {CanvasRenderingContext2D}   ctx
- */
-Graph.Package.prototype._drawImage = function (ctx) {
-    if (this.imageObj) {
-        var width, height;
-        if (this.value) {
-            var scale = this.imageObj.height / this.imageObj.width;
-            width = this.radius || this.imageObj.width;
-            height = this.radius * scale || this.imageObj.height;
-        }
-        else {
-            width = this.imageObj.width;
-            height = this.imageObj.height;
-        }
-        var pos = this._getPosition();
-
-        ctx.drawImage(this.imageObj, pos.x - width / 2, pos.y - height / 2, width, height);
-    }
-    else {
-        console.log("image still loading...");
-    }
-};
-
 
 
 /**--------------------------------------------------------------------------**/
