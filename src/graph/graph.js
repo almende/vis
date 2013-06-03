@@ -1,6 +1,7 @@
 /**
  * @constructor Graph
- * Create a graph visualization connecting nodes via edges.
+ * Create a graph visualization, displaying nodes and edges.
+ * 
  * @param {Element} container   The DOM element in which the Graph will
  *                                  be created. Normally a div element.
  * @param {Object} data         An object containing parameters
@@ -14,7 +15,7 @@ function Graph (container, data, options) {
     this.width = "100%";
     this.height = "100%";
     this.refreshRate = 50; // milliseconds
-    this.stabilize = true; // stabilize before displaying the network
+    this.stabilize = true; // stabilize before displaying the graph
     this.selectable = true;
 
     // set constant values
@@ -62,8 +63,7 @@ function Graph (container, data, options) {
     this.groups = new Graph.Groups();     // object with groups
 
     // properties of the data
-    this.hasMovingEdges = false;    // True if one or more of the edges or nodes have an animation
-    this.hasMovingNodes = false;    // True if any of the nodes have an undefined position
+    this.moving = false;    // True if any of the nodes have an undefined position
 
     this.selection = [];
     this.timer = undefined;
@@ -80,7 +80,7 @@ function Graph (container, data, options) {
 
 /**
  * Main drawing logic. This is the function that needs to be called
- * in the html page, to draw the Network.
+ * in the html page, to draw the Graph.
  *
  * A data table with the events must be provided, and an options table.
  * @param {Object} data    Object containing parameters:
@@ -94,7 +94,6 @@ Graph.prototype.setData = function(data) {
     }
 
     // set all data
-    this.hasTimestamps = false;
     this.setNodes(data.nodes);
     this.setEdges(data.edges);
 
@@ -105,9 +104,9 @@ Graph.prototype.setData = function(data) {
     this.start();
 
     // create an onload callback method for the images
-    var network = this;
+    var graph = this;
     var callback = function () {
-        network._redraw();
+        graph._redraw();
     };
     this.images.setOnloadCallback(callback);
 
@@ -206,8 +205,8 @@ Graph.prototype.trigger = function (event, params) {
 
 
 /**
- * Create the main frame for the Network.
- * This function is executed once when a Network object is created. The frame
+ * Create the main frame for the Graph.
+ * This function is executed once when a Graph object is created. The frame
  * contains a canvas, and this canvas contains all objects like the axis and
  * nodes.
  */
@@ -218,7 +217,7 @@ Graph.prototype._create = function () {
     }
 
     this.frame = document.createElement("div");
-    this.frame.className = "network-frame";
+    this.frame.className = "graph-frame";
     this.frame.style.position = "relative";
     this.frame.style.overflow = "hidden";
 
@@ -361,7 +360,7 @@ Graph.prototype._onMouseDown = function (event) {
             this._unselectNodes([this.startClickedObj]);
         }
 
-        if (!this.hasMovingNodes) {
+        if (!this.moving) {
             this._redraw();
         }
     }
@@ -399,8 +398,8 @@ Graph.prototype._onMouseMove = function (event) {
             node.y = this._yToCanvas(mouseY - this.startFrameTop);
 
         // start animation if not yet running
-        if (!this.hasMovingNodes) {
-            this.hasMovingNodes = true;
+        if (!this.moving) {
+            this.moving = true;
             this.start();
         }
     }
@@ -425,7 +424,7 @@ Graph.prototype._onMouseMove = function (event) {
         this.frame.selRect.style.height = (bottom - top) + "px";
     }
     else {
-        // move the network
+        // move the graph
         var diffX = mouseX - this.startMouseX;
         var diffY = mouseY - this.startMouseY;
 
@@ -600,7 +599,7 @@ Graph.prototype._onMouseMoveTitle = function (event) {
 };
 
 /**
- * Check if there is an element on the given position in the network
+ * Check if there is an element on the given position in the graph
  * (a node or edge). If so, and if this element has a title,
  * show a popup window with its title.
  *
@@ -1003,7 +1002,7 @@ Graph.prototype._getConnectionCount = function(level) {
 
 
 /**
- * Set a new size for the network
+ * Set a new size for the graph
  * @param {string} width   Width in pixels or percentage (for example "800px"
  *                         or "50%")
  * @param {string} height  Height in pixels or percentage  (for example "400px"
@@ -1018,10 +1017,6 @@ Graph.prototype._setSize = function(width, height) {
 
     this.frame.canvas.width = this.frame.canvas.clientWidth;
     this.frame.canvas.height = this.frame.canvas.clientHeight;
-
-    if (this.slider) {
-        this.slider.redraw();
-    }
 };
 
 /**
@@ -1031,7 +1026,7 @@ Graph.prototype._setSize = function(width, height) {
 Graph.prototype.setNodes = function(nodes) {
     this.selection = [];
     this.nodes = [];
-    this.hasMovingNodes = false;
+    this.moving = false;
     if (!nodes) {
         return;
     }
@@ -1045,9 +1040,6 @@ Graph.prototype.setNodes = function(nodes) {
         if (properties.value != undefined) {
             hasValues = true;
         }
-        if (properties.timestamp) {
-            this.hasTimestamps = this.hasTimestamps || properties.timestamp;
-        }
         if (properties.id == undefined) {
             throw "Column 'id' missing in table with nodes (row " + i + ")";
         }
@@ -1058,60 +1050,6 @@ Graph.prototype.setNodes = function(nodes) {
     if (hasValues) {
         this._updateValueRange(this.nodes);
     }
-};
-
-/**
- * Filter the current nodes table for nodes with a timestamp older than given
- * timestamp.
- * @param {*} [timestamp]    If timestamp is undefined, all nodes are shown
- */
-Graph.prototype._filterNodes = function(timestamp) {
-    if (this.nodesTable == undefined) {
-        return;
-    }
-
-    // remove existing nodes with a too new timestamp
-    if (timestamp !== undefined) {
-        var ns = this.nodes;
-        var n = 0;
-        while (n < ns.length) {
-            var t = ns[n].timestamp;
-            if (t !== undefined && t > timestamp) {
-                // remove this node
-                ns.splice(n, 1);
-            }
-            else {
-                n++;
-            }
-        }
-    }
-
-    // add all nodes with an old enough timestamp
-    var table = this.nodesTable;
-    var rowCount = table.length;
-    for (var i = 0; i < rowCount; i++) {
-        // copy all properties
-        var properties = table[i];
-
-        if (properties.id === undefined) {
-            throw "Column 'id' missing in table with nodes (row " + i + ")";
-        }
-
-        // check what the timestamp is
-        var ts = properties.timestamp ? properties.timestamp : undefined;
-
-        var visible = true;
-        if (ts !== undefined && timestamp !== undefined && ts > timestamp) {
-            visible = false;
-        }
-
-        if (visible) {
-            // create or update the node
-            this._createNode(properties);
-        }
-    }
-
-    this.start();
 };
 
 /**
@@ -1164,7 +1102,7 @@ Graph.prototype._createNode = function(properties) {
         if (!newNode.isFixed()) {
             // note: no not use node.isMoving() here, as that gives the current
             // velocity of the node, which is zero after creation of the node.
-            this.hasMovingNodes = true;
+            this.moving = true;
         }
     }
     else if (action === "update") {
@@ -1187,7 +1125,7 @@ Graph.prototype._createNode = function(properties) {
             if (!newNode.isFixed()) {
                 // note: no not use node.isMoving() here, as that gives the current
                 // velocity of the node, which is zero after creation of the node.
-                this.hasMovingNodes = true;
+                this.moving = true;
             }
         }
     }
@@ -1249,7 +1187,6 @@ Graph.prototype._findNodeByRow = function (row) {
  */
 Graph.prototype.setEdges = function(edges) {
     this.edges = [];
-    this.hasMovingEdges = false;
     if (!edges) {
         return;
     }
@@ -1266,9 +1203,6 @@ Graph.prototype.setEdges = function(edges) {
         if (properties.to === undefined) {
             throw "Column 'to' missing in table with edges (row " + i + ")";
         }
-        if (properties.timestamp != undefined) {
-            this.hasTimestamps = this.hasTimestamps || properties.timestamp;
-        }
         if (properties.value != undefined) {
             hasValues = true;
         }
@@ -1280,62 +1214,6 @@ Graph.prototype.setEdges = function(edges) {
     if (hasValues) {
         this._updateValueRange(this.edges);
     }
-};
-
-/**
- * Filter the current edges table for edges with a timestamp below given
- * timestamp.
- * @param {*} [timestamp]  If timestamp is undefined, all edges are shown
- */
-Graph.prototype._filterEdges = function(timestamp) {
-    if (this.edgesTable == undefined) {
-        return;
-    }
-
-    // remove existing edges with a too new timestamp
-    if (timestamp !== undefined) {
-        var ls = this.edges;
-        var l = 0;
-        while (l < ls.length) {
-            var t = ls[l].timestamp;
-            if (t !== undefined && t > timestamp) {
-                // remove this edge
-                ls.splice(l, 1);
-            }
-            else {
-                l++;
-            }
-        }
-    }
-
-    // add all edges with an old enough timestamp
-    var table = this.edgesTable;
-    var rowCount = table.length;
-    for (var i = 0; i < rowCount; i++) {
-        var properties = table[i];
-
-        if (properties.from === undefined) {
-            throw "Column 'from' missing in table with edges (row " + i + ")";
-        }
-        if (properties.to === undefined) {
-            throw "Column 'to' missing in table with edges (row " + i + ")";
-        }
-
-        // check what the timestamp is
-        var ts = properties.timestamp ? properties.timestamp : undefined;
-
-        var visible = true;
-        if (ts !== undefined && timestamp !== undefined && ts > timestamp) {
-            visible = false;
-        }
-
-        if (visible) {
-            // create or update the edge
-            this._createEdge(properties);
-        }
-    }
-
-    this.start();
 };
 
 /**
@@ -1369,10 +1247,6 @@ Graph.prototype._createEdge = function(properties) {
         }
         edge.from.attachEdge(edge);
         edge.to.attachEdge(edge);
-
-        if (edge.isMoving()) {
-            this.hasMovingEdges = true;
-        }
     }
     else if (action === "update") {
         // update existing edge, or create the edge if not existing
@@ -1398,9 +1272,6 @@ Graph.prototype._createEdge = function(properties) {
             edge.from.attachEdge(edge);
             edge.to.attachEdge(edge);
             this.edges.push(edge);
-            if (edge.isMoving()) {
-                this.hasMovingEdges = true;
-            }
         }
     }
     else if (action === "delete") {
@@ -1501,115 +1372,6 @@ Graph.prototype._updateValueRange = function(array) {
     }
 };
 
-
-/**
- * Set the current timestamp. All nodes and edges with a timestamp smaller or equal
- * than the given timestamp will be drawn.
- * @param {Date | Number} timestamp
- */
-Graph.prototype.setTimestamp = function(timestamp) {
-    this._filterNodes(timestamp);
-    this._filterEdges(timestamp);
-};
-
-
-/**
- * Get the range of all timestamps defined in the nodes and edges
- * @return {Object}   A range object, containing parameters start and end.
- */
-Graph.prototype._getRange = function() {
-    // range is stored as number. at the end of the method, it is converted to
-    // Date when needed.
-    var range = {
-        "start": undefined,
-        "end": undefined
-    };
-
-    var tables = [this.nodesTable, this.edgesTable];
-    for (var t = 0, tMax = tables.length; t < tMax; t++) {
-        var table = tables[t];
-
-        if (table !== undefined) {
-            for (var i = 0, iMax = table.length; i < iMax; i++) {
-                var timestamp = table[i].timestamp;
-                if (timestamp) {
-                    // to long
-                    if (timestamp instanceof Date) {
-                        timestamp = timestamp.getTime();
-                    }
-
-                    // calculate new range
-                    range.start = range.start ? Math.min(timestamp, range.start) : timestamp;
-                    range.end = range.end ? Math.max(timestamp, range.end) : timestamp;
-                }
-            }
-        }
-    }
-
-    // convert to the right type: number or date
-    var rangeFormat = {
-        "start": new Date(range.start),
-        "end": new Date(range.end)
-    };
-
-    return rangeFormat;
-};
-
-/**
- * Start animation.
- * Only applicable when packages with a timestamp are available
- */
-Graph.prototype.animationStart = function() {
-    if (this.slider) {
-        this.slider.play();
-    }
-};
-
-/**
- * Start animation.
- * Only applicable when packages with a timestamp are available
- */
-Graph.prototype.animationStop = function() {
-    if (this.slider) {
-        this.slider.stop();
-    }
-};
-
-/**
- * Set framerate for the animation.
- * Only applicable when packages with a timestamp are available
- * @param {number} framerate    The framerate in frames per second
- */
-Graph.prototype.setAnimationFramerate = function(framerate) {
-    if (this.slider) {
-        this.slider.setFramerate(framerate);
-    }
-}
-
-/**
- * Set the duration of playing the whole package history
- * Only applicable when packages with a timestamp are available
- * @param {number} duration    The duration in seconds
- */
-Graph.prototype.setAnimationDuration = function(duration) {
-    if (this.slider) {
-        this.slider.setDuration(duration);
-    }
-};
-
-/**
- * Set the time acceleration for playing the history.
- * Only applicable when packages with a timestamp are available
- * @param {number} acceleration    Acceleration, for example 10 means play
- *                                 ten times as fast as real time. A value
- *                                 of 1 will play the history in real time.
- */
-Graph.prototype.setAnimationAcceleration = function(acceleration) {
-    if (this.slider) {
-        this.slider.setAcceleration(acceleration);
-    }
-};
-
 /**
  * Redraw the graph with the current data
  * chart will be resized too.
@@ -1638,7 +1400,6 @@ Graph.prototype._redraw = function() {
 
     this._drawEdges(ctx);
     this._drawNodes(ctx);
-    this._drawSlider();
 
     // restore original scaling and translation
     ctx.restore();
@@ -1756,54 +1517,6 @@ Graph.prototype._drawEdges = function(ctx) {
     var edges = this.edges;
     for (var i = 0, iMax = edges.length; i < iMax; i++) {
         edges[i].draw(ctx);
-    }
-};
-
-/**
- * Redraw the filter
- */
-Graph.prototype._drawSlider = function() {
-    var sliderNode;
-    if (this.hasTimestamps) {
-        sliderNode = this.frame.slider;
-        if (sliderNode === undefined) {
-            sliderNode = document.createElement( "div" );
-            sliderNode.style.position = "absolute";
-            sliderNode.style.bottom = "0px";
-            sliderNode.style.left = "0px";
-            sliderNode.style.right = "0px";
-            sliderNode.style.backgroundColor = "rgba(255, 255, 255, 0.7)";
-
-            this.frame.slider = sliderNode;
-            this.frame.slider.style.padding = "10px";
-            //this.frame.filter.style.backgroundColor = "#EFEFEF";
-            this.frame.appendChild(sliderNode);
-
-
-            var range = this._getRange();
-            this.slider = new Graph.Slider(sliderNode);
-            this.slider.setLoop(false);
-            this.slider.setRange(range.start, range.end);
-
-            // create an event handler
-            var me = this;
-            var onchange = function () {
-                var timestamp = me.slider.getValue();
-                me.setTimestamp(timestamp);
-                // TODO: do only a redraw when the graph is not still moving
-                me.redraw();
-            };
-            this.slider.setOnChangeCallback(onchange);
-            onchange(); // perform the first update by hand.
-        }
-    }
-    else {
-        sliderNode = this.frame.slider;
-        if (sliderNode !== undefined) {
-            this.frame.removeChild(sliderNode);
-            this.frame.slider = undefined;
-            this.slider = undefined;
-        }
     }
 };
 
@@ -2058,15 +1771,15 @@ Graph.prototype._discreteStepNodes = function() {
  * Start animating nodes and edges
  */
 Graph.prototype.start = function() {
-    if (this.hasMovingNodes) {
+    if (this.moving) {
         this._calculateForces();
         this._discreteStepNodes();
 
         var vmin = this.constants.minVelocity;
-        this.hasMovingNodes = this.isMoving(vmin);
+        this.moving = this.isMoving(vmin);
     }
 
-    if (this.hasMovingNodes || this.hasMovingEdges) {
+    if (this.moving) {
         // start animation. only start timer if it is not already running
         if (!this.timer) {
             var graph = this;
@@ -2335,7 +2048,6 @@ Graph.Node.prototype.setProperties = function(properties, constants) {
     if (properties.x != undefined)         {this.x = properties.x;}
     if (properties.y != undefined)         {this.y = properties.y;}
     if (properties.value != undefined)     {this.value = properties.value;}
-    if (properties.timestamp != undefined) {this.timestamp = properties.timestamp;}
 
     if (this.id === undefined) {
         throw "Node must have an id";
@@ -2879,7 +2591,6 @@ Graph.Edge = function (properties, graph, constants) {
 
     this.stiffness = undefined; // depends on the length of the edge
     this.color  = constants.edges.color;
-    this.timestamp  = undefined;
     this.widthFixed = false;
     this.lengthFixed = false;
 
@@ -2923,7 +2634,6 @@ Graph.Edge.prototype.setProperties = function(properties, constants) {
     if (properties.altdashlength != undefined) {this.altdashlength = properties.altdashlength;}
 
     if (properties.color != undefined) {this.color = properties.color;}
-    if (properties.timestamp != undefined) {this.timestamp = properties.timestamp;}
 
     if (!this.from) {
         throw "Node with id " + properties.from + " not found";
@@ -2940,13 +2650,6 @@ Graph.Edge.prototype.setProperties = function(properties, constants) {
     // initialize animation
     if (this.style === 'arrow') {
         this.arrows = [0.5];
-        this.animation = false;
-    }
-    else if (this.style === 'arrow-end') {
-        this.animation = false;
-    }
-    else {
-        this.animation = false;
     }
 
     // set draw method based on style
@@ -2957,19 +2660,6 @@ Graph.Edge.prototype.setProperties = function(properties, constants) {
         case 'dash-line':     this.draw = this._drawDashLine; break;
         default:              this.draw = this._drawLine; break;
     }
-};
-
-
-
-/**
- * Check if a node has an animating contents. If so, the graph needs to be
- * redrawn regularly
- * @return {boolean}  true if this edge needs animation, else false
- */
-Graph.Edge.prototype.isMoving = function() {
-    // TODO: be able to set the interval somehow
-
-    return this.animation;
 };
 
 /**
@@ -3689,435 +3379,6 @@ Graph.isArray = function (obj) {
         return true;
     }
     return (Object.prototype.toString.call(obj) === '[object Array]');
-};
-
-
-
-/**--------------------------------------------------------------------------**/
-
-
-/**
- * @class Slider
- *
- * An html slider control with start/stop/prev/next buttons
- * @param {Element} container  The element where the slider will be created
- */
-Graph.Slider = function(container) {
-    if (container === undefined) throw "Error: No container element defined";
-
-    this.container = container;
-
-    this.frame = document.createElement("DIV");
-    //this.frame.style.backgroundColor = "#E5E5E5";
-    this.frame.style.width = "100%";
-    this.frame.style.position = "relative";
-
-    this.title = document.createElement("DIV");
-    this.title.style.margin = "2px";
-    this.title.style.marginBottom = "5px";
-    this.title.innerHTML = "";
-    this.container.appendChild(this.title);
-
-    this.frame.prev = document.createElement("INPUT");
-    this.frame.prev.type = "BUTTON";
-    this.frame.prev.value = "Prev";
-    this.frame.appendChild(this.frame.prev);
-
-    this.frame.play = document.createElement("INPUT");
-    this.frame.play.type = "BUTTON";
-    this.frame.play.value = "Play";
-    this.frame.appendChild(this.frame.play);
-
-    this.frame.next = document.createElement("INPUT");
-    this.frame.next.type = "BUTTON";
-    this.frame.next.value = "Next";
-    this.frame.appendChild(this.frame.next);
-
-    this.frame.bar = document.createElement("INPUT");
-    this.frame.bar.type = "BUTTON";
-    this.frame.bar.style.position = "absolute";
-    this.frame.bar.style.border = "1px solid red";
-    this.frame.bar.style.width = "100px";
-    this.frame.bar.style.height = "6px";
-    this.frame.bar.style.borderRadius = "2px";
-    this.frame.bar.style.MozBorderRadius = "2px";
-    this.frame.bar.style.border = "1px solid #7F7F7F";
-    this.frame.bar.style.backgroundColor = "#E5E5E5";
-    this.frame.appendChild(this.frame.bar);
-
-    this.frame.slide = document.createElement("INPUT");
-    this.frame.slide.type = "BUTTON";
-    this.frame.slide.style.margin = "0px";
-    this.frame.slide.value = " ";
-    this.frame.slide.style.position = "relative";
-    this.frame.slide.style.left = "-100px";
-    this.frame.appendChild(this.frame.slide);
-
-    // create events
-    var me = this;
-    this.frame.slide.onmousedown = function (event) {me._onMouseDown(event);};
-    this.frame.prev.onclick = function (event) {me.prev(event);};
-    this.frame.play.onclick = function (event) {me.togglePlay(event);};
-    this.frame.next.onclick = function (event) {me.next(event);};
-
-    this.container.appendChild(this.frame);
-
-    this.onChangeCallback = undefined;
-
-    this.playTimeout = undefined;
-    this.framerate = 20; // frames per second
-    this.duration = 10; // seconds
-    this.doLoop = true;
-
-    this.start = 0;
-    this.end = 0;
-    this.value = 0;
-    this.step = 0;
-    this.rangeIsDate = false;
-
-    this.redraw();
-};
-
-/**
- * Retrieve the step size, depending on the range, framerate, and duration
- */
-Graph.Slider.prototype._updateStep = function() {
-    var range = (this.end - this.start);
-    var frameCount = this.duration * this.framerate;
-
-    this.step = range / frameCount;
-};
-
-/**
- * Select the previous index
- */
-Graph.Slider.prototype.prev = function() {
-    this._setValue(this.value - this.step);
-};
-
-/**
- * Select the next index
- */
-Graph.Slider.prototype.next = function() {
-    this._setValue(this.value + this.step);
-};
-
-/**
- * Select the next index
- */
-Graph.Slider.prototype.playNext = function() {
-    var start = new Date();
-
-    if (!this.leftButtonDown) {
-        if (this.value + this.step < this.end) {
-            this._setValue(this.value + this.step);
-        }
-        else {
-            if (this.doLoop) {
-                this._setValue(this.start);
-            }
-            else {
-                this._setValue(this.end);
-                this.stop();
-                return;
-            }
-        }
-    }
-
-    var end = new Date();
-    var diff = (end - start);
-
-    // calculate how much time it to to set the index and to execute the callback
-    // function.
-    var interval = Math.max(1000 / this.framerate - diff, 0);
-
-    var me = this;
-    this.playTimeout = setTimeout(function() {me.playNext();}, interval);
-};
-
-/**
- * Toggle start or stop playing
- */
-Graph.Slider.prototype.togglePlay = function() {
-    if (this.playTimeout === undefined) {
-        this.play();
-    } else {
-        this.stop();
-    }
-};
-
-/**
- * Start playing
- */
-Graph.Slider.prototype.play = function() {
-    this.frame.play.value = "Stop";
-
-    this.playNext();
-};
-
-/**
- * Stop playing
- */
-Graph.Slider.prototype.stop = function() {
-    this.frame.play.value = "Play";
-
-    clearInterval(this.playTimeout);
-    this.playTimeout = undefined;
-};
-
-/**
- * Set a callback function which will be triggered when the value of the
- * slider bar has changed.
- */
-Graph.Slider.prototype.setOnChangeCallback = function(callback) {
-    this.onChangeCallback = callback;
-};
-
-/**
- * Set the interval for playing the list
- * @param {number} framerate    Framerate in frames per second
- */
-Graph.Slider.prototype.setFramerate = function(framerate) {
-    this.framerate = framerate;
-    this._updateStep();
-};
-
-/**
- * Retrieve the current framerate
- * @return {number} framerate in frames per second
- */
-Graph.Slider.prototype.getFramerate = function() {
-    return this.framerate;
-};
-
-/**
- * Set the duration for playing
- * @param {number} duration    Duration in seconds
- */
-Graph.Slider.prototype.setDuration = function(duration) {
-    this.duration = duration;
-    this._updateStep();
-};
-
-/**
- * Set the time acceleration for playing the history. Only applicable when
- * the values are of type Date.
- * @param {number} acceleration    Acceleration, for example 10 means play
- *                                 ten times as fast as real time. A value
- *                                 of 1 will play the history in real time.
- */
-Graph.Slider.prototype.setAcceleration = function(acceleration) {
-    var durationRealtime = (this.end - this.start) / 1000; // in seconds
-
-    this.duration = durationRealtime / acceleration;
-    this._updateStep();
-};
-
-
-/**
- * Set looping on or off
- * @param {boolean} doLoop    If true, the slider will jump to the start when
- *                            the end is passed, and will jump to the end
- *                            when the start is passed.
- */
-Graph.Slider.prototype.setLoop = function(doLoop) {
-    this.doLoop = doLoop;
-};
-
-/**
- * Retrieve the current value of loop
- * @return {boolean} doLoop    If true, the slider will jump to the start when
- *                             the end is passed, and will jump to the end
- *                             when the start is passed.
- */
-Graph.Slider.prototype.getLoop = function() {
-    return this.doLoop;
-};
-
-
-/**
- * Execute the onchange callback function
- */
-Graph.Slider.prototype.onChange = function() {
-    if (this.onChangeCallback !== undefined) {
-        this.onChangeCallback();
-    }
-};
-
-/**
- * redraw the slider on the correct place
- */
-Graph.Slider.prototype.redraw = function() {
-    // resize the bar
-    var barTop = (this.frame.clientHeight/2 -
-        this.frame.bar.offsetHeight/2);
-    var barWidth = (this.frame.clientWidth -
-        this.frame.prev.clientWidth -
-        this.frame.play.clientWidth -
-        this.frame.next.clientWidth - 30);
-    this.frame.bar.style.top = barTop + "px";
-    this.frame.bar.style.width = barWidth + "px";
-
-    // position the slider button
-    this.frame.slide.title = this.getValue();
-    this.frame.slide.style.left = this._valueToLeft(this.value) + "px";
-
-    // set the title
-    this.title.innerHTML = this.getValue();
-};
-
-
-/**
- * Set the range for the slider
- * @param {Date | Number} start  Start of the range
- * @param {Date | Number} end    End of the range
- */
-Graph.Slider.prototype.setRange = function(start, end) {
-    if (start === undefined || start === null || start === NaN) {
-        this.start = 0;
-        this.rangeIsDate = false;
-    }
-    else if (start instanceof Date) {
-        this.start = start.getTime();
-        this.rangeIsDate = true;
-    }
-    else {
-        this.start = start;
-        this.rangeIsDate = false;
-    }
-
-    if (end === undefined || end === null || end === NaN) {
-        if (this.start instanceof Date) {
-            this.end = new Date(this.start);
-        }
-        else {
-            this.end = this.start;
-        }
-    }
-    else if (end instanceof Date) {
-        this.end = end.getTime();
-    }
-    else {
-        this.end = end;
-    }
-
-    this.value = this.start;
-
-    this._updateStep();
-    this.redraw();
-};
-
-
-
-/**
- * Set a value for the slider. The value must be between start and end
- * When the range are Dates, the value will be translated to a date
- * @param {Number} value
- */
-Graph.Slider.prototype._setValue = function(value) {
-    this.value = this._limitValue(value);
-    this.redraw();
-
-    this.onChange();
-};
-
-/**
- * retrieve the current value in the correct type, Number or Date
- * @return {Date | Number} value
- */
-Graph.Slider.prototype.getValue = function() {
-    if (this.rangeIsDate) {
-        return new Date(this.value);
-    }
-    else {
-        return this.value;
-    }
-};
-
-
-Graph.Slider.prototype.offset = 3;
-
-Graph.Slider.prototype._leftToValue = function (left) {
-    var width = parseFloat(this.frame.bar.style.width) -
-        this.frame.slide.clientWidth - 10;
-    var x = left - this.offset;
-
-    var range = this.end - this.start;
-    var value = this._limitValue(x / width * range + this.start);
-
-    return value;
-};
-
-Graph.Slider.prototype._valueToLeft = function (value) {
-    var width = parseFloat(this.frame.bar.style.width) -
-        this.frame.slide.clientWidth - 10;
-
-    var x;
-    if (this.end > this.start) {
-        x = (value - this.start) / (this.end - this.start) * width;
-    }
-    else {
-        x = 0;
-    }
-    var left = x + this.offset;
-
-    return left;
-};
-
-Graph.Slider.prototype._limitValue = function(value) {
-    if (value < this.start) {
-        value = this.start
-    }
-    if (value > this.end) {
-        value = this.end;
-    }
-
-    return value;
-};
-
-Graph.Slider.prototype._onMouseDown = function(event) {
-    // only react on left mouse button down
-    this.leftButtonDown = event.which ? (event.which === 1) : (event.button === 1);
-    if (!this.leftButtonDown) return;
-
-    this.startClientX = event.clientX;
-    this.startSlideX = parseFloat(this.frame.slide.style.left);
-
-    this.frame.style.cursor = 'move';
-
-    // add event listeners to handle moving the contents
-    // we store the function onmousemove and onmouseup in the graph, so we can
-    // remove the eventlisteners lateron in the function mouseUp()
-    var me = this;
-    this.onmousemove = function (event) {me._onMouseMove(event);};
-    this.onmouseup   = function (event) {me._onMouseUp(event);};
-    Graph.addEventListener(document, "mousemove", this.onmousemove);
-    Graph.addEventListener(document, "mouseup",   this.onmouseup);
-    Graph.preventDefault(event);
-};
-
-
-Graph.Slider.prototype._onMouseMove = function (event) {
-    var diff = event.clientX - this.startClientX;
-    var x = this.startSlideX + diff;
-
-    var value = this._leftToValue(x);
-    this._setValue(value);
-
-    Graph.preventDefault(event);
-};
-
-
-Graph.Slider.prototype._onMouseUp = function (event) {
-    this.frame.style.cursor = 'auto';
-
-    this.leftButtonDown = false;
-
-    // remove event listeners
-    Graph.removeEventListener(document, "mousemove", this.onmousemove);
-    Graph.removeEventListener(document, "mouseup", this.onmouseup);
-
-    Graph.preventDefault(event);
 };
 
 

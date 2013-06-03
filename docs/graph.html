@@ -195,19 +195,6 @@ var nodes = [
     </tr>
 
     <tr>
-        <td>action</td>
-        <td>string</td>
-        <td>no</td>
-        <td>By specifying <code>action</code>, a node can be created, updated,
-            or deleted. This is useful in combination with <code>timestamp</code>
-            to animate history, or for dynamically updating the graph.
-
-            Available values are: <code>create</code>,
-            <code>update</code> (default), or <code>delete</code>.
-        </td>
-    </tr>
-
-    <tr>
         <td>backgroundColor</td>
         <td>String</td>
         <td>"#97C2FC"</td>
@@ -324,14 +311,6 @@ var nodes = [
     </tr>
 
     <tr>
-        <td>timestamp</td>
-        <td>Date | Number</td>
-        <td>no</td>
-        <td>Timestamp used for filtering nodes when animating.
-            See section <a href="#Animation">Animation</a> for more information.</td>
-    </tr>
-
-    <tr>
         <td>title</td>
         <td>string</td>
         <td>no</td>
@@ -403,22 +382,6 @@ var edges= [
         <th>Type</th>
         <th>Required</th>
         <th>Description</th>
-    </tr>
-
-    <tr>
-        <td>action</td>
-        <td>string</td>
-        <td>no</td>
-        <td>By specifying <code>action</code>, a link can be created, updated,
-            or deleted. This is useful in combination with <code>timestamp</code>
-            to animate history, or for dynamically updating the graph.
-
-            An action on a link can only be used when the link has an id.
-
-            Available values are: <code>create</code> (default),
-            <code>update</code>, or <code>delete</code>.
-
-        </td>
     </tr>
 
     <tr>
@@ -512,14 +475,6 @@ var edges= [
         <td>string</td>
         <td>no</td>
         <td>Text to be displayed halfway the link.</td>
-    </tr>
-
-    <tr>
-        <td>timestamp</td>
-        <td>Date | Number</td>
-        <td>no</td>
-        <td>Timestamp used for filtering edges when animating.
-            See section <a href="#Animation">Animation</a> for more information.</td>
     </tr>
 
     <tr>
@@ -987,45 +942,6 @@ var nodes = [
     </tr>
 
     <tr>
-        <td>animationSetAcceleration(acceleration)</td>
-        <td>none</td>
-        <td>Set the time acceleration for animation of history.
-            Only applicable when packages with a timestamp are available.
-            When acceleration is 1, history is played in real time.
-            And for example acceleration of 10 will play history then times the speed of
-            real time.</td>
-    </tr>
-    <tr>
-        <td>animationSetDuration(duration)</td>
-        <td>none</td>
-        <td>Duration of the animation in seconds.
-            Only applicable when packages with a timestamp are available.
-            The animation speed is scaled such that the total duration of playing the
-            history equals the set duration.</td>
-    </tr>
-    <tr>
-        <td>animationSetFramerate(framerate)</td>
-        <td>none</td>
-        <td>Set the framerate in frames per second for animation of history.
-            Only applicable when packages with a timestamp are available.
-        </td>
-    </tr>
-    <tr>
-        <td>animationStart()</td>
-        <td>none</td>
-        <td>Start animation of history.
-            Only applicable when packages with a timestamp are available.
-        </td>
-    </tr>
-    <tr>
-        <td>animationStop()</td>
-        <td>none</td>
-        <td>Stop animation of history.
-            Only applicable when packages with a timestamp are available.
-        </td>
-    </tr>
-
-    <tr>
         <td>setData(data)</td>
         <td>none</td>
         <td>Loads data. Parameter <code>data</code> is an object containing
@@ -1073,21 +989,6 @@ var nodes = [
         <td>Parameters <code>width</code> and <code>height</code> are strings,
             containing a new size for the visualization. Size can be provided in pixels
             or in percentages.</td>
-    </tr>
-
-    <tr>
-        <td>start()</td>
-        <td>none</td>
-        <td>Start animation.
-            Only applicable when there are animated edges or nodes,
-            or when the nodes are not yet moved to a stable position.</td>
-    </tr>
-
-    <tr>
-        <td>stop()</td>
-        <td>none</td>
-        <td>Stop animation.
-            Only applicable when there are animated edges or nodes.</td>
     </tr>
 
 </table>
