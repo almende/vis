@@ -49,25 +49,7 @@ a:hover {
     text-decoration: underline;
 }
 
-hr {
-    border: none 0;
-    border-top: 1px solid #abc;
-    height: 1px;
-}
-
-pre {
-    display: block;
-    font-size: 10pt;
-    line-height: 1.5em;
-    font-family: monospace;
-}
-
-pre, code {
-    background-color: #f5f5f5;
-}
-
-table
-{
+table {
     border-collapse: collapse;
 }
 

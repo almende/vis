@@ -18,18 +18,12 @@
 <div id="mygraph"></div>
 
 <script type="text/javascript">
-    // parse data in DOT-notation
-    var dot = 'digraph {node[shape=circle]; 1 -> 1 -> 2; 2 -> 3; 2 -- 4; 2 -> 1 }';
-    var data = vis.util.DOTToGraph(dot);
-
-    // create a graph
+    // create a graph, provide a DOT language file as data
     var container = document.getElementById('mygraph');
-    var graph = new vis.Graph(container, data);
-
-    // resize the network when window resizes
-    window.onresize = function () {
-        graph.redraw()
+    var data = {
+        dot: 'digraph {node[shape=circle]; 1 -> 1 -> 2; 2 -> 3; 2 -- 4; 2 -> 1 }'
     };
+    var graph = new vis.Graph(container, data);
 </script>
 </body>
 </html>

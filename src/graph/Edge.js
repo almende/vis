@@ -179,6 +179,7 @@ Edge.prototype.isOverlappingWith = function(obj) {
  * Draw this edge in the given canvas
  * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
  * @param {CanvasRenderingContext2D}   ctx
+ * @private
  */
 Edge.prototype._drawLine = function(ctx) {
     // set style
@@ -266,6 +267,7 @@ Edge.prototype._circle = function (ctx, x, y, radius) {
  * @param {String} text
  * @param {Number} x
  * @param {Number} y
+ * @private
  */
 Edge.prototype._text = function (ctx, text, x, y) {
     if (text) {
@@ -295,6 +297,7 @@ Edge.prototype._text = function (ctx, text, x, y) {
  * @date 2012-08-08
  * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
  * @param {CanvasRenderingContext2D}   ctx
+ * @private
  */
 Edge.prototype._drawDashLine = function(ctx) {
     // set style
@@ -361,6 +364,7 @@ Edge.prototype._pointOnCircle = function (x, y, radius, percentage) {
  * Draw this edge in the given canvas
  * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
  * @param {CanvasRenderingContext2D}   ctx
+ * @private
  */
 Edge.prototype._drawArrow = function(ctx) {
     var point;
@@ -436,6 +440,7 @@ Edge.prototype._drawArrow = function(ctx) {
  * Draw this edge in the given canvas
  * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
  * @param {CanvasRenderingContext2D}   ctx
+ * @private
  */
 Edge.prototype._drawArrowEnd = function(ctx) {
     // set style
@@ -481,12 +486,12 @@ Edge.prototype._drawArrowEnd = function(ctx) {
     }
     else {
         // draw circle
-        var radius = this.length / 2 / Math.PI;
-        var x, y, arrow;
         var node = this.from;
+        var x, y, arrow;
         if (!node.width) {
             node.resize(ctx);
         }
+        var radius = (this.length + node.width) / 4;
         if (node.width > node.height) {
             x = node.x + node.width / 2;
             y = node.y - radius;
@@ -537,6 +542,7 @@ Edge.prototype._drawArrowEnd = function(ctx) {
  * @param {number} y2
  * @param {number} x3
  * @param {number} y3
+ * @private
  */
 Edge._dist = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
     var px = x2-x1,

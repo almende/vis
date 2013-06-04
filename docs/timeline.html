@@ -184,6 +184,12 @@ var items = [
         <td>The contents of the item. This can be plain text or html code.</td>
     </tr>
     <tr>
+        <td>type</td>
+        <td>String</td>
+        <td>'box'</td>
+        <td>The type of the item. Can be 'box' (default), 'range', or 'point'.</td>
+    </tr>
+    <tr>
         <td>group</td>
         <td>any type</td>
         <td>no</td>
@@ -244,7 +250,7 @@ var options = {
         <td>align</td>
         <td>String</td>
         <td>"center"</td>
-        <td>Alignment of items with style 'box'. Available values are
+        <td>Alignment of items with type 'box'. Available values are
             'center' (default), 'left', or 'right').</td>
     </tr>
 
@@ -379,12 +385,11 @@ var options = {
     </tr>
 
     <tr>
-        <td>style</td>
+        <td>type</td>
         <td>String</td>
         <td>'box'</td>
-        <td>Specifies the style for the timeline items. Choose from 'dot' or 'box'.
-            Note that the content of the items can override this global style,
-            and can contain additional html formatting.
+        <td>Specifies the type for the timeline items. Choose from 'dot' or 'point'.
+            Note that individual items can override this global type.
         </td>
     </tr>
 

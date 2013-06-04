@@ -118,18 +118,20 @@ util.parseDOT = function (data) {
             }
 
             // cast string to number or boolean
-            var number = Number(name);
-            if (!isNaN(number)) {
-                name = number;
-            }
-            else if (name == 'true') {
-                name = true;
-            }
-            else if (name == 'false') {
-                name = false;
-            }
-            else if (name == 'null') {
-                name = null;
+            if (name.length) {
+                var number = Number(name);
+                if (!isNaN(number)) {
+                    name = number;
+                }
+                else if (name == 'true') {
+                    name = true;
+                }
+                else if (name == 'false') {
+                    name = false;
+                }
+                else if (name == 'null') {
+                    name = null;
+                }
             }
         }
 
@@ -318,12 +320,13 @@ util.parseDOT = function (data) {
     while (c && c != '}') {
         // parse node id and optional node attributes
         var id = parseString();
-        if (id == undefined) {
+        if (id == undefined || id === '') {
             throw new SyntaxError('String with id expected ' + pos());
         }
         var attr = parseAttributes();
         addNode(id, attr);
 
+        // TODO: parse global attributes
         // TODO: parse global attributes "graph", "node", "edge"
 
         // parse arrow

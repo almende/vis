@@ -11,12 +11,17 @@
 }
 
 .pln {
-    color: #1C1C1C;
+    color: #333333;
 }
 
 pre.prettyprint {
-    border:1px solid lightgray;
-    padding:2px;
+    border: 1px solid lightgray;
+    background-color: #fcfcfc;
+    padding: 5px;
+
+    font-size: 10pt;
+    line-height: 1.5em;
+    font-family: monospace;
 }
 
 ol.linenums {
@@ -41,7 +46,7 @@ li.L1,li.L3,li.L5,li.L7,li.L9 {
 }
 
 .typ,.atn,.dec {
-    color: orange;
+    color: darkorange;
 }
 
 @media print {

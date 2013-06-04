@@ -197,6 +197,7 @@ Node.prototype.unselect = function() {
 
 /**
  * Reset the calculated size of the node, forces it to recalculate its size
+ * @private
  */
 Node.prototype._reset = function() {
     this.width = undefined;
@@ -268,6 +269,7 @@ Node.prototype._setForce = function(fx, fy) {
  * Add forces acting on the node
  * @param {number} fx   Force in horizontal direction
  * @param {number} fy   Force in vertical direction
+ * @private
  */
 Node.prototype._addForce = function(fx, fy) {
     this.fx += fx;

@@ -2,8 +2,8 @@ vis.js
 ==================
 
 Vis.js is a dynamic, browser based visualization library.
-The library is designed to be easy to use, to handle large amounts
-of dynamic data, and to enable manipulation of the data.
+The library is designed to be easy to use, handle large amounts
+of dynamic data, and enable manipulation of the data.
 The library consists of the following components:
 
 - Timeline. Display different types of data on a timeline.
@@ -12,10 +12,9 @@ The library consists of the following components:
 - Graph. Display a graph of network with nodes and edges.
 - DataSet and DataView. A flexible key/value based data set.
   Add, update, and remove items. Subscribe on changes in the data set.
-  Filter, order, and cast data.
+  Filter, order, and cast items.
 
-Vis.js Library is part of [CHAP](http://chap.almende.com),
-the Common Hybrid Agent Platform, developed by [Almende B.V](http://almende.com).
+The vis.js library is developed by [Almende B.V](http://almende.com).
 
 
 ## Install

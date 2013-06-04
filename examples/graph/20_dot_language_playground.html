@@ -92,8 +92,10 @@
         try {
             txtError.innerHTML = '';
 
-            // parse the data from DOT-notation
-            data = vis.util.DOTToGraph(txtData.value);
+            // Provide a string with data in DOT language
+            data = {
+                dot: txtData.value
+            };
 
             // create a graph
             var container = document.getElementById('mygraph');

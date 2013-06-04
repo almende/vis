@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.0.8
- * @date    2013-06-03
+ * @date    2013-06-04
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -4652,7 +4652,7 @@ function ItemSet(parent, depends, options) {
     // one options object is shared by this itemset and all its items
     this.options = options || {};
     this.defaultOptions = {
-        style: 'box',
+        type: 'box',
         align: 'center',
         orientation: 'bottom',
         margin: {
@@ -4708,8 +4708,8 @@ ItemSet.types = {
  * @param {Object} [options] The following options are available:
  *                           {String | function} [className]
  *                              class name for the itemset
- *                           {String} [style]
- *                              Default style for the items. Choose from 'box'
+ *                           {String} [type]
+ *                              Default type for the items. Choose from 'box'
  *                              (default), 'point', or 'range'. The default
  *                              Style can be overwritten by individual items.
  *                           {String} align
@@ -4844,6 +4844,7 @@ ItemSet.prototype.repaint = function repaint() {
                 if (itemData) {
                     var type = itemData.type ||
                         (itemData.start && itemData.end && 'range') ||
+                        options.type ||
                         'box';
                     var constructor = ItemSet.types[type];
 
@@ -6925,18 +6926,20 @@ util.parseDOT = function (data) {
             }
 
             // cast string to number or boolean
-            var number = Number(name);
-            if (!isNaN(number)) {
-                name = number;
-            }
-            else if (name == 'true') {
-                name = true;
-            }
-            else if (name == 'false') {
-                name = false;
-            }
-            else if (name == 'null') {
-                name = null;
+            if (name.length) {
+                var number = Number(name);
+                if (!isNaN(number)) {
+                    name = number;
+                }
+                else if (name == 'true') {
+                    name = true;
+                }
+                else if (name == 'false') {
+                    name = false;
+                }
+                else if (name == 'null') {
+                    name = null;
+                }
             }
         }
 
@@ -7125,12 +7128,13 @@ util.parseDOT = function (data) {
     while (c && c != '}') {
         // parse node id and optional node attributes
         var id = parseString();
-        if (id == undefined) {
+        if (id == undefined || id === '') {
             throw new SyntaxError('String with id expected ' + pos());
         }
         var attr = parseAttributes();
         addNode(id, attr);
 
+        // TODO: parse global attributes
         // TODO: parse global attributes "graph", "node", "edge"
 
         // parse arrow
@@ -7683,6 +7687,7 @@ Node.prototype.unselect = function() {
 
 /**
  * Reset the calculated size of the node, forces it to recalculate its size
+ * @private
  */
 Node.prototype._reset = function() {
     this.width = undefined;
@@ -7754,6 +7759,7 @@ Node.prototype._setForce = function(fx, fy) {
  * Add forces acting on the node
  * @param {number} fx   Force in horizontal direction
  * @param {number} fy   Force in vertical direction
+ * @private
  */
 Node.prototype._addForce = function(fx, fy) {
     this.fx += fx;
@@ -8275,6 +8281,7 @@ Edge.prototype.isOverlappingWith = function(obj) {
  * Draw this edge in the given canvas
  * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
  * @param {CanvasRenderingContext2D}   ctx
+ * @private
  */
 Edge.prototype._drawLine = function(ctx) {
     // set style
@@ -8362,6 +8369,7 @@ Edge.prototype._circle = function (ctx, x, y, radius) {
  * @param {String} text
  * @param {Number} x
  * @param {Number} y
+ * @private
  */
 Edge.prototype._text = function (ctx, text, x, y) {
     if (text) {
@@ -8391,6 +8399,7 @@ Edge.prototype._text = function (ctx, text, x, y) {
  * @date 2012-08-08
  * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
  * @param {CanvasRenderingContext2D}   ctx
+ * @private
  */
 Edge.prototype._drawDashLine = function(ctx) {
     // set style
@@ -8457,6 +8466,7 @@ Edge.prototype._pointOnCircle = function (x, y, radius, percentage) {
  * Draw this edge in the given canvas
  * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
  * @param {CanvasRenderingContext2D}   ctx
+ * @private
  */
 Edge.prototype._drawArrow = function(ctx) {
     var point;
@@ -8532,6 +8542,7 @@ Edge.prototype._drawArrow = function(ctx) {
  * Draw this edge in the given canvas
  * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
  * @param {CanvasRenderingContext2D}   ctx
+ * @private
  */
 Edge.prototype._drawArrowEnd = function(ctx) {
     // set style
@@ -8577,12 +8588,12 @@ Edge.prototype._drawArrowEnd = function(ctx) {
     }
     else {
         // draw circle
-        var radius = this.length / 2 / Math.PI;
-        var x, y, arrow;
         var node = this.from;
+        var x, y, arrow;
         if (!node.width) {
             node.resize(ctx);
         }
+        var radius = (this.length + node.width) / 4;
         if (node.width > node.height) {
             x = node.x + node.width / 2;
             y = node.y - radius;
@@ -8633,6 +8644,7 @@ Edge.prototype._drawArrowEnd = function(ctx) {
  * @param {number} y2
  * @param {number} x3
  * @param {number} y3
+ * @private
  */
 Edge._dist = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
     var px = x2-x1,
@@ -8978,17 +8990,37 @@ function Graph (container, data, options) {
  * Set nodes and edges, and optionally options as well.
  *
  * @param {Object} data    Object containing parameters:
- *                         {Array} nodes     Array with nodes
- *                         {Array} edges     Array with edges
+ *                         {Array} [nodes]   Array with nodes.
+ *                                           Required when format is 'vis'
+ *                         {Array} [edges]   Array with edges
+ *                                           Required when format is 'vis'
+ *                         {String} [dot]    String containing data in DOT
+ *                                           format.
  *                         {Options} [options] Object with options
  */
 Graph.prototype.setData = function(data) {
+    if (data && data.dot && (data.nodes || data.edges)) {
+        throw new SyntaxError('Data must contain either parameter "dot" or ' +
+            ' parameter pair "nodes" and "edges", but not both.');
+    }
+
     // set options
     this.setOptions(data && data.options);
 
     // set all data
-    this._setNodes(data && data.nodes);
-    this._setEdges(data && data.edges);
+    if (data && data.dot) {
+        // parse DOT file
+        if(data && data.dot) {
+            var dotData = vis.util.DOTToGraph(data.dot);
+            this.setData(dotData);
+            return;
+        }
+    }
+    else {
+        this._setNodes(data && data.nodes);
+        this._setEdges(data && data.edges);
+    }
+
 
     // find a stable position or start animating to a stable position
     if (this.stabilize) {
@@ -9068,22 +9100,17 @@ Graph.prototype.setOptions = function (options) {
 
     this._setSize(this.width, this.height);
     this._setTranslation(0, 0);
-    this._setScale(1.0);
+    this._setScale(1);
 };
 
 /**
  * fire an event
  * @param {String} event   The name of an event, for example "select"
  * @param {Object} params  Optional object with event parameters
+ * @private
  */
-Graph.prototype.trigger = function (event, params) {
-    // trigger the edges event bus
+Graph.prototype._trigger = function (event, params) {
     events.trigger(this, event, params);
-
-    // trigger the google event bus
-    if (typeof google !== 'undefined' && google.visualization && google.visualization.events) {
-        google.visualization.events.trigger(this, event, params);
-    }
 };
 
 
@@ -9092,6 +9119,7 @@ Graph.prototype.trigger = function (event, params) {
  * This function is executed once when a Graph object is created. The frame
  * contains a canvas, and this canvas contains all objects like the axis and
  * nodes.
+ * @private
  */
 Graph.prototype._create = function () {
     // remove all elements from the container element.
@@ -9135,6 +9163,7 @@ Graph.prototype._create = function () {
 /**
  * Set the background  and border styling for the graph
  * @param {String | Object} backgroundColor
+ * @private
  */
 Graph.prototype._setBackgroundColor = function(backgroundColor) {
     var fill = "white";
@@ -9159,6 +9188,7 @@ Graph.prototype._setBackgroundColor = function(backgroundColor) {
     }
 
     this.frame.style.boxSizing = 'border-box';
+    this.frame.style.MozBoxSizing = 'border-box';
     this.frame.style.backgroundColor = fill;
     this.frame.style.borderColor = stroke;
     this.frame.style.borderWidth = strokeWidth + "px";
@@ -9168,6 +9198,7 @@ Graph.prototype._setBackgroundColor = function(backgroundColor) {
 
 /**
  * handle on mouse down event
+ * @private
  */
 Graph.prototype._onMouseDown = function (event) {
     event = event || window.event;
@@ -9258,6 +9289,8 @@ Graph.prototype._onMouseDown = function (event) {
 
 /**
  * handle on mouse move event
+ * @param {Event}  event
+ * @private
  */
 Graph.prototype._onMouseMove = function (event) {
     event = event || window.event;
@@ -9324,6 +9357,8 @@ Graph.prototype._onMouseMove = function (event) {
 
 /**
  * handle on mouse up event
+ * @param {Event}  event
+ * @private
  */
 Graph.prototype._onMouseUp = function (event) {
     event = event || window.event;
@@ -9389,7 +9424,8 @@ Graph.prototype._onMouseUp = function (event) {
 /**
  * Event handler for mouse wheel event, used to zoom the timeline
  * Code from http://adomas.org/javascript-mouse-wheel/
- * @param {event}  event   The event
+ * @param {Event}  event
+ * @private
  */
 Graph.prototype._onMouseWheel = function(event) {
     event = event || window.event;
@@ -9450,6 +9486,8 @@ Graph.prototype._onMouseWheel = function(event) {
 
 /**
  * Mouse move handler for checking whether the title moves over a node with a title.
+ * @param  {Event} event
+ * @private
  */
 Graph.prototype._onMouseMoveTitle = function (event) {
     event = event || window.event;
@@ -9488,6 +9526,7 @@ Graph.prototype._onMouseMoveTitle = function (event) {
  *
  * @param {number} x
  * @param {number} y
+ * @private
  */
 Graph.prototype._checkShowPopup = function (x, y) {
     var obj = {
@@ -9552,6 +9591,7 @@ Graph.prototype._checkShowPopup = function (x, y) {
  * longer hovering on the object
  * @param {number} x
  * @param {number} y
+ * @private
  */
 Graph.prototype._checkHidePopup = function (x, y) {
     var obj = {
@@ -9571,6 +9611,8 @@ Graph.prototype._checkHidePopup = function (x, y) {
 
 /**
  * Event handler for touchstart event on mobile devices
+ * @param {Event} event
+ * @private
  */
 Graph.prototype._onTouchStart = function(event) {
     vis.util.preventDefault(event);
@@ -9596,6 +9638,8 @@ Graph.prototype._onTouchStart = function(event) {
 
 /**
  * Event handler for touchmove event on mobile devices
+ * @param {Event} event
+ * @private
  */
 Graph.prototype._onTouchMove = function(event) {
     vis.util.preventDefault(event);
@@ -9604,6 +9648,8 @@ Graph.prototype._onTouchMove = function(event) {
 
 /**
  * Event handler for touchend event on mobile devices
+ * @param {Event} event
+ * @private
  */
 Graph.prototype._onTouchEnd = function(event) {
     vis.util.preventDefault(event);
@@ -9631,6 +9677,7 @@ Graph.prototype._onTouchEnd = function(event) {
  * @param {Boolean} triggerSelect  If true (default), the select event
  *                                 is triggered when nodes are unselected
  * @return {Boolean} changed       True if the selection is changed
+ * @private
  */
 Graph.prototype._unselectNodes = function(selection, triggerSelect) {
     var changed = false;
@@ -9666,7 +9713,7 @@ Graph.prototype._unselectNodes = function(selection, triggerSelect) {
 
     if (changed && (triggerSelect == true || triggerSelect == undefined)) {
         // fire the select event
-        this.trigger('select');
+        this._trigger('select');
     }
 
     return changed;
@@ -9679,6 +9726,7 @@ Graph.prototype._unselectNodes = function(selection, triggerSelect) {
  * @param {boolean} append    If true, the new selection will be appended to the
  *                            current selection (except for duplicate entries)
  * @return {Boolean} changed  True if the selection is changed
+ * @private
  */
 Graph.prototype._selectNodes = function(selection, append) {
     var changed = false;
@@ -9729,7 +9777,7 @@ Graph.prototype._selectNodes = function(selection, append) {
 
     if (changed) {
         // fire the select event
-        this.trigger('select');
+        this._trigger('select');
     }
 
     return changed;
@@ -9740,6 +9788,7 @@ Graph.prototype._selectNodes = function(selection, append) {
  * @param {Object} obj  An object with parameters left, top, right, bottom
  * @return {Object[]}   An array with selection objects containing
  *                      the parameter row.
+ * @private
  */
 Graph.prototype._getNodesOverlappingWith = function (obj) {
     var overlappingNodes = [];
@@ -9812,6 +9861,7 @@ Graph.prototype.setSelection = function(selection) {
  *                              to call them connected. Optional, 1 by default
  * @return {Number[]} connectioncount array with the connection count
  *                                    for each node
+ * @private
  */
 Graph.prototype._getConnectionCount = function(level) {
     var conn = this.edges;
@@ -9890,6 +9940,7 @@ Graph.prototype._getConnectionCount = function(level) {
  *                         or "50%")
  * @param {string} height  Height in pixels or percentage  (for example "400px"
  *                         or "30%")
+ * @private
  */
 Graph.prototype._setSize = function(width, height) {
     this.frame.style.width = width;
@@ -9945,6 +9996,7 @@ Graph.prototype._setNodes = function(nodes) {
  * The properties can contain a property "action", which can have values
  * "create", "update", or "delete"
  * @param {Object} properties  An object with properties
+ * @private
  */
 Graph.prototype._createNode = function(properties) {
     var action = properties.action ? properties.action : "update";
@@ -10042,9 +10094,10 @@ Graph.prototype._createNode = function(properties) {
 
 /**
  * Find a node by its id
- * @param {Number} id       Id of the node
- * @return {Number} index   Index of the node in the array this.nodes, or
- *                          undefined when not found. *
+ * @param {Number} id                   Id of the node
+ * @return {Number | undefined} index   Index of the node in the array
+ *                                      this.nodes, or undefined when not found
+ * @private
  */
 Graph.prototype._findNode = function (id) {
     var nodes = this.nodes;
@@ -10062,6 +10115,7 @@ Graph.prototype._findNode = function (id) {
  * @param {Number} row                   Row number of the node
  * @return {Node} node     The node with the given row number, or
  *                                       undefined when not found.
+ * @private
  */
 Graph.prototype._findNodeByRow = function (row) {
     return this.nodes[row];
@@ -10070,6 +10124,7 @@ Graph.prototype._findNodeByRow = function (row) {
 /**
  * Load edges by reading the data table
  * @param {Array}      edges    The data containing the edges.
+ * @private
  * @private
  */
 Graph.prototype._setEdges = function(edges) {
@@ -10109,6 +10164,7 @@ Graph.prototype._setEdges = function(edges) {
  * The properties can contain a property "action", which can have values
  * "create", "update", or "delete"
  * @param {Object} properties   An object with properties
+ * @private
  */
 Graph.prototype._createEdge = function(properties) {
     var action = properties.action ? properties.action : "create";
@@ -10187,6 +10243,7 @@ Graph.prototype._createEdge = function(properties) {
  * Update the references to oldNode in all edges.
  * @param {Node} oldNode
  * @param {Node} newNode
+ * @private
  */
 // TODO: start utilizing this method _updateNodeReferences
 Graph.prototype._updateNodeReferences = function(oldNode, newNode) {
@@ -10204,9 +10261,10 @@ Graph.prototype._updateNodeReferences = function(oldNode, newNode) {
 
 /**
  * Find a edge by its id
- * @param {Number} id       Id of the edge
- * @return {Number} index   Index of the edge in the array this.edges, or
- *                          undefined when not found. *
+ * @param {Number} id                   Id of the edge
+ * @return {Number | undefined} index   Index of the edge in the array
+ *                                      this.edges, or undefined when not found
+ * @private
  */
 Graph.prototype._findEdge = function (id) {
     var edges = this.edges;
@@ -10222,7 +10280,8 @@ Graph.prototype._findEdge = function (id) {
 /**
  * Find a edge by its row
  * @param {Number} row          Row of the edge
- * @return {Edge} the found edge, or undefined when not found
+ * @return {Edge | undefined} the found edge, or undefined when not found
+ * @private
  */
 Graph.prototype._findEdgeByRow = function (row) {
     return this.edges[row];
@@ -10234,6 +10293,7 @@ Graph.prototype._findEdgeByRow = function (row) {
  * @param {Array} array.  An array with objects like Edges or Nodes
  *                        The objects must have a method getValue() and
  *                        setValueRange(min, max).
+ * @private
  */
 Graph.prototype._updateValueRange = function(array) {
     var count = array.length;
@@ -10270,6 +10330,7 @@ Graph.prototype.redraw = function() {
 
 /**
  * Redraw the graph with the current data
+ * @private
  */
 Graph.prototype._redraw = function() {
     var ctx = this.frame.canvas.getContext("2d");
@@ -10295,6 +10356,7 @@ Graph.prototype._redraw = function() {
  * Set the translation of the graph
  * @param {Number} offsetX    Horizontal offset
  * @param {Number} offsetY    Vertical offset
+ * @private
  */
 Graph.prototype._setTranslation = function(offsetX, offsetY) {
     if (this.translation === undefined) {
@@ -10315,6 +10377,7 @@ Graph.prototype._setTranslation = function(offsetX, offsetY) {
 /**
  * Get the translation of the graph
  * @return {Object} translation    An object with parameters x and y, both a number
+ * @private
  */
 Graph.prototype._getTranslation = function() {
     return {
@@ -10326,6 +10389,7 @@ Graph.prototype._getTranslation = function() {
 /**
  * Scale the graph
  * @param {Number} scale   Scaling factor 1.0 is unscaled
+ * @private
  */
 Graph.prototype._setScale = function(scale) {
     this.scale = scale;
@@ -10333,6 +10397,7 @@ Graph.prototype._setScale = function(scale) {
 /**
  * Get the current scale of  the graph
  * @return {Number} scale   Scaling factor 1.0 is unscaled
+ * @private
  */
 Graph.prototype._getScale = function() {
     return this.scale;
@@ -10360,6 +10425,7 @@ Graph.prototype._canvasToY = function(y) {
  * Get a node by its id
  * @param {number} id
  * @return {Node}  node, or null if not found
+ * @private
  */
 Graph.prototype._getNode = function(id) {
     for (var i = 0; i < this.nodes.length; i++) {
@@ -10374,6 +10440,7 @@ Graph.prototype._getNode = function(id) {
  * Redraw all nodes
  * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
  * @param {CanvasRenderingContext2D}   ctx
+ * @private
  */
 Graph.prototype._drawNodes = function(ctx) {
     // first draw the unselected nodes
@@ -10398,6 +10465,7 @@ Graph.prototype._drawNodes = function(ctx) {
  * Redraw all edges
  * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
  * @param {CanvasRenderingContext2D}   ctx
+ * @private
  */
 Graph.prototype._drawEdges = function(ctx) {
     var edges = this.edges;
@@ -10408,6 +10476,7 @@ Graph.prototype._drawEdges = function(ctx) {
 
 /**
  * Recalculate the best positions for all nodes
+ * @private
  */
 Graph.prototype._reposition = function() {
     // TODO: implement function reposition
@@ -10468,6 +10537,7 @@ Graph.prototype._reposition = function() {
 
 /**
  * Find a stable position for all nodes
+ * @private
  */
 Graph.prototype._doStabilize = function() {
     var start = new Date();
@@ -10491,8 +10561,9 @@ Graph.prototype._doStabilize = function() {
 /**
  * Calculate the external forces acting on the nodes
  * Forces are caused by: edges, repulsing forces between nodes, gravity
+ * @private
  */
-Graph.prototype._calculateForces = function(nodeId) {
+Graph.prototype._calculateForces = function() {
     // create a local edge to the nodes and edges, that is faster
     var nodes = this.nodes,
         edges = this.edges;
@@ -10629,6 +10700,7 @@ Graph.prototype._calculateForces = function(nodeId) {
  * Check if any of the nodes is still moving
  * @param {number} vmin   the minimum velocity considered as "moving"
  * @return {boolean}      true if moving, false if non of the nodes is moving
+ * @private
  */
 Graph.prototype._isMoving = function(vmin) {
     // TODO: ismoving does not work well: should check the kinetic energy, not its velocity
@@ -10644,6 +10716,7 @@ Graph.prototype._isMoving = function(vmin) {
 
 /**
  * Perform one discrete step for all nodes
+ * @private
  */
 Graph.prototype._discreteStepNodes = function() {
     var interval = this.refreshRate / 1000.0; // in seconds

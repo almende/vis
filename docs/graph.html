@@ -36,15 +36,21 @@
     <li><a href="#Overview">Overview</a></li>
     <li><a href="#Example">Example</a></li>
     <li><a href="#Loading">Loading</a></li>
-    <li><a href="#Data_Format">Data Format</a></li>
-    <li><a href="#Data_Import">Data Import</a></li>
+    <li>
+        <a href="#Data_Format">Data Format</a>
+        <ul>
+            <li><a href="#Nodes">Nodes</a></li>
+            <li><a href="#Edges">Edges</a></li>
+            <li><a href="#DOT_language">DOT_language</a></li>
+        </ul>
+    </li>
     <li><a href="#Configuration_Options">Configuration Options</a></li>
     <li><a href="#Methods">Methods</a></li>
     <li><a href="#Events">Events</a></li>
     <li><a href="#Data_Policy">Data Policy</a></li>
 </ul>
 
-<h2><a name="Overview"></a>Overview</h2>
+<h2 id="Overview">Overview</h2>
 <p>
     Graph is a visualization to display graphs and networks consisting of nodes
     and edges. The visualization is easy to use and supports custom styles,
@@ -61,7 +67,7 @@
     <a href="http://visjs.org" target="_blank">vis.js</a> library.
 </p>
 
-<h2><a name="Example"></a>Example</h2>
+<h2 id="Example">Example</h2>
 <p>
     Here a basic graph example. More examples can be found in the
     <a href="../examples" target="_blank">examples directory</a>.
@@ -115,7 +121,7 @@
 </pre>
 
 
-<h2><a name="Loading"></a>Loading</h2>
+<h2 id="Loading">Loading</h2>
 <p>
     Install or download the <a href="http://visjs.org" target="_blank">vis.js</a> library.
     in a subfolder of your project. Include the library script in the head of your html code:
@@ -139,22 +145,62 @@ The constructor accepts three parameters:
         <code>edges</code>, which both contain an array with objects.
         Optionally, data may contain an <code>options</code> object.
         The parameter <code>data</code> is optional, data can also be set using
-        the method <code>setData</code>.
+        the method <code>setData</code>. Section <a href="#Data_Format">Data Format</a>
+        describes the data object.
     </li>
     <li>
         <code>options</code> is an optional Object containing a name-value map
         with options. Options can also be set using the method
         <code>setOptions</code>.
+        Section <a href="#Configuration_Options">Configuration Options</a>
+        describes the available options.
     </li>
 </ul>
 
-<h2><a name="Data_Format"></a>Data Format</h2>
+<h2 id="Data_Format">Data Format</h2>
 <p>
-    The Graph draws nodes and edges, which are both an Array with objects.
-    This section describes the data format of nodes and edges.
+    The <code>data</code> parameter of the Graph constructor is an object
+    which can contain different types of data.
+    The following properties are supported in the <code>data</code> object:
 </p>
 
-<h3>Nodes</h3>
+<ul>
+    <li>
+        <span style="font-weight: bold;">A property pair <code>nodes</code> and <code>edges</code></span>,
+        both containing an Array with objects. The data formats are described
+        in the sections <a href="#Nodes">Nodes</a> and <a href="#Edges">Edges</a>.
+        Example:
+<pre class="prettyprint lang-js">
+var data = {
+    nodes: [...],
+    edges: [...]
+};
+</pre>
+    </li>
+    <li>
+        <span style="font-weight: bold;">A property <code>dot</code></span>,
+        containing a string with data in the
+        <a href="http://en.wikipedia.org/wiki/DOT_language" target="_blank">DOT language</a>.
+        DOT support is described in section <a href="#DOT_language">DOT_language</a>.
+
+        Example:
+<pre class="prettyprint lang-js">
+var data = {
+    dot: '...'
+};
+</pre>
+    </li>
+    <li>
+        <span style="font-weight: bold;">A property <code>options</code></span>,
+        containing an object with global options.
+        Options can be provided as third parameter in the graph constructor
+        as well. Section <a href="#Configuration_Options">Configuration Options</a>
+        describes the available options.
+
+    </li>
+</ul>
+
+<h3 id="Nodes">Nodes</h3>
 
 <p>
     Nodes typically have an <code>id</code> and <code>text</code>.
@@ -169,8 +215,8 @@ The constructor accepts three parameters:
 <pre class="prettyprint lang-js">
 var nodes = [
     {
-        'id': 1,
-        'text': 'Node 1'
+        id: 1,
+        text: 'Node 1'
     },
     // ... more nodes
 ];
@@ -205,7 +251,7 @@ var nodes = [
 
     <tr>
         <td>group</td>
-        <td>*</td>
+        <td>Number | String</td>
         <td>no</td>
         <td>A group number or name. The type can be <code>number</code>,
             <code>string</code>, or an other type. All nodes with the same group get
@@ -242,7 +288,7 @@ var nodes = [
 
     <tr>
         <td>id</td>
-        <td>*</td>
+        <td>Number | String</td>
         <td>yes</td>
         <td>A unique id for this node.
             Nodes may not have duplicate id's.
@@ -345,7 +391,7 @@ var nodes = [
 </table>
 
 
-<h3>Edges</h3>
+<h3 id="Edges">Edges</h3>
 
 <p>
     Edges are connections between nodes.
@@ -360,8 +406,8 @@ var nodes = [
 <pre class="prettyprint lang-js">
 var edges = [
     {
-        'from': 1,
-        'to': 3
+        from: 1,
+        to: 3
     },
     // ... more edges
 ];
@@ -395,7 +441,7 @@ var edges = [
         <td>color</td>
         <td>string</td>
         <td>no</td>
-        <td>A HTML color for the link.</td>
+        <td>A HTML color for the edge.</td>
     </tr>
 
     <tr>
@@ -418,7 +464,7 @@ var edges = [
         <td>fontColor</td>
         <td>String</td>
         <td>"black"</td>
-        <td>Font color for the text label of the link.
+        <td>Font color for the text label of the edge.
             Only applicable when "text" is defined.</td>
     </tr>
 
@@ -426,7 +472,7 @@ var edges = [
         <td>fontFace</td>
         <td>String</td>
         <td>"sans"</td>
-        <td>Font face for the text label of the link,
+        <td>Font face for the text label of the edge,
             for example "verdana" or "arial".
             Only applicable when "text" is defined.</td>
     </tr>
@@ -435,15 +481,15 @@ var edges = [
         <td>fontSize</td>
         <td>Number</td>
         <td>14</td>
-        <td>Font size in pixels for the text label of the link.
+        <td>Font size in pixels for the text label of the edge.
             Only applicable when "text" is defined.</td>
     </tr>
 
     <tr>
         <td>from</td>
-        <td>*</td>
+        <td>Number | String</td>
         <td>yes</td>
-        <td>The id of a node where the link starts. The type must correspond with
+        <td>The id of a node where the edge starts. The type must correspond with
             the type of the node id's. This is normally a number, but can be any
             type.</td>
     </tr>
@@ -452,14 +498,14 @@ var edges = [
         <td>length</td>
         <td>number</td>
         <td>no</td>
-        <td>The length of the link in pixels.</td>
+        <td>The length of the edge in pixels.</td>
     </tr>
 
     <tr>
         <td>style</td>
         <td>string</td>
         <td>no</td>
-        <td>Define a drawing style for the link.
+        <td>Define a drawing style for the edge.
             Choose from <code>line</code> (default), <code>arrow</code>,
             <code>arrow-end</code>, or <code>dash-line</code>.
         </td>
@@ -469,22 +515,22 @@ var edges = [
         <td>text</td>
         <td>string</td>
         <td>no</td>
-        <td>Text to be displayed halfway the link.</td>
+        <td>Text to be displayed halfway the edge.</td>
     </tr>
 
     <tr>
         <td>title</td>
         <td>string</td>
         <td>no</td>
-        <td>Title to be displayed when the user hovers over the link.
+        <td>Title to be displayed when the user hovers over the edge.
             The title can contain HTML code.</td>
     </tr>
 
     <tr>
         <td>to</td>
-        <td>*</td>
+        <td>Number | String</td>
         <td>yes</td>
-        <td>The id of a node where the link ends. The type must correspond with
+        <td>The id of a node where the edge ends. The type must correspond with
             the type of the node id's. This is normally a number, but can be any
             type.</td>
     </tr>
@@ -492,10 +538,10 @@ var edges = [
         <td>value</td>
         <td>number</td>
         <td>no</td>
-        <td>A value for the link.
+        <td>A value for the edge.
             The width of the edges will be scaled automatically from minimum to
             maximum value.
-            If a <code>width</code> is provided for the link too, it will override the
+            If a <code>width</code> is provided for the edge too, it will override the
             width calculated from the value.</td>
     </tr>
 
@@ -510,58 +556,33 @@ var edges = [
 </table>
 
 
-<h2><a name="Data_Import"></a>Data Import</h2>
+
+<h3 id="DOT_language">DOT language</h3>
 
 <p>
-    Graph contains parser to import data in the
+    Graph supports data in the
     <a href="http://en.wikipedia.org/wiki/DOT_language" target="_blank">DOT language</a>.
-    There following methods are available:
+    To provide data in the DOT language, the <code>data</code> object must contain
+    a property <code>dot</code> with a String containing the data.
 </p>
-
-
-<table>
-    <tr>
-        <th>Method</th>
-        <th>Return Type</th>
-        <th>Description</th>
-    </tr>
-    <tr>
-        <td>vis.util.parseDOT(data)</td>
-        <td>Object</td>
-        <td>
-            Parse a string containing data in DOT language into a JSON object.
-            The returned object contains two arrays, <code>nodes</code>,
-            <code>edges</code>, containing the parsed nodes and edges.
-        </td>
-    </tr>
-    <tr>
-        <td>vis.util.DOTToGraph(data)</td>
-        <td>Object</td>
-        <td>
-            Convert a string containing a graph in DOT language into a map
-            containing with nodes and edges in the format of Graph.
-            The returned object contains parameters <code>nodes</code>,
-            <code>edges</code>, and <code>options</code>, which can be used
-            directly to draw a graph using <code>setData(data)</code>.
-        </td>
-    </tr>
-</table>
 
 <p>
     Example usage:
 </p>
 
 <pre class="prettyprint lang-js">
-    // parse data in DOT-notation
-    var dot = 'digraph {1 -> 1 -> 2; 2 -> 3; 2 -- 4; 2 -> 1 }';
-    var data = vis.util.DOTToGraph(dot);
+// provide data in the DOT language
+var data = {
+    dot: 'digraph {1 -> 1 -> 2; 2 -> 3; 2 -- 4; 2 -> 1 }'
+};
 
-    // create a graph
-    var graph = new vis.Graph(container, data);
+// create a graph
+var graph = new vis.Graph(container, data);
 </pre>
 
 
-<h2><a name="Configuration_Options"></a>Configuration Options</h2>
+
+<h2 id="Configuration_Options">Configuration Options</h2>
 
 <p>
     Options can be used to customize the graph. Options are defined as a JSON object.
@@ -570,11 +591,11 @@ var edges = [
 
 <pre class="prettyprint lang-js">
 var options = {
-    'width':  '100%',
-    'height': '400px',
-    'edges': {
-        'color': 'red',
-        'width': 2
+    width:  '100%',
+    height: '400px',
+    edges: {
+        color: 'red',
+        width: 2
     }
 };
 </pre>
@@ -652,7 +673,7 @@ var options = {
     <td>edges.color</td>
     <td>String</td>
     <td>"#2B7CE9"</td>
-    <td>The default color of a link.</td>
+    <td>The default color of a edge.</td>
 </tr>
 
 <tr>
@@ -675,13 +696,13 @@ var options = {
     <td>edges.length</td>
     <td>Number</td>
     <td>100</td>
-    <td>The default length of a link.</td>
+    <td>The default length of a edge.</td>
 </tr>
 <tr>
     <td>edges.style</td>
     <td>String</td>
     <td>"line"</td>
-    <td>The default style of a link.
+    <td>The default style of a edge.
         Choose from <code>line</code> (default), <code>arrow</code>,
         <code>arrow-end</code>, <code>dash-line</code>.</td>
 </tr>
@@ -689,7 +710,7 @@ var options = {
     <td>edges.width</td>
     <td>Number</td>
     <td>1</td>
-    <td>The default width of a link.</td>
+    <td>The default width of a edge.</td>
 </tr>
 
 <tr>
@@ -813,7 +834,7 @@ var options = {
 
 <br>
 
-<h3><a name="Groups"></a>Groups</h3>
+<h3 id="Groups">Groups</h3>
 
 <p>It is possible to specify custom styles for groups of nodes.
     Each node having assigned to this group gets the specified style.
@@ -924,7 +945,7 @@ var nodes = [
 </table>
 
 
-<h2><a name="Methods"></a>Methods</h2>
+<h2 id="Methods">Methods</h2>
 <p>
     Graph supports the following methods.
 </p>
@@ -988,7 +1009,7 @@ var nodes = [
 
 </table>
 
-<h2><a name="Events"></a>Events</h2>
+<h2 id="Events">Events</h2>
 <p>
     Graph fires events after one or multiple nodes are selected.
     The event can be catched by creating a listener.
@@ -1042,7 +1063,7 @@ vis.events.addListener(graph, 'select', onselect);
 </table>
 
 
-<h2><a name="Data_Policy"></a>Data Policy</h2>
+<h2 id="Data_Policy">Data Policy</h2>
 <p>
     All code and data are processed and rendered in the browser. No data is sent to any server.
 </p>

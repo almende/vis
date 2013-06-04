@@ -19,7 +19,7 @@ function ItemSet(parent, depends, options) {
     // one options object is shared by this itemset and all its items
     this.options = options || {};
     this.defaultOptions = {
-        style: 'box',
+        type: 'box',
         align: 'center',
         orientation: 'bottom',
         margin: {
@@ -75,8 +75,8 @@ ItemSet.types = {
  * @param {Object} [options] The following options are available:
  *                           {String | function} [className]
  *                              class name for the itemset
- *                           {String} [style]
- *                              Default style for the items. Choose from 'box'
+ *                           {String} [type]
+ *                              Default type for the items. Choose from 'box'
  *                              (default), 'point', or 'range'. The default
  *                              Style can be overwritten by individual items.
  *                           {String} align
@@ -211,6 +211,7 @@ ItemSet.prototype.repaint = function repaint() {
                 if (itemData) {
                     var type = itemData.type ||
                         (itemData.start && itemData.end && 'range') ||
+                        options.type ||
                         'box';
                     var constructor = ItemSet.types[type];
 
