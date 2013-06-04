@@ -5,7 +5,7 @@
  * @param {Object} properties     Object with properties. Must contain
  *                                At least properties from and to.
  *                                Available properties: from (number),
- *                                to (number), color (string),
+ *                                to (number), label (string, color (string),
  *                                width (number), style (string),
  *                                length (number), title (string)
  * @param {Graph} graph A graph object, used to find and edge to
@@ -61,8 +61,8 @@ Edge.prototype.setProperties = function(properties, constants) {
 
     if (properties.id != undefined)         {this.id = properties.id;}
     if (properties.style != undefined)      {this.style = properties.style;}
-    if (properties.text != undefined)       {this.text = properties.text;}
-    if (this.text) {
+    if (properties.label != undefined)       {this.label = properties.label;}
+    if (this.label) {
         this.fontSize = constants.edges.fontSize;
         this.fontFace = constants.edges.fontFace;
         this.fontColor = constants.edges.fontColor;
@@ -191,10 +191,10 @@ Edge.prototype._drawLine = function(ctx) {
         // draw line
         this._line(ctx);
 
-        // draw text
-        if (this.text) {
+        // draw label
+        if (this.label) {
             point = this._pointOnLine(0.5);
-            this._text(ctx, this.text, point.x, point.y);
+            this._label(ctx, this.label, point.x, point.y);
         }
     }
     else {
@@ -214,7 +214,7 @@ Edge.prototype._drawLine = function(ctx) {
         }
         this._circle(ctx, x, y, radius);
         point = this._pointOnCircle(x, y, radius, 0.5);
-        this._text(ctx, this.text, point.x, point.y);
+        this._label(ctx, this.label, point.x, point.y);
     }
 };
 
@@ -262,20 +262,20 @@ Edge.prototype._circle = function (ctx, x, y, radius) {
 };
 
 /**
- * Draw text with white background and with the middle at (x, y)
+ * Draw label with white background and with the middle at (x, y)
  * @param {CanvasRenderingContext2D} ctx
  * @param {String} text
  * @param {Number} x
  * @param {Number} y
  * @private
  */
-Edge.prototype._text = function (ctx, text, x, y) {
+Edge.prototype._label = function (ctx, text, x, y) {
     if (text) {
         // TODO: cache the calculated size
         ctx.font = ((this.from.selected || this.to.selected) ? "bold " : "") +
             this.fontSize + "px " + this.fontFace;
         ctx.fillStyle = 'white';
-        var width = ctx.measureText(this.text).width;
+        var width = ctx.measureText(text).width;
         var height = this.fontSize;
         var left = x - width / 2;
         var top = y - height / 2;
@@ -286,7 +286,7 @@ Edge.prototype._text = function (ctx, text, x, y) {
         ctx.fillStyle = this.fontColor || "black";
         ctx.textAlign = "left";
         ctx.textBaseline = "top";
-        ctx.fillText(this.text, left, top);
+        ctx.fillText(text, left, top);
     }
 };
 
@@ -322,10 +322,10 @@ Edge.prototype._drawDashLine = function(ctx) {
     }
     ctx.stroke();
 
-    // draw text
-    if (this.text) {
+    // draw label
+    if (this.label) {
         var point = this._pointOnLine(0.5);
-        this._text(ctx, this.text, point.x, point.y);
+        this._label(ctx, this.label, point.x, point.y);
     }
 };
 
@@ -389,10 +389,10 @@ Edge.prototype._drawArrow = function(ctx) {
             }
         }
 
-        // draw text
-        if (this.text) {
+        // draw label
+        if (this.label) {
             point = this._pointOnLine(0.5);
-            this._text(ctx, this.text, point.x, point.y);
+            this._label(ctx, this.label, point.x, point.y);
         }
     }
     else {
@@ -425,10 +425,10 @@ Edge.prototype._drawArrow = function(ctx) {
             }
         }
 
-        // draw text
-        if (this.text) {
+        // draw label
+        if (this.label) {
             point = this._pointOnCircle(x, y, radius, 0.5);
-            this._text(ctx, this.text, point.x, point.y);
+            this._label(ctx, this.label, point.x, point.y);
         }
     }
 };
@@ -478,10 +478,10 @@ Edge.prototype._drawArrowEnd = function(ctx) {
         ctx.fill();
         ctx.stroke();
 
-        // draw text
-        if (this.text) {
+        // draw label
+        if (this.label) {
             var point = this._pointOnLine(0.5);
-            this._text(ctx, this.text, point.x, point.y);
+            this._label(ctx, this.label, point.x, point.y);
         }
     }
     else {
@@ -522,10 +522,10 @@ Edge.prototype._drawArrowEnd = function(ctx) {
         ctx.fill();
         ctx.stroke();
 
-        // draw text
-        if (this.text) {
+        // draw label
+        if (this.label) {
             point = this._pointOnCircle(x, y, radius, 0.5);
-            this._text(ctx, this.text, point.x, point.y);
+            this._label(ctx, this.label, point.x, point.y);
         }
     }
 };

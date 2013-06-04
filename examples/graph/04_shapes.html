@@ -18,31 +18,31 @@
 
         function draw() {
             nodes = [
-                {id: 1, text: 'circle', style: 'circle', group: 'group_x'},
-                {id: 2, text: 'circle', style: 'circle', group: 'group_x'},
-                {id: 3, text: 'database', style: 'database', group: 'group_x'},
-                {id: 4, text: 'rect', style: 'rect', group: 'group_x'}
+                {id: 1, label: 'circle', shape: 'circle', group: 'group_x'},
+                {id: 2, label: 'circle', shape: 'circle', group: 'group_x'},
+                {id: 3, label: 'database', shape: 'database', group: 'group_x'},
+                {id: 4, label: 'rect', shape: 'rect', group: 'group_x'}
             ];
 
             edges = [
-                {from: 3, to: 1, style: 'arrow'},
-                {from: 1, to: 4, style: 'dash-line'},
-                {from: 1, to: 2, style: 'arrow-end'}
+                {from: 3, to: 1, shape: 'arrow'},
+                {from: 1, to: 4, shape: 'dash-line'},
+                {from: 1, to: 2, shape: 'arrow-end'}
             ];
 
             var mainId = 5;
-            nodes.push({id: mainId, text: 'styles\nand\nsizes', style: 'rect', group: 'group_main'});
-            var styles = ['dot', 'square', 'triangle', 'triangleDown', 'star'];
+            nodes.push({id: mainId, text: 'shapes\nand\nsizes', shape: 'rect', group: 'group_main'});
+            var shapes = ['dot', 'square', 'triangle', 'triangleDown', 'star'];
             var id = 6;
             for (var size = 1; size < 4; size++) {
                 var groupId = id;
-                nodes.push({id: id, text: 'size ' + size, style: 'rect', group: 'group' + size});
+                nodes.push({id: id, label: 'size ' + size, shape: 'rect', group: 'group' + size});
                 edges.push({from: mainId, to: groupId, color: 'gray', width: size});
                 id++;
 
-                for (var i in styles) {
-                    if (styles.hasOwnProperty(i)) {
-                        nodes.push({id: id, value: size, text: styles[i], style: styles[i], group: 'group' + size});
+                for (var i in shapes) {
+                    if (shapes.hasOwnProperty(i)) {
+                        nodes.push({id: id, value: size, label: shapes[i], shape: shapes[i], group: 'group' + size});
                         edges.push({from: groupId, to: id, color: 'gray', width: size});
                         id++;
                     }

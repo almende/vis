@@ -15,12 +15,12 @@
         // Called on page load
         function draw() {
             var nodes = [
-                {id: 1, text: "dashed\nline\nexamples"},
-                {id: 2, text: "default"},
-                {id: 3, text: "dashlength: 20\ndashgap: 20"},
-                {id: 4, text: "dashlength: 20\ndashgap: 5"},
-                {id: 5, text: "dashlength: 5\ndashgap: 20"},
-                {id: 6, text: "dashlength: 20\ndashgap: 5\naltdashlength: 5"}
+                {id: 1, label: "dashed\nline\nexamples"},
+                {id: 2, label: "default"},
+                {id: 3, label: "dashlength: 20\ndashgap: 20"},
+                {id: 4, label: "dashlength: 20\ndashgap: 5"},
+                {id: 5, label: "dashlength: 5\ndashgap: 20"},
+                {id: 6, label: "dashlength: 20\ndashgap: 5\naltdashlength: 5"}
             ];
             var edges = [
                 {from: 1, to: 2, style: "dash-line"},
@@ -29,7 +29,6 @@
                 {from: 1, to: 5, style: "dash-line", dashlength: 5, dashgap: 20},
                 {from: 1, to: 6, style: "dash-line", dashlength: 20, dashgap: 5, altdashlength: 5}
             ];
-
 
             // create the graph
             var container = document.getElementById('mygraph');

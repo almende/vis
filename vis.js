@@ -6981,7 +6981,7 @@ util.parseDOT = function (data) {
 
     /**
      * Parse a set with attributes,
-     * for example [label="1.000", style=solid]
+     * for example [label="1.000", shape=solid]
      * @return {Object | undefined} attr
      */
     function parseAttributes() {
@@ -7206,8 +7206,8 @@ util.DOTToGraph = function (data) {
     };
 
     /**
-     * Merge the properties of object b into object a, and adjust properties
-     * not supported by Graph (for example replace "shape" with "style"
+     * Merge the properties of object b into object a, and replace non-supported
+     * attributes with supported properties.
      * @param {Object} a
      * @param {Object} b
      * @param {Array} [ignore]   Optional array with property names to be ignored
@@ -7219,15 +7219,7 @@ util.DOTToGraph = function (data) {
             }
         }
 
-        // Convert aliases to configuration settings supported by Graph
-        if (a.label) {
-            a.text = a.label;
-            delete a.label;
-        }
-        if (a.shape) {
-            a.style = a.shape;
-            delete a.shape;
-        }
+        // TODO: Convert non supported attributes to properties supported by Graph
     }
 
     dotData.nodes.forEach(function (node) {
@@ -7243,7 +7235,7 @@ util.DOTToGraph = function (data) {
         else {
             var graphNode = {};
             graphNode.id = node.id;
-            graphNode.text = node.id;
+            graphNode.label = node.id;
             merge(graphNode, node.attr);
             graphData.nodes.push(graphNode);
         }
@@ -7253,7 +7245,7 @@ util.DOTToGraph = function (data) {
         var graphEdge = {};
         graphEdge.from = edge.from;
         graphEdge.to = edge.to;
-        graphEdge.text = edge.id;
+        graphEdge.label = edge.id;
         graphEdge.style = (edge.type == '->') ? 'arrow-end' : 'line';
         merge(graphEdge, edge.attr);
         graphData.edges.push(graphEdge);
@@ -7494,10 +7486,10 @@ if (typeof CanvasRenderingContext2D !== 'undefined') {
  * @param {object} properties An object containing properties for the node. All
  *                            properties are optional, except for the id.
  *                              {number} id     Id of the node. Required
- *                              {string} text   Title for the node
+ *                              {string} label  Text label for the node
  *                              {number} x      Horizontal position of the node
  *                              {number} y      Vertical position of the node
- *                              {string} style  Drawing style, available:
+ *                              {string} shape  Node shape, available:
  *                                              "database", "circle", "rect",
  *                                              "image", "text", "dot", "star",
  *                                              "triangle", "triangleDown",
@@ -7528,7 +7520,7 @@ function Node(properties, imagelist, grouplist, constants) {
 
     // set defaults for the properties
     this.id = undefined;
-    this.style = constants.nodes.style;
+    this.shape = constants.nodes.shape;
     this.image = constants.nodes.image;
     this.x = 0;
     this.y = 0;
@@ -7596,7 +7588,7 @@ Node.prototype.setProperties = function(properties, constants) {
 
     // basic properties
     if (properties.id != undefined)        {this.id = properties.id;}
-    if (properties.text != undefined)      {this.text = properties.text;}
+    if (properties.label != undefined)     {this.label = properties.label;}
     if (properties.title != undefined)     {this.title = properties.title;}
     if (properties.group != undefined)     {this.group = properties.group;}
     if (properties.x != undefined)         {this.x = properties.x;}
@@ -7617,8 +7609,8 @@ Node.prototype.setProperties = function(properties, constants) {
         }
     }
 
-    // individual style properties
-    if (properties.style != undefined)          {this.style = properties.style;}
+    // individual shape properties
+    if (properties.shape != undefined)          {this.shape = properties.shape;}
     if (properties.image != undefined)          {this.image = properties.image;}
     if (properties.radius != undefined)         {this.radius = properties.radius;}
     if (properties.borderColor != undefined)    {this.borderColor = properties.borderColor;}
@@ -7642,14 +7634,13 @@ Node.prototype.setProperties = function(properties, constants) {
     this.yFixed = this.yFixed || (properties.y != undefined);
     this.radiusFixed = this.radiusFixed || (properties.radius != undefined);
 
-    if (this.style == 'image') {
+    if (this.shape == 'image') {
         this.radiusMin = constants.nodes.widthMin;
         this.radiusMax = constants.nodes.widthMax;
     }
 
-    // choose draw method depending on the style
-    var style = this.style;
-    switch (style) {
+    // choose draw method depending on the shape
+    switch (this.shape) {
         case 'database':      this.draw = this._drawDatabase; this.resize = this._resizeDatabase; break;
         case 'rect':          this.draw = this._drawRect; this.resize = this._resizeRect; break;
         case 'circle':        this.draw = this._drawCircle; this.resize = this._resizeCircle; break;
@@ -7717,7 +7708,7 @@ Node.prototype.distanceToBorder = function (ctx, angle) {
     }
 
     //noinspection FallthroughInSwitchStatementJS
-    switch (this.style) {
+    switch (this.shape) {
         case 'circle':
         case 'dot':
             return this.radius + borderWidth;
@@ -7903,17 +7894,17 @@ Node.prototype._drawImage = function (ctx) {
     this.left   = this.x - this.width / 2;
     this.top    = this.y - this.height / 2;
 
-    var yText;
+    var yLabel;
     if (this.imageObj) {
         ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
-        yText = this.y + this.height / 2;
+        yLabel = this.y + this.height / 2;
     }
     else {
-        // image still loading... just draw the text for now
-        yText = this.y;
+        // image still loading... just draw the label for now
+        yLabel = this.y;
     }
 
-    this._text(ctx, this.text, this.x, yText, undefined, "top");
+    this._label(ctx, this.label, this.x, yLabel, undefined, "top");
 };
 
 
@@ -7939,7 +7930,7 @@ Node.prototype._drawRect = function (ctx) {
     ctx.fill();
     ctx.stroke();
 
-    this._text(ctx, this.text, this.x, this.y);
+    this._label(ctx, this.label, this.x, this.y);
 };
 
 
@@ -7965,7 +7956,7 @@ Node.prototype._drawDatabase = function (ctx) {
     ctx.fill();
     ctx.stroke();
 
-    this._text(ctx, this.text, this.x, this.y);
+    this._label(ctx, this.label, this.x, this.y);
 };
 
 
@@ -7993,7 +7984,7 @@ Node.prototype._drawCircle = function (ctx) {
     ctx.fill();
     ctx.stroke();
 
-    this._text(ctx, this.text, this.x, this.y);
+    this._label(ctx, this.label, this.x, this.y);
 };
 
 Node.prototype._drawDot = function (ctx) {
@@ -8038,8 +8029,8 @@ Node.prototype._drawShape = function (ctx, shape) {
     ctx.fill();
     ctx.stroke();
 
-    if (this.text) {
-        this._text(ctx, this.text, this.x, this.y + this.height / 2, undefined, 'top');
+    if (this.label) {
+        this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, 'top');
     }
 };
 
@@ -8057,11 +8048,11 @@ Node.prototype._drawText = function (ctx) {
     this.left = this.x - this.width / 2;
     this.top = this.y - this.height / 2;
 
-    this._text(ctx, this.text, this.x, this.y);
+    this._label(ctx, this.label, this.x, this.y);
 };
 
 
-Node.prototype._text = function (ctx, text, x, y, align, baseline) {
+Node.prototype._label = function (ctx, text, x, y, align, baseline) {
     if (text) {
         ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
         ctx.fillStyle = this.fontColor || "black";
@@ -8082,10 +8073,10 @@ Node.prototype._text = function (ctx, text, x, y, align, baseline) {
 
 
 Node.prototype.getTextSize = function(ctx) {
-    if (this.text != undefined) {
+    if (this.label != undefined) {
         ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
 
-        var lines = this.text.split('\n'),
+        var lines = this.label.split('\n'),
             height = (this.fontSize + 4) * lines.length,
             width = 0;
 
@@ -8107,7 +8098,7 @@ Node.prototype.getTextSize = function(ctx) {
  * @param {Object} properties     Object with properties. Must contain
  *                                At least properties from and to.
  *                                Available properties: from (number),
- *                                to (number), color (string),
+ *                                to (number), label (string, color (string),
  *                                width (number), style (string),
  *                                length (number), title (string)
  * @param {Graph} graph A graph object, used to find and edge to
@@ -8163,8 +8154,8 @@ Edge.prototype.setProperties = function(properties, constants) {
 
     if (properties.id != undefined)         {this.id = properties.id;}
     if (properties.style != undefined)      {this.style = properties.style;}
-    if (properties.text != undefined)       {this.text = properties.text;}
-    if (this.text) {
+    if (properties.label != undefined)       {this.label = properties.label;}
+    if (this.label) {
         this.fontSize = constants.edges.fontSize;
         this.fontFace = constants.edges.fontFace;
         this.fontColor = constants.edges.fontColor;
@@ -8293,10 +8284,10 @@ Edge.prototype._drawLine = function(ctx) {
         // draw line
         this._line(ctx);
 
-        // draw text
-        if (this.text) {
+        // draw label
+        if (this.label) {
             point = this._pointOnLine(0.5);
-            this._text(ctx, this.text, point.x, point.y);
+            this._label(ctx, this.label, point.x, point.y);
         }
     }
     else {
@@ -8316,7 +8307,7 @@ Edge.prototype._drawLine = function(ctx) {
         }
         this._circle(ctx, x, y, radius);
         point = this._pointOnCircle(x, y, radius, 0.5);
-        this._text(ctx, this.text, point.x, point.y);
+        this._label(ctx, this.label, point.x, point.y);
     }
 };
 
@@ -8364,20 +8355,20 @@ Edge.prototype._circle = function (ctx, x, y, radius) {
 };
 
 /**
- * Draw text with white background and with the middle at (x, y)
+ * Draw label with white background and with the middle at (x, y)
  * @param {CanvasRenderingContext2D} ctx
  * @param {String} text
  * @param {Number} x
  * @param {Number} y
  * @private
  */
-Edge.prototype._text = function (ctx, text, x, y) {
+Edge.prototype._label = function (ctx, text, x, y) {
     if (text) {
         // TODO: cache the calculated size
         ctx.font = ((this.from.selected || this.to.selected) ? "bold " : "") +
             this.fontSize + "px " + this.fontFace;
         ctx.fillStyle = 'white';
-        var width = ctx.measureText(this.text).width;
+        var width = ctx.measureText(text).width;
         var height = this.fontSize;
         var left = x - width / 2;
         var top = y - height / 2;
@@ -8388,7 +8379,7 @@ Edge.prototype._text = function (ctx, text, x, y) {
         ctx.fillStyle = this.fontColor || "black";
         ctx.textAlign = "left";
         ctx.textBaseline = "top";
-        ctx.fillText(this.text, left, top);
+        ctx.fillText(text, left, top);
     }
 };
 
@@ -8424,10 +8415,10 @@ Edge.prototype._drawDashLine = function(ctx) {
     }
     ctx.stroke();
 
-    // draw text
-    if (this.text) {
+    // draw label
+    if (this.label) {
         var point = this._pointOnLine(0.5);
-        this._text(ctx, this.text, point.x, point.y);
+        this._label(ctx, this.label, point.x, point.y);
     }
 };
 
@@ -8491,10 +8482,10 @@ Edge.prototype._drawArrow = function(ctx) {
             }
         }
 
-        // draw text
-        if (this.text) {
+        // draw label
+        if (this.label) {
             point = this._pointOnLine(0.5);
-            this._text(ctx, this.text, point.x, point.y);
+            this._label(ctx, this.label, point.x, point.y);
         }
     }
     else {
@@ -8527,10 +8518,10 @@ Edge.prototype._drawArrow = function(ctx) {
             }
         }
 
-        // draw text
-        if (this.text) {
+        // draw label
+        if (this.label) {
             point = this._pointOnCircle(x, y, radius, 0.5);
-            this._text(ctx, this.text, point.x, point.y);
+            this._label(ctx, this.label, point.x, point.y);
         }
     }
 };
@@ -8580,10 +8571,10 @@ Edge.prototype._drawArrowEnd = function(ctx) {
         ctx.fill();
         ctx.stroke();
 
-        // draw text
-        if (this.text) {
+        // draw label
+        if (this.label) {
             var point = this._pointOnLine(0.5);
-            this._text(ctx, this.text, point.x, point.y);
+            this._label(ctx, this.label, point.x, point.y);
         }
     }
     else {
@@ -8624,10 +8615,10 @@ Edge.prototype._drawArrowEnd = function(ctx) {
         ctx.fill();
         ctx.stroke();
 
-        // draw text
-        if (this.text) {
+        // draw label
+        if (this.label) {
             point = this._pointOnCircle(x, y, radius, 0.5);
-            this._text(ctx, this.text, point.x, point.y);
+            this._label(ctx, this.label, point.x, point.y);
         }
     }
 };

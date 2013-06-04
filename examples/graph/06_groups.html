@@ -45,7 +45,7 @@
                 while (i < nodeCount) {
                     nodes.push({
                         id: i + nodeOffset,
-                        text: String(i + nodeOffset),
+                        label: String(i + nodeOffset),
                         group: group
                     });
                     connectionCount[i] = 0;
@@ -128,7 +128,7 @@
                 height: '600px',
                 stabilize: false,
                 nodes: {
-                    style: 'dot'
+                    shape: 'dot'
                 },
                 edges: {
                     length: 50

@@ -133,15 +133,15 @@
 
 <textarea id="example1" class="example">
 digraph {
-    node [style=circle fontSize=16]
+    node [shape=circle fontSize=16]
     edge [length=100, color=gray, fontColor=black]
 
-    A -> A[text=0.5];
-    B -> B[text=1.2] -> C[text=0.7] -- A;
+    A -> A[label=0.5];
+    B -> B[label=1.2] -> C[label=0.7] -- A;
     B -> D;
     D -> B;
     D -> C;
-    D -> E[text=0.2];
+    D -> E[label=0.2];
     F -> F;
     A [
         fontColor=red,
@@ -165,7 +165,7 @@ digraph topology
     "10.0.255.2" -> "10.0.255.3"[label="1.000"];
     "10.0.255.3" -> "10.0.255.1"[label="1.000"];
     "10.0.255.3" -> "10.0.255.2"[label="1.000"];
-    "10.0.255.3" -> "10.0.3.0/24"[label="HNA", style=solid];
+    "10.0.255.3" -> "10.0.3.0/24"[label="HNA", shape=solid];
     "10.0.3.0/24"[shape=rect];
     "10.0.255.2" -> "10.0.2.0/24"[label="HNA"];
     "10.0.2.0/24"[shape=rect];
@@ -180,7 +180,7 @@ digraph G  {
     //       unrecognized attributes are ignored
 
     node[width=.25,height=.375,fontsize=15]
-    node [style=filled fillcolor=#F1AAF0]
+    node [shape=filled fillcolor=#F1AAF0]
     0-> 0 ;
     1-> 1 ;
     2-> 2 ;

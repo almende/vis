@@ -53,8 +53,8 @@
 <h2 id="Overview">Overview</h2>
 <p>
     Graph is a visualization to display graphs and networks consisting of nodes
-    and edges. The visualization is easy to use and supports custom styles,
-    colors, sizes, images, and more.
+    and edges. The visualization is easy to use and supports custom shapes,
+    styles, colors, sizes, images, and more.
 </p>
 
 <p>
@@ -88,11 +88,11 @@
 &lt;script type="text/javascript"&gt;
     // create an array with nodes
     var nodes = [
-        {id: 1, text: 'Node 1'},
-        {id: 2, text: 'Node 2'},
-        {id: 3, text: 'Node 3'},
-        {id: 4, text: 'Node 4'},
-        {id: 5, text: 'Node 5'}
+        {id: 1, label: 'Node 1'},
+        {id: 2, label: 'Node 2'},
+        {id: 3, label: 'Node 3'},
+        {id: 4, label: 'Node 4'},
+        {id: 5, label: 'Node 5'}
     ];
 
     // create an array with edges
@@ -203,9 +203,9 @@ var data = {
 <h3 id="Nodes">Nodes</h3>
 
 <p>
-    Nodes typically have an <code>id</code> and <code>text</code>.
+    Nodes typically have an <code>id</code> and <code>label</code>.
     A node must contain at least a property <code>id</code>.
-    Nodes can have extra properties, used to define the type and style the
+    Nodes can have extra properties, used to define the shape and style of the
     nodes.
 </p>
 
@@ -216,7 +216,7 @@ var data = {
 var nodes = [
     {
         id: 1,
-        text: 'Node 1'
+        label: 'Node 1'
     },
     // ... more nodes
 ];
@@ -262,21 +262,21 @@ var nodes = [
         <td>fontColor</td>
         <td>String</td>
         <td>"black"</td>
-        <td>Font color for text in the node.</td>
+        <td>Font color for label in the node.</td>
     </tr>
 
     <tr>
         <td>fontFace</td>
         <td>String</td>
         <td>"sans"</td>
-        <td>Font face for text in the node, for example "verdana" or "arial".</td>
+        <td>Font face for label in the node, for example "verdana" or "arial".</td>
     </tr>
 
     <tr>
         <td>fontSize</td>
         <td>Number</td>
         <td>14</td>
-        <td>Font size in pixels for text in the node.</td>
+        <td>Font size in pixels for label in the node.</td>
     </tr>
 
     <tr>
@@ -300,7 +300,7 @@ var nodes = [
         <td>image</td>
         <td>string</td>
         <td>no</td>
-        <td>Url of an image. Only applicable when the style of the node is
+        <td>Url of an image. Only applicable when the shape of the node is
             <code>image</code>.</td>
     </tr>
 
@@ -308,19 +308,19 @@ var nodes = [
         <td>radius</td>
         <td>number</td>
         <td>no</td>
-        <td>Radius for the node. Applicable for all styles except <code>rect</code>,
+        <td>Radius for the node. Applicable for all shapes except <code>rect</code>,
             <code>circle</code>, and <code>database</code>.
             The value of <code>radius</code> will override a value in
             property <code>value</code>.</td>
     </tr>
 
     <tr>
-        <td>style</td>
+        <td>shape</td>
         <td>string</td>
         <td>no</td>
         <td>Define the shape for the node.
             Choose from <code>rect</code> (default), <code>circle</code>,
-            <code>database</code>, <code>image</code>, <code>text</code>,
+            <code>database</code>, <code>image</code>, <code>label</code>,
             <code>dot</code>, <code>star</code>, <code>triangle</code>,
             <code>triangleDown</code>, and <code>square</code>.
             <br><br>
@@ -335,19 +335,19 @@ var nodes = [
             <code>value</code>.
             <br><br>
 
-            When a property <code>text</code> is provided,
-            this text will be displayed inside the shape in case of styles
+            When a property <code>label</code> is provided,
+            this label will be displayed inside the shape in case of shapes
             <code>rect</code>, <code>circle</code>, and <code>database</code>.
-            For all other shapes, the text will be displayed right below the shape.
+            For all other shapes, the label will be displayed right below the shape.
 
         </td>
     </tr>
 
     <tr>
-        <td>text</td>
+        <td>label</td>
         <td>string</td>
         <td>no</td>
-        <td>Text to be displayed in the node or under the image of the node.
+        <td>Text label to be displayed in the node or under the image of the node.
             Multiple lines can be separated by a newline character <code>\n</code> .</td>
     </tr>
 
@@ -366,7 +366,7 @@ var nodes = [
         <td>A value for the node.
             The radius of the nodes will be scaled automatically from minimum to
             maximum value.
-            Only applicable when the style of the node is <code>dot</code>.
+            Only applicable when the shape of the node is <code>dot</code>.
             If a <code>radius</code> is provided for the node too, it will override the
             radius calculated from the value.</td>
     </tr>
@@ -465,7 +465,7 @@ var edges = [
         <td>String</td>
         <td>"black"</td>
         <td>Font color for the text label of the edge.
-            Only applicable when "text" is defined.</td>
+            Only applicable when property <code>label</code> is defined.</td>
     </tr>
 
     <tr>
@@ -474,7 +474,7 @@ var edges = [
         <td>"sans"</td>
         <td>Font face for the text label of the edge,
             for example "verdana" or "arial".
-            Only applicable when "text" is defined.</td>
+            Only applicable when property <code>label</code> is defined.</td>
     </tr>
 
     <tr>
@@ -482,7 +482,7 @@ var edges = [
         <td>Number</td>
         <td>14</td>
         <td>Font size in pixels for the text label of the edge.
-            Only applicable when "text" is defined.</td>
+            Only applicable when property <code>label</code> is defined.</td>
     </tr>
 
     <tr>
@@ -505,17 +505,17 @@ var edges = [
         <td>style</td>
         <td>string</td>
         <td>no</td>
-        <td>Define a drawing style for the edge.
+        <td>Define a line style for the edge.
             Choose from <code>line</code> (default), <code>arrow</code>,
             <code>arrow-end</code>, or <code>dash-line</code>.
         </td>
     </tr>
 
     <tr>
-        <td>text</td>
+        <td>label</td>
         <td>string</td>
         <td>no</td>
-        <td>Text to be displayed halfway the edge.</td>
+        <td>Text label to be displayed halfway the edge.</td>
     </tr>
 
     <tr>
@@ -737,19 +737,19 @@ var options = {
     <td>nodes.fontColor</td>
     <td>String</td>
     <td>"black"</td>
-    <td>Default font color for text in the nodes.</td>
+    <td>Default font color for the text label in the nodes.</td>
 </tr>
 <tr>
     <td>nodes.fontFace</td>
     <td>String</td>
     <td>"sans"</td>
-    <td>Default font face for text in the nodes, for example "verdana" or "arial".</td>
+    <td>Default font face for the text label in the nodes, for example "verdana" or "arial".</td>
 </tr>
 <tr>
     <td>nodes.fontSize</td>
     <td>Number</td>
     <td>14</td>
-    <td>Default font size in pixels for text in the nodes.</td>
+    <td>Default font size in pixels for the text label in the nodes.</td>
 </tr>
 <tr>
     <td>nodes.group</td>
@@ -761,48 +761,48 @@ var options = {
     <td>nodes.image</td>
     <td>String</td>
     <td>none</td>
-    <td>Default image url for the nodes. only applicable with style <code>image</code>.</td>
+    <td>Default image url for the nodes. only applicable with shape <code>image</code>.</td>
 </tr>
 
 <tr>
     <td>nodes.widthMin</td>
     <td>Number</td>
     <td>16</td>
-    <td>The minimum width for a scaled image. Only applicable with style <code>image</code>.</td>
+    <td>The minimum width for a scaled image. Only applicable with shape <code>image</code>.</td>
 </tr>
 <tr>
     <td>nodes.widthMax</td>
     <td>Number</td>
     <td>64</td>
-    <td>The maximum width for a scaled image. Only applicable with style <code>image</code>.</td>
+    <td>The maximum width for a scaled image. Only applicable with shape <code>image</code>.</td>
 </tr>
 
 <tr>
-    <td>nodes.style</td>
+    <td>nodes.shape</td>
     <td>String</td>
     <td>"rect"</td>
-    <td>The default style for all nodes.
+    <td>The default shape for all nodes.
         Choose from <code>rect</code> (default), <code>circle</code>,
-        <code>database</code>, <code>image</code>, <code>text</code>, <code>dot</code>.
-        This style can be overridden by a group style, or by a style of an individual node.</td>
+        <code>database</code>, <code>image</code>, <code>label</code>, <code>dot</code>.
+        This shape can be overridden by a group shape, or by a shape of an individual node.</td>
 </tr>
 <tr>
     <td>nodes.radius</td>
     <td>Number</td>
     <td>5</td>
-    <td>The default radius for a node. Only applicable with style <code>dot</code>.</td>
+    <td>The default radius for a node. Only applicable with shape <code>dot</code>.</td>
 </tr>
 <tr>
     <td>nodes.radiusMin</td>
     <td>Number</td>
     <td>5</td>
-    <td>The minimum radius for a scaled node. Only applicable with style <code>dot</code>.</td>
+    <td>The minimum radius for a scaled node. Only applicable with shape <code>dot</code>.</td>
 </tr>
 <tr>
     <td>nodes.radiusMax</td>
     <td>Number</td>
     <td>20</td>
-    <td>The maximum radius for a scaled node. Only applicable with style <code>dot</code>.</td>
+    <td>The maximum radius for a scaled node. Only applicable with shape <code>dot</code>.</td>
 </tr>
 
 <tr>
@@ -851,7 +851,7 @@ var options = {
 
     groups: {
         mygroup: {
-            style: 'circle',
+            shape: 'circle',
             borderColor: 'black',
             backgroundColor: 'white',
             fontColor: 'red',
@@ -863,8 +863,8 @@ var options = {
 };
 
 var nodes = [
-    {id: 1, text: 'Node 1'},                    // will get the default style
-    {id: 2, text: 'Node 2', group: 'mygroup'},  // will get the style from 'mygroup'
+    {id: 1, label: 'Node 1'},                    // will get the default style
+    {id: 2, label: 'Node 2', group: 'mygroup'},  // will get the style from 'mygroup'
     // ... more nodes
 ];
 </pre>
@@ -903,7 +903,7 @@ var nodes = [
         <td>String</td>
         <td>none</td>
         <td>Default image for the nodes. Only applicable in combination with
-            style <code>image</code>.</td>
+            shape <code>image</code>.</td>
     </tr>
 
     <tr>
@@ -925,11 +925,11 @@ var nodes = [
         <td>Font size for the node in pixels.</td>
     </tr>
     <tr>
-        <td>style</td>
+        <td>shape</td>
         <td>String</td>
         <td>"rect"</td>
         <td>Choose from <code>rect</code> (default), <code>circle</code>,
-            <code>database</code>, <code>image</code>, <code>text</code>,
+            <code>database</code>, <code>image</code>, <code>label</code>,
             <code>dot</code>.
             In case of image, a property with name image must be provided, containing
             image urls.</td>
@@ -939,7 +939,7 @@ var nodes = [
         <td>Number</td>
         <td>5</td>
         <td>Default radius for the node. Only applicable in combination with
-            styles <code>rect</code> and <code>dot</code>.</td>
+            shapes <code>rect</code> and <code>dot</code>.</td>
     </tr>
 
 </table>

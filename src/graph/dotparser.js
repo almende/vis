@@ -173,7 +173,7 @@ util.parseDOT = function (data) {
 
     /**
      * Parse a set with attributes,
-     * for example [label="1.000", style=solid]
+     * for example [label="1.000", shape=solid]
      * @return {Object | undefined} attr
      */
     function parseAttributes() {
@@ -398,8 +398,8 @@ util.DOTToGraph = function (data) {
     };
 
     /**
-     * Merge the properties of object b into object a, and adjust properties
-     * not supported by Graph (for example replace "shape" with "style"
+     * Merge the properties of object b into object a, and replace non-supported
+     * attributes with supported properties.
      * @param {Object} a
      * @param {Object} b
      * @param {Array} [ignore]   Optional array with property names to be ignored
@@ -411,15 +411,7 @@ util.DOTToGraph = function (data) {
             }
         }
 
-        // Convert aliases to configuration settings supported by Graph
-        if (a.label) {
-            a.text = a.label;
-            delete a.label;
-        }
-        if (a.shape) {
-            a.style = a.shape;
-            delete a.shape;
-        }
+        // TODO: Convert non supported attributes to properties supported by Graph
     }
 
     dotData.nodes.forEach(function (node) {
@@ -435,7 +427,7 @@ util.DOTToGraph = function (data) {
         else {
             var graphNode = {};
             graphNode.id = node.id;
-            graphNode.text = node.id;
+            graphNode.label = node.id;
             merge(graphNode, node.attr);
             graphData.nodes.push(graphNode);
         }
@@ -445,7 +437,7 @@ util.DOTToGraph = function (data) {
         var graphEdge = {};
         graphEdge.from = edge.from;
         graphEdge.to = edge.to;
-        graphEdge.text = edge.id;
+        graphEdge.label = edge.id;
         graphEdge.style = (edge.type == '->') ? 'arrow-end' : 'line';
         merge(graphEdge, edge.attr);
         graphData.edges.push(graphEdge);
