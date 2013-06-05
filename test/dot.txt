@@ -1,0 +1,21 @@
+digraph test_graph {
+    # this test file tries to test everything from the DOT language
+    rankdir=LR;
+    size="8,5"
+    font = "arial"
+    graph[attr1="another"" attr"]
+    node [shape = doublecircle]; node1 node2 node3;
+    node [shape = circle];
+    edge[length=170 fontSize=12]
+    node4[color=red shape=diamond]
+    node5[color="blue", shape=square, width=3]
+
+    /*
+        some block comment
+    */
+    "node1" -> node1 [ label = "a" ];
+    "node2" -> node3 [label = "b" ];
+    "node1" -- "node4" [ label = "c" ];
+    node3-> node4 [ label=d] -> node5 -> 6
+}
+

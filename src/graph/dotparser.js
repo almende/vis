@@ -1,173 +1,431 @@
-
-/**
- * Parse a text source containing data in DOT language into a JSON object.
- * The object contains two lists: one with nodes and one with edges.
- * @param {String} data     Text containing a graph in DOT-notation
- * @return {Object} json    An object containing two parameters:
- *                          {Object[]} nodes
- *                          {Object[]} edges
- */
-util.parseDOT = function (data) {
+(function(exports) {
     /**
-     * Test whether given character is a whitespace character
-     * @param {String} c
-     * @return {Boolean} isWhitespace
+     * Parse a text source containing data in DOT language into a JSON object.
+     * The object contains two lists: one with nodes and one with edges.
+     * @param {String} data     Text containing a graph in DOT-notation
+     * @return {Object} graph   An object containing two parameters:
+     *                          {Object[]} nodes
+     *                          {Object[]} edges
      */
-    function isWhitespace(c) {
-        return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+    function parseDOT (data) {
+        dot = data;
+        return parseGraph();
+    }
+
+// token types enumeration
+    var TOKENTYPE = {
+        NULL : 0,
+        DELIMITER : 1,
+        NUMBER : 2,
+        STRING : 3,
+        UNKNOWN : 4
+    };
+
+// map with all delimiters
+    var DELIMITERS = {
+        '{': true,
+        '}': true,
+        '[': true,
+        ']': true,
+        ';': true,
+        '=': true,
+        ',': true,
+
+        '->': true,
+        '--': true
+    };
+
+    var dot = '';                   // current dot file
+    var index = 0;                  // current index in dot file
+    var c = '';                     // current token character in expr
+    var token = '';                 // current token
+    var tokenType = TOKENTYPE.NULL; // type of the token
+
+    var graph = null;               // object with the graph to be build
+    var nodeAttr = null;            // global node attributes
+    var edgeAttr = null;            // global edge attributes
+
+    /**
+     * Get the first character from the dot file.
+     * The character is stored into the char c. If the end of the dot file is
+     * reached, the function puts an empty string in c.
+     */
+    function first() {
+        index = 0;
+        c = dot.charAt(0);
     }
 
     /**
-     * Test whether given character is a delimeter
-     * @param {String} c
-     * @return {Boolean} isDelimeter
-     */
-    function isDelimeter(c) {
-        return '[]{}();,=->'.indexOf(c) != -1;
-    }
-
-    var i = -1;  // current index in the data
-    var c = '';  // current character in the data
-
-    /**
-     * Read the next character from the data
+     * Get the next character from the dot file.
+     * The character is stored into the char c. If the end of the dot file is
+     * reached, the function puts an empty string in c.
      */
     function next() {
-        i++;
-        c = data[i];
+        index++;
+        c = dot.charAt(index);
     }
 
     /**
-     * Preview the next character in the data
-     * @returns {String} nextChar
+     * Preview the next character from the dot file.
+     * @return {String} cNext
      */
-    function previewNext () {
-        return data[i + 1];
+    function nextPreview() {
+        return dot.charAt(index + 1);
     }
 
     /**
-     * Preview the next character in the data
-     * @returns {String} nextChar
+     * Test whether given character is alphabetic or numeric
+     * @param {String} c
+     * @return {Boolean} isAlphaNumeric
      */
-    function previewPrevious () {
-        return data[i + 1];
+    var regexAlphaNumeric = /[a-zA-Z_0-9.#]/;
+    function isAlphaNumeric(c) {
+        return regexAlphaNumeric.test(c);
     }
 
     /**
-     * Get a text description of the the current index in the data
-     * @return {String} desc
+     * Merge all properties of object b into object b
+     * @param {Object} a
+     * @param {Object} b
+     * @return {Object} a
      */
-    function pos() {
-        return '(char ' + i + ')';
-    }
-
-    /**
-     * Skip whitespace and comments
-     */
-    function parseWhitespace() {
-        // skip whitespace
-        while (c && isWhitespace(c)) {
-            next();
+    function merge (a, b) {
+        if (!a) {
+            a = {};
         }
 
-        // test for comment
-        var cNext = data[i + 1];
-        var cPrev = data[i - 1];
-        var c2 = c + cNext;
-        if (c2 == '/*') {
-            // block comment. skip until the block is closed
-            while (c && !(c == '*' && data[i + 1] == '/')) {
-                next();
+        if (b) {
+            for (var name in b) {
+                if (b.hasOwnProperty(name)) {
+                    a[name] = b[name];
+                }
             }
-            next();
-            next();
-
-            parseWhitespace();
         }
-        else if (c2 == '//' || (c == '#' && cPrev == '\n')) {
-            // line comment. skip until the next return
-            while (c && c != '\n') {
-                next();
-            }
-            next();
-            parseWhitespace();
-        }
+        return a;
     }
 
     /**
-     * Parse a string
-     * The string may be enclosed by double quotes
-     * @return {String | undefined} value
+     * Add a node to the current graph object. If there is already a node with
+     * the same id, their attributes will be merged.
+     * @param {Object} node
      */
-    function parseString() {
-        parseWhitespace();
-
-        var name = '';
-        if (c == '"') {
-            next();
-            while (c && c != '"') {
-                name += c;
-                next();
+    function addNode(node) {
+        if (!graph.nodes) {
+            graph.nodes = {};
+        }
+        var current = graph.nodes[node.id];
+        if (current) {
+            // merge attributes
+            if (node.attr) {
+                current.attr = merge(current.attr, node.attr);
             }
-            next(); // skip the closing quote
         }
         else {
-            while (c && !isWhitespace(c) && !isDelimeter(c)) {
-                name += c;
-                next();
-            }
-
-            // cast string to number or boolean
-            if (name.length) {
-                var number = Number(name);
-                if (!isNaN(number)) {
-                    name = number;
-                }
-                else if (name == 'true') {
-                    name = true;
-                }
-                else if (name == 'false') {
-                    name = false;
-                }
-                else if (name == 'null') {
-                    name = null;
-                }
+            // add
+            graph.nodes[node.id] = node;
+            if (nodeAttr) {
+                node.attr = merge(node.attr, nodeAttr);
             }
         }
-
-        return name;
     }
 
     /**
-     * Parse a value, can be a string, number, or boolean.
-     * The value may be enclosed by double quotes
-     * @return {String | Number | Boolean | undefined} value
+     * Add an edge to the current graph obect
+     * @param {Object} edge
      */
-    function parseValue() {
-        parseWhitespace();
-
-        if (c == '"') {
-            return parseString();
+    function addEdge(edge) {
+        if (!graph.edges) {
+            graph.edges = [];
         }
-        else {
-            var value = parseString();
-            if (value != undefined) {
-                // cast string to number or boolean
-                var number = Number(value);
-                if (!isNaN(number)) {
-                    value = number;
+        graph.edges.push(edge);
+        if (edgeAttr) {
+            edge.attr = merge(edge.attr, edgeAttr);
+        }
+    }
+
+    /**
+     * Get next token in the current dot file.
+     * The token and token type are available as token and tokenType
+     */
+    function getToken() {
+        tokenType = TOKENTYPE.NULL;
+        token = '';
+
+        // skip over whitespaces
+        while (c == ' ' || c == '\t' || c == '\n') {  // space, tab, enter
+            next();
+        }
+
+        do {
+            var isComment = false;
+
+            // skip comment
+            if (c == '#') {
+                // find the previous non-space character
+                var i = index - 1;
+                while (dot[i] == ' ' || dot[i] == '\t') {
+                    i--;
                 }
-                else if (value == 'true') {
-                    value = true;
-                }
-                else if (value == 'false') {
-                    value = false;
-                }
-                else if (value == 'null') {
-                    value = null;
+                if (dot[i] == '\n' || dot[i] == '') {
+                    // the # is at the start of a line, this is indeed a line comment
+                    while (c != '' && c != '\n') {
+                        next();
+                    }
+                    isComment = true;
                 }
             }
-            return value;
+            if (c == '/' && nextPreview() == '/') {
+                // skip line comment
+                while (c != '' && c != '\n') {
+                    next();
+                }
+                isComment = true;
+            }
+            if (c == '/' && nextPreview() == '*') {
+                // skip block comment
+                while (c != '') {
+                    if (c == '*' && nextPreview() == '/') {
+                        // end of block comment found. skip these last two characters
+                        next();
+                        next();
+                        break;
+                    }
+                    else {
+                        next();
+                    }
+                    isComment = true;
+                }
+            }
+
+            // skip over whitespaces
+            while (c == ' ' || c == '\t' || c == '\n') {  // space, tab, enter
+                next();
+            }
+        }
+        while (isComment);
+
+        // check for end of dot file
+        if (c == '') {
+            // token is still empty
+            tokenType = TOKENTYPE.DELIMITER;
+            return;
+        }
+
+        // check for delimiters consisting of 2 characters
+        var c2 = c + nextPreview();
+        if (DELIMITERS[c2]) {
+            tokenType = TOKENTYPE.DELIMITER;
+            token = c2;
+            next();
+            next();
+            return;
+        }
+
+        // check for delimiters consisting of 1 character
+        if (DELIMITERS[c]) {
+            tokenType = TOKENTYPE.DELIMITER;
+            token = c;
+            next();
+            return;
+        }
+
+        // check for an identifier (number or string)
+        // TODO: more precise parsing of numbers/strings
+        if (isAlphaNumeric(c) || c == '-') {
+            token += c;
+            next();
+
+            while (isAlphaNumeric(c)) {
+                token += c;
+                next();
+            }
+            if (!isNaN(Number(token))) {
+                token = Number(token);
+                tokenType = TOKENTYPE.NUMBER;
+            }
+            else {
+                tokenType = TOKENTYPE.STRING;
+            }
+            return;
+        }
+
+        // check for a string
+        if (c == '"') {
+            next();
+            while (c != '' && (c != '"' || (c == '"' && nextPreview() == '"'))) {
+                token += c;
+                if (c == '"') { // skip the escape character
+                    next();
+                }
+                next();
+            }
+            if (c != '"') {
+                throw newSyntaxError('End of string " expected');
+            }
+            next();
+            tokenType = TOKENTYPE.STRING;
+            return;
+        }
+
+        // something unknown is found, wrong characters, a syntax error
+        tokenType = TOKENTYPE.UNKNOWN;
+        while (c != '') {
+            token += c;
+            next();
+        }
+        throw new SyntaxError('Syntax error in part "' + token + '"');
+    }
+
+    /**
+     * Parse a graph.
+     * @returns {Object} graph
+     */
+    function parseGraph() {
+        graph = {};
+        nodeAttr = null;
+        edgeAttr = null;
+
+        first();
+        getToken();
+
+        // optional strict keyword
+        if (token == 'strict') {
+            graph.strict = true;
+            getToken();
+        }
+
+        // graph or digraph keyword
+        if (token == 'graph' || token == 'digraph') {
+            graph.type = token;
+            getToken();
+        }
+
+        // graph id
+        if (tokenType == TOKENTYPE.STRING) {
+            graph.id = token;
+            getToken();
+        }
+
+        // open angle bracket
+        if (token != '{') {
+            throw newSyntaxError('Angle bracket { expected');
+        }
+        getToken();
+
+        // statements
+        parseStatements();
+
+        // close angle bracket
+        if (token != '}') {
+            throw newSyntaxError('Angle bracket } expected');
+        }
+        getToken();
+
+        // end of file
+        if (token !== '') {
+            throw newSyntaxError('End of file expected');
+        }
+        getToken();
+
+        return graph;
+    }
+
+    /**
+     * Parse a list with statements.
+     */
+    function parseStatements () {
+        while (token !== '' && token != '}') {
+            if (tokenType != TOKENTYPE.STRING && tokenType != TOKENTYPE.NUMBER) {
+                throw newSyntaxError('String expected');
+            }
+
+            parseStatement();
+            if (token == ';') {
+                getToken();
+            }
+        }
+    }
+
+    /**
+     * Parse a single statement. Can be a an attribute statement, node
+     * statement, a series of node statements and edge statements, or a
+     * parameter.
+     */
+    function parseStatement() {
+        var attr;
+        var id = token; // can be as string or a number
+        getToken();
+
+        // attribute statements
+        if (id == 'node') {
+            // node attributes
+            attr = parseAttributes();
+            if (attr) {
+                nodeAttr = merge(nodeAttr, attr);
+            }
+        }
+        else if (id == 'edge') {
+            // edge attributes
+            attr = parseAttributes();
+            if (attr) {
+                edgeAttr = merge(edgeAttr, attr);
+            }
+        }
+        else if (id == 'graph') {
+            // graph attributes
+            attr = parseAttributes();
+            if (attr) {
+                graph.attr = merge(graph.attr, attr);
+            }
+        }
+        else {
+            if (token == '=') {
+                // id statement
+                getToken();
+                if (!graph.attr) {
+                    graph.attr = {};
+                }
+                graph.attr[id] = token;
+                getToken();
+            }
+            else {
+                // node statement
+                var node = {
+                    id: String(id)
+                };
+                attr = parseAttributes();
+                if (attr) {
+                    node.attr = attr;
+                }
+                addNode(node);
+
+                // edge statements
+                var from = id;
+                while (token == '->' || token == '--') {
+                    var type = token;
+                    getToken();
+
+                    var to = token;
+                    addNode({
+                        id: String(to)
+                    });
+                    getToken();
+                    attr = parseAttributes();
+
+                    // create edge
+                    var edge = {
+                        from: String(from),
+                        to: String(to),
+                        type: type
+                    };
+                    if (attr) {
+                        edge.attr = attr;
+                    }
+                    addEdge(edge);
+
+                    from = to;
+                }
+            }
         }
     }
 
@@ -177,38 +435,33 @@ util.parseDOT = function (data) {
      * @return {Object | undefined} attr
      */
     function parseAttributes() {
-        parseWhitespace();
-
-        if (c == '[') {
-            next();
+        if (token == '[') {
+            getToken();
             var attr = {};
-            while (c && c != ']') {
-                parseWhitespace();
-
-                var name = parseString();
-                if (!name) {
-                    throw new SyntaxError('Attribute name expected ' + pos());
+            while (token !== '' && token != ']') {
+                if (tokenType != TOKENTYPE.STRING) {
+                    throw newSyntaxError('Attribute name expected');
                 }
+                var name = token;
 
-                parseWhitespace();
-                if (c != '=') {
-                    throw new SyntaxError('Equal sign = expected ' + pos());
+                getToken();
+                if (token != '=') {
+                    throw newSyntaxError('Equal sign = expected');
                 }
-                next();
+                getToken();
 
-                var value = parseValue();
-                if (!value) {
-                    throw new SyntaxError('Attribute value expected ' + pos());
+                if (tokenType != TOKENTYPE.STRING && tokenType != TOKENTYPE.NUMBER) {
+                    throw newSyntaxError('Attribute value expected');
                 }
+                var value = token;
                 attr[name] = value;
 
-                parseWhitespace();
-
-                if (c ==',') {
-                    next();
+                getToken();
+                if (token ==',') {
+                    getToken();
                 }
             }
-            next();
+            getToken();
 
             return attr;
         }
@@ -218,230 +471,66 @@ util.parseDOT = function (data) {
     }
 
     /**
-     * Parse a directed or undirected arrow '->' or '--'
-     * @return {String | undefined} arrow
+     * Create a syntax error with extra information on current token and index.
+     * @param {String} message
+     * @returns {SyntaxError} err
      */
-    function parseArrow() {
-        parseWhitespace();
-
-        if (c == '-') {
-            next();
-            if (c == '>' || c == '-') {
-                var arrow = '-' + c;
-                next();
-                return arrow;
-            }
-            else {
-                throw new SyntaxError('Arrow "->" or "--" expected ' + pos());
-            }
-        }
-
-        return undefined;
+    function newSyntaxError(message) {
+        return new SyntaxError(message + ', got "' + token + '" (char ' + index + ')');
     }
 
     /**
-     * Parse a line separator ';'
-     * @return {String | undefined} separator
+     * Convert a string containing a graph in DOT language into a map containing
+     * with nodes and edges in the format of graph.
+     * @param {String} data         Text containing a graph in DOT-notation
+     * @return {Object} graphData
      */
-    function parseSeparator() {
-        parseWhitespace();
+    function DOTToGraph (data) {
+        // parse the DOT file
+        var dotData = parseDOT(data);
+        var graphData = {
+            nodes: [],
+            edges: [],
+            options: {}
+        };
 
-        if (c == ';') {
-            next();
-            return ';';
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Merge all properties of object b into object b
-     * @param {Object} a
-     * @param {Object} b
-     */
-    function merge (a, b) {
-        if (a && b) {
-            for (var name in b) {
-                if (b.hasOwnProperty(name)) {
-                    a[name] = b[name];
+        // copy the nodes
+        if (dotData.nodes) {
+            for (var id in dotData.nodes) {
+                if (dotData.nodes.hasOwnProperty(id)) {
+                    var node = {
+                        id: id,
+                        label: id
+                    };
+                    merge(node, dotData.nodes[id].attr);
+                    graphData.nodes.push(node);
                 }
             }
         }
-    }
 
-    var nodeMap = {};
-    var edgeList = [];
-
-    /**
-     * Register a node with attributes
-     * @param {String} id
-     * @param {Object} [attr]
-     */
-    function addNode(id, attr) {
-        var node = {
-            id: String(id),
-            attr: attr || {}
-        };
-        if (!nodeMap[id]) {
-            nodeMap[id] = node;
-        }
-        else {
-            merge(nodeMap[id].attr, node.attr);
-        }
-    }
-
-    /**
-     * Register an edge
-     * @param {String} from
-     * @param {String} to
-     * @param {String} type    A string "->" or "--"
-     * @param {Object} [attr]
-     */
-    function addEdge(from, to, type, attr) {
-        edgeList.push({
-            from: String(from),
-            to: String(to),
-            type: type,
-            attr: attr || {}
-        });
-    }
-
-    // find the opening curly bracket
-    next();
-    while (c && c != '{') {
-        next();
-    }
-    if (c != '{') {
-        throw new SyntaxError('Invalid data. Curly bracket { expected ' + pos())
-    }
-    next();
-
-    // parse all data until a closing curly bracket is encountered
-    while (c && c != '}') {
-        // parse node id and optional node attributes
-        var id = parseString();
-        if (id == undefined || id === '') {
-            throw new SyntaxError('String with id expected ' + pos());
-        }
-        var attr = parseAttributes();
-        addNode(id, attr);
-
-        // TODO: parse global attributes
-        // TODO: parse global attributes "graph", "node", "edge"
-
-        // parse arrow
-        var type = parseArrow();
-        while (type) {
-            // parse node id
-            var prevId = id;
-            id = parseString();
-            if (id == undefined) {
-                throw new SyntaxError('String with id expected ' + pos());
-            }
-            addNode(id);
-
-            // parse edge attributes and register edge
-            attr = parseAttributes();
-            addEdge(prevId, id, type, attr);
-
-            // parse next arrow (optional)
-            type = parseArrow();
+        // copy the edges
+        if (dotData.edges) {
+            dotData.edges.forEach(function (dotEdge) {
+                var graphEdge = {
+                    from: dotEdge.from,
+                    to: dotEdge.to
+                };
+                merge(graphEdge, dotEdge.attr);
+                graphEdge.style = (dotEdge.type == '->') ? 'arrow-end' : 'line';
+                graphData.edges.push(graphEdge);
+            });
         }
 
-        // parse separator (optional)
-        parseSeparator();
+        // copy the options
+        if (dotData.attr) {
+            graphData.options = dotData.attr;
+        }
 
-        parseWhitespace();
-    }
-    if (c != '}') {
-        throw new SyntaxError('Invalid data. Curly bracket } expected');
-    }
-
-    // crop data between the curly brackets
-    var start = data.indexOf('{');
-    var end = data.indexOf('}', start);
-    var text = (start != -1 && end != -1) ? data.substring(start + 1, end) : undefined;
-
-    if (!text) {
-        throw new Error('Invalid data. no curly brackets containing data found');
+        return graphData;
     }
 
-    // return the results
-    var nodeList = [];
-    for (id in nodeMap) {
-        if (nodeMap.hasOwnProperty(id)) {
-            nodeList.push(nodeMap[id]);
-        }
-    }
-    return {
-        nodes: nodeList,
-        edges: edgeList
-    }
-};
+    // exports
+    exports.parseDOT = parseDOT;
+    exports.DOTToGraph = DOTToGraph;
 
-/**
- * Convert a string containing a graph in DOT language into a map containing
- * with nodes and edges in the format of graph.
- * @param {String} data         Text containing a graph in DOT-notation
- * @return {Object} graphData
- */
-util.DOTToGraph = function (data) {
-    // parse the DOT file
-    var dotData = util.parseDOT(data);
-    var graphData = {
-        nodes: [],
-        edges: [],
-        options: {
-            nodes: {},
-            edges: {}
-        }
-    };
-
-    /**
-     * Merge the properties of object b into object a, and replace non-supported
-     * attributes with supported properties.
-     * @param {Object} a
-     * @param {Object} b
-     * @param {Array} [ignore]   Optional array with property names to be ignored
-     */
-    function merge (a, b, ignore) {
-        for (var prop in b) {
-            if (b.hasOwnProperty(prop) && (!ignore || ignore.indexOf(prop) == -1)) {
-                a[prop] = b[prop];
-            }
-        }
-
-        // TODO: Convert non supported attributes to properties supported by Graph
-    }
-
-    dotData.nodes.forEach(function (node) {
-        if (node.id.toLowerCase() == 'graph') {
-            merge(graphData.options, node.attr);
-        }
-        else if (node.id.toLowerCase() == 'node') {
-            merge(graphData.options.nodes, node.attr);
-        }
-        else if (node.id.toLowerCase() == 'edge') {
-            merge(graphData.options.edges, node.attr);
-        }
-        else {
-            var graphNode = {};
-            graphNode.id = node.id;
-            graphNode.label = node.id;
-            merge(graphNode, node.attr);
-            graphData.nodes.push(graphNode);
-        }
-    });
-
-    dotData.edges.forEach(function (edge) {
-        var graphEdge = {};
-        graphEdge.from = edge.from;
-        graphEdge.to = edge.to;
-        graphEdge.label = edge.id;
-        graphEdge.style = (edge.type == '->') ? 'arrow-end' : 'line';
-        merge(graphEdge, edge.attr);
-        graphData.edges.push(graphEdge);
-    });
-
-    return graphData;
-};
+})(typeof util !== 'undefined' ? util : exports);
