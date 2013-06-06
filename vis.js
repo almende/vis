@@ -6931,7 +6931,8 @@ Timeline.prototype.getItemRange = function getItemRange() {
             // add
             graph.nodes[node.id] = node;
             if (nodeAttr) {
-                node.attr = merge(node.attr, nodeAttr);
+                var attr = merge({}, nodeAttr);     // clone global attributes
+                node.attr = merge(attr, node.attr); // merge attributes
             }
         }
     }
@@ -6946,7 +6947,8 @@ Timeline.prototype.getItemRange = function getItemRange() {
         }
         graph.edges.push(edge);
         if (edgeAttr) {
-            edge.attr = merge(edge.attr, edgeAttr);
+            var attr = merge({}, edgeAttr);     // clone global attributes
+            edge.attr = merge(attr, edge.attr); // merge attributes
         }
     }
 
@@ -7618,9 +7620,7 @@ function Node(properties, imagelist, grouplist, constants) {
     this.fontFace = constants.nodes.fontFace;
     this.fontColor = constants.nodes.fontColor;
 
-    this.borderColor = constants.nodes.borderColor;
-    this.backgroundColor = constants.nodes.backgroundColor;
-    this.highlightColor = constants.nodes.highlightColor;
+    this.color = constants.nodes.color;
 
     // set defaults for the properties
     this.id = undefined;
@@ -7717,9 +7717,8 @@ Node.prototype.setProperties = function(properties, constants) {
     if (properties.shape != undefined)          {this.shape = properties.shape;}
     if (properties.image != undefined)          {this.image = properties.image;}
     if (properties.radius != undefined)         {this.radius = properties.radius;}
-    if (properties.borderColor != undefined)    {this.borderColor = properties.borderColor;}
-    if (properties.backgroundColor != undefined){this.backgroundColor = properties.backgroundColor;}
-    if (properties.highlightColor != undefined) {this.highlightColor = properties.highlightColor;}
+    if (properties.color != undefined)          {this.color = Node.parseColor(properties.color);}
+
     if (properties.fontColor != undefined)      {this.fontColor = properties.fontColor;}
     if (properties.fontSize != undefined)       {this.fontSize = properties.fontSize;}
     if (properties.fontFace != undefined)       {this.fontFace = properties.fontFace;}
@@ -7762,6 +7761,44 @@ Node.prototype.setProperties = function(properties, constants) {
 
     // reset the size of the node, this can be changed
     this._reset();
+};
+
+/**
+ * Parse a color property into an object with border, background, and
+ * hightlight colors
+ * @param {Object | String} color
+ * @return {Object} colorObject
+ */
+Node.parseColor = function(color) {
+    var c;
+    if (util.isString(color)) {
+        c = {
+            border: color,
+            background: color,
+            highlight: {
+                border: color,
+                background: color
+            }
+        };
+        // TODO: automatically generate a nice highlight color
+    }
+    else {
+        c = {};
+        c.background =  color.background || 'white';
+        c.border =      color.border || c.background;
+        if (util.isString(color.highlight)) {
+            c.highlight = {
+                border: color.highlight,
+                background: color.highlight
+            }
+        }
+        else {
+            c.highlight = {};
+            c.highlight.background = color.highlight && color.highlight.background || c.border;
+            c.highlight.border =     color.highlight && color.highlight.border || c.highlight.background;
+        }
+    }
+    return c;
 };
 
 /**
@@ -8027,8 +8064,8 @@ Node.prototype._drawRect = function (ctx) {
     this.left = this.x - this.width / 2;
     this.top = this.y - this.height / 2;
 
-    ctx.strokeStyle = this.borderColor;
-    ctx.fillStyle = this.selected ? this.highlightColor : this.backgroundColor;
+    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
     ctx.lineWidth = this.selected ? 2.0 : 1.0;
     ctx.roundRect(this.left, this.top, this.width, this.height, this.radius);
     ctx.fill();
@@ -8053,8 +8090,8 @@ Node.prototype._drawDatabase = function (ctx) {
     this.left = this.x - this.width / 2;
     this.top = this.y - this.height / 2;
 
-    ctx.strokeStyle = this.borderColor;
-    ctx.fillStyle = this.selected ? this.highlightColor : this.backgroundColor;
+    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
     ctx.lineWidth = this.selected ? 2.0 : 1.0;
     ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
     ctx.fill();
@@ -8081,8 +8118,8 @@ Node.prototype._drawCircle = function (ctx) {
     this.left = this.x - this.width / 2;
     this.top = this.y - this.height / 2;
 
-    ctx.strokeStyle = this.borderColor;
-    ctx.fillStyle = this.selected ? this.highlightColor : this.backgroundColor;
+    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
     ctx.lineWidth = this.selected ? 2.0 : 1.0;
     ctx.circle(this.x, this.y, this.radius);
     ctx.fill();
@@ -8125,8 +8162,8 @@ Node.prototype._drawShape = function (ctx, shape) {
     this.left = this.x - this.width / 2;
     this.top = this.y - this.height / 2;
 
-    ctx.strokeStyle = this.borderColor;
-    ctx.fillStyle = this.selected ? this.highlightColor : this.backgroundColor;
+    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
     ctx.lineWidth = this.selected ? 2.0 : 1.0;
 
     ctx[shape](this.x, this.y, this.radius);
@@ -8604,14 +8641,10 @@ Edge.prototype._drawArrowCenter = function(ctx) {
         // draw all arrows
         var angle = 0.2 * Math.PI;
         var length = 10 + 5 * this.width; // TODO: make customizable?
-        for (var a in this.arrows) {
-            if (this.arrows.hasOwnProperty(a)) {
-                point = this._pointOnCircle(x, y, radius, this.arrows[a]);
-                ctx.arrow(point.x, point.y, angle, length);
-                ctx.fill();
-                ctx.stroke();
-            }
-        }
+        point = this._pointOnCircle(x, y, radius, 0.5);
+        ctx.arrow(point.x, point.y, angle, length);
+        ctx.fill();
+        ctx.stroke();
 
         // draw label
         if (this.label) {
@@ -8879,16 +8912,16 @@ Groups = function () {
  * default constants for group colors
  */
 Groups.DEFAULT = [
-    {"borderColor": "#2B7CE9", "backgroundColor": "#97C2FC", "highlightColor": "#D2E5FF"}, // blue
-    {"borderColor": "#FFA500", "backgroundColor": "#FFFF00", "highlightColor": "#FFFFA3"}, // yellow
-    {"borderColor": "#FA0A10", "backgroundColor": "#FB7E81", "highlightColor": "#FFAFB1"}, // red
-    {"borderColor": "#41A906", "backgroundColor": "#7BE141", "highlightColor": "#A1EC76"}, // green
-    {"borderColor": "#E129F0", "backgroundColor": "#EB7DF4", "highlightColor": "#F0B3F5"}, // magenta
-    {"borderColor": "#7C29F0", "backgroundColor": "#AD85E4", "highlightColor": "#D3BDF0"}, // purple
-    {"borderColor": "#C37F00", "backgroundColor": "#FFA807", "highlightColor": "#FFCA66"}, // orange
-    {"borderColor": "#4220FB", "backgroundColor": "#6E6EFD", "highlightColor": "#9B9BFD"}, // darkblue
-    {"borderColor": "#FD5A77", "backgroundColor": "#FFC0CB", "highlightColor": "#FFD1D9"}, // pink
-    {"borderColor": "#4AD63A", "backgroundColor": "#C2FABC", "highlightColor": "#E6FFE3"}  // mint
+    {border: "#2B7CE9", background: "#97C2FC", highlight: {border: "#2B7CE9", background: "#D2E5FF"}}, // blue
+    {border: "#FFA500", background: "#FFFF00", highlight: {border: "#FFA500", background: "#FFFFA3"}}, // yellow
+    {border: "#FA0A10", background: "#FB7E81", highlight: {border: "#FA0A10", background: "#FFAFB1"}}, // red
+    {border: "#41A906", background: "#7BE141", highlight: {border: "#41A906", background: "#A1EC76"}}, // green
+    {border: "#E129F0", background: "#EB7DF4", highlight: {border: "#E129F0", background: "#F0B3F5"}}, // magenta
+    {border: "#7C29F0", background: "#AD85E4", highlight: {border: "#7C29F0", background: "#D3BDF0"}}, // purple
+    {border: "#C37F00", background: "#FFA807", highlight: {border: "#C37F00", background: "#FFCA66"}}, // orange
+    {border: "#4220FB", background: "#6E6EFD", highlight: {border: "#4220FB", background: "#9B9BFD"}}, // darkblue
+    {border: "#FD5A77", background: "#FFC0CB", highlight: {border: "#FD5A77", background: "#FFD1D9"}}, // pink
+    {border: "#4AD63A", background: "#C2FABC", highlight: {border: "#4AD63A", background: "#E6FFE3"}}  // mint
 ];
 
 
@@ -8924,9 +8957,7 @@ Groups.prototype.get = function (groupname) {
         var index = this.defaultIndex % Groups.DEFAULT.length;
         this.defaultIndex++;
         group = {};
-        group.borderColor     = Groups.DEFAULT[index].borderColor;
-        group.backgroundColor = Groups.DEFAULT[index].backgroundColor;
-        group.highlightColor  = Groups.DEFAULT[index].highlightColor;
+        group.color = Groups.DEFAULT[index];
         this.groups[groupname] = group;
     }
 
@@ -8942,6 +8973,9 @@ Groups.prototype.get = function (groupname) {
  */
 Groups.prototype.add = function (groupname, style) {
     this.groups[groupname] = style;
+    if (style.color) {
+        style.color = Node.parseColor(style.color);
+    }
     return style;
 };
 
@@ -9001,49 +9035,57 @@ Images.prototype.load = function(url) {
 function Graph (container, data, options) {
     // create variables and set default values
     this.containerElement = container;
-    this.width = "100%";
-    this.height = "100%";
+    this.width = '100%';
+    this.height = '100%';
     this.refreshRate = 50; // milliseconds
     this.stabilize = true; // stabilize before displaying the graph
     this.selectable = true;
 
     // set constant values
     this.constants = {
-        "nodes": {
-            "radiusMin": 5,
-            "radiusMax": 20,
-            "radius": 5,
-            "distance": 100, // px
-            "style": "rect",
-            "image": undefined,
-            "widthMin": 16, // px
-            "widthMax": 64, // px
-            "fontColor": "black",
-            "fontSize": 14, // px
-            //"fontFace": "verdana",
-            "fontFace": "arial",
-            "borderColor": "#2B7CE9",
-            "backgroundColor": "#97C2FC",
-            "highlightColor": "#D2E5FF",
-            "group": undefined
+        nodes: {
+            radiusMin: 5,
+            radiusMax: 20,
+            radius: 5,
+            distance: 100, // px
+            style: 'rect',
+            image: undefined,
+            widthMin: 16, // px
+            widthMax: 64, // px
+            fontColor: 'black',
+            fontSize: 14, // px
+            //fontFace: verdana,
+            fontFace: 'arial',
+            color: {
+                border: '#2B7CE9',
+                background: '#97C2FC',
+                highlight: {
+                    border: '#2B7CE9',
+                    background: '#D2E5FF'
+                }
+            },
+            borderColor: '#2B7CE9',
+            backgroundColor: '#97C2FC',
+            highlightColor: '#D2E5FF',
+            group: undefined
         },
-        "edges": {
-            "widthMin": 1,
-            "widthMax": 15,
-            "width": 1,
-            "style": "line",
-            "color": "#343434",
-            "fontColor": "#343434",
-            "fontSize": 14, // px
-            "fontFace": "arial",
-            //"distance": 100, //px
-            "length": 100,   // px
-            "dashlength": 10,
-            "dashgap": 5
+        edges: {
+            widthMin: 1,
+            widthMax: 15,
+            width: 1,
+            style: 'line',
+            color: '#343434',
+            fontColor: '#343434',
+            fontSize: 14, // px
+            fontFace: 'arial',
+            //distance: 100, //px
+            length: 100,   // px
+            dashlength: 10,
+            dashgap: 5
         },
-        "minForce": 0.05,
-        "minVelocity": 0.02,   // px/s
-        "maxIterations": 1000  // maximum number of iteration to stabilize
+        minForce: 0.05,
+        minVelocity: 0.02,   // px/s
+        maxIterations: 1000  // maximum number of iteration to stabilize
     };
 
     var graph = this;

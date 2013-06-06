@@ -236,17 +236,45 @@ var nodes = [
     </tr>
 
     <tr>
-        <td>backgroundColor</td>
+        <td>color</td>
+        <td>String | Object</td>
+        <td>no</td>
+        <td>Color for the node.</td>
+    </tr>
+
+    <tr>
+        <td>color.background</td>
         <td>String</td>
-        <td>"#97C2FC"</td>
+        <td>no</td>
         <td>Background color for the node.</td>
     </tr>
 
     <tr>
-        <td>borderColor</td>
+        <td>color.border</td>
         <td>String</td>
-        <td>"#2B7CE9"</td>
+        <td>no</td>
         <td>Border color for the node.</td>
+    </tr>
+
+    <tr>
+        <td>color.highlight</td>
+        <td>String | Object</td>
+        <td>no</td>
+        <td>Color of the node when selected.</td>
+    </tr>
+
+    <tr>
+        <td>color.highlight.background</td>
+        <td>String</td>
+        <td>no</td>
+        <td>Background color of the node when selected.</td>
+    </tr>
+
+    <tr>
+        <td>color.highlight.border</td>
+        <td>String</td>
+        <td>no</td>
+        <td>Border color of the node when selected.</td>
     </tr>
 
     <tr>
@@ -261,29 +289,22 @@ var nodes = [
     <tr>
         <td>fontColor</td>
         <td>String</td>
-        <td>"black"</td>
+        <td>no</td>
         <td>Font color for label in the node.</td>
     </tr>
 
     <tr>
         <td>fontFace</td>
         <td>String</td>
-        <td>"sans"</td>
+        <td>no</td>
         <td>Font face for label in the node, for example "verdana" or "arial".</td>
     </tr>
 
     <tr>
         <td>fontSize</td>
         <td>Number</td>
-        <td>14</td>
+        <td>no</td>
         <td>Font size in pixels for label in the node.</td>
-    </tr>
-
-    <tr>
-        <td>highlightColor</td>
-        <td>String</td>
-        <td>"#D2E5FF"</td>
-        <td>Background color of the node when selected.</td>
     </tr>
 
     <tr>
@@ -463,7 +484,7 @@ var edges = [
     <tr>
         <td>fontColor</td>
         <td>String</td>
-        <td>"black"</td>
+        <td>no</td>
         <td>Font color for the text label of the edge.
             Only applicable when property <code>label</code> is defined.</td>
     </tr>
@@ -471,7 +492,7 @@ var edges = [
     <tr>
         <td>fontFace</td>
         <td>String</td>
-        <td>"sans"</td>
+        <td>no</td>
         <td>Font face for the text label of the edge,
             for example "verdana" or "arial".
             Only applicable when property <code>label</code> is defined.</td>
@@ -480,7 +501,7 @@ var edges = [
     <tr>
         <td>fontSize</td>
         <td>Number</td>
-        <td>14</td>
+        <td>no</td>
         <td>Font size in pixels for the text label of the edge.
             Only applicable when property <code>label</code> is defined.</td>
     </tr>
@@ -714,23 +735,42 @@ var options = {
 </tr>
 
 <tr>
-    <td>nodes.borderColor</td>
-    <td>String</td>
-    <td>"#2B7CE9"</td>
-    <td>Default border color of the nodes</td>
+    <td>nodes.color</td>
+    <td>String | Object</td>
+    <td>Object</td>
+    <td>Default color of the nodes. When color is a string, the color is applied
+    to both background as well as the border of the node.</td>
 </tr>
-
 <tr>
-    <td>nodes.backgroundColor</td>
+    <td>nodes.color.background</td>
     <td>String</td>
     <td>"#97C2FC"</td>
     <td>Default background color of the nodes</td>
 </tr>
 <tr>
-    <td>nodes.highlightColor</td>
+    <td>nodes.color.border</td>
+    <td>String</td>
+    <td>"#2B7CE9"</td>
+    <td>Default border color of the nodes</td>
+</tr>
+<tr>
+    <td>nodes.color.highlight</td>
+    <td>String | Object</td>
+    <td>Object</td>
+    <td>Default color of the node when the node is selected. Applied to
+    both border and background of the node.</td>
+</tr>
+<tr>
+    <td>nodes.color.highlight.background</td>
     <td>String</td>
     <td>"#D2E5FF"</td>
-    <td>Default background color of the node when the node is selected.</td>
+    <td>Default background color of the node when selected.</td>
+</tr>
+<tr>
+    <td>nodes.color.highlight.border</td>
+    <td>String</td>
+    <td>"#2B7CE9"</td>
+    <td>Default border color of the node when selected.</td>
 </tr>
 
 <tr>
@@ -852,11 +892,16 @@ var options = {
     groups: {
         mygroup: {
             shape: 'circle',
-            borderColor: 'black',
-            backgroundColor: 'white',
+            color: {
+                border: 'black',
+                background: 'white',
+                highlight: {
+                    border: 'yellow',
+                    background: 'orange'
+                }
+            }
             fontColor: 'red',
-            fontSize: 18,
-            highlightColor: 'yellow'
+            fontSize: 18
         }
         // add more groups here
     }
@@ -880,23 +925,42 @@ var nodes = [
     </tr>
 
     <tr>
-        <td>borderColor</td>
+        <td>color</td>
+        <td>String | Object</td>
+        <td>Object</td>
+        <td>Color of the node</td>
+    </tr>
+
+    <tr>
+        <td>color.border</td>
         <td>String</td>
         <td>"#2B7CE9"</td>
         <td>Border color of the node</td>
     </tr>
 
     <tr>
-        <td>backgroundColor</td>
+        <td>color.background</td>
         <td>String</td>
         <td>"#97C2FC"</td>
         <td>Background color of the node</td>
     </tr>
     <tr>
-        <td>highlightColor</td>
+        <td>color.highlight</td>
         <td>String</td>
         <td>"#D2E5FF"</td>
-        <td>Background color of the node when the node is selected.</td>
+        <td>Color of the node when selected.</td>
+    </tr>
+    <tr>
+        <td>color.highlight.background</td>
+        <td>String</td>
+        <td>"#D2E5FF"</td>
+        <td>Background color of the node when selected.</td>
+    </tr>
+    <tr>
+        <td>color.highlight.border</td>
+        <td>String</td>
+        <td>"#D2E5FF"</td>
+        <td>Border color of the node when selected.</td>
     </tr>
     <tr>
         <td>image</td>

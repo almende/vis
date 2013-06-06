@@ -123,7 +123,8 @@
             // add
             graph.nodes[node.id] = node;
             if (nodeAttr) {
-                node.attr = merge(node.attr, nodeAttr);
+                var attr = merge({}, nodeAttr);     // clone global attributes
+                node.attr = merge(attr, node.attr); // merge attributes
             }
         }
     }
@@ -138,7 +139,8 @@
         }
         graph.edges.push(edge);
         if (edgeAttr) {
-            edge.attr = merge(edge.attr, edgeAttr);
+            var attr = merge({}, edgeAttr);     // clone global attributes
+            edge.attr = merge(attr, edge.attr); // merge attributes
         }
     }
 

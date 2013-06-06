@@ -32,9 +32,7 @@ function Node(properties, imagelist, grouplist, constants) {
     this.fontFace = constants.nodes.fontFace;
     this.fontColor = constants.nodes.fontColor;
 
-    this.borderColor = constants.nodes.borderColor;
-    this.backgroundColor = constants.nodes.backgroundColor;
-    this.highlightColor = constants.nodes.highlightColor;
+    this.color = constants.nodes.color;
 
     // set defaults for the properties
     this.id = undefined;
@@ -131,9 +129,8 @@ Node.prototype.setProperties = function(properties, constants) {
     if (properties.shape != undefined)          {this.shape = properties.shape;}
     if (properties.image != undefined)          {this.image = properties.image;}
     if (properties.radius != undefined)         {this.radius = properties.radius;}
-    if (properties.borderColor != undefined)    {this.borderColor = properties.borderColor;}
-    if (properties.backgroundColor != undefined){this.backgroundColor = properties.backgroundColor;}
-    if (properties.highlightColor != undefined) {this.highlightColor = properties.highlightColor;}
+    if (properties.color != undefined)          {this.color = Node.parseColor(properties.color);}
+
     if (properties.fontColor != undefined)      {this.fontColor = properties.fontColor;}
     if (properties.fontSize != undefined)       {this.fontSize = properties.fontSize;}
     if (properties.fontFace != undefined)       {this.fontFace = properties.fontFace;}
@@ -176,6 +173,44 @@ Node.prototype.setProperties = function(properties, constants) {
 
     // reset the size of the node, this can be changed
     this._reset();
+};
+
+/**
+ * Parse a color property into an object with border, background, and
+ * hightlight colors
+ * @param {Object | String} color
+ * @return {Object} colorObject
+ */
+Node.parseColor = function(color) {
+    var c;
+    if (util.isString(color)) {
+        c = {
+            border: color,
+            background: color,
+            highlight: {
+                border: color,
+                background: color
+            }
+        };
+        // TODO: automatically generate a nice highlight color
+    }
+    else {
+        c = {};
+        c.background =  color.background || 'white';
+        c.border =      color.border || c.background;
+        if (util.isString(color.highlight)) {
+            c.highlight = {
+                border: color.highlight,
+                background: color.highlight
+            }
+        }
+        else {
+            c.highlight = {};
+            c.highlight.background = color.highlight && color.highlight.background || c.border;
+            c.highlight.border =     color.highlight && color.highlight.border || c.highlight.background;
+        }
+    }
+    return c;
 };
 
 /**
@@ -441,8 +476,8 @@ Node.prototype._drawRect = function (ctx) {
     this.left = this.x - this.width / 2;
     this.top = this.y - this.height / 2;
 
-    ctx.strokeStyle = this.borderColor;
-    ctx.fillStyle = this.selected ? this.highlightColor : this.backgroundColor;
+    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
     ctx.lineWidth = this.selected ? 2.0 : 1.0;
     ctx.roundRect(this.left, this.top, this.width, this.height, this.radius);
     ctx.fill();
@@ -467,8 +502,8 @@ Node.prototype._drawDatabase = function (ctx) {
     this.left = this.x - this.width / 2;
     this.top = this.y - this.height / 2;
 
-    ctx.strokeStyle = this.borderColor;
-    ctx.fillStyle = this.selected ? this.highlightColor : this.backgroundColor;
+    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
     ctx.lineWidth = this.selected ? 2.0 : 1.0;
     ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
     ctx.fill();
@@ -495,8 +530,8 @@ Node.prototype._drawCircle = function (ctx) {
     this.left = this.x - this.width / 2;
     this.top = this.y - this.height / 2;
 
-    ctx.strokeStyle = this.borderColor;
-    ctx.fillStyle = this.selected ? this.highlightColor : this.backgroundColor;
+    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
     ctx.lineWidth = this.selected ? 2.0 : 1.0;
     ctx.circle(this.x, this.y, this.radius);
     ctx.fill();
@@ -539,8 +574,8 @@ Node.prototype._drawShape = function (ctx, shape) {
     this.left = this.x - this.width / 2;
     this.top = this.y - this.height / 2;
 
-    ctx.strokeStyle = this.borderColor;
-    ctx.fillStyle = this.selected ? this.highlightColor : this.backgroundColor;
+    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
     ctx.lineWidth = this.selected ? 2.0 : 1.0;
 
     ctx[shape](this.x, this.y, this.radius);

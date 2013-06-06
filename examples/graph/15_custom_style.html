@@ -24,7 +24,7 @@
                 {id: 1, label: 'black node', group: 'black'},
                 {id: 2, label: 'black node', group: 'black'},
                 {id: 3, label: 'black node', group: 'black'},
-                {id: 4, label: 'red node', group: 'black', backgroundColor: 'red'},
+                {id: 4, label: 'red node', group: 'black', color: 'red'},
                 {id: 5, label: 'gray node', group: 'gray'},
                 {id: 6, label: 'gray node', group: 'gray'},
                 {id: 7, label: 'gray node', group: 'gray'},
@@ -54,50 +54,59 @@
 
             // specify options
             options = {
-                'width': '600px',
-                'height': '600px',
-                'stabilize': false,
-                'edges': {
-                    'length': 120,
-                    'width': 2,
-                    'style': 'arrow',
-                    'color': 'gray'
+                width: '600px',
+                height: '600px',
+                stabilize: false,
+                edges: {
+                    length: 120,
+                    width: 2,
+                    style: 'arrow',
+                    color: 'gray'
                 },
-                'nodes': {
+                nodes: {
                     // default for all nodes
-                    'fontFace': 'times',
-                    'shape': 'circle',
-                    'borderColor': 'orange',
-                    'backgroundColor': 'yellow',
-                    'highlightColor': 'gold'
+                    fontFace: 'times',
+                    shape: 'circle',
+                    color: {
+                        border: 'orange',
+                        background: 'yellow',
+                        highlight: {
+                            border: 'darkorange',
+                            background: 'gold'
+                        }
+                    }
                 },
-                'groups': {
-                    'black': {
+                groups: {
+                    black: {
                         // defaults for nodes in this group
-                        'radius': 15,
-                        'borderColor': 'black',
-                        'backgroundColor': 'black',
-                        'highlightColor': 'black',
-                        'fontColor': 'white',
-                        'fontSize': 18,
-                        'fontFace': 'courier',
-                        'shape': 'rect'
+                        radius: 15,
+                        color: 'black',
+                        fontColor: 'white',
+                        fontSize: 18,
+                        fontFace: 'courier',
+                        shape: 'rect'
                     },
-                    'gray': {
-                        'borderColor': 'black',
-                        'backgroundColor': 'gray',
-                        'highlightColor': 'gray',
-                        'fontSize': 18,
-                        'fontFace': 'arial',
-                        'shape': 'circle'
+                    gray: {
+                        color: {
+                            border: 'black',
+                            background: 'gray',
+                            highlight: {
+                                border: 'black',
+                                background: 'lightgray'
+                            }
+                        },
+                        fontSize: 18,
+                        fontFace: 'arial',
+                        shape: 'circle'
                     },
-                    'white': {
-                        'borderColor': 'black',
-                        'backgroundColor': 'white',
-                        'highlightColor': 'white',
-                        'fontColor': 'red',
-                        'shape': 'image',
-                        'image': 'img/soft-scraps-icons/User-Coat-Blue-icon.png'
+                    white: {
+                        color: {
+                            border: 'black',
+                            background: 'white'
+                        },
+                        fontColor: 'red',
+                        shape: 'image',
+                        image: 'img/soft-scraps-icons/User-Coat-Blue-icon.png'
                     }
                 }
             };

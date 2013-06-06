@@ -12,49 +12,57 @@
 function Graph (container, data, options) {
     // create variables and set default values
     this.containerElement = container;
-    this.width = "100%";
-    this.height = "100%";
+    this.width = '100%';
+    this.height = '100%';
     this.refreshRate = 50; // milliseconds
     this.stabilize = true; // stabilize before displaying the graph
     this.selectable = true;
 
     // set constant values
     this.constants = {
-        "nodes": {
-            "radiusMin": 5,
-            "radiusMax": 20,
-            "radius": 5,
-            "distance": 100, // px
-            "style": "rect",
-            "image": undefined,
-            "widthMin": 16, // px
-            "widthMax": 64, // px
-            "fontColor": "black",
-            "fontSize": 14, // px
-            //"fontFace": "verdana",
-            "fontFace": "arial",
-            "borderColor": "#2B7CE9",
-            "backgroundColor": "#97C2FC",
-            "highlightColor": "#D2E5FF",
-            "group": undefined
+        nodes: {
+            radiusMin: 5,
+            radiusMax: 20,
+            radius: 5,
+            distance: 100, // px
+            style: 'rect',
+            image: undefined,
+            widthMin: 16, // px
+            widthMax: 64, // px
+            fontColor: 'black',
+            fontSize: 14, // px
+            //fontFace: verdana,
+            fontFace: 'arial',
+            color: {
+                border: '#2B7CE9',
+                background: '#97C2FC',
+                highlight: {
+                    border: '#2B7CE9',
+                    background: '#D2E5FF'
+                }
+            },
+            borderColor: '#2B7CE9',
+            backgroundColor: '#97C2FC',
+            highlightColor: '#D2E5FF',
+            group: undefined
         },
-        "edges": {
-            "widthMin": 1,
-            "widthMax": 15,
-            "width": 1,
-            "style": "line",
-            "color": "#343434",
-            "fontColor": "#343434",
-            "fontSize": 14, // px
-            "fontFace": "arial",
-            //"distance": 100, //px
-            "length": 100,   // px
-            "dashlength": 10,
-            "dashgap": 5
+        edges: {
+            widthMin: 1,
+            widthMax: 15,
+            width: 1,
+            style: 'line',
+            color: '#343434',
+            fontColor: '#343434',
+            fontSize: 14, // px
+            fontFace: 'arial',
+            //distance: 100, //px
+            length: 100,   // px
+            dashlength: 10,
+            dashgap: 5
         },
-        "minForce": 0.05,
-        "minVelocity": 0.02,   // px/s
-        "maxIterations": 1000  // maximum number of iteration to stabilize
+        minForce: 0.05,
+        minVelocity: 0.02,   // px/s
+        maxIterations: 1000  // maximum number of iteration to stabilize
     };
 
     var graph = this;
