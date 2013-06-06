@@ -6961,7 +6961,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
         token = '';
 
         // skip over whitespaces
-        while (c == ' ' || c == '\t' || c == '\n') {  // space, tab, enter
+        while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
             next();
         }
 
@@ -7007,7 +7007,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
             }
 
             // skip over whitespaces
-            while (c == ' ' || c == '\t' || c == '\n') {  // space, tab, enter
+            while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
                 next();
             }
         }

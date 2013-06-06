@@ -24,11 +24,14 @@
 <script>
     if (location.href.substr(0, 5) == 'file:') {
         document.write(
-                '<p style="color: red;">' +
-                        'Error: Cannot fetch the example data because of security ' +
-                        'restrictions in JavaScript. Run the example from a server ' +
-                        'instead of as a local file to resolve this problem.' +
-                '</p>');
+            '<p style="color: red;">' +
+                'Error: Cannot fetch the example data because of security ' +
+                'restrictions in JavaScript. Run the example from a server ' +
+                'instead of as a local file to resolve this problem. ' +
+                'Alternatively, you can load DOT graphs in ' +
+                'the <a href="../20_dot_language_playground.html" ' +
+                'style="color:red;">playground</a>.' +
+            '</p>');
     }
 </script>
 
