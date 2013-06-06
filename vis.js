@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.0.8
- * @date    2013-06-05
+ * @date    2013-06-06
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -6820,16 +6820,15 @@ Timeline.prototype.getItemRange = function getItemRange() {
         return parseGraph();
     }
 
-// token types enumeration
+    // token types enumeration
     var TOKENTYPE = {
         NULL : 0,
         DELIMITER : 1,
-        NUMBER : 2,
-        STRING : 3,
-        UNKNOWN : 4
+        IDENTIFIER: 2,
+        UNKNOWN : 3
     };
 
-// map with all delimiters
+    // map with all delimiters
     var DELIMITERS = {
         '{': true,
         '}': true,
@@ -6971,10 +6970,10 @@ Timeline.prototype.getItemRange = function getItemRange() {
             if (c == '#') {
                 // find the previous non-space character
                 var i = index - 1;
-                while (dot[i] == ' ' || dot[i] == '\t') {
+                while (dot.charAt(i) == ' ' || dot.charAt(i) == '\t') {
                     i--;
                 }
-                if (dot[i] == '\n' || dot[i] == '') {
+                if (dot.charAt(i) == '\n' || dot.charAt(i) == '') {
                     // the # is at the start of a line, this is indeed a line comment
                     while (c != '' && c != '\n') {
                         next();
@@ -7001,8 +7000,8 @@ Timeline.prototype.getItemRange = function getItemRange() {
                     else {
                         next();
                     }
-                    isComment = true;
                 }
+                isComment = true;
             }
 
             // skip over whitespaces
@@ -7047,17 +7046,20 @@ Timeline.prototype.getItemRange = function getItemRange() {
                 token += c;
                 next();
             }
-            if (!isNaN(Number(token))) {
-                token = Number(token);
-                tokenType = TOKENTYPE.NUMBER;
+            if (token == 'false') {
+                token = false;   // cast to boolean
             }
-            else {
-                tokenType = TOKENTYPE.STRING;
+            else if (token == 'true') {
+                token = true;   // cast to boolean
             }
+            else if (!isNaN(Number(token))) {
+                token = Number(token); // cast to number
+            }
+            tokenType = TOKENTYPE.IDENTIFIER;
             return;
         }
 
-        // check for a string
+        // check for a string enclosed by double quotes
         if (c == '"') {
             next();
             while (c != '' && (c != '"' || (c == '"' && nextPreview() == '"'))) {
@@ -7071,7 +7073,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
                 throw newSyntaxError('End of string " expected');
             }
             next();
-            tokenType = TOKENTYPE.STRING;
+            tokenType = TOKENTYPE.IDENTIFIER;
             return;
         }
 
@@ -7109,7 +7111,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
         }
 
         // graph id
-        if (tokenType == TOKENTYPE.STRING) {
+        if (tokenType == TOKENTYPE.IDENTIFIER) {
             graph.id = token;
             getToken();
         }
@@ -7143,8 +7145,8 @@ Timeline.prototype.getItemRange = function getItemRange() {
      */
     function parseStatements () {
         while (token !== '' && token != '}') {
-            if (tokenType != TOKENTYPE.STRING && tokenType != TOKENTYPE.NUMBER) {
-                throw newSyntaxError('String expected');
+            if (tokenType != TOKENTYPE.IDENTIFIER) {
+                throw newSyntaxError('Identifier expected');
             }
 
             parseStatement();
@@ -7247,7 +7249,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
             getToken();
             var attr = {};
             while (token !== '' && token != ']') {
-                if (tokenType != TOKENTYPE.STRING) {
+                if (tokenType != TOKENTYPE.IDENTIFIER) {
                     throw newSyntaxError('Attribute name expected');
                 }
                 var name = token;
@@ -7258,7 +7260,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
                 }
                 getToken();
 
-                if (tokenType != TOKENTYPE.STRING && tokenType != TOKENTYPE.NUMBER) {
+                if (tokenType != TOKENTYPE.IDENTIFIER) {
                     throw newSyntaxError('Attribute value expected');
                 }
                 var value = token;
@@ -7311,6 +7313,9 @@ Timeline.prototype.getItemRange = function getItemRange() {
                         label: id
                     };
                     merge(node, dotData.nodes[id].attr);
+                    if (node.image) {
+                        node.shape = 'image';
+                    }
                     graphData.nodes.push(node);
                 }
             }
@@ -8639,7 +8644,7 @@ Edge.prototype._drawArrowEnd = function(ctx) {
         var dy = (this.to.y - this.from.y);
         var lEdge = Math.sqrt(dx * dx + dy * dy);
 
-        var lFrom = this.to.distanceToBorder(ctx, angle + Math.PI);
+        var lFrom = this.from.distanceToBorder(ctx, angle + Math.PI);
         var pFrom = (lEdge - lFrom) / lEdge;
         var xFrom = (pFrom) * this.from.x + (1 - pFrom) * this.to.x;
         var yFrom = (pFrom) * this.from.y + (1 - pFrom) * this.to.y;

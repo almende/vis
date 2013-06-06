@@ -457,7 +457,7 @@ Edge.prototype._drawArrowEnd = function(ctx) {
         var dy = (this.to.y - this.from.y);
         var lEdge = Math.sqrt(dx * dx + dy * dy);
 
-        var lFrom = this.to.distanceToBorder(ctx, angle + Math.PI);
+        var lFrom = this.from.distanceToBorder(ctx, angle + Math.PI);
         var pFrom = (lEdge - lFrom) / lEdge;
         var xFrom = (pFrom) * this.from.x + (1 - pFrom) * this.to.x;
         var yFrom = (pFrom) * this.from.y + (1 - pFrom) * this.to.y;

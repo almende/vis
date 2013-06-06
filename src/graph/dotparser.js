@@ -12,16 +12,15 @@
         return parseGraph();
     }
 
-// token types enumeration
+    // token types enumeration
     var TOKENTYPE = {
         NULL : 0,
         DELIMITER : 1,
-        NUMBER : 2,
-        STRING : 3,
-        UNKNOWN : 4
+        IDENTIFIER: 2,
+        UNKNOWN : 3
     };
 
-// map with all delimiters
+    // map with all delimiters
     var DELIMITERS = {
         '{': true,
         '}': true,
@@ -163,10 +162,10 @@
             if (c == '#') {
                 // find the previous non-space character
                 var i = index - 1;
-                while (dot[i] == ' ' || dot[i] == '\t') {
+                while (dot.charAt(i) == ' ' || dot.charAt(i) == '\t') {
                     i--;
                 }
-                if (dot[i] == '\n' || dot[i] == '') {
+                if (dot.charAt(i) == '\n' || dot.charAt(i) == '') {
                     // the # is at the start of a line, this is indeed a line comment
                     while (c != '' && c != '\n') {
                         next();
@@ -193,8 +192,8 @@
                     else {
                         next();
                     }
-                    isComment = true;
                 }
+                isComment = true;
             }
 
             // skip over whitespaces
@@ -239,17 +238,20 @@
                 token += c;
                 next();
             }
-            if (!isNaN(Number(token))) {
-                token = Number(token);
-                tokenType = TOKENTYPE.NUMBER;
+            if (token == 'false') {
+                token = false;   // cast to boolean
             }
-            else {
-                tokenType = TOKENTYPE.STRING;
+            else if (token == 'true') {
+                token = true;   // cast to boolean
             }
+            else if (!isNaN(Number(token))) {
+                token = Number(token); // cast to number
+            }
+            tokenType = TOKENTYPE.IDENTIFIER;
             return;
         }
 
-        // check for a string
+        // check for a string enclosed by double quotes
         if (c == '"') {
             next();
             while (c != '' && (c != '"' || (c == '"' && nextPreview() == '"'))) {
@@ -263,7 +265,7 @@
                 throw newSyntaxError('End of string " expected');
             }
             next();
-            tokenType = TOKENTYPE.STRING;
+            tokenType = TOKENTYPE.IDENTIFIER;
             return;
         }
 
@@ -301,7 +303,7 @@
         }
 
         // graph id
-        if (tokenType == TOKENTYPE.STRING) {
+        if (tokenType == TOKENTYPE.IDENTIFIER) {
             graph.id = token;
             getToken();
         }
@@ -335,8 +337,8 @@
      */
     function parseStatements () {
         while (token !== '' && token != '}') {
-            if (tokenType != TOKENTYPE.STRING && tokenType != TOKENTYPE.NUMBER) {
-                throw newSyntaxError('String expected');
+            if (tokenType != TOKENTYPE.IDENTIFIER) {
+                throw newSyntaxError('Identifier expected');
             }
 
             parseStatement();
@@ -439,7 +441,7 @@
             getToken();
             var attr = {};
             while (token !== '' && token != ']') {
-                if (tokenType != TOKENTYPE.STRING) {
+                if (tokenType != TOKENTYPE.IDENTIFIER) {
                     throw newSyntaxError('Attribute name expected');
                 }
                 var name = token;
@@ -450,7 +452,7 @@
                 }
                 getToken();
 
-                if (tokenType != TOKENTYPE.STRING && tokenType != TOKENTYPE.NUMBER) {
+                if (tokenType != TOKENTYPE.IDENTIFIER) {
                     throw newSyntaxError('Attribute value expected');
                 }
                 var value = token;
@@ -503,6 +505,9 @@
                         label: id
                     };
                     merge(node, dotData.nodes[id].attr);
+                    if (node.image) {
+                        node.shape = 'image';
+                    }
                     graphData.nodes.push(node);
                 }
             }
