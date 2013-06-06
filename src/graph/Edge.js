@@ -407,14 +407,10 @@ Edge.prototype._drawArrowCenter = function(ctx) {
         // draw all arrows
         var angle = 0.2 * Math.PI;
         var length = 10 + 5 * this.width; // TODO: make customizable?
-        for (var a in this.arrows) {
-            if (this.arrows.hasOwnProperty(a)) {
-                point = this._pointOnCircle(x, y, radius, this.arrows[a]);
-                ctx.arrow(point.x, point.y, angle, length);
-                ctx.fill();
-                ctx.stroke();
-            }
-        }
+        point = this._pointOnCircle(x, y, radius, 0.5);
+        ctx.arrow(point.x, point.y, angle, length);
+        ctx.fill();
+        ctx.stroke();
 
         // draw label
         if (this.label) {

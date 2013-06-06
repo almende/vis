@@ -1,0 +1,79 @@
+<html>
+<head>
+    <title>Graph | Graphviz Gallery</title>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+    <script type="text/javascript" src="../../../vis.js"></script>
+
+    <style type="text/css">
+        p {
+            width: 600px;
+        }
+        html, body, select {
+            font: 11pt verdana;
+        }
+        #mygraph {
+            width: 600px;
+            height: 600px;
+        }
+    </style>
+</head>
+<body>
+
+<script>
+    if (location.href.substr(0, 5) == 'file:') {
+        document.write(
+                '<p style="color: red;">' +
+                        'Error: Cannot fetch the example data because of security ' +
+                        'restrictions in JavaScript. Run the example from a server ' +
+                        'instead of as a local file to resolve this problem.' +
+                '</p>');
+    }
+</script>
+
+<p>
+    The following examples are unmodified copies from the
+    <a href="http://www.graphviz.org/Gallery.php" target="_blank">Graphiz Gallery</a>.
+    Note that vis.js does not support all attributes of GraphVis, and
+</p>
+
+<p>
+    <label for="url">Select an example:</label>
+    <select id="url" onchange="loadData()">
+        <option value="data/fsm.gv.txt">fsm</option>
+        <option value="data/hello.gv.txt">hello</option>
+        <option value="data/process.gv.txt">process</option>
+        <option value="data/profile.gv.txt">profile</option>
+        <option value="data/siblings.gv.txt">siblings</option>
+        <option value="data/softmaint.gv.txt">softmaint</option>
+        <option value="data/traffic_lights.gv.txt">traffic_lights</option>
+        <option value="data/transparency.gv.txt">transparency</option>
+        <option value="data/twopi2.gv.txt">twopi2</option>
+        <option value="data/unix.gv.txt">unix</option>
+        <option value="data/world.gv.txt">world</option>
+    </select>
+</p>
+<div id="mygraph"></div>
+
+<script type="text/javascript">
+    var container = document.getElementById('mygraph');
+    var url = document.getElementById('url');
+    var graph = new vis.Graph(container);
+
+    function loadData () {
+        $.ajax({
+            type: "GET",
+            url: url.value
+        }).done(function(data) {
+            graph.setOptions({
+                stabilize: false
+            });
+            graph.setData( {
+                dot: data
+            });
+        });
+    }
+    loadData();
+</script>
+</body>
+</html>
