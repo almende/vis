@@ -7597,7 +7597,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined') {
  *                              {number} y      Vertical position of the node
  *                              {string} shape  Node shape, available:
  *                                              "database", "circle", "ellipse",
- *                                              "rect", "image", "text", "dot",
+ *                                              "box", "image", "text", "dot",
  *                                              "star", "triangle", "triangleDown",
  *                                              "square"
  *                              {string} image  An image url
@@ -7745,7 +7745,7 @@ Node.prototype.setProperties = function(properties, constants) {
     // choose draw method depending on the shape
     switch (this.shape) {
         case 'database':      this.draw = this._drawDatabase; this.resize = this._resizeDatabase; break;
-        case 'rect':          this.draw = this._drawRect; this.resize = this._resizeRect; break;
+        case 'box':           this.draw = this._drawBox; this.resize = this._resizeBox; break;
         case 'circle':        this.draw = this._drawCircle; this.resize = this._resizeCircle; break;
         case 'ellipse':       this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
         // TODO: add diamond shape
@@ -7756,7 +7756,7 @@ Node.prototype.setProperties = function(properties, constants) {
         case 'triangle':      this.draw = this._drawTriangle; this.resize = this._resizeShape; break;
         case 'triangleDown':  this.draw = this._drawTriangleDown; this.resize = this._resizeShape; break;
         case 'star':          this.draw = this._drawStar; this.resize = this._resizeShape; break;
-        default:              this.draw = this._drawRect; this.resize = this._resizeRect; break;
+        default:              this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
     }
 
     // reset the size of the node, this can be changed
@@ -7865,7 +7865,7 @@ Node.prototype.distanceToBorder = function (ctx, angle) {
         // TODO: implement distanceToBorder for triangle
         // TODO: implement distanceToBorder for triangleDown
 
-        case 'rect':
+        case 'box':
         case 'image':
         case 'text':
         default:
@@ -7873,7 +7873,7 @@ Node.prototype.distanceToBorder = function (ctx, angle) {
                 return Math.min(
                     Math.abs(this.width / 2 / Math.cos(angle)),
                     Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
-                // TODO: reckon with border radius too in case of rect
+                // TODO: reckon with border radius too in case of box
             }
             else {
                 return 0;
@@ -8056,7 +8056,7 @@ Node.prototype._drawImage = function (ctx) {
 };
 
 
-Node.prototype._resizeRect = function (ctx) {
+Node.prototype._resizeBox = function (ctx) {
     if (!this.width) {
         var margin = 5;
         var textSize = this.getTextSize(ctx);
@@ -8065,8 +8065,8 @@ Node.prototype._resizeRect = function (ctx) {
     }
 };
 
-Node.prototype._drawRect = function (ctx) {
-    this._resizeRect(ctx);
+Node.prototype._drawBox = function (ctx) {
+    this._resizeBox(ctx);
 
     this.left = this.x - this.width / 2;
     this.top = this.y - this.height / 2;
@@ -9082,7 +9082,7 @@ function Graph (container, data, options) {
             radiusMax: 20,
             radius: 5,
             distance: 100, // px
-            shape: 'rect',
+            shape: 'ellipse',
             image: undefined,
             widthMin: 16, // px
             widthMax: 64, // px

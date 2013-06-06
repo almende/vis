@@ -329,7 +329,7 @@ var nodes = [
         <td>radius</td>
         <td>number</td>
         <td>no</td>
-        <td>Radius for the node. Applicable for all shapes except <code>rect</code>,
+        <td>Radius for the node. Applicable for all shapes except <code>box</code>,
             <code>circle</code>, <code>ellipse</code> and <code>database</code>.
             The value of <code>radius</code> will override a value in
             property <code>value</code>.</td>
@@ -341,7 +341,7 @@ var nodes = [
         <td>no</td>
         <td>Define the shape for the node.
             Choose from
-            <code>rect</code> (default), <code>circle</code>, <code>ellipse</code>,
+            <code>ellipse</code> (default), <code>circle</code>, <code>box</code>,
             <code>database</code>, <code>image</code>, <code>label</code>, <code>dot</code>,
             <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, and <code>square</code>.
             <br><br>
@@ -358,7 +358,7 @@ var nodes = [
 
             When a property <code>label</code> is provided,
             this label will be displayed inside the shape in case of shapes
-            <code>rect</code>, <code>circle</code>, <code>ellipse</code>,
+            <code>box</code>, <code>circle</code>, <code>ellipse</code>,
             and <code>database</code>.
             For all other shapes, the label will be displayed right below the shape.
 
@@ -794,10 +794,10 @@ var options = {
 <tr>
     <td>nodes.shape</td>
     <td>String</td>
-    <td>"rect"</td>
+    <td>"ellipse"</td>
     <td>The default shape for all nodes.
         Choose from
-        <code>rect</code> (default), <code>circle</code>, <code>ellipse</code>,
+        <code>ellipse</code> (default), <code>circle</code>, <code>box</code>,
         <code>database</code>, <code>image</code>, <code>label</code>, <code>dot</code>,
         <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, and <code>square</code>.
         This shape can be overridden by a group shape, or by a shape of an individual node.</td>
@@ -967,9 +967,9 @@ var nodes = [
     <tr>
         <td>shape</td>
         <td>String</td>
-        <td>"rect"</td>
+        <td>"ellipse"</td>
         <td>Choose from
-            <code>rect</code> (default), <code>circle</code>, <code>ellipse</code>,
+            <code>ellipse</code> (default), <code>circle</code>, <code>box</code>,
             <code>database</code>, <code>image</code>, <code>label</code>, <code>dot</code>,
             <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, and <code>square</code>.
             In case of image, a property with name image must be provided, containing
@@ -980,7 +980,7 @@ var nodes = [
         <td>Number</td>
         <td>5</td>
         <td>Default radius for the node. Only applicable in combination with
-            shapes <code>rect</code> and <code>dot</code>.</td>
+            shapes <code>box</code> and <code>dot</code>.</td>
     </tr>
 
 </table>

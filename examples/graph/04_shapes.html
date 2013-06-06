@@ -26,7 +26,7 @@
                 {id: 1, label: 'circle', shape: 'circle', group: 'group_x'},
                 {id: 2, label: 'ellipse', shape: 'ellipse', group: 'group_x'},
                 {id: 3, label: 'database', shape: 'database', group: 'group_x'},
-                {id: 4, label: 'rect', shape: 'rect', group: 'group_x'}
+                {id: 4, label: 'box', shape: 'box', group: 'group_x'}
             ];
 
             edges = [
@@ -36,12 +36,12 @@
             ];
 
             var mainId = 5;
-            nodes.push({id: mainId, label: 'shapes\nand\nsizes', shape: 'rect', group: 'group_main'});
+            nodes.push({id: mainId, label: 'shapes\nand\nsizes', shape: 'box', group: 'group_main'});
             var shapes = ['dot', 'square', 'triangle', 'triangleDown', 'star'];
             var id = 6;
             for (var size = 1; size < 4; size++) {
                 var groupId = id;
-                nodes.push({id: id, label: 'size ' + size, shape: 'rect', group: 'group' + size});
+                nodes.push({id: id, label: 'size ' + size, shape: 'box', group: 'group' + size});
                 edges.push({from: mainId, to: groupId, color: 'gray', width: size});
                 id++;
 
