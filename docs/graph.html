@@ -41,7 +41,7 @@
         <ul>
             <li><a href="#Nodes">Nodes</a></li>
             <li><a href="#Edges">Edges</a></li>
-            <li><a href="#DOT_language">DOT_language</a></li>
+            <li><a href="#DOT_language">DOT language</a></li>
         </ul>
     </li>
     <li><a href="#Configuration_Options">Configuration Options</a></li>
@@ -330,7 +330,7 @@ var nodes = [
         <td>number</td>
         <td>no</td>
         <td>Radius for the node. Applicable for all shapes except <code>rect</code>,
-            <code>circle</code>, and <code>database</code>.
+            <code>circle</code>, <code>ellipse</code> and <code>database</code>.
             The value of <code>radius</code> will override a value in
             property <code>value</code>.</td>
     </tr>
@@ -340,10 +340,10 @@ var nodes = [
         <td>string</td>
         <td>no</td>
         <td>Define the shape for the node.
-            Choose from <code>rect</code> (default), <code>circle</code>,
-            <code>database</code>, <code>image</code>, <code>label</code>,
-            <code>dot</code>, <code>star</code>, <code>triangle</code>,
-            <code>triangleDown</code>, and <code>square</code>.
+            Choose from
+            <code>rect</code> (default), <code>circle</code>, <code>ellipse</code>,
+            <code>database</code>, <code>image</code>, <code>label</code>, <code>dot</code>,
+            <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, and <code>square</code>.
             <br><br>
 
             In case of <code>image</code>, a property with name <code>image</code> must
@@ -358,7 +358,8 @@ var nodes = [
 
             When a property <code>label</code> is provided,
             this label will be displayed inside the shape in case of shapes
-            <code>rect</code>, <code>circle</code>, and <code>database</code>.
+            <code>rect</code>, <code>circle</code>, <code>ellipse</code>,
+            and <code>database</code>.
             For all other shapes, the label will be displayed right below the shape.
 
         </td>
@@ -795,8 +796,10 @@ var options = {
     <td>String</td>
     <td>"rect"</td>
     <td>The default shape for all nodes.
-        Choose from <code>rect</code> (default), <code>circle</code>,
-        <code>database</code>, <code>image</code>, <code>label</code>, <code>dot</code>.
+        Choose from
+        <code>rect</code> (default), <code>circle</code>, <code>ellipse</code>,
+        <code>database</code>, <code>image</code>, <code>label</code>, <code>dot</code>,
+        <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, and <code>square</code>.
         This shape can be overridden by a group shape, or by a shape of an individual node.</td>
 </tr>
 <tr>
@@ -965,9 +968,10 @@ var nodes = [
         <td>shape</td>
         <td>String</td>
         <td>"rect"</td>
-        <td>Choose from <code>rect</code> (default), <code>circle</code>,
-            <code>database</code>, <code>image</code>, <code>label</code>,
-            <code>dot</code>.
+        <td>Choose from
+            <code>rect</code> (default), <code>circle</code>, <code>ellipse</code>,
+            <code>database</code>, <code>image</code>, <code>label</code>, <code>dot</code>,
+            <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, and <code>square</code>.
             In case of image, a property with name image must be provided, containing
             image urls.</td>
     </tr>

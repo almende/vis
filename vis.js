@@ -7596,9 +7596,9 @@ if (typeof CanvasRenderingContext2D !== 'undefined') {
  *                              {number} x      Horizontal position of the node
  *                              {number} y      Vertical position of the node
  *                              {string} shape  Node shape, available:
- *                                              "database", "circle", "rect",
- *                                              "image", "text", "dot", "star",
- *                                              "triangle", "triangleDown",
+ *                                              "database", "circle", "ellipse",
+ *                                              "rect", "image", "text", "dot",
+ *                                              "star", "triangle", "triangleDown",
  *                                              "square"
  *                              {string} image  An image url
  *                              {string} title  An title text, can be HTML
@@ -7747,7 +7747,7 @@ Node.prototype.setProperties = function(properties, constants) {
         case 'database':      this.draw = this._drawDatabase; this.resize = this._resizeDatabase; break;
         case 'rect':          this.draw = this._drawRect; this.resize = this._resizeRect; break;
         case 'circle':        this.draw = this._drawCircle; this.resize = this._resizeCircle; break;
-        // TODO: add ellipse shape
+        case 'ellipse':       this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
         // TODO: add diamond shape
         case 'image':         this.draw = this._drawImage; this.resize = this._resizeImage; break;
         case 'text':          this.draw = this._drawText; this.resize = this._resizeText; break;
@@ -7853,6 +7853,13 @@ Node.prototype.distanceToBorder = function (ctx, angle) {
         case 'circle':
         case 'dot':
             return this.radius + borderWidth;
+
+        case 'ellipse':
+            var a = this.width / 2;
+            var b = this.height / 2;
+            var w = (Math.sin(angle) * a);
+            var h = (Math.cos(angle) * b);
+            return a * b / Math.sqrt(w * w + h * h);
 
         // TODO: implement distanceToBorder for database
         // TODO: implement distanceToBorder for triangle
@@ -8122,6 +8129,33 @@ Node.prototype._drawCircle = function (ctx) {
     ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
     ctx.lineWidth = this.selected ? 2.0 : 1.0;
     ctx.circle(this.x, this.y, this.radius);
+    ctx.fill();
+    ctx.stroke();
+
+    this._label(ctx, this.label, this.x, this.y);
+};
+
+Node.prototype._resizeEllipse = function (ctx) {
+    if (!this.width) {
+        var textSize = this.getTextSize(ctx);
+
+        this.width = textSize.width * 1.5;
+        this.height = textSize.height * 2;
+        if (this.width < this.height) {
+            this.width = this.height;
+        }
+    }
+};
+
+Node.prototype._drawEllipse = function (ctx) {
+    this._resizeEllipse(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+    ctx.lineWidth = this.selected ? 2.0 : 1.0;
+    ctx.ellipse(this.left, this.top, this.width, this.height);
     ctx.fill();
     ctx.stroke();
 
@@ -9048,7 +9082,7 @@ function Graph (container, data, options) {
             radiusMax: 20,
             radius: 5,
             distance: 100, // px
-            style: 'rect',
+            shape: 'rect',
             image: undefined,
             widthMin: 16, // px
             widthMax: 64, // px

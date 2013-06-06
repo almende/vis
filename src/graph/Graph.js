@@ -25,7 +25,7 @@ function Graph (container, data, options) {
             radiusMax: 20,
             radius: 5,
             distance: 100, // px
-            style: 'rect',
+            shape: 'rect',
             image: undefined,
             widthMin: 16, // px
             widthMax: 64, // px

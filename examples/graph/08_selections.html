@@ -43,7 +43,11 @@
         nodes: nodes,
         edges: edges
     };
-    var options = {};
+    var options = {
+        nodes: {
+            shape: 'ellipse'
+        }
+    };
     graph = new vis.Graph(container, data, options);
 
     // add event listener
