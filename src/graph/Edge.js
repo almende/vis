@@ -96,16 +96,11 @@ Edge.prototype.setProperties = function(properties, constants) {
 
     this.stiffness = 1 / this.length;
 
-    // initialize animation
-    if (this.style === 'arrow') {
-        this.arrows = [0.5];
-    }
-
     // set draw method based on style
     switch (this.style) {
         case 'line':          this.draw = this._drawLine; break;
         case 'arrow':         this.draw = this._drawArrow; break;
-        case 'arrow-end':     this.draw = this._drawArrowEnd; break;
+        case 'arrow-center':  this.draw = this._drawArrowCenter; break;
         case 'dash-line':     this.draw = this._drawDashLine; break;
         default:              this.draw = this._drawLine; break;
     }
@@ -198,8 +193,8 @@ Edge.prototype._drawLine = function(ctx) {
         }
     }
     else {
-        var radius = this.length / 2 / Math.PI;
         var x, y;
+        var radius = this.length / 4;
         var node = this.from;
         if (!node.width) {
             node.resize(ctx);
@@ -360,13 +355,13 @@ Edge.prototype._pointOnCircle = function (x, y, radius, percentage) {
 };
 
 /**
- * Redraw a edge as a line with an arrow
+ * Redraw a edge as a line with an arrow halfway the line
  * Draw this edge in the given canvas
  * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
  * @param {CanvasRenderingContext2D}   ctx
  * @private
  */
-Edge.prototype._drawArrow = function(ctx) {
+Edge.prototype._drawArrowCenter = function(ctx) {
     var point;
     // set style
     ctx.strokeStyle = this.color;
@@ -377,17 +372,13 @@ Edge.prototype._drawArrow = function(ctx) {
         // draw line
         this._line(ctx);
 
-        // draw all arrows
+        // draw an arrow halfway the line
         var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
         var length = 10 + 5 * this.width; // TODO: make customizable?
-        for (var a in this.arrows) {
-            if (this.arrows.hasOwnProperty(a)) {
-                point = this._pointOnLine(this.arrows[a]);
-                ctx.arrow(point.x, point.y, angle, length);
-                ctx.fill();
-                ctx.stroke();
-            }
-        }
+        point = this._pointOnLine(0.5);
+        ctx.arrow(point.x, point.y, angle, length);
+        ctx.fill();
+        ctx.stroke();
 
         // draw label
         if (this.label) {
@@ -397,8 +388,8 @@ Edge.prototype._drawArrow = function(ctx) {
     }
     else {
         // draw circle
-        var radius = this.length / 2 / Math.PI;
         var x, y;
+        var radius = this.length / 4;
         var node = this.from;
         if (!node.width) {
             node.resize(ctx);
@@ -442,7 +433,7 @@ Edge.prototype._drawArrow = function(ctx) {
  * @param {CanvasRenderingContext2D}   ctx
  * @private
  */
-Edge.prototype._drawArrowEnd = function(ctx) {
+Edge.prototype._drawArrow = function(ctx) {
     // set style
     ctx.strokeStyle = this.color;
     ctx.fillStyle = this.color;
@@ -488,10 +479,10 @@ Edge.prototype._drawArrowEnd = function(ctx) {
         // draw circle
         var node = this.from;
         var x, y, arrow;
+        var radius = this.length / 4;
         if (!node.width) {
             node.resize(ctx);
         }
-        var radius = (this.length + node.width) / 4;
         if (node.width > node.height) {
             x = node.x + node.width / 2;
             y = node.y - radius;

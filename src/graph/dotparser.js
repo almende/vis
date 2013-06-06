@@ -275,7 +275,7 @@
             token += c;
             next();
         }
-        throw new SyntaxError('Syntax error in part "' + token + '"');
+        throw new SyntaxError('Syntax error in part "' + chop(token, 30) + '"');
     }
 
     /**
@@ -478,7 +478,17 @@
      * @returns {SyntaxError} err
      */
     function newSyntaxError(message) {
-        return new SyntaxError(message + ', got "' + token + '" (char ' + index + ')');
+        return new SyntaxError(message + ', got "' + chop(token, 30) + '" (char ' + index + ')');
+    }
+
+    /**
+     * Chop off text after a maximum length
+     * @param {String} text
+     * @param {Number} maxLength
+     * @returns {String}
+     */
+    function chop (text, maxLength) {
+        return (text.length <= maxLength) ? text : (text.substr(0, 27) + '...');
     }
 
     /**
@@ -521,7 +531,7 @@
                     to: dotEdge.to
                 };
                 merge(graphEdge, dotEdge.attr);
-                graphEdge.style = (dotEdge.type == '->') ? 'arrow-end' : 'line';
+                graphEdge.style = (dotEdge.type == '->') ? 'arrow' : 'line';
                 graphData.edges.push(graphEdge);
             });
         }
