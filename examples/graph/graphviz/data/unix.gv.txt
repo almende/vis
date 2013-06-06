@@ -1,7 +1,7 @@
 /* courtesy Ian Darwin and Geoff Collyer, Softquad Inc. */
 digraph unix {
 	size="6,6";
-	node [color=lightblue2, style=filled];
+	node [color=lightblue, style=filled];
 	"5th Edition" -> "6th Edition";
 	"5th Edition" -> "PWB 1.0";
 	"6th Edition" -> "LSX";
