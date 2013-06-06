@@ -4,6 +4,14 @@
     <title>Graph | Selections</title>
 
     <script type="text/javascript" src="../../vis.js"></script>
+
+    <style type="text/css">
+        #mygraph {
+            width: 400px;
+            height: 400px;
+            border: 1px solid lightgray;
+        }
+    </style>
 </head>
 
 <body>
@@ -35,10 +43,7 @@
         nodes: nodes,
         edges: edges
     };
-    var options = {
-        width: '400px',
-        height: '400px'
-    };
+    var options = {};
     graph = new vis.Graph(container, data, options);
 
     // add event listener

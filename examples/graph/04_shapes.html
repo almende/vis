@@ -7,6 +7,11 @@
         body {
             font: 10pt arial;
         }
+        #mygraph {
+            width: 780px;
+            height: 600px;
+            border: 1px solid lightgray;
+        }
     </style>
 
     <script type="text/javascript" src="../../vis.js"></script>
@@ -56,8 +61,6 @@
                 edges: edges
             };
             var options = {
-                width:  '780px',
-                height: '600px',
                 stabilize: false
             };
             graph = new vis.Graph(container, data, options);

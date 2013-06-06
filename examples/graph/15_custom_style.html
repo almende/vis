@@ -7,6 +7,11 @@
         body {
             font: 10pt arial;
         }
+        #mygraph {
+            width: 600px;
+            height: 600px;
+            border: 1px solid lightgray;
+        }
     </style>
 
     <script type="text/javascript" src="../../vis.js"></script>
@@ -54,8 +59,6 @@
 
             // specify options
             options = {
-                width: '600px',
-                height: '600px',
                 stabilize: false,
                 edges: {
                     length: 120,

@@ -21,13 +21,13 @@
         }
         #frame td {
             padding: 10px;
+            height: 100%;
         }
         #error {
             color: red;
         }
 
         #data {
-            float: left;
             width: 100%;
             height: 100%;
             border: 1px solid #d3d3d3;
@@ -37,6 +37,7 @@
             float: left;
             width: 100%;
             height: 100%;
+            border: 1px solid #d3d3d3;
         }
 
         textarea.example {
@@ -99,10 +100,7 @@
 
             // create a graph
             var container = document.getElementById('mygraph');
-            var options = {
-                width: '100%',
-                height: '100%'
-            };
+            var options = {};
             graph = new vis.Graph(container, data, options);
         }
         catch (err) {

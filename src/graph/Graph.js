@@ -199,11 +199,9 @@ Graph.prototype.setOptions = function (options) {
                 }
             }
         }
-
-        this._setBackgroundColor(options.backgroundColor);
     }
 
-    this._setSize(this.width, this.height);
+    this.setSize(this.width, this.height);
     this._setTranslation(0, 0);
     this._setScale(1);
 };
@@ -264,42 +262,6 @@ Graph.prototype._create = function () {
     // add the frame to the container element
     this.containerElement.appendChild(this.frame);
 };
-
-/**
- * Set the background  and border styling for the graph
- * @param {String | Object} backgroundColor
- * @private
- */
-Graph.prototype._setBackgroundColor = function(backgroundColor) {
-    var fill = "white";
-    var stroke = "lightgray";
-    var strokeWidth = 1;
-
-    if (typeof(backgroundColor) == "string") {
-        fill = backgroundColor;
-        stroke = "none";
-        strokeWidth = 0;
-    }
-    else if (typeof(backgroundColor) == "object") {
-        if (backgroundColor.fill != undefined)        fill = backgroundColor.fill;
-        if (backgroundColor.stroke != undefined)      stroke = backgroundColor.stroke;
-        if (backgroundColor.strokeWidth != undefined) strokeWidth = backgroundColor.strokeWidth;
-    }
-    else if  (backgroundColor == undefined) {
-        // use use defaults
-    }
-    else {
-        throw "Unsupported type of backgroundColor";
-    }
-
-    this.frame.style.boxSizing = 'border-box';
-    this.frame.style.MozBoxSizing = 'border-box';
-    this.frame.style.backgroundColor = fill;
-    this.frame.style.borderColor = stroke;
-    this.frame.style.borderWidth = strokeWidth + "px";
-    this.frame.style.borderStyle = "solid";
-};
-
 
 /**
  * handle on mouse down event
@@ -1045,9 +1007,8 @@ Graph.prototype._getConnectionCount = function(level) {
  *                         or "50%")
  * @param {string} height  Height in pixels or percentage  (for example "400px"
  *                         or "30%")
- * @private
  */
-Graph.prototype._setSize = function(width, height) {
+Graph.prototype.setSize = function(width, height) {
     this.frame.style.width = width;
     this.frame.style.height = height;
 
@@ -1428,7 +1389,7 @@ Graph.prototype._updateValueRange = function(array) {
  * chart will be resized too.
  */
 Graph.prototype.redraw = function() {
-    this._setSize(this.width, this.height);
+    this.setSize(this.width, this.height);
 
     this._redraw();
 };

@@ -4,7 +4,14 @@
     <title>Graph | Images</title>
 
     <style type="text/css">
-        body {font: 10pt arial;}
+        body {
+            font: 10pt arial;
+        }
+        #mygraph {
+            width: 600px;
+            height: 600px;
+            border: 1px solid lightgray;
+        }
     </style>
 
     <script type="text/javascript" src="../../vis.js"></script>
@@ -61,8 +68,6 @@
                 edges: edges
             };
             var options = {
-                width: '600px',
-                height: '600px',
                 stabilize: false   // stabilize positions before displaying
             };
             graph = new vis.Graph(container, data, options);
