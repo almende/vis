@@ -57,8 +57,11 @@ function Graph (container, data, options) {
             fontFace: 'arial',
             //distance: 100, //px
             length: 100,   // px
-            dashlength: 10,
-            dashgap: 5
+            dash: {
+                length: 10,
+                gap: 5,
+                altLength: undefined
+            }
         },
         minForce: 0.05,
         minVelocity: 0.02,   // px/s
@@ -167,14 +170,16 @@ Graph.prototype.setOptions = function (options) {
             // Added to support dashed lines
             // David Jordan
             // 2012-08-08
-            if (options.edges.dashlength != undefined) {
-                this.constants.edges.dashlength   = options.edges.dashlength;
-            }
-            if (options.edges.dashgap != undefined) {
-                this.constants.edges.dashgap   = options.edges.dashgap;
-            }
-            if (options.edges.altdashlength != undefined) {
-                this.constants.edges.altdashlength   = options.edges.altdashlength;
+            if (options.edges.dash) {
+                if (options.edges.dash.length != undefined) {
+                    this.constants.edges.dash.length = options.edges.dash.length;
+                }
+                if (options.edges.dash.gap != undefined) {
+                    this.constants.edges.dash.gap = options.edges.dash.gap;
+                }
+                if (options.edges.dash.altLength != undefined) {
+                    this.constants.edges.dash.altLength = options.edges.dash.altLength;
+                }
             }
         }
 
@@ -183,6 +188,10 @@ Graph.prototype.setOptions = function (options) {
                 if (options.nodes.hasOwnProperty(prop)) {
                     this.constants.nodes[prop] = options.nodes[prop];
                 }
+            }
+
+            if (options.nodes.color) {
+                this.constants.nodes.color = Node.parseColor(options.nodes.color);
             }
 
             /*

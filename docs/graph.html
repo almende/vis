@@ -448,18 +448,6 @@ var edges = [
     </tr>
 
     <tr>
-        <td>altdashlength</td>
-        <td>number</td>
-        <td>no</td>
-        <td>Length of the alternated dash in pixels on a dashed line.
-            Specifying <code>altdashlength</code> allows for creating
-            a dashed line with a dash-dot style, for example when
-            <code>dashlength=10</code> and <code>altdashlength=5</code>.
-            See also the option <code>dashlength</code>.
-            Only applicable when the line style is <code>dash-line</code>.</td>
-    </tr>
-
-    <tr>
         <td>color</td>
         <td>string</td>
         <td>no</td>
@@ -467,7 +455,30 @@ var edges = [
     </tr>
 
     <tr>
-        <td>dashlength</td>
+        <td>dash</td>
+        <td>Object</td>
+        <td>no</td>
+        <td>
+            Object containing properties for dashed lines.
+            Available properties: <code>length</code>, <code>gap</code>,
+            <code>altLength</code>.
+        </td>
+    </tr>
+
+    <tr>
+        <td>dash.altLength</td>
+        <td>number</td>
+        <td>no</td>
+        <td>Length of the alternated dash in pixels on a dashed line.
+            Specifying <code>dash.altLength</code> allows for creating
+            a dashed line with a dash-dot style, for example when
+            <code>dash.length=10</code> and <code>dash.altLength=5</code>.
+            See also the option <code>dahs.length</code>.
+            Only applicable when the line style is <code>dash-line</code>.</td>
+    </tr>
+
+    <tr>
+        <td>dash.length</td>
         <td>number</td>
         <td>no</td>
         <td>Length of a dash in pixels on a dashed line.
@@ -475,7 +486,7 @@ var edges = [
     </tr>
 
     <tr>
-        <td>dashgap</td>
+        <td>dash.gap</td>
         <td>number</td>
         <td>no</td>
         <td>Length of a gap in pixels on a dashed line.
@@ -635,36 +646,6 @@ var options = {
 </tr>
 
 <tr>
-    <td>groups</td>
-    <td>Object</td>
-    <td>none</td>
-    <td>It is possible to specify custom styles for groups.
-        Each node assigned a group gets the specified style.
-        See <a href="#Groups">Groups</a> for an overview of the available styles
-        and an example.
-    </td>
-</tr>
-
-<tr>
-    <td>height</td>
-    <td>String</td>
-    <td>"400px"</td>
-    <td>The height of the graph in pixels or as a percentage.</td>
-</tr>
-
-<tr>
-    <td>edges.altdashlength</td>
-    <td>number</td>
-    <td>none</td>
-    <td>Length of the alternated dash in pixels on a dashed line.
-        Specifying <code>altdashlength</code> allows for creating
-        a dashed line with a dash-dot style, for example when
-        <code>dashlength=10</code> and <code>altdashlength=5</code>.
-        See also the option <code>dashlength</code>.
-        Only applicable when the line style is <code>dash-line</code>.</td>
-</tr>
-
-<tr>
     <td>edges.color</td>
     <td>String</td>
     <td>"#2B7CE9"</td>
@@ -672,18 +653,41 @@ var options = {
 </tr>
 
 <tr>
-    <td>edges.dashlength</td>
+    <td>edges.dash</td>
+    <td>Object</td>
+    <td>Object</td>
+    <td>
+        Object containing default properties for dashed lines.
+        Available properties: <code>length</code>, <code>gap</code>,
+        <code>altLength</code>.
+    </td>
+</tr>
+
+<tr>
+    <td>edges.dash.altLength</td>
     <td>number</td>
-    <td>10</td>
-    <td>Length of a dash in pixels on a dashed line.
+    <td>none</td>
+    <td>Default length of the alternated dash in pixels on a dashed line.
+        Specifying <code>dash.altLength</code> allows for creating
+        a dashed line with a dash-dot style, for example when
+        <code>dash.length=10</code> and <code>dash.altLength=5</code>.
+        See also the option <code>dahs.length</code>.
         Only applicable when the line style is <code>dash-line</code>.</td>
 </tr>
 
 <tr>
-    <td>edges.dashgap</td>
+    <td>edges.dash.length</td>
+    <td>number</td>
+    <td>10</td>
+    <td>Default length of a dash in pixels on a dashed line.
+        Only applicable when the line style is <code>dash-line</code>.</td>
+</tr>
+
+<tr>
+    <td>edges.dash.gap</td>
     <td>number</td>
     <td>5</td>
-    <td>Length of a gap in pixels on a dashed line.
+    <td>Default length of a gap in pixels on a dashed line.
         Only applicable when the line style is <code>dash-line</code>.</td>
 </tr>
 
@@ -706,6 +710,24 @@ var options = {
     <td>Number</td>
     <td>1</td>
     <td>The default width of a edge.</td>
+</tr>
+
+<tr>
+    <td>groups</td>
+    <td>Object</td>
+    <td>none</td>
+    <td>It is possible to specify custom styles for groups.
+        Each node assigned a group gets the specified style.
+        See <a href="#Groups">Groups</a> for an overview of the available styles
+        and an example.
+    </td>
+</tr>
+
+<tr>
+    <td>height</td>
+    <td>String</td>
+    <td>"400px"</td>
+    <td>The height of the graph in pixels or as a percentage.</td>
 </tr>
 
 <tr>

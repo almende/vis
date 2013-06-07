@@ -196,8 +196,8 @@ Node.parseColor = function(color) {
     }
     else {
         c = {};
-        c.background =  color.background || 'white';
-        c.border =      color.border || c.background;
+        c.background = color.background || 'white';
+        c.border = color.border || c.background;
         if (util.isString(color.highlight)) {
             c.highlight = {
                 border: color.highlight,
@@ -206,8 +206,8 @@ Node.parseColor = function(color) {
         }
         else {
             c.highlight = {};
-            c.highlight.background = color.highlight && color.highlight.background || c.border;
-            c.highlight.border =     color.highlight && color.highlight.border || c.highlight.background;
+            c.highlight.background = color.highlight && color.highlight.background || c.background;
+            c.highlight.border = color.highlight && color.highlight.border || c.border;
         }
     }
     return c;

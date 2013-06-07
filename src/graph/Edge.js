@@ -34,9 +34,7 @@ function Edge (properties, graph, constants) {
     // Added to support dashed lines
     // David Jordan
     // 2012-08-08
-    this.dashlength = constants.edges.dashlength;
-    this.dashgap = constants.edges.dashgap;
-    this.altdashlength  = constants.edges.altdashlength;
+    this.dash = util.extend({}, constants.edges.dash); // contains properties length, gaph, altLength
 
     this.stiffness = undefined; // depends on the length of the edge
     this.color  = constants.edges.color;
@@ -78,10 +76,12 @@ Edge.prototype.setProperties = function(properties, constants) {
     // Added to support dashed lines
     // David Jordan
     // 2012-08-08
-    if (properties.dashlength != undefined) {this.dashlength = properties.dashlength;}
-    if (properties.dashgap != undefined) {this.dashgap = properties.dashgap;}
-    if (properties.altdashlength != undefined) {this.altdashlength = properties.altdashlength;}
-
+    if (properties.dash) {
+        if (properties.dash.length != undefined) {this.dash.length = properties.dash.length;}
+        if (properties.dash.gap != undefined) {this.dash.gap = properties.dash.gap;}
+        if (properties.dash.altLength != undefined) {this.dash.altLength = properties.dash.altLength;}
+    }
+    
     if (properties.color != undefined) {this.color = properties.color;}
 
     if (!this.from) {
@@ -302,13 +302,15 @@ Edge.prototype._drawDashLine = function(ctx) {
     // draw dashed line
     ctx.beginPath();
     ctx.lineCap = 'round';
-    if (this.altdashlength != undefined) //If an alt dash value has been set add to the array this value
+    if (this.dash.altLength != undefined) //If an alt dash value has been set add to the array this value
     {
-        ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,[this.dashlength,this.dashgap,this.altdashlength,this.dashgap]);
+        ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
+            [this.dash.length,this.dash.gap,this.dash.altLength,this.dash.gap]);
     }
-    else if (this.dashlength != undefined && this.dashgap != undefined) //If a dash and gap value has been set add to the array this value
+    else if (this.dash.length != undefined && this.dash.gap != undefined) //If a dash and gap value has been set add to the array this value
     {
-        ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,[this.dashlength,this.dashgap]);
+        ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
+            [this.dash.length,this.dash.gap]);
     }
     else //If all else fails draw a line
     {

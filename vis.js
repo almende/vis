@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.0.8
- * @date    2013-06-06
+ * @date    2013-06-07
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -7784,8 +7784,8 @@ Node.parseColor = function(color) {
     }
     else {
         c = {};
-        c.background =  color.background || 'white';
-        c.border =      color.border || c.background;
+        c.background = color.background || 'white';
+        c.border = color.border || c.background;
         if (util.isString(color.highlight)) {
             c.highlight = {
                 border: color.highlight,
@@ -7794,8 +7794,8 @@ Node.parseColor = function(color) {
         }
         else {
             c.highlight = {};
-            c.highlight.background = color.highlight && color.highlight.background || c.border;
-            c.highlight.border =     color.highlight && color.highlight.border || c.highlight.background;
+            c.highlight.background = color.highlight && color.highlight.background || c.background;
+            c.highlight.border = color.highlight && color.highlight.border || c.border;
         }
     }
     return c;
@@ -8302,9 +8302,7 @@ function Edge (properties, graph, constants) {
     // Added to support dashed lines
     // David Jordan
     // 2012-08-08
-    this.dashlength = constants.edges.dashlength;
-    this.dashgap = constants.edges.dashgap;
-    this.altdashlength  = constants.edges.altdashlength;
+    this.dash = util.extend({}, constants.edges.dash); // contains properties length, gaph, altLength
 
     this.stiffness = undefined; // depends on the length of the edge
     this.color  = constants.edges.color;
@@ -8346,10 +8344,12 @@ Edge.prototype.setProperties = function(properties, constants) {
     // Added to support dashed lines
     // David Jordan
     // 2012-08-08
-    if (properties.dashlength != undefined) {this.dashlength = properties.dashlength;}
-    if (properties.dashgap != undefined) {this.dashgap = properties.dashgap;}
-    if (properties.altdashlength != undefined) {this.altdashlength = properties.altdashlength;}
-
+    if (properties.dash) {
+        if (properties.dash.length != undefined) {this.dash.length = properties.dash.length;}
+        if (properties.dash.gap != undefined) {this.dash.gap = properties.dash.gap;}
+        if (properties.dash.altLength != undefined) {this.dash.altLength = properties.dash.altLength;}
+    }
+    
     if (properties.color != undefined) {this.color = properties.color;}
 
     if (!this.from) {
@@ -8570,13 +8570,15 @@ Edge.prototype._drawDashLine = function(ctx) {
     // draw dashed line
     ctx.beginPath();
     ctx.lineCap = 'round';
-    if (this.altdashlength != undefined) //If an alt dash value has been set add to the array this value
+    if (this.dash.altLength != undefined) //If an alt dash value has been set add to the array this value
     {
-        ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,[this.dashlength,this.dashgap,this.altdashlength,this.dashgap]);
+        ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
+            [this.dash.length,this.dash.gap,this.dash.altLength,this.dash.gap]);
     }
-    else if (this.dashlength != undefined && this.dashgap != undefined) //If a dash and gap value has been set add to the array this value
+    else if (this.dash.length != undefined && this.dash.gap != undefined) //If a dash and gap value has been set add to the array this value
     {
-        ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,[this.dashlength,this.dashgap]);
+        ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
+            [this.dash.length,this.dash.gap]);
     }
     else //If all else fails draw a line
     {
@@ -9114,8 +9116,11 @@ function Graph (container, data, options) {
             fontFace: 'arial',
             //distance: 100, //px
             length: 100,   // px
-            dashlength: 10,
-            dashgap: 5
+            dash: {
+                length: 10,
+                gap: 5,
+                altLength: undefined
+            }
         },
         minForce: 0.05,
         minVelocity: 0.02,   // px/s
@@ -9224,14 +9229,16 @@ Graph.prototype.setOptions = function (options) {
             // Added to support dashed lines
             // David Jordan
             // 2012-08-08
-            if (options.edges.dashlength != undefined) {
-                this.constants.edges.dashlength   = options.edges.dashlength;
-            }
-            if (options.edges.dashgap != undefined) {
-                this.constants.edges.dashgap   = options.edges.dashgap;
-            }
-            if (options.edges.altdashlength != undefined) {
-                this.constants.edges.altdashlength   = options.edges.altdashlength;
+            if (options.edges.dash) {
+                if (options.edges.dash.length != undefined) {
+                    this.constants.edges.dash.length = options.edges.dash.length;
+                }
+                if (options.edges.dash.gap != undefined) {
+                    this.constants.edges.dash.gap = options.edges.dash.gap;
+                }
+                if (options.edges.dash.altLength != undefined) {
+                    this.constants.edges.dash.altLength = options.edges.dash.altLength;
+                }
             }
         }
 
@@ -9240,6 +9247,10 @@ Graph.prototype.setOptions = function (options) {
                 if (options.nodes.hasOwnProperty(prop)) {
                     this.constants.nodes[prop] = options.nodes[prop];
                 }
+            }
+
+            if (options.nodes.color) {
+                this.constants.nodes.color = Node.parseColor(options.nodes.color);
             }
 
             /*
