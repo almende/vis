@@ -13,9 +13,12 @@ body, td, th {
 }
 
 #container {
+    position: relative;
     margin: 0 auto;
-    padding-bottom: 50px;
+    padding: 10px 10px 50px 10px;
     width: 700px;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 h1 {
@@ -35,7 +38,6 @@ h2 {
 h3 {
     font-size: 140%;
 }
-
 
 a {
     color: #2B7CE9;
