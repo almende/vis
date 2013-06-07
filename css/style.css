@@ -32,7 +32,6 @@ div.nav ul li {
     text-transform: uppercase;
     font-weight: normal;
     font-size: 11pt;
-    color: #2B7CE9;
 
     list-style: none;
     margin-top: 5px;
@@ -48,12 +47,13 @@ div.nav ul li ul li {
     list-style: none;
 }
 
-a.nav {
-    color: #4D4D4D;
+div.nav a {
+    color: #2B7CE9;
 }
 
-a.nav:hover {
-    color: #2B7CE9;
+.download td {
+    border: none;
+    padding: 5px 20px 5px 0;
 }
 
 .gallery .thumb {
