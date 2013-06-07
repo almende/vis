@@ -2,7 +2,7 @@ vis.js history
 http://visjs.org
 
 
-## version 0.0.9
+## 2013-06-07, version 0.0.9
 
 - First working version of the Graph imported from the old library.
 - Documentation added for both Timeline and Graph.
