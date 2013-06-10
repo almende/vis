@@ -6912,6 +6912,37 @@ Timeline.prototype.getItemRange = function getItemRange() {
     }
 
     /**
+     * Set a value in an object, where the provided parameter name can be a
+     * path with nested parameters. For example:
+     *
+     *     var obj = {a: 2};
+     *     setValue(obj, 'b.c', 3);     // obj = {a: 2, b: {c: 3}}
+     *
+     * @param {Object} obj
+     * @param {String} path  A parameter name or dot-separated parameter path,
+     *                      like "color.highlight.border".
+     * @param {*} value
+     */
+    function setValue(obj, path, value) {
+        var keys = path.split('.');
+        var o = obj;
+        while (keys.length) {
+            var key = keys.shift();
+            if (keys.length) {
+                // this isn't the end point
+                if (!o[key]) {
+                    o[key] = {};
+                }
+                o = o[key];
+            }
+            else {
+                // this is the end point
+                o[key] = value;
+            }
+        }
+    }
+
+    /**
      * Add a node to the current graph object. If there is already a node with
      * the same id, their attributes will be merged.
      * @param {Object} node
@@ -7277,7 +7308,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
                     throw newSyntaxError('Attribute value expected');
                 }
                 var value = token;
-                attr[name] = value;
+                setValue(attr, name, value); // name can be a path
 
                 getToken();
                 if (token ==',') {
