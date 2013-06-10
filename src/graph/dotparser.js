@@ -439,6 +439,9 @@
         }
 
         // parse node
+        if (tokenType != TOKENTYPE.IDENTIFIER) {
+            throw newSyntaxError('Identifier expected');
+        }
         var id = token; // id can be a string or a number
         getToken();
 
@@ -447,6 +450,9 @@
             getToken();
             if (!graph.attr) {
                 graph.attr = {};
+            }
+            if (tokenType != TOKENTYPE.IDENTIFIER) {
+                throw newSyntaxError('Identifier expected');
             }
             graph.attr[id] = token;
             getToken();
@@ -468,7 +474,7 @@
         // optional subgraph keyword
         if (token == 'subgraph') {
             subgraph = {};
-            subgraph.type = token;
+            subgraph.type = 'subgraph';
             getToken();
 
             // optional graph id
@@ -488,7 +494,7 @@
                 };
             }
 
-            // TODO: copy global node and edge attributes into subgraph?
+            // TODO: copy global node and edge attributes into subgraph or not?
 
             // statements
             parseStatements(subgraph);
@@ -591,13 +597,18 @@
                 to = subgraph;
             }
             else {
+                if (tokenType != TOKENTYPE.IDENTIFIER) {
+                    throw newSyntaxError('Identifier or subgraph expected');
+                }
                 to = token;
                 addNode(graph, {
                     id: to
                 });
                 getToken();
-                var attr = parseAttributeList();
             }
+
+            // parse edge attributes
+            var attr = parseAttributeList();
 
             // create edge
             var edge = createEdge(graph, from, to, type, attr);

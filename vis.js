@@ -7247,6 +7247,9 @@ Timeline.prototype.getItemRange = function getItemRange() {
         }
 
         // parse node
+        if (tokenType != TOKENTYPE.IDENTIFIER) {
+            throw newSyntaxError('Identifier expected');
+        }
         var id = token; // id can be a string or a number
         getToken();
 
@@ -7255,6 +7258,9 @@ Timeline.prototype.getItemRange = function getItemRange() {
             getToken();
             if (!graph.attr) {
                 graph.attr = {};
+            }
+            if (tokenType != TOKENTYPE.IDENTIFIER) {
+                throw newSyntaxError('Identifier expected');
             }
             graph.attr[id] = token;
             getToken();
@@ -7276,7 +7282,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
         // optional subgraph keyword
         if (token == 'subgraph') {
             subgraph = {};
-            subgraph.type = token;
+            subgraph.type = 'subgraph';
             getToken();
 
             // optional graph id
@@ -7296,7 +7302,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
                 };
             }
 
-            // TODO: copy global node and edge attributes into subgraph?
+            // TODO: copy global node and edge attributes into subgraph or not?
 
             // statements
             parseStatements(subgraph);
@@ -7399,13 +7405,18 @@ Timeline.prototype.getItemRange = function getItemRange() {
                 to = subgraph;
             }
             else {
+                if (tokenType != TOKENTYPE.IDENTIFIER) {
+                    throw newSyntaxError('Identifier or subgraph expected');
+                }
                 to = token;
                 addNode(graph, {
                     id: to
                 });
                 getToken();
-                var attr = parseAttributeList();
             }
+
+            // parse edge attributes
+            var attr = parseAttributeList();
 
             // create edge
             var edge = createEdge(graph, from, to, type, attr);
