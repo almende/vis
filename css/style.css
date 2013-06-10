@@ -1,7 +1,7 @@
 
 #menu {
     position: absolute;
-    left: -150px;
+    left: -160px;
     top: 35px;
 }
 
@@ -21,7 +21,7 @@ div.nav ul {
     text-transform: uppercase;
 
     margin-bottom: 30px;
-    padding-left: 0px;
+    padding-left: 0;
 }
 li.nav {
 
@@ -76,4 +76,8 @@ div.nav a {
 
 .gallery .thumb div {
     margin: 0;
+}
+
+img {
+    border: 0;
 }
