@@ -55,6 +55,24 @@ fs.readFile('test/dot.txt', function (err, data) {
                 "attr": {
                     "shape": "circle"
                 }
+            },
+            {
+                "id": "A",
+                "attr": {
+                    "shape": "circle"
+                }
+            },
+            {
+                "id": "B",
+                "attr": {
+                    "shape": "circle"
+                }
+            },
+            {
+                "id": "C",
+                "attr": {
+                    "shape": "circle"
+                }
             }
         ],
         "edges": [
@@ -110,6 +128,24 @@ fs.readFile('test/dot.txt', function (err, data) {
             {
                 "from": "node5",
                 "to": 6,
+                "type": "->",
+                "attr": {
+                    "length": 170,
+                    "fontSize": 12
+                }
+            },
+            {
+                "from": "A",
+                "to": "B",
+                "type": "->",
+                "attr": {
+                    "length": 170,
+                    "fontSize": 12
+                }
+            },
+            {
+                "from": "A",
+                "to": "C",
                 "type": "->",
                 "attr": {
                     "length": 170,

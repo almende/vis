@@ -399,32 +399,12 @@
      */
     function parseStatement() {
         var attr;
-        var id = token; // can be as string or a number
-        getToken();
 
-        // attribute statements
-        if (id == 'node') {
-            // node attributes
-            attr = parseAttributes();
-            if (attr) {
-                nodeAttr = merge(nodeAttr, attr);
-            }
-        }
-        else if (id == 'edge') {
-            // edge attributes
-            attr = parseAttributes();
-            if (attr) {
-                edgeAttr = merge(edgeAttr, attr);
-            }
-        }
-        else if (id == 'graph') {
-            // graph attributes
-            attr = parseAttributes();
-            if (attr) {
-                graph.attr = merge(graph.attr, attr);
-            }
-        }
-        else {
+        attr = parseAttributeStatement();
+        if (!attr) {
+            var id = token; // can be a string or a number
+            getToken();
+
             if (token == '=') {
                 // id statement
                 getToken();
@@ -446,33 +426,139 @@
                 addNode(node);
 
                 // edge statements
-                var from = id;
-                while (token == '->' || token == '--') {
-                    var type = token;
-                    getToken();
-
-                    var to = token;
-                    addNode({
-                        id: to
-                    });
-                    getToken();
-                    attr = parseAttributes();
-
-                    // create edge
-                    var edge = {
-                        from: from,
-                        to: to,
-                        type: type
-                    };
-                    if (attr) {
-                        edge.attr = attr;
-                    }
-                    addEdge(edge);
-
-                    from = to;
-                }
+                parseEdge(id);
             }
         }
+    }
+
+    /**
+     * parse an attribute statement like "node [shape=circle fontSize=16]".
+     * Available keywords are 'node', 'edge', 'graph'
+     * @returns {Object | null} attr
+     */
+    function parseAttributeStatement () {
+        var attr = null;
+
+        // attribute statements
+        if (token == 'node') {
+            getToken();
+
+            // node attributes
+            attr = parseAttributes();
+            if (attr) {
+                nodeAttr = merge(nodeAttr, attr);
+            }
+        }
+        else if (token == 'edge') {
+            getToken();
+
+            // edge attributes
+            attr = parseAttributes();
+            if (attr) {
+                edgeAttr = merge(edgeAttr, attr);
+            }
+        }
+        else if (token == 'graph') {
+            getToken();
+
+            // graph attributes
+            attr = parseAttributes();
+            if (attr) {
+                graph.attr = merge(graph.attr, attr);
+            }
+        }
+
+        return attr;
+    }
+
+    /**
+     * Parse an edge or a series of edges
+     * @param {String | Number} from        Id of the from node
+     */
+    function parseEdge(from) {
+        while (token == '->' || token == '--') {
+            var type = token;
+            getToken();
+
+            if (token == '{') {
+                // parse a set of nodes, like "node1 -> {node2, node3}"
+                parseEdgeSet(from, type);
+                break;
+            }
+            else {
+                // parse a single edge, like "node1 -> node2 -> node3"
+                var to = token;
+                addNode({
+                    id: to
+                });
+                getToken();
+                var attr = parseAttributes();
+
+                // create edge
+                var edge = {
+                    from: from,
+                    to: to,
+                    type: type
+                };
+                if (attr) {
+                    edge.attr = attr;
+                }
+                addEdge(edge);
+
+                from = to;
+            }
+        }
+    }
+
+    /**
+     * Parse a set of nodes, like "{node1; node2; node3}"
+     * @param {String | Number} from    Id of the from node
+     * @param {String} type             Edge type, '--' or '->'
+     * @return {Node[] | null} nodes
+     */
+    function parseEdgeSet(from, type) {
+        var nodes = null;
+
+        if (token == '{') {
+            getToken();
+
+            while (token !== '' && token != '}') {
+                // create to node
+                if (tokenType != TOKENTYPE.IDENTIFIER) {
+                    throw newSyntaxError('Identifier expected');
+                }
+                var to = token;
+                addNode({
+                    id: to
+                });
+                getToken();
+
+                // create edge
+                var edge = {
+                    from: from,
+                    to: to,
+                    type: type
+                };
+                var attr = parseAttributes();
+                if (attr) {
+                    edge.attr = attr;
+                }
+                addEdge(edge);
+
+                // separator
+                if (token == ';') {
+                    getToken();
+                }
+            }
+
+            // closing bracket
+            if (token != '}') {
+                throw newSyntaxError('bracket } expected');
+            }
+            getToken();
+        }
+
+        return nodes;
     }
 
     /**
@@ -506,6 +592,10 @@
                 if (token ==',') {
                     getToken();
                 }
+            }
+
+            if (token != ']') {
+                throw newSyntaxError('Bracket ] expected');
             }
             getToken();
 

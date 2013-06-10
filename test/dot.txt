@@ -17,5 +17,8 @@ digraph test_graph {
     "node2" -> node3 [label = "b" ];
     "node1" -- "node4" [ label = "c" ];
     node3-> node4 [ label=d] -> node5 -> 6
+
+    A -> {B C}
+
 }
 

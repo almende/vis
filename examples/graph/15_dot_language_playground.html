@@ -140,8 +140,7 @@ digraph {
     A -> A[label=0.5];
     B -> B[label=1.2] -> C[label=0.7] -- A;
     B -> D;
-    D -> B;
-    D -> C;
+    D -> {B; C}
     D -> E[label=0.2];
     F -> F;
     A [
