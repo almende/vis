@@ -10,10 +10,10 @@ fs.readFile('test/dot.txt', function (err, data) {
     assert.deepEqual(graph, {
         "type": "digraph",
         "id": "test_graph",
+        "rankdir": "LR",
+        "size": "8,5",
+        "font": "arial",
         "attr": {
-            "rankdir": "LR",
-            "size": "8,5",
-            "font": "arial",
             "attr1": "another\" attr"
         },
         "nodes": [

@@ -6810,6 +6810,9 @@ Timeline.prototype.getItemRange = function getItemRange() {
     /**
      * Parse a text source containing data in DOT language into a JSON object.
      * The object contains two lists: one with nodes and one with edges.
+     *
+     * DOT language reference: http://www.graphviz.org/doc/info/lang.html
+     *
      * @param {String} data     Text containing a graph in DOT-notation
      * @return {Object} graph   An object containing two parameters:
      *                          {Object[]} nodes
@@ -6847,10 +6850,6 @@ Timeline.prototype.getItemRange = function getItemRange() {
     var c = '';                     // current token character in expr
     var token = '';                 // current token
     var tokenType = TOKENTYPE.NULL; // type of the token
-
-    var graph = null;               // object with the graph to be build
-    var nodeAttr = null;            // global node attributes
-    var edgeAttr = null;            // global edge attributes
 
     /**
      * Get the first character from the dot file.
@@ -6943,11 +6942,12 @@ Timeline.prototype.getItemRange = function getItemRange() {
     }
 
     /**
-     * Add a node to the current graph object. If there is already a node with
+     * Add a node to a graph object. If there is already a node with
      * the same id, their attributes will be merged.
+     * @param {Object} graph
      * @param {Object} node
      */
-    function addNode(node) {
+    function addNode(graph, node) {
         var nodes = graph.nodes;
         if (!nodes) {
             nodes = [];
@@ -6972,24 +6972,25 @@ Timeline.prototype.getItemRange = function getItemRange() {
         else {
             // add
             graph.nodes.push(node);
-            if (nodeAttr) {
-                var attr = merge({}, nodeAttr);     // clone global attributes
+            if (graph.node) {
+                var attr = merge({}, graph.node);   // clone global attributes
                 node.attr = merge(attr, node.attr); // merge attributes
             }
         }
     }
 
     /**
-     * Add an edge to the current graph object
+     * Add an edge to a graph object
+     * @param {Object} graph
      * @param {Object} edge
      */
-    function addEdge(edge) {
+    function addEdge(graph, edge) {
         if (!graph.edges) {
             graph.edges = [];
         }
         graph.edges.push(edge);
-        if (edgeAttr) {
-            var attr = merge({}, edgeAttr);     // clone global attributes
+        if (graph.edge) {
+            var attr = merge({}, graph.edge);     // clone global attributes
             edge.attr = merge(attr, edge.attr); // merge attributes
         }
     }
@@ -7135,9 +7136,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
      * @returns {Object} graph
      */
     function parseGraph() {
-        graph = {};
-        nodeAttr = null;
-        edgeAttr = null;
+        var graph = {};
 
         first();
         getToken();
@@ -7167,7 +7166,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
         getToken();
 
         // statements
-        parseStatements();
+        parseStatements(graph);
 
         // close angle bracket
         if (token != '}') {
@@ -7181,19 +7180,24 @@ Timeline.prototype.getItemRange = function getItemRange() {
         }
         getToken();
 
+        // remove temporary global properties
+        delete graph.node;
+        delete graph.edge;
+
         return graph;
     }
 
     /**
      * Parse a list with statements.
+     * @param {Object} graph
      */
-    function parseStatements () {
+    function parseStatements (graph) {
         while (token !== '' && token != '}') {
             if (tokenType != TOKENTYPE.IDENTIFIER) {
                 throw newSyntaxError('Identifier expected');
             }
 
-            parseStatement();
+            parseStatement(graph);
             if (token == ';') {
                 getToken();
             }
@@ -7204,47 +7208,39 @@ Timeline.prototype.getItemRange = function getItemRange() {
      * Parse a single statement. Can be a an attribute statement, node
      * statement, a series of node statements and edge statements, or a
      * parameter.
+     * @param {Object} graph
      */
-    function parseStatement() {
-        var attr;
+    function parseStatement(graph) {
+        // TODO: parse subgraph
 
-        attr = parseAttributeStatement();
-        if (!attr) {
-            var id = token; // can be a string or a number
+        // parse an attribute statement
+        var attr = parseAttributeStatement(graph);
+        if (attr) {
+            return;
+        }
+
+        // parse node
+        var id = token; // id can be a string or a number
+        getToken();
+
+        if (token == '=') {
+            // id statement
             getToken();
-
-            if (token == '=') {
-                // id statement
-                getToken();
-                if (!graph.attr) {
-                    graph.attr = {};
-                }
-                graph.attr[id] = token;
-                getToken();
-            }
-            else {
-                // node statement
-                var node = {
-                    id: id
-                };
-                attr = parseAttributes();
-                if (attr) {
-                    node.attr = attr;
-                }
-                addNode(node);
-
-                // edge statements
-                parseEdge(id);
-            }
+            graph[id] = token;
+            getToken();
+        }
+        else {
+            parseNodeStatement(graph, id);
         }
     }
 
     /**
      * parse an attribute statement like "node [shape=circle fontSize=16]".
      * Available keywords are 'node', 'edge', 'graph'
+     * @param {Object} graph
      * @returns {Object | null} attr
      */
-    function parseAttributeStatement () {
+    function parseAttributeStatement (graph) {
         var attr = null;
 
         // attribute statements
@@ -7252,25 +7248,25 @@ Timeline.prototype.getItemRange = function getItemRange() {
             getToken();
 
             // node attributes
-            attr = parseAttributes();
+            attr = parseAttributeList();
             if (attr) {
-                nodeAttr = merge(nodeAttr, attr);
+                graph.node = merge(graph.node, attr);
             }
         }
         else if (token == 'edge') {
             getToken();
 
             // edge attributes
-            attr = parseAttributes();
+            attr = parseAttributeList();
             if (attr) {
-                edgeAttr = merge(edgeAttr, attr);
+                graph.edge = merge(graph.edge, attr);
             }
         }
         else if (token == 'graph') {
             getToken();
 
             // graph attributes
-            attr = parseAttributes();
+            attr = parseAttributeList();
             if (attr) {
                 graph.attr = merge(graph.attr, attr);
             }
@@ -7280,27 +7276,48 @@ Timeline.prototype.getItemRange = function getItemRange() {
     }
 
     /**
+     * parse a node statement
+     * @param {Object} graph
+     * @param {String | Number} id
+     */
+    function parseNodeStatement(graph, id) {
+        // node statement
+        var node = {
+            id: id
+        };
+        var attr = parseAttributeList();
+        if (attr) {
+            node.attr = attr;
+        }
+        addNode(graph, node);
+
+        // edge statements
+        parseEdge(graph, id);
+    }
+
+    /**
      * Parse an edge or a series of edges
+     * @param {Object} graph
      * @param {String | Number} from        Id of the from node
      */
-    function parseEdge(from) {
+    function parseEdge(graph, from) {
         while (token == '->' || token == '--') {
             var type = token;
             getToken();
 
             if (token == '{') {
                 // parse a set of nodes, like "node1 -> {node2, node3}"
-                parseEdgeSet(from, type);
+                parseEdgeSet(graph, from, type);
                 break;
             }
             else {
                 // parse a single edge, like "node1 -> node2 -> node3"
                 var to = token;
-                addNode({
+                addNode(graph, {
                     id: to
                 });
                 getToken();
-                var attr = parseAttributes();
+                var attr = parseAttributeList();
 
                 // create edge
                 var edge = {
@@ -7311,7 +7328,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
                 if (attr) {
                     edge.attr = attr;
                 }
-                addEdge(edge);
+                addEdge(graph, edge);
 
                 from = to;
             }
@@ -7320,11 +7337,12 @@ Timeline.prototype.getItemRange = function getItemRange() {
 
     /**
      * Parse a set of nodes, like "{node1; node2; node3}"
+     * @param {Object} graph
      * @param {String | Number} from    Id of the from node
      * @param {String} type             Edge type, '--' or '->'
      * @return {Node[] | null} nodes
      */
-    function parseEdgeSet(from, type) {
+    function parseEdgeSet(graph, from, type) {
         var nodes = null;
 
         if (token == '{') {
@@ -7336,7 +7354,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
                     throw newSyntaxError('Identifier expected');
                 }
                 var to = token;
-                addNode({
+                addNode(graph, {
                     id: to
                 });
                 getToken();
@@ -7347,11 +7365,11 @@ Timeline.prototype.getItemRange = function getItemRange() {
                     to: to,
                     type: type
                 };
-                var attr = parseAttributes();
+                var attr = parseAttributeList();
                 if (attr) {
                     edge.attr = attr;
                 }
-                addEdge(edge);
+                addEdge(graph, edge);
 
                 // separator
                 if (token == ';') {
@@ -7372,12 +7390,14 @@ Timeline.prototype.getItemRange = function getItemRange() {
     /**
      * Parse a set with attributes,
      * for example [label="1.000", shape=solid]
-     * @return {Object | undefined} attr
+     * @return {Object | null} attr
      */
-    function parseAttributes() {
-        if (token == '[') {
+    function parseAttributeList() {
+        var attr = null;
+
+        while (token == '[') {
             getToken();
-            var attr = {};
+            attr = {};
             while (token !== '' && token != ']') {
                 if (tokenType != TOKENTYPE.IDENTIFIER) {
                     throw newSyntaxError('Attribute name expected');
@@ -7406,12 +7426,9 @@ Timeline.prototype.getItemRange = function getItemRange() {
                 throw newSyntaxError('Bracket ] expected');
             }
             getToken();
+        }
 
-            return attr;
-        }
-        else {
-            return undefined;
-        }
+        return attr;
     }
 
     /**
