@@ -109,10 +109,21 @@
      * @param {Object} node
      */
     function addNode(node) {
-        if (!graph.nodes) {
-            graph.nodes = {};
+        var nodes = graph.nodes;
+        if (!nodes) {
+            nodes = [];
+            graph.nodes = nodes;
         }
-        var current = graph.nodes[node.id];
+
+        // find existing node
+        var current = null;
+        for (var i = 0, len = nodes.length; i < len; i++) {
+            if (node.id === nodes[i].id) {
+                current = nodes[i];
+                break;
+            }
+        }
+
         if (current) {
             // merge attributes
             if (node.attr) {
@@ -121,7 +132,7 @@
         }
         else {
             // add
-            graph.nodes[node.id] = node;
+            graph.nodes.push(node);
             if (nodeAttr) {
                 var attr = merge({}, nodeAttr);     // clone global attributes
                 node.attr = merge(attr, node.attr); // merge attributes
@@ -130,7 +141,7 @@
     }
 
     /**
-     * Add an edge to the current graph obect
+     * Add an edge to the current graph object
      * @param {Object} edge
      */
     function addEdge(edge) {
@@ -395,7 +406,7 @@
             else {
                 // node statement
                 var node = {
-                    id: String(id)
+                    id: id
                 };
                 attr = parseAttributes();
                 if (attr) {
@@ -411,15 +422,15 @@
 
                     var to = token;
                     addNode({
-                        id: String(to)
+                        id: to
                     });
                     getToken();
                     attr = parseAttributes();
 
                     // create edge
                     var edge = {
-                        from: String(from),
-                        to: String(to),
+                        from: from,
+                        to: to,
                         type: type
                     };
                     if (attr) {
@@ -510,19 +521,17 @@
 
         // copy the nodes
         if (dotData.nodes) {
-            for (var id in dotData.nodes) {
-                if (dotData.nodes.hasOwnProperty(id)) {
-                    var node = {
-                        id: id,
-                        label: id
-                    };
-                    merge(node, dotData.nodes[id].attr);
-                    if (node.image) {
-                        node.shape = 'image';
-                    }
-                    graphData.nodes.push(node);
+            dotData.nodes.forEach(function (dotNode) {
+                var graphNode = {
+                    id: dotNode.id,
+                    label: String(dotNode.label || dotNode.id)
+                };
+                merge(graphNode, dotNode.attr);
+                if (graphNode.image) {
+                    graphNode.shape = 'image';
                 }
-            }
+                graphData.nodes.push(graphNode);
+            });
         }
 
         // copy the edges

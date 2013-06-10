@@ -27,6 +27,7 @@
     "devDependencies": {
         "jake": "latest",
         "jake-utils": "latest",
+        "browserify": "latest",
         "moment": "latest"
     }
 }
