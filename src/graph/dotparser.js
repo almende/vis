@@ -188,6 +188,30 @@
     }
 
     /**
+     * Create an edge to a graph object
+     * @param {Object} graph
+     * @param {String | Number | Object} from
+     * @param {String | Number | Object} to
+     * @param {String} type
+     * @param {Object | null} attr
+     * @return {Object} edge
+     */
+    function createEdge(graph, from, to, type, attr) {
+        var edge = {
+            from: from,
+            to: to,
+            type: type
+        };
+
+        if (graph.edge) {
+            edge.attr = merge({}, graph.edge);  // clone global attributes
+        }
+        edge.attr = merge(edge.attr || {}, attr); // merge attributes
+
+        return edge;
+    }
+
+    /**
      * Get next token in the current dot file.
      * The token and token type are available as token and tokenType
      */
@@ -345,7 +369,7 @@
             getToken();
         }
 
-        // graph id
+        // optional graph id
         if (tokenType == TOKENTYPE.IDENTIFIER) {
             graph.id = token;
             getToken();
@@ -385,10 +409,6 @@
      */
     function parseStatements (graph) {
         while (token !== '' && token != '}') {
-            if (tokenType != TOKENTYPE.IDENTIFIER) {
-                throw newSyntaxError('Identifier expected');
-            }
-
             parseStatement(graph);
             if (token == ';') {
                 getToken();
@@ -403,7 +423,14 @@
      * @param {Object} graph
      */
     function parseStatement(graph) {
-        // TODO: parse subgraph
+        // parse subgraph
+        var subgraph = parseSubgraph(graph);
+        if (subgraph) {
+            // edge statements
+            parseEdge(graph, subgraph);
+
+            return;
+        }
 
         // parse an attribute statement
         var attr = parseAttributeStatement(graph);
@@ -418,12 +445,73 @@
         if (token == '=') {
             // id statement
             getToken();
-            graph[id] = token;
+            if (!graph.attr) {
+                graph.attr = {};
+            }
+            graph.attr[id] = token;
             getToken();
+            // TODO: implement comma separated list with "ID=ID"
         }
         else {
             parseNodeStatement(graph, id);
         }
+    }
+
+    /**
+     * Parse a subgraph
+     * @param {Object} graph    parent graph object
+     * @return {Object | null} subgraph
+     */
+    function parseSubgraph (graph) {
+        var subgraph = null;
+
+        // optional subgraph keyword
+        if (token == 'subgraph') {
+            subgraph = {};
+            subgraph.type = token;
+            getToken();
+
+            // optional graph id
+            if (tokenType == TOKENTYPE.IDENTIFIER) {
+                subgraph.id = token;
+                getToken();
+            }
+        }
+
+        // open angle bracket
+        if (token == '{') {
+            getToken();
+
+            if (!subgraph) {
+                subgraph = {
+                    type: 'subgraph'
+                };
+            }
+
+            // TODO: copy global node and edge attributes into subgraph?
+
+            // statements
+            parseStatements(subgraph);
+
+            // close angle bracket
+            if (token != '}') {
+                throw newSyntaxError('Angle bracket } expected');
+            }
+            getToken();
+
+            // remove temporary global properties
+            delete subgraph.node;
+            delete subgraph.edge;
+
+            // register at the parent graph
+            if (!graph.subgraphs) {
+                graph.subgraphs = [];
+            }
+            graph.subgraphs.push(subgraph);
+            graph.nodes = (graph.nodes || []).concat(subgraph.nodes || []);
+        }
+
+        return subgraph;
     }
 
     /**
@@ -494,89 +582,29 @@
      */
     function parseEdge(graph, from) {
         while (token == '->' || token == '--') {
+            var to;
             var type = token;
             getToken();
 
-            if (token == '{') {
-                // parse a set of nodes, like "node1 -> {node2, node3}"
-                parseEdgeSet(graph, from, type);
-                break;
+            var subgraph = parseSubgraph(graph);
+            if (subgraph) {
+                to = subgraph;
             }
             else {
-                // parse a single edge, like "node1 -> node2 -> node3"
-                var to = token;
+                to = token;
                 addNode(graph, {
                     id: to
                 });
                 getToken();
                 var attr = parseAttributeList();
-
-                // create edge
-                var edge = {
-                    from: from,
-                    to: to,
-                    type: type
-                };
-                if (attr) {
-                    edge.attr = attr;
-                }
-                addEdge(graph, edge);
-
-                from = to;
             }
+
+            // create edge
+            var edge = createEdge(graph, from, to, type, attr);
+            addEdge(graph, edge);
+
+            from = to;
         }
-    }
-
-    /**
-     * Parse a set of nodes, like "{node1; node2; node3}"
-     * @param {Object} graph
-     * @param {String | Number} from    Id of the from node
-     * @param {String} type             Edge type, '--' or '->'
-     * @return {Node[] | null} nodes
-     */
-    function parseEdgeSet(graph, from, type) {
-        var nodes = null;
-
-        if (token == '{') {
-            getToken();
-
-            while (token !== '' && token != '}') {
-                // create to node
-                if (tokenType != TOKENTYPE.IDENTIFIER) {
-                    throw newSyntaxError('Identifier expected');
-                }
-                var to = token;
-                addNode(graph, {
-                    id: to
-                });
-                getToken();
-
-                // create edge
-                var edge = {
-                    from: from,
-                    to: to,
-                    type: type
-                };
-                var attr = parseAttributeList();
-                if (attr) {
-                    edge.attr = attr;
-                }
-                addEdge(graph, edge);
-
-                // separator
-                if (token == ';') {
-                    getToken();
-                }
-            }
-
-            // closing bracket
-            if (token != '}') {
-                throw newSyntaxError('bracket } expected');
-            }
-            getToken();
-        }
-
-        return nodes;
     }
 
     /**
@@ -643,6 +671,37 @@
     }
 
     /**
+     * Execute a function fn for each pair of elements in two arrays
+     * @param {Array | *} array1
+     * @param {Array | *} array2
+     * @param {function} fn
+     */
+    function forEach2(array1, array2, fn) {
+       if (array1 instanceof Array) {
+           array1.forEach(function (elem1) {
+               if (array2 instanceof Array) {
+                   array2.forEach(function (elem2)  {
+                       fn(elem1, elem2);
+                   });
+               }
+               else {
+                   fn(elem1, array2);
+               }
+           });
+       }
+        else {
+           if (array2 instanceof Array) {
+               array2.forEach(function (elem2)  {
+                   fn(array1, elem2);
+               });
+           }
+           else {
+               fn(array1, array2);
+           }
+       }
+    }
+
+    /**
      * Convert a string containing a graph in DOT language into a map containing
      * with nodes and edges in the format of graph.
      * @param {String} data         Text containing a graph in DOT-notation
@@ -674,14 +733,60 @@
 
         // copy the edges
         if (dotData.edges) {
-            dotData.edges.forEach(function (dotEdge) {
+            /**
+             * Convert an edge in DOT format to an edge with VisGraph format
+             * @param {Object} dotEdge
+             * @returns {Object} graphEdge
+             */
+            function convertEdge(dotEdge) {
                 var graphEdge = {
                     from: dotEdge.from,
                     to: dotEdge.to
                 };
                 merge(graphEdge, dotEdge.attr);
                 graphEdge.style = (dotEdge.type == '->') ? 'arrow' : 'line';
-                graphData.edges.push(graphEdge);
+                return graphEdge;
+            }
+
+            dotData.edges.forEach(function (dotEdge) {
+                var from, to;
+                if (dotEdge.from instanceof Object) {
+                    from = dotEdge.from.nodes;
+                }
+                else {
+                    from = {
+                        id: dotEdge.from
+                    }
+                }
+
+                if (dotEdge.to instanceof Object) {
+                    to = dotEdge.to.nodes;
+                }
+                else {
+                    to = {
+                        id: dotEdge.to
+                    }
+                }
+
+                if (dotEdge.from instanceof Object && dotEdge.from.edges) {
+                    dotEdge.from.edges.forEach(function (subEdge) {
+                        var graphEdge = convertEdge(subEdge);
+                        graphData.edges.push(graphEdge);
+                    });
+                }
+
+                forEach2(from, to, function (from, to) {
+                    var subEdge = createEdge(graphData, from.id, to.id, dotEdge.type, dotEdge.attr);
+                    var graphEdge = convertEdge(subEdge);
+                    graphData.edges.push(graphEdge);
+                });
+
+                if (dotEdge.to instanceof Object && dotEdge.to.edges) {
+                    dotEdge.to.edges.forEach(function (subEdge) {
+                        var graphEdge = convertEdge(subEdge);
+                        graphData.edges.push(graphEdge);
+                    });
+                }
             });
         }
 

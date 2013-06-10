@@ -10,10 +10,10 @@ fs.readFile('test/dot.txt', function (err, data) {
     assert.deepEqual(graph, {
         "type": "digraph",
         "id": "test_graph",
-        "rankdir": "LR",
-        "size": "8,5",
-        "font": "arial",
         "attr": {
+            "rankdir": "LR",
+            "size": "8,5",
+            "font": "arial",
             "attr1": "another\" attr"
         },
         "nodes": [
@@ -63,16 +63,10 @@ fs.readFile('test/dot.txt', function (err, data) {
                 }
             },
             {
-                "id": "B",
-                "attr": {
-                    "shape": "circle"
-                }
+                "id": "B"
             },
             {
-                "id": "C",
-                "attr": {
-                    "shape": "circle"
-                }
+                "id": "C"
             }
         ],
         "edges": [
@@ -136,21 +130,36 @@ fs.readFile('test/dot.txt', function (err, data) {
             },
             {
                 "from": "A",
-                "to": "B",
+                "to": {
+                    "type": "subgraph",
+                    "nodes": [
+                        {
+                            "id": "B"
+                        },
+                        {
+                            "id": "C"
+                        }
+                    ]
+                },
                 "type": "->",
                 "attr": {
                     "length": 170,
                     "fontSize": 12
                 }
-            },
+            }
+
+        ],
+        "subgraphs" : [
             {
-                "from": "A",
-                "to": "C",
-                "type": "->",
-                "attr": {
-                    "length": 170,
-                    "fontSize": 12
-                }
+                "type": "subgraph",
+                "nodes": [
+                    {
+                        "id": "B"
+                    },
+                    {
+                        "id": "C"
+                    }
+                ]
             }
         ]
     });
