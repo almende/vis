@@ -76,7 +76,7 @@
      * @param {String} c
      * @return {Boolean} isAlphaNumeric
      */
-    var regexAlphaNumeric = /[a-zA-Z_0-9.#]/;
+    var regexAlphaNumeric = /[a-zA-Z_0-9.:#]/;
     function isAlphaNumeric(c) {
         return regexAlphaNumeric.test(c);
     }
@@ -298,7 +298,7 @@
         }
 
         // check for an identifier (number or string)
-        // TODO: more precise parsing of numbers/strings
+        // TODO: more precise parsing of numbers/strings (and the port separator ':')
         if (isAlphaNumeric(c) || c == '-') {
             token += c;
             next();
@@ -456,7 +456,7 @@
             }
             graph.attr[id] = token;
             getToken();
-            // TODO: implement comma separated list with "ID=ID"
+            // TODO: implement comma separated list with "a_list: ID=ID [','] [a_list] "
         }
         else {
             parseNodeStatement(graph, id);

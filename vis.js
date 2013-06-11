@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.1.0-SNAPSHOT
- * @date    2013-06-10
+ * @date    2013-06-11
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -6884,7 +6884,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
      * @param {String} c
      * @return {Boolean} isAlphaNumeric
      */
-    var regexAlphaNumeric = /[a-zA-Z_0-9.#]/;
+    var regexAlphaNumeric = /[a-zA-Z_0-9.:#]/;
     function isAlphaNumeric(c) {
         return regexAlphaNumeric.test(c);
     }
@@ -7106,7 +7106,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
         }
 
         // check for an identifier (number or string)
-        // TODO: more precise parsing of numbers/strings
+        // TODO: more precise parsing of numbers/strings (and the port separator ':')
         if (isAlphaNumeric(c) || c == '-') {
             token += c;
             next();
@@ -7264,7 +7264,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
             }
             graph.attr[id] = token;
             getToken();
-            // TODO: implement comma separated list with "ID=ID"
+            // TODO: implement comma separated list with "a_list: ID=ID [','] [a_list] "
         }
         else {
             parseNodeStatement(graph, id);
