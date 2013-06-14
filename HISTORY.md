@@ -2,6 +2,15 @@ vis.js history
 http://visjs.org
 
 
+## version 0.1.0
+
+- Graph now uses an id based set of nodes and edges instead of a row based array
+  internally.
+- Added support for DataSet to Graph.
+- Methods getSelection and setSelection of Graph now accept a list with ids
+  instead of rows.
+
+
 ## 2013-06-07, version 0.0.9
 
 - First working version of the Graph imported from the old library.

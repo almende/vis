@@ -34,6 +34,7 @@
  *                                              and the field type as value.
  * @constructor DataSet
  */
+// TODO: add a DataSet constructor DataSet(data, options)
 function DataSet (options) {
     this.id = util.randomUUID();
 

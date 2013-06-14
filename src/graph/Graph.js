@@ -69,8 +69,45 @@ function Graph (container, data, options) {
     };
 
     var graph = this;
-    this.nodes = [];            // array with Node objects
-    this.edges = [];            // array with Edge objects
+    this.nodes = {};            // object with Node objects
+    this.edges = {};            // object with Edge objects
+    // TODO: create a counter to keep track on the number of nodes having values
+    // TODO: create a counter to keep track on the number of nodes currently moving
+    // TODO: create a counter to keep track on the number of edges having values
+
+    this.nodesData = null;      // A DataSet or DataView
+    this.edgesData = null;      // A DataSet or DataView
+
+    // create event listeners used to subscribe on the DataSets of the nodes and edges
+    var me = this;
+    this.nodesListeners = {
+        'add': function (event, params) {
+            me._addNodes(params.items);
+            me.start();
+        },
+        'update': function (event, params) {
+            me._updateNodes(params.items);
+            me.start();
+        },
+        'remove': function (event, params) {
+            me._removeNodes(params.items);
+            me.start();
+        }
+    };
+    this.edgesListeners = {
+        'add': function (event, params) {
+            me._addEdges(params.items);
+            me.start();
+        },
+        'update': function (event, params) {
+            me._updateEdges(params.items);
+            me.start();
+        },
+        'remove': function (event, params) {
+            me._removeEdges(params.items);
+            me.start();
+        }
+    };
 
     this.groups = new Groups(); // object with groups
     this.images = new Images(); // object with images
@@ -98,12 +135,9 @@ function Graph (container, data, options) {
  * Set nodes and edges, and optionally options as well.
  *
  * @param {Object} data    Object containing parameters:
- *                         {Array} [nodes]   Array with nodes.
- *                                           Required when format is 'vis'
- *                         {Array} [edges]   Array with edges
- *                                           Required when format is 'vis'
- *                         {String} [dot]    String containing data in DOT
- *                                           format.
+ *                         {Array | DataSet | DataView} [nodes] Array with nodes
+ *                         {Array | DataSet | DataView} [edges] Array with edges
+ *                         {String} [dot] String containing data in DOT format
  *                         {Options} [options] Object with options
  */
 Graph.prototype.setData = function(data) {
@@ -211,7 +245,7 @@ Graph.prototype.setOptions = function (options) {
     }
 
     this.setSize(this.width, this.height);
-    this._setTranslation(0, 0);
+    this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
     this._setScale(1);
 };
 
@@ -320,10 +354,10 @@ Graph.prototype._onMouseDown = function (event) {
     this.shiftKeyDown = event.shiftKey;
 
     var obj = {
-        "left" :   this._xToCanvas(this.startMouseX - this.startFrameLeft),
-        "top" :    this._yToCanvas(this.startMouseY - this.startFrameTop),
-        "right" :  this._xToCanvas(this.startMouseX - this.startFrameLeft),
-        "bottom" : this._yToCanvas(this.startMouseY - this.startFrameTop)
+        left:   this._xToCanvas(this.startMouseX - this.startFrameLeft),
+        top:    this._yToCanvas(this.startMouseY - this.startFrameTop),
+        right:  this._xToCanvas(this.startMouseX - this.startFrameLeft),
+        bottom: this._yToCanvas(this.startMouseY - this.startFrameTop)
     };
     var overlappingNodes = this._getNodesOverlappingWith(obj);
     // if there are overlapping nodes, select the last one, this is the
@@ -335,7 +369,7 @@ Graph.prototype._onMouseDown = function (event) {
         // move clicked node with the mouse
 
         // make the clicked node temporarily fixed, and store their original state
-        var node = this.nodes[this.startClickedObj.row];
+        var node = this.nodes[this.startClickedObj];
         this.startClickedObj.xFixed = node.xFixed;
         this.startClickedObj.yFixed = node.yFixed;
         node.xFixed = true;
@@ -381,7 +415,7 @@ Graph.prototype._onMouseMove = function (event) {
     this.mouseY = mouseY;
 
     if (this.startClickedObj) {
-        var node = this.nodes[this.startClickedObj.row];
+        var node = this.nodes[this.startClickedObj];
 
         if (!this.startClickedObj.xFixed)
             node.x = this._xToCanvas(mouseX - this.startFrameLeft);
@@ -462,7 +496,7 @@ Graph.prototype._onMouseUp = function (event) {
 
     if (this.startClickedObj) {
         // restore the original fixed state
-        var node = this.nodes[this.startClickedObj.row];
+        var node = this.nodes[this.startClickedObj];
         node.xFixed = this.startClickedObj.xFixed;
         node.yFixed = this.startClickedObj.yFixed;
     }
@@ -612,29 +646,33 @@ Graph.prototype._checkShowPopup = function (x, y) {
         "bottom" : this._yToCanvas(y)
     };
 
-    var i, len;
+    var id;
     var lastPopupNode = this.popupNode;
 
     if (this.popupNode == undefined) {
         // search the nodes for overlap, select the top one in case of multiple nodes
         var nodes = this.nodes;
-        for (i = nodes.length - 1; i >= 0; i--) {
-            var node = nodes[i];
-            if (node.getTitle() != undefined && node.isOverlappingWith(obj)) {
-                this.popupNode = node;
-                break;
+        for (id in nodes) {
+            if (nodes.hasOwnProperty(id)) {
+                var node = nodes[id];
+                if (node.getTitle() != undefined && node.isOverlappingWith(obj)) {
+                    this.popupNode = node;
+                    break;
+                }
             }
         }
     }
 
     if (this.popupNode == undefined) {
         // search the edges for overlap
-        var allEdges = this.edges;
-        for (i = 0, len = allEdges.length; i < len; i++) {
-            var edge = allEdges[i];
-            if (edge.getTitle() != undefined && edge.isOverlappingWith(obj)) {
-                this.popupNode = edge;
-                break;
+        var edges = this.edges;
+        for (id in edges) {
+            if (edges.hasOwnProperty(id)) {
+                var edge = edges[id];
+                if (edge.getTitle() != undefined && edge.isOverlappingWith(obj)) {
+                    this.popupNode = edge;
+                    break;
+                }
             }
         }
     }
@@ -757,17 +795,17 @@ Graph.prototype._onTouchEnd = function(event) {
  */
 Graph.prototype._unselectNodes = function(selection, triggerSelect) {
     var changed = false;
-    var i, iMax, row;
+    var i, iMax, id;
 
     if (selection) {
         // remove provided selections
         for (i = 0, iMax = selection.length; i < iMax; i++) {
-            row = selection[i].row;
-            this.nodes[row].unselect();
+            id = selection[i];
+            this.nodes[id].unselect();
 
             var j = 0;
             while (j < this.selection.length) {
-                if (this.selection[j].row == row) {
+                if (this.selection[j] == id) {
                     this.selection.splice(j, 1);
                     changed = true;
                 }
@@ -780,8 +818,8 @@ Graph.prototype._unselectNodes = function(selection, triggerSelect) {
     else if (this.selection && this.selection.length) {
         // remove all selections
         for (i = 0, iMax = this.selection.length; i < iMax; i++) {
-            row = this.selection[i].row;
-            this.nodes[row].unselect();
+            id = this.selection[i];
+            this.nodes[id].unselect();
             changed = true;
         }
         this.selection = [];
@@ -797,8 +835,7 @@ Graph.prototype._unselectNodes = function(selection, triggerSelect) {
 
 /**
  * select all nodes on given location x, y
- * @param {Array} selection   an array with selection objects. Each selection
- *                            object has a parameter row
+ * @param {Array} selection   an array with node ids
  * @param {boolean} append    If true, the new selection will be appended to the
  *                            current selection (except for duplicate entries)
  * @return {Boolean} changed  True if the selection is changed
@@ -811,19 +848,19 @@ Graph.prototype._selectNodes = function(selection, append) {
     // TODO: the selectNodes method is a little messy, rework this
 
     // check if the current selection equals the desired selection
-    var selectionAlreadyDone = true;
+    var selectionAlreadyThere = true;
     if (selection.length != this.selection.length) {
-        selectionAlreadyDone = false;
+        selectionAlreadyThere = false;
     }
     else {
         for (i = 0, iMax = Math.min(selection.length, this.selection.length); i < iMax; i++) {
-            if (selection[i].row != this.selection[i].row) {
-                selectionAlreadyDone = false;
+            if (selection[i] != this.selection[i]) {
+                selectionAlreadyThere = false;
                 break;
             }
         }
     }
-    if (selectionAlreadyDone) {
+    if (selectionAlreadyThere) {
         return changed;
     }
 
@@ -835,18 +872,11 @@ Graph.prototype._selectNodes = function(selection, append) {
 
     for (i = 0, iMax = selection.length; i < iMax; i++) {
         // add each of the new selections, but only when they are not duplicate
-        var row = selection[i].row;
-        var isDuplicate = false;
-        for (var j = 0, jMax = this.selection.length; j < jMax; j++) {
-            if (this.selection[j].row == row) {
-                isDuplicate = true;
-                break;
-            }
-        }
-
+        var id = selection[i];
+        var isDuplicate = (this.selection.indexOf(id) != -1);
         if (!isDuplicate) {
-            this.nodes[row].select();
-            this.selection.push(selection[i]);
+            this.nodes[id].select();
+            this.selection.push(id);
             changed = true;
         }
     }
@@ -867,12 +897,14 @@ Graph.prototype._selectNodes = function(selection, append) {
  * @private
  */
 Graph.prototype._getNodesOverlappingWith = function (obj) {
-    var overlappingNodes = [];
+    var nodes = this.nodes,
+        overlappingNodes = [];
 
-    for (var i = 0; i < this.nodes.length; i++) {
-        if (this.nodes[i].isOverlappingWith(obj)) {
-            var sel = {"row": i};
-            overlappingNodes.push(sel);
+    for (var id in nodes) {
+        if (nodes.hasOwnProperty(id)) {
+            if (nodes[id].isOverlappingWith(obj)) {
+                overlappingNodes.push(id);
+            }
         }
     }
 
@@ -881,55 +913,62 @@ Graph.prototype._getNodesOverlappingWith = function (obj) {
 
 /**
  * retrieve the currently selected nodes
- * @return {Object[]} an array with zero or more objects. Each object
- *                              contains the parameter row
+ * @return {Number[] | String[]} selection    An array with the ids of the
+ *                                            selected nodes.
  */
 Graph.prototype.getSelection = function() {
-    var selection = [];
-
-    for (var i = 0; i < this.selection.length; i++) {
-        var row = this.selection[i].row;
-        selection.push({"row": row});
-    }
-
-    return selection;
+    return this.selection.concat([]);
 };
 
 /**
  * select zero or more nodes
- * @param {object[]} selection  an array with zero or more objects. Each object
- *                              contains the parameter row
+ * @param {Number[] | String[]} selection     An array with the ids of the
+ *                                            selected nodes.
  */
 Graph.prototype.setSelection = function(selection) {
-    var i, iMax, row;
+    var i, iMax, id;
 
     if (selection.length == undefined)
-        throw "Selection must be an array with objects";
+        throw "Selection must be an array with ids";
 
     // first unselect any selected node
     for (i = 0, iMax = this.selection.length; i < iMax; i++) {
-        row = this.selection[i].row;
-        this.nodes[row].unselect();
+        id = this.selection[i];
+        this.nodes[id].unselect();
     }
 
     this.selection = [];
 
     for (i = 0, iMax = selection.length; i < iMax; i++) {
-        row = selection[i].row;
+        id = selection[i];
 
-        if (row == undefined)
-            throw "Parameter row missing in selection object";
-        if (row > this.nodes.length-1)
-            throw "Parameter row out of range";
-
-        var sel = {"row": row};
-        this.selection.push(sel);
-        this.nodes[row].select();
+        var node = this.nodes[id];
+        if (!node) {
+            throw new RangeError('Node with id "' + id + '" not found');
+        }
+        node.select();
+        this.selection.push(id);
     }
 
     this.redraw();
 };
 
+/**
+ * Validate the selection: remove ids of nodes which no longer exist
+ * @private
+ */
+Graph.prototype._updateSelection = function () {
+    var i = 0;
+    while (i < this.selection.length) {
+        var id = this.selection[i];
+        if (!this.nodes[id]) {
+            this.selection.splice(i, 1);
+        }
+        else {
+            i++;
+        }
+    }
+};
 
 /**
  * Temporary method to test calculating a hub value for the nodes
@@ -940,7 +979,6 @@ Graph.prototype.setSelection = function(selection) {
  * @private
  */
 Graph.prototype._getConnectionCount = function(level) {
-    var conn = this.edges;
     if (level == undefined) {
         level = 1;
     }
@@ -953,14 +991,16 @@ Graph.prototype._getConnectionCount = function(level) {
             var node = nodes[j];
 
             // find all nodes connected to this node
-            for (var i = 0, iMax = conn.length; i < iMax; i++) {
+            var edges = node.edges;
+            for (var i = 0, iMax = edges.length; i < iMax; i++) {
+                var edge = edges[i];
                 var other = null;
 
                 // check if connected
-                if (conn[i].from == node)
-                    other = conn[i].to;
-                else if (conn[i].to == node)
-                    other = conn[i].from;
+                if (edge.from == node)
+                    other = edge.to;
+                else if (edge.to == node)
+                    other = edge.from;
 
                 // check if the other node is not already in the list with nodes
                 var k, kMax;
@@ -990,19 +1030,19 @@ Graph.prototype._getConnectionCount = function(level) {
     }
 
     var connections = [];
-    var level0 = [];
     var nodes = this.nodes;
-    var i, iMax;
-    for (i = 0, iMax = nodes.length; i < iMax; i++) {
-        var c = [nodes[i]];
-        for (var l = 0; l < level; l++) {
-            c = c.concat(getConnectedNodes(c));
+    for (var id in nodes) {
+        if (nodes.hasOwnProperty(id)) {
+            var c = [nodes[id]];
+            for (var l = 0; l < level; l++) {
+                c = c.concat(getConnectedNodes(c));
+            }
+            connections.push(c);
         }
-        connections.push(c);
     }
 
     var hubs = [];
-    for (i = 0, len = connections.length; i < len; i++) {
+    for (var i = 0, len = connections.length; i < len; i++) {
         hubs.push(connections[i].length);
     }
 
@@ -1030,365 +1070,286 @@ Graph.prototype.setSize = function(width, height) {
 
 /**
  * Set a data set with nodes for the graph
- * @param {Array} nodes         The data containing the nodes.
+ * @param {Array | DataSet | DataView} nodes         The data containing the nodes.
  * @private
  */
 Graph.prototype._setNodes = function(nodes) {
-    this.selection = [];
-    this.nodes = [];
-    this.moving = false;
-    if (!nodes) {
-        return;
+    var oldNodesData = this.nodesData;
+
+    if (nodes instanceof DataSet || nodes instanceof DataView) {
+        this.nodesData = nodes;
+    }
+    else if (nodes instanceof Array) {
+        this.nodesData = new DataSet();
+        this.nodesData.add(nodes);
+    }
+    else {
+        throw new TypeError('Array or DataSet expected');
     }
 
-    var hasValues = false;
-    var rowCount = nodes.length;
-    for (var i = 0; i < rowCount; i++) {
-        var properties = nodes[i];
-
-        if (properties.value != undefined) {
-            hasValues = true;
-        }
-        if (properties.id == undefined) {
-            throw "Column 'id' missing in table with nodes (row " + i + ")";
-        }
-        this._createNode(properties);
+    if (oldNodesData) {
+        // unsubscribe from old dataset
+        util.forEach(this.nodesListeners, function (callback, event) {
+            oldNodesData.unsubscribe(event, callback);
+        });
     }
 
-    // calculate scaling function when value is provided
-    if (hasValues) {
-        this._updateValueRange(this.nodes);
+    // remove drawn nodes
+    this.nodes = {};
+
+    if (this.nodesData) {
+        // subscribe to new dataset
+        var me = this;
+        util.forEach(this.nodesListeners, function (callback, event) {
+            me.nodesData.subscribe(event, callback);
+        });
+
+        // draw all new nodes
+        var ids = this.nodesData.getIds();
+        this._addNodes(ids);
     }
 
-    // give the nodes some first (random) position
-    this._reposition(); // TODO: bad solution
+    this._updateSelection();
 };
 
 /**
- * Create a node with the given properties
- * If the new node has an id identical to an existing node, the existing
- * node will be overwritten.
- * The properties can contain a property "action", which can have values
- * "create", "update", or "delete"
- * @param {Object} properties  An object with properties
+ * Add nodes
+ * @param {Number[] | String[]} ids
  * @private
  */
-Graph.prototype._createNode = function(properties) {
-    var action = properties.action ? properties.action : "update";
-    var id, index, newNode, oldNode;
+Graph.prototype._addNodes = function(ids) {
+    var id;
+    for (var i = 0, len = ids.length; i < len; i++) {
+        id = ids[i];
+        var data = this.nodesData.get(id);
+        var node = new Node(data, this.images, this.groups, this.constants);
+        // TODO: detach any old node from the edges it is attached to
+        this.nodes[id] = node; // note: this may replace an existing node
 
-    if (action === "create") {
-        // create the node
-        newNode = new Node(properties, this.images, this.groups, this.constants);
-        id = properties.id;
-        index = (id !== undefined) ? this._findNode(id) : undefined;
+        if (!node.isFixed()) {
+            // TODO: position new nodes in a smarter way!
+            var radius = this.constants.edges.length * 2;
+            var count = ids.length;
+            var angle = 2 * Math.PI * (i / count);
+            node.x = radius * Math.cos(angle);
+            node.y = radius * Math.sin(angle);
 
-        if (index !== undefined) {
-            // replace node
-            oldNode = this.nodes[index];
-            this.nodes[index] = newNode;
-
-            // remove selection of old node
-            if (oldNode.selected) {
-                this._unselectNodes([{'row': index}], false);
-            }
-
-            /* TODO: implement this? -> will give performance issues, searching all edges and nodes...
-             // update edges linking to this node
-             var edgesTable = this.edges;
-             for (var i = 0, iMax = edgesTable.length; i < iMax; i++) {
-             var edge = edgesTable[i];
-             if (edge.from == oldNode) {
-             edge.from = newNode;
-             }
-             if (edge.to == oldNode) {
-             edge.to = newNode;
-             }
-             }
-             */
-        }
-        else {
-            // add new node
-            this.nodes.push(newNode);
-        }
-
-        if (!newNode.isFixed()) {
             // note: no not use node.isMoving() here, as that gives the current
             // velocity of the node, which is zero after creation of the node.
             this.moving = true;
         }
     }
-    else if (action === "update") {
-        // update existing node, or create it when not yet existing
-        id = properties.id;
-        if (id === undefined) {
-            throw "Cannot update a node without id";
-        }
 
-        index = this._findNode(id);
-        if (index !== undefined) {
+    this._updateValueRange(this.nodes);
+};
+
+/**
+ * Update existing nodes, or create them when not yet existing
+ * @param {Number[] | String[]} ids
+ * @private
+ */
+Graph.prototype._updateNodes = function(ids) {
+    var nodes = this.nodes,
+        nodesData = this.nodesData;
+    for (var i = 0, len = ids.length; i < len; i++) {
+        var id = ids[i];
+        var node = nodes[id];
+        var data = nodesData.get(id);
+        if (node) {
             // update node
-            this.nodes[index].setProperties(properties, this.constants);
+            node.setProperties(data, this.constants);
         }
         else {
             // create node
-            newNode = new Node(properties, this.images, this.groups, this.constants);
-            this.nodes.push(newNode);
+            node = new Node(properties, this.images, this.groups, this.constants);
+            nodes[id] = node;
 
-            if (!newNode.isFixed()) {
-                // note: no not use node.isMoving() here, as that gives the current
-                // velocity of the node, which is zero after creation of the node.
+            if (!node.isFixed()) {
                 this.moving = true;
             }
         }
     }
-    else if (action === "delete") {
-        // delete existing node
-        id = properties.id;
-        if (id === undefined) {
-            throw "Cannot delete node without its id";
-        }
 
-        index = this._findNode(id);
-        if (index !== undefined) {
-            oldNode = this.nodes[index];
-            // remove selection of old node
-            if (oldNode.selected) {
-                this._unselectNodes([{'row': index}], false);
-            }
-            this.nodes.splice(index, 1);
-        }
-        else {
-            throw "Node with id " + id + " not found";
-        }
-    }
-    else {
-        throw "Unknown action " + action + ". Choose 'create', 'update', or 'delete'.";
-    }
+    this._updateValueRange(nodes);
 };
 
 /**
- * Find a node by its id
- * @param {Number} id                   Id of the node
- * @return {Number | undefined} index   Index of the node in the array
- *                                      this.nodes, or undefined when not found
+ * Remove existing nodes. If nodes do not exist, the method will just ignore it.
+ * @param {Number[] | String[]} ids
  * @private
  */
-Graph.prototype._findNode = function (id) {
+Graph.prototype._removeNodes = function(ids) {
     var nodes = this.nodes;
-    for (var n = 0, len = nodes.length; n < len; n++) {
-        if (nodes[n].id === id) {
-            return n;
-        }
+    for (var i = 0, len = ids.length; i < len; i++) {
+        var id = ids[i];
+        // TODO: detach the node from the edges it is attached to
+        delete nodes[id];
     }
 
-    return undefined;
-};
-
-/**
- * Find a node by its rowNumber
- * @param {Number} row                   Row number of the node
- * @return {Node} node     The node with the given row number, or
- *                                       undefined when not found.
- * @private
- */
-Graph.prototype._findNodeByRow = function (row) {
-    return this.nodes[row];
+    this._updateSelection();
+    this._updateValueRange(nodes);
 };
 
 /**
  * Load edges by reading the data table
- * @param {Array}      edges    The data containing the edges.
+ * @param {Array | DataSet | DataView} edges    The data containing the edges.
  * @private
  * @private
  */
 Graph.prototype._setEdges = function(edges) {
-    this.edges = [];
-    if (!edges) {
-        return;
+    var oldEdgesData = this.edgesData;
+
+    if (edges instanceof DataSet || edges instanceof DataView) {
+        this.edgesData = edges;
+    }
+    else if (edges instanceof Array) {
+        this.edgesData = new DataSet();
+        this.edgesData.add(edges);
+    }
+    else {
+        throw new TypeError('Array or DataSet expected');
     }
 
-    var hasValues = false;
-    var rowCount = edges.length;
-    for (var i = 0; i < rowCount; i++) {
-        var properties = edges[i];
-
-        if (properties.from === undefined) {
-            throw "Column 'from' missing in table with edges (row " + i + ")";
-        }
-        if (properties.to === undefined) {
-            throw "Column 'to' missing in table with edges (row " + i + ")";
-        }
-        if (properties.value != undefined) {
-            hasValues = true;
-        }
-
-        this._createEdge(properties);
+    if (oldEdgesData) {
+        // unsubscribe from old dataset
+        util.forEach(this.edgesListeners, function (callback, event) {
+            oldEdgesData.unsubscribe(event, callback);
+        });
     }
 
-    // calculate scaling function when value is provided
-    if (hasValues) {
-        this._updateValueRange(this.edges);
+    // remove drawn edges
+    // TODO: detach all existing edges
+    this.edges = {};
+
+    if (this.edgesData) {
+        // subscribe to new dataset
+        var me = this;
+        util.forEach(this.edgesListeners, function (callback, event) {
+            me.edgesData.subscribe(event, callback);
+        });
+
+        // draw all new nodes
+        var ids = this.edgesData.getIds();
+        this._addEdges(ids);
     }
 };
 
 /**
- * Create a edge with the given properties
- * If the new edge has an id identical to an existing edge, the existing
- * edge will be overwritten or updated.
- * The properties can contain a property "action", which can have values
- * "create", "update", or "delete"
- * @param {Object} properties   An object with properties
+ * Add edges
+ * @param {Number[] | String[]} ids
  * @private
  */
-Graph.prototype._createEdge = function(properties) {
-    var action = properties.action ? properties.action : "create";
-    var id, index, edge, oldEdge, newEdge;
+Graph.prototype._addEdges = function (ids) {
+    var edges = this.edges,
+        edgesData = this.edgesData;
+    for (var i = 0, len = ids.length; i < len; i++) {
+        var id = ids[i];
 
-    if (action === "create") {
-        // create the edge, or replace it if already existing
-        id = properties.id;
-        index = (id !== undefined) ? this._findEdge(id) : undefined;
-        edge = new Edge(properties, this, this.constants);
-
-        if (index !== undefined) {
-            // replace existing edge
-            oldEdge = this.edges[index];
+        var oldEdge = edges[id];
+        if (oldEdge) {
             oldEdge.from.detachEdge(oldEdge);
             oldEdge.to.detachEdge(oldEdge);
-            this.edges[index] = edge;
         }
-        else {
-            // add new edge
-            this.edges.push(edge);
-        }
+
+        var data = edgesData.get(id);
+        var edge = new Edge(data, this, this.constants);
+        edges[id] = edge;
+        // TODO: test whether from and to are provided
         edge.from.attachEdge(edge);
         edge.to.attachEdge(edge);
     }
-    else if (action === "update") {
-        // update existing edge, or create the edge if not existing
-        id = properties.id;
-        if (id === undefined) {
-            throw "Cannot update a edge without id";
-        }
 
-        index = this._findEdge(id);
-        if (index !== undefined) {
+    this.moving = true;
+    this._updateValueRange(edges);
+};
+
+/**
+ * Update existing edges, or create them when not yet existing
+ * @param {Number[] | String[]} ids
+ * @private
+ */
+Graph.prototype._updateEdges = function (ids) {
+    var edges = this.edges,
+        edgesData = this.edgesData;
+    for (var i = 0, len = ids.length; i < len; i++) {
+        var id = ids[i];
+
+        var data = edgesData.get(id);
+        var edge = edges[id];
+        if (edge) {
             // update edge
-            edge = this.edges[index];
             edge.from.detachEdge(edge);
             edge.to.detachEdge(edge);
 
-            edge.setProperties(properties, this.constants);
+            edge.setProperties(data, this.constants);
+
             edge.from.attachEdge(edge);
             edge.to.attachEdge(edge);
         }
         else {
-            // add new edge
-            edge = new Edge(properties, this, this.constants);
+            // create edge
+            edge = new Edge(data, this, this.constants);
             edge.from.attachEdge(edge);
             edge.to.attachEdge(edge);
-            this.edges.push(edge);
+            this.edges[id] = edge;
         }
     }
-    else if (action === "delete") {
-        // delete existing edge
-        id = properties.id;
-        if (id === undefined) {
-            throw "Cannot delete edge without its id";
-        }
 
-        index = this._findEdge(id);
-        if (index !== undefined) {
-            oldEdge = this.edges[id];
-            edge.from.detachEdge(oldEdge);
-            edge.to.detachEdge(oldEdge);
-            this.edges.splice(index, 1);
-        }
-        else {
-            throw "Edge with id " + id + " not found";
-        }
-    }
-    else {
-        throw "Unknown action " + action + ". Choose 'create', 'update', or 'delete'.";
-    }
+    this.moving = true;
+    this._updateValueRange(edges);
 };
 
 /**
- * Update the references to oldNode in all edges.
- * @param {Node} oldNode
- * @param {Node} newNode
+ * Remove existing edges. Non existing ids will be ignored
+ * @param {Number[] | String[]} ids
  * @private
  */
-// TODO: start utilizing this method _updateNodeReferences
-Graph.prototype._updateNodeReferences = function(oldNode, newNode) {
+Graph.prototype._removeEdges = function (ids) {
     var edges = this.edges;
-    for (var i = 0, iMax = edges.length; i < iMax; i++) {
-        var edge = edges[i];
-        if (edge.from === oldNode) {
-            edge.from = newNode;
-        }
-        if (edge.to === oldNode) {
-            edge.to = newNode;
-        }
-    }
-};
-
-/**
- * Find a edge by its id
- * @param {Number} id                   Id of the edge
- * @return {Number | undefined} index   Index of the edge in the array
- *                                      this.edges, or undefined when not found
- * @private
- */
-Graph.prototype._findEdge = function (id) {
-    var edges = this.edges;
-    for (var n = 0, len = edges.length; n < len; n++) {
-        if (edges[n].id === id) {
-            return n;
+    for (var i = 0, len = ids.length; i < len; i++) {
+        var id = ids[i];
+        var edge = edges[id];
+        if (edge) {
+            edge.from.detachEdge(edge);
+            edge.to.detachEdge(edge);
+            delete edges[id];
         }
     }
 
-    return undefined;
-};
-
-/**
- * Find a edge by its row
- * @param {Number} row          Row of the edge
- * @return {Edge | undefined} the found edge, or undefined when not found
- * @private
- */
-Graph.prototype._findEdgeByRow = function (row) {
-    return this.edges[row];
+    this.moving = true;
+    this._updateValueRange(edges);
 };
 
 /**
  * Update the values of all object in the given array according to the current
  * value range of the objects in the array.
- * @param {Array} array.  An array with objects like Edges or Nodes
+ * @param {Object} obj    An object containing a set of Edges or Nodes
  *                        The objects must have a method getValue() and
  *                        setValueRange(min, max).
  * @private
  */
-Graph.prototype._updateValueRange = function(array) {
-    var count = array.length;
-    var i;
+Graph.prototype._updateValueRange = function(obj) {
+    var id;
 
-    // determine the range of the node values
+    // determine the range of the objects
     var valueMin = undefined;
     var valueMax = undefined;
-    for (i = 0; i < count; i++) {
-        var value = array[i].getValue();
-        if (value !== undefined) {
-            valueMin = (valueMin === undefined) ? value : Math.min(value, valueMin);
-            valueMax = (valueMax === undefined) ? value : Math.max(value, valueMax);
+    for (id in obj) {
+        if (obj.hasOwnProperty(id)) {
+            var value = obj[id].getValue();
+            if (value !== undefined) {
+                valueMin = (valueMin === undefined) ? value : Math.min(value, valueMin);
+                valueMax = (valueMax === undefined) ? value : Math.max(value, valueMax);
+            }
         }
     }
 
-    // adjust the range of all nodes
+    // adjust the range of all objects
     if (valueMin !== undefined && valueMax !== undefined) {
-        for (i = 0; i < count; i++) {
-            array[i].setValueRange(valueMin, valueMax);
+        for (id in obj) {
+            if (obj.hasOwnProperty(id)) {
+                obj[id].setValueRange(valueMin, valueMax);
+            }
         }
     }
 };
@@ -1494,23 +1455,6 @@ Graph.prototype._canvasToY = function(y) {
     return y * this.scale + this.translation.y ;
 };
 
-
-
-/**
- * Get a node by its id
- * @param {number} id
- * @return {Node}  node, or null if not found
- * @private
- */
-Graph.prototype._getNode = function(id) {
-    for (var i = 0; i < this.nodes.length; i++) {
-        if (this.nodes[i].id == id)
-            return this.nodes[i];
-    }
-
-    return null;
-};
-
 /**
  * Redraw all nodes
  * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
@@ -1521,12 +1465,14 @@ Graph.prototype._drawNodes = function(ctx) {
     // first draw the unselected nodes
     var nodes = this.nodes;
     var selected = [];
-    for (var i = 0, iMax = nodes.length; i < iMax; i++) {
-        if (nodes[i].isSelected()) {
-            selected.push(i);
-        }
-        else {
-            nodes[i].draw(ctx);
+    for (var id in nodes) {
+        if (nodes.hasOwnProperty(id)) {
+            if (nodes[id].isSelected()) {
+                selected.push(id);
+            }
+            else {
+                nodes[id].draw(ctx);
+            }
         }
     }
 
@@ -1544,71 +1490,12 @@ Graph.prototype._drawNodes = function(ctx) {
  */
 Graph.prototype._drawEdges = function(ctx) {
     var edges = this.edges;
-    for (var i = 0, iMax = edges.length; i < iMax; i++) {
-        edges[i].draw(ctx);
+    for (var id in edges) {
+        if (edges.hasOwnProperty(id)) {
+            edges[id].draw(ctx);
+        }
     }
 };
-
-/**
- * Recalculate the best positions for all nodes
- * @private
- */
-Graph.prototype._reposition = function() {
-    // TODO: implement function reposition
-
-
-    /*
-     var w = this.frame.canvas.clientWidth;
-     var h = this.frame.canvas.clientHeight;
-     for (var i = 0; i < this.nodes.length; i++) {
-     if (!this.nodes[i].xFixed) this.nodes[i].x = w * Math.random();
-     if (!this.nodes[i].yFixed) this.nodes[i].y = h * Math.random();
-     }
-     //*/
-
-    //*
-    // TODO
-    var radius = this.constants.edges.length * 2;
-    var cx =  this.frame.canvas.clientWidth / 2;
-    var cy =  this.frame.canvas.clientHeight / 2;
-    for (var i = 0; i < this.nodes.length; i++) {
-        var angle = 2*Math.PI * (i / this.nodes.length);
-
-        if (!this.nodes[i].xFixed) this.nodes[i].x = cx + radius * Math.cos(angle);
-        if (!this.nodes[i].yFixed) this.nodes[i].y = cy + radius * Math.sin(angle);
-
-    }
-    //*/
-
-    /*
-     // TODO
-     var radius = this.constants.edges.length * 2;
-     var w = this.frame.canvas.clientWidth,
-     h = this.frame.canvas.clientHeight;
-     var cx =  this.frame.canvas.clientWidth / 2;
-     var cy =  this.frame.canvas.clientHeight / 2;
-     var s = Math.sqrt(this.nodes.length);
-     for (var i = 0; i < this.nodes.length; i++) {
-     //var angle = 2*Math.PI * (i / this.nodes.length);
-
-     if (!this.nodes[i].xFixed) this.nodes[i].x = w/s * (i % s);
-     if (!this.nodes[i].yFixed) this.nodes[i].y = h/s * (i / s);
-     }
-     //*/
-
-
-    /*
-     var cx =  this.frame.canvas.clientWidth / 2;
-     var cy =  this.frame.canvas.clientHeight / 2;
-     for (var i = 0; i < this.nodes.length; i++) {
-     this.nodes[i].x = cx;
-     this.nodes[i].y = cy;
-     }
-
-     //*/
-
-};
-
 
 /**
  * Find a stable position for all nodes
@@ -1640,7 +1527,9 @@ Graph.prototype._doStabilize = function() {
  */
 Graph.prototype._calculateForces = function() {
     // create a local edge to the nodes and edges, that is faster
-    var nodes = this.nodes,
+    var id, dx, dy, angle, distance, fx, fy,
+        repulsingForce, springForce, length, edgeLength,
+        nodes = this.nodes,
         edges = this.edges;
 
     // gravity, add a small constant force to pull the nodes towards the center of
@@ -1650,42 +1539,51 @@ Graph.prototype._calculateForces = function() {
     var gravity = 0.01,
         gx = this.frame.canvas.clientWidth / 2,
         gy = this.frame.canvas.clientHeight / 2;
-    for (var n = 0; n < nodes.length; n++) {
-        var dx = gx - nodes[n].x,
-            dy = gy - nodes[n].y,
-            angle = Math.atan2(dy, dx),
-            fx = Math.cos(angle) * gravity,
+    for (id in nodes) {
+        if (nodes.hasOwnProperty(id)) {
+            var node = nodes[id];
+            dx = gx - node.x;
+            dy = gy - node.y;
+            angle = Math.atan2(dy, dx);
+            fx = Math.cos(angle) * gravity;
             fy = Math.sin(angle) * gravity;
 
-        this.nodes[n]._setForce(fx, fy);
+            node._setForce(fx, fy);
+        }
     }
 
     // repulsing forces between nodes
     var minimumDistance = this.constants.nodes.distance,
         steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
-    for (var n = 0; n < nodes.length; n++) {
-        for (var n2 = n + 1; n2 < this.nodes.length; n2++) {
-            //var dmin = (nodes[n].width + nodes[n].height + nodes[n2].width + nodes[n2].height) / 1 || minimumDistance, // TODO: dmin
-            //var dmin = (nodes[n].width + nodes[n2].width)/2  || minimumDistance, // TODO: dmin
-            //dmin = 40 + ((nodes[n].width/2 + nodes[n2].width/2) || 0),
 
-            // calculate normally distributed force
-            var dx = nodes[n2].x - nodes[n].x,
-                dy = nodes[n2].y - nodes[n].y,
-                distance = Math.sqrt(dx * dx + dy * dy),
-                angle = Math.atan2(dy, dx),
+    for (var id1 in nodes) {
+        if (nodes.hasOwnProperty(id1)) {
+            var node1 = nodes[id1];
+            for (var id2 in nodes) {
+                if (nodes.hasOwnProperty(id2)) {
+                    var node2 = nodes[id2];
+                    // calculate normally distributed force
+                    dx = node2.x - node1.x;
+                    dy = node2.y - node1.y;
+                    distance = Math.sqrt(dx * dx + dy * dy);
+                    angle = Math.atan2(dy, dx);
 
-            // TODO: correct factor for repulsing force
-            //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-            //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
-                repulsingforce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)), // TODO: customize the repulsing force
-                fx = Math.cos(angle) * repulsingforce,
-                fy = Math.sin(angle) * repulsingforce;
+                    // TODO: correct factor for repulsing force
+                    //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+                    //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+                    repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
+                    fx = Math.cos(angle) * repulsingForce;
+                    fy = Math.sin(angle) * repulsingForce;
 
-            this.nodes[n]._addForce(-fx, -fy);
-            this.nodes[n2]._addForce(fx, fy);
+                    node1._addForce(-fx, -fy);
+                    node2._addForce(fx, fy);
+                }
+            }
         }
-        /* TODO: re-implement repulsion of edges
+    }
+
+    /* TODO: re-implement repulsion of edges
+    for (var n = 0; n < nodes.length; n++) {
          for (var l = 0; l < edges.length; l++) {
          var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
          ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
@@ -1707,29 +1605,31 @@ Graph.prototype._calculateForces = function() {
          edges[l].from._addForce(-fx/2,-fy/2);
          edges[l].to._addForce(-fx/2,-fy/2);
          }
-         */
     }
+     */
 
     // forces caused by the edges, modelled as springs
-    for (var l = 0, lMax = edges.length; l < lMax; l++) {
-        var edge = edges[l],
+    for (id in edges) {
+        if (edges.hasOwnProperty(id)) {
+            var edge = edges[id];
 
-            dx = (edge.to.x - edge.from.x),
-            dy = (edge.to.y - edge.from.y),
-        //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length, // TODO: dmin
-        //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length, // TODO: dmin
-        //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2,
-            edgeLength = edge.length,
-            length =  Math.sqrt(dx * dx + dy * dy),
-            angle = Math.atan2(dy, dx),
+            dx = (edge.to.x - edge.from.x);
+            dy = (edge.to.y - edge.from.y);
+            //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
+            //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length; // TODO: dmin
+            //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2;
+            edgeLength = edge.length;
+            length =  Math.sqrt(dx * dx + dy * dy);
+            angle = Math.atan2(dy, dx);
 
-            springforce = edge.stiffness * (edgeLength - length),
+            springForce = edge.stiffness * (edgeLength - length);
 
-            fx = Math.cos(angle) * springforce,
-            fy = Math.sin(angle) * springforce;
+            fx = Math.cos(angle) * springForce;
+            fy = Math.sin(angle) * springForce;
 
-        edge.from._addForce(-fx, -fy);
-        edge.to._addForce(fx, fy);
+            edge.from._addForce(-fx, -fy);
+            edge.to._addForce(fx, fy);
+        }
     }
 
     /* TODO: re-implement repulsion of edges
@@ -1780,8 +1680,8 @@ Graph.prototype._calculateForces = function() {
 Graph.prototype._isMoving = function(vmin) {
     // TODO: ismoving does not work well: should check the kinetic energy, not its velocity
     var nodes = this.nodes;
-    for (var n = 0, nMax = nodes.length; n < nMax; n++) {
-        if (nodes[n].isMoving(vmin)) {
+    for (var id in nodes) {
+        if (nodes.hasOwnProperty(id) && nodes[id].isMoving(vmin)) {
             return true;
         }
     }
@@ -1796,8 +1696,10 @@ Graph.prototype._isMoving = function(vmin) {
 Graph.prototype._discreteStepNodes = function() {
     var interval = this.refreshRate / 1000.0; // in seconds
     var nodes = this.nodes;
-    for (var n = 0, nMax = nodes.length; n < nMax; n++) {
-        nodes[n].discreteStep(interval);
+    for (var id in nodes) {
+        if (nodes.hasOwnProperty(id)) {
+            nodes[id].discreteStep(interval);
+        }
     }
 };
 

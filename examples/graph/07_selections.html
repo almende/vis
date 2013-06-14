@@ -52,24 +52,13 @@
 
     // add event listener
     function onSelect() {
-        var selection = graph.getSelection();
-
-        var info = 'selection: ';
-        selection.forEach(function (s) {
-            info += s.row + ' ';
-        });
-
-        document.getElementById('info').innerHTML += info + '<br>';
+        document.getElementById('info').innerHTML +=
+                'selection: ' + graph.getSelection().join(', ') + '<br>';
     }
     vis.events.addListener(graph, 'select', onSelect);
 
-    // set initial selection (row based, zero-based)
-    var selection = [
-        {'row': 2},
-        {'row': 3},
-        {'row': 4}
-    ];
-    graph.setSelection(selection);
+    // set initial selection (id's of some nodes)
+    graph.setSelection([3, 4, 5]);
 </script>
 
 </body>

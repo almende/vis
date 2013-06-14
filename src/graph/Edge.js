@@ -34,11 +34,11 @@ function Edge (properties, graph, constants) {
     // Added to support dashed lines
     // David Jordan
     // 2012-08-08
-    this.dash = util.extend({}, constants.edges.dash); // contains properties length, gaph, altLength
+    this.dash = util.extend({}, constants.edges.dash); // contains properties length, gap, altLength
 
-    this.stiffness = undefined; // depends on the length of the edge
-    this.color  = constants.edges.color;
-    this.widthFixed = false;
+    this.stiffness   = undefined; // depends on the length of the edge
+    this.color       = constants.edges.color;
+    this.widthFixed  = false;
     this.lengthFixed = false;
 
     this.setProperties(properties, constants);
@@ -54,12 +54,12 @@ Edge.prototype.setProperties = function(properties, constants) {
         return;
     }
 
-    if (properties.from != undefined) {this.from = this.graph._getNode(properties.from);}
-    if (properties.to != undefined) {this.to = this.graph._getNode(properties.to);}
+    if (properties.from != undefined)           {this.from = this.graph.nodes[properties.from];}
+    if (properties.to != undefined)             {this.to = this.graph.nodes[properties.to];}
 
-    if (properties.id != undefined)         {this.id = properties.id;}
-    if (properties.style != undefined)      {this.style = properties.style;}
-    if (properties.label != undefined)       {this.label = properties.label;}
+    if (properties.id != undefined)             {this.id = properties.id;}
+    if (properties.style != undefined)          {this.style = properties.style;}
+    if (properties.label != undefined)          {this.label = properties.label;}
     if (this.label) {
         this.fontSize = constants.edges.fontSize;
         this.fontFace = constants.edges.fontFace;
@@ -68,17 +68,17 @@ Edge.prototype.setProperties = function(properties, constants) {
         if (properties.fontSize != undefined)   {this.fontSize = properties.fontSize;}
         if (properties.fontFace != undefined)   {this.fontFace = properties.fontFace;}
     }
-    if (properties.title != undefined)      {this.title = properties.title;}
-    if (properties.width != undefined)      {this.width = properties.width;}
-    if (properties.value != undefined)      {this.value = properties.value;}
-    if (properties.length != undefined)     {this.length = properties.length;}
+    if (properties.title != undefined)          {this.title = properties.title;}
+    if (properties.width != undefined)          {this.width = properties.width;}
+    if (properties.value != undefined)          {this.value = properties.value;}
+    if (properties.length != undefined)         {this.length = properties.length;}
 
     // Added to support dashed lines
     // David Jordan
     // 2012-08-08
     if (properties.dash) {
-        if (properties.dash.length != undefined) {this.dash.length = properties.dash.length;}
-        if (properties.dash.gap != undefined) {this.dash.gap = properties.dash.gap;}
+        if (properties.dash.length != undefined)    {this.dash.length = properties.dash.length;}
+        if (properties.dash.gap != undefined)       {this.dash.gap = properties.dash.gap;}
         if (properties.dash.altLength != undefined) {this.dash.altLength = properties.dash.altLength;}
     }
     

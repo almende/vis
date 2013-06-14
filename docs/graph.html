@@ -1039,10 +1039,10 @@ var nodes = [
 
     <tr>
         <td>getSelection()</td>
-        <td>Array of selection elements</td>
-        <td>Standard <code>getSelection()</code> implementation.
-            Returns an array with one or multiple selections. Each selection contains
-            the property <code>row</code>. The selections are not ordered.
+        <td>Array of ids</td>
+        <td>Returns an array with the ids of the selected nodes.
+            Returns an empty array if no nodes are selected.
+            The selections are not ordered.
         </td>
     </tr>
 
@@ -1055,10 +1055,11 @@ var nodes = [
     <tr>
         <td>setSelection(selection)</td>
         <td>none</td>
-        <td>Standard <code>setSelection(selection)</code> implementation.
-            <code>selection</code> is an array with selection elements. The visualization
-            accepts one or multiple selection elements, which must have the property <code>row</code>.
-            Example usage: <code>graph.setSelection([{"row": 3}]);</code>.
+        <td>Select nodes.
+            <code>selection</code> is an array with ids of nodes to be selected.
+            The array <code>selection</code> can contain zero or multiple ids.
+            Example usage: <code>graph.setSelection([3, 5]);</code> will select
+            nodes with id 3 and 5.
         </td>
     </tr>
 
@@ -1083,18 +1084,11 @@ var nodes = [
 </p>
 
 <pre class="prettyprint lang-js">
-function onselect() {
-    var sel = graph.getSelection();
-
-    var info = 'selected row(s): ';
-    for (var i = 0; i &lt; sel.length; i++) {
-        info += sel[i].row + ' ';
-    }
-
-    alert(info);
+function onSelect() {
+    alert('selected nodes: ' + graph.getSelection());
 }
 
-vis.events.addListener(graph, 'select', onselect);
+vis.events.addListener(graph, 'select', onSelect);
 </pre>
 
 <p>
@@ -1117,9 +1111,8 @@ vis.events.addListener(graph, 'select', onselect);
         <td>Fired after the user selects or unselects a node by clicking it,
             or when selecting a number of nodes by dragging a selection area
             around them. Not fired when the method <code>setSelection</code>
-            is executed. The corresponding rows in the Array are selected.
-            <br>
-            The selected rows can be retrieved via the method <code>getSelection</code>.
+            is executed. The ids of the selected nodes can be retrieved via the
+            method <code>getSelection</code>.
         </td>
         <td>none</td>
     </tr>

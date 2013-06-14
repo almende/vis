@@ -394,19 +394,8 @@ ItemSet.prototype.hide = function hide() {
  */
 ItemSet.prototype.setItems = function setItems(items) {
     var me = this,
-        ids;
-
-    // unsubscribe from current dataset
-    var current = this.itemsData;
-    if (current) {
-        util.forEach(this.listeners, function (callback, event) {
-            current.unsubscribe(event, callback);
-        });
-
-        // remove all drawn items
-        ids = current.getIds();
-        this._onRemove(ids);
-    }
+        ids,
+        oldItemsData = this.itemsData;
 
     // replace the dataset
     if (!items) {
@@ -417,6 +406,17 @@ ItemSet.prototype.setItems = function setItems(items) {
     }
     else {
         throw new TypeError('Data must be an instance of DataSet');
+    }
+
+    if (oldItemsData) {
+        // unsubscribe from old dataset
+        util.forEach(this.listeners, function (callback, event) {
+            oldItemsData.unsubscribe(event, callback);
+        });
+
+        // remove all drawn items
+        ids = oldItemsData.getIds();
+        this._onRemove(ids);
     }
 
     if (this.itemsData) {
