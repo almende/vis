@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.1.0-SNAPSHOT
- * @date    2013-06-14
+ * @date    2013-06-17
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -6949,34 +6949,53 @@ Timeline.prototype.getItemRange = function getItemRange() {
      * @param {Object} node
      */
     function addNode(graph, node) {
-        var nodes = graph.nodes;
-        if (!nodes) {
-            nodes = [];
-            graph.nodes = nodes;
-        }
-
-        // find existing node
+        var i, len;
         var current = null;
-        for (var i = 0, len = nodes.length; i < len; i++) {
-            if (node.id === nodes[i].id) {
-                current = nodes[i];
-                break;
+
+        // find root graph (in case of subgraph)
+        var graphs = [graph]; // list with all graphs from current graph to root graph
+        var root = graph;
+        while (root.parent) {
+            graphs.push(root.parent);
+            root = root.parent;
+        }
+
+        // find existing node (at root level) by its id
+        if (root.nodes) {
+            for (i = 0, len = root.nodes.length; i < len; i++) {
+                if (node.id === root.nodes[i].id) {
+                    current = root.nodes[i];
+                    break;
+                }
             }
         }
 
-        if (current) {
-            // merge attributes
-            if (node.attr) {
-                current.attr = merge(current.attr, node.attr);
+        if (!current) {
+            // this is a new node
+            current = {
+                id: node.id
+            };
+            if (graph.node) {
+                // clone default attributes
+                current.attr = merge(current.attr, graph.node);
             }
         }
-        else {
-            // add
-            graph.nodes.push(node);
-            if (graph.node) {
-                var attr = merge({}, graph.node);   // clone global attributes
-                node.attr = merge(attr, node.attr); // merge attributes
+
+        // add node to this (sub)graph and all its parent graphs
+        for (i = graphs.length - 1; i >= 0; i--) {
+            var g = graphs[i];
+
+            if (!g.nodes) {
+                g.nodes = [];
             }
+            if (g.nodes.indexOf(current) == -1) {
+                g.nodes.push(current);
+            }
+        }
+
+        // merge attributes
+        if (node.attr) {
+            current.attr = merge(current.attr, node.attr);
         }
     }
 
@@ -6991,7 +7010,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
         }
         graph.edges.push(edge);
         if (graph.edge) {
-            var attr = merge({}, graph.edge);     // clone global attributes
+            var attr = merge({}, graph.edge);     // clone default attributes
             edge.attr = merge(attr, edge.attr); // merge attributes
         }
     }
@@ -7013,7 +7032,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
         };
 
         if (graph.edge) {
-            edge.attr = merge({}, graph.edge);  // clone global attributes
+            edge.attr = merge({}, graph.edge);  // clone default attributes
         }
         edge.attr = merge(edge.attr || {}, attr); // merge attributes
 
@@ -7205,9 +7224,10 @@ Timeline.prototype.getItemRange = function getItemRange() {
         }
         getToken();
 
-        // remove temporary global properties
+        // remove temporary default properties
         delete graph.node;
         delete graph.edge;
+        delete graph.graph;
 
         return graph;
     }
@@ -7257,13 +7277,10 @@ Timeline.prototype.getItemRange = function getItemRange() {
         if (token == '=') {
             // id statement
             getToken();
-            if (!graph.attr) {
-                graph.attr = {};
-            }
             if (tokenType != TOKENTYPE.IDENTIFIER) {
                 throw newSyntaxError('Identifier expected');
             }
-            graph.attr[id] = token;
+            graph[id] = token;
             getToken();
             // TODO: implement comma separated list with "a_list: ID=ID [','] [a_list] "
         }
@@ -7298,12 +7315,12 @@ Timeline.prototype.getItemRange = function getItemRange() {
             getToken();
 
             if (!subgraph) {
-                subgraph = {
-                    type: 'subgraph'
-                };
+                subgraph = {};
             }
-
-            // TODO: copy global node and edge attributes into subgraph or not?
+            subgraph.parent = graph;
+            subgraph.node = graph.node;
+            subgraph.edge = graph.edge;
+            subgraph.graph = graph.graph;
 
             // statements
             parseStatements(subgraph);
@@ -7314,16 +7331,17 @@ Timeline.prototype.getItemRange = function getItemRange() {
             }
             getToken();
 
-            // remove temporary global properties
+            // remove temporary default properties
             delete subgraph.node;
             delete subgraph.edge;
+            delete subgraph.graph;
+            delete subgraph.parent;
 
             // register at the parent graph
             if (!graph.subgraphs) {
                 graph.subgraphs = [];
             }
             graph.subgraphs.push(subgraph);
-            graph.nodes = (graph.nodes || []).concat(subgraph.nodes || []);
         }
 
         return subgraph;
@@ -7331,43 +7349,38 @@ Timeline.prototype.getItemRange = function getItemRange() {
 
     /**
      * parse an attribute statement like "node [shape=circle fontSize=16]".
-     * Available keywords are 'node', 'edge', 'graph'
+     * Available keywords are 'node', 'edge', 'graph'.
+     * The previous list with default attributes will be replaced
      * @param {Object} graph
-     * @returns {Object | null} attr
+     * @returns {String | null} keyword Returns the name of the parsed attribute
+     *                                  (node, edge, graph), or null if nothing
+     *                                  is parsed.
      */
     function parseAttributeStatement (graph) {
-        var attr = null;
-
         // attribute statements
         if (token == 'node') {
             getToken();
 
             // node attributes
-            attr = parseAttributeList();
-            if (attr) {
-                graph.node = merge(graph.node, attr);
-            }
+            graph.node = parseAttributeList();
+            return 'node';
         }
         else if (token == 'edge') {
             getToken();
 
             // edge attributes
-            attr = parseAttributeList();
-            if (attr) {
-                graph.edge = merge(graph.edge, attr);
-            }
+            graph.edge = parseAttributeList();
+            return 'edge';
         }
         else if (token == 'graph') {
             getToken();
 
             // graph attributes
-            attr = parseAttributeList();
-            if (attr) {
-                graph.attr = merge(graph.attr, attr);
-            }
+            graph.graph = parseAttributeList();
+            return 'graph';
         }
 
-        return attr;
+        return null;
     }
 
     /**
@@ -10406,6 +10419,9 @@ Graph.prototype._setNodes = function(nodes) {
         this.nodesData = new DataSet();
         this.nodesData.add(nodes);
     }
+    else if (!nodes) {
+        this.nodesData = new DataSet();
+    }
     else {
         throw new TypeError('Array or DataSet expected');
     }
@@ -10528,6 +10544,9 @@ Graph.prototype._setEdges = function(edges) {
     else if (edges instanceof Array) {
         this.edgesData = new DataSet();
         this.edgesData.add(edges);
+    }
+    else if (!edges) {
+        this.edgesData = new DataSet();
     }
     else {
         throw new TypeError('Array or DataSet expected');

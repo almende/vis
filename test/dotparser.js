@@ -10,12 +10,9 @@ fs.readFile('test/dot.txt', function (err, data) {
     assert.deepEqual(graph, {
         "type": "digraph",
         "id": "test_graph",
-        "attr": {
-            "rankdir": "LR",
-            "size": "8,5",
-            "font": "arial",
-            "attr1": "another\" attr"
-        },
+        "rankdir": "LR",
+        "size": "8,5",
+        "font": "arial",
         "nodes": [
             {
                 "id": "node1",
@@ -63,10 +60,16 @@ fs.readFile('test/dot.txt', function (err, data) {
                 }
             },
             {
-                "id": "B"
+                "id": "B",
+                "attr": {
+                    "shape": "circle"
+                }
             },
             {
-                "id": "C"
+                "id": "C",
+                "attr": {
+                    "shape": "circle"
+                }
             }
         ],
         "edges": [
@@ -131,13 +134,18 @@ fs.readFile('test/dot.txt', function (err, data) {
             {
                 "from": "A",
                 "to": {
-                    "type": "subgraph",
                     "nodes": [
                         {
-                            "id": "B"
+                            "id": "B",
+                            "attr": {
+                                "shape": "circle"
+                            }
                         },
                         {
-                            "id": "C"
+                            "id": "C",
+                            "attr": {
+                                "shape": "circle"
+                            }
                         }
                     ]
                 },
@@ -147,17 +155,21 @@ fs.readFile('test/dot.txt', function (err, data) {
                     "fontSize": 12
                 }
             }
-
         ],
-        "subgraphs" : [
+        "subgraphs": [
             {
-                "type": "subgraph",
                 "nodes": [
                     {
-                        "id": "B"
+                        "id": "B",
+                        "attr": {
+                            "shape": "circle"
+                        }
                     },
                     {
-                        "id": "C"
+                        "id": "C",
+                        "attr": {
+                            "shape": "circle"
+                        }
                     }
                 ]
             }

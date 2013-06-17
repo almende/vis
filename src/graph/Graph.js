@@ -1083,6 +1083,9 @@ Graph.prototype._setNodes = function(nodes) {
         this.nodesData = new DataSet();
         this.nodesData.add(nodes);
     }
+    else if (!nodes) {
+        this.nodesData = new DataSet();
+    }
     else {
         throw new TypeError('Array or DataSet expected');
     }
@@ -1205,6 +1208,9 @@ Graph.prototype._setEdges = function(edges) {
     else if (edges instanceof Array) {
         this.edgesData = new DataSet();
         this.edgesData.add(edges);
+    }
+    else if (!edges) {
+        this.edgesData = new DataSet();
     }
     else {
         throw new TypeError('Array or DataSet expected');
