@@ -67,7 +67,9 @@ function Node(properties, imagelist, grouplist, constants) {
  * @param {Edge} edge
  */
 Node.prototype.attachEdge = function(edge) {
-    this.edges.push(edge);
+    if (this.edges.indexOf(edge) == -1) {
+        this.edges.push(edge);
+    }
     this._updateMass();
 };
 

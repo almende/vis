@@ -7932,7 +7932,9 @@ function Node(properties, imagelist, grouplist, constants) {
  * @param {Edge} edge
  */
 Node.prototype.attachEdge = function(edge) {
-    this.edges.push(edge);
+    if (this.edges.indexOf(edge) == -1) {
+        this.edges.push(edge);
+    }
     this._updateMass();
 };
 
@@ -8570,11 +8572,17 @@ function Edge (properties, graph, constants) {
 
     // initialize variables
     this.id     = undefined;
+    this.fromId = undefined;
+    this.toId = undefined;
     this.style  = constants.edges.style;
     this.title  = undefined;
     this.width  = constants.edges.width;
     this.value  = undefined;
     this.length = constants.edges.length;
+
+    this.from = null;   // a node
+    this.to = null;     // a node
+    this.connected = false;
 
     // Added to support dashed lines
     // David Jordan
@@ -8587,7 +8595,7 @@ function Edge (properties, graph, constants) {
     this.lengthFixed = false;
 
     this.setProperties(properties, constants);
-};
+}
 
 /**
  * Set or overwrite properties for the edge
@@ -8599,8 +8607,8 @@ Edge.prototype.setProperties = function(properties, constants) {
         return;
     }
 
-    if (properties.from != undefined)           {this.from = this.graph.nodes[properties.from];}
-    if (properties.to != undefined)             {this.to = this.graph.nodes[properties.to];}
+    if (properties.from != undefined)           {this.fromId = properties.from;}
+    if (properties.to != undefined)             {this.toId = properties.to;}
 
     if (properties.id != undefined)             {this.id = properties.id;}
     if (properties.style != undefined)          {this.style = properties.style;}
@@ -8629,16 +8637,11 @@ Edge.prototype.setProperties = function(properties, constants) {
     
     if (properties.color != undefined) {this.color = properties.color;}
 
-    if (!this.from) {
-        throw "Node with id " + properties.from + " not found";
-    }
-    if (!this.to) {
-        throw "Node with id " + properties.to + " not found";
-    }
+    // A node is connected when it has a from and to node.
+    this.connect();
 
     this.widthFixed = this.widthFixed || (properties.width != undefined);
     this.lengthFixed = this.lengthFixed || (properties.length != undefined);
-
     this.stiffness = 1 / this.length;
 
     // set draw method based on style
@@ -8649,6 +8652,46 @@ Edge.prototype.setProperties = function(properties, constants) {
         case 'dash-line':     this.draw = this._drawDashLine; break;
         default:              this.draw = this._drawLine; break;
     }
+};
+
+/**
+ * Connect an edge to its nodes
+ */
+Edge.prototype.connect = function () {
+    this.disconnect();
+
+    this.from = this.graph.nodes[this.fromId] || null;
+    this.to = this.graph.nodes[this.toId] || null;
+    this.connected = (this.from && this.to);
+
+    if (this.connected) {
+        this.from.attachEdge(this);
+        this.to.attachEdge(this);
+    }
+    else {
+        if (this.from) {
+            this.from.detachEdge(this);
+        }
+        if (this.to) {
+            this.to.detachEdge(this);
+        }
+    }
+};
+
+/**
+ * Disconnect an edge from its nodes
+ */
+Edge.prototype.disconnect = function () {
+    if (this.from) {
+        this.from.detachEdge(this);
+        this.from = null;
+    }
+    if (this.to) {
+        this.to.detachEdge(this);
+        this.to = null;
+    }
+
+    this.connected = false;
 };
 
 /**
@@ -10005,7 +10048,8 @@ Graph.prototype._checkShowPopup = function (x, y) {
         for (id in edges) {
             if (edges.hasOwnProperty(id)) {
                 var edge = edges[id];
-                if (edge.getTitle() != undefined && edge.isOverlappingWith(obj)) {
+                if (edge.connected && (edge.getTitle() != undefined) &&
+                        edge.isOverlappingWith(obj)) {
                     this.popupNode = edge;
                     break;
                 }
@@ -10462,7 +10506,6 @@ Graph.prototype._addNodes = function(ids) {
         id = ids[i];
         var data = this.nodesData.get(id);
         var node = new Node(data, this.images, this.groups, this.constants);
-        // TODO: detach any old node from the edges it is attached to
         this.nodes[id] = node; // note: this may replace an existing node
 
         if (!node.isFixed()) {
@@ -10479,6 +10522,7 @@ Graph.prototype._addNodes = function(ids) {
         }
     }
 
+    this._reconnectEdges();
     this._updateValueRange(this.nodes);
 };
 
@@ -10509,6 +10553,7 @@ Graph.prototype._updateNodes = function(ids) {
         }
     }
 
+    this._reconnectEdges();
     this._updateValueRange(nodes);
 };
 
@@ -10521,10 +10566,10 @@ Graph.prototype._removeNodes = function(ids) {
     var nodes = this.nodes;
     for (var i = 0, len = ids.length; i < len; i++) {
         var id = ids[i];
-        // TODO: detach the node from the edges it is attached to
         delete nodes[id];
     }
 
+    this._reconnectEdges();
     this._updateSelection();
     this._updateValueRange(nodes);
 };
@@ -10560,7 +10605,6 @@ Graph.prototype._setEdges = function(edges) {
     }
 
     // remove drawn edges
-    // TODO: detach all existing edges
     this.edges = {};
 
     if (this.edgesData) {
@@ -10574,6 +10618,8 @@ Graph.prototype._setEdges = function(edges) {
         var ids = this.edgesData.getIds();
         this._addEdges(ids);
     }
+
+    this._reconnectEdges();
 };
 
 /**
@@ -10589,16 +10635,11 @@ Graph.prototype._addEdges = function (ids) {
 
         var oldEdge = edges[id];
         if (oldEdge) {
-            oldEdge.from.detachEdge(oldEdge);
-            oldEdge.to.detachEdge(oldEdge);
+            oldEdge.disconnect();
         }
 
         var data = edgesData.get(id);
-        var edge = new Edge(data, this, this.constants);
-        edges[id] = edge;
-        // TODO: test whether from and to are provided
-        edge.from.attachEdge(edge);
-        edge.to.attachEdge(edge);
+        edges[id] = new Edge(data, this, this.constants);
     }
 
     this.moving = true;
@@ -10620,19 +10661,13 @@ Graph.prototype._updateEdges = function (ids) {
         var edge = edges[id];
         if (edge) {
             // update edge
-            edge.from.detachEdge(edge);
-            edge.to.detachEdge(edge);
-
+            edge.disconnect();
             edge.setProperties(data, this.constants);
-
-            edge.from.attachEdge(edge);
-            edge.to.attachEdge(edge);
+            edge.connect();
         }
         else {
             // create edge
             edge = new Edge(data, this, this.constants);
-            edge.from.attachEdge(edge);
-            edge.to.attachEdge(edge);
             this.edges[id] = edge;
         }
     }
@@ -10652,14 +10687,37 @@ Graph.prototype._removeEdges = function (ids) {
         var id = ids[i];
         var edge = edges[id];
         if (edge) {
-            edge.from.detachEdge(edge);
-            edge.to.detachEdge(edge);
+            edge.disconnect();
             delete edges[id];
         }
     }
 
     this.moving = true;
     this._updateValueRange(edges);
+};
+
+/**
+ * Reconnect all edges
+ * @private
+ */
+Graph.prototype._reconnectEdges = function() {
+    var id,
+        nodes = this.nodes,
+        edges = this.edges;
+    for (id in nodes) {
+        if (nodes.hasOwnProperty(id)) {
+            nodes[id].edges = [];
+        }
+    }
+
+    for (id in edges) {
+        if (edges.hasOwnProperty(id)) {
+            var edge = edges[id];
+            edge.from = null;
+            edge.to = null;
+            edge.connect();
+        }
+    }
 };
 
 /**
@@ -10834,7 +10892,10 @@ Graph.prototype._drawEdges = function(ctx) {
     var edges = this.edges;
     for (var id in edges) {
         if (edges.hasOwnProperty(id)) {
-            edges[id].draw(ctx);
+            var edge = edges[id];
+            if (edge.connected) {
+                edges[id].draw(ctx);
+            }
         }
     }
 };
@@ -10954,23 +11015,24 @@ Graph.prototype._calculateForces = function() {
     for (id in edges) {
         if (edges.hasOwnProperty(id)) {
             var edge = edges[id];
+            if (edge.connected) {
+                dx = (edge.to.x - edge.from.x);
+                dy = (edge.to.y - edge.from.y);
+                //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
+                //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length; // TODO: dmin
+                //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2;
+                edgeLength = edge.length;
+                length =  Math.sqrt(dx * dx + dy * dy);
+                angle = Math.atan2(dy, dx);
 
-            dx = (edge.to.x - edge.from.x);
-            dy = (edge.to.y - edge.from.y);
-            //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
-            //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length; // TODO: dmin
-            //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2;
-            edgeLength = edge.length;
-            length =  Math.sqrt(dx * dx + dy * dy);
-            angle = Math.atan2(dy, dx);
+                springForce = edge.stiffness * (edgeLength - length);
 
-            springForce = edge.stiffness * (edgeLength - length);
+                fx = Math.cos(angle) * springForce;
+                fy = Math.sin(angle) * springForce;
 
-            fx = Math.cos(angle) * springForce;
-            fy = Math.sin(angle) * springForce;
-
-            edge.from._addForce(-fx, -fy);
-            edge.to._addForce(fx, fy);
+                edge.from._addForce(-fx, -fy);
+                edge.to._addForce(fx, fy);
+            }
         }
     }
 

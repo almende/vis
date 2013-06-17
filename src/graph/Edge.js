@@ -25,11 +25,17 @@ function Edge (properties, graph, constants) {
 
     // initialize variables
     this.id     = undefined;
+    this.fromId = undefined;
+    this.toId = undefined;
     this.style  = constants.edges.style;
     this.title  = undefined;
     this.width  = constants.edges.width;
     this.value  = undefined;
     this.length = constants.edges.length;
+
+    this.from = null;   // a node
+    this.to = null;     // a node
+    this.connected = false;
 
     // Added to support dashed lines
     // David Jordan
@@ -42,7 +48,7 @@ function Edge (properties, graph, constants) {
     this.lengthFixed = false;
 
     this.setProperties(properties, constants);
-};
+}
 
 /**
  * Set or overwrite properties for the edge
@@ -54,8 +60,8 @@ Edge.prototype.setProperties = function(properties, constants) {
         return;
     }
 
-    if (properties.from != undefined)           {this.from = this.graph.nodes[properties.from];}
-    if (properties.to != undefined)             {this.to = this.graph.nodes[properties.to];}
+    if (properties.from != undefined)           {this.fromId = properties.from;}
+    if (properties.to != undefined)             {this.toId = properties.to;}
 
     if (properties.id != undefined)             {this.id = properties.id;}
     if (properties.style != undefined)          {this.style = properties.style;}
@@ -84,16 +90,11 @@ Edge.prototype.setProperties = function(properties, constants) {
     
     if (properties.color != undefined) {this.color = properties.color;}
 
-    if (!this.from) {
-        throw "Node with id " + properties.from + " not found";
-    }
-    if (!this.to) {
-        throw "Node with id " + properties.to + " not found";
-    }
+    // A node is connected when it has a from and to node.
+    this.connect();
 
     this.widthFixed = this.widthFixed || (properties.width != undefined);
     this.lengthFixed = this.lengthFixed || (properties.length != undefined);
-
     this.stiffness = 1 / this.length;
 
     // set draw method based on style
@@ -104,6 +105,46 @@ Edge.prototype.setProperties = function(properties, constants) {
         case 'dash-line':     this.draw = this._drawDashLine; break;
         default:              this.draw = this._drawLine; break;
     }
+};
+
+/**
+ * Connect an edge to its nodes
+ */
+Edge.prototype.connect = function () {
+    this.disconnect();
+
+    this.from = this.graph.nodes[this.fromId] || null;
+    this.to = this.graph.nodes[this.toId] || null;
+    this.connected = (this.from && this.to);
+
+    if (this.connected) {
+        this.from.attachEdge(this);
+        this.to.attachEdge(this);
+    }
+    else {
+        if (this.from) {
+            this.from.detachEdge(this);
+        }
+        if (this.to) {
+            this.to.detachEdge(this);
+        }
+    }
+};
+
+/**
+ * Disconnect an edge from its nodes
+ */
+Edge.prototype.disconnect = function () {
+    if (this.from) {
+        this.from.detachEdge(this);
+        this.from = null;
+    }
+    if (this.to) {
+        this.to.detachEdge(this);
+        this.to = null;
+    }
+
+    this.connected = false;
 };
 
 /**
