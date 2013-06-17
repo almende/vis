@@ -6,6 +6,8 @@ http://visjs.org
 
 - Graph now uses an id based set of nodes and edges instead of a row based array
   internally.
+- Graph is now robust against edges pointing to non-existing nodes, which
+  can occur easily while dynamically adding/removing nodes and edges.
 - Added support for DataSet to Graph.
 - Methods getSelection and setSelection of Graph now accept a list with ids
   instead of rows.
