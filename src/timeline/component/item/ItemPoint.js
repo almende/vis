@@ -159,8 +159,9 @@ ItemPoint.prototype.reflow = function reflow() {
     data = this.data;
     range = this.parent && this.parent.range;
     if (data && range) {
-        // TODO: account for the width of the item. Take some margin
-        this.visible = (data.start > range.start) && (data.start < range.end);
+        // TODO: account for the width of the item
+        var interval = (range.end - range.start);
+        this.visible = (data.start > range.start - interval) && (data.start < range.end);
     }
     else {
         this.visible = false;

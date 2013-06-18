@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.1.0-SNAPSHOT
- * @date    2013-06-17
+ * @date    2013-06-18
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -5427,8 +5427,9 @@ ItemBox.prototype.reflow = function reflow() {
     data = this.data;
     range = this.parent && this.parent.range;
     if (data && range) {
-        // TODO: account for the width of the item. Take some margin
-        this.visible = (data.start > range.start) && (data.start < range.end);
+        // TODO: account for the width of the item
+        var interval = (range.end - range.start);
+        this.visible = (data.start > range.start - interval) && (data.start < range.end + interval);
     }
     else {
         this.visible = false;
@@ -5712,8 +5713,9 @@ ItemPoint.prototype.reflow = function reflow() {
     data = this.data;
     range = this.parent && this.parent.range;
     if (data && range) {
-        // TODO: account for the width of the item. Take some margin
-        this.visible = (data.start > range.start) && (data.start < range.end);
+        // TODO: account for the width of the item
+        var interval = (range.end - range.start);
+        this.visible = (data.start > range.start - interval) && (data.start < range.end);
     }
     else {
         this.visible = false;

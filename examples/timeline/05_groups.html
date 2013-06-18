@@ -19,6 +19,11 @@
     <script src="../../vis.js"></script>
 </head>
 <body>
+<p>
+    This example demonstrate using groups. Note that a DataSet is used for both
+    items and groups, allowing to dynamically add, update or remove both items
+    and groups via the DataSet.
+</p>
 <div id="visualization"></div>
 
 <script>
@@ -26,7 +31,7 @@
     var groupCount = 3;
     var itemCount = 20;
 
-    // create a dataset with groups
+    // create a data set with groups
     var names = ['John', 'Alston', 'Lee', 'Grant'];
     var groups = new vis.DataSet();
     for (var g = 0; g < groupCount; g++) {
@@ -41,8 +46,7 @@
         items.add({
             id: i,
             group: group,
-            content: 'item ' + i +
-                    ' <span style="color:#97B0F8;">(' + names[group] + ')</span>',
+            content: 'item ' + i + ' <span style="color:#97B0F8;">(' + names[group] + ')</span>',
             start: start,
             type: 'box'
         });
