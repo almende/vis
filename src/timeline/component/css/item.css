@@ -42,7 +42,6 @@
 }
 
 .vis.timeline .item.range {
-    overflow: hidden;
     border-style: solid;
     border-width: 1px;
     border-radius: 2px;

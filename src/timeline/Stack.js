@@ -185,8 +185,21 @@ Stack.prototype.checkOverlap = function checkOverlap (items, itemIndex,
  * @return {boolean}        true if a and b collide, else false
  */
 Stack.prototype.collision = function collision (a, b, margin) {
-    return ((a.left - margin) < (b.left + b.width) &&
-        (a.left + a.width + margin) > b.left &&
+    var a_width;
+    var b_width;
+
+    if (a.props.content !== undefined && a.width < a.props.content.width)
+        a_width = a.props.content.width;
+    else
+        a_width = a.width;
+
+    if (b.props.content !== undefined && b.width < b.props.content.width)
+        b_width = b.props.content.width;
+    else
+        b_width = b.width
+    
+    return ((a.left - margin) < (b.left + b_width) &&
+        (a.left + a_width + margin) > b.left &&
         (a.top - margin) < (b.top + b.height) &&
         (a.top + a.height + margin) > b.top);
 };
