@@ -29,6 +29,7 @@ task('build', {async: true}, function () {
     // concatenate and stringify the css files
     var result = concat({
         src: [
+            './src/timeline/component/css/timeline.css',
             './src/timeline/component/css/panel.css',
             './src/timeline/component/css/groupset.css',
             './src/timeline/component/css/itemset.css',

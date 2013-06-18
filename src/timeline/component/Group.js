@@ -16,6 +16,13 @@ function Group (parent, groupId, options) {
     this.options = options || {};
     this.options.top = 0;
 
+    this.props = {
+        label: {
+            width: 0,
+            height: 0
+        }
+    };
+
     this.top = 0;
     this.left = 0;
     this.width = 0;
@@ -87,6 +94,18 @@ Group.prototype.reflow = function reflow() {
 
     changed += update(this, 'top',    this.itemset ? this.itemset.top : 0);
     changed += update(this, 'height', this.itemset ? this.itemset.height : 0);
+
+    // TODO: reckon with the height of the group label
+
+    if (this.label) {
+        var inner = this.label.firstChild;
+        changed += update(this.props.label, 'width', inner.clientWidth);
+        changed += update(this.props.label, 'height', inner.clientHeight);
+    }
+    else {
+        changed += update(this.props.label, 'width', 0);
+        changed += update(this.props.label, 'height', 0);
+    }
 
     return (changed > 0);
 };

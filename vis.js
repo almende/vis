@@ -3704,6 +3704,7 @@ Component.prototype.getOption = function getOption(name) {
  * that case null is returned.
  * @returns {HTMLElement | null} container
  */
+// TODO: get rid of the getContainer and getFrame methods, provide these via the options
 Component.prototype.getContainer = function getContainer() {
     // should be implemented by the component
     return null;
@@ -3946,9 +3947,10 @@ RootPanel.prototype.repaint = function () {
         asSize = util.option.asSize,
         options = this.options,
         frame = this.frame;
+
     if (!frame) {
         frame = document.createElement('div');
-        frame.className = 'graph panel';
+        frame.className = 'vis timeline rootpanel';
 
         var className = options.className;
         if (className) {
@@ -3956,6 +3958,7 @@ RootPanel.prototype.repaint = function () {
         }
 
         this.frame = frame;
+
         changed += 1;
     }
     if (!frame.parentNode) {
@@ -6089,6 +6092,13 @@ function Group (parent, groupId, options) {
     this.options = options || {};
     this.options.top = 0;
 
+    this.props = {
+        label: {
+            width: 0,
+            height: 0
+        }
+    };
+
     this.top = 0;
     this.left = 0;
     this.width = 0;
@@ -6161,6 +6171,18 @@ Group.prototype.reflow = function reflow() {
     changed += update(this, 'top',    this.itemset ? this.itemset.top : 0);
     changed += update(this, 'height', this.itemset ? this.itemset.height : 0);
 
+    // TODO: reckon with the height of the group label
+
+    if (this.label) {
+        var inner = this.label.firstChild;
+        changed += update(this.props.label, 'width', inner.clientWidth);
+        changed += update(this.props.label, 'height', inner.clientHeight);
+    }
+    else {
+        changed += update(this.props.label, 'width', 0);
+        changed += update(this.props.label, 'height', 0);
+    }
+
     return (changed > 0);
 };
 
@@ -6186,6 +6208,15 @@ function GroupSet(parent, depends, options) {
     this.groupsData = null; // DataSet with groups
 
     this.groups = {};       // map with groups
+
+    this.dom = {};
+    this.props = {
+        labels: {
+            width: 0
+        }
+    };
+
+    // TODO: implement right orientation of the labels
 
     // changes in groups are queued  key/value map containing id/action
     this.queue = {};
@@ -6312,24 +6343,15 @@ GroupSet.prototype.getGroups = function getGroups() {
  */
 GroupSet.prototype.repaint = function repaint() {
     var changed = 0,
+        i, id, group, label,
         update = util.updateProperty,
         asSize = util.option.asSize,
+        asElement = util.option.asElement,
         options = this.options,
-        frame = this.frame;
+        frame = this.dom.frame,
+        labels = this.dom.labels;
 
-    if (!frame) {
-        frame = document.createElement('div');
-        frame.className = 'groupset';
-
-        var className = options.className;
-        if (className) {
-            util.addClassName(frame, util.option.asString(className));
-        }
-
-        this.frame = frame;
-        changed += 1;
-    }
-
+    // create frame
     if (!this.parent) {
         throw new Error('Cannot repaint groupset: no parent attached');
     }
@@ -6337,9 +6359,39 @@ GroupSet.prototype.repaint = function repaint() {
     if (!parentContainer) {
         throw new Error('Cannot repaint groupset: parent has no container element');
     }
+    if (!frame) {
+        frame = document.createElement('div');
+        frame.className = 'groupset';
+        this.dom.frame = frame;
+
+        var className = options.className;
+        if (className) {
+            util.addClassName(frame, util.option.asString(className));
+        }
+
+        changed += 1;
+    }
     if (!frame.parentNode) {
         parentContainer.appendChild(frame);
         changed += 1;
+    }
+
+    // create labels
+    var labelContainer = asElement(options.labelContainer);
+    if (!labelContainer) {
+        throw new Error('Cannot repaint groupset: option "labelContainer" not defined');
+    }
+    if (!labels) {
+        labels = document.createElement('div');
+        labels.className = 'labels';
+        //frame.appendChild(labels);
+        this.dom.labels = labels;
+    }
+    if (!labels.parentNode || labels.parentNode != labelContainer) {
+        if (labels.parentNode) {
+            labels.parentNode.removeChild(labels.parentNode);
+        }
+        labelContainer.appendChild(labels);
     }
 
     // reposition frame
@@ -6348,12 +6400,15 @@ GroupSet.prototype.repaint = function repaint() {
     changed += update(frame.style, 'left',   asSize(options.left, '0px'));
     changed += update(frame.style, 'width',  asSize(options.width, '100%'));
 
+    // reposition labels
+    changed += update(labels.style, 'top',    asSize(options.top, '0px'));
+
     var me = this,
         queue = this.queue,
         groups = this.groups,
         groupsData = this.groupsData;
 
-    // show/hide added/changed/removed items
+    // show/hide added/changed/removed groups
     var ids = Object.keys(queue);
     if (ids.length) {
         ids.forEach(function (id) {
@@ -6405,7 +6460,7 @@ GroupSet.prototype.repaint = function repaint() {
         var orderedGroups = this.groupsData.getIds({
             order: this.options.groupsOrder
         });
-        for (var i = 0; i < orderedGroups.length; i++) {
+        for (i = 0; i < orderedGroups.length; i++) {
             (function (group, prevGroup) {
                 var top = 0;
                 if (prevGroup) {
@@ -6420,10 +6475,66 @@ GroupSet.prototype.repaint = function repaint() {
             })(groups[orderedGroups[i]], groups[orderedGroups[i - 1]]);
         }
 
+        // (re)create the labels
+        while (labels.firstChild) {
+            labels.removeChild(labels.firstChild);
+        }
+        for (i = 0; i < orderedGroups.length; i++) {
+            id = orderedGroups[i];
+            label = this._createLabel(id);
+            labels.appendChild(label);
+        }
+
         changed++;
     }
 
+    // reposition the labels
+    // TODO: labels are not displayed correctly when orientation=='top'
+    // TODO: width of labelPanel is not immediately updated on a change in groups
+    for (id in groups) {
+        if (groups.hasOwnProperty(id)) {
+            group = groups[id];
+            label = group.label;
+            if (label) {
+                label.style.top = group.top + 'px';
+                label.style.height = group.height + 'px';
+            }
+        }
+    }
+
     return (changed > 0);
+};
+
+/**
+ * Create a label for group with given id
+ * @param {Number} id
+ * @return {Element} label
+ * @private
+ */
+GroupSet.prototype._createLabel = function(id) {
+    var group = this.groups[id];
+    var label = document.createElement('div');
+    label.className = 'label';
+    var inner = document.createElement('div');
+    inner.className = 'inner';
+    label.appendChild(inner);
+
+    var content = group.data && group.data.content;
+    if (content instanceof Element) {
+        inner.appendChild(content);
+    }
+    else if (content != undefined) {
+        inner.innerHTML = content;
+    }
+
+    var className = group.data && group.data.className;
+    if (className) {
+        util.addClassName(label, className);
+    }
+
+    group.label = label; // TODO: not so nice, parking labels in the group this way!!!
+
+    return label;
 };
 
 /**
@@ -6431,8 +6542,15 @@ GroupSet.prototype.repaint = function repaint() {
  * @return {HTMLElement} container
  */
 GroupSet.prototype.getContainer = function getContainer() {
-    // TODO: replace later on with container element for holding itemsets
-    return this.frame;
+    return this.dom.frame;
+};
+
+/**
+ * Get the width of the group labels
+ * @return {Number} width
+ */
+GroupSet.prototype.getLabelsWidth = function getContainer() {
+    return this.props.labels.width;
 };
 
 /**
@@ -6441,11 +6559,12 @@ GroupSet.prototype.getContainer = function getContainer() {
  */
 GroupSet.prototype.reflow = function reflow() {
     var changed = 0,
+        id, group,
         options = this.options,
         update = util.updateProperty,
         asNumber = util.option.asNumber,
         asSize = util.option.asSize,
-        frame = this.frame;
+        frame = this.dom.frame;
 
     if (frame) {
         var maxHeight = asNumber(options.maxHeight);
@@ -6458,9 +6577,9 @@ GroupSet.prototype.reflow = function reflow() {
             // height is not specified, calculate the sum of the height of all groups
             height = 0;
 
-            for (var id in this.groups) {
+            for (id in this.groups) {
                 if (this.groups.hasOwnProperty(id)) {
-                    var group = this.groups[id];
+                    group = this.groups[id];
                     height += group.height;
                 }
             }
@@ -6475,6 +6594,17 @@ GroupSet.prototype.reflow = function reflow() {
         changed += update(this, 'width', frame.offsetWidth);
     }
 
+    // calculate the maximum width of the labels
+    var width = 0;
+    for (id in this.groups) {
+        if (this.groups.hasOwnProperty(id)) {
+            group = this.groups[id];
+            var labelWidth = group.props && group.props.label && group.props.label.width || 0;
+            width = Math.max(width, labelWidth);
+        }
+    }
+    changed += update(this.props.labels, 'width', width);
+
     return (changed > 0);
 };
 
@@ -6483,8 +6613,8 @@ GroupSet.prototype.reflow = function reflow() {
  * @return {Boolean} changed
  */
 GroupSet.prototype.hide = function hide() {
-    if (this.frame && this.frame.parentNode) {
-        this.frame.parentNode.removeChild(this.frame);
+    if (this.dom.frame && this.dom.frame.parentNode) {
+        this.dom.frame.parentNode.removeChild(this.dom.frame);
         return true;
     }
     else {
@@ -6498,7 +6628,7 @@ GroupSet.prototype.hide = function hide() {
  * @return {Boolean} changed
  */
 GroupSet.prototype.show = function show() {
-    if (!this.frame || !this.frame.parentNode) {
+    if (!this.dom.frame || !this.dom.frame.parentNode) {
         return this.repaint();
     }
     else {
@@ -6579,8 +6709,8 @@ function Timeline (container, items, options) {
     if (!container) {
         throw new Error('No container element provided');
     }
-    var mainOptions = Object.create(this.options);
-    mainOptions.height = function () {
+    var rootOptions = Object.create(this.options);
+    rootOptions.height = function () {
         if (me.options.height) {
             // fixed height
             return me.options.height;
@@ -6590,8 +6720,37 @@ function Timeline (container, items, options) {
             return me.timeaxis.height + me.content.height;
         }
     };
-    this.root = new RootPanel(container, mainOptions);
-    this.controller.add(this.root);
+    this.rootPanel = new RootPanel(container, rootOptions);
+    this.controller.add(this.rootPanel);
+
+    // item panel
+    var itemOptions = Object.create(this.options);
+    itemOptions.left = function () {
+        return me.labelPanel.width;
+    };
+    itemOptions.width = function () {
+        return me.rootPanel.width - me.labelPanel.width;
+    };
+    itemOptions.top = null;
+    itemOptions.height = null;
+    this.itemPanel = new Panel(this.rootPanel, [], itemOptions);
+    this.controller.add(this.itemPanel);
+
+    // label panel
+    var labelOptions = Object.create(this.options);
+    labelOptions.top = null;
+    labelOptions.left = null;
+    labelOptions.height = null;
+    labelOptions.width = function () {
+        if (me.content && typeof me.content.getLabelsWidth === 'function') {
+            return me.content.getLabelsWidth();
+        }
+        else {
+            return 0;
+        }
+    };
+    this.labelPanel = new Panel(this.rootPanel, [], labelOptions);
+    this.controller.add(this.labelPanel);
 
     // range
     var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
@@ -6600,8 +6759,8 @@ function Timeline (container, items, options) {
         end:   now.clone().add('days', 4).valueOf()
     });
     // TODO: reckon with options moveable and zoomable
-    this.range.subscribe(this.root, 'move', 'horizontal');
-    this.range.subscribe(this.root, 'zoom', 'horizontal');
+    this.range.subscribe(this.rootPanel, 'move', 'horizontal');
+    this.range.subscribe(this.rootPanel, 'zoom', 'horizontal');
     this.range.on('rangechange', function () {
         var force = true;
         me.controller.requestReflow(force);
@@ -6614,9 +6773,13 @@ function Timeline (container, items, options) {
     // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
 
     // time axis
-    var timeaxisOptions = Object.create(mainOptions);
+    var timeaxisOptions = Object.create(rootOptions);
     timeaxisOptions.range = this.range;
-    this.timeaxis = new TimeAxis(this.root, [], timeaxisOptions);
+    timeaxisOptions.left = null;
+    timeaxisOptions.top = null;
+    timeaxisOptions.width = '100%';
+    timeaxisOptions.height = null;
+    this.timeaxis = new TimeAxis(this.itemPanel, [], timeaxisOptions);
     this.timeaxis.setRange(this.range);
     this.controller.add(this.timeaxis);
 
@@ -6733,12 +6896,14 @@ Timeline.prototype.setGroups = function(groups) {
                     return me.timeaxis.height;
                 }
                 else {
-                    return me.root.height - me.timeaxis.height - me.content.height;
+                    return me.itemPanel.height - me.timeaxis.height - me.content.height;
                 }
             },
+            left: null,
+            width: '100%',
             height: function () {
                 if (me.options.height) {
-                    return me.root.height - me.timeaxis.height;
+                    return me.itemPanel.height - me.timeaxis.height;
                 }
                 else {
                     return null;
@@ -6754,9 +6919,12 @@ Timeline.prototype.setGroups = function(groups) {
                 else {
                     return null;
                 }
+            },
+            labelContainer: function () {
+                return me.labelPanel.getContainer();
             }
         });
-        this.content = new type(this.root, [this.timeaxis], options);
+        this.content = new type(this.itemPanel, [this.timeaxis], options);
         if (this.content.setRange) {
             this.content.setRange(this.range);
         }
@@ -11217,7 +11385,7 @@ if (typeof window !== 'undefined') {
 }
 
 // inject css
-util.loadCss("/* vis.js stylesheet */\n\n.graph {\n    position: relative;\n    border: 1px solid #bfbfbf;\n}\n\n.graph .panel {\n    position: absolute;\n}\n\n.graph .groupset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n}\n\n\n.graph .itemset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n    overflow: hidden;\n}\n\n.graph .background {\n}\n\n.graph .foreground {\n}\n\n.graph .itemset-axis {\n    position: absolute;\n}\n\n.graph .groupset .itemset-axis {\n    border-top: 1px solid #bfbfbf;\n}\n\n/* TODO: with orientation=='bottom', this will more or less overlap with timeline axis\n.graph .groupset .itemset-axis:last-child {\n    border-top: none;\n}\n*/\n\n\n.graph .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.graph .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.graph .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.graph .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.graph .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.graph .item.point {\n    background: none;\n}\n\n.graph .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range {\n    overflow: hidden;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .content {\n    position: relative;\n    display: inline-block;\n}\n\n.graph .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n}\n\n.graph .item .content {\n    margin: 5px;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n/* TODO: better css name, 'graph' is way to generic */\n\n.graph {\n    overflow: hidden;\n}\n\n.graph .axis {\n    position: relative;\n}\n\n.graph .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.graph .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.graph .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.graph .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.graph .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.graph .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n");
+util.loadCss("/* vis.js stylesheet */\n.vis.timeline {\n}\n\n\n.vis.timeline.rootpanel {\n    position: relative;\n    overflow: hidden;\n\n    border: 1px solid #bfbfbf;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n}\n\n.vis.timeline .panel {\n    position: absolute;\n    overflow: hidden;\n}\n\n\n.vis.timeline .groupset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n}\n\n.vis.timeline .labels {\n    position: absolute;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n\n    padding: 0;\n    margin: 0;\n\n    border-right: 1px solid #bfbfbf;\n    box-sizing: border-box;\n    -moz-box-sizing: border-box;\n}\n\n.vis.timeline .labels .label {\n    position: absolute;\n    left: 0;\n    top: 0;\n    width: 100%;\n    border-bottom: 1px solid #bfbfbf;\n    color: #4d4d4d;\n}\n\n.vis.timeline .labels .label .inner {\n    display: inline-block;\n    padding: 5px;\n}\n\n\n.vis.timeline .itemset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n    overflow: hidden;\n}\n\n.vis.timeline .background {\n}\n\n.vis.timeline .foreground {\n}\n\n.vis.timeline .itemset-axis {\n    position: absolute;\n}\n\n.vis.timeline .groupset .itemset-axis {\n    border-top: 1px solid #bfbfbf;\n}\n\n/* TODO: with orientation=='bottom', this will more or less overlap with timeline axis\n.vis.timeline .groupset .itemset-axis:last-child {\n    border-top: none;\n}\n*/\n\n\n.vis.timeline .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.vis.timeline .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.vis.timeline .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.vis.timeline .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.vis.timeline .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.point {\n    background: none;\n}\n\n.vis.timeline .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.range {\n    overflow: hidden;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.range .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.vis.timeline .item.range .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.vis.timeline .item.range .content {\n    position: relative;\n    display: inline-block;\n}\n\n.vis.timeline .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n}\n\n.vis.timeline .item .content {\n    margin: 5px;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n.vis.timeline .axis {\n    position: relative;\n}\n\n.vis.timeline .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.vis.timeline .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.vis.timeline .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.vis.timeline .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.vis.timeline .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.vis.timeline .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n");
 
 })()
 },{"moment":2}],2:[function(require,module,exports){

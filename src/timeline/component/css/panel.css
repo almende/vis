@@ -1,9 +1,14 @@
 
-.graph {
+.vis.timeline.rootpanel {
     position: relative;
+    overflow: hidden;
+
     border: 1px solid #bfbfbf;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
 }
 
-.graph .panel {
+.vis.timeline .panel {
     position: absolute;
+    overflow: hidden;
 }

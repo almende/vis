@@ -42,9 +42,10 @@ RootPanel.prototype.repaint = function () {
         asSize = util.option.asSize,
         options = this.options,
         frame = this.frame;
+
     if (!frame) {
         frame = document.createElement('div');
-        frame.className = 'graph panel';
+        frame.className = 'vis timeline rootpanel';
 
         var className = options.className;
         if (className) {
@@ -52,6 +53,7 @@ RootPanel.prototype.repaint = function () {
         }
 
         this.frame = frame;
+
         changed += 1;
     }
     if (!frame.parentNode) {

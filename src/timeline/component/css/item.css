@@ -1,5 +1,5 @@
 
-.graph .item {
+.vis.timeline .item {
     position: absolute;
     color: #1A1A1A;
     border-color: #97B0F8;
@@ -7,22 +7,22 @@
     display: inline-block;
 }
 
-.graph .item.selected {
+.vis.timeline .item.selected {
     border-color: #FFC200;
     background-color: #FFF785;
     z-index: 999;
 }
 
-.graph .item.cluster {
+.vis.timeline .item.cluster {
     /* TODO: use another color or pattern? */
     background: #97B0F8 url('img/cluster_bg.png');
     color: white;
 }
-.graph .item.cluster.point {
+.vis.timeline .item.cluster.point {
     border-color: #D5DDF6;
 }
 
-.graph .item.box {
+.vis.timeline .item.box {
     text-align: center;
     border-style: solid;
     border-width: 1px;
@@ -30,18 +30,18 @@
     -moz-border-radius: 5px; /* For Firefox 3.6 and older */
 }
 
-.graph .item.point {
+.vis.timeline .item.point {
     background: none;
 }
 
-.graph .dot {
+.vis.timeline .dot {
     border: 5px solid #97B0F8;
     position: absolute;
     border-radius: 5px;
     -moz-border-radius: 5px;  /* For Firefox 3.6 and older */
 }
 
-.graph .item.range {
+.vis.timeline .item.range {
     overflow: hidden;
     border-style: solid;
     border-width: 1px;
@@ -49,29 +49,29 @@
     -moz-border-radius: 2px;  /* For Firefox 3.6 and older */
 }
 
-.graph .item.range .drag-left {
+.vis.timeline .item.range .drag-left {
     cursor: w-resize;
     z-index: 1000;
 }
 
-.graph .item.range .drag-right {
+.vis.timeline .item.range .drag-right {
     cursor: e-resize;
     z-index: 1000;
 }
 
-.graph .item.range .content {
+.vis.timeline .item.range .content {
     position: relative;
     display: inline-block;
 }
 
-.graph .item.line {
+.vis.timeline .item.line {
     position: absolute;
     width: 0;
     border-left-width: 1px;
     border-left-style: solid;
 }
 
-.graph .item .content {
+.vis.timeline .item .content {
     margin: 5px;
     white-space: nowrap;
     overflow: hidden;

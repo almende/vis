@@ -36,7 +36,12 @@
     <li><a href="#Overview">Overview</a></li>
     <li><a href="#Example">Example</a></li>
     <li><a href="#Loading">Loading</a></li>
-    <li><a href="#Data_Format">Data Format</a></li>
+    <li><a href="#Data_Format">Data Format</a>
+        <ul>
+            <li><a href="#items">Items</a></li>
+            <li><a href="#groups">Groups</a></li>
+        </ul>
+    </li>
     <li><a href="#Configuration_Options">Configuration Options</a></li>
     <li><a href="#Methods">Methods</a></li>
     <li><a href="#Styles">Styles</a></li>
@@ -126,6 +131,16 @@ The constructor accepts three parameters:
 <h2 id="Data_Format">Data Format</h2>
 
 <p>
+    The timeline can be provided with two types of data:
+</p>
+<ul>
+    <li><a href="#items">Items</a> containing a set of items to be displayed in time.</li>
+    <li><a href="#groups">Groups</a> containing a set of groups used to group items
+    together.</li>
+</ul>
+
+<h3 id="items">Items</h3>
+<p>
     The Timeline uses regular Arrays and Objects as data format.
     Data items can contain the properties <code>start</code>,
     <code>end</code> (optional), <code>content</code>,
@@ -150,8 +165,6 @@ var items = [
 ]);
 </pre>
 
-<h3>Properties</h3>
-
 <p>
     The item properties are defined as:
 </p>
@@ -162,6 +175,14 @@ var items = [
         <th>Type</th>
         <th>Required</th>
         <th>Description</th>
+    </tr>
+    <tr>
+        <td>id</td>
+        <td>String | Number</td>
+        <td>no</td>
+        <td>An id for the item. Using an id is not required but highly
+            recommended. An id is needed when dynamically adding, updating,
+            and removing items in a DataSet.</td>
     </tr>
     <tr>
         <td>start</td>
@@ -205,7 +226,7 @@ var items = [
         <td>String</td>
         <td>no</td>
         <td>This field is optional. A className can be used to give items
-            and individual css style. For example, when an item has className
+            an individual css style. For example, when an item has className
             'red', one can define a css style
             <code>
                 .red {
@@ -218,6 +239,76 @@ var items = [
         </td>
     </tr>
 </table>
+
+<h3 id="groups">Groups</h3>
+<p>
+    Like the items, groups are regular JavaScript Arrays and Objects.
+    Using groups, items can be grouped together.
+    Items are filtered per group, and displayed as
+
+    Group items can contain the properties <code>id</code>,
+    <code>content</code>, and <code>className</code> (optional).
+</p>
+<p>
+    Groups can be applied to a timeline using the method <code>setGroups</code>.
+    A table with groups can be created like:
+</p>
+
+<pre class="prettyprint lang-js">
+var groups = [
+    {
+        id: 1,
+        content: 'Group 1'
+        // Optional: a field 'className'
+    }
+    // more groups...
+]);
+</pre>
+
+
+<p>
+    Groups can have the following properties:
+</p>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Required</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>id</td>
+        <td>String | Number</td>
+        <td>yes</td>
+        <td>An id for the group. The group will display all items having a
+            property <code>group</code> which matches the <code>id</code>
+            of the group.</td>
+    </tr>
+    <tr>
+        <td>content</td>
+        <td>String</td>
+        <td>yes</td>
+        <td>The contents of the group. This can be plain text or html code.</td>
+    </tr>
+    <tr>
+        <td>className</td>
+        <td>String</td>
+        <td>no</td>
+        <td>This field is optional. A className can be used to give groups
+            an individual css style. For example, when a group has className
+            'red', one can define a css style
+            <code>
+                .red {
+                    color: red;
+                }
+            </code>.
+            More details on how to style groups can be found in the section
+            <a href="#Styles">Styles</a>.
+        </td>
+    </tr>
+</table>
+
 
 
 <h2 id="Configuration_Options">Configuration Options</h2>
@@ -433,16 +524,16 @@ var options = {
         <th>Return Type</th>
         <th>Description</th>
     </tr>
-<!-- TODO: document groups as soon as implemented
     <tr>
         <td>setGroups(groups)</td>
         <td>none</td>
         <td>Set a data set with groups for the Timeline.
             <code>groups</code> can be an Array with Objects,
-            a DataSet, or a DataView.
+            a DataSet, or a DataView. For each of the groups, the items of the
+            timeline are filtered on the property <code>group</code>, which
+            must correspond with the id of the group.
         </td>
     </tr>
--->
     <tr>
         <td>setItems(items)</td>
         <td>none</td>

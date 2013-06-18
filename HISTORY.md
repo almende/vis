@@ -11,6 +11,7 @@ http://visjs.org
 - Added support for DataSet to Graph.
 - Methods getSelection and setSelection of Graph now accept a list with ids
   instead of rows.
+- Implemented basic support for groups in the Timeline.
 
 
 ## 2013-06-07, version 0.0.9

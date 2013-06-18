@@ -21,6 +21,15 @@ function GroupSet(parent, depends, options) {
 
     this.groups = {};       // map with groups
 
+    this.dom = {};
+    this.props = {
+        labels: {
+            width: 0
+        }
+    };
+
+    // TODO: implement right orientation of the labels
+
     // changes in groups are queued  key/value map containing id/action
     this.queue = {};
 
@@ -146,24 +155,15 @@ GroupSet.prototype.getGroups = function getGroups() {
  */
 GroupSet.prototype.repaint = function repaint() {
     var changed = 0,
+        i, id, group, label,
         update = util.updateProperty,
         asSize = util.option.asSize,
+        asElement = util.option.asElement,
         options = this.options,
-        frame = this.frame;
+        frame = this.dom.frame,
+        labels = this.dom.labels;
 
-    if (!frame) {
-        frame = document.createElement('div');
-        frame.className = 'groupset';
-
-        var className = options.className;
-        if (className) {
-            util.addClassName(frame, util.option.asString(className));
-        }
-
-        this.frame = frame;
-        changed += 1;
-    }
-
+    // create frame
     if (!this.parent) {
         throw new Error('Cannot repaint groupset: no parent attached');
     }
@@ -171,9 +171,39 @@ GroupSet.prototype.repaint = function repaint() {
     if (!parentContainer) {
         throw new Error('Cannot repaint groupset: parent has no container element');
     }
+    if (!frame) {
+        frame = document.createElement('div');
+        frame.className = 'groupset';
+        this.dom.frame = frame;
+
+        var className = options.className;
+        if (className) {
+            util.addClassName(frame, util.option.asString(className));
+        }
+
+        changed += 1;
+    }
     if (!frame.parentNode) {
         parentContainer.appendChild(frame);
         changed += 1;
+    }
+
+    // create labels
+    var labelContainer = asElement(options.labelContainer);
+    if (!labelContainer) {
+        throw new Error('Cannot repaint groupset: option "labelContainer" not defined');
+    }
+    if (!labels) {
+        labels = document.createElement('div');
+        labels.className = 'labels';
+        //frame.appendChild(labels);
+        this.dom.labels = labels;
+    }
+    if (!labels.parentNode || labels.parentNode != labelContainer) {
+        if (labels.parentNode) {
+            labels.parentNode.removeChild(labels.parentNode);
+        }
+        labelContainer.appendChild(labels);
     }
 
     // reposition frame
@@ -182,12 +212,15 @@ GroupSet.prototype.repaint = function repaint() {
     changed += update(frame.style, 'left',   asSize(options.left, '0px'));
     changed += update(frame.style, 'width',  asSize(options.width, '100%'));
 
+    // reposition labels
+    changed += update(labels.style, 'top',    asSize(options.top, '0px'));
+
     var me = this,
         queue = this.queue,
         groups = this.groups,
         groupsData = this.groupsData;
 
-    // show/hide added/changed/removed items
+    // show/hide added/changed/removed groups
     var ids = Object.keys(queue);
     if (ids.length) {
         ids.forEach(function (id) {
@@ -239,7 +272,7 @@ GroupSet.prototype.repaint = function repaint() {
         var orderedGroups = this.groupsData.getIds({
             order: this.options.groupsOrder
         });
-        for (var i = 0; i < orderedGroups.length; i++) {
+        for (i = 0; i < orderedGroups.length; i++) {
             (function (group, prevGroup) {
                 var top = 0;
                 if (prevGroup) {
@@ -254,10 +287,66 @@ GroupSet.prototype.repaint = function repaint() {
             })(groups[orderedGroups[i]], groups[orderedGroups[i - 1]]);
         }
 
+        // (re)create the labels
+        while (labels.firstChild) {
+            labels.removeChild(labels.firstChild);
+        }
+        for (i = 0; i < orderedGroups.length; i++) {
+            id = orderedGroups[i];
+            label = this._createLabel(id);
+            labels.appendChild(label);
+        }
+
         changed++;
     }
 
+    // reposition the labels
+    // TODO: labels are not displayed correctly when orientation=='top'
+    // TODO: width of labelPanel is not immediately updated on a change in groups
+    for (id in groups) {
+        if (groups.hasOwnProperty(id)) {
+            group = groups[id];
+            label = group.label;
+            if (label) {
+                label.style.top = group.top + 'px';
+                label.style.height = group.height + 'px';
+            }
+        }
+    }
+
     return (changed > 0);
+};
+
+/**
+ * Create a label for group with given id
+ * @param {Number} id
+ * @return {Element} label
+ * @private
+ */
+GroupSet.prototype._createLabel = function(id) {
+    var group = this.groups[id];
+    var label = document.createElement('div');
+    label.className = 'label';
+    var inner = document.createElement('div');
+    inner.className = 'inner';
+    label.appendChild(inner);
+
+    var content = group.data && group.data.content;
+    if (content instanceof Element) {
+        inner.appendChild(content);
+    }
+    else if (content != undefined) {
+        inner.innerHTML = content;
+    }
+
+    var className = group.data && group.data.className;
+    if (className) {
+        util.addClassName(label, className);
+    }
+
+    group.label = label; // TODO: not so nice, parking labels in the group this way!!!
+
+    return label;
 };
 
 /**
@@ -265,8 +354,15 @@ GroupSet.prototype.repaint = function repaint() {
  * @return {HTMLElement} container
  */
 GroupSet.prototype.getContainer = function getContainer() {
-    // TODO: replace later on with container element for holding itemsets
-    return this.frame;
+    return this.dom.frame;
+};
+
+/**
+ * Get the width of the group labels
+ * @return {Number} width
+ */
+GroupSet.prototype.getLabelsWidth = function getContainer() {
+    return this.props.labels.width;
 };
 
 /**
@@ -275,11 +371,12 @@ GroupSet.prototype.getContainer = function getContainer() {
  */
 GroupSet.prototype.reflow = function reflow() {
     var changed = 0,
+        id, group,
         options = this.options,
         update = util.updateProperty,
         asNumber = util.option.asNumber,
         asSize = util.option.asSize,
-        frame = this.frame;
+        frame = this.dom.frame;
 
     if (frame) {
         var maxHeight = asNumber(options.maxHeight);
@@ -292,9 +389,9 @@ GroupSet.prototype.reflow = function reflow() {
             // height is not specified, calculate the sum of the height of all groups
             height = 0;
 
-            for (var id in this.groups) {
+            for (id in this.groups) {
                 if (this.groups.hasOwnProperty(id)) {
-                    var group = this.groups[id];
+                    group = this.groups[id];
                     height += group.height;
                 }
             }
@@ -309,6 +406,17 @@ GroupSet.prototype.reflow = function reflow() {
         changed += update(this, 'width', frame.offsetWidth);
     }
 
+    // calculate the maximum width of the labels
+    var width = 0;
+    for (id in this.groups) {
+        if (this.groups.hasOwnProperty(id)) {
+            group = this.groups[id];
+            var labelWidth = group.props && group.props.label && group.props.label.width || 0;
+            width = Math.max(width, labelWidth);
+        }
+    }
+    changed += update(this.props.labels, 'width', width);
+
     return (changed > 0);
 };
 
@@ -317,8 +425,8 @@ GroupSet.prototype.reflow = function reflow() {
  * @return {Boolean} changed
  */
 GroupSet.prototype.hide = function hide() {
-    if (this.frame && this.frame.parentNode) {
-        this.frame.parentNode.removeChild(this.frame);
+    if (this.dom.frame && this.dom.frame.parentNode) {
+        this.dom.frame.parentNode.removeChild(this.dom.frame);
         return true;
     }
     else {
@@ -332,7 +440,7 @@ GroupSet.prototype.hide = function hide() {
  * @return {Boolean} changed
  */
 GroupSet.prototype.show = function show() {
-    if (!this.frame || !this.frame.parentNode) {
+    if (!this.dom.frame || !this.dom.frame.parentNode) {
         return this.repaint();
     }
     else {

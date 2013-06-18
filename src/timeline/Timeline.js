@@ -27,8 +27,8 @@ function Timeline (container, items, options) {
     if (!container) {
         throw new Error('No container element provided');
     }
-    var mainOptions = Object.create(this.options);
-    mainOptions.height = function () {
+    var rootOptions = Object.create(this.options);
+    rootOptions.height = function () {
         if (me.options.height) {
             // fixed height
             return me.options.height;
@@ -38,8 +38,37 @@ function Timeline (container, items, options) {
             return me.timeaxis.height + me.content.height;
         }
     };
-    this.root = new RootPanel(container, mainOptions);
-    this.controller.add(this.root);
+    this.rootPanel = new RootPanel(container, rootOptions);
+    this.controller.add(this.rootPanel);
+
+    // item panel
+    var itemOptions = Object.create(this.options);
+    itemOptions.left = function () {
+        return me.labelPanel.width;
+    };
+    itemOptions.width = function () {
+        return me.rootPanel.width - me.labelPanel.width;
+    };
+    itemOptions.top = null;
+    itemOptions.height = null;
+    this.itemPanel = new Panel(this.rootPanel, [], itemOptions);
+    this.controller.add(this.itemPanel);
+
+    // label panel
+    var labelOptions = Object.create(this.options);
+    labelOptions.top = null;
+    labelOptions.left = null;
+    labelOptions.height = null;
+    labelOptions.width = function () {
+        if (me.content && typeof me.content.getLabelsWidth === 'function') {
+            return me.content.getLabelsWidth();
+        }
+        else {
+            return 0;
+        }
+    };
+    this.labelPanel = new Panel(this.rootPanel, [], labelOptions);
+    this.controller.add(this.labelPanel);
 
     // range
     var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
@@ -48,8 +77,8 @@ function Timeline (container, items, options) {
         end:   now.clone().add('days', 4).valueOf()
     });
     // TODO: reckon with options moveable and zoomable
-    this.range.subscribe(this.root, 'move', 'horizontal');
-    this.range.subscribe(this.root, 'zoom', 'horizontal');
+    this.range.subscribe(this.rootPanel, 'move', 'horizontal');
+    this.range.subscribe(this.rootPanel, 'zoom', 'horizontal');
     this.range.on('rangechange', function () {
         var force = true;
         me.controller.requestReflow(force);
@@ -62,9 +91,13 @@ function Timeline (container, items, options) {
     // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
 
     // time axis
-    var timeaxisOptions = Object.create(mainOptions);
+    var timeaxisOptions = Object.create(rootOptions);
     timeaxisOptions.range = this.range;
-    this.timeaxis = new TimeAxis(this.root, [], timeaxisOptions);
+    timeaxisOptions.left = null;
+    timeaxisOptions.top = null;
+    timeaxisOptions.width = '100%';
+    timeaxisOptions.height = null;
+    this.timeaxis = new TimeAxis(this.itemPanel, [], timeaxisOptions);
     this.timeaxis.setRange(this.range);
     this.controller.add(this.timeaxis);
 
@@ -181,12 +214,14 @@ Timeline.prototype.setGroups = function(groups) {
                     return me.timeaxis.height;
                 }
                 else {
-                    return me.root.height - me.timeaxis.height - me.content.height;
+                    return me.itemPanel.height - me.timeaxis.height - me.content.height;
                 }
             },
+            left: null,
+            width: '100%',
             height: function () {
                 if (me.options.height) {
-                    return me.root.height - me.timeaxis.height;
+                    return me.itemPanel.height - me.timeaxis.height;
                 }
                 else {
                     return null;
@@ -202,9 +237,12 @@ Timeline.prototype.setGroups = function(groups) {
                 else {
                     return null;
                 }
+            },
+            labelContainer: function () {
+                return me.labelPanel.getContainer();
             }
         });
-        this.content = new type(this.root, [this.timeaxis], options);
+        this.content = new type(this.itemPanel, [this.timeaxis], options);
         if (this.content.setRange) {
             this.content.setRange(this.range);
         }

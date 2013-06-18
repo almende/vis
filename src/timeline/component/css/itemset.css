@@ -1,27 +1,27 @@
 
-.graph .itemset {
+.vis.timeline .itemset {
     position: absolute;
     padding: 0;
     margin: 0;
     overflow: hidden;
 }
 
-.graph .background {
+.vis.timeline .background {
 }
 
-.graph .foreground {
+.vis.timeline .foreground {
 }
 
-.graph .itemset-axis {
+.vis.timeline .itemset-axis {
     position: absolute;
 }
 
-.graph .groupset .itemset-axis {
+.vis.timeline .groupset .itemset-axis {
     border-top: 1px solid #bfbfbf;
 }
 
 /* TODO: with orientation=='bottom', this will more or less overlap with timeline axis
-.graph .groupset .itemset-axis:last-child {
+.vis.timeline .groupset .itemset-axis:last-child {
     border-top: none;
 }
 */

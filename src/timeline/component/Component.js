@@ -61,6 +61,7 @@ Component.prototype.getOption = function getOption(name) {
  * that case null is returned.
  * @returns {HTMLElement | null} container
  */
+// TODO: get rid of the getContainer and getFrame methods, provide these via the options
 Component.prototype.getContainer = function getContainer() {
     // should be implemented by the component
     return null;
