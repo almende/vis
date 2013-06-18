@@ -12,6 +12,7 @@ http://visjs.org
 - Methods getSelection and setSelection of Graph now accept a list with ids
   instead of rows.
 - Implemented basic support for groups in the Timeline.
+- Fixed selection of nodes in a Graph when the containing web page is scrolled.
 
 
 ## 2013-06-07, version 0.0.9

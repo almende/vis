@@ -344,8 +344,8 @@ Graph.prototype._onMouseDown = function (event) {
     vis.util.preventDefault(event);
 
     // store the start x and y position of the mouse
-    this.startMouseX = event.clientX || event.targetTouches[0].clientX;
-    this.startMouseY = event.clientY || event.targetTouches[0].clientY;
+    this.startMouseX = util.getPageX(event);
+    this.startMouseY = util.getPageY(event);
     this.startFrameLeft = vis.util.getAbsoluteLeft(this.frame.canvas);
     this.startFrameTop = vis.util.getAbsoluteTop(this.frame.canvas);
     this.startTranslation = this._getTranslation();
@@ -409,8 +409,8 @@ Graph.prototype._onMouseMove = function (event) {
         return;
     }
 
-    var mouseX = event.clientX || (event.targetTouches && event.targetTouches[0].clientX) || 0;
-    var mouseY = event.clientY || (event.targetTouches && event.targetTouches[0].clientY) || 0;
+    var mouseX = util.getPageX(event);
+    var mouseY = util.getPageY(event);
     this.mouseX = mouseX;
     this.mouseY = mouseY;
 
@@ -489,8 +489,8 @@ Graph.prototype._onMouseUp = function (event) {
     vis.util.preventDefault(event);
 
     // check selected nodes
-    var endMouseX = event.clientX || this.mouseX || 0;
-    var endMouseY = event.clientY || this.mouseY || 0;
+    var endMouseX = util.getPageX(event) || this.mouseX || 0;
+    var endMouseY = util.getPageY(event) || this.mouseY || 0;
 
     var ctrlKey = event ? event.ctrlKey : window.event.ctrlKey;
 
@@ -539,8 +539,8 @@ Graph.prototype._onMouseUp = function (event) {
  */
 Graph.prototype._onMouseWheel = function(event) {
     event = event || window.event;
-    var mouseX = event.clientX;
-    var mouseY = event.clientY;
+    var mouseX = util.getPageX(event);
+    var mouseY = util.getPageY(event);
 
     // retrieve delta
     var delta = 0;
@@ -602,8 +602,8 @@ Graph.prototype._onMouseWheel = function(event) {
 Graph.prototype._onMouseMoveTitle = function (event) {
     event = event || window.event;
 
-    var startMouseX = event.clientX;
-    var startMouseY = event.clientY;
+    var startMouseX = util.getPageX(event);
+    var startMouseY = util.getPageY(event);
     this.startFrameLeft = this.startFrameLeft || vis.util.getAbsoluteLeft(this.frame.canvas);
     this.startFrameTop = this.startFrameTop || vis.util.getAbsoluteTop(this.frame.canvas);
 
