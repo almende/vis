@@ -1,8 +1,11 @@
 
 #menu {
     position: absolute;
-    left: -160px;
+    left: -170px;
     top: 35px;
+    background-color: #a7c8f9;
+    padding: 15px;
+    border-radius: 3px;
 }
 
 #forkme {
@@ -13,7 +16,7 @@
 }
 
 div.nav {
-    text-align: right;
+    text-align: center;
 }
 
 div.nav ul {
@@ -49,6 +52,8 @@ div.nav ul li ul li {
 
 div.nav a {
     color: #2B7CE9;
+    color: white;
+    font-weight: bold;
 }
 
 .download td {
