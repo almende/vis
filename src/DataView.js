@@ -96,7 +96,7 @@ DataView.prototype.setData = function (data) {
  * {Object} options             An Object with options. Available options:
  *                              {String} [type] Type of data to be returned. Can
  *                                              be 'DataTable' or 'Array' (default)
- *                              {Object.<String, String>} [fieldTypes]
+ *                              {Object.<String, String>} [convert]
  *                              {String[]} [fields] field names to be returned
  *                              {function} [filter] filter items
  *                              {String | function} [order] Order the items by

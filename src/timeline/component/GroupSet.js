@@ -120,7 +120,7 @@ GroupSet.prototype.setGroups = function setGroups(groups) {
     }
     else {
         this.groupsData = new DataSet({
-            fieldTypes: {
+            convert: {
                 start: 'Date',
                 end: 'Date'
             }

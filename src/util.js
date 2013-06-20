@@ -98,7 +98,7 @@ util.extend = function (a, b) {
 };
 
 /**
- * Cast an object to another type
+ * Convert an object to another type
  * @param {Boolean | Number | String | Date | Moment | Null | undefined} object
  * @param {String | undefined} type   Name of the type. Available types:
  *                                    'Boolean', 'Number', 'String',
@@ -106,7 +106,7 @@ util.extend = function (a, b) {
  * @return {*} object
  * @throws Error
  */
-util.cast = function cast(object, type) {
+util.convert = function convert(object, type) {
     var match;
 
     if (object === undefined) {
@@ -159,7 +159,7 @@ util.cast = function cast(object, type) {
             }
             else {
                 throw new Error(
-                    'Cannot cast object of type ' + util.getType(object) +
+                    'Cannot convert object of type ' + util.getType(object) +
                         ' to type Date');
             }
 
@@ -185,7 +185,7 @@ util.cast = function cast(object, type) {
             }
             else {
                 throw new Error(
-                    'Cannot cast object of type ' + util.getType(object) +
+                    'Cannot convert object of type ' + util.getType(object) +
                         ' to type Date');
             }
 
@@ -211,7 +211,7 @@ util.cast = function cast(object, type) {
             }
             else {
                 throw new Error(
-                    'Cannot cast object of type ' + util.getType(object) +
+                    'Cannot convert object of type ' + util.getType(object) +
                         ' to type ISODate');
             }
 
@@ -236,12 +236,12 @@ util.cast = function cast(object, type) {
             }
             else {
                 throw new Error(
-                    'Cannot cast object of type ' + util.getType(object) +
+                    'Cannot convert object of type ' + util.getType(object) +
                         ' to type ASPDate');
             }
 
         default:
-            throw new Error('Cannot cast object of type ' + util.getType(object) +
+            throw new Error('Cannot convert object of type ' + util.getType(object) +
                 ' to type "' + type + '"');
     }
 };
@@ -568,7 +568,7 @@ util.preventDefault = function preventDefault (event) {
 util.option = {};
 
 /**
- * Cast a value as boolean
+ * Convert a value into a boolean
  * @param {Boolean | function | undefined} value
  * @param {Boolean} [defaultValue]
  * @returns {Boolean} bool
@@ -586,7 +586,7 @@ util.option.asBoolean = function (value, defaultValue) {
 };
 
 /**
- * Cast a value as number
+ * Convert a value into a number
  * @param {Boolean | function | undefined} value
  * @param {Number} [defaultValue]
  * @returns {Number} number
@@ -604,7 +604,7 @@ util.option.asNumber = function (value, defaultValue) {
 };
 
 /**
- * Cast a value as string
+ * Convert a value into a string
  * @param {String | function | undefined} value
  * @param {String} [defaultValue]
  * @returns {String} str
@@ -622,7 +622,7 @@ util.option.asString = function (value, defaultValue) {
 };
 
 /**
- * Cast a size or location in pixels or a percentage
+ * Convert a size or location into a string with pixels or a percentage
  * @param {String | Number | function | undefined} value
  * @param {String} [defaultValue]
  * @returns {String} size
@@ -644,7 +644,7 @@ util.option.asSize = function (value, defaultValue) {
 };
 
 /**
- * Cast a value as DOM element
+ * Convert a value into a DOM element
  * @param {HTMLElement | function | undefined} value
  * @param {HTMLElement} [defaultValue]
  * @returns {HTMLElement | null} dom
