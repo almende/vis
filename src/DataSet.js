@@ -70,11 +70,9 @@ function DataSet (options) {
  * @param {function} callback   Callback method. Called with three parameters:
  *                                  {String} event
  *                                  {Object | null} params
- *                                  {String} senderId
- * @param {String} [id]         Optional id for the sender, used to filter
- *                              events triggered by the sender itself.
+ *                                  {String | Number} senderId
  */
-DataSet.prototype.subscribe = function (event, callback, id) {
+DataSet.prototype.subscribe = function (event, callback) {
     var subscribers = this.subscribers[event];
     if (!subscribers) {
         subscribers = [];
@@ -82,7 +80,6 @@ DataSet.prototype.subscribe = function (event, callback, id) {
     }
 
     subscribers.push({
-        id: id ? String(id) : null,
         callback: callback
     });
 };
@@ -134,9 +131,10 @@ DataSet.prototype._trigger = function (event, params, senderId) {
  * Adding an item will fail when there already is an item with the same id.
  * @param {Object | Array | DataTable} data
  * @param {String} [senderId] Optional sender id
+ * @return {Array} addedIds      Array with the ids of the added items
  */
 DataSet.prototype.add = function (data, senderId) {
-    var addedItems = [],
+    var addedIds = [],
         id,
         me = this;
 
@@ -144,7 +142,7 @@ DataSet.prototype.add = function (data, senderId) {
         // Array
         for (var i = 0, len = data.length; i < len; i++) {
             id = me._addItem(data[i]);
-            addedItems.push(id);
+            addedIds.push(id);
         }
     }
     else if (util.isDataTable(data)) {
@@ -158,31 +156,34 @@ DataSet.prototype.add = function (data, senderId) {
             }
 
             id = me._addItem(item);
-            addedItems.push(id);
+            addedIds.push(id);
         }
     }
     else if (data instanceof Object) {
         // Single item
         id = me._addItem(data);
-        addedItems.push(id);
+        addedIds.push(id);
     }
     else {
         throw new Error('Unknown dataType');
     }
 
-    if (addedItems.length) {
-        this._trigger('add', {items: addedItems}, senderId);
+    if (addedIds.length) {
+        this._trigger('add', {items: addedIds}, senderId);
     }
+
+    return addedIds;
 };
 
 /**
  * Update existing items. When an item does not exist, it will be created
  * @param {Object | Array | DataTable} data
  * @param {String} [senderId] Optional sender id
+ * @return {Array} updatedIds     The ids of the added or updated items
  */
 DataSet.prototype.update = function (data, senderId) {
-    var addedItems = [],
-        updatedItems = [],
+    var addedIds = [],
+        updatedIds = [],
         me = this,
         fieldId = me.fieldId;
 
@@ -191,12 +192,12 @@ DataSet.prototype.update = function (data, senderId) {
         if (me.data[id]) {
             // update item
             id = me._updateItem(item);
-            updatedItems.push(id);
+            updatedIds.push(id);
         }
         else {
             // add new item
             id = me._addItem(item);
-            addedItems.push(id);
+            addedIds.push(id);
         }
     };
 
@@ -227,12 +228,14 @@ DataSet.prototype.update = function (data, senderId) {
         throw new Error('Unknown dataType');
     }
 
-    if (addedItems.length) {
-        this._trigger('add', {items: addedItems}, senderId);
+    if (addedIds.length) {
+        this._trigger('add', {items: addedIds}, senderId);
     }
-    if (updatedItems.length) {
-        this._trigger('update', {items: updatedItems}, senderId);
+    if (updatedIds.length) {
+        this._trigger('update', {items: updatedIds}, senderId);
     }
+
+    return addedIds.concat(updatedIds);
 };
 
 /**
@@ -613,46 +616,66 @@ DataSet.prototype._sort = function (items, order) {
 
 /**
  * Remove an object by pointer or by id
- * @param {String | Number | Object | Array} id   Object or id, or an array with
- *                                                objects or ids to be removed
+ * @param {String | Number | Object | Array} id Object or id, or an array with
+ *                                              objects or ids to be removed
  * @param {String} [senderId] Optional sender id
+ * @return {Array} removedIds
  */
 DataSet.prototype.remove = function (id, senderId) {
-    var removedItems = [],
-        i, len;
+    var removedIds = [],
+        i, len, removedId;
 
-    if (util.isNumber(id) || util.isString(id)) {
-        delete this.data[id];
-        delete this.internalIds[id];
-        removedItems.push(id);
-    }
-    else if (id instanceof Array) {
+    if (id instanceof Array) {
         for (i = 0, len = id.length; i < len; i++) {
-            this.remove(id[i]);
-        }
-        removedItems = items.concat(id);
-    }
-    else if (id instanceof Object) {
-        // search for the object
-        for (i in this.data) {
-            if (this.data.hasOwnProperty(i)) {
-                if (this.data[i] == id) {
-                    delete this.data[i];
-                    delete this.internalIds[i];
-                    removedItems.push(i);
-                }
+            removedId = this._remove(id[i]);
+            if (removedId != null) {
+                removedIds.push(removedId);
             }
         }
     }
-
-    if (removedItems.length) {
-        this._trigger('remove', {items: removedItems}, senderId);
+    else {
+        removedId = this._remove(id);
+        if (removedId != null) {
+            removedIds.push(removedId);
+        }
     }
+
+    if (removedIds.length) {
+        this._trigger('remove', {items: removedIds}, senderId);
+    }
+
+    return removedIds;
+};
+
+/**
+ * Remove an item by its id
+ * @param {Number | String | Object} id   id or item
+ * @returns {Number | String | null} id
+ * @private
+ */
+DataSet.prototype._remove = function (id) {
+    if (util.isNumber(id) || util.isString(id)) {
+        if (this.data[id]) {
+            delete this.data[id];
+            delete this.internalIds[id];
+            return id;
+        }
+    }
+    else if (id instanceof Object) {
+        var itemId = id[this.fieldId];
+        if (itemId && this.data[itemId]) {
+            delete this.data[itemId];
+            delete this.internalIds[itemId];
+            return itemId;
+        }
+    }
+    return null;
 };
 
 /**
  * Clear the data
  * @param {String} [senderId] Optional sender id
+ * @return {Array} removedIds    The ids of all removed items
  */
 DataSet.prototype.clear = function (senderId) {
     var ids = Object.keys(this.data);
@@ -661,6 +684,8 @@ DataSet.prototype.clear = function (senderId) {
     this.internalIds = {};
 
     this._trigger('remove', {items: ids}, senderId);
+
+    return ids;
 };
 
 /**
