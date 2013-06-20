@@ -3,7 +3,7 @@ src
 test
 tools
 .idea
-component.json
+bower.json
 Jakefile.js
 .npmignore
 .gitignore
