@@ -48,7 +48,7 @@
         }
     </style>
 </head>
-<body>
+<body onload="drawExample('example1')">
 
 <table id="frame">
     <col width="50%">
@@ -140,8 +140,7 @@ digraph {
     A -> A[label=0.5];
     B -> B[label=1.2] -> C[label=0.7] -- A;
     B -> D;
-    D -> B;
-    D -> C;
+    D -> {B; C}
     D -> E[label=0.2];
     F -> F;
     A [
@@ -198,12 +197,6 @@ digraph G  {
     15-> 0 ;
 }
 </textarea>
-
-<script>
-
-    // draw example1 now
-    drawExample('example1');
-</script>
 
 </body>
 </html>
