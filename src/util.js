@@ -131,7 +131,7 @@ util.cast = function cast(object, type) {
 
         case 'number':
         case 'Number':
-            return Number(object);
+            return Number(object.valueOf());
 
         case 'string':
         case 'String':
@@ -148,11 +148,9 @@ util.cast = function cast(object, type) {
                 return new Date(object.valueOf());
             }
             if (util.isString(object)) {
-                // parse ASP.Net Date pattern,
-                // for example '/Date(1198908717056)/' or '/Date(1198908717056-0700)/'
-                // code from http://momentjs.com/
                 match = ASPDateRegex.exec(object);
                 if (match) {
+                    // object is an ASP date
                     return new Date(Number(match[1])); // parse number
                 }
                 else {
@@ -176,11 +174,9 @@ util.cast = function cast(object, type) {
                 return moment.clone();
             }
             if (util.isString(object)) {
-                // parse ASP.Net Date pattern,
-                // for example '/Date(1198908717056)/' or '/Date(1198908717056-0700)/'
-                // code from http://momentjs.com/
                 match = ASPDateRegex.exec(object);
                 if (match) {
+                    // object is an ASP date
                     return moment(Number(match[1])); // parse number
                 }
                 else {
@@ -194,14 +190,24 @@ util.cast = function cast(object, type) {
             }
 
         case 'ISODate':
-            if (object instanceof Date) {
+            if (util.isNumber(object)) {
+                return new Date(object);
+            }
+            else if (object instanceof Date) {
                 return object.toISOString();
             }
             else if (moment.isMoment(object)) {
                 return object.toDate().toISOString();
             }
-            else if (util.isNumber(object) || util.isString(object)) {
-                return moment(object).toDate().toISOString();
+            else if (util.isString(object)) {
+                match = ASPDateRegex.exec(object);
+                if (match) {
+                    // object is an ASP date
+                    return new Date(Number(match[1])).toISOString(); // parse number
+                }
+                else {
+                    return new Date(object).toISOString(); // parse string
+                }
             }
             else {
                 throw new Error(
@@ -210,11 +216,23 @@ util.cast = function cast(object, type) {
             }
 
         case 'ASPDate':
-            if (object instanceof Date) {
+            if (util.isNumber(object)) {
+                return '/Date(' + object + ')/';
+            }
+            else if (object instanceof Date) {
                 return '/Date(' + object.valueOf() + ')/';
             }
-            else if (util.isNumber(object) || util.isString(object)) {
-                return '/Date(' + moment(object).valueOf() + ')/';
+            else if (util.isString(object)) {
+                match = ASPDateRegex.exec(object);
+                var value;
+                if (match) {
+                    // object is an ASP date
+                    value = new Date(Number(match[1])).valueOf(); // parse number
+                }
+                else {
+                    value = new Date(object).valueOf(); // parse string
+                }
+                return '/Date(' + value + ')/';
             }
             else {
                 throw new Error(
@@ -228,6 +246,9 @@ util.cast = function cast(object, type) {
     }
 };
 
+// parse ASP.Net Date pattern,
+// for example '/Date(1198908717056)/' or '/Date(1198908717056-0700)/'
+// code from http://momentjs.com/
 var ASPDateRegex = /^\/?Date\((\-?\d+)/i;
 
 /**
