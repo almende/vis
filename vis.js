@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.0.9
- * @date    2013-06-07
+ * @version 0.1.0
+ * @date    2013-06-20
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -129,7 +129,7 @@ util.extend = function (a, b) {
 };
 
 /**
- * Cast an object to another type
+ * Convert an object to another type
  * @param {Boolean | Number | String | Date | Moment | Null | undefined} object
  * @param {String | undefined} type   Name of the type. Available types:
  *                                    'Boolean', 'Number', 'String',
@@ -137,7 +137,7 @@ util.extend = function (a, b) {
  * @return {*} object
  * @throws Error
  */
-util.cast = function cast(object, type) {
+util.convert = function convert(object, type) {
     var match;
 
     if (object === undefined) {
@@ -162,7 +162,7 @@ util.cast = function cast(object, type) {
 
         case 'number':
         case 'Number':
-            return Number(object);
+            return Number(object.valueOf());
 
         case 'string':
         case 'String':
@@ -179,11 +179,9 @@ util.cast = function cast(object, type) {
                 return new Date(object.valueOf());
             }
             if (util.isString(object)) {
-                // parse ASP.Net Date pattern,
-                // for example '/Date(1198908717056)/' or '/Date(1198908717056-0700)/'
-                // code from http://momentjs.com/
                 match = ASPDateRegex.exec(object);
                 if (match) {
+                    // object is an ASP date
                     return new Date(Number(match[1])); // parse number
                 }
                 else {
@@ -192,7 +190,7 @@ util.cast = function cast(object, type) {
             }
             else {
                 throw new Error(
-                    'Cannot cast object of type ' + util.getType(object) +
+                    'Cannot convert object of type ' + util.getType(object) +
                         ' to type Date');
             }
 
@@ -207,11 +205,9 @@ util.cast = function cast(object, type) {
                 return moment.clone();
             }
             if (util.isString(object)) {
-                // parse ASP.Net Date pattern,
-                // for example '/Date(1198908717056)/' or '/Date(1198908717056-0700)/'
-                // code from http://momentjs.com/
                 match = ASPDateRegex.exec(object);
                 if (match) {
+                    // object is an ASP date
                     return moment(Number(match[1])); // parse number
                 }
                 else {
@@ -220,45 +216,70 @@ util.cast = function cast(object, type) {
             }
             else {
                 throw new Error(
-                    'Cannot cast object of type ' + util.getType(object) +
+                    'Cannot convert object of type ' + util.getType(object) +
                         ' to type Date');
             }
 
         case 'ISODate':
-            if (object instanceof Date) {
+            if (util.isNumber(object)) {
+                return new Date(object);
+            }
+            else if (object instanceof Date) {
                 return object.toISOString();
             }
             else if (moment.isMoment(object)) {
                 return object.toDate().toISOString();
             }
-            else if (util.isNumber(object) || util.isString(object)) {
-                return moment(object).toDate().toISOString();
+            else if (util.isString(object)) {
+                match = ASPDateRegex.exec(object);
+                if (match) {
+                    // object is an ASP date
+                    return new Date(Number(match[1])).toISOString(); // parse number
+                }
+                else {
+                    return new Date(object).toISOString(); // parse string
+                }
             }
             else {
                 throw new Error(
-                    'Cannot cast object of type ' + util.getType(object) +
+                    'Cannot convert object of type ' + util.getType(object) +
                         ' to type ISODate');
             }
 
         case 'ASPDate':
-            if (object instanceof Date) {
+            if (util.isNumber(object)) {
+                return '/Date(' + object + ')/';
+            }
+            else if (object instanceof Date) {
                 return '/Date(' + object.valueOf() + ')/';
             }
-            else if (util.isNumber(object) || util.isString(object)) {
-                return '/Date(' + moment(object).valueOf() + ')/';
+            else if (util.isString(object)) {
+                match = ASPDateRegex.exec(object);
+                var value;
+                if (match) {
+                    // object is an ASP date
+                    value = new Date(Number(match[1])).valueOf(); // parse number
+                }
+                else {
+                    value = new Date(object).valueOf(); // parse string
+                }
+                return '/Date(' + value + ')/';
             }
             else {
                 throw new Error(
-                    'Cannot cast object of type ' + util.getType(object) +
+                    'Cannot convert object of type ' + util.getType(object) +
                         ' to type ASPDate');
             }
 
         default:
-            throw new Error('Cannot cast object of type ' + util.getType(object) +
+            throw new Error('Cannot convert object of type ' + util.getType(object) +
                 ' to type "' + type + '"');
     }
 };
 
+// parse ASP.Net Date pattern,
+// for example '/Date(1198908717056)/' or '/Date(1198908717056-0700)/'
+// code from http://momentjs.com/
 var ASPDateRegex = /^\/?Date\((\-?\d+)/i;
 
 /**
@@ -578,7 +599,7 @@ util.preventDefault = function preventDefault (event) {
 util.option = {};
 
 /**
- * Cast a value as boolean
+ * Convert a value into a boolean
  * @param {Boolean | function | undefined} value
  * @param {Boolean} [defaultValue]
  * @returns {Boolean} bool
@@ -596,7 +617,7 @@ util.option.asBoolean = function (value, defaultValue) {
 };
 
 /**
- * Cast a value as number
+ * Convert a value into a number
  * @param {Boolean | function | undefined} value
  * @param {Number} [defaultValue]
  * @returns {Number} number
@@ -614,7 +635,7 @@ util.option.asNumber = function (value, defaultValue) {
 };
 
 /**
- * Cast a value as string
+ * Convert a value into a string
  * @param {String | function | undefined} value
  * @param {String} [defaultValue]
  * @returns {String} str
@@ -632,7 +653,7 @@ util.option.asString = function (value, defaultValue) {
 };
 
 /**
- * Cast a size or location in pixels or a percentage
+ * Convert a size or location into a string with pixels or a percentage
  * @param {String | Number | function | undefined} value
  * @param {String} [defaultValue]
  * @returns {String} size
@@ -654,7 +675,7 @@ util.option.asSize = function (value, defaultValue) {
 };
 
 /**
- * Cast a value as DOM element
+ * Convert a value into a DOM element
  * @param {HTMLElement | function | undefined} value
  * @param {HTMLElement} [defaultValue]
  * @returns {HTMLElement | null} dom
@@ -1136,7 +1157,7 @@ EventBus.prototype.emit = function (event, data, source) {
  * Usage:
  *     var dataSet = new DataSet({
  *         fieldId: '_id',
- *         fieldTypes: {
+ *         convert: {
  *             // ...
  *         }
  *     });
@@ -1161,28 +1182,29 @@ EventBus.prototype.emit = function (event, data, source) {
  * @param {Object} [options]   Available options:
  *                             {String} fieldId Field name of the id in the
  *                                              items, 'id' by default.
- *                             {Object.<String, String} fieldTypes
+ *                             {Object.<String, String} convert
  *                                              A map with field names as key,
  *                                              and the field type as value.
  * @constructor DataSet
  */
+// TODO: add a DataSet constructor DataSet(data, options)
 function DataSet (options) {
     this.id = util.randomUUID();
 
     this.options = options || {};
     this.data = {};                                 // map with data indexed by id
     this.fieldId = this.options.fieldId || 'id';    // name of the field containing id
-    this.fieldTypes = {};                           // field types by field name
+    this.convert = {};                              // field types by field name
 
-    if (this.options.fieldTypes) {
-        for (var field in this.options.fieldTypes) {
-            if (this.options.fieldTypes.hasOwnProperty(field)) {
-                var value = this.options.fieldTypes[field];
+    if (this.options.convert) {
+        for (var field in this.options.convert) {
+            if (this.options.convert.hasOwnProperty(field)) {
+                var value = this.options.convert[field];
                 if (value == 'Date' || value == 'ISODate' || value == 'ASPDate') {
-                    this.fieldTypes[field] = 'Date';
+                    this.convert[field] = 'Date';
                 }
                 else {
-                    this.fieldTypes[field] = value;
+                    this.convert[field] = value;
                 }
             }
         }
@@ -1201,11 +1223,9 @@ function DataSet (options) {
  * @param {function} callback   Callback method. Called with three parameters:
  *                                  {String} event
  *                                  {Object | null} params
- *                                  {String} senderId
- * @param {String} [id]         Optional id for the sender, used to filter
- *                              events triggered by the sender itself.
+ *                                  {String | Number} senderId
  */
-DataSet.prototype.subscribe = function (event, callback, id) {
+DataSet.prototype.subscribe = function (event, callback) {
     var subscribers = this.subscribers[event];
     if (!subscribers) {
         subscribers = [];
@@ -1213,7 +1233,6 @@ DataSet.prototype.subscribe = function (event, callback, id) {
     }
 
     subscribers.push({
-        id: id ? String(id) : null,
         callback: callback
     });
 };
@@ -1265,9 +1284,10 @@ DataSet.prototype._trigger = function (event, params, senderId) {
  * Adding an item will fail when there already is an item with the same id.
  * @param {Object | Array | DataTable} data
  * @param {String} [senderId] Optional sender id
+ * @return {Array} addedIds      Array with the ids of the added items
  */
 DataSet.prototype.add = function (data, senderId) {
-    var addedItems = [],
+    var addedIds = [],
         id,
         me = this;
 
@@ -1275,7 +1295,7 @@ DataSet.prototype.add = function (data, senderId) {
         // Array
         for (var i = 0, len = data.length; i < len; i++) {
             id = me._addItem(data[i]);
-            addedItems.push(id);
+            addedIds.push(id);
         }
     }
     else if (util.isDataTable(data)) {
@@ -1289,31 +1309,34 @@ DataSet.prototype.add = function (data, senderId) {
             }
 
             id = me._addItem(item);
-            addedItems.push(id);
+            addedIds.push(id);
         }
     }
     else if (data instanceof Object) {
         // Single item
         id = me._addItem(data);
-        addedItems.push(id);
+        addedIds.push(id);
     }
     else {
         throw new Error('Unknown dataType');
     }
 
-    if (addedItems.length) {
-        this._trigger('add', {items: addedItems}, senderId);
+    if (addedIds.length) {
+        this._trigger('add', {items: addedIds}, senderId);
     }
+
+    return addedIds;
 };
 
 /**
  * Update existing items. When an item does not exist, it will be created
  * @param {Object | Array | DataTable} data
  * @param {String} [senderId] Optional sender id
+ * @return {Array} updatedIds     The ids of the added or updated items
  */
 DataSet.prototype.update = function (data, senderId) {
-    var addedItems = [],
-        updatedItems = [],
+    var addedIds = [],
+        updatedIds = [],
         me = this,
         fieldId = me.fieldId;
 
@@ -1322,12 +1345,12 @@ DataSet.prototype.update = function (data, senderId) {
         if (me.data[id]) {
             // update item
             id = me._updateItem(item);
-            updatedItems.push(id);
+            updatedIds.push(id);
         }
         else {
             // add new item
             id = me._addItem(item);
-            addedItems.push(id);
+            addedIds.push(id);
         }
     };
 
@@ -1358,12 +1381,14 @@ DataSet.prototype.update = function (data, senderId) {
         throw new Error('Unknown dataType');
     }
 
-    if (addedItems.length) {
-        this._trigger('add', {items: addedItems}, senderId);
+    if (addedIds.length) {
+        this._trigger('add', {items: addedIds}, senderId);
     }
-    if (updatedItems.length) {
-        this._trigger('update', {items: updatedItems}, senderId);
+    if (updatedIds.length) {
+        this._trigger('update', {items: updatedIds}, senderId);
     }
+
+    return addedIds.concat(updatedIds);
 };
 
 /**
@@ -1390,7 +1415,7 @@ DataSet.prototype.update = function (data, senderId) {
  * {Object} options             An Object with options. Available options:
  *                              {String} [type] Type of data to be returned. Can
  *                                              be 'DataTable' or 'Array' (default)
- *                              {Object.<String, String>} [fieldTypes]
+ *                              {Object.<String, String>} [convert]
  *                              {String[]} [fields] field names to be returned
  *                              {function} [filter] filter items
  *                              {String | function} [order] Order the items by
@@ -1447,14 +1472,14 @@ DataSet.prototype.get = function (args) {
     }
 
     // build options
-    var fieldTypes = options && options.fieldTypes || this.options.fieldTypes;
+    var convert = options && options.convert || this.options.convert;
     var filter = options && options.filter;
     var items = [], item, itemId, i, len;
 
-    // cast items
+    // convert items
     if (id != undefined) {
         // return a single item
-        item = me._getItem(id, fieldTypes);
+        item = me._getItem(id, convert);
         if (filter && !filter(item)) {
             item = null;
         }
@@ -1462,7 +1487,7 @@ DataSet.prototype.get = function (args) {
     else if (ids != undefined) {
         // return a subset of items
         for (i = 0, len = ids.length; i < len; i++) {
-            item = me._getItem(ids[i], fieldTypes);
+            item = me._getItem(ids[i], convert);
             if (!filter || filter(item)) {
                 items.push(item);
             }
@@ -1472,7 +1497,7 @@ DataSet.prototype.get = function (args) {
         // return all items
         for (itemId in this.data) {
             if (this.data.hasOwnProperty(itemId)) {
-                item = me._getItem(itemId, fieldTypes);
+                item = me._getItem(itemId, convert);
                 if (!filter || filter(item)) {
                     items.push(item);
                 }
@@ -1548,7 +1573,7 @@ DataSet.prototype.getIds = function (options) {
     var data = this.data,
         filter = options && options.filter,
         order = options && options.order,
-        fieldTypes = options && options.fieldTypes || this.options.fieldTypes,
+        convert = options && options.convert || this.options.convert,
         i,
         len,
         id,
@@ -1563,7 +1588,7 @@ DataSet.prototype.getIds = function (options) {
             items = [];
             for (id in data) {
                 if (data.hasOwnProperty(id)) {
-                    item = this._getItem(id, fieldTypes);
+                    item = this._getItem(id, convert);
                     if (filter(item)) {
                         items.push(item);
                     }
@@ -1580,7 +1605,7 @@ DataSet.prototype.getIds = function (options) {
             // create unordered list
             for (id in data) {
                 if (data.hasOwnProperty(id)) {
-                    item = this._getItem(id, fieldTypes);
+                    item = this._getItem(id, convert);
                     if (filter(item)) {
                         ids.push(item[this.fieldId]);
                     }
@@ -1624,7 +1649,7 @@ DataSet.prototype.getIds = function (options) {
  * The order of the items is not determined.
  * @param {function} callback
  * @param {Object} [options]    Available options:
- *                              {Object.<String, String>} [fieldTypes]
+ *                              {Object.<String, String>} [convert]
  *                              {String[]} [fields] filter fields
  *                              {function} [filter] filter items
  *                              {String | function} [order] Order the items by
@@ -1632,7 +1657,7 @@ DataSet.prototype.getIds = function (options) {
  */
 DataSet.prototype.forEach = function (callback, options) {
     var filter = options && options.filter,
-        fieldTypes = options && options.fieldTypes || this.options.fieldTypes,
+        convert = options && options.convert || this.options.convert,
         data = this.data,
         item,
         id;
@@ -1651,7 +1676,7 @@ DataSet.prototype.forEach = function (callback, options) {
         // unordered
         for (id in data) {
             if (data.hasOwnProperty(id)) {
-                item = this._getItem(id, fieldTypes);
+                item = this._getItem(id, convert);
                 if (!filter || filter(item)) {
                     callback(item, id);
                 }
@@ -1664,7 +1689,7 @@ DataSet.prototype.forEach = function (callback, options) {
  * Map every item in the dataset.
  * @param {function} callback
  * @param {Object} [options]    Available options:
- *                              {Object.<String, String>} [fieldTypes]
+ *                              {Object.<String, String>} [convert]
  *                              {String[]} [fields] filter fields
  *                              {function} [filter] filter items
  *                              {String | function} [order] Order the items by
@@ -1673,15 +1698,15 @@ DataSet.prototype.forEach = function (callback, options) {
  */
 DataSet.prototype.map = function (callback, options) {
     var filter = options && options.filter,
-        fieldTypes = options && options.fieldTypes || this.options.fieldTypes,
+        convert = options && options.convert || this.options.convert,
         mappedItems = [],
         data = this.data,
         item;
 
-    // cast and filter items
+    // convert and filter items
     for (var id in data) {
         if (data.hasOwnProperty(id)) {
-            item = this._getItem(id, fieldTypes);
+            item = this._getItem(id, convert);
             if (!filter || filter(item)) {
                 mappedItems.push(callback(item, id));
             }
@@ -1744,46 +1769,66 @@ DataSet.prototype._sort = function (items, order) {
 
 /**
  * Remove an object by pointer or by id
- * @param {String | Number | Object | Array} id   Object or id, or an array with
- *                                                objects or ids to be removed
+ * @param {String | Number | Object | Array} id Object or id, or an array with
+ *                                              objects or ids to be removed
  * @param {String} [senderId] Optional sender id
+ * @return {Array} removedIds
  */
 DataSet.prototype.remove = function (id, senderId) {
-    var removedItems = [],
-        i, len;
+    var removedIds = [],
+        i, len, removedId;
 
-    if (util.isNumber(id) || util.isString(id)) {
-        delete this.data[id];
-        delete this.internalIds[id];
-        removedItems.push(id);
-    }
-    else if (id instanceof Array) {
+    if (id instanceof Array) {
         for (i = 0, len = id.length; i < len; i++) {
-            this.remove(id[i]);
-        }
-        removedItems = items.concat(id);
-    }
-    else if (id instanceof Object) {
-        // search for the object
-        for (i in this.data) {
-            if (this.data.hasOwnProperty(i)) {
-                if (this.data[i] == id) {
-                    delete this.data[i];
-                    delete this.internalIds[i];
-                    removedItems.push(i);
-                }
+            removedId = this._remove(id[i]);
+            if (removedId != null) {
+                removedIds.push(removedId);
             }
         }
     }
-
-    if (removedItems.length) {
-        this._trigger('remove', {items: removedItems}, senderId);
+    else {
+        removedId = this._remove(id);
+        if (removedId != null) {
+            removedIds.push(removedId);
+        }
     }
+
+    if (removedIds.length) {
+        this._trigger('remove', {items: removedIds}, senderId);
+    }
+
+    return removedIds;
+};
+
+/**
+ * Remove an item by its id
+ * @param {Number | String | Object} id   id or item
+ * @returns {Number | String | null} id
+ * @private
+ */
+DataSet.prototype._remove = function (id) {
+    if (util.isNumber(id) || util.isString(id)) {
+        if (this.data[id]) {
+            delete this.data[id];
+            delete this.internalIds[id];
+            return id;
+        }
+    }
+    else if (id instanceof Object) {
+        var itemId = id[this.fieldId];
+        if (itemId && this.data[itemId]) {
+            delete this.data[itemId];
+            delete this.internalIds[itemId];
+            return itemId;
+        }
+    }
+    return null;
 };
 
 /**
  * Clear the data
  * @param {String} [senderId] Optional sender id
+ * @return {Array} removedIds    The ids of all removed items
  */
 DataSet.prototype.clear = function (senderId) {
     var ids = Object.keys(this.data);
@@ -1792,6 +1837,8 @@ DataSet.prototype.clear = function (senderId) {
     this.internalIds = {};
 
     this._trigger('remove', {items: ids}, senderId);
+
+    return ids;
 };
 
 /**
@@ -1853,13 +1900,13 @@ DataSet.prototype.min = function (field) {
 DataSet.prototype.distinct = function (field) {
     var data = this.data,
         values = [],
-        fieldType = this.options.fieldTypes[field],
+        fieldType = this.options.convert[field],
         count = 0;
 
     for (var prop in data) {
         if (data.hasOwnProperty(prop)) {
             var item = data[prop];
-            var value = util.cast(item[field], fieldType);
+            var value = util.convert(item[field], fieldType);
             var exists = false;
             for (var i = 0; i < count; i++) {
                 if (values[i] == value) {
@@ -1903,8 +1950,8 @@ DataSet.prototype._addItem = function (item) {
     var d = {};
     for (var field in item) {
         if (item.hasOwnProperty(field)) {
-            var type = this.fieldTypes[field];  // type may be undefined
-            d[field] = util.cast(item[field], type);
+            var fieldType = this.convert[field];  // type may be undefined
+            d[field] = util.convert(item[field], fieldType);
         }
     }
     this.data[id] = d;
@@ -1913,13 +1960,13 @@ DataSet.prototype._addItem = function (item) {
 };
 
 /**
- * Get an item. Fields can be casted to a specific type
+ * Get an item. Fields can be converted to a specific type
  * @param {String} id
- * @param {Object.<String, String>} [fieldTypes]  Cast field types
+ * @param {Object.<String, String>} [convert]  field types to convert
  * @return {Object | null} item
  * @private
  */
-DataSet.prototype._getItem = function (id, fieldTypes) {
+DataSet.prototype._getItem = function (id, convert) {
     var field, value;
 
     // get the item from the dataset
@@ -1928,35 +1975,35 @@ DataSet.prototype._getItem = function (id, fieldTypes) {
         return null;
     }
 
-    // cast the items field types
-    var casted = {},
+    // convert the items field types
+    var converted = {},
         fieldId = this.fieldId,
         internalIds = this.internalIds;
-    if (fieldTypes) {
+    if (convert) {
         for (field in raw) {
             if (raw.hasOwnProperty(field)) {
                 value = raw[field];
                 // output all fields, except internal ids
                 if ((field != fieldId) || !(value in internalIds)) {
-                    casted[field] = util.cast(value, fieldTypes[field]);
+                    converted[field] = util.convert(value, convert[field]);
                 }
             }
         }
     }
     else {
-        // no field types specified, no casting needed
+        // no field types specified, no converting needed
         for (field in raw) {
             if (raw.hasOwnProperty(field)) {
                 value = raw[field];
                 // output all fields, except internal ids
                 if ((field != fieldId) || !(value in internalIds)) {
-                    casted[field] = value;
+                    converted[field] = value;
                 }
             }
         }
     }
 
-    return casted;
+    return converted;
 };
 
 /**
@@ -1981,8 +2028,8 @@ DataSet.prototype._updateItem = function (item) {
     // merge with current item
     for (var field in item) {
         if (item.hasOwnProperty(field)) {
-            var type = this.fieldTypes[field];  // type may be undefined
-            d[field] = util.cast(item[field], type);
+            var fieldType = this.convert[field];  // type may be undefined
+            d[field] = util.convert(item[field], fieldType);
         }
     }
 
@@ -2117,7 +2164,7 @@ DataView.prototype.setData = function (data) {
  * {Object} options             An Object with options. Available options:
  *                              {String} [type] Type of data to be returned. Can
  *                                              be 'DataTable' or 'Array' (default)
- *                              {Object.<String, String>} [fieldTypes]
+ *                              {Object.<String, String>} [convert]
  *                              {String[]} [fields] field names to be returned
  *                              {function} [filter] filter items
  *                              {String | function} [order] Order the items by
@@ -3083,8 +3130,8 @@ Range.prototype.setRange = function(start, end) {
  * @private
  */
 Range.prototype._applyRange = function(start, end) {
-    var newStart = (start != null) ? util.cast(start, 'Number') : this.start;
-    var newEnd = (end != null) ? util.cast(end, 'Number') : this.end;
+    var newStart = (start != null) ? util.convert(start, 'Number') : this.start;
+    var newEnd = (end != null) ? util.convert(end, 'Number') : this.end;
     var diff;
 
     // check for valid number
@@ -3703,6 +3750,7 @@ Component.prototype.getOption = function getOption(name) {
  * that case null is returned.
  * @returns {HTMLElement | null} container
  */
+// TODO: get rid of the getContainer and getFrame methods, provide these via the options
 Component.prototype.getContainer = function getContainer() {
     // should be implemented by the component
     return null;
@@ -3945,9 +3993,10 @@ RootPanel.prototype.repaint = function () {
         asSize = util.option.asSize,
         options = this.options,
         frame = this.frame;
+
     if (!frame) {
         frame = document.createElement('div');
-        frame.className = 'graph panel';
+        frame.className = 'vis timeline rootpanel';
 
         var className = options.className;
         if (className) {
@@ -3955,6 +4004,7 @@ RootPanel.prototype.repaint = function () {
         }
 
         this.frame = frame;
+
         changed += 1;
     }
     if (!frame.parentNode) {
@@ -4598,8 +4648,8 @@ TimeAxis.prototype.reflow = function () {
         // calculate range and step
         this._updateConversion();
 
-        var start = util.cast(range.start, 'Date'),
-            end = util.cast(range.end, 'Date'),
+        var start = util.convert(range.start, 'Date'),
+            end = util.convert(range.end, 'Date'),
             minimumStep = this.toTime((props.minorCharWidth || 10) * 5) - this.toTime(0);
         this.step = new TimeStep(start, end, minimumStep);
         changed += update(props.range, 'start', start.valueOf());
@@ -5027,19 +5077,8 @@ ItemSet.prototype.hide = function hide() {
  */
 ItemSet.prototype.setItems = function setItems(items) {
     var me = this,
-        ids;
-
-    // unsubscribe from current dataset
-    var current = this.itemsData;
-    if (current) {
-        util.forEach(this.listeners, function (callback, event) {
-            current.unsubscribe(event, callback);
-        });
-
-        // remove all drawn items
-        ids = current.getIds();
-        this._onRemove(ids);
-    }
+        ids,
+        oldItemsData = this.itemsData;
 
     // replace the dataset
     if (!items) {
@@ -5050,6 +5089,17 @@ ItemSet.prototype.setItems = function setItems(items) {
     }
     else {
         throw new TypeError('Data must be an instance of DataSet');
+    }
+
+    if (oldItemsData) {
+        // unsubscribe from old dataset
+        util.forEach(this.listeners, function (callback, event) {
+            oldItemsData.unsubscribe(event, callback);
+        });
+
+        // remove all drawn items
+        ids = oldItemsData.getIds();
+        this._onRemove(ids);
     }
 
     if (this.itemsData) {
@@ -5426,8 +5476,9 @@ ItemBox.prototype.reflow = function reflow() {
     data = this.data;
     range = this.parent && this.parent.range;
     if (data && range) {
-        // TODO: account for the width of the item. Take some margin
-        this.visible = (data.start > range.start) && (data.start < range.end);
+        // TODO: account for the width of the item
+        var interval = (range.end - range.start);
+        this.visible = (data.start > range.start - interval) && (data.start < range.end + interval);
     }
     else {
         this.visible = false;
@@ -5711,8 +5762,9 @@ ItemPoint.prototype.reflow = function reflow() {
     data = this.data;
     range = this.parent && this.parent.range;
     if (data && range) {
-        // TODO: account for the width of the item. Take some margin
-        this.visible = (data.start > range.start) && (data.start < range.end);
+        // TODO: account for the width of the item
+        var interval = (range.end - range.start);
+        this.visible = (data.start > range.start - interval) && (data.start < range.end);
     }
     else {
         this.visible = false;
@@ -6086,6 +6138,13 @@ function Group (parent, groupId, options) {
     this.options = options || {};
     this.options.top = 0;
 
+    this.props = {
+        label: {
+            width: 0,
+            height: 0
+        }
+    };
+
     this.top = 0;
     this.left = 0;
     this.width = 0;
@@ -6158,6 +6217,18 @@ Group.prototype.reflow = function reflow() {
     changed += update(this, 'top',    this.itemset ? this.itemset.top : 0);
     changed += update(this, 'height', this.itemset ? this.itemset.height : 0);
 
+    // TODO: reckon with the height of the group label
+
+    if (this.label) {
+        var inner = this.label.firstChild;
+        changed += update(this.props.label, 'width', inner.clientWidth);
+        changed += update(this.props.label, 'height', inner.clientHeight);
+    }
+    else {
+        changed += update(this.props.label, 'width', 0);
+        changed += update(this.props.label, 'height', 0);
+    }
+
     return (changed > 0);
 };
 
@@ -6183,6 +6254,15 @@ function GroupSet(parent, depends, options) {
     this.groupsData = null; // DataSet with groups
 
     this.groups = {};       // map with groups
+
+    this.dom = {};
+    this.props = {
+        labels: {
+            width: 0
+        }
+    };
+
+    // TODO: implement right orientation of the labels
 
     // changes in groups are queued  key/value map containing id/action
     this.queue = {};
@@ -6274,7 +6354,7 @@ GroupSet.prototype.setGroups = function setGroups(groups) {
     }
     else {
         this.groupsData = new DataSet({
-            fieldTypes: {
+            convert: {
                 start: 'Date',
                 end: 'Date'
             }
@@ -6309,24 +6389,15 @@ GroupSet.prototype.getGroups = function getGroups() {
  */
 GroupSet.prototype.repaint = function repaint() {
     var changed = 0,
+        i, id, group, label,
         update = util.updateProperty,
         asSize = util.option.asSize,
+        asElement = util.option.asElement,
         options = this.options,
-        frame = this.frame;
+        frame = this.dom.frame,
+        labels = this.dom.labels;
 
-    if (!frame) {
-        frame = document.createElement('div');
-        frame.className = 'groupset';
-
-        var className = options.className;
-        if (className) {
-            util.addClassName(frame, util.option.asString(className));
-        }
-
-        this.frame = frame;
-        changed += 1;
-    }
-
+    // create frame
     if (!this.parent) {
         throw new Error('Cannot repaint groupset: no parent attached');
     }
@@ -6334,9 +6405,39 @@ GroupSet.prototype.repaint = function repaint() {
     if (!parentContainer) {
         throw new Error('Cannot repaint groupset: parent has no container element');
     }
+    if (!frame) {
+        frame = document.createElement('div');
+        frame.className = 'groupset';
+        this.dom.frame = frame;
+
+        var className = options.className;
+        if (className) {
+            util.addClassName(frame, util.option.asString(className));
+        }
+
+        changed += 1;
+    }
     if (!frame.parentNode) {
         parentContainer.appendChild(frame);
         changed += 1;
+    }
+
+    // create labels
+    var labelContainer = asElement(options.labelContainer);
+    if (!labelContainer) {
+        throw new Error('Cannot repaint groupset: option "labelContainer" not defined');
+    }
+    if (!labels) {
+        labels = document.createElement('div');
+        labels.className = 'labels';
+        //frame.appendChild(labels);
+        this.dom.labels = labels;
+    }
+    if (!labels.parentNode || labels.parentNode != labelContainer) {
+        if (labels.parentNode) {
+            labels.parentNode.removeChild(labels.parentNode);
+        }
+        labelContainer.appendChild(labels);
     }
 
     // reposition frame
@@ -6345,12 +6446,15 @@ GroupSet.prototype.repaint = function repaint() {
     changed += update(frame.style, 'left',   asSize(options.left, '0px'));
     changed += update(frame.style, 'width',  asSize(options.width, '100%'));
 
+    // reposition labels
+    changed += update(labels.style, 'top',    asSize(options.top, '0px'));
+
     var me = this,
         queue = this.queue,
         groups = this.groups,
         groupsData = this.groupsData;
 
-    // show/hide added/changed/removed items
+    // show/hide added/changed/removed groups
     var ids = Object.keys(queue);
     if (ids.length) {
         ids.forEach(function (id) {
@@ -6402,7 +6506,7 @@ GroupSet.prototype.repaint = function repaint() {
         var orderedGroups = this.groupsData.getIds({
             order: this.options.groupsOrder
         });
-        for (var i = 0; i < orderedGroups.length; i++) {
+        for (i = 0; i < orderedGroups.length; i++) {
             (function (group, prevGroup) {
                 var top = 0;
                 if (prevGroup) {
@@ -6417,10 +6521,66 @@ GroupSet.prototype.repaint = function repaint() {
             })(groups[orderedGroups[i]], groups[orderedGroups[i - 1]]);
         }
 
+        // (re)create the labels
+        while (labels.firstChild) {
+            labels.removeChild(labels.firstChild);
+        }
+        for (i = 0; i < orderedGroups.length; i++) {
+            id = orderedGroups[i];
+            label = this._createLabel(id);
+            labels.appendChild(label);
+        }
+
         changed++;
     }
 
+    // reposition the labels
+    // TODO: labels are not displayed correctly when orientation=='top'
+    // TODO: width of labelPanel is not immediately updated on a change in groups
+    for (id in groups) {
+        if (groups.hasOwnProperty(id)) {
+            group = groups[id];
+            label = group.label;
+            if (label) {
+                label.style.top = group.top + 'px';
+                label.style.height = group.height + 'px';
+            }
+        }
+    }
+
     return (changed > 0);
+};
+
+/**
+ * Create a label for group with given id
+ * @param {Number} id
+ * @return {Element} label
+ * @private
+ */
+GroupSet.prototype._createLabel = function(id) {
+    var group = this.groups[id];
+    var label = document.createElement('div');
+    label.className = 'label';
+    var inner = document.createElement('div');
+    inner.className = 'inner';
+    label.appendChild(inner);
+
+    var content = group.data && group.data.content;
+    if (content instanceof Element) {
+        inner.appendChild(content);
+    }
+    else if (content != undefined) {
+        inner.innerHTML = content;
+    }
+
+    var className = group.data && group.data.className;
+    if (className) {
+        util.addClassName(label, className);
+    }
+
+    group.label = label; // TODO: not so nice, parking labels in the group this way!!!
+
+    return label;
 };
 
 /**
@@ -6428,8 +6588,15 @@ GroupSet.prototype.repaint = function repaint() {
  * @return {HTMLElement} container
  */
 GroupSet.prototype.getContainer = function getContainer() {
-    // TODO: replace later on with container element for holding itemsets
-    return this.frame;
+    return this.dom.frame;
+};
+
+/**
+ * Get the width of the group labels
+ * @return {Number} width
+ */
+GroupSet.prototype.getLabelsWidth = function getContainer() {
+    return this.props.labels.width;
 };
 
 /**
@@ -6438,11 +6605,12 @@ GroupSet.prototype.getContainer = function getContainer() {
  */
 GroupSet.prototype.reflow = function reflow() {
     var changed = 0,
+        id, group,
         options = this.options,
         update = util.updateProperty,
         asNumber = util.option.asNumber,
         asSize = util.option.asSize,
-        frame = this.frame;
+        frame = this.dom.frame;
 
     if (frame) {
         var maxHeight = asNumber(options.maxHeight);
@@ -6455,9 +6623,9 @@ GroupSet.prototype.reflow = function reflow() {
             // height is not specified, calculate the sum of the height of all groups
             height = 0;
 
-            for (var id in this.groups) {
+            for (id in this.groups) {
                 if (this.groups.hasOwnProperty(id)) {
-                    var group = this.groups[id];
+                    group = this.groups[id];
                     height += group.height;
                 }
             }
@@ -6472,6 +6640,17 @@ GroupSet.prototype.reflow = function reflow() {
         changed += update(this, 'width', frame.offsetWidth);
     }
 
+    // calculate the maximum width of the labels
+    var width = 0;
+    for (id in this.groups) {
+        if (this.groups.hasOwnProperty(id)) {
+            group = this.groups[id];
+            var labelWidth = group.props && group.props.label && group.props.label.width || 0;
+            width = Math.max(width, labelWidth);
+        }
+    }
+    changed += update(this.props.labels, 'width', width);
+
     return (changed > 0);
 };
 
@@ -6480,8 +6659,8 @@ GroupSet.prototype.reflow = function reflow() {
  * @return {Boolean} changed
  */
 GroupSet.prototype.hide = function hide() {
-    if (this.frame && this.frame.parentNode) {
-        this.frame.parentNode.removeChild(this.frame);
+    if (this.dom.frame && this.dom.frame.parentNode) {
+        this.dom.frame.parentNode.removeChild(this.dom.frame);
         return true;
     }
     else {
@@ -6495,7 +6674,7 @@ GroupSet.prototype.hide = function hide() {
  * @return {Boolean} changed
  */
 GroupSet.prototype.show = function show() {
-    if (!this.frame || !this.frame.parentNode) {
+    if (!this.dom.frame || !this.dom.frame.parentNode) {
         return this.repaint();
     }
     else {
@@ -6576,8 +6755,8 @@ function Timeline (container, items, options) {
     if (!container) {
         throw new Error('No container element provided');
     }
-    var mainOptions = Object.create(this.options);
-    mainOptions.height = function () {
+    var rootOptions = Object.create(this.options);
+    rootOptions.height = function () {
         if (me.options.height) {
             // fixed height
             return me.options.height;
@@ -6587,8 +6766,37 @@ function Timeline (container, items, options) {
             return me.timeaxis.height + me.content.height;
         }
     };
-    this.root = new RootPanel(container, mainOptions);
-    this.controller.add(this.root);
+    this.rootPanel = new RootPanel(container, rootOptions);
+    this.controller.add(this.rootPanel);
+
+    // item panel
+    var itemOptions = Object.create(this.options);
+    itemOptions.left = function () {
+        return me.labelPanel.width;
+    };
+    itemOptions.width = function () {
+        return me.rootPanel.width - me.labelPanel.width;
+    };
+    itemOptions.top = null;
+    itemOptions.height = null;
+    this.itemPanel = new Panel(this.rootPanel, [], itemOptions);
+    this.controller.add(this.itemPanel);
+
+    // label panel
+    var labelOptions = Object.create(this.options);
+    labelOptions.top = null;
+    labelOptions.left = null;
+    labelOptions.height = null;
+    labelOptions.width = function () {
+        if (me.content && typeof me.content.getLabelsWidth === 'function') {
+            return me.content.getLabelsWidth();
+        }
+        else {
+            return 0;
+        }
+    };
+    this.labelPanel = new Panel(this.rootPanel, [], labelOptions);
+    this.controller.add(this.labelPanel);
 
     // range
     var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
@@ -6597,8 +6805,8 @@ function Timeline (container, items, options) {
         end:   now.clone().add('days', 4).valueOf()
     });
     // TODO: reckon with options moveable and zoomable
-    this.range.subscribe(this.root, 'move', 'horizontal');
-    this.range.subscribe(this.root, 'zoom', 'horizontal');
+    this.range.subscribe(this.rootPanel, 'move', 'horizontal');
+    this.range.subscribe(this.rootPanel, 'zoom', 'horizontal');
     this.range.on('rangechange', function () {
         var force = true;
         me.controller.requestReflow(force);
@@ -6611,9 +6819,13 @@ function Timeline (container, items, options) {
     // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
 
     // time axis
-    var timeaxisOptions = Object.create(mainOptions);
+    var timeaxisOptions = Object.create(rootOptions);
     timeaxisOptions.range = this.range;
-    this.timeaxis = new TimeAxis(this.root, [], timeaxisOptions);
+    timeaxisOptions.left = null;
+    timeaxisOptions.top = null;
+    timeaxisOptions.width = '100%';
+    timeaxisOptions.height = null;
+    this.timeaxis = new TimeAxis(this.itemPanel, [], timeaxisOptions);
     this.timeaxis.setRange(this.range);
     this.controller.add(this.timeaxis);
 
@@ -6659,7 +6871,7 @@ Timeline.prototype.setItems = function(items) {
     }
     if (!(items instanceof DataSet)) {
         newItemSet = new DataSet({
-            fieldTypes: {
+            convert: {
                 start: 'Date',
                 end: 'Date'
             }
@@ -6730,12 +6942,14 @@ Timeline.prototype.setGroups = function(groups) {
                     return me.timeaxis.height;
                 }
                 else {
-                    return me.root.height - me.timeaxis.height - me.content.height;
+                    return me.itemPanel.height - me.timeaxis.height - me.content.height;
                 }
             },
+            left: null,
+            width: '100%',
             height: function () {
                 if (me.options.height) {
-                    return me.root.height - me.timeaxis.height;
+                    return me.itemPanel.height - me.timeaxis.height;
                 }
                 else {
                     return null;
@@ -6751,9 +6965,12 @@ Timeline.prototype.setGroups = function(groups) {
                 else {
                     return null;
                 }
+            },
+            labelContainer: function () {
+                return me.labelPanel.getContainer();
             }
         });
-        this.content = new type(this.root, [this.timeaxis], options);
+        this.content = new type(this.itemPanel, [this.timeaxis], options);
         if (this.content.setRange) {
             this.content.setRange(this.range);
         }
@@ -6810,6 +7027,9 @@ Timeline.prototype.getItemRange = function getItemRange() {
     /**
      * Parse a text source containing data in DOT language into a JSON object.
      * The object contains two lists: one with nodes and one with edges.
+     *
+     * DOT language reference: http://www.graphviz.org/doc/info/lang.html
+     *
      * @param {String} data     Text containing a graph in DOT-notation
      * @return {Object} graph   An object containing two parameters:
      *                          {Object[]} nodes
@@ -6848,10 +7068,6 @@ Timeline.prototype.getItemRange = function getItemRange() {
     var token = '';                 // current token
     var tokenType = TOKENTYPE.NULL; // type of the token
 
-    var graph = null;               // object with the graph to be build
-    var nodeAttr = null;            // global node attributes
-    var edgeAttr = null;            // global edge attributes
-
     /**
      * Get the first character from the dot file.
      * The character is stored into the char c. If the end of the dot file is
@@ -6885,7 +7101,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
      * @param {String} c
      * @return {Boolean} isAlphaNumeric
      */
-    var regexAlphaNumeric = /[a-zA-Z_0-9.#]/;
+    var regexAlphaNumeric = /[a-zA-Z_0-9.:#]/;
     function isAlphaNumeric(c) {
         return regexAlphaNumeric.test(c);
     }
@@ -6912,44 +7128,131 @@ Timeline.prototype.getItemRange = function getItemRange() {
     }
 
     /**
-     * Add a node to the current graph object. If there is already a node with
-     * the same id, their attributes will be merged.
-     * @param {Object} node
+     * Set a value in an object, where the provided parameter name can be a
+     * path with nested parameters. For example:
+     *
+     *     var obj = {a: 2};
+     *     setValue(obj, 'b.c', 3);     // obj = {a: 2, b: {c: 3}}
+     *
+     * @param {Object} obj
+     * @param {String} path  A parameter name or dot-separated parameter path,
+     *                      like "color.highlight.border".
+     * @param {*} value
      */
-    function addNode(node) {
-        if (!graph.nodes) {
-            graph.nodes = {};
-        }
-        var current = graph.nodes[node.id];
-        if (current) {
-            // merge attributes
-            if (node.attr) {
-                current.attr = merge(current.attr, node.attr);
+    function setValue(obj, path, value) {
+        var keys = path.split('.');
+        var o = obj;
+        while (keys.length) {
+            var key = keys.shift();
+            if (keys.length) {
+                // this isn't the end point
+                if (!o[key]) {
+                    o[key] = {};
+                }
+                o = o[key];
             }
-        }
-        else {
-            // add
-            graph.nodes[node.id] = node;
-            if (nodeAttr) {
-                var attr = merge({}, nodeAttr);     // clone global attributes
-                node.attr = merge(attr, node.attr); // merge attributes
+            else {
+                // this is the end point
+                o[key] = value;
             }
         }
     }
 
     /**
-     * Add an edge to the current graph obect
+     * Add a node to a graph object. If there is already a node with
+     * the same id, their attributes will be merged.
+     * @param {Object} graph
+     * @param {Object} node
+     */
+    function addNode(graph, node) {
+        var i, len;
+        var current = null;
+
+        // find root graph (in case of subgraph)
+        var graphs = [graph]; // list with all graphs from current graph to root graph
+        var root = graph;
+        while (root.parent) {
+            graphs.push(root.parent);
+            root = root.parent;
+        }
+
+        // find existing node (at root level) by its id
+        if (root.nodes) {
+            for (i = 0, len = root.nodes.length; i < len; i++) {
+                if (node.id === root.nodes[i].id) {
+                    current = root.nodes[i];
+                    break;
+                }
+            }
+        }
+
+        if (!current) {
+            // this is a new node
+            current = {
+                id: node.id
+            };
+            if (graph.node) {
+                // clone default attributes
+                current.attr = merge(current.attr, graph.node);
+            }
+        }
+
+        // add node to this (sub)graph and all its parent graphs
+        for (i = graphs.length - 1; i >= 0; i--) {
+            var g = graphs[i];
+
+            if (!g.nodes) {
+                g.nodes = [];
+            }
+            if (g.nodes.indexOf(current) == -1) {
+                g.nodes.push(current);
+            }
+        }
+
+        // merge attributes
+        if (node.attr) {
+            current.attr = merge(current.attr, node.attr);
+        }
+    }
+
+    /**
+     * Add an edge to a graph object
+     * @param {Object} graph
      * @param {Object} edge
      */
-    function addEdge(edge) {
+    function addEdge(graph, edge) {
         if (!graph.edges) {
             graph.edges = [];
         }
         graph.edges.push(edge);
-        if (edgeAttr) {
-            var attr = merge({}, edgeAttr);     // clone global attributes
+        if (graph.edge) {
+            var attr = merge({}, graph.edge);     // clone default attributes
             edge.attr = merge(attr, edge.attr); // merge attributes
         }
+    }
+
+    /**
+     * Create an edge to a graph object
+     * @param {Object} graph
+     * @param {String | Number | Object} from
+     * @param {String | Number | Object} to
+     * @param {String} type
+     * @param {Object | null} attr
+     * @return {Object} edge
+     */
+    function createEdge(graph, from, to, type, attr) {
+        var edge = {
+            from: from,
+            to: to,
+            type: type
+        };
+
+        if (graph.edge) {
+            edge.attr = merge({}, graph.edge);  // clone default attributes
+        }
+        edge.attr = merge(edge.attr || {}, attr); // merge attributes
+
+        return edge;
     }
 
     /**
@@ -7039,7 +7342,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
         }
 
         // check for an identifier (number or string)
-        // TODO: more precise parsing of numbers/strings
+        // TODO: more precise parsing of numbers/strings (and the port separator ':')
         if (isAlphaNumeric(c) || c == '-') {
             token += c;
             next();
@@ -7049,13 +7352,13 @@ Timeline.prototype.getItemRange = function getItemRange() {
                 next();
             }
             if (token == 'false') {
-                token = false;   // cast to boolean
+                token = false;   // convert to boolean
             }
             else if (token == 'true') {
-                token = true;   // cast to boolean
+                token = true;   // convert to boolean
             }
             else if (!isNaN(Number(token))) {
-                token = Number(token); // cast to number
+                token = Number(token); // convert to number
             }
             tokenType = TOKENTYPE.IDENTIFIER;
             return;
@@ -7093,9 +7396,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
      * @returns {Object} graph
      */
     function parseGraph() {
-        graph = {};
-        nodeAttr = null;
-        edgeAttr = null;
+        var graph = {};
 
         first();
         getToken();
@@ -7112,7 +7413,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
             getToken();
         }
 
-        // graph id
+        // optional graph id
         if (tokenType == TOKENTYPE.IDENTIFIER) {
             graph.id = token;
             getToken();
@@ -7125,7 +7426,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
         getToken();
 
         // statements
-        parseStatements();
+        parseStatements(graph);
 
         // close angle bracket
         if (token != '}') {
@@ -7139,19 +7440,21 @@ Timeline.prototype.getItemRange = function getItemRange() {
         }
         getToken();
 
+        // remove temporary default properties
+        delete graph.node;
+        delete graph.edge;
+        delete graph.graph;
+
         return graph;
     }
 
     /**
      * Parse a list with statements.
+     * @param {Object} graph
      */
-    function parseStatements () {
+    function parseStatements (graph) {
         while (token !== '' && token != '}') {
-            if (tokenType != TOKENTYPE.IDENTIFIER) {
-                throw newSyntaxError('Identifier expected');
-            }
-
-            parseStatement();
+            parseStatement(graph);
             if (token == ';') {
                 getToken();
             }
@@ -7162,94 +7465,208 @@ Timeline.prototype.getItemRange = function getItemRange() {
      * Parse a single statement. Can be a an attribute statement, node
      * statement, a series of node statements and edge statements, or a
      * parameter.
+     * @param {Object} graph
      */
-    function parseStatement() {
-        var attr;
-        var id = token; // can be as string or a number
+    function parseStatement(graph) {
+        // parse subgraph
+        var subgraph = parseSubgraph(graph);
+        if (subgraph) {
+            // edge statements
+            parseEdge(graph, subgraph);
+
+            return;
+        }
+
+        // parse an attribute statement
+        var attr = parseAttributeStatement(graph);
+        if (attr) {
+            return;
+        }
+
+        // parse node
+        if (tokenType != TOKENTYPE.IDENTIFIER) {
+            throw newSyntaxError('Identifier expected');
+        }
+        var id = token; // id can be a string or a number
         getToken();
 
-        // attribute statements
-        if (id == 'node') {
-            // node attributes
-            attr = parseAttributes();
-            if (attr) {
-                nodeAttr = merge(nodeAttr, attr);
+        if (token == '=') {
+            // id statement
+            getToken();
+            if (tokenType != TOKENTYPE.IDENTIFIER) {
+                throw newSyntaxError('Identifier expected');
             }
-        }
-        else if (id == 'edge') {
-            // edge attributes
-            attr = parseAttributes();
-            if (attr) {
-                edgeAttr = merge(edgeAttr, attr);
-            }
-        }
-        else if (id == 'graph') {
-            // graph attributes
-            attr = parseAttributes();
-            if (attr) {
-                graph.attr = merge(graph.attr, attr);
-            }
+            graph[id] = token;
+            getToken();
+            // TODO: implement comma separated list with "a_list: ID=ID [','] [a_list] "
         }
         else {
-            if (token == '=') {
-                // id statement
+            parseNodeStatement(graph, id);
+        }
+    }
+
+    /**
+     * Parse a subgraph
+     * @param {Object} graph    parent graph object
+     * @return {Object | null} subgraph
+     */
+    function parseSubgraph (graph) {
+        var subgraph = null;
+
+        // optional subgraph keyword
+        if (token == 'subgraph') {
+            subgraph = {};
+            subgraph.type = 'subgraph';
+            getToken();
+
+            // optional graph id
+            if (tokenType == TOKENTYPE.IDENTIFIER) {
+                subgraph.id = token;
                 getToken();
-                if (!graph.attr) {
-                    graph.attr = {};
-                }
-                graph.attr[id] = token;
-                getToken();
+            }
+        }
+
+        // open angle bracket
+        if (token == '{') {
+            getToken();
+
+            if (!subgraph) {
+                subgraph = {};
+            }
+            subgraph.parent = graph;
+            subgraph.node = graph.node;
+            subgraph.edge = graph.edge;
+            subgraph.graph = graph.graph;
+
+            // statements
+            parseStatements(subgraph);
+
+            // close angle bracket
+            if (token != '}') {
+                throw newSyntaxError('Angle bracket } expected');
+            }
+            getToken();
+
+            // remove temporary default properties
+            delete subgraph.node;
+            delete subgraph.edge;
+            delete subgraph.graph;
+            delete subgraph.parent;
+
+            // register at the parent graph
+            if (!graph.subgraphs) {
+                graph.subgraphs = [];
+            }
+            graph.subgraphs.push(subgraph);
+        }
+
+        return subgraph;
+    }
+
+    /**
+     * parse an attribute statement like "node [shape=circle fontSize=16]".
+     * Available keywords are 'node', 'edge', 'graph'.
+     * The previous list with default attributes will be replaced
+     * @param {Object} graph
+     * @returns {String | null} keyword Returns the name of the parsed attribute
+     *                                  (node, edge, graph), or null if nothing
+     *                                  is parsed.
+     */
+    function parseAttributeStatement (graph) {
+        // attribute statements
+        if (token == 'node') {
+            getToken();
+
+            // node attributes
+            graph.node = parseAttributeList();
+            return 'node';
+        }
+        else if (token == 'edge') {
+            getToken();
+
+            // edge attributes
+            graph.edge = parseAttributeList();
+            return 'edge';
+        }
+        else if (token == 'graph') {
+            getToken();
+
+            // graph attributes
+            graph.graph = parseAttributeList();
+            return 'graph';
+        }
+
+        return null;
+    }
+
+    /**
+     * parse a node statement
+     * @param {Object} graph
+     * @param {String | Number} id
+     */
+    function parseNodeStatement(graph, id) {
+        // node statement
+        var node = {
+            id: id
+        };
+        var attr = parseAttributeList();
+        if (attr) {
+            node.attr = attr;
+        }
+        addNode(graph, node);
+
+        // edge statements
+        parseEdge(graph, id);
+    }
+
+    /**
+     * Parse an edge or a series of edges
+     * @param {Object} graph
+     * @param {String | Number} from        Id of the from node
+     */
+    function parseEdge(graph, from) {
+        while (token == '->' || token == '--') {
+            var to;
+            var type = token;
+            getToken();
+
+            var subgraph = parseSubgraph(graph);
+            if (subgraph) {
+                to = subgraph;
             }
             else {
-                // node statement
-                var node = {
-                    id: String(id)
-                };
-                attr = parseAttributes();
-                if (attr) {
-                    node.attr = attr;
+                if (tokenType != TOKENTYPE.IDENTIFIER) {
+                    throw newSyntaxError('Identifier or subgraph expected');
                 }
-                addNode(node);
-
-                // edge statements
-                var from = id;
-                while (token == '->' || token == '--') {
-                    var type = token;
-                    getToken();
-
-                    var to = token;
-                    addNode({
-                        id: String(to)
-                    });
-                    getToken();
-                    attr = parseAttributes();
-
-                    // create edge
-                    var edge = {
-                        from: String(from),
-                        to: String(to),
-                        type: type
-                    };
-                    if (attr) {
-                        edge.attr = attr;
-                    }
-                    addEdge(edge);
-
-                    from = to;
-                }
+                to = token;
+                addNode(graph, {
+                    id: to
+                });
+                getToken();
             }
+
+            // parse edge attributes
+            var attr = parseAttributeList();
+
+            // create edge
+            var edge = createEdge(graph, from, to, type, attr);
+            addEdge(graph, edge);
+
+            from = to;
         }
     }
 
     /**
      * Parse a set with attributes,
      * for example [label="1.000", shape=solid]
-     * @return {Object | undefined} attr
+     * @return {Object | null} attr
      */
-    function parseAttributes() {
-        if (token == '[') {
+    function parseAttributeList() {
+        var attr = null;
+
+        while (token == '[') {
             getToken();
-            var attr = {};
+            attr = {};
             while (token !== '' && token != ']') {
                 if (tokenType != TOKENTYPE.IDENTIFIER) {
                     throw newSyntaxError('Attribute name expected');
@@ -7266,20 +7683,21 @@ Timeline.prototype.getItemRange = function getItemRange() {
                     throw newSyntaxError('Attribute value expected');
                 }
                 var value = token;
-                attr[name] = value;
+                setValue(attr, name, value); // name can be a path
 
                 getToken();
                 if (token ==',') {
                     getToken();
                 }
             }
-            getToken();
 
-            return attr;
+            if (token != ']') {
+                throw newSyntaxError('Bracket ] expected');
+            }
+            getToken();
         }
-        else {
-            return undefined;
-        }
+
+        return attr;
     }
 
     /**
@@ -7302,6 +7720,37 @@ Timeline.prototype.getItemRange = function getItemRange() {
     }
 
     /**
+     * Execute a function fn for each pair of elements in two arrays
+     * @param {Array | *} array1
+     * @param {Array | *} array2
+     * @param {function} fn
+     */
+    function forEach2(array1, array2, fn) {
+       if (array1 instanceof Array) {
+           array1.forEach(function (elem1) {
+               if (array2 instanceof Array) {
+                   array2.forEach(function (elem2)  {
+                       fn(elem1, elem2);
+                   });
+               }
+               else {
+                   fn(elem1, array2);
+               }
+           });
+       }
+        else {
+           if (array2 instanceof Array) {
+               array2.forEach(function (elem2)  {
+                   fn(array1, elem2);
+               });
+           }
+           else {
+               fn(array1, array2);
+           }
+       }
+    }
+
+    /**
      * Convert a string containing a graph in DOT language into a map containing
      * with nodes and edges in the format of graph.
      * @param {String} data         Text containing a graph in DOT-notation
@@ -7318,31 +7767,75 @@ Timeline.prototype.getItemRange = function getItemRange() {
 
         // copy the nodes
         if (dotData.nodes) {
-            for (var id in dotData.nodes) {
-                if (dotData.nodes.hasOwnProperty(id)) {
-                    var node = {
-                        id: id,
-                        label: id
-                    };
-                    merge(node, dotData.nodes[id].attr);
-                    if (node.image) {
-                        node.shape = 'image';
-                    }
-                    graphData.nodes.push(node);
+            dotData.nodes.forEach(function (dotNode) {
+                var graphNode = {
+                    id: dotNode.id,
+                    label: String(dotNode.label || dotNode.id)
+                };
+                merge(graphNode, dotNode.attr);
+                if (graphNode.image) {
+                    graphNode.shape = 'image';
                 }
-            }
+                graphData.nodes.push(graphNode);
+            });
         }
 
         // copy the edges
         if (dotData.edges) {
-            dotData.edges.forEach(function (dotEdge) {
+            /**
+             * Convert an edge in DOT format to an edge with VisGraph format
+             * @param {Object} dotEdge
+             * @returns {Object} graphEdge
+             */
+            function convertEdge(dotEdge) {
                 var graphEdge = {
                     from: dotEdge.from,
                     to: dotEdge.to
                 };
                 merge(graphEdge, dotEdge.attr);
                 graphEdge.style = (dotEdge.type == '->') ? 'arrow' : 'line';
-                graphData.edges.push(graphEdge);
+                return graphEdge;
+            }
+
+            dotData.edges.forEach(function (dotEdge) {
+                var from, to;
+                if (dotEdge.from instanceof Object) {
+                    from = dotEdge.from.nodes;
+                }
+                else {
+                    from = {
+                        id: dotEdge.from
+                    }
+                }
+
+                if (dotEdge.to instanceof Object) {
+                    to = dotEdge.to.nodes;
+                }
+                else {
+                    to = {
+                        id: dotEdge.to
+                    }
+                }
+
+                if (dotEdge.from instanceof Object && dotEdge.from.edges) {
+                    dotEdge.from.edges.forEach(function (subEdge) {
+                        var graphEdge = convertEdge(subEdge);
+                        graphData.edges.push(graphEdge);
+                    });
+                }
+
+                forEach2(from, to, function (from, to) {
+                    var subEdge = createEdge(graphData, from.id, to.id, dotEdge.type, dotEdge.attr);
+                    var graphEdge = convertEdge(subEdge);
+                    graphData.edges.push(graphEdge);
+                });
+
+                if (dotEdge.to instanceof Object && dotEdge.to.edges) {
+                    dotEdge.to.edges.forEach(function (subEdge) {
+                        var graphEdge = convertEdge(subEdge);
+                        graphData.edges.push(graphEdge);
+                    });
+                }
             });
         }
 
@@ -7655,7 +8148,9 @@ function Node(properties, imagelist, grouplist, constants) {
  * @param {Edge} edge
  */
 Node.prototype.attachEdge = function(edge) {
-    this.edges.push(edge);
+    if (this.edges.indexOf(edge) == -1) {
+        this.edges.push(edge);
+    }
     this._updateMass();
 };
 
@@ -8293,24 +8788,30 @@ function Edge (properties, graph, constants) {
 
     // initialize variables
     this.id     = undefined;
+    this.fromId = undefined;
+    this.toId = undefined;
     this.style  = constants.edges.style;
     this.title  = undefined;
     this.width  = constants.edges.width;
     this.value  = undefined;
     this.length = constants.edges.length;
 
+    this.from = null;   // a node
+    this.to = null;     // a node
+    this.connected = false;
+
     // Added to support dashed lines
     // David Jordan
     // 2012-08-08
-    this.dash = util.extend({}, constants.edges.dash); // contains properties length, gaph, altLength
+    this.dash = util.extend({}, constants.edges.dash); // contains properties length, gap, altLength
 
-    this.stiffness = undefined; // depends on the length of the edge
-    this.color  = constants.edges.color;
-    this.widthFixed = false;
+    this.stiffness   = undefined; // depends on the length of the edge
+    this.color       = constants.edges.color;
+    this.widthFixed  = false;
     this.lengthFixed = false;
 
     this.setProperties(properties, constants);
-};
+}
 
 /**
  * Set or overwrite properties for the edge
@@ -8322,12 +8823,12 @@ Edge.prototype.setProperties = function(properties, constants) {
         return;
     }
 
-    if (properties.from != undefined) {this.from = this.graph._getNode(properties.from);}
-    if (properties.to != undefined) {this.to = this.graph._getNode(properties.to);}
+    if (properties.from != undefined)           {this.fromId = properties.from;}
+    if (properties.to != undefined)             {this.toId = properties.to;}
 
-    if (properties.id != undefined)         {this.id = properties.id;}
-    if (properties.style != undefined)      {this.style = properties.style;}
-    if (properties.label != undefined)       {this.label = properties.label;}
+    if (properties.id != undefined)             {this.id = properties.id;}
+    if (properties.style != undefined)          {this.style = properties.style;}
+    if (properties.label != undefined)          {this.label = properties.label;}
     if (this.label) {
         this.fontSize = constants.edges.fontSize;
         this.fontFace = constants.edges.fontFace;
@@ -8336,32 +8837,27 @@ Edge.prototype.setProperties = function(properties, constants) {
         if (properties.fontSize != undefined)   {this.fontSize = properties.fontSize;}
         if (properties.fontFace != undefined)   {this.fontFace = properties.fontFace;}
     }
-    if (properties.title != undefined)      {this.title = properties.title;}
-    if (properties.width != undefined)      {this.width = properties.width;}
-    if (properties.value != undefined)      {this.value = properties.value;}
-    if (properties.length != undefined)     {this.length = properties.length;}
+    if (properties.title != undefined)          {this.title = properties.title;}
+    if (properties.width != undefined)          {this.width = properties.width;}
+    if (properties.value != undefined)          {this.value = properties.value;}
+    if (properties.length != undefined)         {this.length = properties.length;}
 
     // Added to support dashed lines
     // David Jordan
     // 2012-08-08
     if (properties.dash) {
-        if (properties.dash.length != undefined) {this.dash.length = properties.dash.length;}
-        if (properties.dash.gap != undefined) {this.dash.gap = properties.dash.gap;}
+        if (properties.dash.length != undefined)    {this.dash.length = properties.dash.length;}
+        if (properties.dash.gap != undefined)       {this.dash.gap = properties.dash.gap;}
         if (properties.dash.altLength != undefined) {this.dash.altLength = properties.dash.altLength;}
     }
     
     if (properties.color != undefined) {this.color = properties.color;}
 
-    if (!this.from) {
-        throw "Node with id " + properties.from + " not found";
-    }
-    if (!this.to) {
-        throw "Node with id " + properties.to + " not found";
-    }
+    // A node is connected when it has a from and to node.
+    this.connect();
 
     this.widthFixed = this.widthFixed || (properties.width != undefined);
     this.lengthFixed = this.lengthFixed || (properties.length != undefined);
-
     this.stiffness = 1 / this.length;
 
     // set draw method based on style
@@ -8372,6 +8868,46 @@ Edge.prototype.setProperties = function(properties, constants) {
         case 'dash-line':     this.draw = this._drawDashLine; break;
         default:              this.draw = this._drawLine; break;
     }
+};
+
+/**
+ * Connect an edge to its nodes
+ */
+Edge.prototype.connect = function () {
+    this.disconnect();
+
+    this.from = this.graph.nodes[this.fromId] || null;
+    this.to = this.graph.nodes[this.toId] || null;
+    this.connected = (this.from && this.to);
+
+    if (this.connected) {
+        this.from.attachEdge(this);
+        this.to.attachEdge(this);
+    }
+    else {
+        if (this.from) {
+            this.from.detachEdge(this);
+        }
+        if (this.to) {
+            this.to.detachEdge(this);
+        }
+    }
+};
+
+/**
+ * Disconnect an edge from its nodes
+ */
+Edge.prototype.disconnect = function () {
+    if (this.from) {
+        this.from.detachEdge(this);
+        this.from = null;
+    }
+    if (this.to) {
+        this.to.detachEdge(this);
+        this.to = null;
+    }
+
+    this.connected = false;
 };
 
 /**
@@ -9128,8 +9664,45 @@ function Graph (container, data, options) {
     };
 
     var graph = this;
-    this.nodes = [];            // array with Node objects
-    this.edges = [];            // array with Edge objects
+    this.nodes = {};            // object with Node objects
+    this.edges = {};            // object with Edge objects
+    // TODO: create a counter to keep track on the number of nodes having values
+    // TODO: create a counter to keep track on the number of nodes currently moving
+    // TODO: create a counter to keep track on the number of edges having values
+
+    this.nodesData = null;      // A DataSet or DataView
+    this.edgesData = null;      // A DataSet or DataView
+
+    // create event listeners used to subscribe on the DataSets of the nodes and edges
+    var me = this;
+    this.nodesListeners = {
+        'add': function (event, params) {
+            me._addNodes(params.items);
+            me.start();
+        },
+        'update': function (event, params) {
+            me._updateNodes(params.items);
+            me.start();
+        },
+        'remove': function (event, params) {
+            me._removeNodes(params.items);
+            me.start();
+        }
+    };
+    this.edgesListeners = {
+        'add': function (event, params) {
+            me._addEdges(params.items);
+            me.start();
+        },
+        'update': function (event, params) {
+            me._updateEdges(params.items);
+            me.start();
+        },
+        'remove': function (event, params) {
+            me._removeEdges(params.items);
+            me.start();
+        }
+    };
 
     this.groups = new Groups(); // object with groups
     this.images = new Images(); // object with images
@@ -9157,12 +9730,9 @@ function Graph (container, data, options) {
  * Set nodes and edges, and optionally options as well.
  *
  * @param {Object} data    Object containing parameters:
- *                         {Array} [nodes]   Array with nodes.
- *                                           Required when format is 'vis'
- *                         {Array} [edges]   Array with edges
- *                                           Required when format is 'vis'
- *                         {String} [dot]    String containing data in DOT
- *                                           format.
+ *                         {Array | DataSet | DataView} [nodes] Array with nodes
+ *                         {Array | DataSet | DataView} [edges] Array with edges
+ *                         {String} [dot] String containing data in DOT format
  *                         {Options} [options] Object with options
  */
 Graph.prototype.setData = function(data) {
@@ -9270,7 +9840,7 @@ Graph.prototype.setOptions = function (options) {
     }
 
     this.setSize(this.width, this.height);
-    this._setTranslation(0, 0);
+    this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
     this._setScale(1);
 };
 
@@ -9369,8 +9939,8 @@ Graph.prototype._onMouseDown = function (event) {
     vis.util.preventDefault(event);
 
     // store the start x and y position of the mouse
-    this.startMouseX = event.clientX || event.targetTouches[0].clientX;
-    this.startMouseY = event.clientY || event.targetTouches[0].clientY;
+    this.startMouseX = util.getPageX(event);
+    this.startMouseY = util.getPageY(event);
     this.startFrameLeft = vis.util.getAbsoluteLeft(this.frame.canvas);
     this.startFrameTop = vis.util.getAbsoluteTop(this.frame.canvas);
     this.startTranslation = this._getTranslation();
@@ -9379,10 +9949,10 @@ Graph.prototype._onMouseDown = function (event) {
     this.shiftKeyDown = event.shiftKey;
 
     var obj = {
-        "left" :   this._xToCanvas(this.startMouseX - this.startFrameLeft),
-        "top" :    this._yToCanvas(this.startMouseY - this.startFrameTop),
-        "right" :  this._xToCanvas(this.startMouseX - this.startFrameLeft),
-        "bottom" : this._yToCanvas(this.startMouseY - this.startFrameTop)
+        left:   this._xToCanvas(this.startMouseX - this.startFrameLeft),
+        top:    this._yToCanvas(this.startMouseY - this.startFrameTop),
+        right:  this._xToCanvas(this.startMouseX - this.startFrameLeft),
+        bottom: this._yToCanvas(this.startMouseY - this.startFrameTop)
     };
     var overlappingNodes = this._getNodesOverlappingWith(obj);
     // if there are overlapping nodes, select the last one, this is the
@@ -9394,7 +9964,7 @@ Graph.prototype._onMouseDown = function (event) {
         // move clicked node with the mouse
 
         // make the clicked node temporarily fixed, and store their original state
-        var node = this.nodes[this.startClickedObj.row];
+        var node = this.nodes[this.startClickedObj];
         this.startClickedObj.xFixed = node.xFixed;
         this.startClickedObj.yFixed = node.yFixed;
         node.xFixed = true;
@@ -9434,13 +10004,13 @@ Graph.prototype._onMouseMove = function (event) {
         return;
     }
 
-    var mouseX = event.clientX || (event.targetTouches && event.targetTouches[0].clientX) || 0;
-    var mouseY = event.clientY || (event.targetTouches && event.targetTouches[0].clientY) || 0;
+    var mouseX = util.getPageX(event);
+    var mouseY = util.getPageY(event);
     this.mouseX = mouseX;
     this.mouseY = mouseY;
 
     if (this.startClickedObj) {
-        var node = this.nodes[this.startClickedObj.row];
+        var node = this.nodes[this.startClickedObj];
 
         if (!this.startClickedObj.xFixed)
             node.x = this._xToCanvas(mouseX - this.startFrameLeft);
@@ -9514,14 +10084,14 @@ Graph.prototype._onMouseUp = function (event) {
     vis.util.preventDefault(event);
 
     // check selected nodes
-    var endMouseX = event.clientX || this.mouseX || 0;
-    var endMouseY = event.clientY || this.mouseY || 0;
+    var endMouseX = util.getPageX(event) || this.mouseX || 0;
+    var endMouseY = util.getPageY(event) || this.mouseY || 0;
 
     var ctrlKey = event ? event.ctrlKey : window.event.ctrlKey;
 
     if (this.startClickedObj) {
         // restore the original fixed state
-        var node = this.nodes[this.startClickedObj.row];
+        var node = this.nodes[this.startClickedObj];
         node.xFixed = this.startClickedObj.xFixed;
         node.yFixed = this.startClickedObj.yFixed;
     }
@@ -9564,8 +10134,8 @@ Graph.prototype._onMouseUp = function (event) {
  */
 Graph.prototype._onMouseWheel = function(event) {
     event = event || window.event;
-    var mouseX = event.clientX;
-    var mouseY = event.clientY;
+    var mouseX = util.getPageX(event);
+    var mouseY = util.getPageY(event);
 
     // retrieve delta
     var delta = 0;
@@ -9627,8 +10197,8 @@ Graph.prototype._onMouseWheel = function(event) {
 Graph.prototype._onMouseMoveTitle = function (event) {
     event = event || window.event;
 
-    var startMouseX = event.clientX;
-    var startMouseY = event.clientY;
+    var startMouseX = util.getPageX(event);
+    var startMouseY = util.getPageY(event);
     this.startFrameLeft = this.startFrameLeft || vis.util.getAbsoluteLeft(this.frame.canvas);
     this.startFrameTop = this.startFrameTop || vis.util.getAbsoluteTop(this.frame.canvas);
 
@@ -9671,29 +10241,34 @@ Graph.prototype._checkShowPopup = function (x, y) {
         "bottom" : this._yToCanvas(y)
     };
 
-    var i, len;
+    var id;
     var lastPopupNode = this.popupNode;
 
     if (this.popupNode == undefined) {
         // search the nodes for overlap, select the top one in case of multiple nodes
         var nodes = this.nodes;
-        for (i = nodes.length - 1; i >= 0; i--) {
-            var node = nodes[i];
-            if (node.getTitle() != undefined && node.isOverlappingWith(obj)) {
-                this.popupNode = node;
-                break;
+        for (id in nodes) {
+            if (nodes.hasOwnProperty(id)) {
+                var node = nodes[id];
+                if (node.getTitle() != undefined && node.isOverlappingWith(obj)) {
+                    this.popupNode = node;
+                    break;
+                }
             }
         }
     }
 
     if (this.popupNode == undefined) {
         // search the edges for overlap
-        var allEdges = this.edges;
-        for (i = 0, len = allEdges.length; i < len; i++) {
-            var edge = allEdges[i];
-            if (edge.getTitle() != undefined && edge.isOverlappingWith(obj)) {
-                this.popupNode = edge;
-                break;
+        var edges = this.edges;
+        for (id in edges) {
+            if (edges.hasOwnProperty(id)) {
+                var edge = edges[id];
+                if (edge.connected && (edge.getTitle() != undefined) &&
+                        edge.isOverlappingWith(obj)) {
+                    this.popupNode = edge;
+                    break;
+                }
             }
         }
     }
@@ -9816,17 +10391,17 @@ Graph.prototype._onTouchEnd = function(event) {
  */
 Graph.prototype._unselectNodes = function(selection, triggerSelect) {
     var changed = false;
-    var i, iMax, row;
+    var i, iMax, id;
 
     if (selection) {
         // remove provided selections
         for (i = 0, iMax = selection.length; i < iMax; i++) {
-            row = selection[i].row;
-            this.nodes[row].unselect();
+            id = selection[i];
+            this.nodes[id].unselect();
 
             var j = 0;
             while (j < this.selection.length) {
-                if (this.selection[j].row == row) {
+                if (this.selection[j] == id) {
                     this.selection.splice(j, 1);
                     changed = true;
                 }
@@ -9839,8 +10414,8 @@ Graph.prototype._unselectNodes = function(selection, triggerSelect) {
     else if (this.selection && this.selection.length) {
         // remove all selections
         for (i = 0, iMax = this.selection.length; i < iMax; i++) {
-            row = this.selection[i].row;
-            this.nodes[row].unselect();
+            id = this.selection[i];
+            this.nodes[id].unselect();
             changed = true;
         }
         this.selection = [];
@@ -9856,8 +10431,7 @@ Graph.prototype._unselectNodes = function(selection, triggerSelect) {
 
 /**
  * select all nodes on given location x, y
- * @param {Array} selection   an array with selection objects. Each selection
- *                            object has a parameter row
+ * @param {Array} selection   an array with node ids
  * @param {boolean} append    If true, the new selection will be appended to the
  *                            current selection (except for duplicate entries)
  * @return {Boolean} changed  True if the selection is changed
@@ -9870,19 +10444,19 @@ Graph.prototype._selectNodes = function(selection, append) {
     // TODO: the selectNodes method is a little messy, rework this
 
     // check if the current selection equals the desired selection
-    var selectionAlreadyDone = true;
+    var selectionAlreadyThere = true;
     if (selection.length != this.selection.length) {
-        selectionAlreadyDone = false;
+        selectionAlreadyThere = false;
     }
     else {
         for (i = 0, iMax = Math.min(selection.length, this.selection.length); i < iMax; i++) {
-            if (selection[i].row != this.selection[i].row) {
-                selectionAlreadyDone = false;
+            if (selection[i] != this.selection[i]) {
+                selectionAlreadyThere = false;
                 break;
             }
         }
     }
-    if (selectionAlreadyDone) {
+    if (selectionAlreadyThere) {
         return changed;
     }
 
@@ -9894,18 +10468,11 @@ Graph.prototype._selectNodes = function(selection, append) {
 
     for (i = 0, iMax = selection.length; i < iMax; i++) {
         // add each of the new selections, but only when they are not duplicate
-        var row = selection[i].row;
-        var isDuplicate = false;
-        for (var j = 0, jMax = this.selection.length; j < jMax; j++) {
-            if (this.selection[j].row == row) {
-                isDuplicate = true;
-                break;
-            }
-        }
-
+        var id = selection[i];
+        var isDuplicate = (this.selection.indexOf(id) != -1);
         if (!isDuplicate) {
-            this.nodes[row].select();
-            this.selection.push(selection[i]);
+            this.nodes[id].select();
+            this.selection.push(id);
             changed = true;
         }
     }
@@ -9926,12 +10493,14 @@ Graph.prototype._selectNodes = function(selection, append) {
  * @private
  */
 Graph.prototype._getNodesOverlappingWith = function (obj) {
-    var overlappingNodes = [];
+    var nodes = this.nodes,
+        overlappingNodes = [];
 
-    for (var i = 0; i < this.nodes.length; i++) {
-        if (this.nodes[i].isOverlappingWith(obj)) {
-            var sel = {"row": i};
-            overlappingNodes.push(sel);
+    for (var id in nodes) {
+        if (nodes.hasOwnProperty(id)) {
+            if (nodes[id].isOverlappingWith(obj)) {
+                overlappingNodes.push(id);
+            }
         }
     }
 
@@ -9940,55 +10509,62 @@ Graph.prototype._getNodesOverlappingWith = function (obj) {
 
 /**
  * retrieve the currently selected nodes
- * @return {Object[]} an array with zero or more objects. Each object
- *                              contains the parameter row
+ * @return {Number[] | String[]} selection    An array with the ids of the
+ *                                            selected nodes.
  */
 Graph.prototype.getSelection = function() {
-    var selection = [];
-
-    for (var i = 0; i < this.selection.length; i++) {
-        var row = this.selection[i].row;
-        selection.push({"row": row});
-    }
-
-    return selection;
+    return this.selection.concat([]);
 };
 
 /**
  * select zero or more nodes
- * @param {object[]} selection  an array with zero or more objects. Each object
- *                              contains the parameter row
+ * @param {Number[] | String[]} selection     An array with the ids of the
+ *                                            selected nodes.
  */
 Graph.prototype.setSelection = function(selection) {
-    var i, iMax, row;
+    var i, iMax, id;
 
     if (selection.length == undefined)
-        throw "Selection must be an array with objects";
+        throw "Selection must be an array with ids";
 
     // first unselect any selected node
     for (i = 0, iMax = this.selection.length; i < iMax; i++) {
-        row = this.selection[i].row;
-        this.nodes[row].unselect();
+        id = this.selection[i];
+        this.nodes[id].unselect();
     }
 
     this.selection = [];
 
     for (i = 0, iMax = selection.length; i < iMax; i++) {
-        row = selection[i].row;
+        id = selection[i];
 
-        if (row == undefined)
-            throw "Parameter row missing in selection object";
-        if (row > this.nodes.length-1)
-            throw "Parameter row out of range";
-
-        var sel = {"row": row};
-        this.selection.push(sel);
-        this.nodes[row].select();
+        var node = this.nodes[id];
+        if (!node) {
+            throw new RangeError('Node with id "' + id + '" not found');
+        }
+        node.select();
+        this.selection.push(id);
     }
 
     this.redraw();
 };
 
+/**
+ * Validate the selection: remove ids of nodes which no longer exist
+ * @private
+ */
+Graph.prototype._updateSelection = function () {
+    var i = 0;
+    while (i < this.selection.length) {
+        var id = this.selection[i];
+        if (!this.nodes[id]) {
+            this.selection.splice(i, 1);
+        }
+        else {
+            i++;
+        }
+    }
+};
 
 /**
  * Temporary method to test calculating a hub value for the nodes
@@ -9999,7 +10575,6 @@ Graph.prototype.setSelection = function(selection) {
  * @private
  */
 Graph.prototype._getConnectionCount = function(level) {
-    var conn = this.edges;
     if (level == undefined) {
         level = 1;
     }
@@ -10012,14 +10587,16 @@ Graph.prototype._getConnectionCount = function(level) {
             var node = nodes[j];
 
             // find all nodes connected to this node
-            for (var i = 0, iMax = conn.length; i < iMax; i++) {
+            var edges = node.edges;
+            for (var i = 0, iMax = edges.length; i < iMax; i++) {
+                var edge = edges[i];
                 var other = null;
 
                 // check if connected
-                if (conn[i].from == node)
-                    other = conn[i].to;
-                else if (conn[i].to == node)
-                    other = conn[i].from;
+                if (edge.from == node)
+                    other = edge.to;
+                else if (edge.to == node)
+                    other = edge.from;
 
                 // check if the other node is not already in the list with nodes
                 var k, kMax;
@@ -10049,19 +10626,19 @@ Graph.prototype._getConnectionCount = function(level) {
     }
 
     var connections = [];
-    var level0 = [];
     var nodes = this.nodes;
-    var i, iMax;
-    for (i = 0, iMax = nodes.length; i < iMax; i++) {
-        var c = [nodes[i]];
-        for (var l = 0; l < level; l++) {
-            c = c.concat(getConnectedNodes(c));
+    for (var id in nodes) {
+        if (nodes.hasOwnProperty(id)) {
+            var c = [nodes[id]];
+            for (var l = 0; l < level; l++) {
+                c = c.concat(getConnectedNodes(c));
+            }
+            connections.push(c);
         }
-        connections.push(c);
     }
 
     var hubs = [];
-    for (i = 0, len = connections.length; i < len; i++) {
+    for (var i = 0, len = connections.length; i < len; i++) {
         hubs.push(connections[i].length);
     }
 
@@ -10089,365 +10666,306 @@ Graph.prototype.setSize = function(width, height) {
 
 /**
  * Set a data set with nodes for the graph
- * @param {Array} nodes         The data containing the nodes.
+ * @param {Array | DataSet | DataView} nodes         The data containing the nodes.
  * @private
  */
 Graph.prototype._setNodes = function(nodes) {
-    this.selection = [];
-    this.nodes = [];
-    this.moving = false;
-    if (!nodes) {
-        return;
+    var oldNodesData = this.nodesData;
+
+    if (nodes instanceof DataSet || nodes instanceof DataView) {
+        this.nodesData = nodes;
+    }
+    else if (nodes instanceof Array) {
+        this.nodesData = new DataSet();
+        this.nodesData.add(nodes);
+    }
+    else if (!nodes) {
+        this.nodesData = new DataSet();
+    }
+    else {
+        throw new TypeError('Array or DataSet expected');
     }
 
-    var hasValues = false;
-    var rowCount = nodes.length;
-    for (var i = 0; i < rowCount; i++) {
-        var properties = nodes[i];
-
-        if (properties.value != undefined) {
-            hasValues = true;
-        }
-        if (properties.id == undefined) {
-            throw "Column 'id' missing in table with nodes (row " + i + ")";
-        }
-        this._createNode(properties);
+    if (oldNodesData) {
+        // unsubscribe from old dataset
+        util.forEach(this.nodesListeners, function (callback, event) {
+            oldNodesData.unsubscribe(event, callback);
+        });
     }
 
-    // calculate scaling function when value is provided
-    if (hasValues) {
-        this._updateValueRange(this.nodes);
+    // remove drawn nodes
+    this.nodes = {};
+
+    if (this.nodesData) {
+        // subscribe to new dataset
+        var me = this;
+        util.forEach(this.nodesListeners, function (callback, event) {
+            me.nodesData.subscribe(event, callback);
+        });
+
+        // draw all new nodes
+        var ids = this.nodesData.getIds();
+        this._addNodes(ids);
     }
 
-    // give the nodes some first (random) position
-    this._reposition(); // TODO: bad solution
+    this._updateSelection();
 };
 
 /**
- * Create a node with the given properties
- * If the new node has an id identical to an existing node, the existing
- * node will be overwritten.
- * The properties can contain a property "action", which can have values
- * "create", "update", or "delete"
- * @param {Object} properties  An object with properties
+ * Add nodes
+ * @param {Number[] | String[]} ids
  * @private
  */
-Graph.prototype._createNode = function(properties) {
-    var action = properties.action ? properties.action : "update";
-    var id, index, newNode, oldNode;
+Graph.prototype._addNodes = function(ids) {
+    var id;
+    for (var i = 0, len = ids.length; i < len; i++) {
+        id = ids[i];
+        var data = this.nodesData.get(id);
+        var node = new Node(data, this.images, this.groups, this.constants);
+        this.nodes[id] = node; // note: this may replace an existing node
 
-    if (action === "create") {
-        // create the node
-        newNode = new Node(properties, this.images, this.groups, this.constants);
-        id = properties.id;
-        index = (id !== undefined) ? this._findNode(id) : undefined;
+        if (!node.isFixed()) {
+            // TODO: position new nodes in a smarter way!
+            var radius = this.constants.edges.length * 2;
+            var count = ids.length;
+            var angle = 2 * Math.PI * (i / count);
+            node.x = radius * Math.cos(angle);
+            node.y = radius * Math.sin(angle);
 
-        if (index !== undefined) {
-            // replace node
-            oldNode = this.nodes[index];
-            this.nodes[index] = newNode;
-
-            // remove selection of old node
-            if (oldNode.selected) {
-                this._unselectNodes([{'row': index}], false);
-            }
-
-            /* TODO: implement this? -> will give performance issues, searching all edges and nodes...
-             // update edges linking to this node
-             var edgesTable = this.edges;
-             for (var i = 0, iMax = edgesTable.length; i < iMax; i++) {
-             var edge = edgesTable[i];
-             if (edge.from == oldNode) {
-             edge.from = newNode;
-             }
-             if (edge.to == oldNode) {
-             edge.to = newNode;
-             }
-             }
-             */
-        }
-        else {
-            // add new node
-            this.nodes.push(newNode);
-        }
-
-        if (!newNode.isFixed()) {
             // note: no not use node.isMoving() here, as that gives the current
             // velocity of the node, which is zero after creation of the node.
             this.moving = true;
         }
     }
-    else if (action === "update") {
-        // update existing node, or create it when not yet existing
-        id = properties.id;
-        if (id === undefined) {
-            throw "Cannot update a node without id";
-        }
 
-        index = this._findNode(id);
-        if (index !== undefined) {
+    this._reconnectEdges();
+    this._updateValueRange(this.nodes);
+};
+
+/**
+ * Update existing nodes, or create them when not yet existing
+ * @param {Number[] | String[]} ids
+ * @private
+ */
+Graph.prototype._updateNodes = function(ids) {
+    var nodes = this.nodes,
+        nodesData = this.nodesData;
+    for (var i = 0, len = ids.length; i < len; i++) {
+        var id = ids[i];
+        var node = nodes[id];
+        var data = nodesData.get(id);
+        if (node) {
             // update node
-            this.nodes[index].setProperties(properties, this.constants);
+            node.setProperties(data, this.constants);
         }
         else {
             // create node
-            newNode = new Node(properties, this.images, this.groups, this.constants);
-            this.nodes.push(newNode);
+            node = new Node(properties, this.images, this.groups, this.constants);
+            nodes[id] = node;
 
-            if (!newNode.isFixed()) {
-                // note: no not use node.isMoving() here, as that gives the current
-                // velocity of the node, which is zero after creation of the node.
+            if (!node.isFixed()) {
                 this.moving = true;
             }
         }
     }
-    else if (action === "delete") {
-        // delete existing node
-        id = properties.id;
-        if (id === undefined) {
-            throw "Cannot delete node without its id";
-        }
 
-        index = this._findNode(id);
-        if (index !== undefined) {
-            oldNode = this.nodes[index];
-            // remove selection of old node
-            if (oldNode.selected) {
-                this._unselectNodes([{'row': index}], false);
-            }
-            this.nodes.splice(index, 1);
-        }
-        else {
-            throw "Node with id " + id + " not found";
-        }
-    }
-    else {
-        throw "Unknown action " + action + ". Choose 'create', 'update', or 'delete'.";
-    }
+    this._reconnectEdges();
+    this._updateValueRange(nodes);
 };
 
 /**
- * Find a node by its id
- * @param {Number} id                   Id of the node
- * @return {Number | undefined} index   Index of the node in the array
- *                                      this.nodes, or undefined when not found
+ * Remove existing nodes. If nodes do not exist, the method will just ignore it.
+ * @param {Number[] | String[]} ids
  * @private
  */
-Graph.prototype._findNode = function (id) {
+Graph.prototype._removeNodes = function(ids) {
     var nodes = this.nodes;
-    for (var n = 0, len = nodes.length; n < len; n++) {
-        if (nodes[n].id === id) {
-            return n;
-        }
+    for (var i = 0, len = ids.length; i < len; i++) {
+        var id = ids[i];
+        delete nodes[id];
     }
 
-    return undefined;
-};
-
-/**
- * Find a node by its rowNumber
- * @param {Number} row                   Row number of the node
- * @return {Node} node     The node with the given row number, or
- *                                       undefined when not found.
- * @private
- */
-Graph.prototype._findNodeByRow = function (row) {
-    return this.nodes[row];
+    this._reconnectEdges();
+    this._updateSelection();
+    this._updateValueRange(nodes);
 };
 
 /**
  * Load edges by reading the data table
- * @param {Array}      edges    The data containing the edges.
+ * @param {Array | DataSet | DataView} edges    The data containing the edges.
  * @private
  * @private
  */
 Graph.prototype._setEdges = function(edges) {
-    this.edges = [];
-    if (!edges) {
-        return;
+    var oldEdgesData = this.edgesData;
+
+    if (edges instanceof DataSet || edges instanceof DataView) {
+        this.edgesData = edges;
     }
-
-    var hasValues = false;
-    var rowCount = edges.length;
-    for (var i = 0; i < rowCount; i++) {
-        var properties = edges[i];
-
-        if (properties.from === undefined) {
-            throw "Column 'from' missing in table with edges (row " + i + ")";
-        }
-        if (properties.to === undefined) {
-            throw "Column 'to' missing in table with edges (row " + i + ")";
-        }
-        if (properties.value != undefined) {
-            hasValues = true;
-        }
-
-        this._createEdge(properties);
+    else if (edges instanceof Array) {
+        this.edgesData = new DataSet();
+        this.edgesData.add(edges);
     }
-
-    // calculate scaling function when value is provided
-    if (hasValues) {
-        this._updateValueRange(this.edges);
-    }
-};
-
-/**
- * Create a edge with the given properties
- * If the new edge has an id identical to an existing edge, the existing
- * edge will be overwritten or updated.
- * The properties can contain a property "action", which can have values
- * "create", "update", or "delete"
- * @param {Object} properties   An object with properties
- * @private
- */
-Graph.prototype._createEdge = function(properties) {
-    var action = properties.action ? properties.action : "create";
-    var id, index, edge, oldEdge, newEdge;
-
-    if (action === "create") {
-        // create the edge, or replace it if already existing
-        id = properties.id;
-        index = (id !== undefined) ? this._findEdge(id) : undefined;
-        edge = new Edge(properties, this, this.constants);
-
-        if (index !== undefined) {
-            // replace existing edge
-            oldEdge = this.edges[index];
-            oldEdge.from.detachEdge(oldEdge);
-            oldEdge.to.detachEdge(oldEdge);
-            this.edges[index] = edge;
-        }
-        else {
-            // add new edge
-            this.edges.push(edge);
-        }
-        edge.from.attachEdge(edge);
-        edge.to.attachEdge(edge);
-    }
-    else if (action === "update") {
-        // update existing edge, or create the edge if not existing
-        id = properties.id;
-        if (id === undefined) {
-            throw "Cannot update a edge without id";
-        }
-
-        index = this._findEdge(id);
-        if (index !== undefined) {
-            // update edge
-            edge = this.edges[index];
-            edge.from.detachEdge(edge);
-            edge.to.detachEdge(edge);
-
-            edge.setProperties(properties, this.constants);
-            edge.from.attachEdge(edge);
-            edge.to.attachEdge(edge);
-        }
-        else {
-            // add new edge
-            edge = new Edge(properties, this, this.constants);
-            edge.from.attachEdge(edge);
-            edge.to.attachEdge(edge);
-            this.edges.push(edge);
-        }
-    }
-    else if (action === "delete") {
-        // delete existing edge
-        id = properties.id;
-        if (id === undefined) {
-            throw "Cannot delete edge without its id";
-        }
-
-        index = this._findEdge(id);
-        if (index !== undefined) {
-            oldEdge = this.edges[id];
-            edge.from.detachEdge(oldEdge);
-            edge.to.detachEdge(oldEdge);
-            this.edges.splice(index, 1);
-        }
-        else {
-            throw "Edge with id " + id + " not found";
-        }
+    else if (!edges) {
+        this.edgesData = new DataSet();
     }
     else {
-        throw "Unknown action " + action + ". Choose 'create', 'update', or 'delete'.";
+        throw new TypeError('Array or DataSet expected');
     }
+
+    if (oldEdgesData) {
+        // unsubscribe from old dataset
+        util.forEach(this.edgesListeners, function (callback, event) {
+            oldEdgesData.unsubscribe(event, callback);
+        });
+    }
+
+    // remove drawn edges
+    this.edges = {};
+
+    if (this.edgesData) {
+        // subscribe to new dataset
+        var me = this;
+        util.forEach(this.edgesListeners, function (callback, event) {
+            me.edgesData.subscribe(event, callback);
+        });
+
+        // draw all new nodes
+        var ids = this.edgesData.getIds();
+        this._addEdges(ids);
+    }
+
+    this._reconnectEdges();
 };
 
 /**
- * Update the references to oldNode in all edges.
- * @param {Node} oldNode
- * @param {Node} newNode
+ * Add edges
+ * @param {Number[] | String[]} ids
  * @private
  */
-// TODO: start utilizing this method _updateNodeReferences
-Graph.prototype._updateNodeReferences = function(oldNode, newNode) {
+Graph.prototype._addEdges = function (ids) {
+    var edges = this.edges,
+        edgesData = this.edgesData;
+    for (var i = 0, len = ids.length; i < len; i++) {
+        var id = ids[i];
+
+        var oldEdge = edges[id];
+        if (oldEdge) {
+            oldEdge.disconnect();
+        }
+
+        var data = edgesData.get(id);
+        edges[id] = new Edge(data, this, this.constants);
+    }
+
+    this.moving = true;
+    this._updateValueRange(edges);
+};
+
+/**
+ * Update existing edges, or create them when not yet existing
+ * @param {Number[] | String[]} ids
+ * @private
+ */
+Graph.prototype._updateEdges = function (ids) {
+    var edges = this.edges,
+        edgesData = this.edgesData;
+    for (var i = 0, len = ids.length; i < len; i++) {
+        var id = ids[i];
+
+        var data = edgesData.get(id);
+        var edge = edges[id];
+        if (edge) {
+            // update edge
+            edge.disconnect();
+            edge.setProperties(data, this.constants);
+            edge.connect();
+        }
+        else {
+            // create edge
+            edge = new Edge(data, this, this.constants);
+            this.edges[id] = edge;
+        }
+    }
+
+    this.moving = true;
+    this._updateValueRange(edges);
+};
+
+/**
+ * Remove existing edges. Non existing ids will be ignored
+ * @param {Number[] | String[]} ids
+ * @private
+ */
+Graph.prototype._removeEdges = function (ids) {
     var edges = this.edges;
-    for (var i = 0, iMax = edges.length; i < iMax; i++) {
-        var edge = edges[i];
-        if (edge.from === oldNode) {
-            edge.from = newNode;
-        }
-        if (edge.to === oldNode) {
-            edge.to = newNode;
-        }
-    }
-};
-
-/**
- * Find a edge by its id
- * @param {Number} id                   Id of the edge
- * @return {Number | undefined} index   Index of the edge in the array
- *                                      this.edges, or undefined when not found
- * @private
- */
-Graph.prototype._findEdge = function (id) {
-    var edges = this.edges;
-    for (var n = 0, len = edges.length; n < len; n++) {
-        if (edges[n].id === id) {
-            return n;
+    for (var i = 0, len = ids.length; i < len; i++) {
+        var id = ids[i];
+        var edge = edges[id];
+        if (edge) {
+            edge.disconnect();
+            delete edges[id];
         }
     }
 
-    return undefined;
+    this.moving = true;
+    this._updateValueRange(edges);
 };
 
 /**
- * Find a edge by its row
- * @param {Number} row          Row of the edge
- * @return {Edge | undefined} the found edge, or undefined when not found
+ * Reconnect all edges
  * @private
  */
-Graph.prototype._findEdgeByRow = function (row) {
-    return this.edges[row];
+Graph.prototype._reconnectEdges = function() {
+    var id,
+        nodes = this.nodes,
+        edges = this.edges;
+    for (id in nodes) {
+        if (nodes.hasOwnProperty(id)) {
+            nodes[id].edges = [];
+        }
+    }
+
+    for (id in edges) {
+        if (edges.hasOwnProperty(id)) {
+            var edge = edges[id];
+            edge.from = null;
+            edge.to = null;
+            edge.connect();
+        }
+    }
 };
 
 /**
  * Update the values of all object in the given array according to the current
  * value range of the objects in the array.
- * @param {Array} array.  An array with objects like Edges or Nodes
+ * @param {Object} obj    An object containing a set of Edges or Nodes
  *                        The objects must have a method getValue() and
  *                        setValueRange(min, max).
  * @private
  */
-Graph.prototype._updateValueRange = function(array) {
-    var count = array.length;
-    var i;
+Graph.prototype._updateValueRange = function(obj) {
+    var id;
 
-    // determine the range of the node values
+    // determine the range of the objects
     var valueMin = undefined;
     var valueMax = undefined;
-    for (i = 0; i < count; i++) {
-        var value = array[i].getValue();
-        if (value !== undefined) {
-            valueMin = (valueMin === undefined) ? value : Math.min(value, valueMin);
-            valueMax = (valueMax === undefined) ? value : Math.max(value, valueMax);
+    for (id in obj) {
+        if (obj.hasOwnProperty(id)) {
+            var value = obj[id].getValue();
+            if (value !== undefined) {
+                valueMin = (valueMin === undefined) ? value : Math.min(value, valueMin);
+                valueMax = (valueMax === undefined) ? value : Math.max(value, valueMax);
+            }
         }
     }
 
-    // adjust the range of all nodes
+    // adjust the range of all objects
     if (valueMin !== undefined && valueMax !== undefined) {
-        for (i = 0; i < count; i++) {
-            array[i].setValueRange(valueMin, valueMax);
+        for (id in obj) {
+            if (obj.hasOwnProperty(id)) {
+                obj[id].setValueRange(valueMin, valueMax);
+            }
         }
     }
 };
@@ -10553,23 +11071,6 @@ Graph.prototype._canvasToY = function(y) {
     return y * this.scale + this.translation.y ;
 };
 
-
-
-/**
- * Get a node by its id
- * @param {number} id
- * @return {Node}  node, or null if not found
- * @private
- */
-Graph.prototype._getNode = function(id) {
-    for (var i = 0; i < this.nodes.length; i++) {
-        if (this.nodes[i].id == id)
-            return this.nodes[i];
-    }
-
-    return null;
-};
-
 /**
  * Redraw all nodes
  * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
@@ -10580,12 +11081,14 @@ Graph.prototype._drawNodes = function(ctx) {
     // first draw the unselected nodes
     var nodes = this.nodes;
     var selected = [];
-    for (var i = 0, iMax = nodes.length; i < iMax; i++) {
-        if (nodes[i].isSelected()) {
-            selected.push(i);
-        }
-        else {
-            nodes[i].draw(ctx);
+    for (var id in nodes) {
+        if (nodes.hasOwnProperty(id)) {
+            if (nodes[id].isSelected()) {
+                selected.push(id);
+            }
+            else {
+                nodes[id].draw(ctx);
+            }
         }
     }
 
@@ -10603,71 +11106,15 @@ Graph.prototype._drawNodes = function(ctx) {
  */
 Graph.prototype._drawEdges = function(ctx) {
     var edges = this.edges;
-    for (var i = 0, iMax = edges.length; i < iMax; i++) {
-        edges[i].draw(ctx);
+    for (var id in edges) {
+        if (edges.hasOwnProperty(id)) {
+            var edge = edges[id];
+            if (edge.connected) {
+                edges[id].draw(ctx);
+            }
+        }
     }
 };
-
-/**
- * Recalculate the best positions for all nodes
- * @private
- */
-Graph.prototype._reposition = function() {
-    // TODO: implement function reposition
-
-
-    /*
-     var w = this.frame.canvas.clientWidth;
-     var h = this.frame.canvas.clientHeight;
-     for (var i = 0; i < this.nodes.length; i++) {
-     if (!this.nodes[i].xFixed) this.nodes[i].x = w * Math.random();
-     if (!this.nodes[i].yFixed) this.nodes[i].y = h * Math.random();
-     }
-     //*/
-
-    //*
-    // TODO
-    var radius = this.constants.edges.length * 2;
-    var cx =  this.frame.canvas.clientWidth / 2;
-    var cy =  this.frame.canvas.clientHeight / 2;
-    for (var i = 0; i < this.nodes.length; i++) {
-        var angle = 2*Math.PI * (i / this.nodes.length);
-
-        if (!this.nodes[i].xFixed) this.nodes[i].x = cx + radius * Math.cos(angle);
-        if (!this.nodes[i].yFixed) this.nodes[i].y = cy + radius * Math.sin(angle);
-
-    }
-    //*/
-
-    /*
-     // TODO
-     var radius = this.constants.edges.length * 2;
-     var w = this.frame.canvas.clientWidth,
-     h = this.frame.canvas.clientHeight;
-     var cx =  this.frame.canvas.clientWidth / 2;
-     var cy =  this.frame.canvas.clientHeight / 2;
-     var s = Math.sqrt(this.nodes.length);
-     for (var i = 0; i < this.nodes.length; i++) {
-     //var angle = 2*Math.PI * (i / this.nodes.length);
-
-     if (!this.nodes[i].xFixed) this.nodes[i].x = w/s * (i % s);
-     if (!this.nodes[i].yFixed) this.nodes[i].y = h/s * (i / s);
-     }
-     //*/
-
-
-    /*
-     var cx =  this.frame.canvas.clientWidth / 2;
-     var cy =  this.frame.canvas.clientHeight / 2;
-     for (var i = 0; i < this.nodes.length; i++) {
-     this.nodes[i].x = cx;
-     this.nodes[i].y = cy;
-     }
-
-     //*/
-
-};
-
 
 /**
  * Find a stable position for all nodes
@@ -10699,7 +11146,9 @@ Graph.prototype._doStabilize = function() {
  */
 Graph.prototype._calculateForces = function() {
     // create a local edge to the nodes and edges, that is faster
-    var nodes = this.nodes,
+    var id, dx, dy, angle, distance, fx, fy,
+        repulsingForce, springForce, length, edgeLength,
+        nodes = this.nodes,
         edges = this.edges;
 
     // gravity, add a small constant force to pull the nodes towards the center of
@@ -10709,42 +11158,51 @@ Graph.prototype._calculateForces = function() {
     var gravity = 0.01,
         gx = this.frame.canvas.clientWidth / 2,
         gy = this.frame.canvas.clientHeight / 2;
-    for (var n = 0; n < nodes.length; n++) {
-        var dx = gx - nodes[n].x,
-            dy = gy - nodes[n].y,
-            angle = Math.atan2(dy, dx),
-            fx = Math.cos(angle) * gravity,
+    for (id in nodes) {
+        if (nodes.hasOwnProperty(id)) {
+            var node = nodes[id];
+            dx = gx - node.x;
+            dy = gy - node.y;
+            angle = Math.atan2(dy, dx);
+            fx = Math.cos(angle) * gravity;
             fy = Math.sin(angle) * gravity;
 
-        this.nodes[n]._setForce(fx, fy);
+            node._setForce(fx, fy);
+        }
     }
 
     // repulsing forces between nodes
     var minimumDistance = this.constants.nodes.distance,
         steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
-    for (var n = 0; n < nodes.length; n++) {
-        for (var n2 = n + 1; n2 < this.nodes.length; n2++) {
-            //var dmin = (nodes[n].width + nodes[n].height + nodes[n2].width + nodes[n2].height) / 1 || minimumDistance, // TODO: dmin
-            //var dmin = (nodes[n].width + nodes[n2].width)/2  || minimumDistance, // TODO: dmin
-            //dmin = 40 + ((nodes[n].width/2 + nodes[n2].width/2) || 0),
 
-            // calculate normally distributed force
-            var dx = nodes[n2].x - nodes[n].x,
-                dy = nodes[n2].y - nodes[n].y,
-                distance = Math.sqrt(dx * dx + dy * dy),
-                angle = Math.atan2(dy, dx),
+    for (var id1 in nodes) {
+        if (nodes.hasOwnProperty(id1)) {
+            var node1 = nodes[id1];
+            for (var id2 in nodes) {
+                if (nodes.hasOwnProperty(id2)) {
+                    var node2 = nodes[id2];
+                    // calculate normally distributed force
+                    dx = node2.x - node1.x;
+                    dy = node2.y - node1.y;
+                    distance = Math.sqrt(dx * dx + dy * dy);
+                    angle = Math.atan2(dy, dx);
 
-            // TODO: correct factor for repulsing force
-            //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-            //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
-                repulsingforce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)), // TODO: customize the repulsing force
-                fx = Math.cos(angle) * repulsingforce,
-                fy = Math.sin(angle) * repulsingforce;
+                    // TODO: correct factor for repulsing force
+                    //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+                    //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+                    repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
+                    fx = Math.cos(angle) * repulsingForce;
+                    fy = Math.sin(angle) * repulsingForce;
 
-            this.nodes[n]._addForce(-fx, -fy);
-            this.nodes[n2]._addForce(fx, fy);
+                    node1._addForce(-fx, -fy);
+                    node2._addForce(fx, fy);
+                }
+            }
         }
-        /* TODO: re-implement repulsion of edges
+    }
+
+    /* TODO: re-implement repulsion of edges
+    for (var n = 0; n < nodes.length; n++) {
          for (var l = 0; l < edges.length; l++) {
          var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
          ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
@@ -10766,29 +11224,32 @@ Graph.prototype._calculateForces = function() {
          edges[l].from._addForce(-fx/2,-fy/2);
          edges[l].to._addForce(-fx/2,-fy/2);
          }
-         */
     }
+     */
 
     // forces caused by the edges, modelled as springs
-    for (var l = 0, lMax = edges.length; l < lMax; l++) {
-        var edge = edges[l],
+    for (id in edges) {
+        if (edges.hasOwnProperty(id)) {
+            var edge = edges[id];
+            if (edge.connected) {
+                dx = (edge.to.x - edge.from.x);
+                dy = (edge.to.y - edge.from.y);
+                //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
+                //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length; // TODO: dmin
+                //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2;
+                edgeLength = edge.length;
+                length =  Math.sqrt(dx * dx + dy * dy);
+                angle = Math.atan2(dy, dx);
 
-            dx = (edge.to.x - edge.from.x),
-            dy = (edge.to.y - edge.from.y),
-        //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length, // TODO: dmin
-        //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length, // TODO: dmin
-        //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2,
-            edgeLength = edge.length,
-            length =  Math.sqrt(dx * dx + dy * dy),
-            angle = Math.atan2(dy, dx),
+                springForce = edge.stiffness * (edgeLength - length);
 
-            springforce = edge.stiffness * (edgeLength - length),
+                fx = Math.cos(angle) * springForce;
+                fy = Math.sin(angle) * springForce;
 
-            fx = Math.cos(angle) * springforce,
-            fy = Math.sin(angle) * springforce;
-
-        edge.from._addForce(-fx, -fy);
-        edge.to._addForce(fx, fy);
+                edge.from._addForce(-fx, -fy);
+                edge.to._addForce(fx, fy);
+            }
+        }
     }
 
     /* TODO: re-implement repulsion of edges
@@ -10839,8 +11300,8 @@ Graph.prototype._calculateForces = function() {
 Graph.prototype._isMoving = function(vmin) {
     // TODO: ismoving does not work well: should check the kinetic energy, not its velocity
     var nodes = this.nodes;
-    for (var n = 0, nMax = nodes.length; n < nMax; n++) {
-        if (nodes[n].isMoving(vmin)) {
+    for (var id in nodes) {
+        if (nodes.hasOwnProperty(id) && nodes[id].isMoving(vmin)) {
             return true;
         }
     }
@@ -10855,8 +11316,10 @@ Graph.prototype._isMoving = function(vmin) {
 Graph.prototype._discreteStepNodes = function() {
     var interval = this.refreshRate / 1000.0; // in seconds
     var nodes = this.nodes;
-    for (var n = 0, nMax = nodes.length; n < nMax; n++) {
-        nodes[n].discreteStep(interval);
+    for (var id in nodes) {
+        if (nodes.hasOwnProperty(id)) {
+            nodes[id].discreteStep(interval);
+        }
     }
 };
 
@@ -10968,7 +11431,7 @@ if (typeof window !== 'undefined') {
 }
 
 // inject css
-util.loadCss("/* vis.js stylesheet */\n\n.graph {\n    position: relative;\n    border: 1px solid #bfbfbf;\n}\n\n.graph .panel {\n    position: absolute;\n}\n\n.graph .groupset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n}\n\n\n.graph .itemset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n    overflow: hidden;\n}\n\n.graph .background {\n}\n\n.graph .foreground {\n}\n\n.graph .itemset-axis {\n    position: absolute;\n}\n\n.graph .groupset .itemset-axis {\n    border-top: 1px solid #bfbfbf;\n}\n\n/* TODO: with orientation=='bottom', this will more or less overlap with timeline axis\n.graph .groupset .itemset-axis:last-child {\n    border-top: none;\n}\n*/\n\n\n.graph .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.graph .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.graph .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.graph .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.graph .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.graph .item.point {\n    background: none;\n}\n\n.graph .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range {\n    overflow: hidden;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.graph .item.range .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.graph .item.range .content {\n    position: relative;\n    display: inline-block;\n}\n\n.graph .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n}\n\n.graph .item .content {\n    margin: 5px;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n/* TODO: better css name, 'graph' is way to generic */\n\n.graph {\n    overflow: hidden;\n}\n\n.graph .axis {\n    position: relative;\n}\n\n.graph .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.graph .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.graph .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.graph .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.graph .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.graph .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n");
+util.loadCss("/* vis.js stylesheet */\n.vis.timeline {\n}\n\n\n.vis.timeline.rootpanel {\n    position: relative;\n    overflow: hidden;\n\n    border: 1px solid #bfbfbf;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n}\n\n.vis.timeline .panel {\n    position: absolute;\n    overflow: hidden;\n}\n\n\n.vis.timeline .groupset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n}\n\n.vis.timeline .labels {\n    position: absolute;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n\n    padding: 0;\n    margin: 0;\n\n    border-right: 1px solid #bfbfbf;\n    box-sizing: border-box;\n    -moz-box-sizing: border-box;\n}\n\n.vis.timeline .labels .label {\n    position: absolute;\n    left: 0;\n    top: 0;\n    width: 100%;\n    border-bottom: 1px solid #bfbfbf;\n    color: #4d4d4d;\n}\n\n.vis.timeline .labels .label .inner {\n    display: inline-block;\n    padding: 5px;\n}\n\n\n.vis.timeline .itemset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n    overflow: hidden;\n}\n\n.vis.timeline .background {\n}\n\n.vis.timeline .foreground {\n}\n\n.vis.timeline .itemset-axis {\n    position: absolute;\n}\n\n.vis.timeline .groupset .itemset-axis {\n    border-top: 1px solid #bfbfbf;\n}\n\n/* TODO: with orientation=='bottom', this will more or less overlap with timeline axis\n.vis.timeline .groupset .itemset-axis:last-child {\n    border-top: none;\n}\n*/\n\n\n.vis.timeline .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.vis.timeline .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.vis.timeline .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.vis.timeline .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.vis.timeline .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.point {\n    background: none;\n}\n\n.vis.timeline .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.range {\n    overflow: hidden;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.range .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.vis.timeline .item.range .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.vis.timeline .item.range .content {\n    position: relative;\n    display: inline-block;\n}\n\n.vis.timeline .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n}\n\n.vis.timeline .item .content {\n    margin: 5px;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n.vis.timeline .axis {\n    position: relative;\n}\n\n.vis.timeline .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.vis.timeline .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.vis.timeline .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.vis.timeline .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.vis.timeline .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.vis.timeline .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n");
 
 })()
 },{"moment":2}],2:[function(require,module,exports){

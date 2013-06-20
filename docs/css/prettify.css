@@ -16,16 +16,12 @@
 
 pre.prettyprint {
     border: 1px solid lightgray;
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
     background-color: #fcfcfc;
     padding: 5px;
 
     font-size: 10pt;
     line-height: 1.5em;
     font-family: monospace;
-    overflow-x: auto;
-    width: 100%;
 }
 
 ol.linenums {
