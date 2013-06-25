@@ -6,7 +6,7 @@ var assert = require('assert'),
 var now = new Date();
 
 var data = new DataSet({
-    fieldTypes: {
+    convert: {
         start: 'Date',
         end: 'Date'
     }
@@ -41,10 +41,10 @@ assert.deepEqual(data.get({
 ]);
 
 
-// cast dates
+// convert dates
 assert.deepEqual(data.get({
     fields: ['id', 'start'],
-    fieldTypes: {start: 'Number'}
+    convert: {start: 'Number'}
 }).sort(sort), [
     {id: 1, start: now.valueOf()},
     {id: 2, start: now.valueOf()},
@@ -56,7 +56,7 @@ assert.deepEqual(data.get({
 // get a single item
 assert.deepEqual(data.get(1, {
     fields: ['id', 'start'],
-    fieldTypes: {start: 'ISODate'}
+    convert: {start: 'ISODate'}
 }), {
     id: 1,
     start: now.toISOString()

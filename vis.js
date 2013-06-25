@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.1.0-SNAPSHOT
- * @date    2013-06-18
+ * @version 0.2.0-SNAPSHOT
+ * @date    2013-06-25
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -129,7 +129,7 @@ util.extend = function (a, b) {
 };
 
 /**
- * Cast an object to another type
+ * Convert an object to another type
  * @param {Boolean | Number | String | Date | Moment | Null | undefined} object
  * @param {String | undefined} type   Name of the type. Available types:
  *                                    'Boolean', 'Number', 'String',
@@ -137,7 +137,7 @@ util.extend = function (a, b) {
  * @return {*} object
  * @throws Error
  */
-util.cast = function cast(object, type) {
+util.convert = function convert(object, type) {
     var match;
 
     if (object === undefined) {
@@ -162,7 +162,7 @@ util.cast = function cast(object, type) {
 
         case 'number':
         case 'Number':
-            return Number(object);
+            return Number(object.valueOf());
 
         case 'string':
         case 'String':
@@ -179,11 +179,9 @@ util.cast = function cast(object, type) {
                 return new Date(object.valueOf());
             }
             if (util.isString(object)) {
-                // parse ASP.Net Date pattern,
-                // for example '/Date(1198908717056)/' or '/Date(1198908717056-0700)/'
-                // code from http://momentjs.com/
                 match = ASPDateRegex.exec(object);
                 if (match) {
+                    // object is an ASP date
                     return new Date(Number(match[1])); // parse number
                 }
                 else {
@@ -192,7 +190,7 @@ util.cast = function cast(object, type) {
             }
             else {
                 throw new Error(
-                    'Cannot cast object of type ' + util.getType(object) +
+                    'Cannot convert object of type ' + util.getType(object) +
                         ' to type Date');
             }
 
@@ -207,11 +205,9 @@ util.cast = function cast(object, type) {
                 return moment.clone();
             }
             if (util.isString(object)) {
-                // parse ASP.Net Date pattern,
-                // for example '/Date(1198908717056)/' or '/Date(1198908717056-0700)/'
-                // code from http://momentjs.com/
                 match = ASPDateRegex.exec(object);
                 if (match) {
+                    // object is an ASP date
                     return moment(Number(match[1])); // parse number
                 }
                 else {
@@ -220,45 +216,70 @@ util.cast = function cast(object, type) {
             }
             else {
                 throw new Error(
-                    'Cannot cast object of type ' + util.getType(object) +
+                    'Cannot convert object of type ' + util.getType(object) +
                         ' to type Date');
             }
 
         case 'ISODate':
-            if (object instanceof Date) {
+            if (util.isNumber(object)) {
+                return new Date(object);
+            }
+            else if (object instanceof Date) {
                 return object.toISOString();
             }
             else if (moment.isMoment(object)) {
                 return object.toDate().toISOString();
             }
-            else if (util.isNumber(object) || util.isString(object)) {
-                return moment(object).toDate().toISOString();
+            else if (util.isString(object)) {
+                match = ASPDateRegex.exec(object);
+                if (match) {
+                    // object is an ASP date
+                    return new Date(Number(match[1])).toISOString(); // parse number
+                }
+                else {
+                    return new Date(object).toISOString(); // parse string
+                }
             }
             else {
                 throw new Error(
-                    'Cannot cast object of type ' + util.getType(object) +
+                    'Cannot convert object of type ' + util.getType(object) +
                         ' to type ISODate');
             }
 
         case 'ASPDate':
-            if (object instanceof Date) {
+            if (util.isNumber(object)) {
+                return '/Date(' + object + ')/';
+            }
+            else if (object instanceof Date) {
                 return '/Date(' + object.valueOf() + ')/';
             }
-            else if (util.isNumber(object) || util.isString(object)) {
-                return '/Date(' + moment(object).valueOf() + ')/';
+            else if (util.isString(object)) {
+                match = ASPDateRegex.exec(object);
+                var value;
+                if (match) {
+                    // object is an ASP date
+                    value = new Date(Number(match[1])).valueOf(); // parse number
+                }
+                else {
+                    value = new Date(object).valueOf(); // parse string
+                }
+                return '/Date(' + value + ')/';
             }
             else {
                 throw new Error(
-                    'Cannot cast object of type ' + util.getType(object) +
+                    'Cannot convert object of type ' + util.getType(object) +
                         ' to type ASPDate');
             }
 
         default:
-            throw new Error('Cannot cast object of type ' + util.getType(object) +
+            throw new Error('Cannot convert object of type ' + util.getType(object) +
                 ' to type "' + type + '"');
     }
 };
 
+// parse ASP.Net Date pattern,
+// for example '/Date(1198908717056)/' or '/Date(1198908717056-0700)/'
+// code from http://momentjs.com/
 var ASPDateRegex = /^\/?Date\((\-?\d+)/i;
 
 /**
@@ -578,7 +599,7 @@ util.preventDefault = function preventDefault (event) {
 util.option = {};
 
 /**
- * Cast a value as boolean
+ * Convert a value into a boolean
  * @param {Boolean | function | undefined} value
  * @param {Boolean} [defaultValue]
  * @returns {Boolean} bool
@@ -596,7 +617,7 @@ util.option.asBoolean = function (value, defaultValue) {
 };
 
 /**
- * Cast a value as number
+ * Convert a value into a number
  * @param {Boolean | function | undefined} value
  * @param {Number} [defaultValue]
  * @returns {Number} number
@@ -614,7 +635,7 @@ util.option.asNumber = function (value, defaultValue) {
 };
 
 /**
- * Cast a value as string
+ * Convert a value into a string
  * @param {String | function | undefined} value
  * @param {String} [defaultValue]
  * @returns {String} str
@@ -632,7 +653,7 @@ util.option.asString = function (value, defaultValue) {
 };
 
 /**
- * Cast a size or location in pixels or a percentage
+ * Convert a size or location into a string with pixels or a percentage
  * @param {String | Number | function | undefined} value
  * @param {String} [defaultValue]
  * @returns {String} size
@@ -654,7 +675,7 @@ util.option.asSize = function (value, defaultValue) {
 };
 
 /**
- * Cast a value as DOM element
+ * Convert a value into a DOM element
  * @param {HTMLElement | function | undefined} value
  * @param {HTMLElement} [defaultValue]
  * @returns {HTMLElement | null} dom
@@ -1136,7 +1157,7 @@ EventBus.prototype.emit = function (event, data, source) {
  * Usage:
  *     var dataSet = new DataSet({
  *         fieldId: '_id',
- *         fieldTypes: {
+ *         convert: {
  *             // ...
  *         }
  *     });
@@ -1161,7 +1182,7 @@ EventBus.prototype.emit = function (event, data, source) {
  * @param {Object} [options]   Available options:
  *                             {String} fieldId Field name of the id in the
  *                                              items, 'id' by default.
- *                             {Object.<String, String} fieldTypes
+ *                             {Object.<String, String} convert
  *                                              A map with field names as key,
  *                                              and the field type as value.
  * @constructor DataSet
@@ -1173,17 +1194,17 @@ function DataSet (options) {
     this.options = options || {};
     this.data = {};                                 // map with data indexed by id
     this.fieldId = this.options.fieldId || 'id';    // name of the field containing id
-    this.fieldTypes = {};                           // field types by field name
+    this.convert = {};                              // field types by field name
 
-    if (this.options.fieldTypes) {
-        for (var field in this.options.fieldTypes) {
-            if (this.options.fieldTypes.hasOwnProperty(field)) {
-                var value = this.options.fieldTypes[field];
+    if (this.options.convert) {
+        for (var field in this.options.convert) {
+            if (this.options.convert.hasOwnProperty(field)) {
+                var value = this.options.convert[field];
                 if (value == 'Date' || value == 'ISODate' || value == 'ASPDate') {
-                    this.fieldTypes[field] = 'Date';
+                    this.convert[field] = 'Date';
                 }
                 else {
-                    this.fieldTypes[field] = value;
+                    this.convert[field] = value;
                 }
             }
         }
@@ -1202,11 +1223,9 @@ function DataSet (options) {
  * @param {function} callback   Callback method. Called with three parameters:
  *                                  {String} event
  *                                  {Object | null} params
- *                                  {String} senderId
- * @param {String} [id]         Optional id for the sender, used to filter
- *                              events triggered by the sender itself.
+ *                                  {String | Number} senderId
  */
-DataSet.prototype.subscribe = function (event, callback, id) {
+DataSet.prototype.subscribe = function (event, callback) {
     var subscribers = this.subscribers[event];
     if (!subscribers) {
         subscribers = [];
@@ -1214,7 +1233,6 @@ DataSet.prototype.subscribe = function (event, callback, id) {
     }
 
     subscribers.push({
-        id: id ? String(id) : null,
         callback: callback
     });
 };
@@ -1266,9 +1284,10 @@ DataSet.prototype._trigger = function (event, params, senderId) {
  * Adding an item will fail when there already is an item with the same id.
  * @param {Object | Array | DataTable} data
  * @param {String} [senderId] Optional sender id
+ * @return {Array} addedIds      Array with the ids of the added items
  */
 DataSet.prototype.add = function (data, senderId) {
-    var addedItems = [],
+    var addedIds = [],
         id,
         me = this;
 
@@ -1276,7 +1295,7 @@ DataSet.prototype.add = function (data, senderId) {
         // Array
         for (var i = 0, len = data.length; i < len; i++) {
             id = me._addItem(data[i]);
-            addedItems.push(id);
+            addedIds.push(id);
         }
     }
     else if (util.isDataTable(data)) {
@@ -1290,31 +1309,34 @@ DataSet.prototype.add = function (data, senderId) {
             }
 
             id = me._addItem(item);
-            addedItems.push(id);
+            addedIds.push(id);
         }
     }
     else if (data instanceof Object) {
         // Single item
         id = me._addItem(data);
-        addedItems.push(id);
+        addedIds.push(id);
     }
     else {
         throw new Error('Unknown dataType');
     }
 
-    if (addedItems.length) {
-        this._trigger('add', {items: addedItems}, senderId);
+    if (addedIds.length) {
+        this._trigger('add', {items: addedIds}, senderId);
     }
+
+    return addedIds;
 };
 
 /**
  * Update existing items. When an item does not exist, it will be created
  * @param {Object | Array | DataTable} data
  * @param {String} [senderId] Optional sender id
+ * @return {Array} updatedIds     The ids of the added or updated items
  */
 DataSet.prototype.update = function (data, senderId) {
-    var addedItems = [],
-        updatedItems = [],
+    var addedIds = [],
+        updatedIds = [],
         me = this,
         fieldId = me.fieldId;
 
@@ -1323,12 +1345,12 @@ DataSet.prototype.update = function (data, senderId) {
         if (me.data[id]) {
             // update item
             id = me._updateItem(item);
-            updatedItems.push(id);
+            updatedIds.push(id);
         }
         else {
             // add new item
             id = me._addItem(item);
-            addedItems.push(id);
+            addedIds.push(id);
         }
     };
 
@@ -1359,12 +1381,14 @@ DataSet.prototype.update = function (data, senderId) {
         throw new Error('Unknown dataType');
     }
 
-    if (addedItems.length) {
-        this._trigger('add', {items: addedItems}, senderId);
+    if (addedIds.length) {
+        this._trigger('add', {items: addedIds}, senderId);
     }
-    if (updatedItems.length) {
-        this._trigger('update', {items: updatedItems}, senderId);
+    if (updatedIds.length) {
+        this._trigger('update', {items: updatedIds}, senderId);
     }
+
+    return addedIds.concat(updatedIds);
 };
 
 /**
@@ -1391,7 +1415,7 @@ DataSet.prototype.update = function (data, senderId) {
  * {Object} options             An Object with options. Available options:
  *                              {String} [type] Type of data to be returned. Can
  *                                              be 'DataTable' or 'Array' (default)
- *                              {Object.<String, String>} [fieldTypes]
+ *                              {Object.<String, String>} [convert]
  *                              {String[]} [fields] field names to be returned
  *                              {function} [filter] filter items
  *                              {String | function} [order] Order the items by
@@ -1448,14 +1472,14 @@ DataSet.prototype.get = function (args) {
     }
 
     // build options
-    var fieldTypes = options && options.fieldTypes || this.options.fieldTypes;
+    var convert = options && options.convert || this.options.convert;
     var filter = options && options.filter;
     var items = [], item, itemId, i, len;
 
-    // cast items
+    // convert items
     if (id != undefined) {
         // return a single item
-        item = me._getItem(id, fieldTypes);
+        item = me._getItem(id, convert);
         if (filter && !filter(item)) {
             item = null;
         }
@@ -1463,7 +1487,7 @@ DataSet.prototype.get = function (args) {
     else if (ids != undefined) {
         // return a subset of items
         for (i = 0, len = ids.length; i < len; i++) {
-            item = me._getItem(ids[i], fieldTypes);
+            item = me._getItem(ids[i], convert);
             if (!filter || filter(item)) {
                 items.push(item);
             }
@@ -1473,7 +1497,7 @@ DataSet.prototype.get = function (args) {
         // return all items
         for (itemId in this.data) {
             if (this.data.hasOwnProperty(itemId)) {
-                item = me._getItem(itemId, fieldTypes);
+                item = me._getItem(itemId, convert);
                 if (!filter || filter(item)) {
                     items.push(item);
                 }
@@ -1549,7 +1573,7 @@ DataSet.prototype.getIds = function (options) {
     var data = this.data,
         filter = options && options.filter,
         order = options && options.order,
-        fieldTypes = options && options.fieldTypes || this.options.fieldTypes,
+        convert = options && options.convert || this.options.convert,
         i,
         len,
         id,
@@ -1564,7 +1588,7 @@ DataSet.prototype.getIds = function (options) {
             items = [];
             for (id in data) {
                 if (data.hasOwnProperty(id)) {
-                    item = this._getItem(id, fieldTypes);
+                    item = this._getItem(id, convert);
                     if (filter(item)) {
                         items.push(item);
                     }
@@ -1581,7 +1605,7 @@ DataSet.prototype.getIds = function (options) {
             // create unordered list
             for (id in data) {
                 if (data.hasOwnProperty(id)) {
-                    item = this._getItem(id, fieldTypes);
+                    item = this._getItem(id, convert);
                     if (filter(item)) {
                         ids.push(item[this.fieldId]);
                     }
@@ -1625,7 +1649,7 @@ DataSet.prototype.getIds = function (options) {
  * The order of the items is not determined.
  * @param {function} callback
  * @param {Object} [options]    Available options:
- *                              {Object.<String, String>} [fieldTypes]
+ *                              {Object.<String, String>} [convert]
  *                              {String[]} [fields] filter fields
  *                              {function} [filter] filter items
  *                              {String | function} [order] Order the items by
@@ -1633,7 +1657,7 @@ DataSet.prototype.getIds = function (options) {
  */
 DataSet.prototype.forEach = function (callback, options) {
     var filter = options && options.filter,
-        fieldTypes = options && options.fieldTypes || this.options.fieldTypes,
+        convert = options && options.convert || this.options.convert,
         data = this.data,
         item,
         id;
@@ -1652,7 +1676,7 @@ DataSet.prototype.forEach = function (callback, options) {
         // unordered
         for (id in data) {
             if (data.hasOwnProperty(id)) {
-                item = this._getItem(id, fieldTypes);
+                item = this._getItem(id, convert);
                 if (!filter || filter(item)) {
                     callback(item, id);
                 }
@@ -1665,7 +1689,7 @@ DataSet.prototype.forEach = function (callback, options) {
  * Map every item in the dataset.
  * @param {function} callback
  * @param {Object} [options]    Available options:
- *                              {Object.<String, String>} [fieldTypes]
+ *                              {Object.<String, String>} [convert]
  *                              {String[]} [fields] filter fields
  *                              {function} [filter] filter items
  *                              {String | function} [order] Order the items by
@@ -1674,15 +1698,15 @@ DataSet.prototype.forEach = function (callback, options) {
  */
 DataSet.prototype.map = function (callback, options) {
     var filter = options && options.filter,
-        fieldTypes = options && options.fieldTypes || this.options.fieldTypes,
+        convert = options && options.convert || this.options.convert,
         mappedItems = [],
         data = this.data,
         item;
 
-    // cast and filter items
+    // convert and filter items
     for (var id in data) {
         if (data.hasOwnProperty(id)) {
-            item = this._getItem(id, fieldTypes);
+            item = this._getItem(id, convert);
             if (!filter || filter(item)) {
                 mappedItems.push(callback(item, id));
             }
@@ -1745,46 +1769,66 @@ DataSet.prototype._sort = function (items, order) {
 
 /**
  * Remove an object by pointer or by id
- * @param {String | Number | Object | Array} id   Object or id, or an array with
- *                                                objects or ids to be removed
+ * @param {String | Number | Object | Array} id Object or id, or an array with
+ *                                              objects or ids to be removed
  * @param {String} [senderId] Optional sender id
+ * @return {Array} removedIds
  */
 DataSet.prototype.remove = function (id, senderId) {
-    var removedItems = [],
-        i, len;
+    var removedIds = [],
+        i, len, removedId;
 
-    if (util.isNumber(id) || util.isString(id)) {
-        delete this.data[id];
-        delete this.internalIds[id];
-        removedItems.push(id);
-    }
-    else if (id instanceof Array) {
+    if (id instanceof Array) {
         for (i = 0, len = id.length; i < len; i++) {
-            this.remove(id[i]);
-        }
-        removedItems = items.concat(id);
-    }
-    else if (id instanceof Object) {
-        // search for the object
-        for (i in this.data) {
-            if (this.data.hasOwnProperty(i)) {
-                if (this.data[i] == id) {
-                    delete this.data[i];
-                    delete this.internalIds[i];
-                    removedItems.push(i);
-                }
+            removedId = this._remove(id[i]);
+            if (removedId != null) {
+                removedIds.push(removedId);
             }
         }
     }
-
-    if (removedItems.length) {
-        this._trigger('remove', {items: removedItems}, senderId);
+    else {
+        removedId = this._remove(id);
+        if (removedId != null) {
+            removedIds.push(removedId);
+        }
     }
+
+    if (removedIds.length) {
+        this._trigger('remove', {items: removedIds}, senderId);
+    }
+
+    return removedIds;
+};
+
+/**
+ * Remove an item by its id
+ * @param {Number | String | Object} id   id or item
+ * @returns {Number | String | null} id
+ * @private
+ */
+DataSet.prototype._remove = function (id) {
+    if (util.isNumber(id) || util.isString(id)) {
+        if (this.data[id]) {
+            delete this.data[id];
+            delete this.internalIds[id];
+            return id;
+        }
+    }
+    else if (id instanceof Object) {
+        var itemId = id[this.fieldId];
+        if (itemId && this.data[itemId]) {
+            delete this.data[itemId];
+            delete this.internalIds[itemId];
+            return itemId;
+        }
+    }
+    return null;
 };
 
 /**
  * Clear the data
  * @param {String} [senderId] Optional sender id
+ * @return {Array} removedIds    The ids of all removed items
  */
 DataSet.prototype.clear = function (senderId) {
     var ids = Object.keys(this.data);
@@ -1793,6 +1837,8 @@ DataSet.prototype.clear = function (senderId) {
     this.internalIds = {};
 
     this._trigger('remove', {items: ids}, senderId);
+
+    return ids;
 };
 
 /**
@@ -1854,13 +1900,13 @@ DataSet.prototype.min = function (field) {
 DataSet.prototype.distinct = function (field) {
     var data = this.data,
         values = [],
-        fieldType = this.options.fieldTypes[field],
+        fieldType = this.options.convert[field],
         count = 0;
 
     for (var prop in data) {
         if (data.hasOwnProperty(prop)) {
             var item = data[prop];
-            var value = util.cast(item[field], fieldType);
+            var value = util.convert(item[field], fieldType);
             var exists = false;
             for (var i = 0; i < count; i++) {
                 if (values[i] == value) {
@@ -1904,8 +1950,8 @@ DataSet.prototype._addItem = function (item) {
     var d = {};
     for (var field in item) {
         if (item.hasOwnProperty(field)) {
-            var type = this.fieldTypes[field];  // type may be undefined
-            d[field] = util.cast(item[field], type);
+            var fieldType = this.convert[field];  // type may be undefined
+            d[field] = util.convert(item[field], fieldType);
         }
     }
     this.data[id] = d;
@@ -1914,13 +1960,13 @@ DataSet.prototype._addItem = function (item) {
 };
 
 /**
- * Get an item. Fields can be casted to a specific type
+ * Get an item. Fields can be converted to a specific type
  * @param {String} id
- * @param {Object.<String, String>} [fieldTypes]  Cast field types
+ * @param {Object.<String, String>} [convert]  field types to convert
  * @return {Object | null} item
  * @private
  */
-DataSet.prototype._getItem = function (id, fieldTypes) {
+DataSet.prototype._getItem = function (id, convert) {
     var field, value;
 
     // get the item from the dataset
@@ -1929,35 +1975,35 @@ DataSet.prototype._getItem = function (id, fieldTypes) {
         return null;
     }
 
-    // cast the items field types
-    var casted = {},
+    // convert the items field types
+    var converted = {},
         fieldId = this.fieldId,
         internalIds = this.internalIds;
-    if (fieldTypes) {
+    if (convert) {
         for (field in raw) {
             if (raw.hasOwnProperty(field)) {
                 value = raw[field];
                 // output all fields, except internal ids
                 if ((field != fieldId) || !(value in internalIds)) {
-                    casted[field] = util.cast(value, fieldTypes[field]);
+                    converted[field] = util.convert(value, convert[field]);
                 }
             }
         }
     }
     else {
-        // no field types specified, no casting needed
+        // no field types specified, no converting needed
         for (field in raw) {
             if (raw.hasOwnProperty(field)) {
                 value = raw[field];
                 // output all fields, except internal ids
                 if ((field != fieldId) || !(value in internalIds)) {
-                    casted[field] = value;
+                    converted[field] = value;
                 }
             }
         }
     }
 
-    return casted;
+    return converted;
 };
 
 /**
@@ -1982,8 +2028,8 @@ DataSet.prototype._updateItem = function (item) {
     // merge with current item
     for (var field in item) {
         if (item.hasOwnProperty(field)) {
-            var type = this.fieldTypes[field];  // type may be undefined
-            d[field] = util.cast(item[field], type);
+            var fieldType = this.convert[field];  // type may be undefined
+            d[field] = util.convert(item[field], fieldType);
         }
     }
 
@@ -2118,7 +2164,7 @@ DataView.prototype.setData = function (data) {
  * {Object} options             An Object with options. Available options:
  *                              {String} [type] Type of data to be returned. Can
  *                                              be 'DataTable' or 'Array' (default)
- *                              {Object.<String, String>} [fieldTypes]
+ *                              {Object.<String, String>} [convert]
  *                              {String[]} [fields] field names to be returned
  *                              {function} [filter] filter items
  *                              {String | function} [order] Order the items by
@@ -3097,8 +3143,8 @@ Range.prototype.setRange = function(start, end) {
  * @private
  */
 Range.prototype._applyRange = function(start, end) {
-    var newStart = (start != null) ? util.cast(start, 'Number') : this.start;
-    var newEnd = (end != null) ? util.cast(end, 'Number') : this.end;
+    var newStart = (start != null) ? util.convert(start, 'Number') : this.start;
+    var newEnd = (end != null) ? util.convert(end, 'Number') : this.end;
     var diff;
 
     // check for valid number
@@ -4615,8 +4661,8 @@ TimeAxis.prototype.reflow = function () {
         // calculate range and step
         this._updateConversion();
 
-        var start = util.cast(range.start, 'Date'),
-            end = util.cast(range.end, 'Date'),
+        var start = util.convert(range.start, 'Date'),
+            end = util.convert(range.end, 'Date'),
             minimumStep = this.toTime((props.minorCharWidth || 10) * 5) - this.toTime(0);
         this.step = new TimeStep(start, end, minimumStep);
         changed += update(props.range, 'start', start.valueOf());
@@ -6321,7 +6367,7 @@ GroupSet.prototype.setGroups = function setGroups(groups) {
     }
     else {
         this.groupsData = new DataSet({
-            fieldTypes: {
+            convert: {
                 start: 'Date',
                 end: 'Date'
             }
@@ -6838,7 +6884,7 @@ Timeline.prototype.setItems = function(items) {
     }
     if (!(items instanceof DataSet)) {
         newItemSet = new DataSet({
-            fieldTypes: {
+            convert: {
                 start: 'Date',
                 end: 'Date'
             }
@@ -7319,13 +7365,13 @@ Timeline.prototype.getItemRange = function getItemRange() {
                 next();
             }
             if (token == 'false') {
-                token = false;   // cast to boolean
+                token = false;   // convert to boolean
             }
             else if (token == 'true') {
-                token = true;   // cast to boolean
+                token = true;   // convert to boolean
             }
             else if (!isNaN(Number(token))) {
-                token = Number(token); // cast to number
+                token = Number(token); // convert to number
             }
             tokenType = TOKENTYPE.IDENTIFIER;
             return;

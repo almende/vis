@@ -98,7 +98,7 @@ util.extend = function (a, b) {
 };
 
 /**
- * Cast an object to another type
+ * Convert an object to another type
  * @param {Boolean | Number | String | Date | Moment | Null | undefined} object
  * @param {String | undefined} type   Name of the type. Available types:
  *                                    'Boolean', 'Number', 'String',
@@ -106,7 +106,7 @@ util.extend = function (a, b) {
  * @return {*} object
  * @throws Error
  */
-util.cast = function cast(object, type) {
+util.convert = function convert(object, type) {
     var match;
 
     if (object === undefined) {
@@ -131,7 +131,7 @@ util.cast = function cast(object, type) {
 
         case 'number':
         case 'Number':
-            return Number(object);
+            return Number(object.valueOf());
 
         case 'string':
         case 'String':
@@ -148,11 +148,9 @@ util.cast = function cast(object, type) {
                 return new Date(object.valueOf());
             }
             if (util.isString(object)) {
-                // parse ASP.Net Date pattern,
-                // for example '/Date(1198908717056)/' or '/Date(1198908717056-0700)/'
-                // code from http://momentjs.com/
                 match = ASPDateRegex.exec(object);
                 if (match) {
+                    // object is an ASP date
                     return new Date(Number(match[1])); // parse number
                 }
                 else {
@@ -161,7 +159,7 @@ util.cast = function cast(object, type) {
             }
             else {
                 throw new Error(
-                    'Cannot cast object of type ' + util.getType(object) +
+                    'Cannot convert object of type ' + util.getType(object) +
                         ' to type Date');
             }
 
@@ -176,11 +174,9 @@ util.cast = function cast(object, type) {
                 return moment.clone();
             }
             if (util.isString(object)) {
-                // parse ASP.Net Date pattern,
-                // for example '/Date(1198908717056)/' or '/Date(1198908717056-0700)/'
-                // code from http://momentjs.com/
                 match = ASPDateRegex.exec(object);
                 if (match) {
+                    // object is an ASP date
                     return moment(Number(match[1])); // parse number
                 }
                 else {
@@ -189,45 +185,70 @@ util.cast = function cast(object, type) {
             }
             else {
                 throw new Error(
-                    'Cannot cast object of type ' + util.getType(object) +
+                    'Cannot convert object of type ' + util.getType(object) +
                         ' to type Date');
             }
 
         case 'ISODate':
-            if (object instanceof Date) {
+            if (util.isNumber(object)) {
+                return new Date(object);
+            }
+            else if (object instanceof Date) {
                 return object.toISOString();
             }
             else if (moment.isMoment(object)) {
                 return object.toDate().toISOString();
             }
-            else if (util.isNumber(object) || util.isString(object)) {
-                return moment(object).toDate().toISOString();
+            else if (util.isString(object)) {
+                match = ASPDateRegex.exec(object);
+                if (match) {
+                    // object is an ASP date
+                    return new Date(Number(match[1])).toISOString(); // parse number
+                }
+                else {
+                    return new Date(object).toISOString(); // parse string
+                }
             }
             else {
                 throw new Error(
-                    'Cannot cast object of type ' + util.getType(object) +
+                    'Cannot convert object of type ' + util.getType(object) +
                         ' to type ISODate');
             }
 
         case 'ASPDate':
-            if (object instanceof Date) {
+            if (util.isNumber(object)) {
+                return '/Date(' + object + ')/';
+            }
+            else if (object instanceof Date) {
                 return '/Date(' + object.valueOf() + ')/';
             }
-            else if (util.isNumber(object) || util.isString(object)) {
-                return '/Date(' + moment(object).valueOf() + ')/';
+            else if (util.isString(object)) {
+                match = ASPDateRegex.exec(object);
+                var value;
+                if (match) {
+                    // object is an ASP date
+                    value = new Date(Number(match[1])).valueOf(); // parse number
+                }
+                else {
+                    value = new Date(object).valueOf(); // parse string
+                }
+                return '/Date(' + value + ')/';
             }
             else {
                 throw new Error(
-                    'Cannot cast object of type ' + util.getType(object) +
+                    'Cannot convert object of type ' + util.getType(object) +
                         ' to type ASPDate');
             }
 
         default:
-            throw new Error('Cannot cast object of type ' + util.getType(object) +
+            throw new Error('Cannot convert object of type ' + util.getType(object) +
                 ' to type "' + type + '"');
     }
 };
 
+// parse ASP.Net Date pattern,
+// for example '/Date(1198908717056)/' or '/Date(1198908717056-0700)/'
+// code from http://momentjs.com/
 var ASPDateRegex = /^\/?Date\((\-?\d+)/i;
 
 /**
@@ -547,7 +568,7 @@ util.preventDefault = function preventDefault (event) {
 util.option = {};
 
 /**
- * Cast a value as boolean
+ * Convert a value into a boolean
  * @param {Boolean | function | undefined} value
  * @param {Boolean} [defaultValue]
  * @returns {Boolean} bool
@@ -565,7 +586,7 @@ util.option.asBoolean = function (value, defaultValue) {
 };
 
 /**
- * Cast a value as number
+ * Convert a value into a number
  * @param {Boolean | function | undefined} value
  * @param {Number} [defaultValue]
  * @returns {Number} number
@@ -583,7 +604,7 @@ util.option.asNumber = function (value, defaultValue) {
 };
 
 /**
- * Cast a value as string
+ * Convert a value into a string
  * @param {String | function | undefined} value
  * @param {String} [defaultValue]
  * @returns {String} str
@@ -601,7 +622,7 @@ util.option.asString = function (value, defaultValue) {
 };
 
 /**
- * Cast a size or location in pixels or a percentage
+ * Convert a size or location into a string with pixels or a percentage
  * @param {String | Number | function | undefined} value
  * @param {String} [defaultValue]
  * @returns {String} size
@@ -623,7 +644,7 @@ util.option.asSize = function (value, defaultValue) {
 };
 
 /**
- * Cast a value as DOM element
+ * Convert a value into a DOM element
  * @param {HTMLElement | function | undefined} value
  * @param {HTMLElement} [defaultValue]
  * @returns {HTMLElement | null} dom

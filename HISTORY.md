@@ -2,17 +2,19 @@ vis.js history
 http://visjs.org
 
 
-## version 0.1.0
+## 2013-06-20, version 0.1.0
 
-- Graph now uses an id based set of nodes and edges instead of a row based array
-  internally.
+- Added support for DataSet to Graph. Graph now uses an id based set of nodes
+  and edges instead of a row based array internally. Methods getSelection and
+  setSelection of Graph now accept a list with ids instead of rows.
 - Graph is now robust against edges pointing to non-existing nodes, which
   can occur easily while dynamically adding/removing nodes and edges.
-- Added support for DataSet to Graph.
-- Methods getSelection and setSelection of Graph now accept a list with ids
-  instead of rows.
 - Implemented basic support for groups in the Timeline.
+- Added documentation on DataSet and DataView.
 - Fixed selection of nodes in a Graph when the containing web page is scrolled.
+- Improved date conversion.
+- Renamed DataSet option `fieldTypes` to `convert`.
+- Renamed function `vis.util.cast` to `vis.util.convert`.
 
 
 ## 2013-06-07, version 0.0.9

@@ -327,13 +327,13 @@
                 next();
             }
             if (token == 'false') {
-                token = false;   // cast to boolean
+                token = false;   // convert to boolean
             }
             else if (token == 'true') {
-                token = true;   // cast to boolean
+                token = true;   // convert to boolean
             }
             else if (!isNaN(Number(token))) {
-                token = Number(token); // cast to number
+                token = Number(token); // convert to number
             }
             tokenType = TOKENTYPE.IDENTIFIER;
             return;

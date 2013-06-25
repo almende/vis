@@ -143,7 +143,7 @@ Timeline.prototype.setItems = function(items) {
     }
     if (!(items instanceof DataSet)) {
         newItemSet = new DataSet({
-            fieldTypes: {
+            convert: {
                 start: 'Date',
                 end: 'Date'
             }
