@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.2.0-SNAPSHOT
- * @date    2013-06-25
+ * @date    2013-07-10
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -3526,6 +3526,22 @@ Range.prototype.move = function(moveFactor) {
     this.start = newStart;
     this.end = newEnd;
 };
+
+/**
+ * Move the range to a new center point
+ * @param {Number} moveTo      New center point of the range
+ */
+Range.prototype.moveTo = function(moveTo) {
+    var center = (this.start + this.end) / 2;
+
+    var diff = center - moveTo;
+
+    // calculate new start and end
+    var newStart = this.start - diff;
+    var newEnd = this.end - diff;
+
+    this.setRange(newStart, newEnd);
+}
 
 /**
  * @constructor Controller
