@@ -522,3 +522,19 @@ Range.prototype.move = function(moveFactor) {
     this.start = newStart;
     this.end = newEnd;
 };
+
+/**
+ * Move the range to a new center point
+ * @param {Number} moveTo      New center point of the range
+ */
+Range.prototype.moveTo = function(moveTo) {
+    var center = (this.start + this.end) / 2;
+
+    var diff = center - moveTo;
+
+    // calculate new start and end
+    var newStart = this.start - diff;
+    var newEnd = this.end - diff;
+
+    this.setRange(newStart, newEnd);
+}
