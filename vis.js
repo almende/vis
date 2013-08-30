@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.2.0-SNAPSHOT
- * @date    2013-07-10
+ * @date    2013-08-30
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -4904,9 +4904,9 @@ ItemSet.prototype.repaint = function repaint() {
         itemsData = this.itemsData,
         items = this.items,
         dataOptions = {
-            fields: [(itemsData && itemsData.fieldId || 'id'), 'start', 'end', 'content', 'type']
+            // TODO: cleanup
+            //fields: [(itemsData && itemsData.fieldId || 'id'), 'start', 'end', 'content', 'type']
         };
-    // TODO: copy options from the itemset itself?
 
     // show/hide added/changed/removed items
     Object.keys(queue).forEach(function (id) {
