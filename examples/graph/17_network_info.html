@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<!-- saved from url=(0046)http://visjs.org/examples/graph/03_images.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <title>Graph | Images</title>
+
+    <style type="text/css">
+        body {
+            font: 10pt arial;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+        #mygraph {
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+
+    <script type="text/javascript" src="../../vis.min.js"></script>
+
+    <script type="text/javascript">
+        var nodes = null;
+        var edges = null;
+        var graph = null;
+
+        var DIR = 'img/refresh-cl/',
+            SWITCH = DIR + 'Network-Pipe-icon.png',
+            COMPUTER = DIR + 'Hardware-My-Computer-3-icon.png',
+            PRINTER = DIR + 'Hardware-Printer-Blue-icon.png',
+            LENGTH_MAIN = 350,
+            LENGTH_SERVER = 150,
+            LENGTH_SUB = 50,
+            GREEN = 'green',
+            RED = '#FA0A10',
+            ORANGE = 'orange',
+            GRAY = 'gray',
+            BLACK = '#2B1B17';
+
+        // Called when the Visualization API is loaded.
+        function draw() {
+            // Create a data table with nodes.
+            nodes = [];
+
+            // Create a data table with links.
+            edges = [];
+
+            nodes.push({id: 1, label: '192.168.0.1', group: 'switch', value: 10});
+            nodes.push({id: 2, label: '192.168.0.2', group: 'switch', value: 8});
+            nodes.push({id: 3, label: '192.168.0.3', group: 'switch', value: 6});
+            edges.push({from: 1, to: 2, length: LENGTH_MAIN, width: 6, label: '0.71 mbps'});
+            edges.push({from: 1, to: 3, length: LENGTH_MAIN, width: 4, label: '0.55 mbps'});
+
+            // group around 2
+            for (var i = 100; i <= 104; i++) {
+                var value = 1;
+                var width = 1;
+                var color = GRAY;
+                var label = null;
+
+                if (i === 103) {
+                    value = 5;
+                    width = 3;
+                }
+                if (i === 102) {
+                    color = RED;
+                    label = 'error';
+                }
+
+                nodes.push({id: i, label: '192.168.0.' + i, group: 'desktop', value: value});
+                edges.push({from: 2, to: i, length: LENGTH_SUB, color: color, fontColor: color, width: width, label: label});
+            }
+            nodes.push({id: 201, label: '192.168.0.201', group: 'desktop', value: 1});
+            edges.push({from: 2, to: 201, length: LENGTH_SUB, color: GRAY});
+
+            // group around 3
+            nodes.push({id: 202, label: '192.168.0.202', group: 'desktop', value: 4});
+            edges.push({from: 3, to: 202, length: LENGTH_SUB, color: GRAY, width: 2});
+            for (var i = 230; i <= 231; i++ ) {
+                nodes.push({id: i, label: '192.168.0.' + i, group: 'mobile', value: 2});
+                edges.push({from: 3, to: i, length: LENGTH_SUB, color: GRAY, fontColor: GRAY, width: 1});
+            }
+
+            // group around 1
+            nodes.push({id: 10, label: '192.168.0.10', group: 'server', value: 10});
+            edges.push({from: 1, to: 10, length: LENGTH_SERVER, color: GRAY, width: 6, label: '0.92 mbps'});
+            nodes.push({id: 11, label: '192.168.0.11', group: 'server', value: 7});
+            edges.push({from: 1, to: 11, length: LENGTH_SERVER, color: GRAY, width: 3, label: '0.68 mbps'});
+            nodes.push({id: 12, label: '192.168.0.12', group: 'server', value: 3});
+            edges.push({from: 1, to: 12, length: LENGTH_SERVER, color: GRAY, label: '0.3 mbps'});
+
+            nodes.push({id: 204, label: 'Internet', group: 'internet', value: 10});
+            edges.push({from: 1, to: 204, length: 200, width: 3, label: '0.63 mbps'});
+
+
+            // legend
+            var mygraph = document.getElementById('mygraph');
+            var x = - mygraph.clientWidth / 2 + 50;
+            var y = - mygraph.clientHeight / 2 + 20;
+            nodes.push({id: 1000, x: x, y: y +  0, label: 'Internet', group: 'internet'});
+            nodes.push({id: 1001, x: x, y: y + 50, label: 'Switch', group: 'switch'});
+            nodes.push({id: 1002, x: x, y: y + 100, label: 'Server', group: 'server'});
+            nodes.push({id: 1003, x: x, y: y + 150, label: 'Computer', group: 'desktop'});
+            nodes.push({id: 1004, x: x, y: y + 200, label: 'Smartphone', group: 'mobile'});
+
+            // create a graph
+            var container = document.getElementById('mygraph');
+            var data = {
+                nodes: nodes,
+                edges: edges
+            };
+            var options = {
+                stabilize: false,   // stabilize positions before displaying
+                nodes: {
+                    widthMin: 24,
+                    maxWidth: 64,
+                    fontColor: BLACK
+                },
+                edges: {
+                    color: GRAY
+                },
+                groups: {
+                    'switch': {
+                        shape: 'triangle',
+                        color: vis.graph.Groups.DEFAULT[1] // yellow
+                    },
+                    desktop: {
+                        shape: 'dot',
+                        color: vis.graph.Groups.DEFAULT[0] // blue
+                    },
+                    mobile: {
+                        shape: 'dot',
+                        color: vis.graph.Groups.DEFAULT[4] // purple
+                    },
+                    server: {
+                        shape: 'square',
+                        color: vis.graph.Groups.DEFAULT[2] // red
+                    },
+                    internet: {
+                        shape: 'square',
+                        color: vis.graph.Groups.DEFAULT[3] // green
+                    }
+                }
+            };
+            graph = new vis.Graph(container, data, options);
+        }
+    </script>
+</head>
+
+<body onload="draw()">
+
+<div id="mygraph"><div class="graph-frame" style="position: relative; overflow: hidden; width: 100%; height: 100%;"><canvas style="position: relative; width: 100%; height: 100%;"></canvas></div></div>
+
+
+
+</body></html>
