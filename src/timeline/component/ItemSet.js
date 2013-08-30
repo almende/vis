@@ -192,9 +192,9 @@ ItemSet.prototype.repaint = function repaint() {
         itemsData = this.itemsData,
         items = this.items,
         dataOptions = {
-            fields: [(itemsData && itemsData.fieldId || 'id'), 'start', 'end', 'content', 'type']
+            // TODO: cleanup
+            //fields: [(itemsData && itemsData.fieldId || 'id'), 'start', 'end', 'content', 'type']
         };
-    // TODO: copy options from the itemset itself?
 
     // show/hide added/changed/removed items
     Object.keys(queue).forEach(function (id) {
