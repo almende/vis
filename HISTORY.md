@@ -2,6 +2,11 @@ vis.js history
 http://visjs.org
 
 
+## (not yet released), version 0.1.1
+
+- Fixed field `className` not working for items.
+
+
 ## 2013-06-20, version 0.1.0
 
 - Added support for DataSet to Graph. Graph now uses an id based set of nodes

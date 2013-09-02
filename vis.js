@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.2.0-SNAPSHOT
- * @date    2013-06-20
+ * @date    2013-09-02
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -3002,6 +3002,7 @@ function Range(options) {
     this.start = 0; // Number
     this.end = 0;   // Number
 
+  // this.options = options || {}; // TODO
     this.options = {
         min: null,
         max: null,
@@ -3513,6 +3514,22 @@ Range.prototype.move = function(moveFactor) {
     this.start = newStart;
     this.end = newEnd;
 };
+
+/**
+ * Move the range to a new center point
+ * @param {Number} moveTo      New center point of the range
+ */
+Range.prototype.moveTo = function(moveTo) {
+    var center = (this.start + this.end) / 2;
+
+    var diff = center - moveTo;
+
+    // calculate new start and end
+    var newStart = this.start - diff;
+    var newEnd = this.end - diff;
+
+    this.setRange(newStart, newEnd);
+}
 
 /**
  * @constructor Controller
@@ -4875,9 +4892,9 @@ ItemSet.prototype.repaint = function repaint() {
         itemsData = this.itemsData,
         items = this.items,
         dataOptions = {
-            fields: [(itemsData && itemsData.fieldId || 'id'), 'start', 'end', 'content', 'type']
+            // TODO: cleanup
+            //fields: [(itemsData && itemsData.fieldId || 'id'), 'start', 'end', 'content', 'type']
         };
-    // TODO: copy options from the itemset itself?
 
     // show/hide added/changed/removed items
     Object.keys(queue).forEach(function (id) {
@@ -5942,7 +5959,7 @@ ItemRange.prototype.repaint = function repaint() {
         }
 
         // update class
-        var className = this.data.className ? ('' + this.data.className) : '';
+        var className = this.data.className ? (' ' + this.data.className) : '';
         if (this.className != className) {
             this.className = className;
             dom.box.className = 'item range' + className;
@@ -6804,6 +6821,14 @@ function Timeline (container, items, options) {
         start: now.clone().add('days', -3).valueOf(),
         end:   now.clone().add('days', 4).valueOf()
     });
+  /* TODO: fix range options
+    var rangeOptions = Object.create(this.options);
+    this.range = new Range(rangeOptions);
+    this.range.setRange(
+        now.clone().add('days', -3).valueOf(),
+        now.clone().add('days', 4).valueOf()
+    );
+    */
     // TODO: reckon with options moveable and zoomable
     this.range.subscribe(this.rootPanel, 'move', 'horizontal');
     this.range.subscribe(this.rootPanel, 'zoom', 'horizontal');
@@ -6849,6 +6874,8 @@ Timeline.prototype.setOptions = function (options) {
     if (options) {
         util.extend(this.options, options);
     }
+
+    // TODO: apply range min,max
 
     this.controller.reflow();
     this.controller.repaint();
