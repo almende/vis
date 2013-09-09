@@ -4,6 +4,7 @@ http://visjs.org
 
 ## (not yet released), version 0.1.1
 
+- Fixed initial empty range in the Timeline in case of a single item.
 - Fixed field `className` not working for items.
 
 

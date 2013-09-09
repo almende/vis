@@ -174,6 +174,10 @@ Timeline.prototype.setItems = function(items) {
         var max = dataRange.max;
         if (min != null && max != null) {
             var interval = (max.valueOf() - min.valueOf());
+            if (interval <= 0) {
+                // prevent an empty interval
+                interval = 24 * 60 * 60 * 1000; // 1 day
+            }
             min = new Date(min.valueOf() - interval * 0.05);
             max = new Date(max.valueOf() + interval * 0.05);
         }

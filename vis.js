@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.2.0-SNAPSHOT
- * @date    2013-09-02
+ * @date    2013-09-09
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -3002,7 +3002,7 @@ function Range(options) {
     this.start = 0; // Number
     this.end = 0;   // Number
 
-  // this.options = options || {}; // TODO
+  // this.options = options || {}; // TODO: fix range options
     this.options = {
         min: null,
         max: null,
@@ -4893,7 +4893,7 @@ ItemSet.prototype.repaint = function repaint() {
         items = this.items,
         dataOptions = {
             // TODO: cleanup
-            //fields: [(itemsData && itemsData.fieldId || 'id'), 'start', 'end', 'content', 'type']
+            // fields: [(itemsData && itemsData.fieldId || 'id'), 'start', 'end', 'content', 'type', 'className']
         };
 
     // show/hide added/changed/removed items
@@ -6150,7 +6150,6 @@ function Group (parent, groupId, options) {
     this.parent = parent;
 
     this.groupId = groupId;
-    this.itemsData = null;  // DataSet
     this.itemset = null;    // ItemSet
     this.options = options || {};
     this.options.top = 0;
@@ -6919,6 +6918,10 @@ Timeline.prototype.setItems = function(items) {
         var max = dataRange.max;
         if (min != null && max != null) {
             var interval = (max.valueOf() - min.valueOf());
+            if (interval <= 0) {
+                // prevent an empty interval
+                interval = 24 * 60 * 60 * 1000; // 1 day
+            }
             min = new Date(min.valueOf() - interval * 0.05);
             max = new Date(max.valueOf() + interval * 0.05);
         }
