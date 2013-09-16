@@ -22,10 +22,16 @@ body, td, th {
 }
 
 h1 {
-    font-size: 180%;
+    font-size: 220%;
     font-weight: bold;
     padding: 0;
     margin: 1em 0 1em 0;
+}
+
+h1 .subtitle {
+    color: lightgray;
+    font-size: 11pt;
+    text-transform: uppercase;
 }
 
 h2 {
