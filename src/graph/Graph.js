@@ -363,14 +363,45 @@ Graph.prototype._onTouch = function (event) {
  * handle drag start event
  * @private
  */
-Graph.prototype._onDragStart = function (event) {
+Graph.prototype._onDragStart = function () {
     var drag = this.drag;
 
     drag.translation = this._getTranslation();
 
     // note: drag.pointer is set in _onTouch to get the initial touch location
     drag.nodeId = this._getNodeAt(drag.pointer);
-    drag.node = this.nodes[drag.nodeId];
+
+    // select the clicked node if not yet selected
+    var node = this.nodes[drag.nodeId];
+    if (node && !node.isSelected()) {
+        this._selectNodes([drag.nodeId]);
+    }
+
+    // creat an array with the selected nodes and their original location and status
+    var me = this;
+    drag.selection = [];
+    this.selection.forEach(function (id) {
+        var node = me.nodes[id];
+        if (node) {
+            var s = {
+                id: id,
+                node: node,
+
+                // store original x, y, xFixed and yFixed, make the node temporarily Fixed
+                x: node.x,
+                y: node.y,
+                xFixed: node.xFixed,
+                yFixed: node.yFixed
+            };
+
+            node.xFixed = true;
+            node.yFixed = true;
+
+            drag.selection.push(s);
+        }
+    });
+
+    /* TODO: cleanup
     if (drag.node) {
         this._selectNodes([drag.nodeId]);
 
@@ -380,6 +411,7 @@ Graph.prototype._onDragStart = function (event) {
         drag.node.xFixed = true;
         drag.node.yFixed = true;
     }
+    */
 };
 
 /**
@@ -393,14 +425,26 @@ Graph.prototype._onDrag = function (event) {
 
     var pointer = this._getPointer(event.gesture.touches[0]);
 
-    var drag= this.drag,
-        node = drag.node;
-    if (node) {
-        if (!drag.xFixed)
-            node.x = this._xToCanvas(pointer.x);
+    var me = this,
+        drag = this.drag,
+        selection = drag.selection;
+    if (selection && selection.length) {
+        // calculate delta's and new location
+        var deltaX = pointer.x - drag.pointer.x,
+            deltaY = pointer.y - drag.pointer.y;
 
-        if (!drag.yFixed)
-            node.y = this._yToCanvas(pointer.y);
+        // update position of all selected nodes
+        selection.forEach(function (s) {
+            var node = s.node;
+
+            if (!s.xFixed) {
+                node.x = me._xToCanvas(me._canvasToX(s.x) + deltaX);
+            }
+
+            if (!s.yFixed) {
+                node.y = me._yToCanvas(me._canvasToX(s.y) + deltaY);
+            }
+        });
 
         // start animation if not yet running
         if (!this.moving) {
@@ -427,13 +471,13 @@ Graph.prototype._onDrag = function (event) {
  * @private
  */
 Graph.prototype._onDragEnd = function () {
-    var drag = this.drag,
-        node = drag.node;
-
-    if (node) {
-        // restore orginal xFixed and yFixed
-        node.xFixed = drag.xFixed;
-        node.yFixed = drag.yFixed;
+    var selection = this.drag.selection;
+    if (selection) {
+        selection.forEach(function (s) {
+            // restore original xFixed and yFixed
+            s.node.xFixed = s.xFixed;
+            s.node.yFixed = s.yFixed;
+        });
     }
 };
 
