@@ -2,8 +2,9 @@ vis.js history
 http://visjs.org
 
 
-## (not yet released), version 0.1.1
+## (not yet released), version 0.2.0
 
+- Implemented full touch support for Graph.
 - Fixed initial empty range in the Timeline in case of a single item.
 - Fixed field `className` not working for items.
 

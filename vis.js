@@ -13219,52 +13219,42 @@ Graph.prototype._onTouch = function (event) {
 Graph.prototype._onDragStart = function () {
     var drag = this.drag;
 
-    drag.translation = this._getTranslation();
-
-    // note: drag.pointer is set in _onTouch to get the initial touch location
-    drag.nodeId = this._getNodeAt(drag.pointer);
-
-    // select the clicked node if not yet selected
-    var node = this.nodes[drag.nodeId];
-    if (node && !node.isSelected()) {
-        this._selectNodes([drag.nodeId]);
-    }
-
-    // creat an array with the selected nodes and their original location and status
-    var me = this;
     drag.selection = [];
-    this.selection.forEach(function (id) {
-        var node = me.nodes[id];
-        if (node) {
-            var s = {
-                id: id,
-                node: node,
+    drag.translation = this._getTranslation();
+    drag.nodeId = this._getNodeAt(drag.pointer);
+    // note: drag.pointer is set in _onTouch to get the initial touch location
 
-                // store original x, y, xFixed and yFixed, make the node temporarily Fixed
-                x: node.x,
-                y: node.y,
-                xFixed: node.xFixed,
-                yFixed: node.yFixed
-            };
-
-            node.xFixed = true;
-            node.yFixed = true;
-
-            drag.selection.push(s);
+    var node = this.nodes[drag.nodeId];
+    if (node) {
+        // select the clicked node if not yet selected
+        if (!node.isSelected()) {
+            this._selectNodes([drag.nodeId]);
         }
-    });
 
-    /* TODO: cleanup
-    if (drag.node) {
-        this._selectNodes([drag.nodeId]);
+        // create an array with the selected nodes and their original location and status
+        var me = this;
+        this.selection.forEach(function (id) {
+            var node = me.nodes[id];
+            if (node) {
+                var s = {
+                    id: id,
+                    node: node,
 
-        // store original xFixed and yFixed, make the node temporarily Fixed
-        drag.xFixed = drag.node.xFixed;
-        drag.yFixed = drag.node.yFixed;
-        drag.node.xFixed = true;
-        drag.node.yFixed = true;
+                    // store original x, y, xFixed and yFixed, make the node temporarily Fixed
+                    x: node.x,
+                    y: node.y,
+                    xFixed: node.xFixed,
+                    yFixed: node.yFixed
+                };
+
+                node.xFixed = true;
+                node.yFixed = true;
+
+                drag.selection.push(s);
+            }
+        });
+
     }
-    */
 };
 
 /**
@@ -13291,11 +13281,11 @@ Graph.prototype._onDrag = function (event) {
             var node = s.node;
 
             if (!s.xFixed) {
-                node.x = me._xToCanvas(me._canvasToX(s.x) + deltaX);
+                node.x = me._canvasToX(me._xToCanvas(s.x) + deltaX);
             }
 
             if (!s.yFixed) {
-                node.y = me._yToCanvas(me._canvasToX(s.y) + deltaY);
+                node.y = me._canvasToY(me._yToCanvas(s.y) + deltaY);
             }
         });
 
