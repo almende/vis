@@ -291,137 +291,116 @@ Graph.prototype._create = function () {
         this.frame.canvas.appendChild(noCanvas);
     }
 
-    // create event listeners
     var me = this;
-    var onmousedown = function (event) {me._onMouseDown(event);};
-    var onmousemove = function (event) {me._onMouseMoveTitle(event);};
-    var onmousewheel = function (event) {me._onMouseWheel(event);};
-    var ontouchstart = function (event) {me._onTouchStart(event);};
-    vis.util.addEventListener(this.frame.canvas, "mousedown", onmousedown);
-    vis.util.addEventListener(this.frame.canvas, "mousemove", onmousemove);
-    vis.util.addEventListener(this.frame.canvas, "mousewheel", onmousewheel);
-    vis.util.addEventListener(this.frame.canvas, "touchstart", ontouchstart);
+    this.drag = {};
+    this.pinch = {};
+    this.hammer = Hammer(this.frame.canvas, {
+        prevent_default: true
+    });
+    this.hammer.on('tap',       me._onTap.bind(me) );
+    this.hammer.on('hold',      me._onHold.bind(me) );
+    this.hammer.on('pinch',     me._onPinch.bind(me) );
+    this.hammer.on('touch',     me._onTouch.bind(me) );
+    this.hammer.on('dragstart', me._onDragStart.bind(me) );
+    this.hammer.on('drag',      me._onDrag.bind(me) );
+    this.hammer.on('dragend',   me._onDragEnd.bind(me) );
+    this.hammer.on('mousewheel',me._onMouseWheel.bind(me) );
+    this.hammer.on('mousemove', me._onMouseMoveTitle.bind(me) );
 
     // add the frame to the container element
     this.containerElement.appendChild(this.frame);
 };
 
 /**
- * handle on mouse down event
+ *
+ * @param {{x: Number, y: Number}} pointer
+ * @return {Number | null} node
  * @private
  */
-Graph.prototype._onMouseDown = function (event) {
-    event = event || window.event;
-
-    if (!this.selectable) {
-        return;
-    }
-
-    // check if mouse is still down (may be up when focus is lost for example
-    // in an iframe)
-    if (this.leftButtonDown) {
-        this._onMouseUp(event);
-    }
-
-    // only react on left mouse button down
-    this.leftButtonDown = event.which ? (event.which == 1) : (event.button == 1);
-    if (!this.leftButtonDown && !this.touchDown) {
-        return;
-    }
-
-    // add event listeners to handle moving the contents
-    // we store the function onmousemove and onmouseup in the timeline, so we can
-    // remove the eventlisteners lateron in the function mouseUp()
-    var me = this;
-    if (!this.onmousemove) {
-        this.onmousemove = function (event) {me._onMouseMove(event);};
-        vis.util.addEventListener(document, "mousemove", me.onmousemove);
-    }
-    if (!this.onmouseup) {
-        this.onmouseup = function (event) {me._onMouseUp(event);};
-        vis.util.addEventListener(document, "mouseup", me.onmouseup);
-    }
-    vis.util.preventDefault(event);
-
-    // store the start x and y position of the mouse
-    this.startMouseX = util.getPageX(event);
-    this.startMouseY = util.getPageY(event);
-    this.startFrameLeft = vis.util.getAbsoluteLeft(this.frame.canvas);
-    this.startFrameTop = vis.util.getAbsoluteTop(this.frame.canvas);
-    this.startTranslation = this._getTranslation();
-
-    this.ctrlKeyDown = event.ctrlKey;
-    this.shiftKeyDown = event.shiftKey;
+Graph.prototype._getNodeAt = function (pointer) {
+    var x = this._xToCanvas(pointer.x);
+    var y = this._yToCanvas(pointer.y);
 
     var obj = {
-        left:   this._xToCanvas(this.startMouseX - this.startFrameLeft),
-        top:    this._yToCanvas(this.startMouseY - this.startFrameTop),
-        right:  this._xToCanvas(this.startMouseX - this.startFrameLeft),
-        bottom: this._yToCanvas(this.startMouseY - this.startFrameTop)
+        left:   x,
+        top:    y,
+        right:  x,
+        bottom: y
     };
-    var overlappingNodes = this._getNodesOverlappingWith(obj);
+
     // if there are overlapping nodes, select the last one, this is the
     // one which is drawn on top of the others
-    this.startClickedObj = (overlappingNodes.length > 0) ?
-        overlappingNodes[overlappingNodes.length - 1] : undefined;
+    var overlappingNodes = this._getNodesOverlappingWith(obj);
+    return (overlappingNodes.length > 0) ?
+        overlappingNodes[overlappingNodes.length - 1] : null;
+};
 
-    if (this.startClickedObj) {
-        // move clicked node with the mouse
+/**
+ * Get the pointer location from a touch location
+ * @param {{pageX: Number, pageY: Number}} touch
+ * @return {{x: Number, y: Number}} pointer
+ * @private
+ */
+Graph.prototype._getPointer = function (touch) {
+    return {
+        x: touch.pageX - vis.util.getAbsoluteLeft(this.frame.canvas),
+        y: touch.pageY - vis.util.getAbsoluteTop(this.frame.canvas)
+    };
+};
 
-        // make the clicked node temporarily fixed, and store their original state
-        var node = this.nodes[this.startClickedObj];
-        this.startClickedObj.xFixed = node.xFixed;
-        this.startClickedObj.yFixed = node.yFixed;
-        node.xFixed = true;
-        node.yFixed = true;
+/**
+ * On start of a touch gesture, store the pointer
+ * @param event
+ * @private
+ */
+Graph.prototype._onTouch = function (event) {
+    this.drag.pointer = this._getPointer(event.gesture.touches[0]);
+    this.drag.pinched = false;
+    this.pinch.scale = this._getScale();
+};
 
-        if (!this.ctrlKeyDown || !node.isSelected()) {
-            // select this node
-            this._selectNodes([this.startClickedObj], this.ctrlKeyDown);
-        }
-        else {
-            // unselect this node
-            this._unselectNodes([this.startClickedObj]);
-        }
+/**
+ * handle drag start event
+ * @private
+ */
+Graph.prototype._onDragStart = function (event) {
+    var drag = this.drag;
 
-        if (!this.moving) {
-            this._redraw();
-        }
-    }
-    else if (this.shiftKeyDown) {
-        // start selection of multiple nodes
-    }
-    else {
-        // start moving the graph
-        this.moved = false;
+    drag.translation = this._getTranslation();
+
+    // note: drag.pointer is set in _onTouch to get the initial touch location
+    drag.nodeId = this._getNodeAt(drag.pointer);
+    drag.node = this.nodes[drag.nodeId];
+    if (drag.node) {
+        this._selectNodes([drag.nodeId]);
+
+        // store original xFixed and yFixed, make the node temporarily Fixed
+        drag.xFixed = drag.node.xFixed;
+        drag.yFixed = drag.node.yFixed;
+        drag.node.xFixed = true;
+        drag.node.yFixed = true;
     }
 };
 
 /**
- * handle on mouse move event
- * @param {Event}  event
+ * handle drag event
  * @private
  */
-Graph.prototype._onMouseMove = function (event) {
-    event = event || window.event;
-
-    if (!this.selectable) {
+Graph.prototype._onDrag = function (event) {
+    if (this.drag.pinched) {
         return;
     }
 
-    var mouseX = util.getPageX(event);
-    var mouseY = util.getPageY(event);
-    this.mouseX = mouseX;
-    this.mouseY = mouseY;
+    var pointer = this._getPointer(event.gesture.touches[0]);
 
-    if (this.startClickedObj) {
-        var node = this.nodes[this.startClickedObj];
+    var drag= this.drag,
+        node = drag.node;
+    if (node) {
+        if (!drag.xFixed)
+            node.x = this._xToCanvas(pointer.x);
 
-        if (!this.startClickedObj.xFixed)
-            node.x = this._xToCanvas(mouseX - this.startFrameLeft);
-
-        if (!this.startClickedObj.yFixed)
-            node.y = this._yToCanvas(mouseY - this.startFrameTop);
+        if (!drag.yFixed)
+            node.y = this._yToCanvas(pointer.y);
 
         // start animation if not yet running
         if (!this.moving) {
@@ -429,119 +408,140 @@ Graph.prototype._onMouseMove = function (event) {
             this.start();
         }
     }
-    else if (this.shiftKeyDown) {
-        // draw a rect from start mouse location to current mouse location
-        if (this.frame.selRect == undefined) {
-            this.frame.selRect = document.createElement("DIV");
-            this.frame.appendChild(this.frame.selRect);
-
-            this.frame.selRect.style.position = "absolute";
-            this.frame.selRect.style.border = "1px dashed red";
-        }
-
-        var left =   Math.min(this.startMouseX, mouseX) - this.startFrameLeft;
-        var top =    Math.min(this.startMouseY, mouseY) - this.startFrameTop;
-        var right =  Math.max(this.startMouseX, mouseX) - this.startFrameLeft;
-        var bottom = Math.max(this.startMouseY, mouseY) - this.startFrameTop;
-
-        this.frame.selRect.style.left = left + "px";
-        this.frame.selRect.style.top = top + "px";
-        this.frame.selRect.style.width = (right - left) + "px";
-        this.frame.selRect.style.height = (bottom - top) + "px";
-    }
     else {
         // move the graph
-        var diffX = mouseX - this.startMouseX;
-        var diffY = mouseY - this.startMouseY;
+        var diffX = pointer.x - this.drag.pointer.x;
+        var diffY = pointer.y - this.drag.pointer.y;
 
         this._setTranslation(
-            this.startTranslation.x + diffX,
-            this.startTranslation.y + diffY);
+            this.drag.translation.x + diffX,
+            this.drag.translation.y + diffY);
         this._redraw();
 
         this.moved = true;
     }
-
-    vis.util.preventDefault(event);
 };
 
 /**
- * handle on mouse up event
- * @param {Event}  event
+ * handle drag start event
  * @private
  */
-Graph.prototype._onMouseUp = function (event) {
-    event = event || window.event;
+Graph.prototype._onDragEnd = function () {
+    var drag = this.drag,
+        node = drag.node;
 
-    if (!this.selectable) {
-        return;
+    if (node) {
+        // restore orginal xFixed and yFixed
+        node.xFixed = drag.xFixed;
+        node.yFixed = drag.yFixed;
     }
+};
 
-    // remove event listeners here, important for Safari
-    if (this.onmousemove) {
-        vis.util.removeEventListener(document, "mousemove", this.onmousemove);
-        this.onmousemove = undefined;
-    }
-    if (this.onmouseup) {
-        vis.util.removeEventListener(document, "mouseup",   this.onmouseup);
-        this.onmouseup = undefined;
-    }
-    vis.util.preventDefault(event);
+/**
+ * handle tap/click event: select/unselect a node
+ * @private
+ */
+Graph.prototype._onTap = function (event) {
+    var pointer = this._getPointer(event.gesture.touches[0]);
 
-    // check selected nodes
-    var endMouseX = util.getPageX(event) || this.mouseX || 0;
-    var endMouseY = util.getPageY(event) || this.mouseY || 0;
+    var nodeId = this._getNodeAt(pointer);
+    var node = this.nodes[nodeId];
+    if (node) {
+        // select this node
+        this._selectNodes([nodeId]);
 
-    var ctrlKey = event ? event.ctrlKey : window.event.ctrlKey;
-
-    if (this.startClickedObj) {
-        // restore the original fixed state
-        var node = this.nodes[this.startClickedObj];
-        node.xFixed = this.startClickedObj.xFixed;
-        node.yFixed = this.startClickedObj.yFixed;
-    }
-    else if (this.shiftKeyDown) {
-        // select nodes inside selection area
-        var obj = {
-            "left":   this._xToCanvas(Math.min(this.startMouseX, endMouseX) - this.startFrameLeft),
-            "top":    this._yToCanvas(Math.min(this.startMouseY, endMouseY) - this.startFrameTop),
-            "right":  this._xToCanvas(Math.max(this.startMouseX, endMouseX) - this.startFrameLeft),
-            "bottom": this._yToCanvas(Math.max(this.startMouseY, endMouseY) - this.startFrameTop)
-        };
-        var overlappingNodes = this._getNodesOverlappingWith(obj);
-        this._selectNodes(overlappingNodes, ctrlKey);
-        this.redraw();
-
-        // remove the selection rectangle
-        if (this.frame.selRect) {
-            this.frame.removeChild(this.frame.selRect);
-            this.frame.selRect = undefined;
-        }
-    }
-    else {
-        if (!this.ctrlKeyDown && !this.moved) {
-            // remove selection
-            this._unselectNodes();
+        if (!this.moving) {
             this._redraw();
         }
     }
-
-    this.leftButtonDown = false;
-    this.ctrlKeyDown = false;
+    else {
+        // remove selection
+        this._unselectNodes();
+        this._redraw();
+    }
 };
 
+/**
+ * handle long tap event: multi select nodes
+ * @private
+ */
+Graph.prototype._onHold = function (event) {
+    var pointer = this._getPointer(event.gesture.touches[0]);
+    var nodeId = this._getNodeAt(pointer);
+    var node = this.nodes[nodeId];
+    if (node) {
+        if (!node.isSelected()) {
+            // select this node, keep previous selection
+            var append = true;
+            this._selectNodes([nodeId], append);
+        }
+        else {
+            this._unselectNodes([nodeId]);
+        }
+
+        if (!this.moving) {
+            this._redraw();
+        }
+    }
+    else {
+        // Do nothing
+    }
+};
+
+/**
+ * Handle pinch event
+ * @param event
+ * @private
+ */
+Graph.prototype._onPinch = function (event) {
+    var pointer = this._getPointer(event.gesture.center);
+
+    this.drag.pinched = true;
+    if (!('scale' in this.pinch)) {
+        this.pinch.scale = 1;
+    }
+
+    // TODO: enable moving while pinching?
+    var scale = this.pinch.scale * event.gesture.scale;
+    this._zoom(scale, pointer)
+};
+
+/**
+ * Zoom the graph in or out
+ * @param {Number} scale a number around 1, and between 0.01 and 10
+ * @param {{x: Number, y: Number}} pointer
+ * @return {Number} appliedScale    scale is limited within the boundaries
+ * @private
+ */
+Graph.prototype._zoom = function(scale, pointer) {
+    var scaleOld = this._getScale();
+    if (scale < 0.01) {
+        scale = 0.01;
+    }
+    if (scale > 10) {
+        scale = 10;
+    }
+
+    var translation = this._getTranslation();
+    var scaleFrac = scale / scaleOld;
+    var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
+    var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
+
+    this._setScale(scale);
+    this._setTranslation(tx, ty);
+    this._redraw();
+
+    return scale;
+};
 
 /**
  * Event handler for mouse wheel event, used to zoom the timeline
- * Code from http://adomas.org/javascript-mouse-wheel/
- * @param {Event}  event
+ * See http://adomas.org/javascript-mouse-wheel/
+ *     https://github.com/EightMedia/hammer.js/issues/256
+ * @param {MouseEvent}  event
  * @private
  */
 Graph.prototype._onMouseWheel = function(event) {
-    event = event || window.event;
-    var mouseX = util.getPageX(event);
-    var mouseY = util.getPageY(event);
-
     // retrieve delta
     var delta = 0;
     if (event.wheelDelta) { /* IE/Opera. */
@@ -556,41 +556,31 @@ Graph.prototype._onMouseWheel = function(event) {
     // Basically, delta is now positive if wheel was scrolled up,
     // and negative, if wheel was scrolled down.
     if (delta) {
-        // determine zoom factor, and adjust the zoom factor such that zooming in
-        // and zooming out correspond wich each other
+        if (!('mouswheelScale' in this.pinch)) {
+            this.pinch.mouswheelScale = 1;
+        }
+
+        // calculate the new scale
+        var scale = this.pinch.mouswheelScale;
         var zoom = delta / 10;
         if (delta < 0) {
             zoom = zoom / (1 - zoom);
         }
+        scale *= (1 + zoom);
 
-        var scaleOld = this._getScale();
-        var scaleNew = scaleOld * (1 + zoom);
-        if (scaleNew < 0.01) {
-            scaleNew = 0.01;
-        }
-        if (scaleNew > 10) {
-            scaleNew = 10;
-        }
+        // calculate the pointer location
+        var gesture = Hammer.event.collectEventData(this, 'scroll', event);
+        var pointer = this._getPointer(gesture.center);
 
-        var frameLeft = vis.util.getAbsoluteLeft(this.frame.canvas);
-        var frameTop = vis.util.getAbsoluteTop(this.frame.canvas);
-        var x = mouseX - frameLeft;
-        var y = mouseY - frameTop;
+        // apply the new scale
+        scale = this._zoom(scale, pointer);
 
-        var translation = this._getTranslation();
-        var scaleFrac = scaleNew / scaleOld;
-        var tx = (1 - scaleFrac) * x + translation.x * scaleFrac;
-        var ty = (1 - scaleFrac) * y + translation.y * scaleFrac;
-
-        this._setScale(scaleNew);
-        this._setTranslation(tx, ty);
-        this._redraw();
+        // store the new, applied scale
+        this.pinch.mouswheelScale = scale;
     }
 
     // Prevent default actions caused by mouse wheel.
-    // That might be ugly, but we handle scrolls somehow
-    // anyway, so don't bother here...
-    vis.util.preventDefault(event);
+    event.preventDefault();
 };
 
 
@@ -600,26 +590,19 @@ Graph.prototype._onMouseWheel = function(event) {
  * @private
  */
 Graph.prototype._onMouseMoveTitle = function (event) {
-    event = event || window.event;
-
-    var startMouseX = util.getPageX(event);
-    var startMouseY = util.getPageY(event);
-    this.startFrameLeft = this.startFrameLeft || vis.util.getAbsoluteLeft(this.frame.canvas);
-    this.startFrameTop = this.startFrameTop || vis.util.getAbsoluteTop(this.frame.canvas);
-
-    var x = startMouseX - this.startFrameLeft;
-    var y = startMouseY - this.startFrameTop;
+    var gesture = Hammer.event.collectEventData(this, 'mousemove', event);
+    var pointer = this._getPointer(gesture.center);
 
     // check if the previously selected node is still selected
     if (this.popupNode) {
-        this._checkHidePopup(x, y);
+        this._checkHidePopup(pointer);
     }
 
     // start a timeout that will check if the mouse is positioned above
     // an element
     var me = this;
     var checkShow = function() {
-        me._checkShowPopup(x, y);
+        me._checkShowPopup(pointer);
     };
     if (this.popupTimer) {
         clearInterval(this.popupTimer); // stop any running timer
@@ -634,16 +617,15 @@ Graph.prototype._onMouseMoveTitle = function (event) {
  * (a node or edge). If so, and if this element has a title,
  * show a popup window with its title.
  *
- * @param {number} x
- * @param {number} y
+ * @param {{x:Number, y:Number}} pointer
  * @private
  */
-Graph.prototype._checkShowPopup = function (x, y) {
+Graph.prototype._checkShowPopup = function (pointer) {
     var obj = {
-        "left" : this._xToCanvas(x),
-        "top" : this._yToCanvas(y),
-        "right" : this._xToCanvas(x),
-        "bottom" : this._yToCanvas(y)
+        left:   this._xToCanvas(pointer.x),
+        top:    this._yToCanvas(pointer.y),
+        right:  this._xToCanvas(pointer.x),
+        bottom: this._yToCanvas(pointer.y)
     };
 
     var id;
@@ -689,7 +671,7 @@ Graph.prototype._checkShowPopup = function (x, y) {
             // adjust a small offset such that the mouse cursor is located in the
             // bottom left location of the popup, and you can easily move over the
             // popup area
-            me.popup.setPosition(x - 3, y - 3);
+            me.popup.setPosition(pointer.x - 3, pointer.y - 3);
             me.popup.setText(me.popupNode.getTitle());
             me.popup.show();
         }
@@ -704,85 +686,17 @@ Graph.prototype._checkShowPopup = function (x, y) {
 /**
  * Check if the popup must be hided, which is the case when the mouse is no
  * longer hovering on the object
- * @param {number} x
- * @param {number} y
+ * @param {{x:Number, y:Number}} pointer
  * @private
  */
-Graph.prototype._checkHidePopup = function (x, y) {
-    var obj = {
-        "left" : x,
-        "top" : y,
-        "right" : x,
-        "bottom" : y
-    };
-
-    if (!this.popupNode || !this.popupNode.isOverlappingWith(obj) ) {
+Graph.prototype._checkHidePopup = function (pointer) {
+    if (!this.popupNode || !this._getNodeAt(pointer) ) {
         this.popupNode = undefined;
         if (this.popup) {
             this.popup.hide();
         }
     }
 };
-
-/**
- * Event handler for touchstart event on mobile devices
- * @param {Event} event
- * @private
- */
-Graph.prototype._onTouchStart = function(event) {
-    vis.util.preventDefault(event);
-
-    if (this.touchDown) {
-        // if already moving, return
-        return;
-    }
-    this.touchDown = true;
-
-    var me = this;
-    if (!this.ontouchmove) {
-        this.ontouchmove = function (event) {me._onTouchMove(event);};
-        vis.util.addEventListener(document, "touchmove", this.ontouchmove);
-    }
-    if (!this.ontouchend) {
-        this.ontouchend   = function (event) {me._onTouchEnd(event);};
-        vis.util.addEventListener(document, "touchend", this.ontouchend);
-    }
-
-    this._onMouseDown(event);
-};
-
-/**
- * Event handler for touchmove event on mobile devices
- * @param {Event} event
- * @private
- */
-Graph.prototype._onTouchMove = function(event) {
-    vis.util.preventDefault(event);
-    this._onMouseMove(event);
-};
-
-/**
- * Event handler for touchend event on mobile devices
- * @param {Event} event
- * @private
- */
-Graph.prototype._onTouchEnd = function(event) {
-    vis.util.preventDefault(event);
-
-    this.touchDown = false;
-
-    if (this.ontouchmove) {
-        vis.util.removeEventListener(document, "touchmove", this.ontouchmove);
-        this.ontouchmove = undefined;
-    }
-    if (this.ontouchend) {
-        vis.util.removeEventListener(document, "touchend", this.ontouchend);
-        this.ontouchend = undefined;
-    }
-
-    this._onMouseUp(event);
-};
-
 
 /**
  * Unselect selected nodes. If no selection array is provided, all nodes
@@ -893,8 +807,7 @@ Graph.prototype._selectNodes = function(selection, append) {
 /**
  * retrieve all nodes overlapping with given object
  * @param {Object} obj  An object with parameters left, top, right, bottom
- * @return {Object[]}   An array with selection objects containing
- *                      the parameter row.
+ * @return {Number[]}   An array with id's of the overlapping nodes
  * @private
  */
 Graph.prototype._getNodesOverlappingWith = function (obj) {
@@ -929,7 +842,7 @@ Graph.prototype.getSelection = function() {
 Graph.prototype.setSelection = function(selection) {
     var i, iMax, id;
 
-    if (selection.length == undefined)
+    if (!selection || (selection.length == undefined))
         throw "Selection must be an array with ids";
 
     // first unselect any selected node

@@ -47,6 +47,7 @@ task('build', {async: true}, function () {
         src: [
             './src/module/imports.js',
 
+            './src/shim.js',
             './src/util.js',
             './src/events.js',
             './src/EventBus.js',
