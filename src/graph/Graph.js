@@ -318,8 +318,8 @@ Graph.prototype._create = function () {
  * @private
  */
 Graph.prototype._getNodeAt = function (pointer) {
-    var x = this._xToCanvas(pointer.x);
-    var y = this._yToCanvas(pointer.y);
+    var x = this._canvasToX(pointer.x);
+    var y = this._canvasToY(pointer.y);
 
     var obj = {
         left:   x,
@@ -428,11 +428,11 @@ Graph.prototype._onDrag = function (event) {
             var node = s.node;
 
             if (!s.xFixed) {
-                node.x = me._xToCanvas(me._canvasToX(s.x) + deltaX);
+                node.x = me._canvasToX(me._xToCanvas(s.x) + deltaX);
             }
 
             if (!s.yFixed) {
-                node.y = me._yToCanvas(me._canvasToY(s.y) + deltaY);
+                node.y = me._canvasToY(me._yToCanvas(s.y) + deltaY);
             }
         });
 
@@ -656,10 +656,10 @@ Graph.prototype._onMouseMoveTitle = function (event) {
  */
 Graph.prototype._checkShowPopup = function (pointer) {
     var obj = {
-        left:   this._xToCanvas(pointer.x),
-        top:    this._yToCanvas(pointer.y),
-        right:  this._xToCanvas(pointer.x),
-        bottom: this._yToCanvas(pointer.y)
+        left:   this._canvasToX(pointer.x),
+        top:    this._canvasToY(pointer.y),
+        right:  this._canvasToX(pointer.x),
+        bottom: this._canvasToY(pointer.y)
     };
 
     var id;
@@ -1407,19 +1407,43 @@ Graph.prototype._getScale = function() {
     return this.scale;
 };
 
-Graph.prototype._xToCanvas = function(x) {
+/**
+ * Convert a horizontal point on the HTML canvas to the x-value of the model
+ * @param {number} x
+ * @returns {number}
+ * @private
+ */
+Graph.prototype._canvasToX = function(x) {
     return (x - this.translation.x) / this.scale;
 };
 
-Graph.prototype._canvasToX = function(x) {
+/**
+ * Convert an x-value in the model to a horizontal point on the HTML canvas
+ * @param {number} x
+ * @returns {number}
+ * @private
+ */
+Graph.prototype._xToCanvas = function(x) {
     return x * this.scale + this.translation.x;
 };
 
-Graph.prototype._yToCanvas = function(y) {
+/**
+ * Convert a vertical point on the HTML canvas to the y-value of the model
+ * @param {number} y
+ * @returns {number}
+ * @private
+ */
+Graph.prototype._canvasToY = function(y) {
     return (y - this.translation.y) / this.scale;
 };
 
-Graph.prototype._canvasToY = function(y) {
+/**
+ * Convert an y-value in the model to a vertical point on the HTML canvas
+ * @param {number} y
+ * @returns {number}
+ * @private
+ */
+Graph.prototype._yToCanvas = function(y) {
     return y * this.scale + this.translation.y ;
 };
 
