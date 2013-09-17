@@ -428,11 +428,11 @@ Graph.prototype._onDrag = function (event) {
             var node = s.node;
 
             if (!s.xFixed) {
-                node.x = me._canvasToX(me._xToCanvas(s.x) + deltaX);
+                node.x = me._xToCanvas(me._canvasToX(s.x) + deltaX);
             }
 
             if (!s.yFixed) {
-                node.y = me._canvasToY(me._yToCanvas(s.y) + deltaY);
+                node.y = me._yToCanvas(me._canvasToY(s.y) + deltaY);
             }
         });
 
