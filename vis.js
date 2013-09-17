@@ -13016,7 +13016,6 @@ Graph.prototype.setData = function(data) {
         this._setEdges(data && data.edges);
     }
 
-
     // find a stable position or start animating to a stable position
     if (this.stabilize) {
         this._doStabilize();
@@ -13104,7 +13103,7 @@ Graph.prototype.setOptions = function (options) {
 
 /**
  * fire an event
- * @param {String} event   The name of an event, for example "select"
+ * @param {String} event   The name of an event, for example 'select'
  * @param {Object} params  Optional object with event parameters
  * @private
  */
@@ -13126,21 +13125,21 @@ Graph.prototype._create = function () {
         this.containerElement.removeChild(this.containerElement.firstChild);
     }
 
-    this.frame = document.createElement("div");
-    this.frame.className = "graph-frame";
-    this.frame.style.position = "relative";
-    this.frame.style.overflow = "hidden";
+    this.frame = document.createElement('div');
+    this.frame.className = 'graph-frame';
+    this.frame.style.position = 'relative';
+    this.frame.style.overflow = 'hidden';
 
     // create the graph canvas (HTML canvas element)
-    this.frame.canvas = document.createElement( "canvas" );
-    this.frame.canvas.style.position = "relative";
+    this.frame.canvas = document.createElement( 'canvas' );
+    this.frame.canvas.style.position = 'relative';
     this.frame.appendChild(this.frame.canvas);
     if (!this.frame.canvas.getContext) {
-        var noCanvas = document.createElement( "DIV" );
-        noCanvas.style.color = "red";
-        noCanvas.style.fontWeight =  "bold" ;
-        noCanvas.style.padding =  "10px";
-        noCanvas.innerHTML =  "Error: your browser does not support HTML canvas";
+        var noCanvas = document.createElement( 'DIV' );
+        noCanvas.style.color = 'red';
+        noCanvas.style.fontWeight =  'bold' ;
+        noCanvas.style.padding =  '10px';
+        noCanvas.innerHTML =  'Error: your browser does not support HTML canvas';
         this.frame.canvas.appendChild(noCanvas);
     }
 
@@ -13171,8 +13170,8 @@ Graph.prototype._create = function () {
  * @private
  */
 Graph.prototype._getNodeAt = function (pointer) {
-    var x = this._xToCanvas(pointer.x);
-    var y = this._yToCanvas(pointer.y);
+    var x = this._canvasToX(pointer.x);
+    var y = this._canvasToY(pointer.y);
 
     var obj = {
         left:   x,
@@ -13281,11 +13280,11 @@ Graph.prototype._onDrag = function (event) {
             var node = s.node;
 
             if (!s.xFixed) {
-                node.x = me._xToCanvas(me._canvasToX(s.x) + deltaX);
+                node.x = me._canvasToX(me._xToCanvas(s.x) + deltaX);
             }
 
             if (!s.yFixed) {
-                node.y = me._yToCanvas(me._canvasToY(s.y) + deltaY);
+                node.y = me._canvasToY(me._yToCanvas(s.y) + deltaY);
             }
         });
 
@@ -13509,10 +13508,10 @@ Graph.prototype._onMouseMoveTitle = function (event) {
  */
 Graph.prototype._checkShowPopup = function (pointer) {
     var obj = {
-        left:   this._xToCanvas(pointer.x),
-        top:    this._yToCanvas(pointer.y),
-        right:  this._xToCanvas(pointer.x),
-        bottom: this._yToCanvas(pointer.y)
+        left:   this._canvasToX(pointer.x),
+        top:    this._canvasToY(pointer.y),
+        right:  this._canvasToX(pointer.x),
+        bottom: this._canvasToY(pointer.y)
     };
 
     var id;
@@ -13730,7 +13729,7 @@ Graph.prototype.setSelection = function(selection) {
     var i, iMax, id;
 
     if (!selection || (selection.length == undefined))
-        throw "Selection must be an array with ids";
+        throw 'Selection must be an array with ids';
 
     // first unselect any selected node
     for (i = 0, iMax = this.selection.length; i < iMax; i++) {
@@ -13853,17 +13852,17 @@ Graph.prototype._getConnectionCount = function(level) {
 
 /**
  * Set a new size for the graph
- * @param {string} width   Width in pixels or percentage (for example "800px"
- *                         or "50%")
- * @param {string} height  Height in pixels or percentage  (for example "400px"
- *                         or "30%")
+ * @param {string} width   Width in pixels or percentage (for example '800px'
+ *                         or '50%')
+ * @param {string} height  Height in pixels or percentage  (for example '400px'
+ *                         or '30%')
  */
 Graph.prototype.setSize = function(width, height) {
     this.frame.style.width = width;
     this.frame.style.height = height;
 
-    this.frame.canvas.style.width = "100%";
-    this.frame.canvas.style.height = "100%";
+    this.frame.canvas.style.width = '100%';
+    this.frame.canvas.style.height = '100%';
 
     this.frame.canvas.width = this.frame.canvas.clientWidth;
     this.frame.canvas.height = this.frame.canvas.clientHeight;
@@ -14190,7 +14189,7 @@ Graph.prototype.redraw = function() {
  * @private
  */
 Graph.prototype._redraw = function() {
-    var ctx = this.frame.canvas.getContext("2d");
+    var ctx = this.frame.canvas.getContext('2d');
 
     // clear the canvas
     var w = this.frame.canvas.width;
@@ -14218,8 +14217,8 @@ Graph.prototype._redraw = function() {
 Graph.prototype._setTranslation = function(offsetX, offsetY) {
     if (this.translation === undefined) {
         this.translation = {
-            "x": 0,
-            "y": 0
+            x: 0,
+            y: 0
         };
     }
 
@@ -14238,8 +14237,8 @@ Graph.prototype._setTranslation = function(offsetX, offsetY) {
  */
 Graph.prototype._getTranslation = function() {
     return {
-        "x": this.translation.x,
-        "y": this.translation.y
+        x: this.translation.x,
+        y: this.translation.y
     };
 };
 
@@ -14260,25 +14259,49 @@ Graph.prototype._getScale = function() {
     return this.scale;
 };
 
-Graph.prototype._xToCanvas = function(x) {
+/**
+ * Convert a horizontal point on the HTML canvas to the x-value of the model
+ * @param {number} x
+ * @returns {number}
+ * @private
+ */
+Graph.prototype._canvasToX = function(x) {
     return (x - this.translation.x) / this.scale;
 };
 
-Graph.prototype._canvasToX = function(x) {
+/**
+ * Convert an x-value in the model to a horizontal point on the HTML canvas
+ * @param {number} x
+ * @returns {number}
+ * @private
+ */
+Graph.prototype._xToCanvas = function(x) {
     return x * this.scale + this.translation.x;
 };
 
-Graph.prototype._yToCanvas = function(y) {
+/**
+ * Convert a vertical point on the HTML canvas to the y-value of the model
+ * @param {number} y
+ * @returns {number}
+ * @private
+ */
+Graph.prototype._canvasToY = function(y) {
     return (y - this.translation.y) / this.scale;
 };
 
-Graph.prototype._canvasToY = function(y) {
+/**
+ * Convert an y-value in the model to a vertical point on the HTML canvas
+ * @param {number} y
+ * @returns {number}
+ * @private
+ */
+Graph.prototype._yToCanvas = function(y) {
     return y * this.scale + this.translation.y ;
 };
 
 /**
  * Redraw all nodes
- * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+ * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
  * @param {CanvasRenderingContext2D}   ctx
  * @private
  */
@@ -14305,7 +14328,7 @@ Graph.prototype._drawNodes = function(ctx) {
 
 /**
  * Redraw all edges
- * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+ * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
  * @param {CanvasRenderingContext2D}   ctx
  * @private
  */
@@ -14341,7 +14364,7 @@ Graph.prototype._doStabilize = function() {
 
     var end = new Date();
 
-    // console.log("Stabilized in " + (end-start) + " ms, " + count + " iterations" ); // TODO: cleanup
+    // console.log('Stabilized in ' + (end-start) + ' ms, ' + count + ' iterations' ); // TODO: cleanup
 };
 
 /**
@@ -14498,7 +14521,7 @@ Graph.prototype._calculateForces = function() {
 
 /**
  * Check if any of the nodes is still moving
- * @param {number} vmin   the minimum velocity considered as "moving"
+ * @param {number} vmin   the minimum velocity considered as 'moving'
  * @return {boolean}      true if moving, false if non of the nodes is moving
  * @private
  */

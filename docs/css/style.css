@@ -39,13 +39,19 @@ h3 {
     font-size: 140%;
 }
 
+a > img {
+    border: none;
+}
+
 a {
     color: #2B7CE9;
     text-decoration: none;
 }
+
 a:visited {
     color: #2E60A4;
 }
+
 a:hover {
     color: red;
     text-decoration: underline;
