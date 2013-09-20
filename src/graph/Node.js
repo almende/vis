@@ -397,8 +397,13 @@ Node.prototype.getDistance = function(x, y) {
  */
 Node.prototype.setValueRange = function(min, max) {
     if (!this.radiusFixed && this.value !== undefined) {
+      if (max == min) {
+        this.radius = (this.radiusMin + this.radiusMax) / 2;
+      }
+      else {
         var scale = (this.radiusMax - this.radiusMin) / (max - min);
         this.radius = (this.value - min) * scale + this.radiusMin;
+      }
     }
 };
 
