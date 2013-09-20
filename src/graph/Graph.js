@@ -304,6 +304,7 @@ Graph.prototype._create = function () {
     this.hammer.on('drag',      me._onDrag.bind(me) );
     this.hammer.on('dragend',   me._onDragEnd.bind(me) );
     this.hammer.on('mousewheel',me._onMouseWheel.bind(me) );
+    this.hammer.on('DOMMouseScroll',me._onMouseWheel.bind(me) ); // for FF
     this.hammer.on('mousemove', me._onMouseMoveTitle.bind(me) );
 
     // add the frame to the container element
