@@ -39,7 +39,8 @@ function TimeAxis (parent, depends, options) {
         orientation: 'bottom',  // supported: 'top', 'bottom'
         // TODO: implement timeaxis orientations 'left' and 'right'
         showMinorLabels: true,
-        showMajorLabels: true
+        showMajorLabels: true,
+        showCurrentTime: true
     };
 
     this.conversion = null;
@@ -332,7 +333,6 @@ TimeAxis.prototype._repaintMajorLine = function (x) {
     line.style.height = props.majorLineHeight + 'px';
 };
 
-
 /**
  * Repaint the horizontal line for the axis
  * @private
@@ -365,6 +365,60 @@ TimeAxis.prototype._repaintLine = function() {
             delete this.dom.line;
         }
     }
+};
+
+/**
+ * Repaint the current time
+ * @private
+ */
+TimeAxis.prototype._repaintCurrentTime = function() {
+    var line = this.dom.currentTime,
+        parent = this.frame.parentNode;
+        options = this.options;
+
+    if (!this.getOption('showCurrentTime')) {
+        if (line) {
+            parent.removeChild(line);
+            delete this.dom.currentTime;
+        }
+
+        return;
+    }
+
+    if (!line) {
+        // create the current time bar
+        var line = document.createElement('DIV');
+        line.className = 'currenttime';
+        line.style.position = "absolute";
+        line.style.top = "0px";
+        line.style.height = "100%";
+
+        parent.appendChild(line);
+        this.dom.currentTime = line;
+    }
+
+    var now = new Date();
+    var x = this.toScreen(now);
+    
+    line.style.left = x + "px";
+    line.title = "Current time: " + now;
+
+    // start a timer to adjust for the new time
+    if (this.currentTimeTimer != undefined) {
+        clearTimeout(this.currentTimeTimer);
+        delete this.currentTimeTimer;
+    }
+    
+    var timeline = this;
+    var interval = 1 / this.conversion.factor / 2;
+
+    if (interval < 30) {
+        interval = 30;
+    }
+    
+    this.currentTimeTimer = setTimeout(function() {
+        timeline._repaintCurrentTime();
+    }, interval);
 };
 
 /**
@@ -494,6 +548,8 @@ TimeAxis.prototype.reflow = function () {
         changed += update(props.range, 'start', start.valueOf());
         changed += update(props.range, 'end', end.valueOf());
         changed += update(props.range, 'minimumStep', minimumStep.valueOf());
+
+        this._repaintCurrentTime();
     }
 
     return (changed > 0);
