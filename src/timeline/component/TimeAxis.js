@@ -40,11 +40,13 @@ function TimeAxis (parent, depends, options) {
         // TODO: implement timeaxis orientations 'left' and 'right'
         showMinorLabels: true,
         showMajorLabels: true,
-        showCurrentTime: true
+        showCurrentTime: true,
+        showCustomTime: false
     };
 
     this.conversion = null;
     this.range = null;
+    this.customTime = null;
 }
 
 TimeAxis.prototype = new Component();
@@ -194,6 +196,7 @@ TimeAxis.prototype.repaint = function () {
         else {
             parent.appendChild(frame)
         }
+    
     }
 
     return (changed > 0);
@@ -422,6 +425,74 @@ TimeAxis.prototype._repaintCurrentTime = function() {
 };
 
 /**
+ * Repaint the custom time
+ * @private
+ */
+TimeAxis.prototype._repaintCustomTime = function() {
+    var line = this.dom.customTime,
+        parent = this.frame.parentNode;
+        options = this.options;
+
+    if (!this.getOption('showCustomTime')) {
+        if (line) {
+            parent.removeChild(line);
+            delete this.dom.customTime;
+        }
+
+        return;
+    }
+
+    if (!line) {
+        // create the custom time bar
+        var line = document.createElement('DIV');
+        line.className = 'customtime';
+        line.style.position = "absolute";
+        line.style.top = "0px";
+        line.style.height = "100%";
+
+        parent.appendChild(line);
+        this.dom.customTime = line;
+
+        var drag = document.createElement('DIV');
+        drag.style.position = "relative";
+        drag.style.top = "0px";
+        drag.style.left = "-10px";
+        drag.style.height = "100%";
+        drag.style.width = "20px";
+        line.appendChild(drag);
+
+        parent.appendChild(line);
+        this.dom.customTime = line;
+
+        // initialize parameter
+        this.customTime = new Date();
+    }
+
+    var x = this.toScreen(this.customTime);
+    
+    line.style.left = x + "px";
+    line.title = "Time: " + this.customTime;
+};
+
+/**
+ * Set custom time.
+ * The custom time bar can be used to display events in past or future.
+ * @param {Date} time
+ */
+TimeAxis.prototype._setCustomTime = function(time) {
+    this.customTime = new Date(time.valueOf());
+    this._repaintCustomTime();
+};
+
+/**
+ * Retrieve the current custom time.
+ * @return {Date} customTime
+ */
+TimeAxis.prototype._getCustomTime = function() {
+    return new Date(this.customTime.valueOf());
+};
+
+/**
  * Create characters used to determine the size of text on the axis
  * @private
  */
@@ -550,6 +621,7 @@ TimeAxis.prototype.reflow = function () {
         changed += update(props.range, 'minimumStep', minimumStep.valueOf());
 
         this._repaintCurrentTime();
+        this._repaintCustomTime();
     }
 
     return (changed > 0);
