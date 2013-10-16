@@ -171,7 +171,7 @@ util.convert = function convert(object, type) {
                 return moment(object.valueOf());
             }
             else if (moment.isMoment(object)) {
-                return moment(moment);
+                return moment(object);
             }
             if (util.isString(object)) {
                 match = ASPDateRegex.exec(object);
