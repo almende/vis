@@ -17,6 +17,7 @@ function Timeline (container, items, options) {
         // zoomable: true, // TODO: option zoomable
         showMinorLabels: true,
         showMajorLabels: true,
+        showCurrentTime: false,
         autoResize: false
     }, options);
 
@@ -108,6 +109,10 @@ function Timeline (container, items, options) {
     this.timeaxis = new TimeAxis(this.itemPanel, [], timeaxisOptions);
     this.timeaxis.setRange(this.range);
     this.controller.add(this.timeaxis);
+
+    // current time bar
+    this.currenttime = new CurrentTime(this.timeaxis, [], rootOptions);
+    this.controller.add(this.currenttime);
 
     // create itemset or groupset
     this.setGroups(null);
