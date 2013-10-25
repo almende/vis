@@ -1,6 +1,11 @@
 vis.js history
 http://visjs.org
 
+## <not yet released>, version 0.3.0
+
+- Implemented option `showCurrentTime`, displaying a red, vertical bar at
+  current time. Thanks fi0dor.
+
 
 ## 2013-09-20, version 0.2.0
 
