@@ -19,6 +19,9 @@
         }
     </style>
 
+    <!-- note: moment.js must be loaded before vis.js, else vis.js uses its embedded version of moment.js -->
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.3.1/moment.min.js"></script>
+
     <script src="../../vis.js"></script>
 </head>
 <body>
@@ -48,7 +51,8 @@
         start: now.clone().add('days', -3),
         end: now.clone().add('days', 7),
         orientation: 'top',
-        height: '100%'
+        height: '100%',
+        showCurrentTime: true
     };
 
     var timeline = new vis.Timeline(container, items, options);

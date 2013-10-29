@@ -11,6 +11,7 @@ function Range(options) {
     this.start = 0; // Number
     this.end = 0;   // Number
 
+  // this.options = options || {}; // TODO: fix range options
     this.options = {
         min: null,
         max: null,

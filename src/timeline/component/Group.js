@@ -11,7 +11,6 @@ function Group (parent, groupId, options) {
     this.parent = parent;
 
     this.groupId = groupId;
-    this.itemsData = null;  // DataSet
     this.itemset = null;    // ItemSet
     this.options = options || {};
     this.options.top = 0;

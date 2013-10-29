@@ -86,7 +86,7 @@ ItemRange.prototype.repaint = function repaint() {
         }
 
         // update class
-        var className = this.data.className ? ('' + this.data.className) : '';
+        var className = this.data.className ? (' ' + this.data.className) : '';
         if (this.className != className) {
             this.className = className;
             dom.box.className = 'item range' + className;

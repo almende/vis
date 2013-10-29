@@ -34,7 +34,8 @@ task('build', {async: true}, function () {
             './src/timeline/component/css/groupset.css',
             './src/timeline/component/css/itemset.css',
             './src/timeline/component/css/item.css',
-            './src/timeline/component/css/timeaxis.css'
+            './src/timeline/component/css/timeaxis.css',
+            './src/timeline/component/css/currenttime.css'
         ],
         header: '/* vis.js stylesheet */',
         separator: '\n'
@@ -47,6 +48,7 @@ task('build', {async: true}, function () {
         src: [
             './src/module/imports.js',
 
+            './src/shim.js',
             './src/util.js',
             './src/events.js',
             './src/EventBus.js',
@@ -61,6 +63,7 @@ task('build', {async: true}, function () {
             './src/timeline/component/Panel.js',
             './src/timeline/component/RootPanel.js',
             './src/timeline/component/TimeAxis.js',
+            './src/timeline/component/CurrentTime.js',
             './src/timeline/component/ItemSet.js',
             './src/timeline/component/item/*.js',
             './src/timeline/component/Group.js',

@@ -193,7 +193,7 @@ ItemSet.prototype.repaint = function repaint() {
         items = this.items,
         dataOptions = {
             // TODO: cleanup
-            //fields: [(itemsData && itemsData.fieldId || 'id'), 'start', 'end', 'content', 'type']
+            // fields: [(itemsData && itemsData.fieldId || 'id'), 'start', 'end', 'content', 'type', 'className']
         };
 
     // show/hide added/changed/removed items
