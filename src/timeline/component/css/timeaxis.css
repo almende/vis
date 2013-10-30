@@ -39,3 +39,16 @@
 .vis.timeline .axis .grid.major {
     border-color: #bfbfbf;
 }
+
+.vis.timeline .currenttime {
+    background-color: #FF7F6E;
+    width: 2px;
+    z-index: 9;
+}
+
+.vis.timeline .customtime {
+    background-color: #6E94FF;
+    width: 2px;
+    cursor: move;
+    z-index: 9;
+}
