@@ -8,16 +8,10 @@
  */
 function Range(options) {
     this.id = util.randomUUID();
-    this.start = 0; // Number
-    this.end = 0;   // Number
+    this.start = null; // Number
+    this.end = null;   // Number
 
-  // this.options = options || {}; // TODO: fix range options
-    this.options = {
-        min: null,
-        max: null,
-        zoomMin: null,
-        zoomMax: null
-    };
+    this.options = options || {};
 
     this.listeners = [];
 
@@ -27,8 +21,6 @@ function Range(options) {
 /**
  * Set options for the range controller
  * @param {Object} options      Available options:
- *                              {Number} start  Set start value of the range
- *                              {Number} end    Set end value of the range
  *                              {Number} min    Minimum value for start
  *                              {Number} max    Maximum value for end
  *                              {Number} zoomMin    Set a minimum value for
@@ -39,8 +31,9 @@ function Range(options) {
 Range.prototype.setOptions = function (options) {
     util.extend(this.options, options);
 
-    if (options.start != null || options.end != null) {
-        this.setRange(options.start, options.end);
+    // re-apply range with new limitations
+    if (this.start !== null && this.end !== null) {
+        this.setRange(this.start, this.end);
     }
 };
 
@@ -119,8 +112,8 @@ Range.prototype._trigger = function (event) {
 
 /**
  * Set a new start and end range
- * @param {Number} start
- * @param {Number} end
+ * @param {Number} [start]
+ * @param {Number} [end]
  */
 Range.prototype.setRange = function(start, end) {
     var changed = this._applyRange(start, end);
@@ -134,21 +127,23 @@ Range.prototype.setRange = function(start, end) {
  * Set a new start and end range. This method is the same as setRange, but
  * does not trigger a range change and range changed event, and it returns
  * true when the range is changed
- * @param {Number} start
- * @param {Number} end
+ * @param {Number} [start]
+ * @param {Number} [end]
  * @return {Boolean} changed
  * @private
  */
 Range.prototype._applyRange = function(start, end) {
-    var newStart = (start != null) ? util.convert(start, 'Number') : this.start;
-    var newEnd = (end != null) ? util.convert(end, 'Number') : this.end;
-    var diff;
+    var newStart = (start != null) ? util.convert(start, 'Number') : this.start,
+        newEnd   = (end != null)   ? util.convert(end, 'Number')   : this.end,
+        max = (this.options.max != null) ? util.convert(this.options.max, 'Date').valueOf() : null,
+        min = (this.options.min != null) ? util.convert(this.options.min, 'Date').valueOf() : null,
+        diff;
 
     // check for valid number
-    if (isNaN(newStart)) {
+    if (isNaN(newStart) || newStart === null) {
         throw new Error('Invalid start "' + start + '"');
     }
-    if (isNaN(newEnd)) {
+    if (isNaN(newEnd) || newEnd === null) {
         throw new Error('Invalid end "' + end + '"');
     }
 
@@ -158,63 +153,75 @@ Range.prototype._applyRange = function(start, end) {
     }
 
     // prevent start < min
-    if (this.options.min != null) {
-        var min = this.options.min.valueOf();
+    if (min !== null) {
         if (newStart < min) {
             diff = (min - newStart);
             newStart += diff;
             newEnd += diff;
+
+            // prevent end > max
+            if (max != null) {
+                if (newEnd > max) {
+                    newEnd = max;
+                }
+            }
         }
     }
 
     // prevent end > max
-    if (this.options.max != null) {
-        var max = this.options.max.valueOf();
+    if (max !== null) {
         if (newEnd > max) {
             diff = (newEnd - max);
             newStart -= diff;
             newEnd -= diff;
+
+            // prevent start < min
+            if (min != null) {
+                if (newStart < min) {
+                    newStart = min;
+                }
+            }
         }
     }
 
-    // prevent (end-start) > zoomMin
-    if (this.options.zoomMin != null) {
-        var zoomMin = this.options.zoomMin.valueOf();
+    // prevent (end-start) < zoomMin
+    if (this.options.zoomMin !== null) {
+        var zoomMin = parseFloat(this.options.zoomMin);
         if (zoomMin < 0) {
             zoomMin = 0;
         }
         if ((newEnd - newStart) < zoomMin) {
-            if ((this.end - this.start) > zoomMin) {
+            if ((this.end - this.start) === zoomMin) {
+                // ignore this action, we are already zoomed to the minimum
+                newStart = this.start;
+                newEnd = this.end;
+            }
+            else {
                 // zoom to the minimum
                 diff = (zoomMin - (newEnd - newStart));
                 newStart -= diff / 2;
                 newEnd += diff / 2;
             }
-            else {
-                // ingore this action, we are already zoomed to the minimum
-                newStart = this.start;
-                newEnd = this.end;
-            }
         }
     }
 
-    // prevent (end-start) > zoomMin
-    if (this.options.zoomMax != null) {
-        var zoomMax = this.options.zoomMax.valueOf();
+    // prevent (end-start) > zoomMax
+    if (this.options.zoomMax !== null) {
+        var zoomMax = parseFloat(this.options.zoomMax);
         if (zoomMax < 0) {
             zoomMax = 0;
         }
         if ((newEnd - newStart) > zoomMax) {
-            if ((this.end - this.start) < zoomMax) {
+            if ((this.end - this.start) === zoomMax) {
+                // ignore this action, we are already zoomed to the maximum
+                newStart = this.start;
+                newEnd = this.end;
+            }
+            else {
                 // zoom to the maximum
                 diff = ((newEnd - newStart) - zoomMax);
                 newStart += diff / 2;
                 newEnd -= diff / 2;
-            }
-            else {
-                // ingore this action, we are already zoomed to the maximum
-                newStart = this.start;
-                newEnd = this.end;
             }
         }
     }

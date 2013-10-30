@@ -487,12 +487,13 @@ TimeAxis.prototype.reflow = function () {
         // calculate range and step
         this._updateConversion();
 
-        var start = util.convert(range.start, 'Date'),
-            end = util.convert(range.end, 'Date'),
-            minimumStep = this.toTime((props.minorCharWidth || 10) * 5) - this.toTime(0);
-        this.step = new TimeStep(start, end, minimumStep);
-        changed += update(props.range, 'start', start.valueOf());
-        changed += update(props.range, 'end', end.valueOf());
+        var start = util.convert(range.start, 'Number'),
+            end = util.convert(range.end, 'Number'),
+            minimumStep = this.toTime((props.minorCharWidth || 10) * 5).valueOf()
+                -this.toTime(0).valueOf();
+        this.step = new TimeStep(new Date(start), new Date(end), minimumStep);
+        changed += update(props.range, 'start', start);
+        changed += update(props.range, 'end', end);
         changed += update(props.range, 'minimumStep', minimumStep.valueOf());
     }
 
