@@ -67,6 +67,7 @@ ItemSet.prototype = new Panel();
 ItemSet.types = {
     box: ItemBox,
     range: ItemRange,
+    rangeoverflow: ItemRangeOverflow,
     point: ItemPoint
 };
 

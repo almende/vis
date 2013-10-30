@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.3.0-SNAPSHOT
- * @date    2013-10-29
+ * @date    2013-10-30
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -3769,7 +3769,17 @@ else {
 // Try to load dependencies from the global window object.
 // If not available there, load via require.
 var moment = (typeof window !== 'undefined') && window['moment'] || require('moment');
-var Hammer = (typeof window !== 'undefined') && window['Hammer'] || require('hammerjs');
+
+var Hammer;
+if (typeof window !== 'undefined') {
+  // load hammer.js only when running in a browser (where window is available)
+  Hammer = window['Hammer'] || require('hammerjs');
+}
+else {
+  Hammer = function () {
+    throw Error('hammer.js is only available in a browser, not in node.js.');
+  }
+}
 
 
 // Internet Explorer 8 and older does not support Array.indexOf, so we define
@@ -6177,8 +6187,7 @@ TimeStep.SCALE = {
  */
 TimeStep.prototype.setRange = function(start, end, minimumStep) {
     if (!(start instanceof Date) || !(end instanceof Date)) {
-        //throw  "No legal start or end date in method setRange";
-        return;
+        throw  "No legal start or end date in method setRange";
     }
 
     this._start = (start != undefined) ? new Date(start.valueOf()) : new Date();
@@ -6750,21 +6759,8 @@ Stack.prototype.checkOverlap = function checkOverlap (items, itemIndex,
  * @return {boolean}        true if a and b collide, else false
  */
 Stack.prototype.collision = function collision (a, b, margin) {
-    var a_width;
-    var b_width;
-
-    if (a.props.content !== undefined && a.width < a.props.content.width)
-        a_width = a.props.content.width;
-    else
-        a_width = a.width;
-
-    if (b.props.content !== undefined && b.width < b.props.content.width)
-        b_width = b.props.content.width;
-    else
-        b_width = b.width
-    
-    return ((a.left - margin) < (b.left + b_width) &&
-        (a.left + a_width + margin) > b.left &&
+    return ((a.left - margin) < (b.left + b.getWidth()) &&
+        (a.left + a.getWidth() + margin) > b.left &&
         (a.top - margin) < (b.top + b.height) &&
         (a.top + a.height + margin) > b.top);
 };
@@ -6779,16 +6775,10 @@ Stack.prototype.collision = function collision (a, b, margin) {
  */
 function Range(options) {
     this.id = util.randomUUID();
-    this.start = 0; // Number
-    this.end = 0;   // Number
+    this.start = null; // Number
+    this.end = null;   // Number
 
-  // this.options = options || {}; // TODO: fix range options
-    this.options = {
-        min: null,
-        max: null,
-        zoomMin: null,
-        zoomMax: null
-    };
+    this.options = options || {};
 
     this.listeners = [];
 
@@ -6798,8 +6788,6 @@ function Range(options) {
 /**
  * Set options for the range controller
  * @param {Object} options      Available options:
- *                              {Number} start  Set start value of the range
- *                              {Number} end    Set end value of the range
  *                              {Number} min    Minimum value for start
  *                              {Number} max    Maximum value for end
  *                              {Number} zoomMin    Set a minimum value for
@@ -6810,8 +6798,9 @@ function Range(options) {
 Range.prototype.setOptions = function (options) {
     util.extend(this.options, options);
 
-    if (options.start != null || options.end != null) {
-        this.setRange(options.start, options.end);
+    // re-apply range with new limitations
+    if (this.start !== null && this.end !== null) {
+        this.setRange(this.start, this.end);
     }
 };
 
@@ -6890,8 +6879,8 @@ Range.prototype._trigger = function (event) {
 
 /**
  * Set a new start and end range
- * @param {Number} start
- * @param {Number} end
+ * @param {Number} [start]
+ * @param {Number} [end]
  */
 Range.prototype.setRange = function(start, end) {
     var changed = this._applyRange(start, end);
@@ -6905,21 +6894,23 @@ Range.prototype.setRange = function(start, end) {
  * Set a new start and end range. This method is the same as setRange, but
  * does not trigger a range change and range changed event, and it returns
  * true when the range is changed
- * @param {Number} start
- * @param {Number} end
+ * @param {Number} [start]
+ * @param {Number} [end]
  * @return {Boolean} changed
  * @private
  */
 Range.prototype._applyRange = function(start, end) {
-    var newStart = (start != null) ? util.convert(start, 'Number') : this.start;
-    var newEnd = (end != null) ? util.convert(end, 'Number') : this.end;
-    var diff;
+    var newStart = (start != null) ? util.convert(start, 'Number') : this.start,
+        newEnd   = (end != null)   ? util.convert(end, 'Number')   : this.end,
+        max = (this.options.max != null) ? util.convert(this.options.max, 'Date').valueOf() : null,
+        min = (this.options.min != null) ? util.convert(this.options.min, 'Date').valueOf() : null,
+        diff;
 
     // check for valid number
-    if (isNaN(newStart)) {
+    if (isNaN(newStart) || newStart === null) {
         throw new Error('Invalid start "' + start + '"');
     }
-    if (isNaN(newEnd)) {
+    if (isNaN(newEnd) || newEnd === null) {
         throw new Error('Invalid end "' + end + '"');
     }
 
@@ -6929,63 +6920,75 @@ Range.prototype._applyRange = function(start, end) {
     }
 
     // prevent start < min
-    if (this.options.min != null) {
-        var min = this.options.min.valueOf();
+    if (min !== null) {
         if (newStart < min) {
             diff = (min - newStart);
             newStart += diff;
             newEnd += diff;
+
+            // prevent end > max
+            if (max != null) {
+                if (newEnd > max) {
+                    newEnd = max;
+                }
+            }
         }
     }
 
     // prevent end > max
-    if (this.options.max != null) {
-        var max = this.options.max.valueOf();
+    if (max !== null) {
         if (newEnd > max) {
             diff = (newEnd - max);
             newStart -= diff;
             newEnd -= diff;
+
+            // prevent start < min
+            if (min != null) {
+                if (newStart < min) {
+                    newStart = min;
+                }
+            }
         }
     }
 
-    // prevent (end-start) > zoomMin
-    if (this.options.zoomMin != null) {
-        var zoomMin = this.options.zoomMin.valueOf();
+    // prevent (end-start) < zoomMin
+    if (this.options.zoomMin !== null) {
+        var zoomMin = parseFloat(this.options.zoomMin);
         if (zoomMin < 0) {
             zoomMin = 0;
         }
         if ((newEnd - newStart) < zoomMin) {
-            if ((this.end - this.start) > zoomMin) {
+            if ((this.end - this.start) === zoomMin) {
+                // ignore this action, we are already zoomed to the minimum
+                newStart = this.start;
+                newEnd = this.end;
+            }
+            else {
                 // zoom to the minimum
                 diff = (zoomMin - (newEnd - newStart));
                 newStart -= diff / 2;
                 newEnd += diff / 2;
             }
-            else {
-                // ingore this action, we are already zoomed to the minimum
-                newStart = this.start;
-                newEnd = this.end;
-            }
         }
     }
 
-    // prevent (end-start) > zoomMin
-    if (this.options.zoomMax != null) {
-        var zoomMax = this.options.zoomMax.valueOf();
+    // prevent (end-start) > zoomMax
+    if (this.options.zoomMax !== null) {
+        var zoomMax = parseFloat(this.options.zoomMax);
         if (zoomMax < 0) {
             zoomMax = 0;
         }
         if ((newEnd - newStart) > zoomMax) {
-            if ((this.end - this.start) < zoomMax) {
+            if ((this.end - this.start) === zoomMax) {
+                // ignore this action, we are already zoomed to the maximum
+                newStart = this.start;
+                newEnd = this.end;
+            }
+            else {
                 // zoom to the maximum
                 diff = ((newEnd - newStart) - zoomMax);
                 newStart += diff / 2;
                 newEnd -= diff / 2;
-            }
-            else {
-                // ingore this action, we are already zoomed to the maximum
-                newStart = this.start;
-                newEnd = this.end;
             }
         }
     }
@@ -8445,12 +8448,13 @@ TimeAxis.prototype.reflow = function () {
         // calculate range and step
         this._updateConversion();
 
-        var start = util.convert(range.start, 'Date'),
-            end = util.convert(range.end, 'Date'),
-            minimumStep = this.toTime((props.minorCharWidth || 10) * 5) - this.toTime(0);
-        this.step = new TimeStep(start, end, minimumStep);
-        changed += update(props.range, 'start', start.valueOf());
-        changed += update(props.range, 'end', end.valueOf());
+        var start = util.convert(range.start, 'Number'),
+            end = util.convert(range.end, 'Number'),
+            minimumStep = this.toTime((props.minorCharWidth || 10) * 5).valueOf()
+                -this.toTime(0).valueOf();
+        this.step = new TimeStep(new Date(start), new Date(end), minimumStep);
+        changed += update(props.range, 'start', start);
+        changed += update(props.range, 'end', end);
         changed += update(props.range, 'minimumStep', minimumStep.valueOf());
     }
 
@@ -8581,6 +8585,262 @@ CurrentTime.prototype.repaint = function () {
 };
 
 /**
+ * A custom time bar
+ * @param {Component} parent
+ * @param {Component[]} [depends]   Components on which this components depends
+ *                                  (except for the parent)
+ * @param {Object} [options]        Available parameters:
+ *                                  {Boolean} [showCustomTime]
+ * @constructor CustomTime
+ * @extends Component
+ */
+
+function CustomTime (parent, depends, options) {
+    this.id = util.randomUUID();
+    this.parent = parent;
+    this.depends = depends;
+
+    this.options = options || {};
+    this.defaultOptions = {
+        showCustomTime: false
+    };
+
+    this.listeners = [];
+    this.customTime = new Date();
+}
+
+CustomTime.prototype = new Component();
+
+CustomTime.prototype.setOptions = Component.prototype.setOptions;
+
+/**
+ * Get the container element of the bar, which can be used by a child to
+ * add its own widgets.
+ * @returns {HTMLElement} container
+ */
+CustomTime.prototype.getContainer = function () {
+    return this.frame;
+};
+
+/**
+ * Repaint the component
+ * @return {Boolean} changed
+ */
+CustomTime.prototype.repaint = function () {
+    var bar = this.frame,
+        parent = this.parent,
+        parentContainer = parent.parent.getContainer();
+
+    if (!parent) {
+        throw new Error('Cannot repaint bar: no parent attached');
+    }
+
+    if (!parentContainer) {
+        throw new Error('Cannot repaint bar: parent has no container element');
+    }
+
+    if (!this.getOption('showCustomTime')) {
+        if (bar) {
+            parentContainer.removeChild(bar);
+            delete this.frame;
+        }
+
+        return;
+    }
+
+    if (!bar) {
+        bar = document.createElement('div');
+        bar.className = 'customtime';
+        bar.style.position = 'absolute';
+        bar.style.top = '0px';
+        bar.style.height = '100%';
+
+        parentContainer.appendChild(bar);
+
+        var drag = document.createElement('div');
+        drag.style.position = 'relative';
+        drag.style.top = '0px';
+        drag.style.left = '-10px';
+        drag.style.height = '100%';
+        drag.style.width = '20px';
+        bar.appendChild(drag);
+
+        this.frame = bar;
+
+        this.subscribe(this, 'movetime');
+    }
+
+    if (!parent.conversion) {
+        parent._updateConversion();
+    }
+
+    var x = parent.toScreen(this.customTime);
+
+    bar.style.left = x + 'px';
+    bar.title = 'Time: ' + this.customTime;
+
+    return false;
+};
+
+/**
+ * Set custom time.
+ * @param {Date} time
+ */
+CustomTime.prototype._setCustomTime = function(time) {
+    this.customTime = new Date(time.valueOf());
+    this.repaint();
+};
+
+/**
+ * Retrieve the current custom time.
+ * @return {Date} customTime
+ */
+CustomTime.prototype._getCustomTime = function() {
+    return new Date(this.customTime.valueOf());
+};
+
+/**
+ * Add listeners for mouse and touch events to the component
+ * @param {Component} component
+ */
+CustomTime.prototype.subscribe = function (component, event) {
+    var me = this;
+    var listener = {
+        component: component,
+        event: event,
+        callback: function (event) {
+            me._onMouseDown(event, listener);
+        },
+        params: {}
+    };
+
+    component.on('mousedown', listener.callback);
+    me.listeners.push(listener);
+
+};
+
+/**
+ * Event handler
+ * @param {String} event       name of the event, for example 'click', 'mousemove'
+ * @param {function} callback  callback handler, invoked with the raw HTML Event
+ *                             as parameter.
+ */
+CustomTime.prototype.on = function (event, callback) {
+    var bar = this.frame;
+    if (!bar) {
+        throw new Error('Cannot add event listener: no parent attached');
+    }
+
+    events.addListener(this, event, callback);
+    util.addEventListener(bar, event, callback);
+};
+
+/**
+ * Start moving horizontally
+ * @param {Event} event
+ * @param {Object} listener   Listener containing the component and params
+ * @private
+ */
+CustomTime.prototype._onMouseDown = function(event, listener) {
+    event = event || window.event;
+    var params = listener.params;
+
+    // only react on left mouse button down
+    var leftButtonDown = event.which ? (event.which == 1) : (event.button == 1);
+    if (!leftButtonDown) {
+        return;
+    }
+
+    // get mouse position
+    params.mouseX = util.getPageX(event);
+    params.moved = false;
+    
+    params.customTime = this.customTime;
+
+    // add event listeners to handle moving the custom time bar 
+    var me = this;
+    if (!params.onMouseMove) {
+        params.onMouseMove = function (event) {
+            me._onMouseMove(event, listener);
+        };
+        util.addEventListener(document, 'mousemove', params.onMouseMove);
+    }
+    if (!params.onMouseUp) {
+        params.onMouseUp = function (event) {
+            me._onMouseUp(event, listener);
+        };
+        util.addEventListener(document, 'mouseup', params.onMouseUp);
+    }
+
+    util.stopPropagation(event);
+    util.preventDefault(event);
+};
+
+/**
+ * Perform moving operating.
+ * This function activated from within the funcion CustomTime._onMouseDown().
+ * @param {Event} event
+ * @param {Object} listener
+ * @private
+ */
+CustomTime.prototype._onMouseMove = function (event, listener) {
+    event = event || window.event;
+    var params = listener.params;
+    var parent = this.parent;
+
+    // calculate change in mouse position
+    var mouseX = util.getPageX(event);
+
+    if (params.mouseX === undefined) {
+        params.mouseX = mouseX;
+    }
+
+    var diff = mouseX - params.mouseX;
+
+    // if mouse movement is big enough, register it as a "moved" event
+    if (Math.abs(diff) >= 1) {
+        params.moved = true;
+    }
+
+    var x = parent.toScreen(params.customTime);
+    var xnew = x + diff;
+    var time = parent.toTime(xnew);
+    this._setCustomTime(time);
+
+    // fire a timechange event
+    events.trigger(this, 'timechange', {customTime: this.customTime});
+
+    util.preventDefault(event);
+};
+
+/**
+ * Stop moving operating.
+ * This function activated from within the function CustomTime._onMouseDown().
+ * @param {event} event
+ * @param {Object} listener
+ * @private
+ */
+CustomTime.prototype._onMouseUp = function (event, listener) {
+    event = event || window.event;
+    var params = listener.params;
+
+    // remove event listeners here, important for Safari
+    if (params.onMouseMove) {
+        util.removeEventListener(document, 'mousemove', params.onMouseMove);
+        params.onMouseMove = null;
+    }
+    if (params.onMouseUp) {
+        util.removeEventListener(document, 'mouseup', params.onMouseUp);
+        params.onMouseUp = null;
+    }
+
+    if (params.moved) {
+        // fire a timechanged event
+        events.trigger(this, 'timechanged', {customTime: this.customTime});
+    }
+};
+
+/**
  * An ItemSet holds a set of items and ranges which can be displayed in a
  * range. The width is determined by the parent of the ItemSet, and the height
  * is determined by the size of the items.
@@ -8649,6 +8909,7 @@ ItemSet.prototype = new Panel();
 ItemSet.types = {
     box: ItemBox,
     range: ItemRange,
+    rangeoverflow: ItemRangeOverflow,
     point: ItemPoint
 };
 
@@ -9183,6 +9444,14 @@ Item.prototype.reflow = function reflow() {
     // should be implemented by the item
     return false;
 };
+
+/**
+ * Return the items width
+ * @return {Integer} width
+ */
+Item.prototype.getWidth = function getWidth() {
+    return this.width;
+}
 
 /**
  * @constructor ItemBox
@@ -10020,6 +10289,98 @@ ItemRange.prototype.reposition = function reposition() {
 };
 
 /**
+ * @constructor ItemRangeOverflow
+ * @extends ItemRange
+ * @param {ItemSet} parent
+ * @param {Object} data             Object containing parameters start, end
+ *                                  content, className.
+ * @param {Object} [options]        Options to set initial property values
+ * @param {Object} [defaultOptions] default options
+ *                                  // TODO: describe available options
+ */
+function ItemRangeOverflow (parent, data, options, defaultOptions) {
+    this.props = {
+        content: {
+            left: 0,
+            width: 0
+        }
+    };
+
+    ItemRange.call(this, parent, data, options, defaultOptions);
+}
+
+ItemRangeOverflow.prototype = new ItemRange (null, null);
+
+/**
+ * Repaint the item
+ * @return {Boolean} changed
+ */
+ItemRangeOverflow.prototype.repaint = function repaint() {
+    // TODO: make an efficient repaint
+    var changed = false;
+    var dom = this.dom;
+
+    if (!dom) {
+        this._create();
+        dom = this.dom;
+        changed = true;
+    }
+
+    if (dom) {
+        if (!this.parent) {
+            throw new Error('Cannot repaint item: no parent attached');
+        }
+        var foreground = this.parent.getForeground();
+        if (!foreground) {
+            throw new Error('Cannot repaint time axis: ' +
+                'parent has no foreground container element');
+        }
+
+        if (!dom.box.parentNode) {
+            foreground.appendChild(dom.box);
+            changed = true;
+        }
+
+        // update content
+        if (this.data.content != this.content) {
+            this.content = this.data.content;
+            if (this.content instanceof Element) {
+                dom.content.innerHTML = '';
+                dom.content.appendChild(this.content);
+            }
+            else if (this.data.content != undefined) {
+                dom.content.innerHTML = this.content;
+            }
+            else {
+                throw new Error('Property "content" missing in item ' + this.data.id);
+            }
+            changed = true;
+        }
+
+        // update class
+        var className = this.data.className ? (' ' + this.data.className) : '';
+        if (this.className != className) {
+            this.className = className;
+            dom.box.className = 'item rangeoverflow' + className;
+            changed = true;
+        }
+    }
+
+    return changed;
+};
+
+/**
+ * Return the items width
+ * @return {Integer} width
+ */
+ItemRangeOverflow.prototype.getWidth = function getWidth() {
+    if (this.props.content !== undefined && this.width < this.props.content.width)
+        return this.props.content.width;
+    else
+        return this.width;
+}
+
+/**
  * @constructor Group
  * @param {GroupSet} parent
  * @param {Number | String} groupId
@@ -10633,19 +10994,21 @@ GroupSet.prototype._toQueue = function _toQueue(ids, action) {
  */
 function Timeline (container, items, options) {
     var me = this;
-    this.options = util.extend({
+    var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
+    this.options = {
         orientation: 'bottom',
         min: null,
         max: null,
-        zoomMin: 10,     // milliseconds
+        zoomMin: 10,                                // milliseconds
         zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000, // milliseconds
         // moveable: true, // TODO: option moveable
         // zoomable: true, // TODO: option zoomable
         showMinorLabels: true,
         showMajorLabels: true,
         showCurrentTime: false,
+        showCustomTime: false,
         autoResize: false
-    }, options);
+    };
 
     // controller
     this.controller = new Controller();
@@ -10698,19 +11061,13 @@ function Timeline (container, items, options) {
     this.controller.add(this.labelPanel);
 
     // range
-    var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
-    this.range = new Range({
-        start: now.clone().add('days', -3).valueOf(),
-        end:   now.clone().add('days', 4).valueOf()
-    });
-  /* TODO: fix range options
     var rangeOptions = Object.create(this.options);
     this.range = new Range(rangeOptions);
     this.range.setRange(
         now.clone().add('days', -3).valueOf(),
         now.clone().add('days', 4).valueOf()
     );
-    */
+
     // TODO: reckon with options moveable and zoomable
     this.range.subscribe(this.rootPanel, 'move', 'horizontal');
     this.range.subscribe(this.rootPanel, 'zoom', 'horizontal');
@@ -10740,13 +11097,22 @@ function Timeline (container, items, options) {
     this.currenttime = new CurrentTime(this.timeaxis, [], rootOptions);
     this.controller.add(this.currenttime);
 
+    // custom time bar
+    this.customtime = new CustomTime(this.timeaxis, [], rootOptions);
+    this.controller.add(this.customtime);
+
     // create itemset or groupset
     this.setGroups(null);
 
     this.itemsData = null;      // DataSet
     this.groupsData = null;     // DataSet
 
-    // set data
+    // apply options
+    if (options) {
+        this.setOptions(options);
+    }
+
+    // set data (must be after options are applied)
     if (items) {
         this.setItems(items);
     }
@@ -10757,14 +11123,31 @@ function Timeline (container, items, options) {
  * @param {Object} options  TODO: describe the available options
  */
 Timeline.prototype.setOptions = function (options) {
-    if (options) {
-        util.extend(this.options, options);
-    }
+    util.extend(this.options, options);
 
-    // TODO: apply range min,max
+    // force update of range
+    // options.start and options.end can be undefined
+    //this.range.setRange(options.start, options.end);
+    this.range.setRange();
 
     this.controller.reflow();
     this.controller.repaint();
+};
+
+/**
+ * Set a custom time bar
+ * @param {Date} time
+ */
+Timeline.prototype.setCustomTime = function (time) {
+    this.customtime._setCustomTime(time);
+};
+
+/**
+ * Retrieve the current custom time.
+ * @return {Date} customTime
+ */
+Timeline.prototype.getCustomTime = function() {
+    return new Date(this.customtime.customTime.valueOf());
 };
 
 /**
@@ -10800,7 +11183,7 @@ Timeline.prototype.setItems = function(items) {
         // apply the data range as range
         var dataRange = this.getItemRange();
 
-        // add 5% on both sides
+        // add 5% space on both sides
         var min = dataRange.min;
         var max = dataRange.max;
         if (min != null && max != null) {
@@ -10815,10 +11198,10 @@ Timeline.prototype.setItems = function(items) {
 
         // override specified start and/or end date
         if (this.options.start != undefined) {
-            min = new Date(this.options.start.valueOf());
+            min = util.convert(this.options.start, 'Date');
         }
         if (this.options.end != undefined) {
-            max = new Date(this.options.end.valueOf());
+            max = util.convert(this.options.end, 'Date');
         }
 
         // apply range if there is a min or max available
@@ -15324,7 +15707,7 @@ if (typeof window !== 'undefined') {
 }
 
 // inject css
-util.loadCss("/* vis.js stylesheet */\n.vis.timeline {\n}\n\n\n.vis.timeline.rootpanel {\n    position: relative;\n    overflow: hidden;\n\n    border: 1px solid #bfbfbf;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n}\n\n.vis.timeline .panel {\n    position: absolute;\n    overflow: hidden;\n}\n\n\n.vis.timeline .groupset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n}\n\n.vis.timeline .labels {\n    position: absolute;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n\n    padding: 0;\n    margin: 0;\n\n    border-right: 1px solid #bfbfbf;\n    box-sizing: border-box;\n    -moz-box-sizing: border-box;\n}\n\n.vis.timeline .labels .label {\n    position: absolute;\n    left: 0;\n    top: 0;\n    width: 100%;\n    border-bottom: 1px solid #bfbfbf;\n    color: #4d4d4d;\n}\n\n.vis.timeline .labels .label .inner {\n    display: inline-block;\n    padding: 5px;\n}\n\n\n.vis.timeline .itemset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n    overflow: hidden;\n}\n\n.vis.timeline .background {\n}\n\n.vis.timeline .foreground {\n}\n\n.vis.timeline .itemset-axis {\n    position: absolute;\n}\n\n.vis.timeline .groupset .itemset-axis {\n    border-top: 1px solid #bfbfbf;\n}\n\n/* TODO: with orientation=='bottom', this will more or less overlap with timeline axis\n.vis.timeline .groupset .itemset-axis:last-child {\n    border-top: none;\n}\n*/\n\n\n.vis.timeline .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.vis.timeline .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.vis.timeline .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.vis.timeline .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.vis.timeline .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.point {\n    background: none;\n}\n\n.vis.timeline .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.range {\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.range .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.vis.timeline .item.range .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.vis.timeline .item.range .content {\n    position: relative;\n    display: inline-block;\n}\n\n.vis.timeline .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n}\n\n.vis.timeline .item .content {\n    margin: 5px;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n.vis.timeline .axis {\n    position: relative;\n}\n\n.vis.timeline .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.vis.timeline .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.vis.timeline .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.vis.timeline .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.vis.timeline .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.vis.timeline .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n.vis.timeline .currenttime {\n    background-color: #FF7F6E;\n    width: 2px;\n    z-index: 9;\n}\n");
+util.loadCss("/* vis.js stylesheet */\n.vis.timeline {\n}\n\n\n.vis.timeline.rootpanel {\n    position: relative;\n    overflow: hidden;\n\n    border: 1px solid #bfbfbf;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n}\n\n.vis.timeline .panel {\n    position: absolute;\n    overflow: hidden;\n}\n\n\n.vis.timeline .groupset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n}\n\n.vis.timeline .labels {\n    position: absolute;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n\n    padding: 0;\n    margin: 0;\n\n    border-right: 1px solid #bfbfbf;\n    box-sizing: border-box;\n    -moz-box-sizing: border-box;\n}\n\n.vis.timeline .labels .label {\n    position: absolute;\n    left: 0;\n    top: 0;\n    width: 100%;\n    border-bottom: 1px solid #bfbfbf;\n    color: #4d4d4d;\n}\n\n.vis.timeline .labels .label .inner {\n    display: inline-block;\n    padding: 5px;\n}\n\n\n.vis.timeline .itemset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n    overflow: hidden;\n}\n\n.vis.timeline .background {\n}\n\n.vis.timeline .foreground {\n}\n\n.vis.timeline .itemset-axis {\n    position: absolute;\n}\n\n.vis.timeline .groupset .itemset-axis {\n    border-top: 1px solid #bfbfbf;\n}\n\n/* TODO: with orientation=='bottom', this will more or less overlap with timeline axis\n.vis.timeline .groupset .itemset-axis:last-child {\n    border-top: none;\n}\n*/\n\n\n.vis.timeline .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.vis.timeline .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.vis.timeline .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.vis.timeline .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.vis.timeline .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.point {\n    background: none;\n}\n\n.vis.timeline .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.range {\n    overflow: hidden;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.rangeoverflow {\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.range .drag-left, .vis.timeline .item.rangeoverflow .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.vis.timeline .item.range .drag-right, .vis.timeline .item.rangeoverflow .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.vis.timeline .item.range .content, .vis.timeline .item.rangeoverflow .content {\n    position: relative;\n    display: inline-block;\n}\n\n.vis.timeline .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n}\n\n.vis.timeline .item .content {\n    margin: 0;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n.vis.timeline .axis {\n    position: relative;\n}\n\n.vis.timeline .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.vis.timeline .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.vis.timeline .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.vis.timeline .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.vis.timeline .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.vis.timeline .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n.vis.timeline .currenttime {\n    background-color: #FF7F6E;\n    width: 2px;\n    z-index: 9;\n}\n.vis.timeline .customtime {\n    background-color: #6E94FF;\n    width: 2px;\n    cursor: move;\n    z-index: 9;    \n}\n");
 
 },{"hammerjs":1,"moment":2}]},{},[3])
 (3)

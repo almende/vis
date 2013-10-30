@@ -42,23 +42,31 @@
 }
 
 .vis.timeline .item.range {
+    overflow: hidden;
     border-style: solid;
     border-width: 1px;
     border-radius: 2px;
     -moz-border-radius: 2px;  /* For Firefox 3.6 and older */
 }
 
-.vis.timeline .item.range .drag-left {
+.vis.timeline .item.rangeoverflow {
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 2px;
+    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */
+}
+
+.vis.timeline .item.range .drag-left, .vis.timeline .item.rangeoverflow .drag-left {
     cursor: w-resize;
     z-index: 1000;
 }
 
-.vis.timeline .item.range .drag-right {
+.vis.timeline .item.range .drag-right, .vis.timeline .item.rangeoverflow .drag-right {
     cursor: e-resize;
     z-index: 1000;
 }
 
-.vis.timeline .item.range .content {
+.vis.timeline .item.range .content, .vis.timeline .item.rangeoverflow .content {
     position: relative;
     display: inline-block;
 }
@@ -71,7 +79,7 @@
 }
 
 .vis.timeline .item .content {
-    margin: 5px;
+    margin: 0;
     white-space: nowrap;
     overflow: hidden;
 }
