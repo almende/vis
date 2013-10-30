@@ -79,7 +79,7 @@
 }
 
 .vis.timeline .item .content {
-    margin: 0;
+    margin: 5px;
     white-space: nowrap;
     overflow: hidden;
 }
