@@ -19,6 +19,7 @@ function Timeline (container, items, options) {
         showMinorLabels: true,
         showMajorLabels: true,
         showCurrentTime: false,
+        showCustomTime: false,
         autoResize: false
     };
 
@@ -109,6 +110,10 @@ function Timeline (container, items, options) {
     this.currenttime = new CurrentTime(this.timeaxis, [], rootOptions);
     this.controller.add(this.currenttime);
 
+    // custom time bar
+    this.customtime = new CustomTime(this.timeaxis, [], rootOptions);
+    this.controller.add(this.customtime);
+
     // create itemset or groupset
     this.setGroups(null);
 
@@ -140,6 +145,22 @@ Timeline.prototype.setOptions = function (options) {
 
     this.controller.reflow();
     this.controller.repaint();
+};
+
+/**
+ * Set a custom time bar
+ * @param {Date} time
+ */
+Timeline.prototype.setCustomTime = function (time) {
+    this.customtime._setCustomTime(time);
+};
+
+/**
+ * Retrieve the current custom time.
+ * @return {Date} customTime
+ */
+Timeline.prototype.getCustomTime = function() {
+    return new Date(this.customtime.customTime.valueOf());
 };
 
 /**
