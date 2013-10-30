@@ -63,8 +63,7 @@ TimeStep.SCALE = {
  */
 TimeStep.prototype.setRange = function(start, end, minimumStep) {
     if (!(start instanceof Date) || !(end instanceof Date)) {
-        //throw  "No legal start or end date in method setRange";
-        return;
+        throw  "No legal start or end date in method setRange";
     }
 
     this._start = (start != undefined) ? new Date(start.valueOf()) : new Date();

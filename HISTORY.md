@@ -5,6 +5,8 @@ http://visjs.org
 
 - Implemented option `showCurrentTime`, displaying a red, vertical bar at
   current time. Thanks fi0dor.
+- Fixed broken Timeline options `min` and `max`.
+- Fixed not being able to load vis.js in node.js.
 
 
 ## 2013-09-20, version 0.2.0

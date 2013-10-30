@@ -7,11 +7,12 @@
  */
 function Timeline (container, items, options) {
     var me = this;
-    this.options = util.extend({
+    var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
+    this.options = {
         orientation: 'bottom',
         min: null,
         max: null,
-        zoomMin: 10,     // milliseconds
+        zoomMin: 10,                                // milliseconds
         zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000, // milliseconds
         // moveable: true, // TODO: option moveable
         // zoomable: true, // TODO: option zoomable
@@ -19,7 +20,7 @@ function Timeline (container, items, options) {
         showMajorLabels: true,
         showCurrentTime: false,
         autoResize: false
-    }, options);
+    };
 
     // controller
     this.controller = new Controller();
@@ -72,19 +73,13 @@ function Timeline (container, items, options) {
     this.controller.add(this.labelPanel);
 
     // range
-    var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
-    this.range = new Range({
-        start: now.clone().add('days', -3).valueOf(),
-        end:   now.clone().add('days', 4).valueOf()
-    });
-  /* TODO: fix range options
     var rangeOptions = Object.create(this.options);
     this.range = new Range(rangeOptions);
     this.range.setRange(
         now.clone().add('days', -3).valueOf(),
         now.clone().add('days', 4).valueOf()
     );
-    */
+
     // TODO: reckon with options moveable and zoomable
     this.range.subscribe(this.rootPanel, 'move', 'horizontal');
     this.range.subscribe(this.rootPanel, 'zoom', 'horizontal');
@@ -120,7 +115,12 @@ function Timeline (container, items, options) {
     this.itemsData = null;      // DataSet
     this.groupsData = null;     // DataSet
 
-    // set data
+    // apply options
+    if (options) {
+        this.setOptions(options);
+    }
+
+    // set data (must be after options are applied)
     if (items) {
         this.setItems(items);
     }
@@ -131,11 +131,12 @@ function Timeline (container, items, options) {
  * @param {Object} options  TODO: describe the available options
  */
 Timeline.prototype.setOptions = function (options) {
-    if (options) {
-        util.extend(this.options, options);
-    }
+    util.extend(this.options, options);
 
-    // TODO: apply range min,max
+    // force update of range
+    // options.start and options.end can be undefined
+    //this.range.setRange(options.start, options.end);
+    this.range.setRange();
 
     this.controller.reflow();
     this.controller.repaint();
@@ -174,7 +175,7 @@ Timeline.prototype.setItems = function(items) {
         // apply the data range as range
         var dataRange = this.getItemRange();
 
-        // add 5% on both sides
+        // add 5% space on both sides
         var min = dataRange.min;
         var max = dataRange.max;
         if (min != null && max != null) {
@@ -189,10 +190,10 @@ Timeline.prototype.setItems = function(items) {
 
         // override specified start and/or end date
         if (this.options.start != undefined) {
-            min = new Date(this.options.start.valueOf());
+            min = util.convert(this.options.start, 'Date');
         }
         if (this.options.end != undefined) {
-            max = new Date(this.options.end.valueOf());
+            max = util.convert(this.options.end, 'Date');
         }
 
         // apply range if there is a min or max available
