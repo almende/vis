@@ -69,3 +69,11 @@ Item.prototype.reflow = function reflow() {
     // should be implemented by the item
     return false;
 };
+
+/**
+ * Return the items width
+ * @return {Integer} width
+ */
+Item.prototype.getWidth = function getWidth() {
+    return this.width;
+}
