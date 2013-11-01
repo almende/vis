@@ -81,11 +81,11 @@ ItemRangeOverflow.prototype.repaint = function repaint() {
 
 /**
  * Return the items width
- * @return {Integer} width
+ * @return {Number} width
  */
 ItemRangeOverflow.prototype.getWidth = function getWidth() {
     if (this.props.content !== undefined && this.width < this.props.content.width)
         return this.props.content.width;
     else
         return this.width;
-}
+};

@@ -270,7 +270,7 @@ GroupSet.prototype.repaint = function repaint() {
 
         // update the top positions of the groups in the correct order
         var orderedGroups = this.groupsData.getIds({
-            order: this.options.groupsOrder
+            order: this.options.groupOrder
         });
         for (i = 0; i < orderedGroups.length; i++) {
             (function (group, prevGroup) {

@@ -3,8 +3,7 @@ http://visjs.org
 
 ## <not yet released>, version 0.3.0
 
-- Implemented option `showCurrentTime`, displaying a red, vertical bar at
-  current time. Thanks fi0dor.
+- Implemented options `showCurrentTime` and `showCustomTime`. Thanks fi0dor.
 - Fixed broken Timeline options `min` and `max`.
 - Fixed not being able to load vis.js in node.js.
 

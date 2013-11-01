@@ -424,7 +424,7 @@ var items = DataSet.get(options);       // retrieve all items or a filtered set
 
         <tr>
             <td>filter</td>
-            <td>function</td>
+            <td>Function</td>
             <td>Items can be filtered on specific properties by providing a filter
                 function. A filter function is executed for each of the items in the
                 DataSet, and is called with the item as parameter. The function must
@@ -432,6 +432,13 @@ var items = DataSet.get(options);       // retrieve all items or a filtered set
                 true will be emitted.
                 See section <a href="#Data_Filtering">Data Filtering</a>.</td>
         </tr>
+
+        <tr>
+            <td>order</td>
+            <td>String | Function</td>
+            <td>Order the items by a field name or custom sort function.</td>
+        </tr>
+
     </table>
 
     <p>

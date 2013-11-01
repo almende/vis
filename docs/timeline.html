@@ -190,7 +190,9 @@ var items = [
         <td>type</td>
         <td>String</td>
         <td>'box'</td>
-        <td>The type of the item. Can be 'box' (default), 'range', or 'point'.</td>
+        <td>The type of the item. Can be 'box' (default), 'range', or 'point'.
+        <!-- TODO: describe rangeoverflow -->
+        </td>
     </tr>
     <tr>
         <td>group</td>
@@ -345,6 +347,15 @@ var options = {
     </tr>
 
     <tr>
+        <td>groupOrder</td>
+        <td>String | Function</td>
+        <td>none</td>
+        <td>Order the groups by a field name or custom sort function.
+            By default, groups are not ordered.
+        </td>
+    </tr>
+
+    <tr>
         <td>height</td>
         <td>String</td>
         <td>none</td>
@@ -399,7 +410,7 @@ var options = {
 
     <tr>
         <td>order</td>
-        <td>function</td>
+        <td>Function</td>
         <td>none</td>
         <td>Provide a custom sort function to order the items. The order of the
             items is determining the way they are stacked. The function
@@ -432,6 +443,16 @@ var options = {
         <td>Show a vertical bar at the current time.</td>
     </tr>
 
+    <tr>
+        <td>showCustomTime</td>
+        <td>boolean</td>
+        <td>false</td>
+        <td>Show a vertical bar displaying a custom time. This line can be dragged by the user. The custom time can be utilized to show a state in the past or in the future.
+            <!-- TODO: more docs on showCustomTime
+            When the custom time bar is dragged by the user, an event is triggered, on which the contents of the timeline can be changed in to the state at that moment in time.--></td>
+    </tr>
+
+    <tr>
     <tr>
         <td>showMajorLabels</td>
         <td>boolean</td>
@@ -513,6 +534,19 @@ var options = {
         <th>Return Type</th>
         <th>Description</th>
     </tr>
+
+    <tr>
+        <td>getCustomTime()</td>
+        <td>Date</td>
+        <td>Retrieve the custom time. Only applicable when the option <code>showCustomTime</code> is true.
+        </td>
+    </tr>
+    <tr>
+        <td>setCustomTime(time)</td>
+        <td>none</td>
+        <td>Adjust the custom time bar. Only applicable when the option <code>showCustomTime</code> is true. <code>time</code> is a Date object.
+        </td>
+    </tr>
     <tr>
         <td>setGroups(groups)</td>
         <td>none</td>
@@ -540,6 +574,7 @@ var options = {
             on the fly.
         </td>
     </tr>
+
 
 </table>
 
