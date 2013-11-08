@@ -45,12 +45,6 @@ RootPanel.prototype.repaint = function () {
 
     if (!frame) {
         frame = document.createElement('div');
-        frame.className = 'vis timeline rootpanel';
-
-        var className = options.className;
-        if (className) {
-            util.addClassName(frame, util.option.asString(className));
-        }
 
         this.frame = frame;
 
@@ -62,6 +56,12 @@ RootPanel.prototype.repaint = function () {
         }
         this.container.appendChild(frame);
         changed += 1;
+    }
+
+    frame.className = 'vis timeline rootpanel ' + options.orientation;
+    var className = options.className;
+    if (className) {
+        util.addClassName(frame, util.option.asString(className));
     }
 
     changed += update(frame.style, 'top',    asSize(options.top, '0px'));

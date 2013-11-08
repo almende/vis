@@ -104,7 +104,7 @@ TimeAxis.prototype.repaint = function () {
         this.frame = frame;
         changed += 1;
     }
-    frame.className = 'axis ' + orientation;
+    frame.className = 'axis';
     // TODO: custom className?
 
     if (!frame.parentNode) {

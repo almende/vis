@@ -15,13 +15,3 @@
 .vis.timeline .itemset-axis {
     position: absolute;
 }
-
-.vis.timeline .groupset .itemset-axis {
-    border-top: 1px solid #bfbfbf;
-}
-
-/* TODO: with orientation=='bottom', this will more or less overlap with timeline axis
-.vis.timeline .groupset .itemset-axis:last-child {
-    border-top: none;
-}
-*/

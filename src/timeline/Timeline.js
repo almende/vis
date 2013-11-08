@@ -114,7 +114,7 @@ function Timeline (container, items, options) {
     this.customtime = new CustomTime(this.timeaxis, [], rootOptions);
     this.controller.add(this.customtime);
 
-    // create itemset or groupset
+    // create groupset
     this.setGroups(null);
 
     this.itemsData = null;      // DataSet
@@ -125,7 +125,7 @@ function Timeline (container, items, options) {
         this.setOptions(options);
     }
 
-    // set data (must be after options are applied)
+    // create itemset and groupset
     if (items) {
         this.setItems(items);
     }
@@ -233,8 +233,8 @@ Timeline.prototype.setGroups = function(groups) {
     this.groupsData = groups;
 
     // switch content type between ItemSet or GroupSet when needed
-    var type = this.groupsData ? GroupSet : ItemSet;
-    if (!(this.content instanceof type)) {
+    var Type = this.groupsData ? GroupSet : ItemSet;
+    if (!(this.content instanceof Type)) {
         // remove old content set
         if (this.content) {
             this.content.hide();
@@ -262,6 +262,9 @@ Timeline.prototype.setGroups = function(groups) {
             width: '100%',
             height: function () {
                 if (me.options.height) {
+                    if (!util.isNumber(me.options.height)) {
+                        throw new TypeError('Number expected for property height');
+                    }
                     return me.itemPanel.height - me.timeaxis.height;
                 }
                 else {
@@ -283,7 +286,8 @@ Timeline.prototype.setGroups = function(groups) {
                 return me.labelPanel.getContainer();
             }
         });
-        this.content = new type(this.itemPanel, [this.timeaxis], options);
+
+        this.content = new Type(this.itemPanel, [this.timeaxis], options);
         if (this.content.setRange) {
             this.content.setRange(this.range);
         }

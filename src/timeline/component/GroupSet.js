@@ -161,7 +161,8 @@ GroupSet.prototype.repaint = function repaint() {
         asElement = util.option.asElement,
         options = this.options,
         frame = this.dom.frame,
-        labels = this.dom.labels;
+        labels = this.dom.labels,
+        labelSet = this.dom.labelSet;
 
     // create frame
     if (!this.parent) {
@@ -196,8 +197,13 @@ GroupSet.prototype.repaint = function repaint() {
     if (!labels) {
         labels = document.createElement('div');
         labels.className = 'labels';
-        //frame.appendChild(labels);
         this.dom.labels = labels;
+    }
+    if (!labelSet) {
+        labelSet = document.createElement('div');
+        labelSet.className = 'label-set';
+        labels.appendChild(labelSet);
+        this.dom.labelSet = labelSet;
     }
     if (!labels.parentNode || labels.parentNode != labelContainer) {
         if (labels.parentNode) {
@@ -213,7 +219,8 @@ GroupSet.prototype.repaint = function repaint() {
     changed += update(frame.style, 'width',  asSize(options.width, '100%'));
 
     // reposition labels
-    changed += update(labels.style, 'top',    asSize(options.top, '0px'));
+    changed += update(labelSet.style, 'top',    asSize(options.top, '0px'));
+    changed += update(labelSet.style, 'height', asSize(options.height, this.height + 'px'));
 
     var me = this,
         queue = this.queue,
@@ -233,6 +240,11 @@ GroupSet.prototype.repaint = function repaint() {
                 case 'update':
                     if (!group) {
                         var groupOptions = Object.create(me.options);
+                        util.extend(groupOptions, {
+                            height: null,
+                            maxHeight: null
+                        });
+
                         group = new Group(me, id, groupOptions);
                         group.setItems(me.itemsData); // attach items data
                         groups[id] = group;
@@ -288,13 +300,13 @@ GroupSet.prototype.repaint = function repaint() {
         }
 
         // (re)create the labels
-        while (labels.firstChild) {
-            labels.removeChild(labels.firstChild);
+        while (labelSet.firstChild) {
+            labelSet.removeChild(labelSet.firstChild);
         }
         for (i = 0; i < orderedGroups.length; i++) {
             id = orderedGroups[i];
             label = this._createLabel(id);
-            labels.appendChild(label);
+            labelSet.appendChild(label);
         }
 
         changed++;
