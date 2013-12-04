@@ -360,8 +360,8 @@ TimeAxis.prototype._repaintLine = function() {
         line.style.top = this.props.lineTop + 'px';
     }
     else {
-        if (line && axis.parentElement) {
-            frame.removeChild(axis.line);
+        if (line && line.parentElement) {
+            frame.removeChild(line.line);
             delete this.dom.line;
         }
     }

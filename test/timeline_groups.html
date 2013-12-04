@@ -1,0 +1,86 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Timeline | Group example</title>
+
+    <style>
+        body, html {
+            font-family: arial, sans-serif;
+            font-size: 11pt;
+        }
+
+        #visualization {
+            box-sizing: border-box;
+            width: 100%;
+            height: 300px;
+        }
+    </style>
+
+    <!-- note: moment.js must be loaded before vis.js, else vis.js uses its embedded version of moment.js -->
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.3.1/moment.min.js"></script>
+
+    <script src="../vis.js"></script>
+</head>
+<body>
+
+<div>
+    <label for="orientation">Orientation</label>
+    <select id="orientation">
+        <option value="top">top</option>
+        <option value="bottom" selected>bottom</option>
+    </select>
+</div>
+<script>
+    var orientation = document.getElementById('orientation');
+    orientation.onchange = function () {
+        timeline.setOptions({
+            orientation: orientation.value
+        });
+    };
+</script>
+<br>
+
+<div id="visualization"></div>
+
+<script>
+    var now = moment().minutes(0).seconds(0).milliseconds(0);
+    var groupCount = 3;
+    var itemCount = 20;
+
+    // create a data set with groups
+    var names = ['John', 'Alston', 'Lee', 'Grant'];
+    var groups = new vis.DataSet();
+    for (var g = 0; g < groupCount; g++) {
+        groups.add({id: g, content: names[g]});
+    }
+
+    // create a dataset with items
+    var items = new vis.DataSet();
+    for (var i = 0; i < itemCount; i++) {
+        var start = now.clone().add('hours', Math.random() * 200);
+        var group = Math.floor(Math.random() * groupCount);
+        items.add({
+            id: i,
+            group: group,
+            content: 'item ' + i +
+                    ' <span style="color:#97B0F8;">(' + names[group] + ')</span>',
+            start: start,
+            type: 'box'
+        });
+    }
+
+    // create visualization
+    var container = document.getElementById('visualization');
+    var options = {
+        //height: 200,
+        groupOrder: 'content'
+    };
+
+    var timeline = new vis.Timeline(container);
+    timeline.setOptions(options);
+    timeline.setGroups(groups);
+    timeline.setItems(items);
+
+</script>
+</body>
+</html>
