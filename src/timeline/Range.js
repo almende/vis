@@ -13,8 +13,6 @@ function Range(options) {
 
     this.options = options || {};
 
-    this.listeners = [];
-
     this.setOptions(options);
 }
 
@@ -38,6 +36,17 @@ Range.prototype.setOptions = function (options) {
 };
 
 /**
+ * Test whether direction has a valid value
+ * @param {String} direction    'horizontal' or 'vertical'
+ */
+function validateDirection (direction) {
+    if (direction != 'horizontal' && direction != 'vertical') {
+        throw new TypeError('Unknown direction "' + direction + '". ' +
+            'Choose "horizontal" or "vertical".');
+    }
+}
+
+/**
  * Add listeners for mouse and touch events to the component
  * @param {Component} component
  * @param {String} event        Available events: 'move', 'zoom'
@@ -45,41 +54,32 @@ Range.prototype.setOptions = function (options) {
  */
 Range.prototype.subscribe = function (component, event, direction) {
     var me = this;
-    var listener;
 
-    if (direction != 'horizontal' && direction != 'vertical') {
-        throw new TypeError('Unknown direction "' + direction + '". ' +
-            'Choose "horizontal" or "vertical".');
-    }
-
-    //noinspection FallthroughInSwitchStatementJS
     if (event == 'move') {
-        listener = {
-            component: component,
-            event: event,
-            direction: direction,
-            callback: function (event) {
-                me._onMouseDown(event, listener);
-            },
-            params: {}
-        };
+        // drag start listener
+        component.on('dragstart', function (event) {
+            me._onDragStart(event, component);
+        });
 
-        component.on('mousedown', listener.callback);
-        me.listeners.push(listener);
+        // drag listener
+        component.on('drag', function (event) {
+            me._onDrag(event, component, direction);
+        });
+
+        // drag end listener
+        component.on('dragend', function (event) {
+            me._onDragEnd(event, component);
+        });
     }
     else if (event == 'zoom') {
-        listener = {
-            component: component,
-            event: event,
-            direction: direction,
-            callback: function (event) {
-                me._onMouseWheel(event, listener);
-            },
-            params: {}
-        };
+        // mouse wheel
+        function mousewheel (event) {
+            me._onMouseWheel(event, component, direction);
+        }
+        component.on('mousewheel', mousewheel);
+        component.on('DOMMouseScroll', mousewheel); // For FF
 
-        component.on('mousewheel', listener.callback);
-        me.listeners.push(listener);
+        // TODO: pinch
     }
     else {
         throw new TypeError('Unknown event "' + event + '". ' +
@@ -252,9 +252,6 @@ Range.prototype.getRange = function() {
  * @returns {{offset: number, factor: number}} conversion
  */
 Range.prototype.conversion = function (width) {
-    var start = this.start;
-    var end = this.end;
-
     return Range.conversion(this.start, this.end, width);
 };
 
@@ -281,143 +278,71 @@ Range.conversion = function (start, end, width) {
     }
 };
 
+// global (private) object to store drag params
+var dragParams = {};
+
 /**
- * Start moving horizontally or vertically
+ * Start dragging horizontally or vertically
  * @param {Event} event
- * @param {Object} listener   Listener containing the component and params
+ * @param {Object} component
  * @private
  */
-Range.prototype._onMouseDown = function(event, listener) {
-    event = event || window.event;
-    var params = listener.params;
+Range.prototype._onDragStart = function(event, component) {
+    dragParams.start = this.start;
+    dragParams.end = this.end;
 
-    // only react on left mouse button down
-    var leftButtonDown = event.which ? (event.which == 1) : (event.button == 1);
-    if (!leftButtonDown) {
-        return;
-    }
-
-    // get mouse position
-    params.mouseX = util.getPageX(event);
-    params.mouseY = util.getPageY(event);
-    params.previousLeft = 0;
-    params.previousOffset = 0;
-
-    params.moved = false;
-    params.start = this.start;
-    params.end = this.end;
-
-    var frame = listener.component.frame;
+    var frame = component.frame;
     if (frame) {
         frame.style.cursor = 'move';
     }
-
-    // add event listeners to handle moving the contents
-    // we store the function onmousemove and onmouseup in the timeaxis,
-    // so we can remove the eventlisteners lateron in the function onmouseup
-    var me = this;
-    if (!params.onMouseMove) {
-        params.onMouseMove = function (event) {
-            me._onMouseMove(event, listener);
-        };
-        util.addEventListener(document, "mousemove", params.onMouseMove);
-    }
-    if (!params.onMouseUp) {
-        params.onMouseUp = function (event) {
-            me._onMouseUp(event, listener);
-        };
-        util.addEventListener(document, "mouseup", params.onMouseUp);
-    }
-
-    util.preventDefault(event);
 };
 
 /**
- * Perform moving operating.
- * This function activated from within the funcion TimeAxis._onMouseDown().
+ * Perform dragging operating.
  * @param {Event} event
- * @param {Object} listener
+ * @param {Component} component
+ * @param {String} direction    'horizontal' or 'vertical'
  * @private
  */
-Range.prototype._onMouseMove = function (event, listener) {
-    event = event || window.event;
+Range.prototype._onDrag = function (event, component, direction) {
+    validateDirection(direction);
 
-    var params = listener.params;
+    var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
+        interval = (dragParams.end - dragParams.start),
+        width = (direction == 'horizontal') ? component.width : component.height,
+        diffRange = -delta / width * interval;
 
-    // calculate change in mouse position
-    var mouseX = util.getPageX(event);
-    var mouseY = util.getPageY(event);
-
-    if (params.mouseX == undefined) {
-        params.mouseX = mouseX;
-    }
-    if (params.mouseY == undefined) {
-        params.mouseY = mouseY;
-    }
-
-    var diffX = mouseX - params.mouseX;
-    var diffY = mouseY - params.mouseY;
-    var diff = (listener.direction == 'horizontal') ? diffX : diffY;
-
-    // if mouse movement is big enough, register it as a "moved" event
-    if (Math.abs(diff) >= 1) {
-        params.moved = true;
-    }
-
-    var interval = (params.end - params.start);
-    var width = (listener.direction == 'horizontal') ?
-        listener.component.width : listener.component.height;
-    var diffRange = -diff / width * interval;
-    this._applyRange(params.start + diffRange, params.end + diffRange);
+    this._applyRange(dragParams.start + diffRange, dragParams.end + diffRange);
 
     // fire a rangechange event
     this._trigger('rangechange');
-
-    util.preventDefault(event);
 };
 
 /**
- * Stop moving operating.
- * This function activated from within the function Range._onMouseDown().
+ * Stop dragging operating.
  * @param {event} event
- * @param {Object} listener
+ * @param {Component} component
  * @private
  */
-Range.prototype._onMouseUp = function (event, listener) {
-    event = event || window.event;
-
-    var params = listener.params;
-
-    if (listener.component.frame) {
-        listener.component.frame.style.cursor = 'auto';
+Range.prototype._onDragEnd = function (event, component) {
+    if (component.frame) {
+        component.frame.style.cursor = 'auto';
     }
 
-    // remove event listeners here, important for Safari
-    if (params.onMouseMove) {
-        util.removeEventListener(document, "mousemove", params.onMouseMove);
-        params.onMouseMove = null;
-    }
-    if (params.onMouseUp) {
-        util.removeEventListener(document, "mouseup",   params.onMouseUp);
-        params.onMouseUp = null;
-    }
-    //util.preventDefault(event);
-
-    if (params.moved) {
-        // fire a rangechanged event
-        this._trigger('rangechanged');
-    }
+    // fire a rangechanged event
+    this._trigger('rangechanged');
 };
 
 /**
  * Event handler for mouse wheel event, used to zoom
  * Code from http://adomas.org/javascript-mouse-wheel/
  * @param {Event} event
- * @param {Object} listener
+ * @param {Component} component
+ * @param {String} direction    'horizontal' or 'vertical'
  * @private
  */
-Range.prototype._onMouseWheel = function(event, listener) {
-    event = event || window.event;
+Range.prototype._onMouseWheel = function(event, component, direction) {
+    validateDirection(direction);
 
     // retrieve delta
     var delta = 0;
@@ -438,18 +363,18 @@ Range.prototype._onMouseWheel = function(event, listener) {
             // perform the zoom action. Delta is normally 1 or -1
             var zoomFactor = delta / 5.0;
             var zoomAround = null;
-            var frame = listener.component.frame;
+            var frame = component.frame;
             if (frame) {
                 var size, conversion;
-                if (listener.direction == 'horizontal') {
-                    size = listener.component.width;
+                if (direction == 'horizontal') {
+                    size = component.width;
                     conversion = me.conversion(size);
                     var frameLeft = util.getAbsoluteLeft(frame);
                     var mouseX = util.getPageX(event);
                     zoomAround = (mouseX - frameLeft) / conversion.factor + conversion.offset;
                 }
                 else {
-                    size = listener.component.height;
+                    size = component.height;
                     conversion = me.conversion(size);
                     var frameTop = util.getAbsoluteTop(frame);
                     var mouseY = util.getPageY(event);
@@ -463,9 +388,8 @@ Range.prototype._onMouseWheel = function(event, listener) {
         zoom();
     }
 
-    // Prevent default actions caused by mouse wheel.
-    // That might be ugly, but we handle scrolls somehow
-    // anyway, so don't bother here...
+    // Prevent default actions caused by mouse wheel
+    // (else the page and timeline both zoom and scroll)
     util.preventDefault(event);
 };
 

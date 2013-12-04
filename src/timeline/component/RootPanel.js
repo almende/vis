@@ -198,7 +198,13 @@ RootPanel.prototype._updateEventEmitters = function () {
                         });
                     };
                     me.emitters[event] = callback;
-                    util.addEventListener(frame, event, callback);
+
+                    if (!me.hammer) {
+                        me.hammer = Hammer(frame, {
+                            prevent_default: true
+                        });
+                    }
+                    me.hammer.on(event, callback);
                 }
             }
         });
