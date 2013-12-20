@@ -32,13 +32,14 @@ function Timeline (container, items, options) {
     }
     var rootOptions = Object.create(this.options);
     rootOptions.height = function () {
+        // TODO: change to height
         if (me.options.height) {
             // fixed height
             return me.options.height;
         }
         else {
             // auto height
-            return me.timeaxis.height + me.content.height;
+            return (me.timeaxis.height + me.content.height) + 'px';
         }
     };
     this.rootPanel = new RootPanel(container, rootOptions);
@@ -262,16 +263,16 @@ Timeline.prototype.setGroups = function(groups) {
             width: '100%',
             height: function () {
                 if (me.options.height) {
-                    if (!util.isNumber(me.options.height)) {
-                        throw new TypeError('Number expected for property height');
-                    }
+                    // fixed height
                     return me.itemPanel.height - me.timeaxis.height;
                 }
                 else {
+                    // auto height
                     return null;
                 }
             },
             maxHeight: function () {
+                // TODO: change maxHeight to be a css string like '100%' or '300px'
                 if (me.options.maxHeight) {
                     if (!util.isNumber(me.options.maxHeight)) {
                         throw new TypeError('Number expected for property maxHeight');

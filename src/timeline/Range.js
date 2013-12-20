@@ -79,7 +79,13 @@ Range.prototype.subscribe = function (component, event, direction) {
         component.on('mousewheel', mousewheel);
         component.on('DOMMouseScroll', mousewheel); // For FF
 
-        // TODO: pinch
+        // pinch
+        component.on('touch', function (event) {
+            me._onTouch();
+        });
+        component.on('pinch', function (event) {
+            me._onPinch(event, component, direction);
+        });
     }
     else {
         throw new TypeError('Unknown event "' + event + '". ' +
@@ -246,40 +252,40 @@ Range.prototype.getRange = function() {
 };
 
 /**
- * Calculate the conversion offset and factor for current range, based on
+ * Calculate the conversion offset and scale for current range, based on
  * the provided width
  * @param {Number} width
- * @returns {{offset: number, factor: number}} conversion
+ * @returns {{offset: number, scale: number}} conversion
  */
 Range.prototype.conversion = function (width) {
     return Range.conversion(this.start, this.end, width);
 };
 
 /**
- * Static method to calculate the conversion offset and factor for a range,
+ * Static method to calculate the conversion offset and scale for a range,
  * based on the provided start, end, and width
  * @param {Number} start
  * @param {Number} end
  * @param {Number} width
- * @returns {{offset: number, factor: number}} conversion
+ * @returns {{offset: number, scale: number}} conversion
  */
 Range.conversion = function (start, end, width) {
     if (width != 0 && (end - start != 0)) {
         return {
             offset: start,
-            factor: width / (end - start)
+            scale: width / (end - start)
         }
     }
     else {
         return {
             offset: 0,
-            factor: 1
+            scale: 1
         };
     }
 };
 
 // global (private) object to store drag params
-var dragParams = {};
+var touchParams = {};
 
 /**
  * Start dragging horizontally or vertically
@@ -288,8 +294,12 @@ var dragParams = {};
  * @private
  */
 Range.prototype._onDragStart = function(event, component) {
-    dragParams.start = this.start;
-    dragParams.end = this.end;
+    // refuse to drag when we where pinching to prevent the timeline make a jump
+    // when releasing the fingers in opposite order from the touch screen
+    if (touchParams.pinching) return;
+
+    touchParams.start = this.start;
+    touchParams.end = this.end;
 
     var frame = component.frame;
     if (frame) {
@@ -307,12 +317,16 @@ Range.prototype._onDragStart = function(event, component) {
 Range.prototype._onDrag = function (event, component, direction) {
     validateDirection(direction);
 
+    // refuse to drag when we where pinching to prevent the timeline make a jump
+    // when releasing the fingers in opposite order from the touch screen
+    if (touchParams.pinching) return;
+
     var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
-        interval = (dragParams.end - dragParams.start),
+        interval = (touchParams.end - touchParams.start),
         width = (direction == 'horizontal') ? component.width : component.height,
         diffRange = -delta / width * interval;
 
-    this._applyRange(dragParams.start + diffRange, dragParams.end + diffRange);
+    this._applyRange(touchParams.start + diffRange, touchParams.end + diffRange);
 
     // fire a rangechange event
     this._trigger('rangechange');
@@ -325,6 +339,10 @@ Range.prototype._onDrag = function (event, component, direction) {
  * @private
  */
 Range.prototype._onDragEnd = function (event, component) {
+    // refuse to drag when we where pinching to prevent the timeline make a jump
+    // when releasing the fingers in opposite order from the touch screen
+    if (touchParams.pinching) return;
+
     if (component.frame) {
         component.frame.style.cursor = 'auto';
     }
@@ -358,34 +376,24 @@ Range.prototype._onMouseWheel = function(event, component, direction) {
     // Basically, delta is now positive if wheel was scrolled up,
     // and negative, if wheel was scrolled down.
     if (delta) {
-        var me = this;
-        var zoom = function () {
-            // perform the zoom action. Delta is normally 1 or -1
-            var zoomFactor = delta / 5.0;
-            var zoomAround = null;
-            var frame = component.frame;
-            if (frame) {
-                var size, conversion;
-                if (direction == 'horizontal') {
-                    size = component.width;
-                    conversion = me.conversion(size);
-                    var frameLeft = util.getAbsoluteLeft(frame);
-                    var mouseX = util.getPageX(event);
-                    zoomAround = (mouseX - frameLeft) / conversion.factor + conversion.offset;
-                }
-                else {
-                    size = component.height;
-                    conversion = me.conversion(size);
-                    var frameTop = util.getAbsoluteTop(frame);
-                    var mouseY = util.getPageY(event);
-                    zoomAround = ((frameTop + size - mouseY) - frameTop) / conversion.factor + conversion.offset;
-                }
-            }
+        // perform the zoom action. Delta is normally 1 or -1
 
-            me.zoom(zoomFactor, zoomAround);
-        };
+        // adjust a negative delta such that zooming in with delta 0.1
+        // equals zooming out with a delta -0.1
+        var scale;
+        if (delta < 0) {
+            scale = 1 - (delta / 5);
+        }
+        else {
+            scale = 1 / (1 + (delta / 5)) ;
+        }
 
-        zoom();
+        // calculate center, the date to zoom around
+        var gesture = Hammer.event.collectEventData(this, 'scroll', event),
+            pointer = getPointer(gesture.touches[0], component.frame),
+            pointerDate = this._pointerToDate(component, direction, pointer);
+
+        this.zoom(scale, pointerDate);
     }
 
     // Prevent default actions caused by mouse wheel
@@ -393,61 +401,119 @@ Range.prototype._onMouseWheel = function(event, component, direction) {
     util.preventDefault(event);
 };
 
+/**
+ * On start of a touch gesture, initialize scale to 1
+ * @private
+ */
+Range.prototype._onTouch = function () {
+    touchParams.start = this.start;
+    touchParams.end = this.end;
+    touchParams.pinching = false;
+    touchParams.center = null;
+};
 
 /**
- * Zoom the range the given zoomfactor in or out. Start and end date will
+ * Handle pinch event
+ * @param {Event} event
+ * @param {Component} component
+ * @param {String} direction    'horizontal' or 'vertical'
+ * @private
+ */
+Range.prototype._onPinch = function (event, component, direction) {
+    touchParams.pinching = true;
+
+    if (event.gesture.touches.length > 1) {
+        if (!touchParams.center) {
+            touchParams.center = getPointer(event.gesture.center, component.frame);
+        }
+
+        var scale = 1 / event.gesture.scale,
+            initDate = this._pointerToDate(component, direction, touchParams.center),
+            center = getPointer(event.gesture.center, component.frame),
+            date = this._pointerToDate(component, direction, center),
+            delta = date - initDate; // TODO: utilize delta
+
+        // calculate new start and end
+        var newStart = parseInt(initDate + (touchParams.start - initDate) * scale);
+        var newEnd = parseInt(initDate + (touchParams.end - initDate) * scale);
+
+        // apply new range
+        this.setRange(newStart, newEnd);
+    }
+};
+
+/**
+ * Helper function to calculate the center date for zooming
+ * @param {Component} component
+ * @param {{x: Number, y: Number}} pointer
+ * @param {String} direction    'horizontal' or 'vertical'
+ * @return {number} date
+ * @private
+ */
+Range.prototype._pointerToDate = function (component, direction, pointer) {
+    var conversion;
+    if (direction == 'horizontal') {
+        var width = component.width;
+        conversion = this.conversion(width);
+        return pointer.x / conversion.scale + conversion.offset;
+    }
+    else {
+        var height = component.height;
+        conversion = this.conversion(height);
+        return pointer.y / conversion.scale + conversion.offset;
+    }
+};
+
+/**
+ * Get the pointer location relative to the location of the dom element
+ * @param {{pageX: Number, pageY: Number}} touch
+ * @param {Element} element   HTML DOM element
+ * @return {{x: Number, y: Number}} pointer
+ * @private
+ */
+function getPointer (touch, element) {
+    return {
+        x: touch.pageX - vis.util.getAbsoluteLeft(element),
+        y: touch.pageY - vis.util.getAbsoluteTop(element)
+    };
+}
+
+/**
+ * Zoom the range the given scale in or out. Start and end date will
  * be adjusted, and the timeline will be redrawn. You can optionally give a
  * date around which to zoom.
- * For example, try zoomfactor = 0.1 or -0.1
- * @param {Number} zoomFactor      Zooming amount. Positive value will zoom in,
- *                                 negative value will zoom out
- * @param {Number} zoomAround      Value around which will be zoomed. Optional
+ * For example, try scale = 0.9 or 1.1
+ * @param {Number} scale      Scaling factor. Values above 1 will zoom out,
+ *                            values below 1 will zoom in.
+ * @param {Number} [center]   Value representing a date around which will
+ *                            be zoomed.
  */
-Range.prototype.zoom = function(zoomFactor, zoomAround) {
-    // if zoomAroundDate is not provided, take it half between start Date and end Date
-    if (zoomAround == null) {
-        zoomAround = (this.start + this.end) / 2;
+Range.prototype.zoom = function(scale, center) {
+    // if centerDate is not provided, take it half between start Date and end Date
+    if (center == null) {
+        center = (this.start + this.end) / 2;
     }
-
-    // prevent zoom factor larger than 1 or smaller than -1 (larger than 1 will
-    // result in a start>=end )
-    if (zoomFactor >= 1) {
-        zoomFactor = 0.9;
-    }
-    if (zoomFactor <= -1) {
-        zoomFactor = -0.9;
-    }
-
-    // adjust a negative factor such that zooming in with 0.1 equals zooming
-    // out with a factor -0.1
-    if (zoomFactor < 0) {
-        zoomFactor = zoomFactor / (1 + zoomFactor);
-    }
-
-    // zoom start and end relative to the zoomAround value
-    var startDiff = (this.start - zoomAround);
-    var endDiff = (this.end - zoomAround);
 
     // calculate new start and end
-    var newStart = this.start - startDiff * zoomFactor;
-    var newEnd = this.end - endDiff * zoomFactor;
+    var newStart = center + (this.start - center) * scale;
+    var newEnd = center + (this.end - center) * scale;
 
     this.setRange(newStart, newEnd);
 };
 
 /**
- * Move the range with a given factor to the left or right. Start and end
- * value will be adjusted. For example, try moveFactor = 0.1 or -0.1
- * @param {Number}  moveFactor     Moving amount. Positive value will move right,
- *                                 negative value will move left
+ * Move the range with a given delta to the left or right. Start and end
+ * value will be adjusted. For example, try delta = 0.1 or -0.1
+ * @param {Number}  delta     Moving amount. Positive value will move right,
+ *                            negative value will move left
  */
-Range.prototype.move = function(moveFactor) {
-    // zoom start Date and end Date relative to the zoomAroundDate
+Range.prototype.move = function(delta) {
+    // zoom start Date and end Date relative to the centerDate
     var diff = (this.end - this.start);
 
     // apply new values
-    var newStart = this.start + diff * moveFactor;
-    var newEnd = this.end + diff * moveFactor;
+    var newStart = this.start + diff * delta;
+    var newEnd = this.end + diff * delta;
 
     // TODO: reckon with min and max range
 
@@ -469,4 +535,4 @@ Range.prototype.moveTo = function(moveTo) {
     var newEnd = this.end - diff;
 
     this.setRange(newStart, newEnd);
-}
+};

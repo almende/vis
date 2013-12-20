@@ -486,7 +486,7 @@ ItemSet.prototype._toQueue = function _toQueue(action, ids) {
 };
 
 /**
- * Calculate the factor and offset to convert a position on screen to the
+ * Calculate the scale and offset to convert a position on screen to the
  * corresponding date and vice versa.
  * After the method _updateConversion is executed once, the methods toTime
  * and toScreen can be used.
@@ -515,7 +515,7 @@ ItemSet.prototype._updateConversion = function _updateConversion() {
  */
 ItemSet.prototype.toTime = function toTime(x) {
     var conversion = this.conversion;
-    return new Date(x / conversion.factor + conversion.offset);
+    return new Date(x / conversion.scale + conversion.offset);
 };
 
 /**
@@ -528,5 +528,5 @@ ItemSet.prototype.toTime = function toTime(x) {
  */
 ItemSet.prototype.toScreen = function toScreen(time) {
     var conversion = this.conversion;
-    return (time.valueOf() - conversion.offset) * conversion.factor;
+    return (time.valueOf() - conversion.offset) * conversion.scale;
 };

@@ -87,7 +87,7 @@ CurrentTime.prototype.repaint = function () {
     }
 
     var timeline = this;
-    var interval = 1 / parent.conversion.factor / 2;
+    var interval = 1 / parent.conversion.scale / 2;
 
     if (interval < 30) {
         interval = 30;

@@ -70,7 +70,7 @@ TimeAxis.prototype.setRange = function (range) {
  */
 TimeAxis.prototype.toTime = function(x) {
     var conversion = this.conversion;
-    return new Date(x / conversion.factor + conversion.offset);
+    return new Date(x / conversion.scale + conversion.offset);
 };
 
 /**
@@ -82,7 +82,7 @@ TimeAxis.prototype.toTime = function(x) {
  */
 TimeAxis.prototype.toScreen = function(time) {
     var conversion = this.conversion;
-    return (time.valueOf() - conversion.offset) * conversion.factor;
+    return (time.valueOf() - conversion.offset) * conversion.scale;
 };
 
 /**
@@ -501,7 +501,7 @@ TimeAxis.prototype.reflow = function () {
 };
 
 /**
- * Calculate the factor and offset to convert a position on screen to the
+ * Calculate the scale and offset to convert a position on screen to the
  * corresponding date and vice versa.
  * After the method _updateConversion is executed once, the methods toTime
  * and toScreen can be used.

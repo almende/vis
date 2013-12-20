@@ -173,8 +173,8 @@ Edge.prototype.getValue = function() {
  */
 Edge.prototype.setValueRange = function(min, max) {
     if (!this.widthFixed && this.value !== undefined) {
-        var factor = (this.widthMax - this.widthMin) / (max - min);
-        this.width = (this.value - min) * factor + this.widthMin;
+        var scale = (this.widthMax - this.widthMin) / (max - min);
+        this.width = (this.value - min) * scale + this.widthMin;
     }
 };
 
