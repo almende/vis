@@ -3,9 +3,9 @@
  * This class loads images and keeps them stored.
  */
 Images = function () {
-    this.images = {};
+  this.images = {};
 
-    this.callback = undefined;
+  this.callback = undefined;
 };
 
 /**
@@ -14,7 +14,7 @@ Images = function () {
  * @param {function} callback
  */
 Images.prototype.setOnloadCallback = function(callback) {
-    this.callback = callback;
+  this.callback = callback;
 };
 
 /**
@@ -23,19 +23,19 @@ Images.prototype.setOnloadCallback = function(callback) {
  * @return {Image} img          The image object
  */
 Images.prototype.load = function(url) {
-    var img = this.images[url];
-    if (img == undefined) {
-        // create the image
-        var images = this;
-        img = new Image();
-        this.images[url] = img;
-        img.onload = function() {
-            if (images.callback) {
-                images.callback(this);
-            }
-        };
-        img.src = url;
-    }
+  var img = this.images[url];
+  if (img == undefined) {
+    // create the image
+    var images = this;
+    img = new Image();
+    this.images[url] = img;
+    img.onload = function() {
+      if (images.callback) {
+        images.callback(this);
+      }
+    };
+    img.src = url;
+  }
 
-    return img;
+  return img;
 };

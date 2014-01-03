@@ -14,11 +14,11 @@
  * @extends Panel
  */
 function ContentPanel(parent, depends, options) {
-    this.id = util.randomUUID();
-    this.parent = parent;
-    this.depends = depends;
+  this.id = util.randomUUID();
+  this.parent = parent;
+  this.depends = depends;
 
-    this.options = options || {};
+  this.options = options || {};
 }
 
 ContentPanel.prototype = new Component();
@@ -40,7 +40,7 @@ ContentPanel.prototype.setOptions = Component.prototype.setOptions;
  * @returns {HTMLElement} container
  */
 ContentPanel.prototype.getContainer = function () {
-    return this.frame;
+  return this.frame;
 };
 
 /**
@@ -48,46 +48,46 @@ ContentPanel.prototype.getContainer = function () {
  * @return {Boolean} changed
  */
 ContentPanel.prototype.repaint = function () {
-    var changed = 0,
-        update = util.updateProperty,
-        asSize = util.option.asSize,
-        options = this.options,
-        frame = this.frame;
-    if (!frame) {
-        frame = document.createElement('div');
-        frame.className = 'content-panel';
+  var changed = 0,
+      update = util.updateProperty,
+      asSize = util.option.asSize,
+      options = this.options,
+      frame = this.frame;
+  if (!frame) {
+    frame = document.createElement('div');
+    frame.className = 'content-panel';
 
-        var className = options.className;
-        if (className) {
-            if (typeof className == 'function') {
-                util.addClassName(frame, String(className()));
-            }
-            else {
-                util.addClassName(frame, String(className));
-            }
-        }
-
-        this.frame = frame;
-        changed += 1;
-    }
-    if (!frame.parentNode) {
-        if (!this.parent) {
-            throw new Error('Cannot repaint panel: no parent attached');
-        }
-        var parentContainer = this.parent.getContainer();
-        if (!parentContainer) {
-            throw new Error('Cannot repaint panel: parent has no container element');
-        }
-        parentContainer.appendChild(frame);
-        changed += 1;
+    var className = options.className;
+    if (className) {
+      if (typeof className == 'function') {
+        util.addClassName(frame, String(className()));
+      }
+      else {
+        util.addClassName(frame, String(className));
+      }
     }
 
-    changed += update(frame.style, 'top',    asSize(options.top, '0px'));
-    changed += update(frame.style, 'left',   asSize(options.left, '0px'));
-    changed += update(frame.style, 'width',  asSize(options.width, '100%'));
-    changed += update(frame.style, 'height', asSize(options.height, '100%'));
+    this.frame = frame;
+    changed += 1;
+  }
+  if (!frame.parentNode) {
+    if (!this.parent) {
+      throw new Error('Cannot repaint panel: no parent attached');
+    }
+    var parentContainer = this.parent.getContainer();
+    if (!parentContainer) {
+      throw new Error('Cannot repaint panel: parent has no container element');
+    }
+    parentContainer.appendChild(frame);
+    changed += 1;
+  }
 
-    return (changed > 0);
+  changed += update(frame.style, 'top',    asSize(options.top, '0px'));
+  changed += update(frame.style, 'left',   asSize(options.left, '0px'));
+  changed += update(frame.style, 'width',  asSize(options.width, '100%'));
+  changed += update(frame.style, 'height', asSize(options.height, '100%'));
+
+  return (changed > 0);
 };
 
 /**
@@ -95,19 +95,19 @@ ContentPanel.prototype.repaint = function () {
  * @return {Boolean} resized
  */
 ContentPanel.prototype.reflow = function () {
-    var changed = 0,
-        update = util.updateProperty,
-        frame = this.frame;
+  var changed = 0,
+      update = util.updateProperty,
+      frame = this.frame;
 
-    if (frame) {
-        changed += update(this, 'top', frame.offsetTop);
-        changed += update(this, 'left', frame.offsetLeft);
-        changed += update(this, 'width', frame.offsetWidth);
-        changed += update(this, 'height', frame.offsetHeight);
-    }
-    else {
-        changed += 1;
-    }
+  if (frame) {
+    changed += update(this, 'top', frame.offsetTop);
+    changed += update(this, 'left', frame.offsetLeft);
+    changed += update(this, 'width', frame.offsetWidth);
+    changed += update(this, 'height', frame.offsetHeight);
+  }
+  else {
+    changed += 1;
+  }
 
-    return (changed > 0);
+  return (changed > 0);
 };

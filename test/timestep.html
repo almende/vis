@@ -1,32 +1,32 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title></title>
-    <script src="../vis.js"></script>
+  <title></title>
+  <script src="../vis.js"></script>
 
 </head>
 <body>
-    <script>
-        var diffs = [
-            1000,
-            1000 * 60,
-            1000 * 60 * 60,
-            1000 * 60 * 60 * 24,
-            1000 * 60 * 60 * 24 * 30,
-            1000 * 60 * 60 * 24 * 30 * 100,
-            1000 * 60 * 60 * 24 * 30 * 10000
-        ];
+<script>
+  var diffs = [
+    1000,
+    1000 * 60,
+    1000 * 60 * 60,
+    1000 * 60 * 60 * 24,
+    1000 * 60 * 60 * 24 * 30,
+    1000 * 60 * 60 * 24 * 30 * 100,
+    1000 * 60 * 60 * 24 * 30 * 10000
+  ];
 
-        diffs.forEach(function (diff) {
-            var step = new vis.TimeStep(new Date(), new Date((new Date()).valueOf() + diff), diff / 40);
-            console.log(diff, step._start.toLocaleString(), step._end.toLocaleString(), step.scale, step.step);
-            step.first();
-            while (step.hasNext()) {
-                console.log(step.getLabelMajor(), ' --- ', step.getLabelMinor());
-                step.next();
-            }
-        });
+  diffs.forEach(function (diff) {
+    var step = new vis.TimeStep(new Date(), new Date((new Date()).valueOf() + diff), diff / 40);
+    console.log(diff, step._start.toLocaleString(), step._end.toLocaleString(), step.scale, step.step);
+    step.first();
+    while (step.hasNext()) {
+      console.log(step.getLabelMajor(), ' --- ', step.getLabelMinor());
+      step.next();
+    }
+  });
 
-    </script>
+</script>
 </body>
 </html>

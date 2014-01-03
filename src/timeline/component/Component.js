@@ -2,17 +2,17 @@
  * Prototype for visual components
  */
 function Component () {
-    this.id = null;
-    this.parent = null;
-    this.depends = null;
-    this.controller = null;
-    this.options = null;
+  this.id = null;
+  this.parent = null;
+  this.depends = null;
+  this.controller = null;
+  this.options = null;
 
-    this.frame = null; // main DOM element
-    this.top = 0;
-    this.left = 0;
-    this.width = 0;
-    this.height = 0;
+  this.frame = null; // main DOM element
+  this.top = 0;
+  this.left = 0;
+  this.width = 0;
+  this.height = 0;
 }
 
 /**
@@ -27,14 +27,14 @@ function Component () {
  *                          {String | Number | function} [height]
  */
 Component.prototype.setOptions = function setOptions(options) {
-    if (options) {
-        util.extend(this.options, options);
+  if (options) {
+    util.extend(this.options, options);
 
-        if (this.controller) {
-            this.requestRepaint();
-            this.requestReflow();
-        }
+    if (this.controller) {
+      this.requestRepaint();
+      this.requestReflow();
     }
+  }
 };
 
 /**
@@ -45,14 +45,14 @@ Component.prototype.setOptions = function setOptions(options) {
  * @return {*} value
  */
 Component.prototype.getOption = function getOption(name) {
-    var value;
-    if (this.options) {
-        value = this.options[name];
-    }
-    if (value === undefined && this.defaultOptions) {
-        value = this.defaultOptions[name];
-    }
-    return value;
+  var value;
+  if (this.options) {
+    value = this.options[name];
+  }
+  if (value === undefined && this.defaultOptions) {
+    value = this.defaultOptions[name];
+  }
+  return value;
 };
 
 /**
@@ -63,8 +63,8 @@ Component.prototype.getOption = function getOption(name) {
  */
 // TODO: get rid of the getContainer and getFrame methods, provide these via the options
 Component.prototype.getContainer = function getContainer() {
-    // should be implemented by the component
-    return null;
+  // should be implemented by the component
+  return null;
 };
 
 /**
@@ -72,7 +72,7 @@ Component.prototype.getContainer = function getContainer() {
  * @returns {HTMLElement | null} frame
  */
 Component.prototype.getFrame = function getFrame() {
-    return this.frame;
+  return this.frame;
 };
 
 /**
@@ -80,8 +80,8 @@ Component.prototype.getFrame = function getFrame() {
  * @return {Boolean} changed
  */
 Component.prototype.repaint = function repaint() {
-    // should be implemented by the component
-    return false;
+  // should be implemented by the component
+  return false;
 };
 
 /**
@@ -89,8 +89,8 @@ Component.prototype.repaint = function repaint() {
  * @return {Boolean} resized
  */
 Component.prototype.reflow = function reflow() {
-    // should be implemented by the component
-    return false;
+  // should be implemented by the component
+  return false;
 };
 
 /**
@@ -98,13 +98,13 @@ Component.prototype.reflow = function reflow() {
  * @return {Boolean} changed
  */
 Component.prototype.hide = function hide() {
-    if (this.frame && this.frame.parentNode) {
-        this.frame.parentNode.removeChild(this.frame);
-        return true;
-    }
-    else {
-        return false;
-    }
+  if (this.frame && this.frame.parentNode) {
+    this.frame.parentNode.removeChild(this.frame);
+    return true;
+  }
+  else {
+    return false;
+  }
 };
 
 /**
@@ -113,36 +113,36 @@ Component.prototype.hide = function hide() {
  * @return {Boolean} changed
  */
 Component.prototype.show = function show() {
-    if (!this.frame || !this.frame.parentNode) {
-        return this.repaint();
-    }
-    else {
-        return false;
-    }
+  if (!this.frame || !this.frame.parentNode) {
+    return this.repaint();
+  }
+  else {
+    return false;
+  }
 };
 
 /**
  * Request a repaint. The controller will schedule a repaint
  */
 Component.prototype.requestRepaint = function requestRepaint() {
-    if (this.controller) {
-        this.controller.requestRepaint();
-    }
-    else {
-        throw new Error('Cannot request a repaint: no controller configured');
-        // TODO: just do a repaint when no parent is configured?
-    }
+  if (this.controller) {
+    this.controller.requestRepaint();
+  }
+  else {
+    throw new Error('Cannot request a repaint: no controller configured');
+    // TODO: just do a repaint when no parent is configured?
+  }
 };
 
 /**
  * Request a reflow. The controller will schedule a reflow
  */
 Component.prototype.requestReflow = function requestReflow() {
-    if (this.controller) {
-        this.controller.requestReflow();
-    }
-    else {
-        throw new Error('Cannot request a reflow: no controller configured');
-        // TODO: just do a reflow when no parent is configured?
-    }
+  if (this.controller) {
+    this.controller.requestReflow();
+  }
+  else {
+    throw new Error('Cannot request a reflow: no controller configured');
+    // TODO: just do a reflow when no parent is configured?
+  }
 };

@@ -40,12 +40,12 @@ To use a component, include the javascript file of vis in your web page:
 <!DOCTYPE HTML>
 <html>
 <head>
-    <script src="components/vis/vis.js"></script>
+  <script src="components/vis/vis.js"></script>
 </head>
 <body>
-    <script type="text/javascript">
-        // ... load a visualization
-    </script>
+  <script type="text/javascript">
+    // ... load a visualization
+  </script>
 </body>
 </html>
 ```
@@ -54,12 +54,12 @@ or load vis.js using require.js:
 
 ```js
 require.config({
-    paths: {
-        vis: 'path/to/vis',
-    }
+  paths: {
+    vis: 'path/to/vis',
+  }
 });
 require(['vis'], function (math) {
-    // ... load a visualization
+  // ... load a visualization
 });
 ```
 
@@ -85,30 +85,30 @@ of the project.
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Timeline basic demo</title>
-    <script src="components/vis/vis.js"></script>
+  <title>Timeline basic demo</title>
+  <script src="components/vis/vis.js"></script>
 
-    <style type="text/css">
-        body, html {
-            font-family: sans-serif;
-        }
-    </style>
+  <style type="text/css">
+    body, html {
+      font-family: sans-serif;
+    }
+  </style>
 </head>
 <body>
 <div id="visualization"></div>
 
 <script type="text/javascript">
-    var container = document.getElementById('visualization');
-    var data = [
-        {id: 1, content: 'item 1', start: '2013-04-20'},
-        {id: 2, content: 'item 2', start: '2013-04-14'},
-        {id: 3, content: 'item 3', start: '2013-04-18'},
-        {id: 4, content: 'item 4', start: '2013-04-16', end: '2013-04-19'},
-        {id: 5, content: 'item 5', start: '2013-04-25'},
-        {id: 6, content: 'item 6', start: '2013-04-27'}
-    ];
-    var options = {};
-    var timeline = new vis.Timeline(container, data, options);
+  var container = document.getElementById('visualization');
+  var data = [
+    {id: 1, content: 'item 1', start: '2013-04-20'},
+    {id: 2, content: 'item 2', start: '2013-04-14'},
+    {id: 3, content: 'item 3', start: '2013-04-18'},
+    {id: 4, content: 'item 4', start: '2013-04-16', end: '2013-04-19'},
+    {id: 5, content: 'item 5', start: '2013-04-25'},
+    {id: 6, content: 'item 6', start: '2013-04-27'}
+  ];
+  var options = {};
+  var timeline = new vis.Timeline(container, data, options);
 </script>
 </body>
 </html>

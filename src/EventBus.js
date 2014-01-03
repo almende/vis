@@ -3,7 +3,7 @@
  * @constructor EventBus
  */
 function EventBus() {
-    this.subscriptions = [];
+  this.subscriptions = [];
 }
 
 /**
@@ -16,21 +16,21 @@ function EventBus() {
  * @returns {String} id    A subscription id
  */
 EventBus.prototype.on = function (event, callback, target) {
-    var regexp = (event instanceof RegExp) ?
-        event :
-        new RegExp(event.replace('*', '\\w+'));
+  var regexp = (event instanceof RegExp) ?
+      event :
+      new RegExp(event.replace('*', '\\w+'));
 
-    var subscription = {
-        id:       util.randomUUID(),
-        event:    event,
-        regexp:   regexp,
-        callback: (typeof callback === 'function') ? callback : null,
-        target:   target
-    };
+  var subscription = {
+    id:       util.randomUUID(),
+    event:    event,
+    regexp:   regexp,
+    callback: (typeof callback === 'function') ? callback : null,
+    target:   target
+  };
 
-    this.subscriptions.push(subscription);
+  this.subscriptions.push(subscription);
 
-    return subscription.id;
+  return subscription.id;
 };
 
 /**
@@ -42,33 +42,33 @@ EventBus.prototype.on = function (event, callback, target) {
  *                                   callback, and target.
  */
 EventBus.prototype.off = function (filter) {
-    var i = 0;
-    while (i < this.subscriptions.length) {
-        var subscription = this.subscriptions[i];
+  var i = 0;
+  while (i < this.subscriptions.length) {
+    var subscription = this.subscriptions[i];
 
-        var match = true;
-        if (filter instanceof Object) {
-            // filter is an object. All fields must match
-            for (var prop in filter) {
-                if (filter.hasOwnProperty(prop)) {
-                    if (filter[prop] !== subscription[prop]) {
-                        match = false;
-                    }
-                }
-            }
+    var match = true;
+    if (filter instanceof Object) {
+      // filter is an object. All fields must match
+      for (var prop in filter) {
+        if (filter.hasOwnProperty(prop)) {
+          if (filter[prop] !== subscription[prop]) {
+            match = false;
+          }
         }
-        else {
-            // filter is a string, filter on id
-            match = (subscription.id == filter);
-        }
-
-        if (match) {
-            this.subscriptions.splice(i, 1);
-        }
-        else {
-            i++;
-        }
+      }
     }
+    else {
+      // filter is a string, filter on id
+      match = (subscription.id == filter);
+    }
+
+    if (match) {
+      this.subscriptions.splice(i, 1);
+    }
+    else {
+      i++;
+    }
+  }
 };
 
 /**
@@ -78,12 +78,12 @@ EventBus.prototype.off = function (filter) {
  * @param {*} [source]
  */
 EventBus.prototype.emit = function (event, data, source) {
-    for (var i =0; i < this.subscriptions.length; i++) {
-        var subscription = this.subscriptions[i];
-        if (subscription.regexp.test(event)) {
-            if (subscription.callback) {
-                subscription.callback(event, data, source);
-            }
-        }
+  for (var i =0; i < this.subscriptions.length; i++) {
+    var subscription = this.subscriptions[i];
+    if (subscription.regexp.test(event)) {
+      if (subscription.callback) {
+        subscription.callback(event, data, source);
+      }
     }
+  }
 };

@@ -10,14 +10,14 @@
  */
 
 function CurrentTime (parent, depends, options) {
-    this.id = util.randomUUID();
-    this.parent = parent;
-    this.depends = depends;
+  this.id = util.randomUUID();
+  this.parent = parent;
+  this.depends = depends;
 
-    this.options = options || {};
-    this.defaultOptions = {
-        showCurrentTime: false
-    };
+  this.options = options || {};
+  this.defaultOptions = {
+    showCurrentTime: false
+  };
 }
 
 CurrentTime.prototype = new Component();
@@ -30,7 +30,7 @@ CurrentTime.prototype.setOptions = Component.prototype.setOptions;
  * @returns {HTMLElement} container
  */
 CurrentTime.prototype.getContainer = function () {
-    return this.frame;
+  return this.frame;
 };
 
 /**
@@ -38,64 +38,64 @@ CurrentTime.prototype.getContainer = function () {
  * @return {Boolean} changed
  */
 CurrentTime.prototype.repaint = function () {
-    var bar = this.frame,
-        parent = this.parent,
-        parentContainer = parent.parent.getContainer();
+  var bar = this.frame,
+      parent = this.parent,
+      parentContainer = parent.parent.getContainer();
 
-    if (!parent) {
-        throw new Error('Cannot repaint bar: no parent attached');
+  if (!parent) {
+    throw new Error('Cannot repaint bar: no parent attached');
+  }
+
+  if (!parentContainer) {
+    throw new Error('Cannot repaint bar: parent has no container element');
+  }
+
+  if (!this.getOption('showCurrentTime')) {
+    if (bar) {
+      parentContainer.removeChild(bar);
+      delete this.frame;
     }
 
-    if (!parentContainer) {
-        throw new Error('Cannot repaint bar: parent has no container element');
-    }
+    return;
+  }
 
-    if (!this.getOption('showCurrentTime')) {
-        if (bar) {
-            parentContainer.removeChild(bar);
-            delete this.frame;
-        }
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.className = 'currenttime';
+    bar.style.position = 'absolute';
+    bar.style.top = '0px';
+    bar.style.height = '100%';
 
-        return;
-    }
+    parentContainer.appendChild(bar);
+    this.frame = bar;
+  }
 
-    if (!bar) {
-        bar = document.createElement('div');
-        bar.className = 'currenttime';
-        bar.style.position = 'absolute';
-        bar.style.top = '0px';
-        bar.style.height = '100%';
+  if (!parent.conversion) {
+    parent._updateConversion();
+  }
 
-        parentContainer.appendChild(bar);
-        this.frame = bar;
-    }
+  var now = new Date();
+  var x = parent.toScreen(now);
 
-    if (!parent.conversion) {
-        parent._updateConversion();
-    }
+  bar.style.left = x + 'px';
+  bar.title = 'Current time: ' + now;
 
-    var now = new Date();
-    var x = parent.toScreen(now);
+  // start a timer to adjust for the new time
+  if (this.currentTimeTimer !== undefined) {
+    clearTimeout(this.currentTimeTimer);
+    delete this.currentTimeTimer;
+  }
 
-    bar.style.left = x + 'px';
-    bar.title = 'Current time: ' + now;
+  var timeline = this;
+  var interval = 1 / parent.conversion.scale / 2;
 
-    // start a timer to adjust for the new time
-    if (this.currentTimeTimer !== undefined) {
-        clearTimeout(this.currentTimeTimer);
-        delete this.currentTimeTimer;
-    }
+  if (interval < 30) {
+    interval = 30;
+  }
 
-    var timeline = this;
-    var interval = 1 / parent.conversion.scale / 2;
+  this.currentTimeTimer = setTimeout(function() {
+    timeline.repaint();
+  }, interval);
 
-    if (interval < 30) {
-        interval = 30;
-    }
-    
-    this.currentTimeTimer = setTimeout(function() {
-        timeline.repaint();
-    }, interval);
-
-    return false;
+  return false;
 };

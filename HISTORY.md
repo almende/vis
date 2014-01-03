@@ -1,9 +1,11 @@
 vis.js history
 http://visjs.org
 
+
 ## <not yet released>, version 0.3.0
 
 - Implemented options `showCurrentTime` and `showCustomTime`. Thanks fi0dor.
+- Implemented touch support for Timeline.
 - Fixed broken Timeline options `min` and `max`.
 - Fixed not being able to load vis.js in node.js.
 

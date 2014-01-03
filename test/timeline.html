@@ -1,82 +1,82 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title></title>
-    <script src="../node_modules/moment/moment.js"></script>
-    <script src="../vis.js"></script>
+  <title></title>
+  <script src="../node_modules/moment/moment.js"></script>
+  <script src="../vis.js"></script>
 
-    <style type="text/css">
-        body, html {
-            font-family: sans-serif;
-            font-size: 11pt;
-        }
+  <style type="text/css">
+    body, html {
+      font-family: sans-serif;
+      font-size: 11pt;
+    }
 
-        #visualization .itemset {
-            /*background: rgba(255, 255, 0, 0.5);*/
-        }
-    </style>
+    #visualization .itemset {
+      /*background: rgba(255, 255, 0, 0.5);*/
+    }
+  </style>
 
 </head>
 <body>
 
-    <div>
-        <label for="orientation">Orientation</label>
-        <select id="orientation">
-            <option value="top">top</option>
-            <option value="bottom" selected>bottom</option>
-        </select>
-    </div>
-    <script>
-        var orientation = document.getElementById('orientation');
-        orientation.onchange = function () {
-            timeline.setOptions({
-                orientation: orientation.value
-            });
-        };
-    </script>
-    <br>
+<div>
+  <label for="orientation">Orientation</label>
+  <select id="orientation">
+    <option value="top">top</option>
+    <option value="bottom" selected>bottom</option>
+  </select>
+</div>
+<script>
+  var orientation = document.getElementById('orientation');
+  orientation.onchange = function () {
+    timeline.setOptions({
+      orientation: orientation.value
+    });
+  };
+</script>
+<br>
 
-    <div id="visualization"></div>
+<div id="visualization"></div>
 
-    <script>
-        // create a dataset with items
-        var now = moment().minutes(0).seconds(0).milliseconds(0);
-        var items = new vis.DataSet({
-            convert: {
-                start: 'Date',
-                end: 'Date'
-            },
-            fieldId: '_id'
-        });
-        items.add([
-            {_id: 0, content: 'item 0', start: now.clone().add('days', 3).toDate()},
-            {_id: 1, content: 'item 1<br>start', start: now.clone().add('days', 4).toDate()},
-            {_id: 2, content: 'item 2', start: now.clone().add('days', -2).toDate() },
-            {_id: 3, content: 'item 3', start: now.clone().add('days', 2).toDate()},
-            {_id: 4, content: 'item 4',
-                start: now.clone().add('days', 0).toDate(),
-                end: now.clone().add('days', 7).toDate()},
-            {_id: 5, content: 'item 5', start: now.clone().add('days', 9).toDate(), type:'point'},
-            {_id: 6, content: 'item 6', start: now.clone().add('days', 11).toDate()}
-        ]);
+<script>
+  // create a dataset with items
+  var now = moment().minutes(0).seconds(0).milliseconds(0);
+  var items = new vis.DataSet({
+    convert: {
+      start: 'Date',
+      end: 'Date'
+    },
+    fieldId: '_id'
+  });
+  items.add([
+    {_id: 0, content: 'item 0', start: now.clone().add('days', 3).toDate()},
+    {_id: 1, content: 'item 1<br>start', start: now.clone().add('days', 4).toDate()},
+    {_id: 2, content: 'item 2', start: now.clone().add('days', -2).toDate() },
+    {_id: 3, content: 'item 3', start: now.clone().add('days', 2).toDate()},
+    {_id: 4, content: 'item 4',
+      start: now.clone().add('days', 0).toDate(),
+      end: now.clone().add('days', 7).toDate()},
+    {_id: 5, content: 'item 5', start: now.clone().add('days', 9).toDate(), type:'point'},
+    {_id: 6, content: 'item 6', start: now.clone().add('days', 11).toDate()}
+  ]);
 
-        var container = document.getElementById('visualization');
-        var options = {
-            //orientation: 'top',
-            start: now.clone().add('days', -7),
-            end: now.clone().add('days', 7),
-            //maxHeight: 200,
-            height: 200,
-            //start: moment('2013-01-01'),
-            //end: moment('2013-12-31'),
-            min: moment('2013-01-01'),
-            max: moment('2013-12-31'),
-            zoomMin: 1000 * 60 * 60 * 24,            // 1 day
-            zoomMax: 1000 * 60 * 60 * 24 * 30 * 6    // 6 months
-        };
+  var container = document.getElementById('visualization');
+  var options = {
+    //orientation: 'top',
+    start: now.clone().add('days', -7),
+    end: now.clone().add('days', 7),
+    //maxHeight: 200,
+    height: 200,
+    //start: moment('2013-01-01'),
+    //end: moment('2013-12-31'),
+    min: moment('2013-01-01'),
+    max: moment('2013-12-31'),
+    zoomMin: 1000 * 60 * 60 * 24,            // 1 day
+    zoomMax: 1000 * 60 * 60 * 24 * 30 * 6    // 6 months
+  };
 
-        var timeline = new vis.Timeline(container, items, options);
+  var timeline = new vis.Timeline(container, items, options);
 
-    </script>
+</script>
 </body>
 </html>

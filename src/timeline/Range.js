@@ -7,13 +7,13 @@
  * @extends Controller
  */
 function Range(options) {
-    this.id = util.randomUUID();
-    this.start = null; // Number
-    this.end = null;   // Number
+  this.id = util.randomUUID();
+  this.start = null; // Number
+  this.end = null;   // Number
 
-    this.options = options || {};
+  this.options = options || {};
 
-    this.setOptions(options);
+  this.setOptions(options);
 }
 
 /**
@@ -27,12 +27,12 @@ function Range(options) {
  *                                                  (end - start).
  */
 Range.prototype.setOptions = function (options) {
-    util.extend(this.options, options);
+  util.extend(this.options, options);
 
-    // re-apply range with new limitations
-    if (this.start !== null && this.end !== null) {
-        this.setRange(this.start, this.end);
-    }
+  // re-apply range with new limitations
+  if (this.start !== null && this.end !== null) {
+    this.setRange(this.start, this.end);
+  }
 };
 
 /**
@@ -40,10 +40,10 @@ Range.prototype.setOptions = function (options) {
  * @param {String} direction    'horizontal' or 'vertical'
  */
 function validateDirection (direction) {
-    if (direction != 'horizontal' && direction != 'vertical') {
-        throw new TypeError('Unknown direction "' + direction + '". ' +
-            'Choose "horizontal" or "vertical".');
-    }
+  if (direction != 'horizontal' && direction != 'vertical') {
+    throw new TypeError('Unknown direction "' + direction + '". ' +
+        'Choose "horizontal" or "vertical".');
+  }
 }
 
 /**
@@ -53,44 +53,44 @@ function validateDirection (direction) {
  * @param {String} direction    Available directions: 'horizontal', 'vertical'
  */
 Range.prototype.subscribe = function (component, event, direction) {
-    var me = this;
+  var me = this;
 
-    if (event == 'move') {
-        // drag start listener
-        component.on('dragstart', function (event) {
-            me._onDragStart(event, component);
-        });
+  if (event == 'move') {
+    // drag start listener
+    component.on('dragstart', function (event) {
+      me._onDragStart(event, component);
+    });
 
-        // drag listener
-        component.on('drag', function (event) {
-            me._onDrag(event, component, direction);
-        });
+    // drag listener
+    component.on('drag', function (event) {
+      me._onDrag(event, component, direction);
+    });
 
-        // drag end listener
-        component.on('dragend', function (event) {
-            me._onDragEnd(event, component);
-        });
+    // drag end listener
+    component.on('dragend', function (event) {
+      me._onDragEnd(event, component);
+    });
+  }
+  else if (event == 'zoom') {
+    // mouse wheel
+    function mousewheel (event) {
+      me._onMouseWheel(event, component, direction);
     }
-    else if (event == 'zoom') {
-        // mouse wheel
-        function mousewheel (event) {
-            me._onMouseWheel(event, component, direction);
-        }
-        component.on('mousewheel', mousewheel);
-        component.on('DOMMouseScroll', mousewheel); // For FF
+    component.on('mousewheel', mousewheel);
+    component.on('DOMMouseScroll', mousewheel); // For FF
 
-        // pinch
-        component.on('touch', function (event) {
-            me._onTouch();
-        });
-        component.on('pinch', function (event) {
-            me._onPinch(event, component, direction);
-        });
-    }
-    else {
-        throw new TypeError('Unknown event "' + event + '". ' +
-            'Choose "move" or "zoom".');
-    }
+    // pinch
+    component.on('touch', function (event) {
+      me._onTouch();
+    });
+    component.on('pinch', function (event) {
+      me._onPinch(event, component, direction);
+    });
+  }
+  else {
+    throw new TypeError('Unknown event "' + event + '". ' +
+        'Choose "move" or "zoom".');
+  }
 };
 
 /**
@@ -100,7 +100,7 @@ Range.prototype.subscribe = function (component, event, direction) {
  *                             as parameter.
  */
 Range.prototype.on = function (event, callback) {
-    events.addListener(this, event, callback);
+  events.addListener(this, event, callback);
 };
 
 /**
@@ -110,10 +110,10 @@ Range.prototype.on = function (event, callback) {
  * @private
  */
 Range.prototype._trigger = function (event) {
-    events.trigger(this, event, {
-        start: this.start,
-        end: this.end
-    });
+  events.trigger(this, event, {
+    start: this.start,
+    end: this.end
+  });
 };
 
 /**
@@ -122,11 +122,11 @@ Range.prototype._trigger = function (event) {
  * @param {Number} [end]
  */
 Range.prototype.setRange = function(start, end) {
-    var changed = this._applyRange(start, end);
-    if (changed) {
-        this._trigger('rangechange');
-        this._trigger('rangechanged');
-    }
+  var changed = this._applyRange(start, end);
+  if (changed) {
+    this._trigger('rangechange');
+    this._trigger('rangechanged');
+  }
 };
 
 /**
@@ -139,105 +139,105 @@ Range.prototype.setRange = function(start, end) {
  * @private
  */
 Range.prototype._applyRange = function(start, end) {
-    var newStart = (start != null) ? util.convert(start, 'Number') : this.start,
-        newEnd   = (end != null)   ? util.convert(end, 'Number')   : this.end,
-        max = (this.options.max != null) ? util.convert(this.options.max, 'Date').valueOf() : null,
-        min = (this.options.min != null) ? util.convert(this.options.min, 'Date').valueOf() : null,
-        diff;
+  var newStart = (start != null) ? util.convert(start, 'Number') : this.start,
+      newEnd   = (end != null)   ? util.convert(end, 'Number')   : this.end,
+      max = (this.options.max != null) ? util.convert(this.options.max, 'Date').valueOf() : null,
+      min = (this.options.min != null) ? util.convert(this.options.min, 'Date').valueOf() : null,
+      diff;
 
-    // check for valid number
-    if (isNaN(newStart) || newStart === null) {
-        throw new Error('Invalid start "' + start + '"');
-    }
-    if (isNaN(newEnd) || newEnd === null) {
-        throw new Error('Invalid end "' + end + '"');
-    }
+  // check for valid number
+  if (isNaN(newStart) || newStart === null) {
+    throw new Error('Invalid start "' + start + '"');
+  }
+  if (isNaN(newEnd) || newEnd === null) {
+    throw new Error('Invalid end "' + end + '"');
+  }
 
-    // prevent start < end
-    if (newEnd < newStart) {
-        newEnd = newStart;
-    }
+  // prevent start < end
+  if (newEnd < newStart) {
+    newEnd = newStart;
+  }
 
-    // prevent start < min
-    if (min !== null) {
-        if (newStart < min) {
-            diff = (min - newStart);
-            newStart += diff;
-            newEnd += diff;
+  // prevent start < min
+  if (min !== null) {
+    if (newStart < min) {
+      diff = (min - newStart);
+      newStart += diff;
+      newEnd += diff;
 
-            // prevent end > max
-            if (max != null) {
-                if (newEnd > max) {
-                    newEnd = max;
-                }
-            }
-        }
-    }
-
-    // prevent end > max
-    if (max !== null) {
+      // prevent end > max
+      if (max != null) {
         if (newEnd > max) {
-            diff = (newEnd - max);
-            newStart -= diff;
-            newEnd -= diff;
-
-            // prevent start < min
-            if (min != null) {
-                if (newStart < min) {
-                    newStart = min;
-                }
-            }
+          newEnd = max;
         }
+      }
     }
+  }
 
-    // prevent (end-start) < zoomMin
-    if (this.options.zoomMin !== null) {
-        var zoomMin = parseFloat(this.options.zoomMin);
-        if (zoomMin < 0) {
-            zoomMin = 0;
+  // prevent end > max
+  if (max !== null) {
+    if (newEnd > max) {
+      diff = (newEnd - max);
+      newStart -= diff;
+      newEnd -= diff;
+
+      // prevent start < min
+      if (min != null) {
+        if (newStart < min) {
+          newStart = min;
         }
-        if ((newEnd - newStart) < zoomMin) {
-            if ((this.end - this.start) === zoomMin) {
-                // ignore this action, we are already zoomed to the minimum
-                newStart = this.start;
-                newEnd = this.end;
-            }
-            else {
-                // zoom to the minimum
-                diff = (zoomMin - (newEnd - newStart));
-                newStart -= diff / 2;
-                newEnd += diff / 2;
-            }
-        }
+      }
     }
+  }
 
-    // prevent (end-start) > zoomMax
-    if (this.options.zoomMax !== null) {
-        var zoomMax = parseFloat(this.options.zoomMax);
-        if (zoomMax < 0) {
-            zoomMax = 0;
-        }
-        if ((newEnd - newStart) > zoomMax) {
-            if ((this.end - this.start) === zoomMax) {
-                // ignore this action, we are already zoomed to the maximum
-                newStart = this.start;
-                newEnd = this.end;
-            }
-            else {
-                // zoom to the maximum
-                diff = ((newEnd - newStart) - zoomMax);
-                newStart += diff / 2;
-                newEnd -= diff / 2;
-            }
-        }
+  // prevent (end-start) < zoomMin
+  if (this.options.zoomMin !== null) {
+    var zoomMin = parseFloat(this.options.zoomMin);
+    if (zoomMin < 0) {
+      zoomMin = 0;
     }
+    if ((newEnd - newStart) < zoomMin) {
+      if ((this.end - this.start) === zoomMin) {
+        // ignore this action, we are already zoomed to the minimum
+        newStart = this.start;
+        newEnd = this.end;
+      }
+      else {
+        // zoom to the minimum
+        diff = (zoomMin - (newEnd - newStart));
+        newStart -= diff / 2;
+        newEnd += diff / 2;
+      }
+    }
+  }
 
-    var changed = (this.start != newStart || this.end != newEnd);
+  // prevent (end-start) > zoomMax
+  if (this.options.zoomMax !== null) {
+    var zoomMax = parseFloat(this.options.zoomMax);
+    if (zoomMax < 0) {
+      zoomMax = 0;
+    }
+    if ((newEnd - newStart) > zoomMax) {
+      if ((this.end - this.start) === zoomMax) {
+        // ignore this action, we are already zoomed to the maximum
+        newStart = this.start;
+        newEnd = this.end;
+      }
+      else {
+        // zoom to the maximum
+        diff = ((newEnd - newStart) - zoomMax);
+        newStart += diff / 2;
+        newEnd -= diff / 2;
+      }
+    }
+  }
 
-    this.start = newStart;
-    this.end = newEnd;
+  var changed = (this.start != newStart || this.end != newEnd);
 
-    return changed;
+  this.start = newStart;
+  this.end = newEnd;
+
+  return changed;
 };
 
 /**
@@ -245,10 +245,10 @@ Range.prototype._applyRange = function(start, end) {
  * @return {Object} An object with start and end properties
  */
 Range.prototype.getRange = function() {
-    return {
-        start: this.start,
-        end: this.end
-    };
+  return {
+    start: this.start,
+    end: this.end
+  };
 };
 
 /**
@@ -258,7 +258,7 @@ Range.prototype.getRange = function() {
  * @returns {{offset: number, scale: number}} conversion
  */
 Range.prototype.conversion = function (width) {
-    return Range.conversion(this.start, this.end, width);
+  return Range.conversion(this.start, this.end, width);
 };
 
 /**
@@ -270,18 +270,18 @@ Range.prototype.conversion = function (width) {
  * @returns {{offset: number, scale: number}} conversion
  */
 Range.conversion = function (start, end, width) {
-    if (width != 0 && (end - start != 0)) {
-        return {
-            offset: start,
-            scale: width / (end - start)
-        }
+  if (width != 0 && (end - start != 0)) {
+    return {
+      offset: start,
+      scale: width / (end - start)
     }
-    else {
-        return {
-            offset: 0,
-            scale: 1
-        };
-    }
+  }
+  else {
+    return {
+      offset: 0,
+      scale: 1
+    };
+  }
 };
 
 // global (private) object to store drag params
@@ -294,17 +294,17 @@ var touchParams = {};
  * @private
  */
 Range.prototype._onDragStart = function(event, component) {
-    // refuse to drag when we where pinching to prevent the timeline make a jump
-    // when releasing the fingers in opposite order from the touch screen
-    if (touchParams.pinching) return;
+  // refuse to drag when we where pinching to prevent the timeline make a jump
+  // when releasing the fingers in opposite order from the touch screen
+  if (touchParams.pinching) return;
 
-    touchParams.start = this.start;
-    touchParams.end = this.end;
+  touchParams.start = this.start;
+  touchParams.end = this.end;
 
-    var frame = component.frame;
-    if (frame) {
-        frame.style.cursor = 'move';
-    }
+  var frame = component.frame;
+  if (frame) {
+    frame.style.cursor = 'move';
+  }
 };
 
 /**
@@ -315,21 +315,21 @@ Range.prototype._onDragStart = function(event, component) {
  * @private
  */
 Range.prototype._onDrag = function (event, component, direction) {
-    validateDirection(direction);
+  validateDirection(direction);
 
-    // refuse to drag when we where pinching to prevent the timeline make a jump
-    // when releasing the fingers in opposite order from the touch screen
-    if (touchParams.pinching) return;
+  // refuse to drag when we where pinching to prevent the timeline make a jump
+  // when releasing the fingers in opposite order from the touch screen
+  if (touchParams.pinching) return;
 
-    var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
-        interval = (touchParams.end - touchParams.start),
-        width = (direction == 'horizontal') ? component.width : component.height,
-        diffRange = -delta / width * interval;
+  var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
+      interval = (touchParams.end - touchParams.start),
+      width = (direction == 'horizontal') ? component.width : component.height,
+      diffRange = -delta / width * interval;
 
-    this._applyRange(touchParams.start + diffRange, touchParams.end + diffRange);
+  this._applyRange(touchParams.start + diffRange, touchParams.end + diffRange);
 
-    // fire a rangechange event
-    this._trigger('rangechange');
+  // fire a rangechange event
+  this._trigger('rangechange');
 };
 
 /**
@@ -339,16 +339,16 @@ Range.prototype._onDrag = function (event, component, direction) {
  * @private
  */
 Range.prototype._onDragEnd = function (event, component) {
-    // refuse to drag when we where pinching to prevent the timeline make a jump
-    // when releasing the fingers in opposite order from the touch screen
-    if (touchParams.pinching) return;
+  // refuse to drag when we where pinching to prevent the timeline make a jump
+  // when releasing the fingers in opposite order from the touch screen
+  if (touchParams.pinching) return;
 
-    if (component.frame) {
-        component.frame.style.cursor = 'auto';
-    }
+  if (component.frame) {
+    component.frame.style.cursor = 'auto';
+  }
 
-    // fire a rangechanged event
-    this._trigger('rangechanged');
+  // fire a rangechanged event
+  this._trigger('rangechanged');
 };
 
 /**
@@ -360,45 +360,45 @@ Range.prototype._onDragEnd = function (event, component) {
  * @private
  */
 Range.prototype._onMouseWheel = function(event, component, direction) {
-    validateDirection(direction);
+  validateDirection(direction);
 
-    // retrieve delta
-    var delta = 0;
-    if (event.wheelDelta) { /* IE/Opera. */
-        delta = event.wheelDelta / 120;
-    } else if (event.detail) { /* Mozilla case. */
-        // In Mozilla, sign of delta is different than in IE.
-        // Also, delta is multiple of 3.
-        delta = -event.detail / 3;
+  // retrieve delta
+  var delta = 0;
+  if (event.wheelDelta) { /* IE/Opera. */
+    delta = event.wheelDelta / 120;
+  } else if (event.detail) { /* Mozilla case. */
+    // In Mozilla, sign of delta is different than in IE.
+    // Also, delta is multiple of 3.
+    delta = -event.detail / 3;
+  }
+
+  // If delta is nonzero, handle it.
+  // Basically, delta is now positive if wheel was scrolled up,
+  // and negative, if wheel was scrolled down.
+  if (delta) {
+    // perform the zoom action. Delta is normally 1 or -1
+
+    // adjust a negative delta such that zooming in with delta 0.1
+    // equals zooming out with a delta -0.1
+    var scale;
+    if (delta < 0) {
+      scale = 1 - (delta / 5);
+    }
+    else {
+      scale = 1 / (1 + (delta / 5)) ;
     }
 
-    // If delta is nonzero, handle it.
-    // Basically, delta is now positive if wheel was scrolled up,
-    // and negative, if wheel was scrolled down.
-    if (delta) {
-        // perform the zoom action. Delta is normally 1 or -1
+    // calculate center, the date to zoom around
+    var gesture = Hammer.event.collectEventData(this, 'scroll', event),
+        pointer = getPointer(gesture.touches[0], component.frame),
+        pointerDate = this._pointerToDate(component, direction, pointer);
 
-        // adjust a negative delta such that zooming in with delta 0.1
-        // equals zooming out with a delta -0.1
-        var scale;
-        if (delta < 0) {
-            scale = 1 - (delta / 5);
-        }
-        else {
-            scale = 1 / (1 + (delta / 5)) ;
-        }
+    this.zoom(scale, pointerDate);
+  }
 
-        // calculate center, the date to zoom around
-        var gesture = Hammer.event.collectEventData(this, 'scroll', event),
-            pointer = getPointer(gesture.touches[0], component.frame),
-            pointerDate = this._pointerToDate(component, direction, pointer);
-
-        this.zoom(scale, pointerDate);
-    }
-
-    // Prevent default actions caused by mouse wheel
-    // (else the page and timeline both zoom and scroll)
-    util.preventDefault(event);
+  // Prevent default actions caused by mouse wheel
+  // (else the page and timeline both zoom and scroll)
+  util.preventDefault(event);
 };
 
 /**
@@ -406,10 +406,10 @@ Range.prototype._onMouseWheel = function(event, component, direction) {
  * @private
  */
 Range.prototype._onTouch = function () {
-    touchParams.start = this.start;
-    touchParams.end = this.end;
-    touchParams.pinching = false;
-    touchParams.center = null;
+  touchParams.start = this.start;
+  touchParams.end = this.end;
+  touchParams.pinching = false;
+  touchParams.center = null;
 };
 
 /**
@@ -420,26 +420,26 @@ Range.prototype._onTouch = function () {
  * @private
  */
 Range.prototype._onPinch = function (event, component, direction) {
-    touchParams.pinching = true;
+  touchParams.pinching = true;
 
-    if (event.gesture.touches.length > 1) {
-        if (!touchParams.center) {
-            touchParams.center = getPointer(event.gesture.center, component.frame);
-        }
-
-        var scale = 1 / event.gesture.scale,
-            initDate = this._pointerToDate(component, direction, touchParams.center),
-            center = getPointer(event.gesture.center, component.frame),
-            date = this._pointerToDate(component, direction, center),
-            delta = date - initDate; // TODO: utilize delta
-
-        // calculate new start and end
-        var newStart = parseInt(initDate + (touchParams.start - initDate) * scale);
-        var newEnd = parseInt(initDate + (touchParams.end - initDate) * scale);
-
-        // apply new range
-        this.setRange(newStart, newEnd);
+  if (event.gesture.touches.length > 1) {
+    if (!touchParams.center) {
+      touchParams.center = getPointer(event.gesture.center, component.frame);
     }
+
+    var scale = 1 / event.gesture.scale,
+        initDate = this._pointerToDate(component, direction, touchParams.center),
+        center = getPointer(event.gesture.center, component.frame),
+        date = this._pointerToDate(component, direction, center),
+        delta = date - initDate; // TODO: utilize delta
+
+    // calculate new start and end
+    var newStart = parseInt(initDate + (touchParams.start - initDate) * scale);
+    var newEnd = parseInt(initDate + (touchParams.end - initDate) * scale);
+
+    // apply new range
+    this.setRange(newStart, newEnd);
+  }
 };
 
 /**
@@ -451,17 +451,17 @@ Range.prototype._onPinch = function (event, component, direction) {
  * @private
  */
 Range.prototype._pointerToDate = function (component, direction, pointer) {
-    var conversion;
-    if (direction == 'horizontal') {
-        var width = component.width;
-        conversion = this.conversion(width);
-        return pointer.x / conversion.scale + conversion.offset;
-    }
-    else {
-        var height = component.height;
-        conversion = this.conversion(height);
-        return pointer.y / conversion.scale + conversion.offset;
-    }
+  var conversion;
+  if (direction == 'horizontal') {
+    var width = component.width;
+    conversion = this.conversion(width);
+    return pointer.x / conversion.scale + conversion.offset;
+  }
+  else {
+    var height = component.height;
+    conversion = this.conversion(height);
+    return pointer.y / conversion.scale + conversion.offset;
+  }
 };
 
 /**
@@ -472,10 +472,10 @@ Range.prototype._pointerToDate = function (component, direction, pointer) {
  * @private
  */
 function getPointer (touch, element) {
-    return {
-        x: touch.pageX - vis.util.getAbsoluteLeft(element),
-        y: touch.pageY - vis.util.getAbsoluteTop(element)
-    };
+  return {
+    x: touch.pageX - vis.util.getAbsoluteLeft(element),
+    y: touch.pageY - vis.util.getAbsoluteTop(element)
+  };
 }
 
 /**
@@ -489,16 +489,16 @@ function getPointer (touch, element) {
  *                            be zoomed.
  */
 Range.prototype.zoom = function(scale, center) {
-    // if centerDate is not provided, take it half between start Date and end Date
-    if (center == null) {
-        center = (this.start + this.end) / 2;
-    }
+  // if centerDate is not provided, take it half between start Date and end Date
+  if (center == null) {
+    center = (this.start + this.end) / 2;
+  }
 
-    // calculate new start and end
-    var newStart = center + (this.start - center) * scale;
-    var newEnd = center + (this.end - center) * scale;
+  // calculate new start and end
+  var newStart = center + (this.start - center) * scale;
+  var newEnd = center + (this.end - center) * scale;
 
-    this.setRange(newStart, newEnd);
+  this.setRange(newStart, newEnd);
 };
 
 /**
@@ -508,17 +508,17 @@ Range.prototype.zoom = function(scale, center) {
  *                            negative value will move left
  */
 Range.prototype.move = function(delta) {
-    // zoom start Date and end Date relative to the centerDate
-    var diff = (this.end - this.start);
+  // zoom start Date and end Date relative to the centerDate
+  var diff = (this.end - this.start);
 
-    // apply new values
-    var newStart = this.start + diff * delta;
-    var newEnd = this.end + diff * delta;
+  // apply new values
+  var newStart = this.start + diff * delta;
+  var newEnd = this.end + diff * delta;
 
-    // TODO: reckon with min and max range
+  // TODO: reckon with min and max range
 
-    this.start = newStart;
-    this.end = newEnd;
+  this.start = newStart;
+  this.end = newEnd;
 };
 
 /**
@@ -526,13 +526,13 @@ Range.prototype.move = function(delta) {
  * @param {Number} moveTo      New center point of the range
  */
 Range.prototype.moveTo = function(moveTo) {
-    var center = (this.start + this.end) / 2;
+  var center = (this.start + this.end) / 2;
 
-    var diff = center - moveTo;
+  var diff = center - moveTo;
 
-    // calculate new start and end
-    var newStart = this.start - diff;
-    var newEnd = this.end - diff;
+  // calculate new start and end
+  var newStart = this.start - diff;
+  var newEnd = this.end - diff;
 
-    this.setRange(newStart, newEnd);
+  this.setRange(newStart, newEnd);
 };

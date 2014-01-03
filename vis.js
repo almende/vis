@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.3.0-SNAPSHOT
- * @date    2013-10-30
+ * @date    2014-01-03
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -22,7 +22,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-!function(e){"object"==typeof exports?module.exports=e():"function"==typeof define&&define.amd?define(e):"undefined"!=typeof window?window.vis=e():"undefined"!=typeof global?global.vis=e():"undefined"!=typeof self&&(self.vis=e())}(function(){var define,module,exports;
+(function(e){if("function"==typeof bootstrap)bootstrap("vis",e);else if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else if("undefined"!=typeof ses){if(!ses.ok())return;ses.makeVis=e}else"undefined"!=typeof window?window.vis=e():global.vis=e()})(function(){var define,ses,bootstrap,module,exports;
 return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /*! Hammer.JS - v1.0.5 - 2013-04-07
  * http://eightmedia.github.com/hammer.js
@@ -1447,7 +1447,7 @@ else {
 })(this);
 },{}],2:[function(require,module,exports){
 //! moment.js
-//! version : 2.4.0
+//! version : 2.2.1
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
@@ -1459,18 +1459,8 @@ else {
     ************************************/
 
     var moment,
-        VERSION = "2.4.0",
-        round = Math.round,
-        i,
-
-        YEAR = 0,
-        MONTH = 1,
-        DATE = 2,
-        HOUR = 3,
-        MINUTE = 4,
-        SECOND = 5,
-        MILLISECOND = 6,
-
+        VERSION = "2.2.1",
+        round = Math.round, i,
         // internal storage for language config files
         languages = {},
 
@@ -1479,14 +1469,10 @@ else {
 
         // ASP.NET json date format regex
         aspNetJsonRegex = /^\/?Date\((\-?\d+)/i,
-        aspNetTimeSpanJsonRegex = /(\-)?(?:(\d*)\.)?(\d+)\:(\d+)(?:\:(\d+)\.?(\d{3})?)?/,
-
-        // from http://docs.closure-library.googlecode.com/git/closure_goog_date_date.js.source.html
-        // somewhat more in line with 4.4.3.2 2004 spec, but allows decimal anywhere
-        isoDurationRegex = /^(-)?P(?:(?:([0-9,.]*)Y)?(?:([0-9,.]*)M)?(?:([0-9,.]*)D)?(?:T(?:([0-9,.]*)H)?(?:([0-9,.]*)M)?(?:([0-9,.]*)S)?)?|([0-9,.]*)W)$/,
+        aspNetTimeSpanJsonRegex = /(\-)?(?:(\d*)\.)?(\d+)\:(\d+)\:(\d+)\.?(\d{3})?/,
 
         // format tokens
-        formattingTokens = /(\[[^\[]*\])|(\\)?(Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|S{1,4}|X|zz?|ZZ?|.)/g,
+        formattingTokens = /(\[[^\[]*\])|(\\)?(Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|SS?S?|X|zz?|ZZ?|.)/g,
         localFormattingTokens = /(\[[^\[]*\])|(\\)?(LT|LL?L?L?|l{1,4})/g,
 
         // parsing token regexes
@@ -1495,28 +1481,19 @@ else {
         parseTokenThreeDigits = /\d{3}/, // 000 - 999
         parseTokenFourDigits = /\d{1,4}/, // 0 - 9999
         parseTokenSixDigits = /[+\-]?\d{1,6}/, // -999,999 - 999,999
-        parseTokenDigits = /\d+/, // nonzero number of digits
         parseTokenWord = /[0-9]*['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i, // any word (or two) characters or numbers including two/three word month in arabic.
         parseTokenTimezone = /Z|[\+\-]\d\d:?\d\d/i, // +00:00 -00:00 +0000 -0000 or Z
         parseTokenT = /T/i, // T (ISO seperator)
         parseTokenTimestampMs = /[\+\-]?\d+(\.\d{1,3})?/, // 123456789 123456789.123
 
         // preliminary iso regex
-        // 0000-00-00 0000-W00 or 0000-W00-0 + T + 00 or 00:00 or 00:00:00 or 00:00:00.000 + +00:00 or +0000)
-        isoRegex = /^\s*\d{4}-(?:(\d\d-\d\d)|(W\d\d$)|(W\d\d-\d)|(\d\d\d))((T| )(\d\d(:\d\d(:\d\d(\.\d+)?)?)?)?([\+\-]\d\d:?\d\d|Z)?)?$/,
-
+        // 0000-00-00 + T + 00 or 00:00 or 00:00:00 or 00:00:00.000 + +00:00 or +0000
+        isoRegex = /^\s*\d{4}-\d\d-\d\d((T| )(\d\d(:\d\d(:\d\d(\.\d\d?\d?)?)?)?)?([\+\-]\d\d:?\d\d)?)?/,
         isoFormat = 'YYYY-MM-DDTHH:mm:ssZ',
-
-        isoDates = [
-            'YYYY-MM-DD',
-            'GGGG-[W]WW',
-            'GGGG-[W]WW-E',
-            'YYYY-DDD'
-        ],
 
         // iso time formats and regexes
         isoTimes = [
-            ['HH:mm:ss.SSSS', /(T| )\d\d:\d\d:\d\d\.\d{1,3}/],
+            ['HH:mm:ss.S', /(T| )\d\d:\d\d:\d\d\.\d{1,3}/],
             ['HH:mm:ss', /(T| )\d\d:\d\d:\d\d/],
             ['HH:mm', /(T| )\d\d:\d\d/],
             ['HH', /(T| )\d\d/]
@@ -1543,24 +1520,10 @@ else {
             m : 'minute',
             h : 'hour',
             d : 'day',
-            D : 'date',
             w : 'week',
-            W : 'isoWeek',
+            W : 'isoweek',
             M : 'month',
-            y : 'year',
-            DDD : 'dayOfYear',
-            e : 'weekday',
-            E : 'isoWeekday',
-            gg: 'weekYear',
-            GG: 'isoWeekYear'
-        },
-
-        camelFunctions = {
-            dayofyear : 'dayOfYear',
-            isoweekday : 'isoWeekday',
-            isoweek : 'isoWeek',
-            weekyear : 'weekYear',
-            isoweekyear : 'isoWeekYear'
+            y : 'year'
         },
 
         // format function strings
@@ -1656,15 +1619,12 @@ else {
                 return this.seconds();
             },
             S    : function () {
-                return toInt(this.milliseconds() / 100);
+                return ~~(this.milliseconds() / 100);
             },
             SS   : function () {
-                return leftZeroFill(toInt(this.milliseconds() / 10), 2);
+                return leftZeroFill(~~(this.milliseconds() / 10), 2);
             },
             SSS  : function () {
-                return leftZeroFill(this.milliseconds(), 3);
-            },
-            SSSS : function () {
                 return leftZeroFill(this.milliseconds(), 3);
             },
             Z    : function () {
@@ -1674,7 +1634,7 @@ else {
                     a = -a;
                     b = "-";
                 }
-                return b + leftZeroFill(toInt(a / 60), 2) + ":" + leftZeroFill(toInt(a) % 60, 2);
+                return b + leftZeroFill(~~(a / 60), 2) + ":" + leftZeroFill(~~a % 60, 2);
             },
             ZZ   : function () {
                 var a = -this.zone(),
@@ -1683,7 +1643,7 @@ else {
                     a = -a;
                     b = "-";
                 }
-                return b + leftZeroFill(toInt(10 * a / 6), 4);
+                return b + leftZeroFill(~~(10 * a / 6), 4);
             },
             z : function () {
                 return this.zoneAbbr();
@@ -1694,9 +1654,7 @@ else {
             X    : function () {
                 return this.unix();
             }
-        },
-
-        lists = ['months', 'monthsShort', 'weekdays', 'weekdaysShort', 'weekdaysMin'];
+        };
 
     function padToken(func, count) {
         return function (a) {
@@ -1730,21 +1688,19 @@ else {
 
     // Moment prototype object
     function Moment(config) {
-        checkOverflow(config);
         extend(this, config);
     }
 
     // Duration Constructor
     function Duration(duration) {
-        var normalizedInput = normalizeObjectUnits(duration),
-            years = normalizedInput.year || 0,
-            months = normalizedInput.month || 0,
-            weeks = normalizedInput.week || 0,
-            days = normalizedInput.day || 0,
-            hours = normalizedInput.hour || 0,
-            minutes = normalizedInput.minute || 0,
-            seconds = normalizedInput.second || 0,
-            milliseconds = normalizedInput.millisecond || 0;
+        var years = duration.years || duration.year || duration.y || 0,
+            months = duration.months || duration.month || duration.M || 0,
+            weeks = duration.weeks || duration.week || duration.w || 0,
+            days = duration.days || duration.day || duration.d || 0,
+            hours = duration.hours || duration.hour || duration.h || 0,
+            minutes = duration.minutes || duration.minute || duration.m || 0,
+            seconds = duration.seconds || duration.second || duration.s || 0,
+            milliseconds = duration.milliseconds || duration.millisecond || duration.ms || 0;
 
         // store reference to input for deterministic cloning
         this._input = duration;
@@ -1769,6 +1725,7 @@ else {
         this._bubble();
     }
 
+
     /************************************
         Helpers
     ************************************/
@@ -1780,15 +1737,6 @@ else {
                 a[i] = b[i];
             }
         }
-
-        if (b.hasOwnProperty("toString")) {
-            a.toString = b.toString;
-        }
-
-        if (b.hasOwnProperty("valueOf")) {
-            a.valueOf = b.valueOf;
-        }
-
         return a;
     }
 
@@ -1847,20 +1795,14 @@ else {
         return Object.prototype.toString.call(input) === '[object Array]';
     }
 
-    function isDate(input) {
-        return  Object.prototype.toString.call(input) === '[object Date]' ||
-                input instanceof Date;
-    }
-
     // compare two arrays, return the number of differences
-    function compareArrays(array1, array2, dontConvert) {
+    function compareArrays(array1, array2) {
         var len = Math.min(array1.length, array2.length),
             lengthDiff = Math.abs(array1.length - array2.length),
             diffs = 0,
             i;
         for (i = 0; i < len; i++) {
-            if ((dontConvert && array1[i] !== array2[i]) ||
-                (!dontConvert && toInt(array1[i]) !== toInt(array2[i]))) {
+            if (~~array1[i] !== ~~array2[i]) {
                 diffs++;
             }
         }
@@ -1868,157 +1810,9 @@ else {
     }
 
     function normalizeUnits(units) {
-        if (units) {
-            var lowered = units.toLowerCase().replace(/(.)s$/, '$1');
-            units = unitAliases[units] || camelFunctions[lowered] || lowered;
-        }
-        return units;
+        return units ? unitAliases[units] || units.toLowerCase().replace(/(.)s$/, '$1') : units;
     }
 
-    function normalizeObjectUnits(inputObject) {
-        var normalizedInput = {},
-            normalizedProp,
-            prop,
-            index;
-
-        for (prop in inputObject) {
-            if (inputObject.hasOwnProperty(prop)) {
-                normalizedProp = normalizeUnits(prop);
-                if (normalizedProp) {
-                    normalizedInput[normalizedProp] = inputObject[prop];
-                }
-            }
-        }
-
-        return normalizedInput;
-    }
-
-    function makeList(field) {
-        var count, setter;
-
-        if (field.indexOf('week') === 0) {
-            count = 7;
-            setter = 'day';
-        }
-        else if (field.indexOf('month') === 0) {
-            count = 12;
-            setter = 'month';
-        }
-        else {
-            return;
-        }
-
-        moment[field] = function (format, index) {
-            var i, getter,
-                method = moment.fn._lang[field],
-                results = [];
-
-            if (typeof format === 'number') {
-                index = format;
-                format = undefined;
-            }
-
-            getter = function (i) {
-                var m = moment().utc().set(setter, i);
-                return method.call(moment.fn._lang, m, format || '');
-            };
-
-            if (index != null) {
-                return getter(index);
-            }
-            else {
-                for (i = 0; i < count; i++) {
-                    results.push(getter(i));
-                }
-                return results;
-            }
-        };
-    }
-
-    function toInt(argumentForCoercion) {
-        var coercedNumber = +argumentForCoercion,
-            value = 0;
-
-        if (coercedNumber !== 0 && isFinite(coercedNumber)) {
-            if (coercedNumber >= 0) {
-                value = Math.floor(coercedNumber);
-            } else {
-                value = Math.ceil(coercedNumber);
-            }
-        }
-
-        return value;
-    }
-
-    function daysInMonth(year, month) {
-        return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
-    }
-
-    function daysInYear(year) {
-        return isLeapYear(year) ? 366 : 365;
-    }
-
-    function isLeapYear(year) {
-        return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
-    }
-
-    function checkOverflow(m) {
-        var overflow;
-        if (m._a && m._pf.overflow === -2) {
-            overflow =
-                m._a[MONTH] < 0 || m._a[MONTH] > 11 ? MONTH :
-                m._a[DATE] < 1 || m._a[DATE] > daysInMonth(m._a[YEAR], m._a[MONTH]) ? DATE :
-                m._a[HOUR] < 0 || m._a[HOUR] > 23 ? HOUR :
-                m._a[MINUTE] < 0 || m._a[MINUTE] > 59 ? MINUTE :
-                m._a[SECOND] < 0 || m._a[SECOND] > 59 ? SECOND :
-                m._a[MILLISECOND] < 0 || m._a[MILLISECOND] > 999 ? MILLISECOND :
-                -1;
-
-            if (m._pf._overflowDayOfYear && (overflow < YEAR || overflow > DATE)) {
-                overflow = DATE;
-            }
-
-            m._pf.overflow = overflow;
-        }
-    }
-
-    function initializeParsingFlags(config) {
-        config._pf = {
-            empty : false,
-            unusedTokens : [],
-            unusedInput : [],
-            overflow : -2,
-            charsLeftOver : 0,
-            nullInput : false,
-            invalidMonth : null,
-            invalidFormat : false,
-            userInvalidated : false,
-            iso: false
-        };
-    }
-
-    function isValid(m) {
-        if (m._isValid == null) {
-            m._isValid = !isNaN(m._d.getTime()) &&
-                m._pf.overflow < 0 &&
-                !m._pf.empty &&
-                !m._pf.invalidMonth &&
-                !m._pf.nullInput &&
-                !m._pf.invalidFormat &&
-                !m._pf.userInvalidated;
-
-            if (m._strict) {
-                m._isValid = m._isValid &&
-                    m._pf.charsLeftOver === 0 &&
-                    m._pf.unusedTokens.length === 0;
-            }
-        }
-        return m._isValid;
-    }
-
-    function normalizeLanguage(key) {
-        return key ? key.toLowerCase().replace('_', '-') : key;
-    }
 
     /************************************
         Languages
@@ -2194,15 +1988,9 @@ else {
         week : function (mom) {
             return weekOfYear(mom, this._week.dow, this._week.doy).week;
         },
-
         _week : {
             dow : 0, // Sunday is the first day of the week.
             doy : 6  // The week that contains Jan 1st is the first week of the year.
-        },
-
-        _invalidDate: 'Invalid date',
-        invalidDate: function () {
-            return this._invalidDate;
         }
     });
 
@@ -2231,52 +2019,20 @@ else {
     // definition for 'en', so long as 'en' has already been loaded using
     // moment.lang.
     function getLangDefinition(key) {
-        var i = 0, j, lang, next, split,
-            get = function (k) {
-                if (!languages[k] && hasModule) {
-                    try {
-                        require('./lang/' + k);
-                    } catch (e) { }
-                }
-                return languages[k];
-            };
-
         if (!key) {
             return moment.fn._lang;
         }
-
-        if (!isArray(key)) {
-            //short-circuit everything else
-            lang = get(key);
-            if (lang) {
-                return lang;
+        if (!languages[key] && hasModule) {
+            try {
+                require('./lang/' + key);
+            } catch (e) {
+                // call with no params to set to default
+                return moment.fn._lang;
             }
-            key = [key];
         }
-
-        //pick the language from the array
-        //try ['en-au', 'en-gb'] as 'en-au', 'en-gb', 'en', as in move through the list trying each
-        //substring from most specific to least, but move to the next array item if it's a more specific variant than the current root
-        while (i < key.length) {
-            split = normalizeLanguage(key[i]).split('-');
-            j = split.length;
-            next = normalizeLanguage(key[i + 1]);
-            next = next ? next.split('-') : null;
-            while (j > 0) {
-                lang = get(split.slice(0, j).join('-'));
-                if (lang) {
-                    return lang;
-                }
-                if (next && next.length >= j && compareArrays(split, next, true) >= j - 1) {
-                    //the next array item is better than a shallower substring of this one
-                    break;
-                }
-                j--;
-            }
-            i++;
-        }
-        return moment.fn._lang;
+        return languages[key] || moment.fn._lang;
     }
+
 
     /************************************
         Formatting
@@ -2284,7 +2040,7 @@ else {
 
 
     function removeFormattingTokens(input) {
-        if (input.match(/\[[\s\S]/)) {
+        if (input.match(/\[.*\]/)) {
             return input.replace(/^\[|\]$/g, "");
         }
         return input.replace(/\\/g, "");
@@ -2313,10 +2069,6 @@ else {
     // format date using native date object
     function formatMoment(m, format) {
 
-        if (!m.isValid()) {
-            return m.lang().invalidDate();
-        }
-
         format = expandFormat(format, m.lang());
 
         if (!formatFunctions[format]) {
@@ -2333,11 +2085,9 @@ else {
             return lang.longDateFormat(input) || input;
         }
 
-        localFormattingTokens.lastIndex = 0;
-        while (i >= 0 && localFormattingTokens.test(format)) {
+        while (i-- && (localFormattingTokens.lastIndex = 0,
+                    localFormattingTokens.test(format))) {
             format = format.replace(localFormattingTokens, replaceLongDateFormatTokens);
-            localFormattingTokens.lastIndex = 0;
-            i -= 1;
         }
 
         return format;
@@ -2351,17 +2101,12 @@ else {
 
     // get the regex to find the next token
     function getParseRegexForToken(token, config) {
-        var a;
         switch (token) {
         case 'DDDD':
             return parseTokenThreeDigits;
         case 'YYYY':
-        case 'GGGG':
-        case 'gggg':
             return parseTokenFourDigits;
         case 'YYYYY':
-        case 'GGGGG':
-        case 'ggggg':
             return parseTokenSixDigits;
         case 'S':
         case 'SS':
@@ -2384,13 +2129,9 @@ else {
             return parseTokenTimezone;
         case 'T':
             return parseTokenT;
-        case 'SSSS':
-            return parseTokenDigits;
         case 'MM':
         case 'DD':
         case 'YY':
-        case 'GG':
-        case 'gg':
         case 'HH':
         case 'hh':
         case 'mm':
@@ -2402,23 +2143,16 @@ else {
         case 'h':
         case 'm':
         case 's':
-        case 'w':
-        case 'ww':
-        case 'W':
-        case 'WW':
-        case 'e':
-        case 'E':
             return parseTokenOneOrTwoDigits;
         default :
-            a = new RegExp(regexpEscape(unescapeFormat(token.replace('\\', '')), "i"));
-            return a;
+            return new RegExp(token.replace('\\', ''));
         }
     }
 
     function timezoneMinutesFromString(string) {
         var tzchunk = (parseTokenTimezone.exec(string) || [])[0],
             parts = (tzchunk + '').match(parseTimezoneChunker) || ['-', 0, 0],
-            minutes = +(parts[1] * 60) + toInt(parts[2]);
+            minutes = +(parts[1] * 60) + ~~parts[2];
 
         return parts[0] === '+' ? -minutes : minutes;
     }
@@ -2432,7 +2166,7 @@ else {
         case 'M' : // fall through to MM
         case 'MM' :
             if (input != null) {
-                datePartArray[MONTH] = toInt(input) - 1;
+                datePartArray[1] = ~~input - 1;
             }
             break;
         case 'MMM' : // fall through to MMMM
@@ -2440,33 +2174,33 @@ else {
             a = getLangDefinition(config._l).monthsParse(input);
             // if we didn't find a month name, mark the date as invalid.
             if (a != null) {
-                datePartArray[MONTH] = a;
+                datePartArray[1] = a;
             } else {
-                config._pf.invalidMonth = input;
+                config._isValid = false;
             }
             break;
         // DAY OF MONTH
         case 'D' : // fall through to DD
         case 'DD' :
             if (input != null) {
-                datePartArray[DATE] = toInt(input);
+                datePartArray[2] = ~~input;
             }
             break;
         // DAY OF YEAR
         case 'DDD' : // fall through to DDDD
         case 'DDDD' :
             if (input != null) {
-                config._dayOfYear = toInt(input);
+                datePartArray[1] = 0;
+                datePartArray[2] = ~~input;
             }
-
             break;
         // YEAR
         case 'YY' :
-            datePartArray[YEAR] = toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
+            datePartArray[0] = ~~input + (~~input > 68 ? 1900 : 2000);
             break;
         case 'YYYY' :
         case 'YYYYY' :
-            datePartArray[YEAR] = toInt(input);
+            datePartArray[0] = ~~input;
             break;
         // AM / PM
         case 'a' : // fall through to A
@@ -2478,24 +2212,23 @@ else {
         case 'HH' : // fall through to hh
         case 'h' : // fall through to hh
         case 'hh' :
-            datePartArray[HOUR] = toInt(input);
+            datePartArray[3] = ~~input;
             break;
         // MINUTE
         case 'm' : // fall through to mm
         case 'mm' :
-            datePartArray[MINUTE] = toInt(input);
+            datePartArray[4] = ~~input;
             break;
         // SECOND
         case 's' : // fall through to ss
         case 'ss' :
-            datePartArray[SECOND] = toInt(input);
+            datePartArray[5] = ~~input;
             break;
         // MILLISECOND
         case 'S' :
         case 'SS' :
         case 'SSS' :
-        case 'SSSS' :
-            datePartArray[MILLISECOND] = toInt(('0.' + input) * 1000);
+            datePartArray[6] = ~~ (('0.' + input) * 1000);
             break;
         // UNIX TIMESTAMP WITH MS
         case 'X':
@@ -2507,29 +2240,11 @@ else {
             config._useUTC = true;
             config._tzm = timezoneMinutesFromString(input);
             break;
-        case 'w':
-        case 'ww':
-        case 'W':
-        case 'WW':
-        case 'd':
-        case 'dd':
-        case 'ddd':
-        case 'dddd':
-        case 'e':
-        case 'E':
-            token = token.substr(0, 1);
-            /* falls through */
-        case 'gg':
-        case 'gggg':
-        case 'GG':
-        case 'GGGG':
-        case 'GGGGG':
-            token = token.substr(0, 2);
-            if (input) {
-                config._w = config._w || {};
-                config._w[token] = input;
-            }
-            break;
+        }
+
+        // if the input is null, the date is not valid
+        if (input == null) {
+            config._isValid = false;
         }
     }
 
@@ -2537,58 +2252,11 @@ else {
     // the array should mirror the parameters below
     // note: all values past the year are optional and will default to the lowest possible value.
     // [year, month, day , hour, minute, second, millisecond]
-    function dateFromConfig(config) {
-        var i, date, input = [], currentDate,
-            yearToUse, fixYear, w, temp, lang, weekday, week;
+    function dateFromArray(config) {
+        var i, date, input = [], currentDate;
 
         if (config._d) {
             return;
-        }
-
-        currentDate = currentDateArray(config);
-
-        //compute day of the year from weeks and weekdays
-        if (config._w && config._a[DATE] == null && config._a[MONTH] == null) {
-            fixYear = function (val) {
-                return val ?
-                  (val.length < 3 ? (parseInt(val, 10) > 68 ? '19' + val : '20' + val) : val) :
-                  (config._a[YEAR] == null ? moment().weekYear() : config._a[YEAR]);
-            };
-
-            w = config._w;
-            if (w.GG != null || w.W != null || w.E != null) {
-                temp = dayOfYearFromWeeks(fixYear(w.GG), w.W || 1, w.E, 4, 1);
-            }
-            else {
-                lang = getLangDefinition(config._l);
-                weekday = w.d != null ?  parseWeekday(w.d, lang) :
-                  (w.e != null ?  parseInt(w.e, 10) + lang._week.dow : 0);
-
-                week = parseInt(w.w, 10) || 1;
-
-                //if we're parsing 'd', then the low day numbers may be next week
-                if (w.d != null && weekday < lang._week.dow) {
-                    week++;
-                }
-
-                temp = dayOfYearFromWeeks(fixYear(w.gg), week, weekday, lang._week.doy, lang._week.dow);
-            }
-
-            config._a[YEAR] = temp.year;
-            config._dayOfYear = temp.dayOfYear;
-        }
-
-        //if the day of the year is set, figure out what it is
-        if (config._dayOfYear) {
-            yearToUse = config._a[YEAR] == null ? currentDate[YEAR] : config._a[YEAR];
-
-            if (config._dayOfYear > daysInYear(yearToUse)) {
-                config._pf._overflowDayOfYear = true;
-            }
-
-            date = makeUTCDate(yearToUse, 0, config._dayOfYear);
-            config._a[MONTH] = date.getUTCMonth();
-            config._a[DATE] = date.getUTCDate();
         }
 
         // Default to current date.
@@ -2596,6 +2264,7 @@ else {
         // * if day of month is given, default month and year
         // * if month is given, default only year
         // * if year is given, don't default anything
+        currentDate = currentDateArray(config);
         for (i = 0; i < 3 && config._a[i] == null; ++i) {
             config._a[i] = input[i] = currentDate[i];
         }
@@ -2606,31 +2275,40 @@ else {
         }
 
         // add the offsets to the time to be parsed so that we can have a clean array for checking isValid
-        input[HOUR] += toInt((config._tzm || 0) / 60);
-        input[MINUTE] += toInt((config._tzm || 0) % 60);
+        input[3] += ~~((config._tzm || 0) / 60);
+        input[4] += ~~((config._tzm || 0) % 60);
 
-        config._d = (config._useUTC ? makeUTCDate : makeDate).apply(null, input);
+        date = new Date(0);
+
+        if (config._useUTC) {
+            date.setUTCFullYear(input[0], input[1], input[2]);
+            date.setUTCHours(input[3], input[4], input[5], input[6]);
+        } else {
+            date.setFullYear(input[0], input[1], input[2]);
+            date.setHours(input[3], input[4], input[5], input[6]);
+        }
+
+        config._d = date;
     }
 
     function dateFromObject(config) {
-        var normalizedInput;
+        var o = config._i;
 
         if (config._d) {
             return;
         }
 
-        normalizedInput = normalizeObjectUnits(config._i);
         config._a = [
-            normalizedInput.year,
-            normalizedInput.month,
-            normalizedInput.day,
-            normalizedInput.hour,
-            normalizedInput.minute,
-            normalizedInput.second,
-            normalizedInput.millisecond
+            o.years || o.year || o.y,
+            o.months || o.month || o.M,
+            o.days || o.day || o.d,
+            o.hours || o.hour || o.h,
+            o.minutes || o.minute || o.m,
+            o.seconds || o.second || o.s,
+            o.milliseconds || o.millisecond || o.ms
         ];
 
-        dateFromConfig(config);
+        dateFromArray(config);
     }
 
     function currentDateArray(config) {
@@ -2648,116 +2326,74 @@ else {
 
     // date from string and format string
     function makeDateFromStringAndFormat(config) {
-
-        config._a = [];
-        config._pf.empty = true;
-
         // This array is used to make a Date, either with `new Date` or `Date.UTC`
         var lang = getLangDefinition(config._l),
             string = '' + config._i,
-            i, parsedInput, tokens, token, skipped,
-            stringLength = string.length,
-            totalParsedInputLength = 0;
+            i, parsedInput, tokens;
 
-        tokens = expandFormat(config._f, lang).match(formattingTokens) || [];
+        tokens = expandFormat(config._f, lang).match(formattingTokens);
+
+        config._a = [];
 
         for (i = 0; i < tokens.length; i++) {
-            token = tokens[i];
-            parsedInput = (getParseRegexForToken(token, config).exec(string) || [])[0];
+            parsedInput = (getParseRegexForToken(tokens[i], config).exec(string) || [])[0];
             if (parsedInput) {
-                skipped = string.substr(0, string.indexOf(parsedInput));
-                if (skipped.length > 0) {
-                    config._pf.unusedInput.push(skipped);
-                }
                 string = string.slice(string.indexOf(parsedInput) + parsedInput.length);
-                totalParsedInputLength += parsedInput.length;
             }
-            // don't parse if it's not a known token
-            if (formatTokenFunctions[token]) {
-                if (parsedInput) {
-                    config._pf.empty = false;
-                }
-                else {
-                    config._pf.unusedTokens.push(token);
-                }
-                addTimeToArrayFromToken(token, parsedInput, config);
-            }
-            else if (config._strict && !parsedInput) {
-                config._pf.unusedTokens.push(token);
+            // don't parse if its not a known token
+            if (formatTokenFunctions[tokens[i]]) {
+                addTimeToArrayFromToken(tokens[i], parsedInput, config);
             }
         }
 
-        // add remaining unparsed input length to the string
-        config._pf.charsLeftOver = stringLength - totalParsedInputLength;
-        if (string.length > 0) {
-            config._pf.unusedInput.push(string);
+        // add remaining unparsed input to the string
+        if (string) {
+            config._il = string;
         }
 
         // handle am pm
-        if (config._isPm && config._a[HOUR] < 12) {
-            config._a[HOUR] += 12;
+        if (config._isPm && config._a[3] < 12) {
+            config._a[3] += 12;
         }
         // if is 12 am, change hours to 0
-        if (config._isPm === false && config._a[HOUR] === 12) {
-            config._a[HOUR] = 0;
+        if (config._isPm === false && config._a[3] === 12) {
+            config._a[3] = 0;
         }
-
-        dateFromConfig(config);
-        checkOverflow(config);
-    }
-
-    function unescapeFormat(s) {
-        return s.replace(/\\(\[)|\\(\])|\[([^\]\[]*)\]|\\(.)/g, function (matched, p1, p2, p3, p4) {
-            return p1 || p2 || p3 || p4;
-        });
-    }
-
-    // Code from http://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
-    function regexpEscape(s) {
-        return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        // return
+        dateFromArray(config);
     }
 
     // date from string and array of format strings
     function makeDateFromStringAndArray(config) {
         var tempConfig,
+            tempMoment,
             bestMoment,
 
-            scoreToBeat,
+            scoreToBeat = 99,
             i,
             currentScore;
 
-        if (config._f.length === 0) {
-            config._pf.invalidFormat = true;
-            config._d = new Date(NaN);
-            return;
-        }
-
         for (i = 0; i < config._f.length; i++) {
-            currentScore = 0;
             tempConfig = extend({}, config);
-            initializeParsingFlags(tempConfig);
             tempConfig._f = config._f[i];
             makeDateFromStringAndFormat(tempConfig);
+            tempMoment = new Moment(tempConfig);
 
-            if (!isValid(tempConfig)) {
-                continue;
+            currentScore = compareArrays(tempConfig._a, tempMoment.toArray());
+
+            // if there is any input that was not parsed
+            // add a penalty for that format
+            if (tempMoment._il) {
+                currentScore += tempMoment._il.length;
             }
 
-            // if there is any input that was not parsed add a penalty for that format
-            currentScore += tempConfig._pf.charsLeftOver;
-
-            //or tokens
-            currentScore += tempConfig._pf.unusedTokens.length * 10;
-
-            tempConfig._pf.score = currentScore;
-
-            if (scoreToBeat == null || currentScore < scoreToBeat) {
+            if (currentScore < scoreToBeat) {
                 scoreToBeat = currentScore;
-                bestMoment = tempConfig;
+                bestMoment = tempMoment;
             }
         }
 
-        extend(config, bestMoment || tempConfig);
+        extend(config, bestMoment);
     }
 
     // date from iso format
@@ -2767,14 +2403,8 @@ else {
             match = isoRegex.exec(string);
 
         if (match) {
-            config._pf.iso = true;
-            for (i = 4; i > 0; i--) {
-                if (match[i]) {
-                    // match[5] should be "T" or undefined
-                    config._f = isoDates[i - 1] + (match[6] || " ");
-                    break;
-                }
-            }
+            // match[2] should be "T" or undefined
+            config._f = 'YYYY-MM-DD' + (match[2] || " ");
             for (i = 0; i < 4; i++) {
                 if (isoTimes[i][1].exec(string)) {
                     config._f += isoTimes[i][0];
@@ -2782,11 +2412,10 @@ else {
                 }
             }
             if (parseTokenTimezone.exec(string)) {
-                config._f += "Z";
+                config._f += " Z";
             }
             makeDateFromStringAndFormat(config);
-        }
-        else {
+        } else {
             config._d = new Date(string);
         }
     }
@@ -2803,8 +2432,8 @@ else {
             makeDateFromString(config);
         } else if (isArray(input)) {
             config._a = input.slice(0);
-            dateFromConfig(config);
-        } else if (isDate(input)) {
+            dateFromArray(config);
+        } else if (input instanceof Date) {
             config._d = new Date(+input);
         } else if (typeof(input) === 'object') {
             dateFromObject(config);
@@ -2813,40 +2442,6 @@ else {
         }
     }
 
-    function makeDate(y, m, d, h, M, s, ms) {
-        //can't just apply() to create a date:
-        //http://stackoverflow.com/questions/181348/instantiating-a-javascript-object-by-calling-prototype-constructor-apply
-        var date = new Date(y, m, d, h, M, s, ms);
-
-        //the date constructor doesn't accept years < 1970
-        if (y < 1970) {
-            date.setFullYear(y);
-        }
-        return date;
-    }
-
-    function makeUTCDate(y) {
-        var date = new Date(Date.UTC.apply(null, arguments));
-        if (y < 1970) {
-            date.setUTCFullYear(y);
-        }
-        return date;
-    }
-
-    function parseWeekday(input, language) {
-        if (typeof input === 'string') {
-            if (!isNaN(input)) {
-                input = parseInt(input, 10);
-            }
-            else {
-                input = language.weekdaysParse(input);
-                if (typeof input !== 'number') {
-                    return null;
-                }
-            }
-        }
-        return input;
-    }
 
     /************************************
         Relative Time
@@ -2914,20 +2509,6 @@ else {
         };
     }
 
-    //http://en.wikipedia.org/wiki/ISO_week_date#Calculating_a_date_given_the_year.2C_week_number_and_weekday
-    function dayOfYearFromWeeks(year, week, weekday, firstDayOfWeekOfYear, firstDayOfWeek) {
-        var d = new Date(Date.UTC(year, 0)).getUTCDay(),
-            daysToAdd, dayOfYear;
-
-        weekday = weekday != null ? weekday : firstDayOfWeek;
-        daysToAdd = firstDayOfWeek - d + (d > firstDayOfWeekOfYear ? 7 : 0);
-        dayOfYear = 7 * (week - 1) + (weekday - firstDayOfWeek) + daysToAdd + 1;
-
-        return {
-            year: dayOfYear > 0 ? year : year - 1,
-            dayOfYear: dayOfYear > 0 ?  dayOfYear : daysInYear(year - 1) + dayOfYear
-        };
-    }
 
     /************************************
         Top Level Functions
@@ -2937,12 +2518,8 @@ else {
         var input = config._i,
             format = config._f;
 
-        if (typeof config._pf === 'undefined') {
-            initializeParsingFlags(config);
-        }
-
-        if (input === null) {
-            return moment.invalid({nullInput: true});
+        if (input === null || input === '') {
+            return null;
         }
 
         if (typeof input === 'string') {
@@ -2951,7 +2528,6 @@ else {
 
         if (moment.isMoment(input)) {
             config = extend({}, input);
-
             config._d = new Date(+input._d);
         } else if (format) {
             if (isArray(format)) {
@@ -2966,38 +2542,24 @@ else {
         return new Moment(config);
     }
 
-    moment = function (input, format, lang, strict) {
-        if (typeof(lang) === "boolean") {
-            strict = lang;
-            lang = undefined;
-        }
+    moment = function (input, format, lang) {
         return makeMoment({
             _i : input,
             _f : format,
             _l : lang,
-            _strict : strict,
             _isUTC : false
         });
     };
 
     // creating with utc
-    moment.utc = function (input, format, lang, strict) {
-        var m;
-
-        if (typeof(lang) === "boolean") {
-            strict = lang;
-            lang = undefined;
-        }
-        m = makeMoment({
+    moment.utc = function (input, format, lang) {
+        return makeMoment({
             _useUTC : true,
             _isUTC : true,
             _l : lang,
             _i : input,
-            _f : format,
-            _strict : strict
+            _f : format
         }).utc();
-
-        return m;
     };
 
     // creating with unix timestamp (in seconds)
@@ -3010,13 +2572,9 @@ else {
         var isDuration = moment.isDuration(input),
             isNumber = (typeof input === 'number'),
             duration = (isDuration ? input._input : (isNumber ? {} : input)),
-            // matching against regexp is expensive, do it on demand
-            match = null,
+            matched = aspNetTimeSpanJsonRegex.exec(input),
             sign,
-            ret,
-            parseIso,
-            timeEmpty,
-            dateTimeEmpty;
+            ret;
 
         if (isNumber) {
             if (key) {
@@ -3024,34 +2582,15 @@ else {
             } else {
                 duration.milliseconds = input;
             }
-        } else if (!!(match = aspNetTimeSpanJsonRegex.exec(input))) {
-            sign = (match[1] === "-") ? -1 : 1;
+        } else if (matched) {
+            sign = (matched[1] === "-") ? -1 : 1;
             duration = {
                 y: 0,
-                d: toInt(match[DATE]) * sign,
-                h: toInt(match[HOUR]) * sign,
-                m: toInt(match[MINUTE]) * sign,
-                s: toInt(match[SECOND]) * sign,
-                ms: toInt(match[MILLISECOND]) * sign
-            };
-        } else if (!!(match = isoDurationRegex.exec(input))) {
-            sign = (match[1] === "-") ? -1 : 1;
-            parseIso = function (inp) {
-                // We'd normally use ~~inp for this, but unfortunately it also
-                // converts floats to ints.
-                // inp may be undefined, so careful calling replace on it.
-                var res = inp && parseFloat(inp.replace(',', '.'));
-                // apply sign while we're at it
-                return (isNaN(res) ? 0 : res) * sign;
-            };
-            duration = {
-                y: parseIso(match[2]),
-                M: parseIso(match[3]),
-                d: parseIso(match[4]),
-                h: parseIso(match[5]),
-                m: parseIso(match[6]),
-                s: parseIso(match[7]),
-                w: parseIso(match[8])
+                d: ~~matched[2] * sign,
+                h: ~~matched[3] * sign,
+                m: ~~matched[4] * sign,
+                s: ~~matched[5] * sign,
+                ms: ~~matched[6] * sign
             };
         }
 
@@ -3078,20 +2617,20 @@ else {
     // no arguments are passed in, it will simply return the current global
     // language key.
     moment.lang = function (key, values) {
-        var r;
         if (!key) {
             return moment.fn._lang._abbr;
         }
+        key = key.toLowerCase();
+        key = key.replace('_', '-');
         if (values) {
-            loadLang(normalizeLanguage(key), values);
+            loadLang(key, values);
         } else if (values === null) {
             unloadLang(key);
             key = 'en';
         } else if (!languages[key]) {
             getLangDefinition(key);
         }
-        r = moment.duration.fn._lang = moment.fn._lang = getLangDefinition(key);
-        return r._abbr;
+        moment.duration.fn._lang = moment.fn._lang = getLangDefinition(key);
     };
 
     // returns language data
@@ -3112,29 +2651,6 @@ else {
         return obj instanceof Duration;
     };
 
-    for (i = lists.length - 1; i >= 0; --i) {
-        makeList(lists[i]);
-    }
-
-    moment.normalizeUnits = function (units) {
-        return normalizeUnits(units);
-    };
-
-    moment.invalid = function (flags) {
-        var m = moment.utc(NaN);
-        if (flags != null) {
-            extend(m._pf, flags);
-        }
-        else {
-            m._pf.userInvalidated = true;
-        }
-
-        return m;
-    };
-
-    moment.parseZone = function (input) {
-        return moment(input).parseZone();
-    };
 
     /************************************
         Moment Prototype
@@ -3156,7 +2672,7 @@ else {
         },
 
         toString : function () {
-            return this.clone().lang('en').format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ");
+            return this.format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ");
         },
 
         toDate : function () {
@@ -3181,24 +2697,22 @@ else {
         },
 
         isValid : function () {
-            return isValid(this);
-        },
-
-        isDSTShifted : function () {
-
-            if (this._a) {
-                return this.isValid() && compareArrays(this._a, (this._isUTC ? moment.utc(this._a) : moment(this._a)).toArray()) > 0;
+            if (this._isValid == null) {
+                if (this._a) {
+                    this._isValid = !compareArrays(this._a, (this._isUTC ? moment.utc(this._a) : moment(this._a)).toArray());
+                } else {
+                    this._isValid = !isNaN(this._d.getTime());
+                }
             }
-
-            return false;
-        },
-
-        parsingFlags : function () {
-            return extend({}, this._pf);
+            return !!this._isValid;
         },
 
         invalidAt: function () {
-            return this._pf.overflow;
+            var i, arr1 = this._a, arr2 = (this._isUTC ? moment.utc(this._a) : moment(this._a)).toArray();
+            for (i = 6; i >= 0 && arr1[i] === arr2[i]; --i) {
+                // empty loop body
+            }
+            return i;
         },
 
         utc : function () {
@@ -3294,7 +2808,8 @@ else {
         },
 
         isLeapYear : function () {
-            return isLeapYear(this.year());
+            var year = this.year();
+            return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
         },
 
         isDST : function () {
@@ -3305,7 +2820,12 @@ else {
         day : function (input) {
             var day = this._isUTC ? this._d.getUTCDay() : this._d.getDay();
             if (input != null) {
-                input = parseWeekday(input, this.lang());
+                if (typeof input === 'string') {
+                    input = this.lang().weekdaysParse(input);
+                    if (typeof input !== 'number') {
+                        return this;
+                    }
+                }
                 return this.add({ d : input - day });
             } else {
                 return day;
@@ -3348,7 +2868,7 @@ else {
                 this.date(1);
                 /* falls through */
             case 'week':
-            case 'isoWeek':
+            case 'isoweek':
             case 'day':
                 this.hours(0);
                 /* falls through */
@@ -3366,7 +2886,7 @@ else {
             // weeks are a special case
             if (units === 'week') {
                 this.weekday(0);
-            } else if (units === 'isoWeek') {
+            } else if (units === 'isoweek') {
                 this.isoWeekday(1);
             }
 
@@ -3375,7 +2895,7 @@ else {
 
         endOf: function (units) {
             units = normalizeUnits(units);
-            return this.startOf(units).add((units === 'isoWeek' ? 'week' : units), 1).subtract('ms', 1);
+            return this.startOf(units).add((units === 'isoweek' ? 'week' : units), 1).subtract('ms', 1);
         },
 
         isAfter: function (input, units) {
@@ -3431,13 +2951,6 @@ else {
             return this._isUTC ? "Coordinated Universal Time" : "";
         },
 
-        parseZone : function () {
-            if (typeof this._i === 'string') {
-                this.zone(this._i);
-            }
-            return this;
-        },
-
         hasAlignedHourOffset : function (input) {
             if (!input) {
                 input = 0;
@@ -3450,7 +2963,7 @@ else {
         },
 
         daysInMonth : function () {
-            return daysInMonth(this.year(), this.month());
+            return moment.utc([this.year(), this.month() + 1, 0]).date();
         },
 
         dayOfYear : function (input) {
@@ -3479,7 +2992,7 @@ else {
         },
 
         weekday : function (input) {
-            var weekday = (this.day() + 7 - this.lang()._week.dow) % 7;
+            var weekday = (this._d.getDay() + 7 - this.lang()._week.dow) % 7;
             return input == null ? weekday : this.add("d", input - weekday);
         },
 
@@ -3492,15 +3005,12 @@ else {
 
         get : function (units) {
             units = normalizeUnits(units);
-            return this[units]();
+            return this[units.toLowerCase()]();
         },
 
         set : function (units, value) {
             units = normalizeUnits(units);
-            if (typeof this[units] === 'function') {
-                this[units](value);
-            }
-            return this;
+            this[units.toLowerCase()](value);
         },
 
         // If passed a language key, it will set the language for this
@@ -3592,7 +3102,7 @@ else {
             return this._milliseconds +
               this._days * 864e5 +
               (this._months % 12) * 2592e6 +
-              toInt(this._months / 12) * 31536e6;
+              ~~(this._months / 12) * 31536e6;
         },
 
         humanize : function (withSuffix) {
@@ -3641,33 +3151,7 @@ else {
             return this['as' + units.charAt(0).toUpperCase() + units.slice(1) + 's']();
         },
 
-        lang : moment.fn.lang,
-
-        toIsoString : function () {
-            // inspired by https://github.com/dordille/moment-isoduration/blob/master/moment.isoduration.js
-            var years = Math.abs(this.years()),
-                months = Math.abs(this.months()),
-                days = Math.abs(this.days()),
-                hours = Math.abs(this.hours()),
-                minutes = Math.abs(this.minutes()),
-                seconds = Math.abs(this.seconds() + this.milliseconds() / 1000);
-
-            if (!this.asSeconds()) {
-                // this is the same as C#'s (Noda) and python (isodate)...
-                // but not other JS (goog.date)
-                return 'P0D';
-            }
-
-            return (this.asSeconds() < 0 ? '-' : '') +
-                'P' +
-                (years ? years + 'Y' : '') +
-                (months ? months + 'M' : '') +
-                (days ? days + 'D' : '') +
-                ((hours || minutes || seconds) ? 'T' : '') +
-                (hours ? hours + 'H' : '') +
-                (minutes ? minutes + 'M' : '') +
-                (seconds ? seconds + 'S' : '');
-        }
+        lang : moment.fn.lang
     });
 
     function makeDurationGetter(name) {
@@ -3704,7 +3188,7 @@ else {
     moment.lang('en', {
         ordinal : function (number) {
             var b = number % 10,
-                output = (toInt(number % 100 / 10) === 1) ? 'th' :
+                output = (~~ (number % 100 / 10) === 1) ? 'th' :
                 (b === 1) ? 'st' :
                 (b === 2) ? 'nd' :
                 (b === 3) ? 'rd' : 'th';
@@ -3718,46 +3202,23 @@ else {
         Exposing Moment
     ************************************/
 
-    function makeGlobal(deprecate) {
-        var warned = false, local_moment = moment;
-        /*global ender:false */
-        if (typeof ender !== 'undefined') {
-            return;
-        }
-        // here, `this` means `window` in the browser, or `global` on the server
-        // add `moment` as a global object via a string identifier,
-        // for Closure Compiler "advanced" mode
-        if (deprecate) {
-            this.moment = function () {
-                if (!warned && console && console.warn) {
-                    warned = true;
-                    console.warn(
-                            "Accessing Moment through the global scope is " +
-                            "deprecated, and will be removed in an upcoming " +
-                            "release.");
-                }
-                return local_moment.apply(null, arguments);
-            };
-        } else {
-            this['moment'] = moment;
-        }
-    }
 
     // CommonJS module is defined
     if (hasModule) {
         module.exports = moment;
-        makeGlobal(true);
-    } else if (typeof define === "function" && define.amd) {
-        define("moment", function (require, exports, module) {
-            if (module.config().noGlobal !== true) {
-                // If user provided noGlobal, he is aware of global
-                makeGlobal(module.config().noGlobal === undefined);
-            }
-
+    }
+    /*global ender:false */
+    if (typeof ender === 'undefined') {
+        // here, `this` means `window` in the browser, or `global` on the server
+        // add `moment` as a global object via a string identifier,
+        // for Closure Compiler "advanced" mode
+        this['moment'] = moment;
+    }
+    /*global define:false */
+    if (typeof define === "function" && define.amd) {
+        define("moment", [], function () {
             return moment;
         });
-    } else {
-        makeGlobal();
     }
 }).call(this);
 
@@ -3786,31 +3247,31 @@ else {
 // it here in that case.
 // http://soledadpenades.com/2007/05/17/arrayindexof-in-internet-explorer/
 if(!Array.prototype.indexOf) {
-    Array.prototype.indexOf = function(obj){
-        for(var i = 0; i < this.length; i++){
-            if(this[i] == obj){
-                return i;
-            }
-        }
-        return -1;
-    };
+  Array.prototype.indexOf = function(obj){
+    for(var i = 0; i < this.length; i++){
+      if(this[i] == obj){
+        return i;
+      }
+    }
+    return -1;
+  };
 
-    try {
-        console.log("Warning: Ancient browser detected. Please update your browser");
-    }
-    catch (err) {
-    }
+  try {
+    console.log("Warning: Ancient browser detected. Please update your browser");
+  }
+  catch (err) {
+  }
 }
 
 // Internet Explorer 8 and older does not support Array.forEach, so we define
 // it here in that case.
 // https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/forEach
 if (!Array.prototype.forEach) {
-    Array.prototype.forEach = function(fn, scope) {
-        for(var i = 0, len = this.length; i < len; ++i) {
-            fn.call(scope || this, this[i], i, this);
-        }
+  Array.prototype.forEach = function(fn, scope) {
+    for(var i = 0, len = this.length; i < len; ++i) {
+      fn.call(scope || this, this[i], i, this);
     }
+  }
 }
 
 // Internet Explorer 8 and older does not support Array.map, so we define it
@@ -3819,106 +3280,106 @@ if (!Array.prototype.forEach) {
 // Production steps of ECMA-262, Edition 5, 15.4.4.19
 // Reference: http://es5.github.com/#x15.4.4.19
 if (!Array.prototype.map) {
-    Array.prototype.map = function(callback, thisArg) {
+  Array.prototype.map = function(callback, thisArg) {
 
-        var T, A, k;
+    var T, A, k;
 
-        if (this == null) {
-            throw new TypeError(" this is null or not defined");
-        }
+    if (this == null) {
+      throw new TypeError(" this is null or not defined");
+    }
 
-        // 1. Let O be the result of calling ToObject passing the |this| value as the argument.
-        var O = Object(this);
+    // 1. Let O be the result of calling ToObject passing the |this| value as the argument.
+    var O = Object(this);
 
-        // 2. Let lenValue be the result of calling the Get internal method of O with the argument "length".
-        // 3. Let len be ToUint32(lenValue).
-        var len = O.length >>> 0;
+    // 2. Let lenValue be the result of calling the Get internal method of O with the argument "length".
+    // 3. Let len be ToUint32(lenValue).
+    var len = O.length >>> 0;
 
-        // 4. If IsCallable(callback) is false, throw a TypeError exception.
-        // See: http://es5.github.com/#x9.11
-        if (typeof callback !== "function") {
-            throw new TypeError(callback + " is not a function");
-        }
+    // 4. If IsCallable(callback) is false, throw a TypeError exception.
+    // See: http://es5.github.com/#x9.11
+    if (typeof callback !== "function") {
+      throw new TypeError(callback + " is not a function");
+    }
 
-        // 5. If thisArg was supplied, let T be thisArg; else let T be undefined.
-        if (thisArg) {
-            T = thisArg;
-        }
+    // 5. If thisArg was supplied, let T be thisArg; else let T be undefined.
+    if (thisArg) {
+      T = thisArg;
+    }
 
-        // 6. Let A be a new array created as if by the expression new Array(len) where Array is
-        // the standard built-in constructor with that name and len is the value of len.
-        A = new Array(len);
+    // 6. Let A be a new array created as if by the expression new Array(len) where Array is
+    // the standard built-in constructor with that name and len is the value of len.
+    A = new Array(len);
 
-        // 7. Let k be 0
-        k = 0;
+    // 7. Let k be 0
+    k = 0;
 
-        // 8. Repeat, while k < len
-        while(k < len) {
+    // 8. Repeat, while k < len
+    while(k < len) {
 
-            var kValue, mappedValue;
+      var kValue, mappedValue;
 
-            // a. Let Pk be ToString(k).
-            //   This is implicit for LHS operands of the in operator
-            // b. Let kPresent be the result of calling the HasProperty internal method of O with argument Pk.
-            //   This step can be combined with c
-            // c. If kPresent is true, then
-            if (k in O) {
+      // a. Let Pk be ToString(k).
+      //   This is implicit for LHS operands of the in operator
+      // b. Let kPresent be the result of calling the HasProperty internal method of O with argument Pk.
+      //   This step can be combined with c
+      // c. If kPresent is true, then
+      if (k in O) {
 
-                // i. Let kValue be the result of calling the Get internal method of O with argument Pk.
-                kValue = O[ k ];
+        // i. Let kValue be the result of calling the Get internal method of O with argument Pk.
+        kValue = O[ k ];
 
-                // ii. Let mappedValue be the result of calling the Call internal method of callback
-                // with T as the this value and argument list containing kValue, k, and O.
-                mappedValue = callback.call(T, kValue, k, O);
+        // ii. Let mappedValue be the result of calling the Call internal method of callback
+        // with T as the this value and argument list containing kValue, k, and O.
+        mappedValue = callback.call(T, kValue, k, O);
 
-                // iii. Call the DefineOwnProperty internal method of A with arguments
-                // Pk, Property Descriptor {Value: mappedValue, : true, Enumerable: true, Configurable: true},
-                // and false.
+        // iii. Call the DefineOwnProperty internal method of A with arguments
+        // Pk, Property Descriptor {Value: mappedValue, : true, Enumerable: true, Configurable: true},
+        // and false.
 
-                // In browsers that support Object.defineProperty, use the following:
-                // Object.defineProperty(A, Pk, { value: mappedValue, writable: true, enumerable: true, configurable: true });
+        // In browsers that support Object.defineProperty, use the following:
+        // Object.defineProperty(A, Pk, { value: mappedValue, writable: true, enumerable: true, configurable: true });
 
-                // For best browser support, use the following:
-                A[ k ] = mappedValue;
-            }
-            // d. Increase k by 1.
-            k++;
-        }
+        // For best browser support, use the following:
+        A[ k ] = mappedValue;
+      }
+      // d. Increase k by 1.
+      k++;
+    }
 
-        // 9. return A
-        return A;
-    };
+    // 9. return A
+    return A;
+  };
 }
 
 // Internet Explorer 8 and older does not support Array.filter, so we define it
 // here in that case.
 // https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/filter
 if (!Array.prototype.filter) {
-    Array.prototype.filter = function(fun /*, thisp */) {
-        "use strict";
+  Array.prototype.filter = function(fun /*, thisp */) {
+    "use strict";
 
-        if (this == null) {
-            throw new TypeError();
-        }
+    if (this == null) {
+      throw new TypeError();
+    }
 
-        var t = Object(this);
-        var len = t.length >>> 0;
-        if (typeof fun != "function") {
-            throw new TypeError();
-        }
+    var t = Object(this);
+    var len = t.length >>> 0;
+    if (typeof fun != "function") {
+      throw new TypeError();
+    }
 
-        var res = [];
-        var thisp = arguments[1];
-        for (var i = 0; i < len; i++) {
-            if (i in t) {
-                var val = t[i]; // in case fun mutates this
-                if (fun.call(thisp, val, i, t))
-                    res.push(val);
-            }
-        }
+    var res = [];
+    var thisp = arguments[1];
+    for (var i = 0; i < len; i++) {
+      if (i in t) {
+        var val = t[i]; // in case fun mutates this
+        if (fun.call(thisp, val, i, t))
+          res.push(val);
+      }
+    }
 
-        return res;
-    };
+    return res;
+  };
 }
 
 
@@ -3926,112 +3387,112 @@ if (!Array.prototype.filter) {
 // here in that case.
 // https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Object/keys
 if (!Object.keys) {
-    Object.keys = (function () {
-        var hasOwnProperty = Object.prototype.hasOwnProperty,
-            hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString'),
-            dontEnums = [
-                'toString',
-                'toLocaleString',
-                'valueOf',
-                'hasOwnProperty',
-                'isPrototypeOf',
-                'propertyIsEnumerable',
-                'constructor'
-            ],
-            dontEnumsLength = dontEnums.length;
+  Object.keys = (function () {
+    var hasOwnProperty = Object.prototype.hasOwnProperty,
+        hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString'),
+        dontEnums = [
+          'toString',
+          'toLocaleString',
+          'valueOf',
+          'hasOwnProperty',
+          'isPrototypeOf',
+          'propertyIsEnumerable',
+          'constructor'
+        ],
+        dontEnumsLength = dontEnums.length;
 
-        return function (obj) {
-            if (typeof obj !== 'object' && typeof obj !== 'function' || obj === null) {
-                throw new TypeError('Object.keys called on non-object');
-            }
+    return function (obj) {
+      if (typeof obj !== 'object' && typeof obj !== 'function' || obj === null) {
+        throw new TypeError('Object.keys called on non-object');
+      }
 
-            var result = [];
+      var result = [];
 
-            for (var prop in obj) {
-                if (hasOwnProperty.call(obj, prop)) result.push(prop);
-            }
+      for (var prop in obj) {
+        if (hasOwnProperty.call(obj, prop)) result.push(prop);
+      }
 
-            if (hasDontEnumBug) {
-                for (var i=0; i < dontEnumsLength; i++) {
-                    if (hasOwnProperty.call(obj, dontEnums[i])) result.push(dontEnums[i]);
-                }
-            }
-            return result;
+      if (hasDontEnumBug) {
+        for (var i=0; i < dontEnumsLength; i++) {
+          if (hasOwnProperty.call(obj, dontEnums[i])) result.push(dontEnums[i]);
         }
-    })()
+      }
+      return result;
+    }
+  })()
 }
 
 // Internet Explorer 8 and older does not support Array.isArray,
 // so we define it here in that case.
 // https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/isArray
 if(!Array.isArray) {
-    Array.isArray = function (vArg) {
-        return Object.prototype.toString.call(vArg) === "[object Array]";
-    };
+  Array.isArray = function (vArg) {
+    return Object.prototype.toString.call(vArg) === "[object Array]";
+  };
 }
 
 // Internet Explorer 8 and older does not support Function.bind,
 // so we define it here in that case.
 // https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/bind
 if (!Function.prototype.bind) {
-    Function.prototype.bind = function (oThis) {
-        if (typeof this !== "function") {
-            // closest thing possible to the ECMAScript 5 internal IsCallable function
-            throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
-        }
+  Function.prototype.bind = function (oThis) {
+    if (typeof this !== "function") {
+      // closest thing possible to the ECMAScript 5 internal IsCallable function
+      throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
+    }
 
-        var aArgs = Array.prototype.slice.call(arguments, 1),
-            fToBind = this,
-            fNOP = function () {},
-            fBound = function () {
-                return fToBind.apply(this instanceof fNOP && oThis
-                    ? this
-                    : oThis,
-                    aArgs.concat(Array.prototype.slice.call(arguments)));
-            };
+    var aArgs = Array.prototype.slice.call(arguments, 1),
+        fToBind = this,
+        fNOP = function () {},
+        fBound = function () {
+          return fToBind.apply(this instanceof fNOP && oThis
+              ? this
+              : oThis,
+              aArgs.concat(Array.prototype.slice.call(arguments)));
+        };
 
-        fNOP.prototype = this.prototype;
-        fBound.prototype = new fNOP();
+    fNOP.prototype = this.prototype;
+    fBound.prototype = new fNOP();
 
-        return fBound;
-    };
+    return fBound;
+  };
 }
 
 // https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Object/create
 if (!Object.create) {
-    Object.create = function (o) {
-        if (arguments.length > 1) {
-            throw new Error('Object.create implementation only accepts the first parameter.');
-        }
-        function F() {}
-        F.prototype = o;
-        return new F();
-    };
+  Object.create = function (o) {
+    if (arguments.length > 1) {
+      throw new Error('Object.create implementation only accepts the first parameter.');
+    }
+    function F() {}
+    F.prototype = o;
+    return new F();
+  };
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind
 if (!Function.prototype.bind) {
-    Function.prototype.bind = function (oThis) {
-        if (typeof this !== "function") {
-            // closest thing possible to the ECMAScript 5 internal IsCallable function
-            throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
-        }
+  Function.prototype.bind = function (oThis) {
+    if (typeof this !== "function") {
+      // closest thing possible to the ECMAScript 5 internal IsCallable function
+      throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
+    }
 
-        var aArgs = Array.prototype.slice.call(arguments, 1),
-            fToBind = this,
-            fNOP = function () {},
-            fBound = function () {
-                return fToBind.apply(this instanceof fNOP && oThis
-                    ? this
-                    : oThis,
-                    aArgs.concat(Array.prototype.slice.call(arguments)));
-            };
+    var aArgs = Array.prototype.slice.call(arguments, 1),
+        fToBind = this,
+        fNOP = function () {},
+        fBound = function () {
+          return fToBind.apply(this instanceof fNOP && oThis
+              ? this
+              : oThis,
+              aArgs.concat(Array.prototype.slice.call(arguments)));
+        };
 
-        fNOP.prototype = this.prototype;
-        fBound.prototype = new fNOP();
+    fNOP.prototype = this.prototype;
+    fBound.prototype = new fNOP();
 
-        return fBound;
-    };
+    return fBound;
+  };
 }
 
 /**
@@ -4045,7 +3506,7 @@ var util = {};
  * @return {Boolean} isNumber
  */
 util.isNumber = function isNumber(object) {
-    return (object instanceof Number || typeof object == 'number');
+  return (object instanceof Number || typeof object == 'number');
 };
 
 /**
@@ -4054,7 +3515,7 @@ util.isNumber = function isNumber(object) {
  * @return {Boolean} isString
  */
 util.isString = function isString(object) {
-    return (object instanceof String || typeof object == 'string');
+  return (object instanceof String || typeof object == 'string');
 };
 
 /**
@@ -4063,21 +3524,21 @@ util.isString = function isString(object) {
  * @return {Boolean} isDate
  */
 util.isDate = function isDate(object) {
-    if (object instanceof Date) {
-        return true;
+  if (object instanceof Date) {
+    return true;
+  }
+  else if (util.isString(object)) {
+    // test whether this string contains a date
+    var match = ASPDateRegex.exec(object);
+    if (match) {
+      return true;
     }
-    else if (util.isString(object)) {
-        // test whether this string contains a date
-        var match = ASPDateRegex.exec(object);
-        if (match) {
-            return true;
-        }
-        else if (!isNaN(Date.parse(object))) {
-            return true;
-        }
+    else if (!isNaN(Date.parse(object))) {
+      return true;
     }
+  }
 
-    return false;
+  return false;
 };
 
 /**
@@ -4086,10 +3547,10 @@ util.isDate = function isDate(object) {
  * @return {Boolean} isDataTable
  */
 util.isDataTable = function isDataTable(object) {
-    return (typeof (google) !== 'undefined') &&
-        (google.visualization) &&
-        (google.visualization.DataTable) &&
-        (object instanceof google.visualization.DataTable);
+  return (typeof (google) !== 'undefined') &&
+      (google.visualization) &&
+      (google.visualization.DataTable) &&
+      (object instanceof google.visualization.DataTable);
 };
 
 /**
@@ -4098,19 +3559,19 @@ util.isDataTable = function isDataTable(object) {
  * @return {String} uuid
  */
 util.randomUUID = function randomUUID () {
-    var S4 = function () {
-        return Math.floor(
-            Math.random() * 0x10000 /* 65536 */
-        ).toString(16);
-    };
+  var S4 = function () {
+    return Math.floor(
+        Math.random() * 0x10000 /* 65536 */
+    ).toString(16);
+  };
 
-    return (
-        S4() + S4() + '-' +
-            S4() + '-' +
-            S4() + '-' +
-            S4() + '-' +
-            S4() + S4() + S4()
-        );
+  return (
+      S4() + S4() + '-' +
+          S4() + '-' +
+          S4() + '-' +
+          S4() + '-' +
+          S4() + S4() + S4()
+      );
 };
 
 /**
@@ -4121,16 +3582,16 @@ util.randomUUID = function randomUUID () {
  * @return {Object} a
  */
 util.extend = function (a, b) {
-    for (var i = 1, len = arguments.length; i < len; i++) {
-        var other = arguments[i];
-        for (var prop in other) {
-            if (other.hasOwnProperty(prop) && other[prop] !== undefined) {
-                a[prop] = other[prop];
-            }
-        }
+  for (var i = 1, len = arguments.length; i < len; i++) {
+    var other = arguments[i];
+    for (var prop in other) {
+      if (other.hasOwnProperty(prop) && other[prop] !== undefined) {
+        a[prop] = other[prop];
+      }
     }
+  }
 
-    return a;
+  return a;
 };
 
 /**
@@ -4143,143 +3604,143 @@ util.extend = function (a, b) {
  * @throws Error
  */
 util.convert = function convert(object, type) {
-    var match;
+  var match;
 
-    if (object === undefined) {
-        return undefined;
-    }
-    if (object === null) {
-        return null;
-    }
+  if (object === undefined) {
+    return undefined;
+  }
+  if (object === null) {
+    return null;
+  }
 
-    if (!type) {
-        return object;
-    }
-    if (!(typeof type === 'string') && !(type instanceof String)) {
-        throw new Error('Type must be a string');
-    }
+  if (!type) {
+    return object;
+  }
+  if (!(typeof type === 'string') && !(type instanceof String)) {
+    throw new Error('Type must be a string');
+  }
 
-    //noinspection FallthroughInSwitchStatementJS
-    switch (type) {
-        case 'boolean':
-        case 'Boolean':
-            return Boolean(object);
+  //noinspection FallthroughInSwitchStatementJS
+  switch (type) {
+    case 'boolean':
+    case 'Boolean':
+      return Boolean(object);
 
-        case 'number':
-        case 'Number':
-            return Number(object.valueOf());
+    case 'number':
+    case 'Number':
+      return Number(object.valueOf());
 
-        case 'string':
-        case 'String':
-            return String(object);
+    case 'string':
+    case 'String':
+      return String(object);
 
-        case 'Date':
-            if (util.isNumber(object)) {
-                return new Date(object);
-            }
-            if (object instanceof Date) {
-                return new Date(object.valueOf());
-            }
-            else if (moment.isMoment(object)) {
-                return new Date(object.valueOf());
-            }
-            if (util.isString(object)) {
-                match = ASPDateRegex.exec(object);
-                if (match) {
-                    // object is an ASP date
-                    return new Date(Number(match[1])); // parse number
-                }
-                else {
-                    return moment(object).toDate(); // parse string
-                }
-            }
-            else {
-                throw new Error(
-                    'Cannot convert object of type ' + util.getType(object) +
-                        ' to type Date');
-            }
+    case 'Date':
+      if (util.isNumber(object)) {
+        return new Date(object);
+      }
+      if (object instanceof Date) {
+        return new Date(object.valueOf());
+      }
+      else if (moment.isMoment(object)) {
+        return new Date(object.valueOf());
+      }
+      if (util.isString(object)) {
+        match = ASPDateRegex.exec(object);
+        if (match) {
+          // object is an ASP date
+          return new Date(Number(match[1])); // parse number
+        }
+        else {
+          return moment(object).toDate(); // parse string
+        }
+      }
+      else {
+        throw new Error(
+            'Cannot convert object of type ' + util.getType(object) +
+                ' to type Date');
+      }
 
-        case 'Moment':
-            if (util.isNumber(object)) {
-                return moment(object);
-            }
-            if (object instanceof Date) {
-                return moment(object.valueOf());
-            }
-            else if (moment.isMoment(object)) {
-                return moment(object);
-            }
-            if (util.isString(object)) {
-                match = ASPDateRegex.exec(object);
-                if (match) {
-                    // object is an ASP date
-                    return moment(Number(match[1])); // parse number
-                }
-                else {
-                    return moment(object); // parse string
-                }
-            }
-            else {
-                throw new Error(
-                    'Cannot convert object of type ' + util.getType(object) +
-                        ' to type Date');
-            }
+    case 'Moment':
+      if (util.isNumber(object)) {
+        return moment(object);
+      }
+      if (object instanceof Date) {
+        return moment(object.valueOf());
+      }
+      else if (moment.isMoment(object)) {
+        return moment(object);
+      }
+      if (util.isString(object)) {
+        match = ASPDateRegex.exec(object);
+        if (match) {
+          // object is an ASP date
+          return moment(Number(match[1])); // parse number
+        }
+        else {
+          return moment(object); // parse string
+        }
+      }
+      else {
+        throw new Error(
+            'Cannot convert object of type ' + util.getType(object) +
+                ' to type Date');
+      }
 
-        case 'ISODate':
-            if (util.isNumber(object)) {
-                return new Date(object);
-            }
-            else if (object instanceof Date) {
-                return object.toISOString();
-            }
-            else if (moment.isMoment(object)) {
-                return object.toDate().toISOString();
-            }
-            else if (util.isString(object)) {
-                match = ASPDateRegex.exec(object);
-                if (match) {
-                    // object is an ASP date
-                    return new Date(Number(match[1])).toISOString(); // parse number
-                }
-                else {
-                    return new Date(object).toISOString(); // parse string
-                }
-            }
-            else {
-                throw new Error(
-                    'Cannot convert object of type ' + util.getType(object) +
-                        ' to type ISODate');
-            }
+    case 'ISODate':
+      if (util.isNumber(object)) {
+        return new Date(object);
+      }
+      else if (object instanceof Date) {
+        return object.toISOString();
+      }
+      else if (moment.isMoment(object)) {
+        return object.toDate().toISOString();
+      }
+      else if (util.isString(object)) {
+        match = ASPDateRegex.exec(object);
+        if (match) {
+          // object is an ASP date
+          return new Date(Number(match[1])).toISOString(); // parse number
+        }
+        else {
+          return new Date(object).toISOString(); // parse string
+        }
+      }
+      else {
+        throw new Error(
+            'Cannot convert object of type ' + util.getType(object) +
+                ' to type ISODate');
+      }
 
-        case 'ASPDate':
-            if (util.isNumber(object)) {
-                return '/Date(' + object + ')/';
-            }
-            else if (object instanceof Date) {
-                return '/Date(' + object.valueOf() + ')/';
-            }
-            else if (util.isString(object)) {
-                match = ASPDateRegex.exec(object);
-                var value;
-                if (match) {
-                    // object is an ASP date
-                    value = new Date(Number(match[1])).valueOf(); // parse number
-                }
-                else {
-                    value = new Date(object).valueOf(); // parse string
-                }
-                return '/Date(' + value + ')/';
-            }
-            else {
-                throw new Error(
-                    'Cannot convert object of type ' + util.getType(object) +
-                        ' to type ASPDate');
-            }
+    case 'ASPDate':
+      if (util.isNumber(object)) {
+        return '/Date(' + object + ')/';
+      }
+      else if (object instanceof Date) {
+        return '/Date(' + object.valueOf() + ')/';
+      }
+      else if (util.isString(object)) {
+        match = ASPDateRegex.exec(object);
+        var value;
+        if (match) {
+          // object is an ASP date
+          value = new Date(Number(match[1])).valueOf(); // parse number
+        }
+        else {
+          value = new Date(object).valueOf(); // parse string
+        }
+        return '/Date(' + value + ')/';
+      }
+      else {
+        throw new Error(
+            'Cannot convert object of type ' + util.getType(object) +
+                ' to type ASPDate');
+      }
 
-        default:
-            throw new Error('Cannot convert object of type ' + util.getType(object) +
-                ' to type "' + type + '"');
-    }
+    default:
+      throw new Error('Cannot convert object of type ' + util.getType(object) +
+          ' to type "' + type + '"');
+  }
 };
 
 // parse ASP.Net Date pattern,
@@ -4293,40 +3754,40 @@ var ASPDateRegex = /^\/?Date\((\-?\d+)/i;
  * @return {String} type
  */
 util.getType = function getType(object) {
-    var type = typeof object;
+  var type = typeof object;
 
-    if (type == 'object') {
-        if (object == null) {
-            return 'null';
-        }
-        if (object instanceof Boolean) {
-            return 'Boolean';
-        }
-        if (object instanceof Number) {
-            return 'Number';
-        }
-        if (object instanceof String) {
-            return 'String';
-        }
-        if (object instanceof Array) {
-            return 'Array';
-        }
-        if (object instanceof Date) {
-            return 'Date';
-        }
-        return 'Object';
+  if (type == 'object') {
+    if (object == null) {
+      return 'null';
     }
-    else if (type == 'number') {
-        return 'Number';
+    if (object instanceof Boolean) {
+      return 'Boolean';
     }
-    else if (type == 'boolean') {
-        return 'Boolean';
+    if (object instanceof Number) {
+      return 'Number';
     }
-    else if (type == 'string') {
-        return 'String';
+    if (object instanceof String) {
+      return 'String';
     }
+    if (object instanceof Array) {
+      return 'Array';
+    }
+    if (object instanceof Date) {
+      return 'Date';
+    }
+    return 'Object';
+  }
+  else if (type == 'number') {
+    return 'Number';
+  }
+  else if (type == 'boolean') {
+    return 'Boolean';
+  }
+  else if (type == 'string') {
+    return 'String';
+  }
 
-    return type;
+  return type;
 };
 
 /**
@@ -4336,17 +3797,17 @@ util.getType = function getType(object) {
  *                              in the browser page.
  */
 util.getAbsoluteLeft = function getAbsoluteLeft (elem) {
-    var doc = document.documentElement;
-    var body = document.body;
+  var doc = document.documentElement;
+  var body = document.body;
 
-    var left = elem.offsetLeft;
-    var e = elem.offsetParent;
-    while (e != null && e != body && e != doc) {
-        left += e.offsetLeft;
-        left -= e.scrollLeft;
-        e = e.offsetParent;
-    }
-    return left;
+  var left = elem.offsetLeft;
+  var e = elem.offsetParent;
+  while (e != null && e != body && e != doc) {
+    left += e.offsetLeft;
+    left -= e.scrollLeft;
+    e = e.offsetParent;
+  }
+  return left;
 };
 
 /**
@@ -4356,17 +3817,17 @@ util.getAbsoluteLeft = function getAbsoluteLeft (elem) {
  *                              in the browser page.
  */
 util.getAbsoluteTop = function getAbsoluteTop (elem) {
-    var doc = document.documentElement;
-    var body = document.body;
+  var doc = document.documentElement;
+  var body = document.body;
 
-    var top = elem.offsetTop;
-    var e = elem.offsetParent;
-    while (e != null && e != body && e != doc) {
-        top += e.offsetTop;
-        top -= e.scrollTop;
-        e = e.offsetParent;
-    }
-    return top;
+  var top = elem.offsetTop;
+  var e = elem.offsetParent;
+  while (e != null && e != body && e != doc) {
+    top += e.offsetTop;
+    top -= e.scrollTop;
+    e = e.offsetParent;
+  }
+  return top;
 };
 
 /**
@@ -4375,24 +3836,24 @@ util.getAbsoluteTop = function getAbsoluteTop (elem) {
  * @return {Number} pageY
  */
 util.getPageY = function getPageY (event) {
-    if ('pageY' in event) {
-        return event.pageY;
+  if ('pageY' in event) {
+    return event.pageY;
+  }
+  else {
+    var clientY;
+    if (('targetTouches' in event) && event.targetTouches.length) {
+      clientY = event.targetTouches[0].clientY;
     }
     else {
-        var clientY;
-        if (('targetTouches' in event) && event.targetTouches.length) {
-            clientY = event.targetTouches[0].clientY;
-        }
-        else {
-            clientY = event.clientY;
-        }
-
-        var doc = document.documentElement;
-        var body = document.body;
-        return clientY +
-            ( doc && doc.scrollTop || body && body.scrollTop || 0 ) -
-            ( doc && doc.clientTop || body && body.clientTop || 0 );
+      clientY = event.clientY;
     }
+
+    var doc = document.documentElement;
+    var body = document.body;
+    return clientY +
+        ( doc && doc.scrollTop || body && body.scrollTop || 0 ) -
+        ( doc && doc.clientTop || body && body.clientTop || 0 );
+  }
 };
 
 /**
@@ -4401,24 +3862,24 @@ util.getPageY = function getPageY (event) {
  * @return {Number} pageX
  */
 util.getPageX = function getPageX (event) {
-    if ('pageY' in event) {
-        return event.pageX;
+  if ('pageY' in event) {
+    return event.pageX;
+  }
+  else {
+    var clientX;
+    if (('targetTouches' in event) && event.targetTouches.length) {
+      clientX = event.targetTouches[0].clientX;
     }
     else {
-        var clientX;
-        if (('targetTouches' in event) && event.targetTouches.length) {
-            clientX = event.targetTouches[0].clientX;
-        }
-        else {
-            clientX = event.clientX;
-        }
-
-        var doc = document.documentElement;
-        var body = document.body;
-        return clientX +
-            ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) -
-            ( doc && doc.clientLeft || body && body.clientLeft || 0 );
+      clientX = event.clientX;
     }
+
+    var doc = document.documentElement;
+    var body = document.body;
+    return clientX +
+        ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) -
+        ( doc && doc.clientLeft || body && body.clientLeft || 0 );
+  }
 };
 
 /**
@@ -4427,11 +3888,11 @@ util.getPageX = function getPageX (event) {
  * @param {String} className
  */
 util.addClassName = function addClassName(elem, className) {
-    var classes = elem.className.split(' ');
-    if (classes.indexOf(className) == -1) {
-        classes.push(className); // add the class to the array
-        elem.className = classes.join(' ');
-    }
+  var classes = elem.className.split(' ');
+  if (classes.indexOf(className) == -1) {
+    classes.push(className); // add the class to the array
+    elem.className = classes.join(' ');
+  }
 };
 
 /**
@@ -4440,12 +3901,12 @@ util.addClassName = function addClassName(elem, className) {
  * @param {String} className
  */
 util.removeClassName = function removeClassname(elem, className) {
-    var classes = elem.className.split(' ');
-    var index = classes.indexOf(className);
-    if (index != -1) {
-        classes.splice(index, 1); // remove the class from the array
-        elem.className = classes.join(' ');
-    }
+  var classes = elem.className.split(' ');
+  var index = classes.indexOf(className);
+  if (index != -1) {
+    classes.splice(index, 1); // remove the class from the array
+    elem.className = classes.join(' ');
+  }
 };
 
 /**
@@ -4458,22 +3919,22 @@ util.removeClassName = function removeClassname(elem, className) {
  *                                  callback(value, index, object)
  */
 util.forEach = function forEach (object, callback) {
-    var i,
-        len;
-    if (object instanceof Array) {
-        // array
-        for (i = 0, len = object.length; i < len; i++) {
-            callback(object[i], i, object);
-        }
+  var i,
+      len;
+  if (object instanceof Array) {
+    // array
+    for (i = 0, len = object.length; i < len; i++) {
+      callback(object[i], i, object);
     }
-    else {
-        // object
-        for (i in object) {
-            if (object.hasOwnProperty(i)) {
-                callback(object[i], i, object);
-            }
-        }
+  }
+  else {
+    // object
+    for (i in object) {
+      if (object.hasOwnProperty(i)) {
+        callback(object[i], i, object);
+      }
     }
+  }
 };
 
 /**
@@ -4484,13 +3945,13 @@ util.forEach = function forEach (object, callback) {
  * @return {Boolean} changed
  */
 util.updateProperty = function updateProp (object, key, value) {
-    if (object[key] !== value) {
-        object[key] = value;
-        return true;
-    }
-    else {
-        return false;
-    }
+  if (object[key] !== value) {
+    object[key] = value;
+    return true;
+  }
+  else {
+    return false;
+  }
 };
 
 /**
@@ -4502,18 +3963,18 @@ util.updateProperty = function updateProp (object, key, value) {
  * @param {boolean}     [useCapture]
  */
 util.addEventListener = function addEventListener(element, action, listener, useCapture) {
-    if (element.addEventListener) {
-        if (useCapture === undefined)
-            useCapture = false;
+  if (element.addEventListener) {
+    if (useCapture === undefined)
+      useCapture = false;
 
-        if (action === "mousewheel" && navigator.userAgent.indexOf("Firefox") >= 0) {
-            action = "DOMMouseScroll";  // For Firefox
-        }
-
-        element.addEventListener(action, listener, useCapture);
-    } else {
-        element.attachEvent("on" + action, listener);  // IE browsers
+    if (action === "mousewheel" && navigator.userAgent.indexOf("Firefox") >= 0) {
+      action = "DOMMouseScroll";  // For Firefox
     }
+
+    element.addEventListener(action, listener, useCapture);
+  } else {
+    element.attachEvent("on" + action, listener);  // IE browsers
+  }
 };
 
 /**
@@ -4524,20 +3985,20 @@ util.addEventListener = function addEventListener(element, action, listener, use
  * @param {boolean}     [useCapture]
  */
 util.removeEventListener = function removeEventListener(element, action, listener, useCapture) {
-    if (element.removeEventListener) {
-        // non-IE browsers
-        if (useCapture === undefined)
-            useCapture = false;
+  if (element.removeEventListener) {
+    // non-IE browsers
+    if (useCapture === undefined)
+      useCapture = false;
 
-        if (action === "mousewheel" && navigator.userAgent.indexOf("Firefox") >= 0) {
-            action = "DOMMouseScroll";  // For Firefox
-        }
-
-        element.removeEventListener(action, listener, useCapture);
-    } else {
-        // IE browsers
-        element.detachEvent("on" + action, listener);
+    if (action === "mousewheel" && navigator.userAgent.indexOf("Firefox") >= 0) {
+      action = "DOMMouseScroll";  // For Firefox
     }
+
+    element.removeEventListener(action, listener, useCapture);
+  } else {
+    // IE browsers
+    element.detachEvent("on" + action, listener);
+  }
 };
 
 
@@ -4547,41 +4008,41 @@ util.removeEventListener = function removeEventListener(element, action, listene
  * @return {Element} target element
  */
 util.getTarget = function getTarget(event) {
-    // code from http://www.quirksmode.org/js/events_properties.html
-    if (!event) {
-        event = window.event;
-    }
+  // code from http://www.quirksmode.org/js/events_properties.html
+  if (!event) {
+    event = window.event;
+  }
 
-    var target;
+  var target;
 
-    if (event.target) {
-        target = event.target;
-    }
-    else if (event.srcElement) {
-        target = event.srcElement;
-    }
+  if (event.target) {
+    target = event.target;
+  }
+  else if (event.srcElement) {
+    target = event.srcElement;
+  }
 
-    if (target.nodeType != undefined && target.nodeType == 3) {
-        // defeat Safari bug
-        target = target.parentNode;
-    }
+  if (target.nodeType != undefined && target.nodeType == 3) {
+    // defeat Safari bug
+    target = target.parentNode;
+  }
 
-    return target;
+  return target;
 };
 
 /**
  * Stop event propagation
  */
 util.stopPropagation = function stopPropagation(event) {
-    if (!event)
-        event = window.event;
+  if (!event)
+    event = window.event;
 
-    if (event.stopPropagation) {
-        event.stopPropagation();  // non-IE browsers
-    }
-    else {
-        event.cancelBubble = true;  // IE browsers
-    }
+  if (event.stopPropagation) {
+    event.stopPropagation();  // non-IE browsers
+  }
+  else {
+    event.cancelBubble = true;  // IE browsers
+  }
 };
 
 
@@ -4589,15 +4050,15 @@ util.stopPropagation = function stopPropagation(event) {
  * Cancels the event if it is cancelable, without stopping further propagation of the event.
  */
 util.preventDefault = function preventDefault (event) {
-    if (!event)
-        event = window.event;
+  if (!event)
+    event = window.event;
 
-    if (event.preventDefault) {
-        event.preventDefault();  // non-IE browsers
-    }
-    else {
-        event.returnValue = false;  // IE browsers
-    }
+  if (event.preventDefault) {
+    event.preventDefault();  // non-IE browsers
+  }
+  else {
+    event.returnValue = false;  // IE browsers
+  }
 };
 
 
@@ -4610,15 +4071,15 @@ util.option = {};
  * @returns {Boolean} bool
  */
 util.option.asBoolean = function (value, defaultValue) {
-    if (typeof value == 'function') {
-        value = value();
-    }
+  if (typeof value == 'function') {
+    value = value();
+  }
 
-    if (value != null) {
-        return (value != false);
-    }
+  if (value != null) {
+    return (value != false);
+  }
 
-    return defaultValue || null;
+  return defaultValue || null;
 };
 
 /**
@@ -4628,15 +4089,15 @@ util.option.asBoolean = function (value, defaultValue) {
  * @returns {Number} number
  */
 util.option.asNumber = function (value, defaultValue) {
-    if (typeof value == 'function') {
-        value = value();
-    }
+  if (typeof value == 'function') {
+    value = value();
+  }
 
-    if (value != null) {
-        return Number(value) || defaultValue || null;
-    }
+  if (value != null) {
+    return Number(value) || defaultValue || null;
+  }
 
-    return defaultValue || null;
+  return defaultValue || null;
 };
 
 /**
@@ -4646,15 +4107,15 @@ util.option.asNumber = function (value, defaultValue) {
  * @returns {String} str
  */
 util.option.asString = function (value, defaultValue) {
-    if (typeof value == 'function') {
-        value = value();
-    }
+  if (typeof value == 'function') {
+    value = value();
+  }
 
-    if (value != null) {
-        return String(value);
-    }
+  if (value != null) {
+    return String(value);
+  }
 
-    return defaultValue || null;
+  return defaultValue || null;
 };
 
 /**
@@ -4664,19 +4125,19 @@ util.option.asString = function (value, defaultValue) {
  * @returns {String} size
  */
 util.option.asSize = function (value, defaultValue) {
-    if (typeof value == 'function') {
-        value = value();
-    }
+  if (typeof value == 'function') {
+    value = value();
+  }
 
-    if (util.isString(value)) {
-        return value;
-    }
-    else if (util.isNumber(value)) {
-        return value + 'px';
-    }
-    else {
-        return defaultValue || null;
-    }
+  if (util.isString(value)) {
+    return value;
+  }
+  else if (util.isNumber(value)) {
+    return value + 'px';
+  }
+  else {
+    return defaultValue || null;
+  }
 };
 
 /**
@@ -4686,11 +4147,11 @@ util.option.asSize = function (value, defaultValue) {
  * @returns {HTMLElement | null} dom
  */
 util.option.asElement = function (value, defaultValue) {
-    if (typeof value == 'function') {
-        value = value();
-    }
+  if (typeof value == 'function') {
+    value = value();
+  }
 
-    return value || defaultValue || null;
+  return value || defaultValue || null;
 };
 
 /**
@@ -4698,27 +4159,27 @@ util.option.asElement = function (value, defaultValue) {
  * @param {String} css    Text containing css
  */
 util.loadCss = function (css) {
-    if (typeof document === 'undefined') {
-        return;
-    }
+  if (typeof document === 'undefined') {
+    return;
+  }
 
-    // get the script location, and built the css file name from the js file name
-    // http://stackoverflow.com/a/2161748/1262753
-    // var scripts = document.getElementsByTagName('script');
-    // var jsFile = scripts[scripts.length-1].src.split('?')[0];
-    // var cssFile = jsFile.substring(0, jsFile.length - 2) + 'css';
+  // get the script location, and built the css file name from the js file name
+  // http://stackoverflow.com/a/2161748/1262753
+  // var scripts = document.getElementsByTagName('script');
+  // var jsFile = scripts[scripts.length-1].src.split('?')[0];
+  // var cssFile = jsFile.substring(0, jsFile.length - 2) + 'css';
 
-    // inject css
-    // http://stackoverflow.com/questions/524696/how-to-create-a-style-tag-with-javascript
-    var style = document.createElement('style');
-    style.type = 'text/css';
-    if (style.styleSheet){
-        style.styleSheet.cssText = css;
-    } else {
-        style.appendChild(document.createTextNode(css));
-    }
+  // inject css
+  // http://stackoverflow.com/questions/524696/how-to-create-a-style-tag-with-javascript
+  var style = document.createElement('style');
+  style.type = 'text/css';
+  if (style.styleSheet){
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
 
-    document.getElementsByTagName('head')[0].appendChild(style);
+  document.getElementsByTagName('head')[0].appendChild(style);
 };
 
 /**
@@ -4726,116 +4187,116 @@ util.loadCss = function (css) {
  */
 // TODO: replace usage of the event listener for the EventBus
 var events = {
-    'listeners': [],
+  'listeners': [],
 
-    /**
-     * Find a single listener by its object
-     * @param {Object} object
-     * @return {Number} index  -1 when not found
-     */
-    'indexOf': function (object) {
-        var listeners = this.listeners;
-        for (var i = 0, iMax = this.listeners.length; i < iMax; i++) {
-            var listener = listeners[i];
-            if (listener && listener.object == object) {
-                return i;
-            }
-        }
-        return -1;
-    },
-
-    /**
-     * Add an event listener
-     * @param {Object} object
-     * @param {String} event       The name of an event, for example 'select'
-     * @param {function} callback  The callback method, called when the
-     *                             event takes place
-     */
-    'addListener': function (object, event, callback) {
-        var index = this.indexOf(object);
-        var listener = this.listeners[index];
-        if (!listener) {
-            listener = {
-                'object': object,
-                'events': {}
-            };
-            this.listeners.push(listener);
-        }
-
-        var callbacks = listener.events[event];
-        if (!callbacks) {
-            callbacks = [];
-            listener.events[event] = callbacks;
-        }
-
-        // add the callback if it does not yet exist
-        if (callbacks.indexOf(callback) == -1) {
-            callbacks.push(callback);
-        }
-    },
-
-    /**
-     * Remove an event listener
-     * @param {Object} object
-     * @param {String} event       The name of an event, for example 'select'
-     * @param {function} callback  The registered callback method
-     */
-    'removeListener': function (object, event, callback) {
-        var index = this.indexOf(object);
-        var listener = this.listeners[index];
-        if (listener) {
-            var callbacks = listener.events[event];
-            if (callbacks) {
-                index = callbacks.indexOf(callback);
-                if (index != -1) {
-                    callbacks.splice(index, 1);
-                }
-
-                // remove the array when empty
-                if (callbacks.length == 0) {
-                    delete listener.events[event];
-                }
-            }
-
-            // count the number of registered events. remove listener when empty
-            var count = 0;
-            var events = listener.events;
-            for (var e in events) {
-                if (events.hasOwnProperty(e)) {
-                    count++;
-                }
-            }
-            if (count == 0) {
-                delete this.listeners[index];
-            }
-        }
-    },
-
-    /**
-     * Remove all registered event listeners
-     */
-    'removeAllListeners': function () {
-        this.listeners = [];
-    },
-
-    /**
-     * Trigger an event. All registered event handlers will be called
-     * @param {Object} object
-     * @param {String} event
-     * @param {Object} properties (optional)
-     */
-    'trigger': function (object, event, properties) {
-        var index = this.indexOf(object);
-        var listener = this.listeners[index];
-        if (listener) {
-            var callbacks = listener.events[event];
-            if (callbacks) {
-                for (var i = 0, iMax = callbacks.length; i < iMax; i++) {
-                    callbacks[i](properties);
-                }
-            }
-        }
+  /**
+   * Find a single listener by its object
+   * @param {Object} object
+   * @return {Number} index  -1 when not found
+   */
+  'indexOf': function (object) {
+    var listeners = this.listeners;
+    for (var i = 0, iMax = this.listeners.length; i < iMax; i++) {
+      var listener = listeners[i];
+      if (listener && listener.object == object) {
+        return i;
+      }
     }
+    return -1;
+  },
+
+  /**
+   * Add an event listener
+   * @param {Object} object
+   * @param {String} event       The name of an event, for example 'select'
+   * @param {function} callback  The callback method, called when the
+   *                             event takes place
+   */
+  'addListener': function (object, event, callback) {
+    var index = this.indexOf(object);
+    var listener = this.listeners[index];
+    if (!listener) {
+      listener = {
+        'object': object,
+        'events': {}
+      };
+      this.listeners.push(listener);
+    }
+
+    var callbacks = listener.events[event];
+    if (!callbacks) {
+      callbacks = [];
+      listener.events[event] = callbacks;
+    }
+
+    // add the callback if it does not yet exist
+    if (callbacks.indexOf(callback) == -1) {
+      callbacks.push(callback);
+    }
+  },
+
+  /**
+   * Remove an event listener
+   * @param {Object} object
+   * @param {String} event       The name of an event, for example 'select'
+   * @param {function} callback  The registered callback method
+   */
+  'removeListener': function (object, event, callback) {
+    var index = this.indexOf(object);
+    var listener = this.listeners[index];
+    if (listener) {
+      var callbacks = listener.events[event];
+      if (callbacks) {
+        index = callbacks.indexOf(callback);
+        if (index != -1) {
+          callbacks.splice(index, 1);
+        }
+
+        // remove the array when empty
+        if (callbacks.length == 0) {
+          delete listener.events[event];
+        }
+      }
+
+      // count the number of registered events. remove listener when empty
+      var count = 0;
+      var events = listener.events;
+      for (var e in events) {
+        if (events.hasOwnProperty(e)) {
+          count++;
+        }
+      }
+      if (count == 0) {
+        delete this.listeners[index];
+      }
+    }
+  },
+
+  /**
+   * Remove all registered event listeners
+   */
+  'removeAllListeners': function () {
+    this.listeners = [];
+  },
+
+  /**
+   * Trigger an event. All registered event handlers will be called
+   * @param {Object} object
+   * @param {String} event
+   * @param {Object} properties (optional)
+   */
+  'trigger': function (object, event, properties) {
+    var index = this.indexOf(object);
+    var listener = this.listeners[index];
+    if (listener) {
+      var callbacks = listener.events[event];
+      if (callbacks) {
+        for (var i = 0, iMax = callbacks.length; i < iMax; i++) {
+          callbacks[i](properties);
+        }
+      }
+    }
+  }
 };
 
 /**
@@ -4843,7 +4304,7 @@ var events = {
  * @constructor EventBus
  */
 function EventBus() {
-    this.subscriptions = [];
+  this.subscriptions = [];
 }
 
 /**
@@ -4856,21 +4317,21 @@ function EventBus() {
  * @returns {String} id    A subscription id
  */
 EventBus.prototype.on = function (event, callback, target) {
-    var regexp = (event instanceof RegExp) ?
-        event :
-        new RegExp(event.replace('*', '\\w+'));
+  var regexp = (event instanceof RegExp) ?
+      event :
+      new RegExp(event.replace('*', '\\w+'));
 
-    var subscription = {
-        id:       util.randomUUID(),
-        event:    event,
-        regexp:   regexp,
-        callback: (typeof callback === 'function') ? callback : null,
-        target:   target
-    };
+  var subscription = {
+    id:       util.randomUUID(),
+    event:    event,
+    regexp:   regexp,
+    callback: (typeof callback === 'function') ? callback : null,
+    target:   target
+  };
 
-    this.subscriptions.push(subscription);
+  this.subscriptions.push(subscription);
 
-    return subscription.id;
+  return subscription.id;
 };
 
 /**
@@ -4882,33 +4343,33 @@ EventBus.prototype.on = function (event, callback, target) {
  *                                   callback, and target.
  */
 EventBus.prototype.off = function (filter) {
-    var i = 0;
-    while (i < this.subscriptions.length) {
-        var subscription = this.subscriptions[i];
+  var i = 0;
+  while (i < this.subscriptions.length) {
+    var subscription = this.subscriptions[i];
 
-        var match = true;
-        if (filter instanceof Object) {
-            // filter is an object. All fields must match
-            for (var prop in filter) {
-                if (filter.hasOwnProperty(prop)) {
-                    if (filter[prop] !== subscription[prop]) {
-                        match = false;
-                    }
-                }
-            }
+    var match = true;
+    if (filter instanceof Object) {
+      // filter is an object. All fields must match
+      for (var prop in filter) {
+        if (filter.hasOwnProperty(prop)) {
+          if (filter[prop] !== subscription[prop]) {
+            match = false;
+          }
         }
-        else {
-            // filter is a string, filter on id
-            match = (subscription.id == filter);
-        }
-
-        if (match) {
-            this.subscriptions.splice(i, 1);
-        }
-        else {
-            i++;
-        }
+      }
     }
+    else {
+      // filter is a string, filter on id
+      match = (subscription.id == filter);
+    }
+
+    if (match) {
+      this.subscriptions.splice(i, 1);
+    }
+    else {
+      i++;
+    }
+  }
 };
 
 /**
@@ -4918,14 +4379,14 @@ EventBus.prototype.off = function (filter) {
  * @param {*} [source]
  */
 EventBus.prototype.emit = function (event, data, source) {
-    for (var i =0; i < this.subscriptions.length; i++) {
-        var subscription = this.subscriptions[i];
-        if (subscription.regexp.test(event)) {
-            if (subscription.callback) {
-                subscription.callback(event, data, source);
-            }
-        }
+  for (var i =0; i < this.subscriptions.length; i++) {
+    var subscription = this.subscriptions[i];
+    if (subscription.regexp.test(event)) {
+      if (subscription.callback) {
+        subscription.callback(event, data, source);
+      }
     }
+  }
 };
 
 /**
@@ -4966,31 +4427,31 @@ EventBus.prototype.emit = function (event, data, source) {
  */
 // TODO: add a DataSet constructor DataSet(data, options)
 function DataSet (options) {
-    this.id = util.randomUUID();
+  this.id = util.randomUUID();
 
-    this.options = options || {};
-    this.data = {};                                 // map with data indexed by id
-    this.fieldId = this.options.fieldId || 'id';    // name of the field containing id
-    this.convert = {};                              // field types by field name
+  this.options = options || {};
+  this.data = {};                                 // map with data indexed by id
+  this.fieldId = this.options.fieldId || 'id';    // name of the field containing id
+  this.convert = {};                              // field types by field name
 
-    if (this.options.convert) {
-        for (var field in this.options.convert) {
-            if (this.options.convert.hasOwnProperty(field)) {
-                var value = this.options.convert[field];
-                if (value == 'Date' || value == 'ISODate' || value == 'ASPDate') {
-                    this.convert[field] = 'Date';
-                }
-                else {
-                    this.convert[field] = value;
-                }
-            }
+  if (this.options.convert) {
+    for (var field in this.options.convert) {
+      if (this.options.convert.hasOwnProperty(field)) {
+        var value = this.options.convert[field];
+        if (value == 'Date' || value == 'ISODate' || value == 'ASPDate') {
+          this.convert[field] = 'Date';
         }
+        else {
+          this.convert[field] = value;
+        }
+      }
     }
+  }
 
-    // event subscribers
-    this.subscribers = {};
+  // event subscribers
+  this.subscribers = {};
 
-    this.internalIds = {};            // internally generated id's
+  this.internalIds = {};            // internally generated id's
 }
 
 /**
@@ -5003,15 +4464,15 @@ function DataSet (options) {
  *                                  {String | Number} senderId
  */
 DataSet.prototype.subscribe = function (event, callback) {
-    var subscribers = this.subscribers[event];
-    if (!subscribers) {
-        subscribers = [];
-        this.subscribers[event] = subscribers;
-    }
+  var subscribers = this.subscribers[event];
+  if (!subscribers) {
+    subscribers = [];
+    this.subscribers[event] = subscribers;
+  }
 
-    subscribers.push({
-        callback: callback
-    });
+  subscribers.push({
+    callback: callback
+  });
 };
 
 /**
@@ -5020,12 +4481,12 @@ DataSet.prototype.subscribe = function (event, callback) {
  * @param {function} callback
  */
 DataSet.prototype.unsubscribe = function (event, callback) {
-    var subscribers = this.subscribers[event];
-    if (subscribers) {
-        this.subscribers[event] = subscribers.filter(function (listener) {
-            return (listener.callback != callback);
-        });
-    }
+  var subscribers = this.subscribers[event];
+  if (subscribers) {
+    this.subscribers[event] = subscribers.filter(function (listener) {
+      return (listener.callback != callback);
+    });
+  }
 };
 
 /**
@@ -5036,24 +4497,24 @@ DataSet.prototype.unsubscribe = function (event, callback) {
  * @private
  */
 DataSet.prototype._trigger = function (event, params, senderId) {
-    if (event == '*') {
-        throw new Error('Cannot trigger event *');
-    }
+  if (event == '*') {
+    throw new Error('Cannot trigger event *');
+  }
 
-    var subscribers = [];
-    if (event in this.subscribers) {
-        subscribers = subscribers.concat(this.subscribers[event]);
-    }
-    if ('*' in this.subscribers) {
-        subscribers = subscribers.concat(this.subscribers['*']);
-    }
+  var subscribers = [];
+  if (event in this.subscribers) {
+    subscribers = subscribers.concat(this.subscribers[event]);
+  }
+  if ('*' in this.subscribers) {
+    subscribers = subscribers.concat(this.subscribers['*']);
+  }
 
-    for (var i = 0; i < subscribers.length; i++) {
-        var subscriber = subscribers[i];
-        if (subscriber.callback) {
-            subscriber.callback(event, params, senderId || null);
-        }
+  for (var i = 0; i < subscribers.length; i++) {
+    var subscriber = subscribers[i];
+    if (subscriber.callback) {
+      subscriber.callback(event, params, senderId || null);
     }
+  }
 };
 
 /**
@@ -5064,45 +4525,45 @@ DataSet.prototype._trigger = function (event, params, senderId) {
  * @return {Array} addedIds      Array with the ids of the added items
  */
 DataSet.prototype.add = function (data, senderId) {
-    var addedIds = [],
-        id,
-        me = this;
+  var addedIds = [],
+      id,
+      me = this;
 
-    if (data instanceof Array) {
-        // Array
-        for (var i = 0, len = data.length; i < len; i++) {
-            id = me._addItem(data[i]);
-            addedIds.push(id);
-        }
+  if (data instanceof Array) {
+    // Array
+    for (var i = 0, len = data.length; i < len; i++) {
+      id = me._addItem(data[i]);
+      addedIds.push(id);
     }
-    else if (util.isDataTable(data)) {
-        // Google DataTable
-        var columns = this._getColumnNames(data);
-        for (var row = 0, rows = data.getNumberOfRows(); row < rows; row++) {
-            var item = {};
-            for (var col = 0, cols = columns.length; col < cols; col++) {
-                var field = columns[col];
-                item[field] = data.getValue(row, col);
-            }
+  }
+  else if (util.isDataTable(data)) {
+    // Google DataTable
+    var columns = this._getColumnNames(data);
+    for (var row = 0, rows = data.getNumberOfRows(); row < rows; row++) {
+      var item = {};
+      for (var col = 0, cols = columns.length; col < cols; col++) {
+        var field = columns[col];
+        item[field] = data.getValue(row, col);
+      }
 
-            id = me._addItem(item);
-            addedIds.push(id);
-        }
+      id = me._addItem(item);
+      addedIds.push(id);
     }
-    else if (data instanceof Object) {
-        // Single item
-        id = me._addItem(data);
-        addedIds.push(id);
-    }
-    else {
-        throw new Error('Unknown dataType');
-    }
+  }
+  else if (data instanceof Object) {
+    // Single item
+    id = me._addItem(data);
+    addedIds.push(id);
+  }
+  else {
+    throw new Error('Unknown dataType');
+  }
 
-    if (addedIds.length) {
-        this._trigger('add', {items: addedIds}, senderId);
-    }
+  if (addedIds.length) {
+    this._trigger('add', {items: addedIds}, senderId);
+  }
 
-    return addedIds;
+  return addedIds;
 };
 
 /**
@@ -5112,60 +4573,60 @@ DataSet.prototype.add = function (data, senderId) {
  * @return {Array} updatedIds     The ids of the added or updated items
  */
 DataSet.prototype.update = function (data, senderId) {
-    var addedIds = [],
-        updatedIds = [],
-        me = this,
-        fieldId = me.fieldId;
+  var addedIds = [],
+      updatedIds = [],
+      me = this,
+      fieldId = me.fieldId;
 
-    var addOrUpdate = function (item) {
-        var id = item[fieldId];
-        if (me.data[id]) {
-            // update item
-            id = me._updateItem(item);
-            updatedIds.push(id);
-        }
-        else {
-            // add new item
-            id = me._addItem(item);
-            addedIds.push(id);
-        }
-    };
-
-    if (data instanceof Array) {
-        // Array
-        for (var i = 0, len = data.length; i < len; i++) {
-            addOrUpdate(data[i]);
-        }
-    }
-    else if (util.isDataTable(data)) {
-        // Google DataTable
-        var columns = this._getColumnNames(data);
-        for (var row = 0, rows = data.getNumberOfRows(); row < rows; row++) {
-            var item = {};
-            for (var col = 0, cols = columns.length; col < cols; col++) {
-                var field = columns[col];
-                item[field] = data.getValue(row, col);
-            }
-
-            addOrUpdate(item);
-        }
-    }
-    else if (data instanceof Object) {
-        // Single item
-        addOrUpdate(data);
+  var addOrUpdate = function (item) {
+    var id = item[fieldId];
+    if (me.data[id]) {
+      // update item
+      id = me._updateItem(item);
+      updatedIds.push(id);
     }
     else {
-        throw new Error('Unknown dataType');
+      // add new item
+      id = me._addItem(item);
+      addedIds.push(id);
     }
+  };
 
-    if (addedIds.length) {
-        this._trigger('add', {items: addedIds}, senderId);
+  if (data instanceof Array) {
+    // Array
+    for (var i = 0, len = data.length; i < len; i++) {
+      addOrUpdate(data[i]);
     }
-    if (updatedIds.length) {
-        this._trigger('update', {items: updatedIds}, senderId);
-    }
+  }
+  else if (util.isDataTable(data)) {
+    // Google DataTable
+    var columns = this._getColumnNames(data);
+    for (var row = 0, rows = data.getNumberOfRows(); row < rows; row++) {
+      var item = {};
+      for (var col = 0, cols = columns.length; col < cols; col++) {
+        var field = columns[col];
+        item[field] = data.getValue(row, col);
+      }
 
-    return addedIds.concat(updatedIds);
+      addOrUpdate(item);
+    }
+  }
+  else if (data instanceof Object) {
+    // Single item
+    addOrUpdate(data);
+  }
+  else {
+    throw new Error('Unknown dataType');
+  }
+
+  if (addedIds.length) {
+    this._trigger('add', {items: addedIds}, senderId);
+  }
+  if (updatedIds.length) {
+    this._trigger('update', {items: updatedIds}, senderId);
+  }
+
+  return addedIds.concat(updatedIds);
 };
 
 /**
@@ -5204,138 +4665,138 @@ DataSet.prototype.update = function (data, senderId) {
  * @throws Error
  */
 DataSet.prototype.get = function (args) {
-    var me = this;
+  var me = this;
 
-    // parse the arguments
-    var id, ids, options, data;
-    var firstType = util.getType(arguments[0]);
-    if (firstType == 'String' || firstType == 'Number') {
-        // get(id [, options] [, data])
-        id = arguments[0];
-        options = arguments[1];
-        data = arguments[2];
-    }
-    else if (firstType == 'Array') {
-        // get(ids [, options] [, data])
-        ids = arguments[0];
-        options = arguments[1];
-        data = arguments[2];
-    }
-    else {
-        // get([, options] [, data])
-        options = arguments[0];
-        data = arguments[1];
-    }
+  // parse the arguments
+  var id, ids, options, data;
+  var firstType = util.getType(arguments[0]);
+  if (firstType == 'String' || firstType == 'Number') {
+    // get(id [, options] [, data])
+    id = arguments[0];
+    options = arguments[1];
+    data = arguments[2];
+  }
+  else if (firstType == 'Array') {
+    // get(ids [, options] [, data])
+    ids = arguments[0];
+    options = arguments[1];
+    data = arguments[2];
+  }
+  else {
+    // get([, options] [, data])
+    options = arguments[0];
+    data = arguments[1];
+  }
 
-    // determine the return type
-    var type;
-    if (options && options.type) {
-        type = (options.type == 'DataTable') ? 'DataTable' : 'Array';
+  // determine the return type
+  var type;
+  if (options && options.type) {
+    type = (options.type == 'DataTable') ? 'DataTable' : 'Array';
 
-        if (data && (type != util.getType(data))) {
-            throw new Error('Type of parameter "data" (' + util.getType(data) + ') ' +
-                'does not correspond with specified options.type (' + options.type + ')');
+    if (data && (type != util.getType(data))) {
+      throw new Error('Type of parameter "data" (' + util.getType(data) + ') ' +
+          'does not correspond with specified options.type (' + options.type + ')');
+    }
+    if (type == 'DataTable' && !util.isDataTable(data)) {
+      throw new Error('Parameter "data" must be a DataTable ' +
+          'when options.type is "DataTable"');
+    }
+  }
+  else if (data) {
+    type = (util.getType(data) == 'DataTable') ? 'DataTable' : 'Array';
+  }
+  else {
+    type = 'Array';
+  }
+
+  // build options
+  var convert = options && options.convert || this.options.convert;
+  var filter = options && options.filter;
+  var items = [], item, itemId, i, len;
+
+  // convert items
+  if (id != undefined) {
+    // return a single item
+    item = me._getItem(id, convert);
+    if (filter && !filter(item)) {
+      item = null;
+    }
+  }
+  else if (ids != undefined) {
+    // return a subset of items
+    for (i = 0, len = ids.length; i < len; i++) {
+      item = me._getItem(ids[i], convert);
+      if (!filter || filter(item)) {
+        items.push(item);
+      }
+    }
+  }
+  else {
+    // return all items
+    for (itemId in this.data) {
+      if (this.data.hasOwnProperty(itemId)) {
+        item = me._getItem(itemId, convert);
+        if (!filter || filter(item)) {
+          items.push(item);
         }
-        if (type == 'DataTable' && !util.isDataTable(data)) {
-            throw new Error('Parameter "data" must be a DataTable ' +
-                'when options.type is "DataTable"');
-        }
+      }
     }
-    else if (data) {
-        type = (util.getType(data) == 'DataTable') ? 'DataTable' : 'Array';
-    }
-    else {
-        type = 'Array';
-    }
+  }
 
-    // build options
-    var convert = options && options.convert || this.options.convert;
-    var filter = options && options.filter;
-    var items = [], item, itemId, i, len;
+  // order the results
+  if (options && options.order && id == undefined) {
+    this._sort(items, options.order);
+  }
 
-    // convert items
+  // filter fields of the items
+  if (options && options.fields) {
+    var fields = options.fields;
     if (id != undefined) {
-        // return a single item
-        item = me._getItem(id, convert);
-        if (filter && !filter(item)) {
-            item = null;
-        }
-    }
-    else if (ids != undefined) {
-        // return a subset of items
-        for (i = 0, len = ids.length; i < len; i++) {
-            item = me._getItem(ids[i], convert);
-            if (!filter || filter(item)) {
-                items.push(item);
-            }
-        }
+      item = this._filterFields(item, fields);
     }
     else {
-        // return all items
-        for (itemId in this.data) {
-            if (this.data.hasOwnProperty(itemId)) {
-                item = me._getItem(itemId, convert);
-                if (!filter || filter(item)) {
-                    items.push(item);
-                }
-            }
-        }
+      for (i = 0, len = items.length; i < len; i++) {
+        items[i] = this._filterFields(items[i], fields);
+      }
     }
+  }
 
-    // order the results
-    if (options && options.order && id == undefined) {
-        this._sort(items, options.order);
+  // return the results
+  if (type == 'DataTable') {
+    var columns = this._getColumnNames(data);
+    if (id != undefined) {
+      // append a single item to the data table
+      me._appendRow(data, columns, item);
     }
-
-    // filter fields of the items
-    if (options && options.fields) {
-        var fields = options.fields;
-        if (id != undefined) {
-            item = this._filterFields(item, fields);
-        }
-        else {
-            for (i = 0, len = items.length; i < len; i++) {
-                items[i] = this._filterFields(items[i], fields);
-            }
-        }
+    else {
+      // copy the items to the provided data table
+      for (i = 0, len = items.length; i < len; i++) {
+        me._appendRow(data, columns, items[i]);
+      }
     }
-
-    // return the results
-    if (type == 'DataTable') {
-        var columns = this._getColumnNames(data);
-        if (id != undefined) {
-            // append a single item to the data table
-            me._appendRow(data, columns, item);
-        }
-        else {
-            // copy the items to the provided data table
-            for (i = 0, len = items.length; i < len; i++) {
-                me._appendRow(data, columns, items[i]);
-            }
+    return data;
+  }
+  else {
+    // return an array
+    if (id != undefined) {
+      // a single item
+      return item;
+    }
+    else {
+      // multiple items
+      if (data) {
+        // copy the items to the provided array
+        for (i = 0, len = items.length; i < len; i++) {
+          data.push(items[i]);
         }
         return data;
+      }
+      else {
+        // just return our array
+        return items;
+      }
     }
-    else {
-        // return an array
-        if (id != undefined) {
-            // a single item
-            return item;
-        }
-        else {
-            // multiple items
-            if (data) {
-                // copy the items to the provided array
-                for (i = 0, len = items.length; i < len; i++) {
-                    data.push(items[i]);
-                }
-                return data;
-            }
-            else {
-                // just return our array
-                return items;
-            }
-        }
-    }
+  }
 };
 
 /**
@@ -5347,78 +4808,78 @@ DataSet.prototype.get = function (args) {
  * @return {Array} ids
  */
 DataSet.prototype.getIds = function (options) {
-    var data = this.data,
-        filter = options && options.filter,
-        order = options && options.order,
-        convert = options && options.convert || this.options.convert,
-        i,
-        len,
-        id,
-        item,
-        items,
-        ids = [];
+  var data = this.data,
+      filter = options && options.filter,
+      order = options && options.order,
+      convert = options && options.convert || this.options.convert,
+      i,
+      len,
+      id,
+      item,
+      items,
+      ids = [];
 
-    if (filter) {
-        // get filtered items
-        if (order) {
-            // create ordered list
-            items = [];
-            for (id in data) {
-                if (data.hasOwnProperty(id)) {
-                    item = this._getItem(id, convert);
-                    if (filter(item)) {
-                        items.push(item);
-                    }
-                }
-            }
-
-            this._sort(items, order);
-
-            for (i = 0, len = items.length; i < len; i++) {
-                ids[i] = items[i][this.fieldId];
-            }
+  if (filter) {
+    // get filtered items
+    if (order) {
+      // create ordered list
+      items = [];
+      for (id in data) {
+        if (data.hasOwnProperty(id)) {
+          item = this._getItem(id, convert);
+          if (filter(item)) {
+            items.push(item);
+          }
         }
-        else {
-            // create unordered list
-            for (id in data) {
-                if (data.hasOwnProperty(id)) {
-                    item = this._getItem(id, convert);
-                    if (filter(item)) {
-                        ids.push(item[this.fieldId]);
-                    }
-                }
-            }
-        }
+      }
+
+      this._sort(items, order);
+
+      for (i = 0, len = items.length; i < len; i++) {
+        ids[i] = items[i][this.fieldId];
+      }
     }
     else {
-        // get all items
-        if (order) {
-            // create an ordered list
-            items = [];
-            for (id in data) {
-                if (data.hasOwnProperty(id)) {
-                    items.push(data[id]);
-                }
-            }
-
-            this._sort(items, order);
-
-            for (i = 0, len = items.length; i < len; i++) {
-                ids[i] = items[i][this.fieldId];
-            }
+      // create unordered list
+      for (id in data) {
+        if (data.hasOwnProperty(id)) {
+          item = this._getItem(id, convert);
+          if (filter(item)) {
+            ids.push(item[this.fieldId]);
+          }
         }
-        else {
-            // create unordered list
-            for (id in data) {
-                if (data.hasOwnProperty(id)) {
-                    item = data[id];
-                    ids.push(item[this.fieldId]);
-                }
-            }
-        }
+      }
     }
+  }
+  else {
+    // get all items
+    if (order) {
+      // create an ordered list
+      items = [];
+      for (id in data) {
+        if (data.hasOwnProperty(id)) {
+          items.push(data[id]);
+        }
+      }
 
-    return ids;
+      this._sort(items, order);
+
+      for (i = 0, len = items.length; i < len; i++) {
+        ids[i] = items[i][this.fieldId];
+      }
+    }
+    else {
+      // create unordered list
+      for (id in data) {
+        if (data.hasOwnProperty(id)) {
+          item = data[id];
+          ids.push(item[this.fieldId]);
+        }
+      }
+    }
+  }
+
+  return ids;
 };
 
 /**
@@ -5433,33 +4894,33 @@ DataSet.prototype.getIds = function (options) {
  *                                  a field name or custom sort function.
  */
 DataSet.prototype.forEach = function (callback, options) {
-    var filter = options && options.filter,
-        convert = options && options.convert || this.options.convert,
-        data = this.data,
-        item,
-        id;
+  var filter = options && options.filter,
+      convert = options && options.convert || this.options.convert,
+      data = this.data,
+      item,
+      id;
 
-    if (options && options.order) {
-        // execute forEach on ordered list
-        var items = this.get(options);
+  if (options && options.order) {
+    // execute forEach on ordered list
+    var items = this.get(options);
 
-        for (var i = 0, len = items.length; i < len; i++) {
-            item = items[i];
-            id = item[this.fieldId];
-            callback(item, id);
-        }
+    for (var i = 0, len = items.length; i < len; i++) {
+      item = items[i];
+      id = item[this.fieldId];
+      callback(item, id);
     }
-    else {
-        // unordered
-        for (id in data) {
-            if (data.hasOwnProperty(id)) {
-                item = this._getItem(id, convert);
-                if (!filter || filter(item)) {
-                    callback(item, id);
-                }
-            }
+  }
+  else {
+    // unordered
+    for (id in data) {
+      if (data.hasOwnProperty(id)) {
+        item = this._getItem(id, convert);
+        if (!filter || filter(item)) {
+          callback(item, id);
         }
+      }
     }
+  }
 };
 
 /**
@@ -5474,28 +4935,28 @@ DataSet.prototype.forEach = function (callback, options) {
  * @return {Object[]} mappedItems
  */
 DataSet.prototype.map = function (callback, options) {
-    var filter = options && options.filter,
-        convert = options && options.convert || this.options.convert,
-        mappedItems = [],
-        data = this.data,
-        item;
+  var filter = options && options.filter,
+      convert = options && options.convert || this.options.convert,
+      mappedItems = [],
+      data = this.data,
+      item;
 
-    // convert and filter items
-    for (var id in data) {
-        if (data.hasOwnProperty(id)) {
-            item = this._getItem(id, convert);
-            if (!filter || filter(item)) {
-                mappedItems.push(callback(item, id));
-            }
-        }
+  // convert and filter items
+  for (var id in data) {
+    if (data.hasOwnProperty(id)) {
+      item = this._getItem(id, convert);
+      if (!filter || filter(item)) {
+        mappedItems.push(callback(item, id));
+      }
     }
+  }
 
-    // order items
-    if (options && options.order) {
-        this._sort(mappedItems, options.order);
-    }
+  // order items
+  if (options && options.order) {
+    this._sort(mappedItems, options.order);
+  }
 
-    return mappedItems;
+  return mappedItems;
 };
 
 /**
@@ -5506,15 +4967,15 @@ DataSet.prototype.map = function (callback, options) {
  * @private
  */
 DataSet.prototype._filterFields = function (item, fields) {
-    var filteredItem = {};
+  var filteredItem = {};
 
-    for (var field in item) {
-        if (item.hasOwnProperty(field) && (fields.indexOf(field) != -1)) {
-            filteredItem[field] = item[field];
-        }
+  for (var field in item) {
+    if (item.hasOwnProperty(field) && (fields.indexOf(field) != -1)) {
+      filteredItem[field] = item[field];
     }
+  }
 
-    return filteredItem;
+  return filteredItem;
 };
 
 /**
@@ -5524,24 +4985,24 @@ DataSet.prototype._filterFields = function (item, fields) {
  * @private
  */
 DataSet.prototype._sort = function (items, order) {
-    if (util.isString(order)) {
-        // order by provided field name
-        var name = order; // field name
-        items.sort(function (a, b) {
-            var av = a[name];
-            var bv = b[name];
-            return (av > bv) ? 1 : ((av < bv) ? -1 : 0);
-        });
-    }
-    else if (typeof order === 'function') {
-        // order by sort function
-        items.sort(order);
-    }
-    // TODO: extend order by an Object {field:String, direction:String}
-    //       where direction can be 'asc' or 'desc'
-    else {
-        throw new TypeError('Order must be a function or a string');
-    }
+  if (util.isString(order)) {
+    // order by provided field name
+    var name = order; // field name
+    items.sort(function (a, b) {
+      var av = a[name];
+      var bv = b[name];
+      return (av > bv) ? 1 : ((av < bv) ? -1 : 0);
+    });
+  }
+  else if (typeof order === 'function') {
+    // order by sort function
+    items.sort(order);
+  }
+  // TODO: extend order by an Object {field:String, direction:String}
+  //       where direction can be 'asc' or 'desc'
+  else {
+    throw new TypeError('Order must be a function or a string');
+  }
 };
 
 /**
@@ -5552,29 +5013,29 @@ DataSet.prototype._sort = function (items, order) {
  * @return {Array} removedIds
  */
 DataSet.prototype.remove = function (id, senderId) {
-    var removedIds = [],
-        i, len, removedId;
+  var removedIds = [],
+      i, len, removedId;
 
-    if (id instanceof Array) {
-        for (i = 0, len = id.length; i < len; i++) {
-            removedId = this._remove(id[i]);
-            if (removedId != null) {
-                removedIds.push(removedId);
-            }
-        }
+  if (id instanceof Array) {
+    for (i = 0, len = id.length; i < len; i++) {
+      removedId = this._remove(id[i]);
+      if (removedId != null) {
+        removedIds.push(removedId);
+      }
     }
-    else {
-        removedId = this._remove(id);
-        if (removedId != null) {
-            removedIds.push(removedId);
-        }
+  }
+  else {
+    removedId = this._remove(id);
+    if (removedId != null) {
+      removedIds.push(removedId);
     }
+  }
 
-    if (removedIds.length) {
-        this._trigger('remove', {items: removedIds}, senderId);
-    }
+  if (removedIds.length) {
+    this._trigger('remove', {items: removedIds}, senderId);
+  }
 
-    return removedIds;
+  return removedIds;
 };
 
 /**
@@ -5584,22 +5045,22 @@ DataSet.prototype.remove = function (id, senderId) {
  * @private
  */
 DataSet.prototype._remove = function (id) {
-    if (util.isNumber(id) || util.isString(id)) {
-        if (this.data[id]) {
-            delete this.data[id];
-            delete this.internalIds[id];
-            return id;
-        }
+  if (util.isNumber(id) || util.isString(id)) {
+    if (this.data[id]) {
+      delete this.data[id];
+      delete this.internalIds[id];
+      return id;
     }
-    else if (id instanceof Object) {
-        var itemId = id[this.fieldId];
-        if (itemId && this.data[itemId]) {
-            delete this.data[itemId];
-            delete this.internalIds[itemId];
-            return itemId;
-        }
+  }
+  else if (id instanceof Object) {
+    var itemId = id[this.fieldId];
+    if (itemId && this.data[itemId]) {
+      delete this.data[itemId];
+      delete this.internalIds[itemId];
+      return itemId;
     }
-    return null;
+  }
+  return null;
 };
 
 /**
@@ -5608,14 +5069,14 @@ DataSet.prototype._remove = function (id) {
  * @return {Array} removedIds    The ids of all removed items
  */
 DataSet.prototype.clear = function (senderId) {
-    var ids = Object.keys(this.data);
+  var ids = Object.keys(this.data);
 
-    this.data = {};
-    this.internalIds = {};
+  this.data = {};
+  this.internalIds = {};
 
-    this._trigger('remove', {items: ids}, senderId);
+  this._trigger('remove', {items: ids}, senderId);
 
-    return ids;
+  return ids;
 };
 
 /**
@@ -5624,22 +5085,22 @@ DataSet.prototype.clear = function (senderId) {
  * @return {Object | null} item  Item containing max value, or null if no items
  */
 DataSet.prototype.max = function (field) {
-    var data = this.data,
-        max = null,
-        maxField = null;
+  var data = this.data,
+      max = null,
+      maxField = null;
 
-    for (var id in data) {
-        if (data.hasOwnProperty(id)) {
-            var item = data[id];
-            var itemField = item[field];
-            if (itemField != null && (!max || itemField > maxField)) {
-                max = item;
-                maxField = itemField;
-            }
-        }
+  for (var id in data) {
+    if (data.hasOwnProperty(id)) {
+      var item = data[id];
+      var itemField = item[field];
+      if (itemField != null && (!max || itemField > maxField)) {
+        max = item;
+        maxField = itemField;
+      }
     }
+  }
 
-    return max;
+  return max;
 };
 
 /**
@@ -5648,22 +5109,22 @@ DataSet.prototype.max = function (field) {
  * @return {Object | null} item  Item containing max value, or null if no items
  */
 DataSet.prototype.min = function (field) {
-    var data = this.data,
-        min = null,
-        minField = null;
+  var data = this.data,
+      min = null,
+      minField = null;
 
-    for (var id in data) {
-        if (data.hasOwnProperty(id)) {
-            var item = data[id];
-            var itemField = item[field];
-            if (itemField != null && (!min || itemField < minField)) {
-                min = item;
-                minField = itemField;
-            }
-        }
+  for (var id in data) {
+    if (data.hasOwnProperty(id)) {
+      var item = data[id];
+      var itemField = item[field];
+      if (itemField != null && (!min || itemField < minField)) {
+        min = item;
+        minField = itemField;
+      }
     }
+  }
 
-    return min;
+  return min;
 };
 
 /**
@@ -5675,30 +5136,30 @@ DataSet.prototype.min = function (field) {
  *                         The returned array is unordered.
  */
 DataSet.prototype.distinct = function (field) {
-    var data = this.data,
-        values = [],
-        fieldType = this.options.convert[field],
-        count = 0;
+  var data = this.data,
+      values = [],
+      fieldType = this.options.convert[field],
+      count = 0;
 
-    for (var prop in data) {
-        if (data.hasOwnProperty(prop)) {
-            var item = data[prop];
-            var value = util.convert(item[field], fieldType);
-            var exists = false;
-            for (var i = 0; i < count; i++) {
-                if (values[i] == value) {
-                    exists = true;
-                    break;
-                }
-            }
-            if (!exists) {
-                values[count] = value;
-                count++;
-            }
+  for (var prop in data) {
+    if (data.hasOwnProperty(prop)) {
+      var item = data[prop];
+      var value = util.convert(item[field], fieldType);
+      var exists = false;
+      for (var i = 0; i < count; i++) {
+        if (values[i] == value) {
+          exists = true;
+          break;
         }
+      }
+      if (!exists) {
+        values[count] = value;
+        count++;
+      }
     }
+  }
 
-    return values;
+  return values;
 };
 
 /**
@@ -5708,32 +5169,32 @@ DataSet.prototype.distinct = function (field) {
  * @private
  */
 DataSet.prototype._addItem = function (item) {
-    var id = item[this.fieldId];
+  var id = item[this.fieldId];
 
-    if (id != undefined) {
-        // check whether this id is already taken
-        if (this.data[id]) {
-            // item already exists
-            throw new Error('Cannot add item: item with id ' + id + ' already exists');
-        }
+  if (id != undefined) {
+    // check whether this id is already taken
+    if (this.data[id]) {
+      // item already exists
+      throw new Error('Cannot add item: item with id ' + id + ' already exists');
     }
-    else {
-        // generate an id
-        id = util.randomUUID();
-        item[this.fieldId] = id;
-        this.internalIds[id] = item;
-    }
+  }
+  else {
+    // generate an id
+    id = util.randomUUID();
+    item[this.fieldId] = id;
+    this.internalIds[id] = item;
+  }
 
-    var d = {};
-    for (var field in item) {
-        if (item.hasOwnProperty(field)) {
-            var fieldType = this.convert[field];  // type may be undefined
-            d[field] = util.convert(item[field], fieldType);
-        }
+  var d = {};
+  for (var field in item) {
+    if (item.hasOwnProperty(field)) {
+      var fieldType = this.convert[field];  // type may be undefined
+      d[field] = util.convert(item[field], fieldType);
     }
-    this.data[id] = d;
+  }
+  this.data[id] = d;
 
-    return id;
+  return id;
 };
 
 /**
@@ -5744,43 +5205,43 @@ DataSet.prototype._addItem = function (item) {
  * @private
  */
 DataSet.prototype._getItem = function (id, convert) {
-    var field, value;
+  var field, value;
 
-    // get the item from the dataset
-    var raw = this.data[id];
-    if (!raw) {
-        return null;
-    }
+  // get the item from the dataset
+  var raw = this.data[id];
+  if (!raw) {
+    return null;
+  }
 
-    // convert the items field types
-    var converted = {},
-        fieldId = this.fieldId,
-        internalIds = this.internalIds;
-    if (convert) {
-        for (field in raw) {
-            if (raw.hasOwnProperty(field)) {
-                value = raw[field];
-                // output all fields, except internal ids
-                if ((field != fieldId) || !(value in internalIds)) {
-                    converted[field] = util.convert(value, convert[field]);
-                }
-            }
+  // convert the items field types
+  var converted = {},
+      fieldId = this.fieldId,
+      internalIds = this.internalIds;
+  if (convert) {
+    for (field in raw) {
+      if (raw.hasOwnProperty(field)) {
+        value = raw[field];
+        // output all fields, except internal ids
+        if ((field != fieldId) || !(value in internalIds)) {
+          converted[field] = util.convert(value, convert[field]);
         }
+      }
     }
-    else {
-        // no field types specified, no converting needed
-        for (field in raw) {
-            if (raw.hasOwnProperty(field)) {
-                value = raw[field];
-                // output all fields, except internal ids
-                if ((field != fieldId) || !(value in internalIds)) {
-                    converted[field] = value;
-                }
-            }
+  }
+  else {
+    // no field types specified, no converting needed
+    for (field in raw) {
+      if (raw.hasOwnProperty(field)) {
+        value = raw[field];
+        // output all fields, except internal ids
+        if ((field != fieldId) || !(value in internalIds)) {
+          converted[field] = value;
         }
+      }
     }
+  }
 
-    return converted;
+  return converted;
 };
 
 /**
@@ -5792,25 +5253,25 @@ DataSet.prototype._getItem = function (id, convert) {
  * @private
  */
 DataSet.prototype._updateItem = function (item) {
-    var id = item[this.fieldId];
-    if (id == undefined) {
-        throw new Error('Cannot update item: item has no id (item: ' + JSON.stringify(item) + ')');
-    }
-    var d = this.data[id];
-    if (!d) {
-        // item doesn't exist
-        throw new Error('Cannot update item: no item with id ' + id + ' found');
-    }
+  var id = item[this.fieldId];
+  if (id == undefined) {
+    throw new Error('Cannot update item: item has no id (item: ' + JSON.stringify(item) + ')');
+  }
+  var d = this.data[id];
+  if (!d) {
+    // item doesn't exist
+    throw new Error('Cannot update item: no item with id ' + id + ' found');
+  }
 
-    // merge with current item
-    for (var field in item) {
-        if (item.hasOwnProperty(field)) {
-            var fieldType = this.convert[field];  // type may be undefined
-            d[field] = util.convert(item[field], fieldType);
-        }
+  // merge with current item
+  for (var field in item) {
+    if (item.hasOwnProperty(field)) {
+      var fieldType = this.convert[field];  // type may be undefined
+      d[field] = util.convert(item[field], fieldType);
     }
+  }
 
-    return id;
+  return id;
 };
 
 /**
@@ -5820,11 +5281,11 @@ DataSet.prototype._updateItem = function (item) {
  * @private
  */
 DataSet.prototype._getColumnNames = function (dataTable) {
-    var columns = [];
-    for (var col = 0, cols = dataTable.getNumberOfColumns(); col < cols; col++) {
-        columns[col] = dataTable.getColumnId(col) || dataTable.getColumnLabel(col);
-    }
-    return columns;
+  var columns = [];
+  for (var col = 0, cols = dataTable.getNumberOfColumns(); col < cols; col++) {
+    columns[col] = dataTable.getColumnId(col) || dataTable.getColumnLabel(col);
+  }
+  return columns;
 };
 
 /**
@@ -5835,12 +5296,12 @@ DataSet.prototype._getColumnNames = function (dataTable) {
  * @private
  */
 DataSet.prototype._appendRow = function (dataTable, columns, item) {
-    var row = dataTable.addRow();
+  var row = dataTable.addRow();
 
-    for (var col = 0, cols = columns.length; col < cols; col++) {
-        var field = columns[col];
-        dataTable.setValue(row, col, item[field]);
-    }
+  for (var col = 0, cols = columns.length; col < cols; col++) {
+    var field = columns[col];
+    dataTable.setValue(row, col, item[field]);
+  }
 };
 
 /**
@@ -5854,67 +5315,70 @@ DataSet.prototype._appendRow = function (dataTable, columns, item) {
  * @constructor DataView
  */
 function DataView (data, options) {
-    this.id = util.randomUUID();
+  this.id = util.randomUUID();
 
-    this.data = null;
-    this.ids = {}; // ids of the items currently in memory (just contains a boolean true)
-    this.options = options || {};
-    this.fieldId = 'id'; // name of the field containing id
-    this.subscribers = {}; // event subscribers
+  this.data = null;
+  this.ids = {}; // ids of the items currently in memory (just contains a boolean true)
+  this.options = options || {};
+  this.fieldId = 'id'; // name of the field containing id
+  this.subscribers = {}; // event subscribers
 
-    var me = this;
-    this.listener = function () {
-        me._onEvent.apply(me, arguments);
-    };
+  var me = this;
+  this.listener = function () {
+    me._onEvent.apply(me, arguments);
+  };
 
-    this.setData(data);
+  this.setData(data);
 }
+
+// TODO: implement a function .config() to dynamically update things like configured filter
+// and trigger changes accordingly
 
 /**
  * Set a data source for the view
  * @param {DataSet | DataView} data
  */
 DataView.prototype.setData = function (data) {
-    var ids, dataItems, i, len;
+  var ids, dataItems, i, len;
 
-    if (this.data) {
-        // unsubscribe from current dataset
-        if (this.data.unsubscribe) {
-            this.data.unsubscribe('*', this.listener);
-        }
-
-        // trigger a remove of all items in memory
-        ids = [];
-        for (var id in this.ids) {
-            if (this.ids.hasOwnProperty(id)) {
-                ids.push(id);
-            }
-        }
-        this.ids = {};
-        this._trigger('remove', {items: ids});
+  if (this.data) {
+    // unsubscribe from current dataset
+    if (this.data.unsubscribe) {
+      this.data.unsubscribe('*', this.listener);
     }
 
-    this.data = data;
-
-    if (this.data) {
-        // update fieldId
-        this.fieldId = this.options.fieldId ||
-            (this.data && this.data.options && this.data.options.fieldId) ||
-            'id';
-
-        // trigger an add of all added items
-        ids = this.data.getIds({filter: this.options && this.options.filter});
-        for (i = 0, len = ids.length; i < len; i++) {
-            id = ids[i];
-            this.ids[id] = true;
-        }
-        this._trigger('add', {items: ids});
-
-        // subscribe to new dataset
-        if (this.data.subscribe) {
-            this.data.subscribe('*', this.listener);
-        }
+    // trigger a remove of all items in memory
+    ids = [];
+    for (var id in this.ids) {
+      if (this.ids.hasOwnProperty(id)) {
+        ids.push(id);
+      }
     }
+    this.ids = {};
+    this._trigger('remove', {items: ids});
+  }
+
+  this.data = data;
+
+  if (this.data) {
+    // update fieldId
+    this.fieldId = this.options.fieldId ||
+        (this.data && this.data.options && this.data.options.fieldId) ||
+        'id';
+
+    // trigger an add of all added items
+    ids = this.data.getIds({filter: this.options && this.options.filter});
+    for (i = 0, len = ids.length; i < len; i++) {
+      id = ids[i];
+      this.ids[id] = true;
+    }
+    this._trigger('add', {items: ids});
+
+    // subscribe to new dataset
+    if (this.data.subscribe) {
+      this.data.subscribe('*', this.listener);
+    }
+  }
 };
 
 /**
@@ -5952,42 +5416,42 @@ DataView.prototype.setData = function (data) {
  * @param args
  */
 DataView.prototype.get = function (args) {
-    var me = this;
+  var me = this;
 
-    // parse the arguments
-    var ids, options, data;
-    var firstType = util.getType(arguments[0]);
-    if (firstType == 'String' || firstType == 'Number' || firstType == 'Array') {
-        // get(id(s) [, options] [, data])
-        ids = arguments[0];  // can be a single id or an array with ids
-        options = arguments[1];
-        data = arguments[2];
+  // parse the arguments
+  var ids, options, data;
+  var firstType = util.getType(arguments[0]);
+  if (firstType == 'String' || firstType == 'Number' || firstType == 'Array') {
+    // get(id(s) [, options] [, data])
+    ids = arguments[0];  // can be a single id or an array with ids
+    options = arguments[1];
+    data = arguments[2];
+  }
+  else {
+    // get([, options] [, data])
+    options = arguments[0];
+    data = arguments[1];
+  }
+
+  // extend the options with the default options and provided options
+  var viewOptions = util.extend({}, this.options, options);
+
+  // create a combined filter method when needed
+  if (this.options.filter && options && options.filter) {
+    viewOptions.filter = function (item) {
+      return me.options.filter(item) && options.filter(item);
     }
-    else {
-        // get([, options] [, data])
-        options = arguments[0];
-        data = arguments[1];
-    }
+  }
 
-    // extend the options with the default options and provided options
-    var viewOptions = util.extend({}, this.options, options);
+  // build up the call to the linked data set
+  var getArguments = [];
+  if (ids != undefined) {
+    getArguments.push(ids);
+  }
+  getArguments.push(viewOptions);
+  getArguments.push(data);
 
-    // create a combined filter method when needed
-    if (this.options.filter && options && options.filter) {
-        viewOptions.filter = function (item) {
-            return me.options.filter(item) && options.filter(item);
-        }
-    }
-
-    // build up the call to the linked data set
-    var getArguments = [];
-    if (ids != undefined) {
-        getArguments.push(ids);
-    }
-    getArguments.push(viewOptions);
-    getArguments.push(data);
-
-    return this.data && this.data.get.apply(this.data, getArguments);
+  return this.data && this.data.get.apply(this.data, getArguments);
 };
 
 /**
@@ -5999,36 +5463,36 @@ DataView.prototype.get = function (args) {
  * @return {Array} ids
  */
 DataView.prototype.getIds = function (options) {
-    var ids;
+  var ids;
 
-    if (this.data) {
-        var defaultFilter = this.options.filter;
-        var filter;
+  if (this.data) {
+    var defaultFilter = this.options.filter;
+    var filter;
 
-        if (options && options.filter) {
-            if (defaultFilter) {
-                filter = function (item) {
-                    return defaultFilter(item) && options.filter(item);
-                }
-            }
-            else {
-                filter = options.filter;
-            }
+    if (options && options.filter) {
+      if (defaultFilter) {
+        filter = function (item) {
+          return defaultFilter(item) && options.filter(item);
         }
-        else {
-            filter = defaultFilter;
-        }
-
-        ids = this.data.getIds({
-            filter: filter,
-            order: options && options.order
-        });
+      }
+      else {
+        filter = options.filter;
+      }
     }
     else {
-        ids = [];
+      filter = defaultFilter;
     }
 
-    return ids;
+    ids = this.data.getIds({
+      filter: filter,
+      order: options && options.order
+    });
+  }
+  else {
+    ids = [];
+  }
+
+  return ids;
 };
 
 /**
@@ -6041,80 +5505,80 @@ DataView.prototype.getIds = function (options) {
  * @private
  */
 DataView.prototype._onEvent = function (event, params, senderId) {
-    var i, len, id, item,
-        ids = params && params.items,
-        data = this.data,
-        added = [],
-        updated = [],
-        removed = [];
+  var i, len, id, item,
+      ids = params && params.items,
+      data = this.data,
+      added = [],
+      updated = [],
+      removed = [];
 
-    if (ids && data) {
-        switch (event) {
-            case 'add':
-                // filter the ids of the added items
-                for (i = 0, len = ids.length; i < len; i++) {
-                    id = ids[i];
-                    item = this.get(id);
-                    if (item) {
-                        this.ids[id] = true;
-                        added.push(id);
-                    }
-                }
-
-                break;
-
-            case 'update':
-                // determine the event from the views viewpoint: an updated
-                // item can be added, updated, or removed from this view.
-                for (i = 0, len = ids.length; i < len; i++) {
-                    id = ids[i];
-                    item = this.get(id);
-
-                    if (item) {
-                        if (this.ids[id]) {
-                            updated.push(id);
-                        }
-                        else {
-                            this.ids[id] = true;
-                            added.push(id);
-                        }
-                    }
-                    else {
-                        if (this.ids[id]) {
-                            delete this.ids[id];
-                            removed.push(id);
-                        }
-                        else {
-                            // nothing interesting for me :-(
-                        }
-                    }
-                }
-
-                break;
-
-            case 'remove':
-                // filter the ids of the removed items
-                for (i = 0, len = ids.length; i < len; i++) {
-                    id = ids[i];
-                    if (this.ids[id]) {
-                        delete this.ids[id];
-                        removed.push(id);
-                    }
-                }
-
-                break;
+  if (ids && data) {
+    switch (event) {
+      case 'add':
+        // filter the ids of the added items
+        for (i = 0, len = ids.length; i < len; i++) {
+          id = ids[i];
+          item = this.get(id);
+          if (item) {
+            this.ids[id] = true;
+            added.push(id);
+          }
         }
 
-        if (added.length) {
-            this._trigger('add', {items: added}, senderId);
+        break;
+
+      case 'update':
+        // determine the event from the views viewpoint: an updated
+        // item can be added, updated, or removed from this view.
+        for (i = 0, len = ids.length; i < len; i++) {
+          id = ids[i];
+          item = this.get(id);
+
+          if (item) {
+            if (this.ids[id]) {
+              updated.push(id);
+            }
+            else {
+              this.ids[id] = true;
+              added.push(id);
+            }
+          }
+          else {
+            if (this.ids[id]) {
+              delete this.ids[id];
+              removed.push(id);
+            }
+            else {
+              // nothing interesting for me :-(
+            }
+          }
         }
-        if (updated.length) {
-            this._trigger('update', {items: updated}, senderId);
+
+        break;
+
+      case 'remove':
+        // filter the ids of the removed items
+        for (i = 0, len = ids.length; i < len; i++) {
+          id = ids[i];
+          if (this.ids[id]) {
+            delete this.ids[id];
+            removed.push(id);
+          }
         }
-        if (removed.length) {
-            this._trigger('remove', {items: removed}, senderId);
-        }
+
+        break;
     }
+
+    if (added.length) {
+      this._trigger('add', {items: added}, senderId);
+    }
+    if (updated.length) {
+      this._trigger('update', {items: updated}, senderId);
+    }
+    if (removed.length) {
+      this._trigger('remove', {items: removed}, senderId);
+    }
+  }
 };
 
 // copy subscription functionality from DataSet
@@ -6149,29 +5613,29 @@ DataView.prototype._trigger = DataSet.prototype._trigger;
  * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
  */
 TimeStep = function(start, end, minimumStep) {
-    // variables
-    this.current = new Date();
-    this._start = new Date();
-    this._end = new Date();
+  // variables
+  this.current = new Date();
+  this._start = new Date();
+  this._end = new Date();
 
-    this.autoScale  = true;
-    this.scale = TimeStep.SCALE.DAY;
-    this.step = 1;
+  this.autoScale  = true;
+  this.scale = TimeStep.SCALE.DAY;
+  this.step = 1;
 
-    // initialize the range
-    this.setRange(start, end, minimumStep);
+  // initialize the range
+  this.setRange(start, end, minimumStep);
 };
 
 /// enum scale
 TimeStep.SCALE = {
-    MILLISECOND: 1,
-    SECOND: 2,
-    MINUTE: 3,
-    HOUR: 4,
-    DAY: 5,
-    WEEKDAY: 6,
-    MONTH: 7,
-    YEAR: 8
+  MILLISECOND: 1,
+  SECOND: 2,
+  MINUTE: 3,
+  HOUR: 4,
+  DAY: 5,
+  WEEKDAY: 6,
+  MONTH: 7,
+  YEAR: 8
 };
 
 
@@ -6186,24 +5650,24 @@ TimeStep.SCALE = {
  * @param {int} [minimumStep] Optional. Minimum step size in milliseconds
  */
 TimeStep.prototype.setRange = function(start, end, minimumStep) {
-    if (!(start instanceof Date) || !(end instanceof Date)) {
-        throw  "No legal start or end date in method setRange";
-    }
+  if (!(start instanceof Date) || !(end instanceof Date)) {
+    throw  "No legal start or end date in method setRange";
+  }
 
-    this._start = (start != undefined) ? new Date(start.valueOf()) : new Date();
-    this._end = (end != undefined) ? new Date(end.valueOf()) : new Date();
+  this._start = (start != undefined) ? new Date(start.valueOf()) : new Date();
+  this._end = (end != undefined) ? new Date(end.valueOf()) : new Date();
 
-    if (this.autoScale) {
-        this.setMinimumStep(minimumStep);
-    }
+  if (this.autoScale) {
+    this.setMinimumStep(minimumStep);
+  }
 };
 
 /**
  * Set the range iterator to the start date.
  */
 TimeStep.prototype.first = function() {
-    this.current = new Date(this._start.valueOf());
-    this.roundToMinor();
+  this.current = new Date(this._start.valueOf());
+  this.roundToMinor();
 };
 
 /**
@@ -6211,36 +5675,36 @@ TimeStep.prototype.first = function() {
  * This must be executed once when the current date is set to start Date
  */
 TimeStep.prototype.roundToMinor = function() {
-    // round to floor
-    // IMPORTANT: we have no breaks in this switch! (this is no bug)
-    //noinspection FallthroughInSwitchStatementJS
-    switch (this.scale) {
-        case TimeStep.SCALE.YEAR:
-            this.current.setFullYear(this.step * Math.floor(this.current.getFullYear() / this.step));
-            this.current.setMonth(0);
-        case TimeStep.SCALE.MONTH:        this.current.setDate(1);
-        case TimeStep.SCALE.DAY:          // intentional fall through
-        case TimeStep.SCALE.WEEKDAY:      this.current.setHours(0);
-        case TimeStep.SCALE.HOUR:         this.current.setMinutes(0);
-        case TimeStep.SCALE.MINUTE:       this.current.setSeconds(0);
-        case TimeStep.SCALE.SECOND:       this.current.setMilliseconds(0);
-        //case TimeStep.SCALE.MILLISECOND: // nothing to do for milliseconds
-    }
+  // round to floor
+  // IMPORTANT: we have no breaks in this switch! (this is no bug)
+  //noinspection FallthroughInSwitchStatementJS
+  switch (this.scale) {
+    case TimeStep.SCALE.YEAR:
+      this.current.setFullYear(this.step * Math.floor(this.current.getFullYear() / this.step));
+      this.current.setMonth(0);
+    case TimeStep.SCALE.MONTH:        this.current.setDate(1);
+    case TimeStep.SCALE.DAY:          // intentional fall through
+    case TimeStep.SCALE.WEEKDAY:      this.current.setHours(0);
+    case TimeStep.SCALE.HOUR:         this.current.setMinutes(0);
+    case TimeStep.SCALE.MINUTE:       this.current.setSeconds(0);
+    case TimeStep.SCALE.SECOND:       this.current.setMilliseconds(0);
+    //case TimeStep.SCALE.MILLISECOND: // nothing to do for milliseconds
+  }
 
-    if (this.step != 1) {
-        // round down to the first minor value that is a multiple of the current step size
-        switch (this.scale) {
-            case TimeStep.SCALE.MILLISECOND:  this.current.setMilliseconds(this.current.getMilliseconds() - this.current.getMilliseconds() % this.step);  break;
-            case TimeStep.SCALE.SECOND:       this.current.setSeconds(this.current.getSeconds() - this.current.getSeconds() % this.step); break;
-            case TimeStep.SCALE.MINUTE:       this.current.setMinutes(this.current.getMinutes() - this.current.getMinutes() % this.step); break;
-            case TimeStep.SCALE.HOUR:         this.current.setHours(this.current.getHours() - this.current.getHours() % this.step); break;
-            case TimeStep.SCALE.WEEKDAY:      // intentional fall through
-            case TimeStep.SCALE.DAY:          this.current.setDate((this.current.getDate()-1) - (this.current.getDate()-1) % this.step + 1); break;
-            case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() - this.current.getMonth() % this.step);  break;
-            case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() - this.current.getFullYear() % this.step); break;
-            default: break;
-        }
+  if (this.step != 1) {
+    // round down to the first minor value that is a multiple of the current step size
+    switch (this.scale) {
+      case TimeStep.SCALE.MILLISECOND:  this.current.setMilliseconds(this.current.getMilliseconds() - this.current.getMilliseconds() % this.step);  break;
+      case TimeStep.SCALE.SECOND:       this.current.setSeconds(this.current.getSeconds() - this.current.getSeconds() % this.step); break;
+      case TimeStep.SCALE.MINUTE:       this.current.setMinutes(this.current.getMinutes() - this.current.getMinutes() % this.step); break;
+      case TimeStep.SCALE.HOUR:         this.current.setHours(this.current.getHours() - this.current.getHours() % this.step); break;
+      case TimeStep.SCALE.WEEKDAY:      // intentional fall through
+      case TimeStep.SCALE.DAY:          this.current.setDate((this.current.getDate()-1) - (this.current.getDate()-1) % this.step + 1); break;
+      case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() - this.current.getMonth() % this.step);  break;
+      case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() - this.current.getFullYear() % this.step); break;
+      default: break;
     }
+  }
 };
 
 /**
@@ -6248,70 +5712,70 @@ TimeStep.prototype.roundToMinor = function() {
  * @return {boolean}  true if the current date has not passed the end date
  */
 TimeStep.prototype.hasNext = function () {
-    return (this.current.valueOf() <= this._end.valueOf());
+  return (this.current.valueOf() <= this._end.valueOf());
 };
 
 /**
  * Do the next step
  */
 TimeStep.prototype.next = function() {
-    var prev = this.current.valueOf();
+  var prev = this.current.valueOf();
 
-    // Two cases, needed to prevent issues with switching daylight savings
-    // (end of March and end of October)
-    if (this.current.getMonth() < 6)   {
-        switch (this.scale) {
-            case TimeStep.SCALE.MILLISECOND:
+  // Two cases, needed to prevent issues with switching daylight savings
+  // (end of March and end of October)
+  if (this.current.getMonth() < 6)   {
+    switch (this.scale) {
+      case TimeStep.SCALE.MILLISECOND:
 
-                this.current = new Date(this.current.valueOf() + this.step); break;
-            case TimeStep.SCALE.SECOND:       this.current = new Date(this.current.valueOf() + this.step * 1000); break;
-            case TimeStep.SCALE.MINUTE:       this.current = new Date(this.current.valueOf() + this.step * 1000 * 60); break;
-            case TimeStep.SCALE.HOUR:
-                this.current = new Date(this.current.valueOf() + this.step * 1000 * 60 * 60);
-                // in case of skipping an hour for daylight savings, adjust the hour again (else you get: 0h 5h 9h ... instead of 0h 4h 8h ...)
-                var h = this.current.getHours();
-                this.current.setHours(h - (h % this.step));
-                break;
-            case TimeStep.SCALE.WEEKDAY:      // intentional fall through
-            case TimeStep.SCALE.DAY:          this.current.setDate(this.current.getDate() + this.step); break;
-            case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() + this.step); break;
-            case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() + this.step); break;
-            default:                      break;
-        }
+        this.current = new Date(this.current.valueOf() + this.step); break;
+      case TimeStep.SCALE.SECOND:       this.current = new Date(this.current.valueOf() + this.step * 1000); break;
+      case TimeStep.SCALE.MINUTE:       this.current = new Date(this.current.valueOf() + this.step * 1000 * 60); break;
+      case TimeStep.SCALE.HOUR:
+        this.current = new Date(this.current.valueOf() + this.step * 1000 * 60 * 60);
+        // in case of skipping an hour for daylight savings, adjust the hour again (else you get: 0h 5h 9h ... instead of 0h 4h 8h ...)
+        var h = this.current.getHours();
+        this.current.setHours(h - (h % this.step));
+        break;
+      case TimeStep.SCALE.WEEKDAY:      // intentional fall through
+      case TimeStep.SCALE.DAY:          this.current.setDate(this.current.getDate() + this.step); break;
+      case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() + this.step); break;
+      case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() + this.step); break;
+      default:                      break;
     }
-    else {
-        switch (this.scale) {
-            case TimeStep.SCALE.MILLISECOND:  this.current = new Date(this.current.valueOf() + this.step); break;
-            case TimeStep.SCALE.SECOND:       this.current.setSeconds(this.current.getSeconds() + this.step); break;
-            case TimeStep.SCALE.MINUTE:       this.current.setMinutes(this.current.getMinutes() + this.step); break;
-            case TimeStep.SCALE.HOUR:         this.current.setHours(this.current.getHours() + this.step); break;
-            case TimeStep.SCALE.WEEKDAY:      // intentional fall through
-            case TimeStep.SCALE.DAY:          this.current.setDate(this.current.getDate() + this.step); break;
-            case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() + this.step); break;
-            case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() + this.step); break;
-            default:                      break;
-        }
+  }
+  else {
+    switch (this.scale) {
+      case TimeStep.SCALE.MILLISECOND:  this.current = new Date(this.current.valueOf() + this.step); break;
+      case TimeStep.SCALE.SECOND:       this.current.setSeconds(this.current.getSeconds() + this.step); break;
+      case TimeStep.SCALE.MINUTE:       this.current.setMinutes(this.current.getMinutes() + this.step); break;
+      case TimeStep.SCALE.HOUR:         this.current.setHours(this.current.getHours() + this.step); break;
+      case TimeStep.SCALE.WEEKDAY:      // intentional fall through
+      case TimeStep.SCALE.DAY:          this.current.setDate(this.current.getDate() + this.step); break;
+      case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() + this.step); break;
+      case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() + this.step); break;
+      default:                      break;
     }
+  }
 
-    if (this.step != 1) {
-        // round down to the correct major value
-        switch (this.scale) {
-            case TimeStep.SCALE.MILLISECOND:  if(this.current.getMilliseconds() < this.step) this.current.setMilliseconds(0);  break;
-            case TimeStep.SCALE.SECOND:       if(this.current.getSeconds() < this.step) this.current.setSeconds(0);  break;
-            case TimeStep.SCALE.MINUTE:       if(this.current.getMinutes() < this.step) this.current.setMinutes(0);  break;
-            case TimeStep.SCALE.HOUR:         if(this.current.getHours() < this.step) this.current.setHours(0);  break;
-            case TimeStep.SCALE.WEEKDAY:      // intentional fall through
-            case TimeStep.SCALE.DAY:          if(this.current.getDate() < this.step+1) this.current.setDate(1); break;
-            case TimeStep.SCALE.MONTH:        if(this.current.getMonth() < this.step) this.current.setMonth(0);  break;
-            case TimeStep.SCALE.YEAR:         break; // nothing to do for year
-            default:                break;
-        }
+  if (this.step != 1) {
+    // round down to the correct major value
+    switch (this.scale) {
+      case TimeStep.SCALE.MILLISECOND:  if(this.current.getMilliseconds() < this.step) this.current.setMilliseconds(0);  break;
+      case TimeStep.SCALE.SECOND:       if(this.current.getSeconds() < this.step) this.current.setSeconds(0);  break;
+      case TimeStep.SCALE.MINUTE:       if(this.current.getMinutes() < this.step) this.current.setMinutes(0);  break;
+      case TimeStep.SCALE.HOUR:         if(this.current.getHours() < this.step) this.current.setHours(0);  break;
+      case TimeStep.SCALE.WEEKDAY:      // intentional fall through
+      case TimeStep.SCALE.DAY:          if(this.current.getDate() < this.step+1) this.current.setDate(1); break;
+      case TimeStep.SCALE.MONTH:        if(this.current.getMonth() < this.step) this.current.setMonth(0);  break;
+      case TimeStep.SCALE.YEAR:         break; // nothing to do for year
+      default:                break;
     }
+  }
 
-    // safety mechanism: if current time is still unchanged, move to the end
-    if (this.current.valueOf() == prev) {
-        this.current = new Date(this._end.valueOf());
-    }
+  // safety mechanism: if current time is still unchanged, move to the end
+  if (this.current.valueOf() == prev) {
+    this.current = new Date(this._end.valueOf());
+  }
 };
 
 
@@ -6320,7 +5784,7 @@ TimeStep.prototype.next = function() {
  * @return {Date}  current The current date
  */
 TimeStep.prototype.getCurrent = function() {
-    return this.current;
+  return this.current;
 };
 
 /**
@@ -6337,13 +5801,13 @@ TimeStep.prototype.getCurrent = function() {
  *                               example 1, 2, 5, or 10.
  */
 TimeStep.prototype.setScale = function(newScale, newStep) {
-    this.scale = newScale;
+  this.scale = newScale;
 
-    if (newStep > 0) {
-        this.step = newStep;
-    }
+  if (newStep > 0) {
+    this.step = newStep;
+  }
 
-    this.autoScale = false;
+  this.autoScale = false;
 };
 
 /**
@@ -6351,7 +5815,7 @@ TimeStep.prototype.setScale = function(newScale, newStep) {
  * @param {boolean} enable  If true, autoascaling is set true
  */
 TimeStep.prototype.setAutoScale = function (enable) {
-    this.autoScale = enable;
+  this.autoScale = enable;
 };
 
 
@@ -6360,48 +5824,48 @@ TimeStep.prototype.setAutoScale = function (enable) {
  * @param {Number} [minimumStep]  The minimum step size in milliseconds
  */
 TimeStep.prototype.setMinimumStep = function(minimumStep) {
-    if (minimumStep == undefined) {
-        return;
-    }
+  if (minimumStep == undefined) {
+    return;
+  }
 
-    var stepYear       = (1000 * 60 * 60 * 24 * 30 * 12);
-    var stepMonth      = (1000 * 60 * 60 * 24 * 30);
-    var stepDay        = (1000 * 60 * 60 * 24);
-    var stepHour       = (1000 * 60 * 60);
-    var stepMinute     = (1000 * 60);
-    var stepSecond     = (1000);
-    var stepMillisecond= (1);
+  var stepYear       = (1000 * 60 * 60 * 24 * 30 * 12);
+  var stepMonth      = (1000 * 60 * 60 * 24 * 30);
+  var stepDay        = (1000 * 60 * 60 * 24);
+  var stepHour       = (1000 * 60 * 60);
+  var stepMinute     = (1000 * 60);
+  var stepSecond     = (1000);
+  var stepMillisecond= (1);
 
-    // find the smallest step that is larger than the provided minimumStep
-    if (stepYear*1000 > minimumStep)        {this.scale = TimeStep.SCALE.YEAR;        this.step = 1000;}
-    if (stepYear*500 > minimumStep)         {this.scale = TimeStep.SCALE.YEAR;        this.step = 500;}
-    if (stepYear*100 > minimumStep)         {this.scale = TimeStep.SCALE.YEAR;        this.step = 100;}
-    if (stepYear*50 > minimumStep)          {this.scale = TimeStep.SCALE.YEAR;        this.step = 50;}
-    if (stepYear*10 > minimumStep)          {this.scale = TimeStep.SCALE.YEAR;        this.step = 10;}
-    if (stepYear*5 > minimumStep)           {this.scale = TimeStep.SCALE.YEAR;        this.step = 5;}
-    if (stepYear > minimumStep)             {this.scale = TimeStep.SCALE.YEAR;        this.step = 1;}
-    if (stepMonth*3 > minimumStep)          {this.scale = TimeStep.SCALE.MONTH;       this.step = 3;}
-    if (stepMonth > minimumStep)            {this.scale = TimeStep.SCALE.MONTH;       this.step = 1;}
-    if (stepDay*5 > minimumStep)            {this.scale = TimeStep.SCALE.DAY;         this.step = 5;}
-    if (stepDay*2 > minimumStep)            {this.scale = TimeStep.SCALE.DAY;         this.step = 2;}
-    if (stepDay > minimumStep)              {this.scale = TimeStep.SCALE.DAY;         this.step = 1;}
-    if (stepDay/2 > minimumStep)            {this.scale = TimeStep.SCALE.WEEKDAY;     this.step = 1;}
-    if (stepHour*4 > minimumStep)           {this.scale = TimeStep.SCALE.HOUR;        this.step = 4;}
-    if (stepHour > minimumStep)             {this.scale = TimeStep.SCALE.HOUR;        this.step = 1;}
-    if (stepMinute*15 > minimumStep)        {this.scale = TimeStep.SCALE.MINUTE;      this.step = 15;}
-    if (stepMinute*10 > minimumStep)        {this.scale = TimeStep.SCALE.MINUTE;      this.step = 10;}
-    if (stepMinute*5 > minimumStep)         {this.scale = TimeStep.SCALE.MINUTE;      this.step = 5;}
-    if (stepMinute > minimumStep)           {this.scale = TimeStep.SCALE.MINUTE;      this.step = 1;}
-    if (stepSecond*15 > minimumStep)        {this.scale = TimeStep.SCALE.SECOND;      this.step = 15;}
-    if (stepSecond*10 > minimumStep)        {this.scale = TimeStep.SCALE.SECOND;      this.step = 10;}
-    if (stepSecond*5 > minimumStep)         {this.scale = TimeStep.SCALE.SECOND;      this.step = 5;}
-    if (stepSecond > minimumStep)           {this.scale = TimeStep.SCALE.SECOND;      this.step = 1;}
-    if (stepMillisecond*200 > minimumStep)  {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 200;}
-    if (stepMillisecond*100 > minimumStep)  {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 100;}
-    if (stepMillisecond*50 > minimumStep)   {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 50;}
-    if (stepMillisecond*10 > minimumStep)   {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 10;}
-    if (stepMillisecond*5 > minimumStep)    {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 5;}
-    if (stepMillisecond > minimumStep)      {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 1;}
+  // find the smallest step that is larger than the provided minimumStep
+  if (stepYear*1000 > minimumStep)        {this.scale = TimeStep.SCALE.YEAR;        this.step = 1000;}
+  if (stepYear*500 > minimumStep)         {this.scale = TimeStep.SCALE.YEAR;        this.step = 500;}
+  if (stepYear*100 > minimumStep)         {this.scale = TimeStep.SCALE.YEAR;        this.step = 100;}
+  if (stepYear*50 > minimumStep)          {this.scale = TimeStep.SCALE.YEAR;        this.step = 50;}
+  if (stepYear*10 > minimumStep)          {this.scale = TimeStep.SCALE.YEAR;        this.step = 10;}
+  if (stepYear*5 > minimumStep)           {this.scale = TimeStep.SCALE.YEAR;        this.step = 5;}
+  if (stepYear > minimumStep)             {this.scale = TimeStep.SCALE.YEAR;        this.step = 1;}
+  if (stepMonth*3 > minimumStep)          {this.scale = TimeStep.SCALE.MONTH;       this.step = 3;}
+  if (stepMonth > minimumStep)            {this.scale = TimeStep.SCALE.MONTH;       this.step = 1;}
+  if (stepDay*5 > minimumStep)            {this.scale = TimeStep.SCALE.DAY;         this.step = 5;}
+  if (stepDay*2 > minimumStep)            {this.scale = TimeStep.SCALE.DAY;         this.step = 2;}
+  if (stepDay > minimumStep)              {this.scale = TimeStep.SCALE.DAY;         this.step = 1;}
+  if (stepDay/2 > minimumStep)            {this.scale = TimeStep.SCALE.WEEKDAY;     this.step = 1;}
+  if (stepHour*4 > minimumStep)           {this.scale = TimeStep.SCALE.HOUR;        this.step = 4;}
+  if (stepHour > minimumStep)             {this.scale = TimeStep.SCALE.HOUR;        this.step = 1;}
+  if (stepMinute*15 > minimumStep)        {this.scale = TimeStep.SCALE.MINUTE;      this.step = 15;}
+  if (stepMinute*10 > minimumStep)        {this.scale = TimeStep.SCALE.MINUTE;      this.step = 10;}
+  if (stepMinute*5 > minimumStep)         {this.scale = TimeStep.SCALE.MINUTE;      this.step = 5;}
+  if (stepMinute > minimumStep)           {this.scale = TimeStep.SCALE.MINUTE;      this.step = 1;}
+  if (stepSecond*15 > minimumStep)        {this.scale = TimeStep.SCALE.SECOND;      this.step = 15;}
+  if (stepSecond*10 > minimumStep)        {this.scale = TimeStep.SCALE.SECOND;      this.step = 10;}
+  if (stepSecond*5 > minimumStep)         {this.scale = TimeStep.SCALE.SECOND;      this.step = 5;}
+  if (stepSecond > minimumStep)           {this.scale = TimeStep.SCALE.SECOND;      this.step = 1;}
+  if (stepMillisecond*200 > minimumStep)  {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 200;}
+  if (stepMillisecond*100 > minimumStep)  {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 100;}
+  if (stepMillisecond*50 > minimumStep)   {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 50;}
+  if (stepMillisecond*10 > minimumStep)   {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 10;}
+  if (stepMillisecond*5 > minimumStep)    {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 5;}
+  if (stepMillisecond > minimumStep)      {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 1;}
 };
 
 /**
@@ -6410,87 +5874,87 @@ TimeStep.prototype.setMinimumStep = function(minimumStep) {
  * @param {Date} date   the date to be snapped
  */
 TimeStep.prototype.snap = function(date) {
-    if (this.scale == TimeStep.SCALE.YEAR) {
-        var year = date.getFullYear() + Math.round(date.getMonth() / 12);
-        date.setFullYear(Math.round(year / this.step) * this.step);
-        date.setMonth(0);
-        date.setDate(0);
-        date.setHours(0);
-        date.setMinutes(0);
-        date.setSeconds(0);
-        date.setMilliseconds(0);
+  if (this.scale == TimeStep.SCALE.YEAR) {
+    var year = date.getFullYear() + Math.round(date.getMonth() / 12);
+    date.setFullYear(Math.round(year / this.step) * this.step);
+    date.setMonth(0);
+    date.setDate(0);
+    date.setHours(0);
+    date.setMinutes(0);
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+  }
+  else if (this.scale == TimeStep.SCALE.MONTH) {
+    if (date.getDate() > 15) {
+      date.setDate(1);
+      date.setMonth(date.getMonth() + 1);
+      // important: first set Date to 1, after that change the month.
     }
-    else if (this.scale == TimeStep.SCALE.MONTH) {
-        if (date.getDate() > 15) {
-            date.setDate(1);
-            date.setMonth(date.getMonth() + 1);
-            // important: first set Date to 1, after that change the month.
-        }
-        else {
-            date.setDate(1);
-        }
+    else {
+      date.setDate(1);
+    }
 
-        date.setHours(0);
-        date.setMinutes(0);
+    date.setHours(0);
+    date.setMinutes(0);
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+  }
+  else if (this.scale == TimeStep.SCALE.DAY ||
+      this.scale == TimeStep.SCALE.WEEKDAY) {
+    //noinspection FallthroughInSwitchStatementJS
+    switch (this.step) {
+      case 5:
+      case 2:
+        date.setHours(Math.round(date.getHours() / 24) * 24); break;
+      default:
+        date.setHours(Math.round(date.getHours() / 12) * 12); break;
+    }
+    date.setMinutes(0);
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+  }
+  else if (this.scale == TimeStep.SCALE.HOUR) {
+    switch (this.step) {
+      case 4:
+        date.setMinutes(Math.round(date.getMinutes() / 60) * 60); break;
+      default:
+        date.setMinutes(Math.round(date.getMinutes() / 30) * 30); break;
+    }
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+  } else if (this.scale == TimeStep.SCALE.MINUTE) {
+    //noinspection FallthroughInSwitchStatementJS
+    switch (this.step) {
+      case 15:
+      case 10:
+        date.setMinutes(Math.round(date.getMinutes() / 5) * 5);
         date.setSeconds(0);
+        break;
+      case 5:
+        date.setSeconds(Math.round(date.getSeconds() / 60) * 60); break;
+      default:
+        date.setSeconds(Math.round(date.getSeconds() / 30) * 30); break;
+    }
+    date.setMilliseconds(0);
+  }
+  else if (this.scale == TimeStep.SCALE.SECOND) {
+    //noinspection FallthroughInSwitchStatementJS
+    switch (this.step) {
+      case 15:
+      case 10:
+        date.setSeconds(Math.round(date.getSeconds() / 5) * 5);
         date.setMilliseconds(0);
+        break;
+      case 5:
+        date.setMilliseconds(Math.round(date.getMilliseconds() / 1000) * 1000); break;
+      default:
+        date.setMilliseconds(Math.round(date.getMilliseconds() / 500) * 500); break;
     }
-    else if (this.scale == TimeStep.SCALE.DAY ||
-        this.scale == TimeStep.SCALE.WEEKDAY) {
-        //noinspection FallthroughInSwitchStatementJS
-        switch (this.step) {
-            case 5:
-            case 2:
-                date.setHours(Math.round(date.getHours() / 24) * 24); break;
-            default:
-                date.setHours(Math.round(date.getHours() / 12) * 12); break;
-        }
-        date.setMinutes(0);
-        date.setSeconds(0);
-        date.setMilliseconds(0);
-    }
-    else if (this.scale == TimeStep.SCALE.HOUR) {
-        switch (this.step) {
-            case 4:
-                date.setMinutes(Math.round(date.getMinutes() / 60) * 60); break;
-            default:
-                date.setMinutes(Math.round(date.getMinutes() / 30) * 30); break;
-        }
-        date.setSeconds(0);
-        date.setMilliseconds(0);
-    } else if (this.scale == TimeStep.SCALE.MINUTE) {
-        //noinspection FallthroughInSwitchStatementJS
-        switch (this.step) {
-            case 15:
-            case 10:
-                date.setMinutes(Math.round(date.getMinutes() / 5) * 5);
-                date.setSeconds(0);
-                break;
-            case 5:
-                date.setSeconds(Math.round(date.getSeconds() / 60) * 60); break;
-            default:
-                date.setSeconds(Math.round(date.getSeconds() / 30) * 30); break;
-        }
-        date.setMilliseconds(0);
-    }
-    else if (this.scale == TimeStep.SCALE.SECOND) {
-        //noinspection FallthroughInSwitchStatementJS
-        switch (this.step) {
-            case 15:
-            case 10:
-                date.setSeconds(Math.round(date.getSeconds() / 5) * 5);
-                date.setMilliseconds(0);
-                break;
-            case 5:
-                date.setMilliseconds(Math.round(date.getMilliseconds() / 1000) * 1000); break;
-            default:
-                date.setMilliseconds(Math.round(date.getMilliseconds() / 500) * 500); break;
-        }
-    }
-    else if (this.scale == TimeStep.SCALE.MILLISECOND) {
-        var step = this.step > 5 ? this.step / 2 : 1;
-        date.setMilliseconds(Math.round(date.getMilliseconds() / step) * step);
-    }
+  }
+  else if (this.scale == TimeStep.SCALE.MILLISECOND) {
+    var step = this.step > 5 ? this.step / 2 : 1;
+    date.setMilliseconds(Math.round(date.getMilliseconds() / step) * step);
+  }
 };
 
 /**
@@ -6499,26 +5963,26 @@ TimeStep.prototype.snap = function(date) {
  * @return {boolean} true if current date is major, else false.
  */
 TimeStep.prototype.isMajor = function() {
-    switch (this.scale) {
-        case TimeStep.SCALE.MILLISECOND:
-            return (this.current.getMilliseconds() == 0);
-        case TimeStep.SCALE.SECOND:
-            return (this.current.getSeconds() == 0);
-        case TimeStep.SCALE.MINUTE:
-            return (this.current.getHours() == 0) && (this.current.getMinutes() == 0);
-        // Note: this is no bug. Major label is equal for both minute and hour scale
-        case TimeStep.SCALE.HOUR:
-            return (this.current.getHours() == 0);
-        case TimeStep.SCALE.WEEKDAY: // intentional fall through
-        case TimeStep.SCALE.DAY:
-            return (this.current.getDate() == 1);
-        case TimeStep.SCALE.MONTH:
-            return (this.current.getMonth() == 0);
-        case TimeStep.SCALE.YEAR:
-            return false;
-        default:
-            return false;
-    }
+  switch (this.scale) {
+    case TimeStep.SCALE.MILLISECOND:
+      return (this.current.getMilliseconds() == 0);
+    case TimeStep.SCALE.SECOND:
+      return (this.current.getSeconds() == 0);
+    case TimeStep.SCALE.MINUTE:
+      return (this.current.getHours() == 0) && (this.current.getMinutes() == 0);
+    // Note: this is no bug. Major label is equal for both minute and hour scale
+    case TimeStep.SCALE.HOUR:
+      return (this.current.getHours() == 0);
+    case TimeStep.SCALE.WEEKDAY: // intentional fall through
+    case TimeStep.SCALE.DAY:
+      return (this.current.getDate() == 1);
+    case TimeStep.SCALE.MONTH:
+      return (this.current.getMonth() == 0);
+    case TimeStep.SCALE.YEAR:
+      return false;
+    default:
+      return false;
+  }
 };
 
 
@@ -6529,21 +5993,21 @@ TimeStep.prototype.isMajor = function() {
  * @param {Date} [date] custom date. if not provided, current date is taken
  */
 TimeStep.prototype.getLabelMinor = function(date) {
-    if (date == undefined) {
-        date = this.current;
-    }
+  if (date == undefined) {
+    date = this.current;
+  }
 
-    switch (this.scale) {
-        case TimeStep.SCALE.MILLISECOND:  return moment(date).format('SSS');
-        case TimeStep.SCALE.SECOND:       return moment(date).format('s');
-        case TimeStep.SCALE.MINUTE:       return moment(date).format('HH:mm');
-        case TimeStep.SCALE.HOUR:         return moment(date).format('HH:mm');
-        case TimeStep.SCALE.WEEKDAY:      return moment(date).format('ddd D');
-        case TimeStep.SCALE.DAY:          return moment(date).format('D');
-        case TimeStep.SCALE.MONTH:        return moment(date).format('MMM');
-        case TimeStep.SCALE.YEAR:         return moment(date).format('YYYY');
-        default:                          return '';
-    }
+  switch (this.scale) {
+    case TimeStep.SCALE.MILLISECOND:  return moment(date).format('SSS');
+    case TimeStep.SCALE.SECOND:       return moment(date).format('s');
+    case TimeStep.SCALE.MINUTE:       return moment(date).format('HH:mm');
+    case TimeStep.SCALE.HOUR:         return moment(date).format('HH:mm');
+    case TimeStep.SCALE.WEEKDAY:      return moment(date).format('ddd D');
+    case TimeStep.SCALE.DAY:          return moment(date).format('D');
+    case TimeStep.SCALE.MONTH:        return moment(date).format('MMM');
+    case TimeStep.SCALE.YEAR:         return moment(date).format('YYYY');
+    default:                          return '';
+  }
 };
 
 
@@ -6554,22 +6018,22 @@ TimeStep.prototype.getLabelMinor = function(date) {
  * @param {Date} [date] custom date. if not provided, current date is taken
  */
 TimeStep.prototype.getLabelMajor = function(date) {
-    if (date == undefined) {
-        date = this.current;
-    }
+  if (date == undefined) {
+    date = this.current;
+  }
 
-    //noinspection FallthroughInSwitchStatementJS
-    switch (this.scale) {
-        case TimeStep.SCALE.MILLISECOND:return moment(date).format('HH:mm:ss');
-        case TimeStep.SCALE.SECOND:     return moment(date).format('D MMMM HH:mm');
-        case TimeStep.SCALE.MINUTE:
-        case TimeStep.SCALE.HOUR:       return moment(date).format('ddd D MMMM');
-        case TimeStep.SCALE.WEEKDAY:
-        case TimeStep.SCALE.DAY:        return moment(date).format('MMMM YYYY');
-        case TimeStep.SCALE.MONTH:      return moment(date).format('YYYY');
-        case TimeStep.SCALE.YEAR:       return '';
-        default:                        return '';
-    }
+  //noinspection FallthroughInSwitchStatementJS
+  switch (this.scale) {
+    case TimeStep.SCALE.MILLISECOND:return moment(date).format('HH:mm:ss');
+    case TimeStep.SCALE.SECOND:     return moment(date).format('D MMMM HH:mm');
+    case TimeStep.SCALE.MINUTE:
+    case TimeStep.SCALE.HOUR:       return moment(date).format('ddd D MMMM');
+    case TimeStep.SCALE.WEEKDAY:
+    case TimeStep.SCALE.DAY:        return moment(date).format('MMMM YYYY');
+    case TimeStep.SCALE.MONTH:      return moment(date).format('YYYY');
+    case TimeStep.SCALE.YEAR:       return '';
+    default:                        return '';
+  }
 };
 
 /**
@@ -6579,39 +6043,39 @@ TimeStep.prototype.getLabelMajor = function(date) {
  * @param {Object} [options]
  */
 function Stack (parent, options) {
-    this.parent = parent;
+  this.parent = parent;
 
-    this.options = options || {};
-    this.defaultOptions = {
-        order: function (a, b) {
-            //return (b.width - a.width) || (a.left - b.left);  // TODO: cleanup
-            // Order: ranges over non-ranges, ranged ordered by width, and
-            // lastly ordered by start.
-            if (a instanceof ItemRange) {
-                if (b instanceof ItemRange) {
-                    var aInt = (a.data.end - a.data.start);
-                    var bInt = (b.data.end - b.data.start);
-                    return (aInt - bInt) || (a.data.start - b.data.start);
-                }
-                else {
-                    return -1;
-                }
-            }
-            else {
-                if (b instanceof ItemRange) {
-                    return 1;
-                }
-                else {
-                    return (a.data.start - b.data.start);
-                }
-            }
-        },
-        margin: {
-            item: 10
+  this.options = options || {};
+  this.defaultOptions = {
+    order: function (a, b) {
+      //return (b.width - a.width) || (a.left - b.left);  // TODO: cleanup
+      // Order: ranges over non-ranges, ranged ordered by width, and
+      // lastly ordered by start.
+      if (a instanceof ItemRange) {
+        if (b instanceof ItemRange) {
+          var aInt = (a.data.end - a.data.start);
+          var bInt = (b.data.end - b.data.start);
+          return (aInt - bInt) || (a.data.start - b.data.start);
         }
-    };
+        else {
+          return -1;
+        }
+      }
+      else {
+        if (b instanceof ItemRange) {
+          return 1;
+        }
+        else {
+          return (a.data.start - b.data.start);
+        }
+      }
+    },
+    margin: {
+      item: 10
+    }
+  };
 
-    this.ordered = [];  // ordered items
+  this.ordered = [];  // ordered items
 }
 
 /**
@@ -6622,9 +6086,9 @@ function Stack (parent, options) {
  *                          {function} order  Stacking order
  */
 Stack.prototype.setOptions = function setOptions (options) {
-    util.extend(this.options, options);
+  util.extend(this.options, options);
 
-    // TODO: register on data changes at the connected parent itemset, and update the changed part only and immediately
+  // TODO: register on data changes at the connected parent itemset, and update the changed part only and immediately
 };
 
 /**
@@ -6632,8 +6096,8 @@ Stack.prototype.setOptions = function setOptions (options) {
  * distance equal to options.margin.item.
  */
 Stack.prototype.update = function update() {
-    this._order();
-    this._stack();
+  this._order();
+  this._stack();
 };
 
 /**
@@ -6644,31 +6108,31 @@ Stack.prototype.update = function update() {
  * @private
  */
 Stack.prototype._order = function _order () {
-    var items = this.parent.items;
-    if (!items) {
-        throw new Error('Cannot stack items: parent does not contain items');
+  var items = this.parent.items;
+  if (!items) {
+    throw new Error('Cannot stack items: parent does not contain items');
+  }
+
+  // TODO: store the sorted items, to have less work later on
+  var ordered = [];
+  var index = 0;
+  // items is a map (no array)
+  util.forEach(items, function (item) {
+    if (item.visible) {
+      ordered[index] = item;
+      index++;
     }
+  });
 
-    // TODO: store the sorted items, to have less work later on
-    var ordered = [];
-    var index = 0;
-    // items is a map (no array)
-    util.forEach(items, function (item) {
-        if (item.visible) {
-            ordered[index] = item;
-            index++;
-        }
-    });
+  //if a customer stack order function exists, use it.
+  var order = this.options.order || this.defaultOptions.order;
+  if (!(typeof order === 'function')) {
+    throw new Error('Option order must be a function');
+  }
 
-    //if a customer stack order function exists, use it.
-    var order = this.options.order || this.defaultOptions.order;
-    if (!(typeof order === 'function')) {
-        throw new Error('Option order must be a function');
-    }
+  ordered.sort(order);
 
-    ordered.sort(order);
-
-    this.ordered = ordered;
+  this.ordered = ordered;
 };
 
 /**
@@ -6677,40 +6141,40 @@ Stack.prototype._order = function _order () {
  * @private
  */
 Stack.prototype._stack = function _stack () {
-    var i,
-        iMax,
-        ordered = this.ordered,
-        options = this.options,
-        orientation = options.orientation || this.defaultOptions.orientation,
-        axisOnTop = (orientation == 'top'),
-        margin;
+  var i,
+      iMax,
+      ordered = this.ordered,
+      options = this.options,
+      orientation = options.orientation || this.defaultOptions.orientation,
+      axisOnTop = (orientation == 'top'),
+      margin;
 
-    if (options.margin && options.margin.item !== undefined) {
-        margin = options.margin.item;
-    }
-    else {
-        margin = this.defaultOptions.margin.item
-    }
+  if (options.margin && options.margin.item !== undefined) {
+    margin = options.margin.item;
+  }
+  else {
+    margin = this.defaultOptions.margin.item
+  }
 
-    // calculate new, non-overlapping positions
-    for (i = 0, iMax = ordered.length; i < iMax; i++) {
-        var item = ordered[i];
-        var collidingItem = null;
-        do {
-            // TODO: optimize checking for overlap. when there is a gap without items,
-            //  you only need to check for items from the next item on, not from zero
-            collidingItem = this.checkOverlap(ordered, i, 0, i - 1, margin);
-            if (collidingItem != null) {
-                // There is a collision. Reposition the event above the colliding element
-                if (axisOnTop) {
-                    item.top = collidingItem.top + collidingItem.height + margin;
-                }
-                else {
-                    item.top = collidingItem.top - item.height - margin;
-                }
-            }
-        } while (collidingItem);
-    }
+  // calculate new, non-overlapping positions
+  for (i = 0, iMax = ordered.length; i < iMax; i++) {
+    var item = ordered[i];
+    var collidingItem = null;
+    do {
+      // TODO: optimize checking for overlap. when there is a gap without items,
+      //  you only need to check for items from the next item on, not from zero
+      collidingItem = this.checkOverlap(ordered, i, 0, i - 1, margin);
+      if (collidingItem != null) {
+        // There is a collision. Reposition the event above the colliding element
+        if (axisOnTop) {
+          item.top = collidingItem.top + collidingItem.height + margin;
+        }
+        else {
+          item.top = collidingItem.top - item.height - margin;
+        }
+      }
+    } while (collidingItem);
+  }
 };
 
 /**
@@ -6729,21 +6193,21 @@ Stack.prototype._stack = function _stack () {
  */
 Stack.prototype.checkOverlap = function checkOverlap (items, itemIndex,
                                                       itemStart, itemEnd, margin) {
-    var collision = this.collision;
+  var collision = this.collision;
 
-    // we loop from end to start, as we suppose that the chance of a
-    // collision is larger for items at the end, so check these first.
-    var a = items[itemIndex];
-    for (var i = itemEnd; i >= itemStart; i--) {
-        var b = items[i];
-        if (collision(a, b, margin)) {
-            if (i != itemIndex) {
-                return b;
-            }
-        }
+  // we loop from end to start, as we suppose that the chance of a
+  // collision is larger for items at the end, so check these first.
+  var a = items[itemIndex];
+  for (var i = itemEnd; i >= itemStart; i--) {
+    var b = items[i];
+    if (collision(a, b, margin)) {
+      if (i != itemIndex) {
+        return b;
+      }
     }
+  }
 
-    return null;
+  return null;
 };
 
 /**
@@ -6759,10 +6223,10 @@ Stack.prototype.checkOverlap = function checkOverlap (items, itemIndex,
  * @return {boolean}        true if a and b collide, else false
  */
 Stack.prototype.collision = function collision (a, b, margin) {
-    return ((a.left - margin) < (b.left + b.getWidth()) &&
-        (a.left + a.getWidth() + margin) > b.left &&
-        (a.top - margin) < (b.top + b.height) &&
-        (a.top + a.height + margin) > b.top);
+  return ((a.left - margin) < (b.left + b.getWidth()) &&
+      (a.left + a.getWidth() + margin) > b.left &&
+      (a.top - margin) < (b.top + b.height) &&
+      (a.top + a.height + margin) > b.top);
 };
 
 /**
@@ -6774,15 +6238,13 @@ Stack.prototype.collision = function collision (a, b, margin) {
  * @extends Controller
  */
 function Range(options) {
-    this.id = util.randomUUID();
-    this.start = null; // Number
-    this.end = null;   // Number
+  this.id = util.randomUUID();
+  this.start = null; // Number
+  this.end = null;   // Number
 
-    this.options = options || {};
+  this.options = options || {};
 
-    this.listeners = [];
-
-    this.setOptions(options);
+  this.setOptions(options);
 }
 
 /**
@@ -6796,13 +6258,24 @@ function Range(options) {
  *                                                  (end - start).
  */
 Range.prototype.setOptions = function (options) {
-    util.extend(this.options, options);
+  util.extend(this.options, options);
 
-    // re-apply range with new limitations
-    if (this.start !== null && this.end !== null) {
-        this.setRange(this.start, this.end);
-    }
+  // re-apply range with new limitations
+  if (this.start !== null && this.end !== null) {
+    this.setRange(this.start, this.end);
+  }
 };
+
+/**
+ * Test whether direction has a valid value
+ * @param {String} direction    'horizontal' or 'vertical'
+ */
+function validateDirection (direction) {
+  if (direction != 'horizontal' && direction != 'vertical') {
+    throw new TypeError('Unknown direction "' + direction + '". ' +
+        'Choose "horizontal" or "vertical".');
+  }
+}
 
 /**
  * Add listeners for mouse and touch events to the component
@@ -6811,47 +6284,44 @@ Range.prototype.setOptions = function (options) {
  * @param {String} direction    Available directions: 'horizontal', 'vertical'
  */
 Range.prototype.subscribe = function (component, event, direction) {
-    var me = this;
-    var listener;
+  var me = this;
 
-    if (direction != 'horizontal' && direction != 'vertical') {
-        throw new TypeError('Unknown direction "' + direction + '". ' +
-            'Choose "horizontal" or "vertical".');
-    }
+  if (event == 'move') {
+    // drag start listener
+    component.on('dragstart', function (event) {
+      me._onDragStart(event, component);
+    });
 
-    //noinspection FallthroughInSwitchStatementJS
-    if (event == 'move') {
-        listener = {
-            component: component,
-            event: event,
-            direction: direction,
-            callback: function (event) {
-                me._onMouseDown(event, listener);
-            },
-            params: {}
-        };
+    // drag listener
+    component.on('drag', function (event) {
+      me._onDrag(event, component, direction);
+    });
 
-        component.on('mousedown', listener.callback);
-        me.listeners.push(listener);
+    // drag end listener
+    component.on('dragend', function (event) {
+      me._onDragEnd(event, component);
+    });
+  }
+  else if (event == 'zoom') {
+    // mouse wheel
+    function mousewheel (event) {
+      me._onMouseWheel(event, component, direction);
     }
-    else if (event == 'zoom') {
-        listener = {
-            component: component,
-            event: event,
-            direction: direction,
-            callback: function (event) {
-                me._onMouseWheel(event, listener);
-            },
-            params: {}
-        };
+    component.on('mousewheel', mousewheel);
+    component.on('DOMMouseScroll', mousewheel); // For FF
 
-        component.on('mousewheel', listener.callback);
-        me.listeners.push(listener);
-    }
-    else {
-        throw new TypeError('Unknown event "' + event + '". ' +
-            'Choose "move" or "zoom".');
-    }
+    // pinch
+    component.on('touch', function (event) {
+      me._onTouch();
+    });
+    component.on('pinch', function (event) {
+      me._onPinch(event, component, direction);
+    });
+  }
+  else {
+    throw new TypeError('Unknown event "' + event + '". ' +
+        'Choose "move" or "zoom".');
+  }
 };
 
 /**
@@ -6861,7 +6331,7 @@ Range.prototype.subscribe = function (component, event, direction) {
  *                             as parameter.
  */
 Range.prototype.on = function (event, callback) {
-    events.addListener(this, event, callback);
+  events.addListener(this, event, callback);
 };
 
 /**
@@ -6871,10 +6341,10 @@ Range.prototype.on = function (event, callback) {
  * @private
  */
 Range.prototype._trigger = function (event) {
-    events.trigger(this, event, {
-        start: this.start,
-        end: this.end
-    });
+  events.trigger(this, event, {
+    start: this.start,
+    end: this.end
+  });
 };
 
 /**
@@ -6883,11 +6353,11 @@ Range.prototype._trigger = function (event) {
  * @param {Number} [end]
  */
 Range.prototype.setRange = function(start, end) {
-    var changed = this._applyRange(start, end);
-    if (changed) {
-        this._trigger('rangechange');
-        this._trigger('rangechanged');
-    }
+  var changed = this._applyRange(start, end);
+  if (changed) {
+    this._trigger('rangechange');
+    this._trigger('rangechanged');
+  }
 };
 
 /**
@@ -6900,105 +6370,105 @@ Range.prototype.setRange = function(start, end) {
  * @private
  */
 Range.prototype._applyRange = function(start, end) {
-    var newStart = (start != null) ? util.convert(start, 'Number') : this.start,
-        newEnd   = (end != null)   ? util.convert(end, 'Number')   : this.end,
-        max = (this.options.max != null) ? util.convert(this.options.max, 'Date').valueOf() : null,
-        min = (this.options.min != null) ? util.convert(this.options.min, 'Date').valueOf() : null,
-        diff;
+  var newStart = (start != null) ? util.convert(start, 'Number') : this.start,
+      newEnd   = (end != null)   ? util.convert(end, 'Number')   : this.end,
+      max = (this.options.max != null) ? util.convert(this.options.max, 'Date').valueOf() : null,
+      min = (this.options.min != null) ? util.convert(this.options.min, 'Date').valueOf() : null,
+      diff;
 
-    // check for valid number
-    if (isNaN(newStart) || newStart === null) {
-        throw new Error('Invalid start "' + start + '"');
-    }
-    if (isNaN(newEnd) || newEnd === null) {
-        throw new Error('Invalid end "' + end + '"');
-    }
+  // check for valid number
+  if (isNaN(newStart) || newStart === null) {
+    throw new Error('Invalid start "' + start + '"');
+  }
+  if (isNaN(newEnd) || newEnd === null) {
+    throw new Error('Invalid end "' + end + '"');
+  }
 
-    // prevent start < end
-    if (newEnd < newStart) {
-        newEnd = newStart;
-    }
+  // prevent start < end
+  if (newEnd < newStart) {
+    newEnd = newStart;
+  }
 
-    // prevent start < min
-    if (min !== null) {
-        if (newStart < min) {
-            diff = (min - newStart);
-            newStart += diff;
-            newEnd += diff;
+  // prevent start < min
+  if (min !== null) {
+    if (newStart < min) {
+      diff = (min - newStart);
+      newStart += diff;
+      newEnd += diff;
 
-            // prevent end > max
-            if (max != null) {
-                if (newEnd > max) {
-                    newEnd = max;
-                }
-            }
-        }
-    }
-
-    // prevent end > max
-    if (max !== null) {
+      // prevent end > max
+      if (max != null) {
         if (newEnd > max) {
-            diff = (newEnd - max);
-            newStart -= diff;
-            newEnd -= diff;
-
-            // prevent start < min
-            if (min != null) {
-                if (newStart < min) {
-                    newStart = min;
-                }
-            }
+          newEnd = max;
         }
+      }
     }
+  }
 
-    // prevent (end-start) < zoomMin
-    if (this.options.zoomMin !== null) {
-        var zoomMin = parseFloat(this.options.zoomMin);
-        if (zoomMin < 0) {
-            zoomMin = 0;
+  // prevent end > max
+  if (max !== null) {
+    if (newEnd > max) {
+      diff = (newEnd - max);
+      newStart -= diff;
+      newEnd -= diff;
+
+      // prevent start < min
+      if (min != null) {
+        if (newStart < min) {
+          newStart = min;
         }
-        if ((newEnd - newStart) < zoomMin) {
-            if ((this.end - this.start) === zoomMin) {
-                // ignore this action, we are already zoomed to the minimum
-                newStart = this.start;
-                newEnd = this.end;
-            }
-            else {
-                // zoom to the minimum
-                diff = (zoomMin - (newEnd - newStart));
-                newStart -= diff / 2;
-                newEnd += diff / 2;
-            }
-        }
+      }
     }
+  }
 
-    // prevent (end-start) > zoomMax
-    if (this.options.zoomMax !== null) {
-        var zoomMax = parseFloat(this.options.zoomMax);
-        if (zoomMax < 0) {
-            zoomMax = 0;
-        }
-        if ((newEnd - newStart) > zoomMax) {
-            if ((this.end - this.start) === zoomMax) {
-                // ignore this action, we are already zoomed to the maximum
-                newStart = this.start;
-                newEnd = this.end;
-            }
-            else {
-                // zoom to the maximum
-                diff = ((newEnd - newStart) - zoomMax);
-                newStart += diff / 2;
-                newEnd -= diff / 2;
-            }
-        }
+  // prevent (end-start) < zoomMin
+  if (this.options.zoomMin !== null) {
+    var zoomMin = parseFloat(this.options.zoomMin);
+    if (zoomMin < 0) {
+      zoomMin = 0;
     }
+    if ((newEnd - newStart) < zoomMin) {
+      if ((this.end - this.start) === zoomMin) {
+        // ignore this action, we are already zoomed to the minimum
+        newStart = this.start;
+        newEnd = this.end;
+      }
+      else {
+        // zoom to the minimum
+        diff = (zoomMin - (newEnd - newStart));
+        newStart -= diff / 2;
+        newEnd += diff / 2;
+      }
+    }
+  }
 
-    var changed = (this.start != newStart || this.end != newEnd);
+  // prevent (end-start) > zoomMax
+  if (this.options.zoomMax !== null) {
+    var zoomMax = parseFloat(this.options.zoomMax);
+    if (zoomMax < 0) {
+      zoomMax = 0;
+    }
+    if ((newEnd - newStart) > zoomMax) {
+      if ((this.end - this.start) === zoomMax) {
+        // ignore this action, we are already zoomed to the maximum
+        newStart = this.start;
+        newEnd = this.end;
+      }
+      else {
+        // zoom to the maximum
+        diff = ((newEnd - newStart) - zoomMax);
+        newStart += diff / 2;
+        newEnd -= diff / 2;
+      }
+    }
+  }
 
-    this.start = newStart;
-    this.end = newEnd;
+  var changed = (this.start != newStart || this.end != newEnd);
 
-    return changed;
+  this.start = newStart;
+  this.end = newEnd;
+
+  return changed;
 };
 
 /**
@@ -7006,296 +6476,280 @@ Range.prototype._applyRange = function(start, end) {
  * @return {Object} An object with start and end properties
  */
 Range.prototype.getRange = function() {
-    return {
-        start: this.start,
-        end: this.end
-    };
+  return {
+    start: this.start,
+    end: this.end
+  };
 };
 
 /**
- * Calculate the conversion offset and factor for current range, based on
+ * Calculate the conversion offset and scale for current range, based on
  * the provided width
  * @param {Number} width
- * @returns {{offset: number, factor: number}} conversion
+ * @returns {{offset: number, scale: number}} conversion
  */
 Range.prototype.conversion = function (width) {
-    var start = this.start;
-    var end = this.end;
-
-    return Range.conversion(this.start, this.end, width);
+  return Range.conversion(this.start, this.end, width);
 };
 
 /**
- * Static method to calculate the conversion offset and factor for a range,
+ * Static method to calculate the conversion offset and scale for a range,
  * based on the provided start, end, and width
  * @param {Number} start
  * @param {Number} end
  * @param {Number} width
- * @returns {{offset: number, factor: number}} conversion
+ * @returns {{offset: number, scale: number}} conversion
  */
 Range.conversion = function (start, end, width) {
-    if (width != 0 && (end - start != 0)) {
-        return {
-            offset: start,
-            factor: width / (end - start)
-        }
+  if (width != 0 && (end - start != 0)) {
+    return {
+      offset: start,
+      scale: width / (end - start)
     }
-    else {
-        return {
-            offset: 0,
-            factor: 1
-        };
-    }
+  }
+  else {
+    return {
+      offset: 0,
+      scale: 1
+    };
+  }
 };
 
+// global (private) object to store drag params
+var touchParams = {};
+
 /**
- * Start moving horizontally or vertically
+ * Start dragging horizontally or vertically
  * @param {Event} event
- * @param {Object} listener   Listener containing the component and params
+ * @param {Object} component
  * @private
  */
-Range.prototype._onMouseDown = function(event, listener) {
-    event = event || window.event;
-    var params = listener.params;
+Range.prototype._onDragStart = function(event, component) {
+  // refuse to drag when we where pinching to prevent the timeline make a jump
+  // when releasing the fingers in opposite order from the touch screen
+  if (touchParams.pinching) return;
 
-    // only react on left mouse button down
-    var leftButtonDown = event.which ? (event.which == 1) : (event.button == 1);
-    if (!leftButtonDown) {
-        return;
-    }
+  touchParams.start = this.start;
+  touchParams.end = this.end;
 
-    // get mouse position
-    params.mouseX = util.getPageX(event);
-    params.mouseY = util.getPageY(event);
-    params.previousLeft = 0;
-    params.previousOffset = 0;
-
-    params.moved = false;
-    params.start = this.start;
-    params.end = this.end;
-
-    var frame = listener.component.frame;
-    if (frame) {
-        frame.style.cursor = 'move';
-    }
-
-    // add event listeners to handle moving the contents
-    // we store the function onmousemove and onmouseup in the timeaxis,
-    // so we can remove the eventlisteners lateron in the function onmouseup
-    var me = this;
-    if (!params.onMouseMove) {
-        params.onMouseMove = function (event) {
-            me._onMouseMove(event, listener);
-        };
-        util.addEventListener(document, "mousemove", params.onMouseMove);
-    }
-    if (!params.onMouseUp) {
-        params.onMouseUp = function (event) {
-            me._onMouseUp(event, listener);
-        };
-        util.addEventListener(document, "mouseup", params.onMouseUp);
-    }
-
-    util.preventDefault(event);
+  var frame = component.frame;
+  if (frame) {
+    frame.style.cursor = 'move';
+  }
 };
 
 /**
- * Perform moving operating.
- * This function activated from within the funcion TimeAxis._onMouseDown().
+ * Perform dragging operating.
  * @param {Event} event
- * @param {Object} listener
+ * @param {Component} component
+ * @param {String} direction    'horizontal' or 'vertical'
  * @private
  */
-Range.prototype._onMouseMove = function (event, listener) {
-    event = event || window.event;
+Range.prototype._onDrag = function (event, component, direction) {
+  validateDirection(direction);
 
-    var params = listener.params;
+  // refuse to drag when we where pinching to prevent the timeline make a jump
+  // when releasing the fingers in opposite order from the touch screen
+  if (touchParams.pinching) return;
 
-    // calculate change in mouse position
-    var mouseX = util.getPageX(event);
-    var mouseY = util.getPageY(event);
+  var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
+      interval = (touchParams.end - touchParams.start),
+      width = (direction == 'horizontal') ? component.width : component.height,
+      diffRange = -delta / width * interval;
 
-    if (params.mouseX == undefined) {
-        params.mouseX = mouseX;
-    }
-    if (params.mouseY == undefined) {
-        params.mouseY = mouseY;
-    }
+  this._applyRange(touchParams.start + diffRange, touchParams.end + diffRange);
 
-    var diffX = mouseX - params.mouseX;
-    var diffY = mouseY - params.mouseY;
-    var diff = (listener.direction == 'horizontal') ? diffX : diffY;
-
-    // if mouse movement is big enough, register it as a "moved" event
-    if (Math.abs(diff) >= 1) {
-        params.moved = true;
-    }
-
-    var interval = (params.end - params.start);
-    var width = (listener.direction == 'horizontal') ?
-        listener.component.width : listener.component.height;
-    var diffRange = -diff / width * interval;
-    this._applyRange(params.start + diffRange, params.end + diffRange);
-
-    // fire a rangechange event
-    this._trigger('rangechange');
-
-    util.preventDefault(event);
+  // fire a rangechange event
+  this._trigger('rangechange');
 };
 
 /**
- * Stop moving operating.
- * This function activated from within the function Range._onMouseDown().
+ * Stop dragging operating.
  * @param {event} event
- * @param {Object} listener
+ * @param {Component} component
  * @private
  */
-Range.prototype._onMouseUp = function (event, listener) {
-    event = event || window.event;
+Range.prototype._onDragEnd = function (event, component) {
+  // refuse to drag when we where pinching to prevent the timeline make a jump
+  // when releasing the fingers in opposite order from the touch screen
+  if (touchParams.pinching) return;
 
-    var params = listener.params;
+  if (component.frame) {
+    component.frame.style.cursor = 'auto';
+  }
 
-    if (listener.component.frame) {
-        listener.component.frame.style.cursor = 'auto';
-    }
-
-    // remove event listeners here, important for Safari
-    if (params.onMouseMove) {
-        util.removeEventListener(document, "mousemove", params.onMouseMove);
-        params.onMouseMove = null;
-    }
-    if (params.onMouseUp) {
-        util.removeEventListener(document, "mouseup",   params.onMouseUp);
-        params.onMouseUp = null;
-    }
-    //util.preventDefault(event);
-
-    if (params.moved) {
-        // fire a rangechanged event
-        this._trigger('rangechanged');
-    }
+  // fire a rangechanged event
+  this._trigger('rangechanged');
 };
 
 /**
  * Event handler for mouse wheel event, used to zoom
  * Code from http://adomas.org/javascript-mouse-wheel/
  * @param {Event} event
- * @param {Object} listener
+ * @param {Component} component
+ * @param {String} direction    'horizontal' or 'vertical'
  * @private
  */
-Range.prototype._onMouseWheel = function(event, listener) {
-    event = event || window.event;
+Range.prototype._onMouseWheel = function(event, component, direction) {
+  validateDirection(direction);
 
-    // retrieve delta
-    var delta = 0;
-    if (event.wheelDelta) { /* IE/Opera. */
-        delta = event.wheelDelta / 120;
-    } else if (event.detail) { /* Mozilla case. */
-        // In Mozilla, sign of delta is different than in IE.
-        // Also, delta is multiple of 3.
-        delta = -event.detail / 3;
+  // retrieve delta
+  var delta = 0;
+  if (event.wheelDelta) { /* IE/Opera. */
+    delta = event.wheelDelta / 120;
+  } else if (event.detail) { /* Mozilla case. */
+    // In Mozilla, sign of delta is different than in IE.
+    // Also, delta is multiple of 3.
+    delta = -event.detail / 3;
+  }
+
+  // If delta is nonzero, handle it.
+  // Basically, delta is now positive if wheel was scrolled up,
+  // and negative, if wheel was scrolled down.
+  if (delta) {
+    // perform the zoom action. Delta is normally 1 or -1
+
+    // adjust a negative delta such that zooming in with delta 0.1
+    // equals zooming out with a delta -0.1
+    var scale;
+    if (delta < 0) {
+      scale = 1 - (delta / 5);
+    }
+    else {
+      scale = 1 / (1 + (delta / 5)) ;
     }
 
-    // If delta is nonzero, handle it.
-    // Basically, delta is now positive if wheel was scrolled up,
-    // and negative, if wheel was scrolled down.
-    if (delta) {
-        var me = this;
-        var zoom = function () {
-            // perform the zoom action. Delta is normally 1 or -1
-            var zoomFactor = delta / 5.0;
-            var zoomAround = null;
-            var frame = listener.component.frame;
-            if (frame) {
-                var size, conversion;
-                if (listener.direction == 'horizontal') {
-                    size = listener.component.width;
-                    conversion = me.conversion(size);
-                    var frameLeft = util.getAbsoluteLeft(frame);
-                    var mouseX = util.getPageX(event);
-                    zoomAround = (mouseX - frameLeft) / conversion.factor + conversion.offset;
-                }
-                else {
-                    size = listener.component.height;
-                    conversion = me.conversion(size);
-                    var frameTop = util.getAbsoluteTop(frame);
-                    var mouseY = util.getPageY(event);
-                    zoomAround = ((frameTop + size - mouseY) - frameTop) / conversion.factor + conversion.offset;
-                }
-            }
+    // calculate center, the date to zoom around
+    var gesture = Hammer.event.collectEventData(this, 'scroll', event),
+        pointer = getPointer(gesture.touches[0], component.frame),
+        pointerDate = this._pointerToDate(component, direction, pointer);
 
-            me.zoom(zoomFactor, zoomAround);
-        };
+    this.zoom(scale, pointerDate);
+  }
 
-        zoom();
-    }
-
-    // Prevent default actions caused by mouse wheel.
-    // That might be ugly, but we handle scrolls somehow
-    // anyway, so don't bother here...
-    util.preventDefault(event);
+  // Prevent default actions caused by mouse wheel
+  // (else the page and timeline both zoom and scroll)
+  util.preventDefault(event);
 };
 
+/**
+ * On start of a touch gesture, initialize scale to 1
+ * @private
+ */
+Range.prototype._onTouch = function () {
+  touchParams.start = this.start;
+  touchParams.end = this.end;
+  touchParams.pinching = false;
+  touchParams.center = null;
+};
 
 /**
- * Zoom the range the given zoomfactor in or out. Start and end date will
- * be adjusted, and the timeline will be redrawn. You can optionally give a
- * date around which to zoom.
- * For example, try zoomfactor = 0.1 or -0.1
- * @param {Number} zoomFactor      Zooming amount. Positive value will zoom in,
- *                                 negative value will zoom out
- * @param {Number} zoomAround      Value around which will be zoomed. Optional
+ * Handle pinch event
+ * @param {Event} event
+ * @param {Component} component
+ * @param {String} direction    'horizontal' or 'vertical'
+ * @private
  */
-Range.prototype.zoom = function(zoomFactor, zoomAround) {
-    // if zoomAroundDate is not provided, take it half between start Date and end Date
-    if (zoomAround == null) {
-        zoomAround = (this.start + this.end) / 2;
+Range.prototype._onPinch = function (event, component, direction) {
+  touchParams.pinching = true;
+
+  if (event.gesture.touches.length > 1) {
+    if (!touchParams.center) {
+      touchParams.center = getPointer(event.gesture.center, component.frame);
     }
 
-    // prevent zoom factor larger than 1 or smaller than -1 (larger than 1 will
-    // result in a start>=end )
-    if (zoomFactor >= 1) {
-        zoomFactor = 0.9;
-    }
-    if (zoomFactor <= -1) {
-        zoomFactor = -0.9;
-    }
-
-    // adjust a negative factor such that zooming in with 0.1 equals zooming
-    // out with a factor -0.1
-    if (zoomFactor < 0) {
-        zoomFactor = zoomFactor / (1 + zoomFactor);
-    }
-
-    // zoom start and end relative to the zoomAround value
-    var startDiff = (this.start - zoomAround);
-    var endDiff = (this.end - zoomAround);
+    var scale = 1 / event.gesture.scale,
+        initDate = this._pointerToDate(component, direction, touchParams.center),
+        center = getPointer(event.gesture.center, component.frame),
+        date = this._pointerToDate(component, direction, center),
+        delta = date - initDate; // TODO: utilize delta
 
     // calculate new start and end
-    var newStart = this.start - startDiff * zoomFactor;
-    var newEnd = this.end - endDiff * zoomFactor;
+    var newStart = parseInt(initDate + (touchParams.start - initDate) * scale);
+    var newEnd = parseInt(initDate + (touchParams.end - initDate) * scale);
 
+    // apply new range
     this.setRange(newStart, newEnd);
+  }
 };
 
 /**
- * Move the range with a given factor to the left or right. Start and end
- * value will be adjusted. For example, try moveFactor = 0.1 or -0.1
- * @param {Number}  moveFactor     Moving amount. Positive value will move right,
- *                                 negative value will move left
+ * Helper function to calculate the center date for zooming
+ * @param {Component} component
+ * @param {{x: Number, y: Number}} pointer
+ * @param {String} direction    'horizontal' or 'vertical'
+ * @return {number} date
+ * @private
  */
-Range.prototype.move = function(moveFactor) {
-    // zoom start Date and end Date relative to the zoomAroundDate
-    var diff = (this.end - this.start);
+Range.prototype._pointerToDate = function (component, direction, pointer) {
+  var conversion;
+  if (direction == 'horizontal') {
+    var width = component.width;
+    conversion = this.conversion(width);
+    return pointer.x / conversion.scale + conversion.offset;
+  }
+  else {
+    var height = component.height;
+    conversion = this.conversion(height);
+    return pointer.y / conversion.scale + conversion.offset;
+  }
+};
 
-    // apply new values
-    var newStart = this.start + diff * moveFactor;
-    var newEnd = this.end + diff * moveFactor;
+/**
+ * Get the pointer location relative to the location of the dom element
+ * @param {{pageX: Number, pageY: Number}} touch
+ * @param {Element} element   HTML DOM element
+ * @return {{x: Number, y: Number}} pointer
+ * @private
+ */
+function getPointer (touch, element) {
+  return {
+    x: touch.pageX - vis.util.getAbsoluteLeft(element),
+    y: touch.pageY - vis.util.getAbsoluteTop(element)
+  };
+}
 
-    // TODO: reckon with min and max range
+/**
+ * Zoom the range the given scale in or out. Start and end date will
+ * be adjusted, and the timeline will be redrawn. You can optionally give a
+ * date around which to zoom.
+ * For example, try scale = 0.9 or 1.1
+ * @param {Number} scale      Scaling factor. Values above 1 will zoom out,
+ *                            values below 1 will zoom in.
+ * @param {Number} [center]   Value representing a date around which will
+ *                            be zoomed.
+ */
+Range.prototype.zoom = function(scale, center) {
+  // if centerDate is not provided, take it half between start Date and end Date
+  if (center == null) {
+    center = (this.start + this.end) / 2;
+  }
 
-    this.start = newStart;
-    this.end = newEnd;
+  // calculate new start and end
+  var newStart = center + (this.start - center) * scale;
+  var newEnd = center + (this.end - center) * scale;
+
+  this.setRange(newStart, newEnd);
+};
+
+/**
+ * Move the range with a given delta to the left or right. Start and end
+ * value will be adjusted. For example, try delta = 0.1 or -0.1
+ * @param {Number}  delta     Moving amount. Positive value will move right,
+ *                            negative value will move left
+ */
+Range.prototype.move = function(delta) {
+  // zoom start Date and end Date relative to the centerDate
+  var diff = (this.end - this.start);
+
+  // apply new values
+  var newStart = this.start + diff * delta;
+  var newEnd = this.end + diff * delta;
+
+  // TODO: reckon with min and max range
+
+  this.start = newStart;
+  this.end = newEnd;
 };
 
 /**
@@ -7303,16 +6757,16 @@ Range.prototype.move = function(moveFactor) {
  * @param {Number} moveTo      New center point of the range
  */
 Range.prototype.moveTo = function(moveTo) {
-    var center = (this.start + this.end) / 2;
+  var center = (this.start + this.end) / 2;
 
-    var diff = center - moveTo;
+  var diff = center - moveTo;
 
-    // calculate new start and end
-    var newStart = this.start - diff;
-    var newEnd = this.end - diff;
+  // calculate new start and end
+  var newStart = this.start - diff;
+  var newEnd = this.end - diff;
 
-    this.setRange(newStart, newEnd);
-}
+  this.setRange(newStart, newEnd);
+};
 
 /**
  * @constructor Controller
@@ -7320,11 +6774,11 @@ Range.prototype.moveTo = function(moveTo) {
  * A Controller controls the reflows and repaints of all visual components
  */
 function Controller () {
-    this.id = util.randomUUID();
-    this.components = {};
+  this.id = util.randomUUID();
+  this.components = {};
 
-    this.repaintTimer = undefined;
-    this.reflowTimer = undefined;
+  this.repaintTimer = undefined;
+  this.reflowTimer = undefined;
 }
 
 /**
@@ -7332,18 +6786,18 @@ function Controller () {
  * @param {Component} component
  */
 Controller.prototype.add = function add(component) {
-    // validate the component
-    if (component.id == undefined) {
-        throw new Error('Component has no field id');
-    }
-    if (!(component instanceof Component) && !(component instanceof Controller)) {
-        throw new TypeError('Component must be an instance of ' +
-            'prototype Component or Controller');
-    }
+  // validate the component
+  if (component.id == undefined) {
+    throw new Error('Component has no field id');
+  }
+  if (!(component instanceof Component) && !(component instanceof Controller)) {
+    throw new TypeError('Component must be an instance of ' +
+        'prototype Component or Controller');
+  }
 
-    // add the component
-    component.controller = this;
-    this.components[component.id] = component;
+  // add the component
+  component.controller = this;
+  this.components[component.id] = component;
 };
 
 /**
@@ -7351,18 +6805,18 @@ Controller.prototype.add = function add(component) {
  * @param {Component | String} component
  */
 Controller.prototype.remove = function remove(component) {
-    var id;
-    for (id in this.components) {
-        if (this.components.hasOwnProperty(id)) {
-            if (id == component || this.components[id] == component) {
-                break;
-            }
-        }
+  var id;
+  for (id in this.components) {
+    if (this.components.hasOwnProperty(id)) {
+      if (id == component || this.components[id] == component) {
+        break;
+      }
     }
+  }
 
-    if (id) {
-        delete this.components[id];
-    }
+  if (id) {
+    delete this.components[id];
+  }
 };
 
 /**
@@ -7371,18 +6825,18 @@ Controller.prototype.remove = function remove(component) {
  *                              is false.
  */
 Controller.prototype.requestReflow = function requestReflow(force) {
-    if (force) {
-        this.reflow();
+  if (force) {
+    this.reflow();
+  }
+  else {
+    if (!this.reflowTimer) {
+      var me = this;
+      this.reflowTimer = setTimeout(function () {
+        me.reflowTimer = undefined;
+        me.reflow();
+      }, 0);
     }
-    else {
-        if (!this.reflowTimer) {
-            var me = this;
-            this.reflowTimer = setTimeout(function () {
-                me.reflowTimer = undefined;
-                me.reflow();
-            }, 0);
-        }
-    }
+  }
 };
 
 /**
@@ -7391,117 +6845,117 @@ Controller.prototype.requestReflow = function requestReflow(force) {
  *                             is false.
  */
 Controller.prototype.requestRepaint = function requestRepaint(force) {
-    if (force) {
-        this.repaint();
+  if (force) {
+    this.repaint();
+  }
+  else {
+    if (!this.repaintTimer) {
+      var me = this;
+      this.repaintTimer = setTimeout(function () {
+        me.repaintTimer = undefined;
+        me.repaint();
+      }, 0);
     }
-    else {
-        if (!this.repaintTimer) {
-            var me = this;
-            this.repaintTimer = setTimeout(function () {
-                me.repaintTimer = undefined;
-                me.repaint();
-            }, 0);
-        }
-    }
+  }
 };
 
 /**
  * Repaint all components
  */
 Controller.prototype.repaint = function repaint() {
-    var changed = false;
+  var changed = false;
 
-    // cancel any running repaint request
-    if (this.repaintTimer) {
-        clearTimeout(this.repaintTimer);
-        this.repaintTimer = undefined;
+  // cancel any running repaint request
+  if (this.repaintTimer) {
+    clearTimeout(this.repaintTimer);
+    this.repaintTimer = undefined;
+  }
+
+  var done = {};
+
+  function repaint(component, id) {
+    if (!(id in done)) {
+      // first repaint the components on which this component is dependent
+      if (component.depends) {
+        component.depends.forEach(function (dep) {
+          repaint(dep, dep.id);
+        });
+      }
+      if (component.parent) {
+        repaint(component.parent, component.parent.id);
+      }
+
+      // repaint the component itself and mark as done
+      changed = component.repaint() || changed;
+      done[id] = true;
     }
+  }
 
-    var done = {};
+  util.forEach(this.components, repaint);
 
-    function repaint(component, id) {
-        if (!(id in done)) {
-            // first repaint the components on which this component is dependent
-            if (component.depends) {
-                component.depends.forEach(function (dep) {
-                    repaint(dep, dep.id);
-                });
-            }
-            if (component.parent) {
-                repaint(component.parent, component.parent.id);
-            }
-
-            // repaint the component itself and mark as done
-            changed = component.repaint() || changed;
-            done[id] = true;
-        }
-    }
-
-    util.forEach(this.components, repaint);
-
-    // immediately reflow when needed
-    if (changed) {
-        this.reflow();
-    }
-    // TODO: limit the number of nested reflows/repaints, prevent loop
+  // immediately reflow when needed
+  if (changed) {
+    this.reflow();
+  }
+  // TODO: limit the number of nested reflows/repaints, prevent loop
 };
 
 /**
  * Reflow all components
  */
 Controller.prototype.reflow = function reflow() {
-    var resized = false;
+  var resized = false;
 
-    // cancel any running repaint request
-    if (this.reflowTimer) {
-        clearTimeout(this.reflowTimer);
-        this.reflowTimer = undefined;
+  // cancel any running repaint request
+  if (this.reflowTimer) {
+    clearTimeout(this.reflowTimer);
+    this.reflowTimer = undefined;
+  }
+
+  var done = {};
+
+  function reflow(component, id) {
+    if (!(id in done)) {
+      // first reflow the components on which this component is dependent
+      if (component.depends) {
+        component.depends.forEach(function (dep) {
+          reflow(dep, dep.id);
+        });
+      }
+      if (component.parent) {
+        reflow(component.parent, component.parent.id);
+      }
+
+      // reflow the component itself and mark as done
+      resized = component.reflow() || resized;
+      done[id] = true;
     }
+  }
 
-    var done = {};
+  util.forEach(this.components, reflow);
 
-    function reflow(component, id) {
-        if (!(id in done)) {
-            // first reflow the components on which this component is dependent
-            if (component.depends) {
-                component.depends.forEach(function (dep) {
-                    reflow(dep, dep.id);
-                });
-            }
-            if (component.parent) {
-                reflow(component.parent, component.parent.id);
-            }
-
-            // reflow the component itself and mark as done
-            resized = component.reflow() || resized;
-            done[id] = true;
-        }
-    }
-
-    util.forEach(this.components, reflow);
-
-    // immediately repaint when needed
-    if (resized) {
-        this.repaint();
-    }
-    // TODO: limit the number of nested reflows/repaints, prevent loop
+  // immediately repaint when needed
+  if (resized) {
+    this.repaint();
+  }
+  // TODO: limit the number of nested reflows/repaints, prevent loop
 };
 
 /**
  * Prototype for visual components
  */
 function Component () {
-    this.id = null;
-    this.parent = null;
-    this.depends = null;
-    this.controller = null;
-    this.options = null;
+  this.id = null;
+  this.parent = null;
+  this.depends = null;
+  this.controller = null;
+  this.options = null;
 
-    this.frame = null; // main DOM element
-    this.top = 0;
-    this.left = 0;
-    this.width = 0;
-    this.height = 0;
+  this.frame = null; // main DOM element
+  this.top = 0;
+  this.left = 0;
+  this.width = 0;
+  this.height = 0;
 }
 
 /**
@@ -7516,14 +6970,14 @@ function Component () {
  *                          {String | Number | function} [height]
  */
 Component.prototype.setOptions = function setOptions(options) {
-    if (options) {
-        util.extend(this.options, options);
+  if (options) {
+    util.extend(this.options, options);
 
-        if (this.controller) {
-            this.requestRepaint();
-            this.requestReflow();
-        }
+    if (this.controller) {
+      this.requestRepaint();
+      this.requestReflow();
     }
+  }
 };
 
 /**
@@ -7534,14 +6988,14 @@ Component.prototype.setOptions = function setOptions(options) {
  * @return {*} value
  */
 Component.prototype.getOption = function getOption(name) {
-    var value;
-    if (this.options) {
-        value = this.options[name];
-    }
-    if (value === undefined && this.defaultOptions) {
-        value = this.defaultOptions[name];
-    }
-    return value;
+  var value;
+  if (this.options) {
+    value = this.options[name];
+  }
+  if (value === undefined && this.defaultOptions) {
+    value = this.defaultOptions[name];
+  }
+  return value;
 };
 
 /**
@@ -7552,8 +7006,8 @@ Component.prototype.getOption = function getOption(name) {
  */
 // TODO: get rid of the getContainer and getFrame methods, provide these via the options
 Component.prototype.getContainer = function getContainer() {
-    // should be implemented by the component
-    return null;
+  // should be implemented by the component
+  return null;
 };
 
 /**
@@ -7561,7 +7015,7 @@ Component.prototype.getContainer = function getContainer() {
  * @returns {HTMLElement | null} frame
  */
 Component.prototype.getFrame = function getFrame() {
-    return this.frame;
+  return this.frame;
 };
 
 /**
@@ -7569,8 +7023,8 @@ Component.prototype.getFrame = function getFrame() {
  * @return {Boolean} changed
  */
 Component.prototype.repaint = function repaint() {
-    // should be implemented by the component
-    return false;
+  // should be implemented by the component
+  return false;
 };
 
 /**
@@ -7578,8 +7032,8 @@ Component.prototype.repaint = function repaint() {
  * @return {Boolean} resized
  */
 Component.prototype.reflow = function reflow() {
-    // should be implemented by the component
-    return false;
+  // should be implemented by the component
+  return false;
 };
 
 /**
@@ -7587,13 +7041,13 @@ Component.prototype.reflow = function reflow() {
  * @return {Boolean} changed
  */
 Component.prototype.hide = function hide() {
-    if (this.frame && this.frame.parentNode) {
-        this.frame.parentNode.removeChild(this.frame);
-        return true;
-    }
-    else {
-        return false;
-    }
+  if (this.frame && this.frame.parentNode) {
+    this.frame.parentNode.removeChild(this.frame);
+    return true;
+  }
+  else {
+    return false;
+  }
 };
 
 /**
@@ -7602,38 +7056,38 @@ Component.prototype.hide = function hide() {
  * @return {Boolean} changed
  */
 Component.prototype.show = function show() {
-    if (!this.frame || !this.frame.parentNode) {
-        return this.repaint();
-    }
-    else {
-        return false;
-    }
+  if (!this.frame || !this.frame.parentNode) {
+    return this.repaint();
+  }
+  else {
+    return false;
+  }
 };
 
 /**
  * Request a repaint. The controller will schedule a repaint
  */
 Component.prototype.requestRepaint = function requestRepaint() {
-    if (this.controller) {
-        this.controller.requestRepaint();
-    }
-    else {
-        throw new Error('Cannot request a repaint: no controller configured');
-        // TODO: just do a repaint when no parent is configured?
-    }
+  if (this.controller) {
+    this.controller.requestRepaint();
+  }
+  else {
+    throw new Error('Cannot request a repaint: no controller configured');
+    // TODO: just do a repaint when no parent is configured?
+  }
 };
 
 /**
  * Request a reflow. The controller will schedule a reflow
  */
 Component.prototype.requestReflow = function requestReflow() {
-    if (this.controller) {
-        this.controller.requestReflow();
-    }
-    else {
-        throw new Error('Cannot request a reflow: no controller configured');
-        // TODO: just do a reflow when no parent is configured?
-    }
+  if (this.controller) {
+    this.controller.requestReflow();
+  }
+  else {
+    throw new Error('Cannot request a reflow: no controller configured');
+    // TODO: just do a reflow when no parent is configured?
+  }
 };
 
 /**
@@ -7651,11 +7105,11 @@ Component.prototype.requestReflow = function requestReflow() {
  * @extends Component
  */
 function Panel(parent, depends, options) {
-    this.id = util.randomUUID();
-    this.parent = parent;
-    this.depends = depends;
+  this.id = util.randomUUID();
+  this.parent = parent;
+  this.depends = depends;
 
-    this.options = options || {};
+  this.options = options || {};
 }
 
 Panel.prototype = new Component();
@@ -7677,7 +7131,7 @@ Panel.prototype.setOptions = Component.prototype.setOptions;
  * @returns {HTMLElement} container
  */
 Panel.prototype.getContainer = function () {
-    return this.frame;
+  return this.frame;
 };
 
 /**
@@ -7685,46 +7139,46 @@ Panel.prototype.getContainer = function () {
  * @return {Boolean} changed
  */
 Panel.prototype.repaint = function () {
-    var changed = 0,
-        update = util.updateProperty,
-        asSize = util.option.asSize,
-        options = this.options,
-        frame = this.frame;
-    if (!frame) {
-        frame = document.createElement('div');
-        frame.className = 'panel';
+  var changed = 0,
+      update = util.updateProperty,
+      asSize = util.option.asSize,
+      options = this.options,
+      frame = this.frame;
+  if (!frame) {
+    frame = document.createElement('div');
+    frame.className = 'panel';
 
-        var className = options.className;
-        if (className) {
-            if (typeof className == 'function') {
-                util.addClassName(frame, String(className()));
-            }
-            else {
-                util.addClassName(frame, String(className));
-            }
-        }
-
-        this.frame = frame;
-        changed += 1;
-    }
-    if (!frame.parentNode) {
-        if (!this.parent) {
-            throw new Error('Cannot repaint panel: no parent attached');
-        }
-        var parentContainer = this.parent.getContainer();
-        if (!parentContainer) {
-            throw new Error('Cannot repaint panel: parent has no container element');
-        }
-        parentContainer.appendChild(frame);
-        changed += 1;
+    var className = options.className;
+    if (className) {
+      if (typeof className == 'function') {
+        util.addClassName(frame, String(className()));
+      }
+      else {
+        util.addClassName(frame, String(className));
+      }
     }
 
-    changed += update(frame.style, 'top',    asSize(options.top, '0px'));
-    changed += update(frame.style, 'left',   asSize(options.left, '0px'));
-    changed += update(frame.style, 'width',  asSize(options.width, '100%'));
-    changed += update(frame.style, 'height', asSize(options.height, '100%'));
+    this.frame = frame;
+    changed += 1;
+  }
+  if (!frame.parentNode) {
+    if (!this.parent) {
+      throw new Error('Cannot repaint panel: no parent attached');
+    }
+    var parentContainer = this.parent.getContainer();
+    if (!parentContainer) {
+      throw new Error('Cannot repaint panel: parent has no container element');
+    }
+    parentContainer.appendChild(frame);
+    changed += 1;
+  }
 
-    return (changed > 0);
+  changed += update(frame.style, 'top',    asSize(options.top, '0px'));
+  changed += update(frame.style, 'left',   asSize(options.left, '0px'));
+  changed += update(frame.style, 'width',  asSize(options.width, '100%'));
+  changed += update(frame.style, 'height', asSize(options.height, '100%'));
+
+  return (changed > 0);
 };
 
 /**
@@ -7732,21 +7186,21 @@ Panel.prototype.repaint = function () {
  * @return {Boolean} resized
  */
 Panel.prototype.reflow = function () {
-    var changed = 0,
-        update = util.updateProperty,
-        frame = this.frame;
+  var changed = 0,
+      update = util.updateProperty,
+      frame = this.frame;
 
-    if (frame) {
-        changed += update(this, 'top', frame.offsetTop);
-        changed += update(this, 'left', frame.offsetLeft);
-        changed += update(this, 'width', frame.offsetWidth);
-        changed += update(this, 'height', frame.offsetHeight);
-    }
-    else {
-        changed += 1;
-    }
+  if (frame) {
+    changed += update(this, 'top', frame.offsetTop);
+    changed += update(this, 'left', frame.offsetLeft);
+    changed += update(this, 'width', frame.offsetWidth);
+    changed += update(this, 'height', frame.offsetHeight);
+  }
+  else {
+    changed += 1;
+  }
 
-    return (changed > 0);
+  return (changed > 0);
 };
 
 /**
@@ -7758,15 +7212,15 @@ Panel.prototype.reflow = function () {
  * @extends Panel
  */
 function RootPanel(container, options) {
-    this.id = util.randomUUID();
-    this.container = container;
+  this.id = util.randomUUID();
+  this.container = container;
 
-    this.options = options || {};
-    this.defaultOptions = {
-        autoResize: true
-    };
+  this.options = options || {};
+  this.defaultOptions = {
+    autoResize: true
+  };
 
-    this.listeners = {}; // event listeners
+  this.listeners = {}; // event listeners
 }
 
 RootPanel.prototype = new Panel();
@@ -7788,42 +7242,42 @@ RootPanel.prototype.setOptions = Component.prototype.setOptions;
  * @return {Boolean} changed
  */
 RootPanel.prototype.repaint = function () {
-    var changed = 0,
-        update = util.updateProperty,
-        asSize = util.option.asSize,
-        options = this.options,
-        frame = this.frame;
+  var changed = 0,
+      update = util.updateProperty,
+      asSize = util.option.asSize,
+      options = this.options,
+      frame = this.frame;
 
-    if (!frame) {
-        frame = document.createElement('div');
-        frame.className = 'vis timeline rootpanel';
+  if (!frame) {
+    frame = document.createElement('div');
 
-        var className = options.className;
-        if (className) {
-            util.addClassName(frame, util.option.asString(className));
-        }
+    this.frame = frame;
 
-        this.frame = frame;
-
-        changed += 1;
+    changed += 1;
+  }
+  if (!frame.parentNode) {
+    if (!this.container) {
+      throw new Error('Cannot repaint root panel: no container attached');
     }
-    if (!frame.parentNode) {
-        if (!this.container) {
-            throw new Error('Cannot repaint root panel: no container attached');
-        }
-        this.container.appendChild(frame);
-        changed += 1;
-    }
+    this.container.appendChild(frame);
+    changed += 1;
+  }
 
-    changed += update(frame.style, 'top',    asSize(options.top, '0px'));
-    changed += update(frame.style, 'left',   asSize(options.left, '0px'));
-    changed += update(frame.style, 'width',  asSize(options.width, '100%'));
-    changed += update(frame.style, 'height', asSize(options.height, '100%'));
+  frame.className = 'vis timeline rootpanel ' + options.orientation;
+  var className = options.className;
+  if (className) {
+    util.addClassName(frame, util.option.asString(className));
+  }
 
-    this._updateEventEmitters();
-    this._updateWatch();
+  changed += update(frame.style, 'top',    asSize(options.top, '0px'));
+  changed += update(frame.style, 'left',   asSize(options.left, '0px'));
+  changed += update(frame.style, 'width',  asSize(options.width, '100%'));
+  changed += update(frame.style, 'height', asSize(options.height, '100%'));
 
-    return (changed > 0);
+  this._updateEventEmitters();
+  this._updateWatch();
+
+  return (changed > 0);
 };
 
 /**
@@ -7831,21 +7285,21 @@ RootPanel.prototype.repaint = function () {
  * @return {Boolean} resized
  */
 RootPanel.prototype.reflow = function () {
-    var changed = 0,
-        update = util.updateProperty,
-        frame = this.frame;
+  var changed = 0,
+      update = util.updateProperty,
+      frame = this.frame;
 
-    if (frame) {
-        changed += update(this, 'top', frame.offsetTop);
-        changed += update(this, 'left', frame.offsetLeft);
-        changed += update(this, 'width', frame.offsetWidth);
-        changed += update(this, 'height', frame.offsetHeight);
-    }
-    else {
-        changed += 1;
-    }
+  if (frame) {
+    changed += update(this, 'top', frame.offsetTop);
+    changed += update(this, 'left', frame.offsetLeft);
+    changed += update(this, 'width', frame.offsetWidth);
+    changed += update(this, 'height', frame.offsetHeight);
+  }
+  else {
+    changed += 1;
+  }
 
-    return (changed > 0);
+  return (changed > 0);
 };
 
 /**
@@ -7853,13 +7307,13 @@ RootPanel.prototype.reflow = function () {
  * @private
  */
 RootPanel.prototype._updateWatch = function () {
-    var autoResize = this.getOption('autoResize');
-    if (autoResize) {
-        this._watch();
-    }
-    else {
-        this._unwatch();
-    }
+  var autoResize = this.getOption('autoResize');
+  if (autoResize) {
+    this._watch();
+  }
+  else {
+    this._unwatch();
+  }
 };
 
 /**
@@ -7868,31 +7322,31 @@ RootPanel.prototype._updateWatch = function () {
  * @private
  */
 RootPanel.prototype._watch = function () {
-    var me = this;
+  var me = this;
 
-    this._unwatch();
+  this._unwatch();
 
-    var checkSize = function () {
-        var autoResize = me.getOption('autoResize');
-        if (!autoResize) {
-            // stop watching when the option autoResize is changed to false
-            me._unwatch();
-            return;
-        }
+  var checkSize = function () {
+    var autoResize = me.getOption('autoResize');
+    if (!autoResize) {
+      // stop watching when the option autoResize is changed to false
+      me._unwatch();
+      return;
+    }
 
-        if (me.frame) {
-            // check whether the frame is resized
-            if ((me.frame.clientWidth != me.width) ||
-                    (me.frame.clientHeight != me.height)) {
-                me.requestReflow();
-            }
-        }
-    };
+    if (me.frame) {
+      // check whether the frame is resized
+      if ((me.frame.clientWidth != me.width) ||
+          (me.frame.clientHeight != me.height)) {
+        me.requestReflow();
+      }
+    }
+  };
 
-    // TODO: automatically cleanup the event listener when the frame is deleted
-    util.addEventListener(window, 'resize', checkSize);
+  // TODO: automatically cleanup the event listener when the frame is deleted
+  util.addEventListener(window, 'resize', checkSize);
 
-    this.watchTimer = setInterval(checkSize, 1000);
+  this.watchTimer = setInterval(checkSize, 1000);
 };
 
 /**
@@ -7900,12 +7354,12 @@ RootPanel.prototype._watch = function () {
  * @private
  */
 RootPanel.prototype._unwatch = function () {
-    if (this.watchTimer) {
-        clearInterval(this.watchTimer);
-        this.watchTimer = undefined;
-    }
+  if (this.watchTimer) {
+    clearInterval(this.watchTimer);
+    this.watchTimer = undefined;
+  }
 
-    // TODO: remove event listener on window.resize
+  // TODO: remove event listener on window.resize
 };
 
 /**
@@ -7915,15 +7369,15 @@ RootPanel.prototype._unwatch = function () {
  *                             as parameter.
  */
 RootPanel.prototype.on = function (event, callback) {
-    // register the listener at this component
-    var arr = this.listeners[event];
-    if (!arr) {
-        arr = [];
-        this.listeners[event] = arr;
-    }
-    arr.push(callback);
+  // register the listener at this component
+  var arr = this.listeners[event];
+  if (!arr) {
+    arr = [];
+    this.listeners[event] = arr;
+  }
+  arr.push(callback);
 
-    this._updateEventEmitters();
+  this._updateEventEmitters();
 };
 
 /**
@@ -7931,32 +7385,38 @@ RootPanel.prototype.on = function (event, callback) {
  * @private
  */
 RootPanel.prototype._updateEventEmitters = function () {
-    if (this.listeners) {
-        var me = this;
-        util.forEach(this.listeners, function (listeners, event) {
-            if (!me.emitters) {
-                me.emitters = {};
-            }
-            if (!(event in me.emitters)) {
-                // create event
-                var frame = me.frame;
-                if (frame) {
-                    //console.log('Created a listener for event ' + event + ' on component ' + me.id); // TODO: cleanup logging
-                    var callback = function(event) {
-                        listeners.forEach(function (listener) {
-                            // TODO: filter on event target!
-                            listener(event);
-                        });
-                    };
-                    me.emitters[event] = callback;
-                    util.addEventListener(frame, event, callback);
-                }
-            }
-        });
+  if (this.listeners) {
+    var me = this;
+    util.forEach(this.listeners, function (listeners, event) {
+      if (!me.emitters) {
+        me.emitters = {};
+      }
+      if (!(event in me.emitters)) {
+        // create event
+        var frame = me.frame;
+        if (frame) {
+          //console.log('Created a listener for event ' + event + ' on component ' + me.id); // TODO: cleanup logging
+          var callback = function(event) {
+            listeners.forEach(function (listener) {
+              // TODO: filter on event target!
+              listener(event);
+            });
+          };
+          me.emitters[event] = callback;
 
-        // TODO: be able to delete event listeners
-        // TODO: be able to move event listeners to a parent when available
-    }
+          if (!me.hammer) {
+            me.hammer = Hammer(frame, {
+              prevent_default: true
+            });
+          }
+          me.hammer.on(event, callback);
+        }
+      }
+    });
+
+    // TODO: be able to delete event listeners
+    // TODO: be able to move event listeners to a parent when available
+  }
 };
 
 /**
@@ -7970,41 +7430,41 @@ RootPanel.prototype._updateEventEmitters = function () {
  * @extends Component
  */
 function TimeAxis (parent, depends, options) {
-    this.id = util.randomUUID();
-    this.parent = parent;
-    this.depends = depends;
+  this.id = util.randomUUID();
+  this.parent = parent;
+  this.depends = depends;
 
-    this.dom = {
-        majorLines: [],
-        majorTexts: [],
-        minorLines: [],
-        minorTexts: [],
-        redundant: {
-            majorLines: [],
-            majorTexts: [],
-            minorLines: [],
-            minorTexts: []
-        }
-    };
-    this.props = {
-        range: {
-            start: 0,
-            end: 0,
-            minimumStep: 0
-        },
-        lineTop: 0
-    };
+  this.dom = {
+    majorLines: [],
+    majorTexts: [],
+    minorLines: [],
+    minorTexts: [],
+    redundant: {
+      majorLines: [],
+      majorTexts: [],
+      minorLines: [],
+      minorTexts: []
+    }
+  };
+  this.props = {
+    range: {
+      start: 0,
+      end: 0,
+      minimumStep: 0
+    },
+    lineTop: 0
+  };
 
-    this.options = options || {};
-    this.defaultOptions = {
-        orientation: 'bottom',  // supported: 'top', 'bottom'
-        // TODO: implement timeaxis orientations 'left' and 'right'
-        showMinorLabels: true,
-        showMajorLabels: true
-    };
+  this.options = options || {};
+  this.defaultOptions = {
+    orientation: 'bottom',  // supported: 'top', 'bottom'
+    // TODO: implement timeaxis orientations 'left' and 'right'
+    showMinorLabels: true,
+    showMajorLabels: true
+  };
 
-    this.conversion = null;
-    this.range = null;
+  this.conversion = null;
+  this.range = null;
 }
 
 TimeAxis.prototype = new Component();
@@ -8017,11 +7477,11 @@ TimeAxis.prototype.setOptions = Component.prototype.setOptions;
  * @param {Range | Object} range  A Range or an object containing start and end.
  */
 TimeAxis.prototype.setRange = function (range) {
-    if (!(range instanceof Range) && (!range || !range.start || !range.end)) {
-        throw new TypeError('Range must be an instance of Range, ' +
-            'or an object containing start and end.');
-    }
-    this.range = range;
+  if (!(range instanceof Range) && (!range || !range.start || !range.end)) {
+    throw new TypeError('Range must be an instance of Range, ' +
+        'or an object containing start and end.');
+  }
+  this.range = range;
 };
 
 /**
@@ -8030,8 +7490,8 @@ TimeAxis.prototype.setRange = function (range) {
  * @return {Date}   time The datetime the corresponds with given position x
  */
 TimeAxis.prototype.toTime = function(x) {
-    var conversion = this.conversion;
-    return new Date(x / conversion.factor + conversion.offset);
+  var conversion = this.conversion;
+  return new Date(x / conversion.scale + conversion.offset);
 };
 
 /**
@@ -8042,8 +7502,8 @@ TimeAxis.prototype.toTime = function(x) {
  * @private
  */
 TimeAxis.prototype.toScreen = function(time) {
-    var conversion = this.conversion;
-    return (time.valueOf() - conversion.offset) * conversion.factor;
+  var conversion = this.conversion;
+  return (time.valueOf() - conversion.offset) * conversion.scale;
 };
 
 /**
@@ -8051,112 +7511,112 @@ TimeAxis.prototype.toScreen = function(time) {
  * @return {Boolean} changed
  */
 TimeAxis.prototype.repaint = function () {
-    var changed = 0,
-        update = util.updateProperty,
-        asSize = util.option.asSize,
-        options = this.options,
-        orientation = this.getOption('orientation'),
-        props = this.props,
-        step = this.step;
+  var changed = 0,
+      update = util.updateProperty,
+      asSize = util.option.asSize,
+      options = this.options,
+      orientation = this.getOption('orientation'),
+      props = this.props,
+      step = this.step;
 
-    var frame = this.frame;
-    if (!frame) {
-        frame = document.createElement('div');
-        this.frame = frame;
-        changed += 1;
+  var frame = this.frame;
+  if (!frame) {
+    frame = document.createElement('div');
+    this.frame = frame;
+    changed += 1;
+  }
+  frame.className = 'axis';
+  // TODO: custom className?
+
+  if (!frame.parentNode) {
+    if (!this.parent) {
+      throw new Error('Cannot repaint time axis: no parent attached');
     }
-    frame.className = 'axis ' + orientation;
-    // TODO: custom className?
-
-    if (!frame.parentNode) {
-        if (!this.parent) {
-            throw new Error('Cannot repaint time axis: no parent attached');
-        }
-        var parentContainer = this.parent.getContainer();
-        if (!parentContainer) {
-            throw new Error('Cannot repaint time axis: parent has no container element');
-        }
-        parentContainer.appendChild(frame);
-
-        changed += 1;
+    var parentContainer = this.parent.getContainer();
+    if (!parentContainer) {
+      throw new Error('Cannot repaint time axis: parent has no container element');
     }
+    parentContainer.appendChild(frame);
 
-    var parent = frame.parentNode;
-    if (parent) {
-        var beforeChild = frame.nextSibling;
-        parent.removeChild(frame); //  take frame offline while updating (is almost twice as fast)
+    changed += 1;
+  }
 
-        var defaultTop = (orientation == 'bottom' && this.props.parentHeight && this.height) ?
-            (this.props.parentHeight - this.height) + 'px' :
-            '0px';
-        changed += update(frame.style, 'top', asSize(options.top, defaultTop));
-        changed += update(frame.style, 'left', asSize(options.left, '0px'));
-        changed += update(frame.style, 'width', asSize(options.width, '100%'));
-        changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
+  var parent = frame.parentNode;
+  if (parent) {
+    var beforeChild = frame.nextSibling;
+    parent.removeChild(frame); //  take frame offline while updating (is almost twice as fast)
 
-        // get characters width and height
-        this._repaintMeasureChars();
+    var defaultTop = (orientation == 'bottom' && this.props.parentHeight && this.height) ?
+        (this.props.parentHeight - this.height) + 'px' :
+        '0px';
+    changed += update(frame.style, 'top', asSize(options.top, defaultTop));
+    changed += update(frame.style, 'left', asSize(options.left, '0px'));
+    changed += update(frame.style, 'width', asSize(options.width, '100%'));
+    changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
 
-        if (this.step) {
-            this._repaintStart();
+    // get characters width and height
+    this._repaintMeasureChars();
 
-            step.first();
-            var xFirstMajorLabel = undefined;
-            var max = 0;
-            while (step.hasNext() && max < 1000) {
-                max++;
-                var cur = step.getCurrent(),
-                    x = this.toScreen(cur),
-                    isMajor = step.isMajor();
+    if (this.step) {
+      this._repaintStart();
 
-                // TODO: lines must have a width, such that we can create css backgrounds
+      step.first();
+      var xFirstMajorLabel = undefined;
+      var max = 0;
+      while (step.hasNext() && max < 1000) {
+        max++;
+        var cur = step.getCurrent(),
+            x = this.toScreen(cur),
+            isMajor = step.isMajor();
 
-                if (this.getOption('showMinorLabels')) {
-                    this._repaintMinorText(x, step.getLabelMinor());
-                }
+        // TODO: lines must have a width, such that we can create css backgrounds
 
-                if (isMajor && this.getOption('showMajorLabels')) {
-                    if (x > 0) {
-                        if (xFirstMajorLabel == undefined) {
-                            xFirstMajorLabel = x;
-                        }
-                        this._repaintMajorText(x, step.getLabelMajor());
-                    }
-                    this._repaintMajorLine(x);
-                }
-                else {
-                    this._repaintMinorLine(x);
-                }
-
-                step.next();
-            }
-
-            // create a major label on the left when needed
-            if (this.getOption('showMajorLabels')) {
-                var leftTime = this.toTime(0),
-                    leftText = step.getLabelMajor(leftTime),
-                    widthText = leftText.length * (props.majorCharWidth || 10) + 10; // upper bound estimation
-
-                if (xFirstMajorLabel == undefined || widthText < xFirstMajorLabel) {
-                    this._repaintMajorText(0, leftText);
-                }
-            }
-
-            this._repaintEnd();
+        if (this.getOption('showMinorLabels')) {
+          this._repaintMinorText(x, step.getLabelMinor());
         }
 
-        this._repaintLine();
-
-        // put frame online again
-        if (beforeChild) {
-            parent.insertBefore(frame, beforeChild);
+        if (isMajor && this.getOption('showMajorLabels')) {
+          if (x > 0) {
+            if (xFirstMajorLabel == undefined) {
+              xFirstMajorLabel = x;
+            }
+            this._repaintMajorText(x, step.getLabelMajor());
+          }
+          this._repaintMajorLine(x);
         }
         else {
-            parent.appendChild(frame)
+          this._repaintMinorLine(x);
         }
+
+        step.next();
+      }
+
+      // create a major label on the left when needed
+      if (this.getOption('showMajorLabels')) {
+        var leftTime = this.toTime(0),
+            leftText = step.getLabelMajor(leftTime),
+            widthText = leftText.length * (props.majorCharWidth || 10) + 10; // upper bound estimation
+
+        if (xFirstMajorLabel == undefined || widthText < xFirstMajorLabel) {
+          this._repaintMajorText(0, leftText);
+        }
+      }
+
+      this._repaintEnd();
     }
 
-    return (changed > 0);
+    this._repaintLine();
+
+    // put frame online again
+    if (beforeChild) {
+      parent.insertBefore(frame, beforeChild);
+    }
+    else {
+      parent.appendChild(frame)
+    }
+  }
+
+  return (changed > 0);
 };
 
 /**
@@ -8165,18 +7625,18 @@ TimeAxis.prototype.repaint = function () {
  * @private
  */
 TimeAxis.prototype._repaintStart = function () {
-    var dom = this.dom,
-        redundant = dom.redundant;
+  var dom = this.dom,
+      redundant = dom.redundant;
 
-    redundant.majorLines = dom.majorLines;
-    redundant.majorTexts = dom.majorTexts;
-    redundant.minorLines = dom.minorLines;
-    redundant.minorTexts = dom.minorTexts;
+  redundant.majorLines = dom.majorLines;
+  redundant.majorTexts = dom.majorTexts;
+  redundant.minorLines = dom.minorLines;
+  redundant.minorTexts = dom.minorTexts;
 
-    dom.majorLines = [];
-    dom.majorTexts = [];
-    dom.minorLines = [];
-    dom.minorTexts = [];
+  dom.majorLines = [];
+  dom.majorTexts = [];
+  dom.minorLines = [];
+  dom.minorTexts = [];
 };
 
 /**
@@ -8184,14 +7644,14 @@ TimeAxis.prototype._repaintStart = function () {
  * @private
  */
 TimeAxis.prototype._repaintEnd = function () {
-    util.forEach(this.dom.redundant, function (arr) {
-        while (arr.length) {
-            var elem = arr.pop();
-            if (elem && elem.parentNode) {
-                elem.parentNode.removeChild(elem);
-            }
-        }
-    });
+  util.forEach(this.dom.redundant, function (arr) {
+    while (arr.length) {
+      var elem = arr.pop();
+      if (elem && elem.parentNode) {
+        elem.parentNode.removeChild(elem);
+      }
+    }
+  });
 };
 
 
@@ -8202,23 +7662,23 @@ TimeAxis.prototype._repaintEnd = function () {
  * @private
  */
 TimeAxis.prototype._repaintMinorText = function (x, text) {
-    // reuse redundant label
-    var label = this.dom.redundant.minorTexts.shift();
+  // reuse redundant label
+  var label = this.dom.redundant.minorTexts.shift();
 
-    if (!label) {
-        // create new label
-        var content = document.createTextNode('');
-        label = document.createElement('div');
-        label.appendChild(content);
-        label.className = 'text minor';
-        this.frame.appendChild(label);
-    }
-    this.dom.minorTexts.push(label);
+  if (!label) {
+    // create new label
+    var content = document.createTextNode('');
+    label = document.createElement('div');
+    label.appendChild(content);
+    label.className = 'text minor';
+    this.frame.appendChild(label);
+  }
+  this.dom.minorTexts.push(label);
 
-    label.childNodes[0].nodeValue = text;
-    label.style.left = x + 'px';
-    label.style.top  = this.props.minorLabelTop + 'px';
-    //label.title = title;  // TODO: this is a heavy operation
+  label.childNodes[0].nodeValue = text;
+  label.style.left = x + 'px';
+  label.style.top  = this.props.minorLabelTop + 'px';
+  //label.title = title;  // TODO: this is a heavy operation
 };
 
 /**
@@ -8228,23 +7688,23 @@ TimeAxis.prototype._repaintMinorText = function (x, text) {
  * @private
  */
 TimeAxis.prototype._repaintMajorText = function (x, text) {
-    // reuse redundant label
-    var label = this.dom.redundant.majorTexts.shift();
+  // reuse redundant label
+  var label = this.dom.redundant.majorTexts.shift();
 
-    if (!label) {
-        // create label
-        var content = document.createTextNode(text);
-        label = document.createElement('div');
-        label.className = 'text major';
-        label.appendChild(content);
-        this.frame.appendChild(label);
-    }
-    this.dom.majorTexts.push(label);
+  if (!label) {
+    // create label
+    var content = document.createTextNode(text);
+    label = document.createElement('div');
+    label.className = 'text major';
+    label.appendChild(content);
+    this.frame.appendChild(label);
+  }
+  this.dom.majorTexts.push(label);
 
-    label.childNodes[0].nodeValue = text;
-    label.style.top = this.props.majorLabelTop + 'px';
-    label.style.left = x + 'px';
-    //label.title = title; // TODO: this is a heavy operation
+  label.childNodes[0].nodeValue = text;
+  label.style.top = this.props.majorLabelTop + 'px';
+  label.style.left = x + 'px';
+  //label.title = title; // TODO: this is a heavy operation
 };
 
 /**
@@ -8253,21 +7713,21 @@ TimeAxis.prototype._repaintMajorText = function (x, text) {
  * @private
  */
 TimeAxis.prototype._repaintMinorLine = function (x) {
-    // reuse redundant line
-    var line = this.dom.redundant.minorLines.shift();
+  // reuse redundant line
+  var line = this.dom.redundant.minorLines.shift();
 
-    if (!line) {
-        // create vertical line
-        line = document.createElement('div');
-        line.className = 'grid vertical minor';
-        this.frame.appendChild(line);
-    }
-    this.dom.minorLines.push(line);
+  if (!line) {
+    // create vertical line
+    line = document.createElement('div');
+    line.className = 'grid vertical minor';
+    this.frame.appendChild(line);
+  }
+  this.dom.minorLines.push(line);
 
-    var props = this.props;
-    line.style.top = props.minorLineTop + 'px';
-    line.style.height = props.minorLineHeight + 'px';
-    line.style.left = (x - props.minorLineWidth / 2) + 'px';
+  var props = this.props;
+  line.style.top = props.minorLineTop + 'px';
+  line.style.height = props.minorLineHeight + 'px';
+  line.style.left = (x - props.minorLineWidth / 2) + 'px';
 };
 
 /**
@@ -8276,21 +7736,21 @@ TimeAxis.prototype._repaintMinorLine = function (x) {
  * @private
  */
 TimeAxis.prototype._repaintMajorLine = function (x) {
-    // reuse redundant line
-    var line = this.dom.redundant.majorLines.shift();
+  // reuse redundant line
+  var line = this.dom.redundant.majorLines.shift();
 
-    if (!line) {
-        // create vertical line
-        line = document.createElement('DIV');
-        line.className = 'grid vertical major';
-        this.frame.appendChild(line);
-    }
-    this.dom.majorLines.push(line);
+  if (!line) {
+    // create vertical line
+    line = document.createElement('DIV');
+    line.className = 'grid vertical major';
+    this.frame.appendChild(line);
+  }
+  this.dom.majorLines.push(line);
 
-    var props = this.props;
-    line.style.top = props.majorLineTop + 'px';
-    line.style.left = (x - props.majorLineWidth / 2) + 'px';
-    line.style.height = props.majorLineHeight + 'px';
+  var props = this.props;
+  line.style.top = props.majorLineTop + 'px';
+  line.style.left = (x - props.majorLineWidth / 2) + 'px';
+  line.style.height = props.majorLineHeight + 'px';
 };
 
 
@@ -8299,33 +7759,33 @@ TimeAxis.prototype._repaintMajorLine = function (x) {
  * @private
  */
 TimeAxis.prototype._repaintLine = function() {
-    var line = this.dom.line,
-        frame = this.frame,
-        options = this.options;
+  var line = this.dom.line,
+      frame = this.frame,
+      options = this.options;
 
-    // line before all axis elements
-    if (this.getOption('showMinorLabels') || this.getOption('showMajorLabels')) {
-        if (line) {
-            // put this line at the end of all childs
-            frame.removeChild(line);
-            frame.appendChild(line);
-        }
-        else {
-            // create the axis line
-            line = document.createElement('div');
-            line.className = 'grid horizontal major';
-            frame.appendChild(line);
-            this.dom.line = line;
-        }
-
-        line.style.top = this.props.lineTop + 'px';
+  // line before all axis elements
+  if (this.getOption('showMinorLabels') || this.getOption('showMajorLabels')) {
+    if (line) {
+      // put this line at the end of all childs
+      frame.removeChild(line);
+      frame.appendChild(line);
     }
     else {
-        if (line && axis.parentElement) {
-            frame.removeChild(axis.line);
-            delete this.dom.line;
-        }
+      // create the axis line
+      line = document.createElement('div');
+      line.className = 'grid horizontal major';
+      frame.appendChild(line);
+      this.dom.line = line;
     }
+
+    line.style.top = this.props.lineTop + 'px';
+  }
+  else {
+    if (line && line.parentElement) {
+      frame.removeChild(line.line);
+      delete this.dom.line;
+    }
+  }
 };
 
 /**
@@ -8333,31 +7793,31 @@ TimeAxis.prototype._repaintLine = function() {
  * @private
  */
 TimeAxis.prototype._repaintMeasureChars = function () {
-    // calculate the width and height of a single character
-    // this is used to calculate the step size, and also the positioning of the
-    // axis
-    var dom = this.dom,
-        text;
+  // calculate the width and height of a single character
+  // this is used to calculate the step size, and also the positioning of the
+  // axis
+  var dom = this.dom,
+      text;
 
-    if (!dom.measureCharMinor) {
-        text = document.createTextNode('0');
-        var measureCharMinor = document.createElement('DIV');
-        measureCharMinor.className = 'text minor measure';
-        measureCharMinor.appendChild(text);
-        this.frame.appendChild(measureCharMinor);
+  if (!dom.measureCharMinor) {
+    text = document.createTextNode('0');
+    var measureCharMinor = document.createElement('DIV');
+    measureCharMinor.className = 'text minor measure';
+    measureCharMinor.appendChild(text);
+    this.frame.appendChild(measureCharMinor);
 
-        dom.measureCharMinor = measureCharMinor;
-    }
+    dom.measureCharMinor = measureCharMinor;
+  }
 
-    if (!dom.measureCharMajor) {
-        text = document.createTextNode('0');
-        var measureCharMajor = document.createElement('DIV');
-        measureCharMajor.className = 'text major measure';
-        measureCharMajor.appendChild(text);
-        this.frame.appendChild(measureCharMajor);
+  if (!dom.measureCharMajor) {
+    text = document.createTextNode('0');
+    var measureCharMajor = document.createElement('DIV');
+    measureCharMajor.className = 'text major measure';
+    measureCharMajor.appendChild(text);
+    this.frame.appendChild(measureCharMajor);
 
-        dom.measureCharMajor = measureCharMajor;
-    }
+    dom.measureCharMajor = measureCharMajor;
+  }
 };
 
 /**
@@ -8365,121 +7825,121 @@ TimeAxis.prototype._repaintMeasureChars = function () {
  * @return {Boolean} resized
  */
 TimeAxis.prototype.reflow = function () {
-    var changed = 0,
-        update = util.updateProperty,
-        frame = this.frame,
-        range = this.range;
+  var changed = 0,
+      update = util.updateProperty,
+      frame = this.frame,
+      range = this.range;
 
-    if (!range) {
-        throw new Error('Cannot repaint time axis: no range configured');
+  if (!range) {
+    throw new Error('Cannot repaint time axis: no range configured');
+  }
+
+  if (frame) {
+    changed += update(this, 'top', frame.offsetTop);
+    changed += update(this, 'left', frame.offsetLeft);
+
+    // calculate size of a character
+    var props = this.props,
+        showMinorLabels = this.getOption('showMinorLabels'),
+        showMajorLabels = this.getOption('showMajorLabels'),
+        measureCharMinor = this.dom.measureCharMinor,
+        measureCharMajor = this.dom.measureCharMajor;
+    if (measureCharMinor) {
+      props.minorCharHeight = measureCharMinor.clientHeight;
+      props.minorCharWidth = measureCharMinor.clientWidth;
+    }
+    if (measureCharMajor) {
+      props.majorCharHeight = measureCharMajor.clientHeight;
+      props.majorCharWidth = measureCharMajor.clientWidth;
     }
 
-    if (frame) {
-        changed += update(this, 'top', frame.offsetTop);
-        changed += update(this, 'left', frame.offsetLeft);
+    var parentHeight = frame.parentNode ? frame.parentNode.offsetHeight : 0;
+    if (parentHeight != props.parentHeight) {
+      props.parentHeight = parentHeight;
+      changed += 1;
+    }
+    switch (this.getOption('orientation')) {
+      case 'bottom':
+        props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
+        props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
 
-        // calculate size of a character
-        var props = this.props,
-            showMinorLabels = this.getOption('showMinorLabels'),
-            showMajorLabels = this.getOption('showMajorLabels'),
-            measureCharMinor = this.dom.measureCharMinor,
-            measureCharMajor = this.dom.measureCharMajor;
-        if (measureCharMinor) {
-            props.minorCharHeight = measureCharMinor.clientHeight;
-            props.minorCharWidth = measureCharMinor.clientWidth;
-        }
-        if (measureCharMajor) {
-            props.majorCharHeight = measureCharMajor.clientHeight;
-            props.majorCharWidth = measureCharMajor.clientWidth;
-        }
+        props.minorLabelTop = 0;
+        props.majorLabelTop = props.minorLabelTop + props.minorLabelHeight;
 
-        var parentHeight = frame.parentNode ? frame.parentNode.offsetHeight : 0;
-        if (parentHeight != props.parentHeight) {
-            props.parentHeight = parentHeight;
-            changed += 1;
-        }
-        switch (this.getOption('orientation')) {
-            case 'bottom':
-                props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
-                props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
+        props.minorLineTop = -this.top;
+        props.minorLineHeight = Math.max(this.top + props.majorLabelHeight, 0);
+        props.minorLineWidth = 1; // TODO: really calculate width
 
-                props.minorLabelTop = 0;
-                props.majorLabelTop = props.minorLabelTop + props.minorLabelHeight;
+        props.majorLineTop = -this.top;
+        props.majorLineHeight = Math.max(this.top + props.minorLabelHeight + props.majorLabelHeight, 0);
+        props.majorLineWidth = 1; // TODO: really calculate width
 
-                props.minorLineTop = -this.top;
-                props.minorLineHeight = Math.max(this.top + props.majorLabelHeight, 0);
-                props.minorLineWidth = 1; // TODO: really calculate width
+        props.lineTop = 0;
 
-                props.majorLineTop = -this.top;
-                props.majorLineHeight = Math.max(this.top + props.minorLabelHeight + props.majorLabelHeight, 0);
-                props.majorLineWidth = 1; // TODO: really calculate width
+        break;
 
-                props.lineTop = 0;
+      case 'top':
+        props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
+        props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
 
-                break;
+        props.majorLabelTop = 0;
+        props.minorLabelTop = props.majorLabelTop + props.majorLabelHeight;
 
-            case 'top':
-                props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
-                props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
+        props.minorLineTop = props.minorLabelTop;
+        props.minorLineHeight = Math.max(parentHeight - props.majorLabelHeight - this.top);
+        props.minorLineWidth = 1; // TODO: really calculate width
 
-                props.majorLabelTop = 0;
-                props.minorLabelTop = props.majorLabelTop + props.majorLabelHeight;
+        props.majorLineTop = 0;
+        props.majorLineHeight = Math.max(parentHeight - this.top);
+        props.majorLineWidth = 1; // TODO: really calculate width
 
-                props.minorLineTop = props.minorLabelTop;
-                props.minorLineHeight = Math.max(parentHeight - props.majorLabelHeight - this.top);
-                props.minorLineWidth = 1; // TODO: really calculate width
+        props.lineTop = props.majorLabelHeight +  props.minorLabelHeight;
 
-                props.majorLineTop = 0;
-                props.majorLineHeight = Math.max(parentHeight - this.top);
-                props.majorLineWidth = 1; // TODO: really calculate width
+        break;
 
-                props.lineTop = props.majorLabelHeight +  props.minorLabelHeight;
-
-                break;
-
-            default:
-                throw new Error('Unkown orientation "' + this.getOption('orientation') + '"');
-        }
-
-        var height = props.minorLabelHeight + props.majorLabelHeight;
-        changed += update(this, 'width', frame.offsetWidth);
-        changed += update(this, 'height', height);
-
-        // calculate range and step
-        this._updateConversion();
-
-        var start = util.convert(range.start, 'Number'),
-            end = util.convert(range.end, 'Number'),
-            minimumStep = this.toTime((props.minorCharWidth || 10) * 5).valueOf()
-                -this.toTime(0).valueOf();
-        this.step = new TimeStep(new Date(start), new Date(end), minimumStep);
-        changed += update(props.range, 'start', start);
-        changed += update(props.range, 'end', end);
-        changed += update(props.range, 'minimumStep', minimumStep.valueOf());
+      default:
+        throw new Error('Unkown orientation "' + this.getOption('orientation') + '"');
     }
 
-    return (changed > 0);
+    var height = props.minorLabelHeight + props.majorLabelHeight;
+    changed += update(this, 'width', frame.offsetWidth);
+    changed += update(this, 'height', height);
+
+    // calculate range and step
+    this._updateConversion();
+
+    var start = util.convert(range.start, 'Number'),
+        end = util.convert(range.end, 'Number'),
+        minimumStep = this.toTime((props.minorCharWidth || 10) * 5).valueOf()
+            -this.toTime(0).valueOf();
+    this.step = new TimeStep(new Date(start), new Date(end), minimumStep);
+    changed += update(props.range, 'start', start);
+    changed += update(props.range, 'end', end);
+    changed += update(props.range, 'minimumStep', minimumStep.valueOf());
+  }
+
+  return (changed > 0);
 };
 
 /**
- * Calculate the factor and offset to convert a position on screen to the
+ * Calculate the scale and offset to convert a position on screen to the
  * corresponding date and vice versa.
  * After the method _updateConversion is executed once, the methods toTime
  * and toScreen can be used.
  * @private
  */
 TimeAxis.prototype._updateConversion = function() {
-    var range = this.range;
-    if (!range) {
-        throw new Error('No range configured');
-    }
+  var range = this.range;
+  if (!range) {
+    throw new Error('No range configured');
+  }
 
-    if (range.conversion) {
-        this.conversion = range.conversion(this.width);
-    }
-    else {
-        this.conversion = Range.conversion(range.start, range.end, this.width);
-    }
+  if (range.conversion) {
+    this.conversion = range.conversion(this.width);
+  }
+  else {
+    this.conversion = Range.conversion(range.start, range.end, this.width);
+  }
 };
 
 /**
@@ -8494,14 +7954,14 @@ TimeAxis.prototype._updateConversion = function() {
  */
 
 function CurrentTime (parent, depends, options) {
-    this.id = util.randomUUID();
-    this.parent = parent;
-    this.depends = depends;
+  this.id = util.randomUUID();
+  this.parent = parent;
+  this.depends = depends;
 
-    this.options = options || {};
-    this.defaultOptions = {
-        showCurrentTime: false
-    };
+  this.options = options || {};
+  this.defaultOptions = {
+    showCurrentTime: false
+  };
 }
 
 CurrentTime.prototype = new Component();
@@ -8514,7 +7974,7 @@ CurrentTime.prototype.setOptions = Component.prototype.setOptions;
  * @returns {HTMLElement} container
  */
 CurrentTime.prototype.getContainer = function () {
-    return this.frame;
+  return this.frame;
 };
 
 /**
@@ -8522,66 +7982,66 @@ CurrentTime.prototype.getContainer = function () {
  * @return {Boolean} changed
  */
 CurrentTime.prototype.repaint = function () {
-    var bar = this.frame,
-        parent = this.parent,
-        parentContainer = parent.parent.getContainer();
+  var bar = this.frame,
+      parent = this.parent,
+      parentContainer = parent.parent.getContainer();
 
-    if (!parent) {
-        throw new Error('Cannot repaint bar: no parent attached');
+  if (!parent) {
+    throw new Error('Cannot repaint bar: no parent attached');
+  }
+
+  if (!parentContainer) {
+    throw new Error('Cannot repaint bar: parent has no container element');
+  }
+
+  if (!this.getOption('showCurrentTime')) {
+    if (bar) {
+      parentContainer.removeChild(bar);
+      delete this.frame;
     }
 
-    if (!parentContainer) {
-        throw new Error('Cannot repaint bar: parent has no container element');
-    }
+    return;
+  }
 
-    if (!this.getOption('showCurrentTime')) {
-        if (bar) {
-            parentContainer.removeChild(bar);
-            delete this.frame;
-        }
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.className = 'currenttime';
+    bar.style.position = 'absolute';
+    bar.style.top = '0px';
+    bar.style.height = '100%';
 
-        return;
-    }
+    parentContainer.appendChild(bar);
+    this.frame = bar;
+  }
 
-    if (!bar) {
-        bar = document.createElement('div');
-        bar.className = 'currenttime';
-        bar.style.position = 'absolute';
-        bar.style.top = '0px';
-        bar.style.height = '100%';
+  if (!parent.conversion) {
+    parent._updateConversion();
+  }
 
-        parentContainer.appendChild(bar);
-        this.frame = bar;
-    }
+  var now = new Date();
+  var x = parent.toScreen(now);
 
-    if (!parent.conversion) {
-        parent._updateConversion();
-    }
+  bar.style.left = x + 'px';
+  bar.title = 'Current time: ' + now;
 
-    var now = new Date();
-    var x = parent.toScreen(now);
+  // start a timer to adjust for the new time
+  if (this.currentTimeTimer !== undefined) {
+    clearTimeout(this.currentTimeTimer);
+    delete this.currentTimeTimer;
+  }
 
-    bar.style.left = x + 'px';
-    bar.title = 'Current time: ' + now;
+  var timeline = this;
+  var interval = 1 / parent.conversion.scale / 2;
 
-    // start a timer to adjust for the new time
-    if (this.currentTimeTimer !== undefined) {
-        clearTimeout(this.currentTimeTimer);
-        delete this.currentTimeTimer;
-    }
+  if (interval < 30) {
+    interval = 30;
+  }
 
-    var timeline = this;
-    var interval = 1 / parent.conversion.factor / 2;
+  this.currentTimeTimer = setTimeout(function() {
+    timeline.repaint();
+  }, interval);
 
-    if (interval < 30) {
-        interval = 30;
-    }
-    
-    this.currentTimeTimer = setTimeout(function() {
-        timeline.repaint();
-    }, interval);
-
-    return false;
+  return false;
 };
 
 /**
@@ -8596,17 +8056,17 @@ CurrentTime.prototype.repaint = function () {
  */
 
 function CustomTime (parent, depends, options) {
-    this.id = util.randomUUID();
-    this.parent = parent;
-    this.depends = depends;
+  this.id = util.randomUUID();
+  this.parent = parent;
+  this.depends = depends;
 
-    this.options = options || {};
-    this.defaultOptions = {
-        showCustomTime: false
-    };
+  this.options = options || {};
+  this.defaultOptions = {
+    showCustomTime: false
+  };
 
-    this.listeners = [];
-    this.customTime = new Date();
+  this.listeners = [];
+  this.customTime = new Date();
 }
 
 CustomTime.prototype = new Component();
@@ -8619,7 +8079,7 @@ CustomTime.prototype.setOptions = Component.prototype.setOptions;
  * @returns {HTMLElement} container
  */
 CustomTime.prototype.getContainer = function () {
-    return this.frame;
+  return this.frame;
 };
 
 /**
@@ -8627,59 +8087,59 @@ CustomTime.prototype.getContainer = function () {
  * @return {Boolean} changed
  */
 CustomTime.prototype.repaint = function () {
-    var bar = this.frame,
-        parent = this.parent,
-        parentContainer = parent.parent.getContainer();
+  var bar = this.frame,
+      parent = this.parent,
+      parentContainer = parent.parent.getContainer();
 
-    if (!parent) {
-        throw new Error('Cannot repaint bar: no parent attached');
+  if (!parent) {
+    throw new Error('Cannot repaint bar: no parent attached');
+  }
+
+  if (!parentContainer) {
+    throw new Error('Cannot repaint bar: parent has no container element');
+  }
+
+  if (!this.getOption('showCustomTime')) {
+    if (bar) {
+      parentContainer.removeChild(bar);
+      delete this.frame;
     }
 
-    if (!parentContainer) {
-        throw new Error('Cannot repaint bar: parent has no container element');
-    }
+    return;
+  }
 
-    if (!this.getOption('showCustomTime')) {
-        if (bar) {
-            parentContainer.removeChild(bar);
-            delete this.frame;
-        }
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.className = 'customtime';
+    bar.style.position = 'absolute';
+    bar.style.top = '0px';
+    bar.style.height = '100%';
 
-        return;
-    }
+    parentContainer.appendChild(bar);
 
-    if (!bar) {
-        bar = document.createElement('div');
-        bar.className = 'customtime';
-        bar.style.position = 'absolute';
-        bar.style.top = '0px';
-        bar.style.height = '100%';
+    var drag = document.createElement('div');
+    drag.style.position = 'relative';
+    drag.style.top = '0px';
+    drag.style.left = '-10px';
+    drag.style.height = '100%';
+    drag.style.width = '20px';
+    bar.appendChild(drag);
 
-        parentContainer.appendChild(bar);
+    this.frame = bar;
 
-        var drag = document.createElement('div');
-        drag.style.position = 'relative';
-        drag.style.top = '0px';
-        drag.style.left = '-10px';
-        drag.style.height = '100%';
-        drag.style.width = '20px';
-        bar.appendChild(drag);
+    this.subscribe(this, 'movetime');
+  }
 
-        this.frame = bar;
+  if (!parent.conversion) {
+    parent._updateConversion();
+  }
 
-        this.subscribe(this, 'movetime');
-    }
+  var x = parent.toScreen(this.customTime);
 
-    if (!parent.conversion) {
-        parent._updateConversion();
-    }
+  bar.style.left = x + 'px';
+  bar.title = 'Time: ' + this.customTime;
 
-    var x = parent.toScreen(this.customTime);
-
-    bar.style.left = x + 'px';
-    bar.title = 'Time: ' + this.customTime;
-
-    return false;
+  return false;
 };
 
 /**
@@ -8687,8 +8147,8 @@ CustomTime.prototype.repaint = function () {
  * @param {Date} time
  */
 CustomTime.prototype._setCustomTime = function(time) {
-    this.customTime = new Date(time.valueOf());
-    this.repaint();
+  this.customTime = new Date(time.valueOf());
+  this.repaint();
 };
 
 /**
@@ -8696,7 +8156,7 @@ CustomTime.prototype._setCustomTime = function(time) {
  * @return {Date} customTime
  */
 CustomTime.prototype._getCustomTime = function() {
-    return new Date(this.customTime.valueOf());
+  return new Date(this.customTime.valueOf());
 };
 
 /**
@@ -8704,18 +8164,18 @@ CustomTime.prototype._getCustomTime = function() {
  * @param {Component} component
  */
 CustomTime.prototype.subscribe = function (component, event) {
-    var me = this;
-    var listener = {
-        component: component,
-        event: event,
-        callback: function (event) {
-            me._onMouseDown(event, listener);
-        },
-        params: {}
-    };
+  var me = this;
+  var listener = {
+    component: component,
+    event: event,
+    callback: function (event) {
+      me._onMouseDown(event, listener);
+    },
+    params: {}
+  };
 
-    component.on('mousedown', listener.callback);
-    me.listeners.push(listener);
+  component.on('mousedown', listener.callback);
+  me.listeners.push(listener);
 
 };
 
@@ -8726,13 +8186,13 @@ CustomTime.prototype.subscribe = function (component, event) {
  *                             as parameter.
  */
 CustomTime.prototype.on = function (event, callback) {
-    var bar = this.frame;
-    if (!bar) {
-        throw new Error('Cannot add event listener: no parent attached');
-    }
+  var bar = this.frame;
+  if (!bar) {
+    throw new Error('Cannot add event listener: no parent attached');
+  }
 
-    events.addListener(this, event, callback);
-    util.addEventListener(bar, event, callback);
+  events.addListener(this, event, callback);
+  util.addEventListener(bar, event, callback);
 };
 
 /**
@@ -8742,38 +8202,38 @@ CustomTime.prototype.on = function (event, callback) {
  * @private
  */
 CustomTime.prototype._onMouseDown = function(event, listener) {
-    event = event || window.event;
-    var params = listener.params;
+  event = event || window.event;
+  var params = listener.params;
 
-    // only react on left mouse button down
-    var leftButtonDown = event.which ? (event.which == 1) : (event.button == 1);
-    if (!leftButtonDown) {
-        return;
-    }
+  // only react on left mouse button down
+  var leftButtonDown = event.which ? (event.which == 1) : (event.button == 1);
+  if (!leftButtonDown) {
+    return;
+  }
 
-    // get mouse position
-    params.mouseX = util.getPageX(event);
-    params.moved = false;
-    
-    params.customTime = this.customTime;
+  // get mouse position
+  params.mouseX = util.getPageX(event);
+  params.moved = false;
 
-    // add event listeners to handle moving the custom time bar 
-    var me = this;
-    if (!params.onMouseMove) {
-        params.onMouseMove = function (event) {
-            me._onMouseMove(event, listener);
-        };
-        util.addEventListener(document, 'mousemove', params.onMouseMove);
-    }
-    if (!params.onMouseUp) {
-        params.onMouseUp = function (event) {
-            me._onMouseUp(event, listener);
-        };
-        util.addEventListener(document, 'mouseup', params.onMouseUp);
-    }
+  params.customTime = this.customTime;
 
-    util.stopPropagation(event);
-    util.preventDefault(event);
+  // add event listeners to handle moving the custom time bar
+  var me = this;
+  if (!params.onMouseMove) {
+    params.onMouseMove = function (event) {
+      me._onMouseMove(event, listener);
+    };
+    util.addEventListener(document, 'mousemove', params.onMouseMove);
+  }
+  if (!params.onMouseUp) {
+    params.onMouseUp = function (event) {
+      me._onMouseUp(event, listener);
+    };
+    util.addEventListener(document, 'mouseup', params.onMouseUp);
+  }
+
+  util.stopPropagation(event);
+  util.preventDefault(event);
 };
 
 /**
@@ -8784,33 +8244,33 @@ CustomTime.prototype._onMouseDown = function(event, listener) {
  * @private
  */
 CustomTime.prototype._onMouseMove = function (event, listener) {
-    event = event || window.event;
-    var params = listener.params;
-    var parent = this.parent;
+  event = event || window.event;
+  var params = listener.params;
+  var parent = this.parent;
 
-    // calculate change in mouse position
-    var mouseX = util.getPageX(event);
+  // calculate change in mouse position
+  var mouseX = util.getPageX(event);
 
-    if (params.mouseX === undefined) {
-        params.mouseX = mouseX;
-    }
+  if (params.mouseX === undefined) {
+    params.mouseX = mouseX;
+  }
 
-    var diff = mouseX - params.mouseX;
+  var diff = mouseX - params.mouseX;
 
-    // if mouse movement is big enough, register it as a "moved" event
-    if (Math.abs(diff) >= 1) {
-        params.moved = true;
-    }
+  // if mouse movement is big enough, register it as a "moved" event
+  if (Math.abs(diff) >= 1) {
+    params.moved = true;
+  }
 
-    var x = parent.toScreen(params.customTime);
-    var xnew = x + diff;
-    var time = parent.toTime(xnew);
-    this._setCustomTime(time);
+  var x = parent.toScreen(params.customTime);
+  var xnew = x + diff;
+  var time = parent.toTime(xnew);
+  this._setCustomTime(time);
 
-    // fire a timechange event
-    events.trigger(this, 'timechange', {customTime: this.customTime});
+  // fire a timechange event
+  events.trigger(this, 'timechange', {customTime: this.customTime});
 
-    util.preventDefault(event);
+  util.preventDefault(event);
 };
 
 /**
@@ -8821,23 +8281,23 @@ CustomTime.prototype._onMouseMove = function (event, listener) {
  * @private
  */
 CustomTime.prototype._onMouseUp = function (event, listener) {
-    event = event || window.event;
-    var params = listener.params;
+  event = event || window.event;
+  var params = listener.params;
 
-    // remove event listeners here, important for Safari
-    if (params.onMouseMove) {
-        util.removeEventListener(document, 'mousemove', params.onMouseMove);
-        params.onMouseMove = null;
-    }
-    if (params.onMouseUp) {
-        util.removeEventListener(document, 'mouseup', params.onMouseUp);
-        params.onMouseUp = null;
-    }
+  // remove event listeners here, important for Safari
+  if (params.onMouseMove) {
+    util.removeEventListener(document, 'mousemove', params.onMouseMove);
+    params.onMouseMove = null;
+  }
+  if (params.onMouseUp) {
+    util.removeEventListener(document, 'mouseup', params.onMouseUp);
+    params.onMouseUp = null;
+  }
 
-    if (params.moved) {
-        // fire a timechanged event
-        events.trigger(this, 'timechanged', {customTime: this.customTime});
-    }
+  if (params.moved) {
+    // fire a timechanged event
+    events.trigger(this, 'timechanged', {customTime: this.customTime});
+  }
 };
 
 /**
@@ -8854,63 +8314,63 @@ CustomTime.prototype._onMouseUp = function (event, listener) {
  */
 // TODO: improve performance by replacing all Array.forEach with a for loop
 function ItemSet(parent, depends, options) {
-    this.id = util.randomUUID();
-    this.parent = parent;
-    this.depends = depends;
+  this.id = util.randomUUID();
+  this.parent = parent;
+  this.depends = depends;
 
-    // one options object is shared by this itemset and all its items
-    this.options = options || {};
-    this.defaultOptions = {
-        type: 'box',
-        align: 'center',
-        orientation: 'bottom',
-        margin: {
-            axis: 20,
-            item: 10
-        },
-        padding: 5
-    };
+  // one options object is shared by this itemset and all its items
+  this.options = options || {};
+  this.defaultOptions = {
+    type: 'box',
+    align: 'center',
+    orientation: 'bottom',
+    margin: {
+      axis: 20,
+      item: 10
+    },
+    padding: 5
+  };
 
-    this.dom = {};
+  this.dom = {};
 
-    var me = this;
-    this.itemsData = null;  // DataSet
-    this.range = null;      // Range or Object {start: number, end: number}
+  var me = this;
+  this.itemsData = null;  // DataSet
+  this.range = null;      // Range or Object {start: number, end: number}
 
-    this.listeners = {
-        'add': function (event, params, senderId) {
-            if (senderId != me.id) {
-                me._onAdd(params.items);
-            }
-        },
-        'update': function (event, params, senderId) {
-            if (senderId != me.id) {
-                me._onUpdate(params.items);
-            }
-        },
-        'remove': function (event, params, senderId) {
-            if (senderId != me.id) {
-                me._onRemove(params.items);
-            }
-        }
-    };
+  this.listeners = {
+    'add': function (event, params, senderId) {
+      if (senderId != me.id) {
+        me._onAdd(params.items);
+      }
+    },
+    'update': function (event, params, senderId) {
+      if (senderId != me.id) {
+        me._onUpdate(params.items);
+      }
+    },
+    'remove': function (event, params, senderId) {
+      if (senderId != me.id) {
+        me._onRemove(params.items);
+      }
+    }
+  };
 
-    this.items = {};    // object with an Item for every data item
-    this.queue = {};       // queue with id/actions: 'add', 'update', 'delete'
-    this.stack = new Stack(this, Object.create(this.options));
-    this.conversion = null;
+  this.items = {};    // object with an Item for every data item
+  this.queue = {};       // queue with id/actions: 'add', 'update', 'delete'
+  this.stack = new Stack(this, Object.create(this.options));
+  this.conversion = null;
 
-    // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
+  // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
 }
 
 ItemSet.prototype = new Panel();
 
 // available item types will be registered here
 ItemSet.types = {
-    box: ItemBox,
-    range: ItemRange,
-    rangeoverflow: ItemRangeOverflow,
-    point: ItemPoint
+  box: ItemBox,
+  range: ItemRange,
+  rangeoverflow: ItemRangeOverflow,
+  point: ItemPoint
 };
 
 /**
@@ -8945,11 +8405,11 @@ ItemSet.prototype.setOptions = Component.prototype.setOptions;
  * @param {Range | Object} range  A Range or an object containing start and end.
  */
 ItemSet.prototype.setRange = function setRange(range) {
-    if (!(range instanceof Range) && (!range || !range.start || !range.end)) {
-        throw new TypeError('Range must be an instance of Range, ' +
-            'or an object containing start and end.');
-    }
-    this.range = range;
+  if (!(range instanceof Range) && (!range || !range.start || !range.end)) {
+    throw new TypeError('Range must be an instance of Range, ' +
+        'or an object containing start and end.');
+  }
+  this.range = range;
 };
 
 /**
@@ -8957,170 +8417,170 @@ ItemSet.prototype.setRange = function setRange(range) {
  * @return {Boolean} changed
  */
 ItemSet.prototype.repaint = function repaint() {
-    var changed = 0,
-        update = util.updateProperty,
-        asSize = util.option.asSize,
-        options = this.options,
-        orientation = this.getOption('orientation'),
-        defaultOptions = this.defaultOptions,
-        frame = this.frame;
+  var changed = 0,
+      update = util.updateProperty,
+      asSize = util.option.asSize,
+      options = this.options,
+      orientation = this.getOption('orientation'),
+      defaultOptions = this.defaultOptions,
+      frame = this.frame;
 
-    if (!frame) {
-        frame = document.createElement('div');
-        frame.className = 'itemset';
+  if (!frame) {
+    frame = document.createElement('div');
+    frame.className = 'itemset';
 
-        var className = options.className;
-        if (className) {
-            util.addClassName(frame, util.option.asString(className));
+    var className = options.className;
+    if (className) {
+      util.addClassName(frame, util.option.asString(className));
+    }
+
+    // create background panel
+    var background = document.createElement('div');
+    background.className = 'background';
+    frame.appendChild(background);
+    this.dom.background = background;
+
+    // create foreground panel
+    var foreground = document.createElement('div');
+    foreground.className = 'foreground';
+    frame.appendChild(foreground);
+    this.dom.foreground = foreground;
+
+    // create axis panel
+    var axis = document.createElement('div');
+    axis.className = 'itemset-axis';
+    //frame.appendChild(axis);
+    this.dom.axis = axis;
+
+    this.frame = frame;
+    changed += 1;
+  }
+
+  if (!this.parent) {
+    throw new Error('Cannot repaint itemset: no parent attached');
+  }
+  var parentContainer = this.parent.getContainer();
+  if (!parentContainer) {
+    throw new Error('Cannot repaint itemset: parent has no container element');
+  }
+  if (!frame.parentNode) {
+    parentContainer.appendChild(frame);
+    changed += 1;
+  }
+  if (!this.dom.axis.parentNode) {
+    parentContainer.appendChild(this.dom.axis);
+    changed += 1;
+  }
+
+  // reposition frame
+  changed += update(frame.style, 'left',   asSize(options.left, '0px'));
+  changed += update(frame.style, 'top',    asSize(options.top, '0px'));
+  changed += update(frame.style, 'width',  asSize(options.width, '100%'));
+  changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
+
+  // reposition axis
+  changed += update(this.dom.axis.style, 'left', asSize(options.left, '0px'));
+  changed += update(this.dom.axis.style, 'width',  asSize(options.width, '100%'));
+  if (orientation == 'bottom') {
+    changed += update(this.dom.axis.style, 'top',  (this.height + this.top) + 'px');
+  }
+  else { // orientation == 'top'
+    changed += update(this.dom.axis.style, 'top', this.top + 'px');
+  }
+
+  this._updateConversion();
+
+  var me = this,
+      queue = this.queue,
+      itemsData = this.itemsData,
+      items = this.items,
+      dataOptions = {
+        // TODO: cleanup
+        // fields: [(itemsData && itemsData.fieldId || 'id'), 'start', 'end', 'content', 'type', 'className']
+      };
+
+  // show/hide added/changed/removed items
+  Object.keys(queue).forEach(function (id) {
+    //var entry = queue[id];
+    var action = queue[id];
+    var item = items[id];
+    //var item = entry.item;
+    //noinspection FallthroughInSwitchStatementJS
+    switch (action) {
+      case 'add':
+      case 'update':
+        var itemData = itemsData && itemsData.get(id, dataOptions);
+
+        if (itemData) {
+          var type = itemData.type ||
+              (itemData.start && itemData.end && 'range') ||
+              options.type ||
+              'box';
+          var constructor = ItemSet.types[type];
+
+          // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
+          if (item) {
+            // update item
+            if (!constructor || !(item instanceof constructor)) {
+              // item type has changed, hide and delete the item
+              changed += item.hide();
+              item = null;
+            }
+            else {
+              item.data = itemData; // TODO: create a method item.setData ?
+              changed++;
+            }
+          }
+
+          if (!item) {
+            // create item
+            if (constructor) {
+              item = new constructor(me, itemData, options, defaultOptions);
+              changed++;
+            }
+            else {
+              throw new TypeError('Unknown item type "' + type + '"');
+            }
+          }
+
+          // force a repaint (not only a reposition)
+          item.repaint();
+
+          items[id] = item;
         }
 
-        // create background panel
-        var background = document.createElement('div');
-        background.className = 'background';
-        frame.appendChild(background);
-        this.dom.background = background;
+        // update queue
+        delete queue[id];
+        break;
 
-        // create foreground panel
-        var foreground = document.createElement('div');
-        foreground.className = 'foreground';
-        frame.appendChild(foreground);
-        this.dom.foreground = foreground;
-
-        // create axis panel
-        var axis = document.createElement('div');
-        axis.className = 'itemset-axis';
-        //frame.appendChild(axis);
-        this.dom.axis = axis;
-
-        this.frame = frame;
-        changed += 1;
-    }
-
-    if (!this.parent) {
-        throw new Error('Cannot repaint itemset: no parent attached');
-    }
-    var parentContainer = this.parent.getContainer();
-    if (!parentContainer) {
-        throw new Error('Cannot repaint itemset: parent has no container element');
-    }
-    if (!frame.parentNode) {
-        parentContainer.appendChild(frame);
-        changed += 1;
-    }
-    if (!this.dom.axis.parentNode) {
-        parentContainer.appendChild(this.dom.axis);
-        changed += 1;
-    }
-
-    // reposition frame
-    changed += update(frame.style, 'left',   asSize(options.left, '0px'));
-    changed += update(frame.style, 'top',    asSize(options.top, '0px'));
-    changed += update(frame.style, 'width',  asSize(options.width, '100%'));
-    changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
-
-    // reposition axis
-    changed += update(this.dom.axis.style, 'left', asSize(options.left, '0px'));
-    changed += update(this.dom.axis.style, 'width',  asSize(options.width, '100%'));
-    if (orientation == 'bottom') {
-        changed += update(this.dom.axis.style, 'top',  (this.height + this.top) + 'px');
-    }
-    else { // orientation == 'top'
-        changed += update(this.dom.axis.style, 'top', this.top + 'px');
-    }
-
-    this._updateConversion();
-
-    var me = this,
-        queue = this.queue,
-        itemsData = this.itemsData,
-        items = this.items,
-        dataOptions = {
-            // TODO: cleanup
-            // fields: [(itemsData && itemsData.fieldId || 'id'), 'start', 'end', 'content', 'type', 'className']
-        };
-
-    // show/hide added/changed/removed items
-    Object.keys(queue).forEach(function (id) {
-        //var entry = queue[id];
-        var action = queue[id];
-        var item = items[id];
-        //var item = entry.item;
-        //noinspection FallthroughInSwitchStatementJS
-        switch (action) {
-            case 'add':
-            case 'update':
-                var itemData = itemsData && itemsData.get(id, dataOptions);
-
-                if (itemData) {
-                    var type = itemData.type ||
-                        (itemData.start && itemData.end && 'range') ||
-                        options.type ||
-                        'box';
-                    var constructor = ItemSet.types[type];
-
-                    // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
-                    if (item) {
-                        // update item
-                        if (!constructor || !(item instanceof constructor)) {
-                            // item type has changed, hide and delete the item
-                            changed += item.hide();
-                            item = null;
-                        }
-                        else {
-                            item.data = itemData; // TODO: create a method item.setData ?
-                            changed++;
-                        }
-                    }
-
-                    if (!item) {
-                        // create item
-                        if (constructor) {
-                            item = new constructor(me, itemData, options, defaultOptions);
-                            changed++;
-                        }
-                        else {
-                            throw new TypeError('Unknown item type "' + type + '"');
-                        }
-                    }
-
-                    // force a repaint (not only a reposition)
-                    item.repaint();
-
-                    items[id] = item;
-                }
-
-                // update queue
-                delete queue[id];
-                break;
-
-            case 'remove':
-                if (item) {
-                    // remove DOM of the item
-                    changed += item.hide();
-                }
-
-                // update lists
-                delete items[id];
-                delete queue[id];
-                break;
-
-            default:
-                console.log('Error: unknown action "' + action + '"');
+      case 'remove':
+        if (item) {
+          // remove DOM of the item
+          changed += item.hide();
         }
-    });
 
-    // reposition all items. Show items only when in the visible area
-    util.forEach(this.items, function (item) {
-        if (item.visible) {
-            changed += item.show();
-            item.reposition();
-        }
-        else {
-            changed += item.hide();
-        }
-    });
+        // update lists
+        delete items[id];
+        delete queue[id];
+        break;
 
-    return (changed > 0);
+      default:
+        console.log('Error: unknown action "' + action + '"');
+    }
+  });
+
+  // reposition all items. Show items only when in the visible area
+  util.forEach(this.items, function (item) {
+    if (item.visible) {
+      changed += item.show();
+      item.reposition();
+    }
+    else {
+      changed += item.hide();
+    }
+  });
+
+  return (changed > 0);
 };
 
 /**
@@ -9128,7 +8588,7 @@ ItemSet.prototype.repaint = function repaint() {
  * @return {HTMLElement} foreground
  */
 ItemSet.prototype.getForeground = function getForeground() {
-    return this.dom.foreground;
+  return this.dom.foreground;
 };
 
 /**
@@ -9136,7 +8596,7 @@ ItemSet.prototype.getForeground = function getForeground() {
  * @return {HTMLElement} background
  */
 ItemSet.prototype.getBackground = function getBackground() {
-    return this.dom.background;
+  return this.dom.background;
 };
 
 /**
@@ -9144,7 +8604,7 @@ ItemSet.prototype.getBackground = function getBackground() {
  * @return {HTMLElement} axis
  */
 ItemSet.prototype.getAxis = function getAxis() {
-    return this.dom.axis;
+  return this.dom.axis;
 };
 
 /**
@@ -9152,63 +8612,63 @@ ItemSet.prototype.getAxis = function getAxis() {
  * @return {Boolean} resized
  */
 ItemSet.prototype.reflow = function reflow () {
-    var changed = 0,
-        options = this.options,
-        marginAxis = options.margin && options.margin.axis || this.defaultOptions.margin.axis,
-        marginItem = options.margin && options.margin.item || this.defaultOptions.margin.item,
-        update = util.updateProperty,
-        asNumber = util.option.asNumber,
-        asSize = util.option.asSize,
-        frame = this.frame;
+  var changed = 0,
+      options = this.options,
+      marginAxis = options.margin && options.margin.axis || this.defaultOptions.margin.axis,
+      marginItem = options.margin && options.margin.item || this.defaultOptions.margin.item,
+      update = util.updateProperty,
+      asNumber = util.option.asNumber,
+      asSize = util.option.asSize,
+      frame = this.frame;
 
-    if (frame) {
-        this._updateConversion();
+  if (frame) {
+    this._updateConversion();
 
-        util.forEach(this.items, function (item) {
-            changed += item.reflow();
-        });
+    util.forEach(this.items, function (item) {
+      changed += item.reflow();
+    });
 
-        // TODO: stack.update should be triggered via an event, in stack itself
-        // TODO: only update the stack when there are changed items
-        this.stack.update();
+    // TODO: stack.update should be triggered via an event, in stack itself
+    // TODO: only update the stack when there are changed items
+    this.stack.update();
 
-        var maxHeight = asNumber(options.maxHeight);
-        var fixedHeight = (asSize(options.height) != null);
-        var height;
-        if (fixedHeight) {
-            height = frame.offsetHeight;
-        }
-        else {
-            // height is not specified, determine the height from the height and positioned items
-            var visibleItems = this.stack.ordered; // TODO: not so nice way to get the filtered items
-            if (visibleItems.length) {
-                var min = visibleItems[0].top;
-                var max = visibleItems[0].top + visibleItems[0].height;
-                util.forEach(visibleItems, function (item) {
-                    min = Math.min(min, item.top);
-                    max = Math.max(max, (item.top + item.height));
-                });
-                height = (max - min) + marginAxis + marginItem;
-            }
-            else {
-                height = marginAxis + marginItem;
-            }
-        }
-        if (maxHeight != null) {
-            height = Math.min(height, maxHeight);
-        }
-        changed += update(this, 'height', height);
-
-        // calculate height from items
-        changed += update(this, 'top', frame.offsetTop);
-        changed += update(this, 'left', frame.offsetLeft);
-        changed += update(this, 'width', frame.offsetWidth);
+    var maxHeight = asNumber(options.maxHeight);
+    var fixedHeight = (asSize(options.height) != null);
+    var height;
+    if (fixedHeight) {
+      height = frame.offsetHeight;
     }
     else {
-        changed += 1;
+      // height is not specified, determine the height from the height and positioned items
+      var visibleItems = this.stack.ordered; // TODO: not so nice way to get the filtered items
+      if (visibleItems.length) {
+        var min = visibleItems[0].top;
+        var max = visibleItems[0].top + visibleItems[0].height;
+        util.forEach(visibleItems, function (item) {
+          min = Math.min(min, item.top);
+          max = Math.max(max, (item.top + item.height));
+        });
+        height = (max - min) + marginAxis + marginItem;
+      }
+      else {
+        height = marginAxis + marginItem;
+      }
     }
+    if (maxHeight != null) {
+      height = Math.min(height, maxHeight);
+    }
+    changed += update(this, 'height', height);
 
-    return (changed > 0);
+    // calculate height from items
+    changed += update(this, 'top', frame.offsetTop);
+    changed += update(this, 'left', frame.offsetLeft);
+    changed += update(this, 'width', frame.offsetWidth);
+  }
+  else {
+    changed += 1;
+  }
+
+  return (changed > 0);
 };
 
 /**
@@ -9216,19 +8676,19 @@ ItemSet.prototype.reflow = function reflow () {
  * @return {Boolean} changed
  */
 ItemSet.prototype.hide = function hide() {
-    var changed = false;
+  var changed = false;
 
-    // remove the DOM
-    if (this.frame && this.frame.parentNode) {
-        this.frame.parentNode.removeChild(this.frame);
-        changed = true;
-    }
-    if (this.dom.axis && this.dom.axis.parentNode) {
-        this.dom.axis.parentNode.removeChild(this.dom.axis);
-        changed = true;
-    }
+  // remove the DOM
+  if (this.frame && this.frame.parentNode) {
+    this.frame.parentNode.removeChild(this.frame);
+    changed = true;
+  }
+  if (this.dom.axis && this.dom.axis.parentNode) {
+    this.dom.axis.parentNode.removeChild(this.dom.axis);
+    changed = true;
+  }
 
-    return changed;
+  return changed;
 };
 
 /**
@@ -9236,43 +8696,43 @@ ItemSet.prototype.hide = function hide() {
  * @param {vis.DataSet | null} items
  */
 ItemSet.prototype.setItems = function setItems(items) {
-    var me = this,
-        ids,
-        oldItemsData = this.itemsData;
+  var me = this,
+      ids,
+      oldItemsData = this.itemsData;
 
-    // replace the dataset
-    if (!items) {
-        this.itemsData = null;
-    }
-    else if (items instanceof DataSet || items instanceof DataView) {
-        this.itemsData = items;
-    }
-    else {
-        throw new TypeError('Data must be an instance of DataSet');
-    }
+  // replace the dataset
+  if (!items) {
+    this.itemsData = null;
+  }
+  else if (items instanceof DataSet || items instanceof DataView) {
+    this.itemsData = items;
+  }
+  else {
+    throw new TypeError('Data must be an instance of DataSet');
+  }
 
-    if (oldItemsData) {
-        // unsubscribe from old dataset
-        util.forEach(this.listeners, function (callback, event) {
-            oldItemsData.unsubscribe(event, callback);
-        });
+  if (oldItemsData) {
+    // unsubscribe from old dataset
+    util.forEach(this.listeners, function (callback, event) {
+      oldItemsData.unsubscribe(event, callback);
+    });
 
-        // remove all drawn items
-        ids = oldItemsData.getIds();
-        this._onRemove(ids);
-    }
+    // remove all drawn items
+    ids = oldItemsData.getIds();
+    this._onRemove(ids);
+  }
 
-    if (this.itemsData) {
-        // subscribe to new dataset
-        var id = this.id;
-        util.forEach(this.listeners, function (callback, event) {
-            me.itemsData.subscribe(event, callback, id);
-        });
+  if (this.itemsData) {
+    // subscribe to new dataset
+    var id = this.id;
+    util.forEach(this.listeners, function (callback, event) {
+      me.itemsData.subscribe(event, callback, id);
+    });
 
-        // draw all new items
-        ids = this.itemsData.getIds();
-        this._onAdd(ids);
-    }
+    // draw all new items
+    ids = this.itemsData.getIds();
+    this._onAdd(ids);
+  }
 };
 
 /**
@@ -9280,7 +8740,7 @@ ItemSet.prototype.setItems = function setItems(items) {
  * @returns {vis.DataSet | null}
  */
 ItemSet.prototype.getItems = function getItems() {
-    return this.itemsData;
+  return this.itemsData;
 };
 
 /**
@@ -9289,7 +8749,7 @@ ItemSet.prototype.getItems = function getItems() {
  * @private
  */
 ItemSet.prototype._onUpdate = function _onUpdate(ids) {
-    this._toQueue('update', ids);
+  this._toQueue('update', ids);
 };
 
 /**
@@ -9298,7 +8758,7 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
  * @private
  */
 ItemSet.prototype._onAdd = function _onAdd(ids) {
-    this._toQueue('add', ids);
+  this._toQueue('add', ids);
 };
 
 /**
@@ -9307,7 +8767,7 @@ ItemSet.prototype._onAdd = function _onAdd(ids) {
  * @private
  */
 ItemSet.prototype._onRemove = function _onRemove(ids) {
-    this._toQueue('remove', ids);
+  this._toQueue('remove', ids);
 };
 
 /**
@@ -9316,36 +8776,36 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
  * @param {Number[]} ids
  */
 ItemSet.prototype._toQueue = function _toQueue(action, ids) {
-    var queue = this.queue;
-    ids.forEach(function (id) {
-        queue[id] = action;
-    });
+  var queue = this.queue;
+  ids.forEach(function (id) {
+    queue[id] = action;
+  });
 
-    if (this.controller) {
-        //this.requestReflow();
-        this.requestRepaint();
-    }
+  if (this.controller) {
+    //this.requestReflow();
+    this.requestRepaint();
+  }
 };
 
 /**
- * Calculate the factor and offset to convert a position on screen to the
+ * Calculate the scale and offset to convert a position on screen to the
  * corresponding date and vice versa.
  * After the method _updateConversion is executed once, the methods toTime
  * and toScreen can be used.
  * @private
  */
 ItemSet.prototype._updateConversion = function _updateConversion() {
-    var range = this.range;
-    if (!range) {
-        throw new Error('No range configured');
-    }
+  var range = this.range;
+  if (!range) {
+    throw new Error('No range configured');
+  }
 
-    if (range.conversion) {
-        this.conversion = range.conversion(this.width);
-    }
-    else {
-        this.conversion = Range.conversion(range.start, range.end, this.width);
-    }
+  if (range.conversion) {
+    this.conversion = range.conversion(this.width);
+  }
+  else {
+    this.conversion = Range.conversion(range.start, range.end, this.width);
+  }
 };
 
 /**
@@ -9356,8 +8816,8 @@ ItemSet.prototype._updateConversion = function _updateConversion() {
  * @return {Date}   time The datetime the corresponds with given position x
  */
 ItemSet.prototype.toTime = function toTime(x) {
-    var conversion = this.conversion;
-    return new Date(x / conversion.factor + conversion.offset);
+  var conversion = this.conversion;
+  return new Date(x / conversion.scale + conversion.offset);
 };
 
 /**
@@ -9369,8 +8829,8 @@ ItemSet.prototype.toTime = function toTime(x) {
  *                      with the given date.
  */
 ItemSet.prototype.toScreen = function toScreen(time) {
-    var conversion = this.conversion;
-    return (time.valueOf() - conversion.offset) * conversion.factor;
+  var conversion = this.conversion;
+  return (time.valueOf() - conversion.offset) * conversion.scale;
 };
 
 /**
@@ -9383,32 +8843,32 @@ ItemSet.prototype.toScreen = function toScreen(time) {
  *                                  // TODO: describe available options
  */
 function Item (parent, data, options, defaultOptions) {
-    this.parent = parent;
-    this.data = data;
-    this.dom = null;
-    this.options = options || {};
-    this.defaultOptions = defaultOptions || {};
+  this.parent = parent;
+  this.data = data;
+  this.dom = null;
+  this.options = options || {};
+  this.defaultOptions = defaultOptions || {};
 
-    this.selected = false;
-    this.visible = false;
-    this.top = 0;
-    this.left = 0;
-    this.width = 0;
-    this.height = 0;
+  this.selected = false;
+  this.visible = false;
+  this.top = 0;
+  this.left = 0;
+  this.width = 0;
+  this.height = 0;
 }
 
 /**
  * Select current item
  */
 Item.prototype.select = function select() {
-    this.selected = true;
+  this.selected = true;
 };
 
 /**
  * Unselect current item
  */
 Item.prototype.unselect = function unselect() {
-    this.selected = false;
+  this.selected = false;
 };
 
 /**
@@ -9416,7 +8876,7 @@ Item.prototype.unselect = function unselect() {
  * @return {Boolean} changed
  */
 Item.prototype.show = function show() {
-    return false;
+  return false;
 };
 
 /**
@@ -9424,7 +8884,7 @@ Item.prototype.show = function show() {
  * @return {Boolean} changed
  */
 Item.prototype.hide = function hide() {
-    return false;
+  return false;
 };
 
 /**
@@ -9432,8 +8892,8 @@ Item.prototype.hide = function hide() {
  * @return {Boolean} changed
  */
 Item.prototype.repaint = function repaint() {
-    // should be implemented by the item
-    return false;
+  // should be implemented by the item
+  return false;
 };
 
 /**
@@ -9441,8 +8901,8 @@ Item.prototype.repaint = function repaint() {
  * @return {Boolean} resized
  */
 Item.prototype.reflow = function reflow() {
-    // should be implemented by the item
-    return false;
+  // should be implemented by the item
+  return false;
 };
 
 /**
@@ -9450,7 +8910,7 @@ Item.prototype.reflow = function reflow() {
  * @return {Integer} width
  */
 Item.prototype.getWidth = function getWidth() {
-    return this.width;
+  return this.width;
 }
 
 /**
@@ -9464,22 +8924,22 @@ Item.prototype.getWidth = function getWidth() {
  *                                  // TODO: describe available options
  */
 function ItemBox (parent, data, options, defaultOptions) {
-    this.props = {
-        dot: {
-            left: 0,
-            top: 0,
-            width: 0,
-            height: 0
-        },
-        line: {
-            top: 0,
-            left: 0,
-            width: 0,
-            height: 0
-        }
-    };
+  this.props = {
+    dot: {
+      left: 0,
+      top: 0,
+      width: 0,
+      height: 0
+    },
+    line: {
+      top: 0,
+      left: 0,
+      width: 0,
+      height: 0
+    }
+  };
 
-    Item.call(this, parent, data, options, defaultOptions);
+  Item.call(this, parent, data, options, defaultOptions);
 }
 
 ItemBox.prototype = new Item (null, null);
@@ -9489,8 +8949,8 @@ ItemBox.prototype = new Item (null, null);
  * @override
  */
 ItemBox.prototype.select = function select() {
-    this.selected = true;
-    // TODO: select and unselect
+  this.selected = true;
+  // TODO: select and unselect
 };
 
 /**
@@ -9498,8 +8958,8 @@ ItemBox.prototype.select = function select() {
  * @override
  */
 ItemBox.prototype.unselect = function unselect() {
-    this.selected = false;
-    // TODO: select and unselect
+  this.selected = false;
+  // TODO: select and unselect
 };
 
 /**
@@ -9507,78 +8967,80 @@ ItemBox.prototype.unselect = function unselect() {
  * @return {Boolean} changed
  */
 ItemBox.prototype.repaint = function repaint() {
-    // TODO: make an efficient repaint
-    var changed = false;
-    var dom = this.dom;
+  // TODO: make an efficient repaint
+  var changed = false;
+  var dom = this.dom;
 
-    if (!dom) {
-        this._create();
-        dom = this.dom;
-        changed = true;
+  if (!dom) {
+    this._create();
+    dom = this.dom;
+    changed = true;
+  }
+
+  if (dom) {
+    if (!this.parent) {
+      throw new Error('Cannot repaint item: no parent attached');
     }
 
-    if (dom) {
-        if (!this.parent) {
-            throw new Error('Cannot repaint item: no parent attached');
-        }
-        var foreground = this.parent.getForeground();
-        if (!foreground) {
-            throw new Error('Cannot repaint time axis: ' +
-                'parent has no foreground container element');
-        }
-        var background = this.parent.getBackground();
-        if (!background) {
-            throw new Error('Cannot repaint time axis: ' +
-                'parent has no background container element');
-        }
-        var axis = this.parent.getAxis();
-        if (!background) {
-            throw new Error('Cannot repaint time axis: ' +
-                'parent has no axis container element');
-        }
-
-        if (!dom.box.parentNode) {
-            foreground.appendChild(dom.box);
-            changed = true;
-        }
-        if (!dom.line.parentNode) {
-            background.appendChild(dom.line);
-            changed = true;
-        }
-        if (!dom.dot.parentNode) {
-            axis.appendChild(dom.dot);
-            changed = true;
-        }
-
-        // update contents
-        if (this.data.content != this.content) {
-            this.content = this.data.content;
-            if (this.content instanceof Element) {
-                dom.content.innerHTML = '';
-                dom.content.appendChild(this.content);
-            }
-            else if (this.data.content != undefined) {
-                dom.content.innerHTML = this.content;
-            }
-            else {
-                throw new Error('Property "content" missing in item ' + this.data.id);
-            }
-            changed = true;
-        }
-
-        // update class
-        var className = (this.data.className? ' ' + this.data.className : '') +
-            (this.selected ? ' selected' : '');
-        if (this.className != className) {
-            this.className = className;
-            dom.box.className = 'item box' + className;
-            dom.line.className = 'item line' + className;
-            dom.dot.className  = 'item dot' + className;
-            changed = true;
-        }
+    if (!dom.box.parentNode) {
+      var foreground = this.parent.getForeground();
+      if (!foreground) {
+        throw new Error('Cannot repaint time axis: ' +
+            'parent has no foreground container element');
+      }
+      foreground.appendChild(dom.box);
+      changed = true;
     }
 
-    return changed;
+    if (!dom.line.parentNode) {
+      var background = this.parent.getBackground();
+      if (!background) {
+        throw new Error('Cannot repaint time axis: ' +
+            'parent has no background container element');
+      }
+      background.appendChild(dom.line);
+      changed = true;
+    }
+
+    if (!dom.dot.parentNode) {
+      var axis = this.parent.getAxis();
+      if (!background) {
+        throw new Error('Cannot repaint time axis: ' +
+            'parent has no axis container element');
+      }
+      axis.appendChild(dom.dot);
+      changed = true;
+    }
+
+    // update contents
+    if (this.data.content != this.content) {
+      this.content = this.data.content;
+      if (this.content instanceof Element) {
+        dom.content.innerHTML = '';
+        dom.content.appendChild(this.content);
+      }
+      else if (this.data.content != undefined) {
+        dom.content.innerHTML = this.content;
+      }
+      else {
+        throw new Error('Property "content" missing in item ' + this.data.id);
+      }
+      changed = true;
+    }
+
+    // update class
+    var className = (this.data.className? ' ' + this.data.className : '') +
+        (this.selected ? ' selected' : '');
+    if (this.className != className) {
+      this.className = className;
+      dom.box.className = 'item box' + className;
+      dom.line.className = 'item line' + className;
+      dom.dot.className  = 'item dot' + className;
+      changed = true;
+    }
+  }
+
+  return changed;
 };
 
 /**
@@ -9587,12 +9049,12 @@ ItemBox.prototype.repaint = function repaint() {
  * @return {Boolean} changed
  */
 ItemBox.prototype.show = function show() {
-    if (!this.dom || !this.dom.box.parentNode) {
-        return this.repaint();
-    }
-    else {
-        return false;
-    }
+  if (!this.dom || !this.dom.box.parentNode) {
+    return this.repaint();
+  }
+  else {
+    return false;
+  }
 };
 
 /**
@@ -9600,21 +9062,21 @@ ItemBox.prototype.show = function show() {
  * @return {Boolean} changed
  */
 ItemBox.prototype.hide = function hide() {
-    var changed = false,
-        dom = this.dom;
-    if (dom) {
-        if (dom.box.parentNode) {
-            dom.box.parentNode.removeChild(dom.box);
-            changed = true;
-        }
-        if (dom.line.parentNode) {
-            dom.line.parentNode.removeChild(dom.line);
-        }
-        if (dom.dot.parentNode) {
-            dom.dot.parentNode.removeChild(dom.dot);
-        }
+  var changed = false,
+      dom = this.dom;
+  if (dom) {
+    if (dom.box.parentNode) {
+      dom.box.parentNode.removeChild(dom.box);
+      changed = true;
     }
-    return changed;
+    if (dom.line.parentNode) {
+      dom.line.parentNode.removeChild(dom.line);
+    }
+    if (dom.dot.parentNode) {
+      dom.dot.parentNode.removeChild(dom.dot);
+    }
+  }
+  return changed;
 };
 
 /**
@@ -9623,87 +9085,87 @@ ItemBox.prototype.hide = function hide() {
  * @override
  */
 ItemBox.prototype.reflow = function reflow() {
-    var changed = 0,
-        update,
-        dom,
-        props,
-        options,
-        margin,
-        start,
-        align,
-        orientation,
-        top,
-        left,
-        data,
-        range;
+  var changed = 0,
+      update,
+      dom,
+      props,
+      options,
+      margin,
+      start,
+      align,
+      orientation,
+      top,
+      left,
+      data,
+      range;
 
-    if (this.data.start == undefined) {
-        throw new Error('Property "start" missing in item ' + this.data.id);
-    }
+  if (this.data.start == undefined) {
+    throw new Error('Property "start" missing in item ' + this.data.id);
+  }
 
-    data = this.data;
-    range = this.parent && this.parent.range;
-    if (data && range) {
-        // TODO: account for the width of the item
-        var interval = (range.end - range.start);
-        this.visible = (data.start > range.start - interval) && (data.start < range.end + interval);
+  data = this.data;
+  range = this.parent && this.parent.range;
+  if (data && range) {
+    // TODO: account for the width of the item
+    var interval = (range.end - range.start);
+    this.visible = (data.start > range.start - interval) && (data.start < range.end + interval);
+  }
+  else {
+    this.visible = false;
+  }
+
+  if (this.visible) {
+    dom = this.dom;
+    if (dom) {
+      update = util.updateProperty;
+      props = this.props;
+      options = this.options;
+      start = this.parent.toScreen(this.data.start);
+      align = options.align || this.defaultOptions.align;
+      margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
+      orientation = options.orientation || this.defaultOptions.orientation;
+
+      changed += update(props.dot, 'height', dom.dot.offsetHeight);
+      changed += update(props.dot, 'width', dom.dot.offsetWidth);
+      changed += update(props.line, 'width', dom.line.offsetWidth);
+      changed += update(props.line, 'height', dom.line.offsetHeight);
+      changed += update(props.line, 'top', dom.line.offsetTop);
+      changed += update(this, 'width', dom.box.offsetWidth);
+      changed += update(this, 'height', dom.box.offsetHeight);
+      if (align == 'right') {
+        left = start - this.width;
+      }
+      else if (align == 'left') {
+        left = start;
+      }
+      else {
+        // default or 'center'
+        left = start - this.width / 2;
+      }
+      changed += update(this, 'left', left);
+
+      changed += update(props.line, 'left', start - props.line.width / 2);
+      changed += update(props.dot, 'left', start - props.dot.width / 2);
+      changed += update(props.dot, 'top', -props.dot.height / 2);
+      if (orientation == 'top') {
+        top = margin;
+
+        changed += update(this, 'top', top);
+      }
+      else {
+        // default or 'bottom'
+        var parentHeight = this.parent.height;
+        top = parentHeight - this.height - margin;
+
+        changed += update(this, 'top', top);
+      }
     }
     else {
-        this.visible = false;
+      changed += 1;
     }
+  }
 
-    if (this.visible) {
-        dom = this.dom;
-        if (dom) {
-            update = util.updateProperty;
-            props = this.props;
-            options = this.options;
-            start = this.parent.toScreen(this.data.start);
-            align = options.align || this.defaultOptions.align;
-            margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
-            orientation = options.orientation || this.defaultOptions.orientation;
-
-            changed += update(props.dot, 'height', dom.dot.offsetHeight);
-            changed += update(props.dot, 'width', dom.dot.offsetWidth);
-            changed += update(props.line, 'width', dom.line.offsetWidth);
-            changed += update(props.line, 'height', dom.line.offsetHeight);
-            changed += update(props.line, 'top', dom.line.offsetTop);
-            changed += update(this, 'width', dom.box.offsetWidth);
-            changed += update(this, 'height', dom.box.offsetHeight);
-            if (align == 'right') {
-                left = start - this.width;
-            }
-            else if (align == 'left') {
-                left = start;
-            }
-            else {
-                // default or 'center'
-                left = start - this.width / 2;
-            }
-            changed += update(this, 'left', left);
-
-            changed += update(props.line, 'left', start - props.line.width / 2);
-            changed += update(props.dot, 'left', start - props.dot.width / 2);
-            changed += update(props.dot, 'top', -props.dot.height / 2);
-            if (orientation == 'top') {
-                top = margin;
-
-                changed += update(this, 'top', top);
-            }
-            else {
-                // default or 'bottom'
-                var parentHeight = this.parent.height;
-                top = parentHeight - this.height - margin;
-
-                changed += update(this, 'top', top);
-            }
-        }
-        else {
-            changed += 1;
-        }
-    }
-
-    return (changed > 0);
+  return (changed > 0);
 };
 
 /**
@@ -9711,27 +9173,27 @@ ItemBox.prototype.reflow = function reflow() {
  * @private
  */
 ItemBox.prototype._create = function _create() {
-    var dom = this.dom;
-    if (!dom) {
-        this.dom = dom = {};
+  var dom = this.dom;
+  if (!dom) {
+    this.dom = dom = {};
 
-        // create the box
-        dom.box = document.createElement('DIV');
-        // className is updated in repaint()
+    // create the box
+    dom.box = document.createElement('DIV');
+    // className is updated in repaint()
 
-        // contents box (inside the background box). used for making margins
-        dom.content = document.createElement('DIV');
-        dom.content.className = 'content';
-        dom.box.appendChild(dom.content);
+    // contents box (inside the background box). used for making margins
+    dom.content = document.createElement('DIV');
+    dom.content.className = 'content';
+    dom.box.appendChild(dom.content);
 
-        // line to axis
-        dom.line = document.createElement('DIV');
-        dom.line.className = 'line';
+    // line to axis
+    dom.line = document.createElement('DIV');
+    dom.line.className = 'line';
 
-        // dot on axis
-        dom.dot = document.createElement('DIV');
-        dom.dot.className = 'dot';
-    }
+    // dot on axis
+    dom.dot = document.createElement('DIV');
+    dom.dot.className = 'dot';
+  }
 };
 
 /**
@@ -9740,33 +9202,33 @@ ItemBox.prototype._create = function _create() {
  * @override
  */
 ItemBox.prototype.reposition = function reposition() {
-    var dom = this.dom,
-        props = this.props,
-        orientation = this.options.orientation || this.defaultOptions.orientation;
+  var dom = this.dom,
+      props = this.props,
+      orientation = this.options.orientation || this.defaultOptions.orientation;
 
-    if (dom) {
-        var box = dom.box,
-            line = dom.line,
-            dot = dom.dot;
+  if (dom) {
+    var box = dom.box,
+        line = dom.line,
+        dot = dom.dot;
 
-        box.style.left = this.left + 'px';
-        box.style.top = this.top + 'px';
+    box.style.left = this.left + 'px';
+    box.style.top = this.top + 'px';
 
-        line.style.left = props.line.left + 'px';
-        if (orientation == 'top') {
-            line.style.top = 0 + 'px';
-            line.style.height = this.top + 'px';
-        }
-        else {
-            // orientation 'bottom'
-            line.style.top = (this.top + this.height) + 'px';
-            line.style.height = Math.max(this.parent.height - this.top - this.height +
-                this.props.dot.height / 2, 0) + 'px';
-        }
-
-        dot.style.left = props.dot.left + 'px';
-        dot.style.top = props.dot.top + 'px';
+    line.style.left = props.line.left + 'px';
+    if (orientation == 'top') {
+      line.style.top = 0 + 'px';
+      line.style.height = this.top + 'px';
     }
+    else {
+      // orientation 'bottom'
+      line.style.top = (this.top + this.height) + 'px';
+      line.style.height = Math.max(this.parent.height - this.top - this.height +
+          this.props.dot.height / 2, 0) + 'px';
+    }
+
+    dot.style.left = props.dot.left + 'px';
+    dot.style.top = props.dot.top + 'px';
+  }
 };
 
 /**
@@ -9780,19 +9242,19 @@ ItemBox.prototype.reposition = function reposition() {
  *                                  // TODO: describe available options
  */
 function ItemPoint (parent, data, options, defaultOptions) {
-    this.props = {
-        dot: {
-            top: 0,
-            width: 0,
-            height: 0
-        },
-        content: {
-            height: 0,
-            marginLeft: 0
-        }
-    };
+  this.props = {
+    dot: {
+      top: 0,
+      width: 0,
+      height: 0
+    },
+    content: {
+      height: 0,
+      marginLeft: 0
+    }
+  };
 
-    Item.call(this, parent, data, options, defaultOptions);
+  Item.call(this, parent, data, options, defaultOptions);
 }
 
 ItemPoint.prototype = new Item (null, null);
@@ -9802,8 +9264,8 @@ ItemPoint.prototype = new Item (null, null);
  * @override
  */
 ItemPoint.prototype.select = function select() {
-    this.selected = true;
-    // TODO: select and unselect
+  this.selected = true;
+  // TODO: select and unselect
 };
 
 /**
@@ -9811,8 +9273,8 @@ ItemPoint.prototype.select = function select() {
  * @override
  */
 ItemPoint.prototype.unselect = function unselect() {
-    this.selected = false;
-    // TODO: select and unselect
+  this.selected = false;
+  // TODO: select and unselect
 };
 
 /**
@@ -9820,59 +9282,59 @@ ItemPoint.prototype.unselect = function unselect() {
  * @return {Boolean} changed
  */
 ItemPoint.prototype.repaint = function repaint() {
-    // TODO: make an efficient repaint
-    var changed = false;
-    var dom = this.dom;
+  // TODO: make an efficient repaint
+  var changed = false;
+  var dom = this.dom;
 
-    if (!dom) {
-        this._create();
-        dom = this.dom;
-        changed = true;
+  if (!dom) {
+    this._create();
+    dom = this.dom;
+    changed = true;
+  }
+
+  if (dom) {
+    if (!this.parent) {
+      throw new Error('Cannot repaint item: no parent attached');
+    }
+    var foreground = this.parent.getForeground();
+    if (!foreground) {
+      throw new Error('Cannot repaint time axis: ' +
+          'parent has no foreground container element');
     }
 
-    if (dom) {
-        if (!this.parent) {
-            throw new Error('Cannot repaint item: no parent attached');
-        }
-        var foreground = this.parent.getForeground();
-        if (!foreground) {
-            throw new Error('Cannot repaint time axis: ' +
-                'parent has no foreground container element');
-        }
-
-        if (!dom.point.parentNode) {
-            foreground.appendChild(dom.point);
-            foreground.appendChild(dom.point);
-            changed = true;
-        }
-
-        // update contents
-        if (this.data.content != this.content) {
-            this.content = this.data.content;
-            if (this.content instanceof Element) {
-                dom.content.innerHTML = '';
-                dom.content.appendChild(this.content);
-            }
-            else if (this.data.content != undefined) {
-                dom.content.innerHTML = this.content;
-            }
-            else {
-                throw new Error('Property "content" missing in item ' + this.data.id);
-            }
-            changed = true;
-        }
-
-        // update class
-        var className = (this.data.className? ' ' + this.data.className : '') +
-            (this.selected ? ' selected' : '');
-        if (this.className != className) {
-            this.className = className;
-            dom.point.className  = 'item point' + className;
-            changed = true;
-        }
+    if (!dom.point.parentNode) {
+      foreground.appendChild(dom.point);
+      foreground.appendChild(dom.point);
+      changed = true;
     }
 
-    return changed;
+    // update contents
+    if (this.data.content != this.content) {
+      this.content = this.data.content;
+      if (this.content instanceof Element) {
+        dom.content.innerHTML = '';
+        dom.content.appendChild(this.content);
+      }
+      else if (this.data.content != undefined) {
+        dom.content.innerHTML = this.content;
+      }
+      else {
+        throw new Error('Property "content" missing in item ' + this.data.id);
+      }
+      changed = true;
+    }
+
+    // update class
+    var className = (this.data.className? ' ' + this.data.className : '') +
+        (this.selected ? ' selected' : '');
+    if (this.className != className) {
+      this.className = className;
+      dom.point.className  = 'item point' + className;
+      changed = true;
+    }
+  }
+
+  return changed;
 };
 
 /**
@@ -9881,12 +9343,12 @@ ItemPoint.prototype.repaint = function repaint() {
  * @return {Boolean} changed
  */
 ItemPoint.prototype.show = function show() {
-    if (!this.dom || !this.dom.point.parentNode) {
-        return this.repaint();
-    }
-    else {
-        return false;
-    }
+  if (!this.dom || !this.dom.point.parentNode) {
+    return this.repaint();
+  }
+  else {
+    return false;
+  }
 };
 
 /**
@@ -9894,15 +9356,15 @@ ItemPoint.prototype.show = function show() {
  * @return {Boolean} changed
  */
 ItemPoint.prototype.hide = function hide() {
-    var changed = false,
-        dom = this.dom;
-    if (dom) {
-        if (dom.point.parentNode) {
-            dom.point.parentNode.removeChild(dom.point);
-            changed = true;
-        }
+  var changed = false,
+      dom = this.dom;
+  if (dom) {
+    if (dom.point.parentNode) {
+      dom.point.parentNode.removeChild(dom.point);
+      changed = true;
     }
-    return changed;
+  }
+  return changed;
 };
 
 /**
@@ -9911,70 +9373,70 @@ ItemPoint.prototype.hide = function hide() {
  * @override
  */
 ItemPoint.prototype.reflow = function reflow() {
-    var changed = 0,
-        update,
-        dom,
-        props,
-        options,
-        margin,
-        orientation,
-        start,
-        top,
-        data,
-        range;
+  var changed = 0,
+      update,
+      dom,
+      props,
+      options,
+      margin,
+      orientation,
+      start,
+      top,
+      data,
+      range;
 
-    if (this.data.start == undefined) {
-        throw new Error('Property "start" missing in item ' + this.data.id);
-    }
+  if (this.data.start == undefined) {
+    throw new Error('Property "start" missing in item ' + this.data.id);
+  }
 
-    data = this.data;
-    range = this.parent && this.parent.range;
-    if (data && range) {
-        // TODO: account for the width of the item
-        var interval = (range.end - range.start);
-        this.visible = (data.start > range.start - interval) && (data.start < range.end);
+  data = this.data;
+  range = this.parent && this.parent.range;
+  if (data && range) {
+    // TODO: account for the width of the item
+    var interval = (range.end - range.start);
+    this.visible = (data.start > range.start - interval) && (data.start < range.end);
+  }
+  else {
+    this.visible = false;
+  }
+
+  if (this.visible) {
+    dom = this.dom;
+    if (dom) {
+      update = util.updateProperty;
+      props = this.props;
+      options = this.options;
+      orientation = options.orientation || this.defaultOptions.orientation;
+      margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
+      start = this.parent.toScreen(this.data.start);
+
+      changed += update(this, 'width', dom.point.offsetWidth);
+      changed += update(this, 'height', dom.point.offsetHeight);
+      changed += update(props.dot, 'width', dom.dot.offsetWidth);
+      changed += update(props.dot, 'height', dom.dot.offsetHeight);
+      changed += update(props.content, 'height', dom.content.offsetHeight);
+
+      if (orientation == 'top') {
+        top = margin;
+      }
+      else {
+        // default or 'bottom'
+        var parentHeight = this.parent.height;
+        top = Math.max(parentHeight - this.height - margin, 0);
+      }
+      changed += update(this, 'top', top);
+      changed += update(this, 'left', start - props.dot.width / 2);
+      changed += update(props.content, 'marginLeft', 1.5 * props.dot.width);
+      //changed += update(props.content, 'marginRight', 0.5 * props.dot.width); // TODO
+
+      changed += update(props.dot, 'top', (this.height - props.dot.height) / 2);
     }
     else {
-        this.visible = false;
+      changed += 1;
     }
+  }
 
-    if (this.visible) {
-        dom = this.dom;
-        if (dom) {
-            update = util.updateProperty;
-            props = this.props;
-            options = this.options;
-            orientation = options.orientation || this.defaultOptions.orientation;
-            margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
-            start = this.parent.toScreen(this.data.start);
-
-            changed += update(this, 'width', dom.point.offsetWidth);
-            changed += update(this, 'height', dom.point.offsetHeight);
-            changed += update(props.dot, 'width', dom.dot.offsetWidth);
-            changed += update(props.dot, 'height', dom.dot.offsetHeight);
-            changed += update(props.content, 'height', dom.content.offsetHeight);
-
-            if (orientation == 'top') {
-                top = margin;
-            }
-            else {
-                // default or 'bottom'
-                var parentHeight = this.parent.height;
-                top = Math.max(parentHeight - this.height - margin, 0);
-            }
-            changed += update(this, 'top', top);
-            changed += update(this, 'left', start - props.dot.width / 2);
-            changed += update(props.content, 'marginLeft', 1.5 * props.dot.width);
-            //changed += update(props.content, 'marginRight', 0.5 * props.dot.width); // TODO
-
-            changed += update(props.dot, 'top', (this.height - props.dot.height) / 2);
-        }
-        else {
-            changed += 1;
-        }
-    }
-
-    return (changed > 0);
+  return (changed > 0);
 };
 
 /**
@@ -9982,24 +9444,24 @@ ItemPoint.prototype.reflow = function reflow() {
  * @private
  */
 ItemPoint.prototype._create = function _create() {
-    var dom = this.dom;
-    if (!dom) {
-        this.dom = dom = {};
+  var dom = this.dom;
+  if (!dom) {
+    this.dom = dom = {};
 
-        // background box
-        dom.point = document.createElement('div');
-        // className is updated in repaint()
+    // background box
+    dom.point = document.createElement('div');
+    // className is updated in repaint()
 
-        // contents box, right from the dot
-        dom.content = document.createElement('div');
-        dom.content.className = 'content';
-        dom.point.appendChild(dom.content);
+    // contents box, right from the dot
+    dom.content = document.createElement('div');
+    dom.content.className = 'content';
+    dom.point.appendChild(dom.content);
 
-        // dot at start
-        dom.dot = document.createElement('div');
-        dom.dot.className  = 'dot';
-        dom.point.appendChild(dom.dot);
-    }
+    // dot at start
+    dom.dot = document.createElement('div');
+    dom.dot.className  = 'dot';
+    dom.point.appendChild(dom.dot);
+  }
 };
 
 /**
@@ -10008,18 +9470,18 @@ ItemPoint.prototype._create = function _create() {
  * @override
  */
 ItemPoint.prototype.reposition = function reposition() {
-    var dom = this.dom,
-        props = this.props;
+  var dom = this.dom,
+      props = this.props;
 
-    if (dom) {
-        dom.point.style.top = this.top + 'px';
-        dom.point.style.left = this.left + 'px';
+  if (dom) {
+    dom.point.style.top = this.top + 'px';
+    dom.point.style.left = this.left + 'px';
 
-        dom.content.style.marginLeft = props.content.marginLeft + 'px';
-        //dom.content.style.marginRight = props.content.marginRight + 'px'; // TODO
+    dom.content.style.marginLeft = props.content.marginLeft + 'px';
+    //dom.content.style.marginRight = props.content.marginRight + 'px'; // TODO
 
-        dom.dot.style.top = props.dot.top + 'px';
-    }
+    dom.dot.style.top = props.dot.top + 'px';
+  }
 };
 
 /**
@@ -10033,14 +9495,14 @@ ItemPoint.prototype.reposition = function reposition() {
  *                                  // TODO: describe available options
  */
 function ItemRange (parent, data, options, defaultOptions) {
-    this.props = {
-        content: {
-            left: 0,
-            width: 0
-        }
-    };
+  this.props = {
+    content: {
+      left: 0,
+      width: 0
+    }
+  };
 
-    Item.call(this, parent, data, options, defaultOptions);
+  Item.call(this, parent, data, options, defaultOptions);
 }
 
 ItemRange.prototype = new Item (null, null);
@@ -10050,8 +9512,8 @@ ItemRange.prototype = new Item (null, null);
  * @override
  */
 ItemRange.prototype.select = function select() {
-    this.selected = true;
-    // TODO: select and unselect
+  this.selected = true;
+  // TODO: select and unselect
 };
 
 /**
@@ -10059,8 +9521,8 @@ ItemRange.prototype.select = function select() {
  * @override
  */
 ItemRange.prototype.unselect = function unselect() {
-    this.selected = false;
-    // TODO: select and unselect
+  this.selected = false;
+  // TODO: select and unselect
 };
 
 /**
@@ -10068,57 +9530,57 @@ ItemRange.prototype.unselect = function unselect() {
  * @return {Boolean} changed
  */
 ItemRange.prototype.repaint = function repaint() {
-    // TODO: make an efficient repaint
-    var changed = false;
-    var dom = this.dom;
+  // TODO: make an efficient repaint
+  var changed = false;
+  var dom = this.dom;
 
-    if (!dom) {
-        this._create();
-        dom = this.dom;
-        changed = true;
+  if (!dom) {
+    this._create();
+    dom = this.dom;
+    changed = true;
+  }
+
+  if (dom) {
+    if (!this.parent) {
+      throw new Error('Cannot repaint item: no parent attached');
+    }
+    var foreground = this.parent.getForeground();
+    if (!foreground) {
+      throw new Error('Cannot repaint time axis: ' +
+          'parent has no foreground container element');
     }
 
-    if (dom) {
-        if (!this.parent) {
-            throw new Error('Cannot repaint item: no parent attached');
-        }
-        var foreground = this.parent.getForeground();
-        if (!foreground) {
-            throw new Error('Cannot repaint time axis: ' +
-                'parent has no foreground container element');
-        }
-
-        if (!dom.box.parentNode) {
-            foreground.appendChild(dom.box);
-            changed = true;
-        }
-
-        // update content
-        if (this.data.content != this.content) {
-            this.content = this.data.content;
-            if (this.content instanceof Element) {
-                dom.content.innerHTML = '';
-                dom.content.appendChild(this.content);
-            }
-            else if (this.data.content != undefined) {
-                dom.content.innerHTML = this.content;
-            }
-            else {
-                throw new Error('Property "content" missing in item ' + this.data.id);
-            }
-            changed = true;
-        }
-
-        // update class
-        var className = this.data.className ? (' ' + this.data.className) : '';
-        if (this.className != className) {
-            this.className = className;
-            dom.box.className = 'item range' + className;
-            changed = true;
-        }
+    if (!dom.box.parentNode) {
+      foreground.appendChild(dom.box);
+      changed = true;
     }
 
-    return changed;
+    // update content
+    if (this.data.content != this.content) {
+      this.content = this.data.content;
+      if (this.content instanceof Element) {
+        dom.content.innerHTML = '';
+        dom.content.appendChild(this.content);
+      }
+      else if (this.data.content != undefined) {
+        dom.content.innerHTML = this.content;
+      }
+      else {
+        throw new Error('Property "content" missing in item ' + this.data.id);
+      }
+      changed = true;
+    }
+
+    // update class
+    var className = this.data.className ? (' ' + this.data.className) : '';
+    if (this.className != className) {
+      this.className = className;
+      dom.box.className = 'item range' + className;
+      changed = true;
+    }
+  }
+
+  return changed;
 };
 
 /**
@@ -10127,12 +9589,12 @@ ItemRange.prototype.repaint = function repaint() {
  * @return {Boolean} changed
  */
 ItemRange.prototype.show = function show() {
-    if (!this.dom || !this.dom.box.parentNode) {
-        return this.repaint();
-    }
-    else {
-        return false;
-    }
+  if (!this.dom || !this.dom.box.parentNode) {
+    return this.repaint();
+  }
+  else {
+    return false;
+  }
 };
 
 /**
@@ -10140,15 +9602,15 @@ ItemRange.prototype.show = function show() {
  * @return {Boolean} changed
  */
 ItemRange.prototype.hide = function hide() {
-    var changed = false,
-        dom = this.dom;
-    if (dom) {
-        if (dom.box.parentNode) {
-            dom.box.parentNode.removeChild(dom.box);
-            changed = true;
-        }
+  var changed = false,
+      dom = this.dom;
+  if (dom) {
+    if (dom.box.parentNode) {
+      dom.box.parentNode.removeChild(dom.box);
+      changed = true;
     }
-    return changed;
+  }
+  return changed;
 };
 
 /**
@@ -10157,98 +9619,98 @@ ItemRange.prototype.hide = function hide() {
  * @override
  */
 ItemRange.prototype.reflow = function reflow() {
-    var changed = 0,
-        dom,
-        props,
-        options,
-        margin,
-        padding,
-        parent,
-        start,
-        end,
-        data,
-        range,
-        update,
-        box,
-        parentWidth,
-        contentLeft,
-        orientation,
-        top;
+  var changed = 0,
+      dom,
+      props,
+      options,
+      margin,
+      padding,
+      parent,
+      start,
+      end,
+      data,
+      range,
+      update,
+      box,
+      parentWidth,
+      contentLeft,
+      orientation,
+      top;
 
-    if (this.data.start == undefined) {
-        throw new Error('Property "start" missing in item ' + this.data.id);
-    }
-    if (this.data.end == undefined) {
-        throw new Error('Property "end" missing in item ' + this.data.id);
-    }
+  if (this.data.start == undefined) {
+    throw new Error('Property "start" missing in item ' + this.data.id);
+  }
+  if (this.data.end == undefined) {
+    throw new Error('Property "end" missing in item ' + this.data.id);
+  }
 
-    data = this.data;
-    range = this.parent && this.parent.range;
-    if (data && range) {
-        // TODO: account for the width of the item. Take some margin
-        this.visible = (data.start < range.end) && (data.end > range.start);
+  data = this.data;
+  range = this.parent && this.parent.range;
+  if (data && range) {
+    // TODO: account for the width of the item. Take some margin
+    this.visible = (data.start < range.end) && (data.end > range.start);
+  }
+  else {
+    this.visible = false;
+  }
+
+  if (this.visible) {
+    dom = this.dom;
+    if (dom) {
+      props = this.props;
+      options = this.options;
+      parent = this.parent;
+      start = parent.toScreen(this.data.start);
+      end = parent.toScreen(this.data.end);
+      update = util.updateProperty;
+      box = dom.box;
+      parentWidth = parent.width;
+      orientation = options.orientation || this.defaultOptions.orientation;
+      margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
+      padding = options.padding || this.defaultOptions.padding;
+
+      changed += update(props.content, 'width', dom.content.offsetWidth);
+
+      changed += update(this, 'height', box.offsetHeight);
+
+      // limit the width of the this, as browsers cannot draw very wide divs
+      if (start < -parentWidth) {
+        start = -parentWidth;
+      }
+      if (end > 2 * parentWidth) {
+        end = 2 * parentWidth;
+      }
+
+      // when range exceeds left of the window, position the contents at the left of the visible area
+      if (start < 0) {
+        contentLeft = Math.min(-start,
+            (end - start - props.content.width - 2 * padding));
+        // TODO: remove the need for options.padding. it's terrible.
+      }
+      else {
+        contentLeft = 0;
+      }
+      changed += update(props.content, 'left', contentLeft);
+
+      if (orientation == 'top') {
+        top = margin;
+        changed += update(this, 'top', top);
+      }
+      else {
+        // default or 'bottom'
+        top = parent.height - this.height - margin;
+        changed += update(this, 'top', top);
+      }
+
+      changed += update(this, 'left', start);
+      changed += update(this, 'width', Math.max(end - start, 1)); // TODO: reckon with border width;
     }
     else {
-        this.visible = false;
+      changed += 1;
     }
+  }
 
-    if (this.visible) {
-        dom = this.dom;
-        if (dom) {
-            props = this.props;
-            options = this.options;
-            parent = this.parent;
-            start = parent.toScreen(this.data.start);
-            end = parent.toScreen(this.data.end);
-            update = util.updateProperty;
-            box = dom.box;
-            parentWidth = parent.width;
-            orientation = options.orientation || this.defaultOptions.orientation;
-            margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
-            padding = options.padding || this.defaultOptions.padding;
-
-            changed += update(props.content, 'width', dom.content.offsetWidth);
-
-            changed += update(this, 'height', box.offsetHeight);
-
-            // limit the width of the this, as browsers cannot draw very wide divs
-            if (start < -parentWidth) {
-                start = -parentWidth;
-            }
-            if (end > 2 * parentWidth) {
-                end = 2 * parentWidth;
-            }
-
-            // when range exceeds left of the window, position the contents at the left of the visible area
-            if (start < 0) {
-                contentLeft = Math.min(-start,
-                    (end - start - props.content.width - 2 * padding));
-                // TODO: remove the need for options.padding. it's terrible.
-            }
-            else {
-                contentLeft = 0;
-            }
-            changed += update(props.content, 'left', contentLeft);
-
-            if (orientation == 'top') {
-                top = margin;
-                changed += update(this, 'top', top);
-            }
-            else {
-                // default or 'bottom'
-                top = parent.height - this.height - margin;
-                changed += update(this, 'top', top);
-            }
-
-            changed += update(this, 'left', start);
-            changed += update(this, 'width', Math.max(end - start, 1)); // TODO: reckon with border width;
-        }
-        else {
-            changed += 1;
-        }
-    }
-
-    return (changed > 0);
+  return (changed > 0);
 };
 
 /**
@@ -10256,18 +9718,18 @@ ItemRange.prototype.reflow = function reflow() {
  * @private
  */
 ItemRange.prototype._create = function _create() {
-    var dom = this.dom;
-    if (!dom) {
-        this.dom = dom = {};
-        // background box
-        dom.box = document.createElement('div');
-        // className is updated in repaint()
+  var dom = this.dom;
+  if (!dom) {
+    this.dom = dom = {};
+    // background box
+    dom.box = document.createElement('div');
+    // className is updated in repaint()
 
-        // contents box
-        dom.content = document.createElement('div');
-        dom.content.className = 'content';
-        dom.box.appendChild(dom.content);
-    }
+    // contents box
+    dom.content = document.createElement('div');
+    dom.content.className = 'content';
+    dom.box.appendChild(dom.content);
+  }
 };
 
 /**
@@ -10276,16 +9738,16 @@ ItemRange.prototype._create = function _create() {
  * @override
  */
 ItemRange.prototype.reposition = function reposition() {
-    var dom = this.dom,
-        props = this.props;
+  var dom = this.dom,
+      props = this.props;
 
-    if (dom) {
-        dom.box.style.top = this.top + 'px';
-        dom.box.style.left = this.left + 'px';
-        dom.box.style.width = this.width + 'px';
+  if (dom) {
+    dom.box.style.top = this.top + 'px';
+    dom.box.style.left = this.left + 'px';
+    dom.box.style.width = this.width + 'px';
 
-        dom.content.style.left = props.content.left + 'px';
-    }
+    dom.content.style.left = props.content.left + 'px';
+  }
 };
 
 /**
@@ -10299,14 +9761,14 @@ ItemRange.prototype.reposition = function reposition() {
  *                                  // TODO: describe available options
  */
 function ItemRangeOverflow (parent, data, options, defaultOptions) {
-    this.props = {
-        content: {
-            left: 0,
-            width: 0
-        }
-    };
+  this.props = {
+    content: {
+      left: 0,
+      width: 0
+    }
+  };
 
-    ItemRange.call(this, parent, data, options, defaultOptions);
+  ItemRange.call(this, parent, data, options, defaultOptions);
 }
 
 ItemRangeOverflow.prototype = new ItemRange (null, null);
@@ -10316,69 +9778,69 @@ ItemRangeOverflow.prototype = new ItemRange (null, null);
  * @return {Boolean} changed
  */
 ItemRangeOverflow.prototype.repaint = function repaint() {
-    // TODO: make an efficient repaint
-    var changed = false;
-    var dom = this.dom;
+  // TODO: make an efficient repaint
+  var changed = false;
+  var dom = this.dom;
 
-    if (!dom) {
-        this._create();
-        dom = this.dom;
-        changed = true;
+  if (!dom) {
+    this._create();
+    dom = this.dom;
+    changed = true;
+  }
+
+  if (dom) {
+    if (!this.parent) {
+      throw new Error('Cannot repaint item: no parent attached');
+    }
+    var foreground = this.parent.getForeground();
+    if (!foreground) {
+      throw new Error('Cannot repaint time axis: ' +
+          'parent has no foreground container element');
     }
 
-    if (dom) {
-        if (!this.parent) {
-            throw new Error('Cannot repaint item: no parent attached');
-        }
-        var foreground = this.parent.getForeground();
-        if (!foreground) {
-            throw new Error('Cannot repaint time axis: ' +
-                'parent has no foreground container element');
-        }
-
-        if (!dom.box.parentNode) {
-            foreground.appendChild(dom.box);
-            changed = true;
-        }
-
-        // update content
-        if (this.data.content != this.content) {
-            this.content = this.data.content;
-            if (this.content instanceof Element) {
-                dom.content.innerHTML = '';
-                dom.content.appendChild(this.content);
-            }
-            else if (this.data.content != undefined) {
-                dom.content.innerHTML = this.content;
-            }
-            else {
-                throw new Error('Property "content" missing in item ' + this.data.id);
-            }
-            changed = true;
-        }
-
-        // update class
-        var className = this.data.className ? (' ' + this.data.className) : '';
-        if (this.className != className) {
-            this.className = className;
-            dom.box.className = 'item rangeoverflow' + className;
-            changed = true;
-        }
+    if (!dom.box.parentNode) {
+      foreground.appendChild(dom.box);
+      changed = true;
     }
 
-    return changed;
+    // update content
+    if (this.data.content != this.content) {
+      this.content = this.data.content;
+      if (this.content instanceof Element) {
+        dom.content.innerHTML = '';
+        dom.content.appendChild(this.content);
+      }
+      else if (this.data.content != undefined) {
+        dom.content.innerHTML = this.content;
+      }
+      else {
+        throw new Error('Property "content" missing in item ' + this.data.id);
+      }
+      changed = true;
+    }
+
+    // update class
+    var className = this.data.className ? (' ' + this.data.className) : '';
+    if (this.className != className) {
+      this.className = className;
+      dom.box.className = 'item rangeoverflow' + className;
+      changed = true;
+    }
+  }
+
+  return changed;
 };
 
 /**
  * Return the items width
- * @return {Integer} width
+ * @return {Number} width
  */
 ItemRangeOverflow.prototype.getWidth = function getWidth() {
-    if (this.props.content !== undefined && this.width < this.props.content.width)
-        return this.props.content.width;
-    else
-        return this.width;
-}
+  if (this.props.content !== undefined && this.width < this.props.content.width)
+    return this.props.content.width;
+  else
+    return this.width;
+};
 
 /**
  * @constructor Group
@@ -10389,25 +9851,25 @@ ItemRangeOverflow.prototype.getWidth = function getWidth() {
  * @extends Component
  */
 function Group (parent, groupId, options) {
-    this.id = util.randomUUID();
-    this.parent = parent;
+  this.id = util.randomUUID();
+  this.parent = parent;
 
-    this.groupId = groupId;
-    this.itemset = null;    // ItemSet
-    this.options = options || {};
-    this.options.top = 0;
+  this.groupId = groupId;
+  this.itemset = null;    // ItemSet
+  this.options = options || {};
+  this.options.top = 0;
 
-    this.props = {
-        label: {
-            width: 0,
-            height: 0
-        }
-    };
+  this.props = {
+    label: {
+      width: 0,
+      height: 0
+    }
+  };
 
-    this.top = 0;
-    this.left = 0;
-    this.width = 0;
-    this.height = 0;
+  this.top = 0;
+  this.left = 0;
+  this.width = 0;
+  this.height = 0;
 }
 
 Group.prototype = new Component();
@@ -10421,7 +9883,7 @@ Group.prototype.setOptions = Component.prototype.setOptions;
  * @returns {HTMLElement} container
  */
 Group.prototype.getContainer = function () {
-    return this.parent.getContainer();
+  return this.parent.getContainer();
 };
 
 /**
@@ -10430,31 +9892,31 @@ Group.prototype.getContainer = function () {
  * @param {DataSet | DataView} items
  */
 Group.prototype.setItems = function setItems(items) {
-    if (this.itemset) {
-        // remove current item set
-        this.itemset.hide();
-        this.itemset.setItems();
+  if (this.itemset) {
+    // remove current item set
+    this.itemset.hide();
+    this.itemset.setItems();
 
-        this.parent.controller.remove(this.itemset);
-        this.itemset = null;
-    }
+    this.parent.controller.remove(this.itemset);
+    this.itemset = null;
+  }
 
-    if (items) {
-        var groupId = this.groupId;
+  if (items) {
+    var groupId = this.groupId;
 
-        var itemsetOptions = Object.create(this.options);
-        this.itemset = new ItemSet(this, null, itemsetOptions);
-        this.itemset.setRange(this.parent.range);
+    var itemsetOptions = Object.create(this.options);
+    this.itemset = new ItemSet(this, null, itemsetOptions);
+    this.itemset.setRange(this.parent.range);
 
-        this.view = new DataView(items, {
-            filter: function (item) {
-                return item.group == groupId;
-            }
-        });
-        this.itemset.setItems(this.view);
+    this.view = new DataView(items, {
+      filter: function (item) {
+        return item.group == groupId;
+      }
+    });
+    this.itemset.setItems(this.view);
 
-        this.parent.controller.add(this.itemset);
-    }
+    this.parent.controller.add(this.itemset);
+  }
 };
 
 /**
@@ -10462,7 +9924,7 @@ Group.prototype.setItems = function setItems(items) {
  * @return {Boolean} changed
  */
 Group.prototype.repaint = function repaint() {
-    return false;
+  return false;
 };
 
 /**
@@ -10470,25 +9932,25 @@ Group.prototype.repaint = function repaint() {
  * @return {Boolean} resized
  */
 Group.prototype.reflow = function reflow() {
-    var changed = 0,
-        update = util.updateProperty;
+  var changed = 0,
+      update = util.updateProperty;
 
-    changed += update(this, 'top',    this.itemset ? this.itemset.top : 0);
-    changed += update(this, 'height', this.itemset ? this.itemset.height : 0);
+  changed += update(this, 'top',    this.itemset ? this.itemset.top : 0);
+  changed += update(this, 'height', this.itemset ? this.itemset.height : 0);
 
-    // TODO: reckon with the height of the group label
+  // TODO: reckon with the height of the group label
 
-    if (this.label) {
-        var inner = this.label.firstChild;
-        changed += update(this.props.label, 'width', inner.clientWidth);
-        changed += update(this.props.label, 'height', inner.clientHeight);
-    }
-    else {
-        changed += update(this.props.label, 'width', 0);
-        changed += update(this.props.label, 'height', 0);
-    }
+  if (this.label) {
+    var inner = this.label.firstChild;
+    changed += update(this.props.label, 'width', inner.clientWidth);
+    changed += update(this.props.label, 'height', inner.clientHeight);
+  }
+  else {
+    changed += update(this.props.label, 'width', 0);
+    changed += update(this.props.label, 'height', 0);
+  }
 
-    return (changed > 0);
+  return (changed > 0);
 };
 
 /**
@@ -10502,42 +9964,42 @@ Group.prototype.reflow = function reflow() {
  * @extends Panel
  */
 function GroupSet(parent, depends, options) {
-    this.id = util.randomUUID();
-    this.parent = parent;
-    this.depends = depends;
+  this.id = util.randomUUID();
+  this.parent = parent;
+  this.depends = depends;
 
-    this.options = options || {};
+  this.options = options || {};
 
-    this.range = null;      // Range or Object {start: number, end: number}
-    this.itemsData = null;  // DataSet with items
-    this.groupsData = null; // DataSet with groups
+  this.range = null;      // Range or Object {start: number, end: number}
+  this.itemsData = null;  // DataSet with items
+  this.groupsData = null; // DataSet with groups
 
-    this.groups = {};       // map with groups
+  this.groups = {};       // map with groups
 
-    this.dom = {};
-    this.props = {
-        labels: {
-            width: 0
-        }
-    };
+  this.dom = {};
+  this.props = {
+    labels: {
+      width: 0
+    }
+  };
 
-    // TODO: implement right orientation of the labels
+  // TODO: implement right orientation of the labels
 
-    // changes in groups are queued  key/value map containing id/action
-    this.queue = {};
+  // changes in groups are queued  key/value map containing id/action
+  this.queue = {};
 
-    var me = this;
-    this.listeners = {
-        'add': function (event, params) {
-            me._onAdd(params.items);
-        },
-        'update': function (event, params) {
-            me._onUpdate(params.items);
-        },
-        'remove': function (event, params) {
-            me._onRemove(params.items);
-        }
-    };
+  var me = this;
+  this.listeners = {
+    'add': function (event, params) {
+      me._onAdd(params.items);
+    },
+    'update': function (event, params) {
+      me._onUpdate(params.items);
+    },
+    'remove': function (event, params) {
+      me._onRemove(params.items);
+    }
+  };
 }
 
 GroupSet.prototype = new Panel();
@@ -10551,7 +10013,7 @@ GroupSet.prototype = new Panel();
 GroupSet.prototype.setOptions = Component.prototype.setOptions;
 
 GroupSet.prototype.setRange = function (range) {
-    // TODO: implement setRange
+  // TODO: implement setRange
 };
 
 /**
@@ -10559,14 +10021,14 @@ GroupSet.prototype.setRange = function (range) {
  * @param {vis.DataSet | null} items
  */
 GroupSet.prototype.setItems = function setItems(items) {
-    this.itemsData = items;
+  this.itemsData = items;
 
-    for (var id in this.groups) {
-        if (this.groups.hasOwnProperty(id)) {
-            var group = this.groups[id];
-            group.setItems(items);
-        }
+  for (var id in this.groups) {
+    if (this.groups.hasOwnProperty(id)) {
+      var group = this.groups[id];
+      group.setItems(items);
     }
+  }
 };
 
 /**
@@ -10574,7 +10036,7 @@ GroupSet.prototype.setItems = function setItems(items) {
  * @return {vis.DataSet | null} items
  */
 GroupSet.prototype.getItems = function getItems() {
-    return this.itemsData;
+  return this.itemsData;
 };
 
 /**
@@ -10582,7 +10044,7 @@ GroupSet.prototype.getItems = function getItems() {
  * @param {Range | Object} range  A Range or an object containing start and end.
  */
 GroupSet.prototype.setRange = function setRange(range) {
-    this.range = range;
+  this.range = range;
 };
 
 /**
@@ -10590,48 +10052,48 @@ GroupSet.prototype.setRange = function setRange(range) {
  * @param {vis.DataSet} groups
  */
 GroupSet.prototype.setGroups = function setGroups(groups) {
-    var me = this,
-        ids;
+  var me = this,
+      ids;
 
-    // unsubscribe from current dataset
-    if (this.groupsData) {
-        util.forEach(this.listeners, function (callback, event) {
-            me.groupsData.unsubscribe(event, callback);
-        });
+  // unsubscribe from current dataset
+  if (this.groupsData) {
+    util.forEach(this.listeners, function (callback, event) {
+      me.groupsData.unsubscribe(event, callback);
+    });
 
-        // remove all drawn groups
-        ids = this.groupsData.getIds();
-        this._onRemove(ids);
-    }
+    // remove all drawn groups
+    ids = this.groupsData.getIds();
+    this._onRemove(ids);
+  }
 
-    // replace the dataset
-    if (!groups) {
-        this.groupsData = null;
-    }
-    else if (groups instanceof DataSet) {
-        this.groupsData = groups;
-    }
-    else {
-        this.groupsData = new DataSet({
-            convert: {
-                start: 'Date',
-                end: 'Date'
-            }
-        });
-        this.groupsData.add(groups);
-    }
+  // replace the dataset
+  if (!groups) {
+    this.groupsData = null;
+  }
+  else if (groups instanceof DataSet) {
+    this.groupsData = groups;
+  }
+  else {
+    this.groupsData = new DataSet({
+      convert: {
+        start: 'Date',
+        end: 'Date'
+      }
+    });
+    this.groupsData.add(groups);
+  }
 
-    if (this.groupsData) {
-        // subscribe to new dataset
-        var id = this.id;
-        util.forEach(this.listeners, function (callback, event) {
-            me.groupsData.subscribe(event, callback, id);
-        });
+  if (this.groupsData) {
+    // subscribe to new dataset
+    var id = this.id;
+    util.forEach(this.listeners, function (callback, event) {
+      me.groupsData.subscribe(event, callback, id);
+    });
 
-        // draw all new groups
-        ids = this.groupsData.getIds();
-        this._onAdd(ids);
-    }
+    // draw all new groups
+    ids = this.groupsData.getIds();
+    this._onAdd(ids);
+  }
 };
 
 /**
@@ -10639,7 +10101,7 @@ GroupSet.prototype.setGroups = function setGroups(groups) {
  * @return {vis.DataSet | null} groups
  */
 GroupSet.prototype.getGroups = function getGroups() {
-    return this.groupsData;
+  return this.groupsData;
 };
 
 /**
@@ -10647,167 +10109,179 @@ GroupSet.prototype.getGroups = function getGroups() {
  * @return {Boolean} changed
  */
 GroupSet.prototype.repaint = function repaint() {
-    var changed = 0,
-        i, id, group, label,
-        update = util.updateProperty,
-        asSize = util.option.asSize,
-        asElement = util.option.asElement,
-        options = this.options,
-        frame = this.dom.frame,
-        labels = this.dom.labels;
+  var changed = 0,
+      i, id, group, label,
+      update = util.updateProperty,
+      asSize = util.option.asSize,
+      asElement = util.option.asElement,
+      options = this.options,
+      frame = this.dom.frame,
+      labels = this.dom.labels,
+      labelSet = this.dom.labelSet;
 
-    // create frame
-    if (!this.parent) {
-        throw new Error('Cannot repaint groupset: no parent attached');
-    }
-    var parentContainer = this.parent.getContainer();
-    if (!parentContainer) {
-        throw new Error('Cannot repaint groupset: parent has no container element');
-    }
-    if (!frame) {
-        frame = document.createElement('div');
-        frame.className = 'groupset';
-        this.dom.frame = frame;
+  // create frame
+  if (!this.parent) {
+    throw new Error('Cannot repaint groupset: no parent attached');
+  }
+  var parentContainer = this.parent.getContainer();
+  if (!parentContainer) {
+    throw new Error('Cannot repaint groupset: parent has no container element');
+  }
+  if (!frame) {
+    frame = document.createElement('div');
+    frame.className = 'groupset';
+    this.dom.frame = frame;
 
-        var className = options.className;
-        if (className) {
-            util.addClassName(frame, util.option.asString(className));
+    var className = options.className;
+    if (className) {
+      util.addClassName(frame, util.option.asString(className));
+    }
+
+    changed += 1;
+  }
+  if (!frame.parentNode) {
+    parentContainer.appendChild(frame);
+    changed += 1;
+  }
+
+  // create labels
+  var labelContainer = asElement(options.labelContainer);
+  if (!labelContainer) {
+    throw new Error('Cannot repaint groupset: option "labelContainer" not defined');
+  }
+  if (!labels) {
+    labels = document.createElement('div');
+    labels.className = 'labels';
+    this.dom.labels = labels;
+  }
+  if (!labelSet) {
+    labelSet = document.createElement('div');
+    labelSet.className = 'label-set';
+    labels.appendChild(labelSet);
+    this.dom.labelSet = labelSet;
+  }
+  if (!labels.parentNode || labels.parentNode != labelContainer) {
+    if (labels.parentNode) {
+      labels.parentNode.removeChild(labels.parentNode);
+    }
+    labelContainer.appendChild(labels);
+  }
+
+  // reposition frame
+  changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
+  changed += update(frame.style, 'top',    asSize(options.top, '0px'));
+  changed += update(frame.style, 'left',   asSize(options.left, '0px'));
+  changed += update(frame.style, 'width',  asSize(options.width, '100%'));
+
+  // reposition labels
+  changed += update(labelSet.style, 'top',    asSize(options.top, '0px'));
+  changed += update(labelSet.style, 'height', asSize(options.height, this.height + 'px'));
+
+  var me = this,
+      queue = this.queue,
+      groups = this.groups,
+      groupsData = this.groupsData;
+
+  // show/hide added/changed/removed groups
+  var ids = Object.keys(queue);
+  if (ids.length) {
+    ids.forEach(function (id) {
+      var action = queue[id];
+      var group = groups[id];
+
+      //noinspection FallthroughInSwitchStatementJS
+      switch (action) {
+        case 'add':
+        case 'update':
+          if (!group) {
+            var groupOptions = Object.create(me.options);
+            util.extend(groupOptions, {
+              height: null,
+              maxHeight: null
+            });
+
+            group = new Group(me, id, groupOptions);
+            group.setItems(me.itemsData); // attach items data
+            groups[id] = group;
+
+            me.controller.add(group);
+          }
+
+          // TODO: update group data
+          group.data = groupsData.get(id);
+
+          delete queue[id];
+          break;
+
+        case 'remove':
+          if (group) {
+            group.setItems(); // detach items data
+            delete groups[id];
+
+            me.controller.remove(group);
+          }
+
+          // update lists
+          delete queue[id];
+          break;
+
+        default:
+          console.log('Error: unknown action "' + action + '"');
+      }
+    });
+
+    // the groupset depends on each of the groups
+    //this.depends = this.groups; // TODO: gives a circular reference through the parent
+
+    // TODO: apply dependencies of the groupset
+
+    // update the top positions of the groups in the correct order
+    var orderedGroups = this.groupsData.getIds({
+      order: this.options.groupOrder
+    });
+    for (i = 0; i < orderedGroups.length; i++) {
+      (function (group, prevGroup) {
+        var top = 0;
+        if (prevGroup) {
+          top = function () {
+            // TODO: top must reckon with options.maxHeight
+            return prevGroup.top + prevGroup.height;
+          }
         }
-
-        changed += 1;
-    }
-    if (!frame.parentNode) {
-        parentContainer.appendChild(frame);
-        changed += 1;
-    }
-
-    // create labels
-    var labelContainer = asElement(options.labelContainer);
-    if (!labelContainer) {
-        throw new Error('Cannot repaint groupset: option "labelContainer" not defined');
-    }
-    if (!labels) {
-        labels = document.createElement('div');
-        labels.className = 'labels';
-        //frame.appendChild(labels);
-        this.dom.labels = labels;
-    }
-    if (!labels.parentNode || labels.parentNode != labelContainer) {
-        if (labels.parentNode) {
-            labels.parentNode.removeChild(labels.parentNode);
-        }
-        labelContainer.appendChild(labels);
-    }
-
-    // reposition frame
-    changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
-    changed += update(frame.style, 'top',    asSize(options.top, '0px'));
-    changed += update(frame.style, 'left',   asSize(options.left, '0px'));
-    changed += update(frame.style, 'width',  asSize(options.width, '100%'));
-
-    // reposition labels
-    changed += update(labels.style, 'top',    asSize(options.top, '0px'));
-
-    var me = this,
-        queue = this.queue,
-        groups = this.groups,
-        groupsData = this.groupsData;
-
-    // show/hide added/changed/removed groups
-    var ids = Object.keys(queue);
-    if (ids.length) {
-        ids.forEach(function (id) {
-            var action = queue[id];
-            var group = groups[id];
-
-            //noinspection FallthroughInSwitchStatementJS
-            switch (action) {
-                case 'add':
-                case 'update':
-                    if (!group) {
-                        var groupOptions = Object.create(me.options);
-                        group = new Group(me, id, groupOptions);
-                        group.setItems(me.itemsData); // attach items data
-                        groups[id] = group;
-
-                        me.controller.add(group);
-                    }
-
-                    // TODO: update group data
-                    group.data = groupsData.get(id);
-
-                    delete queue[id];
-                    break;
-
-                case 'remove':
-                    if (group) {
-                        group.setItems(); // detach items data
-                        delete groups[id];
-
-                        me.controller.remove(group);
-                    }
-
-                    // update lists
-                    delete queue[id];
-                    break;
-
-                default:
-                    console.log('Error: unknown action "' + action + '"');
-            }
+        group.setOptions({
+          top: top
         });
-
-        // the groupset depends on each of the groups
-        //this.depends = this.groups; // TODO: gives a circular reference through the parent
-
-        // TODO: apply dependencies of the groupset
-
-        // update the top positions of the groups in the correct order
-        var orderedGroups = this.groupsData.getIds({
-            order: this.options.groupsOrder
-        });
-        for (i = 0; i < orderedGroups.length; i++) {
-            (function (group, prevGroup) {
-                var top = 0;
-                if (prevGroup) {
-                    top = function () {
-                        // TODO: top must reckon with options.maxHeight
-                        return prevGroup.top + prevGroup.height;
-                    }
-                }
-                group.setOptions({
-                    top: top
-                });
-            })(groups[orderedGroups[i]], groups[orderedGroups[i - 1]]);
-        }
-
-        // (re)create the labels
-        while (labels.firstChild) {
-            labels.removeChild(labels.firstChild);
-        }
-        for (i = 0; i < orderedGroups.length; i++) {
-            id = orderedGroups[i];
-            label = this._createLabel(id);
-            labels.appendChild(label);
-        }
-
-        changed++;
+      })(groups[orderedGroups[i]], groups[orderedGroups[i - 1]]);
     }
 
-    // reposition the labels
-    // TODO: labels are not displayed correctly when orientation=='top'
-    // TODO: width of labelPanel is not immediately updated on a change in groups
-    for (id in groups) {
-        if (groups.hasOwnProperty(id)) {
-            group = groups[id];
-            label = group.label;
-            if (label) {
-                label.style.top = group.top + 'px';
-                label.style.height = group.height + 'px';
-            }
-        }
+    // (re)create the labels
+    while (labelSet.firstChild) {
+      labelSet.removeChild(labelSet.firstChild);
+    }
+    for (i = 0; i < orderedGroups.length; i++) {
+      id = orderedGroups[i];
+      label = this._createLabel(id);
+      labelSet.appendChild(label);
     }
 
-    return (changed > 0);
+    changed++;
+  }
+
+  // reposition the labels
+  // TODO: labels are not displayed correctly when orientation=='top'
+  // TODO: width of labelPanel is not immediately updated on a change in groups
+  for (id in groups) {
+    if (groups.hasOwnProperty(id)) {
+      group = groups[id];
+      label = group.label;
+      if (label) {
+        label.style.top = group.top + 'px';
+        label.style.height = group.height + 'px';
+      }
+    }
+  }
+
+  return (changed > 0);
 };
 
 /**
@@ -10817,29 +10291,29 @@ GroupSet.prototype.repaint = function repaint() {
  * @private
  */
 GroupSet.prototype._createLabel = function(id) {
-    var group = this.groups[id];
-    var label = document.createElement('div');
-    label.className = 'label';
-    var inner = document.createElement('div');
-    inner.className = 'inner';
-    label.appendChild(inner);
+  var group = this.groups[id];
+  var label = document.createElement('div');
+  label.className = 'label';
+  var inner = document.createElement('div');
+  inner.className = 'inner';
+  label.appendChild(inner);
 
-    var content = group.data && group.data.content;
-    if (content instanceof Element) {
-        inner.appendChild(content);
-    }
-    else if (content != undefined) {
-        inner.innerHTML = content;
-    }
+  var content = group.data && group.data.content;
+  if (content instanceof Element) {
+    inner.appendChild(content);
+  }
+  else if (content != undefined) {
+    inner.innerHTML = content;
+  }
 
-    var className = group.data && group.data.className;
-    if (className) {
-        util.addClassName(label, className);
-    }
+  var className = group.data && group.data.className;
+  if (className) {
+    util.addClassName(label, className);
+  }
 
-    group.label = label; // TODO: not so nice, parking labels in the group this way!!!
+  group.label = label; // TODO: not so nice, parking labels in the group this way!!!
 
-    return label;
+  return label;
 };
 
 /**
@@ -10847,7 +10321,7 @@ GroupSet.prototype._createLabel = function(id) {
  * @return {HTMLElement} container
  */
 GroupSet.prototype.getContainer = function getContainer() {
-    return this.dom.frame;
+  return this.dom.frame;
 };
 
 /**
@@ -10855,7 +10329,7 @@ GroupSet.prototype.getContainer = function getContainer() {
  * @return {Number} width
  */
 GroupSet.prototype.getLabelsWidth = function getContainer() {
-    return this.props.labels.width;
+  return this.props.labels.width;
 };
 
 /**
@@ -10863,54 +10337,54 @@ GroupSet.prototype.getLabelsWidth = function getContainer() {
  * @return {Boolean} resized
  */
 GroupSet.prototype.reflow = function reflow() {
-    var changed = 0,
-        id, group,
-        options = this.options,
-        update = util.updateProperty,
-        asNumber = util.option.asNumber,
-        asSize = util.option.asSize,
-        frame = this.dom.frame;
+  var changed = 0,
+      id, group,
+      options = this.options,
+      update = util.updateProperty,
+      asNumber = util.option.asNumber,
+      asSize = util.option.asSize,
+      frame = this.dom.frame;
 
-    if (frame) {
-        var maxHeight = asNumber(options.maxHeight);
-        var fixedHeight = (asSize(options.height) != null);
-        var height;
-        if (fixedHeight) {
-            height = frame.offsetHeight;
-        }
-        else {
-            // height is not specified, calculate the sum of the height of all groups
-            height = 0;
-
-            for (id in this.groups) {
-                if (this.groups.hasOwnProperty(id)) {
-                    group = this.groups[id];
-                    height += group.height;
-                }
-            }
-        }
-        if (maxHeight != null) {
-            height = Math.min(height, maxHeight);
-        }
-        changed += update(this, 'height', height);
-
-        changed += update(this, 'top', frame.offsetTop);
-        changed += update(this, 'left', frame.offsetLeft);
-        changed += update(this, 'width', frame.offsetWidth);
+  if (frame) {
+    var maxHeight = asNumber(options.maxHeight);
+    var fixedHeight = (asSize(options.height) != null);
+    var height;
+    if (fixedHeight) {
+      height = frame.offsetHeight;
     }
+    else {
+      // height is not specified, calculate the sum of the height of all groups
+      height = 0;
 
-    // calculate the maximum width of the labels
-    var width = 0;
-    for (id in this.groups) {
+      for (id in this.groups) {
         if (this.groups.hasOwnProperty(id)) {
-            group = this.groups[id];
-            var labelWidth = group.props && group.props.label && group.props.label.width || 0;
-            width = Math.max(width, labelWidth);
+          group = this.groups[id];
+          height += group.height;
         }
+      }
     }
-    changed += update(this.props.labels, 'width', width);
+    if (maxHeight != null) {
+      height = Math.min(height, maxHeight);
+    }
+    changed += update(this, 'height', height);
 
-    return (changed > 0);
+    changed += update(this, 'top', frame.offsetTop);
+    changed += update(this, 'left', frame.offsetLeft);
+    changed += update(this, 'width', frame.offsetWidth);
+  }
+
+  // calculate the maximum width of the labels
+  var width = 0;
+  for (id in this.groups) {
+    if (this.groups.hasOwnProperty(id)) {
+      group = this.groups[id];
+      var labelWidth = group.props && group.props.label && group.props.label.width || 0;
+      width = Math.max(width, labelWidth);
+    }
+  }
+  changed += update(this.props.labels, 'width', width);
+
+  return (changed > 0);
 };
 
 /**
@@ -10918,13 +10392,13 @@ GroupSet.prototype.reflow = function reflow() {
  * @return {Boolean} changed
  */
 GroupSet.prototype.hide = function hide() {
-    if (this.dom.frame && this.dom.frame.parentNode) {
-        this.dom.frame.parentNode.removeChild(this.dom.frame);
-        return true;
-    }
-    else {
-        return false;
-    }
+  if (this.dom.frame && this.dom.frame.parentNode) {
+    this.dom.frame.parentNode.removeChild(this.dom.frame);
+    return true;
+  }
+  else {
+    return false;
+  }
 };
 
 /**
@@ -10933,12 +10407,12 @@ GroupSet.prototype.hide = function hide() {
  * @return {Boolean} changed
  */
 GroupSet.prototype.show = function show() {
-    if (!this.dom.frame || !this.dom.frame.parentNode) {
-        return this.repaint();
-    }
-    else {
-        return false;
-    }
+  if (!this.dom.frame || !this.dom.frame.parentNode) {
+    return this.repaint();
+  }
+  else {
+    return false;
+  }
 };
 
 /**
@@ -10947,7 +10421,7 @@ GroupSet.prototype.show = function show() {
  * @private
  */
 GroupSet.prototype._onUpdate = function _onUpdate(ids) {
-    this._toQueue(ids, 'update');
+  this._toQueue(ids, 'update');
 };
 
 /**
@@ -10956,7 +10430,7 @@ GroupSet.prototype._onUpdate = function _onUpdate(ids) {
  * @private
  */
 GroupSet.prototype._onAdd = function _onAdd(ids) {
-    this._toQueue(ids, 'add');
+  this._toQueue(ids, 'add');
 };
 
 /**
@@ -10965,7 +10439,7 @@ GroupSet.prototype._onAdd = function _onAdd(ids) {
  * @private
  */
 GroupSet.prototype._onRemove = function _onRemove(ids) {
-    this._toQueue(ids, 'remove');
+  this._toQueue(ids, 'remove');
 };
 
 /**
@@ -10974,15 +10448,15 @@ GroupSet.prototype._onRemove = function _onRemove(ids) {
  * @param {String} action     can be 'add', 'update', 'remove'
  */
 GroupSet.prototype._toQueue = function _toQueue(ids, action) {
-    var queue = this.queue;
-    ids.forEach(function (id) {
-        queue[id] = action;
-    });
+  var queue = this.queue;
+  ids.forEach(function (id) {
+    queue[id] = action;
+  });
 
-    if (this.controller) {
-        //this.requestReflow();
-        this.requestRepaint();
-    }
+  if (this.controller) {
+    //this.requestReflow();
+    this.requestRepaint();
+  }
 };
 
 /**
@@ -10993,129 +10467,130 @@ GroupSet.prototype._toQueue = function _toQueue(ids, action) {
  * @constructor
  */
 function Timeline (container, items, options) {
-    var me = this;
-    var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
-    this.options = {
-        orientation: 'bottom',
-        min: null,
-        max: null,
-        zoomMin: 10,                                // milliseconds
-        zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000, // milliseconds
-        // moveable: true, // TODO: option moveable
-        // zoomable: true, // TODO: option zoomable
-        showMinorLabels: true,
-        showMajorLabels: true,
-        showCurrentTime: false,
-        showCustomTime: false,
-        autoResize: false
-    };
+  var me = this;
+  var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
+  this.options = {
+    orientation: 'bottom',
+    min: null,
+    max: null,
+    zoomMin: 10,                                // milliseconds
+    zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000, // milliseconds
+    // moveable: true, // TODO: option moveable
+    // zoomable: true, // TODO: option zoomable
+    showMinorLabels: true,
+    showMajorLabels: true,
+    showCurrentTime: false,
+    showCustomTime: false,
+    autoResize: false
+  };
 
-    // controller
-    this.controller = new Controller();
+  // controller
+  this.controller = new Controller();
 
-    // root panel
-    if (!container) {
-        throw new Error('No container element provided');
+  // root panel
+  if (!container) {
+    throw new Error('No container element provided');
+  }
+  var rootOptions = Object.create(this.options);
+  rootOptions.height = function () {
+    // TODO: change to height
+    if (me.options.height) {
+      // fixed height
+      return me.options.height;
     }
-    var rootOptions = Object.create(this.options);
-    rootOptions.height = function () {
-        if (me.options.height) {
-            // fixed height
-            return me.options.height;
-        }
-        else {
-            // auto height
-            return me.timeaxis.height + me.content.height;
-        }
-    };
-    this.rootPanel = new RootPanel(container, rootOptions);
-    this.controller.add(this.rootPanel);
-
-    // item panel
-    var itemOptions = Object.create(this.options);
-    itemOptions.left = function () {
-        return me.labelPanel.width;
-    };
-    itemOptions.width = function () {
-        return me.rootPanel.width - me.labelPanel.width;
-    };
-    itemOptions.top = null;
-    itemOptions.height = null;
-    this.itemPanel = new Panel(this.rootPanel, [], itemOptions);
-    this.controller.add(this.itemPanel);
-
-    // label panel
-    var labelOptions = Object.create(this.options);
-    labelOptions.top = null;
-    labelOptions.left = null;
-    labelOptions.height = null;
-    labelOptions.width = function () {
-        if (me.content && typeof me.content.getLabelsWidth === 'function') {
-            return me.content.getLabelsWidth();
-        }
-        else {
-            return 0;
-        }
-    };
-    this.labelPanel = new Panel(this.rootPanel, [], labelOptions);
-    this.controller.add(this.labelPanel);
-
-    // range
-    var rangeOptions = Object.create(this.options);
-    this.range = new Range(rangeOptions);
-    this.range.setRange(
-        now.clone().add('days', -3).valueOf(),
-        now.clone().add('days', 4).valueOf()
-    );
-
-    // TODO: reckon with options moveable and zoomable
-    this.range.subscribe(this.rootPanel, 'move', 'horizontal');
-    this.range.subscribe(this.rootPanel, 'zoom', 'horizontal');
-    this.range.on('rangechange', function () {
-        var force = true;
-        me.controller.requestReflow(force);
-    });
-    this.range.on('rangechanged', function () {
-        var force = true;
-        me.controller.requestReflow(force);
-    });
-
-    // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
-
-    // time axis
-    var timeaxisOptions = Object.create(rootOptions);
-    timeaxisOptions.range = this.range;
-    timeaxisOptions.left = null;
-    timeaxisOptions.top = null;
-    timeaxisOptions.width = '100%';
-    timeaxisOptions.height = null;
-    this.timeaxis = new TimeAxis(this.itemPanel, [], timeaxisOptions);
-    this.timeaxis.setRange(this.range);
-    this.controller.add(this.timeaxis);
-
-    // current time bar
-    this.currenttime = new CurrentTime(this.timeaxis, [], rootOptions);
-    this.controller.add(this.currenttime);
-
-    // custom time bar
-    this.customtime = new CustomTime(this.timeaxis, [], rootOptions);
-    this.controller.add(this.customtime);
-
-    // create itemset or groupset
-    this.setGroups(null);
-
-    this.itemsData = null;      // DataSet
-    this.groupsData = null;     // DataSet
-
-    // apply options
-    if (options) {
-        this.setOptions(options);
+    else {
+      // auto height
+      return (me.timeaxis.height + me.content.height) + 'px';
     }
+  };
+  this.rootPanel = new RootPanel(container, rootOptions);
+  this.controller.add(this.rootPanel);
 
-    // set data (must be after options are applied)
-    if (items) {
-        this.setItems(items);
+  // item panel
+  var itemOptions = Object.create(this.options);
+  itemOptions.left = function () {
+    return me.labelPanel.width;
+  };
+  itemOptions.width = function () {
+    return me.rootPanel.width - me.labelPanel.width;
+  };
+  itemOptions.top = null;
+  itemOptions.height = null;
+  this.itemPanel = new Panel(this.rootPanel, [], itemOptions);
+  this.controller.add(this.itemPanel);
+
+  // label panel
+  var labelOptions = Object.create(this.options);
+  labelOptions.top = null;
+  labelOptions.left = null;
+  labelOptions.height = null;
+  labelOptions.width = function () {
+    if (me.content && typeof me.content.getLabelsWidth === 'function') {
+      return me.content.getLabelsWidth();
     }
+    else {
+      return 0;
+    }
+  };
+  this.labelPanel = new Panel(this.rootPanel, [], labelOptions);
+  this.controller.add(this.labelPanel);
+
+  // range
+  var rangeOptions = Object.create(this.options);
+  this.range = new Range(rangeOptions);
+  this.range.setRange(
+      now.clone().add('days', -3).valueOf(),
+      now.clone().add('days', 4).valueOf()
+  );
+
+  // TODO: reckon with options moveable and zoomable
+  this.range.subscribe(this.rootPanel, 'move', 'horizontal');
+  this.range.subscribe(this.rootPanel, 'zoom', 'horizontal');
+  this.range.on('rangechange', function () {
+    var force = true;
+    me.controller.requestReflow(force);
+  });
+  this.range.on('rangechanged', function () {
+    var force = true;
+    me.controller.requestReflow(force);
+  });
+
+  // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
+
+  // time axis
+  var timeaxisOptions = Object.create(rootOptions);
+  timeaxisOptions.range = this.range;
+  timeaxisOptions.left = null;
+  timeaxisOptions.top = null;
+  timeaxisOptions.width = '100%';
+  timeaxisOptions.height = null;
+  this.timeaxis = new TimeAxis(this.itemPanel, [], timeaxisOptions);
+  this.timeaxis.setRange(this.range);
+  this.controller.add(this.timeaxis);
+
+  // current time bar
+  this.currenttime = new CurrentTime(this.timeaxis, [], rootOptions);
+  this.controller.add(this.currenttime);
+
+  // custom time bar
+  this.customtime = new CustomTime(this.timeaxis, [], rootOptions);
+  this.controller.add(this.customtime);
+
+  // create groupset
+  this.setGroups(null);
+
+  this.itemsData = null;      // DataSet
+  this.groupsData = null;     // DataSet
+
+  // apply options
+  if (options) {
+    this.setOptions(options);
+  }
+
+  // create itemset and groupset
+  if (items) {
+    this.setItems(items);
+  }
 }
 
 /**
@@ -11123,15 +10598,15 @@ function Timeline (container, items, options) {
  * @param {Object} options  TODO: describe the available options
  */
 Timeline.prototype.setOptions = function (options) {
-    util.extend(this.options, options);
+  util.extend(this.options, options);
 
-    // force update of range
-    // options.start and options.end can be undefined
-    //this.range.setRange(options.start, options.end);
-    this.range.setRange();
+  // force update of range
+  // options.start and options.end can be undefined
+  //this.range.setRange(options.start, options.end);
+  this.range.setRange();
 
-    this.controller.reflow();
-    this.controller.repaint();
+  this.controller.reflow();
+  this.controller.repaint();
 };
 
 /**
@@ -11139,7 +10614,7 @@ Timeline.prototype.setOptions = function (options) {
  * @param {Date} time
  */
 Timeline.prototype.setCustomTime = function (time) {
-    this.customtime._setCustomTime(time);
+  this.customtime._setCustomTime(time);
 };
 
 /**
@@ -11147,7 +10622,7 @@ Timeline.prototype.setCustomTime = function (time) {
  * @return {Date} customTime
  */
 Timeline.prototype.getCustomTime = function() {
-    return new Date(this.customtime.customTime.valueOf());
+  return new Date(this.customtime.customTime.valueOf());
 };
 
 /**
@@ -11155,60 +10630,60 @@ Timeline.prototype.getCustomTime = function() {
  * @param {vis.DataSet | Array | DataTable | null} items
  */
 Timeline.prototype.setItems = function(items) {
-    var initialLoad = (this.itemsData == null);
+  var initialLoad = (this.itemsData == null);
 
-    // convert to type DataSet when needed
-    var newItemSet;
-    if (!items) {
-        newItemSet = null;
+  // convert to type DataSet when needed
+  var newItemSet;
+  if (!items) {
+    newItemSet = null;
+  }
+  else if (items instanceof DataSet) {
+    newItemSet = items;
+  }
+  if (!(items instanceof DataSet)) {
+    newItemSet = new DataSet({
+      convert: {
+        start: 'Date',
+        end: 'Date'
+      }
+    });
+    newItemSet.add(items);
+  }
+
+  // set items
+  this.itemsData = newItemSet;
+  this.content.setItems(newItemSet);
+
+  if (initialLoad && (this.options.start == undefined || this.options.end == undefined)) {
+    // apply the data range as range
+    var dataRange = this.getItemRange();
+
+    // add 5% space on both sides
+    var min = dataRange.min;
+    var max = dataRange.max;
+    if (min != null && max != null) {
+      var interval = (max.valueOf() - min.valueOf());
+      if (interval <= 0) {
+        // prevent an empty interval
+        interval = 24 * 60 * 60 * 1000; // 1 day
+      }
+      min = new Date(min.valueOf() - interval * 0.05);
+      max = new Date(max.valueOf() + interval * 0.05);
     }
-    else if (items instanceof DataSet) {
-        newItemSet = items;
+
+    // override specified start and/or end date
+    if (this.options.start != undefined) {
+      min = util.convert(this.options.start, 'Date');
     }
-    if (!(items instanceof DataSet)) {
-        newItemSet = new DataSet({
-            convert: {
-                start: 'Date',
-                end: 'Date'
-            }
-        });
-        newItemSet.add(items);
+    if (this.options.end != undefined) {
+      max = util.convert(this.options.end, 'Date');
     }
 
-    // set items
-    this.itemsData = newItemSet;
-    this.content.setItems(newItemSet);
-
-    if (initialLoad && (this.options.start == undefined || this.options.end == undefined)) {
-        // apply the data range as range
-        var dataRange = this.getItemRange();
-
-        // add 5% space on both sides
-        var min = dataRange.min;
-        var max = dataRange.max;
-        if (min != null && max != null) {
-            var interval = (max.valueOf() - min.valueOf());
-            if (interval <= 0) {
-                // prevent an empty interval
-                interval = 24 * 60 * 60 * 1000; // 1 day
-            }
-            min = new Date(min.valueOf() - interval * 0.05);
-            max = new Date(max.valueOf() + interval * 0.05);
-        }
-
-        // override specified start and/or end date
-        if (this.options.start != undefined) {
-            min = util.convert(this.options.start, 'Date');
-        }
-        if (this.options.end != undefined) {
-            max = util.convert(this.options.end, 'Date');
-        }
-
-        // apply range if there is a min or max available
-        if (min != null || max != null) {
-            this.range.setRange(min, max);
-        }
+    // apply range if there is a min or max available
+    if (min != null || max != null) {
+      this.range.setRange(min, max);
     }
+  }
 };
 
 /**
@@ -11216,72 +10691,76 @@ Timeline.prototype.setItems = function(items) {
  * @param {vis.DataSet | Array | DataTable} groups
  */
 Timeline.prototype.setGroups = function(groups) {
-    var me = this;
-    this.groupsData = groups;
+  var me = this;
+  this.groupsData = groups;
 
-    // switch content type between ItemSet or GroupSet when needed
-    var type = this.groupsData ? GroupSet : ItemSet;
-    if (!(this.content instanceof type)) {
-        // remove old content set
-        if (this.content) {
-            this.content.hide();
-            if (this.content.setItems) {
-                this.content.setItems(); // disconnect from items
-            }
-            if (this.content.setGroups) {
-                this.content.setGroups(); // disconnect from groups
-            }
-            this.controller.remove(this.content);
-        }
-
-        // create new content set
-        var options = Object.create(this.options);
-        util.extend(options, {
-            top: function () {
-                if (me.options.orientation == 'top') {
-                    return me.timeaxis.height;
-                }
-                else {
-                    return me.itemPanel.height - me.timeaxis.height - me.content.height;
-                }
-            },
-            left: null,
-            width: '100%',
-            height: function () {
-                if (me.options.height) {
-                    return me.itemPanel.height - me.timeaxis.height;
-                }
-                else {
-                    return null;
-                }
-            },
-            maxHeight: function () {
-                if (me.options.maxHeight) {
-                    if (!util.isNumber(me.options.maxHeight)) {
-                        throw new TypeError('Number expected for property maxHeight');
-                    }
-                    return me.options.maxHeight - me.timeaxis.height;
-                }
-                else {
-                    return null;
-                }
-            },
-            labelContainer: function () {
-                return me.labelPanel.getContainer();
-            }
-        });
-        this.content = new type(this.itemPanel, [this.timeaxis], options);
-        if (this.content.setRange) {
-            this.content.setRange(this.range);
-        }
-        if (this.content.setItems) {
-            this.content.setItems(this.itemsData);
-        }
-        if (this.content.setGroups) {
-            this.content.setGroups(this.groupsData);
-        }
-        this.controller.add(this.content);
+  // switch content type between ItemSet or GroupSet when needed
+  var Type = this.groupsData ? GroupSet : ItemSet;
+  if (!(this.content instanceof Type)) {
+    // remove old content set
+    if (this.content) {
+      this.content.hide();
+      if (this.content.setItems) {
+        this.content.setItems(); // disconnect from items
+      }
+      if (this.content.setGroups) {
+        this.content.setGroups(); // disconnect from groups
+      }
+      this.controller.remove(this.content);
     }
+
+    // create new content set
+    var options = Object.create(this.options);
+    util.extend(options, {
+      top: function () {
+        if (me.options.orientation == 'top') {
+          return me.timeaxis.height;
+        }
+        else {
+          return me.itemPanel.height - me.timeaxis.height - me.content.height;
+        }
+      },
+      left: null,
+      width: '100%',
+      height: function () {
+        if (me.options.height) {
+          // fixed height
+          return me.itemPanel.height - me.timeaxis.height;
+        }
+        else {
+          // auto height
+          return null;
+        }
+      },
+      maxHeight: function () {
+        // TODO: change maxHeight to be a css string like '100%' or '300px'
+        if (me.options.maxHeight) {
+          if (!util.isNumber(me.options.maxHeight)) {
+            throw new TypeError('Number expected for property maxHeight');
+          }
+          return me.options.maxHeight - me.timeaxis.height;
+        }
+        else {
+          return null;
+        }
+      },
+      labelContainer: function () {
+        return me.labelPanel.getContainer();
+      }
+    });
+
+    this.content = new Type(this.itemPanel, [this.timeaxis], options);
+    if (this.content.setRange) {
+      this.content.setRange(this.range);
+    }
+    if (this.content.setItems) {
+      this.content.setItems(this.itemsData);
+    }
+    if (this.content.setGroups) {
+      this.content.setGroups(this.groupsData);
+    }
+    this.controller.add(this.content);
+  }
 };
 
 /**
@@ -11291,865 +10770,865 @@ Timeline.prototype.setGroups = function(groups) {
  *                                          When no maximum is found, max==null
  */
 Timeline.prototype.getItemRange = function getItemRange() {
-    // calculate min from start filed
-    var itemsData = this.itemsData,
-        min = null,
-        max = null;
+  // calculate min from start filed
+  var itemsData = this.itemsData,
+      min = null,
+      max = null;
 
-    if (itemsData) {
-        // calculate the minimum value of the field 'start'
-        var minItem = itemsData.min('start');
-        min = minItem ? minItem.start.valueOf() : null;
+  if (itemsData) {
+    // calculate the minimum value of the field 'start'
+    var minItem = itemsData.min('start');
+    min = minItem ? minItem.start.valueOf() : null;
 
-        // calculate maximum value of fields 'start' and 'end'
-        var maxStartItem = itemsData.max('start');
-        if (maxStartItem) {
-            max = maxStartItem.start.valueOf();
-        }
-        var maxEndItem = itemsData.max('end');
-        if (maxEndItem) {
-            if (max == null) {
-                max = maxEndItem.end.valueOf();
-            }
-            else {
-                max = Math.max(max, maxEndItem.end.valueOf());
-            }
-        }
+    // calculate maximum value of fields 'start' and 'end'
+    var maxStartItem = itemsData.max('start');
+    if (maxStartItem) {
+      max = maxStartItem.start.valueOf();
     }
+    var maxEndItem = itemsData.max('end');
+    if (maxEndItem) {
+      if (max == null) {
+        max = maxEndItem.end.valueOf();
+      }
+      else {
+        max = Math.max(max, maxEndItem.end.valueOf());
+      }
+    }
+  }
 
-    return {
-        min: (min != null) ? new Date(min) : null,
-        max: (max != null) ? new Date(max) : null
-    };
+  return {
+    min: (min != null) ? new Date(min) : null,
+    max: (max != null) ? new Date(max) : null
+  };
 };
 
 (function(exports) {
-    /**
-     * Parse a text source containing data in DOT language into a JSON object.
-     * The object contains two lists: one with nodes and one with edges.
-     *
-     * DOT language reference: http://www.graphviz.org/doc/info/lang.html
-     *
-     * @param {String} data     Text containing a graph in DOT-notation
-     * @return {Object} graph   An object containing two parameters:
-     *                          {Object[]} nodes
-     *                          {Object[]} edges
-     */
-    function parseDOT (data) {
-        dot = data;
-        return parseGraph();
+  /**
+   * Parse a text source containing data in DOT language into a JSON object.
+   * The object contains two lists: one with nodes and one with edges.
+   *
+   * DOT language reference: http://www.graphviz.org/doc/info/lang.html
+   *
+   * @param {String} data     Text containing a graph in DOT-notation
+   * @return {Object} graph   An object containing two parameters:
+   *                          {Object[]} nodes
+   *                          {Object[]} edges
+   */
+  function parseDOT (data) {
+    dot = data;
+    return parseGraph();
+  }
+
+  // token types enumeration
+  var TOKENTYPE = {
+    NULL : 0,
+    DELIMITER : 1,
+    IDENTIFIER: 2,
+    UNKNOWN : 3
+  };
+
+  // map with all delimiters
+  var DELIMITERS = {
+    '{': true,
+    '}': true,
+    '[': true,
+    ']': true,
+    ';': true,
+    '=': true,
+    ',': true,
+
+    '->': true,
+    '--': true
+  };
+
+  var dot = '';                   // current dot file
+  var index = 0;                  // current index in dot file
+  var c = '';                     // current token character in expr
+  var token = '';                 // current token
+  var tokenType = TOKENTYPE.NULL; // type of the token
+
+  /**
+   * Get the first character from the dot file.
+   * The character is stored into the char c. If the end of the dot file is
+   * reached, the function puts an empty string in c.
+   */
+  function first() {
+    index = 0;
+    c = dot.charAt(0);
+  }
+
+  /**
+   * Get the next character from the dot file.
+   * The character is stored into the char c. If the end of the dot file is
+   * reached, the function puts an empty string in c.
+   */
+  function next() {
+    index++;
+    c = dot.charAt(index);
+  }
+
+  /**
+   * Preview the next character from the dot file.
+   * @return {String} cNext
+   */
+  function nextPreview() {
+    return dot.charAt(index + 1);
+  }
+
+  /**
+   * Test whether given character is alphabetic or numeric
+   * @param {String} c
+   * @return {Boolean} isAlphaNumeric
+   */
+  var regexAlphaNumeric = /[a-zA-Z_0-9.:#]/;
+  function isAlphaNumeric(c) {
+    return regexAlphaNumeric.test(c);
+  }
+
+  /**
+   * Merge all properties of object b into object b
+   * @param {Object} a
+   * @param {Object} b
+   * @return {Object} a
+   */
+  function merge (a, b) {
+    if (!a) {
+      a = {};
     }
 
-    // token types enumeration
-    var TOKENTYPE = {
-        NULL : 0,
-        DELIMITER : 1,
-        IDENTIFIER: 2,
-        UNKNOWN : 3
+    if (b) {
+      for (var name in b) {
+        if (b.hasOwnProperty(name)) {
+          a[name] = b[name];
+        }
+      }
+    }
+    return a;
+  }
+
+  /**
+   * Set a value in an object, where the provided parameter name can be a
+   * path with nested parameters. For example:
+   *
+   *     var obj = {a: 2};
+   *     setValue(obj, 'b.c', 3);     // obj = {a: 2, b: {c: 3}}
+   *
+   * @param {Object} obj
+   * @param {String} path  A parameter name or dot-separated parameter path,
+   *                      like "color.highlight.border".
+   * @param {*} value
+   */
+  function setValue(obj, path, value) {
+    var keys = path.split('.');
+    var o = obj;
+    while (keys.length) {
+      var key = keys.shift();
+      if (keys.length) {
+        // this isn't the end point
+        if (!o[key]) {
+          o[key] = {};
+        }
+        o = o[key];
+      }
+      else {
+        // this is the end point
+        o[key] = value;
+      }
+    }
+  }
+
+  /**
+   * Add a node to a graph object. If there is already a node with
+   * the same id, their attributes will be merged.
+   * @param {Object} graph
+   * @param {Object} node
+   */
+  function addNode(graph, node) {
+    var i, len;
+    var current = null;
+
+    // find root graph (in case of subgraph)
+    var graphs = [graph]; // list with all graphs from current graph to root graph
+    var root = graph;
+    while (root.parent) {
+      graphs.push(root.parent);
+      root = root.parent;
+    }
+
+    // find existing node (at root level) by its id
+    if (root.nodes) {
+      for (i = 0, len = root.nodes.length; i < len; i++) {
+        if (node.id === root.nodes[i].id) {
+          current = root.nodes[i];
+          break;
+        }
+      }
+    }
+
+    if (!current) {
+      // this is a new node
+      current = {
+        id: node.id
+      };
+      if (graph.node) {
+        // clone default attributes
+        current.attr = merge(current.attr, graph.node);
+      }
+    }
+
+    // add node to this (sub)graph and all its parent graphs
+    for (i = graphs.length - 1; i >= 0; i--) {
+      var g = graphs[i];
+
+      if (!g.nodes) {
+        g.nodes = [];
+      }
+      if (g.nodes.indexOf(current) == -1) {
+        g.nodes.push(current);
+      }
+    }
+
+    // merge attributes
+    if (node.attr) {
+      current.attr = merge(current.attr, node.attr);
+    }
+  }
+
+  /**
+   * Add an edge to a graph object
+   * @param {Object} graph
+   * @param {Object} edge
+   */
+  function addEdge(graph, edge) {
+    if (!graph.edges) {
+      graph.edges = [];
+    }
+    graph.edges.push(edge);
+    if (graph.edge) {
+      var attr = merge({}, graph.edge);     // clone default attributes
+      edge.attr = merge(attr, edge.attr); // merge attributes
+    }
+  }
+
+  /**
+   * Create an edge to a graph object
+   * @param {Object} graph
+   * @param {String | Number | Object} from
+   * @param {String | Number | Object} to
+   * @param {String} type
+   * @param {Object | null} attr
+   * @return {Object} edge
+   */
+  function createEdge(graph, from, to, type, attr) {
+    var edge = {
+      from: from,
+      to: to,
+      type: type
     };
 
-    // map with all delimiters
-    var DELIMITERS = {
-        '{': true,
-        '}': true,
-        '[': true,
-        ']': true,
-        ';': true,
-        '=': true,
-        ',': true,
+    if (graph.edge) {
+      edge.attr = merge({}, graph.edge);  // clone default attributes
+    }
+    edge.attr = merge(edge.attr || {}, attr); // merge attributes
 
-        '->': true,
-        '--': true
-    };
+    return edge;
+  }
 
-    var dot = '';                   // current dot file
-    var index = 0;                  // current index in dot file
-    var c = '';                     // current token character in expr
-    var token = '';                 // current token
-    var tokenType = TOKENTYPE.NULL; // type of the token
+  /**
+   * Get next token in the current dot file.
+   * The token and token type are available as token and tokenType
+   */
+  function getToken() {
+    tokenType = TOKENTYPE.NULL;
+    token = '';
 
-    /**
-     * Get the first character from the dot file.
-     * The character is stored into the char c. If the end of the dot file is
-     * reached, the function puts an empty string in c.
-     */
-    function first() {
-        index = 0;
-        c = dot.charAt(0);
+    // skip over whitespaces
+    while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
+      next();
     }
 
-    /**
-     * Get the next character from the dot file.
-     * The character is stored into the char c. If the end of the dot file is
-     * reached, the function puts an empty string in c.
-     */
-    function next() {
-        index++;
-        c = dot.charAt(index);
-    }
+    do {
+      var isComment = false;
 
-    /**
-     * Preview the next character from the dot file.
-     * @return {String} cNext
-     */
-    function nextPreview() {
-        return dot.charAt(index + 1);
-    }
-
-    /**
-     * Test whether given character is alphabetic or numeric
-     * @param {String} c
-     * @return {Boolean} isAlphaNumeric
-     */
-    var regexAlphaNumeric = /[a-zA-Z_0-9.:#]/;
-    function isAlphaNumeric(c) {
-        return regexAlphaNumeric.test(c);
-    }
-
-    /**
-     * Merge all properties of object b into object b
-     * @param {Object} a
-     * @param {Object} b
-     * @return {Object} a
-     */
-    function merge (a, b) {
-        if (!a) {
-            a = {};
+      // skip comment
+      if (c == '#') {
+        // find the previous non-space character
+        var i = index - 1;
+        while (dot.charAt(i) == ' ' || dot.charAt(i) == '\t') {
+          i--;
         }
-
-        if (b) {
-            for (var name in b) {
-                if (b.hasOwnProperty(name)) {
-                    a[name] = b[name];
-                }
-            }
-        }
-        return a;
-    }
-
-    /**
-     * Set a value in an object, where the provided parameter name can be a
-     * path with nested parameters. For example:
-     *
-     *     var obj = {a: 2};
-     *     setValue(obj, 'b.c', 3);     // obj = {a: 2, b: {c: 3}}
-     *
-     * @param {Object} obj
-     * @param {String} path  A parameter name or dot-separated parameter path,
-     *                      like "color.highlight.border".
-     * @param {*} value
-     */
-    function setValue(obj, path, value) {
-        var keys = path.split('.');
-        var o = obj;
-        while (keys.length) {
-            var key = keys.shift();
-            if (keys.length) {
-                // this isn't the end point
-                if (!o[key]) {
-                    o[key] = {};
-                }
-                o = o[key];
-            }
-            else {
-                // this is the end point
-                o[key] = value;
-            }
-        }
-    }
-
-    /**
-     * Add a node to a graph object. If there is already a node with
-     * the same id, their attributes will be merged.
-     * @param {Object} graph
-     * @param {Object} node
-     */
-    function addNode(graph, node) {
-        var i, len;
-        var current = null;
-
-        // find root graph (in case of subgraph)
-        var graphs = [graph]; // list with all graphs from current graph to root graph
-        var root = graph;
-        while (root.parent) {
-            graphs.push(root.parent);
-            root = root.parent;
-        }
-
-        // find existing node (at root level) by its id
-        if (root.nodes) {
-            for (i = 0, len = root.nodes.length; i < len; i++) {
-                if (node.id === root.nodes[i].id) {
-                    current = root.nodes[i];
-                    break;
-                }
-            }
-        }
-
-        if (!current) {
-            // this is a new node
-            current = {
-                id: node.id
-            };
-            if (graph.node) {
-                // clone default attributes
-                current.attr = merge(current.attr, graph.node);
-            }
-        }
-
-        // add node to this (sub)graph and all its parent graphs
-        for (i = graphs.length - 1; i >= 0; i--) {
-            var g = graphs[i];
-
-            if (!g.nodes) {
-                g.nodes = [];
-            }
-            if (g.nodes.indexOf(current) == -1) {
-                g.nodes.push(current);
-            }
-        }
-
-        // merge attributes
-        if (node.attr) {
-            current.attr = merge(current.attr, node.attr);
-        }
-    }
-
-    /**
-     * Add an edge to a graph object
-     * @param {Object} graph
-     * @param {Object} edge
-     */
-    function addEdge(graph, edge) {
-        if (!graph.edges) {
-            graph.edges = [];
-        }
-        graph.edges.push(edge);
-        if (graph.edge) {
-            var attr = merge({}, graph.edge);     // clone default attributes
-            edge.attr = merge(attr, edge.attr); // merge attributes
-        }
-    }
-
-    /**
-     * Create an edge to a graph object
-     * @param {Object} graph
-     * @param {String | Number | Object} from
-     * @param {String | Number | Object} to
-     * @param {String} type
-     * @param {Object | null} attr
-     * @return {Object} edge
-     */
-    function createEdge(graph, from, to, type, attr) {
-        var edge = {
-            from: from,
-            to: to,
-            type: type
-        };
-
-        if (graph.edge) {
-            edge.attr = merge({}, graph.edge);  // clone default attributes
-        }
-        edge.attr = merge(edge.attr || {}, attr); // merge attributes
-
-        return edge;
-    }
-
-    /**
-     * Get next token in the current dot file.
-     * The token and token type are available as token and tokenType
-     */
-    function getToken() {
-        tokenType = TOKENTYPE.NULL;
-        token = '';
-
-        // skip over whitespaces
-        while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
+        if (dot.charAt(i) == '\n' || dot.charAt(i) == '') {
+          // the # is at the start of a line, this is indeed a line comment
+          while (c != '' && c != '\n') {
             next();
+          }
+          isComment = true;
         }
-
-        do {
-            var isComment = false;
-
-            // skip comment
-            if (c == '#') {
-                // find the previous non-space character
-                var i = index - 1;
-                while (dot.charAt(i) == ' ' || dot.charAt(i) == '\t') {
-                    i--;
-                }
-                if (dot.charAt(i) == '\n' || dot.charAt(i) == '') {
-                    // the # is at the start of a line, this is indeed a line comment
-                    while (c != '' && c != '\n') {
-                        next();
-                    }
-                    isComment = true;
-                }
-            }
-            if (c == '/' && nextPreview() == '/') {
-                // skip line comment
-                while (c != '' && c != '\n') {
-                    next();
-                }
-                isComment = true;
-            }
-            if (c == '/' && nextPreview() == '*') {
-                // skip block comment
-                while (c != '') {
-                    if (c == '*' && nextPreview() == '/') {
-                        // end of block comment found. skip these last two characters
-                        next();
-                        next();
-                        break;
-                    }
-                    else {
-                        next();
-                    }
-                }
-                isComment = true;
-            }
-
-            // skip over whitespaces
-            while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
-                next();
-            }
+      }
+      if (c == '/' && nextPreview() == '/') {
+        // skip line comment
+        while (c != '' && c != '\n') {
+          next();
         }
-        while (isComment);
-
-        // check for end of dot file
-        if (c == '') {
-            // token is still empty
-            tokenType = TOKENTYPE.DELIMITER;
-            return;
-        }
-
-        // check for delimiters consisting of 2 characters
-        var c2 = c + nextPreview();
-        if (DELIMITERS[c2]) {
-            tokenType = TOKENTYPE.DELIMITER;
-            token = c2;
-            next();
-            next();
-            return;
-        }
-
-        // check for delimiters consisting of 1 character
-        if (DELIMITERS[c]) {
-            tokenType = TOKENTYPE.DELIMITER;
-            token = c;
-            next();
-            return;
-        }
-
-        // check for an identifier (number or string)
-        // TODO: more precise parsing of numbers/strings (and the port separator ':')
-        if (isAlphaNumeric(c) || c == '-') {
-            token += c;
-            next();
-
-            while (isAlphaNumeric(c)) {
-                token += c;
-                next();
-            }
-            if (token == 'false') {
-                token = false;   // convert to boolean
-            }
-            else if (token == 'true') {
-                token = true;   // convert to boolean
-            }
-            else if (!isNaN(Number(token))) {
-                token = Number(token); // convert to number
-            }
-            tokenType = TOKENTYPE.IDENTIFIER;
-            return;
-        }
-
-        // check for a string enclosed by double quotes
-        if (c == '"') {
-            next();
-            while (c != '' && (c != '"' || (c == '"' && nextPreview() == '"'))) {
-                token += c;
-                if (c == '"') { // skip the escape character
-                    next();
-                }
-                next();
-            }
-            if (c != '"') {
-                throw newSyntaxError('End of string " expected');
-            }
-            next();
-            tokenType = TOKENTYPE.IDENTIFIER;
-            return;
-        }
-
-        // something unknown is found, wrong characters, a syntax error
-        tokenType = TOKENTYPE.UNKNOWN;
+        isComment = true;
+      }
+      if (c == '/' && nextPreview() == '*') {
+        // skip block comment
         while (c != '') {
-            token += c;
+          if (c == '*' && nextPreview() == '/') {
+            // end of block comment found. skip these last two characters
             next();
+            next();
+            break;
+          }
+          else {
+            next();
+          }
         }
-        throw new SyntaxError('Syntax error in part "' + chop(token, 30) + '"');
+        isComment = true;
+      }
+
+      // skip over whitespaces
+      while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
+        next();
+      }
+    }
+    while (isComment);
+
+    // check for end of dot file
+    if (c == '') {
+      // token is still empty
+      tokenType = TOKENTYPE.DELIMITER;
+      return;
     }
 
-    /**
-     * Parse a graph.
-     * @returns {Object} graph
-     */
-    function parseGraph() {
-        var graph = {};
-
-        first();
-        getToken();
-
-        // optional strict keyword
-        if (token == 'strict') {
-            graph.strict = true;
-            getToken();
-        }
-
-        // graph or digraph keyword
-        if (token == 'graph' || token == 'digraph') {
-            graph.type = token;
-            getToken();
-        }
-
-        // optional graph id
-        if (tokenType == TOKENTYPE.IDENTIFIER) {
-            graph.id = token;
-            getToken();
-        }
-
-        // open angle bracket
-        if (token != '{') {
-            throw newSyntaxError('Angle bracket { expected');
-        }
-        getToken();
-
-        // statements
-        parseStatements(graph);
-
-        // close angle bracket
-        if (token != '}') {
-            throw newSyntaxError('Angle bracket } expected');
-        }
-        getToken();
-
-        // end of file
-        if (token !== '') {
-            throw newSyntaxError('End of file expected');
-        }
-        getToken();
-
-        // remove temporary default properties
-        delete graph.node;
-        delete graph.edge;
-        delete graph.graph;
-
-        return graph;
+    // check for delimiters consisting of 2 characters
+    var c2 = c + nextPreview();
+    if (DELIMITERS[c2]) {
+      tokenType = TOKENTYPE.DELIMITER;
+      token = c2;
+      next();
+      next();
+      return;
     }
 
-    /**
-     * Parse a list with statements.
-     * @param {Object} graph
-     */
-    function parseStatements (graph) {
-        while (token !== '' && token != '}') {
-            parseStatement(graph);
-            if (token == ';') {
-                getToken();
-            }
-        }
+    // check for delimiters consisting of 1 character
+    if (DELIMITERS[c]) {
+      tokenType = TOKENTYPE.DELIMITER;
+      token = c;
+      next();
+      return;
     }
 
-    /**
-     * Parse a single statement. Can be a an attribute statement, node
-     * statement, a series of node statements and edge statements, or a
-     * parameter.
-     * @param {Object} graph
-     */
-    function parseStatement(graph) {
-        // parse subgraph
-        var subgraph = parseSubgraph(graph);
-        if (subgraph) {
-            // edge statements
-            parseEdge(graph, subgraph);
+    // check for an identifier (number or string)
+    // TODO: more precise parsing of numbers/strings (and the port separator ':')
+    if (isAlphaNumeric(c) || c == '-') {
+      token += c;
+      next();
 
-            return;
+      while (isAlphaNumeric(c)) {
+        token += c;
+        next();
+      }
+      if (token == 'false') {
+        token = false;   // convert to boolean
+      }
+      else if (token == 'true') {
+        token = true;   // convert to boolean
+      }
+      else if (!isNaN(Number(token))) {
+        token = Number(token); // convert to number
+      }
+      tokenType = TOKENTYPE.IDENTIFIER;
+      return;
+    }
+
+    // check for a string enclosed by double quotes
+    if (c == '"') {
+      next();
+      while (c != '' && (c != '"' || (c == '"' && nextPreview() == '"'))) {
+        token += c;
+        if (c == '"') { // skip the escape character
+          next();
         }
+        next();
+      }
+      if (c != '"') {
+        throw newSyntaxError('End of string " expected');
+      }
+      next();
+      tokenType = TOKENTYPE.IDENTIFIER;
+      return;
+    }
 
-        // parse an attribute statement
-        var attr = parseAttributeStatement(graph);
-        if (attr) {
-            return;
-        }
+    // something unknown is found, wrong characters, a syntax error
+    tokenType = TOKENTYPE.UNKNOWN;
+    while (c != '') {
+      token += c;
+      next();
+    }
+    throw new SyntaxError('Syntax error in part "' + chop(token, 30) + '"');
+  }
 
-        // parse node
+  /**
+   * Parse a graph.
+   * @returns {Object} graph
+   */
+  function parseGraph() {
+    var graph = {};
+
+    first();
+    getToken();
+
+    // optional strict keyword
+    if (token == 'strict') {
+      graph.strict = true;
+      getToken();
+    }
+
+    // graph or digraph keyword
+    if (token == 'graph' || token == 'digraph') {
+      graph.type = token;
+      getToken();
+    }
+
+    // optional graph id
+    if (tokenType == TOKENTYPE.IDENTIFIER) {
+      graph.id = token;
+      getToken();
+    }
+
+    // open angle bracket
+    if (token != '{') {
+      throw newSyntaxError('Angle bracket { expected');
+    }
+    getToken();
+
+    // statements
+    parseStatements(graph);
+
+    // close angle bracket
+    if (token != '}') {
+      throw newSyntaxError('Angle bracket } expected');
+    }
+    getToken();
+
+    // end of file
+    if (token !== '') {
+      throw newSyntaxError('End of file expected');
+    }
+    getToken();
+
+    // remove temporary default properties
+    delete graph.node;
+    delete graph.edge;
+    delete graph.graph;
+
+    return graph;
+  }
+
+  /**
+   * Parse a list with statements.
+   * @param {Object} graph
+   */
+  function parseStatements (graph) {
+    while (token !== '' && token != '}') {
+      parseStatement(graph);
+      if (token == ';') {
+        getToken();
+      }
+    }
+  }
+
+  /**
+   * Parse a single statement. Can be a an attribute statement, node
+   * statement, a series of node statements and edge statements, or a
+   * parameter.
+   * @param {Object} graph
+   */
+  function parseStatement(graph) {
+    // parse subgraph
+    var subgraph = parseSubgraph(graph);
+    if (subgraph) {
+      // edge statements
+      parseEdge(graph, subgraph);
+
+      return;
+    }
+
+    // parse an attribute statement
+    var attr = parseAttributeStatement(graph);
+    if (attr) {
+      return;
+    }
+
+    // parse node
+    if (tokenType != TOKENTYPE.IDENTIFIER) {
+      throw newSyntaxError('Identifier expected');
+    }
+    var id = token; // id can be a string or a number
+    getToken();
+
+    if (token == '=') {
+      // id statement
+      getToken();
+      if (tokenType != TOKENTYPE.IDENTIFIER) {
+        throw newSyntaxError('Identifier expected');
+      }
+      graph[id] = token;
+      getToken();
+      // TODO: implement comma separated list with "a_list: ID=ID [','] [a_list] "
+    }
+    else {
+      parseNodeStatement(graph, id);
+    }
+  }
+
+  /**
+   * Parse a subgraph
+   * @param {Object} graph    parent graph object
+   * @return {Object | null} subgraph
+   */
+  function parseSubgraph (graph) {
+    var subgraph = null;
+
+    // optional subgraph keyword
+    if (token == 'subgraph') {
+      subgraph = {};
+      subgraph.type = 'subgraph';
+      getToken();
+
+      // optional graph id
+      if (tokenType == TOKENTYPE.IDENTIFIER) {
+        subgraph.id = token;
+        getToken();
+      }
+    }
+
+    // open angle bracket
+    if (token == '{') {
+      getToken();
+
+      if (!subgraph) {
+        subgraph = {};
+      }
+      subgraph.parent = graph;
+      subgraph.node = graph.node;
+      subgraph.edge = graph.edge;
+      subgraph.graph = graph.graph;
+
+      // statements
+      parseStatements(subgraph);
+
+      // close angle bracket
+      if (token != '}') {
+        throw newSyntaxError('Angle bracket } expected');
+      }
+      getToken();
+
+      // remove temporary default properties
+      delete subgraph.node;
+      delete subgraph.edge;
+      delete subgraph.graph;
+      delete subgraph.parent;
+
+      // register at the parent graph
+      if (!graph.subgraphs) {
+        graph.subgraphs = [];
+      }
+      graph.subgraphs.push(subgraph);
+    }
+
+    return subgraph;
+  }
+
+  /**
+   * parse an attribute statement like "node [shape=circle fontSize=16]".
+   * Available keywords are 'node', 'edge', 'graph'.
+   * The previous list with default attributes will be replaced
+   * @param {Object} graph
+   * @returns {String | null} keyword Returns the name of the parsed attribute
+   *                                  (node, edge, graph), or null if nothing
+   *                                  is parsed.
+   */
+  function parseAttributeStatement (graph) {
+    // attribute statements
+    if (token == 'node') {
+      getToken();
+
+      // node attributes
+      graph.node = parseAttributeList();
+      return 'node';
+    }
+    else if (token == 'edge') {
+      getToken();
+
+      // edge attributes
+      graph.edge = parseAttributeList();
+      return 'edge';
+    }
+    else if (token == 'graph') {
+      getToken();
+
+      // graph attributes
+      graph.graph = parseAttributeList();
+      return 'graph';
+    }
+
+    return null;
+  }
+
+  /**
+   * parse a node statement
+   * @param {Object} graph
+   * @param {String | Number} id
+   */
+  function parseNodeStatement(graph, id) {
+    // node statement
+    var node = {
+      id: id
+    };
+    var attr = parseAttributeList();
+    if (attr) {
+      node.attr = attr;
+    }
+    addNode(graph, node);
+
+    // edge statements
+    parseEdge(graph, id);
+  }
+
+  /**
+   * Parse an edge or a series of edges
+   * @param {Object} graph
+   * @param {String | Number} from        Id of the from node
+   */
+  function parseEdge(graph, from) {
+    while (token == '->' || token == '--') {
+      var to;
+      var type = token;
+      getToken();
+
+      var subgraph = parseSubgraph(graph);
+      if (subgraph) {
+        to = subgraph;
+      }
+      else {
         if (tokenType != TOKENTYPE.IDENTIFIER) {
-            throw newSyntaxError('Identifier expected');
+          throw newSyntaxError('Identifier or subgraph expected');
         }
-        var id = token; // id can be a string or a number
+        to = token;
+        addNode(graph, {
+          id: to
+        });
+        getToken();
+      }
+
+      // parse edge attributes
+      var attr = parseAttributeList();
+
+      // create edge
+      var edge = createEdge(graph, from, to, type, attr);
+      addEdge(graph, edge);
+
+      from = to;
+    }
+  }
+
+  /**
+   * Parse a set with attributes,
+   * for example [label="1.000", shape=solid]
+   * @return {Object | null} attr
+   */
+  function parseAttributeList() {
+    var attr = null;
+
+    while (token == '[') {
+      getToken();
+      attr = {};
+      while (token !== '' && token != ']') {
+        if (tokenType != TOKENTYPE.IDENTIFIER) {
+          throw newSyntaxError('Attribute name expected');
+        }
+        var name = token;
+
+        getToken();
+        if (token != '=') {
+          throw newSyntaxError('Equal sign = expected');
+        }
         getToken();
 
-        if (token == '=') {
-            // id statement
-            getToken();
-            if (tokenType != TOKENTYPE.IDENTIFIER) {
-                throw newSyntaxError('Identifier expected');
-            }
-            graph[id] = token;
-            getToken();
-            // TODO: implement comma separated list with "a_list: ID=ID [','] [a_list] "
+        if (tokenType != TOKENTYPE.IDENTIFIER) {
+          throw newSyntaxError('Attribute value expected');
+        }
+        var value = token;
+        setValue(attr, name, value); // name can be a path
+
+        getToken();
+        if (token ==',') {
+          getToken();
+        }
+      }
+
+      if (token != ']') {
+        throw newSyntaxError('Bracket ] expected');
+      }
+      getToken();
+    }
+
+    return attr;
+  }
+
+  /**
+   * Create a syntax error with extra information on current token and index.
+   * @param {String} message
+   * @returns {SyntaxError} err
+   */
+  function newSyntaxError(message) {
+    return new SyntaxError(message + ', got "' + chop(token, 30) + '" (char ' + index + ')');
+  }
+
+  /**
+   * Chop off text after a maximum length
+   * @param {String} text
+   * @param {Number} maxLength
+   * @returns {String}
+   */
+  function chop (text, maxLength) {
+    return (text.length <= maxLength) ? text : (text.substr(0, 27) + '...');
+  }
+
+  /**
+   * Execute a function fn for each pair of elements in two arrays
+   * @param {Array | *} array1
+   * @param {Array | *} array2
+   * @param {function} fn
+   */
+  function forEach2(array1, array2, fn) {
+    if (array1 instanceof Array) {
+      array1.forEach(function (elem1) {
+        if (array2 instanceof Array) {
+          array2.forEach(function (elem2)  {
+            fn(elem1, elem2);
+          });
         }
         else {
-            parseNodeStatement(graph, id);
+          fn(elem1, array2);
         }
+      });
     }
-
-    /**
-     * Parse a subgraph
-     * @param {Object} graph    parent graph object
-     * @return {Object | null} subgraph
-     */
-    function parseSubgraph (graph) {
-        var subgraph = null;
-
-        // optional subgraph keyword
-        if (token == 'subgraph') {
-            subgraph = {};
-            subgraph.type = 'subgraph';
-            getToken();
-
-            // optional graph id
-            if (tokenType == TOKENTYPE.IDENTIFIER) {
-                subgraph.id = token;
-                getToken();
-            }
-        }
-
-        // open angle bracket
-        if (token == '{') {
-            getToken();
-
-            if (!subgraph) {
-                subgraph = {};
-            }
-            subgraph.parent = graph;
-            subgraph.node = graph.node;
-            subgraph.edge = graph.edge;
-            subgraph.graph = graph.graph;
-
-            // statements
-            parseStatements(subgraph);
-
-            // close angle bracket
-            if (token != '}') {
-                throw newSyntaxError('Angle bracket } expected');
-            }
-            getToken();
-
-            // remove temporary default properties
-            delete subgraph.node;
-            delete subgraph.edge;
-            delete subgraph.graph;
-            delete subgraph.parent;
-
-            // register at the parent graph
-            if (!graph.subgraphs) {
-                graph.subgraphs = [];
-            }
-            graph.subgraphs.push(subgraph);
-        }
-
-        return subgraph;
+    else {
+      if (array2 instanceof Array) {
+        array2.forEach(function (elem2)  {
+          fn(array1, elem2);
+        });
+      }
+      else {
+        fn(array1, array2);
+      }
     }
+  }
 
-    /**
-     * parse an attribute statement like "node [shape=circle fontSize=16]".
-     * Available keywords are 'node', 'edge', 'graph'.
-     * The previous list with default attributes will be replaced
-     * @param {Object} graph
-     * @returns {String | null} keyword Returns the name of the parsed attribute
-     *                                  (node, edge, graph), or null if nothing
-     *                                  is parsed.
-     */
-    function parseAttributeStatement (graph) {
-        // attribute statements
-        if (token == 'node') {
-            getToken();
+  /**
+   * Convert a string containing a graph in DOT language into a map containing
+   * with nodes and edges in the format of graph.
+   * @param {String} data         Text containing a graph in DOT-notation
+   * @return {Object} graphData
+   */
+  function DOTToGraph (data) {
+    // parse the DOT file
+    var dotData = parseDOT(data);
+    var graphData = {
+      nodes: [],
+      edges: [],
+      options: {}
+    };
 
-            // node attributes
-            graph.node = parseAttributeList();
-            return 'node';
-        }
-        else if (token == 'edge') {
-            getToken();
-
-            // edge attributes
-            graph.edge = parseAttributeList();
-            return 'edge';
-        }
-        else if (token == 'graph') {
-            getToken();
-
-            // graph attributes
-            graph.graph = parseAttributeList();
-            return 'graph';
-        }
-
-        return null;
-    }
-
-    /**
-     * parse a node statement
-     * @param {Object} graph
-     * @param {String | Number} id
-     */
-    function parseNodeStatement(graph, id) {
-        // node statement
-        var node = {
-            id: id
+    // copy the nodes
+    if (dotData.nodes) {
+      dotData.nodes.forEach(function (dotNode) {
+        var graphNode = {
+          id: dotNode.id,
+          label: String(dotNode.label || dotNode.id)
         };
-        var attr = parseAttributeList();
-        if (attr) {
-            node.attr = attr;
+        merge(graphNode, dotNode.attr);
+        if (graphNode.image) {
+          graphNode.shape = 'image';
         }
-        addNode(graph, node);
-
-        // edge statements
-        parseEdge(graph, id);
+        graphData.nodes.push(graphNode);
+      });
     }
 
-    /**
-     * Parse an edge or a series of edges
-     * @param {Object} graph
-     * @param {String | Number} from        Id of the from node
-     */
-    function parseEdge(graph, from) {
-        while (token == '->' || token == '--') {
-            var to;
-            var type = token;
-            getToken();
+    // copy the edges
+    if (dotData.edges) {
+      /**
+       * Convert an edge in DOT format to an edge with VisGraph format
+       * @param {Object} dotEdge
+       * @returns {Object} graphEdge
+       */
+      function convertEdge(dotEdge) {
+        var graphEdge = {
+          from: dotEdge.from,
+          to: dotEdge.to
+        };
+        merge(graphEdge, dotEdge.attr);
+        graphEdge.style = (dotEdge.type == '->') ? 'arrow' : 'line';
+        return graphEdge;
+      }
 
-            var subgraph = parseSubgraph(graph);
-            if (subgraph) {
-                to = subgraph;
-            }
-            else {
-                if (tokenType != TOKENTYPE.IDENTIFIER) {
-                    throw newSyntaxError('Identifier or subgraph expected');
-                }
-                to = token;
-                addNode(graph, {
-                    id: to
-                });
-                getToken();
-            }
-
-            // parse edge attributes
-            var attr = parseAttributeList();
-
-            // create edge
-            var edge = createEdge(graph, from, to, type, attr);
-            addEdge(graph, edge);
-
-            from = to;
+      dotData.edges.forEach(function (dotEdge) {
+        var from, to;
+        if (dotEdge.from instanceof Object) {
+          from = dotEdge.from.nodes;
         }
-    }
-
-    /**
-     * Parse a set with attributes,
-     * for example [label="1.000", shape=solid]
-     * @return {Object | null} attr
-     */
-    function parseAttributeList() {
-        var attr = null;
-
-        while (token == '[') {
-            getToken();
-            attr = {};
-            while (token !== '' && token != ']') {
-                if (tokenType != TOKENTYPE.IDENTIFIER) {
-                    throw newSyntaxError('Attribute name expected');
-                }
-                var name = token;
-
-                getToken();
-                if (token != '=') {
-                    throw newSyntaxError('Equal sign = expected');
-                }
-                getToken();
-
-                if (tokenType != TOKENTYPE.IDENTIFIER) {
-                    throw newSyntaxError('Attribute value expected');
-                }
-                var value = token;
-                setValue(attr, name, value); // name can be a path
-
-                getToken();
-                if (token ==',') {
-                    getToken();
-                }
-            }
-
-            if (token != ']') {
-                throw newSyntaxError('Bracket ] expected');
-            }
-            getToken();
-        }
-
-        return attr;
-    }
-
-    /**
-     * Create a syntax error with extra information on current token and index.
-     * @param {String} message
-     * @returns {SyntaxError} err
-     */
-    function newSyntaxError(message) {
-        return new SyntaxError(message + ', got "' + chop(token, 30) + '" (char ' + index + ')');
-    }
-
-    /**
-     * Chop off text after a maximum length
-     * @param {String} text
-     * @param {Number} maxLength
-     * @returns {String}
-     */
-    function chop (text, maxLength) {
-        return (text.length <= maxLength) ? text : (text.substr(0, 27) + '...');
-    }
-
-    /**
-     * Execute a function fn for each pair of elements in two arrays
-     * @param {Array | *} array1
-     * @param {Array | *} array2
-     * @param {function} fn
-     */
-    function forEach2(array1, array2, fn) {
-       if (array1 instanceof Array) {
-           array1.forEach(function (elem1) {
-               if (array2 instanceof Array) {
-                   array2.forEach(function (elem2)  {
-                       fn(elem1, elem2);
-                   });
-               }
-               else {
-                   fn(elem1, array2);
-               }
-           });
-       }
         else {
-           if (array2 instanceof Array) {
-               array2.forEach(function (elem2)  {
-                   fn(array1, elem2);
-               });
-           }
-           else {
-               fn(array1, array2);
-           }
-       }
+          from = {
+            id: dotEdge.from
+          }
+        }
+
+        if (dotEdge.to instanceof Object) {
+          to = dotEdge.to.nodes;
+        }
+        else {
+          to = {
+            id: dotEdge.to
+          }
+        }
+
+        if (dotEdge.from instanceof Object && dotEdge.from.edges) {
+          dotEdge.from.edges.forEach(function (subEdge) {
+            var graphEdge = convertEdge(subEdge);
+            graphData.edges.push(graphEdge);
+          });
+        }
+
+        forEach2(from, to, function (from, to) {
+          var subEdge = createEdge(graphData, from.id, to.id, dotEdge.type, dotEdge.attr);
+          var graphEdge = convertEdge(subEdge);
+          graphData.edges.push(graphEdge);
+        });
+
+        if (dotEdge.to instanceof Object && dotEdge.to.edges) {
+          dotEdge.to.edges.forEach(function (subEdge) {
+            var graphEdge = convertEdge(subEdge);
+            graphData.edges.push(graphEdge);
+          });
+        }
+      });
     }
 
-    /**
-     * Convert a string containing a graph in DOT language into a map containing
-     * with nodes and edges in the format of graph.
-     * @param {String} data         Text containing a graph in DOT-notation
-     * @return {Object} graphData
-     */
-    function DOTToGraph (data) {
-        // parse the DOT file
-        var dotData = parseDOT(data);
-        var graphData = {
-            nodes: [],
-            edges: [],
-            options: {}
-        };
-
-        // copy the nodes
-        if (dotData.nodes) {
-            dotData.nodes.forEach(function (dotNode) {
-                var graphNode = {
-                    id: dotNode.id,
-                    label: String(dotNode.label || dotNode.id)
-                };
-                merge(graphNode, dotNode.attr);
-                if (graphNode.image) {
-                    graphNode.shape = 'image';
-                }
-                graphData.nodes.push(graphNode);
-            });
-        }
-
-        // copy the edges
-        if (dotData.edges) {
-            /**
-             * Convert an edge in DOT format to an edge with VisGraph format
-             * @param {Object} dotEdge
-             * @returns {Object} graphEdge
-             */
-            function convertEdge(dotEdge) {
-                var graphEdge = {
-                    from: dotEdge.from,
-                    to: dotEdge.to
-                };
-                merge(graphEdge, dotEdge.attr);
-                graphEdge.style = (dotEdge.type == '->') ? 'arrow' : 'line';
-                return graphEdge;
-            }
-
-            dotData.edges.forEach(function (dotEdge) {
-                var from, to;
-                if (dotEdge.from instanceof Object) {
-                    from = dotEdge.from.nodes;
-                }
-                else {
-                    from = {
-                        id: dotEdge.from
-                    }
-                }
-
-                if (dotEdge.to instanceof Object) {
-                    to = dotEdge.to.nodes;
-                }
-                else {
-                    to = {
-                        id: dotEdge.to
-                    }
-                }
-
-                if (dotEdge.from instanceof Object && dotEdge.from.edges) {
-                    dotEdge.from.edges.forEach(function (subEdge) {
-                        var graphEdge = convertEdge(subEdge);
-                        graphData.edges.push(graphEdge);
-                    });
-                }
-
-                forEach2(from, to, function (from, to) {
-                    var subEdge = createEdge(graphData, from.id, to.id, dotEdge.type, dotEdge.attr);
-                    var graphEdge = convertEdge(subEdge);
-                    graphData.edges.push(graphEdge);
-                });
-
-                if (dotEdge.to instanceof Object && dotEdge.to.edges) {
-                    dotEdge.to.edges.forEach(function (subEdge) {
-                        var graphEdge = convertEdge(subEdge);
-                        graphData.edges.push(graphEdge);
-                    });
-                }
-            });
-        }
-
-        // copy the options
-        if (dotData.attr) {
-            graphData.options = dotData.attr;
-        }
-
-        return graphData;
+    // copy the options
+    if (dotData.attr) {
+      graphData.options = dotData.attr;
     }
 
-    // exports
-    exports.parseDOT = parseDOT;
-    exports.DOTToGraph = DOTToGraph;
+    return graphData;
+  }
+
+  // exports
+  exports.parseDOT = parseDOT;
+  exports.DOTToGraph = DOTToGraph;
 
 })(typeof util !== 'undefined' ? util : exports);
 
@@ -12158,225 +11637,225 @@ Timeline.prototype.getItemRange = function getItemRange() {
  */
 if (typeof CanvasRenderingContext2D !== 'undefined') {
 
-    /**
-     * Draw a circle shape
-     */
-    CanvasRenderingContext2D.prototype.circle = function(x, y, r) {
-        this.beginPath();
-        this.arc(x, y, r, 0, 2*Math.PI, false);
-    };
+  /**
+   * Draw a circle shape
+   */
+  CanvasRenderingContext2D.prototype.circle = function(x, y, r) {
+    this.beginPath();
+    this.arc(x, y, r, 0, 2*Math.PI, false);
+  };
 
-    /**
-     * Draw a square shape
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   size, width and height of the square
-     */
-    CanvasRenderingContext2D.prototype.square = function(x, y, r) {
-        this.beginPath();
-        this.rect(x - r, y - r, r * 2, r * 2);
-    };
+  /**
+   * Draw a square shape
+   * @param {Number} x horizontal center
+   * @param {Number} y vertical center
+   * @param {Number} r   size, width and height of the square
+   */
+  CanvasRenderingContext2D.prototype.square = function(x, y, r) {
+    this.beginPath();
+    this.rect(x - r, y - r, r * 2, r * 2);
+  };
 
-    /**
-     * Draw a triangle shape
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   radius, half the length of the sides of the triangle
-     */
-    CanvasRenderingContext2D.prototype.triangle = function(x, y, r) {
-        // http://en.wikipedia.org/wiki/Equilateral_triangle
-        this.beginPath();
+  /**
+   * Draw a triangle shape
+   * @param {Number} x horizontal center
+   * @param {Number} y vertical center
+   * @param {Number} r   radius, half the length of the sides of the triangle
+   */
+  CanvasRenderingContext2D.prototype.triangle = function(x, y, r) {
+    // http://en.wikipedia.org/wiki/Equilateral_triangle
+    this.beginPath();
 
-        var s = r * 2;
-        var s2 = s / 2;
-        var ir = Math.sqrt(3) / 6 * s;      // radius of inner circle
-        var h = Math.sqrt(s * s - s2 * s2); // height
+    var s = r * 2;
+    var s2 = s / 2;
+    var ir = Math.sqrt(3) / 6 * s;      // radius of inner circle
+    var h = Math.sqrt(s * s - s2 * s2); // height
 
-        this.moveTo(x, y - (h - ir));
-        this.lineTo(x + s2, y + ir);
-        this.lineTo(x - s2, y + ir);
-        this.lineTo(x, y - (h - ir));
-        this.closePath();
-    };
+    this.moveTo(x, y - (h - ir));
+    this.lineTo(x + s2, y + ir);
+    this.lineTo(x - s2, y + ir);
+    this.lineTo(x, y - (h - ir));
+    this.closePath();
+  };
 
-    /**
-     * Draw a triangle shape in downward orientation
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r radius
-     */
-    CanvasRenderingContext2D.prototype.triangleDown = function(x, y, r) {
-        // http://en.wikipedia.org/wiki/Equilateral_triangle
-        this.beginPath();
+  /**
+   * Draw a triangle shape in downward orientation
+   * @param {Number} x horizontal center
+   * @param {Number} y vertical center
+   * @param {Number} r radius
+   */
+  CanvasRenderingContext2D.prototype.triangleDown = function(x, y, r) {
+    // http://en.wikipedia.org/wiki/Equilateral_triangle
+    this.beginPath();
 
-        var s = r * 2;
-        var s2 = s / 2;
-        var ir = Math.sqrt(3) / 6 * s;      // radius of inner circle
-        var h = Math.sqrt(s * s - s2 * s2); // height
+    var s = r * 2;
+    var s2 = s / 2;
+    var ir = Math.sqrt(3) / 6 * s;      // radius of inner circle
+    var h = Math.sqrt(s * s - s2 * s2); // height
 
-        this.moveTo(x, y + (h - ir));
-        this.lineTo(x + s2, y - ir);
-        this.lineTo(x - s2, y - ir);
-        this.lineTo(x, y + (h - ir));
-        this.closePath();
-    };
+    this.moveTo(x, y + (h - ir));
+    this.lineTo(x + s2, y - ir);
+    this.lineTo(x - s2, y - ir);
+    this.lineTo(x, y + (h - ir));
+    this.closePath();
+  };
 
-    /**
-     * Draw a star shape, a star with 5 points
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   radius, half the length of the sides of the triangle
-     */
-    CanvasRenderingContext2D.prototype.star = function(x, y, r) {
-        // http://www.html5canvastutorials.com/labs/html5-canvas-star-spinner/
-        this.beginPath();
+  /**
+   * Draw a star shape, a star with 5 points
+   * @param {Number} x horizontal center
+   * @param {Number} y vertical center
+   * @param {Number} r   radius, half the length of the sides of the triangle
+   */
+  CanvasRenderingContext2D.prototype.star = function(x, y, r) {
+    // http://www.html5canvastutorials.com/labs/html5-canvas-star-spinner/
+    this.beginPath();
 
-        for (var n = 0; n < 10; n++) {
-            var radius = (n % 2 === 0) ? r * 1.3 : r * 0.5;
-            this.lineTo(
-                x + radius * Math.sin(n * 2 * Math.PI / 10),
-                y - radius * Math.cos(n * 2 * Math.PI / 10)
-            );
-        }
+    for (var n = 0; n < 10; n++) {
+      var radius = (n % 2 === 0) ? r * 1.3 : r * 0.5;
+      this.lineTo(
+          x + radius * Math.sin(n * 2 * Math.PI / 10),
+          y - radius * Math.cos(n * 2 * Math.PI / 10)
+      );
+    }
 
-        this.closePath();
-    };
+    this.closePath();
+  };
 
-    /**
-     * http://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-on-html-canvas
-     */
-    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-        var r2d = Math.PI/180;
-        if( w - ( 2 * r ) < 0 ) { r = ( w / 2 ); } //ensure that the radius isn't too large for x
-        if( h - ( 2 * r ) < 0 ) { r = ( h / 2 ); } //ensure that the radius isn't too large for y
-        this.beginPath();
-        this.moveTo(x+r,y);
-        this.lineTo(x+w-r,y);
-        this.arc(x+w-r,y+r,r,r2d*270,r2d*360,false);
-        this.lineTo(x+w,y+h-r);
-        this.arc(x+w-r,y+h-r,r,0,r2d*90,false);
-        this.lineTo(x+r,y+h);
-        this.arc(x+r,y+h-r,r,r2d*90,r2d*180,false);
-        this.lineTo(x,y+r);
-        this.arc(x+r,y+r,r,r2d*180,r2d*270,false);
-    };
+  /**
+   * http://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-on-html-canvas
+   */
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    var r2d = Math.PI/180;
+    if( w - ( 2 * r ) < 0 ) { r = ( w / 2 ); } //ensure that the radius isn't too large for x
+    if( h - ( 2 * r ) < 0 ) { r = ( h / 2 ); } //ensure that the radius isn't too large for y
+    this.beginPath();
+    this.moveTo(x+r,y);
+    this.lineTo(x+w-r,y);
+    this.arc(x+w-r,y+r,r,r2d*270,r2d*360,false);
+    this.lineTo(x+w,y+h-r);
+    this.arc(x+w-r,y+h-r,r,0,r2d*90,false);
+    this.lineTo(x+r,y+h);
+    this.arc(x+r,y+h-r,r,r2d*90,r2d*180,false);
+    this.lineTo(x,y+r);
+    this.arc(x+r,y+r,r,r2d*180,r2d*270,false);
+  };
 
-    /**
-     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
-     */
-    CanvasRenderingContext2D.prototype.ellipse = function(x, y, w, h) {
-        var kappa = .5522848,
-            ox = (w / 2) * kappa, // control point offset horizontal
-            oy = (h / 2) * kappa, // control point offset vertical
-            xe = x + w,           // x-end
-            ye = y + h,           // y-end
-            xm = x + w / 2,       // x-middle
-            ym = y + h / 2;       // y-middle
+  /**
+   * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
+   */
+  CanvasRenderingContext2D.prototype.ellipse = function(x, y, w, h) {
+    var kappa = .5522848,
+        ox = (w / 2) * kappa, // control point offset horizontal
+        oy = (h / 2) * kappa, // control point offset vertical
+        xe = x + w,           // x-end
+        ye = y + h,           // y-end
+        xm = x + w / 2,       // x-middle
+        ym = y + h / 2;       // y-middle
 
-        this.beginPath();
-        this.moveTo(x, ym);
-        this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-        this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
-        this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-        this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
-    };
-
-
-
-    /**
-     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
-     */
-    CanvasRenderingContext2D.prototype.database = function(x, y, w, h) {
-        var f = 1/3;
-        var wEllipse = w;
-        var hEllipse = h * f;
-
-        var kappa = .5522848,
-            ox = (wEllipse / 2) * kappa, // control point offset horizontal
-            oy = (hEllipse / 2) * kappa, // control point offset vertical
-            xe = x + wEllipse,           // x-end
-            ye = y + hEllipse,           // y-end
-            xm = x + wEllipse / 2,       // x-middle
-            ym = y + hEllipse / 2,       // y-middle
-            ymb = y + (h - hEllipse/2),  // y-midlle, bottom ellipse
-            yeb = y + h;                 // y-end, bottom ellipse
-
-        this.beginPath();
-        this.moveTo(xe, ym);
-
-        this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-        this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
-
-        this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-        this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
-
-        this.lineTo(xe, ymb);
-
-        this.bezierCurveTo(xe, ymb + oy, xm + ox, yeb, xm, yeb);
-        this.bezierCurveTo(xm - ox, yeb, x, ymb + oy, x, ymb);
-
-        this.lineTo(x, ym);
-    };
+    this.beginPath();
+    this.moveTo(x, ym);
+    this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+    this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+    this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+    this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+  };
 
 
-    /**
-     * Draw an arrow point (no line)
-     */
-    CanvasRenderingContext2D.prototype.arrow = function(x, y, angle, length) {
-        // tail
-        var xt = x - length * Math.cos(angle);
-        var yt = y - length * Math.sin(angle);
 
-        // inner tail
-        // TODO: allow to customize different shapes
-        var xi = x - length * 0.9 * Math.cos(angle);
-        var yi = y - length * 0.9 * Math.sin(angle);
+  /**
+   * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
+   */
+  CanvasRenderingContext2D.prototype.database = function(x, y, w, h) {
+    var f = 1/3;
+    var wEllipse = w;
+    var hEllipse = h * f;
 
-        // left
-        var xl = xt + length / 3 * Math.cos(angle + 0.5 * Math.PI);
-        var yl = yt + length / 3 * Math.sin(angle + 0.5 * Math.PI);
+    var kappa = .5522848,
+        ox = (wEllipse / 2) * kappa, // control point offset horizontal
+        oy = (hEllipse / 2) * kappa, // control point offset vertical
+        xe = x + wEllipse,           // x-end
+        ye = y + hEllipse,           // y-end
+        xm = x + wEllipse / 2,       // x-middle
+        ym = y + hEllipse / 2,       // y-middle
+        ymb = y + (h - hEllipse/2),  // y-midlle, bottom ellipse
+        yeb = y + h;                 // y-end, bottom ellipse
 
-        // right
-        var xr = xt + length / 3 * Math.cos(angle - 0.5 * Math.PI);
-        var yr = yt + length / 3 * Math.sin(angle - 0.5 * Math.PI);
+    this.beginPath();
+    this.moveTo(xe, ym);
 
-        this.beginPath();
-        this.moveTo(x, y);
-        this.lineTo(xl, yl);
-        this.lineTo(xi, yi);
-        this.lineTo(xr, yr);
-        this.closePath();
-    };
+    this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+    this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
 
-    /**
-     * Sets up the dashedLine functionality for drawing
-     * Original code came from http://stackoverflow.com/questions/4576724/dotted-stroke-in-canvas
-     * @author David Jordan
-     * @date 2012-08-08
-     */
-    CanvasRenderingContext2D.prototype.dashedLine = function(x,y,x2,y2,dashArray){
-        if (!dashArray) dashArray=[10,5];
-        if (dashLength==0) dashLength = 0.001; // Hack for Safari
-        var dashCount = dashArray.length;
-        this.moveTo(x, y);
-        var dx = (x2-x), dy = (y2-y);
-        var slope = dy/dx;
-        var distRemaining = Math.sqrt( dx*dx + dy*dy );
-        var dashIndex=0, draw=true;
-        while (distRemaining>=0.1){
-            var dashLength = dashArray[dashIndex++%dashCount];
-            if (dashLength > distRemaining) dashLength = distRemaining;
-            var xStep = Math.sqrt( dashLength*dashLength / (1 + slope*slope) );
-            if (dx<0) xStep = -xStep;
-            x += xStep;
-            y += slope*xStep;
-            this[draw ? 'lineTo' : 'moveTo'](x,y);
-            distRemaining -= dashLength;
-            draw = !draw;
-        }
-    };
+    this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+    this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
 
-    // TODO: add diamond shape
+    this.lineTo(xe, ymb);
+
+    this.bezierCurveTo(xe, ymb + oy, xm + ox, yeb, xm, yeb);
+    this.bezierCurveTo(xm - ox, yeb, x, ymb + oy, x, ymb);
+
+    this.lineTo(x, ym);
+  };
+
+
+  /**
+   * Draw an arrow point (no line)
+   */
+  CanvasRenderingContext2D.prototype.arrow = function(x, y, angle, length) {
+    // tail
+    var xt = x - length * Math.cos(angle);
+    var yt = y - length * Math.sin(angle);
+
+    // inner tail
+    // TODO: allow to customize different shapes
+    var xi = x - length * 0.9 * Math.cos(angle);
+    var yi = y - length * 0.9 * Math.sin(angle);
+
+    // left
+    var xl = xt + length / 3 * Math.cos(angle + 0.5 * Math.PI);
+    var yl = yt + length / 3 * Math.sin(angle + 0.5 * Math.PI);
+
+    // right
+    var xr = xt + length / 3 * Math.cos(angle - 0.5 * Math.PI);
+    var yr = yt + length / 3 * Math.sin(angle - 0.5 * Math.PI);
+
+    this.beginPath();
+    this.moveTo(x, y);
+    this.lineTo(xl, yl);
+    this.lineTo(xi, yi);
+    this.lineTo(xr, yr);
+    this.closePath();
+  };
+
+  /**
+   * Sets up the dashedLine functionality for drawing
+   * Original code came from http://stackoverflow.com/questions/4576724/dotted-stroke-in-canvas
+   * @author David Jordan
+   * @date 2012-08-08
+   */
+  CanvasRenderingContext2D.prototype.dashedLine = function(x,y,x2,y2,dashArray){
+    if (!dashArray) dashArray=[10,5];
+    if (dashLength==0) dashLength = 0.001; // Hack for Safari
+    var dashCount = dashArray.length;
+    this.moveTo(x, y);
+    var dx = (x2-x), dy = (y2-y);
+    var slope = dy/dx;
+    var distRemaining = Math.sqrt( dx*dx + dy*dy );
+    var dashIndex=0, draw=true;
+    while (distRemaining>=0.1){
+      var dashLength = dashArray[dashIndex++%dashCount];
+      if (dashLength > distRemaining) dashLength = distRemaining;
+      var xStep = Math.sqrt( dashLength*dashLength / (1 + slope*slope) );
+      if (dx<0) xStep = -xStep;
+      x += xStep;
+      y += slope*xStep;
+      this[draw ? 'lineTo' : 'moveTo'](x,y);
+      distRemaining -= dashLength;
+      draw = !draw;
+    }
+  };
+
+  // TODO: add diamond shape
 }
 
 /**
@@ -12404,43 +11883,43 @@ if (typeof CanvasRenderingContext2D !== 'undefined') {
  *                                            example for the color
  */
 function Node(properties, imagelist, grouplist, constants) {
-    this.selected = false;
+  this.selected = false;
 
-    this.edges = []; // all edges connected to this node
-    this.group = constants.nodes.group;
+  this.edges = []; // all edges connected to this node
+  this.group = constants.nodes.group;
 
-    this.fontSize = constants.nodes.fontSize;
-    this.fontFace = constants.nodes.fontFace;
-    this.fontColor = constants.nodes.fontColor;
+  this.fontSize = constants.nodes.fontSize;
+  this.fontFace = constants.nodes.fontFace;
+  this.fontColor = constants.nodes.fontColor;
 
-    this.color = constants.nodes.color;
+  this.color = constants.nodes.color;
 
-    // set defaults for the properties
-    this.id = undefined;
-    this.shape = constants.nodes.shape;
-    this.image = constants.nodes.image;
-    this.x = 0;
-    this.y = 0;
-    this.xFixed = false;
-    this.yFixed = false;
-    this.radius = constants.nodes.radius;
-    this.radiusFixed = false;
-    this.radiusMin = constants.nodes.radiusMin;
-    this.radiusMax = constants.nodes.radiusMax;
+  // set defaults for the properties
+  this.id = undefined;
+  this.shape = constants.nodes.shape;
+  this.image = constants.nodes.image;
+  this.x = 0;
+  this.y = 0;
+  this.xFixed = false;
+  this.yFixed = false;
+  this.radius = constants.nodes.radius;
+  this.radiusFixed = false;
+  this.radiusMin = constants.nodes.radiusMin;
+  this.radiusMax = constants.nodes.radiusMax;
 
-    this.imagelist = imagelist;
-    this.grouplist = grouplist;
+  this.imagelist = imagelist;
+  this.grouplist = grouplist;
 
-    this.setProperties(properties, constants);
+  this.setProperties(properties, constants);
 
-    // mass, force, velocity
-    this.mass = 50;  // kg (mass is adjusted for the number of connected edges)
-    this.fx = 0.0;  // external force x
-    this.fy = 0.0;  // external force y
-    this.vx = 0.0;  // velocity x
-    this.vy = 0.0;  // velocity y
-    this.minForce = constants.minForce;
-    this.damping = 0.9; // damping factor
+  // mass, force, velocity
+  this.mass = 50;  // kg (mass is adjusted for the number of connected edges)
+  this.fx = 0.0;  // external force x
+  this.fy = 0.0;  // external force y
+  this.vx = 0.0;  // velocity x
+  this.vy = 0.0;  // velocity y
+  this.minForce = constants.minForce;
+  this.damping = 0.9; // damping factor
 };
 
 /**
@@ -12448,10 +11927,10 @@ function Node(properties, imagelist, grouplist, constants) {
  * @param {Edge} edge
  */
 Node.prototype.attachEdge = function(edge) {
-    if (this.edges.indexOf(edge) == -1) {
-        this.edges.push(edge);
-    }
-    this._updateMass();
+  if (this.edges.indexOf(edge) == -1) {
+    this.edges.push(edge);
+  }
+  this._updateMass();
 };
 
 /**
@@ -12459,11 +11938,11 @@ Node.prototype.attachEdge = function(edge) {
  * @param {Edge} edge
  */
 Node.prototype.detachEdge = function(edge) {
-    var index = this.edges.indexOf(edge);
-    if (index != -1) {
-        this.edges.splice(index, 1);
-    }
-    this._updateMass();
+  var index = this.edges.indexOf(edge);
+  if (index != -1) {
+    this.edges.splice(index, 1);
+  }
+  this._updateMass();
 };
 
 /**
@@ -12472,7 +11951,7 @@ Node.prototype.detachEdge = function(edge) {
  * @private
  */
 Node.prototype._updateMass = function() {
-    this.mass = 50 + 20 * this.edges.length; // kg
+  this.mass = 50 + 20 * this.edges.length; // kg
 };
 
 /**
@@ -12481,81 +11960,81 @@ Node.prototype._updateMass = function() {
  * @param {Object} constants  and object with default, global properties
  */
 Node.prototype.setProperties = function(properties, constants) {
-    if (!properties) {
-        return;
+  if (!properties) {
+    return;
+  }
+
+  // basic properties
+  if (properties.id != undefined)        {this.id = properties.id;}
+  if (properties.label != undefined)     {this.label = properties.label;}
+  if (properties.title != undefined)     {this.title = properties.title;}
+  if (properties.group != undefined)     {this.group = properties.group;}
+  if (properties.x != undefined)         {this.x = properties.x;}
+  if (properties.y != undefined)         {this.y = properties.y;}
+  if (properties.value != undefined)     {this.value = properties.value;}
+
+  if (this.id === undefined) {
+    throw "Node must have an id";
+  }
+
+  // copy group properties
+  if (this.group) {
+    var groupObj = this.grouplist.get(this.group);
+    for (var prop in groupObj) {
+      if (groupObj.hasOwnProperty(prop)) {
+        this[prop] = groupObj[prop];
+      }
     }
+  }
 
-    // basic properties
-    if (properties.id != undefined)        {this.id = properties.id;}
-    if (properties.label != undefined)     {this.label = properties.label;}
-    if (properties.title != undefined)     {this.title = properties.title;}
-    if (properties.group != undefined)     {this.group = properties.group;}
-    if (properties.x != undefined)         {this.x = properties.x;}
-    if (properties.y != undefined)         {this.y = properties.y;}
-    if (properties.value != undefined)     {this.value = properties.value;}
+  // individual shape properties
+  if (properties.shape != undefined)          {this.shape = properties.shape;}
+  if (properties.image != undefined)          {this.image = properties.image;}
+  if (properties.radius != undefined)         {this.radius = properties.radius;}
+  if (properties.color != undefined)          {this.color = Node.parseColor(properties.color);}
 
-    if (this.id === undefined) {
-        throw "Node must have an id";
+  if (properties.fontColor != undefined)      {this.fontColor = properties.fontColor;}
+  if (properties.fontSize != undefined)       {this.fontSize = properties.fontSize;}
+  if (properties.fontFace != undefined)       {this.fontFace = properties.fontFace;}
+
+
+  if (this.image != undefined) {
+    if (this.imagelist) {
+      this.imageObj = this.imagelist.load(this.image);
     }
-
-    // copy group properties
-    if (this.group) {
-        var groupObj = this.grouplist.get(this.group);
-        for (var prop in groupObj) {
-            if (groupObj.hasOwnProperty(prop)) {
-                this[prop] = groupObj[prop];
-            }
-        }
+    else {
+      throw "No imagelist provided";
     }
+  }
 
-    // individual shape properties
-    if (properties.shape != undefined)          {this.shape = properties.shape;}
-    if (properties.image != undefined)          {this.image = properties.image;}
-    if (properties.radius != undefined)         {this.radius = properties.radius;}
-    if (properties.color != undefined)          {this.color = Node.parseColor(properties.color);}
+  this.xFixed = this.xFixed || (properties.x != undefined);
+  this.yFixed = this.yFixed || (properties.y != undefined);
+  this.radiusFixed = this.radiusFixed || (properties.radius != undefined);
 
-    if (properties.fontColor != undefined)      {this.fontColor = properties.fontColor;}
-    if (properties.fontSize != undefined)       {this.fontSize = properties.fontSize;}
-    if (properties.fontFace != undefined)       {this.fontFace = properties.fontFace;}
+  if (this.shape == 'image') {
+    this.radiusMin = constants.nodes.widthMin;
+    this.radiusMax = constants.nodes.widthMax;
+  }
 
+  // choose draw method depending on the shape
+  switch (this.shape) {
+    case 'database':      this.draw = this._drawDatabase; this.resize = this._resizeDatabase; break;
+    case 'box':           this.draw = this._drawBox; this.resize = this._resizeBox; break;
+    case 'circle':        this.draw = this._drawCircle; this.resize = this._resizeCircle; break;
+    case 'ellipse':       this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
+    // TODO: add diamond shape
+    case 'image':         this.draw = this._drawImage; this.resize = this._resizeImage; break;
+    case 'text':          this.draw = this._drawText; this.resize = this._resizeText; break;
+    case 'dot':           this.draw = this._drawDot; this.resize = this._resizeShape; break;
+    case 'square':        this.draw = this._drawSquare; this.resize = this._resizeShape; break;
+    case 'triangle':      this.draw = this._drawTriangle; this.resize = this._resizeShape; break;
+    case 'triangleDown':  this.draw = this._drawTriangleDown; this.resize = this._resizeShape; break;
+    case 'star':          this.draw = this._drawStar; this.resize = this._resizeShape; break;
+    default:              this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
+  }
 
-    if (this.image != undefined) {
-        if (this.imagelist) {
-            this.imageObj = this.imagelist.load(this.image);
-        }
-        else {
-            throw "No imagelist provided";
-        }
-    }
-
-    this.xFixed = this.xFixed || (properties.x != undefined);
-    this.yFixed = this.yFixed || (properties.y != undefined);
-    this.radiusFixed = this.radiusFixed || (properties.radius != undefined);
-
-    if (this.shape == 'image') {
-        this.radiusMin = constants.nodes.widthMin;
-        this.radiusMax = constants.nodes.widthMax;
-    }
-
-    // choose draw method depending on the shape
-    switch (this.shape) {
-        case 'database':      this.draw = this._drawDatabase; this.resize = this._resizeDatabase; break;
-        case 'box':           this.draw = this._drawBox; this.resize = this._resizeBox; break;
-        case 'circle':        this.draw = this._drawCircle; this.resize = this._resizeCircle; break;
-        case 'ellipse':       this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
-        // TODO: add diamond shape
-        case 'image':         this.draw = this._drawImage; this.resize = this._resizeImage; break;
-        case 'text':          this.draw = this._drawText; this.resize = this._resizeText; break;
-        case 'dot':           this.draw = this._drawDot; this.resize = this._resizeShape; break;
-        case 'square':        this.draw = this._drawSquare; this.resize = this._resizeShape; break;
-        case 'triangle':      this.draw = this._drawTriangle; this.resize = this._resizeShape; break;
-        case 'triangleDown':  this.draw = this._drawTriangleDown; this.resize = this._resizeShape; break;
-        case 'star':          this.draw = this._drawStar; this.resize = this._resizeShape; break;
-        default:              this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
-    }
-
-    // reset the size of the node, this can be changed
-    this._reset();
+  // reset the size of the node, this can be changed
+  this._reset();
 };
 
 /**
@@ -12565,51 +12044,51 @@ Node.prototype.setProperties = function(properties, constants) {
  * @return {Object} colorObject
  */
 Node.parseColor = function(color) {
-    var c;
-    if (util.isString(color)) {
-        c = {
-            border: color,
-            background: color,
-            highlight: {
-                border: color,
-                background: color
-            }
-        };
-        // TODO: automatically generate a nice highlight color
+  var c;
+  if (util.isString(color)) {
+    c = {
+      border: color,
+      background: color,
+      highlight: {
+        border: color,
+        background: color
+      }
+    };
+    // TODO: automatically generate a nice highlight color
+  }
+  else {
+    c = {};
+    c.background = color.background || 'white';
+    c.border = color.border || c.background;
+    if (util.isString(color.highlight)) {
+      c.highlight = {
+        border: color.highlight,
+        background: color.highlight
+      }
     }
     else {
-        c = {};
-        c.background = color.background || 'white';
-        c.border = color.border || c.background;
-        if (util.isString(color.highlight)) {
-            c.highlight = {
-                border: color.highlight,
-                background: color.highlight
-            }
-        }
-        else {
-            c.highlight = {};
-            c.highlight.background = color.highlight && color.highlight.background || c.background;
-            c.highlight.border = color.highlight && color.highlight.border || c.border;
-        }
+      c.highlight = {};
+      c.highlight.background = color.highlight && color.highlight.background || c.background;
+      c.highlight.border = color.highlight && color.highlight.border || c.border;
     }
-    return c;
+  }
+  return c;
 };
 
 /**
  * select this node
  */
 Node.prototype.select = function() {
-    this.selected = true;
-    this._reset();
+  this.selected = true;
+  this._reset();
 };
 
 /**
  * unselect this node
  */
 Node.prototype.unselect = function() {
-    this.selected = false;
-    this._reset();
+  this.selected = false;
+  this._reset();
 };
 
 /**
@@ -12617,8 +12096,8 @@ Node.prototype.unselect = function() {
  * @private
  */
 Node.prototype._reset = function() {
-    this.width = undefined;
-    this.height = undefined;
+  this.width = undefined;
+  this.height = undefined;
 };
 
 /**
@@ -12627,7 +12106,7 @@ Node.prototype._reset = function() {
  *                           has been set.
  */
 Node.prototype.getTitle = function() {
-    return this.title;
+  return this.title;
 };
 
 /**
@@ -12637,46 +12116,46 @@ Node.prototype.getTitle = function() {
  * @returns {number} distance   Distance to the border in pixels
  */
 Node.prototype.distanceToBorder = function (ctx, angle) {
-    var borderWidth = 1;
+  var borderWidth = 1;
 
-    if (!this.width) {
-        this.resize(ctx);
-    }
+  if (!this.width) {
+    this.resize(ctx);
+  }
 
-    //noinspection FallthroughInSwitchStatementJS
-    switch (this.shape) {
-        case 'circle':
-        case 'dot':
-            return this.radius + borderWidth;
+  //noinspection FallthroughInSwitchStatementJS
+  switch (this.shape) {
+    case 'circle':
+    case 'dot':
+      return this.radius + borderWidth;
 
-        case 'ellipse':
-            var a = this.width / 2;
-            var b = this.height / 2;
-            var w = (Math.sin(angle) * a);
-            var h = (Math.cos(angle) * b);
-            return a * b / Math.sqrt(w * w + h * h);
+    case 'ellipse':
+      var a = this.width / 2;
+      var b = this.height / 2;
+      var w = (Math.sin(angle) * a);
+      var h = (Math.cos(angle) * b);
+      return a * b / Math.sqrt(w * w + h * h);
 
-        // TODO: implement distanceToBorder for database
-        // TODO: implement distanceToBorder for triangle
-        // TODO: implement distanceToBorder for triangleDown
+    // TODO: implement distanceToBorder for database
+    // TODO: implement distanceToBorder for triangle
+    // TODO: implement distanceToBorder for triangleDown
 
-        case 'box':
-        case 'image':
-        case 'text':
-        default:
-            if (this.width) {
-                return Math.min(
-                    Math.abs(this.width / 2 / Math.cos(angle)),
-                    Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
-                // TODO: reckon with border radius too in case of box
-            }
-            else {
-                return 0;
-            }
+    case 'box':
+    case 'image':
+    case 'text':
+    default:
+      if (this.width) {
+        return Math.min(
+            Math.abs(this.width / 2 / Math.cos(angle)),
+            Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
+        // TODO: reckon with border radius too in case of box
+      }
+      else {
+        return 0;
+      }
 
-    }
+  }
 
-    // TODO: implement calculation of distance to border for all shapes
+  // TODO: implement calculation of distance to border for all shapes
 };
 
 /**
@@ -12685,8 +12164,8 @@ Node.prototype.distanceToBorder = function (ctx, angle) {
  * @param {number} fy   Force in vertical direction
  */
 Node.prototype._setForce = function(fx, fy) {
-    this.fx = fx;
-    this.fy = fy;
+  this.fx = fx;
+  this.fy = fy;
 };
 
 /**
@@ -12696,8 +12175,8 @@ Node.prototype._setForce = function(fx, fy) {
  * @private
  */
 Node.prototype._addForce = function(fx, fy) {
-    this.fx += fx;
-    this.fy += fy;
+  this.fx += fx;
+  this.fy += fy;
 };
 
 /**
@@ -12705,19 +12184,19 @@ Node.prototype._addForce = function(fx, fy) {
  * @param {number} interval    Time interval in seconds
  */
 Node.prototype.discreteStep = function(interval) {
-    if (!this.xFixed) {
-        var dx   = -this.damping * this.vx;     // damping force
-        var ax   = (this.fx + dx) / this.mass;  // acceleration
-        this.vx += ax / interval;               // velocity
-        this.x  += this.vx / interval;          // position
-    }
+  if (!this.xFixed) {
+    var dx   = -this.damping * this.vx;     // damping force
+    var ax   = (this.fx + dx) / this.mass;  // acceleration
+    this.vx += ax / interval;               // velocity
+    this.x  += this.vx / interval;          // position
+  }
 
-    if (!this.yFixed) {
-        var dy   = -this.damping * this.vy;     // damping force
-        var ay   = (this.fy + dy) / this.mass;  // acceleration
-        this.vy += ay / interval;               // velocity
-        this.y  += this.vy / interval;          // position
-    }
+  if (!this.yFixed) {
+    var dy   = -this.damping * this.vy;     // damping force
+    var ay   = (this.fy + dy) / this.mass;  // acceleration
+    this.vy += ay / interval;               // velocity
+    this.y  += this.vy / interval;          // position
+  }
 };
 
 
@@ -12726,7 +12205,7 @@ Node.prototype.discreteStep = function(interval) {
  * @return {boolean}      true if fixed, false if not
  */
 Node.prototype.isFixed = function() {
-    return (this.xFixed && this.yFixed);
+  return (this.xFixed && this.yFixed);
 };
 
 /**
@@ -12736,9 +12215,9 @@ Node.prototype.isFixed = function() {
  */
 // TODO: replace this method with calculating the kinetic energy
 Node.prototype.isMoving = function(vmin) {
-    return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin ||
-        (!this.xFixed && Math.abs(this.fx) > this.minForce) ||
-        (!this.yFixed && Math.abs(this.fy) > this.minForce));
+  return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin ||
+      (!this.xFixed && Math.abs(this.fx) > this.minForce) ||
+      (!this.yFixed && Math.abs(this.fy) > this.minForce));
 };
 
 /**
@@ -12746,7 +12225,7 @@ Node.prototype.isMoving = function(vmin) {
  * @return {boolean} selected   True if node is selected, else false
  */
 Node.prototype.isSelected = function() {
-    return this.selected;
+  return this.selected;
 };
 
 /**
@@ -12754,7 +12233,7 @@ Node.prototype.isSelected = function() {
  * @return {Number} value
  */
 Node.prototype.getValue = function() {
-    return this.value;
+  return this.value;
 };
 
 /**
@@ -12764,9 +12243,9 @@ Node.prototype.getValue = function() {
  * @return {Number} value
  */
 Node.prototype.getDistance = function(x, y) {
-    var dx = this.x - x,
-        dy = this.y - y;
-    return Math.sqrt(dx * dx + dy * dy);
+  var dx = this.x - x,
+      dy = this.y - y;
+  return Math.sqrt(dx * dx + dy * dy);
 };
 
 
@@ -12777,15 +12256,15 @@ Node.prototype.getDistance = function(x, y) {
  * @param {Number} max
  */
 Node.prototype.setValueRange = function(min, max) {
-    if (!this.radiusFixed && this.value !== undefined) {
-      if (max == min) {
-        this.radius = (this.radiusMin + this.radiusMax) / 2;
-      }
-      else {
-        var scale = (this.radiusMax - this.radiusMin) / (max - min);
-        this.radius = (this.value - min) * scale + this.radiusMin;
-      }
+  if (!this.radiusFixed && this.value !== undefined) {
+    if (max == min) {
+      this.radius = (this.radiusMin + this.radiusMax) / 2;
     }
+    else {
+      var scale = (this.radiusMax - this.radiusMin) / (max - min);
+      this.radius = (this.value - min) * scale + this.radiusMin;
+    }
+  }
 };
 
 /**
@@ -12794,7 +12273,7 @@ Node.prototype.setValueRange = function(min, max) {
  * @param {CanvasRenderingContext2D}   ctx
  */
 Node.prototype.draw = function(ctx) {
-    throw "Draw method not initialized for node";
+  throw "Draw method not initialized for node";
 };
 
 /**
@@ -12803,7 +12282,7 @@ Node.prototype.draw = function(ctx) {
  * @param {CanvasRenderingContext2D}   ctx
  */
 Node.prototype.resize = function(ctx) {
-    throw "Resize method not initialized for node";
+  throw "Resize method not initialized for node";
 };
 
 /**
@@ -12812,258 +12291,258 @@ Node.prototype.resize = function(ctx) {
  * @return {boolean}     True if location is located on node
  */
 Node.prototype.isOverlappingWith = function(obj) {
-    return (this.left          < obj.right &&
-        this.left + this.width > obj.left &&
-        this.top               < obj.bottom &&
-        this.top + this.height > obj.top);
+  return (this.left          < obj.right &&
+      this.left + this.width > obj.left &&
+      this.top               < obj.bottom &&
+      this.top + this.height > obj.top);
 };
 
 Node.prototype._resizeImage = function (ctx) {
-    // TODO: pre calculate the image size
-    if (!this.width) {  // undefined or 0
-        var width, height;
-        if (this.value) {
-            var scale = this.imageObj.height / this.imageObj.width;
-            width = this.radius || this.imageObj.width;
-            height = this.radius * scale || this.imageObj.height;
-        }
-        else {
-            width = this.imageObj.width;
-            height = this.imageObj.height;
-        }
-        this.width  = width;
-        this.height = height;
+  // TODO: pre calculate the image size
+  if (!this.width) {  // undefined or 0
+    var width, height;
+    if (this.value) {
+      var scale = this.imageObj.height / this.imageObj.width;
+      width = this.radius || this.imageObj.width;
+      height = this.radius * scale || this.imageObj.height;
     }
+    else {
+      width = this.imageObj.width;
+      height = this.imageObj.height;
+    }
+    this.width  = width;
+    this.height = height;
+  }
 };
 
 Node.prototype._drawImage = function (ctx) {
-    this._resizeImage(ctx);
+  this._resizeImage(ctx);
 
-    this.left   = this.x - this.width / 2;
-    this.top    = this.y - this.height / 2;
+  this.left   = this.x - this.width / 2;
+  this.top    = this.y - this.height / 2;
 
-    var yLabel;
-    if (this.imageObj) {
-        ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
-        yLabel = this.y + this.height / 2;
-    }
-    else {
-        // image still loading... just draw the label for now
-        yLabel = this.y;
-    }
+  var yLabel;
+  if (this.imageObj) {
+    ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
+    yLabel = this.y + this.height / 2;
+  }
+  else {
+    // image still loading... just draw the label for now
+    yLabel = this.y;
+  }
 
-    this._label(ctx, this.label, this.x, yLabel, undefined, "top");
+  this._label(ctx, this.label, this.x, yLabel, undefined, "top");
 };
 
 
 Node.prototype._resizeBox = function (ctx) {
-    if (!this.width) {
-        var margin = 5;
-        var textSize = this.getTextSize(ctx);
-        this.width = textSize.width + 2 * margin;
-        this.height = textSize.height + 2 * margin;
-    }
+  if (!this.width) {
+    var margin = 5;
+    var textSize = this.getTextSize(ctx);
+    this.width = textSize.width + 2 * margin;
+    this.height = textSize.height + 2 * margin;
+  }
 };
 
 Node.prototype._drawBox = function (ctx) {
-    this._resizeBox(ctx);
+  this._resizeBox(ctx);
 
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
+  this.left = this.x - this.width / 2;
+  this.top = this.y - this.height / 2;
 
-    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
-    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-    ctx.lineWidth = this.selected ? 2.0 : 1.0;
-    ctx.roundRect(this.left, this.top, this.width, this.height, this.radius);
-    ctx.fill();
-    ctx.stroke();
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+  ctx.lineWidth = this.selected ? 2.0 : 1.0;
+  ctx.roundRect(this.left, this.top, this.width, this.height, this.radius);
+  ctx.fill();
+  ctx.stroke();
 
-    this._label(ctx, this.label, this.x, this.y);
+  this._label(ctx, this.label, this.x, this.y);
 };
 
 
 Node.prototype._resizeDatabase = function (ctx) {
-    if (!this.width) {
-        var margin = 5;
-        var textSize = this.getTextSize(ctx);
-        var size = textSize.width + 2 * margin;
-        this.width = size;
-        this.height = size;
-    }
+  if (!this.width) {
+    var margin = 5;
+    var textSize = this.getTextSize(ctx);
+    var size = textSize.width + 2 * margin;
+    this.width = size;
+    this.height = size;
+  }
 };
 
 Node.prototype._drawDatabase = function (ctx) {
-    this._resizeDatabase(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
+  this._resizeDatabase(ctx);
+  this.left = this.x - this.width / 2;
+  this.top = this.y - this.height / 2;
 
-    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
-    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-    ctx.lineWidth = this.selected ? 2.0 : 1.0;
-    ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
-    ctx.fill();
-    ctx.stroke();
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+  ctx.lineWidth = this.selected ? 2.0 : 1.0;
+  ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
+  ctx.fill();
+  ctx.stroke();
 
-    this._label(ctx, this.label, this.x, this.y);
+  this._label(ctx, this.label, this.x, this.y);
 };
 
 
 Node.prototype._resizeCircle = function (ctx) {
-    if (!this.width) {
-        var margin = 5;
-        var textSize = this.getTextSize(ctx);
-        var diameter = Math.max(textSize.width, textSize.height) + 2 * margin;
-        this.radius = diameter / 2;
+  if (!this.width) {
+    var margin = 5;
+    var textSize = this.getTextSize(ctx);
+    var diameter = Math.max(textSize.width, textSize.height) + 2 * margin;
+    this.radius = diameter / 2;
 
-        this.width = diameter;
-        this.height = diameter;
-    }
+    this.width = diameter;
+    this.height = diameter;
+  }
 };
 
 Node.prototype._drawCircle = function (ctx) {
-    this._resizeCircle(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
+  this._resizeCircle(ctx);
+  this.left = this.x - this.width / 2;
+  this.top = this.y - this.height / 2;
 
-    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
-    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-    ctx.lineWidth = this.selected ? 2.0 : 1.0;
-    ctx.circle(this.x, this.y, this.radius);
-    ctx.fill();
-    ctx.stroke();
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+  ctx.lineWidth = this.selected ? 2.0 : 1.0;
+  ctx.circle(this.x, this.y, this.radius);
+  ctx.fill();
+  ctx.stroke();
 
-    this._label(ctx, this.label, this.x, this.y);
+  this._label(ctx, this.label, this.x, this.y);
 };
 
 Node.prototype._resizeEllipse = function (ctx) {
-    if (!this.width) {
-        var textSize = this.getTextSize(ctx);
+  if (!this.width) {
+    var textSize = this.getTextSize(ctx);
 
-        this.width = textSize.width * 1.5;
-        this.height = textSize.height * 2;
-        if (this.width < this.height) {
-            this.width = this.height;
-        }
+    this.width = textSize.width * 1.5;
+    this.height = textSize.height * 2;
+    if (this.width < this.height) {
+      this.width = this.height;
     }
+  }
 };
 
 Node.prototype._drawEllipse = function (ctx) {
-    this._resizeEllipse(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
+  this._resizeEllipse(ctx);
+  this.left = this.x - this.width / 2;
+  this.top = this.y - this.height / 2;
 
-    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
-    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-    ctx.lineWidth = this.selected ? 2.0 : 1.0;
-    ctx.ellipse(this.left, this.top, this.width, this.height);
-    ctx.fill();
-    ctx.stroke();
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+  ctx.lineWidth = this.selected ? 2.0 : 1.0;
+  ctx.ellipse(this.left, this.top, this.width, this.height);
+  ctx.fill();
+  ctx.stroke();
 
-    this._label(ctx, this.label, this.x, this.y);
+  this._label(ctx, this.label, this.x, this.y);
 };
 
 Node.prototype._drawDot = function (ctx) {
-    this._drawShape(ctx, 'circle');
+  this._drawShape(ctx, 'circle');
 };
 
 Node.prototype._drawTriangle = function (ctx) {
-    this._drawShape(ctx, 'triangle');
+  this._drawShape(ctx, 'triangle');
 };
 
 Node.prototype._drawTriangleDown = function (ctx) {
-    this._drawShape(ctx, 'triangleDown');
+  this._drawShape(ctx, 'triangleDown');
 };
 
 Node.prototype._drawSquare = function (ctx) {
-    this._drawShape(ctx, 'square');
+  this._drawShape(ctx, 'square');
 };
 
 Node.prototype._drawStar = function (ctx) {
-    this._drawShape(ctx, 'star');
+  this._drawShape(ctx, 'star');
 };
 
 Node.prototype._resizeShape = function (ctx) {
-    if (!this.width) {
-        var size = 2 * this.radius;
-        this.width = size;
-        this.height = size;
-    }
+  if (!this.width) {
+    var size = 2 * this.radius;
+    this.width = size;
+    this.height = size;
+  }
 };
 
 Node.prototype._drawShape = function (ctx, shape) {
-    this._resizeShape(ctx);
+  this._resizeShape(ctx);
 
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
+  this.left = this.x - this.width / 2;
+  this.top = this.y - this.height / 2;
 
-    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
-    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-    ctx.lineWidth = this.selected ? 2.0 : 1.0;
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+  ctx.lineWidth = this.selected ? 2.0 : 1.0;
 
-    ctx[shape](this.x, this.y, this.radius);
-    ctx.fill();
-    ctx.stroke();
+  ctx[shape](this.x, this.y, this.radius);
+  ctx.fill();
+  ctx.stroke();
 
-    if (this.label) {
-        this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, 'top');
-    }
+  if (this.label) {
+    this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, 'top');
+  }
 };
 
 Node.prototype._resizeText = function (ctx) {
-    if (!this.width) {
-        var margin = 5;
-        var textSize = this.getTextSize(ctx);
-        this.width = textSize.width + 2 * margin;
-        this.height = textSize.height + 2 * margin;
-    }
+  if (!this.width) {
+    var margin = 5;
+    var textSize = this.getTextSize(ctx);
+    this.width = textSize.width + 2 * margin;
+    this.height = textSize.height + 2 * margin;
+  }
 };
 
 Node.prototype._drawText = function (ctx) {
-    this._resizeText(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
+  this._resizeText(ctx);
+  this.left = this.x - this.width / 2;
+  this.top = this.y - this.height / 2;
 
-    this._label(ctx, this.label, this.x, this.y);
+  this._label(ctx, this.label, this.x, this.y);
 };
 
 
 Node.prototype._label = function (ctx, text, x, y, align, baseline) {
-    if (text) {
-        ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
-        ctx.fillStyle = this.fontColor || "black";
-        ctx.textAlign = align || "center";
-        ctx.textBaseline = baseline || "middle";
+  if (text) {
+    ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
+    ctx.fillStyle = this.fontColor || "black";
+    ctx.textAlign = align || "center";
+    ctx.textBaseline = baseline || "middle";
 
-        var lines = text.split('\n'),
-            lineCount = lines.length,
-            fontSize = (this.fontSize + 4),
-            yLine = y + (1 - lineCount) / 2 * fontSize;
+    var lines = text.split('\n'),
+        lineCount = lines.length,
+        fontSize = (this.fontSize + 4),
+        yLine = y + (1 - lineCount) / 2 * fontSize;
 
-        for (var i = 0; i < lineCount; i++) {
-            ctx.fillText(lines[i], x, yLine);
-            yLine += fontSize;
-        }
+    for (var i = 0; i < lineCount; i++) {
+      ctx.fillText(lines[i], x, yLine);
+      yLine += fontSize;
     }
+  }
 };
 
 
 Node.prototype.getTextSize = function(ctx) {
-    if (this.label != undefined) {
-        ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
+  if (this.label != undefined) {
+    ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
 
-        var lines = this.label.split('\n'),
-            height = (this.fontSize + 4) * lines.length,
-            width = 0;
+    var lines = this.label.split('\n'),
+        height = (this.fontSize + 4) * lines.length,
+        width = 0;
 
-        for (var i = 0, iMax = lines.length; i < iMax; i++) {
-            width = Math.max(width, ctx.measureText(lines[i]).width);
-        }
-
-        return {"width": width, "height": height};
+    for (var i = 0, iMax = lines.length; i < iMax; i++) {
+      width = Math.max(width, ctx.measureText(lines[i]).width);
     }
-    else {
-        return {"width": 0, "height": 0};
-    }
+
+    return {"width": width, "height": height};
+  }
+  else {
+    return {"width": 0, "height": 0};
+  }
 };
 
 /**
@@ -13082,40 +12561,40 @@ Node.prototype.getTextSize = function(ctx) {
  *                                example for the color
  */
 function Edge (properties, graph, constants) {
-    if (!graph) {
-        throw "No graph provided";
-    }
-    this.graph = graph;
+  if (!graph) {
+    throw "No graph provided";
+  }
+  this.graph = graph;
 
-    // initialize constants
-    this.widthMin = constants.edges.widthMin;
-    this.widthMax = constants.edges.widthMax;
+  // initialize constants
+  this.widthMin = constants.edges.widthMin;
+  this.widthMax = constants.edges.widthMax;
 
-    // initialize variables
-    this.id     = undefined;
-    this.fromId = undefined;
-    this.toId = undefined;
-    this.style  = constants.edges.style;
-    this.title  = undefined;
-    this.width  = constants.edges.width;
-    this.value  = undefined;
-    this.length = constants.edges.length;
+  // initialize variables
+  this.id     = undefined;
+  this.fromId = undefined;
+  this.toId = undefined;
+  this.style  = constants.edges.style;
+  this.title  = undefined;
+  this.width  = constants.edges.width;
+  this.value  = undefined;
+  this.length = constants.edges.length;
 
-    this.from = null;   // a node
-    this.to = null;     // a node
-    this.connected = false;
+  this.from = null;   // a node
+  this.to = null;     // a node
+  this.connected = false;
 
-    // Added to support dashed lines
-    // David Jordan
-    // 2012-08-08
-    this.dash = util.extend({}, constants.edges.dash); // contains properties length, gap, altLength
+  // Added to support dashed lines
+  // David Jordan
+  // 2012-08-08
+  this.dash = util.extend({}, constants.edges.dash); // contains properties length, gap, altLength
 
-    this.stiffness   = undefined; // depends on the length of the edge
-    this.color       = constants.edges.color;
-    this.widthFixed  = false;
-    this.lengthFixed = false;
+  this.stiffness   = undefined; // depends on the length of the edge
+  this.color       = constants.edges.color;
+  this.widthFixed  = false;
+  this.lengthFixed = false;
 
-    this.setProperties(properties, constants);
+  this.setProperties(properties, constants);
 }
 
 /**
@@ -13124,95 +12603,95 @@ function Edge (properties, graph, constants) {
  * @param {Object} constants   and object with default, global properties
  */
 Edge.prototype.setProperties = function(properties, constants) {
-    if (!properties) {
-        return;
-    }
+  if (!properties) {
+    return;
+  }
 
-    if (properties.from != undefined)           {this.fromId = properties.from;}
-    if (properties.to != undefined)             {this.toId = properties.to;}
+  if (properties.from != undefined)           {this.fromId = properties.from;}
+  if (properties.to != undefined)             {this.toId = properties.to;}
 
-    if (properties.id != undefined)             {this.id = properties.id;}
-    if (properties.style != undefined)          {this.style = properties.style;}
-    if (properties.label != undefined)          {this.label = properties.label;}
-    if (this.label) {
-        this.fontSize = constants.edges.fontSize;
-        this.fontFace = constants.edges.fontFace;
-        this.fontColor = constants.edges.fontColor;
-        if (properties.fontColor != undefined)  {this.fontColor = properties.fontColor;}
-        if (properties.fontSize != undefined)   {this.fontSize = properties.fontSize;}
-        if (properties.fontFace != undefined)   {this.fontFace = properties.fontFace;}
-    }
-    if (properties.title != undefined)          {this.title = properties.title;}
-    if (properties.width != undefined)          {this.width = properties.width;}
-    if (properties.value != undefined)          {this.value = properties.value;}
-    if (properties.length != undefined)         {this.length = properties.length;}
+  if (properties.id != undefined)             {this.id = properties.id;}
+  if (properties.style != undefined)          {this.style = properties.style;}
+  if (properties.label != undefined)          {this.label = properties.label;}
+  if (this.label) {
+    this.fontSize = constants.edges.fontSize;
+    this.fontFace = constants.edges.fontFace;
+    this.fontColor = constants.edges.fontColor;
+    if (properties.fontColor != undefined)  {this.fontColor = properties.fontColor;}
+    if (properties.fontSize != undefined)   {this.fontSize = properties.fontSize;}
+    if (properties.fontFace != undefined)   {this.fontFace = properties.fontFace;}
+  }
+  if (properties.title != undefined)          {this.title = properties.title;}
+  if (properties.width != undefined)          {this.width = properties.width;}
+  if (properties.value != undefined)          {this.value = properties.value;}
+  if (properties.length != undefined)         {this.length = properties.length;}
 
-    // Added to support dashed lines
-    // David Jordan
-    // 2012-08-08
-    if (properties.dash) {
-        if (properties.dash.length != undefined)    {this.dash.length = properties.dash.length;}
-        if (properties.dash.gap != undefined)       {this.dash.gap = properties.dash.gap;}
-        if (properties.dash.altLength != undefined) {this.dash.altLength = properties.dash.altLength;}
-    }
-    
-    if (properties.color != undefined) {this.color = properties.color;}
+  // Added to support dashed lines
+  // David Jordan
+  // 2012-08-08
+  if (properties.dash) {
+    if (properties.dash.length != undefined)    {this.dash.length = properties.dash.length;}
+    if (properties.dash.gap != undefined)       {this.dash.gap = properties.dash.gap;}
+    if (properties.dash.altLength != undefined) {this.dash.altLength = properties.dash.altLength;}
+  }
 
-    // A node is connected when it has a from and to node.
-    this.connect();
+  if (properties.color != undefined) {this.color = properties.color;}
 
-    this.widthFixed = this.widthFixed || (properties.width != undefined);
-    this.lengthFixed = this.lengthFixed || (properties.length != undefined);
-    this.stiffness = 1 / this.length;
+  // A node is connected when it has a from and to node.
+  this.connect();
 
-    // set draw method based on style
-    switch (this.style) {
-        case 'line':          this.draw = this._drawLine; break;
-        case 'arrow':         this.draw = this._drawArrow; break;
-        case 'arrow-center':  this.draw = this._drawArrowCenter; break;
-        case 'dash-line':     this.draw = this._drawDashLine; break;
-        default:              this.draw = this._drawLine; break;
-    }
+  this.widthFixed = this.widthFixed || (properties.width != undefined);
+  this.lengthFixed = this.lengthFixed || (properties.length != undefined);
+  this.stiffness = 1 / this.length;
+
+  // set draw method based on style
+  switch (this.style) {
+    case 'line':          this.draw = this._drawLine; break;
+    case 'arrow':         this.draw = this._drawArrow; break;
+    case 'arrow-center':  this.draw = this._drawArrowCenter; break;
+    case 'dash-line':     this.draw = this._drawDashLine; break;
+    default:              this.draw = this._drawLine; break;
+  }
 };
 
 /**
  * Connect an edge to its nodes
  */
 Edge.prototype.connect = function () {
-    this.disconnect();
+  this.disconnect();
 
-    this.from = this.graph.nodes[this.fromId] || null;
-    this.to = this.graph.nodes[this.toId] || null;
-    this.connected = (this.from && this.to);
+  this.from = this.graph.nodes[this.fromId] || null;
+  this.to = this.graph.nodes[this.toId] || null;
+  this.connected = (this.from && this.to);
 
-    if (this.connected) {
-        this.from.attachEdge(this);
-        this.to.attachEdge(this);
+  if (this.connected) {
+    this.from.attachEdge(this);
+    this.to.attachEdge(this);
+  }
+  else {
+    if (this.from) {
+      this.from.detachEdge(this);
     }
-    else {
-        if (this.from) {
-            this.from.detachEdge(this);
-        }
-        if (this.to) {
-            this.to.detachEdge(this);
-        }
+    if (this.to) {
+      this.to.detachEdge(this);
     }
+  }
 };
 
 /**
  * Disconnect an edge from its nodes
  */
 Edge.prototype.disconnect = function () {
-    if (this.from) {
-        this.from.detachEdge(this);
-        this.from = null;
-    }
-    if (this.to) {
-        this.to.detachEdge(this);
-        this.to = null;
-    }
+  if (this.from) {
+    this.from.detachEdge(this);
+    this.from = null;
+  }
+  if (this.to) {
+    this.to.detachEdge(this);
+    this.to = null;
+  }
 
-    this.connected = false;
+  this.connected = false;
 };
 
 /**
@@ -13221,7 +12700,7 @@ Edge.prototype.disconnect = function () {
  *                           has been set.
  */
 Edge.prototype.getTitle = function() {
-    return this.title;
+  return this.title;
 };
 
 
@@ -13230,7 +12709,7 @@ Edge.prototype.getTitle = function() {
  * @return {Number} value
  */
 Edge.prototype.getValue = function() {
-    return this.value;
+  return this.value;
 };
 
 /**
@@ -13240,10 +12719,10 @@ Edge.prototype.getValue = function() {
  * @param {Number} max
  */
 Edge.prototype.setValueRange = function(min, max) {
-    if (!this.widthFixed && this.value !== undefined) {
-        var factor = (this.widthMax - this.widthMin) / (max - min);
-        this.width = (this.value - min) * factor + this.widthMin;
-    }
+  if (!this.widthFixed && this.value !== undefined) {
+    var scale = (this.widthMax - this.widthMin) / (max - min);
+    this.width = (this.value - min) * scale + this.widthMin;
+  }
 };
 
 /**
@@ -13253,7 +12732,7 @@ Edge.prototype.setValueRange = function(min, max) {
  * @param {CanvasRenderingContext2D}   ctx
  */
 Edge.prototype.draw = function(ctx) {
-    throw "Method draw not initialized in edge";
+  throw "Method draw not initialized in edge";
 };
 
 /**
@@ -13262,19 +12741,19 @@ Edge.prototype.draw = function(ctx) {
  * @return {boolean}     True if location is located on the edge
  */
 Edge.prototype.isOverlappingWith = function(obj) {
-    var distMax = 10;
+  var distMax = 10;
 
-    var xFrom = this.from.x;
-    var yFrom = this.from.y;
-    var xTo = this.to.x;
-    var yTo = this.to.y;
-    var xObj = obj.left;
-    var yObj = obj.top;
+  var xFrom = this.from.x;
+  var yFrom = this.from.y;
+  var xTo = this.to.x;
+  var yTo = this.to.y;
+  var xObj = obj.left;
+  var yObj = obj.top;
 
 
-    var dist = Edge._dist(xFrom, yFrom, xTo, yTo, xObj, yObj);
+  var dist = Edge._dist(xFrom, yFrom, xTo, yTo, xObj, yObj);
 
-    return (dist < distMax);
+  return (dist < distMax);
 };
 
 
@@ -13286,40 +12765,40 @@ Edge.prototype.isOverlappingWith = function(obj) {
  * @private
  */
 Edge.prototype._drawLine = function(ctx) {
-    // set style
-    ctx.strokeStyle = this.color;
-    ctx.lineWidth = this._getLineWidth();
+  // set style
+  ctx.strokeStyle = this.color;
+  ctx.lineWidth = this._getLineWidth();
 
-    var point;
-    if (this.from != this.to) {
-        // draw line
-        this._line(ctx);
+  var point;
+  if (this.from != this.to) {
+    // draw line
+    this._line(ctx);
 
-        // draw label
-        if (this.label) {
-            point = this._pointOnLine(0.5);
-            this._label(ctx, this.label, point.x, point.y);
-        }
+    // draw label
+    if (this.label) {
+      point = this._pointOnLine(0.5);
+      this._label(ctx, this.label, point.x, point.y);
+    }
+  }
+  else {
+    var x, y;
+    var radius = this.length / 4;
+    var node = this.from;
+    if (!node.width) {
+      node.resize(ctx);
+    }
+    if (node.width > node.height) {
+      x = node.x + node.width / 2;
+      y = node.y - radius;
     }
     else {
-        var x, y;
-        var radius = this.length / 4;
-        var node = this.from;
-        if (!node.width) {
-            node.resize(ctx);
-        }
-        if (node.width > node.height) {
-            x = node.x + node.width / 2;
-            y = node.y - radius;
-        }
-        else {
-            x = node.x + radius;
-            y = node.y - node.height / 2;
-        }
-        this._circle(ctx, x, y, radius);
-        point = this._pointOnCircle(x, y, radius, 0.5);
-        this._label(ctx, this.label, point.x, point.y);
+      x = node.x + radius;
+      y = node.y - node.height / 2;
     }
+    this._circle(ctx, x, y, radius);
+    point = this._pointOnCircle(x, y, radius, 0.5);
+    this._label(ctx, this.label, point.x, point.y);
+  }
 };
 
 /**
@@ -13329,12 +12808,12 @@ Edge.prototype._drawLine = function(ctx) {
  * @private
  */
 Edge.prototype._getLineWidth = function() {
-    if (this.from.selected || this.to.selected) {
-        return Math.min(this.width * 2, this.widthMax);
-    }
-    else {
-        return this.width;
-    }
+  if (this.from.selected || this.to.selected) {
+    return Math.min(this.width * 2, this.widthMax);
+  }
+  else {
+    return this.width;
+  }
 };
 
 /**
@@ -13343,11 +12822,11 @@ Edge.prototype._getLineWidth = function() {
  * @private
  */
 Edge.prototype._line = function (ctx) {
-    // draw a straight line
-    ctx.beginPath();
-    ctx.moveTo(this.from.x, this.from.y);
-    ctx.lineTo(this.to.x, this.to.y);
-    ctx.stroke();
+  // draw a straight line
+  ctx.beginPath();
+  ctx.moveTo(this.from.x, this.from.y);
+  ctx.lineTo(this.to.x, this.to.y);
+  ctx.stroke();
 };
 
 /**
@@ -13359,10 +12838,10 @@ Edge.prototype._line = function (ctx) {
  * @private
  */
 Edge.prototype._circle = function (ctx, x, y, radius) {
-    // draw a circle
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-    ctx.stroke();
+  // draw a circle
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+  ctx.stroke();
 };
 
 /**
@@ -13374,24 +12853,24 @@ Edge.prototype._circle = function (ctx, x, y, radius) {
  * @private
  */
 Edge.prototype._label = function (ctx, text, x, y) {
-    if (text) {
-        // TODO: cache the calculated size
-        ctx.font = ((this.from.selected || this.to.selected) ? "bold " : "") +
-            this.fontSize + "px " + this.fontFace;
-        ctx.fillStyle = 'white';
-        var width = ctx.measureText(text).width;
-        var height = this.fontSize;
-        var left = x - width / 2;
-        var top = y - height / 2;
+  if (text) {
+    // TODO: cache the calculated size
+    ctx.font = ((this.from.selected || this.to.selected) ? "bold " : "") +
+        this.fontSize + "px " + this.fontFace;
+    ctx.fillStyle = 'white';
+    var width = ctx.measureText(text).width;
+    var height = this.fontSize;
+    var left = x - width / 2;
+    var top = y - height / 2;
 
-        ctx.fillRect(left, top, width, height);
+    ctx.fillRect(left, top, width, height);
 
-        // draw text
-        ctx.fillStyle = this.fontColor || "black";
-        ctx.textAlign = "left";
-        ctx.textBaseline = "top";
-        ctx.fillText(text, left, top);
-    }
+    // draw text
+    ctx.fillStyle = this.fontColor || "black";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.fillText(text, left, top);
+  }
 };
 
 /**
@@ -13404,35 +12883,35 @@ Edge.prototype._label = function (ctx, text, x, y) {
  * @private
  */
 Edge.prototype._drawDashLine = function(ctx) {
-    // set style
-    ctx.strokeStyle = this.color;
-    ctx.lineWidth = this._getLineWidth();
+  // set style
+  ctx.strokeStyle = this.color;
+  ctx.lineWidth = this._getLineWidth();
 
-    // draw dashed line
-    ctx.beginPath();
-    ctx.lineCap = 'round';
-    if (this.dash.altLength != undefined) //If an alt dash value has been set add to the array this value
-    {
-        ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
-            [this.dash.length,this.dash.gap,this.dash.altLength,this.dash.gap]);
-    }
-    else if (this.dash.length != undefined && this.dash.gap != undefined) //If a dash and gap value has been set add to the array this value
-    {
-        ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
-            [this.dash.length,this.dash.gap]);
-    }
-    else //If all else fails draw a line
-    {
-        ctx.moveTo(this.from.x, this.from.y);
-        ctx.lineTo(this.to.x, this.to.y);
-    }
-    ctx.stroke();
+  // draw dashed line
+  ctx.beginPath();
+  ctx.lineCap = 'round';
+  if (this.dash.altLength != undefined) //If an alt dash value has been set add to the array this value
+  {
+    ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
+        [this.dash.length,this.dash.gap,this.dash.altLength,this.dash.gap]);
+  }
+  else if (this.dash.length != undefined && this.dash.gap != undefined) //If a dash and gap value has been set add to the array this value
+  {
+    ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
+        [this.dash.length,this.dash.gap]);
+  }
+  else //If all else fails draw a line
+  {
+    ctx.moveTo(this.from.x, this.from.y);
+    ctx.lineTo(this.to.x, this.to.y);
+  }
+  ctx.stroke();
 
-    // draw label
-    if (this.label) {
-        var point = this._pointOnLine(0.5);
-        this._label(ctx, this.label, point.x, point.y);
-    }
+  // draw label
+  if (this.label) {
+    var point = this._pointOnLine(0.5);
+    this._label(ctx, this.label, point.x, point.y);
+  }
 };
 
 /**
@@ -13442,10 +12921,10 @@ Edge.prototype._drawDashLine = function(ctx) {
  * @private
  */
 Edge.prototype._pointOnLine = function (percentage) {
-    return {
-        x: (1 - percentage) * this.from.x + percentage * this.to.x,
-        y: (1 - percentage) * this.from.y + percentage * this.to.y
-    }
+  return {
+    x: (1 - percentage) * this.from.x + percentage * this.to.x,
+    y: (1 - percentage) * this.from.y + percentage * this.to.y
+  }
 };
 
 /**
@@ -13458,11 +12937,11 @@ Edge.prototype._pointOnLine = function (percentage) {
  * @private
  */
 Edge.prototype._pointOnCircle = function (x, y, radius, percentage) {
-    var angle = (percentage - 3/8) * 2 * Math.PI;
-    return {
-        x: x + radius * Math.cos(angle),
-        y: y - radius * Math.sin(angle)
-    }
+  var angle = (percentage - 3/8) * 2 * Math.PI;
+  return {
+    x: x + radius * Math.cos(angle),
+    y: y - radius * Math.sin(angle)
+  }
 };
 
 /**
@@ -13473,62 +12952,62 @@ Edge.prototype._pointOnCircle = function (x, y, radius, percentage) {
  * @private
  */
 Edge.prototype._drawArrowCenter = function(ctx) {
-    var point;
-    // set style
-    ctx.strokeStyle = this.color;
-    ctx.fillStyle = this.color;
-    ctx.lineWidth = this._getLineWidth();
+  var point;
+  // set style
+  ctx.strokeStyle = this.color;
+  ctx.fillStyle = this.color;
+  ctx.lineWidth = this._getLineWidth();
 
-    if (this.from != this.to) {
-        // draw line
-        this._line(ctx);
+  if (this.from != this.to) {
+    // draw line
+    this._line(ctx);
 
-        // draw an arrow halfway the line
-        var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
-        var length = 10 + 5 * this.width; // TODO: make customizable?
-        point = this._pointOnLine(0.5);
-        ctx.arrow(point.x, point.y, angle, length);
-        ctx.fill();
-        ctx.stroke();
+    // draw an arrow halfway the line
+    var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
+    var length = 10 + 5 * this.width; // TODO: make customizable?
+    point = this._pointOnLine(0.5);
+    ctx.arrow(point.x, point.y, angle, length);
+    ctx.fill();
+    ctx.stroke();
 
-        // draw label
-        if (this.label) {
-            point = this._pointOnLine(0.5);
-            this._label(ctx, this.label, point.x, point.y);
-        }
+    // draw label
+    if (this.label) {
+      point = this._pointOnLine(0.5);
+      this._label(ctx, this.label, point.x, point.y);
+    }
+  }
+  else {
+    // draw circle
+    var x, y;
+    var radius = this.length / 4;
+    var node = this.from;
+    if (!node.width) {
+      node.resize(ctx);
+    }
+    if (node.width > node.height) {
+      x = node.x + node.width / 2;
+      y = node.y - radius;
     }
     else {
-        // draw circle
-        var x, y;
-        var radius = this.length / 4;
-        var node = this.from;
-        if (!node.width) {
-            node.resize(ctx);
-        }
-        if (node.width > node.height) {
-            x = node.x + node.width / 2;
-            y = node.y - radius;
-        }
-        else {
-            x = node.x + radius;
-            y = node.y - node.height / 2;
-        }
-        this._circle(ctx, x, y, radius);
-
-        // draw all arrows
-        var angle = 0.2 * Math.PI;
-        var length = 10 + 5 * this.width; // TODO: make customizable?
-        point = this._pointOnCircle(x, y, radius, 0.5);
-        ctx.arrow(point.x, point.y, angle, length);
-        ctx.fill();
-        ctx.stroke();
-
-        // draw label
-        if (this.label) {
-            point = this._pointOnCircle(x, y, radius, 0.5);
-            this._label(ctx, this.label, point.x, point.y);
-        }
+      x = node.x + radius;
+      y = node.y - node.height / 2;
     }
+    this._circle(ctx, x, y, radius);
+
+    // draw all arrows
+    var angle = 0.2 * Math.PI;
+    var length = 10 + 5 * this.width; // TODO: make customizable?
+    point = this._pointOnCircle(x, y, radius, 0.5);
+    ctx.arrow(point.x, point.y, angle, length);
+    ctx.fill();
+    ctx.stroke();
+
+    // draw label
+    if (this.label) {
+      point = this._pointOnCircle(x, y, radius, 0.5);
+      this._label(ctx, this.label, point.x, point.y);
+    }
+  }
 };
 
 
@@ -13541,91 +13020,91 @@ Edge.prototype._drawArrowCenter = function(ctx) {
  * @private
  */
 Edge.prototype._drawArrow = function(ctx) {
-    // set style
-    ctx.strokeStyle = this.color;
-    ctx.fillStyle = this.color;
-    ctx.lineWidth = this._getLineWidth();
+  // set style
+  ctx.strokeStyle = this.color;
+  ctx.fillStyle = this.color;
+  ctx.lineWidth = this._getLineWidth();
 
-    // draw line
-    var angle, length;
-    if (this.from != this.to) {
-        // calculate length and angle of the line
-        angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
-        var dx = (this.to.x - this.from.x);
-        var dy = (this.to.y - this.from.y);
-        var lEdge = Math.sqrt(dx * dx + dy * dy);
+  // draw line
+  var angle, length;
+  if (this.from != this.to) {
+    // calculate length and angle of the line
+    angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
+    var dx = (this.to.x - this.from.x);
+    var dy = (this.to.y - this.from.y);
+    var lEdge = Math.sqrt(dx * dx + dy * dy);
 
-        var lFrom = this.from.distanceToBorder(ctx, angle + Math.PI);
-        var pFrom = (lEdge - lFrom) / lEdge;
-        var xFrom = (pFrom) * this.from.x + (1 - pFrom) * this.to.x;
-        var yFrom = (pFrom) * this.from.y + (1 - pFrom) * this.to.y;
+    var lFrom = this.from.distanceToBorder(ctx, angle + Math.PI);
+    var pFrom = (lEdge - lFrom) / lEdge;
+    var xFrom = (pFrom) * this.from.x + (1 - pFrom) * this.to.x;
+    var yFrom = (pFrom) * this.from.y + (1 - pFrom) * this.to.y;
 
-        var lTo = this.to.distanceToBorder(ctx, angle);
-        var pTo = (lEdge - lTo) / lEdge;
-        var xTo = (1 - pTo) * this.from.x + pTo * this.to.x;
-        var yTo = (1 - pTo) * this.from.y + pTo * this.to.y;
+    var lTo = this.to.distanceToBorder(ctx, angle);
+    var pTo = (lEdge - lTo) / lEdge;
+    var xTo = (1 - pTo) * this.from.x + pTo * this.to.x;
+    var yTo = (1 - pTo) * this.from.y + pTo * this.to.y;
 
-        ctx.beginPath();
-        ctx.moveTo(xFrom, yFrom);
-        ctx.lineTo(xTo, yTo);
-        ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(xFrom, yFrom);
+    ctx.lineTo(xTo, yTo);
+    ctx.stroke();
 
-        // draw arrow at the end of the line
-        length = 10 + 5 * this.width; // TODO: make customizable?
-        ctx.arrow(xTo, yTo, angle, length);
-        ctx.fill();
-        ctx.stroke();
+    // draw arrow at the end of the line
+    length = 10 + 5 * this.width; // TODO: make customizable?
+    ctx.arrow(xTo, yTo, angle, length);
+    ctx.fill();
+    ctx.stroke();
 
-        // draw label
-        if (this.label) {
-            var point = this._pointOnLine(0.5);
-            this._label(ctx, this.label, point.x, point.y);
-        }
+    // draw label
+    if (this.label) {
+      var point = this._pointOnLine(0.5);
+      this._label(ctx, this.label, point.x, point.y);
+    }
+  }
+  else {
+    // draw circle
+    var node = this.from;
+    var x, y, arrow;
+    var radius = this.length / 4;
+    if (!node.width) {
+      node.resize(ctx);
+    }
+    if (node.width > node.height) {
+      x = node.x + node.width / 2;
+      y = node.y - radius;
+      arrow = {
+        x: x,
+        y: node.y,
+        angle: 0.9 * Math.PI
+      };
     }
     else {
-        // draw circle
-        var node = this.from;
-        var x, y, arrow;
-        var radius = this.length / 4;
-        if (!node.width) {
-            node.resize(ctx);
-        }
-        if (node.width > node.height) {
-            x = node.x + node.width / 2;
-            y = node.y - radius;
-            arrow = {
-                x: x,
-                y: node.y,
-                angle: 0.9 * Math.PI
-            };
-        }
-        else {
-            x = node.x + radius;
-            y = node.y - node.height / 2;
-            arrow = {
-                x: node.x,
-                y: y,
-                angle: 0.6 * Math.PI
-            };
-        }
-        ctx.beginPath();
-        // TODO: do not draw a circle, but an arc
-        // TODO: similarly, for a line without arrows, draw to the border of the nodes instead of the center
-        ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-        ctx.stroke();
-
-        // draw all arrows
-        length = 10 + 5 * this.width; // TODO: make customizable?
-        ctx.arrow(arrow.x, arrow.y, arrow.angle, length);
-        ctx.fill();
-        ctx.stroke();
-
-        // draw label
-        if (this.label) {
-            point = this._pointOnCircle(x, y, radius, 0.5);
-            this._label(ctx, this.label, point.x, point.y);
-        }
+      x = node.x + radius;
+      y = node.y - node.height / 2;
+      arrow = {
+        x: node.x,
+        y: y,
+        angle: 0.6 * Math.PI
+      };
     }
+    ctx.beginPath();
+    // TODO: do not draw a circle, but an arc
+    // TODO: similarly, for a line without arrows, draw to the border of the nodes instead of the center
+    ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+    ctx.stroke();
+
+    // draw all arrows
+    length = 10 + 5 * this.width; // TODO: make customizable?
+    ctx.arrow(arrow.x, arrow.y, arrow.angle, length);
+    ctx.fill();
+    ctx.stroke();
+
+    // draw label
+    if (this.label) {
+      point = this._pointOnCircle(x, y, radius, 0.5);
+      this._label(ctx, this.label, point.x, point.y);
+    }
+  }
 };
 
 
@@ -13643,30 +13122,30 @@ Edge.prototype._drawArrow = function(ctx) {
  * @private
  */
 Edge._dist = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
-    var px = x2-x1,
-        py = y2-y1,
-        something = px*px + py*py,
-        u =  ((x3 - x1) * px + (y3 - y1) * py) / something;
+  var px = x2-x1,
+      py = y2-y1,
+      something = px*px + py*py,
+      u =  ((x3 - x1) * px + (y3 - y1) * py) / something;
 
-    if (u > 1) {
-        u = 1;
-    }
-    else if (u < 0) {
-        u = 0;
-    }
+  if (u > 1) {
+    u = 1;
+  }
+  else if (u < 0) {
+    u = 0;
+  }
 
-    var x = x1 + u * px,
-        y = y1 + u * py,
-        dx = x - x3,
-        dy = y - y3;
+  var x = x1 + u * px,
+      y = y1 + u * py,
+      dx = x - x3,
+      dy = y - y3;
 
-    //# Note: If the actual distance does not matter,
-    //# if you only want to compare what this function
-    //# returns to other results of this function, you
-    //# can just return the squared distance instead
-    //# (i.e. remove the sqrt) to gain a little performance
+  //# Note: If the actual distance does not matter,
+  //# if you only want to compare what this function
+  //# returns to other results of this function, you
+  //# can just return the squared distance instead
+  //# (i.e. remove the sqrt) to gain a little performance
 
-    return Math.sqrt(dx*dx + dy*dy);
+  return Math.sqrt(dx*dx + dy*dy);
 };
 
 /**
@@ -13677,38 +13156,38 @@ Edge._dist = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
  * @param {String} [text]
  */
 function Popup(container, x, y, text) {
-    if (container) {
-        this.container = container;
-    }
-    else {
-        this.container = document.body;
-    }
-    this.x = 0;
-    this.y = 0;
-    this.padding = 5;
+  if (container) {
+    this.container = container;
+  }
+  else {
+    this.container = document.body;
+  }
+  this.x = 0;
+  this.y = 0;
+  this.padding = 5;
 
-    if (x !== undefined && y !== undefined ) {
-        this.setPosition(x, y);
-    }
-    if (text !== undefined) {
-        this.setText(text);
-    }
+  if (x !== undefined && y !== undefined ) {
+    this.setPosition(x, y);
+  }
+  if (text !== undefined) {
+    this.setText(text);
+  }
 
-    // create the frame
-    this.frame = document.createElement("div");
-    var style = this.frame.style;
-    style.position = "absolute";
-    style.visibility = "hidden";
-    style.border = "1px solid #666";
-    style.color = "black";
-    style.padding = this.padding + "px";
-    style.backgroundColor = "#FFFFC6";
-    style.borderRadius = "3px";
-    style.MozBorderRadius = "3px";
-    style.WebkitBorderRadius = "3px";
-    style.boxShadow = "3px 3px 10px rgba(128, 128, 128, 0.5)";
-    style.whiteSpace = "nowrap";
-    this.container.appendChild(this.frame);
+  // create the frame
+  this.frame = document.createElement("div");
+  var style = this.frame.style;
+  style.position = "absolute";
+  style.visibility = "hidden";
+  style.border = "1px solid #666";
+  style.color = "black";
+  style.padding = this.padding + "px";
+  style.backgroundColor = "#FFFFC6";
+  style.borderRadius = "3px";
+  style.MozBorderRadius = "3px";
+  style.WebkitBorderRadius = "3px";
+  style.boxShadow = "3px 3px 10px rgba(128, 128, 128, 0.5)";
+  style.whiteSpace = "nowrap";
+  this.container.appendChild(this.frame);
 };
 
 /**
@@ -13716,8 +13195,8 @@ function Popup(container, x, y, text) {
  * @param {number} y   Vertical position of the popup window
  */
 Popup.prototype.setPosition = function(x, y) {
-    this.x = parseInt(x);
-    this.y = parseInt(y);
+  this.x = parseInt(x);
+  this.y = parseInt(y);
 };
 
 /**
@@ -13725,7 +13204,7 @@ Popup.prototype.setPosition = function(x, y) {
  * @param {string} text
  */
 Popup.prototype.setText = function(text) {
-    this.frame.innerHTML = text;
+  this.frame.innerHTML = text;
 };
 
 /**
@@ -13733,46 +13212,46 @@ Popup.prototype.setText = function(text) {
  * @param {boolean} show    Optional. Show or hide the window
  */
 Popup.prototype.show = function (show) {
-    if (show === undefined) {
-        show = true;
+  if (show === undefined) {
+    show = true;
+  }
+
+  if (show) {
+    var height = this.frame.clientHeight;
+    var width =  this.frame.clientWidth;
+    var maxHeight = this.frame.parentNode.clientHeight;
+    var maxWidth = this.frame.parentNode.clientWidth;
+
+    var top = (this.y - height);
+    if (top + height + this.padding > maxHeight) {
+      top = maxHeight - height - this.padding;
+    }
+    if (top < this.padding) {
+      top = this.padding;
     }
 
-    if (show) {
-        var height = this.frame.clientHeight;
-        var width =  this.frame.clientWidth;
-        var maxHeight = this.frame.parentNode.clientHeight;
-        var maxWidth = this.frame.parentNode.clientWidth;
-
-        var top = (this.y - height);
-        if (top + height + this.padding > maxHeight) {
-            top = maxHeight - height - this.padding;
-        }
-        if (top < this.padding) {
-            top = this.padding;
-        }
-
-        var left = this.x;
-        if (left + width + this.padding > maxWidth) {
-            left = maxWidth - width - this.padding;
-        }
-        if (left < this.padding) {
-            left = this.padding;
-        }
-
-        this.frame.style.left = left + "px";
-        this.frame.style.top = top + "px";
-        this.frame.style.visibility = "visible";
+    var left = this.x;
+    if (left + width + this.padding > maxWidth) {
+      left = maxWidth - width - this.padding;
     }
-    else {
-        this.hide();
+    if (left < this.padding) {
+      left = this.padding;
     }
+
+    this.frame.style.left = left + "px";
+    this.frame.style.top = top + "px";
+    this.frame.style.visibility = "visible";
+  }
+  else {
+    this.hide();
+  }
 };
 
 /**
  * Hide the popup window
  */
 Popup.prototype.hide = function () {
-    this.frame.style.visibility = "hidden";
+  this.frame.style.visibility = "hidden";
 };
 
 /**
@@ -13780,8 +13259,8 @@ Popup.prototype.hide = function () {
  * This class can store groups and properties specific for groups.
  */
 Groups = function () {
-    this.clear();
-    this.defaultIndex = 0;
+  this.clear();
+  this.defaultIndex = 0;
 };
 
 
@@ -13789,16 +13268,16 @@ Groups = function () {
  * default constants for group colors
  */
 Groups.DEFAULT = [
-    {border: "#2B7CE9", background: "#97C2FC", highlight: {border: "#2B7CE9", background: "#D2E5FF"}}, // blue
-    {border: "#FFA500", background: "#FFFF00", highlight: {border: "#FFA500", background: "#FFFFA3"}}, // yellow
-    {border: "#FA0A10", background: "#FB7E81", highlight: {border: "#FA0A10", background: "#FFAFB1"}}, // red
-    {border: "#41A906", background: "#7BE141", highlight: {border: "#41A906", background: "#A1EC76"}}, // green
-    {border: "#E129F0", background: "#EB7DF4", highlight: {border: "#E129F0", background: "#F0B3F5"}}, // magenta
-    {border: "#7C29F0", background: "#AD85E4", highlight: {border: "#7C29F0", background: "#D3BDF0"}}, // purple
-    {border: "#C37F00", background: "#FFA807", highlight: {border: "#C37F00", background: "#FFCA66"}}, // orange
-    {border: "#4220FB", background: "#6E6EFD", highlight: {border: "#4220FB", background: "#9B9BFD"}}, // darkblue
-    {border: "#FD5A77", background: "#FFC0CB", highlight: {border: "#FD5A77", background: "#FFD1D9"}}, // pink
-    {border: "#4AD63A", background: "#C2FABC", highlight: {border: "#4AD63A", background: "#E6FFE3"}}  // mint
+  {border: "#2B7CE9", background: "#97C2FC", highlight: {border: "#2B7CE9", background: "#D2E5FF"}}, // blue
+  {border: "#FFA500", background: "#FFFF00", highlight: {border: "#FFA500", background: "#FFFFA3"}}, // yellow
+  {border: "#FA0A10", background: "#FB7E81", highlight: {border: "#FA0A10", background: "#FFAFB1"}}, // red
+  {border: "#41A906", background: "#7BE141", highlight: {border: "#41A906", background: "#A1EC76"}}, // green
+  {border: "#E129F0", background: "#EB7DF4", highlight: {border: "#E129F0", background: "#F0B3F5"}}, // magenta
+  {border: "#7C29F0", background: "#AD85E4", highlight: {border: "#7C29F0", background: "#D3BDF0"}}, // purple
+  {border: "#C37F00", background: "#FFA807", highlight: {border: "#C37F00", background: "#FFCA66"}}, // orange
+  {border: "#4220FB", background: "#6E6EFD", highlight: {border: "#4220FB", background: "#9B9BFD"}}, // darkblue
+  {border: "#FD5A77", background: "#FFC0CB", highlight: {border: "#FD5A77", background: "#FFD1D9"}}, // pink
+  {border: "#4AD63A", background: "#C2FABC", highlight: {border: "#4AD63A", background: "#E6FFE3"}}  // mint
 ];
 
 
@@ -13806,17 +13285,17 @@ Groups.DEFAULT = [
  * Clear all groups
  */
 Groups.prototype.clear = function () {
-    this.groups = {};
-    this.groups.length = function()
-    {
-        var i = 0;
-        for ( var p in this ) {
-            if (this.hasOwnProperty(p)) {
-                i++;
-            }
-        }
-        return i;
+  this.groups = {};
+  this.groups.length = function()
+  {
+    var i = 0;
+    for ( var p in this ) {
+      if (this.hasOwnProperty(p)) {
+        i++;
+      }
     }
+    return i;
+  }
 };
 
 
@@ -13827,18 +13306,18 @@ Groups.prototype.clear = function () {
  * @return {Object} group      The created group, containing all group properties
  */
 Groups.prototype.get = function (groupname) {
-    var group = this.groups[groupname];
+  var group = this.groups[groupname];
 
-    if (group == undefined) {
-        // create new group
-        var index = this.defaultIndex % Groups.DEFAULT.length;
-        this.defaultIndex++;
-        group = {};
-        group.color = Groups.DEFAULT[index];
-        this.groups[groupname] = group;
-    }
+  if (group == undefined) {
+    // create new group
+    var index = this.defaultIndex % Groups.DEFAULT.length;
+    this.defaultIndex++;
+    group = {};
+    group.color = Groups.DEFAULT[index];
+    this.groups[groupname] = group;
+  }
 
-    return group;
+  return group;
 };
 
 /**
@@ -13849,11 +13328,11 @@ Groups.prototype.get = function (groupname) {
  * @return {Object} group      The created group object
  */
 Groups.prototype.add = function (groupname, style) {
-    this.groups[groupname] = style;
-    if (style.color) {
-        style.color = Node.parseColor(style.color);
-    }
-    return style;
+  this.groups[groupname] = style;
+  if (style.color) {
+    style.color = Node.parseColor(style.color);
+  }
+  return style;
 };
 
 /**
@@ -13861,9 +13340,9 @@ Groups.prototype.add = function (groupname, style) {
  * This class loads images and keeps them stored.
  */
 Images = function () {
-    this.images = {};
+  this.images = {};
 
-    this.callback = undefined;
+  this.callback = undefined;
 };
 
 /**
@@ -13872,7 +13351,7 @@ Images = function () {
  * @param {function} callback
  */
 Images.prototype.setOnloadCallback = function(callback) {
-    this.callback = callback;
+  this.callback = callback;
 };
 
 /**
@@ -13881,27 +13360,27 @@ Images.prototype.setOnloadCallback = function(callback) {
  * @return {Image} img          The image object
  */
 Images.prototype.load = function(url) {
-    var img = this.images[url];
-    if (img == undefined) {
-        // create the image
-        var images = this;
-        img = new Image();
-        this.images[url] = img;
-        img.onload = function() {
-            if (images.callback) {
-                images.callback(this);
-            }
-        };
-        img.src = url;
-    }
+  var img = this.images[url];
+  if (img == undefined) {
+    // create the image
+    var images = this;
+    img = new Image();
+    this.images[url] = img;
+    img.onload = function() {
+      if (images.callback) {
+        images.callback(this);
+      }
+    };
+    img.src = url;
+  }
 
-    return img;
+  return img;
 };
 
 /**
  * @constructor Graph
  * Create a graph visualization, displaying nodes and edges.
- * 
+ *
  * @param {Element} container   The DOM element in which the Graph will
  *                                  be created. Normally a div element.
  * @param {Object} data         An object containing parameters
@@ -13910,125 +13389,125 @@ Images.prototype.load = function(url) {
  * @param {Object} options      Options
  */
 function Graph (container, data, options) {
-    // create variables and set default values
-    this.containerElement = container;
-    this.width = '100%';
-    this.height = '100%';
-    this.refreshRate = 50; // milliseconds
-    this.stabilize = true; // stabilize before displaying the graph
-    this.selectable = true;
+  // create variables and set default values
+  this.containerElement = container;
+  this.width = '100%';
+  this.height = '100%';
+  this.refreshRate = 50; // milliseconds
+  this.stabilize = true; // stabilize before displaying the graph
+  this.selectable = true;
 
-    // set constant values
-    this.constants = {
-        nodes: {
-            radiusMin: 5,
-            radiusMax: 20,
-            radius: 5,
-            distance: 100, // px
-            shape: 'ellipse',
-            image: undefined,
-            widthMin: 16, // px
-            widthMax: 64, // px
-            fontColor: 'black',
-            fontSize: 14, // px
-            //fontFace: verdana,
-            fontFace: 'arial',
-            color: {
-                border: '#2B7CE9',
-                background: '#97C2FC',
-                highlight: {
-                    border: '#2B7CE9',
-                    background: '#D2E5FF'
-                }
-            },
-            borderColor: '#2B7CE9',
-            backgroundColor: '#97C2FC',
-            highlightColor: '#D2E5FF',
-            group: undefined
-        },
-        edges: {
-            widthMin: 1,
-            widthMax: 15,
-            width: 1,
-            style: 'line',
-            color: '#343434',
-            fontColor: '#343434',
-            fontSize: 14, // px
-            fontFace: 'arial',
-            //distance: 100, //px
-            length: 100,   // px
-            dash: {
-                length: 10,
-                gap: 5,
-                altLength: undefined
-            }
-        },
-        minForce: 0.05,
-        minVelocity: 0.02,   // px/s
-        maxIterations: 1000  // maximum number of iteration to stabilize
-    };
-
-    var graph = this;
-    this.nodes = {};            // object with Node objects
-    this.edges = {};            // object with Edge objects
-    // TODO: create a counter to keep track on the number of nodes having values
-    // TODO: create a counter to keep track on the number of nodes currently moving
-    // TODO: create a counter to keep track on the number of edges having values
-
-    this.nodesData = null;      // A DataSet or DataView
-    this.edgesData = null;      // A DataSet or DataView
-
-    // create event listeners used to subscribe on the DataSets of the nodes and edges
-    var me = this;
-    this.nodesListeners = {
-        'add': function (event, params) {
-            me._addNodes(params.items);
-            me.start();
-        },
-        'update': function (event, params) {
-            me._updateNodes(params.items);
-            me.start();
-        },
-        'remove': function (event, params) {
-            me._removeNodes(params.items);
-            me.start();
+  // set constant values
+  this.constants = {
+    nodes: {
+      radiusMin: 5,
+      radiusMax: 20,
+      radius: 5,
+      distance: 100, // px
+      shape: 'ellipse',
+      image: undefined,
+      widthMin: 16, // px
+      widthMax: 64, // px
+      fontColor: 'black',
+      fontSize: 14, // px
+      //fontFace: verdana,
+      fontFace: 'arial',
+      color: {
+        border: '#2B7CE9',
+        background: '#97C2FC',
+        highlight: {
+          border: '#2B7CE9',
+          background: '#D2E5FF'
         }
-    };
-    this.edgesListeners = {
-        'add': function (event, params) {
-            me._addEdges(params.items);
-            me.start();
-        },
-        'update': function (event, params) {
-            me._updateEdges(params.items);
-            me.start();
-        },
-        'remove': function (event, params) {
-            me._removeEdges(params.items);
-            me.start();
-        }
-    };
+      },
+      borderColor: '#2B7CE9',
+      backgroundColor: '#97C2FC',
+      highlightColor: '#D2E5FF',
+      group: undefined
+    },
+    edges: {
+      widthMin: 1,
+      widthMax: 15,
+      width: 1,
+      style: 'line',
+      color: '#343434',
+      fontColor: '#343434',
+      fontSize: 14, // px
+      fontFace: 'arial',
+      //distance: 100, //px
+      length: 100,   // px
+      dash: {
+        length: 10,
+        gap: 5,
+        altLength: undefined
+      }
+    },
+    minForce: 0.05,
+    minVelocity: 0.02,   // px/s
+    maxIterations: 1000  // maximum number of iteration to stabilize
+  };
 
-    this.groups = new Groups(); // object with groups
-    this.images = new Images(); // object with images
-    this.images.setOnloadCallback(function () {
-        graph._redraw();
-    });
+  var graph = this;
+  this.nodes = {};            // object with Node objects
+  this.edges = {};            // object with Edge objects
+  // TODO: create a counter to keep track on the number of nodes having values
+  // TODO: create a counter to keep track on the number of nodes currently moving
+  // TODO: create a counter to keep track on the number of edges having values
 
-    // properties of the data
-    this.moving = false;    // True if any of the nodes have an undefined position
+  this.nodesData = null;      // A DataSet or DataView
+  this.edgesData = null;      // A DataSet or DataView
 
-    this.selection = [];
-    this.timer = undefined;
+  // create event listeners used to subscribe on the DataSets of the nodes and edges
+  var me = this;
+  this.nodesListeners = {
+    'add': function (event, params) {
+      me._addNodes(params.items);
+      me.start();
+    },
+    'update': function (event, params) {
+      me._updateNodes(params.items);
+      me.start();
+    },
+    'remove': function (event, params) {
+      me._removeNodes(params.items);
+      me.start();
+    }
+  };
+  this.edgesListeners = {
+    'add': function (event, params) {
+      me._addEdges(params.items);
+      me.start();
+    },
+    'update': function (event, params) {
+      me._updateEdges(params.items);
+      me.start();
+    },
+    'remove': function (event, params) {
+      me._removeEdges(params.items);
+      me.start();
+    }
+  };
 
-    // create a frame and canvas
-    this._create();
+  this.groups = new Groups(); // object with groups
+  this.images = new Images(); // object with images
+  this.images.setOnloadCallback(function () {
+    graph._redraw();
+  });
 
-    // apply options
-    this.setOptions(options);
+  // properties of the data
+  this.moving = false;    // True if any of the nodes have an undefined position
 
-    // draw data
-    this.setData(data);
+  this.selection = [];
+  this.timer = undefined;
+
+  // create a frame and canvas
+  this._create();
+
+  // apply options
+  this.setOptions(options);
+
+  // draw data
+  this.setData(data);
 }
 
 /**
@@ -14041,33 +13520,33 @@ function Graph (container, data, options) {
  *                         {Options} [options] Object with options
  */
 Graph.prototype.setData = function(data) {
-    if (data && data.dot && (data.nodes || data.edges)) {
-        throw new SyntaxError('Data must contain either parameter "dot" or ' +
-            ' parameter pair "nodes" and "edges", but not both.');
-    }
+  if (data && data.dot && (data.nodes || data.edges)) {
+    throw new SyntaxError('Data must contain either parameter "dot" or ' +
+        ' parameter pair "nodes" and "edges", but not both.');
+  }
 
-    // set options
-    this.setOptions(data && data.options);
+  // set options
+  this.setOptions(data && data.options);
 
-    // set all data
-    if (data && data.dot) {
-        // parse DOT file
-        if(data && data.dot) {
-            var dotData = vis.util.DOTToGraph(data.dot);
-            this.setData(dotData);
-            return;
-        }
+  // set all data
+  if (data && data.dot) {
+    // parse DOT file
+    if(data && data.dot) {
+      var dotData = vis.util.DOTToGraph(data.dot);
+      this.setData(dotData);
+      return;
     }
-    else {
-        this._setNodes(data && data.nodes);
-        this._setEdges(data && data.edges);
-    }
+  }
+  else {
+    this._setNodes(data && data.nodes);
+    this._setEdges(data && data.edges);
+  }
 
-    // find a stable position or start animating to a stable position
-    if (this.stabilize) {
-        this._doStabilize();
-    }
-    this.start();
+  // find a stable position or start animating to a stable position
+  if (this.stabilize) {
+    this._doStabilize();
+  }
+  this.start();
 };
 
 /**
@@ -14075,77 +13554,77 @@ Graph.prototype.setData = function(data) {
  * @param {Object} options
  */
 Graph.prototype.setOptions = function (options) {
-    if (options) {
-        // retrieve parameter values
-        if (options.width != undefined)           {this.width = options.width;}
-        if (options.height != undefined)          {this.height = options.height;}
-        if (options.stabilize != undefined)       {this.stabilize = options.stabilize;}
-        if (options.selectable != undefined)      {this.selectable = options.selectable;}
+  if (options) {
+    // retrieve parameter values
+    if (options.width != undefined)           {this.width = options.width;}
+    if (options.height != undefined)          {this.height = options.height;}
+    if (options.stabilize != undefined)       {this.stabilize = options.stabilize;}
+    if (options.selectable != undefined)      {this.selectable = options.selectable;}
 
-        // TODO: work out these options and document them
-        if (options.edges) {
-            for (var prop in options.edges) {
-                if (options.edges.hasOwnProperty(prop)) {
-                    this.constants.edges[prop] = options.edges[prop];
-                }
-            }
-
-            if (options.edges.length != undefined &&
-                options.nodes && options.nodes.distance == undefined) {
-                this.constants.edges.length   = options.edges.length;
-                this.constants.nodes.distance = options.edges.length * 1.25;
-            }
-
-            if (!options.edges.fontColor) {
-                this.constants.edges.fontColor = options.edges.color;
-            }
-
-            // Added to support dashed lines
-            // David Jordan
-            // 2012-08-08
-            if (options.edges.dash) {
-                if (options.edges.dash.length != undefined) {
-                    this.constants.edges.dash.length = options.edges.dash.length;
-                }
-                if (options.edges.dash.gap != undefined) {
-                    this.constants.edges.dash.gap = options.edges.dash.gap;
-                }
-                if (options.edges.dash.altLength != undefined) {
-                    this.constants.edges.dash.altLength = options.edges.dash.altLength;
-                }
-            }
+    // TODO: work out these options and document them
+    if (options.edges) {
+      for (var prop in options.edges) {
+        if (options.edges.hasOwnProperty(prop)) {
+          this.constants.edges[prop] = options.edges[prop];
         }
+      }
 
-        if (options.nodes) {
-            for (prop in options.nodes) {
-                if (options.nodes.hasOwnProperty(prop)) {
-                    this.constants.nodes[prop] = options.nodes[prop];
-                }
-            }
+      if (options.edges.length != undefined &&
+          options.nodes && options.nodes.distance == undefined) {
+        this.constants.edges.length   = options.edges.length;
+        this.constants.nodes.distance = options.edges.length * 1.25;
+      }
 
-            if (options.nodes.color) {
-                this.constants.nodes.color = Node.parseColor(options.nodes.color);
-            }
+      if (!options.edges.fontColor) {
+        this.constants.edges.fontColor = options.edges.color;
+      }
 
-            /*
-             if (options.nodes.widthMin) this.constants.nodes.radiusMin = options.nodes.widthMin;
-             if (options.nodes.widthMax) this.constants.nodes.radiusMax = options.nodes.widthMax;
-             */
+      // Added to support dashed lines
+      // David Jordan
+      // 2012-08-08
+      if (options.edges.dash) {
+        if (options.edges.dash.length != undefined) {
+          this.constants.edges.dash.length = options.edges.dash.length;
         }
-
-        if (options.groups) {
-            for (var groupname in options.groups) {
-                if (options.groups.hasOwnProperty(groupname)) {
-                    var group = options.groups[groupname];
-                    this.groups.add(groupname, group);
-                }
-            }
+        if (options.edges.dash.gap != undefined) {
+          this.constants.edges.dash.gap = options.edges.dash.gap;
         }
+        if (options.edges.dash.altLength != undefined) {
+          this.constants.edges.dash.altLength = options.edges.dash.altLength;
+        }
+      }
     }
 
-    this.setSize(this.width, this.height);
-    this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
-    this._setScale(1);
+    if (options.nodes) {
+      for (prop in options.nodes) {
+        if (options.nodes.hasOwnProperty(prop)) {
+          this.constants.nodes[prop] = options.nodes[prop];
+        }
+      }
+
+      if (options.nodes.color) {
+        this.constants.nodes.color = Node.parseColor(options.nodes.color);
+      }
+
+      /*
+       if (options.nodes.widthMin) this.constants.nodes.radiusMin = options.nodes.widthMin;
+       if (options.nodes.widthMax) this.constants.nodes.radiusMax = options.nodes.widthMax;
+       */
+    }
+
+    if (options.groups) {
+      for (var groupname in options.groups) {
+        if (options.groups.hasOwnProperty(groupname)) {
+          var group = options.groups[groupname];
+          this.groups.add(groupname, group);
+        }
+      }
+    }
+  }
+
+  this.setSize(this.width, this.height);
+  this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
+  this._setScale(1);
 };
 
 /**
@@ -14155,7 +13634,7 @@ Graph.prototype.setOptions = function (options) {
  * @private
  */
 Graph.prototype._trigger = function (event, params) {
-    events.trigger(this, event, params);
+  events.trigger(this, event, params);
 };
 
 
@@ -14167,48 +13646,48 @@ Graph.prototype._trigger = function (event, params) {
  * @private
  */
 Graph.prototype._create = function () {
-    // remove all elements from the container element.
-    while (this.containerElement.hasChildNodes()) {
-        this.containerElement.removeChild(this.containerElement.firstChild);
-    }
+  // remove all elements from the container element.
+  while (this.containerElement.hasChildNodes()) {
+    this.containerElement.removeChild(this.containerElement.firstChild);
+  }
 
-    this.frame = document.createElement('div');
-    this.frame.className = 'graph-frame';
-    this.frame.style.position = 'relative';
-    this.frame.style.overflow = 'hidden';
+  this.frame = document.createElement('div');
+  this.frame.className = 'graph-frame';
+  this.frame.style.position = 'relative';
+  this.frame.style.overflow = 'hidden';
 
-    // create the graph canvas (HTML canvas element)
-    this.frame.canvas = document.createElement( 'canvas' );
-    this.frame.canvas.style.position = 'relative';
-    this.frame.appendChild(this.frame.canvas);
-    if (!this.frame.canvas.getContext) {
-        var noCanvas = document.createElement( 'DIV' );
-        noCanvas.style.color = 'red';
-        noCanvas.style.fontWeight =  'bold' ;
-        noCanvas.style.padding =  '10px';
-        noCanvas.innerHTML =  'Error: your browser does not support HTML canvas';
-        this.frame.canvas.appendChild(noCanvas);
-    }
+  // create the graph canvas (HTML canvas element)
+  this.frame.canvas = document.createElement( 'canvas' );
+  this.frame.canvas.style.position = 'relative';
+  this.frame.appendChild(this.frame.canvas);
+  if (!this.frame.canvas.getContext) {
+    var noCanvas = document.createElement( 'DIV' );
+    noCanvas.style.color = 'red';
+    noCanvas.style.fontWeight =  'bold' ;
+    noCanvas.style.padding =  '10px';
+    noCanvas.innerHTML =  'Error: your browser does not support HTML canvas';
+    this.frame.canvas.appendChild(noCanvas);
+  }
 
-    var me = this;
-    this.drag = {};
-    this.pinch = {};
-    this.hammer = Hammer(this.frame.canvas, {
-        prevent_default: true
-    });
-    this.hammer.on('tap',       me._onTap.bind(me) );
-    this.hammer.on('hold',      me._onHold.bind(me) );
-    this.hammer.on('pinch',     me._onPinch.bind(me) );
-    this.hammer.on('touch',     me._onTouch.bind(me) );
-    this.hammer.on('dragstart', me._onDragStart.bind(me) );
-    this.hammer.on('drag',      me._onDrag.bind(me) );
-    this.hammer.on('dragend',   me._onDragEnd.bind(me) );
-    this.hammer.on('mousewheel',me._onMouseWheel.bind(me) );
-    this.hammer.on('DOMMouseScroll',me._onMouseWheel.bind(me) ); // for FF
-    this.hammer.on('mousemove', me._onMouseMoveTitle.bind(me) );
+  var me = this;
+  this.drag = {};
+  this.pinch = {};
+  this.hammer = Hammer(this.frame.canvas, {
+    prevent_default: true
+  });
+  this.hammer.on('tap',       me._onTap.bind(me) );
+  this.hammer.on('hold',      me._onHold.bind(me) );
+  this.hammer.on('pinch',     me._onPinch.bind(me) );
+  this.hammer.on('touch',     me._onTouch.bind(me) );
+  this.hammer.on('dragstart', me._onDragStart.bind(me) );
+  this.hammer.on('drag',      me._onDrag.bind(me) );
+  this.hammer.on('dragend',   me._onDragEnd.bind(me) );
+  this.hammer.on('mousewheel',me._onMouseWheel.bind(me) );
+  this.hammer.on('DOMMouseScroll',me._onMouseWheel.bind(me) ); // for FF
+  this.hammer.on('mousemove', me._onMouseMoveTitle.bind(me) );
 
-    // add the frame to the container element
-    this.containerElement.appendChild(this.frame);
+  // add the frame to the container element
+  this.containerElement.appendChild(this.frame);
 };
 
 /**
@@ -14218,21 +13697,21 @@ Graph.prototype._create = function () {
  * @private
  */
 Graph.prototype._getNodeAt = function (pointer) {
-    var x = this._canvasToX(pointer.x);
-    var y = this._canvasToY(pointer.y);
+  var x = this._canvasToX(pointer.x);
+  var y = this._canvasToY(pointer.y);
 
-    var obj = {
-        left:   x,
-        top:    y,
-        right:  x,
-        bottom: y
-    };
+  var obj = {
+    left:   x,
+    top:    y,
+    right:  x,
+    bottom: y
+  };
 
-    // if there are overlapping nodes, select the last one, this is the
-    // one which is drawn on top of the others
-    var overlappingNodes = this._getNodesOverlappingWith(obj);
-    return (overlappingNodes.length > 0) ?
-        overlappingNodes[overlappingNodes.length - 1] : null;
+  // if there are overlapping nodes, select the last one, this is the
+  // one which is drawn on top of the others
+  var overlappingNodes = this._getNodesOverlappingWith(obj);
+  return (overlappingNodes.length > 0) ?
+      overlappingNodes[overlappingNodes.length - 1] : null;
 };
 
 /**
@@ -14242,10 +13721,10 @@ Graph.prototype._getNodeAt = function (pointer) {
  * @private
  */
 Graph.prototype._getPointer = function (touch) {
-    return {
-        x: touch.pageX - vis.util.getAbsoluteLeft(this.frame.canvas),
-        y: touch.pageY - vis.util.getAbsoluteTop(this.frame.canvas)
-    };
+  return {
+    x: touch.pageX - vis.util.getAbsoluteLeft(this.frame.canvas),
+    y: touch.pageY - vis.util.getAbsoluteTop(this.frame.canvas)
+  };
 };
 
 /**
@@ -14254,9 +13733,9 @@ Graph.prototype._getPointer = function (touch) {
  * @private
  */
 Graph.prototype._onTouch = function (event) {
-    this.drag.pointer = this._getPointer(event.gesture.touches[0]);
-    this.drag.pinched = false;
-    this.pinch.scale = this._getScale();
+  this.drag.pointer = this._getPointer(event.gesture.touches[0]);
+  this.drag.pinched = false;
+  this.pinch.scale = this._getScale();
 };
 
 /**
@@ -14264,44 +13743,44 @@ Graph.prototype._onTouch = function (event) {
  * @private
  */
 Graph.prototype._onDragStart = function () {
-    var drag = this.drag;
+  var drag = this.drag;
 
-    drag.selection = [];
-    drag.translation = this._getTranslation();
-    drag.nodeId = this._getNodeAt(drag.pointer);
-    // note: drag.pointer is set in _onTouch to get the initial touch location
+  drag.selection = [];
+  drag.translation = this._getTranslation();
+  drag.nodeId = this._getNodeAt(drag.pointer);
+  // note: drag.pointer is set in _onTouch to get the initial touch location
 
-    var node = this.nodes[drag.nodeId];
-    if (node) {
-        // select the clicked node if not yet selected
-        if (!node.isSelected()) {
-            this._selectNodes([drag.nodeId]);
-        }
-
-        // create an array with the selected nodes and their original location and status
-        var me = this;
-        this.selection.forEach(function (id) {
-            var node = me.nodes[id];
-            if (node) {
-                var s = {
-                    id: id,
-                    node: node,
-
-                    // store original x, y, xFixed and yFixed, make the node temporarily Fixed
-                    x: node.x,
-                    y: node.y,
-                    xFixed: node.xFixed,
-                    yFixed: node.yFixed
-                };
-
-                node.xFixed = true;
-                node.yFixed = true;
-
-                drag.selection.push(s);
-            }
-        });
-
+  var node = this.nodes[drag.nodeId];
+  if (node) {
+    // select the clicked node if not yet selected
+    if (!node.isSelected()) {
+      this._selectNodes([drag.nodeId]);
     }
+
+    // create an array with the selected nodes and their original location and status
+    var me = this;
+    this.selection.forEach(function (id) {
+      var node = me.nodes[id];
+      if (node) {
+        var s = {
+          id: id,
+          node: node,
+
+          // store original x, y, xFixed and yFixed, make the node temporarily Fixed
+          x: node.x,
+          y: node.y,
+          xFixed: node.xFixed,
+          yFixed: node.yFixed
+        };
+
+        node.xFixed = true;
+        node.yFixed = true;
+
+        drag.selection.push(s);
+      }
+    });
+
+  }
 };
 
 /**
@@ -14309,51 +13788,51 @@ Graph.prototype._onDragStart = function () {
  * @private
  */
 Graph.prototype._onDrag = function (event) {
-    if (this.drag.pinched) {
-        return;
+  if (this.drag.pinched) {
+    return;
+  }
+
+  var pointer = this._getPointer(event.gesture.touches[0]);
+
+  var me = this,
+      drag = this.drag,
+      selection = drag.selection;
+  if (selection && selection.length) {
+    // calculate delta's and new location
+    var deltaX = pointer.x - drag.pointer.x,
+        deltaY = pointer.y - drag.pointer.y;
+
+    // update position of all selected nodes
+    selection.forEach(function (s) {
+      var node = s.node;
+
+      if (!s.xFixed) {
+        node.x = me._canvasToX(me._xToCanvas(s.x) + deltaX);
+      }
+
+      if (!s.yFixed) {
+        node.y = me._canvasToY(me._yToCanvas(s.y) + deltaY);
+      }
+    });
+
+    // start animation if not yet running
+    if (!this.moving) {
+      this.moving = true;
+      this.start();
     }
+  }
+  else {
+    // move the graph
+    var diffX = pointer.x - this.drag.pointer.x;
+    var diffY = pointer.y - this.drag.pointer.y;
 
-    var pointer = this._getPointer(event.gesture.touches[0]);
+    this._setTranslation(
+        this.drag.translation.x + diffX,
+        this.drag.translation.y + diffY);
+    this._redraw();
 
-    var me = this,
-        drag = this.drag,
-        selection = drag.selection;
-    if (selection && selection.length) {
-        // calculate delta's and new location
-        var deltaX = pointer.x - drag.pointer.x,
-            deltaY = pointer.y - drag.pointer.y;
-
-        // update position of all selected nodes
-        selection.forEach(function (s) {
-            var node = s.node;
-
-            if (!s.xFixed) {
-                node.x = me._canvasToX(me._xToCanvas(s.x) + deltaX);
-            }
-
-            if (!s.yFixed) {
-                node.y = me._canvasToY(me._yToCanvas(s.y) + deltaY);
-            }
-        });
-
-        // start animation if not yet running
-        if (!this.moving) {
-            this.moving = true;
-            this.start();
-        }
-    }
-    else {
-        // move the graph
-        var diffX = pointer.x - this.drag.pointer.x;
-        var diffY = pointer.y - this.drag.pointer.y;
-
-        this._setTranslation(
-            this.drag.translation.x + diffX,
-            this.drag.translation.y + diffY);
-        this._redraw();
-
-        this.moved = true;
-    }
+    this.moved = true;
+  }
 };
 
 /**
@@ -14361,14 +13840,14 @@ Graph.prototype._onDrag = function (event) {
  * @private
  */
 Graph.prototype._onDragEnd = function () {
-    var selection = this.drag.selection;
-    if (selection) {
-        selection.forEach(function (s) {
-            // restore original xFixed and yFixed
-            s.node.xFixed = s.xFixed;
-            s.node.yFixed = s.yFixed;
-        });
-    }
+  var selection = this.drag.selection;
+  if (selection) {
+    selection.forEach(function (s) {
+      // restore original xFixed and yFixed
+      s.node.xFixed = s.xFixed;
+      s.node.yFixed = s.yFixed;
+    });
+  }
 };
 
 /**
@@ -14376,23 +13855,23 @@ Graph.prototype._onDragEnd = function () {
  * @private
  */
 Graph.prototype._onTap = function (event) {
-    var pointer = this._getPointer(event.gesture.touches[0]);
+  var pointer = this._getPointer(event.gesture.touches[0]);
 
-    var nodeId = this._getNodeAt(pointer);
-    var node = this.nodes[nodeId];
-    if (node) {
-        // select this node
-        this._selectNodes([nodeId]);
+  var nodeId = this._getNodeAt(pointer);
+  var node = this.nodes[nodeId];
+  if (node) {
+    // select this node
+    this._selectNodes([nodeId]);
 
-        if (!this.moving) {
-            this._redraw();
-        }
+    if (!this.moving) {
+      this._redraw();
     }
-    else {
-        // remove selection
-        this._unselectNodes();
-        this._redraw();
-    }
+  }
+  else {
+    // remove selection
+    this._unselectNodes();
+    this._redraw();
+  }
 };
 
 /**
@@ -14400,26 +13879,26 @@ Graph.prototype._onTap = function (event) {
  * @private
  */
 Graph.prototype._onHold = function (event) {
-    var pointer = this._getPointer(event.gesture.touches[0]);
-    var nodeId = this._getNodeAt(pointer);
-    var node = this.nodes[nodeId];
-    if (node) {
-        if (!node.isSelected()) {
-            // select this node, keep previous selection
-            var append = true;
-            this._selectNodes([nodeId], append);
-        }
-        else {
-            this._unselectNodes([nodeId]);
-        }
-
-        if (!this.moving) {
-            this._redraw();
-        }
+  var pointer = this._getPointer(event.gesture.touches[0]);
+  var nodeId = this._getNodeAt(pointer);
+  var node = this.nodes[nodeId];
+  if (node) {
+    if (!node.isSelected()) {
+      // select this node, keep previous selection
+      var append = true;
+      this._selectNodes([nodeId], append);
     }
     else {
-        // Do nothing
+      this._unselectNodes([nodeId]);
     }
+
+    if (!this.moving) {
+      this._redraw();
+    }
+  }
+  else {
+    // Do nothing
+  }
 };
 
 /**
@@ -14428,16 +13907,16 @@ Graph.prototype._onHold = function (event) {
  * @private
  */
 Graph.prototype._onPinch = function (event) {
-    var pointer = this._getPointer(event.gesture.center);
+  var pointer = this._getPointer(event.gesture.center);
 
-    this.drag.pinched = true;
-    if (!('scale' in this.pinch)) {
-        this.pinch.scale = 1;
-    }
+  this.drag.pinched = true;
+  if (!('scale' in this.pinch)) {
+    this.pinch.scale = 1;
+  }
 
-    // TODO: enable moving while pinching?
-    var scale = this.pinch.scale * event.gesture.scale;
-    this._zoom(scale, pointer)
+  // TODO: enable moving while pinching?
+  var scale = this.pinch.scale * event.gesture.scale;
+  this._zoom(scale, pointer)
 };
 
 /**
@@ -14448,24 +13927,24 @@ Graph.prototype._onPinch = function (event) {
  * @private
  */
 Graph.prototype._zoom = function(scale, pointer) {
-    var scaleOld = this._getScale();
-    if (scale < 0.01) {
-        scale = 0.01;
-    }
-    if (scale > 10) {
-        scale = 10;
-    }
+  var scaleOld = this._getScale();
+  if (scale < 0.01) {
+    scale = 0.01;
+  }
+  if (scale > 10) {
+    scale = 10;
+  }
 
-    var translation = this._getTranslation();
-    var scaleFrac = scale / scaleOld;
-    var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
-    var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
+  var translation = this._getTranslation();
+  var scaleFrac = scale / scaleOld;
+  var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
+  var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
 
-    this._setScale(scale);
-    this._setTranslation(tx, ty);
-    this._redraw();
+  this._setScale(scale);
+  this._setTranslation(tx, ty);
+  this._redraw();
 
-    return scale;
+  return scale;
 };
 
 /**
@@ -14476,45 +13955,45 @@ Graph.prototype._zoom = function(scale, pointer) {
  * @private
  */
 Graph.prototype._onMouseWheel = function(event) {
-    // retrieve delta
-    var delta = 0;
-    if (event.wheelDelta) { /* IE/Opera. */
-        delta = event.wheelDelta/120;
-    } else if (event.detail) { /* Mozilla case. */
-        // In Mozilla, sign of delta is different than in IE.
-        // Also, delta is multiple of 3.
-        delta = -event.detail/3;
+  // retrieve delta
+  var delta = 0;
+  if (event.wheelDelta) { /* IE/Opera. */
+    delta = event.wheelDelta/120;
+  } else if (event.detail) { /* Mozilla case. */
+    // In Mozilla, sign of delta is different than in IE.
+    // Also, delta is multiple of 3.
+    delta = -event.detail/3;
+  }
+
+  // If delta is nonzero, handle it.
+  // Basically, delta is now positive if wheel was scrolled up,
+  // and negative, if wheel was scrolled down.
+  if (delta) {
+    if (!('mouswheelScale' in this.pinch)) {
+      this.pinch.mouswheelScale = 1;
     }
 
-    // If delta is nonzero, handle it.
-    // Basically, delta is now positive if wheel was scrolled up,
-    // and negative, if wheel was scrolled down.
-    if (delta) {
-        if (!('mouswheelScale' in this.pinch)) {
-            this.pinch.mouswheelScale = 1;
-        }
-
-        // calculate the new scale
-        var scale = this.pinch.mouswheelScale;
-        var zoom = delta / 10;
-        if (delta < 0) {
-            zoom = zoom / (1 - zoom);
-        }
-        scale *= (1 + zoom);
-
-        // calculate the pointer location
-        var gesture = Hammer.event.collectEventData(this, 'scroll', event);
-        var pointer = this._getPointer(gesture.center);
-
-        // apply the new scale
-        scale = this._zoom(scale, pointer);
-
-        // store the new, applied scale
-        this.pinch.mouswheelScale = scale;
+    // calculate the new scale
+    var scale = this.pinch.mouswheelScale;
+    var zoom = delta / 10;
+    if (delta < 0) {
+      zoom = zoom / (1 - zoom);
     }
+    scale *= (1 + zoom);
 
-    // Prevent default actions caused by mouse wheel.
-    event.preventDefault();
+    // calculate the pointer location
+    var gesture = Hammer.event.collectEventData(this, 'scroll', event);
+    var pointer = this._getPointer(gesture.center);
+
+    // apply the new scale
+    scale = this._zoom(scale, pointer);
+
+    // store the new, applied scale
+    this.pinch.mouswheelScale = scale;
+  }
+
+  // Prevent default actions caused by mouse wheel.
+  event.preventDefault();
 };
 
 
@@ -14524,26 +14003,26 @@ Graph.prototype._onMouseWheel = function(event) {
  * @private
  */
 Graph.prototype._onMouseMoveTitle = function (event) {
-    var gesture = Hammer.event.collectEventData(this, 'mousemove', event);
-    var pointer = this._getPointer(gesture.center);
+  var gesture = Hammer.event.collectEventData(this, 'mousemove', event);
+  var pointer = this._getPointer(gesture.center);
 
-    // check if the previously selected node is still selected
-    if (this.popupNode) {
-        this._checkHidePopup(pointer);
-    }
+  // check if the previously selected node is still selected
+  if (this.popupNode) {
+    this._checkHidePopup(pointer);
+  }
 
-    // start a timeout that will check if the mouse is positioned above
-    // an element
-    var me = this;
-    var checkShow = function() {
-        me._checkShowPopup(pointer);
-    };
-    if (this.popupTimer) {
-        clearInterval(this.popupTimer); // stop any running timer
-    }
-    if (!this.leftButtonDown) {
-        this.popupTimer = setTimeout(checkShow, 300);
-    }
+  // start a timeout that will check if the mouse is positioned above
+  // an element
+  var me = this;
+  var checkShow = function() {
+    me._checkShowPopup(pointer);
+  };
+  if (this.popupTimer) {
+    clearInterval(this.popupTimer); // stop any running timer
+  }
+  if (!this.leftButtonDown) {
+    this.popupTimer = setTimeout(checkShow, 300);
+  }
 };
 
 /**
@@ -14555,66 +14034,66 @@ Graph.prototype._onMouseMoveTitle = function (event) {
  * @private
  */
 Graph.prototype._checkShowPopup = function (pointer) {
-    var obj = {
-        left:   this._canvasToX(pointer.x),
-        top:    this._canvasToY(pointer.y),
-        right:  this._canvasToX(pointer.x),
-        bottom: this._canvasToY(pointer.y)
-    };
+  var obj = {
+    left:   this._canvasToX(pointer.x),
+    top:    this._canvasToY(pointer.y),
+    right:  this._canvasToX(pointer.x),
+    bottom: this._canvasToY(pointer.y)
+  };
 
-    var id;
-    var lastPopupNode = this.popupNode;
+  var id;
+  var lastPopupNode = this.popupNode;
 
-    if (this.popupNode == undefined) {
-        // search the nodes for overlap, select the top one in case of multiple nodes
-        var nodes = this.nodes;
-        for (id in nodes) {
-            if (nodes.hasOwnProperty(id)) {
-                var node = nodes[id];
-                if (node.getTitle() != undefined && node.isOverlappingWith(obj)) {
-                    this.popupNode = node;
-                    break;
-                }
-            }
+  if (this.popupNode == undefined) {
+    // search the nodes for overlap, select the top one in case of multiple nodes
+    var nodes = this.nodes;
+    for (id in nodes) {
+      if (nodes.hasOwnProperty(id)) {
+        var node = nodes[id];
+        if (node.getTitle() != undefined && node.isOverlappingWith(obj)) {
+          this.popupNode = node;
+          break;
         }
+      }
     }
+  }
 
-    if (this.popupNode == undefined) {
-        // search the edges for overlap
-        var edges = this.edges;
-        for (id in edges) {
-            if (edges.hasOwnProperty(id)) {
-                var edge = edges[id];
-                if (edge.connected && (edge.getTitle() != undefined) &&
-                        edge.isOverlappingWith(obj)) {
-                    this.popupNode = edge;
-                    break;
-                }
-            }
+  if (this.popupNode == undefined) {
+    // search the edges for overlap
+    var edges = this.edges;
+    for (id in edges) {
+      if (edges.hasOwnProperty(id)) {
+        var edge = edges[id];
+        if (edge.connected && (edge.getTitle() != undefined) &&
+            edge.isOverlappingWith(obj)) {
+          this.popupNode = edge;
+          break;
         }
+      }
     }
+  }
 
-    if (this.popupNode) {
-        // show popup message window
-        if (this.popupNode != lastPopupNode) {
-            var me = this;
-            if (!me.popup) {
-                me.popup = new Popup(me.frame);
-            }
+  if (this.popupNode) {
+    // show popup message window
+    if (this.popupNode != lastPopupNode) {
+      var me = this;
+      if (!me.popup) {
+        me.popup = new Popup(me.frame);
+      }
 
-            // adjust a small offset such that the mouse cursor is located in the
-            // bottom left location of the popup, and you can easily move over the
-            // popup area
-            me.popup.setPosition(pointer.x - 3, pointer.y - 3);
-            me.popup.setText(me.popupNode.getTitle());
-            me.popup.show();
-        }
+      // adjust a small offset such that the mouse cursor is located in the
+      // bottom left location of the popup, and you can easily move over the
+      // popup area
+      me.popup.setPosition(pointer.x - 3, pointer.y - 3);
+      me.popup.setText(me.popupNode.getTitle());
+      me.popup.show();
     }
-    else {
-        if (this.popup) {
-            this.popup.hide();
-        }
+  }
+  else {
+    if (this.popup) {
+      this.popup.hide();
     }
+  }
 };
 
 /**
@@ -14624,12 +14103,12 @@ Graph.prototype._checkShowPopup = function (pointer) {
  * @private
  */
 Graph.prototype._checkHidePopup = function (pointer) {
-    if (!this.popupNode || !this._getNodeAt(pointer) ) {
-        this.popupNode = undefined;
-        if (this.popup) {
-            this.popup.hide();
-        }
+  if (!this.popupNode || !this._getNodeAt(pointer) ) {
+    this.popupNode = undefined;
+    if (this.popup) {
+      this.popup.hide();
     }
+  }
 };
 
 /**
@@ -14643,43 +14122,43 @@ Graph.prototype._checkHidePopup = function (pointer) {
  * @private
  */
 Graph.prototype._unselectNodes = function(selection, triggerSelect) {
-    var changed = false;
-    var i, iMax, id;
+  var changed = false;
+  var i, iMax, id;
 
-    if (selection) {
-        // remove provided selections
-        for (i = 0, iMax = selection.length; i < iMax; i++) {
-            id = selection[i];
-            this.nodes[id].unselect();
+  if (selection) {
+    // remove provided selections
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+      this.nodes[id].unselect();
 
-            var j = 0;
-            while (j < this.selection.length) {
-                if (this.selection[j] == id) {
-                    this.selection.splice(j, 1);
-                    changed = true;
-                }
-                else {
-                    j++;
-                }
-            }
+      var j = 0;
+      while (j < this.selection.length) {
+        if (this.selection[j] == id) {
+          this.selection.splice(j, 1);
+          changed = true;
         }
-    }
-    else if (this.selection && this.selection.length) {
-        // remove all selections
-        for (i = 0, iMax = this.selection.length; i < iMax; i++) {
-            id = this.selection[i];
-            this.nodes[id].unselect();
-            changed = true;
+        else {
+          j++;
         }
-        this.selection = [];
+      }
     }
-
-    if (changed && (triggerSelect == true || triggerSelect == undefined)) {
-        // fire the select event
-        this._trigger('select');
+  }
+  else if (this.selection && this.selection.length) {
+    // remove all selections
+    for (i = 0, iMax = this.selection.length; i < iMax; i++) {
+      id = this.selection[i];
+      this.nodes[id].unselect();
+      changed = true;
     }
+    this.selection = [];
+  }
 
-    return changed;
+  if (changed && (triggerSelect == true || triggerSelect == undefined)) {
+    // fire the select event
+    this._trigger('select');
+  }
+
+  return changed;
 };
 
 /**
@@ -14691,51 +14170,51 @@ Graph.prototype._unselectNodes = function(selection, triggerSelect) {
  * @private
  */
 Graph.prototype._selectNodes = function(selection, append) {
-    var changed = false;
-    var i, iMax;
+  var changed = false;
+  var i, iMax;
 
-    // TODO: the selectNodes method is a little messy, rework this
+  // TODO: the selectNodes method is a little messy, rework this
 
-    // check if the current selection equals the desired selection
-    var selectionAlreadyThere = true;
-    if (selection.length != this.selection.length) {
+  // check if the current selection equals the desired selection
+  var selectionAlreadyThere = true;
+  if (selection.length != this.selection.length) {
+    selectionAlreadyThere = false;
+  }
+  else {
+    for (i = 0, iMax = Math.min(selection.length, this.selection.length); i < iMax; i++) {
+      if (selection[i] != this.selection[i]) {
         selectionAlreadyThere = false;
+        break;
+      }
     }
-    else {
-        for (i = 0, iMax = Math.min(selection.length, this.selection.length); i < iMax; i++) {
-            if (selection[i] != this.selection[i]) {
-                selectionAlreadyThere = false;
-                break;
-            }
-        }
-    }
-    if (selectionAlreadyThere) {
-        return changed;
-    }
-
-    if (append == undefined || append == false) {
-        // first deselect any selected node
-        var triggerSelect = false;
-        changed = this._unselectNodes(undefined, triggerSelect);
-    }
-
-    for (i = 0, iMax = selection.length; i < iMax; i++) {
-        // add each of the new selections, but only when they are not duplicate
-        var id = selection[i];
-        var isDuplicate = (this.selection.indexOf(id) != -1);
-        if (!isDuplicate) {
-            this.nodes[id].select();
-            this.selection.push(id);
-            changed = true;
-        }
-    }
-
-    if (changed) {
-        // fire the select event
-        this._trigger('select');
-    }
-
+  }
+  if (selectionAlreadyThere) {
     return changed;
+  }
+
+  if (append == undefined || append == false) {
+    // first deselect any selected node
+    var triggerSelect = false;
+    changed = this._unselectNodes(undefined, triggerSelect);
+  }
+
+  for (i = 0, iMax = selection.length; i < iMax; i++) {
+    // add each of the new selections, but only when they are not duplicate
+    var id = selection[i];
+    var isDuplicate = (this.selection.indexOf(id) != -1);
+    if (!isDuplicate) {
+      this.nodes[id].select();
+      this.selection.push(id);
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    // fire the select event
+    this._trigger('select');
+  }
+
+  return changed;
 };
 
 /**
@@ -14745,18 +14224,18 @@ Graph.prototype._selectNodes = function(selection, append) {
  * @private
  */
 Graph.prototype._getNodesOverlappingWith = function (obj) {
-    var nodes = this.nodes,
-        overlappingNodes = [];
+  var nodes = this.nodes,
+      overlappingNodes = [];
 
-    for (var id in nodes) {
-        if (nodes.hasOwnProperty(id)) {
-            if (nodes[id].isOverlappingWith(obj)) {
-                overlappingNodes.push(id);
-            }
-        }
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      if (nodes[id].isOverlappingWith(obj)) {
+        overlappingNodes.push(id);
+      }
     }
+  }
 
-    return overlappingNodes;
+  return overlappingNodes;
 };
 
 /**
@@ -14765,7 +14244,7 @@ Graph.prototype._getNodesOverlappingWith = function (obj) {
  *                                            selected nodes.
  */
 Graph.prototype.getSelection = function() {
-    return this.selection.concat([]);
+  return this.selection.concat([]);
 };
 
 /**
@@ -14774,31 +14253,31 @@ Graph.prototype.getSelection = function() {
  *                                            selected nodes.
  */
 Graph.prototype.setSelection = function(selection) {
-    var i, iMax, id;
+  var i, iMax, id;
 
-    if (!selection || (selection.length == undefined))
-        throw 'Selection must be an array with ids';
+  if (!selection || (selection.length == undefined))
+    throw 'Selection must be an array with ids';
 
-    // first unselect any selected node
-    for (i = 0, iMax = this.selection.length; i < iMax; i++) {
-        id = this.selection[i];
-        this.nodes[id].unselect();
+  // first unselect any selected node
+  for (i = 0, iMax = this.selection.length; i < iMax; i++) {
+    id = this.selection[i];
+    this.nodes[id].unselect();
+  }
+
+  this.selection = [];
+
+  for (i = 0, iMax = selection.length; i < iMax; i++) {
+    id = selection[i];
+
+    var node = this.nodes[id];
+    if (!node) {
+      throw new RangeError('Node with id "' + id + '" not found');
     }
+    node.select();
+    this.selection.push(id);
+  }
 
-    this.selection = [];
-
-    for (i = 0, iMax = selection.length; i < iMax; i++) {
-        id = selection[i];
-
-        var node = this.nodes[id];
-        if (!node) {
-            throw new RangeError('Node with id "' + id + '" not found');
-        }
-        node.select();
-        this.selection.push(id);
-    }
-
-    this.redraw();
+  this.redraw();
 };
 
 /**
@@ -14806,16 +14285,16 @@ Graph.prototype.setSelection = function(selection) {
  * @private
  */
 Graph.prototype._updateSelection = function () {
-    var i = 0;
-    while (i < this.selection.length) {
-        var id = this.selection[i];
-        if (!this.nodes[id]) {
-            this.selection.splice(i, 1);
-        }
-        else {
-            i++;
-        }
+  var i = 0;
+  while (i < this.selection.length) {
+    var id = this.selection[i];
+    if (!this.nodes[id]) {
+      this.selection.splice(i, 1);
     }
+    else {
+      i++;
+    }
+  }
 };
 
 /**
@@ -14827,74 +14306,74 @@ Graph.prototype._updateSelection = function () {
  * @private
  */
 Graph.prototype._getConnectionCount = function(level) {
-    if (level == undefined) {
-        level = 1;
-    }
+  if (level == undefined) {
+    level = 1;
+  }
 
-    // get the nodes connected to given nodes
-    function getConnectedNodes(nodes) {
-        var connectedNodes = [];
+  // get the nodes connected to given nodes
+  function getConnectedNodes(nodes) {
+    var connectedNodes = [];
 
-        for (var j = 0, jMax = nodes.length; j < jMax; j++) {
-            var node = nodes[j];
+    for (var j = 0, jMax = nodes.length; j < jMax; j++) {
+      var node = nodes[j];
 
-            // find all nodes connected to this node
-            var edges = node.edges;
-            for (var i = 0, iMax = edges.length; i < iMax; i++) {
-                var edge = edges[i];
-                var other = null;
+      // find all nodes connected to this node
+      var edges = node.edges;
+      for (var i = 0, iMax = edges.length; i < iMax; i++) {
+        var edge = edges[i];
+        var other = null;
 
-                // check if connected
-                if (edge.from == node)
-                    other = edge.to;
-                else if (edge.to == node)
-                    other = edge.from;
+        // check if connected
+        if (edge.from == node)
+          other = edge.to;
+        else if (edge.to == node)
+          other = edge.from;
 
-                // check if the other node is not already in the list with nodes
-                var k, kMax;
-                if (other) {
-                    for (k = 0, kMax = nodes.length; k < kMax; k++) {
-                        if (nodes[k] == other) {
-                            other = null;
-                            break;
-                        }
-                    }
-                }
-                if (other) {
-                    for (k = 0, kMax = connectedNodes.length; k < kMax; k++) {
-                        if (connectedNodes[k] == other) {
-                            other = null;
-                            break;
-                        }
-                    }
-                }
-
-                if (other)
-                    connectedNodes.push(other);
+        // check if the other node is not already in the list with nodes
+        var k, kMax;
+        if (other) {
+          for (k = 0, kMax = nodes.length; k < kMax; k++) {
+            if (nodes[k] == other) {
+              other = null;
+              break;
             }
+          }
+        }
+        if (other) {
+          for (k = 0, kMax = connectedNodes.length; k < kMax; k++) {
+            if (connectedNodes[k] == other) {
+              other = null;
+              break;
+            }
+          }
         }
 
-        return connectedNodes;
+        if (other)
+          connectedNodes.push(other);
+      }
     }
 
-    var connections = [];
-    var nodes = this.nodes;
-    for (var id in nodes) {
-        if (nodes.hasOwnProperty(id)) {
-            var c = [nodes[id]];
-            for (var l = 0; l < level; l++) {
-                c = c.concat(getConnectedNodes(c));
-            }
-            connections.push(c);
-        }
-    }
+    return connectedNodes;
+  }
 
-    var hubs = [];
-    for (var i = 0, len = connections.length; i < len; i++) {
-        hubs.push(connections[i].length);
+  var connections = [];
+  var nodes = this.nodes;
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      var c = [nodes[id]];
+      for (var l = 0; l < level; l++) {
+        c = c.concat(getConnectedNodes(c));
+      }
+      connections.push(c);
     }
+  }
 
-    return hubs;
+  var hubs = [];
+  for (var i = 0, len = connections.length; i < len; i++) {
+    hubs.push(connections[i].length);
+  }
+
+  return hubs;
 };
 
 
@@ -14906,14 +14385,14 @@ Graph.prototype._getConnectionCount = function(level) {
  *                         or '30%')
  */
 Graph.prototype.setSize = function(width, height) {
-    this.frame.style.width = width;
-    this.frame.style.height = height;
+  this.frame.style.width = width;
+  this.frame.style.height = height;
 
-    this.frame.canvas.style.width = '100%';
-    this.frame.canvas.style.height = '100%';
+  this.frame.canvas.style.width = '100%';
+  this.frame.canvas.style.height = '100%';
 
-    this.frame.canvas.width = this.frame.canvas.clientWidth;
-    this.frame.canvas.height = this.frame.canvas.clientHeight;
+  this.frame.canvas.width = this.frame.canvas.clientWidth;
+  this.frame.canvas.height = this.frame.canvas.clientHeight;
 };
 
 /**
@@ -14922,45 +14401,45 @@ Graph.prototype.setSize = function(width, height) {
  * @private
  */
 Graph.prototype._setNodes = function(nodes) {
-    var oldNodesData = this.nodesData;
+  var oldNodesData = this.nodesData;
 
-    if (nodes instanceof DataSet || nodes instanceof DataView) {
-        this.nodesData = nodes;
-    }
-    else if (nodes instanceof Array) {
-        this.nodesData = new DataSet();
-        this.nodesData.add(nodes);
-    }
-    else if (!nodes) {
-        this.nodesData = new DataSet();
-    }
-    else {
-        throw new TypeError('Array or DataSet expected');
-    }
+  if (nodes instanceof DataSet || nodes instanceof DataView) {
+    this.nodesData = nodes;
+  }
+  else if (nodes instanceof Array) {
+    this.nodesData = new DataSet();
+    this.nodesData.add(nodes);
+  }
+  else if (!nodes) {
+    this.nodesData = new DataSet();
+  }
+  else {
+    throw new TypeError('Array or DataSet expected');
+  }
 
-    if (oldNodesData) {
-        // unsubscribe from old dataset
-        util.forEach(this.nodesListeners, function (callback, event) {
-            oldNodesData.unsubscribe(event, callback);
-        });
-    }
+  if (oldNodesData) {
+    // unsubscribe from old dataset
+    util.forEach(this.nodesListeners, function (callback, event) {
+      oldNodesData.unsubscribe(event, callback);
+    });
+  }
 
-    // remove drawn nodes
-    this.nodes = {};
+  // remove drawn nodes
+  this.nodes = {};
 
-    if (this.nodesData) {
-        // subscribe to new dataset
-        var me = this;
-        util.forEach(this.nodesListeners, function (callback, event) {
-            me.nodesData.subscribe(event, callback);
-        });
+  if (this.nodesData) {
+    // subscribe to new dataset
+    var me = this;
+    util.forEach(this.nodesListeners, function (callback, event) {
+      me.nodesData.subscribe(event, callback);
+    });
 
-        // draw all new nodes
-        var ids = this.nodesData.getIds();
-        this._addNodes(ids);
-    }
+    // draw all new nodes
+    var ids = this.nodesData.getIds();
+    this._addNodes(ids);
+  }
 
-    this._updateSelection();
+  this._updateSelection();
 };
 
 /**
@@ -14969,29 +14448,29 @@ Graph.prototype._setNodes = function(nodes) {
  * @private
  */
 Graph.prototype._addNodes = function(ids) {
-    var id;
-    for (var i = 0, len = ids.length; i < len; i++) {
-        id = ids[i];
-        var data = this.nodesData.get(id);
-        var node = new Node(data, this.images, this.groups, this.constants);
-        this.nodes[id] = node; // note: this may replace an existing node
+  var id;
+  for (var i = 0, len = ids.length; i < len; i++) {
+    id = ids[i];
+    var data = this.nodesData.get(id);
+    var node = new Node(data, this.images, this.groups, this.constants);
+    this.nodes[id] = node; // note: this may replace an existing node
 
-        if (!node.isFixed()) {
-            // TODO: position new nodes in a smarter way!
-            var radius = this.constants.edges.length * 2;
-            var count = ids.length;
-            var angle = 2 * Math.PI * (i / count);
-            node.x = radius * Math.cos(angle);
-            node.y = radius * Math.sin(angle);
+    if (!node.isFixed()) {
+      // TODO: position new nodes in a smarter way!
+      var radius = this.constants.edges.length * 2;
+      var count = ids.length;
+      var angle = 2 * Math.PI * (i / count);
+      node.x = radius * Math.cos(angle);
+      node.y = radius * Math.sin(angle);
 
-            // note: no not use node.isMoving() here, as that gives the current
-            // velocity of the node, which is zero after creation of the node.
-            this.moving = true;
-        }
+      // note: no not use node.isMoving() here, as that gives the current
+      // velocity of the node, which is zero after creation of the node.
+      this.moving = true;
     }
+  }
 
-    this._reconnectEdges();
-    this._updateValueRange(this.nodes);
+  this._reconnectEdges();
+  this._updateValueRange(this.nodes);
 };
 
 /**
@@ -15000,29 +14479,29 @@ Graph.prototype._addNodes = function(ids) {
  * @private
  */
 Graph.prototype._updateNodes = function(ids) {
-    var nodes = this.nodes,
-        nodesData = this.nodesData;
-    for (var i = 0, len = ids.length; i < len; i++) {
-        var id = ids[i];
-        var node = nodes[id];
-        var data = nodesData.get(id);
-        if (node) {
-            // update node
-            node.setProperties(data, this.constants);
-        }
-        else {
-            // create node
-            node = new Node(properties, this.images, this.groups, this.constants);
-            nodes[id] = node;
-
-            if (!node.isFixed()) {
-                this.moving = true;
-            }
-        }
+  var nodes = this.nodes,
+      nodesData = this.nodesData;
+  for (var i = 0, len = ids.length; i < len; i++) {
+    var id = ids[i];
+    var node = nodes[id];
+    var data = nodesData.get(id);
+    if (node) {
+      // update node
+      node.setProperties(data, this.constants);
     }
+    else {
+      // create node
+      node = new Node(properties, this.images, this.groups, this.constants);
+      nodes[id] = node;
 
-    this._reconnectEdges();
-    this._updateValueRange(nodes);
+      if (!node.isFixed()) {
+        this.moving = true;
+      }
+    }
+  }
+
+  this._reconnectEdges();
+  this._updateValueRange(nodes);
 };
 
 /**
@@ -15031,15 +14510,15 @@ Graph.prototype._updateNodes = function(ids) {
  * @private
  */
 Graph.prototype._removeNodes = function(ids) {
-    var nodes = this.nodes;
-    for (var i = 0, len = ids.length; i < len; i++) {
-        var id = ids[i];
-        delete nodes[id];
-    }
+  var nodes = this.nodes;
+  for (var i = 0, len = ids.length; i < len; i++) {
+    var id = ids[i];
+    delete nodes[id];
+  }
 
-    this._reconnectEdges();
-    this._updateSelection();
-    this._updateValueRange(nodes);
+  this._reconnectEdges();
+  this._updateSelection();
+  this._updateValueRange(nodes);
 };
 
 /**
@@ -15049,45 +14528,45 @@ Graph.prototype._removeNodes = function(ids) {
  * @private
  */
 Graph.prototype._setEdges = function(edges) {
-    var oldEdgesData = this.edgesData;
+  var oldEdgesData = this.edgesData;
 
-    if (edges instanceof DataSet || edges instanceof DataView) {
-        this.edgesData = edges;
-    }
-    else if (edges instanceof Array) {
-        this.edgesData = new DataSet();
-        this.edgesData.add(edges);
-    }
-    else if (!edges) {
-        this.edgesData = new DataSet();
-    }
-    else {
-        throw new TypeError('Array or DataSet expected');
-    }
+  if (edges instanceof DataSet || edges instanceof DataView) {
+    this.edgesData = edges;
+  }
+  else if (edges instanceof Array) {
+    this.edgesData = new DataSet();
+    this.edgesData.add(edges);
+  }
+  else if (!edges) {
+    this.edgesData = new DataSet();
+  }
+  else {
+    throw new TypeError('Array or DataSet expected');
+  }
 
-    if (oldEdgesData) {
-        // unsubscribe from old dataset
-        util.forEach(this.edgesListeners, function (callback, event) {
-            oldEdgesData.unsubscribe(event, callback);
-        });
-    }
+  if (oldEdgesData) {
+    // unsubscribe from old dataset
+    util.forEach(this.edgesListeners, function (callback, event) {
+      oldEdgesData.unsubscribe(event, callback);
+    });
+  }
 
-    // remove drawn edges
-    this.edges = {};
+  // remove drawn edges
+  this.edges = {};
 
-    if (this.edgesData) {
-        // subscribe to new dataset
-        var me = this;
-        util.forEach(this.edgesListeners, function (callback, event) {
-            me.edgesData.subscribe(event, callback);
-        });
+  if (this.edgesData) {
+    // subscribe to new dataset
+    var me = this;
+    util.forEach(this.edgesListeners, function (callback, event) {
+      me.edgesData.subscribe(event, callback);
+    });
 
-        // draw all new nodes
-        var ids = this.edgesData.getIds();
-        this._addEdges(ids);
-    }
+    // draw all new nodes
+    var ids = this.edgesData.getIds();
+    this._addEdges(ids);
+  }
 
-    this._reconnectEdges();
+  this._reconnectEdges();
 };
 
 /**
@@ -15096,22 +14575,22 @@ Graph.prototype._setEdges = function(edges) {
  * @private
  */
 Graph.prototype._addEdges = function (ids) {
-    var edges = this.edges,
-        edgesData = this.edgesData;
-    for (var i = 0, len = ids.length; i < len; i++) {
-        var id = ids[i];
+  var edges = this.edges,
+      edgesData = this.edgesData;
+  for (var i = 0, len = ids.length; i < len; i++) {
+    var id = ids[i];
 
-        var oldEdge = edges[id];
-        if (oldEdge) {
-            oldEdge.disconnect();
-        }
-
-        var data = edgesData.get(id);
-        edges[id] = new Edge(data, this, this.constants);
+    var oldEdge = edges[id];
+    if (oldEdge) {
+      oldEdge.disconnect();
     }
 
-    this.moving = true;
-    this._updateValueRange(edges);
+    var data = edgesData.get(id);
+    edges[id] = new Edge(data, this, this.constants);
+  }
+
+  this.moving = true;
+  this._updateValueRange(edges);
 };
 
 /**
@@ -15120,28 +14599,28 @@ Graph.prototype._addEdges = function (ids) {
  * @private
  */
 Graph.prototype._updateEdges = function (ids) {
-    var edges = this.edges,
-        edgesData = this.edgesData;
-    for (var i = 0, len = ids.length; i < len; i++) {
-        var id = ids[i];
+  var edges = this.edges,
+      edgesData = this.edgesData;
+  for (var i = 0, len = ids.length; i < len; i++) {
+    var id = ids[i];
 
-        var data = edgesData.get(id);
-        var edge = edges[id];
-        if (edge) {
-            // update edge
-            edge.disconnect();
-            edge.setProperties(data, this.constants);
-            edge.connect();
-        }
-        else {
-            // create edge
-            edge = new Edge(data, this, this.constants);
-            this.edges[id] = edge;
-        }
+    var data = edgesData.get(id);
+    var edge = edges[id];
+    if (edge) {
+      // update edge
+      edge.disconnect();
+      edge.setProperties(data, this.constants);
+      edge.connect();
     }
+    else {
+      // create edge
+      edge = new Edge(data, this, this.constants);
+      this.edges[id] = edge;
+    }
+  }
 
-    this.moving = true;
-    this._updateValueRange(edges);
+  this.moving = true;
+  this._updateValueRange(edges);
 };
 
 /**
@@ -15150,18 +14629,18 @@ Graph.prototype._updateEdges = function (ids) {
  * @private
  */
 Graph.prototype._removeEdges = function (ids) {
-    var edges = this.edges;
-    for (var i = 0, len = ids.length; i < len; i++) {
-        var id = ids[i];
-        var edge = edges[id];
-        if (edge) {
-            edge.disconnect();
-            delete edges[id];
-        }
+  var edges = this.edges;
+  for (var i = 0, len = ids.length; i < len; i++) {
+    var id = ids[i];
+    var edge = edges[id];
+    if (edge) {
+      edge.disconnect();
+      delete edges[id];
     }
+  }
 
-    this.moving = true;
-    this._updateValueRange(edges);
+  this.moving = true;
+  this._updateValueRange(edges);
 };
 
 /**
@@ -15169,23 +14648,23 @@ Graph.prototype._removeEdges = function (ids) {
  * @private
  */
 Graph.prototype._reconnectEdges = function() {
-    var id,
-        nodes = this.nodes,
-        edges = this.edges;
-    for (id in nodes) {
-        if (nodes.hasOwnProperty(id)) {
-            nodes[id].edges = [];
-        }
+  var id,
+      nodes = this.nodes,
+      edges = this.edges;
+  for (id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      nodes[id].edges = [];
     }
+  }
 
-    for (id in edges) {
-        if (edges.hasOwnProperty(id)) {
-            var edge = edges[id];
-            edge.from = null;
-            edge.to = null;
-            edge.connect();
-        }
+  for (id in edges) {
+    if (edges.hasOwnProperty(id)) {
+      var edge = edges[id];
+      edge.from = null;
+      edge.to = null;
+      edge.connect();
     }
+  }
 };
 
 /**
@@ -15197,29 +14676,29 @@ Graph.prototype._reconnectEdges = function() {
  * @private
  */
 Graph.prototype._updateValueRange = function(obj) {
-    var id;
+  var id;
 
-    // determine the range of the objects
-    var valueMin = undefined;
-    var valueMax = undefined;
+  // determine the range of the objects
+  var valueMin = undefined;
+  var valueMax = undefined;
+  for (id in obj) {
+    if (obj.hasOwnProperty(id)) {
+      var value = obj[id].getValue();
+      if (value !== undefined) {
+        valueMin = (valueMin === undefined) ? value : Math.min(value, valueMin);
+        valueMax = (valueMax === undefined) ? value : Math.max(value, valueMax);
+      }
+    }
+  }
+
+  // adjust the range of all objects
+  if (valueMin !== undefined && valueMax !== undefined) {
     for (id in obj) {
-        if (obj.hasOwnProperty(id)) {
-            var value = obj[id].getValue();
-            if (value !== undefined) {
-                valueMin = (valueMin === undefined) ? value : Math.min(value, valueMin);
-                valueMax = (valueMax === undefined) ? value : Math.max(value, valueMax);
-            }
-        }
+      if (obj.hasOwnProperty(id)) {
+        obj[id].setValueRange(valueMin, valueMax);
+      }
     }
-
-    // adjust the range of all objects
-    if (valueMin !== undefined && valueMax !== undefined) {
-        for (id in obj) {
-            if (obj.hasOwnProperty(id)) {
-                obj[id].setValueRange(valueMin, valueMax);
-            }
-        }
-    }
+  }
 };
 
 /**
@@ -15227,9 +14706,9 @@ Graph.prototype._updateValueRange = function(obj) {
  * chart will be resized too.
  */
 Graph.prototype.redraw = function() {
-    this.setSize(this.width, this.height);
+  this.setSize(this.width, this.height);
 
-    this._redraw();
+  this._redraw();
 };
 
 /**
@@ -15237,23 +14716,23 @@ Graph.prototype.redraw = function() {
  * @private
  */
 Graph.prototype._redraw = function() {
-    var ctx = this.frame.canvas.getContext('2d');
+  var ctx = this.frame.canvas.getContext('2d');
 
-    // clear the canvas
-    var w = this.frame.canvas.width;
-    var h = this.frame.canvas.height;
-    ctx.clearRect(0, 0, w, h);
+  // clear the canvas
+  var w = this.frame.canvas.width;
+  var h = this.frame.canvas.height;
+  ctx.clearRect(0, 0, w, h);
 
-    // set scaling and translation
-    ctx.save();
-    ctx.translate(this.translation.x, this.translation.y);
-    ctx.scale(this.scale, this.scale);
+  // set scaling and translation
+  ctx.save();
+  ctx.translate(this.translation.x, this.translation.y);
+  ctx.scale(this.scale, this.scale);
 
-    this._drawEdges(ctx);
-    this._drawNodes(ctx);
+  this._drawEdges(ctx);
+  this._drawNodes(ctx);
 
-    // restore original scaling and translation
-    ctx.restore();
+  // restore original scaling and translation
+  ctx.restore();
 };
 
 /**
@@ -15263,19 +14742,19 @@ Graph.prototype._redraw = function() {
  * @private
  */
 Graph.prototype._setTranslation = function(offsetX, offsetY) {
-    if (this.translation === undefined) {
-        this.translation = {
-            x: 0,
-            y: 0
-        };
-    }
+  if (this.translation === undefined) {
+    this.translation = {
+      x: 0,
+      y: 0
+    };
+  }
 
-    if (offsetX !== undefined) {
-        this.translation.x = offsetX;
-    }
-    if (offsetY !== undefined) {
-        this.translation.y = offsetY;
-    }
+  if (offsetX !== undefined) {
+    this.translation.x = offsetX;
+  }
+  if (offsetY !== undefined) {
+    this.translation.y = offsetY;
+  }
 };
 
 /**
@@ -15284,10 +14763,10 @@ Graph.prototype._setTranslation = function(offsetX, offsetY) {
  * @private
  */
 Graph.prototype._getTranslation = function() {
-    return {
-        x: this.translation.x,
-        y: this.translation.y
-    };
+  return {
+    x: this.translation.x,
+    y: this.translation.y
+  };
 };
 
 /**
@@ -15296,7 +14775,7 @@ Graph.prototype._getTranslation = function() {
  * @private
  */
 Graph.prototype._setScale = function(scale) {
-    this.scale = scale;
+  this.scale = scale;
 };
 /**
  * Get the current scale of  the graph
@@ -15304,7 +14783,7 @@ Graph.prototype._setScale = function(scale) {
  * @private
  */
 Graph.prototype._getScale = function() {
-    return this.scale;
+  return this.scale;
 };
 
 /**
@@ -15314,7 +14793,7 @@ Graph.prototype._getScale = function() {
  * @private
  */
 Graph.prototype._canvasToX = function(x) {
-    return (x - this.translation.x) / this.scale;
+  return (x - this.translation.x) / this.scale;
 };
 
 /**
@@ -15324,7 +14803,7 @@ Graph.prototype._canvasToX = function(x) {
  * @private
  */
 Graph.prototype._xToCanvas = function(x) {
-    return x * this.scale + this.translation.x;
+  return x * this.scale + this.translation.x;
 };
 
 /**
@@ -15334,7 +14813,7 @@ Graph.prototype._xToCanvas = function(x) {
  * @private
  */
 Graph.prototype._canvasToY = function(y) {
-    return (y - this.translation.y) / this.scale;
+  return (y - this.translation.y) / this.scale;
 };
 
 /**
@@ -15344,7 +14823,7 @@ Graph.prototype._canvasToY = function(y) {
  * @private
  */
 Graph.prototype._yToCanvas = function(y) {
-    return y * this.scale + this.translation.y ;
+  return y * this.scale + this.translation.y ;
 };
 
 /**
@@ -15354,24 +14833,24 @@ Graph.prototype._yToCanvas = function(y) {
  * @private
  */
 Graph.prototype._drawNodes = function(ctx) {
-    // first draw the unselected nodes
-    var nodes = this.nodes;
-    var selected = [];
-    for (var id in nodes) {
-        if (nodes.hasOwnProperty(id)) {
-            if (nodes[id].isSelected()) {
-                selected.push(id);
-            }
-            else {
-                nodes[id].draw(ctx);
-            }
-        }
+  // first draw the unselected nodes
+  var nodes = this.nodes;
+  var selected = [];
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      if (nodes[id].isSelected()) {
+        selected.push(id);
+      }
+      else {
+        nodes[id].draw(ctx);
+      }
     }
+  }
 
-    // draw the selected nodes on top
-    for (var s = 0, sMax = selected.length; s < sMax; s++) {
-        nodes[selected[s]].draw(ctx);
-    }
+  // draw the selected nodes on top
+  for (var s = 0, sMax = selected.length; s < sMax; s++) {
+    nodes[selected[s]].draw(ctx);
+  }
 };
 
 /**
@@ -15381,15 +14860,15 @@ Graph.prototype._drawNodes = function(ctx) {
  * @private
  */
 Graph.prototype._drawEdges = function(ctx) {
-    var edges = this.edges;
-    for (var id in edges) {
-        if (edges.hasOwnProperty(id)) {
-            var edge = edges[id];
-            if (edge.connected) {
-                edges[id].draw(ctx);
-            }
-        }
+  var edges = this.edges;
+  for (var id in edges) {
+    if (edges.hasOwnProperty(id)) {
+      var edge = edges[id];
+      if (edge.connected) {
+        edges[id].draw(ctx);
+      }
     }
+  }
 };
 
 /**
@@ -15397,22 +14876,22 @@ Graph.prototype._drawEdges = function(ctx) {
  * @private
  */
 Graph.prototype._doStabilize = function() {
-    var start = new Date();
+  var start = new Date();
 
-    // find stable position
-    var count = 0;
-    var vmin = this.constants.minVelocity;
-    var stable = false;
-    while (!stable && count < this.constants.maxIterations) {
-        this._calculateForces();
-        this._discreteStepNodes();
-        stable = !this._isMoving(vmin);
-        count++;
-    }
+  // find stable position
+  var count = 0;
+  var vmin = this.constants.minVelocity;
+  var stable = false;
+  while (!stable && count < this.constants.maxIterations) {
+    this._calculateForces();
+    this._discreteStepNodes();
+    stable = !this._isMoving(vmin);
+    count++;
+  }
 
-    var end = new Date();
+  var end = new Date();
 
-    // console.log('Stabilized in ' + (end-start) + ' ms, ' + count + ' iterations' ); // TODO: cleanup
+  // console.log('Stabilized in ' + (end-start) + ' ms, ' + count + ' iterations' ); // TODO: cleanup
 };
 
 /**
@@ -15421,149 +14900,149 @@ Graph.prototype._doStabilize = function() {
  * @private
  */
 Graph.prototype._calculateForces = function() {
-    // create a local edge to the nodes and edges, that is faster
-    var id, dx, dy, angle, distance, fx, fy,
-        repulsingForce, springForce, length, edgeLength,
-        nodes = this.nodes,
-        edges = this.edges;
+  // create a local edge to the nodes and edges, that is faster
+  var id, dx, dy, angle, distance, fx, fy,
+      repulsingForce, springForce, length, edgeLength,
+      nodes = this.nodes,
+      edges = this.edges;
 
-    // gravity, add a small constant force to pull the nodes towards the center of
-    // the graph
-    // Also, the forces are reset to zero in this loop by using _setForce instead
-    // of _addForce
-    var gravity = 0.01,
-        gx = this.frame.canvas.clientWidth / 2,
-        gy = this.frame.canvas.clientHeight / 2;
-    for (id in nodes) {
-        if (nodes.hasOwnProperty(id)) {
-            var node = nodes[id];
-            dx = gx - node.x;
-            dy = gy - node.y;
-            angle = Math.atan2(dy, dx);
-            fx = Math.cos(angle) * gravity;
-            fy = Math.sin(angle) * gravity;
+  // gravity, add a small constant force to pull the nodes towards the center of
+  // the graph
+  // Also, the forces are reset to zero in this loop by using _setForce instead
+  // of _addForce
+  var gravity = 0.01,
+      gx = this.frame.canvas.clientWidth / 2,
+      gy = this.frame.canvas.clientHeight / 2;
+  for (id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      var node = nodes[id];
+      dx = gx - node.x;
+      dy = gy - node.y;
+      angle = Math.atan2(dy, dx);
+      fx = Math.cos(angle) * gravity;
+      fy = Math.sin(angle) * gravity;
 
-            node._setForce(fx, fy);
+      node._setForce(fx, fy);
+    }
+  }
+
+  // repulsing forces between nodes
+  var minimumDistance = this.constants.nodes.distance,
+      steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
+
+  for (var id1 in nodes) {
+    if (nodes.hasOwnProperty(id1)) {
+      var node1 = nodes[id1];
+      for (var id2 in nodes) {
+        if (nodes.hasOwnProperty(id2)) {
+          var node2 = nodes[id2];
+          // calculate normally distributed force
+          dx = node2.x - node1.x;
+          dy = node2.y - node1.y;
+          distance = Math.sqrt(dx * dx + dy * dy);
+          angle = Math.atan2(dy, dx);
+
+          // TODO: correct factor for repulsing force
+          //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+          //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+          repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
+          fx = Math.cos(angle) * repulsingForce;
+          fy = Math.sin(angle) * repulsingForce;
+
+          node1._addForce(-fx, -fy);
+          node2._addForce(fx, fy);
         }
+      }
     }
+  }
 
-    // repulsing forces between nodes
-    var minimumDistance = this.constants.nodes.distance,
-        steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
+  /* TODO: re-implement repulsion of edges
+   for (var n = 0; n < nodes.length; n++) {
+   for (var l = 0; l < edges.length; l++) {
+   var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
+   ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
 
-    for (var id1 in nodes) {
-        if (nodes.hasOwnProperty(id1)) {
-            var node1 = nodes[id1];
-            for (var id2 in nodes) {
-                if (nodes.hasOwnProperty(id2)) {
-                    var node2 = nodes[id2];
-                    // calculate normally distributed force
-                    dx = node2.x - node1.x;
-                    dy = node2.y - node1.y;
-                    distance = Math.sqrt(dx * dx + dy * dy);
-                    angle = Math.atan2(dy, dx);
+   // calculate normally distributed force
+   dx = nodes[n].x - lx,
+   dy = nodes[n].y - ly,
+   distance = Math.sqrt(dx * dx + dy * dy),
+   angle = Math.atan2(dy, dx),
 
-                    // TODO: correct factor for repulsing force
-                    //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-                    //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-                    repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
-                    fx = Math.cos(angle) * repulsingForce;
-                    fy = Math.sin(angle) * repulsingForce;
 
-                    node1._addForce(-fx, -fy);
-                    node2._addForce(fx, fy);
-                }
-            }
-        }
+   // TODO: correct factor for repulsing force
+   //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+   //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
+   repulsingforce = 1 / (1 + Math.exp((distance / (minimumDistance / 2) - 1) * steepness)), // TODO: customize the repulsing force
+   fx = Math.cos(angle) * repulsingforce,
+   fy = Math.sin(angle) * repulsingforce;
+   nodes[n]._addForce(fx, fy);
+   edges[l].from._addForce(-fx/2,-fy/2);
+   edges[l].to._addForce(-fx/2,-fy/2);
+   }
+   }
+   */
+
+  // forces caused by the edges, modelled as springs
+  for (id in edges) {
+    if (edges.hasOwnProperty(id)) {
+      var edge = edges[id];
+      if (edge.connected) {
+        dx = (edge.to.x - edge.from.x);
+        dy = (edge.to.y - edge.from.y);
+        //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
+        //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length; // TODO: dmin
+        //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2;
+        edgeLength = edge.length;
+        length =  Math.sqrt(dx * dx + dy * dy);
+        angle = Math.atan2(dy, dx);
+
+        springForce = edge.stiffness * (edgeLength - length);
+
+        fx = Math.cos(angle) * springForce;
+        fy = Math.sin(angle) * springForce;
+
+        edge.from._addForce(-fx, -fy);
+        edge.to._addForce(fx, fy);
+      }
     }
+  }
 
-    /* TODO: re-implement repulsion of edges
-    for (var n = 0; n < nodes.length; n++) {
-         for (var l = 0; l < edges.length; l++) {
-         var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
-         ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
+  /* TODO: re-implement repulsion of edges
+   // repulsing forces between edges
+   var minimumDistance = this.constants.edges.distance,
+   steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
+   for (var l = 0; l < edges.length; l++) {
+   //Keep distance from other edge centers
+   for (var l2 = l + 1; l2 < this.edges.length; l2++) {
+   //var dmin = (nodes[n].width + nodes[n].height + nodes[n2].width + nodes[n2].height) / 1 || minimumDistance, // TODO: dmin
+   //var dmin = (nodes[n].width + nodes[n2].width)/2  || minimumDistance, // TODO: dmin
+   //dmin = 40 + ((nodes[n].width/2 + nodes[n2].width/2) || 0),
+   var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
+   ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
+   l2x = edges[l2].from.x+(edges[l2].to.x - edges[l2].from.x)/2,
+   l2y = edges[l2].from.y+(edges[l2].to.y - edges[l2].from.y)/2,
 
-         // calculate normally distributed force
-         dx = nodes[n].x - lx,
-         dy = nodes[n].y - ly,
-         distance = Math.sqrt(dx * dx + dy * dy),
-         angle = Math.atan2(dy, dx),
-
-
-         // TODO: correct factor for repulsing force
-         //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-         //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
-         repulsingforce = 1 / (1 + Math.exp((distance / (minimumDistance / 2) - 1) * steepness)), // TODO: customize the repulsing force
-         fx = Math.cos(angle) * repulsingforce,
-         fy = Math.sin(angle) * repulsingforce;
-         nodes[n]._addForce(fx, fy);
-         edges[l].from._addForce(-fx/2,-fy/2);
-         edges[l].to._addForce(-fx/2,-fy/2);
-         }
-    }
-     */
-
-    // forces caused by the edges, modelled as springs
-    for (id in edges) {
-        if (edges.hasOwnProperty(id)) {
-            var edge = edges[id];
-            if (edge.connected) {
-                dx = (edge.to.x - edge.from.x);
-                dy = (edge.to.y - edge.from.y);
-                //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
-                //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length; // TODO: dmin
-                //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2;
-                edgeLength = edge.length;
-                length =  Math.sqrt(dx * dx + dy * dy);
-                angle = Math.atan2(dy, dx);
-
-                springForce = edge.stiffness * (edgeLength - length);
-
-                fx = Math.cos(angle) * springForce;
-                fy = Math.sin(angle) * springForce;
-
-                edge.from._addForce(-fx, -fy);
-                edge.to._addForce(fx, fy);
-            }
-        }
-    }
-
-    /* TODO: re-implement repulsion of edges
-     // repulsing forces between edges
-     var minimumDistance = this.constants.edges.distance,
-     steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
-     for (var l = 0; l < edges.length; l++) {
-     //Keep distance from other edge centers
-     for (var l2 = l + 1; l2 < this.edges.length; l2++) {
-     //var dmin = (nodes[n].width + nodes[n].height + nodes[n2].width + nodes[n2].height) / 1 || minimumDistance, // TODO: dmin
-     //var dmin = (nodes[n].width + nodes[n2].width)/2  || minimumDistance, // TODO: dmin
-     //dmin = 40 + ((nodes[n].width/2 + nodes[n2].width/2) || 0),
-     var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
-     ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
-     l2x = edges[l2].from.x+(edges[l2].to.x - edges[l2].from.x)/2,
-     l2y = edges[l2].from.y+(edges[l2].to.y - edges[l2].from.y)/2,
-
-     // calculate normally distributed force
-     dx = l2x - lx,
-     dy = l2y - ly,
-     distance = Math.sqrt(dx * dx + dy * dy),
-     angle = Math.atan2(dy, dx),
+   // calculate normally distributed force
+   dx = l2x - lx,
+   dy = l2y - ly,
+   distance = Math.sqrt(dx * dx + dy * dy),
+   angle = Math.atan2(dy, dx),
 
 
-     // TODO: correct factor for repulsing force
-     //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-     //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
-     repulsingforce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)), // TODO: customize the repulsing force
-     fx = Math.cos(angle) * repulsingforce,
-     fy = Math.sin(angle) * repulsingforce;
+   // TODO: correct factor for repulsing force
+   //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+   //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
+   repulsingforce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)), // TODO: customize the repulsing force
+   fx = Math.cos(angle) * repulsingforce,
+   fy = Math.sin(angle) * repulsingforce;
 
-     edges[l].from._addForce(-fx, -fy);
-     edges[l].to._addForce(-fx, -fy);
-     edges[l2].from._addForce(fx, fy);
-     edges[l2].to._addForce(fx, fy);
-     }
-     }
-     */
+   edges[l].from._addForce(-fx, -fy);
+   edges[l].to._addForce(-fx, -fy);
+   edges[l2].from._addForce(fx, fy);
+   edges[l2].to._addForce(fx, fy);
+   }
+   }
+   */
 };
 
 
@@ -15574,14 +15053,14 @@ Graph.prototype._calculateForces = function() {
  * @private
  */
 Graph.prototype._isMoving = function(vmin) {
-    // TODO: ismoving does not work well: should check the kinetic energy, not its velocity
-    var nodes = this.nodes;
-    for (var id in nodes) {
-        if (nodes.hasOwnProperty(id) && nodes[id].isMoving(vmin)) {
-            return true;
-        }
+  // TODO: ismoving does not work well: should check the kinetic energy, not its velocity
+  var nodes = this.nodes;
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id) && nodes[id].isMoving(vmin)) {
+      return true;
     }
-    return false;
+  }
+  return false;
 };
 
 
@@ -15590,124 +15069,124 @@ Graph.prototype._isMoving = function(vmin) {
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-    var interval = this.refreshRate / 1000.0; // in seconds
-    var nodes = this.nodes;
-    for (var id in nodes) {
-        if (nodes.hasOwnProperty(id)) {
-            nodes[id].discreteStep(interval);
-        }
+  var interval = this.refreshRate / 1000.0; // in seconds
+  var nodes = this.nodes;
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      nodes[id].discreteStep(interval);
     }
+  }
 };
 
 /**
  * Start animating nodes and edges
  */
 Graph.prototype.start = function() {
-    if (this.moving) {
-        this._calculateForces();
-        this._discreteStepNodes();
+  if (this.moving) {
+    this._calculateForces();
+    this._discreteStepNodes();
 
-        var vmin = this.constants.minVelocity;
-        this.moving = this._isMoving(vmin);
-    }
+    var vmin = this.constants.minVelocity;
+    this.moving = this._isMoving(vmin);
+  }
 
-    if (this.moving) {
-        // start animation. only start timer if it is not already running
-        if (!this.timer) {
-            var graph = this;
-            this.timer = window.setTimeout(function () {
-                graph.timer = undefined;
-                graph.start();
-                graph._redraw();
-            }, this.refreshRate);
-        }
+  if (this.moving) {
+    // start animation. only start timer if it is not already running
+    if (!this.timer) {
+      var graph = this;
+      this.timer = window.setTimeout(function () {
+        graph.timer = undefined;
+        graph.start();
+        graph._redraw();
+      }, this.refreshRate);
     }
-    else {
-        this._redraw();
-    }
+  }
+  else {
+    this._redraw();
+  }
 };
 
 /**
  * Stop animating nodes and edges.
  */
 Graph.prototype.stop = function () {
-    if (this.timer) {
-        window.clearInterval(this.timer);
-        this.timer = undefined;
-    }
+  if (this.timer) {
+    window.clearInterval(this.timer);
+    this.timer = undefined;
+  }
 };
 
 /**
  * vis.js module exports
  */
 var vis = {
-    util: util,
-    events: events,
+  util: util,
+  events: events,
 
-    Controller: Controller,
-    DataSet: DataSet,
-    DataView: DataView,
-    Range: Range,
-    Stack: Stack,
-    TimeStep: TimeStep,
-    EventBus: EventBus,
+  Controller: Controller,
+  DataSet: DataSet,
+  DataView: DataView,
+  Range: Range,
+  Stack: Stack,
+  TimeStep: TimeStep,
+  EventBus: EventBus,
 
-    components: {
-        items: {
-            Item: Item,
-            ItemBox: ItemBox,
-            ItemPoint: ItemPoint,
-            ItemRange: ItemRange
-        },
-
-        Component: Component,
-        Panel: Panel,
-        RootPanel: RootPanel,
-        ItemSet: ItemSet,
-        TimeAxis: TimeAxis
+  components: {
+    items: {
+      Item: Item,
+      ItemBox: ItemBox,
+      ItemPoint: ItemPoint,
+      ItemRange: ItemRange
     },
 
-    graph: {
-        Node: Node,
-        Edge: Edge,
-        Popup: Popup,
-        Groups: Groups,
-        Images: Images
-    },
+    Component: Component,
+    Panel: Panel,
+    RootPanel: RootPanel,
+    ItemSet: ItemSet,
+    TimeAxis: TimeAxis
+  },
 
-    Timeline: Timeline,
-    Graph: Graph
+  graph: {
+    Node: Node,
+    Edge: Edge,
+    Popup: Popup,
+    Groups: Groups,
+    Images: Images
+  },
+
+  Timeline: Timeline,
+  Graph: Graph
 };
 
 /**
  * CommonJS module exports
  */
 if (typeof exports !== 'undefined') {
-    exports = vis;
+  exports = vis;
 }
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
-    module.exports = vis;
+  module.exports = vis;
 }
 
 /**
  * AMD module exports
  */
 if (typeof(define) === 'function') {
-    define(function () {
-        return vis;
-    });
+  define(function () {
+    return vis;
+  });
 }
 
 /**
  * Window exports
  */
 if (typeof window !== 'undefined') {
-    // attach the module to the window, load as a regular javascript file
-    window['vis'] = vis;
+  // attach the module to the window, load as a regular javascript file
+  window['vis'] = vis;
 }
 
 // inject css
-util.loadCss("/* vis.js stylesheet */\n.vis.timeline {\n}\n\n\n.vis.timeline.rootpanel {\n    position: relative;\n    overflow: hidden;\n\n    border: 1px solid #bfbfbf;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n}\n\n.vis.timeline .panel {\n    position: absolute;\n    overflow: hidden;\n}\n\n\n.vis.timeline .groupset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n}\n\n.vis.timeline .labels {\n    position: absolute;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n\n    padding: 0;\n    margin: 0;\n\n    border-right: 1px solid #bfbfbf;\n    box-sizing: border-box;\n    -moz-box-sizing: border-box;\n}\n\n.vis.timeline .labels .label {\n    position: absolute;\n    left: 0;\n    top: 0;\n    width: 100%;\n    border-bottom: 1px solid #bfbfbf;\n    color: #4d4d4d;\n}\n\n.vis.timeline .labels .label .inner {\n    display: inline-block;\n    padding: 5px;\n}\n\n\n.vis.timeline .itemset {\n    position: absolute;\n    padding: 0;\n    margin: 0;\n    overflow: hidden;\n}\n\n.vis.timeline .background {\n}\n\n.vis.timeline .foreground {\n}\n\n.vis.timeline .itemset-axis {\n    position: absolute;\n}\n\n.vis.timeline .groupset .itemset-axis {\n    border-top: 1px solid #bfbfbf;\n}\n\n/* TODO: with orientation=='bottom', this will more or less overlap with timeline axis\n.vis.timeline .groupset .itemset-axis:last-child {\n    border-top: none;\n}\n*/\n\n\n.vis.timeline .item {\n    position: absolute;\n    color: #1A1A1A;\n    border-color: #97B0F8;\n    background-color: #D5DDF6;\n    display: inline-block;\n}\n\n.vis.timeline .item.selected {\n    border-color: #FFC200;\n    background-color: #FFF785;\n    z-index: 999;\n}\n\n.vis.timeline .item.cluster {\n    /* TODO: use another color or pattern? */\n    background: #97B0F8 url('img/cluster_bg.png');\n    color: white;\n}\n.vis.timeline .item.cluster.point {\n    border-color: #D5DDF6;\n}\n\n.vis.timeline .item.box {\n    text-align: center;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 5px;\n    -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.point {\n    background: none;\n}\n\n.vis.timeline .dot {\n    border: 5px solid #97B0F8;\n    position: absolute;\n    border-radius: 5px;\n    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.range {\n    overflow: hidden;\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.rangeoverflow {\n    border-style: solid;\n    border-width: 1px;\n    border-radius: 2px;\n    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.range .drag-left, .vis.timeline .item.rangeoverflow .drag-left {\n    cursor: w-resize;\n    z-index: 1000;\n}\n\n.vis.timeline .item.range .drag-right, .vis.timeline .item.rangeoverflow .drag-right {\n    cursor: e-resize;\n    z-index: 1000;\n}\n\n.vis.timeline .item.range .content, .vis.timeline .item.rangeoverflow .content {\n    position: relative;\n    display: inline-block;\n}\n\n.vis.timeline .item.line {\n    position: absolute;\n    width: 0;\n    border-left-width: 1px;\n    border-left-style: solid;\n}\n\n.vis.timeline .item .content {\n    margin: 5px;\n    white-space: nowrap;\n    overflow: hidden;\n}\n\n.vis.timeline .axis {\n    position: relative;\n}\n\n.vis.timeline .axis .text {\n    position: absolute;\n    color: #4d4d4d;\n    padding: 3px;\n    white-space: nowrap;\n}\n\n.vis.timeline .axis .text.measure {\n    position: absolute;\n    padding-left: 0;\n    padding-right: 0;\n    margin-left: 0;\n    margin-right: 0;\n    visibility: hidden;\n}\n\n.vis.timeline .axis .grid.vertical {\n    position: absolute;\n    width: 0;\n    border-right: 1px solid;\n}\n\n.vis.timeline .axis .grid.horizontal {\n    position: absolute;\n    left: 0;\n    width: 100%;\n    height: 0;\n    border-bottom: 1px solid;\n}\n\n.vis.timeline .axis .grid.minor {\n    border-color: #e5e5e5;\n}\n\n.vis.timeline .axis .grid.major {\n    border-color: #bfbfbf;\n}\n\n.vis.timeline .currenttime {\n    background-color: #FF7F6E;\n    width: 2px;\n    z-index: 9;\n}\n.vis.timeline .customtime {\n    background-color: #6E94FF;\n    width: 2px;\n    cursor: move;\n    z-index: 9;    \n}\n");
+util.loadCss("/* vis.js stylesheet */\n.vis.timeline {\n}\n\n\n.vis.timeline.rootpanel {\n  position: relative;\n  overflow: hidden;\n\n  border: 1px solid #bfbfbf;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n}\n\n.vis.timeline .panel {\n  position: absolute;\n  overflow: hidden;\n}\n\n\n.vis.timeline .groupset {\n  position: absolute;\n  padding: 0;\n  margin: 0;\n}\n\n.vis.timeline .labels {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n\n  padding: 0;\n  margin: 0;\n\n  border-right: 1px solid #bfbfbf;\n  box-sizing: border-box;\n  -moz-box-sizing: border-box;\n}\n\n.vis.timeline .labels .label-set {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n\n  overflow: hidden;\n\n  border-top: none;\n  border-bottom: 1px solid #bfbfbf;\n}\n\n.vis.timeline .labels .label-set .label {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  color: #4d4d4d;\n}\n\n.vis.timeline.top .labels .label-set .label,\n.vis.timeline.top .groupset .itemset-axis {\n  border-top: 1px solid #bfbfbf;\n  border-bottom: none;\n}\n\n.vis.timeline.bottom .labels .label-set .label,\n.vis.timeline.bottom .groupset .itemset-axis {\n  border-top: none;\n  border-bottom: 1px solid #bfbfbf;\n}\n\n.vis.timeline .labels .label-set .label .inner {\n  display: inline-block;\n  padding: 5px;\n}\n\n\n.vis.timeline .itemset {\n  position: absolute;\n  padding: 0;\n  margin: 0;\n  overflow: hidden;\n}\n\n.vis.timeline .background {\n}\n\n.vis.timeline .foreground {\n}\n\n.vis.timeline .itemset-axis {\n  position: absolute;\n}\n\n\n.vis.timeline .item {\n  position: absolute;\n  color: #1A1A1A;\n  border-color: #97B0F8;\n  background-color: #D5DDF6;\n  display: inline-block;\n}\n\n.vis.timeline .item.selected {\n  border-color: #FFC200;\n  background-color: #FFF785;\n  z-index: 999;\n}\n\n.vis.timeline .item.cluster {\n  /* TODO: use another color or pattern? */\n  background: #97B0F8 url('img/cluster_bg.png');\n  color: white;\n}\n.vis.timeline .item.cluster.point {\n  border-color: #D5DDF6;\n}\n\n.vis.timeline .item.box {\n  text-align: center;\n  border-style: solid;\n  border-width: 1px;\n  border-radius: 5px;\n  -moz-border-radius: 5px; /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.point {\n  background: none;\n}\n\n.vis.timeline .dot {\n  border: 5px solid #97B0F8;\n  position: absolute;\n  border-radius: 5px;\n  -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.range {\n  overflow: hidden;\n  border-style: solid;\n  border-width: 1px;\n  border-radius: 2px;\n  -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.rangeoverflow {\n  border-style: solid;\n  border-width: 1px;\n  border-radius: 2px;\n  -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\n}\n\n.vis.timeline .item.range .drag-left, .vis.timeline .item.rangeoverflow .drag-left {\n  cursor: w-resize;\n  z-index: 1000;\n}\n\n.vis.timeline .item.range .drag-right, .vis.timeline .item.rangeoverflow .drag-right {\n  cursor: e-resize;\n  z-index: 1000;\n}\n\n.vis.timeline .item.range .content, .vis.timeline .item.rangeoverflow .content {\n  position: relative;\n  display: inline-block;\n}\n\n.vis.timeline .item.line {\n  position: absolute;\n  width: 0;\n  border-left-width: 1px;\n  border-left-style: solid;\n}\n\n.vis.timeline .item .content {\n  margin: 5px;\n  white-space: nowrap;\n  overflow: hidden;\n}\n\n.vis.timeline .axis {\n  position: relative;\n}\n\n.vis.timeline .axis .text {\n  position: absolute;\n  color: #4d4d4d;\n  padding: 3px;\n  white-space: nowrap;\n}\n\n.vis.timeline .axis .text.measure {\n  position: absolute;\n  padding-left: 0;\n  padding-right: 0;\n  margin-left: 0;\n  margin-right: 0;\n  visibility: hidden;\n}\n\n.vis.timeline .axis .grid.vertical {\n  position: absolute;\n  width: 0;\n  border-right: 1px solid;\n}\n\n.vis.timeline .axis .grid.horizontal {\n  position: absolute;\n  left: 0;\n  width: 100%;\n  height: 0;\n  border-bottom: 1px solid;\n}\n\n.vis.timeline .axis .grid.minor {\n  border-color: #e5e5e5;\n}\n\n.vis.timeline .axis .grid.major {\n  border-color: #bfbfbf;\n}\n\n.vis.timeline .currenttime {\n  background-color: #FF7F6E;\n  width: 2px;\n  z-index: 9;\n}\n.vis.timeline .customtime {\n  background-color: #6E94FF;\n  width: 2px;\n  cursor: move;\n  z-index: 9;\n}\n");
 
 },{"hammerjs":1,"moment":2}]},{},[3])
 (3)
