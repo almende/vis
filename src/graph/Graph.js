@@ -69,6 +69,7 @@ function Graph (container, data, options) {
   };
 
   var graph = this;
+  this.node_indices = [];     // the node indices list is used to speed up the computation of the repulsion fields
   this.nodes = {};            // object with Node objects
   this.edges = {};            // object with Edge objects
   // TODO: create a counter to keep track on the number of nodes having values
@@ -132,6 +133,23 @@ function Graph (container, data, options) {
 }
 
 /**
+ * Update the this.node_indices with the most recent node index list
+ * @private
+ */
+Graph.prototype._updateNodeIndexList = function(fromWhere) {
+  this.node_indices = [];
+
+  for (var idx in this.nodes) {
+    if (this.nodes.hasOwnProperty(idx)) {
+      this.node_indices.push(idx);
+    }
+  }
+  //** this uses the fromWhere parameter to see where this function was called from, the argument is optional
+  //if (typeof fromWhere !== "undefined")
+  //  console.log("called _updateNodeIndexList from", fromWhere);
+}
+
+/**
  * Set nodes and edges, and optionally options as well.
  *
  * @param {Object} data    Object containing parameters:
@@ -162,6 +180,8 @@ Graph.prototype.setData = function(data) {
     this._setNodes(data && data.nodes);
     this._setEdges(data && data.edges);
   }
+  // updating the list of node indices
+
 
   // find a stable position or start animating to a stable position
   if (this.stabilize) {
@@ -1059,7 +1079,7 @@ Graph.prototype._setNodes = function(nodes) {
     var ids = this.nodesData.getIds();
     this._addNodes(ids);
   }
-
+  this._updateNodeIndexList("_setNodes");
   this._updateSelection();
 };
 
@@ -1089,7 +1109,7 @@ Graph.prototype._addNodes = function(ids) {
       this.moving = true;
     }
   }
-
+  this._updateNodeIndexList("_addNodes");
   this._reconnectEdges();
   this._updateValueRange(this.nodes);
 };
@@ -1120,7 +1140,7 @@ Graph.prototype._updateNodes = function(ids) {
       }
     }
   }
-
+  this._updateNodeIndexList("_updateNodes");
   this._reconnectEdges();
   this._updateValueRange(nodes);
 };
@@ -1136,7 +1156,7 @@ Graph.prototype._removeNodes = function(ids) {
     var id = ids[i];
     delete nodes[id];
   }
-
+  this._updateNodeIndexList("_removeNodes");
   this._reconnectEdges();
   this._updateSelection();
   this._updateValueRange(nodes);
@@ -1551,29 +1571,27 @@ Graph.prototype._calculateForces = function() {
   var minimumDistance = this.constants.nodes.distance,
       steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
 
-  for (var id1 in nodes) {
-    if (nodes.hasOwnProperty(id1)) {
-      var node1 = nodes[id1];
-      for (var id2 in nodes) {
-        if (nodes.hasOwnProperty(id2)) {
-          var node2 = nodes[id2];
-          // calculate normally distributed force
-          dx = node2.x - node1.x;
-          dy = node2.y - node1.y;
-          distance = Math.sqrt(dx * dx + dy * dy);
-          angle = Math.atan2(dy, dx);
 
-          // TODO: correct factor for repulsing force
-          //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-          //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-          repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
-          fx = Math.cos(angle) * repulsingForce;
-          fy = Math.sin(angle) * repulsingForce;
+  // we loop from i over all but the last entree in the array
+  // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
+  for (var i = 0; i < this.node_indices.length-1; i++) {
+    var node1 = nodes[this.node_indices[i]];
+    for (var j = i+1; j < this.node_indices.length; j++) {
+      var node2 = nodes[this.node_indices[j]];
+      dx = node2.x - node1.x;
+      dy = node2.y - node1.y;
+      distance = Math.sqrt(dx * dx + dy * dy);
+      angle = Math.atan2(dy, dx);
 
-          node1._addForce(-fx, -fy);
-          node2._addForce(fx, fy);
-        }
-      }
+      // TODO: correct factor for repulsing force
+      //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+      //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+      repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
+      fx = Math.cos(angle) * repulsingForce;
+      fy = Math.sin(angle) * repulsingForce;
+
+      node1._addForce(-fx, -fy);
+      node2._addForce(fx, fy);
     }
   }
 
