@@ -15045,7 +15045,6 @@ Graph.prototype._setNodes = function(nodes) {
     var ids = this.nodesData.getIds();
     this._addNodes(ids);
   }
-  this._updateNodeIndexList("_setNodes");
   this._updateSelection();
 };
 
