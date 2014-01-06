@@ -29,6 +29,7 @@
     "jake-utils": "latest",
     "browserify": "latest",
     "moment": "latest",
-    "hammerjs": "latest"
+    "hammerjs": "1.0.5",
+    "node-watch": "latest"
   }
 }
