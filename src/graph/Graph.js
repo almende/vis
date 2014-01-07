@@ -136,7 +136,7 @@ function Graph (container, data, options) {
  * Update the this.node_indices with the most recent node index list
  * @private
  */
-Graph.prototype._updateNodeIndexList = function(fromWhere) {
+Graph.prototype._updateNodeIndexList = function() {
   this.node_indices = [];
 
   for (var idx in this.nodes) {
@@ -144,9 +144,6 @@ Graph.prototype._updateNodeIndexList = function(fromWhere) {
       this.node_indices.push(idx);
     }
   }
-  //** this uses the fromWhere parameter to see where this function was called from, the argument is optional
-  //if (typeof fromWhere !== "undefined")
-  //  console.log("called _updateNodeIndexList from", fromWhere);
 }
 
 /**
@@ -1108,7 +1105,7 @@ Graph.prototype._addNodes = function(ids) {
       this.moving = true;
     }
   }
-  this._updateNodeIndexList("_addNodes");
+  this._updateNodeIndexList();
   this._reconnectEdges();
   this._updateValueRange(this.nodes);
 };
@@ -1139,7 +1136,7 @@ Graph.prototype._updateNodes = function(ids) {
       }
     }
   }
-  this._updateNodeIndexList("_updateNodes");
+  this._updateNodeIndexList();
   this._reconnectEdges();
   this._updateValueRange(nodes);
 };
@@ -1155,7 +1152,7 @@ Graph.prototype._removeNodes = function(ids) {
     var id = ids[i];
     delete nodes[id];
   }
-  this._updateNodeIndexList("_removeNodes");
+  this._updateNodeIndexList();
   this._reconnectEdges();
   this._updateSelection();
   this._updateValueRange(nodes);
