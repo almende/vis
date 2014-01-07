@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.3.0-SNAPSHOT
- * @date    2014-01-06
+ * @version @@version
+ * @date    @@date
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -14102,7 +14102,7 @@ function Graph (container, data, options) {
  * Update the this.node_indices with the most recent node index list
  * @private
  */
-Graph.prototype._updateNodeIndexList = function(fromWhere) {
+Graph.prototype._updateNodeIndexList = function() {
   this.node_indices = [];
 
   for (var idx in this.nodes) {
@@ -14110,9 +14110,6 @@ Graph.prototype._updateNodeIndexList = function(fromWhere) {
       this.node_indices.push(idx);
     }
   }
-  //** this uses the fromWhere parameter to see where this function was called from, the argument is optional
-  //if (typeof fromWhere !== "undefined")
-  //  console.log("called _updateNodeIndexList from", fromWhere);
 }
 
 /**
@@ -15074,7 +15071,7 @@ Graph.prototype._addNodes = function(ids) {
       this.moving = true;
     }
   }
-  this._updateNodeIndexList("_addNodes");
+  this._updateNodeIndexList();
   this._reconnectEdges();
   this._updateValueRange(this.nodes);
 };
@@ -15105,7 +15102,7 @@ Graph.prototype._updateNodes = function(ids) {
       }
     }
   }
-  this._updateNodeIndexList("_updateNodes");
+  this._updateNodeIndexList();
   this._reconnectEdges();
   this._updateValueRange(nodes);
 };
@@ -15121,7 +15118,7 @@ Graph.prototype._removeNodes = function(ids) {
     var id = ids[i];
     delete nodes[id];
   }
-  this._updateNodeIndexList("_removeNodes");
+  this._updateNodeIndexList();
   this._reconnectEdges();
   this._updateSelection();
   this._updateValueRange(nodes);
@@ -15546,17 +15543,20 @@ Graph.prototype._calculateForces = function() {
       dx = node2.x - node1.x;
       dy = node2.y - node1.y;
       distance = Math.sqrt(dx * dx + dy * dy);
-      angle = Math.atan2(dy, dx);
 
-      // TODO: correct factor for repulsing force
-      //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-      //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-      repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
-      fx = Math.cos(angle) * repulsingForce;
-      fy = Math.sin(angle) * repulsingForce;
+      //if (distance < 10*minimumDistance) {
+        angle = Math.atan2(dy, dx);
 
-      node1._addForce(-fx, -fy);
-      node2._addForce(fx, fy);
+        // TODO: correct factor for repulsing force
+        //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+        //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+        repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
+        fx = Math.cos(angle) * repulsingForce;
+        fy = Math.sin(angle) * repulsingForce;
+
+        node1._addForce(-fx, -fy);
+        node2._addForce(fx, fy);
+     // }
     }
   }
 
@@ -15687,8 +15687,15 @@ Graph.prototype._discreteStepNodes = function() {
  */
 Graph.prototype.start = function() {
   if (this.moving) {
+    var start = window.performance.now();
+
     this._calculateForces();
     this._discreteStepNodes();
+
+    var end = window.performance.now();
+    var time = end - start;
+    console.log('Execution time: ' + time);
+
 
     var vmin = this.constants.minVelocity;
     this.moving = this._isMoving(vmin);

@@ -1577,17 +1577,20 @@ Graph.prototype._calculateForces = function() {
       dx = node2.x - node1.x;
       dy = node2.y - node1.y;
       distance = Math.sqrt(dx * dx + dy * dy);
-      angle = Math.atan2(dy, dx);
 
-      // TODO: correct factor for repulsing force
-      //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-      //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-      repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
-      fx = Math.cos(angle) * repulsingForce;
-      fy = Math.sin(angle) * repulsingForce;
+      //if (distance < 10*minimumDistance) {
+        angle = Math.atan2(dy, dx);
 
-      node1._addForce(-fx, -fy);
-      node2._addForce(fx, fy);
+        // TODO: correct factor for repulsing force
+        //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+        //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+        repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
+        fx = Math.cos(angle) * repulsingForce;
+        fy = Math.sin(angle) * repulsingForce;
+
+        node1._addForce(-fx, -fy);
+        node2._addForce(fx, fy);
+     // }
     }
   }
 
@@ -1718,8 +1721,15 @@ Graph.prototype._discreteStepNodes = function() {
  */
 Graph.prototype.start = function() {
   if (this.moving) {
+    var start = window.performance.now();
+
     this._calculateForces();
     this._discreteStepNodes();
+
+    var end = window.performance.now();
+    var time = end - start;
+    console.log('Execution time: ' + time);
+
 
     var vmin = this.constants.minVelocity;
     this.moving = this._isMoving(vmin);
