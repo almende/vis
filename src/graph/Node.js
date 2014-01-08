@@ -66,7 +66,7 @@ function Node(properties, imagelist, grouplist, constants) {
   this.vy = 0.0;  // velocity y
   this.minForce = constants.minForce;
   this.damping = 0.9; // damping factor
-};
+}
 
 /**
  * (re)setting the clustering variables and objects

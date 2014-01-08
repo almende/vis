@@ -41,11 +41,11 @@ function Graph (container, data, options) {
           background: '#D2E5FF'
         },
         cluster: {
-          border: '#000000',
-          background: '#F0F0F0',
+          border: '#256a2d',
+          background: '#2cd140',
           highlight: {
-            border: '#FF0FFF',
-            background: '#FF000F'
+            border: '#899539',
+            background: '#c5dc29'
           }
         }
       },
@@ -148,6 +148,55 @@ function Graph (container, data, options) {
 
   // draw data
   this.setData(data);
+}
+
+
+/**
+ * This function can be called to increase the cluster level. This means that the nodes with only one edge connection will
+ * be clustered with their connected node. This can be repeated as many times as needed.
+ * This can be called externally (by a keybind for instance) to reduce the complexity of big datasets.
+ */
+Graph.prototype.collapseClusterLevel = function() {
+  this._formClusters(true);
+};
+
+/**
+ * This function can be called to decrease the cluster level. This means that the nodes with only one edge connection will
+ * be unpacked if they are a cluster. This can be repeated as many times as needed.
+ * This can be called externally (by a keybind for instance) to look into clusters without zooming.
+ */
+Graph.prototype.expandClusterLevel = function() {
+  for (var i = 0; i < this.node_indices.length; i++) {
+    var node = this.nodes[this.node_indices[i]];
+    if (node.cluster_size > 1 && node.remaining_edges == 1) {
+      this._expandClusterNode(node,false,true);
+    }
+  }
+  this._updateNodeIndexList();
+};
+
+
+/**
+ * This function can be called to open up a specific cluster.
+ * It will recursively unpack the entire cluster back to individual nodes.
+ *
+ * @param node    | Node object: cluster to open.
+ */
+Graph.prototype.fullyOpenCluster = function(node) {
+  this._expandClusterNode(node,true,true);
+  this._updateNodeIndexList();
+};
+
+
+/**
+ * This function can be called to open up a specific cluster.
+ * It will unpack the cluster back one level.
+ *
+ * @param node    | Node object: cluster to open.
+ */
+Graph.prototype.openCluster = function(node) {
+  this._expandClusterNode(node,false,true);
+  this._updateNodeIndexList();
 };
 
 
@@ -168,11 +217,8 @@ Graph.prototype._updateClusters = function() {
     this._openClusters();
   }
 
-  // update node labels
-  for (var nid in this.nodes) {
-    var node = this.nodes[nid];
-    node.label = String(node.remaining_edges).concat(":",String(node.cluster_size));
-  }
+  this._updateClusterLabels();
+  this._updateNodeLabels();
 
   this.previous_scale = this.scale;
 
@@ -183,51 +229,49 @@ Graph.prototype._updateClusters = function() {
 };
 
 /**
- * This function can be called to increase the cluster level. This means that the nodes with only one edge connection will
- * be clustered with their connected node. This can be repeated as many times as needed.
- * This can be called externally (by a keybind for instance) to reduce the complexity of big datasets.
+ * This updates the node labels for all nodes (for debugging purposes)
+ * @private
  */
-Graph.prototype.collapseClusterLevel = function() {
-  this._formClusters(true);
-}
-
-/**
- * This function can be called to decrease the cluster level. This means that the nodes with only one edge connection will
- * be unpacked if they are a cluster. This can be repeated as many times as needed.
- * This can be called externally (by a keybind for instance) to look into clusters without zooming.
- */
-Graph.prototype.expandClusterLevel = function() {
-  for (var i = 0; i < this.node_indices.length; i++) {
-    var node = this.nodes[this.node_indices[i]];
-    if (node.cluster_size > 1 && node.remaining_edges == 1) {
-      this._expandClusterNode(node,false,true);
+Graph.prototype._updateLabels = function() {
+  // update node labels
+  for (var node_id in this.nodes) {
+    if (this.nodes.hasOwnProperty(node_id)) {
+      var node = this.nodes[node_id];
+      node.label = String(node.remaining_edges).concat(":",String(node.cluster_size));
     }
   }
-  this._updateNodeIndexList();
-}
-
+};
 
 /**
- * This function can be called to open up a specific cluster.
- * It will recursively unpack the entire cluster back to individual nodes.
- *
- * @param node    | Node object: cluster to open.
+ * This updates the node labels for all clusters
+ * @private
  */
-Graph.prototype.fullyOpenCluster = function(node) {
-  this._expandClusterNode(node,true,true);
-  this._updateNodeIndexList();
-}
+Graph.prototype._updateClusterLabels = function() {
+  // update node labels
+  for (var node_id in this.nodes) {
+    if (this.nodes.hasOwnProperty(node_id)) {
+      var node = this.nodes[node_id];
+      if (node.cluster_size > 1) {
+        node.label = "[".concat(String(node.cluster_size),"]");
+      }
+    }
+  }
+};
 
 /**
- * This function can be called to open up a specific cluster.
- * It will unpack the cluster back one level.
- *
- * @param node    | Node object: cluster to open.
+ * This updates the node labels for all nodes that are NOT clusters
+ * @private
  */
-Graph.prototype.openCluster = function(node) {
-  this._expandClusterNode(node,false,true);
-  this._updateNodeIndexList();
-}
+Graph.prototype._updateNodeLabels = function() {
+  // update node labels
+  for (var node_id in this.nodes) {
+    var node = this.nodes[node_id];
+    if (node.cluster_size == 1) {
+      node.label = "[".concat(String(node.cluster_size),"]");
+    }
+  }
+};
+
 
 /**
  * This function loops over all nodes in the node_indices list. For each node it checks if it is a cluster and if it
@@ -243,6 +287,7 @@ Graph.prototype._openClusters = function() {
 
   this._updateNodeIndexList();
 };
+
 
 /**
  * This function checks if a node has to be opened. This is done by checking the zoom level.
@@ -295,6 +340,7 @@ Graph.prototype._expandClusterNode = function(node, recursive, force_expand) {
   }
 };
 
+
 /**
  * This function will expel a child_node from a parent_node. This is to de-cluster the node. This function will remove
  * the child node from the parent contained_node object and put it back into the global nodes object.
@@ -337,6 +383,7 @@ Graph.prototype._expelChildFromParent = function(node, contained_node_id, recurs
     this._expandClusterNode(child_node,recursive,force_expand);
   }
 };
+
 
 
 /**
@@ -409,7 +456,7 @@ Graph.prototype._formClusters = function(force_level_collapse) {
 
 
 /**
- * This function adds the childnode to the parentnode, creating a cluster if it is not already.
+ * This function adds the child node to the parent node, creating a cluster if it is not already.
  * This function is called only from _updateClusters()
  *
  * @param parent_node           | Node object: this is the node that will house the child node
@@ -445,6 +492,7 @@ Graph.prototype._addToCluster = function(parent_node, child_node, edge, edge_id,
   this.moving = true;
 };
 
+
 /**
  * This function will apply the changes made to the remaining_edges during the formation of the clusters.
  * This is a seperate function to allow for level-wise collapsing of the node tree.
@@ -472,6 +520,7 @@ Graph.prototype._updateNodeIndexList = function() {
     }
   }
 };
+
 
 /**
  * Set nodes and edges, and optionally options as well.
