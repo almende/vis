@@ -72,12 +72,14 @@ function Graph (container, data, options) {
       }
     },
     clustering: {
-      clusterLength: 50,      // threshold length for clustering
-      fontSizeMultiplier: 2,  // how much the fontsize grows
-      edgeGrowth: 10,
-      widthGrowth: 15,        // growth factor = ((parent_size + child_size) / parent_size) * widthGrowthFactor
-      heightGrowth: 15,       // growth factor = ((parent_size + child_size) / parent_size) * heightGrowthFactor
-      massTransferCoefficient: 0.1 // parent.mass += massTransferCoefficient * child.mass
+      clusterLength: 50,            // threshold length for clustering
+      fontSizeMultiplier: 2,        // how much the cluster font size grows per node (in px)
+      forceAmplification: 0.7,      // amount of cluster_size between two nodes multiply this value (+1) with the repulsion force
+      distanceAmplification: 0.2,   // amount of cluster_size between two nodes multiply this value (+1) with the repulsion force
+      edgeGrowth: 10,               // amount of cluster_size connected to the edge is multiplied with this and added to edgeLength
+      widthGrowth: 10,              // growth factor = ((parent_size + child_size) / parent_size) * widthGrowthFactor
+      heightGrowth: 10,             // growth factor = ((parent_size + child_size) / parent_size) * heightGrowthFactor
+      massTransferCoefficient: 0.1  // parent.mass += massTransferCoefficient * child.mass
     },
     minForce: 0.05,
     minVelocity: 0.02,   // px/s
@@ -163,7 +165,7 @@ Graph.prototype.collapseClusterLevel = function() {
 /**
  * This function can be called to decrease the cluster level. This means that the nodes with only one edge connection will
  * be unpacked if they are a cluster. This can be repeated as many times as needed.
- * This can be called externally (by a keybind for instance) to look into clusters without zooming.
+ * This can be called externally (by a key-bind for instance) to look into clusters without zooming.
  */
 Graph.prototype.expandClusterLevel = function() {
   for (var i = 0; i < this.node_indices.length; i++) {
@@ -267,7 +269,7 @@ Graph.prototype._updateNodeLabels = function() {
   for (var node_id in this.nodes) {
     var node = this.nodes[node_id];
     if (node.cluster_size == 1) {
-      node.label = "[".concat(String(node.cluster_size),"]");
+      node.label = String(node.id);
     }
   }
 };
@@ -369,6 +371,10 @@ Graph.prototype._expelChildFromParent = function(node, contained_node_id, recurs
     node.fontSize -= this.constants.clustering.fontSizeMultiplier * child_node.cluster_size;
     node.cluster_size -= child_node.cluster_size;
     node.remaining_edges += 1;
+
+    // place the child node near the parent, not at the exact same location to avoid chaos in the system
+    child_node.x = node.x + Math.floor(Math.random() * node.width);
+    child_node.y = node.y + Math.floor(Math.random() * node.height);
 
     // remove node from the list
     delete node.contained_nodes[contained_node_id];
@@ -1951,6 +1957,7 @@ Graph.prototype._calculateForces = function() {
     var node1 = nodes[this.node_indices[i]];
     for (var j = i+1; j < this.node_indices.length; j++) {
       var node2 = nodes[this.node_indices[j]];
+      var cluster_size = (node1.cluster_size + node2.cluster_size - 2);
       dx = node2.x - node1.x;
       dy = node2.y - node1.y;
       distance = Math.sqrt(dx * dx + dy * dy);
@@ -1966,8 +1973,15 @@ Graph.prototype._calculateForces = function() {
           // TODO: correct factor for repulsing force
           //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
           //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+
+          // clusters have a larger region of influence
+          minimumDistance = (cluster_size == 0) ? this.constants.nodes.distance : (this.constants.nodes.distance * 1 + cluster_size * this.constants.clustering.distanceAmplification);
           repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
         }
+
+        // amplify the repulsion for clusters.
+        repulsingForce *= (cluster_size == 0) ? 1 : 1 + cluster_size * this.constants.clustering.forceAmplification;
+
         fx = Math.cos(angle) * repulsingForce;
         fy = Math.sin(angle) * repulsingForce;
 
