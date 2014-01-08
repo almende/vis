@@ -168,6 +168,7 @@ Graph.prototype._updateClusters = function() {
     this._openClusters();
   }
 
+  // update node labels
   for (var nid in this.nodes) {
     var node = this.nodes[nid];
     node.label = String(node.remaining_edges).concat(":",String(node.cluster_size));
@@ -175,11 +176,58 @@ Graph.prototype._updateClusters = function() {
 
   this.previous_scale = this.scale;
 
+  // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
   if (this.moving != moving_before_clustering) {
     this.start();
   }
 };
 
+/**
+ * This function can be called to increase the cluster level. This means that the nodes with only one edge connection will
+ * be clustered with their connected node. This can be repeated as many times as needed.
+ * This can be called externally (by a keybind for instance) to reduce the complexity of big datasets.
+ */
+Graph.prototype.collapseClusterLevel = function() {
+  this._formClusters(true);
+}
+
+/**
+ * This function can be called to decrease the cluster level. This means that the nodes with only one edge connection will
+ * be unpacked if they are a cluster. This can be repeated as many times as needed.
+ * This can be called externally (by a keybind for instance) to look into clusters without zooming.
+ */
+Graph.prototype.expandClusterLevel = function() {
+  for (var i = 0; i < this.node_indices.length; i++) {
+    var node = this.nodes[this.node_indices[i]];
+    if (node.cluster_size > 1 && node.remaining_edges == 1) {
+      this._expandClusterNode(node,false,true);
+    }
+  }
+  this._updateNodeIndexList();
+}
+
+
+/**
+ * This function can be called to open up a specific cluster.
+ * It will recursively unpack the entire cluster back to individual nodes.
+ *
+ * @param node    | Node object: cluster to open.
+ */
+Graph.prototype.fullyOpenCluster = function(node) {
+  this._expandClusterNode(node,true,true);
+  this._updateNodeIndexList();
+}
+
+/**
+ * This function can be called to open up a specific cluster.
+ * It will unpack the cluster back one level.
+ *
+ * @param node    | Node object: cluster to open.
+ */
+Graph.prototype.openCluster = function(node) {
+  this._expandClusterNode(node,false,true);
+  this._updateNodeIndexList();
+}
 
 /**
  * This function loops over all nodes in the node_indices list. For each node it checks if it is a cluster and if it
@@ -190,62 +238,103 @@ Graph.prototype._updateClusters = function() {
 Graph.prototype._openClusters = function() {
   for (var i = 0; i < this.node_indices.length; i++) {
     var node = this.nodes[this.node_indices[i]];
-    this._expandClusterNode(node,false);
+    this._expandClusterNode(node,true,false);
   }
 
   this._updateNodeIndexList();
 };
-
 
 /**
  * This function checks if a node has to be opened. This is done by checking the zoom level.
  * If the node contains child nodes, this function is recursively called on the child nodes as well.
  * This recursive behaviour is optional and can be set by the recursive argument.
  *
- * @param node        | Node object: to check for cluster and expand
- * @param recursive   | Boolean: enable or disable recursive calling
+ * @param node          | Node object: to check for cluster and expand
+ * @param recursive     | Boolean: enable or disable recursive calling
+ * @param force_expand  | Boolean: enable or disable forcing the last node to join the cluster to be expelled
  * @private
  */
-Graph.prototype._expandClusterNode = function(node, recursive) {
-  if (node.formation_scale != undefined) {
-    console.log(this.scale,node.formation_scale)
-    if (this.scale > node.formation_scale) {
+Graph.prototype._expandClusterNode = function(node, recursive, force_expand) {
+  // first check if node is a cluster
+  if (node.cluster_size > 1) {
+    // if the last child has been added on a smaller scale than current scale (@optimization)
+    if (node.formation_scale < this.scale || force_expand == true) {
+      // we will check if any of the contained child nodes should be removed from the cluster
+
+      var largest_cluster = 1;
       for (var contained_node_id in node.contained_nodes) {
         if (node.contained_nodes.hasOwnProperty(contained_node_id)) {
-          // put the child node back in the global nodes object
-          this.nodes[contained_node_id] = node.contained_nodes[contained_node_id];
+          var child_node = node.contained_nodes[contained_node_id];
 
-          var child_node = this.nodes[contained_node_id];
-
-          // remove mass from child node from parent node
-          node.mass -= this.constants.clustering.massTransferCoefficient * this.nodes[contained_node_id].mass;
-
-          // decrease the size again
-          node.width -= child_node.cluster_size * this.constants.clustering.widthGrowth;
-          node.height -= child_node.cluster_size * this.constants.clustering.heightGrowth;
-          node.fontSize -= this.constants.clustering.fontSizeMultiplier * child_node.cluster_size;
-
-          // check if a further expansion step is possible if recursivity is enabled
-          if (recursive == true) {
-            this._expandClusterNode(child_node,true);
+          // force expand will expand the largest cluster size clusters. Since we cluster from outside in, we assume that
+          // the largest cluster is the one that comes from outside
+          // TODO: introduce a level system for keeping track of which node was added when.
+          if (force_expand == true) {
+            if (largest_cluster < child_node.cluster_size) {
+              largest_cluster = child_node.cluster_size;
+            }
+          }
+          else {
+            this._expelChildFromParent(node,contained_node_id,recursive,force_expand);
           }
         }
       }
 
-      // put the edges back in the global this.edges
-      for (var contained_edge_id in node.contained_edges) {
-        if (node.contained_edges.hasOwnProperty(contained_edge_id)) {
-          this.edges[contained_edge_id] = node.contained_edges[contained_edge_id];
-          node.remaining_edges += 1;
+      // we have determined the largest cluster size, we will now expel these
+      if (force_expand == true) {
+        for (var contained_node_id in node.contained_nodes) {
+          if (node.contained_nodes.hasOwnProperty(contained_node_id)) {
+            var child_node = node.contained_nodes[contained_node_id];
+            if (child_node.cluster_size == largest_cluster) {
+              this._expelChildFromParent(node,contained_node_id,recursive,force_expand);
+            }
+          }
         }
       }
-
-      // reset the cluster settings of this node
-      node.resetCluster();
-
-      // restart the simulation to reorganise all nodes
-      this.moving = true;
     }
+  }
+};
+
+/**
+ * This function will expel a child_node from a parent_node. This is to de-cluster the node. This function will remove
+ * the child node from the parent contained_node object and put it back into the global nodes object.
+ * The same holds for the edge that was connected to the child node. It is moved back into the global edges object.
+ *
+ * @param node                | Node object: the parent node
+ * @param contained_node_id   | String: child_node id as it is contained in the contained_nodes object of the parent node
+ * @param recursive           | Boolean:  This will also check if the child needs to be expanded.
+ *                                        With force and recursive both true, the entire cluster is unpacked
+ * @param force_expand        | Boolean: This will disregard the zoom level and will expel this child from the parent
+ * @private
+ */
+Graph.prototype._expelChildFromParent = function(node, contained_node_id, recursive, force_expand) {
+  var child_node = node.contained_nodes[contained_node_id];
+
+  // if child node has been added on smaller scale than current, kick out
+  if (child_node.formation_scale < this.scale || force_expand == true) {
+    // put the child node back in the global nodes object and the corresponding edge in the global edges object
+    this.nodes[contained_node_id] = child_node;
+    this.edges[node.contained_edges[contained_node_id]["edge_id"]] = node.contained_edges[contained_node_id]["edge_object"];
+
+    // undo the changes from the clustering operation on the parent node
+    node.mass -= this.constants.clustering.massTransferCoefficient * child_node.mass;
+    node.width -= child_node.cluster_size * this.constants.clustering.widthGrowth;
+    node.height -= child_node.cluster_size * this.constants.clustering.heightGrowth;
+    node.fontSize -= this.constants.clustering.fontSizeMultiplier * child_node.cluster_size;
+    node.cluster_size -= child_node.cluster_size;
+    node.remaining_edges += 1;
+
+    // remove node from the list
+    delete node.contained_nodes[contained_node_id];
+    delete node.contained_edges[contained_node_id];
+
+    // restart the simulation to reorganise all nodes
+    this.moving = true;
+  }
+
+  // check if a further expansion step is possible if recursivity is enabled
+  if (recursive == true) {
+    this._expandClusterNode(child_node,recursive,force_expand);
   }
 };
 
@@ -253,7 +342,8 @@ Graph.prototype._expandClusterNode = function(node, recursive) {
 /**
  * This function checks if any nodes at the end of their trees have edges below a threshold length
  * This function is called only from _updateClusters()
- * forceLevelCollapse ignores the length and
+ * forceLevelCollapse ignores the length of the edge and collapses one level
+ * This means that a node with only one edge will be clustered with its connected node
  *
  * @private
  * @param force_level_collapse    | Boolean
@@ -275,7 +365,8 @@ Graph.prototype._formClusters = function(force_level_collapse) {
   // check if any edges are shorter than min_length and start the clustering
   // the clustering favours the node with the larger mass
   for (var i = 0; i < edges_id_array.length; i++) {
-    var edge = edges[edges_id_array[i]];
+    var edge_id = edges_id_array[i];
+    var edge = edges[edge_id];
     if (edge.connected) {
       dx = (edge.to.x - edge.from.x);
       dy = (edge.to.y - edge.from.y);
@@ -300,17 +391,16 @@ Graph.prototype._formClusters = function(force_level_collapse) {
         // clusters. This will also have to be altered in the force calculation and rendering.
         // This method is non-destructive and does not require a second set of data.
         if (child_node.remaining_edges == 1) {
-          this._addToCluster(parent_node,child_node,edge,force_level_collapse);
+          this._addToCluster(parent_node,child_node,edge,edge_id,force_level_collapse);
           delete this.edges[edges_id_array[i]];
         }
         else if (parent_node.remaining_edges == 1) {
-          this._addToCluster(child_node,parent_node,edge,force_level_collapse);
+          this._addToCluster(child_node,parent_node,edge,edge_id,force_level_collapse);
           delete this.edges[edges_id_array[i]];
         }
       }
     }
   }
-
   this._updateNodeIndexList();
 
   if (force_level_collapse == true)
@@ -322,28 +412,30 @@ Graph.prototype._formClusters = function(force_level_collapse) {
  * This function adds the childnode to the parentnode, creating a cluster if it is not already.
  * This function is called only from _updateClusters()
  *
- * @param parent_node     | Node object: this is the node that will house the child node
- * @param child_node      | Node object: this node will be deleted from the global this.nodes and stored in the parent node
- * @param edge            | Edge object: this edge will be deleted from the global this.edges and stored in the parent node
+ * @param parent_node           | Node object: this is the node that will house the child node
+ * @param child_node            | Node object: this node will be deleted from the global this.nodes and stored in the parent node
+ * @param edge                  | Edge object: this edge will be deleted from the global this.edges and stored in the parent node
+ * @param force_level_collapse  | Boolean: true will only update the remaining_edges at the very end of the clustering, ensuring single level collapse
  * @private
  */
-Graph.prototype._addToCluster = function(parent_node, child_node, edge, force_level_collapse) {
+Graph.prototype._addToCluster = function(parent_node, child_node, edge, edge_id, force_level_collapse) {
   // join child node and edge in parent node
   parent_node.contained_nodes[child_node.id] = child_node;
-  parent_node.contained_edges[child_node.id] = edge;
+  parent_node.contained_edges[child_node.id] = {"edge_id":edge_id, "edge_object":edge};  // the edge gets the node ID so we can easily recover it when expanding the cluster
 
   if (this.nodes.hasOwnProperty(child_node.id)) {
     delete this.nodes[child_node.id];
   }
 
-
   //var grow_coefficient = (parent_node.cluster_size + child_node.cluster_size) / parent_node.cluster_size;
   parent_node.mass += this.constants.clustering.massTransferCoefficient * child_node.mass;
   parent_node.width += child_node.cluster_size * this.constants.clustering.widthGrowth;
   parent_node.height += child_node.cluster_size * this.constants.clustering.heightGrowth;
-  parent_node.formation_scale = this.scale;
   parent_node.cluster_size += child_node.cluster_size;
   parent_node.fontSize += this.constants.clustering.fontSizeMultiplier * child_node.cluster_size;
+  parent_node.formation_scale = this.scale; // The latest child has been added on this scale
+
+  parent_node.contained_nodes[child_node.id].formation_scale = this.scale; // this child has been added at this scale.
   if (force_level_collapse == true)
     parent_node.remaining_edges_unapplied -= 1;
   else
@@ -351,9 +443,14 @@ Graph.prototype._addToCluster = function(parent_node, child_node, edge, force_le
 
   // restart the simulation to reorganise all nodes
   this.moving = true;
-
 };
 
+/**
+ * This function will apply the changes made to the remaining_edges during the formation of the clusters.
+ * This is a seperate function to allow for level-wise collapsing of the node tree.
+ * It has to be called if a level is collapsed. It is called by _formClusters().
+ * @private
+ */
 Graph.prototype._applyClusterLevel = function() {
   for (var i = 0; i < this.node_indices.length; i++) {
     var node = this.nodes[this.node_indices[i]];

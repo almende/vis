@@ -48,7 +48,8 @@ function Edge (properties, graph, constants) {
   this.lengthFixed = false;
 
   this.setProperties(properties, constants);
-}
+
+};
 
 /**
  * Set or overwrite properties for the edge
