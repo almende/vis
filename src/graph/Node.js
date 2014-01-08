@@ -51,11 +51,12 @@ function Node(properties, imagelist, grouplist, constants) {
   this.imagelist = imagelist;
   this.grouplist = grouplist;
 
+  this.setProperties(properties, constants);
+
   // creating the variables for clustering
   this.resetCluster();
   this.remaining_edges = 0;
-
-  this.setProperties(properties, constants);
+  this.remaining_edges_unapplied = 0;
 
   // mass, force, velocity
   this.mass = 50;  // kg (mass is adjusted for the number of connected edges)
@@ -87,7 +88,7 @@ Node.prototype.attachEdge = function(edge) {
     this.edges.push(edge);
   }
   this.remaining_edges = this.edges.length;
-  this.remaining_edges_tmp = this.edges.length;
+  this.remaining_edges_unapplied = this.edges.length;
   this._updateMass();
 };
 
@@ -101,7 +102,7 @@ Node.prototype.detachEdge = function(edge) {
     this.edges.splice(index, 1);
   }
   this.remaining_edges = this.edges.length;
-  this.remaining_edges_tmp = this.edges.length;
+  this.remaining_edges_unapplied = this.edges.length;
   this._updateMass();
 };
 
