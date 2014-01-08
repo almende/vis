@@ -25,6 +25,7 @@
 function Node(properties, imagelist, grouplist, constants) {
   this.selected = false;
 
+
   this.edges = []; // all edges connected to this node
   this.group = constants.nodes.group;
 
@@ -50,6 +51,10 @@ function Node(properties, imagelist, grouplist, constants) {
   this.imagelist = imagelist;
   this.grouplist = grouplist;
 
+  // creating the variables for clustering
+  this.resetCluster();
+  this.remaining_edges = 0;
+
   this.setProperties(properties, constants);
 
   // mass, force, velocity
@@ -63,6 +68,17 @@ function Node(properties, imagelist, grouplist, constants) {
 };
 
 /**
+ * (re)setting the clustering variables and objects
+ */
+Node.prototype.resetCluster = function() {
+  // clustering variables
+  this.formation_scale = undefined; // this is used to determine when to open the cluster
+  this.cluster_size = 1;            // this signifies the total amount of nodes in this cluster
+  this.contained_nodes = {};
+  this.contained_edges = {};
+};
+
+/**
  * Attach a edge to the node
  * @param {Edge} edge
  */
@@ -70,6 +86,8 @@ Node.prototype.attachEdge = function(edge) {
   if (this.edges.indexOf(edge) == -1) {
     this.edges.push(edge);
   }
+  this.remaining_edges = this.edges.length;
+  this.remaining_edges_tmp = this.edges.length;
   this._updateMass();
 };
 
@@ -82,6 +100,8 @@ Node.prototype.detachEdge = function(edge) {
   if (index != -1) {
     this.edges.splice(index, 1);
   }
+  this.remaining_edges = this.edges.length;
+  this.remaining_edges_tmp = this.edges.length;
   this._updateMass();
 };
 
@@ -192,6 +212,14 @@ Node.parseColor = function(color) {
       highlight: {
         border: color,
         background: color
+      },
+      cluster: {
+        border: color,
+        background: color,
+        highlight: {
+          border: color,
+          background: color
+        }
       }
     };
     // TODO: automatically generate a nice highlight color
@@ -200,6 +228,7 @@ Node.parseColor = function(color) {
     c = {};
     c.background = color.background || 'white';
     c.border = color.border || c.background;
+
     if (util.isString(color.highlight)) {
       c.highlight = {
         border: color.highlight,
@@ -211,6 +240,32 @@ Node.parseColor = function(color) {
       c.highlight.background = color.highlight && color.highlight.background || c.background;
       c.highlight.border = color.highlight && color.highlight.border || c.border;
     }
+
+    // check if cluster colorgroup has been defined
+    if (util.isString(color.cluster)) {
+      c.cluster = {
+        border: color.cluster,
+        background: color.cluster
+      }
+    }
+    else {
+      c.cluster = {};
+      c.cluster.background = color.cluster && color.cluster.background || c.background;
+      c.cluster.border = color.cluster && color.cluster.border || c.border;
+    }
+
+    // check if cluster highlight colorgroup has been defined
+    if (util.isString(color.cluster.highlight)) {
+      c.cluster.highlight = {
+        border: color.cluster.highlight,
+        background: color.cluster.highlight
+      }
+    }
+    else {
+      c.cluster.highlight = {};
+      c.cluster.highlight.background = color.cluster.highlight && color.cluster.highlight.background || c.background;
+      c.cluster.highlight.border = color.cluster.highlight && color.cluster.highlight.border || c.border;
+    }
   }
   return c;
 };
@@ -220,7 +275,8 @@ Node.parseColor = function(color) {
  */
 Node.prototype.select = function() {
   this.selected = true;
-  this._reset();
+  // why do this?
+  // this._reset();
 };
 
 /**
@@ -228,7 +284,8 @@ Node.prototype.select = function() {
  */
 Node.prototype.unselect = function() {
   this.selected = false;
-  this._reset();
+  // why do this?
+  // this._reset();
 };
 
 /**
@@ -490,9 +547,15 @@ Node.prototype._drawBox = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
-  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
-  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  ctx.lineWidth = this.selected ? 2.0 : 1.0;
+  if (this.cluster_size > 1) {
+    ctx.strokeStyle = this.selected ? this.color.cluster.highlight.border : this.color.cluster.border;
+    ctx.fillStyle = this.selected ? this.color.cluster.highlight.background : this.color.cluster.background;
+  }
+  else {
+    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+  }
+  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.cluster_size > 1) ? 2.0 : 0.0;
   ctx.roundRect(this.left, this.top, this.width, this.height, this.radius);
   ctx.fill();
   ctx.stroke();
@@ -516,9 +579,15 @@ Node.prototype._drawDatabase = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
-  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
-  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  ctx.lineWidth = this.selected ? 2.0 : 1.0;
+  if (this.cluster_size > 1) {
+    ctx.strokeStyle = this.selected ? this.color.cluster.highlight.border : this.color.cluster.border;
+    ctx.fillStyle = this.selected ? this.color.cluster.highlight.background : this.color.cluster.background;
+  }
+  else {
+    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+  }
+  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.cluster_size > 1) ? 2.0 : 0.0;
   ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
   ctx.fill();
   ctx.stroke();
@@ -544,9 +613,15 @@ Node.prototype._drawCircle = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
-  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
-  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  ctx.lineWidth = this.selected ? 2.0 : 1.0;
+  if (this.cluster_size > 1) {
+    ctx.strokeStyle = this.selected ? this.color.cluster.highlight.border : this.color.cluster.border;
+    ctx.fillStyle = this.selected ? this.color.cluster.highlight.background : this.color.cluster.background;
+  }
+  else {
+    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+  }
+  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.cluster_size > 1) ? 2.0 : 0.0;
   ctx.circle(this.x, this.y, this.radius);
   ctx.fill();
   ctx.stroke();
@@ -571,9 +646,15 @@ Node.prototype._drawEllipse = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
-  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
-  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  ctx.lineWidth = this.selected ? 2.0 : 1.0;
+  if (this.cluster_size > 1) {
+    ctx.strokeStyle = this.selected ? this.color.cluster.highlight.border : this.color.cluster.border;
+    ctx.fillStyle = this.selected ? this.color.cluster.highlight.background : this.color.cluster.background;
+  }
+  else {
+    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+  }
+  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.cluster_size > 1) ? 2.0 : 0.0;
   ctx.ellipse(this.left, this.top, this.width, this.height);
   ctx.fill();
   ctx.stroke();
@@ -615,9 +696,15 @@ Node.prototype._drawShape = function (ctx, shape) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
-  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
-  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  ctx.lineWidth = this.selected ? 2.0 : 1.0;
+  if (this.cluster_size > 1) {
+    ctx.strokeStyle = this.selected ? this.color.cluster.highlight.border : this.color.cluster.border;
+    ctx.fillStyle = this.selected ? this.color.cluster.highlight.background : this.color.cluster.background;
+  }
+  else {
+    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+  }
+  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.cluster_size > 1) ? 2.0 : 0.0;
 
   ctx[shape](this.x, this.y, this.radius);
   ctx.fill();

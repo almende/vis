@@ -74,6 +74,7 @@
         nodes: nodes,
         edges: edges
       };
+        /*
       var options = {
         nodes: {
           shape: 'circle'
@@ -83,6 +84,13 @@
         },
         stabilize: false
       };
+      */
+    var options = {
+    edges: {
+        length: 50
+    },
+    stabilize: false
+    };
       graph = new vis.Graph(container, data, options);
 
       // add event listeners

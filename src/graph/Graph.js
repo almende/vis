@@ -39,6 +39,14 @@ function Graph (container, data, options) {
         highlight: {
           border: '#2B7CE9',
           background: '#D2E5FF'
+        },
+        cluster: {
+          border: '#000000',
+          background: '#F0F0F0',
+          highlight: {
+            border: '#FF0FFF',
+            background: '#FF000F'
+          }
         }
       },
       borderColor: '#2B7CE9',
@@ -63,6 +71,13 @@ function Graph (container, data, options) {
         altLength: undefined
       }
     },
+    clustering: {
+      clusterLength: 30,      // threshold length for clustering
+      zoomOffset: 0.1,
+      widthGrowth: 15,        // growth factor = ((parent_size + child_size) / parent_size) * widthGrowthFactor
+      heightGrowth: 15,       // growth factor = ((parent_size + child_size) / parent_size) * heightGrowthFactor
+      massTransferCoefficient: 0.1 // parent.mass += massTransferCoefficient * child.mass
+    },
     minForce: 0.05,
     minVelocity: 0.02,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
@@ -72,6 +87,8 @@ function Graph (container, data, options) {
   this.node_indices = [];     // the node indices list is used to speed up the computation of the repulsion fields
   this.nodes = {};            // object with Node objects
   this.edges = {};            // object with Edge objects
+  this.scale = 1;             // defining the global scale variable in the constructor
+  this.previous_scale = 1;    // use this to check if the zoom operation is in or out
   // TODO: create a counter to keep track on the number of nodes having values
   // TODO: create a counter to keep track on the number of nodes currently moving
   // TODO: create a counter to keep track on the number of edges having values
@@ -130,7 +147,184 @@ function Graph (container, data, options) {
 
   // draw data
   this.setData(data);
-}
+};
+
+/**
+ * This function checks if the zoom action is in or out.
+ * If out, check if we can form clusters, if in, check if we can open clusters.
+ * This function is only called from _zoom()
+ *
+ * @private
+ */
+Graph.prototype._updateClusters = function() {
+  if (this.previous_scale > this.scale) { // zoom out
+    this._formClusters();
+  }
+  else if (this.previous_scale < this.scale) { // zoom out
+    this._openClusters();
+  }
+  this._updateNodeIndexList();
+
+  for (var nid in this.nodes) {
+    var node = this.nodes[nid];
+    node.label = String(node.remaining_edges);
+  }
+
+  this.previous_scale = this.scale;
+};
+
+/**
+ * This function loops over all nodes in the node_indices list. For each node it checks if it is a cluster and if it
+ * has to be opened based on the current zoom level.
+ *
+ * @private
+ */
+Graph.prototype._openClusters = function() {
+  for (var i = 0; i < this.node_indices.length; i++) {
+    var node = this.nodes[this.node_indices[i]];
+    this._expandClusterNode(node,true);
+  }
+};
+
+/**
+ * This function checks if a node has to be opened. This is done by checking the zoom level.
+ * If the node contains child nodes, this function is recursively called on the child nodes as well.
+ * This recursive behaviour is optional and can be set by the recursive argument.
+ *
+ * @param node        | Node object: to check for cluster and expand
+ * @param recursive   | Boolean: enable or disable recursive calling
+ * @private
+ */
+Graph.prototype._expandClusterNode = function(node, recursive) {
+  if (node.formation_scale != undefined) {
+    if (this.scale > node.formation_scale) {
+      for (var contained_node_id in node.contained_nodes) {
+        if (node.contained_nodes.hasOwnProperty(contained_node_id)) {
+          // put the child node back in the global nodes object
+          this.nodes[contained_node_id] = node.contained_nodes[contained_node_id];
+
+          var child_node = this.nodes[contained_node_id];
+
+          // remove mass from child node from parent node
+          node.mass -= this.constants.clustering.massTransferCoefficient * this.nodes[contained_node_id].mass;
+
+          // decrease the size again
+          node.cluster_size -= child_node.cluster_size;
+          var grow_coefficient = this.constants.clustering.zoomOffset + (node.cluster_size + child_node.cluster_size) / node.cluster_size;
+          node.width -= grow_coefficient * this.constants.clustering.widthGrowth;
+          node.height -= grow_coefficient * this.constants.clustering.heightGrowth;
+          node.fontSize -= 1 * child_node.cluster_size;
+
+          // check if a further expansion step is possible if recursivity is enabled
+          if (recursive == true) {
+            this._expandClusterNode(child_node,true);
+          }
+        }
+      }
+
+      // put the edges back in the global this.edges
+      for (var contained_edge_id in node.contained_edges) {
+        if (node.contained_edges.hasOwnProperty(contained_edge_id)) {
+          this.edges[contained_edge_id] = node.contained_edges[contained_edge_id];
+          node.remaining_edges += 1;
+        }
+      }
+
+      // reset the cluster settings of this node
+      node.resetCluster();
+    }
+  }
+};
+
+/**
+ * This function checks if any nodes at the end of their trees have edges below a threshold length
+ * This function is called only from _updateClusters()
+ *
+ * @private
+ */
+Graph.prototype._formClusters = function() {
+  var min_length = this.constants.clustering.clusterLength/this.scale;
+
+  var dx,dy,length,
+      edges = this.edges;
+
+  // create an array of edge ids
+  var edges_id_array = []
+  for (var id in edges) {
+    if (edges.hasOwnProperty(id)) {
+      edges_id_array.push(id);
+    }
+  }
+
+  // check if any edges are shorter than min_length and start the clustering
+  // the clustering favours the node with the larger mass
+  for (var i = 0; i < edges_id_array.length; i++) {
+    var edge = edges[edges_id_array[i]];
+    if (edge.connected) {
+      dx = (edge.to.x - edge.from.x);
+      dy = (edge.to.y - edge.from.y);
+      length = Math.sqrt(dx * dx + dy * dy);
+
+
+      if (length < min_length) {
+        // checking for clustering possiblities
+
+        // first check which node is larger
+        if (edge.to.mass > edge.from.mass) {
+          var parent_node = edge.to
+          var child_node = edge.from
+        }
+        else {
+          var parent_node = edge.from
+          var child_node = edge.to
+        }
+
+        // we allow clustering from outside in, ideally the child node in on the outside
+        // if we do not cluster from outside in, we would have to reconnect edges or keep a second set of edges for the
+        // clusters. This will also have to be altered in the force calculation and rendering.
+        // This method is non-destructive and does not require a second set of data.
+        if (child_node.remaining_edges == 1) {
+          this._addToCluster(parent_node,child_node,edge);
+          delete this.edges[edges_id_array[i]];
+        }
+        else if (parent_node.remaining_edges == 1) {
+          this._addToCluster(child_node,parent_node,edge);
+          delete this.edges[edges_id_array[i]];
+        }
+      }
+    }
+  }
+};
+
+/**
+ * This function adds the childnode to the parentnode, creating a cluster if it is not already.
+ * This function is called only from _updateClusters()
+ *
+ * @param parent_node     | Node object: this is the node that will house the child node
+ * @param child_node      | Node object: this node will be deleted from the global this.nodes and stored in the parent node
+ * @param edge            | Edge object: this edge will be deleted from the global this.edges and stored in the parent node
+ * @private
+ */
+Graph.prototype._addToCluster = function(parent_node, child_node, edge) {
+  // join child node and edge in parent node
+  parent_node.contained_nodes[child_node.id] = child_node;
+  parent_node.contained_edges[child_node.id] = edge;
+
+  if (this.nodes.hasOwnProperty(child_node.id)) {
+    delete this.nodes[child_node.id];
+  }
+
+
+  var grow_coefficient = this.constants.clustering.zoomOffset + (parent_node.cluster_size + child_node.cluster_size) / parent_node.cluster_size;
+  parent_node.mass += this.constants.clustering.massTransferCoefficient * child_node.mass;
+  parent_node.width += grow_coefficient * this.constants.clustering.widthGrowth;
+  parent_node.height += grow_coefficient * this.constants.clustering.heightGrowth;
+  parent_node.remaining_edges -= 1;
+  parent_node.formation_scale = this.scale;
+  parent_node.cluster_size += child_node.cluster_size;
+  parent_node.fontSize += 1 * child_node.cluster_size;
+};
+
 
 /**
  * Update the this.node_indices with the most recent node index list
@@ -144,7 +338,7 @@ Graph.prototype._updateNodeIndexList = function() {
       this.node_indices.push(idx);
     }
   }
-}
+};
 
 /**
  * Set nodes and edges, and optionally options as well.
@@ -580,6 +774,7 @@ Graph.prototype._zoom = function(scale, pointer) {
 
   this._setScale(scale);
   this._setTranslation(tx, ty);
+  this._updateClusters();
   this._redraw();
 
   return scale;
@@ -1578,19 +1773,25 @@ Graph.prototype._calculateForces = function() {
       dy = node2.y - node1.y;
       distance = Math.sqrt(dx * dx + dy * dy);
 
-      //if (distance < 10*minimumDistance) {
+      //
+      if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
         angle = Math.atan2(dy, dx);
 
-        // TODO: correct factor for repulsing force
-        //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-        //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-        repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
+        if (distance < 0.5*minimumDistance) { // at 0.5 * the minimum distance, the force is 0.993307
+          repulsingForce = 1.0;
+        }
+        else {
+          // TODO: correct factor for repulsing force
+          //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+          //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+          repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
+        }
         fx = Math.cos(angle) * repulsingForce;
         fy = Math.sin(angle) * repulsingForce;
 
         node1._addForce(-fx, -fy);
         node2._addForce(fx, fy);
-     // }
+      }
     }
   }
 
@@ -1645,7 +1846,8 @@ Graph.prototype._calculateForces = function() {
     }
   }
 
-  /* TODO: re-implement repulsion of edges
+  // TODO: re-implement repulsion of edges
+
    // repulsing forces between edges
    var minimumDistance = this.constants.edges.distance,
    steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
@@ -1680,7 +1882,7 @@ Graph.prototype._calculateForces = function() {
    edges[l2].to._addForce(fx, fy);
    }
    }
-   */
+
 };
 
 
@@ -1721,15 +1923,8 @@ Graph.prototype._discreteStepNodes = function() {
  */
 Graph.prototype.start = function() {
   if (this.moving) {
-    var start = window.performance.now();
-
     this._calculateForces();
     this._discreteStepNodes();
-
-    var end = window.performance.now();
-    var time = end - start;
-    console.log('Execution time: ' + time);
-
 
     var vmin = this.constants.minVelocity;
     this.moving = this._isMoving(vmin);
@@ -1741,8 +1936,23 @@ Graph.prototype.start = function() {
       var graph = this;
       this.timer = window.setTimeout(function () {
         graph.timer = undefined;
+
+        // benchmark the calculation
+        var start = window.performance.now();
         graph.start();
+        // Optionally call this twice for faster convergence
+        // graph.start();
+        var end = window.performance.now();
+        var time = end - start;
+       // console.log('Simulation time: ' + time);
+
+
+        start = window.performance.now();
         graph._redraw();
+        end = window.performance.now();
+        time = end - start;
+      //  console.log('Drawing time: ' + time);
+
       }, this.refreshRate);
     }
   }
