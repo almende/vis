@@ -74,8 +74,8 @@ function Graph (container, data, options) {
     clustering: {
       clusterLength: 50,            // threshold length for clustering
       fontSizeMultiplier: 2,        // how much the cluster font size grows per node (in px)
-      forceAmplification: 0.7,      // amount of cluster_size between two nodes multiply this value (+1) with the repulsion force
-      distanceAmplification: 0.2,   // amount of cluster_size between two nodes multiply this value (+1) with the repulsion force
+      forceAmplification: 0.6,      // amount of cluster_size between two nodes multiply this value (+1) with the repulsion force
+      distanceAmplification: 0.1,   // amount of cluster_size between two nodes multiply this value (+1) with the repulsion force
       edgeGrowth: 10,               // amount of cluster_size connected to the edge is multiplied with this and added to edgeLength
       widthGrowth: 10,              // growth factor = ((parent_size + child_size) / parent_size) * widthGrowthFactor
       heightGrowth: 10,             // growth factor = ((parent_size + child_size) / parent_size) * heightGrowthFactor
@@ -1962,7 +1962,9 @@ Graph.prototype._calculateForces = function() {
       dy = node2.y - node1.y;
       distance = Math.sqrt(dx * dx + dy * dy);
 
-      //
+
+      minimumDistance = (cluster_size == 0) ? this.constants.nodes.distance : (this.constants.nodes.distance * (1 + cluster_size * this.constants.clustering.distanceAmplification));
+
       if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
         angle = Math.atan2(dy, dx);
 
@@ -1975,7 +1977,7 @@ Graph.prototype._calculateForces = function() {
           //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
 
           // clusters have a larger region of influence
-          minimumDistance = (cluster_size == 0) ? this.constants.nodes.distance : (this.constants.nodes.distance * 1 + cluster_size * this.constants.clustering.distanceAmplification);
+
           repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
         }
 
