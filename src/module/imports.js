@@ -18,4 +18,15 @@ else {
   }
 }
 
+var mouseTrap;
+if (typeof window !== 'undefined') {
+  // load hammer.js only when running in a browser (where window is available)
+  mouseTrap = window['mouseTrap'] || require('mouseTrap');
+}
+else {
+  mouseTrap = function () {
+    throw Error('mouseTrap is only available in a browser, not in node.js.');
+  }
+}
+
 

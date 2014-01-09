@@ -730,6 +730,8 @@ Graph.prototype._create = function () {
   this.hammer.on('DOMMouseScroll',me._onMouseWheel.bind(me) ); // for FF
   this.hammer.on('mousemove', me._onMouseMoveTitle.bind(me) );
 
+  console.log(mouseTrap)
+  mouseTrap.bind("a",function() {alert("a");})
 
   // add the frame to the container element
   this.containerElement.appendChild(this.frame);

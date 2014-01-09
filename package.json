@@ -30,7 +30,7 @@
     "browserify": "latest",
     "moment": "latest",
     "hammerjs": "1.0.5",
-    "shortcut": "latest",
+    "mousetrap": "latest",
     "node-watch": "latest"
   }
 }
