@@ -55,8 +55,12 @@ function Node(properties, imagelist, grouplist, constants) {
 
   // creating the variables for clustering
   this.resetCluster();
-  this.remaining_edges = 0;
-  this.remaining_edges_unapplied = 0;
+  this.remainingEdges = 0;
+  this.remainingEdges_unapplied = 0;
+
+  this.clusterSizeWidthFactor  = constants.clustering.clusterSizeWidthFactor;
+  this.clusterSizeHeightFactor = constants.clustering.clusterSizeHeightFactor;
+  this.clusterSizeRadiusFactor = constants.clustering.clusterSizeRadiusFactor;
 
   // mass, force, velocity
   this.mass = 50;  // kg (mass is adjusted for the number of connected edges)
@@ -73,10 +77,10 @@ function Node(properties, imagelist, grouplist, constants) {
  */
 Node.prototype.resetCluster = function() {
   // clustering variables
-  this.formation_scale = undefined; // this is used to determine when to open the cluster
-  this.cluster_size = 1;            // this signifies the total amount of nodes in this cluster
-  this.contained_nodes = {};
-  this.contained_edges = {};
+  this.formationScale = undefined; // this is used to determine when to open the cluster
+  this.clusterSize = 1;            // this signifies the total amount of nodes in this cluster
+  this.containedNodes = {};
+  this.containedEdges = {};
 };
 
 /**
@@ -87,8 +91,8 @@ Node.prototype.attachEdge = function(edge) {
   if (this.edges.indexOf(edge) == -1) {
     this.edges.push(edge);
   }
-  this.remaining_edges = this.edges.length;
-  this.remaining_edges_unapplied = this.edges.length;
+  this.remainingEdges = this.edges.length;
+  this.remainingEdges_unapplied = this.edges.length;
   this._updateMass();
 };
 
@@ -101,8 +105,8 @@ Node.prototype.detachEdge = function(edge) {
   if (index != -1) {
     this.edges.splice(index, 1);
   }
-  this.remaining_edges = this.edges.length;
-  this.remaining_edges_unapplied = this.edges.length;
+  this.remainingEdges = this.edges.length;
+  this.remainingEdges_unapplied = this.edges.length;
   this._updateMass();
 };
 
@@ -276,8 +280,7 @@ Node.parseColor = function(color) {
  */
 Node.prototype.select = function() {
   this.selected = true;
-  // why do this?
-  // this._reset();
+  this._reset();
 };
 
 /**
@@ -285,8 +288,15 @@ Node.prototype.select = function() {
  */
 Node.prototype.unselect = function() {
   this.selected = false;
-  // why do this?
-  // this._reset();
+  this._reset();
+};
+
+
+/**
+ * Reset the calculated size of the node, forces it to recalculate its size
+ */
+Node.prototype.clearSizeCache = function() {
+  this._reset();
 };
 
 /**
@@ -510,6 +520,10 @@ Node.prototype._resizeImage = function (ctx) {
     }
     this.width  = width;
     this.height = height;
+
+    this.width += this.clusterSize * this.clusterSizeWidthFactor;
+    this.height += this.clusterSize * this.clusterSizeHeightFactor;
+    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -539,6 +553,10 @@ Node.prototype._resizeBox = function (ctx) {
     var textSize = this.getTextSize(ctx);
     this.width = textSize.width + 2 * margin;
     this.height = textSize.height + 2 * margin;
+
+    this.width += this.clusterSize * this.clusterSizeWidthFactor;
+    this.height += this.clusterSize * this.clusterSizeHeightFactor;
+    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -548,7 +566,7 @@ Node.prototype._drawBox = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
-  if (this.cluster_size > 1) {
+  if (this.clusterSize > 1) {
     ctx.strokeStyle = this.selected ? this.color.cluster.highlight.border : this.color.cluster.border;
     ctx.fillStyle = this.selected ? this.color.cluster.highlight.background : this.color.cluster.background;
   }
@@ -556,7 +574,7 @@ Node.prototype._drawBox = function (ctx) {
     ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
     ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
   }
-  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.cluster_size > 1) ? 2.0 : 0.0;
+  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.clusterSize > 1) ? 2.0 : 0.0;
   ctx.roundRect(this.left, this.top, this.width, this.height, this.radius);
   ctx.fill();
   ctx.stroke();
@@ -572,6 +590,11 @@ Node.prototype._resizeDatabase = function (ctx) {
     var size = textSize.width + 2 * margin;
     this.width = size;
     this.height = size;
+
+    // scaling used for clustering
+    this.width += this.clusterSize * this.clusterSizeWidthFactor;
+    this.height += this.clusterSize * this.clusterSizeHeightFactor;
+    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -580,7 +603,7 @@ Node.prototype._drawDatabase = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
-  if (this.cluster_size > 1) {
+  if (this.clusterSize > 1) {
     ctx.strokeStyle = this.selected ? this.color.cluster.highlight.border : this.color.cluster.border;
     ctx.fillStyle = this.selected ? this.color.cluster.highlight.background : this.color.cluster.background;
   }
@@ -588,7 +611,7 @@ Node.prototype._drawDatabase = function (ctx) {
     ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
     ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
   }
-  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.cluster_size > 1) ? 2.0 : 0.0;
+  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.clusterSize > 1) ? 2.0 : 0.0;
   ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
   ctx.fill();
   ctx.stroke();
@@ -606,6 +629,11 @@ Node.prototype._resizeCircle = function (ctx) {
 
     this.width = diameter;
     this.height = diameter;
+
+    // scaling used for clustering
+    this.width += this.clusterSize * this.clusterSizeWidthFactor;
+    this.height += this.clusterSize * this.clusterSizeHeightFactor;
+    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -614,7 +642,7 @@ Node.prototype._drawCircle = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
-  if (this.cluster_size > 1) {
+  if (this.clusterSize > 1) {
     ctx.strokeStyle = this.selected ? this.color.cluster.highlight.border : this.color.cluster.border;
     ctx.fillStyle = this.selected ? this.color.cluster.highlight.background : this.color.cluster.background;
   }
@@ -622,7 +650,7 @@ Node.prototype._drawCircle = function (ctx) {
     ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
     ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
   }
-  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.cluster_size > 1) ? 2.0 : 0.0;
+  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.clusterSize > 1) ? 2.0 : 0.0;
   ctx.circle(this.x, this.y, this.radius);
   ctx.fill();
   ctx.stroke();
@@ -639,6 +667,11 @@ Node.prototype._resizeEllipse = function (ctx) {
     if (this.width < this.height) {
       this.width = this.height;
     }
+
+    // scaling used for clustering
+    this.width += this.clusterSize * this.clusterSizeWidthFactor;
+    this.height += this.clusterSize * this.clusterSizeHeightFactor;
+    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -647,7 +680,7 @@ Node.prototype._drawEllipse = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
-  if (this.cluster_size > 1) {
+  if (this.clusterSize > 1) {
     ctx.strokeStyle = this.selected ? this.color.cluster.highlight.border : this.color.cluster.border;
     ctx.fillStyle = this.selected ? this.color.cluster.highlight.background : this.color.cluster.background;
   }
@@ -655,11 +688,10 @@ Node.prototype._drawEllipse = function (ctx) {
     ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
     ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
   }
-  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.cluster_size > 1) ? 2.0 : 0.0;
+  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.clusterSize > 1) ? 2.0 : 0.0;
   ctx.ellipse(this.left, this.top, this.width, this.height);
   ctx.fill();
   ctx.stroke();
-
   this._label(ctx, this.label, this.x, this.y);
 };
 
@@ -688,6 +720,11 @@ Node.prototype._resizeShape = function (ctx) {
     var size = 2 * this.radius;
     this.width = size;
     this.height = size;
+
+    // scaling used for clustering
+    this.width += this.clusterSize * this.clusterSizeWidthFactor;
+    this.height += this.clusterSize * this.clusterSizeHeightFactor;
+    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -696,8 +733,7 @@ Node.prototype._drawShape = function (ctx, shape) {
 
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
-
-  if (this.cluster_size > 1) {
+  if (this.clusterSize > 1) {
     ctx.strokeStyle = this.selected ? this.color.cluster.highlight.border : this.color.cluster.border;
     ctx.fillStyle = this.selected ? this.color.cluster.highlight.background : this.color.cluster.background;
   }
@@ -705,7 +741,7 @@ Node.prototype._drawShape = function (ctx, shape) {
     ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
     ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
   }
-  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.cluster_size > 1) ? 2.0 : 0.0;
+  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.clusterSize > 1) ? 2.0 : 0.0;
 
   ctx[shape](this.x, this.y, this.radius);
   ctx.fill();
@@ -722,6 +758,11 @@ Node.prototype._resizeText = function (ctx) {
     var textSize = this.getTextSize(ctx);
     this.width = textSize.width + 2 * margin;
     this.height = textSize.height + 2 * margin;
+
+    // scaling used for clustering
+    this.width += this.clusterSize * this.clusterSizeWidthFactor;
+    this.height += this.clusterSize * this.clusterSizeHeightFactor;
+    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
   }
 };
 

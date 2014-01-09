@@ -4,6 +4,7 @@
 
 // Try to load dependencies from the global window object.
 // If not available there, load via require.
+
 var moment = (typeof window !== 'undefined') && window['moment'] || require('moment');
 
 var Hammer;
@@ -16,3 +17,5 @@ else {
     throw Error('hammer.js is only available in a browser, not in node.js.');
   }
 }
+
+
