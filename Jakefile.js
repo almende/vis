@@ -79,7 +79,9 @@ task('build', {async: true}, function () {
       './src/graph/Popup.js',
       './src/graph/Groups.js',
       './src/graph/Images.js',
+      './src/graph/Cluster.js',
       './src/graph/Graph.js',
+
 
       './src/module/exports.js'
     ],
