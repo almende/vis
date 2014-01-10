@@ -57,6 +57,7 @@ function Node(properties, imagelist, grouplist, constants) {
   this.resetCluster();
   this.remainingEdges = 0;
   this.remainingEdges_unapplied = 0;
+  this.clusterSession = 0;
 
   this.clusterSizeWidthFactor  = constants.clustering.clusterSizeWidthFactor;
   this.clusterSizeHeightFactor = constants.clustering.clusterSizeHeightFactor;
@@ -92,7 +93,7 @@ Node.prototype.attachEdge = function(edge) {
     this.edges.push(edge);
   }
   this.remainingEdges = this.edges.length;
-  this.remainingEdges_unapplied = this.edges.length;
+  this.remainingEdges_unapplied = this.remainingEdges;
   this._updateMass();
 };
 
@@ -106,7 +107,7 @@ Node.prototype.detachEdge = function(edge) {
     this.edges.splice(index, 1);
   }
   this.remainingEdges = this.edges.length;
-  this.remainingEdges_unapplied = this.edges.length;
+  this.remainingEdges_unapplied = this.remainingEdges;
   this._updateMass();
 };
 

@@ -80,7 +80,7 @@ function Graph (container, data, options) {
       clusterSizeWidthFactor: 10,
       clusterSizeHeightFactor: 10,
       clusterSizeRadiusFactor: 10,
-      massTransferCoefficient: 0.1  // parent.mass += massTransferCoefficient * child.mass
+      massTransferCoefficient: 0.2  // parent.mass += massTransferCoefficient * child.mass
     },
     minForce: 0.05,
     minVelocity: 0.02,   // px/s
@@ -88,6 +88,7 @@ function Graph (container, data, options) {
   };
 
   var graph = this;
+  this.clusterSession = 0;
   this.nodeIndices = [];     // the node indices list is used to speed up the computation of the repulsion fields
   this.nodes = {};            // object with Node objects
   this.edges = {};            // object with Edge objects
@@ -162,8 +163,14 @@ function Graph (container, data, options) {
 
 Graph.prototype.clusterToFit = function() {
   var numberOfNodes = this.nodeIndices.length;
-  if (numberOfNodes >= 100) {
+  var maxNumberOfNodes = 100;
+
+  var maxLevels = 10;
+  var level = 0;
+  while (numberOfNodes >= maxNumberOfNodes && level < maxLevels) {
     this.increaseClusterLevel();
+    numberOfNodes = this.nodeIndices.length;
+    level += 1;
   }
 };
 
@@ -172,6 +179,10 @@ Graph.prototype.zoomToFit = function() {
   var zoomLevel = 105 / (numberOfNodes + 80); // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
   if (zoomLevel > 1.0) {
     zoomLevel = 1.0;
+  }
+
+  if (!('mousewheelScale' in this.pinch)) {
+    this.pinch.mousewheelScale = zoomLevel;
   }
   this._setScale(zoomLevel);
 };
@@ -182,7 +193,16 @@ Graph.prototype.zoomToFit = function() {
  * This can be called externally (by a keybind for instance) to reduce the complexity of big datasets.
  */
 Graph.prototype.increaseClusterLevel = function() {
+  var isMovingBeforeClustering = this.moving;
+
   this._formClusters(true);
+
+  this._updateLabels();
+
+  // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+  if (this.moving != isMovingBeforeClustering) {
+    this.start();
+  }
 };
 
 /**
@@ -191,13 +211,24 @@ Graph.prototype.increaseClusterLevel = function() {
  * This can be called externally (by a key-bind for instance) to look into clusters without zooming.
  */
 Graph.prototype.decreaseClusterLevel = function() {
+  var isMovingBeforeClustering = this.moving;
+
   for (var i = 0; i < this.nodeIndices.length; i++) {
     var node = this.nodes[this.nodeIndices[i]];
-    if (node.clusterSize > 1 && node.remainingEdges == 1) {
+    if (node.clusterSize > 1) {
       this._expandClusterNode(node,false,true);
     }
   }
   this._updateNodeIndexList();
+  this._updateLabels();
+
+  // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+  if (this.moving != isMovingBeforeClustering) {
+    this.start();
+  }
+
+  this.clusterSession = (this.clusterSession == 0) ? 0 : this.clusterSession - 1;
+
 };
 
 
@@ -208,8 +239,15 @@ Graph.prototype.decreaseClusterLevel = function() {
  * @param node    | Node object: cluster to open.
  */
 Graph.prototype.fullyOpenCluster = function(node) {
+  var isMovingBeforeClustering = this.moving;
+
   this._expandClusterNode(node,true,true);
   this._updateNodeIndexList();
+
+  // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+  if (this.moving != isMovingBeforeClustering) {
+    this.start();
+  }
 };
 
 
@@ -220,8 +258,15 @@ Graph.prototype.fullyOpenCluster = function(node) {
  * @param node    | Node object: cluster to open.
  */
 Graph.prototype.openCluster = function(node) {
+  var isMovingBeforeClustering = this.moving;
+
   this._expandClusterNode(node,false,true);
   this._updateNodeIndexList();
+
+  // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+  if (this.moving != isMovingBeforeClustering) {
+    this.start();
+  }
 };
 
 
@@ -251,8 +296,6 @@ Graph.prototype._updateClusters = function() {
   if (this.moving != isMovingBeforeClustering) {
     this.start();
   }
-
- // console.log(this.scale);
 };
 
 /**
@@ -264,7 +307,7 @@ Graph.prototype._updateLabels = function() {
   for (var nodeID in this.nodes) {
     if (this.nodes.hasOwnProperty(nodeID)) {
       var node = this.nodes[nodeID];
-      node.label = String(node.remainingEdges).concat(":",String(node.clusterSize));
+      node.label = String(node.remainingEdges).concat(":",node.remainingEdges_unapplied,":",String(node.clusterSize));
     }
   }
 };
@@ -307,12 +350,18 @@ Graph.prototype._updateNodeLabels = function() {
  * @private
  */
 Graph.prototype._openClusters = function() {
+  var amountOfNodes = this.nodeIndices.length;
+
   for (var i = 0; i < this.nodeIndices.length; i++) {
     var node = this.nodes[this.nodeIndices[i]];
     this._expandClusterNode(node,true,false);
   }
 
   this._updateNodeIndexList();
+
+  if (this.nodeIndices.length != amountOfNodes) { // this means a clustering operation has taken place
+    this.clusterSession += 1;
+  }
 };
 
 
@@ -332,33 +381,20 @@ Graph.prototype._expandClusterNode = function(parentNode, recursive, forceExpand
     // if the last child has been added on a smaller scale than current scale (@optimization)
     if (parentNode.formationScale < this.scale || forceExpand == true) {
       // we will check if any of the contained child nodes should be removed from the cluster
-      var largestClusterSize = 1;
       for (var containedNodeID in parentNode.containedNodes) {
         if (parentNode.containedNodes.hasOwnProperty(containedNodeID)) {
-          var child_node = parentNode.containedNodes[containedNodeID];
+          var childNode = parentNode.containedNodes[containedNodeID];
 
           // force expand will expand the largest cluster size clusters. Since we cluster from outside in, we assume that
           // the largest cluster is the one that comes from outside
           // TODO: introduce a level system for keeping track of which node was added when.
           if (forceExpand == true) {
-            if (largestClusterSize < child_node.clusterSize) {
-              largestClusterSize = child_node.clusterSize;
+            if (childNode.clusterSession == this.clusterSession - 1) {
+              this._expelChildFromParent(parentNode,containedNodeID,recursive,forceExpand);
             }
           }
           else {
             this._expelChildFromParent(parentNode,containedNodeID,recursive,forceExpand);
-          }
-        }
-      }
-
-      // we have determined the largest cluster size, we will now expel these
-      if (forceExpand == true) {
-        for (var containedNodeID in parentNode.containedNodes) {
-          if (parentNode.containedNodes.hasOwnProperty(containedNodeID)) {
-            var child_node = parentNode.containedNodes[containedNodeID];
-            if (child_node.clusterSize == largestClusterSize) {
-              this._expelChildFromParent(parentNode,containedNodeID,recursive,forceExpand);
-            }
           }
         }
       }
@@ -393,10 +429,14 @@ Graph.prototype._expelChildFromParent = function(parentNode, containedNodeID, re
     parentNode.fontSize -= this.constants.clustering.fontSizeMultiplier * childNode.clusterSize;
     parentNode.clusterSize -= childNode.clusterSize;
     parentNode.remainingEdges += 1;
+    parentNode.remainingEdges_unapplied = parentNode.remainingEdges;
 
     // place the child node near the parent, not at the exact same location to avoid chaos in the system
     childNode.x = parentNode.x;
     childNode.y = parentNode.y;
+
+    // remove the clusterSession from the child node
+    childNode.clusterSession = 0;
 
     // remove node from the list
     delete parentNode.containedNodes[containedNodeID];
@@ -427,6 +467,8 @@ Graph.prototype._expelChildFromParent = function(parentNode, containedNodeID, re
  * @param force_level_collapse    | Boolean
  */
 Graph.prototype._formClusters = function(forceLevelCollapse) {
+  var amountOfNodes = this.nodeIndices.length;
+
   var min_length = this.constants.clustering.clusterLength/this.scale;
 
   var dx,dy,length,
@@ -467,11 +509,11 @@ Graph.prototype._formClusters = function(forceLevelCollapse) {
         // if we do not cluster from outside in, we would have to reconnect edges or keep a second set of edges for the
         // clusters. This will also have to be altered in the force calculation and rendering.
         // This method is non-destructive and does not require a second set of data.
-        if (childNode.remainingEdges == 1) {
+        if (childNode.remainingEdges == 1 && childNode.remainingEdges_unapplied != 0) {
           this._addToCluster(parentNode,childNode,edge,forceLevelCollapse);
           delete this.edges[edgesIDarray[i]];
         }
-        else if (parentNode.remainingEdges == 1) {
+        else if (parentNode.remainingEdges == 1 && parentNode.remainingEdges_unapplied != 0) {
           this._addToCluster(childNode,parentNode,edge,forceLevelCollapse);
           delete this.edges[edgesIDarray[i]];
         }
@@ -480,8 +522,13 @@ Graph.prototype._formClusters = function(forceLevelCollapse) {
   }
   this._updateNodeIndexList();
 
-  if (forceLevelCollapse == true)
+  if (forceLevelCollapse == true) {
     this._applyClusterLevel();
+  }
+
+  if (this.nodeIndices.length != amountOfNodes) { // this means a clustering operation has taken place
+    this.clusterSession += 1;
+  }
 };
 
 
@@ -504,6 +551,7 @@ Graph.prototype._addToCluster = function(parentNode, childNode, edge, forceLevel
     delete this.nodes[childNode.id];
   }
 
+  childNode.clusterSession = this.clusterSession;
   parentNode.mass += this.constants.clustering.massTransferCoefficient * childNode.mass;
   parentNode.clusterSize += childNode.clusterSize;
   parentNode.fontSize += this.constants.clustering.fontSizeMultiplier * childNode.clusterSize;
@@ -513,10 +561,12 @@ Graph.prototype._addToCluster = function(parentNode, childNode, edge, forceLevel
   parentNode.clearSizeCache();
 
   parentNode.containedNodes[childNode.id].formationScale = this.scale; // this child has been added at this scale.
-  if (forceLevelCollapse == true)
+  if (forceLevelCollapse == true) {
     parentNode.remainingEdges_unapplied -= 1;
-  else
+  }
+  else {
     parentNode.remainingEdges -= 1;
+  }
 
   // restart the simulation to reorganise all nodes
   this.moving = true;
@@ -730,8 +780,9 @@ Graph.prototype._create = function () {
   this.hammer.on('DOMMouseScroll',me._onMouseWheel.bind(me) ); // for FF
   this.hammer.on('mousemove', me._onMouseMoveTitle.bind(me) );
 
-  console.log(mouseTrap)
-  mouseTrap.bind("a",function() {alert("a");})
+  this.mouseTrap = mouseTrap;
+  this.mouseTrap.bind("=", this.decreaseClusterLevel.bind(me));
+  this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
 
   // add the frame to the container element
   this.containerElement.appendChild(this.frame);
@@ -1017,12 +1068,12 @@ Graph.prototype._onMouseWheel = function(event) {
   // Basically, delta is now positive if wheel was scrolled up,
   // and negative, if wheel was scrolled down.
   if (delta) {
-    if (!('mouswheelScale' in this.pinch)) {
-      this.pinch.mouswheelScale = 1;
+    if (!('mousewheelScale' in this.pinch)) {
+      this.pinch.mousewheelScale = 1;
     }
 
     // calculate the new scale
-    var scale = this.pinch.mouswheelScale;
+    var scale = this.pinch.mousewheelScale;
     var zoom = delta / 10;
     if (delta < 0) {
       zoom = zoom / (1 - zoom);
@@ -1037,7 +1088,7 @@ Graph.prototype._onMouseWheel = function(event) {
     scale = this._zoom(scale, pointer);
 
     // store the new, applied scale
-    this.pinch.mouswheelScale = scale;
+    this.pinch.mousewheelScale = scale;
   }
 
   // Prevent default actions caused by mouse wheel.
