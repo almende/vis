@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.3.0-SNAPSHOT
- * @date    2014-01-10
+ * @version @@version
+ * @date    @@date
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -14930,11 +14930,9 @@ Cluster.prototype.increaseClusterLevel = function() {
 
   this._formClusters(true);
 
-  this._updateLabels();
-
   // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
   if (this.moving != isMovingBeforeClustering) {
-    this.start();
+    //this.start();
   }
 };
 
@@ -14953,15 +14951,13 @@ Cluster.prototype.decreaseClusterLevel = function() {
     }
   }
   this._updateNodeIndexList();
-  this._updateLabels();
+
+  this.clusterSession = (this.clusterSession == 0) ? 0 : this.clusterSession - 1;
 
   // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
   if (this.moving != isMovingBeforeClustering) {
     this.start();
   }
-
-  this.clusterSession = (this.clusterSession == 0) ? 0 : this.clusterSession - 1;
-
 };
 
 
@@ -15041,6 +15037,8 @@ Cluster.prototype._updateLabels = function() {
     if (this.nodes.hasOwnProperty(nodeID)) {
       var node = this.nodes[nodeID];
       node.label = String(node.remainingEdges).concat(":",node.remainingEdges_unapplied,":",String(node.clusterSize));
+//      node.label = String(Math.round(this.zoomCenter.x)).concat(",",String(Math.round(this.zoomCenter.y)),
+//                        "::",String(Math.round(node.x)),"x",String(Math.round(node.y)));
     }
   }
 };
@@ -15126,7 +15124,9 @@ Cluster.prototype._expandClusterNode = function(parentNode, recursive, forceExpa
             }
           }
           else {
-            this._expelChildFromParent(parentNode,containedNodeID,recursive,forceExpand);
+            if (this._parentNodeInActiveArea(parentNode)) {
+              this._expelChildFromParent(parentNode,containedNodeID,recursive,forceExpand);
+            }
           }
         }
       }
@@ -15134,6 +15134,18 @@ Cluster.prototype._expandClusterNode = function(parentNode, recursive, forceExpa
   }
 };
 
+
+Cluster.prototype._parentNodeInActiveArea = function(node) {
+  if (node.selected)
+    console.log(node.x,this.zoomCenter.x,node.y, this.zoomCenter.y)
+  if (Math.abs(node.x - this.zoomCenter.x) <= this.constants.clustering.activeAreaRadius &&
+      Math.abs(node.y - this.zoomCenter.y) <= this.constants.clustering.activeAreaRadius) {
+    return true;
+  }
+  else {
+    return false;
+  }
+};
 
 /**
  * This function will expel a child_node from a parent_node. This is to de-cluster the node. This function will remove
@@ -15164,8 +15176,8 @@ Cluster.prototype._expelChildFromParent = function(parentNode, containedNodeID, 
     parentNode.remainingEdges_unapplied = parentNode.remainingEdges;
 
     // place the child node near the parent, not at the exact same location to avoid chaos in the system
-    childNode.x = parentNode.x;
-    childNode.y = parentNode.y;
+    childNode.x = parentNode.x + this.constants.edges.length * 0.2 * (0.5 - Math.random()) * parentNode.clusterSize;
+    childNode.y = parentNode.y + this.constants.edges.length * 0.2 * (0.5 - Math.random()) * parentNode.clusterSize;
 
     // remove the clusterSession from the child node
     childNode.clusterSession = 0;
@@ -15199,9 +15211,8 @@ Cluster.prototype._expelChildFromParent = function(parentNode, containedNodeID, 
  * @param force_level_collapse    | Boolean
  */
 Cluster.prototype._formClusters = function(forceLevelCollapse) {
+  var minLength = this.constants.clustering.clusterLength/this.scale;
   var amountOfNodes = this.nodeIndices.length;
-
-  var min_length = this.constants.clustering.clusterLength/this.scale;
 
   var dx,dy,length,
     edges = this.edges;
@@ -15213,8 +15224,7 @@ Cluster.prototype._formClusters = function(forceLevelCollapse) {
       edgesIDarray.push(id);
     }
   }
-
-  // check if any edges are shorter than min_length and start the clustering
+  // check if any edges are shorter than minLength and start the clustering
   // the clustering favours the node with the larger mass
   for (var i = 0; i < edgesIDarray.length; i++) {
     var edgeID = edgesIDarray[i];
@@ -15226,7 +15236,7 @@ Cluster.prototype._formClusters = function(forceLevelCollapse) {
       length = Math.sqrt(dx * dx + dy * dy);
 
 
-      if (length < min_length || forceLevelCollapse == true) {
+      if (length < minLength || forceLevelCollapse == true) {
         // checking for clustering possibilities
 
         // first check which node is larger
@@ -15261,7 +15271,6 @@ Cluster.prototype._formClusters = function(forceLevelCollapse) {
   if (this.nodeIndices.length != amountOfNodes) { // this means a clustering operation has taken place
     this.clusterSession += 1;
   }
-  console.log(this.clusterSession)
 };
 
 
@@ -15287,8 +15296,15 @@ Cluster.prototype._addToCluster = function(parentNode, childNode, edge, forceLev
   childNode.clusterSession = this.clusterSession;
   parentNode.mass += this.constants.clustering.massTransferCoefficient * childNode.mass;
   parentNode.clusterSize += childNode.clusterSize;
-  parentNode.fontSize += this.constants.clustering.fontSizeMultiplier * childNode.clusterSize;
-  parentNode.formationScale = this.scale; // The latest child has been added on this scale
+  parentNode.fontSize += this.constants.clustering.fontSizeMultiplier * childNode.clusterSize
+
+  // giving the clusters a dynamic formationScale to ensure not all clusters open up when zoomed
+  if (forceLevelCollapse == true) {
+    parentNode.formationScale = this.scale * Math.pow(1.0/11.0,this.clusterSession);
+  }
+  else {
+    parentNode.formationScale = this.scale; // The latest child has been added on this scale
+  }
 
   // recalculate the size of the node on the next time the node is rendered
   parentNode.clearSizeCache();
@@ -15319,6 +15335,23 @@ Cluster.prototype._applyClusterLevel = function() {
   }
 };
 
+
+Cluster.prototype._repositionNodes = function() {
+  for (var i = 0; i < this.nodeIndices.length; i++) {
+    var node = this.nodes[this.nodeIndices[i]];
+    if (!node.isFixed()) {
+      // TODO: position new nodes in a smarter way!
+      var radius = this.constants.edges.length * (1 + 0.5*node.clusterSize);
+      var count = this.nodeIndices.length;
+      var angle = 2 * Math.PI * Math.random();
+      node.x = radius * Math.cos(angle);
+      node.y = radius * Math.sin(angle);
+    }
+  }
+
+
+
+};
 /**
  * @constructor Graph
  * Create a graph visualization, displaying nodes and edges.
@@ -15401,19 +15434,23 @@ function Graph (container, data, options) {
       clusterSizeWidthFactor: 10,
       clusterSizeHeightFactor: 10,
       clusterSizeRadiusFactor: 10,
-      massTransferCoefficient: 0.2  // parent.mass += massTransferCoefficient * child.mass
+      activeAreaRadius: 200,         // box area around the curser where clusters are popped open
+      massTransferCoefficient: 1    // parent.mass += massTransferCoefficient * child.mass
     },
     minForce: 0.05,
     minVelocity: 0.02,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
   };
 
+  // call the constructor of the cluster object
   Cluster.call(this);
 
   var graph = this;
-  this.nodeIndices = [];     // the node indices list is used to speed up the computation of the repulsion fields
+  this.simulationStep = 100;
+  this.nodeIndices = [];      // the node indices list is used to speed up the computation of the repulsion fields
   this.nodes = {};            // object with Node objects
   this.edges = {};            // object with Edge objects
+  this.zoomCenter = {};       // object with x and y elements used for determining the center of the zoom action
   this.scale = 1;             // defining the global scale variable in the constructor
   this.previousScale = this.scale;    // this is used to check if the zoom operation is zooming in or out
   // TODO: create a counter to keep track on the number of nodes having values
@@ -15483,6 +15520,10 @@ function Graph (container, data, options) {
   this.clusterToFit();
 }
 
+/**
+ * We add the functionality of the cluster object to the graph object
+ * @type {Cluster.prototype}
+ */
 Graph.prototype = Object.create(Cluster.prototype);
 
 Graph.prototype.clusterToFit = function() {
@@ -15491,10 +15532,21 @@ Graph.prototype.clusterToFit = function() {
 
   var maxLevels = 10;
   var level = 0;
+
+  this.simulationStep = 100;
+
+
   while (numberOfNodes >= maxNumberOfNodes && level < maxLevels) {
+    console.log(level)
     this.increaseClusterLevel();
     numberOfNodes = this.nodeIndices.length;
     level += 1;
+    this.simulationStep -= 20;
+  }
+
+  // after the clustering we reposition the nodes to avoid initial chaos
+  if (level > 1) {
+    this._repositionNodes();
   }
 };
 
@@ -15708,6 +15760,8 @@ Graph.prototype._create = function () {
   this.mouseTrap = mouseTrap;
   this.mouseTrap.bind("=", this.decreaseClusterLevel.bind(me));
   this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
+  this.mouseTrap.bind("s",this.singleStep.bind(me));
+
 
   // add the frame to the container element
   this.containerElement.appendChild(this.frame);
@@ -15957,12 +16011,17 @@ Graph.prototype._zoom = function(scale, pointer) {
   if (scale > 10) {
     scale = 10;
   }
-
+// + this.frame.canvas.clientHeight / 2
   var translation = this._getTranslation();
+
   var scaleFrac = scale / scaleOld;
   var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
   var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
 
+  this.zoomCenter = {"x" : pointer.x  - translation.x,
+                     "y" : pointer.y  - translation.y};
+
+ // this.zoomCenter = {"x" : pointer.x,"y" : pointer.y };
   this._setScale(scale);
   this._setTranslation(tx, ty);
   this._updateClusters();
@@ -16933,14 +16992,13 @@ Graph.prototype._calculateForces = function() {
   // the graph
   // Also, the forces are reset to zero in this loop by using _setForce instead
   // of _addForce
-  var gravity = 0.01,
-      gx = this.frame.canvas.clientWidth / 2,
-      gy = this.frame.canvas.clientHeight / 2;
+  var dynamicGravity = 100.0 - 1*this.simulationStep;
+  var gravity = (dynamicGravity < 0.05 ? 0.05 : dynamicGravity);
   for (id in nodes) {
     if (nodes.hasOwnProperty(id)) {
       var node = nodes[id];
-      dx = gx - node.x;
-      dy = gy - node.y;
+      dx = -node.x;
+      dy = -node.y;
       angle = Math.atan2(dy, dx);
       fx = Math.cos(angle) * gravity;
       fy = Math.sin(angle) * gravity;
@@ -17083,6 +17141,8 @@ Graph.prototype._calculateForces = function() {
    }
    }
 */
+
+  this.simulationStep += 1;
 };
 
 
@@ -17121,6 +17181,7 @@ Graph.prototype._discreteStepNodes = function() {
 /**
  * Start animating nodes and edges
  */
+
 Graph.prototype.start = function() {
   if (this.moving) {
     this._calculateForces();
@@ -17157,6 +17218,18 @@ Graph.prototype.start = function() {
     }
   }
   else {
+    this._redraw();
+  }
+};
+
+
+Graph.prototype.singleStep = function() {
+  if (this.moving) {
+    this._calculateForces();
+    this._discreteStepNodes();
+
+    var vmin = this.constants.minVelocity;
+    this.moving = this._isMoving(vmin);
     this._redraw();
   }
 };

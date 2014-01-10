@@ -80,19 +80,23 @@ function Graph (container, data, options) {
       clusterSizeWidthFactor: 10,
       clusterSizeHeightFactor: 10,
       clusterSizeRadiusFactor: 10,
-      massTransferCoefficient: 0.2  // parent.mass += massTransferCoefficient * child.mass
+      activeAreaRadius: 200,         // box area around the curser where clusters are popped open
+      massTransferCoefficient: 1    // parent.mass += massTransferCoefficient * child.mass
     },
     minForce: 0.05,
     minVelocity: 0.02,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
   };
 
+  // call the constructor of the cluster object
   Cluster.call(this);
 
   var graph = this;
-  this.nodeIndices = [];     // the node indices list is used to speed up the computation of the repulsion fields
+  this.simulationStep = 100;
+  this.nodeIndices = [];      // the node indices list is used to speed up the computation of the repulsion fields
   this.nodes = {};            // object with Node objects
   this.edges = {};            // object with Edge objects
+  this.zoomCenter = {};       // object with x and y elements used for determining the center of the zoom action
   this.scale = 1;             // defining the global scale variable in the constructor
   this.previousScale = this.scale;    // this is used to check if the zoom operation is zooming in or out
   // TODO: create a counter to keep track on the number of nodes having values
@@ -162,6 +166,10 @@ function Graph (container, data, options) {
   this.clusterToFit();
 }
 
+/**
+ * We add the functionality of the cluster object to the graph object
+ * @type {Cluster.prototype}
+ */
 Graph.prototype = Object.create(Cluster.prototype);
 
 Graph.prototype.clusterToFit = function() {
@@ -170,10 +178,21 @@ Graph.prototype.clusterToFit = function() {
 
   var maxLevels = 10;
   var level = 0;
+
+  this.simulationStep = 100;
+
+
   while (numberOfNodes >= maxNumberOfNodes && level < maxLevels) {
+    console.log(level)
     this.increaseClusterLevel();
     numberOfNodes = this.nodeIndices.length;
     level += 1;
+    this.simulationStep -= 20;
+  }
+
+  // after the clustering we reposition the nodes to avoid initial chaos
+  if (level > 1) {
+    this._repositionNodes();
   }
 };
 
@@ -387,6 +406,8 @@ Graph.prototype._create = function () {
   this.mouseTrap = mouseTrap;
   this.mouseTrap.bind("=", this.decreaseClusterLevel.bind(me));
   this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
+  this.mouseTrap.bind("s",this.singleStep.bind(me));
+
 
   // add the frame to the container element
   this.containerElement.appendChild(this.frame);
@@ -636,12 +657,17 @@ Graph.prototype._zoom = function(scale, pointer) {
   if (scale > 10) {
     scale = 10;
   }
-
+// + this.frame.canvas.clientHeight / 2
   var translation = this._getTranslation();
+
   var scaleFrac = scale / scaleOld;
   var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
   var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
 
+  this.zoomCenter = {"x" : pointer.x  - translation.x,
+                     "y" : pointer.y  - translation.y};
+
+ // this.zoomCenter = {"x" : pointer.x,"y" : pointer.y };
   this._setScale(scale);
   this._setTranslation(tx, ty);
   this._updateClusters();
@@ -1612,14 +1638,13 @@ Graph.prototype._calculateForces = function() {
   // the graph
   // Also, the forces are reset to zero in this loop by using _setForce instead
   // of _addForce
-  var gravity = 0.01,
-      gx = this.frame.canvas.clientWidth / 2,
-      gy = this.frame.canvas.clientHeight / 2;
+  var dynamicGravity = 100.0 - 1*this.simulationStep;
+  var gravity = (dynamicGravity < 0.05 ? 0.05 : dynamicGravity);
   for (id in nodes) {
     if (nodes.hasOwnProperty(id)) {
       var node = nodes[id];
-      dx = gx - node.x;
-      dy = gy - node.y;
+      dx = -node.x;
+      dy = -node.y;
       angle = Math.atan2(dy, dx);
       fx = Math.cos(angle) * gravity;
       fy = Math.sin(angle) * gravity;
@@ -1762,6 +1787,8 @@ Graph.prototype._calculateForces = function() {
    }
    }
 */
+
+  this.simulationStep += 1;
 };
 
 
@@ -1800,6 +1827,7 @@ Graph.prototype._discreteStepNodes = function() {
 /**
  * Start animating nodes and edges
  */
+
 Graph.prototype.start = function() {
   if (this.moving) {
     this._calculateForces();
@@ -1836,6 +1864,18 @@ Graph.prototype.start = function() {
     }
   }
   else {
+    this._redraw();
+  }
+};
+
+
+Graph.prototype.singleStep = function() {
+  if (this.moving) {
+    this._calculateForces();
+    this._discreteStepNodes();
+
+    var vmin = this.constants.minVelocity;
+    this.moving = this._isMoving(vmin);
     this._redraw();
   }
 };

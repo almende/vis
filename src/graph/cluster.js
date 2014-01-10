@@ -18,11 +18,9 @@ Cluster.prototype.increaseClusterLevel = function() {
 
   this._formClusters(true);
 
-  this._updateLabels();
-
   // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
   if (this.moving != isMovingBeforeClustering) {
-    this.start();
+    //this.start();
   }
 };
 
@@ -41,15 +39,13 @@ Cluster.prototype.decreaseClusterLevel = function() {
     }
   }
   this._updateNodeIndexList();
-  this._updateLabels();
+
+  this.clusterSession = (this.clusterSession == 0) ? 0 : this.clusterSession - 1;
 
   // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
   if (this.moving != isMovingBeforeClustering) {
     this.start();
   }
-
-  this.clusterSession = (this.clusterSession == 0) ? 0 : this.clusterSession - 1;
-
 };
 
 
@@ -129,6 +125,8 @@ Cluster.prototype._updateLabels = function() {
     if (this.nodes.hasOwnProperty(nodeID)) {
       var node = this.nodes[nodeID];
       node.label = String(node.remainingEdges).concat(":",node.remainingEdges_unapplied,":",String(node.clusterSize));
+//      node.label = String(Math.round(this.zoomCenter.x)).concat(",",String(Math.round(this.zoomCenter.y)),
+//                        "::",String(Math.round(node.x)),"x",String(Math.round(node.y)));
     }
   }
 };
@@ -214,7 +212,9 @@ Cluster.prototype._expandClusterNode = function(parentNode, recursive, forceExpa
             }
           }
           else {
-            this._expelChildFromParent(parentNode,containedNodeID,recursive,forceExpand);
+            if (this._parentNodeInActiveArea(parentNode)) {
+              this._expelChildFromParent(parentNode,containedNodeID,recursive,forceExpand);
+            }
           }
         }
       }
@@ -222,6 +222,18 @@ Cluster.prototype._expandClusterNode = function(parentNode, recursive, forceExpa
   }
 };
 
+
+Cluster.prototype._parentNodeInActiveArea = function(node) {
+  if (node.selected)
+    console.log(node.x,this.zoomCenter.x,node.y, this.zoomCenter.y)
+  if (Math.abs(node.x - this.zoomCenter.x) <= this.constants.clustering.activeAreaRadius &&
+      Math.abs(node.y - this.zoomCenter.y) <= this.constants.clustering.activeAreaRadius) {
+    return true;
+  }
+  else {
+    return false;
+  }
+};
 
 /**
  * This function will expel a child_node from a parent_node. This is to de-cluster the node. This function will remove
@@ -252,8 +264,8 @@ Cluster.prototype._expelChildFromParent = function(parentNode, containedNodeID, 
     parentNode.remainingEdges_unapplied = parentNode.remainingEdges;
 
     // place the child node near the parent, not at the exact same location to avoid chaos in the system
-    childNode.x = parentNode.x;
-    childNode.y = parentNode.y;
+    childNode.x = parentNode.x + this.constants.edges.length * 0.2 * (0.5 - Math.random()) * parentNode.clusterSize;
+    childNode.y = parentNode.y + this.constants.edges.length * 0.2 * (0.5 - Math.random()) * parentNode.clusterSize;
 
     // remove the clusterSession from the child node
     childNode.clusterSession = 0;
@@ -287,9 +299,8 @@ Cluster.prototype._expelChildFromParent = function(parentNode, containedNodeID, 
  * @param force_level_collapse    | Boolean
  */
 Cluster.prototype._formClusters = function(forceLevelCollapse) {
+  var minLength = this.constants.clustering.clusterLength/this.scale;
   var amountOfNodes = this.nodeIndices.length;
-
-  var min_length = this.constants.clustering.clusterLength/this.scale;
 
   var dx,dy,length,
     edges = this.edges;
@@ -301,8 +312,7 @@ Cluster.prototype._formClusters = function(forceLevelCollapse) {
       edgesIDarray.push(id);
     }
   }
-
-  // check if any edges are shorter than min_length and start the clustering
+  // check if any edges are shorter than minLength and start the clustering
   // the clustering favours the node with the larger mass
   for (var i = 0; i < edgesIDarray.length; i++) {
     var edgeID = edgesIDarray[i];
@@ -314,7 +324,7 @@ Cluster.prototype._formClusters = function(forceLevelCollapse) {
       length = Math.sqrt(dx * dx + dy * dy);
 
 
-      if (length < min_length || forceLevelCollapse == true) {
+      if (length < minLength || forceLevelCollapse == true) {
         // checking for clustering possibilities
 
         // first check which node is larger
@@ -349,7 +359,6 @@ Cluster.prototype._formClusters = function(forceLevelCollapse) {
   if (this.nodeIndices.length != amountOfNodes) { // this means a clustering operation has taken place
     this.clusterSession += 1;
   }
-  console.log(this.clusterSession)
 };
 
 
@@ -375,8 +384,15 @@ Cluster.prototype._addToCluster = function(parentNode, childNode, edge, forceLev
   childNode.clusterSession = this.clusterSession;
   parentNode.mass += this.constants.clustering.massTransferCoefficient * childNode.mass;
   parentNode.clusterSize += childNode.clusterSize;
-  parentNode.fontSize += this.constants.clustering.fontSizeMultiplier * childNode.clusterSize;
-  parentNode.formationScale = this.scale; // The latest child has been added on this scale
+  parentNode.fontSize += this.constants.clustering.fontSizeMultiplier * childNode.clusterSize
+
+  // giving the clusters a dynamic formationScale to ensure not all clusters open up when zoomed
+  if (forceLevelCollapse == true) {
+    parentNode.formationScale = this.scale * Math.pow(1.0/11.0,this.clusterSession);
+  }
+  else {
+    parentNode.formationScale = this.scale; // The latest child has been added on this scale
+  }
 
   // recalculate the size of the node on the next time the node is rendered
   parentNode.clearSizeCache();
@@ -405,4 +421,22 @@ Cluster.prototype._applyClusterLevel = function() {
     var node = this.nodes[this.nodeIndices[i]];
     node.remainingEdges = node.remainingEdges_unapplied;
   }
+};
+
+
+Cluster.prototype._repositionNodes = function() {
+  for (var i = 0; i < this.nodeIndices.length; i++) {
+    var node = this.nodes[this.nodeIndices[i]];
+    if (!node.isFixed()) {
+      // TODO: position new nodes in a smarter way!
+      var radius = this.constants.edges.length * (1 + 0.5*node.clusterSize);
+      var count = this.nodeIndices.length;
+      var angle = 2 * Math.PI * Math.random();
+      node.x = radius * Math.cos(angle);
+      node.y = radius * Math.sin(angle);
+    }
+  }
+
+
+
 };
