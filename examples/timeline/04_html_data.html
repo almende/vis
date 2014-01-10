@@ -52,6 +52,8 @@
 
     var item6 = 'item6<br><img src="img/comments-icon.png" style="width: 48px; height: 48px;">';
 
+    var item7 = 'item7<br><a href="http://visjs.org" target="_blank">click here</a>';
+
     // create data and a Timeline
     var container = document.getElementById('visualization');
     var items = [
@@ -60,7 +62,8 @@
         {id: 3, content: item3, start: '2013-04-18'},
         {id: 4, content: item4, start: '2013-04-16', end: '2013-04-19'},
         {id: 5, content: item5, start: '2013-04-25'},
-        {id: 6, content: item6, start: '2013-04-27'}
+        {id: 6, content: item6, start: '2013-04-27'},
+        {id: 7, content: item7, start: '2013-04-21'}
     ];
     var options = {};
     var timeline = new vis.Timeline(container, items, options);
