@@ -27,6 +27,8 @@ function Node(properties, imagelist, grouplist, constants) {
 
 
   this.edges = []; // all edges connected to this node
+  this.dynamicEdges = [];
+  this.reroutedEdges = {};
   this.group = constants.nodes.group;
 
   this.fontSize = constants.nodes.fontSize;
@@ -55,8 +57,7 @@ function Node(properties, imagelist, grouplist, constants) {
 
   // creating the variables for clustering
   this.resetCluster();
-  this.remainingEdges = 0;
-  this.remainingEdges_unapplied = 0;
+  this.dynamicEdgesLength = 0;
   this.clusterSession = 0;
 
   this.clusterSizeWidthFactor  = constants.clustering.clusterSizeWidthFactor;
@@ -92,8 +93,8 @@ Node.prototype.attachEdge = function(edge) {
   if (this.edges.indexOf(edge) == -1) {
     this.edges.push(edge);
   }
-  this.remainingEdges = this.edges.length;
-  this.remainingEdges_unapplied = this.remainingEdges;
+  this.dynamicEdges = this.edges;
+  this.dynamicEdgesLength = this.edges.length;
   this._updateMass();
 };
 
@@ -106,8 +107,8 @@ Node.prototype.detachEdge = function(edge) {
   if (index != -1) {
     this.edges.splice(index, 1);
   }
-  this.remainingEdges = this.edges.length;
-  this.remainingEdges_unapplied = this.remainingEdges;
+  this.dynamicEdges = this.edges;
+  this.dynamicEdgesLength = this.edges.length;
   this._updateMass();
 };
 

@@ -92,7 +92,6 @@ function Graph (container, data, options) {
   Cluster.call(this);
 
   var graph = this;
-  this.simulationStep = 100;
   this.nodeIndices = [];      // the node indices list is used to speed up the computation of the repulsion fields
   this.nodes = {};            // object with Node objects
   this.edges = {};            // object with Edge objects
@@ -136,7 +135,7 @@ function Graph (container, data, options) {
       me.start();
     }
   };
-
+   console.log("here")
   this.groups = new Groups(); // object with groups
   this.images = new Images(); // object with images
   this.images.setOnloadCallback(function () {
@@ -164,6 +163,15 @@ function Graph (container, data, options) {
 
   // cluster if the data set is big
   this.clusterToFit();
+
+  // updates the lables after clustering
+  this._updateLabels();
+
+  // find a stable position or start animating to a stable position
+  if (this.stabilize) {
+    this._doStabilize();
+  }
+  this.start();
 }
 
 /**
@@ -172,22 +180,25 @@ function Graph (container, data, options) {
  */
 Graph.prototype = Object.create(Cluster.prototype);
 
+/**
+ * This function clusters untill the maxNumberOfNodes has been reached
+ */
 Graph.prototype.clusterToFit = function() {
   var numberOfNodes = this.nodeIndices.length;
-  var maxNumberOfNodes = 100;
+  var maxNumberOfNodes = 100; // TODO: set in constants
 
   var maxLevels = 10;
   var level = 0;
 
-  this.simulationStep = 100;
-
-
   while (numberOfNodes >= maxNumberOfNodes && level < maxLevels) {
-    console.log(level)
-    this.increaseClusterLevel();
+    if (level % 2 == 0) {
+      this.increaseClusterLevel();
+    }
+    else {
+      this.aggregateHubs();
+    }
     numberOfNodes = this.nodeIndices.length;
     level += 1;
-    this.simulationStep -= 20;
   }
 
   // after the clustering we reposition the nodes to avoid initial chaos
@@ -257,13 +268,6 @@ Graph.prototype.setData = function(data) {
     this._setEdges(data && data.edges);
   }
   // updating the list of node indices
-
-
-  // find a stable position or start animating to a stable position
-  if (this.stabilize) {
-    this._doStabilize();
-  }
-  this.start();
 };
 
 /**
@@ -404,10 +408,10 @@ Graph.prototype._create = function () {
   this.hammer.on('mousemove', me._onMouseMoveTitle.bind(me) );
 
   this.mouseTrap = mouseTrap;
-  this.mouseTrap.bind("=", this.decreaseClusterLevel.bind(me));
+  this.mouseTrap.bind("=",this.decreaseClusterLevel.bind(me));
   this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
   this.mouseTrap.bind("s",this.singleStep.bind(me));
-
+  this.mouseTrap.bind("h",this._forceClustersByHub.bind(me));
 
   // add the frame to the container element
   this.containerElement.appendChild(this.frame);
@@ -664,8 +668,8 @@ Graph.prototype._zoom = function(scale, pointer) {
   var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
   var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
 
-  this.zoomCenter = {"x" : pointer.x  - translation.x,
-                     "y" : pointer.y  - translation.y};
+  this.zoomCenter = {"x" : this._canvasToX(pointer.x),
+                     "y" : this._canvasToY(pointer.y)};
 
  // this.zoomCenter = {"x" : pointer.x,"y" : pointer.y };
   this._setScale(scale);
@@ -1304,6 +1308,7 @@ Graph.prototype._setEdges = function(edges) {
 Graph.prototype._addEdges = function (ids) {
   var edges = this.edges,
       edgesData = this.edgesData;
+
   for (var i = 0, len = ids.length; i < len; i++) {
     var id = ids[i];
 
@@ -1312,7 +1317,7 @@ Graph.prototype._addEdges = function (ids) {
       oldEdge.disconnect();
     }
 
-    var data = edgesData.get(id);
+    var data = edgesData.get(id, {"showInternalIds" : true});
     edges[id] = new Edge(data, this, this.constants);
   }
 
@@ -1638,8 +1643,7 @@ Graph.prototype._calculateForces = function() {
   // the graph
   // Also, the forces are reset to zero in this loop by using _setForce instead
   // of _addForce
-  var dynamicGravity = 100.0 - 1*this.simulationStep;
-  var gravity = (dynamicGravity < 0.05 ? 0.05 : dynamicGravity);
+  var gravity = 0.05;
   for (id in nodes) {
     if (nodes.hasOwnProperty(id)) {
       var node = nodes[id];

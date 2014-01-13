@@ -35,6 +35,12 @@ function Edge (properties, graph, constants) {
 
   this.from = null;   // a node
   this.to = null;     // a node
+
+  // we use this to be able to reconnect the edge to a cluster if its node is put into a cluster
+  // by storing the original information we can revert to the original connection when the cluser is opened.
+  this.originalFromID = [];
+  this.originalToID = [];
+
   this.connected = false;
 
   // Added to support dashed lines
