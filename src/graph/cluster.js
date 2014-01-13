@@ -4,6 +4,7 @@
  */
 function Cluster() {
   this.clusterSession = 0;
+  this.hubThreshold = 5;
 }
 
 /**
@@ -371,11 +372,14 @@ Cluster.prototype._forceClustersByZoom = function() {
 };
 
 
+/**
+ * this functions starts clustering by hubs
+ * The minimum hub threshold is set globally
+ */
 Cluster.prototype.aggregateHubs = function() {
   var isMovingBeforeClustering = this.moving;
 
-  var hubThreshold = 4;
-  this._forceClustersByHub(hubThreshold);
+  this._forceClustersByHub();
 
   // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
   if (this.moving != isMovingBeforeClustering) {
@@ -384,23 +388,39 @@ Cluster.prototype.aggregateHubs = function() {
 };
 
 
+Cluster.prototype._getHubSize = function() {
+  var distribution = {};
+  for (var i = 0; i < this.nodeIndices.length; i++) {
+// TODO get the distribution
+  }
+};
+
 /**
  *
  * @param hubThreshold
  * @private
  */
-Cluster.prototype._forceClustersByHub = function(hubThreshold) {
-  for (var nodeID = 0; nodeID < this.nodeIndices.length; nodeID++) {
-    if (this.nodes.hasOwnProperty(this.nodeIndices[nodeID])) {
-      var hubNode = this.nodes[this.nodeIndices[nodeID]];
-      if (hubNode.dynamicEdges.length >= hubThreshold) {
+Cluster.prototype._forceClustersByHub = function() {
+  // we loop over all nodes in the list
+  for (var i = 0; i < this.nodeIndices.length; i++) {
+    // we check if it is still available since it can be used by the clustering in this loop
+    if (this.nodes.hasOwnProperty(this.nodeIndices[i])) {
+      var hubNode = this.nodes[this.nodeIndices[i]];
+
+      // we decide if the node is a hub
+      // TODO: check if dynamicEdgesLength is required
+      if (hubNode.dynamicEdges.length >= this.hubThreshold) {
+
+        // we create a list of edges because the dynamicEdges change over the course of this loop
         var edgesIDarray = []
         var amountOfInitialEdges = hubNode.dynamicEdges.length;
-        for (var i = 0; i < amountOfInitialEdges; i++) {
-          edgesIDarray.push(hubNode.dynamicEdges[i].id);
+        for (var j = 0; j < amountOfInitialEdges; j++) {
+          edgesIDarray.push(hubNode.dynamicEdges[j].id);
         }
-        for (var i = 0; i < amountOfInitialEdges; i++) {
-          var edge = this.edges[edgesIDarray[i]];
+
+        // we loop over all edges INITIALLY connected to this hub
+        for (var j = 0; j < amountOfInitialEdges; j++) {
+          var edge = this.edges[edgesIDarray[j]];
           var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
           this._addToCluster(hubNode,childNode,true);
         }
@@ -409,13 +429,8 @@ Cluster.prototype._forceClustersByHub = function(hubThreshold) {
     }
   }
   this._updateNodeIndexList();
-  this._updateDynamicEdges();
+  //this._updateDynamicEdges();
   this._updateLabels();
-
-  if (this.moving != isMovingBeforeClustering) {
-    this.start();
-  }
-
 };
 
 
@@ -433,9 +448,11 @@ Cluster.prototype._addToCluster = function(parentNode, childNode, forceLevelColl
   // join child node in the parent node
   parentNode.containedNodes[childNode.id] = childNode;
 
+  /*
   if (forceLevelCollapse == false) {
     parentNode.dynamicEdgesLength += childNode.dynamicEdges.length - 2;
   }
+  */
 
   for (var i = 0; i < childNode.dynamicEdges.length; i++) {
     var edge = childNode.dynamicEdges[i];
@@ -443,7 +460,6 @@ Cluster.prototype._addToCluster = function(parentNode, childNode, forceLevelColl
       this._addToContainedEdges(parentNode,childNode,edge);
     }
     else {
-      console.log('connecting edge to cluster');
       this._connectEdgeToCluster(parentNode,childNode,edge);
     }
   }
@@ -464,8 +480,9 @@ Cluster.prototype._addToCluster = function(parentNode, childNode, forceLevelColl
   }
   else {
     parentNode.formationScale = this.scale; // The latest child has been added on this scale
-    parentNode.dynamicEdgesLength = parentNode.dynamicEdges.length;
   }
+
+  parentNode.dynamicEdgesLength = parentNode.dynamicEdges.length;
 
   // recalculate the size of the node on the next time the node is rendered
   parentNode.clearSizeCache();

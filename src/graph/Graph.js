@@ -57,7 +57,7 @@ function Graph (container, data, options) {
     edges: {
       widthMin: 1,
       widthMax: 15,
-      width: 1,
+      width: 10,
       style: 'line',
       color: '#343434',
       fontColor: '#343434',
