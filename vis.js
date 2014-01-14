@@ -4633,7 +4633,7 @@ else {
 
 var mouseTrap;
 if (typeof window !== 'undefined') {
-  // load hammer.js only when running in a browser (where window is available)
+  // load mousetrap.js only when running in a browser (where window is available)
   mouseTrap = window['mouseTrap'] || require('mouseTrap');
 }
 else {
@@ -14962,6 +14962,8 @@ Cluster.prototype.increaseClusterLevel = function() {
   if (this.moving != isMovingBeforeClustering) {
     this.start();
   }
+
+  this._updateLabels();
 };
 
 /**
@@ -14975,7 +14977,7 @@ Cluster.prototype.decreaseClusterLevel = function() {
   for (var i = 0; i < this.nodeIndices.length; i++) {
     var node = this.nodes[this.nodeIndices[i]];
     if (node.clusterSize > 1) {
-      this._expandClusterNode(node,false,true);
+      this._expandClusterNode(node,true,true);
     }
   }
   this._updateNodeIndexList();
@@ -14988,6 +14990,7 @@ Cluster.prototype.decreaseClusterLevel = function() {
   }
 
   this._updateLabels();
+  console.log("clusterSession",this.clusterSession)
 };
 
 
@@ -15044,14 +15047,15 @@ Cluster.prototype._updateClusters = function() {
  */
 Cluster.prototype._updateLabels = function() {
   // update node labels
-  //this._updateClusterLabels();
- // this._updateNodeLabels();
+  this._updateClusterLabels();
+  this._updateNodeLabels();
 
    // Debug :
   for (var nodeID in this.nodes) {
     if (this.nodes.hasOwnProperty(nodeID)) {
       var node = this.nodes[nodeID];
-      node.label = String(node.dynamicEdges.length).concat(":",node.dynamicEdgesLength,":",String(node.clusterSize),":::",String(node.id));
+//      node.label = String(node.dynamicEdges.length).concat(":",node.dynamicEdgesLength,":",String(node.clusterSize),":::",String(node.id));
+      node.label = String(node.dynamicEdges.length).concat(":",String(node.clusterSize));
     }
   }
 
@@ -15150,8 +15154,8 @@ Cluster.prototype._expandClusterNode = function(parentNode, recursive, forceExpa
 
 
 Cluster.prototype._parentNodeInActiveArea = function(node) {
-  if (Math.abs(node.x - this.zoomCenter.x) <= this.constants.clustering.activeAreaRadius/this.scale &&
-      Math.abs(node.y - this.zoomCenter.y) <= this.constants.clustering.activeAreaRadius/this.scale) {
+  if (Math.abs(node.x - this.zoomCenter.x) <= this.constants.clustering.activeAreaBoxSize/this.scale &&
+      Math.abs(node.y - this.zoomCenter.y) <= this.constants.clustering.activeAreaBoxSize/this.scale) {
     return true;
   }
   else {
@@ -15282,10 +15286,10 @@ Cluster.prototype._formClustersByZoom = function() {
         // This will also have to be altered in the force calculation and rendering.
         // This method is non-destructive and does not require a second set of data.
         if (childNode.dynamicEdgesLength == 1) {
-          this._addToCluster(parentNode,childNode,edge,false);
+          this._addToCluster(parentNode,childNode,false);
         }
         else if (parentNode.dynamicEdgesLength == 1) {
-          this._addToCluster(childNode,parentNode,edge,false);
+          this._addToCluster(childNode,parentNode,false);
         }
       }
     }
@@ -15308,6 +15312,7 @@ Cluster.prototype._forceClustersByZoom = function() {
       this._addToCluster(parentNode,childNode,true);
     }
   }
+
   this._updateNodeIndexList();
   this._updateDynamicEdges();
 };
@@ -15319,22 +15324,92 @@ Cluster.prototype._forceClustersByZoom = function() {
  */
 Cluster.prototype.aggregateHubs = function() {
   var isMovingBeforeClustering = this.moving;
+  var amountOfNodes = this.nodeIndices.length;
 
+  this._getHubSize();
   this._forceClustersByHub();
 
   // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
   if (this.moving != isMovingBeforeClustering) {
     this.start();
   }
-};
 
-
-Cluster.prototype._getHubSize = function() {
-  var distribution = {};
-  for (var i = 0; i < this.nodeIndices.length; i++) {
-// TODO get the distribution
+  if (this.nodeIndices.length != amountOfNodes) { // this means a clustering operation has taken place
+    this.clusterSession += 1;
   }
 };
+
+/**
+ * We determine how many connections denote an important hub.
+ * We take the mean + 2*std as the important hub size. (Assuming a normal distribution of data, ~2.2%)
+ *
+ * @private
+ */
+Cluster.prototype._getHubSize = function() {
+  var average = 0;
+  var averageSquared = 0;
+  var hubCounter = 0;
+
+  for (var i = 0; i < this.nodeIndices.length; i++) {
+    var node = this.nodes[this.nodeIndices[i]];
+    average += node.dynamicEdgesLength;
+    averageSquared += Math.pow(node.dynamicEdgesLength,2);
+    hubCounter += 1;
+  }
+  average = average / hubCounter;
+  averageSquared = averageSquared / hubCounter;
+
+  var variance = averageSquared - Math.pow(average,2);
+
+  var standardDeviation = Math.sqrt(variance);
+
+  this.hubThreshold = Math.floor(average + 2*standardDeviation);
+
+  //console.log("average",average,"averageSQ",averageSquared,"var",variance,"std",standardDeviation);
+  //console.log("hubThreshold:",this.hubThreshold);
+};
+
+/**
+ *
+ * @param hubThresholdOverride
+ * @param EqualityOverride
+ * @private
+ */
+Cluster.prototype._forceClustersByHub = function(hubThresholdOverride,EqualityOverride) {
+  // we loop over all nodes in the list
+  for (var i = 0; i < this.nodeIndices.length; i++) {
+    // we check if it is still available since it can be used by the clustering in this loop
+    if (this.nodes.hasOwnProperty(this.nodeIndices[i])) {
+      var hubNode = this.nodes[this.nodeIndices[i]];
+
+      // we decide if the node is a hub
+      if (hubNode.dynamicEdgesLength >= this.hubThreshold) {
+        // we create a list of edges because the dynamicEdges change over the course of this loop
+        var edgesIDarray = []
+        var amountOfInitialEdges = hubNode.dynamicEdges.length;
+        for (var j = 0; j < amountOfInitialEdges; j++) {
+          edgesIDarray.push(hubNode.dynamicEdges[j].id);
+        }
+
+        // we loop over all edges INITIALLY connected to this hub
+        for (var j = 0; j < amountOfInitialEdges; j++) {
+          var edge = this.edges[edgesIDarray[j]];
+          var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
+
+          // we do not want hubs to merge with other hubs.
+          if (childNode.dynamicEdges.length < this.hubThreshold) {
+            this._addToCluster(hubNode,childNode,true);
+          }
+        }
+      }
+    }
+  }
+  this._updateNodeIndexList();
+  this._updateDynamicEdges();
+  this._updateLabels();
+};
+
+
 
 /**
  *
@@ -15349,9 +15424,7 @@ Cluster.prototype._forceClustersByHub = function() {
       var hubNode = this.nodes[this.nodeIndices[i]];
 
       // we decide if the node is a hub
-      // TODO: check if dynamicEdgesLength is required
-      if (hubNode.dynamicEdges.length >= this.hubThreshold) {
-
+      if (hubNode.dynamicEdgesLength >= this.hubThreshold) {
         // we create a list of edges because the dynamicEdges change over the course of this loop
         var edgesIDarray = []
         var amountOfInitialEdges = hubNode.dynamicEdges.length;
@@ -15363,14 +15436,18 @@ Cluster.prototype._forceClustersByHub = function() {
         for (var j = 0; j < amountOfInitialEdges; j++) {
           var edge = this.edges[edgesIDarray[j]];
           var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
-          this._addToCluster(hubNode,childNode,true);
+
+          // we do not want hubs to merge with other hubs.
+          if (childNode.dynamicEdges.length < this.hubThreshold) {
+            this._addToCluster(hubNode,childNode,true);
+          }
         }
-        break;
+        //break;
       }
     }
   }
   this._updateNodeIndexList();
-  //this._updateDynamicEdges();
+  this._updateDynamicEdges();
   this._updateLabels();
 };
 
@@ -15389,12 +15466,7 @@ Cluster.prototype._addToCluster = function(parentNode, childNode, forceLevelColl
   // join child node in the parent node
   parentNode.containedNodes[childNode.id] = childNode;
 
-  /*
-  if (forceLevelCollapse == false) {
-    parentNode.dynamicEdgesLength += childNode.dynamicEdges.length - 2;
-  }
-  */
-
+  // manage all the edges connected to the child and parent nodes
   for (var i = 0; i < childNode.dynamicEdges.length; i++) {
     var edge = childNode.dynamicEdges[i];
     if (edge.toId == parentNode.id || edge.fromId == parentNode.id) { // edge connected to parentNode
@@ -15417,12 +15489,12 @@ Cluster.prototype._addToCluster = function(parentNode, childNode, forceLevelColl
 
   // giving the clusters a dynamic formationScale to ensure not all clusters open up when zoomed
   if (forceLevelCollapse == true) {
-    parentNode.formationScale = this.scale * Math.pow(1.0/11.0,this.clusterSession);
+    parentNode.formationScale = 1.0 * Math.pow(1 - (1.0/11.0),this.clusterSession + parentNode.clusterSize);
   }
   else {
     parentNode.formationScale = this.scale; // The latest child has been added on this scale
   }
-
+  console.log("formationScale",parentNode.formationScale)
   parentNode.dynamicEdgesLength = parentNode.dynamicEdges.length;
 
   // recalculate the size of the node on the next time the node is rendered
@@ -15545,7 +15617,7 @@ Cluster.prototype._addToReroutedEdges = function(parentNode, childNode, edge) {
  * @private
  */
 Cluster.prototype._connectEdgeBackToChild = function(parentNode, childNode) {
-  if (parentNode.reroutedEdges[childNode.id] != undefined) {
+  if (parentNode.reroutedEdges.hasOwnProperty(childNode.id)) {
     for (var i = 0; i < parentNode.reroutedEdges[childNode.id].length; i++) {
       var edge = parentNode.reroutedEdges[childNode.id][i];
       if (edge.originalFromID[edge.originalFromID.length-1] == childNode.id) {
@@ -15658,7 +15730,7 @@ function Graph (container, data, options) {
     edges: {
       widthMin: 1,
       widthMax: 15,
-      width: 10,
+      width: 1,
       style: 'line',
       color: '#343434',
       fontColor: '#343434',
@@ -15672,8 +15744,9 @@ function Graph (container, data, options) {
         altLength: undefined
       }
     },
-    clustering: {
-      clusterLength: 30,            // threshold edge length for clustering
+      clustering: { // TODO: naming of variables
+      maxNumberOfNodes: 100,        // for automatic (initial) clustering //
+      clusterLength: 30,            // threshold edge length for clusteringl
       fontSizeMultiplier: 2,        // how much the cluster font size grows per node (in px)
       forceAmplification: 0.6,      // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
       distanceAmplification: 0.1,   // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
@@ -15681,7 +15754,7 @@ function Graph (container, data, options) {
       clusterSizeWidthFactor: 10,
       clusterSizeHeightFactor: 10,
       clusterSizeRadiusFactor: 10,
-      activeAreaRadius: 200,         // box area around the curser where clusters are popped open
+      activeAreaBoxSize: 100,         // box area around the curser where clusters are popped open
       massTransferCoefficient: 1    // parent.mass += massTransferCoefficient * child.mass
     },
     minForce: 0.05,
@@ -15693,6 +15766,7 @@ function Graph (container, data, options) {
   Cluster.call(this);
 
   var graph = this;
+  this.freezeSimulation = false;
   this.nodeIndices = [];      // the node indices list is used to speed up the computation of the repulsion fields
   this.nodes = {};            // object with Node objects
   this.edges = {};            // object with Edge objects
@@ -15736,7 +15810,7 @@ function Graph (container, data, options) {
       me.start();
     }
   };
-   console.log("here")
+
   this.groups = new Groups(); // object with groups
   this.images = new Images(); // object with images
   this.images.setOnloadCallback(function () {
@@ -15755,9 +15829,8 @@ function Graph (container, data, options) {
   // apply options
   this.setOptions(options);
 
-
   // draw data
-  this.setData(data);
+  this.setData(data); // TODO: option to render (start())
 
   // zoom so all data will fit on the screen
   this.zoomToFit();
@@ -15782,22 +15855,26 @@ function Graph (container, data, options) {
 Graph.prototype = Object.create(Cluster.prototype);
 
 /**
- * This function clusters untill the maxNumberOfNodes has been reached
+ * This function clusters until the maxNumberOfNodes has been reached
  */
 Graph.prototype.clusterToFit = function() {
   var numberOfNodes = this.nodeIndices.length;
-  var maxNumberOfNodes = 100; // TODO: set in constants
+  var maxNumberOfNodes = this.constants.clustering.maxNumberOfNodes;
 
   var maxLevels = 10;
   var level = 0;
 
+  // we first cluster the hubs, then we pull in the outliers, repeat
   while (numberOfNodes >= maxNumberOfNodes && level < maxLevels) {
-    if (level % 2 == 0) {
-      this.increaseClusterLevel();
-    }
-    else {
+    if (level % 5 == 0) {
+      console.log("Aggregating Hubs @ level: ",level,". Threshold:", this.hubThreshold,"clusterSession",this.clusterSession);
       this.aggregateHubs();
     }
+    else {
+      console.log("Pulling in Outliers @ level: ",level,"clusterSession",this.clusterSession);
+      this.increaseClusterLevel();
+    }
+    console.log("zoomscale for level: ",this.scale * Math.pow(1.0/11.0,this.clusterSession),". Current: ",this.scale);
     numberOfNodes = this.nodeIndices.length;
     level += 1;
   }
@@ -15808,6 +15885,9 @@ Graph.prototype.clusterToFit = function() {
   }
 };
 
+/**
+ * This function zooms out to fit all data on screen based on amount of nodes
+ */
 Graph.prototype.zoomToFit = function() {
   var numberOfNodes = this.nodeIndices.length;
   var zoomLevel = 105 / (numberOfNodes + 80); // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
@@ -15878,10 +15958,10 @@ Graph.prototype.setData = function(data) {
 Graph.prototype.setOptions = function (options) {
   if (options) {
     // retrieve parameter values
-    if (options.width != undefined)           {this.width = options.width;}
-    if (options.height != undefined)          {this.height = options.height;}
-    if (options.stabilize != undefined)       {this.stabilize = options.stabilize;}
-    if (options.selectable != undefined)      {this.selectable = options.selectable;}
+    if (options.width !== undefined)           {this.width = options.width;}
+    if (options.height !== undefined)          {this.height = options.height;}
+    if (options.stabilize !== undefined)       {this.stabilize = options.stabilize;}
+    if (options.selectable !== undefined)      {this.selectable = options.selectable;}
 
     // TODO: work out these options and document them
     if (options.edges) {
@@ -15891,8 +15971,8 @@ Graph.prototype.setOptions = function (options) {
         }
       }
 
-      if (options.edges.length != undefined &&
-          options.nodes && options.nodes.distance == undefined) {
+      if (options.edges.length !== undefined &&
+          options.nodes && options.nodes.distance === undefined) {
         this.constants.edges.length   = options.edges.length;
         this.constants.nodes.distance = options.edges.length * 1.25;
       }
@@ -15905,13 +15985,13 @@ Graph.prototype.setOptions = function (options) {
       // David Jordan
       // 2012-08-08
       if (options.edges.dash) {
-        if (options.edges.dash.length != undefined) {
+        if (options.edges.dash.length !== undefined) {
           this.constants.edges.dash.length = options.edges.dash.length;
         }
-        if (options.edges.dash.gap != undefined) {
+        if (options.edges.dash.gap !== undefined) {
           this.constants.edges.dash.gap = options.edges.dash.gap;
         }
-        if (options.edges.dash.altLength != undefined) {
+        if (options.edges.dash.altLength !== undefined) {
           this.constants.edges.dash.altLength = options.edges.dash.altLength;
         }
       }
@@ -16012,7 +16092,8 @@ Graph.prototype._create = function () {
   this.mouseTrap.bind("=",this.decreaseClusterLevel.bind(me));
   this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
   this.mouseTrap.bind("s",this.singleStep.bind(me));
-  this.mouseTrap.bind("h",this._forceClustersByHub.bind(me));
+  this.mouseTrap.bind("h",this.aggregateHubs.bind(me));
+  this.mouseTrap.bind("f",this.toggleFreeze.bind(me));
 
   // add the frame to the container element
   this.containerElement.appendChild(this.frame);
@@ -16278,6 +16359,7 @@ Graph.prototype._zoom = function(scale, pointer) {
   this._updateClusters();
   this._redraw();
 
+  console.log("current scale: ", this.scale)
   return scale;
 };
 
@@ -17244,18 +17326,20 @@ Graph.prototype._calculateForces = function() {
   // the graph
   // Also, the forces are reset to zero in this loop by using _setForce instead
   // of _addForce
-  var gravity = 0.05;
-  for (id in nodes) {
-    if (nodes.hasOwnProperty(id)) {
-      var node = nodes[id];
+
+
+  var gravity = 0.02;
+  for (var i = 0; i < this.nodeIndices.length; i++) {
+      var node = nodes[this.nodeIndices[i]];
+      /*
       dx = -node.x;
       dy = -node.y;
       angle = Math.atan2(dy, dx);
       fx = Math.cos(angle) * gravity;
       fy = Math.sin(angle) * gravity;
-
       node._setForce(fx, fy);
-    }
+      */
+      node._setForce(0, 0);
   }
 
   // repulsing forces between nodes
@@ -17302,7 +17386,7 @@ Graph.prototype._calculateForces = function() {
     }
   }
 
-  /* TODO: re-implement repulsion of edges
+  // TODO: re-implement repulsion of edges
    for (var n = 0; n < nodes.length; n++) {
    for (var l = 0; l < edges.length; l++) {
    var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
@@ -17326,7 +17410,7 @@ Graph.prototype._calculateForces = function() {
    edges[l].to._addForce(-fx/2,-fy/2);
    }
    }
-   */
+
 
   // forces caused by the edges, modelled as springs
   for (id in edges) {
@@ -17434,42 +17518,44 @@ Graph.prototype._discreteStepNodes = function() {
  */
 
 Graph.prototype.start = function() {
-  if (this.moving) {
-    this._calculateForces();
-    this._discreteStepNodes();
+  if (!this.freezeSimulation) {
+    if (this.moving) {
+      this._calculateForces();
+      this._discreteStepNodes();
 
-    var vmin = this.constants.minVelocity;
-    this.moving = this._isMoving(vmin);
-  }
-
-  if (this.moving) {
-    // start animation. only start timer if it is not already running
-    if (!this.timer) {
-      var graph = this;
-      this.timer = window.setTimeout(function () {
-        graph.timer = undefined;
-
-        // benchmark the calculation
-//        var start = window.performance.now();
-        graph.start();
-        // Optionally call this twice for faster convergence
-        // graph.start();
-//        var end = window.performance.now();
-//        var time = end - start;
-//        console.log('Simulation time: ' + time);
-
-
-//        start = window.performance.now();
-        graph._redraw();
-//        end = window.performance.now();
-//        time = end - start;
-//        console.log('Drawing time: ' + time);
-
-      }, this.refreshRate);
+      var vmin = this.constants.minVelocity;
+      this.moving = this._isMoving(vmin);
     }
-  }
-  else {
-    this._redraw();
+
+    if (this.moving) {
+      // start animation. only start timer if it is not already running
+      if (!this.timer) {
+        var graph = this;
+        this.timer = window.setTimeout(function () {
+          graph.timer = undefined;
+
+          // benchmark the calculation
+  //        var start = window.performance.now();
+          graph.start();
+          // Optionally call this twice for faster convergence
+          graph.start();
+  //        var end = window.performance.now();
+  //        var time = end - start;
+  //        console.log('Simulation time: ' + time);
+
+
+  //        start = window.performance.now();
+          graph._redraw();
+  //        end = window.performance.now();
+  //        time = end - start;
+  //        console.log('Drawing time: ' + time);
+
+        }, this.refreshRate);
+      }
+    }
+    else {
+      this._redraw();
+    }
   }
 };
 
@@ -17495,6 +17581,19 @@ Graph.prototype.stop = function () {
   }
 };
 
+/**
+ *  Freeze the animation
+ */
+Graph.prototype.toggleFreeze = function() {
+  if (this.freezeSimulation == false) {
+    this.freezeSimulation = true;
+  }
+  else {
+    this.freezeSimulation = false;
+    this.start();
+  }
+  console.log('freezeSimulation',this.freezeSimulation)
+}
 /**
  * vis.js module exports
  */

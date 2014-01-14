@@ -150,7 +150,7 @@ data.clear();
 data.add({content: 'Item 1'});
 data.add({content: 'Item 2'});
 
-assert.deepEqual((data.get()[0].id == undefined), true);
+assert.strictEqual(data.get()[0].id, undefined);
 assert.deepEqual((data.get({"showInternalIds": true})[0].id == undefined),false);
 assert.deepEqual(data.isInternalId(data.get({"showInternalIds": true})[0].id), true);
 assert.deepEqual((data.get()[0].id == undefined), true);
