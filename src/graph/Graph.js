@@ -603,7 +603,7 @@ Graph.prototype._onMouseWheel = function(event) {
     scale *= (1 + zoom);
 
     // calculate the pointer location
-    var gesture = Hammer.event.collectEventData(this, 'scroll', event);
+    var gesture = util.fakeGesture(this, event);
     var pointer = this._getPointer(gesture.center);
 
     // apply the new scale
@@ -624,7 +624,7 @@ Graph.prototype._onMouseWheel = function(event) {
  * @private
  */
 Graph.prototype._onMouseMoveTitle = function (event) {
-  var gesture = Hammer.event.collectEventData(this, 'mousemove', event);
+  var gesture = util.fakeGesture(this, event);
   var pointer = this._getPointer(gesture.center);
 
   // check if the previously selected node is still selected

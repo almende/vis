@@ -548,6 +548,21 @@ util.stopPropagation = function stopPropagation(event) {
   }
 };
 
+/**
+ * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
+ * @param {Element} element
+ * @param {Event} event
+ */
+util.fakeGesture = function fakeGesture (element, event) {
+  var eventType = null;
+
+  // for hammer.js 1.0.5
+  return Hammer.event.collectEventData(this, eventType, event);
+
+  // for hammer.js 1.0.6
+  //var touches = Hammer.event.getTouchList(event, eventType);
+  //return Hammer.event.collectEventData(this, eventType, touches, event);
+};
 
 /**
  * Cancels the event if it is cancelable, without stopping further propagation of the event.
