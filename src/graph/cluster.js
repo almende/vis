@@ -21,6 +21,8 @@ Cluster.prototype.increaseClusterLevel = function() {
   if (this.moving != isMovingBeforeClustering) {
     this.start();
   }
+
+  this._updateLabels();
 };
 
 /**
@@ -34,7 +36,7 @@ Cluster.prototype.decreaseClusterLevel = function() {
   for (var i = 0; i < this.nodeIndices.length; i++) {
     var node = this.nodes[this.nodeIndices[i]];
     if (node.clusterSize > 1) {
-      this._expandClusterNode(node,false,true);
+      this._expandClusterNode(node,true,true);
     }
   }
   this._updateNodeIndexList();
@@ -47,6 +49,7 @@ Cluster.prototype.decreaseClusterLevel = function() {
   }
 
   this._updateLabels();
+  console.log("clusterSession",this.clusterSession)
 };
 
 
@@ -103,14 +106,15 @@ Cluster.prototype._updateClusters = function() {
  */
 Cluster.prototype._updateLabels = function() {
   // update node labels
-  //this._updateClusterLabels();
- // this._updateNodeLabels();
+  this._updateClusterLabels();
+  this._updateNodeLabels();
 
    // Debug :
   for (var nodeID in this.nodes) {
     if (this.nodes.hasOwnProperty(nodeID)) {
       var node = this.nodes[nodeID];
-      node.label = String(node.dynamicEdges.length).concat(":",node.dynamicEdgesLength,":",String(node.clusterSize),":::",String(node.id));
+//      node.label = String(node.dynamicEdges.length).concat(":",node.dynamicEdgesLength,":",String(node.clusterSize),":::",String(node.id));
+      node.label = String(node.dynamicEdges.length).concat(":",String(node.clusterSize));
     }
   }
 
@@ -209,8 +213,8 @@ Cluster.prototype._expandClusterNode = function(parentNode, recursive, forceExpa
 
 
 Cluster.prototype._parentNodeInActiveArea = function(node) {
-  if (Math.abs(node.x - this.zoomCenter.x) <= this.constants.clustering.activeAreaRadius/this.scale &&
-      Math.abs(node.y - this.zoomCenter.y) <= this.constants.clustering.activeAreaRadius/this.scale) {
+  if (Math.abs(node.x - this.zoomCenter.x) <= this.constants.clustering.activeAreaBoxSize/this.scale &&
+      Math.abs(node.y - this.zoomCenter.y) <= this.constants.clustering.activeAreaBoxSize/this.scale) {
     return true;
   }
   else {
@@ -341,10 +345,10 @@ Cluster.prototype._formClustersByZoom = function() {
         // This will also have to be altered in the force calculation and rendering.
         // This method is non-destructive and does not require a second set of data.
         if (childNode.dynamicEdgesLength == 1) {
-          this._addToCluster(parentNode,childNode,edge,false);
+          this._addToCluster(parentNode,childNode,false);
         }
         else if (parentNode.dynamicEdgesLength == 1) {
-          this._addToCluster(childNode,parentNode,edge,false);
+          this._addToCluster(childNode,parentNode,false);
         }
       }
     }
@@ -367,6 +371,7 @@ Cluster.prototype._forceClustersByZoom = function() {
       this._addToCluster(parentNode,childNode,true);
     }
   }
+
   this._updateNodeIndexList();
   this._updateDynamicEdges();
 };
@@ -378,22 +383,92 @@ Cluster.prototype._forceClustersByZoom = function() {
  */
 Cluster.prototype.aggregateHubs = function() {
   var isMovingBeforeClustering = this.moving;
+  var amountOfNodes = this.nodeIndices.length;
 
+  this._getHubSize();
   this._forceClustersByHub();
 
   // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
   if (this.moving != isMovingBeforeClustering) {
     this.start();
   }
-};
 
-
-Cluster.prototype._getHubSize = function() {
-  var distribution = {};
-  for (var i = 0; i < this.nodeIndices.length; i++) {
-// TODO get the distribution
+  if (this.nodeIndices.length != amountOfNodes) { // this means a clustering operation has taken place
+    this.clusterSession += 1;
   }
 };
+
+/**
+ * We determine how many connections denote an important hub.
+ * We take the mean + 2*std as the important hub size. (Assuming a normal distribution of data, ~2.2%)
+ *
+ * @private
+ */
+Cluster.prototype._getHubSize = function() {
+  var average = 0;
+  var averageSquared = 0;
+  var hubCounter = 0;
+
+  for (var i = 0; i < this.nodeIndices.length; i++) {
+    var node = this.nodes[this.nodeIndices[i]];
+    average += node.dynamicEdgesLength;
+    averageSquared += Math.pow(node.dynamicEdgesLength,2);
+    hubCounter += 1;
+  }
+  average = average / hubCounter;
+  averageSquared = averageSquared / hubCounter;
+
+  var variance = averageSquared - Math.pow(average,2);
+
+  var standardDeviation = Math.sqrt(variance);
+
+  this.hubThreshold = Math.floor(average + 2*standardDeviation);
+
+  //console.log("average",average,"averageSQ",averageSquared,"var",variance,"std",standardDeviation);
+  //console.log("hubThreshold:",this.hubThreshold);
+};
+
+/**
+ *
+ * @param hubThresholdOverride
+ * @param EqualityOverride
+ * @private
+ */
+Cluster.prototype._forceClustersByHub = function(hubThresholdOverride,EqualityOverride) {
+  // we loop over all nodes in the list
+  for (var i = 0; i < this.nodeIndices.length; i++) {
+    // we check if it is still available since it can be used by the clustering in this loop
+    if (this.nodes.hasOwnProperty(this.nodeIndices[i])) {
+      var hubNode = this.nodes[this.nodeIndices[i]];
+
+      // we decide if the node is a hub
+      if (hubNode.dynamicEdgesLength >= this.hubThreshold) {
+        // we create a list of edges because the dynamicEdges change over the course of this loop
+        var edgesIDarray = []
+        var amountOfInitialEdges = hubNode.dynamicEdges.length;
+        for (var j = 0; j < amountOfInitialEdges; j++) {
+          edgesIDarray.push(hubNode.dynamicEdges[j].id);
+        }
+
+        // we loop over all edges INITIALLY connected to this hub
+        for (var j = 0; j < amountOfInitialEdges; j++) {
+          var edge = this.edges[edgesIDarray[j]];
+          var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
+
+          // we do not want hubs to merge with other hubs.
+          if (childNode.dynamicEdges.length < this.hubThreshold) {
+            this._addToCluster(hubNode,childNode,true);
+          }
+        }
+      }
+    }
+  }
+  this._updateNodeIndexList();
+  this._updateDynamicEdges();
+  this._updateLabels();
+};
+
+
 
 /**
  *
@@ -408,9 +483,7 @@ Cluster.prototype._forceClustersByHub = function() {
       var hubNode = this.nodes[this.nodeIndices[i]];
 
       // we decide if the node is a hub
-      // TODO: check if dynamicEdgesLength is required
-      if (hubNode.dynamicEdges.length >= this.hubThreshold) {
-
+      if (hubNode.dynamicEdgesLength >= this.hubThreshold) {
         // we create a list of edges because the dynamicEdges change over the course of this loop
         var edgesIDarray = []
         var amountOfInitialEdges = hubNode.dynamicEdges.length;
@@ -422,14 +495,18 @@ Cluster.prototype._forceClustersByHub = function() {
         for (var j = 0; j < amountOfInitialEdges; j++) {
           var edge = this.edges[edgesIDarray[j]];
           var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
-          this._addToCluster(hubNode,childNode,true);
+
+          // we do not want hubs to merge with other hubs.
+          if (childNode.dynamicEdges.length < this.hubThreshold) {
+            this._addToCluster(hubNode,childNode,true);
+          }
         }
-        break;
+        //break;
       }
     }
   }
   this._updateNodeIndexList();
-  //this._updateDynamicEdges();
+  this._updateDynamicEdges();
   this._updateLabels();
 };
 
@@ -448,12 +525,7 @@ Cluster.prototype._addToCluster = function(parentNode, childNode, forceLevelColl
   // join child node in the parent node
   parentNode.containedNodes[childNode.id] = childNode;
 
-  /*
-  if (forceLevelCollapse == false) {
-    parentNode.dynamicEdgesLength += childNode.dynamicEdges.length - 2;
-  }
-  */
-
+  // manage all the edges connected to the child and parent nodes
   for (var i = 0; i < childNode.dynamicEdges.length; i++) {
     var edge = childNode.dynamicEdges[i];
     if (edge.toId == parentNode.id || edge.fromId == parentNode.id) { // edge connected to parentNode
@@ -476,12 +548,12 @@ Cluster.prototype._addToCluster = function(parentNode, childNode, forceLevelColl
 
   // giving the clusters a dynamic formationScale to ensure not all clusters open up when zoomed
   if (forceLevelCollapse == true) {
-    parentNode.formationScale = this.scale * Math.pow(1.0/11.0,this.clusterSession);
+    parentNode.formationScale = 1.0 * Math.pow(1 - (1.0/11.0),this.clusterSession + parentNode.clusterSize);
   }
   else {
     parentNode.formationScale = this.scale; // The latest child has been added on this scale
   }
-
+  console.log("formationScale",parentNode.formationScale)
   parentNode.dynamicEdgesLength = parentNode.dynamicEdges.length;
 
   // recalculate the size of the node on the next time the node is rendered
@@ -604,7 +676,7 @@ Cluster.prototype._addToReroutedEdges = function(parentNode, childNode, edge) {
  * @private
  */
 Cluster.prototype._connectEdgeBackToChild = function(parentNode, childNode) {
-  if (parentNode.reroutedEdges[childNode.id] != undefined) {
+  if (parentNode.reroutedEdges.hasOwnProperty(childNode.id)) {
     for (var i = 0; i < parentNode.reroutedEdges[childNode.id].length; i++) {
       var edge = parentNode.reroutedEdges[childNode.id][i];
       if (edge.originalFromID[edge.originalFromID.length-1] == childNode.id) {

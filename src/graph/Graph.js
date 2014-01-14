@@ -57,7 +57,7 @@ function Graph (container, data, options) {
     edges: {
       widthMin: 1,
       widthMax: 15,
-      width: 10,
+      width: 1,
       style: 'line',
       color: '#343434',
       fontColor: '#343434',
@@ -71,8 +71,9 @@ function Graph (container, data, options) {
         altLength: undefined
       }
     },
-    clustering: {
-      clusterLength: 30,            // threshold edge length for clustering
+      clustering: { // TODO: naming of variables
+      maxNumberOfNodes: 100,        // for automatic (initial) clustering //
+      clusterLength: 30,            // threshold edge length for clusteringl
       fontSizeMultiplier: 2,        // how much the cluster font size grows per node (in px)
       forceAmplification: 0.6,      // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
       distanceAmplification: 0.1,   // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
@@ -80,7 +81,7 @@ function Graph (container, data, options) {
       clusterSizeWidthFactor: 10,
       clusterSizeHeightFactor: 10,
       clusterSizeRadiusFactor: 10,
-      activeAreaRadius: 200,         // box area around the curser where clusters are popped open
+      activeAreaBoxSize: 100,         // box area around the curser where clusters are popped open
       massTransferCoefficient: 1    // parent.mass += massTransferCoefficient * child.mass
     },
     minForce: 0.05,
@@ -92,6 +93,7 @@ function Graph (container, data, options) {
   Cluster.call(this);
 
   var graph = this;
+  this.freezeSimulation = false;
   this.nodeIndices = [];      // the node indices list is used to speed up the computation of the repulsion fields
   this.nodes = {};            // object with Node objects
   this.edges = {};            // object with Edge objects
@@ -135,7 +137,7 @@ function Graph (container, data, options) {
       me.start();
     }
   };
-   console.log("here")
+
   this.groups = new Groups(); // object with groups
   this.images = new Images(); // object with images
   this.images.setOnloadCallback(function () {
@@ -154,9 +156,8 @@ function Graph (container, data, options) {
   // apply options
   this.setOptions(options);
 
-
   // draw data
-  this.setData(data);
+  this.setData(data); // TODO: option to render (start())
 
   // zoom so all data will fit on the screen
   this.zoomToFit();
@@ -181,22 +182,26 @@ function Graph (container, data, options) {
 Graph.prototype = Object.create(Cluster.prototype);
 
 /**
- * This function clusters untill the maxNumberOfNodes has been reached
+ * This function clusters until the maxNumberOfNodes has been reached
  */
 Graph.prototype.clusterToFit = function() {
   var numberOfNodes = this.nodeIndices.length;
-  var maxNumberOfNodes = 100; // TODO: set in constants
+  var maxNumberOfNodes = this.constants.clustering.maxNumberOfNodes;
 
   var maxLevels = 10;
   var level = 0;
 
+  // we first cluster the hubs, then we pull in the outliers, repeat
   while (numberOfNodes >= maxNumberOfNodes && level < maxLevels) {
-    if (level % 2 == 0) {
-      this.increaseClusterLevel();
-    }
-    else {
+    if (level % 5 == 0) {
+      console.log("Aggregating Hubs @ level: ",level,". Threshold:", this.hubThreshold,"clusterSession",this.clusterSession);
       this.aggregateHubs();
     }
+    else {
+      console.log("Pulling in Outliers @ level: ",level,"clusterSession",this.clusterSession);
+      this.increaseClusterLevel();
+    }
+    console.log("zoomscale for level: ",this.scale * Math.pow(1.0/11.0,this.clusterSession),". Current: ",this.scale);
     numberOfNodes = this.nodeIndices.length;
     level += 1;
   }
@@ -207,6 +212,9 @@ Graph.prototype.clusterToFit = function() {
   }
 };
 
+/**
+ * This function zooms out to fit all data on screen based on amount of nodes
+ */
 Graph.prototype.zoomToFit = function() {
   var numberOfNodes = this.nodeIndices.length;
   var zoomLevel = 105 / (numberOfNodes + 80); // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
@@ -277,10 +285,10 @@ Graph.prototype.setData = function(data) {
 Graph.prototype.setOptions = function (options) {
   if (options) {
     // retrieve parameter values
-    if (options.width != undefined)           {this.width = options.width;}
-    if (options.height != undefined)          {this.height = options.height;}
-    if (options.stabilize != undefined)       {this.stabilize = options.stabilize;}
-    if (options.selectable != undefined)      {this.selectable = options.selectable;}
+    if (options.width !== undefined)           {this.width = options.width;}
+    if (options.height !== undefined)          {this.height = options.height;}
+    if (options.stabilize !== undefined)       {this.stabilize = options.stabilize;}
+    if (options.selectable !== undefined)      {this.selectable = options.selectable;}
 
     // TODO: work out these options and document them
     if (options.edges) {
@@ -290,8 +298,8 @@ Graph.prototype.setOptions = function (options) {
         }
       }
 
-      if (options.edges.length != undefined &&
-          options.nodes && options.nodes.distance == undefined) {
+      if (options.edges.length !== undefined &&
+          options.nodes && options.nodes.distance === undefined) {
         this.constants.edges.length   = options.edges.length;
         this.constants.nodes.distance = options.edges.length * 1.25;
       }
@@ -304,13 +312,13 @@ Graph.prototype.setOptions = function (options) {
       // David Jordan
       // 2012-08-08
       if (options.edges.dash) {
-        if (options.edges.dash.length != undefined) {
+        if (options.edges.dash.length !== undefined) {
           this.constants.edges.dash.length = options.edges.dash.length;
         }
-        if (options.edges.dash.gap != undefined) {
+        if (options.edges.dash.gap !== undefined) {
           this.constants.edges.dash.gap = options.edges.dash.gap;
         }
-        if (options.edges.dash.altLength != undefined) {
+        if (options.edges.dash.altLength !== undefined) {
           this.constants.edges.dash.altLength = options.edges.dash.altLength;
         }
       }
@@ -411,7 +419,8 @@ Graph.prototype._create = function () {
   this.mouseTrap.bind("=",this.decreaseClusterLevel.bind(me));
   this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
   this.mouseTrap.bind("s",this.singleStep.bind(me));
-  this.mouseTrap.bind("h",this._forceClustersByHub.bind(me));
+  this.mouseTrap.bind("h",this.aggregateHubs.bind(me));
+  this.mouseTrap.bind("f",this.toggleFreeze.bind(me));
 
   // add the frame to the container element
   this.containerElement.appendChild(this.frame);
@@ -677,6 +686,7 @@ Graph.prototype._zoom = function(scale, pointer) {
   this._updateClusters();
   this._redraw();
 
+  console.log("current scale: ", this.scale)
   return scale;
 };
 
@@ -1643,18 +1653,20 @@ Graph.prototype._calculateForces = function() {
   // the graph
   // Also, the forces are reset to zero in this loop by using _setForce instead
   // of _addForce
-  var gravity = 0.05;
-  for (id in nodes) {
-    if (nodes.hasOwnProperty(id)) {
-      var node = nodes[id];
+
+
+  var gravity = 0.02;
+  for (var i = 0; i < this.nodeIndices.length; i++) {
+      var node = nodes[this.nodeIndices[i]];
+      /*
       dx = -node.x;
       dy = -node.y;
       angle = Math.atan2(dy, dx);
       fx = Math.cos(angle) * gravity;
       fy = Math.sin(angle) * gravity;
-
       node._setForce(fx, fy);
-    }
+      */
+      node._setForce(0, 0);
   }
 
   // repulsing forces between nodes
@@ -1701,7 +1713,7 @@ Graph.prototype._calculateForces = function() {
     }
   }
 
-  /* TODO: re-implement repulsion of edges
+  // TODO: re-implement repulsion of edges
    for (var n = 0; n < nodes.length; n++) {
    for (var l = 0; l < edges.length; l++) {
    var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
@@ -1725,7 +1737,7 @@ Graph.prototype._calculateForces = function() {
    edges[l].to._addForce(-fx/2,-fy/2);
    }
    }
-   */
+
 
   // forces caused by the edges, modelled as springs
   for (id in edges) {
@@ -1833,42 +1845,44 @@ Graph.prototype._discreteStepNodes = function() {
  */
 
 Graph.prototype.start = function() {
-  if (this.moving) {
-    this._calculateForces();
-    this._discreteStepNodes();
+  if (!this.freezeSimulation) {
+    if (this.moving) {
+      this._calculateForces();
+      this._discreteStepNodes();
 
-    var vmin = this.constants.minVelocity;
-    this.moving = this._isMoving(vmin);
-  }
-
-  if (this.moving) {
-    // start animation. only start timer if it is not already running
-    if (!this.timer) {
-      var graph = this;
-      this.timer = window.setTimeout(function () {
-        graph.timer = undefined;
-
-        // benchmark the calculation
-//        var start = window.performance.now();
-        graph.start();
-        // Optionally call this twice for faster convergence
-        // graph.start();
-//        var end = window.performance.now();
-//        var time = end - start;
-//        console.log('Simulation time: ' + time);
-
-
-//        start = window.performance.now();
-        graph._redraw();
-//        end = window.performance.now();
-//        time = end - start;
-//        console.log('Drawing time: ' + time);
-
-      }, this.refreshRate);
+      var vmin = this.constants.minVelocity;
+      this.moving = this._isMoving(vmin);
     }
-  }
-  else {
-    this._redraw();
+
+    if (this.moving) {
+      // start animation. only start timer if it is not already running
+      if (!this.timer) {
+        var graph = this;
+        this.timer = window.setTimeout(function () {
+          graph.timer = undefined;
+
+          // benchmark the calculation
+  //        var start = window.performance.now();
+          graph.start();
+          // Optionally call this twice for faster convergence
+          graph.start();
+  //        var end = window.performance.now();
+  //        var time = end - start;
+  //        console.log('Simulation time: ' + time);
+
+
+  //        start = window.performance.now();
+          graph._redraw();
+  //        end = window.performance.now();
+  //        time = end - start;
+  //        console.log('Drawing time: ' + time);
+
+        }, this.refreshRate);
+      }
+    }
+    else {
+      this._redraw();
+    }
   }
 };
 
@@ -1893,3 +1907,17 @@ Graph.prototype.stop = function () {
     this.timer = undefined;
   }
 };
+
+/**
+ *  Freeze the animation
+ */
+Graph.prototype.toggleFreeze = function() {
+  if (this.freezeSimulation == false) {
+    this.freezeSimulation = true;
+  }
+  else {
+    this.freezeSimulation = false;
+    this.start();
+  }
+  console.log('freezeSimulation',this.freezeSimulation)
+}
