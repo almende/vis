@@ -87,8 +87,8 @@ of the project.
 <html>
 <head>
   <title>Timeline basic demo</title>
-  <script src="components/vis/dist/vis.js"></script>
-  <link href="components/vis/dist/vis.css" rel="stylesheet" type="text/css" />
+  <script src="vis/dist/vis.js"></script>
+  <link href="vis/dist/vis.css" rel="stylesheet" type="text/css" />
 
   <style type="text/css">
     body, html {
