@@ -1,12 +1,12 @@
 <html>
 
 <head>
-    <title>vis.js | timeline documentation</title>
+  <title>vis.js | timeline documentation</title>
 
-    <link href='css/prettify.css' type='text/css' rel='stylesheet'>
-    <link href='css/style.css' type='text/css' rel='stylesheet'>
+  <link href='css/prettify.css' type='text/css' rel='stylesheet'>
+  <link href='css/style.css' type='text/css' rel='stylesheet'>
 
-    <script type="text/javascript" src="lib/prettify/prettify.js"></script>
+  <script type="text/javascript" src="lib/prettify/prettify.js"></script>
 </head>
 
 <body onload="prettyPrint();">
@@ -17,65 +17,66 @@
 
 <h2 id="Contents">Contents</h2>
 <ul>
-    <li><a href="#Overview">Overview</a></li>
-    <li><a href="#Example">Example</a></li>
-    <li><a href="#Loading">Loading</a></li>
-    <li><a href="#Data_Format">Data Format</a>
-        <ul>
-            <li><a href="#items">Items</a></li>
-            <li><a href="#groups">Groups</a></li>
-        </ul>
-    </li>
-    <li><a href="#Configuration_Options">Configuration Options</a></li>
-    <li><a href="#Methods">Methods</a></li>
-    <li><a href="#Styles">Styles</a></li>
-    <li><a href="#Data_Policy">Data Policy</a></li>
+  <li><a href="#Overview">Overview</a></li>
+  <li><a href="#Example">Example</a></li>
+  <li><a href="#Loading">Loading</a></li>
+  <li><a href="#Data_Format">Data Format</a>
+    <ul>
+      <li><a href="#items">Items</a></li>
+      <li><a href="#groups">Groups</a></li>
+    </ul>
+  </li>
+  <li><a href="#Configuration_Options">Configuration Options</a></li>
+  <li><a href="#Methods">Methods</a></li>
+  <li><a href="#Styles">Styles</a></li>
+  <li><a href="#Data_Policy">Data Policy</a></li>
 </ul>
 
 <h2 id="Overview">Overview</h2>
 <p>
-    The Timeline is an interactive visualization chart to visualize data in time.
-    The data items can take place on a single date, or have a start and end date (a range).
-    You can freely move and zoom in the timeline by dragging and scrolling in the
-    Timeline. Items can be created, edited, and deleted in the timeline.
-    The time scale on the axis is adjusted automatically, and supports scales ranging
-    from milliseconds to years.
+  The Timeline is an interactive visualization chart to visualize data in time.
+  The data items can take place on a single date, or have a start and end date (a range).
+  You can freely move and zoom in the timeline by dragging and scrolling in the
+  Timeline. Items can be created, edited, and deleted in the timeline.
+  The time scale on the axis is adjusted automatically, and supports scales ranging
+  from milliseconds to years.
 </p>
 
 <h2 id="Example">Example</h2>
 <p>
-    The following code shows how to create a Timeline and provide it with data.
-    More examples can be found in the <a href="../examples">examples</a> directory.
+  The following code shows how to create a Timeline and provide it with data.
+  More examples can be found in the <a href="../examples">examples</a> directory.
 </p>
 
 <pre class="prettyprint lang-html">&lt;!DOCTYPE HTML&gt;
 &lt;html&gt;
 &lt;head&gt;
-    &lt;title&gt;Timeline | Basic demo&lt;/title&gt;
+  &lt;title&gt;Timeline | Basic demo&lt;/title&gt;
 
-    &lt;style type="text/css"&gt;
-        body, html {
-            font-family: sans-serif;
-        }
-    &lt;/style&gt;
+  &lt;style type="text/css"&gt;
+    body, html {
+      font-family: sans-serif;
+    }
+  &lt;/style&gt;
 
-    &lt;script src="../../vis.js"&gt;&lt;/script&gt;
+  &lt;script src="../../dist/vis.js"&gt;&lt;/script&gt;
+  &lt;link href="../../dist/vis.css" rel="stylesheet" type="text/css" /&gt;
 &lt;/head&gt;
 &lt;body&gt;
 &lt;div id="visualization"&gt;&lt;/div&gt;
 
 &lt;script type="text/javascript"&gt;
-    var container = document.getElementById('visualization');
-    var items = [
-        {id: 1, content: 'item 1', start: '2013-04-20'},
-        {id: 2, content: 'item 2', start: '2013-04-14'},
-        {id: 3, content: 'item 3', start: '2013-04-18'},
-        {id: 4, content: 'item 4', start: '2013-04-16', end: '2013-04-19'},
-        {id: 5, content: 'item 5', start: '2013-04-25'},
-        {id: 6, content: 'item 6', start: '2013-04-27'}
-    ];
-    var options = {};
-    var timeline = new vis.Timeline(container, items, options);
+  var container = document.getElementById('visualization');
+  var items = [
+    {id: 1, content: 'item 1', start: '2013-04-20'},
+    {id: 2, content: 'item 2', start: '2013-04-14'},
+    {id: 3, content: 'item 3', start: '2013-04-18'},
+    {id: 4, content: 'item 4', start: '2013-04-16', end: '2013-04-19'},
+    {id: 5, content: 'item 5', start: '2013-04-25'},
+    {id: 6, content: 'item 6', start: '2013-04-27'}
+  ];
+  var options = {};
+  var timeline = new vis.Timeline(container, items, options);
 &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
@@ -84,12 +85,14 @@
 
 <h2 id="Loading">Loading</h2>
 <p>
-    Install or download the <a href="http://visjs.org" target="_blank">vis.js</a> library.
-    in a subfolder of your project. Include the library script in the head of your html code:
+  Install or download the <a href="http://visjs.org" target="_blank">vis.js</a> library.
+  in a subfolder of your project. Include the libraries script and css files in the
+  head of your html code:
 </p>
 
 <pre class="prettyprint lang-html">
-&lt;script type="text/javascript" src="vis/vis.js"&gt;&lt;/script&gt;
+&lt;script src="vis/dist/vis.js"&gt;&lt;/script&gt;
+&lt;link href="vis/dist/vis.css" rel="stylesheet" type="text/css" /&gt;
 </pre>
 
 The constructor of the Timeline is <code>vis.Timeline</code>
@@ -98,197 +101,199 @@ The constructor of the Timeline is <code>vis.Timeline</code>
 
 The constructor accepts three parameters:
 <ul>
-    <li>
-        <code>container</code> is the DOM element in which to create the graph.
-    </li>
-    <li>
-        <code>items</code> is an Array containing items. The properties of an
-        item are described in section <a href="#Data_Format">Data Format</a>.
-    </li>
-    <li>
-        <code>options</code> is an optional Object containing a name-value map
-        with options. Options can also be set using the method
-        <code>setOptions</code>.
-    </li>
+  <li>
+    <code>container</code> is the DOM element in which to create the graph.
+  </li>
+  <li>
+    <code>items</code> is an Array containing items. The properties of an
+    item are described in section <a href="#Data_Format">Data Format</a>.
+  </li>
+  <li>
+    <code>options</code> is an optional Object containing a name-value map
+    with options. Options can also be set using the method
+    <code>setOptions</code>.
+  </li>
 </ul>
 
 <h2 id="Data_Format">Data Format</h2>
 
 <p>
-    The timeline can be provided with two types of data:
+  The timeline can be provided with two types of data:
 </p>
 <ul>
-    <li><a href="#items">Items</a> containing a set of items to be displayed in time.</li>
-    <li><a href="#groups">Groups</a> containing a set of groups used to group items
+  <li><a href="#items">Items</a> containing a set of items to be displayed in time.</li>
+  <li><a href="#groups">Groups</a> containing a set of groups used to group items
     together.</li>
 </ul>
 
 <h3 id="items">Items</h3>
 <p>
-    The Timeline uses regular Arrays and Objects as data format.
-    Data items can contain the properties <code>start</code>,
-    <code>end</code> (optional), <code>content</code>,
-    <code>group</code> (optional), and <code>className</code> (optional).
+  The Timeline uses regular Arrays and Objects as data format.
+  Data items can contain the properties <code>start</code>,
+  <code>end</code> (optional), <code>content</code>,
+  <code>group</code> (optional), and <code>className</code> (optional).
 </p>
 
 <p>
-    A table is constructed as:
+  A table is constructed as:
 </p>
 
 <pre class="prettyprint lang-js">
 var items = [
-    {
-        start: new Date(2010, 7, 15),
-        end: new Date(2010, 8, 2),  // end is optional
-        content: 'Trajectory A'
-        // Optional: fields 'id', 'type', 'group', 'className'
-    }
-    // more items...
+  {
+    start: new Date(2010, 7, 15),
+    end: new Date(2010, 8, 2),  // end is optional
+    content: 'Trajectory A'
+    // Optional: fields 'id', 'type', 'group', 'className'
+  }
+  // more items...
 ]);
 </pre>
 
 <p>
-    The item properties are defined as:
+  The item properties are defined as:
 </p>
 
 <table>
-    <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Required</th>
-        <th>Description</th>
-    </tr>
-    <tr>
-        <td>id</td>
-        <td>String | Number</td>
-        <td>no</td>
-        <td>An id for the item. Using an id is not required but highly
-            recommended. An id is needed when dynamically adding, updating,
-            and removing items in a DataSet.</td>
-    </tr>
-    <tr>
-        <td>start</td>
-        <td>Date</td>
-        <td>yes</td>
-        <td>The start date of the item, for example <code>new Date(2010,09,23)</code>.</td>
-    </tr>
-    <tr>
-        <td>end</td>
-        <td>Date</td>
-        <td>no</td>
-        <td>The end date of the item. The end date is optional, and can be left <code>null</code>.
-            If end date is provided, the item is displayed as a range.
-            If not, the item is displayed as a box.</td>
-    </tr>
-    <tr>
-        <td>content</td>
-        <td>String</td>
-        <td>yes</td>
-        <td>The contents of the item. This can be plain text or html code.</td>
-    </tr>
-    <tr>
-        <td>type</td>
-        <td>String</td>
-        <td>'box'</td>
-        <td>The type of the item. Can be 'box' (default), 'range', or 'point'.</td>
-    </tr>
-    <tr>
-        <td>group</td>
-        <td>any type</td>
-        <td>no</td>
-        <td>This field is optional. When the group column is provided,
-            all items with the same group are placed on one line.
-            A vertical axis is displayed showing the groups.
-            Grouping items can be useful for example when showing availability of multiple
-            people, rooms, or other resources next to each other.<br>
-        </td>
-    </tr>
-    <tr>
-        <td>className</td>
-        <td>String</td>
-        <td>no</td>
-        <td>This field is optional. A className can be used to give items
-            an individual css style. For example, when an item has className
-            'red', one can define a css style
-            <code>
-                .red {
-                background-color: red;
-                border-color: dark-red;
-                }
-            </code>.
-            More details on how to style items can be found in the section
-            <a href="#Styles">Styles</a>.
-        </td>
-    </tr>
+  <tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Required</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>id</td>
+    <td>String | Number</td>
+    <td>no</td>
+    <td>An id for the item. Using an id is not required but highly
+      recommended. An id is needed when dynamically adding, updating,
+      and removing items in a DataSet.</td>
+  </tr>
+  <tr>
+    <td>start</td>
+    <td>Date</td>
+    <td>yes</td>
+    <td>The start date of the item, for example <code>new Date(2010,09,23)</code>.</td>
+  </tr>
+  <tr>
+    <td>end</td>
+    <td>Date</td>
+    <td>no</td>
+    <td>The end date of the item. The end date is optional, and can be left <code>null</code>.
+      If end date is provided, the item is displayed as a range.
+      If not, the item is displayed as a box.</td>
+  </tr>
+  <tr>
+    <td>content</td>
+    <td>String</td>
+    <td>yes</td>
+    <td>The contents of the item. This can be plain text or html code.</td>
+  </tr>
+  <tr>
+    <td>type</td>
+    <td>String</td>
+    <td>'box'</td>
+    <td>The type of the item. Can be 'box' (default), 'range', or 'point'.
+      <!-- TODO: describe rangeoverflow -->
+    </td>
+  </tr>
+  <tr>
+    <td>group</td>
+    <td>any type</td>
+    <td>no</td>
+    <td>This field is optional. When the group column is provided,
+      all items with the same group are placed on one line.
+      A vertical axis is displayed showing the groups.
+      Grouping items can be useful for example when showing availability of multiple
+      people, rooms, or other resources next to each other.<br>
+    </td>
+  </tr>
+  <tr>
+    <td>className</td>
+    <td>String</td>
+    <td>no</td>
+    <td>This field is optional. A className can be used to give items
+      an individual css style. For example, when an item has className
+      'red', one can define a css style
+      <code>
+        .red {
+        background-color: red;
+        border-color: dark-red;
+        }
+      </code>.
+      More details on how to style items can be found in the section
+      <a href="#Styles">Styles</a>.
+    </td>
+  </tr>
 </table>
 
 <h3 id="groups">Groups</h3>
 <p>
-    Like the items, groups are regular JavaScript Arrays and Objects.
-    Using groups, items can be grouped together.
-    Items are filtered per group, and displayed as
+  Like the items, groups are regular JavaScript Arrays and Objects.
+  Using groups, items can be grouped together.
+  Items are filtered per group, and displayed as
 
-    Group items can contain the properties <code>id</code>,
-    <code>content</code>, and <code>className</code> (optional).
+  Group items can contain the properties <code>id</code>,
+  <code>content</code>, and <code>className</code> (optional).
 </p>
 <p>
-    Groups can be applied to a timeline using the method <code>setGroups</code>.
-    A table with groups can be created like:
+  Groups can be applied to a timeline using the method <code>setGroups</code>.
+  A table with groups can be created like:
 </p>
 
 <pre class="prettyprint lang-js">
 var groups = [
-    {
-        id: 1,
-        content: 'Group 1'
-        // Optional: a field 'className'
-    }
-    // more groups...
+  {
+    id: 1,
+    content: 'Group 1'
+    // Optional: a field 'className'
+  }
+  // more groups...
 ]);
 </pre>
 
 
 <p>
-    Groups can have the following properties:
+  Groups can have the following properties:
 </p>
 
 <table>
-    <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Required</th>
-        <th>Description</th>
-    </tr>
-    <tr>
-        <td>id</td>
-        <td>String | Number</td>
-        <td>yes</td>
-        <td>An id for the group. The group will display all items having a
-            property <code>group</code> which matches the <code>id</code>
-            of the group.</td>
-    </tr>
-    <tr>
-        <td>content</td>
-        <td>String</td>
-        <td>yes</td>
-        <td>The contents of the group. This can be plain text or html code.</td>
-    </tr>
-    <tr>
-        <td>className</td>
-        <td>String</td>
-        <td>no</td>
-        <td>This field is optional. A className can be used to give groups
-            an individual css style. For example, when a group has className
-            'red', one can define a css style
-            <code>
-                .red {
-                    color: red;
-                }
-            </code>.
-            More details on how to style groups can be found in the section
-            <a href="#Styles">Styles</a>.
-        </td>
-    </tr>
+  <tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Required</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>id</td>
+    <td>String | Number</td>
+    <td>yes</td>
+    <td>An id for the group. The group will display all items having a
+      property <code>group</code> which matches the <code>id</code>
+      of the group.</td>
+  </tr>
+  <tr>
+    <td>content</td>
+    <td>String</td>
+    <td>yes</td>
+    <td>The contents of the group. This can be plain text or html code.</td>
+  </tr>
+  <tr>
+    <td>className</td>
+    <td>String</td>
+    <td>no</td>
+    <td>This field is optional. A className can be used to give groups
+      an individual css style. For example, when a group has className
+      'red', one can define a css style
+      <code>
+        .red {
+        color: red;
+        }
+      </code>.
+      More details on how to style groups can be found in the section
+      <a href="#Styles">Styles</a>.
+    </td>
+  </tr>
 </table>
 
 
@@ -296,269 +301,309 @@ var groups = [
 <h2 id="Configuration_Options">Configuration Options</h2>
 
 <p>
-    Options can be used to customize the timeline.
-    Options are defined as a JSON object. All options are optional.
+  Options can be used to customize the timeline.
+  Options are defined as a JSON object. All options are optional.
 </p>
 
 <pre class="prettyprint lang-js">
 var options = {
-    width: '100%',
-    height: '30px'
+  width: '100%',
+  height: '30px'
 };
 </pre>
 
 <p>
-    The following options are available.
+  The following options are available.
 </p>
 
 <table>
-    <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Default</th>
-        <th>Description</th>
-    </tr>
+<tr>
+  <th>Name</th>
+  <th>Type</th>
+  <th>Default</th>
+  <th>Description</th>
+</tr>
 
-    <tr>
-        <td>align</td>
-        <td>String</td>
-        <td>"center"</td>
-        <td>Alignment of items with type 'box'. Available values are
-            'center' (default), 'left', or 'right').</td>
-    </tr>
+<tr>
+  <td>align</td>
+  <td>String</td>
+  <td>"center"</td>
+  <td>Alignment of items with type 'box'. Available values are
+    'center' (default), 'left', or 'right').</td>
+</tr>
 
-    <tr>
-        <td>autoResize</td>
-        <td>boolean</td>
-        <td>false</td>
-        <td>If true, the Timeline will automatically detect when its
-            container is resized, and redraw itself accordingly.</td>
-    </tr>
+<tr>
+  <td>autoResize</td>
+  <td>boolean</td>
+  <td>false</td>
+  <td>If true, the Timeline will automatically detect when its
+    container is resized, and redraw itself accordingly.</td>
+</tr>
 
-    <tr>
-        <td>end</td>
-        <td>Date</td>
-        <td>none</td>
-        <td>The initial end date for the axis of the timeline.
-            If not provided, the latest date present in the items set is taken as
-            end date.</td>
-    </tr>
+<tr>
+  <td>end</td>
+  <td>Date</td>
+  <td>none</td>
+  <td>The initial end date for the axis of the timeline.
+    If not provided, the latest date present in the items set is taken as
+    end date.</td>
+</tr>
 
-    <tr>
-        <td>height</td>
-        <td>String</td>
-        <td>none</td>
-        <td>The height of the timeline in pixels or as a percentage.
-            When height is undefined or null, the height of the timeline is automatically
-            adjusted to fit the contents.
-            It is possible to set a maximum height using option <code>maxHeight</code>
-            to prevent the timeline from getting too high in case of automatically
-            calculated height.
-        </td>
-    </tr>
+<tr>
+  <td>groupOrder</td>
+  <td>String | Function</td>
+  <td>none</td>
+  <td>Order the groups by a field name or custom sort function.
+    By default, groups are not ordered.
+  </td>
+</tr>
 
-    <tr>
-        <td>margin.axis</td>
-        <td>Number</td>
-        <td>20</td>
-        <td>The minimal margin in pixels between items and the time axis.</td>
-    </tr>
+<tr>
+  <td>height</td>
+  <td>String</td>
+  <td>none</td>
+  <td>The height of the timeline in pixels or as a percentage.
+    When height is undefined or null, the height of the timeline is automatically
+    adjusted to fit the contents.
+    It is possible to set a maximum height using option <code>maxHeight</code>
+    to prevent the timeline from getting too high in case of automatically
+    calculated height.
+  </td>
+</tr>
 
-    <tr>
-        <td>margin.item</td>
-        <td>Number</td>
-        <td>10</td>
-        <td>The minimal margin in pixels between items.</td>
-    </tr>
+<tr>
+  <td>margin.axis</td>
+  <td>Number</td>
+  <td>20</td>
+  <td>The minimal margin in pixels between items and the time axis.</td>
+</tr>
 
-    <tr>
-        <td>max</td>
-        <td>Date</td>
-        <td>none</td>
-        <td>Set a maximum Date for the visible range.
-            It will not be possible to move beyond this maximum.
-        </td>
-    </tr>
+<tr>
+  <td>margin.item</td>
+  <td>Number</td>
+  <td>10</td>
+  <td>The minimal margin in pixels between items.</td>
+</tr>
 
-    <tr>
-        <td>maxHeight</td>
-        <td>Number</td>
-        <td>none</td>
-        <td>Specifies a maximum height for the Timeline in pixels.
-        </td>
-    </tr>
+<tr>
+  <td>max</td>
+  <td>Date</td>
+  <td>none</td>
+  <td>Set a maximum Date for the visible range.
+    It will not be possible to move beyond this maximum.
+  </td>
+</tr>
 
-    <tr>
-        <td>min</td>
-        <td>Date</td>
-        <td>none</td>
-        <td>Set a minimum Date for the visible range.
-            It will not be possible to move beyond this minimum.
-        </td>
-    </tr>
+<tr>
+  <td>maxHeight</td>
+  <td>Number</td>
+  <td>none</td>
+  <td>Specifies a maximum height for the Timeline in pixels.
+  </td>
+</tr>
 
-    <tr>
-        <td>order</td>
-        <td>function</td>
-        <td>none</td>
-        <td>Provide a custom sort function to order the items. The order of the
-            items is determining the way they are stacked. The function
-            order is called with two parameters, both of type
-            `vis.components.items.Item`.
-        </td>
-    </tr>
+<tr>
+  <td>min</td>
+  <td>Date</td>
+  <td>none</td>
+  <td>Set a minimum Date for the visible range.
+    It will not be possible to move beyond this minimum.
+  </td>
+</tr>
 
-    <tr>
-        <td>orientation</td>
-        <td>String</td>
-        <td>'bottom'</td>
-        <td>Orientation of the timeline: 'top' or 'bottom' (default).
-            If orientation is 'bottom', the time axis is drawn at the bottom,
-            and if 'top', the axis is drawn on top.</td>
-    </tr>
+<tr>
+  <td>order</td>
+  <td>Function</td>
+  <td>none</td>
+  <td>Provide a custom sort function to order the items. The order of the
+    items is determining the way they are stacked. The function
+    order is called with two parameters, both of type
+    `vis.components.items.Item`.
+  </td>
+</tr>
 
-    <tr>
-        <td>padding</td>
-        <td>Number</td>
-        <td>5</td>
-        <td>The padding of items, needed to correctly calculate the size
-            of item ranges. Must correspond with the css of item ranges.</td>
-    </tr>
+<tr>
+  <td>orientation</td>
+  <td>String</td>
+  <td>'bottom'</td>
+  <td>Orientation of the timeline: 'top' or 'bottom' (default).
+    If orientation is 'bottom', the time axis is drawn at the bottom,
+    and if 'top', the axis is drawn on top.</td>
+</tr>
 
-    <tr>
-        <td>showMajorLabels</td>
-        <td>boolean</td>
-        <td>true</td>
-        <td>By default, the timeline shows both minor and major date labels on the
-            time axis.
-            For example the minor labels show minutes and the major labels show hours.
-            When <code>showMajorLabels</code> is <code>false</code>, no major labels
-            are shown.</td>
-    </tr>
+<tr>
+  <td>padding</td>
+  <td>Number</td>
+  <td>5</td>
+  <td>The padding of items, needed to correctly calculate the size
+    of item ranges. Must correspond with the css of item ranges.</td>
+</tr>
 
-    <tr>
-        <td>showMinorLabels</td>
-        <td>boolean</td>
-        <td>true</td>
-        <td>By default, the timeline shows both minor and major date labels on the
-            time axis.
-            For example the minor labels show minutes and the major labels show hours.
-            When <code>showMinorLabels</code> is <code>false</code>, no minor labels
-            are shown. When both <code>showMajorLabels</code> and
-            <code>showMinorLabels</code> are false, no horizontal axis will be
-            visible.</td>
-    </tr>
+<tr>
+  <td>showCurrentTime</td>
+  <td>boolean</td>
+  <td>false</td>
+  <td>Show a vertical bar at the current time.</td>
+</tr>
 
-    <tr>
-        <td>start</td>
-        <td>Date</td>
-        <td>none</td>
-        <td>The initial start date for the axis of the timeline.
-            If not provided, the earliest date present in the events is taken as start date.</td>
-    </tr>
+<tr>
+  <td>showCustomTime</td>
+  <td>boolean</td>
+  <td>false</td>
+  <td>Show a vertical bar displaying a custom time. This line can be dragged by the user. The custom time can be utilized to show a state in the past or in the future.
+    <!-- TODO: more docs on showCustomTime
+    When the custom time bar is dragged by the user, an event is triggered, on which the contents of the timeline can be changed in to the state at that moment in time.--></td>
+</tr>
 
-    <tr>
-        <td>type</td>
-        <td>String</td>
-        <td>'box'</td>
-        <td>Specifies the type for the timeline items. Choose from 'dot' or 'point'.
-            Note that individual items can override this global type.
-        </td>
-    </tr>
+<tr>
+<tr>
+  <td>showMajorLabels</td>
+  <td>boolean</td>
+  <td>true</td>
+  <td>By default, the timeline shows both minor and major date labels on the
+    time axis.
+    For example the minor labels show minutes and the major labels show hours.
+    When <code>showMajorLabels</code> is <code>false</code>, no major labels
+    are shown.</td>
+</tr>
 
-    <tr>
-        <td>width</td>
-        <td>String</td>
-        <td>'100%'</td>
-        <td>The width of the timeline in pixels or as a percentage.</td>
-    </tr>
+<tr>
+  <td>showMinorLabels</td>
+  <td>boolean</td>
+  <td>true</td>
+  <td>By default, the timeline shows both minor and major date labels on the
+    time axis.
+    For example the minor labels show minutes and the major labels show hours.
+    When <code>showMinorLabels</code> is <code>false</code>, no minor labels
+    are shown. When both <code>showMajorLabels</code> and
+    <code>showMinorLabels</code> are false, no horizontal axis will be
+    visible.</td>
+</tr>
 
-    <tr>
-        <td>zoomMax</td>
-        <td>Number</td>
-        <td>315360000000000</td>
-        <td>Set a maximum zoom interval for the visible range in milliseconds.
-            It will not be possible to zoom out further than this maximum.
-            Default value equals about 10000 years.
-        </td>
-    </tr>
+<tr>
+  <td>start</td>
+  <td>Date</td>
+  <td>none</td>
+  <td>The initial start date for the axis of the timeline.
+    If not provided, the earliest date present in the events is taken as start date.</td>
+</tr>
 
-    <tr>
-        <td>zoomMin</td>
-        <td>Number</td>
-        <td>10</td>
-        <td>Set a minimum zoom interval for the visible range in milliseconds.
-            It will not be possible to zoom in further than this minimum.
-        </td>
-    </tr>
+<tr>
+  <td>type</td>
+  <td>String</td>
+  <td>'box'</td>
+  <td>Specifies the type for the timeline items. Choose from 'dot' or 'point'.
+    Note that individual items can override this global type.
+  </td>
+</tr>
+
+<tr>
+  <td>width</td>
+  <td>String</td>
+  <td>'100%'</td>
+  <td>The width of the timeline in pixels or as a percentage.</td>
+</tr>
+
+<tr>
+  <td>zoomMax</td>
+  <td>Number</td>
+  <td>315360000000000</td>
+  <td>Set a maximum zoom interval for the visible range in milliseconds.
+    It will not be possible to zoom out further than this maximum.
+    Default value equals about 10000 years.
+  </td>
+</tr>
+
+<tr>
+  <td>zoomMin</td>
+  <td>Number</td>
+  <td>10</td>
+  <td>Set a minimum zoom interval for the visible range in milliseconds.
+    It will not be possible to zoom in further than this minimum.
+  </td>
+</tr>
 
 
 </table>
 
 <h2 id="Methods">Methods</h2>
 <p>
-    The Timeline supports the following methods.
+  The Timeline supports the following methods.
 </p>
 
 <table>
-    <tr>
-        <th>Method</th>
-        <th>Return Type</th>
-        <th>Description</th>
-    </tr>
-    <tr>
-        <td>setGroups(groups)</td>
-        <td>none</td>
-        <td>Set a data set with groups for the Timeline.
-            <code>groups</code> can be an Array with Objects,
-            a DataSet, or a DataView. For each of the groups, the items of the
-            timeline are filtered on the property <code>group</code>, which
-            must correspond with the id of the group.
-        </td>
-    </tr>
-    <tr>
-        <td>setItems(items)</td>
-        <td>none</td>
-        <td>Set a data set with items for the Timeline.
-            <code>items</code> can be an Array with Objects,
-            a DataSet, or a DataView.
-        </td>
-    </tr>
+  <tr>
+    <th>Method</th>
+    <th>Return Type</th>
+    <th>Description</th>
+  </tr>
 
-    <tr>
-        <td>setOptions(options)</td>
-        <td>none</td>
-        <td>Set or update options. It is possible to change any option
-            of the timeline at any time. You can for example switch orientation
-            on the fly.
-        </td>
-    </tr>
+  <tr>
+    <td>getCustomTime()</td>
+    <td>Date</td>
+    <td>Retrieve the custom time. Only applicable when the option <code>showCustomTime</code> is true.
+    </td>
+  </tr>
+  <tr>
+    <td>setCustomTime(time)</td>
+    <td>none</td>
+    <td>Adjust the custom time bar. Only applicable when the option <code>showCustomTime</code> is true. <code>time</code> is a Date object.
+    </td>
+  </tr>
+  <tr>
+    <td>setGroups(groups)</td>
+    <td>none</td>
+    <td>Set a data set with groups for the Timeline.
+      <code>groups</code> can be an Array with Objects,
+      a DataSet, or a DataView. For each of the groups, the items of the
+      timeline are filtered on the property <code>group</code>, which
+      must correspond with the id of the group.
+    </td>
+  </tr>
+  <tr>
+    <td>setItems(items)</td>
+    <td>none</td>
+    <td>Set a data set with items for the Timeline.
+      <code>items</code> can be an Array with Objects,
+      a DataSet, or a DataView.
+    </td>
+  </tr>
+
+  <tr>
+    <td>setOptions(options)</td>
+    <td>none</td>
+    <td>Set or update options. It is possible to change any option
+      of the timeline at any time. You can for example switch orientation
+      on the fly.
+    </td>
+  </tr>
+
 
 </table>
 
 
 <h2 id="Styles">Styles</h2>
 <p>
-    All parts of the Timeline have a class name and a default css style.
-    The styles can be overwritten, which enables full customization of the layout
-    of the Timeline.
+  All parts of the Timeline have a class name and a default css style.
+  The styles can be overwritten, which enables full customization of the layout
+  of the Timeline.
 </p>
 
 <p>For example, to change the border and background color of all items, include the
-    following code inside the head of your html code or in a separate stylesheet.</p>
+  following code inside the head of your html code or in a separate stylesheet.</p>
 <pre class="prettyprint lang-html">&lt;style&gt;
-    .graph .item {
-      border-color: orange;
-      background-color: yellow;
-    }
+  .graph .item {
+    border-color: orange;
+    background-color: yellow;
+  }
 &lt;/style&gt;
 </pre>
 
 
 <h2 id="Data_Policy">Data Policy</h2>
 <p>
-    All code and data is processed and rendered in the browser.
-    No data is sent to any server.
+  All code and data is processed and rendered in the browser.
+  No data is sent to any server.
 </p>
 
 </div>
