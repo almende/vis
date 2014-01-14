@@ -4,6 +4,8 @@ http://visjs.org
 
 ## <not yet released>, version 0.3.0
 
+- Moved the generated library to folder `./dist`
+- Css stylesheet must be loaded explicitly now.
 - Implemented options `showCurrentTime` and `showCustomTime`. Thanks fi0dor.
 - Implemented touch support for Timeline.
 - Fixed broken Timeline options `min` and `max`.

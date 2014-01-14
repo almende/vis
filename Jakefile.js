@@ -9,9 +9,10 @@ var jake = require('jake'),
 require('jake-utils');
 
 // constants
-var VIS = './vis.js';
+var VIS = './dist/vis.js';
+var VIS_CSS = './dist/vis.css';
 var VIS_TMP = './vis.js.tmp';
-var VIS_MIN = './vis.min.js';
+var VIS_MIN = './dist/vis.min.js';
 
 /**
  * default task
@@ -27,7 +28,7 @@ task('default', ['build', 'minify', 'test'], function () {
 desc('Build the visualization library vis.js');
 task('build', {async: true}, function () {
   // concatenate and stringify the css files
-  var result = concat({
+  concat({
     src: [
       './src/timeline/component/css/timeline.css',
       './src/timeline/component/css/panel.css',
@@ -38,10 +39,10 @@ task('build', {async: true}, function () {
       './src/timeline/component/css/currenttime.css',
       './src/timeline/component/css/customtime.css'
     ],
-    header: '/* vis.js stylesheet */',
+    dest: VIS_CSS,
     separator: '\n'
   });
-  var cssText = JSON.stringify(result.code);
+  console.log('created ' + VIS_CSS);
 
   // concatenate the script files
   concat({
@@ -84,12 +85,7 @@ task('build', {async: true}, function () {
       './src/module/exports.js'
     ],
 
-    separator: '\n',
-
-    // Note: we insert the css as a string in the javascript code here
-    //       the css will be injected on load of the javascript library
-    footer: '// inject css\n' +
-        'util.loadCss(' + cssText + ');\n'
+    separator: '\n'
   });
 
   // bundle the concatenated script and dependencies into one file

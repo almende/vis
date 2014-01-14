@@ -59,7 +59,8 @@
     }
   &lt;/style&gt;
 
-  &lt;script src="../../vis.js"&gt;&lt;/script&gt;
+  &lt;script src="../../dist/vis.js"&gt;&lt;/script&gt;
+  &lt;link href="../../dist/vis.css" rel="stylesheet" type="text/css" /&gt;
 &lt;/head&gt;
 &lt;body&gt;
 &lt;div id="visualization"&gt;&lt;/div&gt;
@@ -85,11 +86,13 @@
 <h2 id="Loading">Loading</h2>
 <p>
   Install or download the <a href="http://visjs.org" target="_blank">vis.js</a> library.
-  in a subfolder of your project. Include the library script in the head of your html code:
+  in a subfolder of your project. Include the libraries script and css files in the
+  head of your html code:
 </p>
 
 <pre class="prettyprint lang-html">
-&lt;script type="text/javascript" src="vis/vis.js"&gt;&lt;/script&gt;
+&lt;script src="vis/dist/vis.js"&gt;&lt;/script&gt;
+&lt;link href="vis/dist/vis.css" rel="stylesheet" type="text/css" /&gt;
 </pre>
 
 The constructor of the Timeline is <code>vis.Timeline</code>
