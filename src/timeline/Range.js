@@ -389,7 +389,7 @@ Range.prototype._onMouseWheel = function(event, component, direction) {
     }
 
     // calculate center, the date to zoom around
-    var gesture = Hammer.event.collectEventData(this, 'scroll', event),
+    var gesture = util.fakeGesture(this, event),
         pointer = getPointer(gesture.touches[0], component.frame),
         pointerDate = this._pointerToDate(component, direction, pointer);
 

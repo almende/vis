@@ -84,13 +84,14 @@ bower install vis
   <h2 id="Load">Load</h2>
 
   <p>
-    To use a component, include the javascript file of vis in your web page:
+    To load vis.js, include the javascript and css files of vis in your web page:
   </p>
 
 <pre class="prettyprint lang-html">&lt;!DOCTYPE HTML&gt;
 &lt;html&gt;
 &lt;head&gt;
   &lt;script src="components/vis/vis.js"&gt;&lt;/script&gt;
+  &lt;link href="components/vis/vis.css" rel="stylesheet" type="text/css" /&gt;
 &lt;/head&gt;
 &lt;body&gt;
 &lt;script type="text/javascript"&gt;
@@ -144,7 +145,9 @@ var timeline = new vis.Timeline(container, data, options);
 &lt;html&gt;
 &lt;head&gt;
   &lt;title&gt;Timeline basic demo&lt;/title&gt;
+
   &lt;script src="components/vis/vis.js"&gt;&lt;/script&gt;
+  &lt;link href="components/vis/vis.css" rel="stylesheet" type="text/css" /&gt;
 
   &lt;style type="text/css"&gt;
     body, html {
