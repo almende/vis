@@ -21,7 +21,8 @@
     "browser"
   ],
   "scripts": {
-    "test": "jake test --trace"
+    "test": "jake test --trace",
+    "build": "jake --trace"
   },
   "dependencies": {},
   "devDependencies": {

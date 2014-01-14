@@ -9,16 +9,17 @@ var jake = require('jake'),
 require('jake-utils');
 
 // constants
-var VIS = './dist/vis.js';
-var VIS_CSS = './dist/vis.css';
-var VIS_TMP = './vis.js.tmp';
-var VIS_MIN = './dist/vis.min.js';
+var DIST = './dist';
+var VIS = DIST + '/vis.js';
+var VIS_CSS = DIST + '/vis.css';
+var VIS_TMP = DIST + '/vis.js.tmp';
+var VIS_MIN = DIST + '/vis.min.js';
 
 /**
  * default task
  */
-desc('Execute all tasks: build all libraries');
-task('default', ['build', 'minify', 'test'], function () {
+desc('Default task: build all libraries');
+task('default', ['build', 'minify'], function () {
   console.log('done');
 });
 
@@ -27,6 +28,8 @@ task('default', ['build', 'minify', 'test'], function () {
  */
 desc('Build the visualization library vis.js');
 task('build', {async: true}, function () {
+  jake.mkdirP(DIST);
+
   // concatenate and stringify the css files
   concat({
     src: [
@@ -137,7 +140,7 @@ task('minify', function () {
  * test task
  */
 desc('Test the library');
-task('test', ['build'], function () {
+task('test', function () {
   // TODO: use a testing suite for testing: nodeunit, mocha, tap, ...
   var filelist = new jake.FileList();
   filelist.include([

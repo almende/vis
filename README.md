@@ -134,13 +134,9 @@ root of the project.
     cd vis
     npm install
 
-To be able to run jake from the command line, jake must be installed globally:
+Then, the project can be build running:
 
-    sudo npm install -g jake
-
-Then, the project can be build by executing jake in the root of the project:
-
-    jake
+    npm run build
 
 
 ## License
