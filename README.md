@@ -34,13 +34,14 @@ Or download the library from the github project:
 ## Load
 
 
-To use a component, include the javascript file of vis in your web page:
+To use a component, include the javascript and css files of vis in your web page:
 
 ```html
 <!DOCTYPE HTML>
 <html>
 <head>
-  <script src="components/vis/vis.js"></script>
+  <script src="components/vis/dist/vis.js"></script>
+  <link href="components/vis/dist/vis.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
   <script type="text/javascript">
@@ -50,7 +51,7 @@ To use a component, include the javascript file of vis in your web page:
 </html>
 ```
 
-or load vis.js using require.js:
+or load vis.js using require.js. Note that vis.css must be loaded too.
 
 ```js
 require.config({
@@ -86,7 +87,8 @@ of the project.
 <html>
 <head>
   <title>Timeline basic demo</title>
-  <script src="components/vis/vis.js"></script>
+  <script src="components/vis/dist/vis.js"></script>
+  <link href="components/vis/dist/vis.css" rel="stylesheet" type="text/css" />
 
   <style type="text/css">
     body, html {
@@ -137,6 +139,17 @@ root of the project.
 Then, the project can be build running:
 
     npm run build
+
+
+## Test
+
+To test teh library, install the project dependencies once:
+
+    npm install
+
+Then run the tests:
+
+    npm test
 
 
 ## License

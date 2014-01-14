@@ -2,7 +2,7 @@ vis.js history
 http://visjs.org
 
 
-## <not yet released>, version 0.3.0
+## 2014-01-14, version 0.3.0
 
 - Moved the generated library to folder `./dist`
 - Css stylesheet must be loaded explicitly now.
