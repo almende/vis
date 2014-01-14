@@ -31,27 +31,27 @@ This generates the vis.js library in the folder `./dist`.
 - Push the brances to github
 - Create a version tag (with the new version number) and push it to github:
 
-      git tag v0.3.0
-      git push --tags
+        git tag v0.3.0
+        git push --tags
 
 
 ## Publish
 
 - Publish at npm:
 
-      npm publish
+        npm publish
 
 - Test the published library:
   - Go to a temp directory
   - Install the library from npm:
 
-        npm install vis
+          npm install vis
 
     Verify if it installs the just released version, and verify if it works.
 
   - Install the libarry via bower:
 
-        bower install vis
+          bower install vis
 
     Verify if it installs the just released version, and verify if it works.
 
