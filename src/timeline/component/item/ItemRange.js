@@ -22,24 +22,6 @@ function ItemRange (parent, data, options, defaultOptions) {
 ItemRange.prototype = new Item (null, null);
 
 /**
- * Select the item
- * @override
- */
-ItemRange.prototype.select = function select() {
-  this.selected = true;
-  // TODO: select and unselect
-};
-
-/**
- * Unselect the item
- * @override
- */
-ItemRange.prototype.unselect = function unselect() {
-  this.selected = false;
-  // TODO: select and unselect
-};
-
-/**
  * Repaint the item
  * @return {Boolean} changed
  */
@@ -86,7 +68,8 @@ ItemRange.prototype.repaint = function repaint() {
     }
 
     // update class
-    var className = this.data.className ? (' ' + this.data.className) : '';
+    var className = (this.data.className? ' ' + this.data.className : '') +
+        (this.selected ? ' selected' : '');
     if (this.className != className) {
       this.className = className;
       dom.box.className = 'item range' + className;

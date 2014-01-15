@@ -27,24 +27,6 @@ function ItemPoint (parent, data, options, defaultOptions) {
 ItemPoint.prototype = new Item (null, null);
 
 /**
- * Select the item
- * @override
- */
-ItemPoint.prototype.select = function select() {
-  this.selected = true;
-  // TODO: select and unselect
-};
-
-/**
- * Unselect the item
- * @override
- */
-ItemPoint.prototype.unselect = function unselect() {
-  this.selected = false;
-  // TODO: select and unselect
-};
-
-/**
  * Repaint the item
  * @return {Boolean} changed
  */

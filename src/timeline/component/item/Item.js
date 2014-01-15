@@ -27,6 +27,7 @@ function Item (parent, data, options, defaultOptions) {
  */
 Item.prototype.select = function select() {
   this.selected = true;
+  if (this.visible) this.repaint();
 };
 
 /**
@@ -34,6 +35,7 @@ Item.prototype.select = function select() {
  */
 Item.prototype.unselect = function unselect() {
   this.selected = false;
+  if (this.visible) this.repaint();
 };
 
 /**
