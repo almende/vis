@@ -7,6 +7,30 @@ function Cluster() {
   this.hubThreshold = 5;
 }
 
+
+/**
+ * This function can be called to open up a specific cluster.
+ * It will unpack the cluster back one level.
+ *
+ * @param node    | Node object: cluster to open.
+ */
+Cluster.prototype.openCluster = function(node) {
+  var isMovingBeforeClustering = this.moving;
+
+  this._expandClusterNode(node,false,true);
+
+  // housekeeping
+  this._updateNodeIndexList();
+
+  // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+  if (this.moving != isMovingBeforeClustering) {
+    this.start();
+  }
+};
+
+
+
+
 /**
  * This function can be called to increase the cluster level. This means that the nodes with only one edge connection will
  * be clustered with their connected node. This can be repeated as many times as needed.
@@ -14,16 +38,29 @@ function Cluster() {
  */
 Cluster.prototype.increaseClusterLevel = function() {
   var isMovingBeforeClustering = this.moving;
+  var amountOfNodes = this.nodeIndices.length;
 
   this._formClusters(true);
+
+  // housekeeping
+  this._updateNodeIndexList();
+  this._updateDynamicEdges();
+  this._updateLabels();
+
+  // if a cluster was formed, we increase the clusterSession
+  if (this.nodeIndices.length != amountOfNodes) {
+    this.clusterSession += 1;
+  }
 
   // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
   if (this.moving != isMovingBeforeClustering) {
     this.start();
   }
 
-  this._updateLabels();
+
 };
+
+
 
 /**
  * This function can be called to decrease the cluster level. This means that the nodes with only one edge connection will
@@ -39,37 +76,46 @@ Cluster.prototype.decreaseClusterLevel = function() {
       this._expandClusterNode(node,true,true);
     }
   }
+
+  // housekeeping - the dynamic edges are already updated in the expandClusterNode->expelChildFromParent function
   this._updateNodeIndexList();
-
-  this.clusterSession = (this.clusterSession == 0) ? 0 : this.clusterSession - 1;
-
-  // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
-  if (this.moving != isMovingBeforeClustering) {
-    this.start();
-  }
-
   this._updateLabels();
-  console.log("clusterSession",this.clusterSession)
-};
 
-
-/**
- * This function can be called to open up a specific cluster.
- * It will unpack the cluster back one level.
- *
- * @param node    | Node object: cluster to open.
- */
-Cluster.prototype.openCluster = function(node) {
-  var isMovingBeforeClustering = this.moving;
-
-  this._expandClusterNode(node,false,true);
-  this._updateNodeIndexList();
+  // reduce the clusterSession one level if not at 0
+  if (this.clusterSession != 0) {
+    this.clusterSession -= 1;
+  }
 
   // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
   if (this.moving != isMovingBeforeClustering) {
     this.start();
   }
 };
+
+
+Cluster.prototype.forceAggregateHubs = function() {
+  var isMovingBeforeClustering = this.moving;
+  var amountOfNodes = this.nodeIndices.length;
+
+  this._aggregateHubs(true);
+
+  // housekeeping
+  this._updateNodeIndexList();
+  this._updateDynamicEdges();
+  this._updateLabels();
+
+  // if a cluster was formed, we increase the clusterSession
+  if (this.nodeIndices.length != amountOfNodes) {
+    this.clusterSession += 1;
+  }
+
+  // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+  if (this.moving != isMovingBeforeClustering) {
+    this.start();
+  }
+};
+
+
 
 
 /**
@@ -79,20 +125,32 @@ Cluster.prototype.openCluster = function(node) {
  *
  * @private
  */
-Cluster.prototype._updateClusters = function() {
+Cluster.prototype.updateClusters = function() {
   var isMovingBeforeClustering = this.moving;
+  var amountOfNodes = this.nodeIndices.length;
 
+  // check if we zoom in or out
   if (this.previousScale > this.scale) { // zoom out
-    this._formClusters(false);
+    if (this.clusterSession % 5 == 1) {
+      this._aggregateHubs(false);
+    }
+    else {
+      this._formClusters(false);
+    }
   }
   else if (this.previousScale < this.scale) { // zoom out
     this._openClusters();
   }
-
-  this._updateClusterLabels();
-  this._updateNodeLabels();
-  this._updateLabels();
   this.previousScale = this.scale;
+
+  this._updateNodeIndexList();
+  this._updateDynamicEdges();
+  this._updateLabels();
+
+  // if a cluster was formed, we increase the clusterSession
+  if (this.nodeIndices.length != amountOfNodes) { // this means a clustering operation has taken place
+    this.clusterSession += 1;
+  }
 
   // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
   if (this.moving != isMovingBeforeClustering) {
@@ -101,54 +159,15 @@ Cluster.prototype._updateClusters = function() {
 };
 
 /**
- * This updates the node labels for all nodes (for debugging purposes)
- * @private
+ * this functions starts clustering by hubs
+ * The minimum hub threshold is set globally
  */
-Cluster.prototype._updateLabels = function() {
-  // update node labels
-  this._updateClusterLabels();
-  this._updateNodeLabels();
-
-   // Debug :
-  for (var nodeID in this.nodes) {
-    if (this.nodes.hasOwnProperty(nodeID)) {
-      var node = this.nodes[nodeID];
-//      node.label = String(node.dynamicEdges.length).concat(":",node.dynamicEdgesLength,":",String(node.clusterSize),":::",String(node.id));
-      node.label = String(node.dynamicEdges.length).concat(":",String(node.clusterSize));
-    }
-  }
-
+Cluster.prototype._aggregateHubs = function(force) {
+  this._getHubSize();
+  this._clusterByHub(force);
 };
 
-/**
- * This updates the node labels for all clusters
- * @private
- */
-Cluster.prototype._updateClusterLabels = function() {
-  // update node labels
-  for (var nodeID in this.nodes) {
-    if (this.nodes.hasOwnProperty(nodeID)) {
-      var node = this.nodes[nodeID];
-      if (node.clusterSize > 1) {
-        node.label = "[".concat(String(node.clusterSize),"]");
-      }
-    }
-  }
-};
 
-/**
- * This updates the node labels for all nodes that are NOT clusters
- * @private
- */
-Cluster.prototype._updateNodeLabels = function() {
-  // update node labels
-  for (var nodeID in this.nodes) {
-    var node = this.nodes[nodeID];
-    if (node.clusterSize == 1) {
-      node.label = String(node.id);
-    }
-  }
-};
 
 
 /**
@@ -158,20 +177,11 @@ Cluster.prototype._updateNodeLabels = function() {
  * @private
  */
 Cluster.prototype._openClusters = function() {
-  var amountOfNodes = this.nodeIndices.length;
-
   for (var i = 0; i < this.nodeIndices.length; i++) {
     var node = this.nodes[this.nodeIndices[i]];
     this._expandClusterNode(node,true,false);
   }
-
-  this._updateNodeIndexList();
-
-  if (this.nodeIndices.length != amountOfNodes) { // this means a clustering operation has taken place
-    this.clusterSession -= 1;
-  }
 };
-
 
 /**
  * This function checks if a node has to be opened. This is done by checking the zoom level.
@@ -211,17 +221,6 @@ Cluster.prototype._expandClusterNode = function(parentNode, recursive, forceExpa
   }
 };
 
-
-Cluster.prototype._parentNodeInActiveArea = function(node) {
-  if (Math.abs(node.x - this.zoomCenter.x) <= this.constants.clustering.activeAreaBoxSize/this.scale &&
-      Math.abs(node.y - this.zoomCenter.y) <= this.constants.clustering.activeAreaBoxSize/this.scale) {
-    return true;
-  }
-  else {
-    return false;
-  }
-};
-
 /**
  * This function will expel a child_node from a parent_node. This is to de-cluster the node. This function will remove
  * the child node from the parent contained_node object and put it back into the global nodes object.
@@ -239,7 +238,6 @@ Cluster.prototype._expelChildFromParent = function(parentNode, containedNodeID, 
 
   // if child node has been added on smaller scale than current, kick out
   if (childNode.formationScale < this.scale || forceExpand == true) {
-
     // put the child node back in the global nodes object
     this.nodes[containedNodeID] = childNode;
 
@@ -248,6 +246,9 @@ Cluster.prototype._expelChildFromParent = function(parentNode, containedNodeID, 
 
     // reconnect rerouted edges to the childNode
     this._connectEdgeBackToChild(parentNode,childNode);
+
+    // validate all edges in dynamicEdges
+    this._validateEdges(parentNode);
 
     // undo the changes from the clustering operation on the parent node
     parentNode.mass -= this.constants.clustering.massTransferCoefficient * childNode.mass;
@@ -281,25 +282,19 @@ Cluster.prototype._expelChildFromParent = function(parentNode, containedNodeID, 
 
 /**
  * This function checks if any nodes at the end of their trees have edges below a threshold length
- * This function is called only from _updateClusters()
+ * This function is called only from updateClusters()
  * forceLevelCollapse ignores the length of the edge and collapses one level
  * This means that a node with only one edge will be clustered with its connected node
  *
  * @private
- * @param force_level_collapse    | Boolean
+ * @param {Boolean} force
  */
-Cluster.prototype._formClusters = function(forceLevelCollapse) {
-  var amountOfNodes = this.nodeIndices.length;
-
-  if (forceLevelCollapse == false) {
+Cluster.prototype._formClusters = function(force) {
+  if (force == false) {
     this._formClustersByZoom();
   }
   else {
     this._forceClustersByZoom();
-  }
-
-  if (this.nodeIndices.length != amountOfNodes) { // this means a clustering operation has taken place
-    this.clusterSession += 1;
   }
 };
 
@@ -323,37 +318,35 @@ Cluster.prototype._formClustersByZoom = function() {
   // the clustering favours the node with the larger mass
   for (var i = 0; i < edgesIDarray.length; i++) {
     var edgeID = edgesIDarray[i];
-    var edge = this.edges[edgeID];
-    if (edge.connected) {
-      dx = (edge.to.x - edge.from.x);
-      dy = (edge.to.y - edge.from.y);
-      length = Math.sqrt(dx * dx + dy * dy);
+    // this is checked because edges can be deleted from this.edges during this function
+    // most likely example, two nodes connected to eachother with a double connection
+    if (this.edges.hasOwnProperty(edgeID)) {
+      var edge = this.edges[edgeID];
+      if (edge.connected) {
+        dx = (edge.to.x - edge.from.x);
+        dy = (edge.to.y - edge.from.y);
+        length = Math.sqrt(dx * dx + dy * dy);
 
 
-      if (length < minLength) {
-        // first check which node is larger
-        var parentNode = edge.from
-        var childNode = edge.to
-        if (edge.to.mass > edge.from.mass) {
-          parentNode = edge.to
-          childNode = edge.from
-        }
+        if (length < minLength) {
+          // first check which node is larger
+          var parentNode = edge.from
+          var childNode = edge.to
+          if (edge.to.mass > edge.from.mass) {
+            parentNode = edge.to
+            childNode = edge.from
+          }
 
-        // we allow clustering from outside in
-        // if we do not cluster from outside in, we would have to reconnect edges or keep
-        // a second set of edges for the clusters.
-        // This will also have to be altered in the force calculation and rendering.
-        // This method is non-destructive and does not require a second set of data.
-        if (childNode.dynamicEdgesLength == 1) {
-          this._addToCluster(parentNode,childNode,false);
-        }
-        else if (parentNode.dynamicEdgesLength == 1) {
-          this._addToCluster(childNode,parentNode,false);
+          if (childNode.dynamicEdgesLength == 1) {
+            this._addToCluster(parentNode,childNode,false);
+          }
+          else if (parentNode.dynamicEdgesLength == 1) {
+            this._addToCluster(childNode,parentNode,false);
+          }
         }
       }
     }
   }
-  this._updateNodeIndexList();
 };
 
 /**
@@ -364,77 +357,39 @@ Cluster.prototype._formClustersByZoom = function() {
  */
 Cluster.prototype._forceClustersByZoom = function() {
   for (var nodeID = 0; nodeID < this.nodeIndices.length; nodeID++) {
-    var childNode = this.nodes[this.nodeIndices[nodeID]];
-    if (childNode.dynamicEdgesLength == 1) {
-      var edge = childNode.dynamicEdges[0];
-      var parentNode = (edge.toId == childNode.id) ? this.nodes[edge.fromId] : this.nodes[edge.toId];
-      this._addToCluster(parentNode,childNode,true);
+    // another node could have absorbed this child.
+    if (this.nodes.hasOwnProperty(this.nodeIndices[nodeID])) {
+      var childNode = this.nodes[this.nodeIndices[nodeID]];
+
+      // the edges can be swallowed by another decrease
+      if (childNode.dynamicEdgesLength == 1 && childNode.dynamicEdges.length != 0) {
+        var edge = childNode.dynamicEdges[0];
+        var parentNode = (edge.toId == childNode.id) ? this.nodes[edge.fromId] : this.nodes[edge.toId];
+
+        // group to the largest node
+        if (parentNode.mass > childNode.mass) {
+          this._addToCluster(parentNode,childNode,true);
+        }
+        else {
+          this._addToCluster(childNode,parentNode,true);
+        }
+      }
     }
   }
-
-  this._updateNodeIndexList();
-  this._updateDynamicEdges();
 };
 
 
-/**
- * this functions starts clustering by hubs
- * The minimum hub threshold is set globally
- */
-Cluster.prototype.aggregateHubs = function() {
-  var isMovingBeforeClustering = this.moving;
-  var amountOfNodes = this.nodeIndices.length;
-
-  this._getHubSize();
-  this._forceClustersByHub();
-
-  // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
-  if (this.moving != isMovingBeforeClustering) {
-    this.start();
-  }
-
-  if (this.nodeIndices.length != amountOfNodes) { // this means a clustering operation has taken place
-    this.clusterSession += 1;
-  }
-};
-
-/**
- * We determine how many connections denote an important hub.
- * We take the mean + 2*std as the important hub size. (Assuming a normal distribution of data, ~2.2%)
- *
- * @private
- */
-Cluster.prototype._getHubSize = function() {
-  var average = 0;
-  var averageSquared = 0;
-  var hubCounter = 0;
-
-  for (var i = 0; i < this.nodeIndices.length; i++) {
-    var node = this.nodes[this.nodeIndices[i]];
-    average += node.dynamicEdgesLength;
-    averageSquared += Math.pow(node.dynamicEdgesLength,2);
-    hubCounter += 1;
-  }
-  average = average / hubCounter;
-  averageSquared = averageSquared / hubCounter;
-
-  var variance = averageSquared - Math.pow(average,2);
-
-  var standardDeviation = Math.sqrt(variance);
-
-  this.hubThreshold = Math.floor(average + 2*standardDeviation);
-
-  //console.log("average",average,"averageSQ",averageSquared,"var",variance,"std",standardDeviation);
-  //console.log("hubThreshold:",this.hubThreshold);
-};
 
 /**
  *
- * @param hubThresholdOverride
- * @param EqualityOverride
+ * @param {Boolean} force
  * @private
  */
-Cluster.prototype._forceClustersByHub = function(hubThresholdOverride,EqualityOverride) {
+Cluster.prototype._clusterByHub = function(force) {
+  var dx,dy,length;
+  var minLength = this.constants.clustering.clusterLength/this.scale;
+  var allowCluster = false;
+
   // we loop over all nodes in the list
   for (var i = 0; i < this.nodeIndices.length; i++) {
     // we check if it is still available since it can be used by the clustering in this loop
@@ -450,78 +405,62 @@ Cluster.prototype._forceClustersByHub = function(hubThresholdOverride,EqualityOv
           edgesIDarray.push(hubNode.dynamicEdges[j].id);
         }
 
-        // we loop over all edges INITIALLY connected to this hub
-        for (var j = 0; j < amountOfInitialEdges; j++) {
-          var edge = this.edges[edgesIDarray[j]];
-          var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
+        // if the hub clustering is not forces, we check if one of the edges connected
+        // to a cluster is small enough based on the constants.clustering.clusterLength
+        if (force == false) {
+          allowCluster = false;
+          for (var j = 0; j < amountOfInitialEdges; j++) {
+            var edge = this.edges[edgesIDarray[j]];
+            if (edge !== undefined) {
+              if (edge.connected) {
+                dx = (edge.to.x - edge.from.x);
+                dy = (edge.to.y - edge.from.y);
+                length = Math.sqrt(dx * dx + dy * dy);
 
-          // we do not want hubs to merge with other hubs.
-          if (childNode.dynamicEdges.length < this.hubThreshold) {
-            this._addToCluster(hubNode,childNode,true);
+                if (length < minLength) {
+                  allowCluster = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+
+        // start the clustering if allowed
+        if ((!force && allowCluster) || force) {
+          // we loop over all edges INITIALLY connected to this hub
+          for (var j = 0; j < amountOfInitialEdges; j++) {
+            var edge = this.edges[edgesIDarray[j]];
+
+            // the edge can be clustered by this function in a previous loop
+            if (edge !== undefined) {
+              var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
+
+              // we do not want hubs to merge with other hubs.
+              if (childNode.dynamicEdges.length <= this.hubThreshold) {
+                this._addToCluster(hubNode,childNode,force);
+              }
+            }
           }
         }
       }
     }
   }
-  this._updateNodeIndexList();
-  this._updateDynamicEdges();
-  this._updateLabels();
 };
 
-
-
-/**
- *
- * @param hubThreshold
- * @private
- */
-Cluster.prototype._forceClustersByHub = function() {
-  // we loop over all nodes in the list
-  for (var i = 0; i < this.nodeIndices.length; i++) {
-    // we check if it is still available since it can be used by the clustering in this loop
-    if (this.nodes.hasOwnProperty(this.nodeIndices[i])) {
-      var hubNode = this.nodes[this.nodeIndices[i]];
-
-      // we decide if the node is a hub
-      if (hubNode.dynamicEdgesLength >= this.hubThreshold) {
-        // we create a list of edges because the dynamicEdges change over the course of this loop
-        var edgesIDarray = []
-        var amountOfInitialEdges = hubNode.dynamicEdges.length;
-        for (var j = 0; j < amountOfInitialEdges; j++) {
-          edgesIDarray.push(hubNode.dynamicEdges[j].id);
-        }
-
-        // we loop over all edges INITIALLY connected to this hub
-        for (var j = 0; j < amountOfInitialEdges; j++) {
-          var edge = this.edges[edgesIDarray[j]];
-          var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
-
-          // we do not want hubs to merge with other hubs.
-          if (childNode.dynamicEdges.length < this.hubThreshold) {
-            this._addToCluster(hubNode,childNode,true);
-          }
-        }
-        //break;
-      }
-    }
-  }
-  this._updateNodeIndexList();
-  this._updateDynamicEdges();
-  this._updateLabels();
-};
 
 
 
 /**
  * This function adds the child node to the parent node, creating a cluster if it is not already.
- * This function is called only from _updateClusters()
+ * This function is called only from updateClusters()
  *
- * @param parent_node           | Node object: this is the node that will house the child node
- * @param child_node            | Node object: this node will be deleted from the global this.nodes and stored in the parent node
- * @param force_level_collapse  | Boolean: true will only update the remainingEdges at the very end of the clustering, ensuring single level collapse
+ * @param {Node} parentNode           | this is the node that will house the child node
+ * @param {Node} childNode            | this node will be deleted from the global this.nodes and stored in the parent node
+ * @param {Boolean} force             | true will only update the remainingEdges at the very end of the clustering, ensuring single level collapse
  * @private
  */
-Cluster.prototype._addToCluster = function(parentNode, childNode, forceLevelCollapse) {
+Cluster.prototype._addToCluster = function(parentNode, childNode, force) {
   // join child node in the parent node
   parentNode.containedNodes[childNode.id] = childNode;
 
@@ -537,9 +476,10 @@ Cluster.prototype._addToCluster = function(parentNode, childNode, forceLevelColl
   }
   childNode.dynamicEdges = [];
 
-
   // remove the childNode from the global nodes object
   delete this.nodes[childNode.id];
+
+  var massBefore = parentNode.mass;
 
   childNode.clusterSession = this.clusterSession;
   parentNode.mass += this.constants.clustering.massTransferCoefficient * childNode.mass;
@@ -547,19 +487,26 @@ Cluster.prototype._addToCluster = function(parentNode, childNode, forceLevelColl
   parentNode.fontSize += this.constants.clustering.fontSizeMultiplier * childNode.clusterSize
 
   // giving the clusters a dynamic formationScale to ensure not all clusters open up when zoomed
-  if (forceLevelCollapse == true) {
-    parentNode.formationScale = 1.0 * Math.pow(1 - (1.0/11.0),this.clusterSession + parentNode.clusterSize);
+  if (force == true) {
+    parentNode.formationScale = 1.0 * Math.pow(1 - (1.0/11.0),this.clusterSession+2);
+    console.log(".formationScale",parentNode.formationScale)
   }
   else {
     parentNode.formationScale = this.scale; // The latest child has been added on this scale
   }
-  console.log("formationScale",parentNode.formationScale)
-  parentNode.dynamicEdgesLength = parentNode.dynamicEdges.length;
 
   // recalculate the size of the node on the next time the node is rendered
   parentNode.clearSizeCache();
 
-  parentNode.containedNodes[childNode.id].formationScale = this.scale; // this child has been added at this scale.
+  // set the pop-out scale for the childnode
+  parentNode.containedNodes[childNode.id].formationScale = parentNode.formationScale;
+
+  // nullify the movement velocity of the child, this is to avoid hectic behaviour
+  childNode.clearVelocity();
+
+  // the mass has altered, preservation of energy dictates the velocity to be updated
+  parentNode.updateVelocity(massBefore);
+
 
   // restart the simulation to reorganise all nodes
   this.moving = true;
@@ -576,22 +523,26 @@ Cluster.prototype._updateDynamicEdges = function() {
   for (var i = 0; i < this.nodeIndices.length; i++) {
     var node = this.nodes[this.nodeIndices[i]];
     node.dynamicEdgesLength = node.dynamicEdges.length;
-  }
-};
 
-
-Cluster.prototype._repositionNodes = function() {
-  for (var i = 0; i < this.nodeIndices.length; i++) {
-    var node = this.nodes[this.nodeIndices[i]];
-    if (!node.isFixed()) {
-      // TODO: position new nodes in a smarter way!
-      var radius = this.constants.edges.length * (1 + 0.5*node.clusterSize);
-      var angle = 2 * Math.PI * Math.random();
-      node.x = radius * Math.cos(angle);
-      node.y = radius * Math.sin(angle);
+    // this corrects for multiple edges pointing at the same other node
+    var correction = 0
+    if (node.dynamicEdgesLength > 1) {
+      for (var j = 0; j < node.dynamicEdgesLength - 1; j++) {
+        var edgeToId = node.dynamicEdges[j].toId;
+        var edgeFromId = node.dynamicEdges[j].fromId;
+        for (var k = j+1; k < node.dynamicEdgesLength; k++) {
+          if ((node.dynamicEdges[k].toId == edgeToId && node.dynamicEdges[k].fromId == edgeFromId) ||
+              (node.dynamicEdges[k].fromId == edgeToId && node.dynamicEdges[k].toId == edgeFromId)) {
+            correction += 1;
+          }
+        }
+      }
     }
+
+    node.dynamicEdgesLength -= correction;
   }
 };
+
 
 /**
  * This adds an edge from the childNode to the contained edges of the parent node
@@ -706,6 +657,27 @@ Cluster.prototype._connectEdgeBackToChild = function(parentNode, childNode) {
   }
 };
 
+
+/**
+ * When loops are clustered, an edge can be both in the rerouted array and the contained array.
+ * This function is called last to verify that all edges in dynamicEdges are in fact connected to the
+ * parentNode
+ *
+ * @param parentNode    | Node object
+ * @param childNode     | Node object
+ * @private
+ */
+Cluster.prototype._validateEdges = function(parentNode) {
+  // TODO: check if good idea
+  for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
+    var edge = parentNode.dynamicEdges[i];
+    if (parentNode.id != edge.toId && parentNode.id != edge.fromId) {
+      parentNode.dynamicEdges.splice(i,1);
+    }
+  }
+};
+
+
 /**
  * This function released the contained edges back into the global domain and puts them back into the
  * dynamic edges of both parent and child.
@@ -728,4 +700,124 @@ Cluster.prototype._releaseContainedEdges = function(parentNode, childNode) {
   // remove the entry from the contained edges
   delete parentNode.containedEdges[childNode.id];
 
+};
+
+
+
+
+// ------------------- UTILITY FUNCTIONS ---------------------------- //
+
+
+/**
+ * This updates the node labels for all nodes (for debugging purposes)
+ * @private
+ */
+Cluster.prototype._updateLabels = function() {
+  // update node labels
+  for (var nodeID in this.nodes) {
+    if (this.nodes.hasOwnProperty(nodeID)) {
+      var node = this.nodes[nodeID];
+      if (node.clusterSize > 1) {
+        node.label = "[".concat(String(node.clusterSize),"]");
+      }
+    }
+  }
+
+  // update node labels
+  for (var nodeID in this.nodes) {
+    var node = this.nodes[nodeID];
+    if (node.clusterSize == 1) {
+      node.label = String(node.id);
+    }
+  }
+
+  /* Debug Override */
+  for (var nodeID in this.nodes) {
+    if (this.nodes.hasOwnProperty(nodeID)) {
+      var node = this.nodes[nodeID];
+      node.label = String(node.dynamicEdges.length).concat(":",node.dynamicEdgesLength,":",String(node.clusterSize),":::",String(node.id));
+    }
+  }
+
+};
+
+
+/**
+ * This function determines if the cluster we want to decluster is in the active area
+ * this means around the zoom center
+ *
+ * @param {Node}
+ * @returns {boolean}
+ * @private
+ */
+Cluster.prototype._parentNodeInActiveArea = function(node) {
+  if (Math.abs(node.x - this.zoomCenter.x) <= this.constants.clustering.activeAreaBoxSize/this.scale &&
+    Math.abs(node.y - this.zoomCenter.y) <= this.constants.clustering.activeAreaBoxSize/this.scale) {
+    return true;
+  }
+  else {
+    return false;
+  }
+};
+
+
+/**
+ * This is an adaptation of the original repositioning function. This is called if the system is clustered initially
+ * It puts large clusters away from the center and randomizes the order.
+ *
+ * @private
+ */
+Cluster.prototype._repositionNodes = function() {
+  for (var i = 0; i < this.nodeIndices.length; i++) {
+    var node = this.nodes[this.nodeIndices[i]];
+    if (!node.isFixed()) {
+      var radius = this.constants.edges.length * (1 + 0.6*node.clusterSize);
+      var angle = 2 * Math.PI * Math.random();
+      node.x = radius * Math.cos(angle);
+      node.y = radius * Math.sin(angle);
+    }
+  }
+};
+
+
+
+
+
+/**
+ * We determine how many connections denote an important hub.
+ * We take the mean + 2*std as the important hub size. (Assuming a normal distribution of data, ~2.2%)
+ *
+ * @private
+ */
+Cluster.prototype._getHubSize = function() {
+  var average = 0;
+  var averageSquared = 0;
+  var hubCounter = 0;
+  var largestHub = 0;
+
+  for (var i = 0; i < this.nodeIndices.length; i++) {
+    var node = this.nodes[this.nodeIndices[i]];
+    if (node.dynamicEdgesLength > largestHub) {
+      largestHub = node.dynamicEdgesLength;
+    }
+    average += node.dynamicEdgesLength;
+    averageSquared += Math.pow(node.dynamicEdgesLength,2);
+    hubCounter += 1;
+  }
+  average = average / hubCounter;
+  averageSquared = averageSquared / hubCounter;
+
+  var variance = averageSquared - Math.pow(average,2);
+
+  var standardDeviation = Math.sqrt(variance);
+
+  this.hubThreshold = Math.floor(average + 2*standardDeviation);
+
+  // always have at least one to cluster
+  if (this.hubThreshold > largestHub) {
+    this.hubThreshold = largestHub;
+  }
+
+//  console.log("average",average,"averageSQ",averageSquared,"var",variance,"std",standardDeviation);
+//  console.log("hubThreshold:",this.hubThreshold);
 };

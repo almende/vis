@@ -39,14 +39,6 @@ function Graph (container, data, options) {
         highlight: {
           border: '#2B7CE9',
           background: '#D2E5FF'
-        },
-        cluster: {
-          border: '#256a2d',
-          background: '#2cd140',
-          highlight: {
-            border: '#899539',
-            background: '#c5dc29'
-          }
         }
       },
       borderColor: '#2B7CE9',
@@ -74,10 +66,11 @@ function Graph (container, data, options) {
       clustering: { // TODO: naming of variables
       maxNumberOfNodes: 100,        // for automatic (initial) clustering //
       clusterLength: 30,            // threshold edge length for clusteringl
-      fontSizeMultiplier: 2,        // how much the cluster font size grows per node (in px)
-      forceAmplification: 0.6,      // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
-      distanceAmplification: 0.1,   // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
-      edgeGrowth: 10,               // amount of clusterSize connected to the edge is multiplied with this and added to edgeLength
+      fontSizeMultiplier: 3,        // how much the cluster font size grows per node (in px)
+      forceAmplification: 0.7,      // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
+      distanceAmplification: 0.3,   // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
+      edgeStrength: 0.01,
+      edgeGrowth: 11,               // amount of clusterSize connected to the edge is multiplied with this and added to edgeLength
       clusterSizeWidthFactor: 10,
       clusterSizeHeightFactor: 10,
       clusterSizeRadiusFactor: 10,
@@ -195,13 +188,12 @@ Graph.prototype.clusterToFit = function() {
   while (numberOfNodes >= maxNumberOfNodes && level < maxLevels) {
     if (level % 5 == 0) {
       console.log("Aggregating Hubs @ level: ",level,". Threshold:", this.hubThreshold,"clusterSession",this.clusterSession);
-      this.aggregateHubs();
+      this.forceAggregateHubs();
     }
     else {
       console.log("Pulling in Outliers @ level: ",level,"clusterSession",this.clusterSession);
       this.increaseClusterLevel();
     }
-    console.log("zoomscale for level: ",this.scale * Math.pow(1.0/11.0,this.clusterSession),". Current: ",this.scale);
     numberOfNodes = this.nodeIndices.length;
     level += 1;
   }
@@ -340,7 +332,6 @@ Graph.prototype.setOptions = function (options) {
        if (options.nodes.widthMax) this.constants.nodes.radiusMax = options.nodes.widthMax;
        */
     }
-
     if (options.groups) {
       for (var groupname in options.groups) {
         if (options.groups.hasOwnProperty(groupname)) {
@@ -419,7 +410,7 @@ Graph.prototype._create = function () {
   this.mouseTrap.bind("=",this.decreaseClusterLevel.bind(me));
   this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
   this.mouseTrap.bind("s",this.singleStep.bind(me));
-  this.mouseTrap.bind("h",this.aggregateHubs.bind(me));
+  this.mouseTrap.bind("h",this.forceAggregateHubs.bind(me));
   this.mouseTrap.bind("f",this.toggleFreeze.bind(me));
 
   // add the frame to the container element
@@ -683,10 +674,11 @@ Graph.prototype._zoom = function(scale, pointer) {
  // this.zoomCenter = {"x" : pointer.x,"y" : pointer.y };
   this._setScale(scale);
   this._setTranslation(tx, ty);
-  this._updateClusters();
+  this.updateClusters();
   this._redraw();
 
-  console.log("current scale: ", this.scale)
+  console.log("current zoomscale:",this.scale)
+
   return scale;
 };
 
@@ -1581,6 +1573,7 @@ Graph.prototype._drawNodes = function(ctx) {
   var selected = [];
   for (var id in nodes) {
     if (nodes.hasOwnProperty(id)) {
+      nodes[id].setScale(this.scale);
       if (nodes[id].isSelected()) {
         selected.push(id);
       }
@@ -1607,6 +1600,7 @@ Graph.prototype._drawEdges = function(ctx) {
   for (var id in edges) {
     if (edges.hasOwnProperty(id)) {
       var edge = edges[id];
+      edge.setScale(this.scale);
       if (edge.connected) {
         edges[id].draw(ctx);
       }
@@ -1649,162 +1643,168 @@ Graph.prototype._calculateForces = function() {
       nodes = this.nodes,
       edges = this.edges;
 
-  // gravity, add a small constant force to pull the nodes towards the center of
-  // the graph
-  // Also, the forces are reset to zero in this loop by using _setForce instead
-  // of _addForce
-
-
-  var gravity = 0.02;
-  for (var i = 0; i < this.nodeIndices.length; i++) {
-      var node = nodes[this.nodeIndices[i]];
-      /*
-      dx = -node.x;
-      dy = -node.y;
-      angle = Math.atan2(dy, dx);
-      fx = Math.cos(angle) * gravity;
-      fy = Math.sin(angle) * gravity;
-      node._setForce(fx, fy);
-      */
-      node._setForce(0, 0);
+  if (this.nodeIndices.length == 1) { // stop calculation if there is only one node
+    nodes[this.nodeIndices[0]]._setForce(0,0);
   }
+  else {
+    // Gravity is required to keep separated groups from floating off
+    // the forces are reset to zero in this loop by using _setForce instead
+    // of _addForce
+    var gravity = 0.08;
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+        var node = nodes[this.nodeIndices[i]];
+        dx = -node.x - this.translation.x + this.frame.canvas.clientWidth*0.5;
+        dy = -node.y - this.translation.y + this.frame.canvas.clientHeight*0.5;
 
-  // repulsing forces between nodes
-  var minimumDistance = this.constants.nodes.distance,
-      steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
-
-
-  // we loop from i over all but the last entree in the array
-  // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
-  for (var i = 0; i < this.nodeIndices.length-1; i++) {
-    var node1 = nodes[this.nodeIndices[i]];
-    for (var j = i+1; j < this.nodeIndices.length; j++) {
-      var node2 = nodes[this.nodeIndices[j]];
-      var clusterSize = (node1.clusterSize + node2.clusterSize - 2);
-      dx = node2.x - node1.x;
-      dy = node2.y - node1.y;
-      distance = Math.sqrt(dx * dx + dy * dy);
-
-
-      // clusters have a larger region of influence
-      minimumDistance = (clusterSize == 0) ? this.constants.nodes.distance : (this.constants.nodes.distance * (1 + clusterSize * this.constants.clustering.distanceAmplification));
-      if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
         angle = Math.atan2(dy, dx);
+        fx = Math.cos(angle) * gravity;
+        fy = Math.sin(angle) * gravity;
+        node._setForce(fx, fy);
 
-        if (distance < 0.5*minimumDistance) { // at 0.5 * the minimum distance, the force is 0.993307
-          repulsingForce = 1.0;
+        node.updateDamping(this.nodeIndices.length);
+    }
+
+    this._updateLabels();
+
+    // repulsing forces between nodes
+    var minimumDistance = this.constants.nodes.distance,
+        steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
+
+
+    // we loop from i over all but the last entree in the array
+    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
+    for (var i = 0; i < this.nodeIndices.length-1; i++) {
+      var node1 = nodes[this.nodeIndices[i]];
+      for (var j = i+1; j < this.nodeIndices.length; j++) {
+        var node2 = nodes[this.nodeIndices[j]];
+        var clusterSize = (node1.clusterSize + node2.clusterSize - 2);
+        dx = node2.x - node1.x;
+        dy = node2.y - node1.y;
+        distance = Math.sqrt(dx * dx + dy * dy);
+
+
+        // clusters have a larger region of influence
+        minimumDistance = (clusterSize == 0) ? this.constants.nodes.distance : (this.constants.nodes.distance * (1 + clusterSize * this.constants.clustering.distanceAmplification));
+        if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
+          angle = Math.atan2(dy, dx);
+
+          if (distance < 0.5*minimumDistance) { // at 0.5 * the minimum distance, the force is 0.993307
+            repulsingForce = 1.0;
+          }
+          else {
+            // TODO: correct factor for repulsing force
+            //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+            //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+            repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
+          }
+
+          // amplify the repulsion for clusters.
+          repulsingForce *= (clusterSize == 0) ? 1 : 1 + clusterSize * this.constants.clustering.forceAmplification;
+
+          fx = Math.cos(angle) * repulsingForce;
+          fy = Math.sin(angle) * repulsingForce;
+
+          node1._addForce(-fx, -fy);
+          node2._addForce(fx, fy);
         }
-        else {
-          // TODO: correct factor for repulsing force
-          //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-          //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-          repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
-        }
-
-        // amplify the repulsion for clusters.
-        repulsingForce *= (clusterSize == 0) ? 1 : 1 + clusterSize * this.constants.clustering.forceAmplification;
-
-        fx = Math.cos(angle) * repulsingForce;
-        fy = Math.sin(angle) * repulsingForce;
-
-        node1._addForce(-fx, -fy);
-        node2._addForce(fx, fy);
       }
     }
-  }
 
-  // TODO: re-implement repulsion of edges
-   for (var n = 0; n < nodes.length; n++) {
-   for (var l = 0; l < edges.length; l++) {
-   var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
-   ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
+    // TODO: re-implement repulsion of edges
+     for (var n = 0; n < nodes.length; n++) {
+     for (var l = 0; l < edges.length; l++) {
+     var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
+     ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
 
-   // calculate normally distributed force
-   dx = nodes[n].x - lx,
-   dy = nodes[n].y - ly,
-   distance = Math.sqrt(dx * dx + dy * dy),
-   angle = Math.atan2(dy, dx),
-
-
-   // TODO: correct factor for repulsing force
-   //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-   //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
-   repulsingforce = 1 / (1 + Math.exp((distance / (minimumDistance / 2) - 1) * steepness)), // TODO: customize the repulsing force
-   fx = Math.cos(angle) * repulsingforce,
-   fy = Math.sin(angle) * repulsingforce;
-   nodes[n]._addForce(fx, fy);
-   edges[l].from._addForce(-fx/2,-fy/2);
-   edges[l].to._addForce(-fx/2,-fy/2);
-   }
-   }
+     // calculate normally distributed force
+     dx = nodes[n].x - lx,
+     dy = nodes[n].y - ly,
+     distance = Math.sqrt(dx * dx + dy * dy),
+     angle = Math.atan2(dy, dx),
 
 
-  // forces caused by the edges, modelled as springs
-  for (id in edges) {
-    if (edges.hasOwnProperty(id)) {
-      var edge = edges[id];
-      if (edge.connected) {
-        dx = (edge.to.x - edge.from.x);
-        dy = (edge.to.y - edge.from.y);
-        //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
-        //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length; // TODO: dmin
-        //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2;
-        edgeLength = edge.length;
-        // this implies that the edges between big clusters are longer
-        edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
-        length =  Math.sqrt(dx * dx + dy * dy);
-        angle = Math.atan2(dy, dx);
+     // TODO: correct factor for repulsing force
+     //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+     //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
+     repulsingforce = 1 / (1 + Math.exp((distance / (minimumDistance / 2) - 1) * steepness)), // TODO: customize the repulsing force
+     fx = Math.cos(angle) * repulsingforce,
+     fy = Math.sin(angle) * repulsingforce;
+     nodes[n]._addForce(fx, fy);
+     edges[l].from._addForce(-fx/2,-fy/2);
+     edges[l].to._addForce(-fx/2,-fy/2);
+     }
+     }
 
-        springForce = edge.stiffness * (edgeLength - length);
 
-        fx = Math.cos(angle) * springForce;
-        fy = Math.sin(angle) * springForce;
+    // forces caused by the edges, modelled as springs
+    for (id in edges) {
+      if (edges.hasOwnProperty(id)) {
+        var edge = edges[id];
+        if (edge.connected) {
+          var clusterSize = (edge.to.clusterSize + edge.from.clusterSize - 2);
+          dx = (edge.to.x - edge.from.x);
+          dy = (edge.to.y - edge.from.y);
+          //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
+          //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length; // TODO: dmin
+          //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2;
+          edgeLength = edge.length;
+          // this implies that the edges between big clusters are longer
+          edgeLength += clusterSize * this.constants.clustering.edgeGrowth;
+          length =  Math.sqrt(dx * dx + dy * dy);
+          angle = Math.atan2(dy, dx);
 
-        edge.from._addForce(-fx, -fy);
-        edge.to._addForce(fx, fy);
+          springForce = edge.stiffness * (edgeLength - length);
+
+          // boost strength of cluster springs
+          springForce *= (clusterSize == 0) ? 1 : 1 + clusterSize * this.constants.clustering.edgeStrength;
+
+          fx = Math.cos(angle) * springForce;
+          fy = Math.sin(angle) * springForce;
+
+          edge.from._addForce(-fx, -fy);
+          edge.to._addForce(fx, fy);
+        }
       }
     }
+  /*
+    // TODO: re-implement repulsion of edges
+
+     // repulsing forces between edges
+     var minimumDistance = this.constants.edges.distance,
+     steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
+     for (var l = 0; l < edges.length; l++) {
+     //Keep distance from other edge centers
+     for (var l2 = l + 1; l2 < this.edges.length; l2++) {
+     //var dmin = (nodes[n].width + nodes[n].height + nodes[n2].width + nodes[n2].height) / 1 || minimumDistance, // TODO: dmin
+     //var dmin = (nodes[n].width + nodes[n2].width)/2  || minimumDistance, // TODO: dmin
+     //dmin = 40 + ((nodes[n].width/2 + nodes[n2].width/2) || 0),
+     var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
+     ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
+     l2x = edges[l2].from.x+(edges[l2].to.x - edges[l2].from.x)/2,
+     l2y = edges[l2].from.y+(edges[l2].to.y - edges[l2].from.y)/2,
+
+     // calculate normally distributed force
+     dx = l2x - lx,
+     dy = l2y - ly,
+     distance = Math.sqrt(dx * dx + dy * dy),
+     angle = Math.atan2(dy, dx),
+
+
+     // TODO: correct factor for repulsing force
+     //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+     //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
+     repulsingforce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)), // TODO: customize the repulsing force
+     fx = Math.cos(angle) * repulsingforce,
+     fy = Math.sin(angle) * repulsingforce;
+
+     edges[l].from._addForce(-fx, -fy);
+     edges[l].to._addForce(-fx, -fy);
+     edges[l2].from._addForce(fx, fy);
+     edges[l2].to._addForce(fx, fy);
+     }
+     }
+  */
   }
-/*
-  // TODO: re-implement repulsion of edges
-
-   // repulsing forces between edges
-   var minimumDistance = this.constants.edges.distance,
-   steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
-   for (var l = 0; l < edges.length; l++) {
-   //Keep distance from other edge centers
-   for (var l2 = l + 1; l2 < this.edges.length; l2++) {
-   //var dmin = (nodes[n].width + nodes[n].height + nodes[n2].width + nodes[n2].height) / 1 || minimumDistance, // TODO: dmin
-   //var dmin = (nodes[n].width + nodes[n2].width)/2  || minimumDistance, // TODO: dmin
-   //dmin = 40 + ((nodes[n].width/2 + nodes[n2].width/2) || 0),
-   var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
-   ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
-   l2x = edges[l2].from.x+(edges[l2].to.x - edges[l2].from.x)/2,
-   l2y = edges[l2].from.y+(edges[l2].to.y - edges[l2].from.y)/2,
-
-   // calculate normally distributed force
-   dx = l2x - lx,
-   dy = l2y - ly,
-   distance = Math.sqrt(dx * dx + dy * dy),
-   angle = Math.atan2(dy, dx),
-
-
-   // TODO: correct factor for repulsing force
-   //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-   //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
-   repulsingforce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)), // TODO: customize the repulsing force
-   fx = Math.cos(angle) * repulsingforce,
-   fy = Math.sin(angle) * repulsingforce;
-
-   edges[l].from._addForce(-fx, -fy);
-   edges[l].to._addForce(-fx, -fy);
-   edges[l2].from._addForce(fx, fy);
-   edges[l2].to._addForce(fx, fy);
-   }
-   }
-*/
-
-  this.simulationStep += 1;
 };
 
 

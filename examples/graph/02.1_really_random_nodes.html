@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+<head>
+    <title>Graph | Really Random nodes</title>
+
+    <style type="text/css">
+        body {
+            font: 10pt sans;
+        }
+        #mygraph {
+            width: 600px;
+            height: 600px;
+            border: 1px solid lightgray;
+        }
+    </style>
+
+    <script type="text/javascript" src="../../dist/vis.js"></script>
+
+    <script type="text/javascript">
+        var nodes = null;
+        var edges = null;
+        var graph = null;
+
+        function draw() {
+            nodes = [];
+            edges = [];
+            // randomly create some nodes and edges
+            var nodeCount = parseInt(document.getElementById('nodeCount').value);
+
+            for (var i = 0; i < nodeCount; i++) {
+                nodes.push({
+                    id: i,
+                    label: String(i)
+                });
+            }
+            for (var i = 0; i < nodeCount; i++) {
+                var from = i;
+                var to = i;
+                to = i;
+                while (to == i) {
+                    to = Math.floor(Math.random() * (nodeCount+1));
+                }
+                edges.push({
+                    from: from,
+                    to: to
+                });
+            }
+            /*
+            // Loop:
+            for (var i = 0; i < 5; i++) {
+                nodes.push({
+                    id: i,
+                    label: String(i)
+                });
+            }
+            edges.push({
+                from: 1,
+                to: 0
+            });
+            edges.push({
+                from: 1,
+                to: 2
+            });
+            edges.push({
+                from: 4,
+                to: 0
+            });
+            edges.push({
+                from: 2,
+                to: 3
+            });
+            edges.push({
+                from: 3,
+                to: 4
+            });
+            */
+
+            // create a graph
+            var container = document.getElementById('mygraph');
+            var data = {
+                nodes: nodes,
+                edges: edges
+            };
+            var options = {
+                edges: {
+                    length: 80
+                },
+                stabilize: false
+            };
+            graph = new vis.Graph(container, data, options);
+
+            // add event listeners
+            vis.events.addListener(graph, 'select', function(params) {
+                document.getElementById('selection').innerHTML =
+                        'Selection: ' + graph.getSelection();
+            });
+        }
+    </script>
+</head>
+
+<body onload="draw();">
+
+<form onsubmit="draw(); return false;">
+    <label for="nodeCount">Number of nodes:</label>
+    <input id="nodeCount" type="text" value="25" style="width: 50px;">
+    <input type="submit" value="Go">
+</form>
+<br>
+
+<div id="mygraph"></div>
+
+<p id="selection"></p>
+</body>
+</html>

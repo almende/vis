@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version @@version
- * @date    @@date
+ * @version 0.3.0-SNAPSHOT
+ * @date    2014-01-15
  *
  * @license
  * Copyright (C) 2011-2013 Almende B.V, http://almende.com
@@ -5447,6 +5447,21 @@ util.stopPropagation = function stopPropagation(event) {
   }
 };
 
+/**
+ * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
+ * @param {Element} element
+ * @param {Event} event
+ */
+util.fakeGesture = function fakeGesture (element, event) {
+  var eventType = null;
+
+  // for hammer.js 1.0.5
+  return Hammer.event.collectEventData(this, eventType, event);
+
+  // for hammer.js 1.0.6
+  //var touches = Hammer.event.getTouchList(event, eventType);
+  //return Hammer.event.collectEventData(this, eventType, touches, event);
+};
 
 /**
  * Cancels the event if it is cancelable, without stopping further propagation of the event.
@@ -5554,34 +5569,6 @@ util.option.asElement = function (value, defaultValue) {
   }
 
   return value || defaultValue || null;
-};
-
-/**
- * load css from text
- * @param {String} css    Text containing css
- */
-util.loadCss = function (css) {
-  if (typeof document === 'undefined') {
-    return;
-  }
-
-  // get the script location, and built the css file name from the js file name
-  // http://stackoverflow.com/a/2161748/1262753
-  // var scripts = document.getElementsByTagName('script');
-  // var jsFile = scripts[scripts.length-1].src.split('?')[0];
-  // var cssFile = jsFile.substring(0, jsFile.length - 2) + 'css';
-
-  // inject css
-  // http://stackoverflow.com/questions/524696/how-to-create-a-style-tag-with-javascript
-  var style = document.createElement('style');
-  style.type = 'text/css';
-  if (style.styleSheet){
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-
-  document.getElementsByTagName('head')[0].appendChild(style);
 };
 
 /**
@@ -8044,7 +8031,7 @@ Range.prototype._onMouseWheel = function(event, component, direction) {
     }
 
     // calculate center, the date to zoom around
-    var gesture = Hammer.event.collectEventData(this, 'scroll', event),
+    var gesture = util.fakeGesture(this, event),
         pointer = getPointer(gesture.touches[0], component.frame),
         pointerDate = this._pointerToDate(component, direction, pointer);
 
@@ -13309,7 +13296,6 @@ if (typeof CanvasRenderingContext2D !== 'undefined') {
 function Node(properties, imagelist, grouplist, constants) {
   this.selected = false;
 
-
   this.edges = []; // all edges connected to this node
   this.dynamicEdges = [];
   this.reroutedEdges = {};
@@ -13330,11 +13316,13 @@ function Node(properties, imagelist, grouplist, constants) {
   this.xFixed = false;
   this.yFixed = false;
   this.radius = constants.nodes.radius;
+  this.baseRadiusValue = constants.nodes.radius;
   this.radiusFixed = false;
   this.radiusMin = constants.nodes.radiusMin;
   this.radiusMax = constants.nodes.radiusMax;
 
   this.imagelist = imagelist;
+
   this.grouplist = grouplist;
 
   this.setProperties(properties, constants);
@@ -13356,6 +13344,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.vy = 0.0;  // velocity y
   this.minForce = constants.minForce;
   this.damping = 0.9; // damping factor
+
+  this.graphScaleInv = 1;
 }
 
 /**
@@ -13377,8 +13367,10 @@ Node.prototype.attachEdge = function(edge) {
   if (this.edges.indexOf(edge) == -1) {
     this.edges.push(edge);
   }
-  this.dynamicEdges = this.edges;
-  this.dynamicEdgesLength = this.edges.length;
+  if (this.dynamicEdges.indexOf(edge) == -1) {
+    this.dynamicEdges.push(edge);
+  }
+  this.dynamicEdgesLength = this.dynamicEdges.length;
   this._updateMass();
 };
 
@@ -13390,9 +13382,9 @@ Node.prototype.detachEdge = function(edge) {
   var index = this.edges.indexOf(edge);
   if (index != -1) {
     this.edges.splice(index, 1);
+    this.dynamicEdges.splice(index, 1);
   }
-  this.dynamicEdges = this.edges;
-  this.dynamicEdgesLength = this.edges.length;
+  this.dynamicEdgesLength = this.dynamicEdges.length;
   this._updateMass();
 };
 
@@ -13416,13 +13408,13 @@ Node.prototype.setProperties = function(properties, constants) {
   }
 
   // basic properties
-  if (properties.id != undefined)        {this.id = properties.id;}
-  if (properties.label != undefined)     {this.label = properties.label;}
-  if (properties.title != undefined)     {this.title = properties.title;}
-  if (properties.group != undefined)     {this.group = properties.group;}
-  if (properties.x != undefined)         {this.x = properties.x;}
-  if (properties.y != undefined)         {this.y = properties.y;}
-  if (properties.value != undefined)     {this.value = properties.value;}
+  if (properties.id !== undefined)        {this.id = properties.id;}
+  if (properties.label !== undefined)     {this.label = properties.label;}
+  if (properties.title !== undefined)     {this.title = properties.title;}
+  if (properties.group !== undefined)     {this.group = properties.group;}
+  if (properties.x !== undefined)         {this.x = properties.x;}
+  if (properties.y !== undefined)         {this.y = properties.y;}
+  if (properties.value !== undefined)     {this.value = properties.value;}
 
   if (this.id === undefined) {
     throw "Node must have an id";
@@ -13439,17 +13431,16 @@ Node.prototype.setProperties = function(properties, constants) {
   }
 
   // individual shape properties
-  if (properties.shape != undefined)          {this.shape = properties.shape;}
-  if (properties.image != undefined)          {this.image = properties.image;}
-  if (properties.radius != undefined)         {this.radius = properties.radius;}
-  if (properties.color != undefined)          {this.color = Node.parseColor(properties.color);}
+  if (properties.shape !== undefined)          {this.shape = properties.shape;}
+  if (properties.image !== undefined)          {this.image = properties.image;}
+  if (properties.radius !== undefined)         {this.radius = properties.radius;}
+  if (properties.color !== undefined)          {this.color = Node.parseColor(properties.color);}
 
-  if (properties.fontColor != undefined)      {this.fontColor = properties.fontColor;}
-  if (properties.fontSize != undefined)       {this.fontSize = properties.fontSize;}
-  if (properties.fontFace != undefined)       {this.fontFace = properties.fontFace;}
+  if (properties.fontColor !== undefined)      {this.fontColor = properties.fontColor;}
+  if (properties.fontSize !== undefined)       {this.fontSize = properties.fontSize;}
+  if (properties.fontFace !== undefined)       {this.fontFace = properties.fontFace;}
 
-
-  if (this.image != undefined) {
+  if (this.image !== undefined) {
     if (this.imagelist) {
       this.imageObj = this.imagelist.load(this.image);
     }
@@ -13458,9 +13449,9 @@ Node.prototype.setProperties = function(properties, constants) {
     }
   }
 
-  this.xFixed = this.xFixed || (properties.x != undefined);
-  this.yFixed = this.yFixed || (properties.y != undefined);
-  this.radiusFixed = this.radiusFixed || (properties.radius != undefined);
+  this.xFixed = this.xFixed || (properties.x !== undefined);
+  this.yFixed = this.yFixed || (properties.y !== undefined);
+  this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
 
   if (this.shape == 'image') {
     this.radiusMin = constants.nodes.widthMin;
@@ -13503,14 +13494,6 @@ Node.parseColor = function(color) {
       highlight: {
         border: color,
         background: color
-      },
-      cluster: {
-        border: color,
-        background: color,
-        highlight: {
-          border: color,
-          background: color
-        }
       }
     };
     // TODO: automatically generate a nice highlight color
@@ -13531,33 +13514,8 @@ Node.parseColor = function(color) {
       c.highlight.background = color.highlight && color.highlight.background || c.background;
       c.highlight.border = color.highlight && color.highlight.border || c.border;
     }
-
-    // check if cluster colorgroup has been defined
-    if (util.isString(color.cluster)) {
-      c.cluster = {
-        border: color.cluster,
-        background: color.cluster
-      }
-    }
-    else {
-      c.cluster = {};
-      c.cluster.background = color.cluster && color.cluster.background || c.background;
-      c.cluster.border = color.cluster && color.cluster.border || c.border;
-    }
-
-    // check if cluster highlight colorgroup has been defined
-    if (util.isString(color.cluster.highlight)) {
-      c.cluster.highlight = {
-        border: color.cluster.highlight,
-        background: color.cluster.highlight
-      }
-    }
-    else {
-      c.cluster.highlight = {};
-      c.cluster.highlight.background = color.cluster.highlight && color.cluster.highlight.background || c.background;
-      c.cluster.highlight.border = color.cluster.highlight && color.cluster.highlight.border || c.border;
-    }
   }
+
   return c;
 };
 
@@ -13821,6 +13779,16 @@ Node.prototype._drawImage = function (ctx) {
 
   var yLabel;
   if (this.imageObj) {
+    // draw the shade
+    if (this.clusterSize > 1) {
+      var lineWidth = ((this.clusterSize > 1) ? 10 : 0.0);
+      lineWidth *= this.graphScaleInv;
+      lineWidth = Math.min(0.2 * this.width,lineWidth);
+
+      ctx.globalAlpha = 0.5;
+      ctx.drawImage(this.imageObj, this.left - lineWidth, this.top - lineWidth, this.width + 2*lineWidth, this.height + 2*lineWidth);
+    }
+    ctx.globalAlpha = 1.0;
     ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
     yLabel = this.y + this.height / 2;
   }
@@ -13840,9 +13808,9 @@ Node.prototype._resizeBox = function (ctx) {
     this.width = textSize.width + 2 * margin;
     this.height = textSize.height + 2 * margin;
 
-    this.width += this.clusterSize * this.clusterSizeWidthFactor;
-    this.height += this.clusterSize * this.clusterSizeHeightFactor;
-    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
+    this.width += this.clusterSize * 0.5 * this.clusterSizeWidthFactor;
+    this.height += this.clusterSize * 0.5 * this.clusterSizeHeightFactor;
+    //this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -13852,15 +13820,26 @@ Node.prototype._drawBox = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
+  var clusterLineWidth = 2.5;
+  var selectionLineWidth = 2;
+
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+
+  // draw the outer border
   if (this.clusterSize > 1) {
-    ctx.strokeStyle = this.selected ? this.color.cluster.highlight.border : this.color.cluster.border;
-    ctx.fillStyle = this.selected ? this.color.cluster.highlight.background : this.color.cluster.background;
+    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+    ctx.roundRect(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth, this.radius);
+    ctx.stroke();
   }
-  else {
-    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
-    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  }
-  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.clusterSize > 1) ? 2.0 : 0.0;
+  ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+
   ctx.roundRect(this.left, this.top, this.width, this.height, this.radius);
   ctx.fill();
   ctx.stroke();
@@ -13889,15 +13868,25 @@ Node.prototype._drawDatabase = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
+  var clusterLineWidth = 2.5;
+  var selectionLineWidth = 2;
+
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+
+  // draw the outer border
   if (this.clusterSize > 1) {
-    ctx.strokeStyle = this.selected ? this.color.cluster.highlight.border : this.color.cluster.border;
-    ctx.fillStyle = this.selected ? this.color.cluster.highlight.background : this.color.cluster.background;
+    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+    ctx.database(this.x - this.width/2 - 2*ctx.lineWidth, this.y - this.height*0.5 - 2*ctx.lineWidth, this.width + 4*ctx.lineWidth, this.height + 4*ctx.lineWidth);
+    ctx.stroke();
   }
-  else {
-    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
-    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  }
-  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.clusterSize > 1) ? 2.0 : 0.0;
+  ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
   ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
   ctx.fill();
   ctx.stroke();
@@ -13919,7 +13908,7 @@ Node.prototype._resizeCircle = function (ctx) {
     // scaling used for clustering
     this.width += this.clusterSize * this.clusterSizeWidthFactor;
     this.height += this.clusterSize * this.clusterSizeHeightFactor;
-    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
+    this.radius += this.clusterSize * 0.5*this.clusterSizeRadiusFactor;
   }
 };
 
@@ -13928,15 +13917,25 @@ Node.prototype._drawCircle = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
+  var clusterLineWidth = 2.5;
+  var selectionLineWidth = 2;
+
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+
+  // draw the outer border
   if (this.clusterSize > 1) {
-    ctx.strokeStyle = this.selected ? this.color.cluster.highlight.border : this.color.cluster.border;
-    ctx.fillStyle = this.selected ? this.color.cluster.highlight.background : this.color.cluster.background;
+    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+    ctx.circle(this.x, this.y, this.radius+2*ctx.lineWidth);
+    ctx.stroke();
   }
-  else {
-    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
-    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  }
-  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.clusterSize > 1) ? 2.0 : 0.0;
+  ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
   ctx.circle(this.x, this.y, this.radius);
   ctx.fill();
   ctx.stroke();
@@ -13966,15 +13965,26 @@ Node.prototype._drawEllipse = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
+  var clusterLineWidth = 2.5;
+  var selectionLineWidth = 2;
+
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+
+  // draw the outer border
   if (this.clusterSize > 1) {
-    ctx.strokeStyle = this.selected ? this.color.cluster.highlight.border : this.color.cluster.border;
-    ctx.fillStyle = this.selected ? this.color.cluster.highlight.background : this.color.cluster.background;
+    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+    ctx.ellipse(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth);
+    ctx.stroke();
   }
-  else {
-    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
-    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  }
-  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.clusterSize > 1) ? 2.0 : 0.0;
+  ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+
   ctx.ellipse(this.left, this.top, this.width, this.height);
   ctx.fill();
   ctx.stroke();
@@ -14003,6 +14013,7 @@ Node.prototype._drawStar = function (ctx) {
 
 Node.prototype._resizeShape = function (ctx) {
   if (!this.width) {
+    this.radius = this.baseRadiusValue;
     var size = 2 * this.radius;
     this.width = size;
     this.height = size;
@@ -14010,7 +14021,7 @@ Node.prototype._resizeShape = function (ctx) {
     // scaling used for clustering
     this.width += this.clusterSize * this.clusterSizeWidthFactor;
     this.height += this.clusterSize * this.clusterSizeHeightFactor;
-    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
+    this.radius += this.clusterSize * 0.5 * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -14019,15 +14030,36 @@ Node.prototype._drawShape = function (ctx, shape) {
 
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
+
+  var clusterLineWidth = 2.5;
+  var selectionLineWidth = 2;
+  var radiusMultiplier = 2;
+
+  // choose draw method depending on the shape
+  switch (shape) {
+    case 'dot':           radiusMultiplier = 2; break;
+    case 'square':        radiusMultiplier = 2; break;
+    case 'triangle':      radiusMultiplier = 3; break;
+    case 'triangleDown':  radiusMultiplier = 3; break;
+    case 'star':          radiusMultiplier = 4; break;
+  }
+
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+
+  // draw the outer border
   if (this.clusterSize > 1) {
-    ctx.strokeStyle = this.selected ? this.color.cluster.highlight.border : this.color.cluster.border;
-    ctx.fillStyle = this.selected ? this.color.cluster.highlight.background : this.color.cluster.background;
+    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+    ctx[shape](this.x, this.y, this.radius + radiusMultiplier * ctx.lineWidth);
+    ctx.stroke();
   }
-  else {
-    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
-    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  }
-  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.clusterSize > 1) ? 2.0 : 0.0;
+  ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
 
   ctx[shape](this.x, this.y, this.radius);
   ctx.fill();
@@ -14082,7 +14114,7 @@ Node.prototype._label = function (ctx, text, x, y, align, baseline) {
 
 
 Node.prototype.getTextSize = function(ctx) {
-  if (this.label != undefined) {
+  if (this.label !== undefined) {
     ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
 
     var lines = this.label.split('\n'),
@@ -14100,6 +14132,46 @@ Node.prototype.getTextSize = function(ctx) {
   }
 };
 
+/**
+ * This allows the zoom level of the graph to influence the rendering
+ *
+ * @param scale
+ */
+Node.prototype.setScale = function(scale) {
+  this.graphScaleInv = 1.0/scale;
+};
+
+/**
+ * This function updates the damping parameter for clusters, based ont he
+ *
+ * @param {Integer} numberOfNodes
+ */
+Node.prototype.updateDamping = function(numberOfNodes) {
+  this.damping = 0.8 + 0.1*this.clusterSize * (1 + 2/Math.pow(numberOfNodes,2));
+};
+
+
+/**
+ * set the velocity at 0. Is called when this node is contained in another during clustering
+ */
+Node.prototype.clearVelocity = function() {
+  this.vx = 0;
+  this.vy = 0;
+};
+
+
+
+/**
+ * Basic preservation of (kinectic) energy
+ *
+ * @param massBeforeClustering
+ */
+Node.prototype.updateVelocity = function(massBeforeClustering) {
+  var energyBefore = this.vx * this.vx * massBeforeClustering;
+  this.vx = Math.sqrt(energyBefore/this.mass);
+  energyBefore = this.vy * this.vy * massBeforeClustering;
+  this.vy = Math.sqrt(energyBefore/this.mass);
+};
 /**
  * @class Edge
  *
@@ -14371,10 +14443,10 @@ Edge.prototype._drawLine = function(ctx) {
  */
 Edge.prototype._getLineWidth = function() {
   if (this.from.selected || this.to.selected) {
-    return Math.min(this.width * 2, this.widthMax);
+    return Math.min(this.width * 2, this.widthMax)*this.graphScaleInv;
   }
   else {
-    return this.width;
+    return this.width*this.graphScaleInv;
   }
 };
 
@@ -14710,6 +14782,16 @@ Edge._dist = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
   return Math.sqrt(dx*dx + dy*dy);
 };
 
+
+
+/**
+ * This allows the zoom level of the graph to influence the rendering
+ *
+ * @param scale
+ */
+Edge.prototype.setScale = function(scale) {
+  this.graphScaleInv = 1.0/scale;
+};
 /**
  * Popup is a class to create a popup window with some text
  * @param {Element}  container     The container object.
@@ -14948,6 +15030,30 @@ function Cluster() {
   this.hubThreshold = 5;
 }
 
+
+/**
+ * This function can be called to open up a specific cluster.
+ * It will unpack the cluster back one level.
+ *
+ * @param node    | Node object: cluster to open.
+ */
+Cluster.prototype.openCluster = function(node) {
+  var isMovingBeforeClustering = this.moving;
+
+  this._expandClusterNode(node,false,true);
+
+  // housekeeping
+  this._updateNodeIndexList();
+
+  // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+  if (this.moving != isMovingBeforeClustering) {
+    this.start();
+  }
+};
+
+
+
+
 /**
  * This function can be called to increase the cluster level. This means that the nodes with only one edge connection will
  * be clustered with their connected node. This can be repeated as many times as needed.
@@ -14955,16 +15061,29 @@ function Cluster() {
  */
 Cluster.prototype.increaseClusterLevel = function() {
   var isMovingBeforeClustering = this.moving;
+  var amountOfNodes = this.nodeIndices.length;
 
   this._formClusters(true);
+
+  // housekeeping
+  this._updateNodeIndexList();
+  this._updateDynamicEdges();
+  this._updateLabels();
+
+  // if a cluster was formed, we increase the clusterSession
+  if (this.nodeIndices.length != amountOfNodes) {
+    this.clusterSession += 1;
+  }
 
   // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
   if (this.moving != isMovingBeforeClustering) {
     this.start();
   }
 
-  this._updateLabels();
+
 };
+
+
 
 /**
  * This function can be called to decrease the cluster level. This means that the nodes with only one edge connection will
@@ -14980,37 +15099,46 @@ Cluster.prototype.decreaseClusterLevel = function() {
       this._expandClusterNode(node,true,true);
     }
   }
+
+  // housekeeping - the dynamic edges are already updated in the expandClusterNode->expelChildFromParent function
   this._updateNodeIndexList();
-
-  this.clusterSession = (this.clusterSession == 0) ? 0 : this.clusterSession - 1;
-
-  // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
-  if (this.moving != isMovingBeforeClustering) {
-    this.start();
-  }
-
   this._updateLabels();
-  console.log("clusterSession",this.clusterSession)
-};
 
-
-/**
- * This function can be called to open up a specific cluster.
- * It will unpack the cluster back one level.
- *
- * @param node    | Node object: cluster to open.
- */
-Cluster.prototype.openCluster = function(node) {
-  var isMovingBeforeClustering = this.moving;
-
-  this._expandClusterNode(node,false,true);
-  this._updateNodeIndexList();
+  // reduce the clusterSession one level if not at 0
+  if (this.clusterSession != 0) {
+    this.clusterSession -= 1;
+  }
 
   // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
   if (this.moving != isMovingBeforeClustering) {
     this.start();
   }
 };
+
+
+Cluster.prototype.forceAggregateHubs = function() {
+  var isMovingBeforeClustering = this.moving;
+  var amountOfNodes = this.nodeIndices.length;
+
+  this._aggregateHubs(true);
+
+  // housekeeping
+  this._updateNodeIndexList();
+  this._updateDynamicEdges();
+  this._updateLabels();
+
+  // if a cluster was formed, we increase the clusterSession
+  if (this.nodeIndices.length != amountOfNodes) {
+    this.clusterSession += 1;
+  }
+
+  // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+  if (this.moving != isMovingBeforeClustering) {
+    this.start();
+  }
+};
+
+
 
 
 /**
@@ -15020,20 +15148,32 @@ Cluster.prototype.openCluster = function(node) {
  *
  * @private
  */
-Cluster.prototype._updateClusters = function() {
+Cluster.prototype.updateClusters = function() {
   var isMovingBeforeClustering = this.moving;
+  var amountOfNodes = this.nodeIndices.length;
 
+  // check if we zoom in or out
   if (this.previousScale > this.scale) { // zoom out
-    this._formClusters(false);
+    if (this.clusterSession % 5 == 1) {
+      this._aggregateHubs(false);
+    }
+    else {
+      this._formClusters(false);
+    }
   }
   else if (this.previousScale < this.scale) { // zoom out
     this._openClusters();
   }
-
-  this._updateClusterLabels();
-  this._updateNodeLabels();
-  this._updateLabels();
   this.previousScale = this.scale;
+
+  this._updateNodeIndexList();
+  this._updateDynamicEdges();
+  this._updateLabels();
+
+  // if a cluster was formed, we increase the clusterSession
+  if (this.nodeIndices.length != amountOfNodes) { // this means a clustering operation has taken place
+    this.clusterSession += 1;
+  }
 
   // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
   if (this.moving != isMovingBeforeClustering) {
@@ -15042,54 +15182,15 @@ Cluster.prototype._updateClusters = function() {
 };
 
 /**
- * This updates the node labels for all nodes (for debugging purposes)
- * @private
+ * this functions starts clustering by hubs
+ * The minimum hub threshold is set globally
  */
-Cluster.prototype._updateLabels = function() {
-  // update node labels
-  this._updateClusterLabels();
-  this._updateNodeLabels();
-
-   // Debug :
-  for (var nodeID in this.nodes) {
-    if (this.nodes.hasOwnProperty(nodeID)) {
-      var node = this.nodes[nodeID];
-//      node.label = String(node.dynamicEdges.length).concat(":",node.dynamicEdgesLength,":",String(node.clusterSize),":::",String(node.id));
-      node.label = String(node.dynamicEdges.length).concat(":",String(node.clusterSize));
-    }
-  }
-
+Cluster.prototype._aggregateHubs = function(force) {
+  this._getHubSize();
+  this._clusterByHub(force);
 };
 
-/**
- * This updates the node labels for all clusters
- * @private
- */
-Cluster.prototype._updateClusterLabels = function() {
-  // update node labels
-  for (var nodeID in this.nodes) {
-    if (this.nodes.hasOwnProperty(nodeID)) {
-      var node = this.nodes[nodeID];
-      if (node.clusterSize > 1) {
-        node.label = "[".concat(String(node.clusterSize),"]");
-      }
-    }
-  }
-};
 
-/**
- * This updates the node labels for all nodes that are NOT clusters
- * @private
- */
-Cluster.prototype._updateNodeLabels = function() {
-  // update node labels
-  for (var nodeID in this.nodes) {
-    var node = this.nodes[nodeID];
-    if (node.clusterSize == 1) {
-      node.label = String(node.id);
-    }
-  }
-};
 
 
 /**
@@ -15099,20 +15200,11 @@ Cluster.prototype._updateNodeLabels = function() {
  * @private
  */
 Cluster.prototype._openClusters = function() {
-  var amountOfNodes = this.nodeIndices.length;
-
   for (var i = 0; i < this.nodeIndices.length; i++) {
     var node = this.nodes[this.nodeIndices[i]];
     this._expandClusterNode(node,true,false);
   }
-
-  this._updateNodeIndexList();
-
-  if (this.nodeIndices.length != amountOfNodes) { // this means a clustering operation has taken place
-    this.clusterSession -= 1;
-  }
 };
-
 
 /**
  * This function checks if a node has to be opened. This is done by checking the zoom level.
@@ -15152,17 +15244,6 @@ Cluster.prototype._expandClusterNode = function(parentNode, recursive, forceExpa
   }
 };
 
-
-Cluster.prototype._parentNodeInActiveArea = function(node) {
-  if (Math.abs(node.x - this.zoomCenter.x) <= this.constants.clustering.activeAreaBoxSize/this.scale &&
-      Math.abs(node.y - this.zoomCenter.y) <= this.constants.clustering.activeAreaBoxSize/this.scale) {
-    return true;
-  }
-  else {
-    return false;
-  }
-};
-
 /**
  * This function will expel a child_node from a parent_node. This is to de-cluster the node. This function will remove
  * the child node from the parent contained_node object and put it back into the global nodes object.
@@ -15180,7 +15261,6 @@ Cluster.prototype._expelChildFromParent = function(parentNode, containedNodeID, 
 
   // if child node has been added on smaller scale than current, kick out
   if (childNode.formationScale < this.scale || forceExpand == true) {
-
     // put the child node back in the global nodes object
     this.nodes[containedNodeID] = childNode;
 
@@ -15189,6 +15269,9 @@ Cluster.prototype._expelChildFromParent = function(parentNode, containedNodeID, 
 
     // reconnect rerouted edges to the childNode
     this._connectEdgeBackToChild(parentNode,childNode);
+
+    // validate all edges in dynamicEdges
+    this._validateEdges(parentNode);
 
     // undo the changes from the clustering operation on the parent node
     parentNode.mass -= this.constants.clustering.massTransferCoefficient * childNode.mass;
@@ -15222,25 +15305,19 @@ Cluster.prototype._expelChildFromParent = function(parentNode, containedNodeID, 
 
 /**
  * This function checks if any nodes at the end of their trees have edges below a threshold length
- * This function is called only from _updateClusters()
+ * This function is called only from updateClusters()
  * forceLevelCollapse ignores the length of the edge and collapses one level
  * This means that a node with only one edge will be clustered with its connected node
  *
  * @private
- * @param force_level_collapse    | Boolean
+ * @param {Boolean} force
  */
-Cluster.prototype._formClusters = function(forceLevelCollapse) {
-  var amountOfNodes = this.nodeIndices.length;
-
-  if (forceLevelCollapse == false) {
+Cluster.prototype._formClusters = function(force) {
+  if (force == false) {
     this._formClustersByZoom();
   }
   else {
     this._forceClustersByZoom();
-  }
-
-  if (this.nodeIndices.length != amountOfNodes) { // this means a clustering operation has taken place
-    this.clusterSession += 1;
   }
 };
 
@@ -15264,37 +15341,35 @@ Cluster.prototype._formClustersByZoom = function() {
   // the clustering favours the node with the larger mass
   for (var i = 0; i < edgesIDarray.length; i++) {
     var edgeID = edgesIDarray[i];
-    var edge = this.edges[edgeID];
-    if (edge.connected) {
-      dx = (edge.to.x - edge.from.x);
-      dy = (edge.to.y - edge.from.y);
-      length = Math.sqrt(dx * dx + dy * dy);
+    // this is checked because edges can be deleted from this.edges during this function
+    // most likely example, two nodes connected to eachother with a double connection
+    if (this.edges.hasOwnProperty(edgeID)) {
+      var edge = this.edges[edgeID];
+      if (edge.connected) {
+        dx = (edge.to.x - edge.from.x);
+        dy = (edge.to.y - edge.from.y);
+        length = Math.sqrt(dx * dx + dy * dy);
 
 
-      if (length < minLength) {
-        // first check which node is larger
-        var parentNode = edge.from
-        var childNode = edge.to
-        if (edge.to.mass > edge.from.mass) {
-          parentNode = edge.to
-          childNode = edge.from
-        }
+        if (length < minLength) {
+          // first check which node is larger
+          var parentNode = edge.from
+          var childNode = edge.to
+          if (edge.to.mass > edge.from.mass) {
+            parentNode = edge.to
+            childNode = edge.from
+          }
 
-        // we allow clustering from outside in
-        // if we do not cluster from outside in, we would have to reconnect edges or keep
-        // a second set of edges for the clusters.
-        // This will also have to be altered in the force calculation and rendering.
-        // This method is non-destructive and does not require a second set of data.
-        if (childNode.dynamicEdgesLength == 1) {
-          this._addToCluster(parentNode,childNode,false);
-        }
-        else if (parentNode.dynamicEdgesLength == 1) {
-          this._addToCluster(childNode,parentNode,false);
+          if (childNode.dynamicEdgesLength == 1) {
+            this._addToCluster(parentNode,childNode,false);
+          }
+          else if (parentNode.dynamicEdgesLength == 1) {
+            this._addToCluster(childNode,parentNode,false);
+          }
         }
       }
     }
   }
-  this._updateNodeIndexList();
 };
 
 /**
@@ -15305,77 +15380,39 @@ Cluster.prototype._formClustersByZoom = function() {
  */
 Cluster.prototype._forceClustersByZoom = function() {
   for (var nodeID = 0; nodeID < this.nodeIndices.length; nodeID++) {
-    var childNode = this.nodes[this.nodeIndices[nodeID]];
-    if (childNode.dynamicEdgesLength == 1) {
-      var edge = childNode.dynamicEdges[0];
-      var parentNode = (edge.toId == childNode.id) ? this.nodes[edge.fromId] : this.nodes[edge.toId];
-      this._addToCluster(parentNode,childNode,true);
+    // another node could have absorbed this child.
+    if (this.nodes.hasOwnProperty(this.nodeIndices[nodeID])) {
+      var childNode = this.nodes[this.nodeIndices[nodeID]];
+
+      // the edges can be swallowed by another decrease
+      if (childNode.dynamicEdgesLength == 1 && childNode.dynamicEdges.length != 0) {
+        var edge = childNode.dynamicEdges[0];
+        var parentNode = (edge.toId == childNode.id) ? this.nodes[edge.fromId] : this.nodes[edge.toId];
+
+        // group to the largest node
+        if (parentNode.mass > childNode.mass) {
+          this._addToCluster(parentNode,childNode,true);
+        }
+        else {
+          this._addToCluster(childNode,parentNode,true);
+        }
+      }
     }
   }
-
-  this._updateNodeIndexList();
-  this._updateDynamicEdges();
 };
 
 
-/**
- * this functions starts clustering by hubs
- * The minimum hub threshold is set globally
- */
-Cluster.prototype.aggregateHubs = function() {
-  var isMovingBeforeClustering = this.moving;
-  var amountOfNodes = this.nodeIndices.length;
-
-  this._getHubSize();
-  this._forceClustersByHub();
-
-  // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
-  if (this.moving != isMovingBeforeClustering) {
-    this.start();
-  }
-
-  if (this.nodeIndices.length != amountOfNodes) { // this means a clustering operation has taken place
-    this.clusterSession += 1;
-  }
-};
-
-/**
- * We determine how many connections denote an important hub.
- * We take the mean + 2*std as the important hub size. (Assuming a normal distribution of data, ~2.2%)
- *
- * @private
- */
-Cluster.prototype._getHubSize = function() {
-  var average = 0;
-  var averageSquared = 0;
-  var hubCounter = 0;
-
-  for (var i = 0; i < this.nodeIndices.length; i++) {
-    var node = this.nodes[this.nodeIndices[i]];
-    average += node.dynamicEdgesLength;
-    averageSquared += Math.pow(node.dynamicEdgesLength,2);
-    hubCounter += 1;
-  }
-  average = average / hubCounter;
-  averageSquared = averageSquared / hubCounter;
-
-  var variance = averageSquared - Math.pow(average,2);
-
-  var standardDeviation = Math.sqrt(variance);
-
-  this.hubThreshold = Math.floor(average + 2*standardDeviation);
-
-  //console.log("average",average,"averageSQ",averageSquared,"var",variance,"std",standardDeviation);
-  //console.log("hubThreshold:",this.hubThreshold);
-};
 
 /**
  *
- * @param hubThresholdOverride
- * @param EqualityOverride
+ * @param {Boolean} force
  * @private
  */
-Cluster.prototype._forceClustersByHub = function(hubThresholdOverride,EqualityOverride) {
+Cluster.prototype._clusterByHub = function(force) {
+  var dx,dy,length;
+  var minLength = this.constants.clustering.clusterLength/this.scale;
+  var allowCluster = false;
+
   // we loop over all nodes in the list
   for (var i = 0; i < this.nodeIndices.length; i++) {
     // we check if it is still available since it can be used by the clustering in this loop
@@ -15391,78 +15428,62 @@ Cluster.prototype._forceClustersByHub = function(hubThresholdOverride,EqualityOv
           edgesIDarray.push(hubNode.dynamicEdges[j].id);
         }
 
-        // we loop over all edges INITIALLY connected to this hub
-        for (var j = 0; j < amountOfInitialEdges; j++) {
-          var edge = this.edges[edgesIDarray[j]];
-          var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
+        // if the hub clustering is not forces, we check if one of the edges connected
+        // to a cluster is small enough based on the constants.clustering.clusterLength
+        if (force == false) {
+          allowCluster = false;
+          for (var j = 0; j < amountOfInitialEdges; j++) {
+            var edge = this.edges[edgesIDarray[j]];
+            if (edge !== undefined) {
+              if (edge.connected) {
+                dx = (edge.to.x - edge.from.x);
+                dy = (edge.to.y - edge.from.y);
+                length = Math.sqrt(dx * dx + dy * dy);
 
-          // we do not want hubs to merge with other hubs.
-          if (childNode.dynamicEdges.length < this.hubThreshold) {
-            this._addToCluster(hubNode,childNode,true);
+                if (length < minLength) {
+                  allowCluster = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+
+        // start the clustering if allowed
+        if ((!force && allowCluster) || force) {
+          // we loop over all edges INITIALLY connected to this hub
+          for (var j = 0; j < amountOfInitialEdges; j++) {
+            var edge = this.edges[edgesIDarray[j]];
+
+            // the edge can be clustered by this function in a previous loop
+            if (edge !== undefined) {
+              var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
+
+              // we do not want hubs to merge with other hubs.
+              if (childNode.dynamicEdges.length <= this.hubThreshold) {
+                this._addToCluster(hubNode,childNode,force);
+              }
+            }
           }
         }
       }
     }
   }
-  this._updateNodeIndexList();
-  this._updateDynamicEdges();
-  this._updateLabels();
 };
 
-
-
-/**
- *
- * @param hubThreshold
- * @private
- */
-Cluster.prototype._forceClustersByHub = function() {
-  // we loop over all nodes in the list
-  for (var i = 0; i < this.nodeIndices.length; i++) {
-    // we check if it is still available since it can be used by the clustering in this loop
-    if (this.nodes.hasOwnProperty(this.nodeIndices[i])) {
-      var hubNode = this.nodes[this.nodeIndices[i]];
-
-      // we decide if the node is a hub
-      if (hubNode.dynamicEdgesLength >= this.hubThreshold) {
-        // we create a list of edges because the dynamicEdges change over the course of this loop
-        var edgesIDarray = []
-        var amountOfInitialEdges = hubNode.dynamicEdges.length;
-        for (var j = 0; j < amountOfInitialEdges; j++) {
-          edgesIDarray.push(hubNode.dynamicEdges[j].id);
-        }
-
-        // we loop over all edges INITIALLY connected to this hub
-        for (var j = 0; j < amountOfInitialEdges; j++) {
-          var edge = this.edges[edgesIDarray[j]];
-          var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
-
-          // we do not want hubs to merge with other hubs.
-          if (childNode.dynamicEdges.length < this.hubThreshold) {
-            this._addToCluster(hubNode,childNode,true);
-          }
-        }
-        //break;
-      }
-    }
-  }
-  this._updateNodeIndexList();
-  this._updateDynamicEdges();
-  this._updateLabels();
-};
 
 
 
 /**
  * This function adds the child node to the parent node, creating a cluster if it is not already.
- * This function is called only from _updateClusters()
+ * This function is called only from updateClusters()
  *
- * @param parent_node           | Node object: this is the node that will house the child node
- * @param child_node            | Node object: this node will be deleted from the global this.nodes and stored in the parent node
- * @param force_level_collapse  | Boolean: true will only update the remainingEdges at the very end of the clustering, ensuring single level collapse
+ * @param {Node} parentNode           | this is the node that will house the child node
+ * @param {Node} childNode            | this node will be deleted from the global this.nodes and stored in the parent node
+ * @param {Boolean} force             | true will only update the remainingEdges at the very end of the clustering, ensuring single level collapse
  * @private
  */
-Cluster.prototype._addToCluster = function(parentNode, childNode, forceLevelCollapse) {
+Cluster.prototype._addToCluster = function(parentNode, childNode, force) {
   // join child node in the parent node
   parentNode.containedNodes[childNode.id] = childNode;
 
@@ -15478,9 +15499,10 @@ Cluster.prototype._addToCluster = function(parentNode, childNode, forceLevelColl
   }
   childNode.dynamicEdges = [];
 
-
   // remove the childNode from the global nodes object
   delete this.nodes[childNode.id];
+
+  var massBefore = parentNode.mass;
 
   childNode.clusterSession = this.clusterSession;
   parentNode.mass += this.constants.clustering.massTransferCoefficient * childNode.mass;
@@ -15488,19 +15510,26 @@ Cluster.prototype._addToCluster = function(parentNode, childNode, forceLevelColl
   parentNode.fontSize += this.constants.clustering.fontSizeMultiplier * childNode.clusterSize
 
   // giving the clusters a dynamic formationScale to ensure not all clusters open up when zoomed
-  if (forceLevelCollapse == true) {
-    parentNode.formationScale = 1.0 * Math.pow(1 - (1.0/11.0),this.clusterSession + parentNode.clusterSize);
+  if (force == true) {
+    parentNode.formationScale = 1.0 * Math.pow(1 - (1.0/11.0),this.clusterSession+2);
+    console.log(".formationScale",parentNode.formationScale)
   }
   else {
     parentNode.formationScale = this.scale; // The latest child has been added on this scale
   }
-  console.log("formationScale",parentNode.formationScale)
-  parentNode.dynamicEdgesLength = parentNode.dynamicEdges.length;
 
   // recalculate the size of the node on the next time the node is rendered
   parentNode.clearSizeCache();
 
-  parentNode.containedNodes[childNode.id].formationScale = this.scale; // this child has been added at this scale.
+  // set the pop-out scale for the childnode
+  parentNode.containedNodes[childNode.id].formationScale = parentNode.formationScale;
+
+  // nullify the movement velocity of the child, this is to avoid hectic behaviour
+  childNode.clearVelocity();
+
+  // the mass has altered, preservation of energy dictates the velocity to be updated
+  parentNode.updateVelocity(massBefore);
+
 
   // restart the simulation to reorganise all nodes
   this.moving = true;
@@ -15517,22 +15546,26 @@ Cluster.prototype._updateDynamicEdges = function() {
   for (var i = 0; i < this.nodeIndices.length; i++) {
     var node = this.nodes[this.nodeIndices[i]];
     node.dynamicEdgesLength = node.dynamicEdges.length;
-  }
-};
 
-
-Cluster.prototype._repositionNodes = function() {
-  for (var i = 0; i < this.nodeIndices.length; i++) {
-    var node = this.nodes[this.nodeIndices[i]];
-    if (!node.isFixed()) {
-      // TODO: position new nodes in a smarter way!
-      var radius = this.constants.edges.length * (1 + 0.5*node.clusterSize);
-      var angle = 2 * Math.PI * Math.random();
-      node.x = radius * Math.cos(angle);
-      node.y = radius * Math.sin(angle);
+    // this corrects for multiple edges pointing at the same other node
+    var correction = 0
+    if (node.dynamicEdgesLength > 1) {
+      for (var j = 0; j < node.dynamicEdgesLength - 1; j++) {
+        var edgeToId = node.dynamicEdges[j].toId;
+        var edgeFromId = node.dynamicEdges[j].fromId;
+        for (var k = j+1; k < node.dynamicEdgesLength; k++) {
+          if ((node.dynamicEdges[k].toId == edgeToId && node.dynamicEdges[k].fromId == edgeFromId) ||
+              (node.dynamicEdges[k].fromId == edgeToId && node.dynamicEdges[k].toId == edgeFromId)) {
+            correction += 1;
+          }
+        }
+      }
     }
+
+    node.dynamicEdgesLength -= correction;
   }
 };
+
 
 /**
  * This adds an edge from the childNode to the contained edges of the parent node
@@ -15647,6 +15680,27 @@ Cluster.prototype._connectEdgeBackToChild = function(parentNode, childNode) {
   }
 };
 
+
+/**
+ * When loops are clustered, an edge can be both in the rerouted array and the contained array.
+ * This function is called last to verify that all edges in dynamicEdges are in fact connected to the
+ * parentNode
+ *
+ * @param parentNode    | Node object
+ * @param childNode     | Node object
+ * @private
+ */
+Cluster.prototype._validateEdges = function(parentNode) {
+  // TODO: check if good idea
+  for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
+    var edge = parentNode.dynamicEdges[i];
+    if (parentNode.id != edge.toId && parentNode.id != edge.fromId) {
+      parentNode.dynamicEdges.splice(i,1);
+    }
+  }
+};
+
+
 /**
  * This function released the contained edges back into the global domain and puts them back into the
  * dynamic edges of both parent and child.
@@ -15671,6 +15725,125 @@ Cluster.prototype._releaseContainedEdges = function(parentNode, childNode) {
 
 };
 
+
+
+
+// ------------------- UTILITY FUNCTIONS ---------------------------- //
+
+
+/**
+ * This updates the node labels for all nodes (for debugging purposes)
+ * @private
+ */
+Cluster.prototype._updateLabels = function() {
+  // update node labels
+  for (var nodeID in this.nodes) {
+    if (this.nodes.hasOwnProperty(nodeID)) {
+      var node = this.nodes[nodeID];
+      if (node.clusterSize > 1) {
+        node.label = "[".concat(String(node.clusterSize),"]");
+      }
+    }
+  }
+
+  // update node labels
+  for (var nodeID in this.nodes) {
+    var node = this.nodes[nodeID];
+    if (node.clusterSize == 1) {
+      node.label = String(node.id);
+    }
+  }
+
+  /* Debug Override */
+  for (var nodeID in this.nodes) {
+    if (this.nodes.hasOwnProperty(nodeID)) {
+      var node = this.nodes[nodeID];
+      node.label = String(node.dynamicEdges.length).concat(":",node.dynamicEdgesLength,":",String(node.clusterSize),":::",String(node.id));
+    }
+  }
+
+};
+
+
+/**
+ * This function determines if the cluster we want to decluster is in the active area
+ * this means around the zoom center
+ *
+ * @param {Node}
+ * @returns {boolean}
+ * @private
+ */
+Cluster.prototype._parentNodeInActiveArea = function(node) {
+  if (Math.abs(node.x - this.zoomCenter.x) <= this.constants.clustering.activeAreaBoxSize/this.scale &&
+    Math.abs(node.y - this.zoomCenter.y) <= this.constants.clustering.activeAreaBoxSize/this.scale) {
+    return true;
+  }
+  else {
+    return false;
+  }
+};
+
+
+/**
+ * This is an adaptation of the original repositioning function. This is called if the system is clustered initially
+ * It puts large clusters away from the center and randomizes the order.
+ *
+ * @private
+ */
+Cluster.prototype._repositionNodes = function() {
+  for (var i = 0; i < this.nodeIndices.length; i++) {
+    var node = this.nodes[this.nodeIndices[i]];
+    if (!node.isFixed()) {
+      var radius = this.constants.edges.length * (1 + 0.6*node.clusterSize);
+      var angle = 2 * Math.PI * Math.random();
+      node.x = radius * Math.cos(angle);
+      node.y = radius * Math.sin(angle);
+    }
+  }
+};
+
+
+
+
+
+/**
+ * We determine how many connections denote an important hub.
+ * We take the mean + 2*std as the important hub size. (Assuming a normal distribution of data, ~2.2%)
+ *
+ * @private
+ */
+Cluster.prototype._getHubSize = function() {
+  var average = 0;
+  var averageSquared = 0;
+  var hubCounter = 0;
+  var largestHub = 0;
+
+  for (var i = 0; i < this.nodeIndices.length; i++) {
+    var node = this.nodes[this.nodeIndices[i]];
+    if (node.dynamicEdgesLength > largestHub) {
+      largestHub = node.dynamicEdgesLength;
+    }
+    average += node.dynamicEdgesLength;
+    averageSquared += Math.pow(node.dynamicEdgesLength,2);
+    hubCounter += 1;
+  }
+  average = average / hubCounter;
+  averageSquared = averageSquared / hubCounter;
+
+  var variance = averageSquared - Math.pow(average,2);
+
+  var standardDeviation = Math.sqrt(variance);
+
+  this.hubThreshold = Math.floor(average + 2*standardDeviation);
+
+  // always have at least one to cluster
+  if (this.hubThreshold > largestHub) {
+    this.hubThreshold = largestHub;
+  }
+
+//  console.log("average",average,"averageSQ",averageSquared,"var",variance,"std",standardDeviation);
+//  console.log("hubThreshold:",this.hubThreshold);
+};
 /**
  * @constructor Graph
  * Create a graph visualization, displaying nodes and edges.
@@ -15712,14 +15885,6 @@ function Graph (container, data, options) {
         highlight: {
           border: '#2B7CE9',
           background: '#D2E5FF'
-        },
-        cluster: {
-          border: '#256a2d',
-          background: '#2cd140',
-          highlight: {
-            border: '#899539',
-            background: '#c5dc29'
-          }
         }
       },
       borderColor: '#2B7CE9',
@@ -15747,10 +15912,11 @@ function Graph (container, data, options) {
       clustering: { // TODO: naming of variables
       maxNumberOfNodes: 100,        // for automatic (initial) clustering //
       clusterLength: 30,            // threshold edge length for clusteringl
-      fontSizeMultiplier: 2,        // how much the cluster font size grows per node (in px)
-      forceAmplification: 0.6,      // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
-      distanceAmplification: 0.1,   // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
-      edgeGrowth: 10,               // amount of clusterSize connected to the edge is multiplied with this and added to edgeLength
+      fontSizeMultiplier: 3,        // how much the cluster font size grows per node (in px)
+      forceAmplification: 0.7,      // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
+      distanceAmplification: 0.3,   // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
+      edgeStrength: 0.01,
+      edgeGrowth: 11,               // amount of clusterSize connected to the edge is multiplied with this and added to edgeLength
       clusterSizeWidthFactor: 10,
       clusterSizeHeightFactor: 10,
       clusterSizeRadiusFactor: 10,
@@ -15868,13 +16034,12 @@ Graph.prototype.clusterToFit = function() {
   while (numberOfNodes >= maxNumberOfNodes && level < maxLevels) {
     if (level % 5 == 0) {
       console.log("Aggregating Hubs @ level: ",level,". Threshold:", this.hubThreshold,"clusterSession",this.clusterSession);
-      this.aggregateHubs();
+      this.forceAggregateHubs();
     }
     else {
       console.log("Pulling in Outliers @ level: ",level,"clusterSession",this.clusterSession);
       this.increaseClusterLevel();
     }
-    console.log("zoomscale for level: ",this.scale * Math.pow(1.0/11.0,this.clusterSession),". Current: ",this.scale);
     numberOfNodes = this.nodeIndices.length;
     level += 1;
   }
@@ -16013,7 +16178,6 @@ Graph.prototype.setOptions = function (options) {
        if (options.nodes.widthMax) this.constants.nodes.radiusMax = options.nodes.widthMax;
        */
     }
-
     if (options.groups) {
       for (var groupname in options.groups) {
         if (options.groups.hasOwnProperty(groupname)) {
@@ -16092,7 +16256,7 @@ Graph.prototype._create = function () {
   this.mouseTrap.bind("=",this.decreaseClusterLevel.bind(me));
   this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
   this.mouseTrap.bind("s",this.singleStep.bind(me));
-  this.mouseTrap.bind("h",this.aggregateHubs.bind(me));
+  this.mouseTrap.bind("h",this.forceAggregateHubs.bind(me));
   this.mouseTrap.bind("f",this.toggleFreeze.bind(me));
 
   // add the frame to the container element
@@ -16356,10 +16520,11 @@ Graph.prototype._zoom = function(scale, pointer) {
  // this.zoomCenter = {"x" : pointer.x,"y" : pointer.y };
   this._setScale(scale);
   this._setTranslation(tx, ty);
-  this._updateClusters();
+  this.updateClusters();
   this._redraw();
 
-  console.log("current scale: ", this.scale)
+  console.log("current zoomscale:",this.scale)
+
   return scale;
 };
 
@@ -16398,7 +16563,7 @@ Graph.prototype._onMouseWheel = function(event) {
     scale *= (1 + zoom);
 
     // calculate the pointer location
-    var gesture = Hammer.event.collectEventData(this, 'scroll', event);
+    var gesture = util.fakeGesture(this, event);
     var pointer = this._getPointer(gesture.center);
 
     // apply the new scale
@@ -16419,7 +16584,7 @@ Graph.prototype._onMouseWheel = function(event) {
  * @private
  */
 Graph.prototype._onMouseMoveTitle = function (event) {
-  var gesture = Hammer.event.collectEventData(this, 'mousemove', event);
+  var gesture = util.fakeGesture(this, event);
   var pointer = this._getPointer(gesture.center);
 
   // check if the previously selected node is still selected
@@ -17254,6 +17419,7 @@ Graph.prototype._drawNodes = function(ctx) {
   var selected = [];
   for (var id in nodes) {
     if (nodes.hasOwnProperty(id)) {
+      nodes[id].setScale(this.scale);
       if (nodes[id].isSelected()) {
         selected.push(id);
       }
@@ -17280,6 +17446,7 @@ Graph.prototype._drawEdges = function(ctx) {
   for (var id in edges) {
     if (edges.hasOwnProperty(id)) {
       var edge = edges[id];
+      edge.setScale(this.scale);
       if (edge.connected) {
         edges[id].draw(ctx);
       }
@@ -17322,162 +17489,168 @@ Graph.prototype._calculateForces = function() {
       nodes = this.nodes,
       edges = this.edges;
 
-  // gravity, add a small constant force to pull the nodes towards the center of
-  // the graph
-  // Also, the forces are reset to zero in this loop by using _setForce instead
-  // of _addForce
-
-
-  var gravity = 0.02;
-  for (var i = 0; i < this.nodeIndices.length; i++) {
-      var node = nodes[this.nodeIndices[i]];
-      /*
-      dx = -node.x;
-      dy = -node.y;
-      angle = Math.atan2(dy, dx);
-      fx = Math.cos(angle) * gravity;
-      fy = Math.sin(angle) * gravity;
-      node._setForce(fx, fy);
-      */
-      node._setForce(0, 0);
+  if (this.nodeIndices.length == 1) { // stop calculation if there is only one node
+    nodes[this.nodeIndices[0]]._setForce(0,0);
   }
+  else {
+    // Gravity is required to keep separated groups from floating off
+    // the forces are reset to zero in this loop by using _setForce instead
+    // of _addForce
+    var gravity = 0.08;
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+        var node = nodes[this.nodeIndices[i]];
+        dx = -node.x - this.translation.x + this.frame.canvas.clientWidth*0.5;
+        dy = -node.y - this.translation.y + this.frame.canvas.clientHeight*0.5;
 
-  // repulsing forces between nodes
-  var minimumDistance = this.constants.nodes.distance,
-      steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
-
-
-  // we loop from i over all but the last entree in the array
-  // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
-  for (var i = 0; i < this.nodeIndices.length-1; i++) {
-    var node1 = nodes[this.nodeIndices[i]];
-    for (var j = i+1; j < this.nodeIndices.length; j++) {
-      var node2 = nodes[this.nodeIndices[j]];
-      var clusterSize = (node1.clusterSize + node2.clusterSize - 2);
-      dx = node2.x - node1.x;
-      dy = node2.y - node1.y;
-      distance = Math.sqrt(dx * dx + dy * dy);
-
-
-      // clusters have a larger region of influence
-      minimumDistance = (clusterSize == 0) ? this.constants.nodes.distance : (this.constants.nodes.distance * (1 + clusterSize * this.constants.clustering.distanceAmplification));
-      if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
         angle = Math.atan2(dy, dx);
+        fx = Math.cos(angle) * gravity;
+        fy = Math.sin(angle) * gravity;
+        node._setForce(fx, fy);
 
-        if (distance < 0.5*minimumDistance) { // at 0.5 * the minimum distance, the force is 0.993307
-          repulsingForce = 1.0;
+        node.updateDamping(this.nodeIndices.length);
+    }
+
+    this._updateLabels();
+
+    // repulsing forces between nodes
+    var minimumDistance = this.constants.nodes.distance,
+        steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
+
+
+    // we loop from i over all but the last entree in the array
+    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
+    for (var i = 0; i < this.nodeIndices.length-1; i++) {
+      var node1 = nodes[this.nodeIndices[i]];
+      for (var j = i+1; j < this.nodeIndices.length; j++) {
+        var node2 = nodes[this.nodeIndices[j]];
+        var clusterSize = (node1.clusterSize + node2.clusterSize - 2);
+        dx = node2.x - node1.x;
+        dy = node2.y - node1.y;
+        distance = Math.sqrt(dx * dx + dy * dy);
+
+
+        // clusters have a larger region of influence
+        minimumDistance = (clusterSize == 0) ? this.constants.nodes.distance : (this.constants.nodes.distance * (1 + clusterSize * this.constants.clustering.distanceAmplification));
+        if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
+          angle = Math.atan2(dy, dx);
+
+          if (distance < 0.5*minimumDistance) { // at 0.5 * the minimum distance, the force is 0.993307
+            repulsingForce = 1.0;
+          }
+          else {
+            // TODO: correct factor for repulsing force
+            //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+            //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+            repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
+          }
+
+          // amplify the repulsion for clusters.
+          repulsingForce *= (clusterSize == 0) ? 1 : 1 + clusterSize * this.constants.clustering.forceAmplification;
+
+          fx = Math.cos(angle) * repulsingForce;
+          fy = Math.sin(angle) * repulsingForce;
+
+          node1._addForce(-fx, -fy);
+          node2._addForce(fx, fy);
         }
-        else {
-          // TODO: correct factor for repulsing force
-          //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-          //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-          repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
-        }
-
-        // amplify the repulsion for clusters.
-        repulsingForce *= (clusterSize == 0) ? 1 : 1 + clusterSize * this.constants.clustering.forceAmplification;
-
-        fx = Math.cos(angle) * repulsingForce;
-        fy = Math.sin(angle) * repulsingForce;
-
-        node1._addForce(-fx, -fy);
-        node2._addForce(fx, fy);
       }
     }
-  }
 
-  // TODO: re-implement repulsion of edges
-   for (var n = 0; n < nodes.length; n++) {
-   for (var l = 0; l < edges.length; l++) {
-   var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
-   ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
+    // TODO: re-implement repulsion of edges
+     for (var n = 0; n < nodes.length; n++) {
+     for (var l = 0; l < edges.length; l++) {
+     var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
+     ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
 
-   // calculate normally distributed force
-   dx = nodes[n].x - lx,
-   dy = nodes[n].y - ly,
-   distance = Math.sqrt(dx * dx + dy * dy),
-   angle = Math.atan2(dy, dx),
-
-
-   // TODO: correct factor for repulsing force
-   //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-   //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
-   repulsingforce = 1 / (1 + Math.exp((distance / (minimumDistance / 2) - 1) * steepness)), // TODO: customize the repulsing force
-   fx = Math.cos(angle) * repulsingforce,
-   fy = Math.sin(angle) * repulsingforce;
-   nodes[n]._addForce(fx, fy);
-   edges[l].from._addForce(-fx/2,-fy/2);
-   edges[l].to._addForce(-fx/2,-fy/2);
-   }
-   }
+     // calculate normally distributed force
+     dx = nodes[n].x - lx,
+     dy = nodes[n].y - ly,
+     distance = Math.sqrt(dx * dx + dy * dy),
+     angle = Math.atan2(dy, dx),
 
 
-  // forces caused by the edges, modelled as springs
-  for (id in edges) {
-    if (edges.hasOwnProperty(id)) {
-      var edge = edges[id];
-      if (edge.connected) {
-        dx = (edge.to.x - edge.from.x);
-        dy = (edge.to.y - edge.from.y);
-        //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
-        //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length; // TODO: dmin
-        //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2;
-        edgeLength = edge.length;
-        // this implies that the edges between big clusters are longer
-        edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
-        length =  Math.sqrt(dx * dx + dy * dy);
-        angle = Math.atan2(dy, dx);
+     // TODO: correct factor for repulsing force
+     //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+     //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
+     repulsingforce = 1 / (1 + Math.exp((distance / (minimumDistance / 2) - 1) * steepness)), // TODO: customize the repulsing force
+     fx = Math.cos(angle) * repulsingforce,
+     fy = Math.sin(angle) * repulsingforce;
+     nodes[n]._addForce(fx, fy);
+     edges[l].from._addForce(-fx/2,-fy/2);
+     edges[l].to._addForce(-fx/2,-fy/2);
+     }
+     }
 
-        springForce = edge.stiffness * (edgeLength - length);
 
-        fx = Math.cos(angle) * springForce;
-        fy = Math.sin(angle) * springForce;
+    // forces caused by the edges, modelled as springs
+    for (id in edges) {
+      if (edges.hasOwnProperty(id)) {
+        var edge = edges[id];
+        if (edge.connected) {
+          var clusterSize = (edge.to.clusterSize + edge.from.clusterSize - 2);
+          dx = (edge.to.x - edge.from.x);
+          dy = (edge.to.y - edge.from.y);
+          //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
+          //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length; // TODO: dmin
+          //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2;
+          edgeLength = edge.length;
+          // this implies that the edges between big clusters are longer
+          edgeLength += clusterSize * this.constants.clustering.edgeGrowth;
+          length =  Math.sqrt(dx * dx + dy * dy);
+          angle = Math.atan2(dy, dx);
 
-        edge.from._addForce(-fx, -fy);
-        edge.to._addForce(fx, fy);
+          springForce = edge.stiffness * (edgeLength - length);
+
+          // boost strength of cluster springs
+          springForce *= (clusterSize == 0) ? 1 : 1 + clusterSize * this.constants.clustering.edgeStrength;
+
+          fx = Math.cos(angle) * springForce;
+          fy = Math.sin(angle) * springForce;
+
+          edge.from._addForce(-fx, -fy);
+          edge.to._addForce(fx, fy);
+        }
       }
     }
+  /*
+    // TODO: re-implement repulsion of edges
+
+     // repulsing forces between edges
+     var minimumDistance = this.constants.edges.distance,
+     steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
+     for (var l = 0; l < edges.length; l++) {
+     //Keep distance from other edge centers
+     for (var l2 = l + 1; l2 < this.edges.length; l2++) {
+     //var dmin = (nodes[n].width + nodes[n].height + nodes[n2].width + nodes[n2].height) / 1 || minimumDistance, // TODO: dmin
+     //var dmin = (nodes[n].width + nodes[n2].width)/2  || minimumDistance, // TODO: dmin
+     //dmin = 40 + ((nodes[n].width/2 + nodes[n2].width/2) || 0),
+     var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
+     ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
+     l2x = edges[l2].from.x+(edges[l2].to.x - edges[l2].from.x)/2,
+     l2y = edges[l2].from.y+(edges[l2].to.y - edges[l2].from.y)/2,
+
+     // calculate normally distributed force
+     dx = l2x - lx,
+     dy = l2y - ly,
+     distance = Math.sqrt(dx * dx + dy * dy),
+     angle = Math.atan2(dy, dx),
+
+
+     // TODO: correct factor for repulsing force
+     //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+     //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
+     repulsingforce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)), // TODO: customize the repulsing force
+     fx = Math.cos(angle) * repulsingforce,
+     fy = Math.sin(angle) * repulsingforce;
+
+     edges[l].from._addForce(-fx, -fy);
+     edges[l].to._addForce(-fx, -fy);
+     edges[l2].from._addForce(fx, fy);
+     edges[l2].to._addForce(fx, fy);
+     }
+     }
+  */
   }
-/*
-  // TODO: re-implement repulsion of edges
-
-   // repulsing forces between edges
-   var minimumDistance = this.constants.edges.distance,
-   steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
-   for (var l = 0; l < edges.length; l++) {
-   //Keep distance from other edge centers
-   for (var l2 = l + 1; l2 < this.edges.length; l2++) {
-   //var dmin = (nodes[n].width + nodes[n].height + nodes[n2].width + nodes[n2].height) / 1 || minimumDistance, // TODO: dmin
-   //var dmin = (nodes[n].width + nodes[n2].width)/2  || minimumDistance, // TODO: dmin
-   //dmin = 40 + ((nodes[n].width/2 + nodes[n2].width/2) || 0),
-   var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
-   ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
-   l2x = edges[l2].from.x+(edges[l2].to.x - edges[l2].from.x)/2,
-   l2y = edges[l2].from.y+(edges[l2].to.y - edges[l2].from.y)/2,
-
-   // calculate normally distributed force
-   dx = l2x - lx,
-   dy = l2y - ly,
-   distance = Math.sqrt(dx * dx + dy * dy),
-   angle = Math.atan2(dy, dx),
-
-
-   // TODO: correct factor for repulsing force
-   //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-   //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
-   repulsingforce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)), // TODO: customize the repulsing force
-   fx = Math.cos(angle) * repulsingforce,
-   fy = Math.sin(angle) * repulsingforce;
-
-   edges[l].from._addForce(-fx, -fy);
-   edges[l].to._addForce(-fx, -fy);
-   edges[l2].from._addForce(fx, fy);
-   edges[l2].to._addForce(fx, fy);
-   }
-   }
-*/
-
-  this.simulationStep += 1;
 };
 
 
@@ -17594,6 +17767,7 @@ Graph.prototype.toggleFreeze = function() {
   }
   console.log('freezeSimulation',this.freezeSimulation)
 }
+
 /**
  * vis.js module exports
  */
@@ -17663,8 +17837,6 @@ if (typeof window !== 'undefined') {
   window['vis'] = vis;
 }
 
-// inject css
-util.loadCss("/* vis.js stylesheet */\n.vis.timeline {\r\n}\r\n\n\r\n.vis.timeline.rootpanel {\r\n  position: relative;\r\n  overflow: hidden;\r\n\r\n  border: 1px solid #bfbfbf;\r\n  -moz-box-sizing: border-box;\r\n  box-sizing: border-box;\r\n}\r\n\r\n.vis.timeline .panel {\r\n  position: absolute;\r\n  overflow: hidden;\r\n}\r\n\n\r\n.vis.timeline .groupset {\r\n  position: absolute;\r\n  padding: 0;\r\n  margin: 0;\r\n}\r\n\r\n.vis.timeline .labels {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  width: 100%;\r\n  height: 100%;\r\n\r\n  padding: 0;\r\n  margin: 0;\r\n\r\n  border-right: 1px solid #bfbfbf;\r\n  box-sizing: border-box;\r\n  -moz-box-sizing: border-box;\r\n}\r\n\r\n.vis.timeline .labels .label-set {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  width: 100%;\r\n  height: 100%;\r\n\r\n  overflow: hidden;\r\n\r\n  border-top: none;\r\n  border-bottom: 1px solid #bfbfbf;\r\n}\r\n\r\n.vis.timeline .labels .label-set .label {\r\n  position: absolute;\r\n  left: 0;\r\n  top: 0;\r\n  width: 100%;\r\n  color: #4d4d4d;\r\n}\r\n\r\n.vis.timeline.top .labels .label-set .label,\r\n.vis.timeline.top .groupset .itemset-axis {\r\n  border-top: 1px solid #bfbfbf;\r\n  border-bottom: none;\r\n}\r\n\r\n.vis.timeline.bottom .labels .label-set .label,\r\n.vis.timeline.bottom .groupset .itemset-axis {\r\n  border-top: none;\r\n  border-bottom: 1px solid #bfbfbf;\r\n}\r\n\r\n.vis.timeline .labels .label-set .label .inner {\r\n  display: inline-block;\r\n  padding: 5px;\r\n}\r\n\n\r\n.vis.timeline .itemset {\r\n  position: absolute;\r\n  padding: 0;\r\n  margin: 0;\r\n  overflow: hidden;\r\n}\r\n\r\n.vis.timeline .background {\r\n}\r\n\r\n.vis.timeline .foreground {\r\n}\r\n\r\n.vis.timeline .itemset-axis {\r\n  position: absolute;\r\n}\r\n\n\r\n.vis.timeline .item {\r\n  position: absolute;\r\n  color: #1A1A1A;\r\n  border-color: #97B0F8;\r\n  background-color: #D5DDF6;\r\n  display: inline-block;\r\n}\r\n\r\n.vis.timeline .item.selected {\r\n  border-color: #FFC200;\r\n  background-color: #FFF785;\r\n  z-index: 999;\r\n}\r\n\r\n.vis.timeline .item.cluster {\r\n  /* TODO: use another color or pattern? */\r\n  background: #97B0F8 url('img/cluster_bg.png');\r\n  color: white;\r\n}\r\n.vis.timeline .item.cluster.point {\r\n  border-color: #D5DDF6;\r\n}\r\n\r\n.vis.timeline .item.box {\r\n  text-align: center;\r\n  border-style: solid;\r\n  border-width: 1px;\r\n  border-radius: 5px;\r\n  -moz-border-radius: 5px; /* For Firefox 3.6 and older */\r\n}\r\n\r\n.vis.timeline .item.point {\r\n  background: none;\r\n}\r\n\r\n.vis.timeline .dot {\r\n  border: 5px solid #97B0F8;\r\n  position: absolute;\r\n  border-radius: 5px;\r\n  -moz-border-radius: 5px;  /* For Firefox 3.6 and older */\r\n}\r\n\r\n.vis.timeline .item.range {\r\n  overflow: hidden;\r\n  border-style: solid;\r\n  border-width: 1px;\r\n  border-radius: 2px;\r\n  -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\r\n}\r\n\r\n.vis.timeline .item.rangeoverflow {\r\n  border-style: solid;\r\n  border-width: 1px;\r\n  border-radius: 2px;\r\n  -moz-border-radius: 2px;  /* For Firefox 3.6 and older */\r\n}\r\n\r\n.vis.timeline .item.range .drag-left, .vis.timeline .item.rangeoverflow .drag-left {\r\n  cursor: w-resize;\r\n  z-index: 1000;\r\n}\r\n\r\n.vis.timeline .item.range .drag-right, .vis.timeline .item.rangeoverflow .drag-right {\r\n  cursor: e-resize;\r\n  z-index: 1000;\r\n}\r\n\r\n.vis.timeline .item.range .content, .vis.timeline .item.rangeoverflow .content {\r\n  position: relative;\r\n  display: inline-block;\r\n}\r\n\r\n.vis.timeline .item.line {\r\n  position: absolute;\r\n  width: 0;\r\n  border-left-width: 1px;\r\n  border-left-style: solid;\r\n}\r\n\r\n.vis.timeline .item .content {\r\n  margin: 5px;\r\n  white-space: nowrap;\r\n  overflow: hidden;\r\n}\r\n\n.vis.timeline .axis {\r\n  position: relative;\r\n}\r\n\r\n.vis.timeline .axis .text {\r\n  position: absolute;\r\n  color: #4d4d4d;\r\n  padding: 3px;\r\n  white-space: nowrap;\r\n}\r\n\r\n.vis.timeline .axis .text.measure {\r\n  position: absolute;\r\n  padding-left: 0;\r\n  padding-right: 0;\r\n  margin-left: 0;\r\n  margin-right: 0;\r\n  visibility: hidden;\r\n}\r\n\r\n.vis.timeline .axis .grid.vertical {\r\n  position: absolute;\r\n  width: 0;\r\n  border-right: 1px solid;\r\n}\r\n\r\n.vis.timeline .axis .grid.horizontal {\r\n  position: absolute;\r\n  left: 0;\r\n  width: 100%;\r\n  height: 0;\r\n  border-bottom: 1px solid;\r\n}\r\n\r\n.vis.timeline .axis .grid.minor {\r\n  border-color: #e5e5e5;\r\n}\r\n\r\n.vis.timeline .axis .grid.major {\r\n  border-color: #bfbfbf;\r\n}\r\n\n.vis.timeline .currenttime {\r\n  background-color: #FF7F6E;\r\n  width: 2px;\r\n  z-index: 9;\r\n}\n.vis.timeline .customtime {\r\n  background-color: #6E94FF;\r\n  width: 2px;\r\n  cursor: move;\r\n  z-index: 9;\r\n}\n");
 
 },{"hammerjs":1,"moment":2,"mouseTrap":3}]},{},[4])
 (4)

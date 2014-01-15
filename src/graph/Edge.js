@@ -269,10 +269,10 @@ Edge.prototype._drawLine = function(ctx) {
  */
 Edge.prototype._getLineWidth = function() {
   if (this.from.selected || this.to.selected) {
-    return Math.min(this.width * 2, this.widthMax);
+    return Math.min(this.width * 2, this.widthMax)*this.graphScaleInv;
   }
   else {
-    return this.width;
+    return this.width*this.graphScaleInv;
   }
 };
 
@@ -606,4 +606,15 @@ Edge._dist = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
   //# (i.e. remove the sqrt) to gain a little performance
 
   return Math.sqrt(dx*dx + dy*dy);
+};
+
+
+
+/**
+ * This allows the zoom level of the graph to influence the rendering
+ *
+ * @param scale
+ */
+Edge.prototype.setScale = function(scale) {
+  this.graphScaleInv = 1.0/scale;
 };

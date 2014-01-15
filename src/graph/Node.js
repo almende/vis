@@ -25,7 +25,6 @@
 function Node(properties, imagelist, grouplist, constants) {
   this.selected = false;
 
-
   this.edges = []; // all edges connected to this node
   this.dynamicEdges = [];
   this.reroutedEdges = {};
@@ -46,11 +45,13 @@ function Node(properties, imagelist, grouplist, constants) {
   this.xFixed = false;
   this.yFixed = false;
   this.radius = constants.nodes.radius;
+  this.baseRadiusValue = constants.nodes.radius;
   this.radiusFixed = false;
   this.radiusMin = constants.nodes.radiusMin;
   this.radiusMax = constants.nodes.radiusMax;
 
   this.imagelist = imagelist;
+
   this.grouplist = grouplist;
 
   this.setProperties(properties, constants);
@@ -72,6 +73,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.vy = 0.0;  // velocity y
   this.minForce = constants.minForce;
   this.damping = 0.9; // damping factor
+
+  this.graphScaleInv = 1;
 }
 
 /**
@@ -93,8 +96,10 @@ Node.prototype.attachEdge = function(edge) {
   if (this.edges.indexOf(edge) == -1) {
     this.edges.push(edge);
   }
-  this.dynamicEdges = this.edges;
-  this.dynamicEdgesLength = this.edges.length;
+  if (this.dynamicEdges.indexOf(edge) == -1) {
+    this.dynamicEdges.push(edge);
+  }
+  this.dynamicEdgesLength = this.dynamicEdges.length;
   this._updateMass();
 };
 
@@ -106,9 +111,9 @@ Node.prototype.detachEdge = function(edge) {
   var index = this.edges.indexOf(edge);
   if (index != -1) {
     this.edges.splice(index, 1);
+    this.dynamicEdges.splice(index, 1);
   }
-  this.dynamicEdges = this.edges;
-  this.dynamicEdgesLength = this.edges.length;
+  this.dynamicEdgesLength = this.dynamicEdges.length;
   this._updateMass();
 };
 
@@ -132,13 +137,13 @@ Node.prototype.setProperties = function(properties, constants) {
   }
 
   // basic properties
-  if (properties.id != undefined)        {this.id = properties.id;}
-  if (properties.label != undefined)     {this.label = properties.label;}
-  if (properties.title != undefined)     {this.title = properties.title;}
-  if (properties.group != undefined)     {this.group = properties.group;}
-  if (properties.x != undefined)         {this.x = properties.x;}
-  if (properties.y != undefined)         {this.y = properties.y;}
-  if (properties.value != undefined)     {this.value = properties.value;}
+  if (properties.id !== undefined)        {this.id = properties.id;}
+  if (properties.label !== undefined)     {this.label = properties.label;}
+  if (properties.title !== undefined)     {this.title = properties.title;}
+  if (properties.group !== undefined)     {this.group = properties.group;}
+  if (properties.x !== undefined)         {this.x = properties.x;}
+  if (properties.y !== undefined)         {this.y = properties.y;}
+  if (properties.value !== undefined)     {this.value = properties.value;}
 
   if (this.id === undefined) {
     throw "Node must have an id";
@@ -155,17 +160,16 @@ Node.prototype.setProperties = function(properties, constants) {
   }
 
   // individual shape properties
-  if (properties.shape != undefined)          {this.shape = properties.shape;}
-  if (properties.image != undefined)          {this.image = properties.image;}
-  if (properties.radius != undefined)         {this.radius = properties.radius;}
-  if (properties.color != undefined)          {this.color = Node.parseColor(properties.color);}
+  if (properties.shape !== undefined)          {this.shape = properties.shape;}
+  if (properties.image !== undefined)          {this.image = properties.image;}
+  if (properties.radius !== undefined)         {this.radius = properties.radius;}
+  if (properties.color !== undefined)          {this.color = Node.parseColor(properties.color);}
 
-  if (properties.fontColor != undefined)      {this.fontColor = properties.fontColor;}
-  if (properties.fontSize != undefined)       {this.fontSize = properties.fontSize;}
-  if (properties.fontFace != undefined)       {this.fontFace = properties.fontFace;}
+  if (properties.fontColor !== undefined)      {this.fontColor = properties.fontColor;}
+  if (properties.fontSize !== undefined)       {this.fontSize = properties.fontSize;}
+  if (properties.fontFace !== undefined)       {this.fontFace = properties.fontFace;}
 
-
-  if (this.image != undefined) {
+  if (this.image !== undefined) {
     if (this.imagelist) {
       this.imageObj = this.imagelist.load(this.image);
     }
@@ -174,9 +178,9 @@ Node.prototype.setProperties = function(properties, constants) {
     }
   }
 
-  this.xFixed = this.xFixed || (properties.x != undefined);
-  this.yFixed = this.yFixed || (properties.y != undefined);
-  this.radiusFixed = this.radiusFixed || (properties.radius != undefined);
+  this.xFixed = this.xFixed || (properties.x !== undefined);
+  this.yFixed = this.yFixed || (properties.y !== undefined);
+  this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
 
   if (this.shape == 'image') {
     this.radiusMin = constants.nodes.widthMin;
@@ -219,14 +223,6 @@ Node.parseColor = function(color) {
       highlight: {
         border: color,
         background: color
-      },
-      cluster: {
-        border: color,
-        background: color,
-        highlight: {
-          border: color,
-          background: color
-        }
       }
     };
     // TODO: automatically generate a nice highlight color
@@ -247,33 +243,8 @@ Node.parseColor = function(color) {
       c.highlight.background = color.highlight && color.highlight.background || c.background;
       c.highlight.border = color.highlight && color.highlight.border || c.border;
     }
-
-    // check if cluster colorgroup has been defined
-    if (util.isString(color.cluster)) {
-      c.cluster = {
-        border: color.cluster,
-        background: color.cluster
-      }
-    }
-    else {
-      c.cluster = {};
-      c.cluster.background = color.cluster && color.cluster.background || c.background;
-      c.cluster.border = color.cluster && color.cluster.border || c.border;
-    }
-
-    // check if cluster highlight colorgroup has been defined
-    if (util.isString(color.cluster.highlight)) {
-      c.cluster.highlight = {
-        border: color.cluster.highlight,
-        background: color.cluster.highlight
-      }
-    }
-    else {
-      c.cluster.highlight = {};
-      c.cluster.highlight.background = color.cluster.highlight && color.cluster.highlight.background || c.background;
-      c.cluster.highlight.border = color.cluster.highlight && color.cluster.highlight.border || c.border;
-    }
   }
+
   return c;
 };
 
@@ -537,6 +508,16 @@ Node.prototype._drawImage = function (ctx) {
 
   var yLabel;
   if (this.imageObj) {
+    // draw the shade
+    if (this.clusterSize > 1) {
+      var lineWidth = ((this.clusterSize > 1) ? 10 : 0.0);
+      lineWidth *= this.graphScaleInv;
+      lineWidth = Math.min(0.2 * this.width,lineWidth);
+
+      ctx.globalAlpha = 0.5;
+      ctx.drawImage(this.imageObj, this.left - lineWidth, this.top - lineWidth, this.width + 2*lineWidth, this.height + 2*lineWidth);
+    }
+    ctx.globalAlpha = 1.0;
     ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
     yLabel = this.y + this.height / 2;
   }
@@ -556,9 +537,9 @@ Node.prototype._resizeBox = function (ctx) {
     this.width = textSize.width + 2 * margin;
     this.height = textSize.height + 2 * margin;
 
-    this.width += this.clusterSize * this.clusterSizeWidthFactor;
-    this.height += this.clusterSize * this.clusterSizeHeightFactor;
-    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
+    this.width += this.clusterSize * 0.5 * this.clusterSizeWidthFactor;
+    this.height += this.clusterSize * 0.5 * this.clusterSizeHeightFactor;
+    //this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -568,15 +549,26 @@ Node.prototype._drawBox = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
+  var clusterLineWidth = 2.5;
+  var selectionLineWidth = 2;
+
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+
+  // draw the outer border
   if (this.clusterSize > 1) {
-    ctx.strokeStyle = this.selected ? this.color.cluster.highlight.border : this.color.cluster.border;
-    ctx.fillStyle = this.selected ? this.color.cluster.highlight.background : this.color.cluster.background;
+    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+    ctx.roundRect(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth, this.radius);
+    ctx.stroke();
   }
-  else {
-    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
-    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  }
-  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.clusterSize > 1) ? 2.0 : 0.0;
+  ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+
   ctx.roundRect(this.left, this.top, this.width, this.height, this.radius);
   ctx.fill();
   ctx.stroke();
@@ -605,15 +597,25 @@ Node.prototype._drawDatabase = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
+  var clusterLineWidth = 2.5;
+  var selectionLineWidth = 2;
+
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+
+  // draw the outer border
   if (this.clusterSize > 1) {
-    ctx.strokeStyle = this.selected ? this.color.cluster.highlight.border : this.color.cluster.border;
-    ctx.fillStyle = this.selected ? this.color.cluster.highlight.background : this.color.cluster.background;
+    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+    ctx.database(this.x - this.width/2 - 2*ctx.lineWidth, this.y - this.height*0.5 - 2*ctx.lineWidth, this.width + 4*ctx.lineWidth, this.height + 4*ctx.lineWidth);
+    ctx.stroke();
   }
-  else {
-    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
-    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  }
-  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.clusterSize > 1) ? 2.0 : 0.0;
+  ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
   ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
   ctx.fill();
   ctx.stroke();
@@ -635,7 +637,7 @@ Node.prototype._resizeCircle = function (ctx) {
     // scaling used for clustering
     this.width += this.clusterSize * this.clusterSizeWidthFactor;
     this.height += this.clusterSize * this.clusterSizeHeightFactor;
-    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
+    this.radius += this.clusterSize * 0.5*this.clusterSizeRadiusFactor;
   }
 };
 
@@ -644,15 +646,25 @@ Node.prototype._drawCircle = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
+  var clusterLineWidth = 2.5;
+  var selectionLineWidth = 2;
+
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+
+  // draw the outer border
   if (this.clusterSize > 1) {
-    ctx.strokeStyle = this.selected ? this.color.cluster.highlight.border : this.color.cluster.border;
-    ctx.fillStyle = this.selected ? this.color.cluster.highlight.background : this.color.cluster.background;
+    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+    ctx.circle(this.x, this.y, this.radius+2*ctx.lineWidth);
+    ctx.stroke();
   }
-  else {
-    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
-    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  }
-  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.clusterSize > 1) ? 2.0 : 0.0;
+  ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
   ctx.circle(this.x, this.y, this.radius);
   ctx.fill();
   ctx.stroke();
@@ -682,15 +694,26 @@ Node.prototype._drawEllipse = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
+  var clusterLineWidth = 2.5;
+  var selectionLineWidth = 2;
+
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+
+  // draw the outer border
   if (this.clusterSize > 1) {
-    ctx.strokeStyle = this.selected ? this.color.cluster.highlight.border : this.color.cluster.border;
-    ctx.fillStyle = this.selected ? this.color.cluster.highlight.background : this.color.cluster.background;
+    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+    ctx.ellipse(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth);
+    ctx.stroke();
   }
-  else {
-    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
-    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  }
-  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.clusterSize > 1) ? 2.0 : 0.0;
+  ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+
   ctx.ellipse(this.left, this.top, this.width, this.height);
   ctx.fill();
   ctx.stroke();
@@ -719,6 +742,7 @@ Node.prototype._drawStar = function (ctx) {
 
 Node.prototype._resizeShape = function (ctx) {
   if (!this.width) {
+    this.radius = this.baseRadiusValue;
     var size = 2 * this.radius;
     this.width = size;
     this.height = size;
@@ -726,7 +750,7 @@ Node.prototype._resizeShape = function (ctx) {
     // scaling used for clustering
     this.width += this.clusterSize * this.clusterSizeWidthFactor;
     this.height += this.clusterSize * this.clusterSizeHeightFactor;
-    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
+    this.radius += this.clusterSize * 0.5 * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -735,15 +759,36 @@ Node.prototype._drawShape = function (ctx, shape) {
 
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
+
+  var clusterLineWidth = 2.5;
+  var selectionLineWidth = 2;
+  var radiusMultiplier = 2;
+
+  // choose draw method depending on the shape
+  switch (shape) {
+    case 'dot':           radiusMultiplier = 2; break;
+    case 'square':        radiusMultiplier = 2; break;
+    case 'triangle':      radiusMultiplier = 3; break;
+    case 'triangleDown':  radiusMultiplier = 3; break;
+    case 'star':          radiusMultiplier = 4; break;
+  }
+
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+
+  // draw the outer border
   if (this.clusterSize > 1) {
-    ctx.strokeStyle = this.selected ? this.color.cluster.highlight.border : this.color.cluster.border;
-    ctx.fillStyle = this.selected ? this.color.cluster.highlight.background : this.color.cluster.background;
+    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+    ctx[shape](this.x, this.y, this.radius + radiusMultiplier * ctx.lineWidth);
+    ctx.stroke();
   }
-  else {
-    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
-    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  }
-  ctx.lineWidth = (this.selected ? 2.0 : 1.0) + (this.clusterSize > 1) ? 2.0 : 0.0;
+  ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
 
   ctx[shape](this.x, this.y, this.radius);
   ctx.fill();
@@ -798,7 +843,7 @@ Node.prototype._label = function (ctx, text, x, y, align, baseline) {
 
 
 Node.prototype.getTextSize = function(ctx) {
-  if (this.label != undefined) {
+  if (this.label !== undefined) {
     ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
 
     var lines = this.label.split('\n'),
@@ -814,4 +859,45 @@ Node.prototype.getTextSize = function(ctx) {
   else {
     return {"width": 0, "height": 0};
   }
+};
+
+/**
+ * This allows the zoom level of the graph to influence the rendering
+ *
+ * @param scale
+ */
+Node.prototype.setScale = function(scale) {
+  this.graphScaleInv = 1.0/scale;
+};
+
+/**
+ * This function updates the damping parameter for clusters, based ont he
+ *
+ * @param {Integer} numberOfNodes
+ */
+Node.prototype.updateDamping = function(numberOfNodes) {
+  this.damping = 0.8 + 0.1*this.clusterSize * (1 + 2/Math.pow(numberOfNodes,2));
+};
+
+
+/**
+ * set the velocity at 0. Is called when this node is contained in another during clustering
+ */
+Node.prototype.clearVelocity = function() {
+  this.vx = 0;
+  this.vy = 0;
+};
+
+
+
+/**
+ * Basic preservation of (kinectic) energy
+ *
+ * @param massBeforeClustering
+ */
+Node.prototype.updateVelocity = function(massBeforeClustering) {
+  var energyBefore = this.vx * this.vx * massBeforeClustering;
+  this.vx = Math.sqrt(energyBefore/this.mass);
+  energyBefore = this.vy * this.vy * massBeforeClustering;
+  this.vy = Math.sqrt(energyBefore/this.mass);
 };
