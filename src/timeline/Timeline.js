@@ -340,3 +340,12 @@ Timeline.prototype.getItemRange = function getItemRange() {
     max: (max != null) ? new Date(max) : null
   };
 };
+
+/**
+ * Change the item selection, and/or get currently selected items
+ * @param {Array} [ids] An array with zero or more ids of the items to be selected.
+ * @return {Array} ids  The ids of the selected items
+ */
+Timeline.prototype.select = function select(ids) {
+  return this.content ? this.content.select(ids) : [];
+};
