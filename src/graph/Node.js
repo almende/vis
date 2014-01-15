@@ -86,6 +86,7 @@ Node.prototype.resetCluster = function() {
   this.clusterSize = 1;            // this signifies the total amount of nodes in this cluster
   this.containedNodes = {};
   this.containedEdges = {};
+  this.clusterSessions = [];
 };
 
 /**

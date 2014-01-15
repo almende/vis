@@ -88,6 +88,8 @@ function Graph (container, data, options) {
   var graph = this;
   this.freezeSimulation = false;
   this.nodeIndices = [];      // the node indices list is used to speed up the computation of the repulsion fields
+  this.tapTimer = 0;
+  this.pocketUniverse = {};
   this.nodes = {};            // object with Node objects
   this.edges = {};            // object with Edge objects
   this.zoomCenter = {};       // object with x and y elements used for determining the center of the zoom action
@@ -156,7 +158,7 @@ function Graph (container, data, options) {
   this.zoomToFit();
 
   // cluster if the data set is big
-  this.clusterToFit();
+  this.clusterToFit(true);
 
   // updates the lables after clustering
   this._updateLabels();
@@ -176,8 +178,10 @@ Graph.prototype = Object.create(Cluster.prototype);
 
 /**
  * This function clusters until the maxNumberOfNodes has been reached
+ *
+ * @param {Boolean} reposition
  */
-Graph.prototype.clusterToFit = function() {
+Graph.prototype.clusterToFit = function(reposition) {
   var numberOfNodes = this.nodeIndices.length;
   var maxNumberOfNodes = this.constants.clustering.maxNumberOfNodes;
 
@@ -199,7 +203,7 @@ Graph.prototype.clusterToFit = function() {
   }
 
   // after the clustering we reposition the nodes to avoid initial chaos
-  if (level > 1) {
+  if (level > 1 && reposition == true) {
     this._repositionNodes();
   }
 };
@@ -586,7 +590,14 @@ Graph.prototype._onTap = function (event) {
 
   var nodeId = this._getNodeAt(pointer);
   var node = this.nodes[nodeId];
+
+  var elapsedTime = new Date().getTime() - this.tapTimer;
+  this.tapTimer = new Date().getTime();
+
   if (node) {
+    if (node.isSelected() && elapsedTime < 300) {
+      this.openCluster(node);
+    }
     // select this node
     this._selectNodes([nodeId]);
 
@@ -674,10 +685,10 @@ Graph.prototype._zoom = function(scale, pointer) {
  // this.zoomCenter = {"x" : pointer.x,"y" : pointer.y };
   this._setScale(scale);
   this._setTranslation(tx, ty);
-  this.updateClusters();
+  this.updateClusters(0,false,false);
   this._redraw();
 
-  console.log("current zoomscale:",this.scale)
+  //console.log("current zoomscale:",this.scale)
 
   return scale;
 };
@@ -1637,16 +1648,22 @@ Graph.prototype._doStabilize = function() {
  * @private
  */
 Graph.prototype._calculateForces = function() {
-  // create a local edge to the nodes and edges, that is faster
-  var id, dx, dy, angle, distance, fx, fy,
+  if (this.nodeIndices.length == 1) { // stop calculation if there is only one node
+    this.nodes[this.nodeIndices[0]]._setForce(0,0);
+  }
+  else if (this.nodeIndices.length > this.constants.clustering.maxNumberOfNodes * 4) {
+    console.log(this.nodeIndices.length, this.constants.clustering.maxNumberOfNodes * 4)
+    this.clusterToFit(false);
+    this._calculateForces();
+  }
+  else {
+    // create a local edge to the nodes and edges, that is faster
+    var id, dx, dy, angle, distance, fx, fy,
       repulsingForce, springForce, length, edgeLength,
       nodes = this.nodes,
       edges = this.edges;
 
-  if (this.nodeIndices.length == 1) { // stop calculation if there is only one node
-    nodes[this.nodeIndices[0]]._setForce(0,0);
-  }
-  else {
+
     // Gravity is required to keep separated groups from floating off
     // the forces are reset to zero in this loop by using _setForce instead
     // of _addForce
