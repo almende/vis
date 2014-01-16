@@ -15046,7 +15046,7 @@ Cluster.prototype.openCluster = function(node) {
   // housekeeping
   this._updateNodeIndexList();
   this._updateDynamicEdges();
-  this._updateLabels();
+  this.updateLabels();
 
   // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
   if (this.moving != isMovingBeforeClustering) {
@@ -15054,8 +15054,14 @@ Cluster.prototype.openCluster = function(node) {
   }
 };
 
-
-
+/**
+ * This calls the updateClustes with default arguments
+ */
+Cluster.prototype.updateClustersDefault = function() {
+  if (this.constants.clustering.enableClustering) {
+    this.updateClusters(0,false,false);
+  }
+}
 
 /**
  * This function can be called to increase the cluster level. This means that the nodes with only one edge connection will
@@ -15083,11 +15089,10 @@ Cluster.prototype.decreaseClusterLevel = function() {
  * If out, check if we can form clusters, if in, check if we can open clusters.
  * This function is only called from _zoom()
  *
- * @param {Int} zoomDirection
+ * @param {Number} zoomDirection  | -1 / 0 / +1   for  zoomOut / determineByZoom / zoomIn
  * @param {Boolean} recursive     | enable or disable recursive calling of the opening of clusters
  * @param {Boolean} force         | enable or disable forcing
  *
- * @private
  */
 Cluster.prototype.updateClusters = function(zoomDirection,recursive,force) {
   var isMovingBeforeClustering = this.moving;
@@ -15102,17 +15107,24 @@ Cluster.prototype.updateClusters = function(zoomDirection,recursive,force) {
   }
   this._updateNodeIndexList();
 
-  // if a cluster was NOT formed and the user zoomed out, we try clustering by hubs and update the index again
+  // if a cluster was NOT formed and the user zoomed out, we try clustering by hubs
   if (this.nodeIndices.length == amountOfNodes && (this.previousScale > this.scale || zoomDirection == -1))  {
     this._aggregateHubs(force);
+  }
+
+  // we now reduce snakes.
+  if (this.previousScale > this.scale || zoomDirection == -1) { // zoom out
+    this.handleSnakes();
     this._updateNodeIndexList();
   }
+
+
 
   this.previousScale = this.scale;
 
   // rest of the housekeeping
   this._updateDynamicEdges();
-  this._updateLabels();
+  this.updateLabels();
 
   // if a cluster was formed, we increase the clusterSession
   if (this.nodeIndices.length < amountOfNodes) { // this means a clustering operation has taken place
@@ -15126,6 +15138,18 @@ Cluster.prototype.updateClusters = function(zoomDirection,recursive,force) {
 };
 
 /**
+ * This function handles the snakes. It is called on every updateClusters().
+ */
+Cluster.prototype.handleSnakes = function() {
+  // after clustering we check how many snakes there are
+  var snakePercentage = this._getSnakeFraction();
+  if (snakePercentage > this.constants.clustering.snakeThreshold) {
+    this._reduceAmountOfSnakes(1 - this.constants.clustering.snakeThreshold / snakePercentage)
+
+  }
+};
+
+/**
  * this functions starts clustering by hubs
  * The minimum hub threshold is set globally
  *
@@ -15133,7 +15157,7 @@ Cluster.prototype.updateClusters = function(zoomDirection,recursive,force) {
  */
 Cluster.prototype._aggregateHubs = function(force) {
   this._getHubSize();
-  this._clusterByHub(force);
+  this._formClustersByHub(force);
 };
 
 
@@ -15150,7 +15174,7 @@ Cluster.prototype.forceAggregateHubs = function() {
   // housekeeping
   this._updateNodeIndexList();
   this._updateDynamicEdges();
-  this._updateLabels();
+  this.updateLabels();
 
   // if a cluster was formed, we increase the clusterSession
   if (this.nodeIndices.length != amountOfNodes) {
@@ -15192,11 +15216,10 @@ Cluster.prototype._openClusters = function(recursive,force) {
  * @private
  */
 Cluster.prototype._expandClusterNode = function(parentNode, recursive, force, openAll) {
-  var openedCluster = false;
   // first check if node is a cluster
   if (parentNode.clusterSize > 1) {
     // this means that on a double tap event or a zoom event, the cluster fully unpacks if it is smaller than 20
-    if (parentNode.clusterSize < 20 && force == false) {
+    if (parentNode.clusterSize < 20) {
       openAll = true;
     }
     recursive = openAll ? true : recursive;
@@ -15213,20 +15236,15 @@ Cluster.prototype._expandClusterNode = function(parentNode, recursive, force, op
             if (childNode.clusterSession == parentNode.clusterSessions[parentNode.clusterSessions.length-1]
                 || openAll) {
               this._expelChildFromParent(parentNode,containedNodeID,recursive,force,openAll);
-              openedCluster = true;
             }
           }
           else {
             if (this._parentNodeInActiveArea(parentNode)) {
               this._expelChildFromParent(parentNode,containedNodeID,recursive,force,openAll);
-              openedCluster = true;
             }
           }
         }
       }
-    }
-    if (openedCluster == true) {
-      parentNode.clusterSessions.pop();
     }
   }
 };
@@ -15270,14 +15288,29 @@ Cluster.prototype._expelChildFromParent = function(parentNode, containedNodeID, 
     parentNode.dynamicEdgesLength = parentNode.dynamicEdges.length;
 
     // place the child node near the parent, not at the exact same location to avoid chaos in the system
-    childNode.x = parentNode.x + this.constants.edges.length * 0.2 * (0.5 - Math.random()) * parentNode.clusterSize;
-    childNode.y = parentNode.y + this.constants.edges.length * 0.2 * (0.5 - Math.random()) * parentNode.clusterSize;
-
-    // remove the clusterSession from the child node
-    childNode.clusterSession = 0;
+    childNode.x = parentNode.x + this.constants.edges.length * 0.3 * (0.5 - Math.random()) * parentNode.clusterSize;
+    childNode.y = parentNode.y + this.constants.edges.length * 0.3 * (0.5 - Math.random()) * parentNode.clusterSize;
 
     // remove node from the list
     delete parentNode.containedNodes[containedNodeID];
+
+    // check if there are other childs with this clusterSession in the parent.
+    var othersPresent = false;
+    for (var childNodeID in parentNode.containedNodes) {
+      if (parentNode.containedNodes.hasOwnProperty(childNodeID)) {
+        if (parentNode.containedNodes[childNodeID].clusterSession == childNode.clusterSession) {
+          othersPresent = true;
+          break;
+        }
+      }
+    }
+    // if there are no others, remove the cluster session from the list
+    if (othersPresent == false) {
+      parentNode.clusterSessions.pop();
+    }
+
+    // remove the clusterSession from the child node
+    childNode.clusterSession = 0;
 
     // restart the simulation to reorganise all nodes
     this.moving = true;
@@ -15384,73 +15417,92 @@ Cluster.prototype._forceClustersByZoom = function() {
 
 
 /**
+ * This function forms clusters from hubs, it loops over all nodes
  *
- * @param {Boolean} force
+ * @param {Boolean} force         |   Disregard zoom level
+ * @param {Boolean} onlyEqual     |   This only clusters a hub with a specific number of edges
  * @private
  */
-Cluster.prototype._clusterByHub = function(force) {
-  var dx,dy,length;
-  var minLength = this.constants.clustering.clusterLength/this.scale;
-  var allowCluster = false;
-
+Cluster.prototype._formClustersByHub = function(force, onlyEqual) {
   // we loop over all nodes in the list
   for (var nodeID in this.nodes) {
     // we check if it is still available since it can be used by the clustering in this loop
     if (this.nodes.hasOwnProperty(nodeID)) {
-      var hubNode = this.nodes[nodeID];
+      this._formClusterFromHub(this.nodes[nodeID],force,onlyEqual);
+    }
+  }
+};
 
-      // we decide if the node is a hub
-      if (hubNode.dynamicEdgesLength >= this.hubThreshold) {
-        // we create a list of edges because the dynamicEdges change over the course of this loop
-        var edgesIDarray = [];
-        var amountOfInitialEdges = hubNode.dynamicEdges.length;
-        for (var j = 0; j < amountOfInitialEdges; j++) {
-          edgesIDarray.push(hubNode.dynamicEdges[j].id);
-        }
+/**
+ * This function forms a cluster from a specific preselected hub node
+ *
+ * @param {Node}    hubNode       |   the node we will cluster as a hub
+ * @param {Boolean} force         |   Disregard zoom level
+ * @param {Boolean} onlyEqual     |   This only clusters a hub with a specific number of edges
+ * @param [Number] absorptionSizeOffset |
+ * @private
+ */
+Cluster.prototype._formClusterFromHub = function(hubNode, force, onlyEqual, absorptionSizeOffset) {
+  if (absorptionSizeOffset === undefined) {
+    absorptionSizeOffset = 0;
+  }
 
-        // if the hub clustering is not forces, we check if one of the edges connected
-        // to a cluster is small enough based on the constants.clustering.clusterLength
-        if (force == false) {
-          allowCluster = false;
-          for (j = 0; j < amountOfInitialEdges; j++) {
-            var edge = this.edges[edgesIDarray[j]];
-            if (edge !== undefined) {
-              if (edge.connected) {
-                dx = (edge.to.x - edge.from.x);
-                dy = (edge.to.y - edge.from.y);
-                length = Math.sqrt(dx * dx + dy * dy);
+  // we decide if the node is a hub
+  if ((hubNode.dynamicEdgesLength >= this.hubThreshold && onlyEqual == false) ||
+    (hubNode.dynamicEdgesLength == this.hubThreshold && onlyEqual == true)) {
 
-                if (length < minLength) {
-                  allowCluster = true;
-                  break;
-                }
-              }
+    // initialize variables
+    var dx,dy,length;
+    var minLength = this.constants.clustering.clusterLength/this.scale;
+    var allowCluster = false;
+
+    // we create a list of edges because the dynamicEdges change over the course of this loop
+    var edgesIDarray = [];
+    var amountOfInitialEdges = hubNode.dynamicEdges.length;
+    for (var j = 0; j < amountOfInitialEdges; j++) {
+      edgesIDarray.push(hubNode.dynamicEdges[j].id);
+    }
+
+    // if the hub clustering is not forces, we check if one of the edges connected
+    // to a cluster is small enough based on the constants.clustering.clusterLength
+    if (force == false) {
+      allowCluster = false;
+      for (j = 0; j < amountOfInitialEdges; j++) {
+        var edge = this.edges[edgesIDarray[j]];
+        if (edge !== undefined) {
+          if (edge.connected) {
+            dx = (edge.to.x - edge.from.x);
+            dy = (edge.to.y - edge.from.y);
+            length = Math.sqrt(dx * dx + dy * dy);
+
+            if (length < minLength) {
+              allowCluster = true;
+              break;
             }
           }
         }
+      }
+    }
 
-        // start the clustering if allowed
-        if ((!force && allowCluster) || force) {
-          // we loop over all edges INITIALLY connected to this hub
-          for (j = 0; j < amountOfInitialEdges; j++) {
-            edge = this.edges[edgesIDarray[j]];
+    // start the clustering if allowed
+    if ((!force && allowCluster) || force) {
+      // we loop over all edges INITIALLY connected to this hub
+      for (j = 0; j < amountOfInitialEdges; j++) {
+        edge = this.edges[edgesIDarray[j]];
 
-            // the edge can be clustered by this function in a previous loop
-            if (edge !== undefined) {
-              var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
+        // the edge can be clustered by this function in a previous loop
+        if (edge !== undefined) {
+          var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
 
-              // we do not want hubs to merge with other hubs.
-              if (childNode.dynamicEdges.length <= this.hubThreshold) {
-                this._addToCluster(hubNode,childNode,force);
-              }
-            }
+          // we do not want hubs to merge with other hubs.
+          if (childNode.dynamicEdges.length <= (this.hubThreshold + absorptionSizeOffset)) {
+            this._addToCluster(hubNode,childNode,force);
           }
         }
       }
     }
   }
 };
-
 
 
 
@@ -15496,7 +15548,7 @@ Cluster.prototype._addToCluster = function(parentNode, childNode, force) {
 
   // giving the clusters a dynamic formationScale to ensure not all clusters open up when zoomed
   if (force == true) {
-    parentNode.formationScale = Math.pow(1 - (1.0/11.0),this.clusterSession+2);
+    parentNode.formationScale = Math.pow(1 - (1.0/11.0),this.clusterSession+3);
   }
   else {
     parentNode.formationScale = this.scale; // The latest child has been added on this scale
@@ -15674,7 +15726,6 @@ Cluster.prototype._connectEdgeBackToChild = function(parentNode, childNode) {
  * @private
  */
 Cluster.prototype._validateEdges = function(parentNode) {
-  // TODO: check if good idea
   for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
     var edge = parentNode.dynamicEdges[i];
     if (parentNode.id != edge.toId && parentNode.id != edge.fromId) {
@@ -15716,9 +15767,8 @@ Cluster.prototype._releaseContainedEdges = function(parentNode, childNode) {
 
 /**
  * This updates the node labels for all nodes (for debugging purposes)
- * @private
  */
-Cluster.prototype._updateLabels = function() {
+Cluster.prototype.updateLabels = function() {
   var nodeID;
   // update node labels
   for (nodeID in this.nodes) {
@@ -15772,9 +15822,8 @@ Cluster.prototype._parentNodeInActiveArea = function(node) {
  * This is an adaptation of the original repositioning function. This is called if the system is clustered initially
  * It puts large clusters away from the center and randomizes the order.
  *
- * @private
  */
-Cluster.prototype._repositionNodes = function() {
+Cluster.prototype.repositionNodes = function() {
   for (var i = 0; i < this.nodeIndices.length; i++) {
     var node = this.nodes[this.nodeIndices[i]];
     if (!node.isFixed()) {
@@ -15831,23 +15880,45 @@ Cluster.prototype._getHubSize = function() {
 
 
 /**
- * We get the amount of "extension nodes" or snakes. These are not quickly clustered with the outliers and hubs methods
+ * We reduce the amount of "extension nodes" or snakes. These are not quickly clustered with the outliers and hubs methods
  * with this amount we can cluster specifically on these snakes.
  *
- * @returns {number}
+ * @param   {double} fraction     | between 0 and 1, the percentage of snakes to reduce
  * @private
  */
-Cluster.prototype._getAmountOfSnakes = function() {
-  var snakes = 0;
+Cluster.prototype._reduceAmountOfSnakes = function(fraction) {
+  this.hubThreshold = 2;
   for (nodeID in this.nodes) {
     if (this.nodes.hasOwnProperty(nodeID)) {
-      if (this.nodes[nodeID].dynamicEdges.length == 2) {
-        snakes += 1;
+      if (this.nodes[nodeID].dynamicEdgesLength == 2 && this.nodes[nodeID].dynamicEdges.length >= 2) {
+        if (Math.random() <= fraction) {
+          this._formClusterFromHub(this.nodes[nodeID],true,true,1)
+        }
       }
     }
   }
-  return snakes;
 };
+
+/**
+ * We get the amount of "extension nodes" or snakes. These are not quickly clustered with the outliers and hubs methods
+ * with this amount we can cluster specifically on these snakes.
+ *
+ * @private
+ */
+Cluster.prototype._getSnakeFraction = function() {
+  var snakes = 0;
+  var total = 0;
+  for (nodeID in this.nodes) {
+    if (this.nodes.hasOwnProperty(nodeID)) {
+      if (this.nodes[nodeID].dynamicEdgesLength == 2 && this.nodes[nodeID].dynamicEdges.length >= 2) {
+        snakes += 1;
+      }
+      total += 1;
+    }
+  }
+  return snakes/total;
+};
+
 /**
  * @constructor Graph
  * Create a graph visualization, displaying nodes and edges.
@@ -15913,13 +15984,14 @@ function Graph (container, data, options) {
         altLength: undefined
       }
     },
-      clustering: { // TODO: naming of variables
-      maxNumberOfNodes: 100,        // for automatic (initial) clustering //
+    clustering: { // TODO: naming of variables
+      enableClustering: false,
+      maxNumberOfNodes: 100,        // for automatic (initial) clustering
+      snakeThreshold: 0.5,         // maximum percentage of allowed snakes (long strings of connected nodes)
       clusterLength: 30,            // threshold edge length for clusteringl
-      fontSizeMultiplier: 3,        // how much the cluster font size grows per node (in px)
+      fontSizeMultiplier: 4,        // how much the cluster font size grows per node (in px)
       forceAmplification: 0.7,      // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
       distanceAmplification: 0.3,   // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
-      edgeStrength: 0.01,
       edgeGrowth: 11,               // amount of clusterSize connected to the edge is multiplied with this and added to edgeLength
       clusterSizeWidthFactor: 10,
       clusterSizeHeightFactor: 10,
@@ -16001,23 +16073,30 @@ function Graph (container, data, options) {
   // apply options
   this.setOptions(options);
 
-  // draw data
-  this.setData(data); // TODO: option to render (start())
+  var disableStart = this.constants.clustering.enableClustering;
+
+  // load data
+  this.setData(data,disableStart); //
 
   // zoom so all data will fit on the screen
   this.zoomToFit();
 
-  // cluster if the data set is big
-  this.clusterToFit(true);
+  if (this.constants.clustering.enableClustering) {
+    // cluster if the data set is big
+    this.clusterToFit(this.constants.clustering.maxNumberOfNodes, true);
 
-  // updates the lables after clustering
-  this._updateLabels();
+    // updates the lables after clustering
+    this.updateLabels();
 
-  // find a stable position or start animating to a stable position
-  if (this.stabilize) {
-    this._doStabilize();
+    // this is called here because if clusterin is disabled, the start and stabilize are called in
+    // the setData function.
+
+    // find a stable position or start animating to a stable position
+    if (this.stabilize) {
+      this._doStabilize();
+    }
+    this.start();
   }
-  this.start();
 }
 
 /**
@@ -16029,11 +16108,11 @@ Graph.prototype = Object.create(Cluster.prototype);
 /**
  * This function clusters until the maxNumberOfNodes has been reached
  *
+ * @param {Number}  maxNumberOfNodes
  * @param {Boolean} reposition
  */
-Graph.prototype.clusterToFit = function(reposition) {
+Graph.prototype.clusterToFit = function(maxNumberOfNodes, reposition) {
   var numberOfNodes = this.nodeIndices.length;
-  var maxNumberOfNodes = this.constants.clustering.maxNumberOfNodes;
 
   var maxLevels = 10;
   var level = 0;
@@ -16054,7 +16133,7 @@ Graph.prototype.clusterToFit = function(reposition) {
 
   // after the clustering we reposition the nodes to avoid initial chaos
   if (level > 1 && reposition == true) {
-    this._repositionNodes();
+    this.repositionNodes();
   }
 };
 
@@ -16093,13 +16172,18 @@ Graph.prototype._updateNodeIndexList = function() {
 /**
  * Set nodes and edges, and optionally options as well.
  *
- * @param {Object} data    Object containing parameters:
- *                         {Array | DataSet | DataView} [nodes] Array with nodes
- *                         {Array | DataSet | DataView} [edges] Array with edges
- *                         {String} [dot] String containing data in DOT format
- *                         {Options} [options] Object with options
+ * @param {Object} data              Object containing parameters:
+ *                                   {Array | DataSet | DataView} [nodes] Array with nodes
+ *                                   {Array | DataSet | DataView} [edges] Array with edges
+ *                                   {String} [dot] String containing data in DOT format
+ *                                   {Options} [options] Object with options
+ * @param {Boolean} [disableStart]   | optional: disable the calling of the start function.
  */
-Graph.prototype.setData = function(data) {
+Graph.prototype.setData = function(data, disableStart) {
+  if (disableStart === undefined) {
+    disableStart = false;
+  }
+
   if (data && data.dot && (data.nodes || data.edges)) {
     throw new SyntaxError('Data must contain either parameter "dot" or ' +
         ' parameter pair "nodes" and "edges", but not both.');
@@ -16121,7 +16205,14 @@ Graph.prototype.setData = function(data) {
     this._setNodes(data && data.nodes);
     this._setEdges(data && data.edges);
   }
-  // updating the list of node indices
+
+  if (!disableStart) {
+    // find a stable position or start animating to a stable position
+    if (this.stabilize) {
+      this._doStabilize();
+    }
+    this.start();
+  }
 };
 
 /**
@@ -16264,7 +16355,7 @@ Graph.prototype._create = function () {
   this.mouseTrap.bind("=",this.decreaseClusterLevel.bind(me));
   this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
   this.mouseTrap.bind("s",this.singleStep.bind(me));
-  this.mouseTrap.bind("h",this.forceAggregateHubs.bind(me));
+  this.mouseTrap.bind("h",this.updateClustersDefault.bind(me));
   this.mouseTrap.bind("f",this.toggleFreeze.bind(me));
 
   // add the frame to the container element
@@ -16447,6 +16538,7 @@ Graph.prototype._onTap = function (event) {
   if (node) {
     if (node.isSelected() && elapsedTime < 300) {
       this.openCluster(node);
+      this.openCluster(node);
     }
     // select this node
     this._selectNodes([nodeId]);
@@ -16516,8 +16608,8 @@ Graph.prototype._onPinch = function (event) {
  */
 Graph.prototype._zoom = function(scale, pointer) {
   var scaleOld = this._getScale();
-  if (scale < 0.01) {
-    scale = 0.01;
+  if (scale < 0.001) {
+    scale = 0.001;
   }
   if (scale > 10) {
     scale = 10;
@@ -16535,7 +16627,7 @@ Graph.prototype._zoom = function(scale, pointer) {
  // this.zoomCenter = {"x" : pointer.x,"y" : pointer.y };
   this._setScale(scale);
   this._setTranslation(tx, ty);
-  this.updateClusters(0,false,false);
+  this.updateClustersDefault();
   this._redraw();
 
   //console.log("current zoomscale:",this.scale)
@@ -16725,8 +16817,9 @@ Graph.prototype._unselectNodes = function(selection, triggerSelect) {
     // remove provided selections
     for (i = 0, iMax = selection.length; i < iMax; i++) {
       id = selection[i];
-      this.nodes[id].unselect();
-
+      if (this.nodes.hasOwnProperty(id)) {
+        this.nodes[id].unselect();
+        }
       var j = 0;
       while (j < this.selection.length) {
         if (this.selection[j] == id) {
@@ -16743,7 +16836,9 @@ Graph.prototype._unselectNodes = function(selection, triggerSelect) {
     // remove all selections
     for (i = 0, iMax = this.selection.length; i < iMax; i++) {
       id = this.selection[i];
-      this.nodes[id].unselect();
+      if (this.nodes.hasOwnProperty(id)) {
+        this.nodes[id].unselect();
+      }
       changed = true;
     }
     this.selection = [];
@@ -17474,7 +17569,7 @@ Graph.prototype._drawEdges = function(ctx) {
  * @private
  */
 Graph.prototype._doStabilize = function() {
-  var start = new Date();
+  //var start = new Date();
 
   // find stable position
   var count = 0;
@@ -17487,7 +17582,7 @@ Graph.prototype._doStabilize = function() {
     count++;
   }
 
-  var end = new Date();
+ // var end = new Date();
 
   // console.log('Stabilized in ' + (end-start) + ' ms, ' + count + ' iterations' ); // TODO: cleanup
 };
@@ -17498,28 +17593,31 @@ Graph.prototype._doStabilize = function() {
  * @private
  */
 Graph.prototype._calculateForces = function() {
-  if (this.nodeIndices.length == 1) { // stop calculation if there is only one node
+  // stop calculation if there is only one node
+  if (this.nodeIndices.length == 1) {
     this.nodes[this.nodeIndices[0]]._setForce(0,0);
   }
+  // if there are too many nodes on screen, we cluster without repositioning
   else if (this.nodeIndices.length > this.constants.clustering.maxNumberOfNodes * 4) {
-    console.log(this.nodeIndices.length, this.constants.clustering.maxNumberOfNodes * 4)
-    this.clusterToFit(false);
+    this.clusterToFit(this.constants.clustering.maxNumberOfNodes * 2, false);
     this._calculateForces();
   }
   else {
     // create a local edge to the nodes and edges, that is faster
-    var id, dx, dy, angle, distance, fx, fy,
+    var dx, dy, angle, distance, fx, fy,
       repulsingForce, springForce, length, edgeLength,
-      nodes = this.nodes,
-      edges = this.edges;
+      node, node1, node2, edge, edgeID, i, j, nodeID, xCenter, yCenter;
+    var clusterSize;
+    var nodes = this.nodes;
+    var edges = this.edges;
 
 
     // Gravity is required to keep separated groups from floating off
     // the forces are reset to zero in this loop by using _setForce instead
     // of _addForce
     var gravity = 0.08;
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-        var node = nodes[this.nodeIndices[i]];
+    for (i = 0; i < this.nodeIndices.length; i++) {
+        node = nodes[this.nodeIndices[i]];
         dx = -node.x - this.translation.x + this.frame.canvas.clientWidth*0.5;
         dy = -node.y - this.translation.y + this.frame.canvas.clientHeight*0.5;
 
@@ -17531,7 +17629,7 @@ Graph.prototype._calculateForces = function() {
         node.updateDamping(this.nodeIndices.length);
     }
 
-    this._updateLabels();
+    this.updateLabels();
 
     // repulsing forces between nodes
     var minimumDistance = this.constants.nodes.distance,
@@ -17540,11 +17638,11 @@ Graph.prototype._calculateForces = function() {
 
     // we loop from i over all but the last entree in the array
     // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
-    for (var i = 0; i < this.nodeIndices.length-1; i++) {
-      var node1 = nodes[this.nodeIndices[i]];
-      for (var j = i+1; j < this.nodeIndices.length; j++) {
-        var node2 = nodes[this.nodeIndices[j]];
-        var clusterSize = (node1.clusterSize + node2.clusterSize - 2);
+    for (i = 0; i < this.nodeIndices.length-1; i++) {
+      node1 = nodes[this.nodeIndices[i]];
+      for (j = i+1; j < this.nodeIndices.length; j++) {
+        node2 = nodes[this.nodeIndices[j]];
+        clusterSize = (node1.clusterSize + node2.clusterSize - 2);
         dx = node2.x - node1.x;
         dy = node2.y - node1.y;
         distance = Math.sqrt(dx * dx + dy * dy);
@@ -17564,7 +17662,6 @@ Graph.prototype._calculateForces = function() {
             //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
             repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
           }
-
           // amplify the repulsion for clusters.
           repulsingForce *= (clusterSize == 0) ? 1 : 1 + clusterSize * this.constants.clustering.forceAmplification;
 
@@ -17577,38 +17674,53 @@ Graph.prototype._calculateForces = function() {
       }
     }
 
-    // TODO: re-implement repulsion of edges
-     for (var n = 0; n < nodes.length; n++) {
-     for (var l = 0; l < edges.length; l++) {
-     var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
-     ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
+/*
+    // repulsion of the edges on the nodes and
+    for (var nodeID in nodes) {
+      if (nodes.hasOwnProperty(nodeID)) {
+        node = nodes[nodeID];
+        for(var edgeID in edges) {
+          if (edges.hasOwnProperty(edgeID)) {
+            edge = edges[edgeID];
 
-     // calculate normally distributed force
-     dx = nodes[n].x - lx,
-     dy = nodes[n].y - ly,
-     distance = Math.sqrt(dx * dx + dy * dy),
-     angle = Math.atan2(dy, dx),
+            // get the center of the edge
+            xCenter = edge.from.x+(edge.to.x - edge.from.x)/2;
+            yCenter = edge.from.y+(edge.to.y - edge.from.y)/2;
 
+            // calculate normally distributed force
+            dx = node.x - xCenter;
+            dy = node.y - yCenter;
+            distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
+              angle = Math.atan2(dy, dx);
 
-     // TODO: correct factor for repulsing force
-     //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-     //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
-     repulsingforce = 1 / (1 + Math.exp((distance / (minimumDistance / 2) - 1) * steepness)), // TODO: customize the repulsing force
-     fx = Math.cos(angle) * repulsingforce,
-     fy = Math.sin(angle) * repulsingforce;
-     nodes[n]._addForce(fx, fy);
-     edges[l].from._addForce(-fx/2,-fy/2);
-     edges[l].to._addForce(-fx/2,-fy/2);
-     }
-     }
-
+              if (distance < 0.5*minimumDistance) { // at 0.5 * the minimum distance, the force is 0.993307
+                repulsingForce = 1.0;
+              }
+              else {
+                // TODO: correct factor for repulsing force
+                //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+                //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
+                repulsingForce = 1 / (1 + Math.exp((distance / (minimumDistance / 2) - 1) * steepness)); // TODO: customize the repulsing force
+              }
+              fx = Math.cos(angle) * repulsingForce;
+              fy = Math.sin(angle) * repulsingForce;
+              node._addForce(fx, fy);
+              edge.from._addForce(-fx/2,-fy/2);
+              edge.to._addForce(-fx/2,-fy/2);
+            }
+          }
+        }
+      }
+    }
+*/
 
     // forces caused by the edges, modelled as springs
-    for (id in edges) {
-      if (edges.hasOwnProperty(id)) {
-        var edge = edges[id];
+    for (edgeID in edges) {
+      if (edges.hasOwnProperty(edgeID)) {
+        edge = edges[edgeID];
         if (edge.connected) {
-          var clusterSize = (edge.to.clusterSize + edge.from.clusterSize - 2);
+          clusterSize = (edge.to.clusterSize + edge.from.clusterSize - 2);
           dx = (edge.to.x - edge.from.x);
           dy = (edge.to.y - edge.from.y);
           //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
@@ -17622,9 +17734,6 @@ Graph.prototype._calculateForces = function() {
 
           springForce = edge.stiffness * (edgeLength - length);
 
-          // boost strength of cluster springs
-          springForce *= (clusterSize == 0) ? 1 : 1 + clusterSize * this.constants.clustering.edgeStrength;
-
           fx = Math.cos(angle) * springForce;
           fy = Math.sin(angle) * springForce;
 
@@ -17633,7 +17742,7 @@ Graph.prototype._calculateForces = function() {
         }
       }
     }
-  /*
+/*
     // TODO: re-implement repulsion of edges
 
      // repulsing forces between edges
@@ -17670,7 +17779,7 @@ Graph.prototype._calculateForces = function() {
      edges[l2].to._addForce(fx, fy);
      }
      }
-  */
+*/
   }
 };
 
@@ -17765,15 +17874,8 @@ Graph.prototype.singleStep = function() {
   }
 };
 
-/**
- * Stop animating nodes and edges.
- */
-Graph.prototype.stop = function () {
-  if (this.timer) {
-    window.clearInterval(this.timer);
-    this.timer = undefined;
-  }
-};
+
+
 
 /**
  *  Freeze the animation
@@ -17786,8 +17888,7 @@ Graph.prototype.toggleFreeze = function() {
     this.freezeSimulation = false;
     this.start();
   }
-  console.log('freezeSimulation',this.freezeSimulation)
-}
+};
 
 /**
  * vis.js module exports

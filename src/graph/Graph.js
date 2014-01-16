@@ -63,13 +63,14 @@ function Graph (container, data, options) {
         altLength: undefined
       }
     },
-      clustering: { // TODO: naming of variables
-      maxNumberOfNodes: 100,        // for automatic (initial) clustering //
+    clustering: { // TODO: naming of variables
+      enableClustering: false,
+      maxNumberOfNodes: 100,        // for automatic (initial) clustering
+      snakeThreshold: 0.5,         // maximum percentage of allowed snakes (long strings of connected nodes)
       clusterLength: 30,            // threshold edge length for clusteringl
-      fontSizeMultiplier: 3,        // how much the cluster font size grows per node (in px)
+      fontSizeMultiplier: 4,        // how much the cluster font size grows per node (in px)
       forceAmplification: 0.7,      // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
       distanceAmplification: 0.3,   // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
-      edgeStrength: 0.01,
       edgeGrowth: 11,               // amount of clusterSize connected to the edge is multiplied with this and added to edgeLength
       clusterSizeWidthFactor: 10,
       clusterSizeHeightFactor: 10,
@@ -151,23 +152,30 @@ function Graph (container, data, options) {
   // apply options
   this.setOptions(options);
 
-  // draw data
-  this.setData(data); // TODO: option to render (start())
+  var disableStart = this.constants.clustering.enableClustering;
+
+  // load data
+  this.setData(data,disableStart); //
 
   // zoom so all data will fit on the screen
   this.zoomToFit();
 
-  // cluster if the data set is big
-  this.clusterToFit(true);
+  if (this.constants.clustering.enableClustering) {
+    // cluster if the data set is big
+    this.clusterToFit(this.constants.clustering.maxNumberOfNodes, true);
 
-  // updates the lables after clustering
-  this._updateLabels();
+    // updates the lables after clustering
+    this.updateLabels();
 
-  // find a stable position or start animating to a stable position
-  if (this.stabilize) {
-    this._doStabilize();
+    // this is called here because if clusterin is disabled, the start and stabilize are called in
+    // the setData function.
+
+    // find a stable position or start animating to a stable position
+    if (this.stabilize) {
+      this._doStabilize();
+    }
+    this.start();
   }
-  this.start();
 }
 
 /**
@@ -179,11 +187,11 @@ Graph.prototype = Object.create(Cluster.prototype);
 /**
  * This function clusters until the maxNumberOfNodes has been reached
  *
+ * @param {Number}  maxNumberOfNodes
  * @param {Boolean} reposition
  */
-Graph.prototype.clusterToFit = function(reposition) {
+Graph.prototype.clusterToFit = function(maxNumberOfNodes, reposition) {
   var numberOfNodes = this.nodeIndices.length;
-  var maxNumberOfNodes = this.constants.clustering.maxNumberOfNodes;
 
   var maxLevels = 10;
   var level = 0;
@@ -204,7 +212,7 @@ Graph.prototype.clusterToFit = function(reposition) {
 
   // after the clustering we reposition the nodes to avoid initial chaos
   if (level > 1 && reposition == true) {
-    this._repositionNodes();
+    this.repositionNodes();
   }
 };
 
@@ -243,13 +251,18 @@ Graph.prototype._updateNodeIndexList = function() {
 /**
  * Set nodes and edges, and optionally options as well.
  *
- * @param {Object} data    Object containing parameters:
- *                         {Array | DataSet | DataView} [nodes] Array with nodes
- *                         {Array | DataSet | DataView} [edges] Array with edges
- *                         {String} [dot] String containing data in DOT format
- *                         {Options} [options] Object with options
+ * @param {Object} data              Object containing parameters:
+ *                                   {Array | DataSet | DataView} [nodes] Array with nodes
+ *                                   {Array | DataSet | DataView} [edges] Array with edges
+ *                                   {String} [dot] String containing data in DOT format
+ *                                   {Options} [options] Object with options
+ * @param {Boolean} [disableStart]   | optional: disable the calling of the start function.
  */
-Graph.prototype.setData = function(data) {
+Graph.prototype.setData = function(data, disableStart) {
+  if (disableStart === undefined) {
+    disableStart = false;
+  }
+
   if (data && data.dot && (data.nodes || data.edges)) {
     throw new SyntaxError('Data must contain either parameter "dot" or ' +
         ' parameter pair "nodes" and "edges", but not both.');
@@ -271,7 +284,14 @@ Graph.prototype.setData = function(data) {
     this._setNodes(data && data.nodes);
     this._setEdges(data && data.edges);
   }
-  // updating the list of node indices
+
+  if (!disableStart) {
+    // find a stable position or start animating to a stable position
+    if (this.stabilize) {
+      this._doStabilize();
+    }
+    this.start();
+  }
 };
 
 /**
@@ -414,7 +434,7 @@ Graph.prototype._create = function () {
   this.mouseTrap.bind("=",this.decreaseClusterLevel.bind(me));
   this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
   this.mouseTrap.bind("s",this.singleStep.bind(me));
-  this.mouseTrap.bind("h",this.forceAggregateHubs.bind(me));
+  this.mouseTrap.bind("h",this.updateClustersDefault.bind(me));
   this.mouseTrap.bind("f",this.toggleFreeze.bind(me));
 
   // add the frame to the container element
@@ -597,6 +617,7 @@ Graph.prototype._onTap = function (event) {
   if (node) {
     if (node.isSelected() && elapsedTime < 300) {
       this.openCluster(node);
+      this.openCluster(node);
     }
     // select this node
     this._selectNodes([nodeId]);
@@ -666,8 +687,8 @@ Graph.prototype._onPinch = function (event) {
  */
 Graph.prototype._zoom = function(scale, pointer) {
   var scaleOld = this._getScale();
-  if (scale < 0.01) {
-    scale = 0.01;
+  if (scale < 0.001) {
+    scale = 0.001;
   }
   if (scale > 10) {
     scale = 10;
@@ -685,7 +706,7 @@ Graph.prototype._zoom = function(scale, pointer) {
  // this.zoomCenter = {"x" : pointer.x,"y" : pointer.y };
   this._setScale(scale);
   this._setTranslation(tx, ty);
-  this.updateClusters(0,false,false);
+  this.updateClustersDefault();
   this._redraw();
 
   //console.log("current zoomscale:",this.scale)
@@ -875,8 +896,9 @@ Graph.prototype._unselectNodes = function(selection, triggerSelect) {
     // remove provided selections
     for (i = 0, iMax = selection.length; i < iMax; i++) {
       id = selection[i];
-      this.nodes[id].unselect();
-
+      if (this.nodes.hasOwnProperty(id)) {
+        this.nodes[id].unselect();
+        }
       var j = 0;
       while (j < this.selection.length) {
         if (this.selection[j] == id) {
@@ -893,7 +915,9 @@ Graph.prototype._unselectNodes = function(selection, triggerSelect) {
     // remove all selections
     for (i = 0, iMax = this.selection.length; i < iMax; i++) {
       id = this.selection[i];
-      this.nodes[id].unselect();
+      if (this.nodes.hasOwnProperty(id)) {
+        this.nodes[id].unselect();
+      }
       changed = true;
     }
     this.selection = [];
@@ -1624,7 +1648,7 @@ Graph.prototype._drawEdges = function(ctx) {
  * @private
  */
 Graph.prototype._doStabilize = function() {
-  var start = new Date();
+  //var start = new Date();
 
   // find stable position
   var count = 0;
@@ -1637,7 +1661,7 @@ Graph.prototype._doStabilize = function() {
     count++;
   }
 
-  var end = new Date();
+ // var end = new Date();
 
   // console.log('Stabilized in ' + (end-start) + ' ms, ' + count + ' iterations' ); // TODO: cleanup
 };
@@ -1648,28 +1672,31 @@ Graph.prototype._doStabilize = function() {
  * @private
  */
 Graph.prototype._calculateForces = function() {
-  if (this.nodeIndices.length == 1) { // stop calculation if there is only one node
+  // stop calculation if there is only one node
+  if (this.nodeIndices.length == 1) {
     this.nodes[this.nodeIndices[0]]._setForce(0,0);
   }
+  // if there are too many nodes on screen, we cluster without repositioning
   else if (this.nodeIndices.length > this.constants.clustering.maxNumberOfNodes * 4) {
-    console.log(this.nodeIndices.length, this.constants.clustering.maxNumberOfNodes * 4)
-    this.clusterToFit(false);
+    this.clusterToFit(this.constants.clustering.maxNumberOfNodes * 2, false);
     this._calculateForces();
   }
   else {
     // create a local edge to the nodes and edges, that is faster
-    var id, dx, dy, angle, distance, fx, fy,
+    var dx, dy, angle, distance, fx, fy,
       repulsingForce, springForce, length, edgeLength,
-      nodes = this.nodes,
-      edges = this.edges;
+      node, node1, node2, edge, edgeID, i, j, nodeID, xCenter, yCenter;
+    var clusterSize;
+    var nodes = this.nodes;
+    var edges = this.edges;
 
 
     // Gravity is required to keep separated groups from floating off
     // the forces are reset to zero in this loop by using _setForce instead
     // of _addForce
     var gravity = 0.08;
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-        var node = nodes[this.nodeIndices[i]];
+    for (i = 0; i < this.nodeIndices.length; i++) {
+        node = nodes[this.nodeIndices[i]];
         dx = -node.x - this.translation.x + this.frame.canvas.clientWidth*0.5;
         dy = -node.y - this.translation.y + this.frame.canvas.clientHeight*0.5;
 
@@ -1681,7 +1708,7 @@ Graph.prototype._calculateForces = function() {
         node.updateDamping(this.nodeIndices.length);
     }
 
-    this._updateLabels();
+    this.updateLabels();
 
     // repulsing forces between nodes
     var minimumDistance = this.constants.nodes.distance,
@@ -1690,11 +1717,11 @@ Graph.prototype._calculateForces = function() {
 
     // we loop from i over all but the last entree in the array
     // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
-    for (var i = 0; i < this.nodeIndices.length-1; i++) {
-      var node1 = nodes[this.nodeIndices[i]];
-      for (var j = i+1; j < this.nodeIndices.length; j++) {
-        var node2 = nodes[this.nodeIndices[j]];
-        var clusterSize = (node1.clusterSize + node2.clusterSize - 2);
+    for (i = 0; i < this.nodeIndices.length-1; i++) {
+      node1 = nodes[this.nodeIndices[i]];
+      for (j = i+1; j < this.nodeIndices.length; j++) {
+        node2 = nodes[this.nodeIndices[j]];
+        clusterSize = (node1.clusterSize + node2.clusterSize - 2);
         dx = node2.x - node1.x;
         dy = node2.y - node1.y;
         distance = Math.sqrt(dx * dx + dy * dy);
@@ -1714,7 +1741,6 @@ Graph.prototype._calculateForces = function() {
             //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
             repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
           }
-
           // amplify the repulsion for clusters.
           repulsingForce *= (clusterSize == 0) ? 1 : 1 + clusterSize * this.constants.clustering.forceAmplification;
 
@@ -1727,38 +1753,53 @@ Graph.prototype._calculateForces = function() {
       }
     }
 
-    // TODO: re-implement repulsion of edges
-     for (var n = 0; n < nodes.length; n++) {
-     for (var l = 0; l < edges.length; l++) {
-     var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
-     ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
+/*
+    // repulsion of the edges on the nodes and
+    for (var nodeID in nodes) {
+      if (nodes.hasOwnProperty(nodeID)) {
+        node = nodes[nodeID];
+        for(var edgeID in edges) {
+          if (edges.hasOwnProperty(edgeID)) {
+            edge = edges[edgeID];
 
-     // calculate normally distributed force
-     dx = nodes[n].x - lx,
-     dy = nodes[n].y - ly,
-     distance = Math.sqrt(dx * dx + dy * dy),
-     angle = Math.atan2(dy, dx),
+            // get the center of the edge
+            xCenter = edge.from.x+(edge.to.x - edge.from.x)/2;
+            yCenter = edge.from.y+(edge.to.y - edge.from.y)/2;
 
+            // calculate normally distributed force
+            dx = node.x - xCenter;
+            dy = node.y - yCenter;
+            distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
+              angle = Math.atan2(dy, dx);
 
-     // TODO: correct factor for repulsing force
-     //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-     //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
-     repulsingforce = 1 / (1 + Math.exp((distance / (minimumDistance / 2) - 1) * steepness)), // TODO: customize the repulsing force
-     fx = Math.cos(angle) * repulsingforce,
-     fy = Math.sin(angle) * repulsingforce;
-     nodes[n]._addForce(fx, fy);
-     edges[l].from._addForce(-fx/2,-fy/2);
-     edges[l].to._addForce(-fx/2,-fy/2);
-     }
-     }
-
+              if (distance < 0.5*minimumDistance) { // at 0.5 * the minimum distance, the force is 0.993307
+                repulsingForce = 1.0;
+              }
+              else {
+                // TODO: correct factor for repulsing force
+                //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+                //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
+                repulsingForce = 1 / (1 + Math.exp((distance / (minimumDistance / 2) - 1) * steepness)); // TODO: customize the repulsing force
+              }
+              fx = Math.cos(angle) * repulsingForce;
+              fy = Math.sin(angle) * repulsingForce;
+              node._addForce(fx, fy);
+              edge.from._addForce(-fx/2,-fy/2);
+              edge.to._addForce(-fx/2,-fy/2);
+            }
+          }
+        }
+      }
+    }
+*/
 
     // forces caused by the edges, modelled as springs
-    for (id in edges) {
-      if (edges.hasOwnProperty(id)) {
-        var edge = edges[id];
+    for (edgeID in edges) {
+      if (edges.hasOwnProperty(edgeID)) {
+        edge = edges[edgeID];
         if (edge.connected) {
-          var clusterSize = (edge.to.clusterSize + edge.from.clusterSize - 2);
+          clusterSize = (edge.to.clusterSize + edge.from.clusterSize - 2);
           dx = (edge.to.x - edge.from.x);
           dy = (edge.to.y - edge.from.y);
           //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
@@ -1772,9 +1813,6 @@ Graph.prototype._calculateForces = function() {
 
           springForce = edge.stiffness * (edgeLength - length);
 
-          // boost strength of cluster springs
-          springForce *= (clusterSize == 0) ? 1 : 1 + clusterSize * this.constants.clustering.edgeStrength;
-
           fx = Math.cos(angle) * springForce;
           fy = Math.sin(angle) * springForce;
 
@@ -1783,7 +1821,7 @@ Graph.prototype._calculateForces = function() {
         }
       }
     }
-  /*
+/*
     // TODO: re-implement repulsion of edges
 
      // repulsing forces between edges
@@ -1820,7 +1858,7 @@ Graph.prototype._calculateForces = function() {
      edges[l2].to._addForce(fx, fy);
      }
      }
-  */
+*/
   }
 };
 
@@ -1915,15 +1953,8 @@ Graph.prototype.singleStep = function() {
   }
 };
 
-/**
- * Stop animating nodes and edges.
- */
-Graph.prototype.stop = function () {
-  if (this.timer) {
-    window.clearInterval(this.timer);
-    this.timer = undefined;
-  }
-};
+
+
 
 /**
  *  Freeze the animation
@@ -1936,5 +1967,4 @@ Graph.prototype.toggleFreeze = function() {
     this.freezeSimulation = false;
     this.start();
   }
-  console.log('freezeSimulation',this.freezeSimulation)
-}
+};
