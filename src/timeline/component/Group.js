@@ -76,6 +76,15 @@ Group.prototype.setItems = function setItems(items) {
 };
 
 /**
+ * Change the item selection, and/or get currently selected items
+ * @param {Array} [ids] An array with zero or more ids of the items to be selected.
+ * @return {Array} ids  The ids of the selected items
+ */
+Group.prototype.select = function select(ids) {
+  return this.itemset ? this.itemset.select(ids) : [];
+};
+
+/**
  * Repaint the item
  * @return {Boolean} changed
  */

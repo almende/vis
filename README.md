@@ -34,13 +34,14 @@ Or download the library from the github project:
 ## Load
 
 
-To use a component, include the javascript file of vis in your web page:
+To use a component, include the javascript and css files of vis in your web page:
 
 ```html
 <!DOCTYPE HTML>
 <html>
 <head>
-  <script src="components/vis/vis.js"></script>
+  <script src="components/vis/dist/vis.js"></script>
+  <link href="components/vis/dist/vis.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
   <script type="text/javascript">
@@ -50,7 +51,7 @@ To use a component, include the javascript file of vis in your web page:
 </html>
 ```
 
-or load vis.js using require.js:
+or load vis.js using require.js. Note that vis.css must be loaded too.
 
 ```js
 require.config({
@@ -86,7 +87,8 @@ of the project.
 <html>
 <head>
   <title>Timeline basic demo</title>
-  <script src="components/vis/vis.js"></script>
+  <script src="vis/dist/vis.js"></script>
+  <link href="vis/dist/vis.css" rel="stylesheet" type="text/css" />
 
   <style type="text/css">
     body, html {
@@ -134,18 +136,25 @@ root of the project.
     cd vis
     npm install
 
-To be able to run jake from the command line, jake must be installed globally:
+Then, the project can be build running:
 
-    sudo npm install -g jake
+    npm run build
 
-Then, the project can be build by executing jake in the root of the project:
 
-    jake
+## Test
+
+To test teh library, install the project dependencies once:
+
+    npm install
+
+Then run the tests:
+
+    npm test
 
 
 ## License
 
-Copyright (C) 2010-2013 Almende B.V.
+Copyright (C) 2010-2014 Almende B.V.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

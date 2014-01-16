@@ -1,7 +1,7 @@
 // test vis.EventBus
 
 var assert = require('assert'),
-    vis = require('../vis');
+    vis = require('../dist/vis');
 
 var bus = new vis.EventBus();
 

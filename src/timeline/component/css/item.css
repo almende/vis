@@ -13,6 +13,14 @@
   z-index: 999;
 }
 
+.vis.timeline .item.point.selected {
+  background-color: #FFF785;
+  z-index: 999;
+}
+.vis.timeline .item.point.selected .dot {
+  border-color: #FFC200;
+}
+
 .vis.timeline .item.cluster {
   /* TODO: use another color or pattern? */
   background: #97B0F8 url('img/cluster_bg.png');

@@ -30,24 +30,6 @@ function ItemBox (parent, data, options, defaultOptions) {
 ItemBox.prototype = new Item (null, null);
 
 /**
- * Select the item
- * @override
- */
-ItemBox.prototype.select = function select() {
-  this.selected = true;
-  // TODO: select and unselect
-};
-
-/**
- * Unselect the item
- * @override
- */
-ItemBox.prototype.unselect = function unselect() {
-  this.selected = false;
-  // TODO: select and unselect
-};
-
-/**
  * Repaint the item
  * @return {Boolean} changed
  */

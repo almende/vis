@@ -53,8 +53,9 @@ function ItemSet(parent, depends, options) {
     }
   };
 
-  this.items = {};    // object with an Item for every data item
-  this.queue = {};       // queue with id/actions: 'add', 'update', 'delete'
+  this.items = {};      // object with an Item for every data item
+  this.selection = [];  // list with the ids of all selected nodes
+  this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
   this.stack = new Stack(this, Object.create(this.options));
   this.conversion = null;
 
@@ -108,6 +109,69 @@ ItemSet.prototype.setRange = function setRange(range) {
         'or an object containing start and end.');
   }
   this.range = range;
+};
+
+/**
+ * Change the item selection, and/or get currently selected items
+ * @param {Array} [ids] An array with zero or more ids of the items to be selected.
+ * @return {Array} ids  The ids of the selected items
+ */
+ItemSet.prototype.select = function select(ids) {
+  var i, ii, id, item, selection;
+
+  if (ids) {
+    if (!Array.isArray(ids)) {
+      throw new TypeError('Array expected');
+    }
+
+    // unselect currently selected items
+    for (i = 0, ii = this.selection.length; i < ii; i++) {
+      id = this.selection[i];
+      item = this.items[id];
+      if (item) item.unselect();
+    }
+
+    // select items
+    this.selection = [];
+    for (i = 0, ii = ids.length; i < ii; i++) {
+      id = ids[i];
+      item = this.items[id];
+      if (item) {
+        this.selection.push(id);
+        item.select();
+      }
+    }
+
+    // trigger a select event
+    selection = this.selection.concat([]);
+    events.trigger(this, 'select', {
+      ids: selection
+    });
+
+    if (this.controller) {
+      this.requestRepaint();
+    }
+  }
+  else {
+    selection = this.selection.concat([]);
+  }
+
+  return selection;
+};
+
+/**
+ * Deselect a selected item
+ * @param {String | Number} id
+ * @private
+ */
+ItemSet.prototype._deselect = function _deselect(id) {
+  var selection = this.selection;
+  for (var i = 0, ii = selection.length; i < ii; i++) {
+    if (selection[i] == id) { // non-strict comparison!
+      selection.splice(i, 1);
+      break;
+    }
+  }
 };
 
 /**
@@ -234,6 +298,7 @@ ItemSet.prototype.repaint = function repaint() {
             // create item
             if (constructor) {
               item = new constructor(me, itemData, options, defaultOptions);
+              item.id = id;
               changed++;
             }
             else {
@@ -253,6 +318,11 @@ ItemSet.prototype.repaint = function repaint() {
 
       case 'remove':
         if (item) {
+          // remove the item from the set selected items
+          if (item.selected) {
+            me._deselect(id);
+          }
+
           // remove DOM of the item
           changed += item.hide();
         }

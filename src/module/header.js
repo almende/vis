@@ -8,7 +8,7 @@
  * @date    @@date
  *
  * @license
- * Copyright (C) 2011-2013 Almende B.V, http://almende.com
+ * Copyright (C) 2011-2014 Almende B.V, http://almende.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy

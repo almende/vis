@@ -1,6 +1,6 @@
 var assert = require('assert'),
     moment = require('moment'),
-    vis = require('../vis.js'),
+    vis = require('../dist/vis.js'),
     DataSet = vis.DataSet,
     DataView = vis.DataView;
 
