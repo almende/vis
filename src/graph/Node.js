@@ -54,6 +54,7 @@ function Node(properties, imagelist, grouplist, constants) {
 
   this.grouplist = grouplist;
 
+  this.nodeProperties = properties;
   this.setProperties(properties, constants);
 
   // creating the variables for clustering
@@ -864,7 +865,12 @@ Node.prototype.getTextSize = function(ctx) {
   }
 };
 
-
+/**
+ * this is used to determine if a node is visible at all. this is used to determine when it needs to be drawn.
+ * there is a safety margin of 0.3 * width;
+ *
+ * @returns {boolean}
+ */
 Node.prototype.inArea = function() {
   if (this.width !== undefined) {
   return (this.x + this.width*0.8  >= this.canvasTopLeft.x    &&
@@ -877,6 +883,10 @@ Node.prototype.inArea = function() {
   }
 }
 
+/**
+ * checks if the core of the node is in the display area, this is used for opening clusters around zoom
+ * @returns {boolean}
+ */
 Node.prototype.inView = function() {
   return (this.x >= this.canvasTopLeft.x    &&
           this.x < this.canvasBottomRight.x &&

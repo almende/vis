@@ -5,8 +5,8 @@
 function Cluster() {
   this.clusterSession = 0;
   this.hubThreshold = 5;
-}
 
+}
 
 /**
  * This function can be called to open up a specific cluster.
@@ -15,6 +15,9 @@ function Cluster() {
  * @param node    | Node object: cluster to open.
  */
 Cluster.prototype.openCluster = function(node) {
+  if (node.clusterSize > 15) {
+    this._addUniverse(node);
+  }
   var isMovingBeforeClustering = this.moving;
 
   this._expandClusterNode(node,false,true);
@@ -73,6 +76,11 @@ Cluster.prototype.decreaseClusterLevel = function() {
 Cluster.prototype.updateClusters = function(zoomDirection,recursive,force) {
   var isMovingBeforeClustering = this.moving;
   var amountOfNodes = this.nodeIndices.length;
+
+  // on zoom out collapse the universe back to default
+//  if (this.previousScale > this.scale && zoomDirection == 0) {
+//    this._collapseUniverse();
+//  }
 
   // check if we zoom in or out
   if (this.previousScale > this.scale || zoomDirection == -1) { // zoom out

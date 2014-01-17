@@ -67,8 +67,8 @@ function Graph (container, data, options) {
       enableClustering: true,
       maxNumberOfNodes: 100,        // for automatic (initial) clustering
       snakeThreshold: 0.5,         // maximum percentage of allowed snakes (long strings of connected nodes)
-      clusterLength: 30,            // threshold edge length for clusteringl
-      relativeOpenFactor: 0.5,      // if the width or height of a cluster takes up this much of the screen, open the cluster
+      clusterLength: 25,            // threshold edge length for clusteringl
+      relativeOpenFactor: 0.2,      // if the width or height of a cluster takes up this much of the screen, open the cluster
       fontSizeMultiplier: 4,        // how much the cluster font size grows per node (in px)
       forceAmplification: 0.7,      // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
       distanceAmplification: 0.3,   // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
@@ -87,13 +87,19 @@ function Graph (container, data, options) {
   // call the constructor of the cluster object
   Cluster.call(this);
 
+  // call the universe constructor
+  Universe.call(this);
+
   var graph = this;
-  this.freezeSimulation = false;
-  this.nodeIndices = [];      // the node indices list is used to speed up the computation of the repulsion fields
-  this.tapTimer = 0;
-  this.pocketUniverse = {};
-  this.nodes = {};            // object with Node objects
-  this.edges = {};            // object with Edge objects
+  this.freezeSimulation = false;// freeze the simulation
+  this.tapTimer = 0;            // timer to detect doubleclick or double tap
+  this.nodeIndices = [];        // array with all the indices of the nodes. Used to speed up forces calculation
+  this.nodes = {};              // object with Node objects
+  this.edges = {};              // object with Edge objects
+
+  this.canvasTopLeft     = {"x": 0,"y": 0};   // coordinates of the top left of the canvas.     they will be set during calcForces.
+  this.canvasBottomRight = {"x": 0,"y": 0};   // coordinates of the bottom right of the canvas. they will be set during calcForces
+
   this.zoomCenter = {};       // object with x and y elements used for determining the center of the zoom action
   this.scale = 1;             // defining the global scale variable in the constructor
   this.previousScale = this.scale;    // this is used to check if the zoom operation is zooming in or out
@@ -153,10 +159,8 @@ function Graph (container, data, options) {
   // apply options
   this.setOptions(options);
 
-  var disableStart = this.constants.clustering.enableClustering;
-
-  // load data
-  this.setData(data,disableStart); //
+  // load data (the disable start variable will be the same as the enable clustering)
+  this.setData(data,this.constants.clustering.enableClustering); //
 
   // zoom so all data will fit on the screen
   this.zoomToFit();
@@ -170,14 +174,16 @@ function Graph (container, data, options) {
 
     // this is called here because if clusterin is disabled, the start and stabilize are called in
     // the setData function.
-
-    // find a stable position or start animating to a stable position
     if (this.stabilize) {
       this._doStabilize();
     }
     this.start();
   }
 }
+
+
+// add the universe functionality to this
+Graph.prototype = Object.create(Universe.prototype);
 
 /**
  * We add the functionality of the cluster object to the graph object
@@ -194,11 +200,11 @@ Graph.prototype = Object.create(Cluster.prototype);
 Graph.prototype.clusterToFit = function(maxNumberOfNodes, reposition) {
   var numberOfNodes = this.nodeIndices.length;
 
-  var maxLevels = 10;
+  var maxLevels = 15;
   var level = 0;
 
   // we first cluster the hubs, then we pull in the outliers, repeat
-  while (numberOfNodes >= maxNumberOfNodes && level < maxLevels) {
+  while (numberOfNodes > maxNumberOfNodes && level < maxLevels) {
     if (level % 5 == 0) {
       console.log("Aggregating Hubs @ level: ",level,". Threshold:", this.hubThreshold,"clusterSession",this.clusterSession);
       this.forceAggregateHubs();
@@ -211,7 +217,7 @@ Graph.prototype.clusterToFit = function(maxNumberOfNodes, reposition) {
     level += 1;
   }
 
-  // after the clustering we reposition the nodes to avoid initial chaos
+  // after the clustering we reposition the nodes to reduce the initial chaos
   if (level > 1 && reposition == true) {
     this.repositionNodes();
   }
@@ -239,8 +245,9 @@ Graph.prototype.zoomToFit = function() {
  * @private
  */
 Graph.prototype._updateNodeIndexList = function() {
-  this.nodeIndices = [];
-
+  var universe = this.activeUniverse[this.activeUniverse.length-1];
+  this.universe["activePockets"][universe]["nodeIndices"] = [];
+  this.nodeIndices = this.universe["activePockets"][universe]["nodeIndices"];
   for (var idx in this.nodes) {
     if (this.nodes.hasOwnProperty(idx)) {
       this.nodeIndices.push(idx);
@@ -285,6 +292,8 @@ Graph.prototype.setData = function(data, disableStart) {
     this._setNodes(data && data.nodes);
     this._setEdges(data && data.edges);
   }
+
+  this._putDataInUniverse();
 
   if (!disableStart) {
     // find a stable position or start animating to a stable position
@@ -430,14 +439,15 @@ Graph.prototype._create = function () {
   this.hammer.on('mousewheel',me._onMouseWheel.bind(me) );
   this.hammer.on('DOMMouseScroll',me._onMouseWheel.bind(me) ); // for FF
   this.hammer.on('mousemove', me._onMouseMoveTitle.bind(me) );
-
+/*
   this.mouseTrap = mouseTrap;
   this.mouseTrap.bind("=",this.decreaseClusterLevel.bind(me));
   this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
   this.mouseTrap.bind("s",this.singleStep.bind(me));
   this.mouseTrap.bind("h",this.updateClustersDefault.bind(me));
+  this.mouseTrap.bind("c",this._collapseUniverse.bind(me));
   this.mouseTrap.bind("f",this.toggleFreeze.bind(me));
-
+*/
   // add the frame to the container element
   this.containerElement.appendChild(this.frame);
 };
@@ -710,7 +720,7 @@ Graph.prototype._zoom = function(scale, pointer) {
   this.updateClustersDefault();
   this._redraw();
 
-  console.log("current zoomscale:",this.scale);
+//  console.log("current zoomscale:",this.scale);
 
   return scale;
 };
@@ -995,16 +1005,36 @@ Graph.prototype._selectNodes = function(selection, append) {
  * @private
  */
 Graph.prototype._getNodesOverlappingWith = function (obj) {
-  var nodes = this.nodes,
-      overlappingNodes = [];
+  var overlappingNodes = [];
+  var nodes;
 
-  for (var id in nodes) {
-    if (nodes.hasOwnProperty(id)) {
-      if (nodes[id].isOverlappingWith(obj)) {
-        overlappingNodes.push(id);
+  // search in all universes for nodes
+  for (var universe in this.universe["activePockets"]) {
+    if (this.universe["activePockets"].hasOwnProperty(universe)) {
+      nodes = this.universe["activePockets"][universe]["nodes"];
+      for (var id in nodes) {
+        if (nodes.hasOwnProperty(id)) {
+          if (nodes[id].isOverlappingWith(obj)) {
+            overlappingNodes.push(id);
+          }
+        }
       }
     }
   }
+
+  for (var universe in this.universe["frozenPockets"]) {
+    if (this.universe["frozenPockets"].hasOwnProperty(universe)) {
+      nodes = this.universe["frozenPockets"][universe]["nodes"];
+      for (var id in nodes) {
+        if (nodes.hasOwnProperty(id)) {
+          if (nodes[id].isOverlappingWith(obj)) {
+            overlappingNodes.push(id);
+          }
+        }
+      }
+    }
+  }
+  this.nodes = this.universe["activePockets"][this.activeUniverse[this.activeUniverse.length-1]]["nodes"];
 
   return overlappingNodes;
 };
@@ -1498,8 +1528,41 @@ Graph.prototype._redraw = function() {
   ctx.translate(this.translation.x, this.translation.y);
   ctx.scale(this.scale, this.scale);
 
-  this._drawEdges(ctx);
-  this._drawNodes(ctx);
+//  this._drawEdges(ctx);
+//  this._drawNodes(ctx);
+
+  for (var universe in this.universe["activePockets"]) {
+    if (this.universe["activePockets"].hasOwnProperty(universe)) {
+      this.edges       = this.universe["activePockets"][universe]["edges"];
+      this._drawEdges(ctx);
+    }
+  }
+
+  for (var universe in this.universe["frozenPockets"]) {
+    if (this.universe["frozenPockets"].hasOwnProperty(universe)) {
+      this.edges       = this.universe["frozenPockets"][universe]["edges"];
+      this._drawEdges(ctx);
+    }
+  }
+
+  for (var universe in this.universe["activePockets"]) {
+    if (this.universe["activePockets"].hasOwnProperty(universe)) {
+      this.nodes       = this.universe["activePockets"][universe]["nodes"];
+      this._drawNodes(ctx);
+    }
+  }
+
+  for (var universe in this.universe["frozenPockets"]) {
+    if (this.universe["frozenPockets"].hasOwnProperty(universe)) {
+      this.nodes       = this.universe["frozenPockets"][universe]["nodes"];
+      this._drawNodes(ctx);
+    }
+  }
+
+  this.nodeIndices = this.universe["activePockets"][this.activeUniverse[this.activeUniverse.length-1]]["nodeIndices"];
+  this.nodes       = this.universe["activePockets"][this.activeUniverse[this.activeUniverse.length-1]]["nodes"];
+  this.edges       = this.universe["activePockets"][this.activeUniverse[this.activeUniverse.length-1]]["edges"];
+
 
   // restore original scaling and translation
   ctx.restore();
@@ -1608,15 +1671,9 @@ Graph.prototype._drawNodes = function(ctx) {
   var nodes = this.nodes;
   var selected = [];
 
-  var canvasTopLeft = {"x": (0-this.translation.x)/this.scale,
-                       "y": (0-this.translation.y)/this.scale};
-  var canvasBottomRight = {"x": (this.frame.canvas.clientWidth -this.translation.x)/this.scale,
-                           "y": (this.frame.canvas.clientHeight-this.translation.y)/this.scale};
-
-
   for (var id in nodes) {
     if (nodes.hasOwnProperty(id)) {
-      nodes[id].setScaleAndPos(this.scale,canvasTopLeft,canvasBottomRight);
+      nodes[id].setScaleAndPos(this.scale,this.canvasTopLeft,this.canvasBottomRight);
       if (nodes[id].isSelected()) {
         selected.push(id);
       }
@@ -1683,7 +1740,7 @@ Graph.prototype._doStabilize = function() {
  * Forces are caused by: edges, repulsing forces between nodes, gravity
  * @private
  */
-Graph.prototype._calculateForces = function() {
+Graph.prototype._calculateForces = function(nodes,edges) {
   // stop calculation if there is only one node
   if (this.nodeIndices.length == 1) {
     this.nodes[this.nodeIndices[0]]._setForce(0,0);
@@ -1694,6 +1751,13 @@ Graph.prototype._calculateForces = function() {
     this._calculateForces();
   }
   else {
+    this.canvasTopLeft = {"x": (0-this.translation.x)/this.scale,
+                          "y": (0-this.translation.y)/this.scale};
+    this.canvasBottomRight = {"x": (this.frame.canvas.clientWidth -this.translation.x)/this.scale,
+                              "y": (this.frame.canvas.clientHeight-this.translation.y)/this.scale};
+    var centerPos = {"x":0.5*(this.canvasTopLeft.x + this.canvasBottomRight.x),
+                     "y":0.5*(this.canvasTopLeft.y + this.canvasBottomRight.y)}
+
     // create a local edge to the nodes and edges, that is faster
     var dx, dy, angle, distance, fx, fy,
       repulsingForce, springForce, length, edgeLength,
@@ -1709,12 +1773,18 @@ Graph.prototype._calculateForces = function() {
     var gravity = 0.08;
     for (i = 0; i < this.nodeIndices.length; i++) {
         node = nodes[this.nodeIndices[i]];
-        dx = -node.x - this.translation.x + this.frame.canvas.clientWidth*0.5;
-        dy = -node.y - this.translation.y + this.frame.canvas.clientHeight*0.5;
+        if (this.activeUniverse[this.activeUniverse.length-1] == "default") {
+          dx = -node.x + centerPos.x;
+          dy = -node.y + centerPos.y;
 
-        angle = Math.atan2(dy, dx);
-        fx = Math.cos(angle) * gravity;
-        fy = Math.sin(angle) * gravity;
+          angle = Math.atan2(dy, dx);
+          fx = Math.cos(angle) * gravity;
+          fy = Math.sin(angle) * gravity;
+        }
+        else {
+          fx = 0;
+          fy = 0;
+        }
         node._setForce(fx, fy);
 
         node.updateDamping(this.nodeIndices.length);
@@ -1811,25 +1881,28 @@ Graph.prototype._calculateForces = function() {
       if (edges.hasOwnProperty(edgeID)) {
         edge = edges[edgeID];
         if (edge.connected) {
-          clusterSize = (edge.to.clusterSize + edge.from.clusterSize - 2);
-          dx = (edge.to.x - edge.from.x);
-          dy = (edge.to.y - edge.from.y);
-          //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
-          //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length; // TODO: dmin
-          //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2;
-          edgeLength = edge.length;
-          // this implies that the edges between big clusters are longer
-          edgeLength += clusterSize * this.constants.clustering.edgeGrowth;
-          length =  Math.sqrt(dx * dx + dy * dy);
-          angle = Math.atan2(dy, dx);
+          // only calculate forces if nodes are in the same universe
+          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+            clusterSize = (edge.to.clusterSize + edge.from.clusterSize - 2);
+            dx = (edge.to.x - edge.from.x);
+            dy = (edge.to.y - edge.from.y);
+            //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
+            //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length; // TODO: dmin
+            //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2;
+            edgeLength = edge.length;
+            // this implies that the edges between big clusters are longer
+            edgeLength += clusterSize * this.constants.clustering.edgeGrowth;
+            length =  Math.sqrt(dx * dx + dy * dy);
+            angle = Math.atan2(dy, dx);
 
-          springForce = edge.stiffness * (edgeLength - length);
+            springForce = edge.stiffness * (edgeLength - length);
 
-          fx = Math.cos(angle) * springForce;
-          fy = Math.sin(angle) * springForce;
+            fx = Math.cos(angle) * springForce;
+            fy = Math.sin(angle) * springForce;
 
-          edge.from._addForce(-fx, -fy);
-          edge.to._addForce(fx, fy);
+            edge.from._addForce(-fx, -fy);
+            edge.to._addForce(fx, fy);
+          }
         }
       }
     }
@@ -1910,15 +1983,28 @@ Graph.prototype._discreteStepNodes = function() {
 /**
  * Start animating nodes and edges
  */
-
 Graph.prototype.start = function() {
   if (!this.freezeSimulation) {
     if (this.moving) {
+      var vmin = this.constants.minVelocity;
+      /*
       this._calculateForces();
       this._discreteStepNodes();
-
-      var vmin = this.constants.minVelocity;
       this.moving = this._isMoving(vmin);
+      */
+      //console.log("no",this.nodes)
+
+
+      for (var universe in this.universe["activePockets"]) {
+        if (this.universe["activePockets"].hasOwnProperty(universe)) {
+          this._switchToUniverse(universe);
+          this._calculateForces();
+          this._discreteStepNodes();
+          this.moving = this._isMoving(vmin);
+        }
+      }
+
+      this._loadActiveUniverse();
     }
 
     if (this.moving) {
@@ -1926,17 +2012,16 @@ Graph.prototype.start = function() {
       if (!this.timer) {
         var graph = this;
         this.timer = window.setTimeout(function () {
-          var start,end,time;
           graph.timer = undefined;
 
           graph.start();
           graph.start();
 
           graph._redraw();
-//          start = window.performance.now();
+//          var start = window.performance.now();
 //          graph._redraw();
-//          end = window.performance.now();
-//          time = end - start;
+//          var end = window.performance.now();
+//          var time = end - start;
 //          console.log('Drawing time: ' + time);
         }, this.refreshRate);
       }
