@@ -80,6 +80,7 @@ Cluster.prototype.updateClusters = function(zoomDirection,recursive,force) {
   }
   else if (this.previousScale < this.scale || zoomDirection == 1) { // zoom out
     this._openClusters(recursive,force);
+    this._openClustersBySize();
   }
   this._updateNodeIndexList();
 
@@ -160,6 +161,26 @@ Cluster.prototype.forceAggregateHubs = function() {
   // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
   if (this.moving != isMovingBeforeClustering) {
     this.start();
+  }
+};
+
+/**
+ * If a cluster takes up more than a set percentage of the screen, open the cluster
+ *
+ * @private
+ */
+Cluster.prototype._openClustersBySize = function() {
+  for (nodeID in this.nodes) {
+    if (this.nodes.hasOwnProperty(nodeID)) {
+      node = this.nodes[nodeID];
+      if (node.inView() == true) {
+        if ((node.width*this.scale > this.constants.clustering.relativeOpenFactor * this.frame.canvas.clientWidth) ||
+            (node.height*this.scale > this.constants.clustering.relativeOpenFactor * this.frame.canvas.clientHeight)) {
+          this.openCluster(node);
+          this.openCluster(node);
+        }
+      }
+    }
   }
 };
 
@@ -767,12 +788,12 @@ Cluster.prototype.updateLabels = function() {
   }
 
   /* Debug Override */
-  for (nodeID in this.nodes) {
-    if (this.nodes.hasOwnProperty(nodeID)) {
-      node = this.nodes[nodeID];
-      node.label = String(node.clusterSize).concat(":",String(node.id));
-    }
-  }
+//  for (nodeID in this.nodes) {
+//    if (this.nodes.hasOwnProperty(nodeID)) {
+//      node = this.nodes[nodeID];
+//      node.label = String(Math.round(node.width)).concat(":",Math.round(node.width*this.scale));
+//    }
+//  }
 
 };
 

@@ -75,6 +75,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.damping = 0.9; // damping factor
 
   this.graphScaleInv = 1;
+  this.canvasTopLeft = {"x": -300, "y": -300};
+  this.canvasBottomRight = {"x":  300, "y":  300};
 }
 
 /**
@@ -862,13 +864,37 @@ Node.prototype.getTextSize = function(ctx) {
   }
 };
 
+
+Node.prototype.inArea = function() {
+  if (this.width !== undefined) {
+  return (this.x + this.width*0.8  >= this.canvasTopLeft.x    &&
+          this.x - this.width*0.8  <  this.canvasBottomRight.x &&
+          this.y + this.height*0.8 >= this.canvasTopLeft.y    &&
+          this.y - this.height*0.8 <  this.canvasBottomRight.y);
+  }
+  else {
+    return true;
+  }
+}
+
+Node.prototype.inView = function() {
+  return (this.x >= this.canvasTopLeft.x    &&
+          this.x < this.canvasBottomRight.x &&
+          this.y >= this.canvasTopLeft.y    &&
+          this.y < this.canvasBottomRight.y);
+}
+
+
 /**
  * This allows the zoom level of the graph to influence the rendering
+ * We store the inverted scale and the coordinates of the top left, and bottom right points of the canvas
  *
  * @param scale
  */
-Node.prototype.setScale = function(scale) {
+Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) {
   this.graphScaleInv = 1.0/scale;
+  this.canvasTopLeft = canvasTopLeft;
+  this.canvasBottomRight = canvasBottomRight;
 };
 
 /**
@@ -890,7 +916,6 @@ Node.prototype.clearVelocity = function() {
 };
 
 
-
 /**
  * Basic preservation of (kinectic) energy
  *
@@ -902,3 +927,4 @@ Node.prototype.updateVelocity = function(massBeforeClustering) {
   energyBefore = this.vy * this.vy * massBeforeClustering;
   this.vy = Math.sqrt(energyBefore/this.mass);
 };
+

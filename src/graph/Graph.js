@@ -64,10 +64,11 @@ function Graph (container, data, options) {
       }
     },
     clustering: { // TODO: naming of variables
-      enableClustering: false,
+      enableClustering: true,
       maxNumberOfNodes: 100,        // for automatic (initial) clustering
       snakeThreshold: 0.5,         // maximum percentage of allowed snakes (long strings of connected nodes)
       clusterLength: 30,            // threshold edge length for clusteringl
+      relativeOpenFactor: 0.5,      // if the width or height of a cluster takes up this much of the screen, open the cluster
       fontSizeMultiplier: 4,        // how much the cluster font size grows per node (in px)
       forceAmplification: 0.7,      // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
       distanceAmplification: 0.3,   // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
@@ -709,7 +710,7 @@ Graph.prototype._zoom = function(scale, pointer) {
   this.updateClustersDefault();
   this._redraw();
 
-  //console.log("current zoomscale:",this.scale)
+  console.log("current zoomscale:",this.scale);
 
   return scale;
 };
@@ -1606,21 +1607,32 @@ Graph.prototype._drawNodes = function(ctx) {
   // first draw the unselected nodes
   var nodes = this.nodes;
   var selected = [];
+
+  var canvasTopLeft = {"x": (0-this.translation.x)/this.scale,
+                       "y": (0-this.translation.y)/this.scale};
+  var canvasBottomRight = {"x": (this.frame.canvas.clientWidth -this.translation.x)/this.scale,
+                           "y": (this.frame.canvas.clientHeight-this.translation.y)/this.scale};
+
+
   for (var id in nodes) {
     if (nodes.hasOwnProperty(id)) {
-      nodes[id].setScale(this.scale);
+      nodes[id].setScaleAndPos(this.scale,canvasTopLeft,canvasBottomRight);
       if (nodes[id].isSelected()) {
         selected.push(id);
       }
       else {
-        nodes[id].draw(ctx);
+        if (nodes[id].inArea()) {
+          nodes[id].draw(ctx);
+        }
       }
     }
   }
 
   // draw the selected nodes on top
   for (var s = 0, sMax = selected.length; s < sMax; s++) {
-    nodes[selected[s]].draw(ctx);
+    if (nodes[selected[s]].inArea()) {
+      nodes[selected[s]].draw(ctx);
+    }
   }
 };
 
@@ -1677,7 +1689,7 @@ Graph.prototype._calculateForces = function() {
     this.nodes[this.nodeIndices[0]]._setForce(0,0);
   }
   // if there are too many nodes on screen, we cluster without repositioning
-  else if (this.nodeIndices.length > this.constants.clustering.maxNumberOfNodes * 4) {
+  else if (this.nodeIndices.length > this.constants.clustering.maxNumberOfNodes * 4 && this.constants.clustering.enableClustering == true) {
     this.clusterToFit(this.constants.clustering.maxNumberOfNodes * 2, false);
     this._calculateForces();
   }
@@ -1914,24 +1926,18 @@ Graph.prototype.start = function() {
       if (!this.timer) {
         var graph = this;
         this.timer = window.setTimeout(function () {
+          var start,end,time;
           graph.timer = undefined;
 
-          // benchmark the calculation
-  //        var start = window.performance.now();
           graph.start();
-          // Optionally call this twice for faster convergence
           graph.start();
-  //        var end = window.performance.now();
-  //        var time = end - start;
-  //        console.log('Simulation time: ' + time);
 
-
-  //        start = window.performance.now();
           graph._redraw();
-  //        end = window.performance.now();
-  //        time = end - start;
-  //        console.log('Drawing time: ' + time);
-
+//          start = window.performance.now();
+//          graph._redraw();
+//          end = window.performance.now();
+//          time = end - start;
+//          console.log('Drawing time: ' + time);
         }, this.refreshRate);
       }
     }
@@ -1952,7 +1958,6 @@ Graph.prototype.singleStep = function() {
     this._redraw();
   }
 };
-
 
 
 
