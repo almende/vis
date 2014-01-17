@@ -9,16 +9,49 @@ function Cluster() {
 }
 
 /**
- * This function can be called to open up a specific cluster.
+ * This function clusters until the maxNumberOfNodes has been reached
+ *
+ * @param {Number}  maxNumberOfNodes
+ * @param {Boolean} reposition
+ */
+Cluster.prototype.clusterToFit = function(maxNumberOfNodes, reposition) {
+  var numberOfNodes = this.nodeIndices.length;
+
+  var maxLevels = 15;
+  var level = 0;
+
+  // we first cluster the hubs, then we pull in the outliers, repeat
+  while (numberOfNodes > maxNumberOfNodes && level < maxLevels) {
+    if (level % 5 == 0) {
+      console.log("Aggregating Hubs @ level: ",level,". Threshold:", this.hubThreshold,"clusterSession",this.clusterSession);
+      this.forceAggregateHubs();
+    }
+    else {
+      console.log("Pulling in Outliers @ level: ",level,"clusterSession",this.clusterSession);
+      this.increaseClusterLevel();
+    }
+    numberOfNodes = this.nodeIndices.length;
+    level += 1;
+  }
+
+  // after the clustering we reposition the nodes to reduce the initial chaos
+  if (level > 1 && reposition == true) {
+    this.repositionNodes();
+  }
+};
+
+/**
+ * This function can be called to open up a specific cluster. It is only called by
  * It will unpack the cluster back one level.
  *
  * @param node    | Node object: cluster to open.
  */
 Cluster.prototype.openCluster = function(node) {
+  var isMovingBeforeClustering = this.moving;
+
   if (node.clusterSize > 15) {
     this._addUniverse(node);
   }
-  var isMovingBeforeClustering = this.moving;
 
   this._expandClusterNode(node,false,true);
 

@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version @@version
- * @date    @@date
+ * @version 0.4.0-SNAPSHOT
+ * @date    2014-01-17
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -10529,155 +10529,185 @@ Images.prototype.load = function(url) {
 };
 
 
+var UniverseMixin = {
+  _putDataInUniverse : function() {
+    this.universe["activePockets"][this._universe()].nodes = this.nodes;
+    this.universe["activePockets"][this._universe()].edges = this.edges;
+    this.universe["activePockets"][this._universe()].nodeIndices = this.nodeIndices;
+  },
+  
+  _switchToUniverse : function(universeID) {
+    this.nodeIndices = this.universe["activePockets"][universeID]["nodeIndices"];
+    this.nodes       = this.universe["activePockets"][universeID]["nodes"];
+    this.edges       = this.universe["activePockets"][universeID]["edges"];
+  },
 
-function Universe() {
-  this.universe = {};
-  this.activeUniverse = ["default"];
-  this.universe["activePockets"] = {};
-  this.universe["activePockets"][this.activeUniverse[this.activeUniverse.length-1]] = {"nodes":{},"edges":{},"nodeIndices":[]};
-  this.universe["frozenPockets"] = {};
-  this.universe["draw"] = {};
+  _loadActiveUniverse : function() {
+    this._switchToUniverse(this._universe());
+  },
 
-  this.nodeIndices = this.universe["activePockets"][this.activeUniverse[this.activeUniverse.length-1]]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
-}
+  _universe : function() {
+    return this.activeUniverse[this.activeUniverse.length-1];
+  },
 
-
-Universe.prototype._putDataInUniverse = function() {
-  this.universe["activePockets"][this._universe()].nodes = this.nodes;
-  this.universe["activePockets"][this._universe()].edges = this.edges;
-  this.universe["activePockets"][this._universe()].nodeIndices = this.nodeIndices;
-};
-
-Universe.prototype._switchToUniverse = function(universeID) {
-  this.nodeIndices = this.universe["activePockets"][universeID]["nodeIndices"];
-  this.nodes       = this.universe["activePockets"][universeID]["nodes"];
-  this.edges       = this.universe["activePockets"][universeID]["edges"];
-};
-
-Universe.prototype._loadActiveUniverse = function() {
-  this._switchToUniverse(this._universe());
-};
-
-Universe.prototype._universe = function() {
-  return this.activeUniverse[this.activeUniverse.length-1];
-};
-
-Universe.prototype._previousUniverse = function() {
-  if (this.activeUniverse.length > 1) {
-    return this.activeUniverse[this.activeUniverse.length-2];
-  }
-  else {
-    throw new TypeError('there are not enough universes in the this.activeUniverse array.');
-    return "";
-  }
-};
-
-Universe.prototype._setActiveUniverse = function(newID) {
-  this.activeUniverse.push(newID);
-};
-
-Universe.prototype._forgetLastUniverse = function() {
-  this.activeUniverse.pop();
-};
-
-Universe.prototype._createNewUniverse = function(newID) {
-  this.universe["activePockets"][newID] = {"nodes":{},"edges":{},"nodeIndices":[]}
-};
-
-Universe.prototype._deleteActiveUniverse = function(universeID) {
-  delete this.universe["activePockets"][universeID];
-};
-
-Universe.prototype._deleteFrozenUniverse = function(universeID) {
-  delete this.universe["frozenPockets"][universeID];
-};
-
-Universe.prototype._freezeUniverse = function(universeID) {
-  this.universe["frozenPockets"][universeID] = this.universe["activePockets"][universeID];
-  this._deleteActiveUniverse(universeID);
-};
-
-Universe.prototype._activateUniverse = function(universeID) {
-  this.universe["activePockets"][universeID] = this.universe["frozenPockets"][universeID];
-  this._deleteFrozenUniverse(universeID);
-};
-
-Universe.prototype._mergeThisWithFrozen = function(universeID) {
-  for (var nodeID in this.nodes) {
-    if (this.nodes.hasOwnProperty(nodeID)) {
-      this.universe["frozenPockets"][universeID]["nodes"][nodeID] = this.nodes[nodeID];
+  _previousUniverse : function() {
+    if (this.activeUniverse.length > 1) {
+      return this.activeUniverse[this.activeUniverse.length-2];
     }
-  }
-
-  for (var edgeID in this.edges) {
-    if (this.edges.hasOwnProperty(edgeID)) {
-      this.universe["frozenPockets"][universeID]["edges"][edgeID] = this.edges[edgeID];
+    else {
+      throw new TypeError('there are not enough universes in the this.activeUniverse array.');
+      return "";
     }
-  }
+  },
 
-  for (var i = 0; i < this.nodeIndices.length; i++) {
-    this.universe["frozenPockets"][universeID]["edges"][nodeIndices].push(this.nodeIndices[i]);
-  }
-};
+  _setActiveUniverse : function(newID) {
+    this.activeUniverse.push(newID);
+  },
 
-Universe.prototype._collapseThisToSingleCluster = function() {
-  this.clusterToFit(1,false);
-};
+  _forgetLastUniverse : function() {
+    this.activeUniverse.pop();
+  },
 
+  _createNewUniverse : function(newID) {
+    this.universe["activePockets"][newID] = {"nodes":{  },"edges":{  },"nodeIndices":[]}
+  },
 
-Universe.prototype._addUniverse = function(node) {
-  var universe = this._universe();
-  if (this.universe['activePockets'][universe]["nodes"].hasOwnProperty(node.id)) {
-    console.log("the node is part of the active universe");
-  }
-  else {
-    console.log("I dont konw what the fuck happened!!");
-  }
+  _deleteActiveUniverse : function(universeID) {
+    delete this.universe["activePockets"][universeID];
+  },
 
-  delete this.nodes[node.id];
+  _deleteFrozenUniverse : function(universeID) {
+    delete this.universe["frozenPockets"][universeID];
+  },
 
-  this._freezeUniverse(universe);
-  this._createNewUniverse(node.id);
+  _freezeUniverse : function(universeID) {
+    this.universe["frozenPockets"][universeID] = this.universe["activePockets"][universeID];
+    this._deleteActiveUniverse(universeID);
+  },
 
-  this._setActiveUniverse(node.id);
-  this._switchToUniverse(this._universe());
+  _activateUniverse : function(universeID) {
+    this.universe["activePockets"][universeID] = this.universe["frozenPockets"][universeID];
+    this._deleteFrozenUniverse(universeID);
+  },
 
-  this.nodes[node.id] = node;
-  //this.universe["draw"][node.id] = new Node(node.nodeProperties,node.imagelist,node.grouplist,this.constants);
-};
-
-Universe.prototype._collapseUniverse = function() {
-  var universe = this._universe();
-
-  if (universe != "default") {
-    var isMovingBeforeClustering = this.moving;
-
-    var previousUniverse = this._previousUniverse();
-
-    this._collapseThisToSingleCluster();
-
-    this._mergeThisWithFrozen(previousUniverse);
-
-    this._deleteActiveUniverse(universe);
-
-    this._activateUniverse(previousUniverse);
-
-    this._switchToUniverse(previousUniverse);
-
-    this._forgetLastUniverse();
-
-    this._updateNodeIndexList();
-
-    // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
-    if (this.moving != isMovingBeforeClustering) {
-      this.start();
+  _mergeThisWithFrozen : function(universeID) {
+    for (var nodeID in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeID)) {
+        this.universe["frozenPockets"][universeID]["nodes"][nodeID] = this.nodes[nodeID];
+      }
     }
+
+    for (var edgeID in this.edges) {
+      if (this.edges.hasOwnProperty(edgeID)) {
+        this.universe["frozenPockets"][universeID]["edges"][edgeID] = this.edges[edgeID];
+      }
+    }
+
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+      this.universe["frozenPockets"][universeID]["nodeIndices"].push(this.nodeIndices[i]);
+    }
+  },
+
+  _collapseThisToSingleCluster : function() {
+    this.clusterToFit(1,false);
+  },
+
+
+  _addUniverse : function(node) {
+    var universe = this._universe();
+    if (this.universe['activePockets'][universe]["nodes"].hasOwnProperty(node.id)) {
+      console.log("the node is part of the active universe");
+    }
+    else {
+      console.log("I dont konw what the fuck happened!!");
+    }
+
+    delete this.nodes[node.id];
+
+    this._freezeUniverse(universe);
+    this._createNewUniverse(node.id);
+
+    this._setActiveUniverse(node.id);
+    this._switchToUniverse(this._universe());
+
+    this.nodes[node.id] = node;
+    //this.universe["draw"][node.id] = new Node(node.nodeProperties,node.imagelist,node.grouplist,this.constants);
+  },
+
+  _collapseUniverse : function() {
+    var universe = this._universe();
+
+    if (universe != "default") {
+      var isMovingBeforeClustering = this.moving;
+
+      var previousUniverse = this._previousUniverse();
+
+      this._collapseThisToSingleCluster();
+
+      this._mergeThisWithFrozen(previousUniverse);
+
+      this._deleteActiveUniverse(universe);
+
+      this._activateUniverse(previousUniverse);
+
+      this._switchToUniverse(previousUniverse);
+
+      this._forgetLastUniverse();
+
+      this._updateNodeIndexList();
+
+      // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+      if (this.moving != isMovingBeforeClustering) {
+        this.start();
+      }
+    }
+  },
+
+  _doInAllActiveUniverses : function(runFunction,args) {
+    if (args === undefined) {
+      for (var universe in this.universe["activePockets"]) {
+        if (this.universe["activePockets"].hasOwnProperty(universe)) {
+          this._switchToUniverse(universe);
+          this[runFunction]();
+        }
+      }
+    }
+    else {
+      for (var universe in this.universe["activePockets"]) {
+        if (this.universe["activePockets"].hasOwnProperty(universe)) {
+          this._switchToUniverse(universe);
+          this[runFunction](args);
+        }
+      }
+    }
+    this._loadActiveUniverse();
+  },
+
+  _doInAllFrozenUniverses : function(runFunction,args) {
+    if (args === undefined) {
+      for (var universe in this.universe["frozenPockets"]) {
+        if (this.universe["frozenPockets"].hasOwnProperty(universe)) {
+          this._switchToUniverse(universe);
+          this[runFunction]();
+        }
+      }
+    }
+    else {
+      for (var universe in this.universe["frozenPockets"]) {
+        if (this.universe["frozenPockets"].hasOwnProperty(universe)) {
+          this._switchToUniverse(universe);
+          this[runFunction](args);
+        }
+      }
+    }
+    this._loadActiveUniverse();
+  },
+
+  _doInAllUniverses : function(runFunction,argument) {
+    this._doInAllActiveUniverses(runFunction,argument);
+    this._doInAllFrozenUniverses(runFunction,argument);
   }
 };
-
-Universe.prototype._doInAllActiveUniverses = function(runFunction,arguments) {
-
-}
 /**
  * @constructor Cluster
  * Contains the cluster properties for the graph object
@@ -10689,16 +10719,49 @@ function Cluster() {
 }
 
 /**
- * This function can be called to open up a specific cluster.
+ * This function clusters until the maxNumberOfNodes has been reached
+ *
+ * @param {Number}  maxNumberOfNodes
+ * @param {Boolean} reposition
+ */
+Cluster.prototype.clusterToFit = function(maxNumberOfNodes, reposition) {
+  var numberOfNodes = this.nodeIndices.length;
+
+  var maxLevels = 15;
+  var level = 0;
+
+  // we first cluster the hubs, then we pull in the outliers, repeat
+  while (numberOfNodes > maxNumberOfNodes && level < maxLevels) {
+    if (level % 5 == 0) {
+      console.log("Aggregating Hubs @ level: ",level,". Threshold:", this.hubThreshold,"clusterSession",this.clusterSession);
+      this.forceAggregateHubs();
+    }
+    else {
+      console.log("Pulling in Outliers @ level: ",level,"clusterSession",this.clusterSession);
+      this.increaseClusterLevel();
+    }
+    numberOfNodes = this.nodeIndices.length;
+    level += 1;
+  }
+
+  // after the clustering we reposition the nodes to reduce the initial chaos
+  if (level > 1 && reposition == true) {
+    this.repositionNodes();
+  }
+};
+
+/**
+ * This function can be called to open up a specific cluster. It is only called by
  * It will unpack the cluster back one level.
  *
  * @param node    | Node object: cluster to open.
  */
 Cluster.prototype.openCluster = function(node) {
+  var isMovingBeforeClustering = this.moving;
+
   if (node.clusterSize > 15) {
     this._addUniverse(node);
   }
-  var isMovingBeforeClustering = this.moving;
 
   this._expandClusterNode(node,false,true);
 
@@ -11694,7 +11757,7 @@ function Graph (container, data, options) {
   Cluster.call(this);
 
   // call the universe constructor
-  Universe.call(this);
+  this._loadUniverse(); // would be fantastic if multiple in heritance just worked!
 
   var graph = this;
   this.freezeSimulation = false;// freeze the simulation
@@ -11788,46 +11851,11 @@ function Graph (container, data, options) {
 }
 
 
-// add the universe functionality to this
-Graph.prototype = Object.create(Universe.prototype);
-
 /**
  * We add the functionality of the cluster object to the graph object
  * @type {Cluster.prototype}
  */
 Graph.prototype = Object.create(Cluster.prototype);
-
-/**
- * This function clusters until the maxNumberOfNodes has been reached
- *
- * @param {Number}  maxNumberOfNodes
- * @param {Boolean} reposition
- */
-Graph.prototype.clusterToFit = function(maxNumberOfNodes, reposition) {
-  var numberOfNodes = this.nodeIndices.length;
-
-  var maxLevels = 15;
-  var level = 0;
-
-  // we first cluster the hubs, then we pull in the outliers, repeat
-  while (numberOfNodes > maxNumberOfNodes && level < maxLevels) {
-    if (level % 5 == 0) {
-      console.log("Aggregating Hubs @ level: ",level,". Threshold:", this.hubThreshold,"clusterSession",this.clusterSession);
-      this.forceAggregateHubs();
-    }
-    else {
-      console.log("Pulling in Outliers @ level: ",level,"clusterSession",this.clusterSession);
-      this.increaseClusterLevel();
-    }
-    numberOfNodes = this.nodeIndices.length;
-    level += 1;
-  }
-
-  // after the clustering we reposition the nodes to reduce the initial chaos
-  if (level > 1 && reposition == true) {
-    this.repositionNodes();
-  }
-};
 
 /**
  * This function zooms out to fit all data on screen based on amount of nodes
@@ -11851,7 +11879,7 @@ Graph.prototype.zoomToFit = function() {
  * @private
  */
 Graph.prototype._updateNodeIndexList = function() {
-  var universe = this.activeUniverse[this.activeUniverse.length-1];
+  var universe = this._universe();
   this.universe["activePockets"][universe]["nodeIndices"] = [];
   this.nodeIndices = this.universe["activePockets"][universe]["nodeIndices"];
   for (var idx in this.nodes) {
@@ -12045,7 +12073,7 @@ Graph.prototype._create = function () {
   this.hammer.on('mousewheel',me._onMouseWheel.bind(me) );
   this.hammer.on('DOMMouseScroll',me._onMouseWheel.bind(me) ); // for FF
   this.hammer.on('mousemove', me._onMouseMoveTitle.bind(me) );
-/*
+
   this.mouseTrap = mouseTrap;
   this.mouseTrap.bind("=",this.decreaseClusterLevel.bind(me));
   this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
@@ -12053,7 +12081,7 @@ Graph.prototype._create = function () {
   this.mouseTrap.bind("h",this.updateClustersDefault.bind(me));
   this.mouseTrap.bind("c",this._collapseUniverse.bind(me));
   this.mouseTrap.bind("f",this.toggleFreeze.bind(me));
-*/
+
   // add the frame to the container element
   this.containerElement.appendChild(this.frame);
 };
@@ -13134,41 +13162,8 @@ Graph.prototype._redraw = function() {
   ctx.translate(this.translation.x, this.translation.y);
   ctx.scale(this.scale, this.scale);
 
-//  this._drawEdges(ctx);
-//  this._drawNodes(ctx);
-
-  for (var universe in this.universe["activePockets"]) {
-    if (this.universe["activePockets"].hasOwnProperty(universe)) {
-      this.edges       = this.universe["activePockets"][universe]["edges"];
-      this._drawEdges(ctx);
-    }
-  }
-
-  for (var universe in this.universe["frozenPockets"]) {
-    if (this.universe["frozenPockets"].hasOwnProperty(universe)) {
-      this.edges       = this.universe["frozenPockets"][universe]["edges"];
-      this._drawEdges(ctx);
-    }
-  }
-
-  for (var universe in this.universe["activePockets"]) {
-    if (this.universe["activePockets"].hasOwnProperty(universe)) {
-      this.nodes       = this.universe["activePockets"][universe]["nodes"];
-      this._drawNodes(ctx);
-    }
-  }
-
-  for (var universe in this.universe["frozenPockets"]) {
-    if (this.universe["frozenPockets"].hasOwnProperty(universe)) {
-      this.nodes       = this.universe["frozenPockets"][universe]["nodes"];
-      this._drawNodes(ctx);
-    }
-  }
-
-  this.nodeIndices = this.universe["activePockets"][this.activeUniverse[this.activeUniverse.length-1]]["nodeIndices"];
-  this.nodes       = this.universe["activePockets"][this.activeUniverse[this.activeUniverse.length-1]]["nodes"];
-  this.edges       = this.universe["activePockets"][this.activeUniverse[this.activeUniverse.length-1]]["edges"];
-
+  this._doInAllUniverses("_drawEdges",ctx);
+  this._doInAllUniverses("_drawNodes",ctx);
 
   // restore original scaling and translation
   ctx.restore();
@@ -13379,7 +13374,8 @@ Graph.prototype._calculateForces = function(nodes,edges) {
     var gravity = 0.08;
     for (i = 0; i < this.nodeIndices.length; i++) {
         node = nodes[this.nodeIndices[i]];
-        if (this.activeUniverse[this.activeUniverse.length-1] == "default") {
+        // gravity does not apply when we are in a pocket universe
+        if (this._universe() == "default") {
           dx = -node.x + centerPos.x;
           dy = -node.y + centerPos.y;
 
@@ -13584,6 +13580,9 @@ Graph.prototype._discreteStepNodes = function() {
       nodes[id].discreteStep(interval);
     }
   }
+
+  var vmin = this.constants.minVelocity;
+  this.moving = this._isMoving(vmin);
 };
 
 /**
@@ -13592,25 +13591,8 @@ Graph.prototype._discreteStepNodes = function() {
 Graph.prototype.start = function() {
   if (!this.freezeSimulation) {
     if (this.moving) {
-      var vmin = this.constants.minVelocity;
-      /*
-      this._calculateForces();
-      this._discreteStepNodes();
-      this.moving = this._isMoving(vmin);
-      */
-      //console.log("no",this.nodes)
-
-
-      for (var universe in this.universe["activePockets"]) {
-        if (this.universe["activePockets"].hasOwnProperty(universe)) {
-          this._switchToUniverse(universe);
-          this._calculateForces();
-          this._discreteStepNodes();
-          this.moving = this._isMoving(vmin);
-        }
-      }
-
-      this._loadActiveUniverse();
+      this._doInAllActiveUniverses("_calculateForces");
+      this._doInAllActiveUniverses("_discreteStepNodes");
     }
 
     if (this.moving) {
@@ -13665,6 +13647,24 @@ Graph.prototype.toggleFreeze = function() {
   }
 };
 
+
+Graph.prototype._loadUniverse = function() {
+  this.universe = {};
+  this.activeUniverse = ["default"];
+  this.universe["activePockets"] = {};
+  this.universe["activePockets"][this.activeUniverse[this.activeUniverse.length-1]] = {"nodes":{},"edges":{},"nodeIndices":[]};
+  this.universe["frozenPockets"] = {};
+  this.universe["draw"] = {};
+
+  this.nodeIndices = this.universe["activePockets"][this.activeUniverse[this.activeUniverse.length-1]]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
+  for (var mixinFunction in UniverseMixin) {
+    if (UniverseMixin.hasOwnProperty(mixinFunction)) {
+      Graph.prototype[mixinFunction] = UniverseMixin[mixinFunction];
+    }
+  }
+
+
+};
 /**
  * vis.js module exports
  */
