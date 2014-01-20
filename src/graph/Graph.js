@@ -34,8 +34,8 @@ function Graph (container, data, options) {
       //fontFace: verdana,
       fontFace: 'arial',
       color: {
-        border: '#2B7CE9',
-        background: '#97C2FC',
+          border: '#2B7CE9',
+          background: '#97C2FC',
         highlight: {
           border: '#2B7CE9',
           background: '#D2E5FF'
@@ -63,15 +63,16 @@ function Graph (container, data, options) {
         altLength: undefined
       }
     },
-    clustering: { // TODO: naming of variables
-      enableClustering: true,       // global on/off switch for clustering.
+    clustering: {
+      enableClustering: false,       // global on/off switch for clustering.
       maxNumberOfNodes: 100,        // for automatic (initial) clustering
-      snakeThreshold: 0.5,          // maximum percentage of allowed snakenodes (long strings of connected nodes) within all nodes
-      clusterEdgeLength: 25,        // threshold edge length for clustering
-      relativeOpenFactor: 0.2,      // if the width or height of a cluster takes up this much of the screen, open the cluster
+      snakeThreshold: 0.7,          // maximum percentage of allowed snakenodes (long strings of connected nodes) within all nodes
+      clusterEdgeThreshold: 15,     // edge length threshold. if smaller, this node is clustered
+      sectorThreshold: 50,          // cluster size threshold. If larger, expanding in own sector.
+      screenSizeThreshold: 0.2,     // relative size threshold. If the width or height of a clusternode takes up this much of the screen, decluster node
       fontSizeMultiplier: 4,        // how much the cluster font size grows per node in cluster (in px)
-      forceAmplification: 0.7,      // factor of increase fo the repulsion force of a cluster (per node in cluster)
-      distanceAmplification: 0.3,   // factor how much the repulsion distance of a cluster increases (per node in cluster).
+      forceAmplification: 0.6,      // factor of increase fo the repulsion force of a cluster (per node in cluster)
+      distanceAmplification: 0.2,   // factor how much the repulsion distance of a cluster increases (per node in cluster).
       edgeGrowth: 11,               // amount of clusterSize connected to the edge is multiplied with this and added to edgeLength
       clusterSizeWidthFactor: 10,   // growth of the width  per node in cluster
       clusterSizeHeightFactor: 10,  // growth of the height per node in cluster
@@ -256,7 +257,7 @@ Graph.prototype.setData = function(data, disableStart) {
     this._setEdges(data && data.edges);
   }
 
-  this._putDataInUniverse();
+  this._putDataInSector();
 
   if (!disableStart) {
     // find a stable position or start animating to a stable position
@@ -279,17 +280,17 @@ Graph.prototype.setOptions = function (options) {
     if (options.stabilize !== undefined)       {this.stabilize = options.stabilize;}
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
 
-    if (optiones.clustering) {
+    if (options.clustering) {
       for (var prop in optiones.clustering) {
         if (options.clustering.hasOwnProperty(prop)) {
-          this.constants.clustering[prop] = options.edges[prop];
+          this.constants.clustering[prop] = options.clustering[prop];
         }
       }
     }
 
     // TODO: work out these options and document them
     if (options.edges) {
-      for (var prop in options.edges) {
+      for (prop in options.edges) {
         if (options.edges.hasOwnProperty(prop)) {
           this.constants.edges[prop] = options.edges[prop];
         }
@@ -416,7 +417,7 @@ Graph.prototype._create = function () {
   this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
   this.mouseTrap.bind("s",this.singleStep.bind(me));
   this.mouseTrap.bind("h",this.updateClustersDefault.bind(me));
-  this.mouseTrap.bind("c",this._collapseUniverse.bind(me));
+  this.mouseTrap.bind("c",this._collapseSector.bind(me));
   this.mouseTrap.bind("f",this.toggleFreeze.bind(me));
 
   // add the frame to the container element
@@ -598,7 +599,6 @@ Graph.prototype._onTap = function (event) {
 
   if (node) {
     if (node.isSelected() && elapsedTime < 300) {
-      this.openCluster(node);
       this.openCluster(node);
     }
     // select this node
@@ -977,10 +977,10 @@ Graph.prototype._selectNodes = function(selection, append) {
  */
 Graph.prototype._getNodesOverlappingWith = function (obj) {
   var overlappingNodes = [];
-  var nodes;
+  var nodes, sector;
 
   // search in all sectors for nodes
-  for (var sector in this.sectors["active"]) {
+  for (sector in this.sectors["active"]) {
     if (this.sectors["active"].hasOwnProperty(sector)) {
       nodes = this.sectors["active"][sector]["nodes"];
       for (var id in nodes) {
@@ -993,7 +993,7 @@ Graph.prototype._getNodesOverlappingWith = function (obj) {
     }
   }
 
-  for (var sector in this.sectors["frozen"]) {
+  for (sector in this.sectors["frozen"]) {
     if (this.sectors["frozen"].hasOwnProperty(sector)) {
       nodes = this.sectors["frozen"][sector]["nodes"];
       for (var id in nodes) {
@@ -1499,8 +1499,9 @@ Graph.prototype._redraw = function() {
   ctx.translate(this.translation.x, this.translation.y);
   ctx.scale(this.scale, this.scale);
 
-  this._doInAllUniverses("_drawEdges",ctx);
-  this._doInAllUniverses("_drawNodes",ctx);
+  this._doInAllSectors("_drawAllSectorNodes",ctx);
+  this._doInAllSectors("_drawEdges",ctx);
+  this._doInAllSectors("_drawNodes",ctx);
 
   // restore original scaling and translation
   ctx.restore();
@@ -1928,8 +1929,8 @@ Graph.prototype._discreteStepNodes = function() {
 Graph.prototype.start = function() {
   if (!this.freezeSimulation) {
     if (this.moving) {
-      this._doInAllActiveUniverses("_calculateForces");
-      this._doInAllActiveUniverses("_discreteStepNodes");
+      this._doInAllActiveSectors("_calculateForces");
+      this._doInAllActiveSectors("_discreteStepNodes");
     }
 
     if (this.moving) {
@@ -1989,16 +1990,17 @@ Graph.prototype._loadSectorSystem = function() {
   this.sectors = {};
   this.activeSector = ["default"];
   this.sectors["active"] = {};
-  this.sectors["active"][this.activeSector[this.activeSector.length-1]] = {"nodes":{},"edges":{},"nodeIndices":[]};
+  this.sectors["active"][this.activeSector[this.activeSector.length-1]] = {"nodes":{},
+                                                                           "edges":{},
+                                                                           "nodeIndices":[],
+                                                                           "formationScale": 1.0,
+                                                                           "drawingNode": undefined};
   this.sectors["frozen"] = {};
-  this.sectors["draw"] = {};
 
   this.nodeIndices = this.sectors["active"][this.activeSector[this.activeSector.length-1]]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
-  for (var mixinFunction in UniverseMixin) {
-    if (UniverseMixin.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = UniverseMixin[mixinFunction];
+  for (var mixinFunction in SectorMixin) {
+    if (SectorMixin.hasOwnProperty(mixinFunction)) {
+      Graph.prototype[mixinFunction] = SectorMixin[mixinFunction];
     }
   }
-
-
 };

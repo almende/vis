@@ -8794,7 +8794,6 @@ function Node(properties, imagelist, grouplist, constants) {
 
   this.grouplist = grouplist;
 
-  this.nodeProperties = properties;
   this.setProperties(properties, constants);
 
   // creating the variables for clustering
@@ -8879,10 +8878,10 @@ Node.prototype.setProperties = function(properties, constants) {
   if (!properties) {
     return;
   }
-
+  this.originalLabel = undefined;
   // basic properties
   if (properties.id !== undefined)        {this.id = properties.id;}
-  if (properties.label !== undefined)     {this.label = properties.label;}
+  if (properties.label !== undefined)     {this.label = properties.label; this.originalLabel = properties.label;}
   if (properties.title !== undefined)     {this.title = properties.title;}
   if (properties.group !== undefined)     {this.group = properties.group;}
   if (properties.x !== undefined)         {this.x = properties.x;}
@@ -9190,6 +9189,7 @@ Node.prototype.setValueRange = function(min, max) {
       this.radius = (this.value - min) * scale + this.radiusMin;
     }
   }
+  this.baseRadiusValue = this.radius;
 };
 
 /**
@@ -9224,12 +9224,19 @@ Node.prototype.isOverlappingWith = function(obj) {
 
 Node.prototype._resizeImage = function (ctx) {
   // TODO: pre calculate the image size
-  if (!this.width) {  // undefined or 0
+  if (!this.width || !this.height) {  // undefined or 0
     var width, height;
     if (this.value) {
+      this.radius = this.baseRadiusValue;
       var scale = this.imageObj.height / this.imageObj.width;
-      width = this.radius || this.imageObj.width;
-      height = this.radius * scale || this.imageObj.height;
+      if (scale !== undefined) {
+        width = this.radius || this.imageObj.width;
+        height = this.radius * scale || this.imageObj.height;
+      }
+      else {
+        width = 0;
+        height = 0;
+      }
     }
     else {
       width = this.imageObj.width;
@@ -9238,10 +9245,13 @@ Node.prototype._resizeImage = function (ctx) {
     this.width  = width;
     this.height = height;
 
-    this.width += this.clusterSize * this.clusterSizeWidthFactor;
-    this.height += this.clusterSize * this.clusterSizeHeightFactor;
-    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
+    if (this.width && this.height) {
+      this.width += this.clusterSize * this.clusterSizeWidthFactor;
+      this.height += this.clusterSize * this.clusterSizeHeightFactor;
+      this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
+    }
   }
+
 };
 
 Node.prototype._drawImage = function (ctx) {
@@ -9251,7 +9261,7 @@ Node.prototype._drawImage = function (ctx) {
   this.top    = this.y - this.height / 2;
 
   var yLabel;
-  if (this.imageObj) {
+  if (this.imageObj.width != 0 ) {
     // draw the shade
     if (this.clusterSize > 1) {
       var lineWidth = ((this.clusterSize > 1) ? 10 : 0.0);
@@ -9634,17 +9644,28 @@ Node.prototype.inView = function() {
           this.y < this.canvasBottomRight.y);
 }
 
-
 /**
  * This allows the zoom level of the graph to influence the rendering
  * We store the inverted scale and the coordinates of the top left, and bottom right points of the canvas
  *
  * @param scale
+ * @param canvasTopLeft
+ * @param canvasBottomRight
  */
 Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) {
   this.graphScaleInv = 1.0/scale;
   this.canvasTopLeft = canvasTopLeft;
   this.canvasBottomRight = canvasBottomRight;
+};
+
+
+/**
+ * This allows the zoom level of the graph to influence the rendering
+ *
+ * @param scale
+ */
+Node.prototype.setScale = function(scale) {
+  this.graphScaleInv = 1.0/scale;
 };
 
 /**
@@ -10545,16 +10566,49 @@ var SectorMixin = {
 
 
   /**
+   *  /**
    * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the supplied (active) sector.
+   * those of the supplied (active) sector. If a type is defined, do the specific type
+   *
+   * @param {String} sectorID
+   * @param {String} [sectorType] | "active" or "frozen"
+   * @private
+   */
+  _switchToSector : function(sectorID, sectorType) {
+    if (sectorType === undefined || sectorType == "active") {
+      this._switchToActiveSector(sectorID);
+    }
+    else {
+      this._switchToFrozenSector(sectorID);
+    }
+  },
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied active sector.
    *
    * @param sectorID
    * @private
    */
-  _switchToSector : function(sectorID) {
+  _switchToActiveSector : function(sectorID) {
     this.nodeIndices = this.sectors["active"][sectorID]["nodeIndices"];
     this.nodes       = this.sectors["active"][sectorID]["nodes"];
     this.edges       = this.sectors["active"][sectorID]["edges"];
+  },
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied frozen sector.
+   *
+   * @param sectorID
+   * @private
+   */
+  _switchToFrozenSector : function(sectorID) {
+    this.nodeIndices = this.sectors["frozen"][sectorID]["nodeIndices"];
+    this.nodes       = this.sectors["frozen"][sectorID]["nodes"];
+    this.edges       = this.sectors["frozen"][sectorID]["edges"];
   },
 
 
@@ -10564,7 +10618,7 @@ var SectorMixin = {
    *
    * @private
    */
-  _loadActiveSector : function() {
+  _loadLatestSector : function() {
     this._switchToSector(this._sector());
   },
 
@@ -10629,7 +10683,22 @@ var SectorMixin = {
    * @private
    */
   _createNewSector : function(newID) {
-    this.sectors["active"][newID] = {"nodes":{  },"edges":{  },"nodeIndices":[]}
+    // create the new sector
+    this.sectors["active"][newID] = {"nodes":{},
+                                     "edges":{},
+                                     "nodeIndices":[],
+                                     "formationScale": this.scale,
+                                     "drawingNode": undefined};
+
+    // create the new sector render node. This gives visual feedback that you are in a new sector.
+    this.sectors["active"][newID]['drawingNode'] = new Node(
+        {id:newID,
+          color: {
+            background: "#eaefef",
+            border: "495c5e"
+          }
+        },{},{},this.constants);
+    this.sectors["active"][newID]['drawingNode'].clusterSize = 2;
   },
 
 
@@ -10753,16 +10822,18 @@ var SectorMixin = {
     // when we switch to a new sector, we remove the node that will be expanded from the current nodes list.
     delete this.nodes[node.id];
 
+    var unqiueIdentifier = util.randomUUID();
+
     // we fully freeze the currently active sector
     this._freezeSector(sector);
 
     // we create a new active sector. This sector has the ID of the node to ensure uniqueness
-    this._createNewSector(node.id);
+    this._createNewSector(unqiueIdentifier);
 
     // we add the active sector to the sectors array to be able to revert these steps later on
-    this._setActiveSector(node.id);
+    this._setActiveSector(unqiueIdentifier);
 
-    // we redirect the global references to the new sector's references.
+    // we redirect the global references to the new sector's references. this._sector() now returns unqiueIdentifier
     this._switchToSector(this._sector());
 
     // finally we add the node we removed from our previous active sector to the new active sector
@@ -10782,30 +10853,34 @@ var SectorMixin = {
 
     // we cannot collapse the default sector
     if (sector != "default") {
-      var previousSector = this._previousSector();
+      if ((this.nodeIndices.length == 1) ||
+       (this.sectors["active"][sector]["drawingNode"].width*this.scale < this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientWidth) ||
+       (this.sectors["active"][sector]["drawingNode"].height*this.scale < this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientHeight)) {
+        var previousSector = this._previousSector();
 
-      // we collapse the sector back to a single cluster
-      this._collapseThisToSingleCluster();
+        // we collapse the sector back to a single cluster
+        this._collapseThisToSingleCluster();
 
-      // we move the remaining nodes, edges and nodeIndices to the previous sector.
-      // This previous sector is the one we will reactivate
-      this._mergeThisWithFrozen(previousSector);
+        // we move the remaining nodes, edges and nodeIndices to the previous sector.
+        // This previous sector is the one we will reactivate
+        this._mergeThisWithFrozen(previousSector);
 
-      // the previously active (frozen) sector now has all the data from the currently active sector.
-      // we can now delete the active sector.
-      this._deleteActiveSector(sector);
+        // the previously active (frozen) sector now has all the data from the currently active sector.
+        // we can now delete the active sector.
+        this._deleteActiveSector(sector);
 
-      // we activate the previously active (and currently frozen) sector.
-      this._activateSector(previousSector);
+        // we activate the previously active (and currently frozen) sector.
+        this._activateSector(previousSector);
 
-      // we load the references from the newly active sector into the global references
-      this._switchToSector(previousSector);
+        // we load the references from the newly active sector into the global references
+        this._switchToSector(previousSector);
 
-      // we forget the previously active sector because we reverted to the one before
-      this._forgetLastSector();
+        // we forget the previously active sector because we reverted to the one before
+        this._forgetLastSector();
 
-      // finally, we update the node index list.
-      this._updateNodeIndexList();
+        // finally, we update the node index list.
+        this._updateNodeIndexList();
+      }
     }
   },
 
@@ -10824,7 +10899,7 @@ var SectorMixin = {
       for (var sector in this.sectors["active"]) {
         if (this.sectors["active"].hasOwnProperty(sector)) {
           // switch the global references to those of this sector
-          this._switchToSector(sector);
+          this._switchToActiveSector(sector);
           this[runFunction]();
         }
       }
@@ -10833,14 +10908,13 @@ var SectorMixin = {
       for (var sector in this.sectors["active"]) {
         if (this.sectors["active"].hasOwnProperty(sector)) {
           // switch the global references to those of this sector
-          this._switchToSector(sector);
+          this._switchToActiveSector(sector);
           this[runFunction](args);
         }
       }
     }
-
     // we revert the global references back to our active sector
-    this._loadActiveSector();
+    this._loadLatestSector();
   },
 
 
@@ -10857,7 +10931,8 @@ var SectorMixin = {
     if (args === undefined) {
       for (var sector in this.sectors["frozen"]) {
         if (this.sectors["frozen"].hasOwnProperty(sector)) {
-          this._switchToSector(sector);
+          // switch the global references to those of this sector
+          this._switchToFrozenSector(sector);
           this[runFunction]();
         }
       }
@@ -10865,12 +10940,13 @@ var SectorMixin = {
     else {
       for (var sector in this.sectors["frozen"]) {
         if (this.sectors["frozen"].hasOwnProperty(sector)) {
-          this._switchToSector(sector);
+          // switch the global references to those of this sector
+          this._switchToFrozenSector(sector);
           this[runFunction](args);
         }
       }
     }
-    this._loadActiveSector();
+    this._loadLatestSector();
   },
 
 
@@ -10899,6 +10975,52 @@ var SectorMixin = {
     var sector = this._sector();
     this.sectors["active"][sector]["nodeIndices"] = [];
     this.nodeIndices = this.sectors["active"][sector]["nodeIndices"];
+  },
+
+
+  /**
+   * Draw the encompassing sector node
+   *
+   * @param ctx
+   * @param sectorType
+   * @private
+   */
+  _drawSectorNodes : function(ctx,sectorType) {
+    var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
+    for (var sector in this.sectors[sectorType]) {
+      if (this.sectors[sectorType].hasOwnProperty(sector)) {
+        minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9;
+        if (this.sectors[sectorType][sector]["drawingNode"] !== undefined) {
+
+          this._switchToSector(sector,sectorType);
+
+          for (var nodeID in this.nodes) {
+            if (this.nodes.hasOwnProperty(nodeID)) {
+              node = this.nodes[nodeID];
+              node.resize(ctx);
+              if (minX > node.x - 0.5 * node.width) {minX = node.x - 0.5 * node.width;}
+              if (maxX < node.x + 0.5 * node.width) {maxX = node.x + 0.5 * node.width;}
+              if (minY > node.y - 0.5 * node.height) {minY = node.y - 0.5 * node.height;}
+              if (maxY < node.y + 0.5 * node.height) {maxY = node.y + 0.5 * node.height;}
+            }
+          }
+          node = this.sectors[sectorType][sector]["drawingNode"];
+          node.x = 0.5 * (maxX + minX);
+          node.y = 0.5 * (maxY + minY);
+          node.width = node.x - minX;
+          node.height = node.y - minY;
+          node.radius = Math.sqrt(Math.pow(node.width,2) + Math.pow(node.height,2));
+          node.setScale(this.scale);
+          node._drawCircle(ctx);
+        }
+      }
+    }
+  },
+
+  _drawAllSectorNodes : function(ctx) {
+    this._drawSectorNodes(ctx,"frozen");
+    this._drawSectorNodes(ctx,"active");
+    this._loadLatestSector();
   }
 };
 /**
@@ -10920,12 +11042,12 @@ function Cluster() {
 Cluster.prototype.clusterToFit = function(maxNumberOfNodes, reposition) {
   var numberOfNodes = this.nodeIndices.length;
 
-  var maxLevels = 15;
+  var maxLevels = 50;
   var level = 0;
 
   // we first cluster the hubs, then we pull in the outliers, repeat
   while (numberOfNodes > maxNumberOfNodes && level < maxLevels) {
-    if (level % 5 == 0) {
+    if (level % 3 == 0) {
       console.log("Aggregating Hubs @ level: ",level,". Threshold:", this.hubThreshold,"clusterSession",this.clusterSession);
       this.forceAggregateHubs();
     }
@@ -10952,16 +11074,23 @@ Cluster.prototype.clusterToFit = function(maxNumberOfNodes, reposition) {
 Cluster.prototype.openCluster = function(node) {
   var isMovingBeforeClustering = this.moving;
 
-  if (node.clusterSize > 15) {
+  if (node.clusterSize > this.constants.clustering.sectorThreshold && this._nodeInActiveArea(node)) {
     this._addSector(node);
+    var level = 0;
+    while ((this.nodeIndices.length < this.constants.clustering.maxNumberOfNodes) &&
+          (level < 5)) {
+      this.decreaseClusterLevel();
+      level += 1;
+    }
   }
+  else {
+    this._expandClusterNode(node,false,true);
 
-  this._expandClusterNode(node,false,true);
-
-  // housekeeping
-  this._updateNodeIndexList();
-  this._updateDynamicEdges();
-  this.updateLabels();
+    // housekeeping
+    this._updateNodeIndexList();
+    this._updateDynamicEdges();
+    this.updateLabels();
+  }
 
   // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
   if (this.moving != isMovingBeforeClustering) {
@@ -11014,23 +11143,29 @@ Cluster.prototype.updateClusters = function(zoomDirection,recursive,force) {
   var amountOfNodes = this.nodeIndices.length;
 
   // on zoom out collapse the sector back to default
-//  if (this.previousScale > this.scale && zoomDirection == 0) {
-//    this._collapseUniverse();
-//  }
+  if (this.previousScale > this.scale && zoomDirection == 0) {
+    this._collapseSector();
+  }
 
   // check if we zoom in or out
   if (this.previousScale > this.scale || zoomDirection == -1) { // zoom out
     this._formClusters(force);
   }
-  else if (this.previousScale < this.scale || zoomDirection == 1) { // zoom out
-    this._openClusters(recursive,force);
-    this._openClustersBySize();
+  else if (this.previousScale < this.scale || zoomDirection == 1) { // zoom in
+
+    if (force == false) {
+      this._openClustersBySize();
+    }
+    else {
+      this._openClusters(recursive,force);
+    }
   }
   this._updateNodeIndexList();
 
   // if a cluster was NOT formed and the user zoomed out, we try clustering by hubs
   if (this.nodeIndices.length == amountOfNodes && (this.previousScale > this.scale || zoomDirection == -1))  {
     this._aggregateHubs(force);
+    this._updateNodeIndexList();
   }
 
   // we now reduce snakes.
@@ -11078,7 +11213,7 @@ Cluster.prototype.handleSnakes = function() {
  */
 Cluster.prototype._aggregateHubs = function(force) {
   this._getHubSize();
-  this._formClustersByHub(force);
+  this._formClustersByHub(force,false);
 };
 
 
@@ -11116,20 +11251,16 @@ Cluster.prototype.forceAggregateHubs = function() {
 Cluster.prototype._openClustersBySize = function() {
   for (nodeID in this.nodes) {
     if (this.nodes.hasOwnProperty(nodeID)) {
-      node = this.nodes[nodeID];
+      var node = this.nodes[nodeID];
       if (node.inView() == true) {
-        if ((node.width*this.scale > this.constants.clustering.relativeOpenFactor * this.frame.canvas.clientWidth) ||
-            (node.height*this.scale > this.constants.clustering.relativeOpenFactor * this.frame.canvas.clientHeight)) {
-          this.openCluster(node);
+        if ((node.width*this.scale > this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientWidth) ||
+            (node.height*this.scale > this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientHeight)) {
           this.openCluster(node);
         }
       }
     }
   }
 };
-
-
-
 
 
 /**
@@ -11160,7 +11291,7 @@ Cluster.prototype._expandClusterNode = function(parentNode, recursive, force, op
   // first check if node is a cluster
   if (parentNode.clusterSize > 1) {
     // this means that on a double tap event or a zoom event, the cluster fully unpacks if it is smaller than 20
-    if (parentNode.clusterSize < 20) {
+    if (parentNode.clusterSize < this.constants.clustering.sectorThreshold) {
       openAll = true;
     }
     recursive = openAll ? true : recursive;
@@ -11180,7 +11311,7 @@ Cluster.prototype._expandClusterNode = function(parentNode, recursive, force, op
             }
           }
           else {
-            if (this._parentNodeInActiveArea(parentNode)) {
+            if (this._nodeInActiveArea(parentNode)) {
               this._expelChildFromParent(parentNode,containedNodeID,recursive,force,openAll);
             }
           }
@@ -11292,7 +11423,7 @@ Cluster.prototype._formClusters = function(force) {
  */
 Cluster.prototype._formClustersByZoom = function() {
   var dx,dy,length,
-      minLength = this.constants.clustering.clusterEdgeLength/this.scale;
+      minLength = this.constants.clustering.clusterEdgeThreshold/this.scale;
 
   // check if any edges are shorter than minLength and start the clustering
   // the clustering favours the node with the larger mass
@@ -11300,25 +11431,27 @@ Cluster.prototype._formClustersByZoom = function() {
     if (this.edges.hasOwnProperty(edgeID)) {
       var edge = this.edges[edgeID];
       if (edge.connected) {
-        dx = (edge.to.x - edge.from.x);
-        dy = (edge.to.y - edge.from.y);
-        length = Math.sqrt(dx * dx + dy * dy);
+        if (edge.toId != edge.fromId) {
+          dx = (edge.to.x - edge.from.x);
+          dy = (edge.to.y - edge.from.y);
+          length = Math.sqrt(dx * dx + dy * dy);
 
 
-        if (length < minLength) {
-          // first check which node is larger
-          var parentNode = edge.from;
-          var childNode = edge.to;
-          if (edge.to.mass > edge.from.mass) {
-            parentNode = edge.to;
-            childNode = edge.from;
-          }
+          if (length < minLength) {
+            // first check which node is larger
+            var parentNode = edge.from;
+            var childNode = edge.to;
+            if (edge.to.mass > edge.from.mass) {
+              parentNode = edge.to;
+              childNode = edge.from;
+            }
 
-          if (childNode.dynamicEdgesLength == 1) {
-            this._addToCluster(parentNode,childNode,false);
-          }
-          else if (parentNode.dynamicEdgesLength == 1) {
-            this._addToCluster(childNode,parentNode,false);
+            if (childNode.dynamicEdgesLength == 1) {
+              this._addToCluster(parentNode,childNode,false);
+            }
+            else if (parentNode.dynamicEdgesLength == 1) {
+              this._addToCluster(childNode,parentNode,false);
+            }
           }
         }
       }
@@ -11344,11 +11477,13 @@ Cluster.prototype._forceClustersByZoom = function() {
         var parentNode = (edge.toId == childNode.id) ? this.nodes[edge.fromId] : this.nodes[edge.toId];
 
         // group to the largest node
-        if (parentNode.mass > childNode.mass) {
-          this._addToCluster(parentNode,childNode,true);
-        }
-        else {
-          this._addToCluster(childNode,parentNode,true);
+        if (childNode.id != parentNode.id) {
+          if (parentNode.mass > childNode.mass) {
+            this._addToCluster(parentNode,childNode,true);
+          }
+          else {
+            this._addToCluster(childNode,parentNode,true);
+          }
         }
       }
     }
@@ -11387,14 +11522,12 @@ Cluster.prototype._formClusterFromHub = function(hubNode, force, onlyEqual, abso
   if (absorptionSizeOffset === undefined) {
     absorptionSizeOffset = 0;
   }
-
   // we decide if the node is a hub
   if ((hubNode.dynamicEdgesLength >= this.hubThreshold && onlyEqual == false) ||
     (hubNode.dynamicEdgesLength == this.hubThreshold && onlyEqual == true)) {
-
     // initialize variables
     var dx,dy,length;
-    var minLength = this.constants.clustering.clusterEdgeLength/this.scale;
+    var minLength = this.constants.clustering.clusterEdgeThreshold/this.scale;
     var allowCluster = false;
 
     // we create a list of edges because the dynamicEdges change over the course of this loop
@@ -11405,20 +11538,22 @@ Cluster.prototype._formClusterFromHub = function(hubNode, force, onlyEqual, abso
     }
 
     // if the hub clustering is not forces, we check if one of the edges connected
-    // to a cluster is small enough based on the constants.clustering.clusterEdgeLength
+    // to a cluster is small enough based on the constants.clustering.clusterEdgeThreshold
     if (force == false) {
       allowCluster = false;
       for (j = 0; j < amountOfInitialEdges; j++) {
         var edge = this.edges[edgesIDarray[j]];
         if (edge !== undefined) {
           if (edge.connected) {
-            dx = (edge.to.x - edge.from.x);
-            dy = (edge.to.y - edge.from.y);
-            length = Math.sqrt(dx * dx + dy * dy);
+            if (edge.toId != edge.fromId) {
+              dx = (edge.to.x - edge.from.x);
+              dy = (edge.to.y - edge.from.y);
+              length = Math.sqrt(dx * dx + dy * dy);
 
-            if (length < minLength) {
-              allowCluster = true;
-              break;
+              if (length < minLength) {
+                allowCluster = true;
+                break;
+              }
             }
           }
         }
@@ -11430,13 +11565,12 @@ Cluster.prototype._formClusterFromHub = function(hubNode, force, onlyEqual, abso
       // we loop over all edges INITIALLY connected to this hub
       for (j = 0; j < amountOfInitialEdges; j++) {
         edge = this.edges[edgesIDarray[j]];
-
         // the edge can be clustered by this function in a previous loop
         if (edge !== undefined) {
           var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
-
-          // we do not want hubs to merge with other hubs.
-          if (childNode.dynamicEdges.length <= (this.hubThreshold + absorptionSizeOffset)) {
+          // we do not want hubs to merge with other hubs nor do we want to cluster itself.
+          if ((childNode.dynamicEdges.length <= (this.hubThreshold + absorptionSizeOffset)) &&
+              (childNode.id != hubNode.id)) {
             this._addToCluster(hubNode,childNode,force);
           }
         }
@@ -11449,7 +11583,6 @@ Cluster.prototype._formClusterFromHub = function(hubNode, force, onlyEqual, abso
 
 /**
  * This function adds the child node to the parent node, creating a cluster if it is not already.
- * This function is called only from updateClusters()
  *
  * @param {Node} parentNode           | this is the node that will house the child node
  * @param {Node} childNode            | this node will be deleted from the global this.nodes and stored in the parent node
@@ -11470,13 +11603,18 @@ Cluster.prototype._addToCluster = function(parentNode, childNode, force) {
       this._connectEdgeToCluster(parentNode,childNode,edge);
     }
   }
+  // a contained node has no dynamic edges.
   childNode.dynamicEdges = [];
+
+  // remove circular edges from clusters
+  this._containCircularEdgesFromNode(parentNode,childNode);
+
 
   // remove the childNode from the global nodes object
   delete this.nodes[childNode.id];
 
+  // update the properties of the child and parent
   var massBefore = parentNode.mass;
-
   childNode.clusterSession = this.clusterSession;
   parentNode.mass += this.constants.clustering.massTransferCoefficient * childNode.mass;
   parentNode.clusterSize += childNode.clusterSize;
@@ -11487,9 +11625,10 @@ Cluster.prototype._addToCluster = function(parentNode, childNode, force) {
     parentNode.clusterSessions.push(this.clusterSession);
   }
 
-  // giving the clusters a dynamic formationScale to ensure not all clusters open up when zoomed
+  // forced clusters only open from screen size and double tap
   if (force == true) {
-    parentNode.formationScale = Math.pow(1 - (1.0/11.0),this.clusterSession+3);
+    // parentNode.formationScale = Math.pow(1 - (1.0/11.0),this.clusterSession+3);
+    parentNode.formationScale = 0;
   }
   else {
     parentNode.formationScale = this.scale; // The latest child has been added on this scale
@@ -11506,7 +11645,6 @@ Cluster.prototype._addToCluster = function(parentNode, childNode, force) {
 
   // the mass has altered, preservation of energy dictates the velocity to be updated
   parentNode.updateVelocity(massBefore);
-
 
   // restart the simulation to reorganise all nodes
   this.moving = true;
@@ -11538,7 +11676,6 @@ Cluster.prototype._updateDynamicEdges = function() {
         }
       }
     }
-
     node.dynamicEdgesLength -= correction;
   }
 };
@@ -11582,19 +11719,37 @@ Cluster.prototype._addToContainedEdges = function(parentNode, childNode, edge) {
  * @private
  */
 Cluster.prototype._connectEdgeToCluster = function(parentNode, childNode, edge) {
-  if (edge.toId == childNode.id) {    // edge connected to other node on the "to" side
-    edge.originalToID.push(childNode.id);
-    edge.to = parentNode;
-    edge.toId = parentNode.id;
+  // handle circular edges
+  if (edge.toId == edge.fromId) {
+    this._addToContainedEdges(parentNode, childNode, edge);
   }
-  else {                                  // edge connected to other node with the "from" side
-    edge.originalFromID.push(childNode.id);
-    edge.from = parentNode;
-    edge.fromId = parentNode.id;
-  }
+  else {
+    if (edge.toId == childNode.id) {    // edge connected to other node on the "to" side
+      edge.originalToID.push(childNode.id);
+      edge.to = parentNode;
+      edge.toId = parentNode.id;
+    }
+    else {                                  // edge connected to other node with the "from" side
+      edge.originalFromID.push(childNode.id);
+      edge.from = parentNode;
+      edge.fromId = parentNode.id;
+    }
 
-  this._addToReroutedEdges(parentNode,childNode,edge);
+    this._addToReroutedEdges(parentNode,childNode,edge);
+  }
 };
+
+
+Cluster.prototype._containCircularEdgesFromNode = function(parentNode, childNode) {
+  // manage all the edges connected to the child and parent nodes
+  for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
+    var edge = parentNode.dynamicEdges[i];
+    // handle circular edges
+    if (edge.toId == edge.fromId) {
+      this._addToContainedEdges(parentNode, childNode, edge);
+    }
+  }
+}
 
 
 /**
@@ -11726,7 +11881,12 @@ Cluster.prototype.updateLabels = function() {
     if (this.nodes.hasOwnProperty(nodeID)) {
       node = this.nodes[nodeID];
       if (node.clusterSize == 1) {
-        node.label = String(node.id);
+        if (node.originalLabel !== undefined) {
+          node.label = node.originalLabel;
+        }
+        else {
+          node.label = String(node.id);
+        }
       }
     }
   }
@@ -11750,7 +11910,7 @@ Cluster.prototype.updateLabels = function() {
  * @returns {boolean}
  * @private
  */
-Cluster.prototype._parentNodeInActiveArea = function(node) {
+Cluster.prototype._nodeInActiveArea = function(node) {
   return (
     Math.abs(node.x - this.zoomCenter.x) <= this.constants.clustering.activeAreaBoxSize/this.scale
       &&
@@ -11829,11 +11989,13 @@ Cluster.prototype._getHubSize = function() {
  */
 Cluster.prototype._reduceAmountOfSnakes = function(fraction) {
   this.hubThreshold = 2;
+  var reduceAmount = Math.floor(this.nodeIndices.length * fraction);
   for (nodeID in this.nodes) {
     if (this.nodes.hasOwnProperty(nodeID)) {
       if (this.nodes[nodeID].dynamicEdgesLength == 2 && this.nodes[nodeID].dynamicEdges.length >= 2) {
-        if (Math.random() <= fraction) {
-          this._formClusterFromHub(this.nodes[nodeID],true,true,1)
+        if (reduceAmount > 0) {
+          this._formClusterFromHub(this.nodes[nodeID],true,true,1);
+          reduceAmount -= 1;
         }
       }
     }
@@ -11896,8 +12058,8 @@ function Graph (container, data, options) {
       //fontFace: verdana,
       fontFace: 'arial',
       color: {
-        border: '#2B7CE9',
-        background: '#97C2FC',
+          border: '#2B7CE9',
+          background: '#97C2FC',
         highlight: {
           border: '#2B7CE9',
           background: '#D2E5FF'
@@ -11925,15 +12087,16 @@ function Graph (container, data, options) {
         altLength: undefined
       }
     },
-    clustering: { // TODO: naming of variables
-      enableClustering: true,       // global on/off switch for clustering.
+    clustering: {
+      enableClustering: false,       // global on/off switch for clustering.
       maxNumberOfNodes: 100,        // for automatic (initial) clustering
-      snakeThreshold: 0.5,          // maximum percentage of allowed snakenodes (long strings of connected nodes) within all nodes
-      clusterEdgeLength: 25,        // threshold edge length for clustering
-      relativeOpenFactor: 0.2,      // if the width or height of a cluster takes up this much of the screen, open the cluster
+      snakeThreshold: 0.7,          // maximum percentage of allowed snakenodes (long strings of connected nodes) within all nodes
+      clusterEdgeThreshold: 15,     // edge length threshold. if smaller, this node is clustered
+      sectorThreshold: 50,          // cluster size threshold. If larger, expanding in own sector.
+      screenSizeThreshold: 0.2,     // relative size threshold. If the width or height of a clusternode takes up this much of the screen, decluster node
       fontSizeMultiplier: 4,        // how much the cluster font size grows per node in cluster (in px)
-      forceAmplification: 0.7,      // factor of increase fo the repulsion force of a cluster (per node in cluster)
-      distanceAmplification: 0.3,   // factor how much the repulsion distance of a cluster increases (per node in cluster).
+      forceAmplification: 0.6,      // factor of increase fo the repulsion force of a cluster (per node in cluster)
+      distanceAmplification: 0.2,   // factor how much the repulsion distance of a cluster increases (per node in cluster).
       edgeGrowth: 11,               // amount of clusterSize connected to the edge is multiplied with this and added to edgeLength
       clusterSizeWidthFactor: 10,   // growth of the width  per node in cluster
       clusterSizeHeightFactor: 10,  // growth of the height per node in cluster
@@ -12118,7 +12281,7 @@ Graph.prototype.setData = function(data, disableStart) {
     this._setEdges(data && data.edges);
   }
 
-  this._putDataInUniverse();
+  this._putDataInSector();
 
   if (!disableStart) {
     // find a stable position or start animating to a stable position
@@ -12141,17 +12304,17 @@ Graph.prototype.setOptions = function (options) {
     if (options.stabilize !== undefined)       {this.stabilize = options.stabilize;}
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
 
-    if (optiones.clustering) {
+    if (options.clustering) {
       for (var prop in optiones.clustering) {
         if (options.clustering.hasOwnProperty(prop)) {
-          this.constants.clustering[prop] = options.edges[prop];
+          this.constants.clustering[prop] = options.clustering[prop];
         }
       }
     }
 
     // TODO: work out these options and document them
     if (options.edges) {
-      for (var prop in options.edges) {
+      for (prop in options.edges) {
         if (options.edges.hasOwnProperty(prop)) {
           this.constants.edges[prop] = options.edges[prop];
         }
@@ -12278,7 +12441,7 @@ Graph.prototype._create = function () {
   this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
   this.mouseTrap.bind("s",this.singleStep.bind(me));
   this.mouseTrap.bind("h",this.updateClustersDefault.bind(me));
-  this.mouseTrap.bind("c",this._collapseUniverse.bind(me));
+  this.mouseTrap.bind("c",this._collapseSector.bind(me));
   this.mouseTrap.bind("f",this.toggleFreeze.bind(me));
 
   // add the frame to the container element
@@ -12460,7 +12623,6 @@ Graph.prototype._onTap = function (event) {
 
   if (node) {
     if (node.isSelected() && elapsedTime < 300) {
-      this.openCluster(node);
       this.openCluster(node);
     }
     // select this node
@@ -12839,10 +13001,10 @@ Graph.prototype._selectNodes = function(selection, append) {
  */
 Graph.prototype._getNodesOverlappingWith = function (obj) {
   var overlappingNodes = [];
-  var nodes;
+  var nodes, sector;
 
   // search in all sectors for nodes
-  for (var sector in this.sectors["active"]) {
+  for (sector in this.sectors["active"]) {
     if (this.sectors["active"].hasOwnProperty(sector)) {
       nodes = this.sectors["active"][sector]["nodes"];
       for (var id in nodes) {
@@ -12855,7 +13017,7 @@ Graph.prototype._getNodesOverlappingWith = function (obj) {
     }
   }
 
-  for (var sector in this.sectors["frozen"]) {
+  for (sector in this.sectors["frozen"]) {
     if (this.sectors["frozen"].hasOwnProperty(sector)) {
       nodes = this.sectors["frozen"][sector]["nodes"];
       for (var id in nodes) {
@@ -13361,8 +13523,9 @@ Graph.prototype._redraw = function() {
   ctx.translate(this.translation.x, this.translation.y);
   ctx.scale(this.scale, this.scale);
 
-  this._doInAllUniverses("_drawEdges",ctx);
-  this._doInAllUniverses("_drawNodes",ctx);
+  this._doInAllSectors("_drawAllSectorNodes",ctx);
+  this._doInAllSectors("_drawEdges",ctx);
+  this._doInAllSectors("_drawNodes",ctx);
 
   // restore original scaling and translation
   ctx.restore();
@@ -13790,8 +13953,8 @@ Graph.prototype._discreteStepNodes = function() {
 Graph.prototype.start = function() {
   if (!this.freezeSimulation) {
     if (this.moving) {
-      this._doInAllActiveUniverses("_calculateForces");
-      this._doInAllActiveUniverses("_discreteStepNodes");
+      this._doInAllActiveSectors("_calculateForces");
+      this._doInAllActiveSectors("_discreteStepNodes");
     }
 
     if (this.moving) {
@@ -13851,18 +14014,19 @@ Graph.prototype._loadSectorSystem = function() {
   this.sectors = {};
   this.activeSector = ["default"];
   this.sectors["active"] = {};
-  this.sectors["active"][this.activeSector[this.activeSector.length-1]] = {"nodes":{},"edges":{},"nodeIndices":[]};
+  this.sectors["active"][this.activeSector[this.activeSector.length-1]] = {"nodes":{},
+                                                                           "edges":{},
+                                                                           "nodeIndices":[],
+                                                                           "formationScale": 1.0,
+                                                                           "drawingNode": undefined};
   this.sectors["frozen"] = {};
-  this.sectors["draw"] = {};
 
   this.nodeIndices = this.sectors["active"][this.activeSector[this.activeSector.length-1]]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
-  for (var mixinFunction in UniverseMixin) {
-    if (UniverseMixin.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = UniverseMixin[mixinFunction];
+  for (var mixinFunction in SectorMixin) {
+    if (SectorMixin.hasOwnProperty(mixinFunction)) {
+      Graph.prototype[mixinFunction] = SectorMixin[mixinFunction];
     }
   }
-
-
 };
 /**
  * vis.js module exports

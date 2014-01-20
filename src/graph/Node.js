@@ -54,7 +54,6 @@ function Node(properties, imagelist, grouplist, constants) {
 
   this.grouplist = grouplist;
 
-  this.nodeProperties = properties;
   this.setProperties(properties, constants);
 
   // creating the variables for clustering
@@ -139,10 +138,10 @@ Node.prototype.setProperties = function(properties, constants) {
   if (!properties) {
     return;
   }
-
+  this.originalLabel = undefined;
   // basic properties
   if (properties.id !== undefined)        {this.id = properties.id;}
-  if (properties.label !== undefined)     {this.label = properties.label;}
+  if (properties.label !== undefined)     {this.label = properties.label; this.originalLabel = properties.label;}
   if (properties.title !== undefined)     {this.title = properties.title;}
   if (properties.group !== undefined)     {this.group = properties.group;}
   if (properties.x !== undefined)         {this.x = properties.x;}
@@ -450,6 +449,7 @@ Node.prototype.setValueRange = function(min, max) {
       this.radius = (this.value - min) * scale + this.radiusMin;
     }
   }
+  this.baseRadiusValue = this.radius;
 };
 
 /**
@@ -484,12 +484,19 @@ Node.prototype.isOverlappingWith = function(obj) {
 
 Node.prototype._resizeImage = function (ctx) {
   // TODO: pre calculate the image size
-  if (!this.width) {  // undefined or 0
+  if (!this.width || !this.height) {  // undefined or 0
     var width, height;
     if (this.value) {
+      this.radius = this.baseRadiusValue;
       var scale = this.imageObj.height / this.imageObj.width;
-      width = this.radius || this.imageObj.width;
-      height = this.radius * scale || this.imageObj.height;
+      if (scale !== undefined) {
+        width = this.radius || this.imageObj.width;
+        height = this.radius * scale || this.imageObj.height;
+      }
+      else {
+        width = 0;
+        height = 0;
+      }
     }
     else {
       width = this.imageObj.width;
@@ -498,10 +505,13 @@ Node.prototype._resizeImage = function (ctx) {
     this.width  = width;
     this.height = height;
 
-    this.width += this.clusterSize * this.clusterSizeWidthFactor;
-    this.height += this.clusterSize * this.clusterSizeHeightFactor;
-    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
+    if (this.width && this.height) {
+      this.width += this.clusterSize * this.clusterSizeWidthFactor;
+      this.height += this.clusterSize * this.clusterSizeHeightFactor;
+      this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
+    }
   }
+
 };
 
 Node.prototype._drawImage = function (ctx) {
@@ -511,7 +521,7 @@ Node.prototype._drawImage = function (ctx) {
   this.top    = this.y - this.height / 2;
 
   var yLabel;
-  if (this.imageObj) {
+  if (this.imageObj.width != 0 ) {
     // draw the shade
     if (this.clusterSize > 1) {
       var lineWidth = ((this.clusterSize > 1) ? 10 : 0.0);
@@ -894,17 +904,28 @@ Node.prototype.inView = function() {
           this.y < this.canvasBottomRight.y);
 }
 
-
 /**
  * This allows the zoom level of the graph to influence the rendering
  * We store the inverted scale and the coordinates of the top left, and bottom right points of the canvas
  *
  * @param scale
+ * @param canvasTopLeft
+ * @param canvasBottomRight
  */
 Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) {
   this.graphScaleInv = 1.0/scale;
   this.canvasTopLeft = canvasTopLeft;
   this.canvasBottomRight = canvasBottomRight;
+};
+
+
+/**
+ * This allows the zoom level of the graph to influence the rendering
+ *
+ * @param scale
+ */
+Node.prototype.setScale = function(scale) {
+  this.graphScaleInv = 1.0/scale;
 };
 
 /**

@@ -15,16 +15,49 @@ var SectorMixin = {
 
 
   /**
+   *  /**
    * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the supplied (active) sector.
+   * those of the supplied (active) sector. If a type is defined, do the specific type
+   *
+   * @param {String} sectorID
+   * @param {String} [sectorType] | "active" or "frozen"
+   * @private
+   */
+  _switchToSector : function(sectorID, sectorType) {
+    if (sectorType === undefined || sectorType == "active") {
+      this._switchToActiveSector(sectorID);
+    }
+    else {
+      this._switchToFrozenSector(sectorID);
+    }
+  },
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied active sector.
    *
    * @param sectorID
    * @private
    */
-  _switchToSector : function(sectorID) {
+  _switchToActiveSector : function(sectorID) {
     this.nodeIndices = this.sectors["active"][sectorID]["nodeIndices"];
     this.nodes       = this.sectors["active"][sectorID]["nodes"];
     this.edges       = this.sectors["active"][sectorID]["edges"];
+  },
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied frozen sector.
+   *
+   * @param sectorID
+   * @private
+   */
+  _switchToFrozenSector : function(sectorID) {
+    this.nodeIndices = this.sectors["frozen"][sectorID]["nodeIndices"];
+    this.nodes       = this.sectors["frozen"][sectorID]["nodes"];
+    this.edges       = this.sectors["frozen"][sectorID]["edges"];
   },
 
 
@@ -34,7 +67,7 @@ var SectorMixin = {
    *
    * @private
    */
-  _loadActiveSector : function() {
+  _loadLatestSector : function() {
     this._switchToSector(this._sector());
   },
 
@@ -99,7 +132,22 @@ var SectorMixin = {
    * @private
    */
   _createNewSector : function(newID) {
-    this.sectors["active"][newID] = {"nodes":{  },"edges":{  },"nodeIndices":[]}
+    // create the new sector
+    this.sectors["active"][newID] = {"nodes":{},
+                                     "edges":{},
+                                     "nodeIndices":[],
+                                     "formationScale": this.scale,
+                                     "drawingNode": undefined};
+
+    // create the new sector render node. This gives visual feedback that you are in a new sector.
+    this.sectors["active"][newID]['drawingNode'] = new Node(
+        {id:newID,
+          color: {
+            background: "#eaefef",
+            border: "495c5e"
+          }
+        },{},{},this.constants);
+    this.sectors["active"][newID]['drawingNode'].clusterSize = 2;
   },
 
 
@@ -223,16 +271,18 @@ var SectorMixin = {
     // when we switch to a new sector, we remove the node that will be expanded from the current nodes list.
     delete this.nodes[node.id];
 
+    var unqiueIdentifier = util.randomUUID();
+
     // we fully freeze the currently active sector
     this._freezeSector(sector);
 
     // we create a new active sector. This sector has the ID of the node to ensure uniqueness
-    this._createNewSector(node.id);
+    this._createNewSector(unqiueIdentifier);
 
     // we add the active sector to the sectors array to be able to revert these steps later on
-    this._setActiveSector(node.id);
+    this._setActiveSector(unqiueIdentifier);
 
-    // we redirect the global references to the new sector's references.
+    // we redirect the global references to the new sector's references. this._sector() now returns unqiueIdentifier
     this._switchToSector(this._sector());
 
     // finally we add the node we removed from our previous active sector to the new active sector
@@ -252,30 +302,34 @@ var SectorMixin = {
 
     // we cannot collapse the default sector
     if (sector != "default") {
-      var previousSector = this._previousSector();
+      if ((this.nodeIndices.length == 1) ||
+       (this.sectors["active"][sector]["drawingNode"].width*this.scale < this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientWidth) ||
+       (this.sectors["active"][sector]["drawingNode"].height*this.scale < this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientHeight)) {
+        var previousSector = this._previousSector();
 
-      // we collapse the sector back to a single cluster
-      this._collapseThisToSingleCluster();
+        // we collapse the sector back to a single cluster
+        this._collapseThisToSingleCluster();
 
-      // we move the remaining nodes, edges and nodeIndices to the previous sector.
-      // This previous sector is the one we will reactivate
-      this._mergeThisWithFrozen(previousSector);
+        // we move the remaining nodes, edges and nodeIndices to the previous sector.
+        // This previous sector is the one we will reactivate
+        this._mergeThisWithFrozen(previousSector);
 
-      // the previously active (frozen) sector now has all the data from the currently active sector.
-      // we can now delete the active sector.
-      this._deleteActiveSector(sector);
+        // the previously active (frozen) sector now has all the data from the currently active sector.
+        // we can now delete the active sector.
+        this._deleteActiveSector(sector);
 
-      // we activate the previously active (and currently frozen) sector.
-      this._activateSector(previousSector);
+        // we activate the previously active (and currently frozen) sector.
+        this._activateSector(previousSector);
 
-      // we load the references from the newly active sector into the global references
-      this._switchToSector(previousSector);
+        // we load the references from the newly active sector into the global references
+        this._switchToSector(previousSector);
 
-      // we forget the previously active sector because we reverted to the one before
-      this._forgetLastSector();
+        // we forget the previously active sector because we reverted to the one before
+        this._forgetLastSector();
 
-      // finally, we update the node index list.
-      this._updateNodeIndexList();
+        // finally, we update the node index list.
+        this._updateNodeIndexList();
+      }
     }
   },
 
@@ -294,7 +348,7 @@ var SectorMixin = {
       for (var sector in this.sectors["active"]) {
         if (this.sectors["active"].hasOwnProperty(sector)) {
           // switch the global references to those of this sector
-          this._switchToSector(sector);
+          this._switchToActiveSector(sector);
           this[runFunction]();
         }
       }
@@ -303,14 +357,13 @@ var SectorMixin = {
       for (var sector in this.sectors["active"]) {
         if (this.sectors["active"].hasOwnProperty(sector)) {
           // switch the global references to those of this sector
-          this._switchToSector(sector);
+          this._switchToActiveSector(sector);
           this[runFunction](args);
         }
       }
     }
-
     // we revert the global references back to our active sector
-    this._loadActiveSector();
+    this._loadLatestSector();
   },
 
 
@@ -327,7 +380,8 @@ var SectorMixin = {
     if (args === undefined) {
       for (var sector in this.sectors["frozen"]) {
         if (this.sectors["frozen"].hasOwnProperty(sector)) {
-          this._switchToSector(sector);
+          // switch the global references to those of this sector
+          this._switchToFrozenSector(sector);
           this[runFunction]();
         }
       }
@@ -335,12 +389,13 @@ var SectorMixin = {
     else {
       for (var sector in this.sectors["frozen"]) {
         if (this.sectors["frozen"].hasOwnProperty(sector)) {
-          this._switchToSector(sector);
+          // switch the global references to those of this sector
+          this._switchToFrozenSector(sector);
           this[runFunction](args);
         }
       }
     }
-    this._loadActiveSector();
+    this._loadLatestSector();
   },
 
 
@@ -369,5 +424,51 @@ var SectorMixin = {
     var sector = this._sector();
     this.sectors["active"][sector]["nodeIndices"] = [];
     this.nodeIndices = this.sectors["active"][sector]["nodeIndices"];
+  },
+
+
+  /**
+   * Draw the encompassing sector node
+   *
+   * @param ctx
+   * @param sectorType
+   * @private
+   */
+  _drawSectorNodes : function(ctx,sectorType) {
+    var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
+    for (var sector in this.sectors[sectorType]) {
+      if (this.sectors[sectorType].hasOwnProperty(sector)) {
+        minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9;
+        if (this.sectors[sectorType][sector]["drawingNode"] !== undefined) {
+
+          this._switchToSector(sector,sectorType);
+
+          for (var nodeID in this.nodes) {
+            if (this.nodes.hasOwnProperty(nodeID)) {
+              node = this.nodes[nodeID];
+              node.resize(ctx);
+              if (minX > node.x - 0.5 * node.width) {minX = node.x - 0.5 * node.width;}
+              if (maxX < node.x + 0.5 * node.width) {maxX = node.x + 0.5 * node.width;}
+              if (minY > node.y - 0.5 * node.height) {minY = node.y - 0.5 * node.height;}
+              if (maxY < node.y + 0.5 * node.height) {maxY = node.y + 0.5 * node.height;}
+            }
+          }
+          node = this.sectors[sectorType][sector]["drawingNode"];
+          node.x = 0.5 * (maxX + minX);
+          node.y = 0.5 * (maxY + minY);
+          node.width = node.x - minX;
+          node.height = node.y - minY;
+          node.radius = Math.sqrt(Math.pow(node.width,2) + Math.pow(node.height,2));
+          node.setScale(this.scale);
+          node._drawCircle(ctx);
+        }
+      }
+    }
+  },
+
+  _drawAllSectorNodes : function(ctx) {
+    this._drawSectorNodes(ctx,"frozen");
+    this._drawSectorNodes(ctx,"active");
+    this._loadLatestSector();
   }
 };
