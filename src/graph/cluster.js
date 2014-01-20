@@ -50,7 +50,7 @@ Cluster.prototype.openCluster = function(node) {
   var isMovingBeforeClustering = this.moving;
 
   if (node.clusterSize > 15) {
-    this._addUniverse(node);
+    this._addSector(node);
   }
 
   this._expandClusterNode(node,false,true);
@@ -73,7 +73,7 @@ Cluster.prototype.updateClustersDefault = function() {
   if (this.constants.clustering.enableClustering) {
     this.updateClusters(0,false,false);
   }
-}
+};
 
 /**
  * This function can be called to increase the cluster level. This means that the nodes with only one edge connection will
@@ -110,7 +110,7 @@ Cluster.prototype.updateClusters = function(zoomDirection,recursive,force) {
   var isMovingBeforeClustering = this.moving;
   var amountOfNodes = this.nodeIndices.length;
 
-  // on zoom out collapse the universe back to default
+  // on zoom out collapse the sector back to default
 //  if (this.previousScale > this.scale && zoomDirection == 0) {
 //    this._collapseUniverse();
 //  }
@@ -389,7 +389,7 @@ Cluster.prototype._formClusters = function(force) {
  */
 Cluster.prototype._formClustersByZoom = function() {
   var dx,dy,length,
-      minLength = this.constants.clustering.clusterLength/this.scale;
+      minLength = this.constants.clustering.clusterEdgeLength/this.scale;
 
   // check if any edges are shorter than minLength and start the clustering
   // the clustering favours the node with the larger mass
@@ -477,7 +477,7 @@ Cluster.prototype._formClustersByHub = function(force, onlyEqual) {
  * @param {Node}    hubNode       |   the node we will cluster as a hub
  * @param {Boolean} force         |   Disregard zoom level
  * @param {Boolean} onlyEqual     |   This only clusters a hub with a specific number of edges
- * @param [Number] absorptionSizeOffset |
+ * @param {Number} [absorptionSizeOffset] |
  * @private
  */
 Cluster.prototype._formClusterFromHub = function(hubNode, force, onlyEqual, absorptionSizeOffset) {
@@ -491,7 +491,7 @@ Cluster.prototype._formClusterFromHub = function(hubNode, force, onlyEqual, abso
 
     // initialize variables
     var dx,dy,length;
-    var minLength = this.constants.clustering.clusterLength/this.scale;
+    var minLength = this.constants.clustering.clusterEdgeLength/this.scale;
     var allowCluster = false;
 
     // we create a list of edges because the dynamicEdges change over the course of this loop
@@ -502,7 +502,7 @@ Cluster.prototype._formClusterFromHub = function(hubNode, force, onlyEqual, abso
     }
 
     // if the hub clustering is not forces, we check if one of the edges connected
-    // to a cluster is small enough based on the constants.clustering.clusterLength
+    // to a cluster is small enough based on the constants.clustering.clusterEdgeLength
     if (force == false) {
       allowCluster = false;
       for (j = 0; j < amountOfInitialEdges; j++) {
@@ -921,7 +921,7 @@ Cluster.prototype._getHubSize = function() {
  * We reduce the amount of "extension nodes" or snakes. These are not quickly clustered with the outliers and hubs methods
  * with this amount we can cluster specifically on these snakes.
  *
- * @param   {double} fraction     | between 0 and 1, the percentage of snakes to reduce
+ * @param   {Number} fraction     | between 0 and 1, the percentage of snakes to reduce
  * @private
  */
 Cluster.prototype._reduceAmountOfSnakes = function(fraction) {

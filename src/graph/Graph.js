@@ -64,19 +64,19 @@ function Graph (container, data, options) {
       }
     },
     clustering: { // TODO: naming of variables
-      enableClustering: true,
+      enableClustering: true,       // global on/off switch for clustering.
       maxNumberOfNodes: 100,        // for automatic (initial) clustering
-      snakeThreshold: 0.5,         // maximum percentage of allowed snakes (long strings of connected nodes)
-      clusterLength: 25,            // threshold edge length for clusteringl
+      snakeThreshold: 0.5,          // maximum percentage of allowed snakenodes (long strings of connected nodes) within all nodes
+      clusterEdgeLength: 25,        // threshold edge length for clustering
       relativeOpenFactor: 0.2,      // if the width or height of a cluster takes up this much of the screen, open the cluster
-      fontSizeMultiplier: 4,        // how much the cluster font size grows per node (in px)
-      forceAmplification: 0.7,      // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
-      distanceAmplification: 0.3,   // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
+      fontSizeMultiplier: 4,        // how much the cluster font size grows per node in cluster (in px)
+      forceAmplification: 0.7,      // factor of increase fo the repulsion force of a cluster (per node in cluster)
+      distanceAmplification: 0.3,   // factor how much the repulsion distance of a cluster increases (per node in cluster).
       edgeGrowth: 11,               // amount of clusterSize connected to the edge is multiplied with this and added to edgeLength
-      clusterSizeWidthFactor: 10,
-      clusterSizeHeightFactor: 10,
-      clusterSizeRadiusFactor: 10,
-      activeAreaBoxSize: 100,         // box area around the curser where clusters are popped open
+      clusterSizeWidthFactor: 10,   // growth of the width  per node in cluster
+      clusterSizeHeightFactor: 10,  // growth of the height per node in cluster
+      clusterSizeRadiusFactor: 10,  // growth of the radius per node in cluster
+      activeAreaBoxSize: 100,       // box area around the curser where clusters are popped open
       massTransferCoefficient: 1    // parent.mass += massTransferCoefficient * child.mass
     },
     minForce: 0.05,
@@ -87,8 +87,8 @@ function Graph (container, data, options) {
   // call the constructor of the cluster object
   Cluster.call(this);
 
-  // call the universe constructor
-  this._loadUniverse(); // would be fantastic if multiple in heritance just worked!
+  // call the sector constructor
+  this._loadSectorSystem(); // would be fantastic if multiple in heritance just worked!
 
   var graph = this;
   this.freezeSimulation = false;// freeze the simulation
@@ -189,7 +189,7 @@ function Graph (container, data, options) {
 Graph.prototype = Object.create(Cluster.prototype);
 
 /**
- * This function zooms out to fit all data on screen based on amount of nodes
+ * This function zooms out to fit all data on screen based on amount of nodes 
  */
 Graph.prototype.zoomToFit = function() {
   var numberOfNodes = this.nodeIndices.length;
@@ -210,9 +210,7 @@ Graph.prototype.zoomToFit = function() {
  * @private
  */
 Graph.prototype._updateNodeIndexList = function() {
-  var universe = this._universe();
-  this.universe["activePockets"][universe]["nodeIndices"] = [];
-  this.nodeIndices = this.universe["activePockets"][universe]["nodeIndices"];
+  this._clearNodeIndexList();
   for (var idx in this.nodes) {
     if (this.nodes.hasOwnProperty(idx)) {
       this.nodeIndices.push(idx);
@@ -280,6 +278,14 @@ Graph.prototype.setOptions = function (options) {
     if (options.height !== undefined)          {this.height = options.height;}
     if (options.stabilize !== undefined)       {this.stabilize = options.stabilize;}
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
+
+    if (optiones.clustering) {
+      for (var prop in optiones.clustering) {
+        if (options.clustering.hasOwnProperty(prop)) {
+          this.constants.clustering[prop] = options.edges[prop];
+        }
+      }
+    }
 
     // TODO: work out these options and document them
     if (options.edges) {
@@ -973,10 +979,10 @@ Graph.prototype._getNodesOverlappingWith = function (obj) {
   var overlappingNodes = [];
   var nodes;
 
-  // search in all universes for nodes
-  for (var universe in this.universe["activePockets"]) {
-    if (this.universe["activePockets"].hasOwnProperty(universe)) {
-      nodes = this.universe["activePockets"][universe]["nodes"];
+  // search in all sectors for nodes
+  for (var sector in this.sectors["active"]) {
+    if (this.sectors["active"].hasOwnProperty(sector)) {
+      nodes = this.sectors["active"][sector]["nodes"];
       for (var id in nodes) {
         if (nodes.hasOwnProperty(id)) {
           if (nodes[id].isOverlappingWith(obj)) {
@@ -987,9 +993,9 @@ Graph.prototype._getNodesOverlappingWith = function (obj) {
     }
   }
 
-  for (var universe in this.universe["frozenPockets"]) {
-    if (this.universe["frozenPockets"].hasOwnProperty(universe)) {
-      nodes = this.universe["frozenPockets"][universe]["nodes"];
+  for (var sector in this.sectors["frozen"]) {
+    if (this.sectors["frozen"].hasOwnProperty(sector)) {
+      nodes = this.sectors["frozen"][sector]["nodes"];
       for (var id in nodes) {
         if (nodes.hasOwnProperty(id)) {
           if (nodes[id].isOverlappingWith(obj)) {
@@ -999,7 +1005,7 @@ Graph.prototype._getNodesOverlappingWith = function (obj) {
       }
     }
   }
-  this.nodes = this.universe["activePockets"][this.activeUniverse[this.activeUniverse.length-1]]["nodes"];
+  this.nodes = this.sectors["active"][this.activeSector[this.activeSector.length-1]]["nodes"];
 
   return overlappingNodes;
 };
@@ -1705,8 +1711,8 @@ Graph.prototype._calculateForces = function(nodes,edges) {
     var gravity = 0.08;
     for (i = 0; i < this.nodeIndices.length; i++) {
         node = nodes[this.nodeIndices[i]];
-        // gravity does not apply when we are in a pocket universe
-        if (this._universe() == "default") {
+        // gravity does not apply when we are in a pocket sector
+        if (this._sector() == "default") {
           dx = -node.x + centerPos.x;
           dy = -node.y + centerPos.y;
 
@@ -1814,7 +1820,7 @@ Graph.prototype._calculateForces = function(nodes,edges) {
       if (edges.hasOwnProperty(edgeID)) {
         edge = edges[edgeID];
         if (edge.connected) {
-          // only calculate forces if nodes are in the same universe
+          // only calculate forces if nodes are in the same sector
           if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
             clusterSize = (edge.to.clusterSize + edge.from.clusterSize - 2);
             dx = (edge.to.x - edge.from.x);
@@ -1979,15 +1985,15 @@ Graph.prototype.toggleFreeze = function() {
 };
 
 
-Graph.prototype._loadUniverse = function() {
-  this.universe = {};
-  this.activeUniverse = ["default"];
-  this.universe["activePockets"] = {};
-  this.universe["activePockets"][this.activeUniverse[this.activeUniverse.length-1]] = {"nodes":{},"edges":{},"nodeIndices":[]};
-  this.universe["frozenPockets"] = {};
-  this.universe["draw"] = {};
+Graph.prototype._loadSectorSystem = function() {
+  this.sectors = {};
+  this.activeSector = ["default"];
+  this.sectors["active"] = {};
+  this.sectors["active"][this.activeSector[this.activeSector.length-1]] = {"nodes":{},"edges":{},"nodeIndices":[]};
+  this.sectors["frozen"] = {};
+  this.sectors["draw"] = {};
 
-  this.nodeIndices = this.universe["activePockets"][this.activeUniverse[this.activeUniverse.length-1]]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
+  this.nodeIndices = this.sectors["active"][this.activeSector[this.activeSector.length-1]]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
   for (var mixinFunction in UniverseMixin) {
     if (UniverseMixin.hasOwnProperty(mixinFunction)) {
       Graph.prototype[mixinFunction] = UniverseMixin[mixinFunction];

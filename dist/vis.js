@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.4.0-SNAPSHOT
- * @date    2014-01-17
+ * @date    2014-01-20
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -10529,183 +10529,376 @@ Images.prototype.load = function(url) {
 };
 
 
-var UniverseMixin = {
-  _putDataInUniverse : function() {
-    this.universe["activePockets"][this._universe()].nodes = this.nodes;
-    this.universe["activePockets"][this._universe()].edges = this.edges;
-    this.universe["activePockets"][this._universe()].nodeIndices = this.nodeIndices;
-  },
-  
-  _switchToUniverse : function(universeID) {
-    this.nodeIndices = this.universe["activePockets"][universeID]["nodeIndices"];
-    this.nodes       = this.universe["activePockets"][universeID]["nodes"];
-    this.edges       = this.universe["activePockets"][universeID]["edges"];
+var SectorMixin = {
+
+  /**
+   * This function is only called by the setData function of the Graph object.
+   * This loads the global references into the active sector. This initializes the sector.
+   *
+   * @private
+   */
+  _putDataInSector : function() {
+    this.sectors["active"][this._sector()].nodes = this.nodes;
+    this.sectors["active"][this._sector()].edges = this.edges;
+    this.sectors["active"][this._sector()].nodeIndices = this.nodeIndices;
   },
 
-  _loadActiveUniverse : function() {
-    this._switchToUniverse(this._universe());
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied (active) sector.
+   *
+   * @param sectorID
+   * @private
+   */
+  _switchToSector : function(sectorID) {
+    this.nodeIndices = this.sectors["active"][sectorID]["nodeIndices"];
+    this.nodes       = this.sectors["active"][sectorID]["nodes"];
+    this.edges       = this.sectors["active"][sectorID]["edges"];
   },
 
-  _universe : function() {
-    return this.activeUniverse[this.activeUniverse.length-1];
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the currently active sector.
+   *
+   * @private
+   */
+  _loadActiveSector : function() {
+    this._switchToSector(this._sector());
   },
 
-  _previousUniverse : function() {
-    if (this.activeUniverse.length > 1) {
-      return this.activeUniverse[this.activeUniverse.length-2];
+
+  /**
+   * This function returns the currently active sector ID
+   *
+   * @returns {String}
+   * @private
+   */
+  _sector : function() {
+    return this.activeSector[this.activeSector.length-1];
+  },
+
+
+  /**
+   * This function returns the previously active sector ID
+   *
+   * @returns {String}
+   * @private
+   */
+  _previousSector : function() {
+    if (this.activeSector.length > 1) {
+      return this.activeSector[this.activeSector.length-2];
     }
     else {
-      throw new TypeError('there are not enough universes in the this.activeUniverse array.');
+      throw new TypeError('there are not enough sectors in the this.activeSector array.');
       return "";
     }
   },
 
-  _setActiveUniverse : function(newID) {
-    this.activeUniverse.push(newID);
+
+  /**
+   * We add the active sector at the end of the this.activeSector array
+   * This ensures it is the currently active sector returned by _sector() and it reaches the top
+   * of the activeSector stack. When we reverse our steps we move from the end to the beginning of this stack.
+   *
+   * @param newID
+   * @private
+   */
+  _setActiveSector : function(newID) {
+    this.activeSector.push(newID);
   },
 
-  _forgetLastUniverse : function() {
-    this.activeUniverse.pop();
+
+  /**
+   * We remove the currently active sector id from the active sector stack. This happens when
+   * we reactivate the previously active sector
+   *
+   * @private
+   */
+  _forgetLastSector : function() {
+    this.activeSector.pop();
   },
 
-  _createNewUniverse : function(newID) {
-    this.universe["activePockets"][newID] = {"nodes":{  },"edges":{  },"nodeIndices":[]}
+
+  /**
+   * This function creates a new active sector with the supplied newID. This newID
+   * is the expanding node id.
+   *
+   * @param {String} newID   | ID of the new active sector
+   * @private
+   */
+  _createNewSector : function(newID) {
+    this.sectors["active"][newID] = {"nodes":{  },"edges":{  },"nodeIndices":[]}
   },
 
-  _deleteActiveUniverse : function(universeID) {
-    delete this.universe["activePockets"][universeID];
+
+  /**
+   * This function removes the currently active sector. This is called when we create a new
+   * active sector.
+   *
+   * @param {String} sectorID   | ID of the active sector that will be removed
+   * @private
+   */
+  _deleteActiveSector : function(sectorID) {
+    delete this.sectors["active"][sectorID];
   },
 
-  _deleteFrozenUniverse : function(universeID) {
-    delete this.universe["frozenPockets"][universeID];
+
+  /**
+   * This function removes the currently active sector. This is called when we reactivate
+   * the previously active sector.
+   *
+   * @param {String} sectorID   | ID of the active sector that will be removed
+   * @private
+   */
+  _deleteFrozenSector : function(sectorID) {
+    delete this.sectors["frozen"][sectorID];
   },
 
-  _freezeUniverse : function(universeID) {
-    this.universe["frozenPockets"][universeID] = this.universe["activePockets"][universeID];
-    this._deleteActiveUniverse(universeID);
+
+  /**
+   * Freezing an active sector means moving it from the "active" object to the "frozen" object.
+   * We copy the references, then delete the active entree.
+   *
+   * @param sectorID
+   * @private
+   */
+  _freezeSector : function(sectorID) {
+    // we move the set references from the active to the frozen stack.
+    this.sectors["frozen"][sectorID] = this.sectors["active"][sectorID];
+
+    // we have moved the sector data into the frozen set, we now remove it from the active set
+    this._deleteActiveSector(sectorID);
   },
 
-  _activateUniverse : function(universeID) {
-    this.universe["activePockets"][universeID] = this.universe["frozenPockets"][universeID];
-    this._deleteFrozenUniverse(universeID);
+
+  /**
+   * This is the reverse operation of _freezeSector. Activating means moving the sector from the "frozen"
+   * object to the "active" object.
+   *
+   * @param sectorID
+   * @private
+   */
+  _activateSector : function(sectorID) {
+    // we move the set references from the frozen to the active stack.
+    this.sectors["active"][sectorID] = this.sectors["frozen"][sectorID];
+
+    // we have moved the sector data into the active set, we now remove it from the frozen stack
+    this._deleteFrozenSector(sectorID);
   },
 
-  _mergeThisWithFrozen : function(universeID) {
+
+  /**
+   * This function merges the data from the currently active sector with a frozen sector. This is used
+   * in the process of reverting back to the previously active sector.
+   * The data that is placed in the frozen (the previously active) sector is the node that has been removed from it
+   * upon the creation of a new active sector.
+   *
+   * @param sectorID
+   * @private
+   */
+  _mergeThisWithFrozen : function(sectorID) {
+    // copy all nodes
     for (var nodeID in this.nodes) {
       if (this.nodes.hasOwnProperty(nodeID)) {
-        this.universe["frozenPockets"][universeID]["nodes"][nodeID] = this.nodes[nodeID];
+        this.sectors["frozen"][sectorID]["nodes"][nodeID] = this.nodes[nodeID];
       }
     }
 
+    // copy all edges (if not fully clustered, else there are no edges)
     for (var edgeID in this.edges) {
       if (this.edges.hasOwnProperty(edgeID)) {
-        this.universe["frozenPockets"][universeID]["edges"][edgeID] = this.edges[edgeID];
+        this.sectors["frozen"][sectorID]["edges"][edgeID] = this.edges[edgeID];
       }
     }
 
+    // merge the nodeIndices
     for (var i = 0; i < this.nodeIndices.length; i++) {
-      this.universe["frozenPockets"][universeID]["nodeIndices"].push(this.nodeIndices[i]);
+      this.sectors["frozen"][sectorID]["nodeIndices"].push(this.nodeIndices[i]);
     }
   },
 
+
+  /**
+   * This clusters the sector to one cluster. It was a single cluster before this process started so
+   * we revert to that state. The clusterToFit function with a maximum size of 1 node does this.
+   *
+   * @private
+   */
   _collapseThisToSingleCluster : function() {
     this.clusterToFit(1,false);
   },
 
 
-  _addUniverse : function(node) {
-    var universe = this._universe();
-    if (this.universe['activePockets'][universe]["nodes"].hasOwnProperty(node.id)) {
-      console.log("the node is part of the active universe");
+  /**
+   * We create a new active sector from the node that we want to open.
+   *
+   * @param node
+   * @private
+   */
+  _addSector : function(node) {
+    // this is the currently active sector
+    var sector = this._sector();
+
+    // this should allow me to select nodes from a frozen set.
+    // TODO: after rewriting the selection function, have this working
+    if (this.sectors['active'][sector]["nodes"].hasOwnProperty(node.id)) {
+      console.log("the node is part of the active sector");
     }
     else {
-      console.log("I dont konw what the fuck happened!!");
+      console.log("I dont know what the fuck happened!!");
     }
 
+    // when we switch to a new sector, we remove the node that will be expanded from the current nodes list.
     delete this.nodes[node.id];
 
-    this._freezeUniverse(universe);
-    this._createNewUniverse(node.id);
+    // we fully freeze the currently active sector
+    this._freezeSector(sector);
 
-    this._setActiveUniverse(node.id);
-    this._switchToUniverse(this._universe());
+    // we create a new active sector. This sector has the ID of the node to ensure uniqueness
+    this._createNewSector(node.id);
 
+    // we add the active sector to the sectors array to be able to revert these steps later on
+    this._setActiveSector(node.id);
+
+    // we redirect the global references to the new sector's references.
+    this._switchToSector(this._sector());
+
+    // finally we add the node we removed from our previous active sector to the new active sector
     this.nodes[node.id] = node;
-    //this.universe["draw"][node.id] = new Node(node.nodeProperties,node.imagelist,node.grouplist,this.constants);
   },
 
-  _collapseUniverse : function() {
-    var universe = this._universe();
 
-    if (universe != "default") {
-      var isMovingBeforeClustering = this.moving;
+  /**
+   * We close the sector that is currently open and revert back to the one before.
+   * If the active sector is the "default" sector, nothing happens.
+   *
+   * @private
+   */
+  _collapseSector : function() {
+    // the currently active sector
+    var sector = this._sector();
 
-      var previousUniverse = this._previousUniverse();
+    // we cannot collapse the default sector
+    if (sector != "default") {
+      var previousSector = this._previousSector();
 
+      // we collapse the sector back to a single cluster
       this._collapseThisToSingleCluster();
 
-      this._mergeThisWithFrozen(previousUniverse);
+      // we move the remaining nodes, edges and nodeIndices to the previous sector.
+      // This previous sector is the one we will reactivate
+      this._mergeThisWithFrozen(previousSector);
 
-      this._deleteActiveUniverse(universe);
+      // the previously active (frozen) sector now has all the data from the currently active sector.
+      // we can now delete the active sector.
+      this._deleteActiveSector(sector);
 
-      this._activateUniverse(previousUniverse);
+      // we activate the previously active (and currently frozen) sector.
+      this._activateSector(previousSector);
 
-      this._switchToUniverse(previousUniverse);
+      // we load the references from the newly active sector into the global references
+      this._switchToSector(previousSector);
 
-      this._forgetLastUniverse();
+      // we forget the previously active sector because we reverted to the one before
+      this._forgetLastSector();
 
+      // finally, we update the node index list.
       this._updateNodeIndexList();
-
-      // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
-      if (this.moving != isMovingBeforeClustering) {
-        this.start();
-      }
     }
   },
 
-  _doInAllActiveUniverses : function(runFunction,args) {
+
+  /**
+   * This runs a function in all active sectors. This is used in _redraw() and the _calculateForces().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we dont pass the function itself because then the "this" is the window object
+   *                              |   instead of the Graph object
+   * @param {*} [args]            |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  _doInAllActiveSectors : function(runFunction,args) {
     if (args === undefined) {
-      for (var universe in this.universe["activePockets"]) {
-        if (this.universe["activePockets"].hasOwnProperty(universe)) {
-          this._switchToUniverse(universe);
+      for (var sector in this.sectors["active"]) {
+        if (this.sectors["active"].hasOwnProperty(sector)) {
+          // switch the global references to those of this sector
+          this._switchToSector(sector);
           this[runFunction]();
         }
       }
     }
     else {
-      for (var universe in this.universe["activePockets"]) {
-        if (this.universe["activePockets"].hasOwnProperty(universe)) {
-          this._switchToUniverse(universe);
+      for (var sector in this.sectors["active"]) {
+        if (this.sectors["active"].hasOwnProperty(sector)) {
+          // switch the global references to those of this sector
+          this._switchToSector(sector);
           this[runFunction](args);
         }
       }
     }
-    this._loadActiveUniverse();
+
+    // we revert the global references back to our active sector
+    this._loadActiveSector();
   },
 
-  _doInAllFrozenUniverses : function(runFunction,args) {
+
+  /**
+   * This runs a function in all frozen sectors. This is used in the _redraw().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we dont pass the function itself because then the "this" is the window object
+   *                              |   instead of the Graph object
+   * @param {*} [args]            |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  _doInAllFrozenSectors : function(runFunction,args) {
     if (args === undefined) {
-      for (var universe in this.universe["frozenPockets"]) {
-        if (this.universe["frozenPockets"].hasOwnProperty(universe)) {
-          this._switchToUniverse(universe);
+      for (var sector in this.sectors["frozen"]) {
+        if (this.sectors["frozen"].hasOwnProperty(sector)) {
+          this._switchToSector(sector);
           this[runFunction]();
         }
       }
     }
     else {
-      for (var universe in this.universe["frozenPockets"]) {
-        if (this.universe["frozenPockets"].hasOwnProperty(universe)) {
-          this._switchToUniverse(universe);
+      for (var sector in this.sectors["frozen"]) {
+        if (this.sectors["frozen"].hasOwnProperty(sector)) {
+          this._switchToSector(sector);
           this[runFunction](args);
         }
       }
     }
-    this._loadActiveUniverse();
+    this._loadActiveSector();
   },
 
-  _doInAllUniverses : function(runFunction,argument) {
-    this._doInAllActiveUniverses(runFunction,argument);
-    this._doInAllFrozenUniverses(runFunction,argument);
+
+  /**
+   * This runs a function in all sectors. This is used in the _redraw().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we dont pass the function itself because then the "this" is the window object
+   *                              |   instead of the Graph object
+   * @param {*} [args]            |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  _doInAllSectors : function(runFunction,argument) {
+    this._doInAllActiveSectors(runFunction,argument);
+    this._doInAllFrozenSectors(runFunction,argument);
+  },
+
+
+  /**
+   * This clears the nodeIndices list. We cannot use this.nodeIndices = [] because we would break the link with the
+   * active sector. Thus we clear the nodeIndices in the active sector, then reconnect the this.nodeIndices to it.
+   *
+   * @private
+   */
+  _clearNodeIndexList : function() {
+    var sector = this._sector();
+    this.sectors["active"][sector]["nodeIndices"] = [];
+    this.nodeIndices = this.sectors["active"][sector]["nodeIndices"];
   }
 };
 /**
@@ -10760,7 +10953,7 @@ Cluster.prototype.openCluster = function(node) {
   var isMovingBeforeClustering = this.moving;
 
   if (node.clusterSize > 15) {
-    this._addUniverse(node);
+    this._addSector(node);
   }
 
   this._expandClusterNode(node,false,true);
@@ -10783,7 +10976,7 @@ Cluster.prototype.updateClustersDefault = function() {
   if (this.constants.clustering.enableClustering) {
     this.updateClusters(0,false,false);
   }
-}
+};
 
 /**
  * This function can be called to increase the cluster level. This means that the nodes with only one edge connection will
@@ -10820,7 +11013,7 @@ Cluster.prototype.updateClusters = function(zoomDirection,recursive,force) {
   var isMovingBeforeClustering = this.moving;
   var amountOfNodes = this.nodeIndices.length;
 
-  // on zoom out collapse the universe back to default
+  // on zoom out collapse the sector back to default
 //  if (this.previousScale > this.scale && zoomDirection == 0) {
 //    this._collapseUniverse();
 //  }
@@ -11099,7 +11292,7 @@ Cluster.prototype._formClusters = function(force) {
  */
 Cluster.prototype._formClustersByZoom = function() {
   var dx,dy,length,
-      minLength = this.constants.clustering.clusterLength/this.scale;
+      minLength = this.constants.clustering.clusterEdgeLength/this.scale;
 
   // check if any edges are shorter than minLength and start the clustering
   // the clustering favours the node with the larger mass
@@ -11187,7 +11380,7 @@ Cluster.prototype._formClustersByHub = function(force, onlyEqual) {
  * @param {Node}    hubNode       |   the node we will cluster as a hub
  * @param {Boolean} force         |   Disregard zoom level
  * @param {Boolean} onlyEqual     |   This only clusters a hub with a specific number of edges
- * @param [Number] absorptionSizeOffset |
+ * @param {Number} [absorptionSizeOffset] |
  * @private
  */
 Cluster.prototype._formClusterFromHub = function(hubNode, force, onlyEqual, absorptionSizeOffset) {
@@ -11201,7 +11394,7 @@ Cluster.prototype._formClusterFromHub = function(hubNode, force, onlyEqual, abso
 
     // initialize variables
     var dx,dy,length;
-    var minLength = this.constants.clustering.clusterLength/this.scale;
+    var minLength = this.constants.clustering.clusterEdgeLength/this.scale;
     var allowCluster = false;
 
     // we create a list of edges because the dynamicEdges change over the course of this loop
@@ -11212,7 +11405,7 @@ Cluster.prototype._formClusterFromHub = function(hubNode, force, onlyEqual, abso
     }
 
     // if the hub clustering is not forces, we check if one of the edges connected
-    // to a cluster is small enough based on the constants.clustering.clusterLength
+    // to a cluster is small enough based on the constants.clustering.clusterEdgeLength
     if (force == false) {
       allowCluster = false;
       for (j = 0; j < amountOfInitialEdges; j++) {
@@ -11631,7 +11824,7 @@ Cluster.prototype._getHubSize = function() {
  * We reduce the amount of "extension nodes" or snakes. These are not quickly clustered with the outliers and hubs methods
  * with this amount we can cluster specifically on these snakes.
  *
- * @param   {double} fraction     | between 0 and 1, the percentage of snakes to reduce
+ * @param   {Number} fraction     | between 0 and 1, the percentage of snakes to reduce
  * @private
  */
 Cluster.prototype._reduceAmountOfSnakes = function(fraction) {
@@ -11733,19 +11926,19 @@ function Graph (container, data, options) {
       }
     },
     clustering: { // TODO: naming of variables
-      enableClustering: true,
+      enableClustering: true,       // global on/off switch for clustering.
       maxNumberOfNodes: 100,        // for automatic (initial) clustering
-      snakeThreshold: 0.5,         // maximum percentage of allowed snakes (long strings of connected nodes)
-      clusterLength: 25,            // threshold edge length for clusteringl
+      snakeThreshold: 0.5,          // maximum percentage of allowed snakenodes (long strings of connected nodes) within all nodes
+      clusterEdgeLength: 25,        // threshold edge length for clustering
       relativeOpenFactor: 0.2,      // if the width or height of a cluster takes up this much of the screen, open the cluster
-      fontSizeMultiplier: 4,        // how much the cluster font size grows per node (in px)
-      forceAmplification: 0.7,      // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
-      distanceAmplification: 0.3,   // amount of clusterSize between two nodes multiply this value (+1) with the repulsion force
+      fontSizeMultiplier: 4,        // how much the cluster font size grows per node in cluster (in px)
+      forceAmplification: 0.7,      // factor of increase fo the repulsion force of a cluster (per node in cluster)
+      distanceAmplification: 0.3,   // factor how much the repulsion distance of a cluster increases (per node in cluster).
       edgeGrowth: 11,               // amount of clusterSize connected to the edge is multiplied with this and added to edgeLength
-      clusterSizeWidthFactor: 10,
-      clusterSizeHeightFactor: 10,
-      clusterSizeRadiusFactor: 10,
-      activeAreaBoxSize: 100,         // box area around the curser where clusters are popped open
+      clusterSizeWidthFactor: 10,   // growth of the width  per node in cluster
+      clusterSizeHeightFactor: 10,  // growth of the height per node in cluster
+      clusterSizeRadiusFactor: 10,  // growth of the radius per node in cluster
+      activeAreaBoxSize: 100,       // box area around the curser where clusters are popped open
       massTransferCoefficient: 1    // parent.mass += massTransferCoefficient * child.mass
     },
     minForce: 0.05,
@@ -11756,8 +11949,8 @@ function Graph (container, data, options) {
   // call the constructor of the cluster object
   Cluster.call(this);
 
-  // call the universe constructor
-  this._loadUniverse(); // would be fantastic if multiple in heritance just worked!
+  // call the sector constructor
+  this._loadSectorSystem(); // would be fantastic if multiple in heritance just worked!
 
   var graph = this;
   this.freezeSimulation = false;// freeze the simulation
@@ -11858,7 +12051,7 @@ function Graph (container, data, options) {
 Graph.prototype = Object.create(Cluster.prototype);
 
 /**
- * This function zooms out to fit all data on screen based on amount of nodes
+ * This function zooms out to fit all data on screen based on amount of nodes 
  */
 Graph.prototype.zoomToFit = function() {
   var numberOfNodes = this.nodeIndices.length;
@@ -11879,9 +12072,7 @@ Graph.prototype.zoomToFit = function() {
  * @private
  */
 Graph.prototype._updateNodeIndexList = function() {
-  var universe = this._universe();
-  this.universe["activePockets"][universe]["nodeIndices"] = [];
-  this.nodeIndices = this.universe["activePockets"][universe]["nodeIndices"];
+  this._clearNodeIndexList();
   for (var idx in this.nodes) {
     if (this.nodes.hasOwnProperty(idx)) {
       this.nodeIndices.push(idx);
@@ -11949,6 +12140,14 @@ Graph.prototype.setOptions = function (options) {
     if (options.height !== undefined)          {this.height = options.height;}
     if (options.stabilize !== undefined)       {this.stabilize = options.stabilize;}
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
+
+    if (optiones.clustering) {
+      for (var prop in optiones.clustering) {
+        if (options.clustering.hasOwnProperty(prop)) {
+          this.constants.clustering[prop] = options.edges[prop];
+        }
+      }
+    }
 
     // TODO: work out these options and document them
     if (options.edges) {
@@ -12642,10 +12841,10 @@ Graph.prototype._getNodesOverlappingWith = function (obj) {
   var overlappingNodes = [];
   var nodes;
 
-  // search in all universes for nodes
-  for (var universe in this.universe["activePockets"]) {
-    if (this.universe["activePockets"].hasOwnProperty(universe)) {
-      nodes = this.universe["activePockets"][universe]["nodes"];
+  // search in all sectors for nodes
+  for (var sector in this.sectors["active"]) {
+    if (this.sectors["active"].hasOwnProperty(sector)) {
+      nodes = this.sectors["active"][sector]["nodes"];
       for (var id in nodes) {
         if (nodes.hasOwnProperty(id)) {
           if (nodes[id].isOverlappingWith(obj)) {
@@ -12656,9 +12855,9 @@ Graph.prototype._getNodesOverlappingWith = function (obj) {
     }
   }
 
-  for (var universe in this.universe["frozenPockets"]) {
-    if (this.universe["frozenPockets"].hasOwnProperty(universe)) {
-      nodes = this.universe["frozenPockets"][universe]["nodes"];
+  for (var sector in this.sectors["frozen"]) {
+    if (this.sectors["frozen"].hasOwnProperty(sector)) {
+      nodes = this.sectors["frozen"][sector]["nodes"];
       for (var id in nodes) {
         if (nodes.hasOwnProperty(id)) {
           if (nodes[id].isOverlappingWith(obj)) {
@@ -12668,7 +12867,7 @@ Graph.prototype._getNodesOverlappingWith = function (obj) {
       }
     }
   }
-  this.nodes = this.universe["activePockets"][this.activeUniverse[this.activeUniverse.length-1]]["nodes"];
+  this.nodes = this.sectors["active"][this.activeSector[this.activeSector.length-1]]["nodes"];
 
   return overlappingNodes;
 };
@@ -13374,8 +13573,8 @@ Graph.prototype._calculateForces = function(nodes,edges) {
     var gravity = 0.08;
     for (i = 0; i < this.nodeIndices.length; i++) {
         node = nodes[this.nodeIndices[i]];
-        // gravity does not apply when we are in a pocket universe
-        if (this._universe() == "default") {
+        // gravity does not apply when we are in a pocket sector
+        if (this._sector() == "default") {
           dx = -node.x + centerPos.x;
           dy = -node.y + centerPos.y;
 
@@ -13483,7 +13682,7 @@ Graph.prototype._calculateForces = function(nodes,edges) {
       if (edges.hasOwnProperty(edgeID)) {
         edge = edges[edgeID];
         if (edge.connected) {
-          // only calculate forces if nodes are in the same universe
+          // only calculate forces if nodes are in the same sector
           if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
             clusterSize = (edge.to.clusterSize + edge.from.clusterSize - 2);
             dx = (edge.to.x - edge.from.x);
@@ -13648,15 +13847,15 @@ Graph.prototype.toggleFreeze = function() {
 };
 
 
-Graph.prototype._loadUniverse = function() {
-  this.universe = {};
-  this.activeUniverse = ["default"];
-  this.universe["activePockets"] = {};
-  this.universe["activePockets"][this.activeUniverse[this.activeUniverse.length-1]] = {"nodes":{},"edges":{},"nodeIndices":[]};
-  this.universe["frozenPockets"] = {};
-  this.universe["draw"] = {};
+Graph.prototype._loadSectorSystem = function() {
+  this.sectors = {};
+  this.activeSector = ["default"];
+  this.sectors["active"] = {};
+  this.sectors["active"][this.activeSector[this.activeSector.length-1]] = {"nodes":{},"edges":{},"nodeIndices":[]};
+  this.sectors["frozen"] = {};
+  this.sectors["draw"] = {};
 
-  this.nodeIndices = this.universe["activePockets"][this.activeUniverse[this.activeUniverse.length-1]]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
+  this.nodeIndices = this.sectors["active"][this.activeSector[this.activeSector.length-1]]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
   for (var mixinFunction in UniverseMixin) {
     if (UniverseMixin.hasOwnProperty(mixinFunction)) {
       Graph.prototype[mixinFunction] = UniverseMixin[mixinFunction];
