@@ -11201,8 +11201,6 @@ var ClusterMixin = {
       this._updateNodeIndexList();
     }
 
-
-
     this.previousScale = this.scale;
 
     // rest of the update the index list, dynamic edges and labels
