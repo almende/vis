@@ -63,22 +63,24 @@ function Graph (container, data, options) {
         altLength: undefined
       }
     },
-    clustering: {
-      enableClustering: false,       // global on/off switch for clustering.
-      maxNumberOfNodes: 100,        // for automatic (initial) clustering
-      snakeThreshold: 0.7,          // maximum percentage of allowed snakenodes (long strings of connected nodes) within all nodes
-      clusterEdgeThreshold: 15,     // edge length threshold. if smaller, this node is clustered
-      sectorThreshold: 50,          // cluster size threshold. If larger, expanding in own sector.
-      screenSizeThreshold: 0.2,     // relative size threshold. If the width or height of a clusternode takes up this much of the screen, decluster node
-      fontSizeMultiplier: 4,        // how much the cluster font size grows per node in cluster (in px)
-      forceAmplification: 0.6,      // factor of increase fo the repulsion force of a cluster (per node in cluster)
-      distanceAmplification: 0.2,   // factor how much the repulsion distance of a cluster increases (per node in cluster).
-      edgeGrowth: 11,               // amount of clusterSize connected to the edge is multiplied with this and added to edgeLength
-      clusterSizeWidthFactor: 10,   // growth of the width  per node in cluster
-      clusterSizeHeightFactor: 10,  // growth of the height per node in cluster
-      clusterSizeRadiusFactor: 10,  // growth of the radius per node in cluster
-      activeAreaBoxSize: 100,       // box area around the curser where clusters are popped open
-      massTransferCoefficient: 1    // parent.mass += massTransferCoefficient * child.mass
+    clustering: {                   // Per Node in Cluster = PNiC
+      enabled: false,               // (Boolean)             | global on/off switch for clustering.
+      initialMaxNumberOfNodes: 100, // (# nodes)             | if the initial amount of nodes is larger than this, we cluster until the total number is less than this threshold.
+      absoluteMaxNumberOfNodes:500, // (# nodes)             | during calculate forces, we check if the total number of nodes is larger than this. If it is, cluster until reduced to reduceToMaxNumberOfNodes
+      reduceToMaxNumberOfNodes:300, // (# nodes)             | during calculate forces, we check if the total number of nodes is larger than absoluteMaxNumberOfNodes. If it is, cluster until reduced to this
+      chainThreshold: 0.4,          // (% of all drawn nodes)| maximum percentage of allowed chainnodes (long strings of connected nodes) within all nodes. (lower means less chains).
+      clusterEdgeThreshold: 20,     // (px)                  | edge length threshold. if smaller, this node is clustered.
+      sectorThreshold: 50,          // (# nodes in cluster)  | cluster size threshold. If larger, expanding in own sector.
+      screenSizeThreshold: 0.2,     // (% of canvas)         | relative size threshold. If the width or height of a clusternode takes up this much of the screen, decluster node.
+      fontSizeMultiplier: 4.0,      // (px PNiC)             | how much the cluster font size grows per node in cluster (in px).
+      forceAmplification: 0.6,      // (multiplier PNiC)     | factor of increase fo the repulsion force of a cluster (per node in cluster).
+      distanceAmplification: 0.2,   // (multiplier PNiC)     | factor how much the repulsion distance of a cluster increases (per node in cluster).
+      edgeGrowth: 11,               // (px PNiC)             | amount of clusterSize connected to the edge is multiplied with this and added to edgeLength.
+      clusterSizeWidthFactor:  10,  // (px PNiC)             | growth of the width  per node in cluster.
+      clusterSizeHeightFactor: 10,  // (px PNiC)             | growth of the height per node in cluster.
+      clusterSizeRadiusFactor: 10,  // (px PNiC)             | growth of the radius per node in cluster.
+      activeAreaBoxSize: 100,       // (px)                  | box area around the curser where clusters are popped open.
+      massTransferCoefficient: 1    // (multiplier)          | parent.mass += massTransferCoefficient * child.mass
     },
     minForce: 0.05,
     minVelocity: 0.02,   // px/s
@@ -86,7 +88,7 @@ function Graph (container, data, options) {
   };
 
   // call the constructor of the cluster object
-  Cluster.call(this);
+  this._loadClusterSystem();
 
   // call the sector constructor
   this._loadSectorSystem(); // would be fantastic if multiple in heritance just worked!
@@ -94,6 +96,7 @@ function Graph (container, data, options) {
   var graph = this;
   this.freezeSimulation = false;// freeze the simulation
   this.tapTimer = 0;            // timer to detect doubleclick or double tap
+
   this.nodeIndices = [];        // array with all the indices of the nodes. Used to speed up forces calculation
   this.nodes = {};              // object with Node objects
   this.edges = {};              // object with Edge objects
@@ -160,41 +163,25 @@ function Graph (container, data, options) {
   // apply options
   this.setOptions(options);
 
-  // load data (the disable start variable will be the same as the enable clustering)
-  this.setData(data,this.constants.clustering.enableClustering); //
+  // load data (the disable start variable will be the same as the enabled clustering)
+  this.setData(data,this.constants.clustering.enabled);
 
   // zoom so all data will fit on the screen
   this.zoomToFit();
 
-  if (this.constants.clustering.enableClustering) {
-    // cluster if the data set is big
-    this.clusterToFit(this.constants.clustering.maxNumberOfNodes, true);
-
-    // updates the lables after clustering
-    this.updateLabels();
-
-    // this is called here because if clusterin is disabled, the start and stabilize are called in
-    // the setData function.
-    if (this.stabilize) {
-      this._doStabilize();
-    }
-    this.start();
+  // if clustering is disabled, the simulation will have started in the setData function
+  if (this.constants.clustering.enabled) {
+    this.startWithClustering();
   }
 }
 
-
-/**
- * We add the functionality of the cluster object to the graph object
- * @type {Cluster.prototype}
- */
-Graph.prototype = Object.create(Cluster.prototype);
 
 /**
  * This function zooms out to fit all data on screen based on amount of nodes 
  */
 Graph.prototype.zoomToFit = function() {
   var numberOfNodes = this.nodeIndices.length;
-  var zoomLevel = 105 / (numberOfNodes + 80); // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+  var zoomLevel = 46.5 / (numberOfNodes + 20.622); // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
   if (zoomLevel > 1.0) {
     zoomLevel = 1.0;
   }
@@ -281,7 +268,7 @@ Graph.prototype.setOptions = function (options) {
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
 
     if (options.clustering) {
-      for (var prop in optiones.clustering) {
+      for (var prop in options.clustering) {
         if (options.clustering.hasOwnProperty(prop)) {
           this.constants.clustering[prop] = options.clustering[prop];
         }
@@ -413,13 +400,14 @@ Graph.prototype._create = function () {
   this.hammer.on('mousemove', me._onMouseMoveTitle.bind(me) );
 
   this.mouseTrap = mouseTrap;
+  /*
   this.mouseTrap.bind("=",this.decreaseClusterLevel.bind(me));
   this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
   this.mouseTrap.bind("s",this.singleStep.bind(me));
   this.mouseTrap.bind("h",this.updateClustersDefault.bind(me));
   this.mouseTrap.bind("c",this._collapseSector.bind(me));
   this.mouseTrap.bind("f",this.toggleFreeze.bind(me));
-
+  */
   // add the frame to the container element
   this.containerElement.appendChild(this.frame);
 };
@@ -599,8 +587,10 @@ Graph.prototype._onTap = function (event) {
 
   if (node) {
     if (node.isSelected() && elapsedTime < 300) {
+      this.zoomCenter = {"x" : this._canvasToX(pointer.x),
+                         "y" : this._canvasToY(pointer.y)};
       this.openCluster(node);
-    }
+      }
     // select this node
     this._selectNodes([nodeId]);
 
@@ -655,7 +645,7 @@ Graph.prototype._onPinch = function (event) {
     this.pinch.scale = 1;
   }
 
-  // TODO: enable moving while pinching?
+  // TODO: enabled moving while pinching?
   var scale = this.pinch.scale * event.gesture.scale;
   this._zoom(scale, pointer)
 };
@@ -669,8 +659,8 @@ Graph.prototype._onPinch = function (event) {
  */
 Graph.prototype._zoom = function(scale, pointer) {
   var scaleOld = this._getScale();
-  if (scale < 0.001) {
-    scale = 0.001;
+  if (scale < 0.00001) {
+    scale = 0.00001;
   }
   if (scale > 10) {
     scale = 10;
@@ -799,7 +789,7 @@ Graph.prototype._checkShowPopup = function (pointer) {
     for (id in nodes) {
       if (nodes.hasOwnProperty(id)) {
         var node = nodes[id];
-        if (node.getTitle() != undefined && node.isOverlappingWith(obj)) {
+        if (node.getTitle() !== undefined && node.isOverlappingWith(obj)) {
           this.popupNode = node;
           break;
         }
@@ -807,13 +797,13 @@ Graph.prototype._checkShowPopup = function (pointer) {
     }
   }
 
-  if (this.popupNode == undefined) {
+  if (this.popupNode === undefined) {
     // search the edges for overlap
     var edges = this.edges;
     for (id in edges) {
       if (edges.hasOwnProperty(id)) {
         var edge = edges[id];
-        if (edge.connected && (edge.getTitle() != undefined) &&
+        if (edge.connected && (edge.getTitle() !== undefined) &&
             edge.isOverlappingWith(obj)) {
           this.popupNode = edge;
           break;
@@ -1679,14 +1669,14 @@ Graph.prototype._doStabilize = function() {
  * Forces are caused by: edges, repulsing forces between nodes, gravity
  * @private
  */
-Graph.prototype._calculateForces = function(nodes,edges) {
+Graph.prototype._calculateForces = function() {
   // stop calculation if there is only one node
   if (this.nodeIndices.length == 1) {
     this.nodes[this.nodeIndices[0]]._setForce(0,0);
   }
   // if there are too many nodes on screen, we cluster without repositioning
-  else if (this.nodeIndices.length > this.constants.clustering.maxNumberOfNodes * 4 && this.constants.clustering.enableClustering == true) {
-    this.clusterToFit(this.constants.clustering.maxNumberOfNodes * 2, false);
+  else if (this.nodeIndices.length > this.constants.clustering.absoluteMaxNumberOfNodes && this.constants.clustering.enabled == true) {
+    this.clusterToFit(this.constants.clustering.reduceToMaxNumberOfNodes, false);
     this._calculateForces();
   }
   else {
@@ -1700,7 +1690,7 @@ Graph.prototype._calculateForces = function(nodes,edges) {
     // create a local edge to the nodes and edges, that is faster
     var dx, dy, angle, distance, fx, fy,
       repulsingForce, springForce, length, edgeLength,
-      node, node1, node2, edge, edgeID, i, j, nodeID, xCenter, yCenter;
+      node, node1, node2, edge, edgeId, i, j, nodeId, xCenter, yCenter;
     var clusterSize;
     var nodes = this.nodes;
     var edges = this.edges;
@@ -1777,12 +1767,12 @@ Graph.prototype._calculateForces = function(nodes,edges) {
 
 /*
     // repulsion of the edges on the nodes and
-    for (var nodeID in nodes) {
-      if (nodes.hasOwnProperty(nodeID)) {
-        node = nodes[nodeID];
-        for(var edgeID in edges) {
-          if (edges.hasOwnProperty(edgeID)) {
-            edge = edges[edgeID];
+    for (var nodeId in nodes) {
+      if (nodes.hasOwnProperty(nodeId)) {
+        node = nodes[nodeId];
+        for(var edgeId in edges) {
+          if (edges.hasOwnProperty(edgeId)) {
+            edge = edges[edgeId];
 
             // get the center of the edge
             xCenter = edge.from.x+(edge.to.x - edge.from.x)/2;
@@ -1817,9 +1807,9 @@ Graph.prototype._calculateForces = function(nodes,edges) {
 */
 
     // forces caused by the edges, modelled as springs
-    for (edgeID in edges) {
-      if (edges.hasOwnProperty(edgeID)) {
-        edge = edges[edgeID];
+    for (edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        edge = edges[edgeId];
         if (edge.connected) {
           // only calculate forces if nodes are in the same sector
           if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
@@ -1985,7 +1975,27 @@ Graph.prototype.toggleFreeze = function() {
   }
 };
 
+/**
+ * Mixin the cluster system and initialize the parameters required.
+ *
+ * @private
+ */
+Graph.prototype._loadClusterSystem = function() {
+  this.clusterSession = 0;
+  this.hubThreshold = 5;
 
+  for (var mixinFunction in ClusterMixin) {
+    if (ClusterMixin.hasOwnProperty(mixinFunction)) {
+      Graph.prototype[mixinFunction] = ClusterMixin[mixinFunction];
+    }
+  }
+}
+
+/**
+ * Mixin the sector system and initialize the parameters required
+ *
+ * @private
+ */
 Graph.prototype._loadSectorSystem = function() {
   this.sectors = {};
   this.activeSector = ["default"];

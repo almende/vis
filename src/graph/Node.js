@@ -931,7 +931,7 @@ Node.prototype.setScale = function(scale) {
 /**
  * This function updates the damping parameter for clusters, based ont he
  *
- * @param {Integer} numberOfNodes
+ * @param {Number} numberOfNodes
  */
 Node.prototype.updateDamping = function(numberOfNodes) {
   this.damping = 0.8 + 0.1*this.clusterSize * (1 + 2/Math.pow(numberOfNodes,2));

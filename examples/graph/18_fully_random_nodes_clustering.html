@@ -45,37 +45,8 @@
                     to: to
                 });
             }
-            /*
-            // Loop:
-            for (var i = 0; i < 5; i++) {
-                nodes.push({
-                    id: i,
-                    label: String(i)
-                });
-            }
-            edges.push({
-                from: 1,
-                to: 0
-            });
-            edges.push({
-                from: 1,
-                to: 2
-            });
-            edges.push({
-                from: 4,
-                to: 0
-            });
-            edges.push({
-                from: 2,
-                to: 3
-            });
-            edges.push({
-                from: 3,
-                to: 4
-            });
-            */
-
             // create a graph
+            var clusteringOn = document.getElementById('clustering').checked;
             var container = document.getElementById('mygraph');
             var data = {
                 nodes: nodes,
@@ -85,10 +56,12 @@
                 edges: {
                     length: 80
                 },
+                clustering: {
+                    enabled: clusteringOn
+                },
                 stabilize: false
             };
             graph = new vis.Graph(container, data, options);
-
             // add event listeners
             vis.events.addListener(graph, 'select', function(params) {
                 document.getElementById('selection').innerHTML =
@@ -99,10 +72,23 @@
 </head>
 
 <body onload="draw();">
-
+<div style="width:800px; font-size:15px;">
+    This example shows a fully randomly generated set of nodes and connected edges.
+    By clicking the checkbox you can turn clustering on and off. If you increase the number of nodes to
+    a value higher than 100, automatic clustering is used before the initial draw (assuming the checkbox is checked).
+    <br />
+    <br />
+    Clustering is automatic when zooming out. When zooming in over the cluster, the cluster pops open. When the cluster is very big, a special instance
+    will be created and the cluster contents will only be simulated in there. Double click will also open a cluster.
+    <br />
+    <br />
+    Try values of 500 and 5000 with and without clustering. All thresholds can be changed to suit your dataset.
+</div>
 <form onsubmit="draw(); return false;">
     <label for="nodeCount">Number of nodes:</label>
     <input id="nodeCount" type="text" value="50" style="width: 50px;">
+    <label for="clustering">Enable Clustering:</label>
+    <input id="clustering" type="checkbox" onChange="draw()" checked="true">
     <input type="submit" value="Go">
 </form>
 <br>

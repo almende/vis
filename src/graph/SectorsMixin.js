@@ -1,4 +1,13 @@
-
+/**
+ * Creation of the SectorMixin var.
+ *
+ * This contains all the functions the Graph object can use to employ the sector system.
+ * The sector system is always used by Graph, though the benefits only apply to the use of clustering.
+ * If clustering is not used, there is no overhead except for a duplicate object with references to nodes and edges.
+ *
+ * Alex de Mulder
+ * 21-01-2013
+ */
 var SectorMixin = {
 
   /**
@@ -19,16 +28,16 @@ var SectorMixin = {
    * This function sets the global references to nodes, edges and nodeIndices back to
    * those of the supplied (active) sector. If a type is defined, do the specific type
    *
-   * @param {String} sectorID
+   * @param {String} sectorId
    * @param {String} [sectorType] | "active" or "frozen"
    * @private
    */
-  _switchToSector : function(sectorID, sectorType) {
+  _switchToSector : function(sectorId, sectorType) {
     if (sectorType === undefined || sectorType == "active") {
-      this._switchToActiveSector(sectorID);
+      this._switchToActiveSector(sectorId);
     }
     else {
-      this._switchToFrozenSector(sectorID);
+      this._switchToFrozenSector(sectorId);
     }
   },
 
@@ -37,13 +46,13 @@ var SectorMixin = {
    * This function sets the global references to nodes, edges and nodeIndices back to
    * those of the supplied active sector.
    *
-   * @param sectorID
+   * @param sectorId
    * @private
    */
-  _switchToActiveSector : function(sectorID) {
-    this.nodeIndices = this.sectors["active"][sectorID]["nodeIndices"];
-    this.nodes       = this.sectors["active"][sectorID]["nodes"];
-    this.edges       = this.sectors["active"][sectorID]["edges"];
+  _switchToActiveSector : function(sectorId) {
+    this.nodeIndices = this.sectors["active"][sectorId]["nodeIndices"];
+    this.nodes       = this.sectors["active"][sectorId]["nodes"];
+    this.edges       = this.sectors["active"][sectorId]["edges"];
   },
 
 
@@ -51,13 +60,13 @@ var SectorMixin = {
    * This function sets the global references to nodes, edges and nodeIndices back to
    * those of the supplied frozen sector.
    *
-   * @param sectorID
+   * @param sectorId
    * @private
    */
-  _switchToFrozenSector : function(sectorID) {
-    this.nodeIndices = this.sectors["frozen"][sectorID]["nodeIndices"];
-    this.nodes       = this.sectors["frozen"][sectorID]["nodes"];
-    this.edges       = this.sectors["frozen"][sectorID]["edges"];
+  _switchToFrozenSector : function(sectorId) {
+    this.nodeIndices = this.sectors["frozen"][sectorId]["nodeIndices"];
+    this.nodes       = this.sectors["frozen"][sectorId]["nodes"];
+    this.edges       = this.sectors["frozen"][sectorId]["edges"];
   },
 
 
@@ -73,7 +82,7 @@ var SectorMixin = {
 
 
   /**
-   * This function returns the currently active sector ID
+   * This function returns the currently active sector Id
    *
    * @returns {String}
    * @private
@@ -84,7 +93,7 @@ var SectorMixin = {
 
 
   /**
-   * This function returns the previously active sector ID
+   * This function returns the previously active sector Id
    *
    * @returns {String}
    * @private
@@ -95,7 +104,6 @@ var SectorMixin = {
     }
     else {
       throw new TypeError('there are not enough sectors in the this.activeSector array.');
-      return "";
     }
   },
 
@@ -105,11 +113,11 @@ var SectorMixin = {
    * This ensures it is the currently active sector returned by _sector() and it reaches the top
    * of the activeSector stack. When we reverse our steps we move from the end to the beginning of this stack.
    *
-   * @param newID
+   * @param newId
    * @private
    */
-  _setActiveSector : function(newID) {
-    this.activeSector.push(newID);
+  _setActiveSector : function(newId) {
+    this.activeSector.push(newId);
   },
 
 
@@ -125,29 +133,29 @@ var SectorMixin = {
 
 
   /**
-   * This function creates a new active sector with the supplied newID. This newID
+   * This function creates a new active sector with the supplied newId. This newId
    * is the expanding node id.
    *
-   * @param {String} newID   | ID of the new active sector
+   * @param {String} newId   | Id of the new active sector
    * @private
    */
-  _createNewSector : function(newID) {
+  _createNewSector : function(newId) {
     // create the new sector
-    this.sectors["active"][newID] = {"nodes":{},
+    this.sectors["active"][newId] = {"nodes":{},
                                      "edges":{},
                                      "nodeIndices":[],
                                      "formationScale": this.scale,
                                      "drawingNode": undefined};
 
     // create the new sector render node. This gives visual feedback that you are in a new sector.
-    this.sectors["active"][newID]['drawingNode'] = new Node(
-        {id:newID,
+    this.sectors["active"][newId]['drawingNode'] = new Node(
+        {id:newId,
           color: {
             background: "#eaefef",
             border: "495c5e"
           }
         },{},{},this.constants);
-    this.sectors["active"][newID]['drawingNode'].clusterSize = 2;
+    this.sectors["active"][newId]['drawingNode'].clusterSize = 2;
   },
 
 
@@ -155,11 +163,11 @@ var SectorMixin = {
    * This function removes the currently active sector. This is called when we create a new
    * active sector.
    *
-   * @param {String} sectorID   | ID of the active sector that will be removed
+   * @param {String} sectorId   | Id of the active sector that will be removed
    * @private
    */
-  _deleteActiveSector : function(sectorID) {
-    delete this.sectors["active"][sectorID];
+  _deleteActiveSector : function(sectorId) {
+    delete this.sectors["active"][sectorId];
   },
 
 
@@ -167,11 +175,11 @@ var SectorMixin = {
    * This function removes the currently active sector. This is called when we reactivate
    * the previously active sector.
    *
-   * @param {String} sectorID   | ID of the active sector that will be removed
+   * @param {String} sectorId   | Id of the active sector that will be removed
    * @private
    */
-  _deleteFrozenSector : function(sectorID) {
-    delete this.sectors["frozen"][sectorID];
+  _deleteFrozenSector : function(sectorId) {
+    delete this.sectors["frozen"][sectorId];
   },
 
 
@@ -179,15 +187,15 @@ var SectorMixin = {
    * Freezing an active sector means moving it from the "active" object to the "frozen" object.
    * We copy the references, then delete the active entree.
    *
-   * @param sectorID
+   * @param sectorId
    * @private
    */
-  _freezeSector : function(sectorID) {
+  _freezeSector : function(sectorId) {
     // we move the set references from the active to the frozen stack.
-    this.sectors["frozen"][sectorID] = this.sectors["active"][sectorID];
+    this.sectors["frozen"][sectorId] = this.sectors["active"][sectorId];
 
     // we have moved the sector data into the frozen set, we now remove it from the active set
-    this._deleteActiveSector(sectorID);
+    this._deleteActiveSector(sectorId);
   },
 
 
@@ -195,15 +203,15 @@ var SectorMixin = {
    * This is the reverse operation of _freezeSector. Activating means moving the sector from the "frozen"
    * object to the "active" object.
    *
-   * @param sectorID
+   * @param sectorId
    * @private
    */
-  _activateSector : function(sectorID) {
+  _activateSector : function(sectorId) {
     // we move the set references from the frozen to the active stack.
-    this.sectors["active"][sectorID] = this.sectors["frozen"][sectorID];
+    this.sectors["active"][sectorId] = this.sectors["frozen"][sectorId];
 
     // we have moved the sector data into the active set, we now remove it from the frozen stack
-    this._deleteFrozenSector(sectorID);
+    this._deleteFrozenSector(sectorId);
   },
 
 
@@ -213,27 +221,27 @@ var SectorMixin = {
    * The data that is placed in the frozen (the previously active) sector is the node that has been removed from it
    * upon the creation of a new active sector.
    *
-   * @param sectorID
+   * @param sectorId
    * @private
    */
-  _mergeThisWithFrozen : function(sectorID) {
+  _mergeThisWithFrozen : function(sectorId) {
     // copy all nodes
-    for (var nodeID in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeID)) {
-        this.sectors["frozen"][sectorID]["nodes"][nodeID] = this.nodes[nodeID];
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        this.sectors["frozen"][sectorId]["nodes"][nodeId] = this.nodes[nodeId];
       }
     }
 
     // copy all edges (if not fully clustered, else there are no edges)
-    for (var edgeID in this.edges) {
-      if (this.edges.hasOwnProperty(edgeID)) {
-        this.sectors["frozen"][sectorID]["edges"][edgeID] = this.edges[edgeID];
+    for (var edgeId in this.edges) {
+      if (this.edges.hasOwnProperty(edgeId)) {
+        this.sectors["frozen"][sectorId]["edges"][edgeId] = this.edges[edgeId];
       }
     }
 
     // merge the nodeIndices
     for (var i = 0; i < this.nodeIndices.length; i++) {
-      this.sectors["frozen"][sectorID]["nodeIndices"].push(this.nodeIndices[i]);
+      this.sectors["frozen"][sectorId]["nodeIndices"].push(this.nodeIndices[i]);
     }
   },
 
@@ -259,14 +267,13 @@ var SectorMixin = {
     // this is the currently active sector
     var sector = this._sector();
 
-    // this should allow me to select nodes from a frozen set.
-    // TODO: after rewriting the selection function, have this working
-    if (this.sectors['active'][sector]["nodes"].hasOwnProperty(node.id)) {
-      console.log("the node is part of the active sector");
-    }
-    else {
-      console.log("I dont know what the fuck happened!!");
-    }
+//    // this should allow me to select nodes from a frozen set.
+//    if (this.sectors['active'][sector]["nodes"].hasOwnProperty(node.id)) {
+//      console.log("the node is part of the active sector");
+//    }
+//    else {
+//      console.log("I dont know what the fuck happened!!");
+//    }
 
     // when we switch to a new sector, we remove the node that will be expanded from the current nodes list.
     delete this.nodes[node.id];
@@ -276,7 +283,7 @@ var SectorMixin = {
     // we fully freeze the currently active sector
     this._freezeSector(sector);
 
-    // we create a new active sector. This sector has the ID of the node to ensure uniqueness
+    // we create a new active sector. This sector has the Id of the node to ensure uniqueness
     this._createNewSector(unqiueIdentifier);
 
     // we add the active sector to the sectors array to be able to revert these steps later on
@@ -405,7 +412,7 @@ var SectorMixin = {
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
    *                              |   we dont pass the function itself because then the "this" is the window object
    *                              |   instead of the Graph object
-   * @param {*} [args]            |   Optional: arguments to pass to the runFunction
+   * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
    * @private
    */
   _doInAllSectors : function(runFunction,argument) {
@@ -438,14 +445,14 @@ var SectorMixin = {
     var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
     for (var sector in this.sectors[sectorType]) {
       if (this.sectors[sectorType].hasOwnProperty(sector)) {
-        minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9;
+        minY = 1e9; maxY = -1e9; minX = 1e9; maxX = -1e9;
         if (this.sectors[sectorType][sector]["drawingNode"] !== undefined) {
 
           this._switchToSector(sector,sectorType);
 
-          for (var nodeID in this.nodes) {
-            if (this.nodes.hasOwnProperty(nodeID)) {
-              node = this.nodes[nodeID];
+          for (var nodeId in this.nodes) {
+            if (this.nodes.hasOwnProperty(nodeId)) {
+              node = this.nodes[nodeId];
               node.resize(ctx);
               if (minX > node.x - 0.5 * node.width) {minX = node.x - 0.5 * node.width;}
               if (maxX < node.x + 0.5 * node.width) {maxX = node.x + 0.5 * node.width;}
@@ -456,9 +463,9 @@ var SectorMixin = {
           node = this.sectors[sectorType][sector]["drawingNode"];
           node.x = 0.5 * (maxX + minX);
           node.y = 0.5 * (maxY + minY);
-          node.width = node.x - minX;
-          node.height = node.y - minY;
-          node.radius = Math.sqrt(Math.pow(node.width,2) + Math.pow(node.height,2));
+          node.width = 2 * (node.x - minX);
+          node.height = 2 * (node.y - minY);
+          node.radius = Math.sqrt(Math.pow(0.5*node.width,2) + Math.pow(0.5*node.height,2));
           node.setScale(this.scale);
           node._drawCircle(ctx);
         }

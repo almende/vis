@@ -84,7 +84,7 @@ task('build', {async: true}, function () {
       './src/graph/Groups.js',
       './src/graph/Images.js',
       './src/graph/SectorsMixin.js',
-      './src/graph/Cluster.js',
+      './src/graph/ClusterMixin.js',
       './src/graph/Graph.js',
 
 
@@ -109,7 +109,7 @@ task('build', {async: true}, function () {
 
     // write bundled file
     write(VIS, lib);
-    console.log('created ' + VIS);
+    console.log('created js' + VIS);
 
     // remove temporary file
     fs.unlinkSync(VIS_TMP);
@@ -136,7 +136,7 @@ task('minify', function () {
   // update version number and stuff in the javascript files
   replacePlaceholders(VIS_MIN);
 
-  console.log('created ' + VIS_MIN);
+  console.log('created minified ' + VIS_MIN);
 });
 
 /**
