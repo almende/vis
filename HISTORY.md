@@ -1,6 +1,13 @@
 vis.js history
 http://visjs.org
 
+## 2014-01-21, version 0.4.0
+
+- Reworked the calculation of the Graph, increasing performance for larger datasets (up to 10x!).
+- Support for automatic clustering in Graph to handle large (>50000) datasets without losing performance.
+- Added automatic intial zooming to Graph, to more easily view large amounts of data.
+- Added local declustering to Graph, freezing the simulation of nodes outside of the cluster.
+- Added support for key-bindings by including mouseTrap in Graph.
 
 ## 2014-01-14, version 0.3.0
 
