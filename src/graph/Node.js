@@ -44,6 +44,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.y = 0;
   this.xFixed = false;
   this.yFixed = false;
+  this.horizontalAlignLeft = true; // these are for the UI
+  this.verticalAlignTop    = true; // these are for the UI
   this.radius = constants.nodes.radius;
   this.baseRadiusValue = constants.nodes.radius;
   this.radiusFixed = false;
@@ -147,6 +149,10 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.x !== undefined)         {this.x = properties.x;}
   if (properties.y !== undefined)         {this.y = properties.y;}
   if (properties.value !== undefined)     {this.value = properties.value;}
+
+  // UI properties
+  if (properties.horizontalAlignLeft !== undefined) {this.horizontalAlignLeft = properties.horizontalAlignLeft;}
+  if (properties.verticalAlignTop    !== undefined) {this.verticalAlignTop    = properties.verticalAlignTop;}
 
   if (this.id === undefined) {
     throw "Node must have an id";
@@ -484,6 +490,7 @@ Node.prototype.isOverlappingWith = function(obj) {
 
 Node.prototype._resizeImage = function (ctx) {
   // TODO: pre calculate the image size
+
   if (!this.width || !this.height) {  // undefined or 0
     var width, height;
     if (this.value) {
@@ -506,9 +513,9 @@ Node.prototype._resizeImage = function (ctx) {
     this.height = height;
 
     if (this.width && this.height) {
-      this.width += this.clusterSize * this.clusterSizeWidthFactor;
-      this.height += this.clusterSize * this.clusterSizeHeightFactor;
-      this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
+      this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
+      this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
+      this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
     }
   }
 
@@ -531,6 +538,8 @@ Node.prototype._drawImage = function (ctx) {
       ctx.globalAlpha = 0.5;
       ctx.drawImage(this.imageObj, this.left - lineWidth, this.top - lineWidth, this.width + 2*lineWidth, this.height + 2*lineWidth);
     }
+
+    // draw the image
     ctx.globalAlpha = 1.0;
     ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
     yLabel = this.y + this.height / 2;
@@ -551,9 +560,9 @@ Node.prototype._resizeBox = function (ctx) {
     this.width = textSize.width + 2 * margin;
     this.height = textSize.height + 2 * margin;
 
-    this.width += this.clusterSize * 0.5 * this.clusterSizeWidthFactor;
-    this.height += this.clusterSize * 0.5 * this.clusterSizeHeightFactor;
-    //this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
+    this.width  += (this.clusterSize - 1) * 0.5 * this.clusterSizeWidthFactor;
+    this.height += (this.clusterSize - 1) * 0.5 * this.clusterSizeHeightFactor;
+//    this.radius += (this.clusterSize - 1) * 0.5 * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -600,9 +609,9 @@ Node.prototype._resizeDatabase = function (ctx) {
     this.height = size;
 
     // scaling used for clustering
-    this.width += this.clusterSize * this.clusterSizeWidthFactor;
-    this.height += this.clusterSize * this.clusterSizeHeightFactor;
-    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
+    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
+    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
+    this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -649,9 +658,9 @@ Node.prototype._resizeCircle = function (ctx) {
     this.height = diameter;
 
     // scaling used for clustering
-    this.width += this.clusterSize * this.clusterSizeWidthFactor;
-    this.height += this.clusterSize * this.clusterSizeHeightFactor;
-    this.radius += this.clusterSize * 0.5*this.clusterSizeRadiusFactor;
+//    this.width  += (this.clusterSize - 1) * 0.5 * this.clusterSizeWidthFactor;
+//    this.height += (this.clusterSize - 1) * 0.5 * this.clusterSizeHeightFactor;
+    this.radius += (this.clusterSize - 1) * 0.5 * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -697,9 +706,9 @@ Node.prototype._resizeEllipse = function (ctx) {
     }
 
     // scaling used for clustering
-    this.width += this.clusterSize * this.clusterSizeWidthFactor;
-    this.height += this.clusterSize * this.clusterSizeHeightFactor;
-    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
+    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
+    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
+    this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -762,9 +771,9 @@ Node.prototype._resizeShape = function (ctx) {
     this.height = size;
 
     // scaling used for clustering
-    this.width += this.clusterSize * this.clusterSizeWidthFactor;
-    this.height += this.clusterSize * this.clusterSizeHeightFactor;
-    this.radius += this.clusterSize * 0.5 * this.clusterSizeRadiusFactor;
+    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
+    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
+    this.radius += (this.clusterSize - 1) * 0.5 * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -821,9 +830,9 @@ Node.prototype._resizeText = function (ctx) {
     this.height = textSize.height + 2 * margin;
 
     // scaling used for clustering
-    this.width += this.clusterSize * this.clusterSizeWidthFactor;
-    this.height += this.clusterSize * this.clusterSizeHeightFactor;
-    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
+    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
+    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
+    this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
   }
 };
 

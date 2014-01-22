@@ -71,6 +71,19 @@ var SectorMixin = {
 
 
   /**
+   * This function sets the global references to nodes, edges and nodeIndices to
+   * those of the UI sector.
+   *
+   * @private
+   */
+  _switchToUISector : function() {
+    this.nodeIndices = this.sectors["UI"]["nodeIndices"];
+    this.nodes       = this.sectors["UI"]["nodes"];
+    this.edges       = this.sectors["UI"]["edges"];
+  },
+
+
+  /**
    * This function sets the global references to nodes, edges and nodeIndices back to
    * those of the currently active sector.
    *
@@ -347,11 +360,11 @@ var SectorMixin = {
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
    *                              |   we dont pass the function itself because then the "this" is the window object
    *                              |   instead of the Graph object
-   * @param {*} [args]            |   Optional: arguments to pass to the runFunction
+   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
    * @private
    */
-  _doInAllActiveSectors : function(runFunction,args) {
-    if (args === undefined) {
+  _doInAllActiveSectors : function(runFunction,argument) {
+    if (argument === undefined) {
       for (var sector in this.sectors["active"]) {
         if (this.sectors["active"].hasOwnProperty(sector)) {
           // switch the global references to those of this sector
@@ -365,7 +378,13 @@ var SectorMixin = {
         if (this.sectors["active"].hasOwnProperty(sector)) {
           // switch the global references to those of this sector
           this._switchToActiveSector(sector);
-          this[runFunction](args);
+          var args = Array.prototype.splice.call(arguments, 1);
+          if (args.length > 1) {
+            this[runFunction](args[0],args[1]);
+          }
+          else {
+            this[runFunction](argument);
+          }
         }
       }
     }
@@ -378,13 +397,13 @@ var SectorMixin = {
    * This runs a function in all frozen sectors. This is used in the _redraw().
    *
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we dont pass the function itself because then the "this" is the window object
+   *                              |   we don't pass the function itself because then the "this" is the window object
    *                              |   instead of the Graph object
-   * @param {*} [args]            |   Optional: arguments to pass to the runFunction
+   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
    * @private
    */
-  _doInAllFrozenSectors : function(runFunction,args) {
-    if (args === undefined) {
+  _doInAllFrozenSectors : function(runFunction,argument) {
+    if (argument === undefined) {
       for (var sector in this.sectors["frozen"]) {
         if (this.sectors["frozen"].hasOwnProperty(sector)) {
           // switch the global references to those of this sector
@@ -398,8 +417,41 @@ var SectorMixin = {
         if (this.sectors["frozen"].hasOwnProperty(sector)) {
           // switch the global references to those of this sector
           this._switchToFrozenSector(sector);
-          this[runFunction](args);
+          var args = Array.prototype.splice.call(arguments, 1);
+          if (args.length > 1) {
+            this[runFunction](args[0],args[1]);
+          }
+          else {
+            this[runFunction](argument);
+          }
         }
+      }
+    }
+    this._loadLatestSector();
+  },
+
+
+  /**
+   * This runs a function in all frozen sectors. This is used in the _redraw().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we don't pass the function itself because then the "this" is the window object
+   *                              |   instead of the Graph object
+   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  _doInUISector : function(runFunction,argument) {
+    this._switchToUISector();
+    if (argument === undefined) {
+      this[runFunction]();
+    }
+    else {
+      var args = Array.prototype.splice.call(arguments, 1);
+      if (args.length > 1) {
+        this[runFunction](args[0],args[1]);
+      }
+      else {
+        this[runFunction](argument);
       }
     }
     this._loadLatestSector();
@@ -410,7 +462,7 @@ var SectorMixin = {
    * This runs a function in all sectors. This is used in the _redraw().
    *
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we dont pass the function itself because then the "this" is the window object
+   *                              |   we don't pass the function itself because then the "this" is the window object
    *                              |   instead of the Graph object
    * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
    * @private

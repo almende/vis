@@ -8784,6 +8784,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.y = 0;
   this.xFixed = false;
   this.yFixed = false;
+  this.horizontalAlignLeft = true; // these are for the UI
+  this.verticalAlignTop    = true; // these are for the UI
   this.radius = constants.nodes.radius;
   this.baseRadiusValue = constants.nodes.radius;
   this.radiusFixed = false;
@@ -8887,6 +8889,10 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.x !== undefined)         {this.x = properties.x;}
   if (properties.y !== undefined)         {this.y = properties.y;}
   if (properties.value !== undefined)     {this.value = properties.value;}
+
+  // UI properties
+  if (properties.horizontalAlignLeft !== undefined) {this.horizontalAlignLeft = properties.horizontalAlignLeft;}
+  if (properties.verticalAlignTop    !== undefined) {this.verticalAlignTop    = properties.verticalAlignTop;}
 
   if (this.id === undefined) {
     throw "Node must have an id";
@@ -9224,6 +9230,7 @@ Node.prototype.isOverlappingWith = function(obj) {
 
 Node.prototype._resizeImage = function (ctx) {
   // TODO: pre calculate the image size
+
   if (!this.width || !this.height) {  // undefined or 0
     var width, height;
     if (this.value) {
@@ -9246,9 +9253,9 @@ Node.prototype._resizeImage = function (ctx) {
     this.height = height;
 
     if (this.width && this.height) {
-      this.width += this.clusterSize * this.clusterSizeWidthFactor;
-      this.height += this.clusterSize * this.clusterSizeHeightFactor;
-      this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
+      this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
+      this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
+      this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
     }
   }
 
@@ -9271,6 +9278,8 @@ Node.prototype._drawImage = function (ctx) {
       ctx.globalAlpha = 0.5;
       ctx.drawImage(this.imageObj, this.left - lineWidth, this.top - lineWidth, this.width + 2*lineWidth, this.height + 2*lineWidth);
     }
+
+    // draw the image
     ctx.globalAlpha = 1.0;
     ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
     yLabel = this.y + this.height / 2;
@@ -9291,9 +9300,9 @@ Node.prototype._resizeBox = function (ctx) {
     this.width = textSize.width + 2 * margin;
     this.height = textSize.height + 2 * margin;
 
-    this.width += this.clusterSize * 0.5 * this.clusterSizeWidthFactor;
-    this.height += this.clusterSize * 0.5 * this.clusterSizeHeightFactor;
-    //this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
+    this.width  += (this.clusterSize - 1) * 0.5 * this.clusterSizeWidthFactor;
+    this.height += (this.clusterSize - 1) * 0.5 * this.clusterSizeHeightFactor;
+//    this.radius += (this.clusterSize - 1) * 0.5 * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -9340,9 +9349,9 @@ Node.prototype._resizeDatabase = function (ctx) {
     this.height = size;
 
     // scaling used for clustering
-    this.width += this.clusterSize * this.clusterSizeWidthFactor;
-    this.height += this.clusterSize * this.clusterSizeHeightFactor;
-    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
+    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
+    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
+    this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -9389,9 +9398,9 @@ Node.prototype._resizeCircle = function (ctx) {
     this.height = diameter;
 
     // scaling used for clustering
-    this.width += this.clusterSize * this.clusterSizeWidthFactor;
-    this.height += this.clusterSize * this.clusterSizeHeightFactor;
-    this.radius += this.clusterSize * 0.5*this.clusterSizeRadiusFactor;
+//    this.width  += (this.clusterSize - 1) * 0.5 * this.clusterSizeWidthFactor;
+//    this.height += (this.clusterSize - 1) * 0.5 * this.clusterSizeHeightFactor;
+    this.radius += (this.clusterSize - 1) * 0.5 * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -9437,9 +9446,9 @@ Node.prototype._resizeEllipse = function (ctx) {
     }
 
     // scaling used for clustering
-    this.width += this.clusterSize * this.clusterSizeWidthFactor;
-    this.height += this.clusterSize * this.clusterSizeHeightFactor;
-    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
+    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
+    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
+    this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -9502,9 +9511,9 @@ Node.prototype._resizeShape = function (ctx) {
     this.height = size;
 
     // scaling used for clustering
-    this.width += this.clusterSize * this.clusterSizeWidthFactor;
-    this.height += this.clusterSize * this.clusterSizeHeightFactor;
-    this.radius += this.clusterSize * 0.5 * this.clusterSizeRadiusFactor;
+    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
+    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
+    this.radius += (this.clusterSize - 1) * 0.5 * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -9561,9 +9570,9 @@ Node.prototype._resizeText = function (ctx) {
     this.height = textSize.height + 2 * margin;
 
     // scaling used for clustering
-    this.width += this.clusterSize * this.clusterSizeWidthFactor;
-    this.height += this.clusterSize * this.clusterSizeHeightFactor;
-    this.radius += this.clusterSize * this.clusterSizeRadiusFactor;
+    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
+    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
+    this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -10622,6 +10631,19 @@ var SectorMixin = {
 
 
   /**
+   * This function sets the global references to nodes, edges and nodeIndices to
+   * those of the UI sector.
+   *
+   * @private
+   */
+  _switchToUISector : function() {
+    this.nodeIndices = this.sectors["UI"]["nodeIndices"];
+    this.nodes       = this.sectors["UI"]["nodes"];
+    this.edges       = this.sectors["UI"]["edges"];
+  },
+
+
+  /**
    * This function sets the global references to nodes, edges and nodeIndices back to
    * those of the currently active sector.
    *
@@ -10898,11 +10920,11 @@ var SectorMixin = {
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
    *                              |   we dont pass the function itself because then the "this" is the window object
    *                              |   instead of the Graph object
-   * @param {*} [args]            |   Optional: arguments to pass to the runFunction
+   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
    * @private
    */
-  _doInAllActiveSectors : function(runFunction,args) {
-    if (args === undefined) {
+  _doInAllActiveSectors : function(runFunction,argument) {
+    if (argument === undefined) {
       for (var sector in this.sectors["active"]) {
         if (this.sectors["active"].hasOwnProperty(sector)) {
           // switch the global references to those of this sector
@@ -10916,7 +10938,13 @@ var SectorMixin = {
         if (this.sectors["active"].hasOwnProperty(sector)) {
           // switch the global references to those of this sector
           this._switchToActiveSector(sector);
-          this[runFunction](args);
+          var args = Array.prototype.splice.call(arguments, 1);
+          if (args.length > 1) {
+            this[runFunction](args[0],args[1]);
+          }
+          else {
+            this[runFunction](argument);
+          }
         }
       }
     }
@@ -10929,13 +10957,13 @@ var SectorMixin = {
    * This runs a function in all frozen sectors. This is used in the _redraw().
    *
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we dont pass the function itself because then the "this" is the window object
+   *                              |   we don't pass the function itself because then the "this" is the window object
    *                              |   instead of the Graph object
-   * @param {*} [args]            |   Optional: arguments to pass to the runFunction
+   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
    * @private
    */
-  _doInAllFrozenSectors : function(runFunction,args) {
-    if (args === undefined) {
+  _doInAllFrozenSectors : function(runFunction,argument) {
+    if (argument === undefined) {
       for (var sector in this.sectors["frozen"]) {
         if (this.sectors["frozen"].hasOwnProperty(sector)) {
           // switch the global references to those of this sector
@@ -10949,8 +10977,41 @@ var SectorMixin = {
         if (this.sectors["frozen"].hasOwnProperty(sector)) {
           // switch the global references to those of this sector
           this._switchToFrozenSector(sector);
-          this[runFunction](args);
+          var args = Array.prototype.splice.call(arguments, 1);
+          if (args.length > 1) {
+            this[runFunction](args[0],args[1]);
+          }
+          else {
+            this[runFunction](argument);
+          }
         }
+      }
+    }
+    this._loadLatestSector();
+  },
+
+
+  /**
+   * This runs a function in all frozen sectors. This is used in the _redraw().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we don't pass the function itself because then the "this" is the window object
+   *                              |   instead of the Graph object
+   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  _doInUISector : function(runFunction,argument) {
+    this._switchToUISector();
+    if (argument === undefined) {
+      this[runFunction]();
+    }
+    else {
+      var args = Array.prototype.splice.call(arguments, 1);
+      if (args.length > 1) {
+        this[runFunction](args[0],args[1]);
+      }
+      else {
+        this[runFunction](argument);
       }
     }
     this._loadLatestSector();
@@ -10961,7 +11022,7 @@ var SectorMixin = {
    * This runs a function in all sectors. This is used in the _redraw().
    *
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we dont pass the function itself because then the "this" is the window object
+   *                              |   we don't pass the function itself because then the "this" is the window object
    *                              |   instead of the Graph object
    * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
    * @private
@@ -12139,11 +12200,24 @@ function Graph (container, data, options) {
     maxIterations: 1000  // maximum number of iteration to stabilize
   };
 
+  this.groups = new Groups(); // object with groups
+  this.images = new Images(); // object with images
+  this.images.setOnloadCallback(function () {
+    graph._redraw();
+  });
+
+
+  // create a frame and canvas
+  this._create();
+
   // call the constructor of the cluster object
   this._loadClusterSystem();
 
   // call the sector constructor
   this._loadSectorSystem();
+
+  // load the UI system.
+  this._loadUISystem();
 
   var graph = this;
   this.freezeSimulation = false;// freeze the simulation
@@ -12197,20 +12271,11 @@ function Graph (container, data, options) {
     }
   };
 
-  this.groups = new Groups(); // object with groups
-  this.images = new Images(); // object with images
-  this.images.setOnloadCallback(function () {
-    graph._redraw();
-  });
-
   // properties of the data
   this.moving = false;    // True if any of the nodes have an undefined position
 
   this.selection = [];
   this.timer = undefined;
-
-  // create a frame and canvas
-  this._create();
 
   // apply options
   this.setOptions(options);
@@ -13206,6 +13271,8 @@ Graph.prototype.setSize = function(width, height) {
 
   this.frame.canvas.width = this.frame.canvas.clientWidth;
   this.frame.canvas.height = this.frame.canvas.clientHeight;
+
+  this._relocateUI();
 };
 
 /**
@@ -13547,6 +13614,8 @@ Graph.prototype._redraw = function() {
 
   // restore original scaling and translation
   ctx.restore();
+
+  this._doInUISector("_drawNodes",ctx,true);
 };
 
 /**
@@ -13645,9 +13714,14 @@ Graph.prototype._yToCanvas = function(y) {
  * Redraw all nodes
  * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
  * @param {CanvasRenderingContext2D}   ctx
+ * @param {Boolean} [alwaysShow]
  * @private
  */
-Graph.prototype._drawNodes = function(ctx) {
+Graph.prototype._drawNodes = function(ctx,alwaysShow) {
+  if (alwaysShow === undefined) {
+    alwaysShow = false;
+  }
+
   // first draw the unselected nodes
   var nodes = this.nodes;
   var selected = [];
@@ -13659,7 +13733,7 @@ Graph.prototype._drawNodes = function(ctx) {
         selected.push(id);
       }
       else {
-        if (nodes[id].inArea()) {
+        if (nodes[id].inArea() || alwaysShow) {
           nodes[id].draw(ctx);
         }
       }
@@ -13668,7 +13742,7 @@ Graph.prototype._drawNodes = function(ctx) {
 
   // draw the selected nodes on top
   for (var s = 0, sMax = selected.length; s < sMax; s++) {
-    if (nodes[selected[s]].inArea()) {
+    if (nodes[selected[s]].inArea() || alwaysShow) {
       nodes[selected[s]].draw(ctx);
     }
   }
@@ -13746,211 +13820,197 @@ Graph.prototype._initializeForceCalculation = function() {
  * @private
  */
 Graph.prototype._calculateForces = function() {
-  // stop calculation if there is only one node
-  if (this.nodeIndices.length == 1) {
-    this.nodes[this.nodeIndices[0]]._setForce(0,0);
+  this.canvasTopLeft = {"x": (0-this.translation.x)/this.scale,
+                        "y": (0-this.translation.y)/this.scale};
+  this.canvasBottomRight = {"x": (this.frame.canvas.clientWidth -this.translation.x)/this.scale,
+                            "y": (this.frame.canvas.clientHeight-this.translation.y)/this.scale};
+  var centerPos = {"x":0.5*(this.canvasTopLeft.x + this.canvasBottomRight.x),
+                   "y":0.5*(this.canvasTopLeft.y + this.canvasBottomRight.y)}
+
+  // create a local edge to the nodes and edges, that is faster
+  var dx, dy, angle, distance, fx, fy,
+    repulsingForce, springForce, length, edgeLength,
+    node, node1, node2, edge, edgeId, i, j, nodeId, xCenter, yCenter;
+  var clusterSize;
+  var nodes = this.nodes;
+  var edges = this.edges;
+
+  // Gravity is required to keep separated groups from floating off
+  // the forces are reset to zero in this loop by using _setForce instead
+  // of _addForce
+  var gravity = 0.08;
+  for (i = 0; i < this.nodeIndices.length; i++) {
+      node = nodes[this.nodeIndices[i]];
+      // gravity does not apply when we are in a pocket sector
+      if (this._sector() == "default") {
+        dx = -node.x + centerPos.x;
+        dy = -node.y + centerPos.y;
+
+        angle = Math.atan2(dy, dx);
+        fx = Math.cos(angle) * gravity;
+        fy = Math.sin(angle) * gravity;
+      }
+      else {
+        fx = 0;
+        fy = 0;
+      }
+      node._setForce(fx, fy);
+
+      node.updateDamping(this.nodeIndices.length);
   }
-  // if there are too many nodes on screen, we cluster without repositioning
-  else if (this.nodeIndices.length > this.constants.clustering.absoluteMaxNumberOfNodes && this.constants.clustering.enabled == true) {
-    this.clusterToFit(this.constants.clustering.reduceToMaxNumberOfNodes, false);
-    this._initializeForceCalculation();
-  }
-  else {
-    this.canvasTopLeft = {"x": (0-this.translation.x)/this.scale,
-                          "y": (0-this.translation.y)/this.scale};
-    this.canvasBottomRight = {"x": (this.frame.canvas.clientWidth -this.translation.x)/this.scale,
-                              "y": (this.frame.canvas.clientHeight-this.translation.y)/this.scale};
-    var centerPos = {"x":0.5*(this.canvasTopLeft.x + this.canvasBottomRight.x),
-                     "y":0.5*(this.canvasTopLeft.y + this.canvasBottomRight.y)}
 
-    // create a local edge to the nodes and edges, that is faster
-    var dx, dy, angle, distance, fx, fy,
-      repulsingForce, springForce, length, edgeLength,
-      node, node1, node2, edge, edgeId, i, j, nodeId, xCenter, yCenter;
-    var clusterSize;
-    var nodes = this.nodes;
-    var edges = this.edges;
+  // repulsing forces between nodes
+  var minimumDistance = this.constants.nodes.distance,
+      steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
 
 
-    // Gravity is required to keep separated groups from floating off
-    // the forces are reset to zero in this loop by using _setForce instead
-    // of _addForce
-    var gravity = 0.08;
-    for (i = 0; i < this.nodeIndices.length; i++) {
-        node = nodes[this.nodeIndices[i]];
-        // gravity does not apply when we are in a pocket sector
-        if (this._sector() == "default") {
-          dx = -node.x + centerPos.x;
-          dy = -node.y + centerPos.y;
+  // we loop from i over all but the last entree in the array
+  // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
+  for (i = 0; i < this.nodeIndices.length-1; i++) {
+    node1 = nodes[this.nodeIndices[i]];
+    for (j = i+1; j < this.nodeIndices.length; j++) {
+      node2 = nodes[this.nodeIndices[j]];
+      clusterSize = (node1.clusterSize + node2.clusterSize - 2);
+      dx = node2.x - node1.x;
+      dy = node2.y - node1.y;
+      distance = Math.sqrt(dx * dx + dy * dy);
 
-          angle = Math.atan2(dy, dx);
-          fx = Math.cos(angle) * gravity;
-          fy = Math.sin(angle) * gravity;
+
+      // clusters have a larger region of influence
+      minimumDistance = (clusterSize == 0) ? this.constants.nodes.distance : (this.constants.nodes.distance * (1 + clusterSize * this.constants.clustering.distanceAmplification));
+      if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
+        angle = Math.atan2(dy, dx);
+
+        if (distance < 0.5*minimumDistance) { // at 0.5 * the minimum distance, the force is 0.993307
+          repulsingForce = 1.0;
         }
         else {
-          fx = 0;
-          fy = 0;
+          // TODO: correct factor for repulsing force
+          //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+          //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+          repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
         }
-        node._setForce(fx, fy);
+        // amplify the repulsion for clusters.
+        repulsingForce *= (clusterSize == 0) ? 1 : 1 + clusterSize * this.constants.clustering.forceAmplification;
 
-        node.updateDamping(this.nodeIndices.length);
-    }
+        fx = Math.cos(angle) * repulsingForce;
+        fy = Math.sin(angle) * repulsingForce;
 
-    this.updateLabels();
-
-    // repulsing forces between nodes
-    var minimumDistance = this.constants.nodes.distance,
-        steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
-
-
-    // we loop from i over all but the last entree in the array
-    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
-    for (i = 0; i < this.nodeIndices.length-1; i++) {
-      node1 = nodes[this.nodeIndices[i]];
-      for (j = i+1; j < this.nodeIndices.length; j++) {
-        node2 = nodes[this.nodeIndices[j]];
-        clusterSize = (node1.clusterSize + node2.clusterSize - 2);
-        dx = node2.x - node1.x;
-        dy = node2.y - node1.y;
-        distance = Math.sqrt(dx * dx + dy * dy);
-
-
-        // clusters have a larger region of influence
-        minimumDistance = (clusterSize == 0) ? this.constants.nodes.distance : (this.constants.nodes.distance * (1 + clusterSize * this.constants.clustering.distanceAmplification));
-        if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
-          angle = Math.atan2(dy, dx);
-
-          if (distance < 0.5*minimumDistance) { // at 0.5 * the minimum distance, the force is 0.993307
-            repulsingForce = 1.0;
-          }
-          else {
-            // TODO: correct factor for repulsing force
-            //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-            //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-            repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
-          }
-          // amplify the repulsion for clusters.
-          repulsingForce *= (clusterSize == 0) ? 1 : 1 + clusterSize * this.constants.clustering.forceAmplification;
-
-          fx = Math.cos(angle) * repulsingForce;
-          fy = Math.sin(angle) * repulsingForce;
-
-          node1._addForce(-fx, -fy);
-          node2._addForce(fx, fy);
-        }
+        node1._addForce(-fx, -fy);
+        node2._addForce(fx, fy);
       }
     }
+  }
 
 /*
-    // repulsion of the edges on the nodes and
-    for (var nodeId in nodes) {
-      if (nodes.hasOwnProperty(nodeId)) {
-        node = nodes[nodeId];
-        for(var edgeId in edges) {
-          if (edges.hasOwnProperty(edgeId)) {
-            edge = edges[edgeId];
+  // repulsion of the edges on the nodes and
+  for (var nodeId in nodes) {
+    if (nodes.hasOwnProperty(nodeId)) {
+      node = nodes[nodeId];
+      for(var edgeId in edges) {
+        if (edges.hasOwnProperty(edgeId)) {
+          edge = edges[edgeId];
 
-            // get the center of the edge
-            xCenter = edge.from.x+(edge.to.x - edge.from.x)/2;
-            yCenter = edge.from.y+(edge.to.y - edge.from.y)/2;
+          // get the center of the edge
+          xCenter = edge.from.x+(edge.to.x - edge.from.x)/2;
+          yCenter = edge.from.y+(edge.to.y - edge.from.y)/2;
 
-            // calculate normally distributed force
-            dx = node.x - xCenter;
-            dy = node.y - yCenter;
-            distance = Math.sqrt(dx * dx + dy * dy);
-            if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
-              angle = Math.atan2(dy, dx);
-
-              if (distance < 0.5*minimumDistance) { // at 0.5 * the minimum distance, the force is 0.993307
-                repulsingForce = 1.0;
-              }
-              else {
-                // TODO: correct factor for repulsing force
-                //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-                //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
-                repulsingForce = 1 / (1 + Math.exp((distance / (minimumDistance / 2) - 1) * steepness)); // TODO: customize the repulsing force
-              }
-              fx = Math.cos(angle) * repulsingForce;
-              fy = Math.sin(angle) * repulsingForce;
-              node._addForce(fx, fy);
-              edge.from._addForce(-fx/2,-fy/2);
-              edge.to._addForce(-fx/2,-fy/2);
-            }
-          }
-        }
-      }
-    }
-*/
-
-    // forces caused by the edges, modelled as springs
-    for (edgeId in edges) {
-      if (edges.hasOwnProperty(edgeId)) {
-        edge = edges[edgeId];
-        if (edge.connected) {
-          // only calculate forces if nodes are in the same sector
-          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
-            clusterSize = (edge.to.clusterSize + edge.from.clusterSize - 2);
-            dx = (edge.to.x - edge.from.x);
-            dy = (edge.to.y - edge.from.y);
-            //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
-            //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length; // TODO: dmin
-            //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2;
-            edgeLength = edge.length;
-            // this implies that the edges between big clusters are longer
-            edgeLength += clusterSize * this.constants.clustering.edgeGrowth;
-            length =  Math.sqrt(dx * dx + dy * dy);
+          // calculate normally distributed force
+          dx = node.x - xCenter;
+          dy = node.y - yCenter;
+          distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
             angle = Math.atan2(dy, dx);
 
-            springForce = edge.stiffness * (edgeLength - length);
-
-            fx = Math.cos(angle) * springForce;
-            fy = Math.sin(angle) * springForce;
-
-            edge.from._addForce(-fx, -fy);
-            edge.to._addForce(fx, fy);
+            if (distance < 0.5*minimumDistance) { // at 0.5 * the minimum distance, the force is 0.993307
+              repulsingForce = 1.0;
+            }
+            else {
+              // TODO: correct factor for repulsing force
+              //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+              //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
+              repulsingForce = 1 / (1 + Math.exp((distance / (minimumDistance / 2) - 1) * steepness)); // TODO: customize the repulsing force
+            }
+            fx = Math.cos(angle) * repulsingForce;
+            fy = Math.sin(angle) * repulsingForce;
+            node._addForce(fx, fy);
+            edge.from._addForce(-fx/2,-fy/2);
+            edge.to._addForce(-fx/2,-fy/2);
           }
         }
       }
     }
-/*
-    // TODO: re-implement repulsion of edges
-
-     // repulsing forces between edges
-     var minimumDistance = this.constants.edges.distance,
-     steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
-     for (var l = 0; l < edges.length; l++) {
-     //Keep distance from other edge centers
-     for (var l2 = l + 1; l2 < this.edges.length; l2++) {
-     //var dmin = (nodes[n].width + nodes[n].height + nodes[n2].width + nodes[n2].height) / 1 || minimumDistance, // TODO: dmin
-     //var dmin = (nodes[n].width + nodes[n2].width)/2  || minimumDistance, // TODO: dmin
-     //dmin = 40 + ((nodes[n].width/2 + nodes[n2].width/2) || 0),
-     var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
-     ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
-     l2x = edges[l2].from.x+(edges[l2].to.x - edges[l2].from.x)/2,
-     l2y = edges[l2].from.y+(edges[l2].to.y - edges[l2].from.y)/2,
-
-     // calculate normally distributed force
-     dx = l2x - lx,
-     dy = l2y - ly,
-     distance = Math.sqrt(dx * dx + dy * dy),
-     angle = Math.atan2(dy, dx),
-
-
-     // TODO: correct factor for repulsing force
-     //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-     //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
-     repulsingforce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)), // TODO: customize the repulsing force
-     fx = Math.cos(angle) * repulsingforce,
-     fy = Math.sin(angle) * repulsingforce;
-
-     edges[l].from._addForce(-fx, -fy);
-     edges[l].to._addForce(-fx, -fy);
-     edges[l2].from._addForce(fx, fy);
-     edges[l2].to._addForce(fx, fy);
-     }
-     }
-*/
   }
+*/
+
+  // forces caused by the edges, modelled as springs
+  for (edgeId in edges) {
+    if (edges.hasOwnProperty(edgeId)) {
+      edge = edges[edgeId];
+      if (edge.connected) {
+        // only calculate forces if nodes are in the same sector
+        if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+          clusterSize = (edge.to.clusterSize + edge.from.clusterSize - 2);
+          dx = (edge.to.x - edge.from.x);
+          dy = (edge.to.y - edge.from.y);
+          //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
+          //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length; // TODO: dmin
+          //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2;
+          edgeLength = edge.length;
+          // this implies that the edges between big clusters are longer
+          edgeLength += clusterSize * this.constants.clustering.edgeGrowth;
+          length =  Math.sqrt(dx * dx + dy * dy);
+          angle = Math.atan2(dy, dx);
+
+          springForce = edge.stiffness * (edgeLength - length);
+
+          fx = Math.cos(angle) * springForce;
+          fy = Math.sin(angle) * springForce;
+
+          edge.from._addForce(-fx, -fy);
+          edge.to._addForce(fx, fy);
+        }
+      }
+    }
+  }
+/*
+  // TODO: re-implement repulsion of edges
+
+   // repulsing forces between edges
+   var minimumDistance = this.constants.edges.distance,
+   steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
+   for (var l = 0; l < edges.length; l++) {
+   //Keep distance from other edge centers
+   for (var l2 = l + 1; l2 < this.edges.length; l2++) {
+   //var dmin = (nodes[n].width + nodes[n].height + nodes[n2].width + nodes[n2].height) / 1 || minimumDistance, // TODO: dmin
+   //var dmin = (nodes[n].width + nodes[n2].width)/2  || minimumDistance, // TODO: dmin
+   //dmin = 40 + ((nodes[n].width/2 + nodes[n2].width/2) || 0),
+   var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
+   ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
+   l2x = edges[l2].from.x+(edges[l2].to.x - edges[l2].from.x)/2,
+   l2y = edges[l2].from.y+(edges[l2].to.y - edges[l2].from.y)/2,
+
+   // calculate normally distributed force
+   dx = l2x - lx,
+   dy = l2y - ly,
+   distance = Math.sqrt(dx * dx + dy * dy),
+   angle = Math.atan2(dy, dx),
+
+
+   // TODO: correct factor for repulsing force
+   //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+   //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
+   repulsingforce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)), // TODO: customize the repulsing force
+   fx = Math.cos(angle) * repulsingforce,
+   fy = Math.sin(angle) * repulsingforce;
+
+   edges[l].from._addForce(-fx, -fy);
+   edges[l].to._addForce(-fx, -fy);
+   edges[l2].from._addForce(fx, fy);
+   edges[l2].to._addForce(fx, fy);
+   }
+   }
+*/
 };
 
 
@@ -14076,12 +14136,17 @@ Graph.prototype._loadSectorSystem = function() {
   this.sectors = {};
   this.activeSector = ["default"];
   this.sectors["active"] = {};
-  this.sectors["active"][this.activeSector[this.activeSector.length-1]] = {"nodes":{},
-                                                                           "edges":{},
-                                                                           "nodeIndices":[],
-                                                                           "formationScale": 1.0,
-                                                                           "drawingNode": undefined};
+  this.sectors["active"]["default"] = {"nodes":{},
+                                       "edges":{},
+                                       "nodeIndices":[],
+                                       "formationScale": 1.0,
+                                       "drawingNode": undefined};
   this.sectors["frozen"] = {};
+  this.sectors["UI"] = {"nodes":{},
+                        "edges":{},
+                        "nodeIndices":[],
+                        "formationScale": 1.0,
+                        "drawingNode": undefined};
 
   this.nodeIndices = this.sectors["active"][this.activeSector[this.activeSector.length-1]]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
   for (var mixinFunction in SectorMixin) {
@@ -14090,6 +14155,90 @@ Graph.prototype._loadSectorSystem = function() {
     }
   }
 };
+
+
+
+Graph.prototype._loadUISystem = function() {
+  this._loadUIElements();
+}
+
+Graph.prototype._loadUIElements = function() {
+  var DIR = 'img/UI/';
+  this.UIclientWidth = this.frame.canvas.clientWidth;
+  this.UIclientHeight = this.frame.canvas.clientHeight;
+  var UINodes = [
+    {id: 'UI_up',    shape: 'image', image: DIR + 'uparrow.png',
+      verticalAlignTop: false,  x: 50,  y: this.UIclientHeight - 50},
+    {id: 'UI_down',  shape: 'image', image: DIR + 'downarrow.png',
+      verticalAlignTop: false,  x: 50,  y: this.UIclientHeight - 20},
+    {id: 'UI_left',  shape: 'image', image: DIR + 'leftarrow.png',
+      verticalAlignTop: false,  x: 20,  y: this.UIclientHeight - 20},
+    {id: 'UI_right', shape: 'image', image: DIR + 'rightarrow.png',
+      verticalAlignTop: false,  x: 80,  y: this.UIclientHeight - 20},
+    {id: 'UI_plus',  shape: 'image', image: DIR + 'plus.png',
+      verticalAlignTop: false,  x: 130, y: this.UIclientHeight - 20},
+    {id: 'UI_minus', shape: 'image', image: DIR + 'minus.png',
+      verticalAlignTop: false,  x: 160, y: this.UIclientHeight - 20}
+  ];
+
+  for (var i = 0; i < UINodes.length; i++) {
+    this.sectors["UI"]['nodes'][UINodes[i]['id']] = new Node(UINodes[i], this.images, this.groups, this.constants);
+  }
+};
+
+Graph.prototype._relocateUI = function() {
+  var xOffset = this.UIclientWidth - this.frame.canvas.clientWidth;
+  var yOffset = this.UIclientHeight - this.frame.canvas.clientHeight;
+  this.UIclientWidth = this.frame.canvas.clientWidth;
+  this.UIclientHeight = this.frame.canvas.clientHeight;
+  var node = null;
+  for (var nodeId in this.sectors["UI"]["nodes"]) {
+    if (this.sectors["UI"]["nodes"].hasOwnProperty(nodeId)) {
+      node = this.sectors["UI"]["nodes"][nodeId];
+      if (!node.horizontalAlignLeft) {
+        node.x -= xOffset;
+      }
+      if (!node.verticalAlignTop) {
+        node.y -= yOffset;
+      }
+    }
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**
  * vis.js module exports
  */
