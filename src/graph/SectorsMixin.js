@@ -342,7 +342,7 @@ var SectorMixin = {
 
 
   /**
-   * This runs a function in all active sectors. This is used in _redraw() and the _calculateForces().
+   * This runs a function in all active sectors. This is used in _redraw() and the _initializeForceCalculation().
    *
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
    *                              |   we dont pass the function itself because then the "this" is the window object

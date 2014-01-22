@@ -91,7 +91,7 @@ function Graph (container, data, options) {
   this._loadClusterSystem();
 
   // call the sector constructor
-  this._loadSectorSystem(); // would be fantastic if multiple in heritance just worked!
+  this._loadSectorSystem();
 
   var graph = this;
   this.freezeSimulation = false;// freeze the simulation
@@ -1653,7 +1653,7 @@ Graph.prototype._doStabilize = function() {
   var vmin = this.constants.minVelocity;
   var stable = false;
   while (!stable && count < this.constants.maxIterations) {
-    this._calculateForces();
+    this._initializeForceCalculation();
     this._discreteStepNodes();
     stable = !this._isMoving(vmin);
     count++;
@@ -1663,6 +1663,30 @@ Graph.prototype._doStabilize = function() {
 
   // console.log('Stabilized in ' + (end-start) + ' ms, ' + count + ' iterations' ); // TODO: cleanup
 };
+
+
+/**
+ * Before calculating the forces, we check if we need to cluster to keep up performance and we check
+ * if there is more than one node. If it is just one node, we dont calculate anything.
+ *
+ * @private
+ */
+Graph.prototype._initializeForceCalculation = function() {
+  // stop calculation if there is only one node
+  if (this.nodeIndices.length == 1) {
+    this.nodes[this.nodeIndices[0]]._setForce(0,0);
+  }
+  else {
+    // if there are too many nodes on screen, we cluster without repositioning
+    if (this.nodeIndices.length > this.constants.clustering.absoluteMaxNumberOfNodes && this.constants.clustering.enabled == true) {
+      this.clusterToFit(this.constants.clustering.reduceToMaxNumberOfNodes, false);
+    }
+
+    // we now start the force calculation
+    this._calculateForces();
+  }
+};
+
 
 /**
  * Calculate the external forces acting on the nodes
@@ -1677,7 +1701,7 @@ Graph.prototype._calculateForces = function() {
   // if there are too many nodes on screen, we cluster without repositioning
   else if (this.nodeIndices.length > this.constants.clustering.absoluteMaxNumberOfNodes && this.constants.clustering.enabled == true) {
     this.clusterToFit(this.constants.clustering.reduceToMaxNumberOfNodes, false);
-    this._calculateForces();
+    this._initializeForceCalculation();
   }
   else {
     this.canvasTopLeft = {"x": (0-this.translation.x)/this.scale,
@@ -1919,7 +1943,7 @@ Graph.prototype._discreteStepNodes = function() {
 Graph.prototype.start = function() {
   if (!this.freezeSimulation) {
     if (this.moving) {
-      this._doInAllActiveSectors("_calculateForces");
+      this._doInAllActiveSectors("_initializeForceCalculation");
       this._doInAllActiveSectors("_discreteStepNodes");
     }
 
@@ -1951,7 +1975,7 @@ Graph.prototype.start = function() {
 
 Graph.prototype.singleStep = function() {
   if (this.moving) {
-    this._calculateForces();
+    this._initializeForceCalculation();
     this._discreteStepNodes();
 
     var vmin = this.constants.minVelocity;
