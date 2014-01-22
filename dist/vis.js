@@ -8893,6 +8893,7 @@ Node.prototype.setProperties = function(properties, constants) {
   // UI properties
   if (properties.horizontalAlignLeft !== undefined) {this.horizontalAlignLeft = properties.horizontalAlignLeft;}
   if (properties.verticalAlignTop    !== undefined) {this.verticalAlignTop    = properties.verticalAlignTop;}
+  if (properties.triggerFunction     !== undefined) {this.triggerFunction     = properties.triggerFunction;}
 
   if (this.id === undefined) {
     throw "Node must have an id";
@@ -8952,7 +8953,6 @@ Node.prototype.setProperties = function(properties, constants) {
     case 'star':          this.draw = this._drawStar; this.resize = this._resizeShape; break;
     default:              this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
   }
-
   // reset the size of the node, this can be changed
   this._reset();
 };
@@ -9222,10 +9222,10 @@ Node.prototype.resize = function(ctx) {
  * @return {boolean}     True if location is located on node
  */
 Node.prototype.isOverlappingWith = function(obj) {
-  return (this.left          < obj.right &&
-      this.left + this.width > obj.left &&
-      this.top               < obj.bottom &&
-      this.top + this.height > obj.top);
+  return (this.left              < obj.right  &&
+          this.left + this.width > obj.left   &&
+          this.top               < obj.bottom &&
+          this.top + this.height > obj.top);
 };
 
 Node.prototype._resizeImage = function (ctx) {
@@ -11028,8 +11028,22 @@ var SectorMixin = {
    * @private
    */
   _doInAllSectors : function(runFunction,argument) {
-    this._doInAllActiveSectors(runFunction,argument);
-    this._doInAllFrozenSectors(runFunction,argument);
+    var args = Array.prototype.splice.call(arguments, 1);
+    if (argument === undefined) {
+      this._doInAllActiveSectors(runFunction);
+      this._doInAllFrozenSectors(runFunction);
+    }
+    else {
+      if (args.length > 1) {
+        this._doInAllActiveSectors(runFunction,args[0],args[1]);
+        this._doInAllFrozenSectors(runFunction,args[0],args[1]);
+      }
+      else {
+        this._doInAllActiveSectors(runFunction,argument);
+        this._doInAllFrozenSectors(runFunction,argument);
+      }
+    }
+
   },
 
 
@@ -11057,11 +11071,11 @@ var SectorMixin = {
     var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
     for (var sector in this.sectors[sectorType]) {
       if (this.sectors[sectorType].hasOwnProperty(sector)) {
-        minY = 1e9; maxY = -1e9; minX = 1e9; maxX = -1e9;
         if (this.sectors[sectorType][sector]["drawingNode"] !== undefined) {
 
           this._switchToSector(sector,sectorType);
 
+          minY = 1e9; maxY = -1e9; minX = 1e9; maxX = -1e9;
           for (var nodeId in this.nodes) {
             if (this.nodes.hasOwnProperty(nodeId)) {
               node = this.nodes[nodeId];
@@ -12000,9 +12014,9 @@ var ClusterMixin = {
    */
   _nodeInActiveArea : function(node) {
     return (
-      Math.abs(node.x - this.zoomCenter.x) <= this.constants.clustering.activeAreaBoxSize/this.scale
+      Math.abs(node.x - this.areaCenter.x) <= this.constants.clustering.activeAreaBoxSize/this.scale
         &&
-      Math.abs(node.y - this.zoomCenter.y) <= this.constants.clustering.activeAreaBoxSize/this.scale
+      Math.abs(node.y - this.areaCenter.y) <= this.constants.clustering.activeAreaBoxSize/this.scale
       )
    },
 
@@ -12111,6 +12125,583 @@ var ClusterMixin = {
    }
 };
 
+
+var SelectionMixin = {
+
+  /**
+   * This function can be called from the _doInAllSectors function
+   *
+   * @param object
+   * @param overlappingNodes
+   * @private
+   */
+  _getNodesOverlappingWith : function(object, overlappingNodes) {
+    var nodes = this.nodes;
+    for (var nodeId in nodes) {
+      if (nodes.hasOwnProperty(nodeId)) {
+        if (nodes[nodeId].isOverlappingWith(object)) {
+          overlappingNodes.push(nodeId);
+        }
+      }
+    }
+  },
+
+  /**
+   * retrieve all nodes overlapping with given object
+   * @param {Object} object  An object with parameters left, top, right, bottom
+   * @return {Number[]}   An array with id's of the overlapping nodes
+   * @private
+   */
+  _getAllNodesOverlappingWith : function (object) {
+    var overlappingNodes = [];
+    this._doInAllSectors("_getNodesOverlappingWith",object,overlappingNodes);
+    return overlappingNodes;
+  },
+
+
+  /**
+   * retrieve all nodes in the UI overlapping with given object
+   * @param {Object} object  An object with parameters left, top, right, bottom
+   * @return {Number[]}   An array with id's of the overlapping nodes
+   * @private
+   */
+  _getAllUINodesOverlappingWith : function (object) {
+    var overlappingNodes = [];
+    this._doInUISector("_getNodesOverlappingWith",object,overlappingNodes);
+    return overlappingNodes;
+  },
+
+  /**
+   * Return a position object in canvasspace from a single point in screenspace
+   *
+   * @param pointer
+   * @returns {{left: number, top: number, right: number, bottom: number}}
+   * @private
+   */
+  _pointerToPositionObject : function(pointer) {
+    var x = this._canvasToX(pointer.x);
+    var y = this._canvasToY(pointer.y);
+
+    return {left:   x,
+            top:    y,
+            right:  x,
+            bottom: y};
+  },
+
+  /**
+   * Return a position object in canvasspace from a single point in screenspace
+   *
+   * @param pointer
+   * @returns {{left: number, top: number, right: number, bottom: number}}
+   * @private
+   */
+  _pointerToScreenPositionObject : function(pointer) {
+    var x = pointer.x;
+    var y = pointer.y;
+
+    return {left:   x,
+      top:    y,
+      right:  x,
+      bottom: y};
+  },
+
+
+  /**
+   * Get the top UI node at the a specific point (like a click)
+   *
+   * @param {{x: Number, y: Number}} pointer
+   * @return {Node | null} node
+   * @private
+   */
+  _getUINodeAt : function (pointer) {
+    var screenPositionObject = this._pointerToScreenPositionObject(pointer);
+    var overlappingNodes = this._getAllUINodesOverlappingWith(screenPositionObject);
+    if (this.UIvisible && overlappingNodes.length > 0) {
+      return this.sectors["UI"]["nodes"][overlappingNodes[overlappingNodes.length - 1]];
+    }
+    else {
+      return null;
+    }
+  },
+
+
+  /**
+   * Get the top node at the a specific point (like a click)
+   *
+   * @param {{x: Number, y: Number}} pointer
+   * @return {Node | null} node
+   * @private
+   */
+  _getNodeAt : function (pointer) {
+    // we first check if this is an UI element
+    var positionObject = this._pointerToPositionObject(pointer);
+    overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
+
+    // if there are overlapping nodes, select the last one, this is the
+    // one which is drawn on top of the others
+    if (overlappingNodes.length > 0) {
+       return this.nodes[overlappingNodes[overlappingNodes.length - 1]];
+    }
+    else {
+      return null;
+    }
+  },
+
+  _getEdgeAt : function(pointer) {
+
+  },
+
+  _addToSelection : function(obj) {
+    this.selection.push(obj.id);
+    this.selectionObj[obj.id] = obj;
+  },
+
+  _removeFromSelection : function(obj) {
+    for (var i = 0; i < this.selection.length; i++) {
+      if (obj.id == this.selection[i]) {
+        this.selection.splice(i,1);
+        break;
+      }
+    }
+    delete this.selectionObj[obj.id];
+  },
+
+  _unselectAll : function() {
+    this.selection = [];
+    for (var objId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objId)) {
+        this.selectionObj[objId].unselect();
+      }
+    }
+    this.selectionObj = {};
+  },
+
+  _selectionIsEmpty : function() {
+    if (this.selection.length == 0) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  },
+
+  /**
+   * This is called when someone clicks on a node. either select or deselect it.
+   * If there is an existing selection and we don't want to append to it, clear the existing selection
+   *
+   * @param {Node} node
+   * @param {Boolean} append
+   * @private
+   */
+  _selectNode : function(node, append) {
+    // TODO: triggers?
+    if (this._selectionIsEmpty() == false && append == false) {
+      this._unselectAll();
+    }
+
+    if (node.selected == false) {
+      node.select();
+      this._addToSelection(node);
+    }
+    else {
+      node.unselect();
+      this._removeFromSelection(node);
+    }
+  },
+
+  /**
+   * handles the selection part of the touch, only for UI elements;
+   *
+   * @param {Object} pointer
+   * @private
+   */
+  _handleTouch : function(pointer) {
+    var node = this._getUINodeAt(pointer);
+    if (node != null) {
+      if (this[node.triggerFunction] !== undefined) {
+        this[node.triggerFunction]();
+      }
+    }
+  },
+
+
+  /**
+   * handles the selection part of the tap;
+   *
+   * @param {Object} pointer
+   * @private
+   */
+  _handleTap : function(pointer) {
+    var node = this._getNodeAt(pointer);
+    if (node != null) {
+      this._selectNode(node,false);
+    }
+    else {
+      this._unselectAll();
+    }
+    this._redraw();
+  },
+
+  /**
+   * handles the selection part of the double tap and opens a cluster if needed
+   *
+   * @param {Object} pointer
+   * @private
+   */
+  _handleDoubleTap : function(pointer) {
+    var node = this._getNodeAt(pointer);
+    if (node != null && node !== undefined) {
+      // we reset the areaCenter here so the opening of the node will occur
+      this.areaCenter =  {"x" : this._canvasToX(pointer.x),
+                          "y" : this._canvasToY(pointer.y)};
+      this.openCluster(node);
+    }
+  },
+
+  _handleOnHold : function(pointer) {
+    var node = this._getNodeAt(pointer);
+    if (node != null) {
+      this._selectNode(node,true);
+    }
+    this._redraw();
+  },
+
+  _handleOnRelease : function() {
+    this.xIncrement = 0;
+    this.yIncrement = 0;
+    this.zoomIncrement = 0;
+    this._unHighlightAll();
+  },
+
+  /**
+   * Unselect selected nodes. If no selection array is provided, all nodes
+   * are unselected
+   * @param {Object[]} selection     Array with selection objects, each selection
+   *                                 object has a parameter row. Optional
+   * @param {Boolean} triggerSelect  If true (default), the select event
+   *                                 is triggered when nodes are unselected
+   * @return {Boolean} changed       True if the selection is changed
+   * @private
+   */
+ /* _unselectNodes : function(selection, triggerSelect) {
+    var changed = false;
+    var i, iMax, id;
+
+    if (selection) {
+      // remove provided selections
+      for (i = 0, iMax = selection.length; i < iMax; i++) {
+        id = selection[i];
+        if (this.nodes.hasOwnProperty(id)) {
+          this.nodes[id].unselect();
+        }
+        var j = 0;
+        while (j < this.selection.length) {
+          if (this.selection[j] == id) {
+            this.selection.splice(j, 1);
+            changed = true;
+          }
+          else {
+            j++;
+          }
+        }
+      }
+    }
+    else if (this.selection && this.selection.length) {
+      // remove all selections
+      for (i = 0, iMax = this.selection.length; i < iMax; i++) {
+        id = this.selection[i];
+        if (this.nodes.hasOwnProperty(id)) {
+          this.nodes[id].unselect();
+        }
+        changed = true;
+      }
+      this.selection = [];
+    }
+
+    if (changed && (triggerSelect == true || triggerSelect == undefined)) {
+      // fire the select event
+      this._trigger('select');
+    }
+
+    return changed;
+  },
+*/
+/**
+ * select all nodes on given location x, y
+ * @param {Array} selection   an array with node ids
+ * @param {boolean} append    If true, the new selection will be appended to the
+ *                            current selection (except for duplicate entries)
+ * @return {Boolean} changed  True if the selection is changed
+ * @private
+ */
+/*  _selectNodes : function(selection, append) {
+    var changed = false;
+    var i, iMax;
+
+    // TODO: the selectNodes method is a little messy, rework this
+
+    // check if the current selection equals the desired selection
+    var selectionAlreadyThere = true;
+    if (selection.length != this.selection.length) {
+      selectionAlreadyThere = false;
+    }
+    else {
+      for (i = 0, iMax = Math.min(selection.length, this.selection.length); i < iMax; i++) {
+        if (selection[i] != this.selection[i]) {
+          selectionAlreadyThere = false;
+          break;
+        }
+      }
+    }
+    if (selectionAlreadyThere) {
+      return changed;
+    }
+
+    if (append == undefined || append == false) {
+      // first deselect any selected node
+      var triggerSelect = false;
+      changed = this._unselectNodes(undefined, triggerSelect);
+    }
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      // add each of the new selections, but only when they are not duplicate
+      var id = selection[i];
+      var isDuplicate = (this.selection.indexOf(id) != -1);
+      if (!isDuplicate) {
+        this.nodes[id].select();
+        this.selection.push(id);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      // fire the select event
+      this._trigger('select');
+    }
+
+    return changed;
+  },
+  */
+
+  /**
+   * retrieve the currently selected nodes
+   * @return {Number[] | String[]} selection    An array with the ids of the
+   *                                            selected nodes.
+   */
+  getSelection : function() {
+    return this.selection.concat([]);
+  },
+
+  /**
+   * select zero or more nodes
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   */
+  setSelection : function(selection) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    for (i = 0, iMax = this.selection.length; i < iMax; i++) {
+      id = this.selection[i];
+      this.nodes[id].unselect();
+    }
+
+    this.selection = [];
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var node = this.nodes[id];
+      if (!node) {
+        throw new RangeError('Node with id "' + id + '" not found');
+      }
+      node.select();
+      this.selection.push(id);
+    }
+
+    this.redraw();
+  },
+
+
+  /**
+   * Validate the selection: remove ids of nodes which no longer exist
+   * @private
+   */
+  _updateSelection : function () {
+    var i = 0;
+    while (i < this.selection.length) {
+      var nodeId = this.selection[i];
+      if (!this.nodes.hasOwnProperty(nodeId)) {
+        this.selection.splice(i, 1);
+        delete this.selectionObj[nodeId];
+      }
+      else {
+        i++;
+      }
+    }
+  }
+
+
+
+
+
+};
+
+
+
+
+/**
+ * Created by Alex on 1/22/14.
+ */
+
+var UIMixin = {
+
+  _relocateUI : function() {
+    if (this.sectors !== undefined) {
+      var xOffset = this.UIclientWidth - this.frame.canvas.clientWidth;
+      var yOffset = this.UIclientHeight - this.frame.canvas.clientHeight;
+      this.UIclientWidth = this.frame.canvas.clientWidth;
+      this.UIclientHeight = this.frame.canvas.clientHeight;
+      var node = null;
+
+      for (var nodeId in this.sectors["UI"]["nodes"]) {
+        if (this.sectors["UI"]["nodes"].hasOwnProperty(nodeId)) {
+          node = this.sectors["UI"]["nodes"][nodeId];
+          if (!node.horizontalAlignLeft) {
+            node.x -= xOffset;
+          }
+          if (!node.verticalAlignTop) {
+            node.y -= yOffset;
+          }
+        }
+      }
+    }
+  },
+
+  _loadUIElements : function() {
+    var DIR = 'img/UI/';
+    this.UIclientWidth = this.frame.canvas.clientWidth;
+    this.UIclientHeight = this.frame.canvas.clientHeight;
+    if (this.UIclientWidth === undefined) {
+      this.UIclientWidth = 0;
+      this.UIclientHeight = 0;
+    }
+    var UINodes = [
+      {id: 'UI_up',    shape: 'image', image: DIR + 'uparrow.png',   triggerFunction: "_moveUp",
+        verticalAlignTop: false,  x: 52,  y: this.UIclientHeight - 52},
+      {id: 'UI_down',  shape: 'image', image: DIR + 'downarrow.png', triggerFunction: "_moveDown",
+        verticalAlignTop: false,  x: 52,  y: this.UIclientHeight - 20},
+      {id: 'UI_left',  shape: 'image', image: DIR + 'leftarrow.png', triggerFunction: "_moveLeft",
+        verticalAlignTop: false,  x: 20,  y: this.UIclientHeight - 20},
+      {id: 'UI_right', shape: 'image', image: DIR + 'rightarrow.png',triggerFunction: "_moveRight",
+        verticalAlignTop: false,  x: 84,  y: this.UIclientHeight - 20},
+      {id: 'UI_plus',  shape: 'image', image: DIR + 'plus.png',      triggerFunction: "_zoomIn",
+        verticalAlignTop: false,  x: 140, y: this.UIclientHeight - 20},
+      {id: 'UI_min', shape: 'image', image: DIR + 'minus.png',       triggerFunction: "_zoomOut",
+        verticalAlignTop: false,  x: 172, y: this.UIclientHeight - 20}
+    ];
+
+    var nodeObj = null;
+    for (var i = 0; i < UINodes.length; i++) {
+      nodeObj = this.sectors["UI"]['nodes'];
+      nodeObj[UINodes[i]['id']] = new Node(UINodes[i], this.images, this.groups, this.constants);
+    }
+  },
+
+  _highlightUIElement : function(elementId) {
+    if (this.sectors["UI"]["nodes"].hasOwnProperty(elementId)) {
+      this.sectors["UI"]["nodes"][elementId].clusterSize = 2;
+    }
+  },
+
+  _unHighlightUIElement : function(elementId) {
+    if (this.sectors["UI"]["nodes"].hasOwnProperty(elementId)) {
+      this.sectors["UI"]["nodes"][elementId].clusterSize = 1;
+    }
+  },
+
+  _toggleUI : function() {
+    this.UIvisible = !this.UIvisible;
+    this._redraw();
+  },
+
+  _unHighlightAll : function() {
+    for (var nodeId in this.sectors['UI']['nodes']) {
+      this._unHighlightUIElement(nodeId);
+    }
+  },
+
+  _moveUp : function() {
+    this._highlightUIElement("UI_up");
+    this.yIncrement = this.constants.UI.yMovementSpeed;
+    this.start(); // if there is no node movement, the calculation wont be done
+  },
+
+  _moveDown : function() {
+    this._highlightUIElement("UI_down");
+    this.yIncrement = -this.constants.UI.yMovementSpeed;
+    this.start(); // if there is no node movement, the calculation wont be done
+  },
+
+  _moveLeft : function() {
+    this._highlightUIElement("UI_left");
+    this.xIncrement = this.constants.UI.xMovementSpeed;
+    this.start(); // if there is no node movement, the calculation wont be done
+  },
+
+  _moveRight : function() {
+    this._highlightUIElement("UI_right");
+    this.xIncrement = -this.constants.UI.xMovementSpeed;
+    this.start(); // if there is no node movement, the calculation wont be done
+  },
+
+  _zoomIn : function() {
+    this._highlightUIElement("UI_plus");
+    this.zoomIncrement = this.constants.UI.zoomMovementSpeed;
+    this.start(); // if there is no node movement, the calculation wont be done
+  },
+
+  _zoomOut : function() {
+    this._highlightUIElement("UI_min");
+    this.zoomIncrement = -this.constants.UI.zoomMovementSpeed;
+    this.start(); // if there is no node movement, the calculation wont be done
+  },
+
+  _stopZoom : function() {
+    if (this.zoomIncrement > 0) {      // plus (zoomin)
+      this._unHighlightUIElement("UI_plus");
+    }
+    else if (this.zoomIncrement < 0) { // min (zoomout)
+      this._unHighlightUIElement("UI_min");
+    }
+    this.zoomIncrement = 0;
+  },
+
+  _yStopMoving : function() {
+    if (this.yIncrement > 0) {      // up
+      this._unHighlightUIElement("UI_up");
+    }
+    else if (this.yIncrement < 0) { // down
+      this._unHighlightUIElement("UI_down");
+    }
+    this.yIncrement = 0;
+  },
+
+  _xStopMoving : function() {
+    if (this.xIncrement > 0) {      // left
+      this._unHighlightUIElement("UI_left");
+    }
+    else if (this.xIncrement < 0) { // right
+      this._unHighlightUIElement("UI_right");
+    }
+    this.xIncrement = 0;
+  }
+
+
+};
 /**
  * @constructor Graph
  * Create a graph visualization, displaying nodes and edges.
@@ -12127,7 +12718,10 @@ function Graph (container, data, options) {
   this.containerElement = container;
   this.width = '100%';
   this.height = '100%';
-  this.refreshRate = 50; // milliseconds
+  // to give everything a nice fluidity, we seperate the rendering and calculating of the forces
+  this.calculationRefreshRate = 40; // milliseconds
+  this.calculationStartTime = 0;
+  this.renderRefreshRate = 10; // milliseconds
   this.stabilize = true; // stabilize before displaying the graph
   this.selectable = true;
 
@@ -12195,43 +12789,63 @@ function Graph (container, data, options) {
       activeAreaBoxSize: 100,       // (px)                  | box area around the curser where clusters are popped open.
       massTransferCoefficient: 1    // (multiplier)          | parent.mass += massTransferCoefficient * child.mass
     },
+    UI: {
+      enabled: true,
+      xMovementSpeed: 10,
+      yMovementSpeed: 10,
+      zoomMovementSpeed: 0.02
+    },
     minForce: 0.05,
     minVelocity: 0.02,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
   };
 
+  // Node variables
   this.groups = new Groups(); // object with groups
   this.images = new Images(); // object with images
   this.images.setOnloadCallback(function () {
     graph._redraw();
   });
 
+  // UI variables
+  this.UIvisible = true;
+  this.xIncrement = 0;
+  this.yIncrement = 0;
+  this.zoomIncrement = 0;
 
   // create a frame and canvas
   this._create();
 
-  // call the constructor of the cluster object
+  // apply options
+  this.setOptions(options);
+
+  // load the cluster system.   (mandatory)
   this._loadClusterSystem();
 
-  // call the sector constructor
+  // load the sector system.    (mandatory)
   this._loadSectorSystem();
 
-  // load the UI system.
+  // load the selection system. (mandatory)
+  this._loadSelectionSystem();
+
+  // load the UI system.        (mandatory)
   this._loadUISystem();
 
+
+
+  // other vars
   var graph = this;
   this.freezeSimulation = false;// freeze the simulation
-  this.tapTimer = 0;            // timer to detect doubleclick or double tap
 
   this.nodeIndices = [];        // array with all the indices of the nodes. Used to speed up forces calculation
   this.nodes = {};              // object with Node objects
   this.edges = {};              // object with Edge objects
 
-  this.canvasTopLeft     = {"x": 0,"y": 0};   // coordinates of the top left of the canvas.     they will be set during calcForces.
-  this.canvasBottomRight = {"x": 0,"y": 0};   // coordinates of the bottom right of the canvas. they will be set during calcForces
+  this.canvasTopLeft     = {"x": 0,"y": 0};   // coordinates of the top left of the canvas.     they will be set during _redraw.
+  this.canvasBottomRight = {"x": 0,"y": 0};   // coordinates of the bottom right of the canvas. they will be set during _redraw
 
-  this.zoomCenter = {};       // object with x and y elements used for determining the center of the zoom action
-  this.scale = 1;             // defining the global scale variable in the constructor
+  this.areaCenter = {};               // object with x and y elements used for determining the center of the zoom action
+  this.scale = 1;                     // defining the global scale variable in the constructor
   this.previousScale = this.scale;    // this is used to check if the zoom operation is zooming in or out
   // TODO: create a counter to keep track on the number of nodes having values
   // TODO: create a counter to keep track on the number of nodes currently moving
@@ -12273,12 +12887,7 @@ function Graph (container, data, options) {
 
   // properties of the data
   this.moving = false;    // True if any of the nodes have an undefined position
-
-  this.selection = [];
   this.timer = undefined;
-
-  // apply options
-  this.setOptions(options);
 
   // load data (the disable start variable will be the same as the enabled clustering)
   this.setData(data,this.constants.clustering.enabled);
@@ -12388,6 +12997,14 @@ Graph.prototype.setOptions = function (options) {
       for (var prop in options.clustering) {
         if (options.clustering.hasOwnProperty(prop)) {
           this.constants.clustering[prop] = options.clustering[prop];
+        }
+      }
+    }
+
+    if (options.UI) {
+      for (var prop in options.UI) {
+        if (options.UI.hasOwnProperty(prop)) {
+          this.constants.UI[prop] = options.UI[prop];
         }
       }
     }
@@ -12506,52 +13123,55 @@ Graph.prototype._create = function () {
     prevent_default: true
   });
   this.hammer.on('tap',       me._onTap.bind(me) );
+  this.hammer.on('doubletap', me._onDoubleTap.bind(me) );
   this.hammer.on('hold',      me._onHold.bind(me) );
   this.hammer.on('pinch',     me._onPinch.bind(me) );
   this.hammer.on('touch',     me._onTouch.bind(me) );
   this.hammer.on('dragstart', me._onDragStart.bind(me) );
   this.hammer.on('drag',      me._onDrag.bind(me) );
   this.hammer.on('dragend',   me._onDragEnd.bind(me) );
+  this.hammer.on('release',   me._onRelease.bind(me) );
   this.hammer.on('mousewheel',me._onMouseWheel.bind(me) );
   this.hammer.on('DOMMouseScroll',me._onMouseWheel.bind(me) ); // for FF
   this.hammer.on('mousemove', me._onMouseMoveTitle.bind(me) );
 
-  this.mouseTrap = mouseTrap;
-  /*
-  this.mouseTrap.bind("=",this.decreaseClusterLevel.bind(me));
-  this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
-  this.mouseTrap.bind("s",this.singleStep.bind(me));
-  this.mouseTrap.bind("h",this.updateClustersDefault.bind(me));
-  this.mouseTrap.bind("c",this._collapseSector.bind(me));
-  this.mouseTrap.bind("f",this.toggleFreeze.bind(me));
-  */
   // add the frame to the container element
   this.containerElement.appendChild(this.frame);
 };
 
-/**
- *
- * @param {{x: Number, y: Number}} pointer
- * @return {Number | null} node
- * @private
- */
-Graph.prototype._getNodeAt = function (pointer) {
-  var x = this._canvasToX(pointer.x);
-  var y = this._canvasToY(pointer.y);
-
-  var obj = {
-    left:   x,
-    top:    y,
-    right:  x,
-    bottom: y
-  };
-
-  // if there are overlapping nodes, select the last one, this is the
-  // one which is drawn on top of the others
-  var overlappingNodes = this._getNodesOverlappingWith(obj);
-  return (overlappingNodes.length > 0) ?
-      overlappingNodes[overlappingNodes.length - 1] : null;
-};
+Graph.prototype._createKeyBinds = function() {
+  var me = this;
+  this.mouseTrap = mouseTrap;
+  this.mouseTrap.bind("up",   this._moveUp.bind(me)   , "keydown");
+  this.mouseTrap.bind("up",   this._yStopMoving.bind(me), "keyup");
+  this.mouseTrap.bind("down", this._moveDown.bind(me) , "keydown");
+  this.mouseTrap.bind("down", this._yStopMoving.bind(me), "keyup");
+  this.mouseTrap.bind("left", this._moveLeft.bind(me) , "keydown");
+  this.mouseTrap.bind("left", this._xStopMoving.bind(me), "keyup");
+  this.mouseTrap.bind("right",this._moveRight.bind(me), "keydown");
+  this.mouseTrap.bind("right",this._xStopMoving.bind(me), "keyup");
+  this.mouseTrap.bind("=",this._zoomIn.bind(me), "keydown");
+  this.mouseTrap.bind("=",this._stopZoom.bind(me), "keyup");
+  this.mouseTrap.bind("-",this._zoomOut.bind(me), "keydown");
+  this.mouseTrap.bind("-",this._stopZoom.bind(me), "keyup");
+  this.mouseTrap.bind("[",this._zoomIn.bind(me), "keydown");
+  this.mouseTrap.bind("[",this._stopZoom.bind(me), "keyup");
+  this.mouseTrap.bind("]",this._zoomOut.bind(me), "keydown");
+  this.mouseTrap.bind("]",this._stopZoom.bind(me), "keyup");
+  this.mouseTrap.bind("pageup",this._zoomIn.bind(me), "keydown");
+  this.mouseTrap.bind("pageup",this._stopZoom.bind(me), "keyup");
+  this.mouseTrap.bind("pagedown",this._zoomOut.bind(me), "keydown");
+  this.mouseTrap.bind("pagedown",this._stopZoom.bind(me), "keyup");
+  this.mouseTrap.bind("u",this._toggleUI.bind(me)     , "keydown");
+  /*=
+   this.mouseTrap.bind("=",this.decreaseClusterLevel.bind(me));
+   this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
+   this.mouseTrap.bind("s",this.singleStep.bind(me));
+   this.mouseTrap.bind("h",this.updateClustersDefault.bind(me));
+   this.mouseTrap.bind("c",this._collapseSector.bind(me));
+   this.mouseTrap.bind("f",this.toggleFreeze.bind(me));
+   */
+}
 
 /**
  * Get the pointer location from a touch location
@@ -12575,6 +13195,8 @@ Graph.prototype._onTouch = function (event) {
   this.drag.pointer = this._getPointer(event.gesture.touches[0]);
   this.drag.pinched = false;
   this.pinch.scale = this._getScale();
+
+  this._handleTouch(this.drag.pointer);
 };
 
 /**
@@ -12583,17 +13205,18 @@ Graph.prototype._onTouch = function (event) {
  */
 Graph.prototype._onDragStart = function () {
   var drag = this.drag;
+  var node = this._getNodeAt(drag.pointer);
+  // note: drag.pointer is set in _onTouch to get the initial touch location
 
   drag.selection = [];
   drag.translation = this._getTranslation();
-  drag.nodeId = this._getNodeAt(drag.pointer);
-  // note: drag.pointer is set in _onTouch to get the initial touch location
+  drag.nodeId = null;
 
-  var node = this.nodes[drag.nodeId];
-  if (node) {
+  if (node != null) {
+    drag.nodeId = node.id;
     // select the clicked node if not yet selected
     if (!node.isSelected()) {
-      this._selectNodes([drag.nodeId]);
+      this._selectNode(node,false);
     }
 
     // create an array with the selected nodes and their original location and status
@@ -12618,7 +13241,6 @@ Graph.prototype._onDragStart = function () {
         drag.selection.push(s);
       }
     });
-
   }
 };
 
@@ -12695,32 +13317,20 @@ Graph.prototype._onDragEnd = function () {
  */
 Graph.prototype._onTap = function (event) {
   var pointer = this._getPointer(event.gesture.touches[0]);
-
-  var nodeId = this._getNodeAt(pointer);
-  var node = this.nodes[nodeId];
-
-  var elapsedTime = new Date().getTime() - this.tapTimer;
-  this.tapTimer = new Date().getTime();
-
-  if (node) {
-    if (node.isSelected() && elapsedTime < 300) {
-      this.zoomCenter = {"x" : this._canvasToX(pointer.x),
-                         "y" : this._canvasToY(pointer.y)};
-      this.openCluster(node);
-      }
-    // select this node
-    this._selectNodes([nodeId]);
-
-    if (!this.moving) {
-      this._redraw();
-    }
-  }
-  else {
-    // remove selection
-    this._unselectNodes();
-    this._redraw();
-  }
+  this._handleTap(pointer);
 };
+
+
+/**
+ * handle doubletap event
+ * @private
+ */
+Graph.prototype._onDoubleTap = function (event) {
+  var pointer = this._getPointer(event.gesture.touches[0]);
+  this._handleDoubleTap(pointer);
+
+};
+
 
 /**
  * handle long tap event: multi select nodes
@@ -12728,25 +13338,17 @@ Graph.prototype._onTap = function (event) {
  */
 Graph.prototype._onHold = function (event) {
   var pointer = this._getPointer(event.gesture.touches[0]);
-  var nodeId = this._getNodeAt(pointer);
-  var node = this.nodes[nodeId];
-  if (node) {
-    if (!node.isSelected()) {
-      // select this node, keep previous selection
-      var append = true;
-      this._selectNodes([nodeId], append);
-    }
-    else {
-      this._unselectNodes([nodeId]);
-    }
+  this._handleOnHold(pointer);
+};
 
-    if (!this.moving) {
-      this._redraw();
-    }
-  }
-  else {
-    // Do nothing
-  }
+/**
+ * handle the release of the screen
+ *
+ * @param event
+ * @private
+ */
+Graph.prototype._onRelease = function (event) {
+  this._handleOnRelease();
 };
 
 /**
@@ -12789,10 +13391,11 @@ Graph.prototype._zoom = function(scale, pointer) {
   var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
   var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
 
-  this.zoomCenter = {"x" : this._canvasToX(pointer.x),
+  this.areaCenter = {"x" : this._canvasToX(pointer.x),
                      "y" : this._canvasToY(pointer.y)};
 
- // this.zoomCenter = {"x" : pointer.x,"y" : pointer.y };
+ // this.areaCenter = {"x" : pointer.x,"y" : pointer.y };
+  this.pinch.mousewheelScale = scale;
   this._setScale(scale);
   this._setTranslation(tx, ty);
   this.updateClustersDefault();
@@ -12844,8 +13447,8 @@ Graph.prototype._onMouseWheel = function(event) {
     // apply the new scale
     scale = this._zoom(scale, pointer);
 
-    // store the new, applied scale
-    this.pinch.mousewheelScale = scale;
+    // store the new, applied scale -- this is now done in _zoom
+//    this.pinch.mousewheelScale = scale;
   }
 
   // Prevent default actions caused by mouse wheel.
@@ -12862,6 +13465,8 @@ Graph.prototype._onMouseMoveTitle = function (event) {
   var gesture = util.fakeGesture(this, event);
   var pointer = this._getPointer(gesture.center);
 
+  this.lastPointerPosition = pointer;
+
   // check if the previously selected node is still selected
   if (this.popupNode) {
     this._checkHidePopup(pointer);
@@ -12874,7 +13479,7 @@ Graph.prototype._onMouseMoveTitle = function (event) {
     me._checkShowPopup(pointer);
   };
   if (this.popupTimer) {
-    clearInterval(this.popupTimer); // stop any running timer
+    clearInterval(this.popupTimer); // stop any running calculationTimer
   }
   if (!this.leftButtonDown) {
     this.popupTimer = setTimeout(checkShow, 300);
@@ -12967,214 +13572,6 @@ Graph.prototype._checkHidePopup = function (pointer) {
   }
 };
 
-/**
- * Unselect selected nodes. If no selection array is provided, all nodes
- * are unselected
- * @param {Object[]} selection     Array with selection objects, each selection
- *                                 object has a parameter row. Optional
- * @param {Boolean} triggerSelect  If true (default), the select event
- *                                 is triggered when nodes are unselected
- * @return {Boolean} changed       True if the selection is changed
- * @private
- */
-Graph.prototype._unselectNodes = function(selection, triggerSelect) {
-  var changed = false;
-  var i, iMax, id;
-
-  if (selection) {
-    // remove provided selections
-    for (i = 0, iMax = selection.length; i < iMax; i++) {
-      id = selection[i];
-      if (this.nodes.hasOwnProperty(id)) {
-        this.nodes[id].unselect();
-        }
-      var j = 0;
-      while (j < this.selection.length) {
-        if (this.selection[j] == id) {
-          this.selection.splice(j, 1);
-          changed = true;
-        }
-        else {
-          j++;
-        }
-      }
-    }
-  }
-  else if (this.selection && this.selection.length) {
-    // remove all selections
-    for (i = 0, iMax = this.selection.length; i < iMax; i++) {
-      id = this.selection[i];
-      if (this.nodes.hasOwnProperty(id)) {
-        this.nodes[id].unselect();
-      }
-      changed = true;
-    }
-    this.selection = [];
-  }
-
-  if (changed && (triggerSelect == true || triggerSelect == undefined)) {
-    // fire the select event
-    this._trigger('select');
-  }
-
-  return changed;
-};
-
-/**
- * select all nodes on given location x, y
- * @param {Array} selection   an array with node ids
- * @param {boolean} append    If true, the new selection will be appended to the
- *                            current selection (except for duplicate entries)
- * @return {Boolean} changed  True if the selection is changed
- * @private
- */
-Graph.prototype._selectNodes = function(selection, append) {
-  var changed = false;
-  var i, iMax;
-
-  // TODO: the selectNodes method is a little messy, rework this
-
-  // check if the current selection equals the desired selection
-  var selectionAlreadyThere = true;
-  if (selection.length != this.selection.length) {
-    selectionAlreadyThere = false;
-  }
-  else {
-    for (i = 0, iMax = Math.min(selection.length, this.selection.length); i < iMax; i++) {
-      if (selection[i] != this.selection[i]) {
-        selectionAlreadyThere = false;
-        break;
-      }
-    }
-  }
-  if (selectionAlreadyThere) {
-    return changed;
-  }
-
-  if (append == undefined || append == false) {
-    // first deselect any selected node
-    var triggerSelect = false;
-    changed = this._unselectNodes(undefined, triggerSelect);
-  }
-
-  for (i = 0, iMax = selection.length; i < iMax; i++) {
-    // add each of the new selections, but only when they are not duplicate
-    var id = selection[i];
-    var isDuplicate = (this.selection.indexOf(id) != -1);
-    if (!isDuplicate) {
-      this.nodes[id].select();
-      this.selection.push(id);
-      changed = true;
-    }
-  }
-
-  if (changed) {
-    // fire the select event
-    this._trigger('select');
-  }
-
-  return changed;
-};
-
-/**
- * retrieve all nodes overlapping with given object
- * @param {Object} obj  An object with parameters left, top, right, bottom
- * @return {Number[]}   An array with id's of the overlapping nodes
- * @private
- */
-Graph.prototype._getNodesOverlappingWith = function (obj) {
-  var overlappingNodes = [];
-  var nodes, sector;
-
-  // search in all sectors for nodes
-  for (sector in this.sectors["active"]) {
-    if (this.sectors["active"].hasOwnProperty(sector)) {
-      nodes = this.sectors["active"][sector]["nodes"];
-      for (var id in nodes) {
-        if (nodes.hasOwnProperty(id)) {
-          if (nodes[id].isOverlappingWith(obj)) {
-            overlappingNodes.push(id);
-          }
-        }
-      }
-    }
-  }
-
-  for (sector in this.sectors["frozen"]) {
-    if (this.sectors["frozen"].hasOwnProperty(sector)) {
-      nodes = this.sectors["frozen"][sector]["nodes"];
-      for (var id in nodes) {
-        if (nodes.hasOwnProperty(id)) {
-          if (nodes[id].isOverlappingWith(obj)) {
-            overlappingNodes.push(id);
-          }
-        }
-      }
-    }
-  }
-  this.nodes = this.sectors["active"][this.activeSector[this.activeSector.length-1]]["nodes"];
-
-  return overlappingNodes;
-};
-
-/**
- * retrieve the currently selected nodes
- * @return {Number[] | String[]} selection    An array with the ids of the
- *                                            selected nodes.
- */
-Graph.prototype.getSelection = function() {
-  return this.selection.concat([]);
-};
-
-/**
- * select zero or more nodes
- * @param {Number[] | String[]} selection     An array with the ids of the
- *                                            selected nodes.
- */
-Graph.prototype.setSelection = function(selection) {
-  var i, iMax, id;
-
-  if (!selection || (selection.length == undefined))
-    throw 'Selection must be an array with ids';
-
-  // first unselect any selected node
-  for (i = 0, iMax = this.selection.length; i < iMax; i++) {
-    id = this.selection[i];
-    this.nodes[id].unselect();
-  }
-
-  this.selection = [];
-
-  for (i = 0, iMax = selection.length; i < iMax; i++) {
-    id = selection[i];
-
-    var node = this.nodes[id];
-    if (!node) {
-      throw new RangeError('Node with id "' + id + '" not found');
-    }
-    node.select();
-    this.selection.push(id);
-  }
-
-  this.redraw();
-};
-
-/**
- * Validate the selection: remove ids of nodes which no longer exist
- * @private
- */
-Graph.prototype._updateSelection = function () {
-  var i = 0;
-  while (i < this.selection.length) {
-    var id = this.selection[i];
-    if (!this.nodes[id]) {
-      this.selection.splice(i, 1);
-    }
-    else {
-      i++;
-    }
-  }
-};
 
 /**
  * Temporary method to test calculating a hub value for the nodes
@@ -13272,7 +13669,9 @@ Graph.prototype.setSize = function(width, height) {
   this.frame.canvas.width = this.frame.canvas.clientWidth;
   this.frame.canvas.height = this.frame.canvas.clientHeight;
 
-  this._relocateUI();
+  if (this.constants.UI.enabled == true) {
+    this._relocateUI();
+  }
 };
 
 /**
@@ -13608,6 +14007,11 @@ Graph.prototype._redraw = function() {
   ctx.translate(this.translation.x, this.translation.y);
   ctx.scale(this.scale, this.scale);
 
+  this.canvasTopLeft = {"x": (0-this.translation.x)/this.scale,
+                        "y": (0-this.translation.y)/this.scale};
+  this.canvasBottomRight = {"x": (this.frame.canvas.clientWidth -this.translation.x)/this.scale,
+                            "y": (this.frame.canvas.clientHeight-this.translation.y)/this.scale};
+
   this._doInAllSectors("_drawAllSectorNodes",ctx);
   this._doInAllSectors("_drawEdges",ctx);
   this._doInAllSectors("_drawNodes",ctx);
@@ -13615,7 +14019,9 @@ Graph.prototype._redraw = function() {
   // restore original scaling and translation
   ctx.restore();
 
-  this._doInUISector("_drawNodes",ctx,true);
+  if (this.UIvisible == true) {
+    this._doInUISector("_drawNodes",ctx,true);
+  }
 };
 
 /**
@@ -13820,10 +14226,6 @@ Graph.prototype._initializeForceCalculation = function() {
  * @private
  */
 Graph.prototype._calculateForces = function() {
-  this.canvasTopLeft = {"x": (0-this.translation.x)/this.scale,
-                        "y": (0-this.translation.y)/this.scale};
-  this.canvasBottomRight = {"x": (this.frame.canvas.clientWidth -this.translation.x)/this.scale,
-                            "y": (this.frame.canvas.clientHeight-this.translation.y)/this.scale};
   var centerPos = {"x":0.5*(this.canvasTopLeft.x + this.canvasBottomRight.x),
                    "y":0.5*(this.canvasTopLeft.y + this.canvasBottomRight.y)}
 
@@ -14037,7 +14439,7 @@ Graph.prototype._isMoving = function(vmin) {
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = this.refreshRate / 1000.0; // in seconds
+  var interval = this.calculationRefreshRate / 1000.0; // in seconds
   var nodes = this.nodes;
   for (var id in nodes) {
     if (nodes.hasOwnProperty(id)) {
@@ -14049,33 +14451,62 @@ Graph.prototype._discreteStepNodes = function() {
   this.moving = this._isMoving(vmin);
 };
 
+
+
 /**
  * Start animating nodes and edges
+ *
+ * @poram {Boolean} runCalculationStep
  */
-Graph.prototype.start = function() {
+Graph.prototype.start = function(runCalculationStep) {
+  if (runCalculationStep === undefined) {
+    runCalculationStep = true;
+  }
   if (!this.freezeSimulation) {
-    if (this.moving) {
+    if (this.moving && runCalculationStep) {
       this._doInAllActiveSectors("_initializeForceCalculation");
       this._doInAllActiveSectors("_discreteStepNodes");
     }
 
-    if (this.moving) {
-      // start animation. only start timer if it is not already running
+    if (this.moving || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0) {
+      // start animation. only start calculationTimer if it is not already running
       if (!this.timer) {
         var graph = this;
         this.timer = window.setTimeout(function () {
           graph.timer = undefined;
 
-          graph.start();
-          graph.start();
+          // keyboad movement
+          if (graph.xIncrement != 0 || graph.yIncrement != 0) {
+            var translation = graph._getTranslation();
+            graph._setTranslation(translation.x+graph.xIncrement,translation.y+graph.yIncrement);
+          }
+          if (graph.zoomIncrement != 0) {
+            graph._zoom(graph.scale*(1 + graph.zoomIncrement),graph.lastPointerPosition);
+          }
 
+
+          var calculateNextStep = false;
+          var time = window.performance.now();
+          if (time - graph.calculationStartTime > graph.calculationRefreshRate && graph.moving) {
+            calculateNextStep = true;
+            graph.calculationStartTime = window.performance.now();
+          }
+          graph.start(calculateNextStep);
+
+
+          //var startTime = window.performance.now();
           graph._redraw();
-//          var start = window.performance.now();
-//          graph._redraw();
-//          var end = window.performance.now();
-//          var time = end - start;
-//          console.log('Drawing time: ' + time);
-        }, this.refreshRate);
+          //var end = window.performance.now();
+          //time = end - startTime;
+          //console.log('Drawing time: ' + time);
+
+
+          //this.end = window.performance.now();
+          //this.time = this.end - this.startTime;
+          //console.log('refresh time: ' + this.time);
+          //this.startTime = window.performance.now();
+
+        }, this.renderRefreshRate);
       }
     }
     else {
@@ -14083,6 +14514,8 @@ Graph.prototype.start = function() {
     }
   }
 };
+
+
 
 
 Graph.prototype.singleStep = function() {
@@ -14148,7 +14581,7 @@ Graph.prototype._loadSectorSystem = function() {
                         "formationScale": 1.0,
                         "drawingNode": undefined};
 
-  this.nodeIndices = this.sectors["active"][this.activeSector[this.activeSector.length-1]]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
+  this.nodeIndices = this.sectors["active"]["default"]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
   for (var mixinFunction in SectorMixin) {
     if (SectorMixin.hasOwnProperty(mixinFunction)) {
       Graph.prototype[mixinFunction] = SectorMixin[mixinFunction];
@@ -14157,59 +14590,43 @@ Graph.prototype._loadSectorSystem = function() {
 };
 
 
+/**
+ * Mixin the selection system and initialize the parameters required
+ *
+ * @private
+ */
+Graph.prototype._loadSelectionSystem = function() {
+  this.selection = [];
+  this.selectionObj = {};
 
-Graph.prototype._loadUISystem = function() {
-  this._loadUIElements();
-}
-
-Graph.prototype._loadUIElements = function() {
-  var DIR = 'img/UI/';
-  this.UIclientWidth = this.frame.canvas.clientWidth;
-  this.UIclientHeight = this.frame.canvas.clientHeight;
-  var UINodes = [
-    {id: 'UI_up',    shape: 'image', image: DIR + 'uparrow.png',
-      verticalAlignTop: false,  x: 50,  y: this.UIclientHeight - 50},
-    {id: 'UI_down',  shape: 'image', image: DIR + 'downarrow.png',
-      verticalAlignTop: false,  x: 50,  y: this.UIclientHeight - 20},
-    {id: 'UI_left',  shape: 'image', image: DIR + 'leftarrow.png',
-      verticalAlignTop: false,  x: 20,  y: this.UIclientHeight - 20},
-    {id: 'UI_right', shape: 'image', image: DIR + 'rightarrow.png',
-      verticalAlignTop: false,  x: 80,  y: this.UIclientHeight - 20},
-    {id: 'UI_plus',  shape: 'image', image: DIR + 'plus.png',
-      verticalAlignTop: false,  x: 130, y: this.UIclientHeight - 20},
-    {id: 'UI_minus', shape: 'image', image: DIR + 'minus.png',
-      verticalAlignTop: false,  x: 160, y: this.UIclientHeight - 20}
-  ];
-
-  for (var i = 0; i < UINodes.length; i++) {
-    this.sectors["UI"]['nodes'][UINodes[i]['id']] = new Node(UINodes[i], this.images, this.groups, this.constants);
-  }
-};
-
-Graph.prototype._relocateUI = function() {
-  var xOffset = this.UIclientWidth - this.frame.canvas.clientWidth;
-  var yOffset = this.UIclientHeight - this.frame.canvas.clientHeight;
-  this.UIclientWidth = this.frame.canvas.clientWidth;
-  this.UIclientHeight = this.frame.canvas.clientHeight;
-  var node = null;
-  for (var nodeId in this.sectors["UI"]["nodes"]) {
-    if (this.sectors["UI"]["nodes"].hasOwnProperty(nodeId)) {
-      node = this.sectors["UI"]["nodes"][nodeId];
-      if (!node.horizontalAlignLeft) {
-        node.x -= xOffset;
-      }
-      if (!node.verticalAlignTop) {
-        node.y -= yOffset;
-      }
+  for (var mixinFunction in SelectionMixin) {
+    if (SelectionMixin.hasOwnProperty(mixinFunction)) {
+      Graph.prototype[mixinFunction] = SelectionMixin[mixinFunction];
     }
   }
-};
+}
 
+Graph.prototype._relocateUI = function() {
+  // empty, will be overloaded when loading the UI system
+}
 
+/**
+ * Mixin the UI (User Interface) system and initialize the parameters required
+ *
+ * @private
+ */
+Graph.prototype._loadUISystem = function() {
+  for (var mixinFunction in UIMixin) {
+    if (UIMixin.hasOwnProperty(mixinFunction)) {
+      Graph.prototype[mixinFunction] = UIMixin[mixinFunction];
+    }
+  }
+  this._loadUIElements();
 
-
-
-
+  if (this.constants.UI.enabled == true) {
+    this._createKeyBinds();
+  }
+}
 
 
 

@@ -907,9 +907,9 @@ var ClusterMixin = {
    */
   _nodeInActiveArea : function(node) {
     return (
-      Math.abs(node.x - this.zoomCenter.x) <= this.constants.clustering.activeAreaBoxSize/this.scale
+      Math.abs(node.x - this.areaCenter.x) <= this.constants.clustering.activeAreaBoxSize/this.scale
         &&
-      Math.abs(node.y - this.zoomCenter.y) <= this.constants.clustering.activeAreaBoxSize/this.scale
+      Math.abs(node.y - this.areaCenter.y) <= this.constants.clustering.activeAreaBoxSize/this.scale
       )
    },
 

@@ -468,8 +468,22 @@ var SectorMixin = {
    * @private
    */
   _doInAllSectors : function(runFunction,argument) {
-    this._doInAllActiveSectors(runFunction,argument);
-    this._doInAllFrozenSectors(runFunction,argument);
+    var args = Array.prototype.splice.call(arguments, 1);
+    if (argument === undefined) {
+      this._doInAllActiveSectors(runFunction);
+      this._doInAllFrozenSectors(runFunction);
+    }
+    else {
+      if (args.length > 1) {
+        this._doInAllActiveSectors(runFunction,args[0],args[1]);
+        this._doInAllFrozenSectors(runFunction,args[0],args[1]);
+      }
+      else {
+        this._doInAllActiveSectors(runFunction,argument);
+        this._doInAllFrozenSectors(runFunction,argument);
+      }
+    }
+
   },
 
 
@@ -497,11 +511,11 @@ var SectorMixin = {
     var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
     for (var sector in this.sectors[sectorType]) {
       if (this.sectors[sectorType].hasOwnProperty(sector)) {
-        minY = 1e9; maxY = -1e9; minX = 1e9; maxX = -1e9;
         if (this.sectors[sectorType][sector]["drawingNode"] !== undefined) {
 
           this._switchToSector(sector,sectorType);
 
+          minY = 1e9; maxY = -1e9; minX = 1e9; maxX = -1e9;
           for (var nodeId in this.nodes) {
             if (this.nodes.hasOwnProperty(nodeId)) {
               node = this.nodes[nodeId];

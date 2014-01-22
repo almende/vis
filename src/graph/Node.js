@@ -153,6 +153,7 @@ Node.prototype.setProperties = function(properties, constants) {
   // UI properties
   if (properties.horizontalAlignLeft !== undefined) {this.horizontalAlignLeft = properties.horizontalAlignLeft;}
   if (properties.verticalAlignTop    !== undefined) {this.verticalAlignTop    = properties.verticalAlignTop;}
+  if (properties.triggerFunction     !== undefined) {this.triggerFunction     = properties.triggerFunction;}
 
   if (this.id === undefined) {
     throw "Node must have an id";
@@ -212,7 +213,6 @@ Node.prototype.setProperties = function(properties, constants) {
     case 'star':          this.draw = this._drawStar; this.resize = this._resizeShape; break;
     default:              this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
   }
-
   // reset the size of the node, this can be changed
   this._reset();
 };
@@ -482,10 +482,10 @@ Node.prototype.resize = function(ctx) {
  * @return {boolean}     True if location is located on node
  */
 Node.prototype.isOverlappingWith = function(obj) {
-  return (this.left          < obj.right &&
-      this.left + this.width > obj.left &&
-      this.top               < obj.bottom &&
-      this.top + this.height > obj.top);
+  return (this.left              < obj.right  &&
+          this.left + this.width > obj.left   &&
+          this.top               < obj.bottom &&
+          this.top + this.height > obj.top);
 };
 
 Node.prototype._resizeImage = function (ctx) {

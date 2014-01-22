@@ -85,6 +85,8 @@ task('build', {async: true}, function () {
       './src/graph/Images.js',
       './src/graph/SectorsMixin.js',
       './src/graph/ClusterMixin.js',
+      './src/graph/SelectionMixin.js',
+      './src/graph/UIMixin.js',
       './src/graph/Graph.js',
 
 
