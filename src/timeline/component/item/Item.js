@@ -8,32 +8,34 @@
  *                                  // TODO: describe available options
  */
 function Item (parent, data, options, defaultOptions) {
-    this.parent = parent;
-    this.data = data;
-    this.dom = null;
-    this.options = options || {};
-    this.defaultOptions = defaultOptions || {};
+  this.parent = parent;
+  this.data = data;
+  this.dom = null;
+  this.options = options || {};
+  this.defaultOptions = defaultOptions || {};
 
-    this.selected = false;
-    this.visible = false;
-    this.top = 0;
-    this.left = 0;
-    this.width = 0;
-    this.height = 0;
+  this.selected = false;
+  this.visible = false;
+  this.top = 0;
+  this.left = 0;
+  this.width = 0;
+  this.height = 0;
 }
 
 /**
  * Select current item
  */
 Item.prototype.select = function select() {
-    this.selected = true;
+  this.selected = true;
+  if (this.visible) this.repaint();
 };
 
 /**
  * Unselect current item
  */
 Item.prototype.unselect = function unselect() {
-    this.selected = false;
+  this.selected = false;
+  if (this.visible) this.repaint();
 };
 
 /**
@@ -41,7 +43,7 @@ Item.prototype.unselect = function unselect() {
  * @return {Boolean} changed
  */
 Item.prototype.show = function show() {
-    return false;
+  return false;
 };
 
 /**
@@ -49,7 +51,7 @@ Item.prototype.show = function show() {
  * @return {Boolean} changed
  */
 Item.prototype.hide = function hide() {
-    return false;
+  return false;
 };
 
 /**
@@ -57,8 +59,8 @@ Item.prototype.hide = function hide() {
  * @return {Boolean} changed
  */
 Item.prototype.repaint = function repaint() {
-    // should be implemented by the item
-    return false;
+  // should be implemented by the item
+  return false;
 };
 
 /**
@@ -66,8 +68,8 @@ Item.prototype.repaint = function repaint() {
  * @return {Boolean} resized
  */
 Item.prototype.reflow = function reflow() {
-    // should be implemented by the item
-    return false;
+  // should be implemented by the item
+  return false;
 };
 
 /**
@@ -75,5 +77,5 @@ Item.prototype.reflow = function reflow() {
  * @return {Integer} width
  */
 Item.prototype.getWidth = function getWidth() {
-    return this.width;
+  return this.width;
 }

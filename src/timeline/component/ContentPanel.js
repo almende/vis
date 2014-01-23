@@ -1,5 +1,6 @@
 /**
- * A panel can contain components
+ * A content panel can contain a groupset or an itemset, and can handle
+ * vertical scrolling
  * @param {Component} [parent]
  * @param {Component[]} [depends]   Components on which this components depends
  *                                  (except for the parent)
@@ -9,10 +10,10 @@
  *                              {String | Number | function} [width]
  *                              {String | Number | function} [height]
  *                              {String | function} [className]
- * @constructor Panel
- * @extends Component
+ * @constructor ContentPanel
+ * @extends Panel
  */
-function Panel(parent, depends, options) {
+function ContentPanel(parent, depends, options) {
   this.id = util.randomUUID();
   this.parent = parent;
   this.depends = depends;
@@ -20,7 +21,7 @@ function Panel(parent, depends, options) {
   this.options = options || {};
 }
 
-Panel.prototype = new Component();
+ContentPanel.prototype = new Component();
 
 /**
  * Set options. Will extend the current options.
@@ -31,14 +32,14 @@ Panel.prototype = new Component();
  *                              {String | Number | function} [width]
  *                              {String | Number | function} [height]
  */
-Panel.prototype.setOptions = Component.prototype.setOptions;
+ContentPanel.prototype.setOptions = Component.prototype.setOptions;
 
 /**
  * Get the container element of the panel, which can be used by a child to
  * add its own widgets.
  * @returns {HTMLElement} container
  */
-Panel.prototype.getContainer = function () {
+ContentPanel.prototype.getContainer = function () {
   return this.frame;
 };
 
@@ -46,7 +47,7 @@ Panel.prototype.getContainer = function () {
  * Repaint the component
  * @return {Boolean} changed
  */
-Panel.prototype.repaint = function () {
+ContentPanel.prototype.repaint = function () {
   var changed = 0,
       update = util.updateProperty,
       asSize = util.option.asSize,
@@ -54,7 +55,7 @@ Panel.prototype.repaint = function () {
       frame = this.frame;
   if (!frame) {
     frame = document.createElement('div');
-    frame.className = 'panel';
+    frame.className = 'content-panel';
 
     var className = options.className;
     if (className) {
@@ -93,7 +94,7 @@ Panel.prototype.repaint = function () {
  * Reflow the component
  * @return {Boolean} resized
  */
-Panel.prototype.reflow = function () {
+ContentPanel.prototype.reflow = function () {
   var changed = 0,
       update = util.updateProperty,
       frame = this.frame;

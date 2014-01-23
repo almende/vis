@@ -7,25 +7,25 @@
  * @extends Component
  */
 function Group (parent, groupId, options) {
-    this.id = util.randomUUID();
-    this.parent = parent;
+  this.id = util.randomUUID();
+  this.parent = parent;
 
-    this.groupId = groupId;
-    this.itemset = null;    // ItemSet
-    this.options = options || {};
-    this.options.top = 0;
+  this.groupId = groupId;
+  this.itemset = null;    // ItemSet
+  this.options = options || {};
+  this.options.top = 0;
 
-    this.props = {
-        label: {
-            width: 0,
-            height: 0
-        }
-    };
+  this.props = {
+    label: {
+      width: 0,
+      height: 0
+    }
+  };
 
-    this.top = 0;
-    this.left = 0;
-    this.width = 0;
-    this.height = 0;
+  this.top = 0;
+  this.left = 0;
+  this.width = 0;
+  this.height = 0;
 }
 
 Group.prototype = new Component();
@@ -39,7 +39,7 @@ Group.prototype.setOptions = Component.prototype.setOptions;
  * @returns {HTMLElement} container
  */
 Group.prototype.getContainer = function () {
-    return this.parent.getContainer();
+  return this.parent.getContainer();
 };
 
 /**
@@ -48,31 +48,40 @@ Group.prototype.getContainer = function () {
  * @param {DataSet | DataView} items
  */
 Group.prototype.setItems = function setItems(items) {
-    if (this.itemset) {
-        // remove current item set
-        this.itemset.hide();
-        this.itemset.setItems();
+  if (this.itemset) {
+    // remove current item set
+    this.itemset.hide();
+    this.itemset.setItems();
 
-        this.parent.controller.remove(this.itemset);
-        this.itemset = null;
-    }
+    this.parent.controller.remove(this.itemset);
+    this.itemset = null;
+  }
 
-    if (items) {
-        var groupId = this.groupId;
+  if (items) {
+    var groupId = this.groupId;
 
-        var itemsetOptions = Object.create(this.options);
-        this.itemset = new ItemSet(this, null, itemsetOptions);
-        this.itemset.setRange(this.parent.range);
+    var itemsetOptions = Object.create(this.options);
+    this.itemset = new ItemSet(this, null, itemsetOptions);
+    this.itemset.setRange(this.parent.range);
 
-        this.view = new DataView(items, {
-            filter: function (item) {
-                return item.group == groupId;
-            }
-        });
-        this.itemset.setItems(this.view);
+    this.view = new DataView(items, {
+      filter: function (item) {
+        return item.group == groupId;
+      }
+    });
+    this.itemset.setItems(this.view);
 
-        this.parent.controller.add(this.itemset);
-    }
+    this.parent.controller.add(this.itemset);
+  }
+};
+
+/**
+ * Change the item selection, and/or get currently selected items
+ * @param {Array} [ids] An array with zero or more ids of the items to be selected.
+ * @return {Array} ids  The ids of the selected items
+ */
+Group.prototype.select = function select(ids) {
+  return this.itemset ? this.itemset.select(ids) : [];
 };
 
 /**
@@ -80,7 +89,7 @@ Group.prototype.setItems = function setItems(items) {
  * @return {Boolean} changed
  */
 Group.prototype.repaint = function repaint() {
-    return false;
+  return false;
 };
 
 /**
@@ -88,23 +97,23 @@ Group.prototype.repaint = function repaint() {
  * @return {Boolean} resized
  */
 Group.prototype.reflow = function reflow() {
-    var changed = 0,
-        update = util.updateProperty;
+  var changed = 0,
+      update = util.updateProperty;
 
-    changed += update(this, 'top',    this.itemset ? this.itemset.top : 0);
-    changed += update(this, 'height', this.itemset ? this.itemset.height : 0);
+  changed += update(this, 'top',    this.itemset ? this.itemset.top : 0);
+  changed += update(this, 'height', this.itemset ? this.itemset.height : 0);
 
-    // TODO: reckon with the height of the group label
+  // TODO: reckon with the height of the group label
 
-    if (this.label) {
-        var inner = this.label.firstChild;
-        changed += update(this.props.label, 'width', inner.clientWidth);
-        changed += update(this.props.label, 'height', inner.clientHeight);
-    }
-    else {
-        changed += update(this.props.label, 'width', 0);
-        changed += update(this.props.label, 'height', 0);
-    }
+  if (this.label) {
+    var inner = this.label.firstChild;
+    changed += update(this.props.label, 'width', inner.clientWidth);
+    changed += update(this.props.label, 'height', inner.clientHeight);
+  }
+  else {
+    changed += update(this.props.label, 'width', 0);
+    changed += update(this.props.label, 'height', 0);
+  }
 
-    return (changed > 0);
+  return (changed > 0);
 };

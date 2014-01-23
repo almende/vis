@@ -1,85 +1,93 @@
 
 .vis.timeline .item {
-    position: absolute;
-    color: #1A1A1A;
-    border-color: #97B0F8;
-    background-color: #D5DDF6;
-    display: inline-block;
+  position: absolute;
+  color: #1A1A1A;
+  border-color: #97B0F8;
+  background-color: #D5DDF6;
+  display: inline-block;
 }
 
 .vis.timeline .item.selected {
-    border-color: #FFC200;
-    background-color: #FFF785;
-    z-index: 999;
+  border-color: #FFC200;
+  background-color: #FFF785;
+  z-index: 999;
+}
+
+.vis.timeline .item.point.selected {
+  background-color: #FFF785;
+  z-index: 999;
+}
+.vis.timeline .item.point.selected .dot {
+  border-color: #FFC200;
 }
 
 .vis.timeline .item.cluster {
-    /* TODO: use another color or pattern? */
-    background: #97B0F8 url('img/cluster_bg.png');
-    color: white;
+  /* TODO: use another color or pattern? */
+  background: #97B0F8 url('img/cluster_bg.png');
+  color: white;
 }
 .vis.timeline .item.cluster.point {
-    border-color: #D5DDF6;
+  border-color: #D5DDF6;
 }
 
 .vis.timeline .item.box {
-    text-align: center;
-    border-style: solid;
-    border-width: 1px;
-    border-radius: 5px;
-    -moz-border-radius: 5px; /* For Firefox 3.6 and older */
+  text-align: center;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 5px;
+  -moz-border-radius: 5px; /* For Firefox 3.6 and older */
 }
 
 .vis.timeline .item.point {
-    background: none;
+  background: none;
 }
 
 .vis.timeline .dot {
-    border: 5px solid #97B0F8;
-    position: absolute;
-    border-radius: 5px;
-    -moz-border-radius: 5px;  /* For Firefox 3.6 and older */
+  border: 5px solid #97B0F8;
+  position: absolute;
+  border-radius: 5px;
+  -moz-border-radius: 5px;  /* For Firefox 3.6 and older */
 }
 
 .vis.timeline .item.range {
-    overflow: hidden;
-    border-style: solid;
-    border-width: 1px;
-    border-radius: 2px;
-    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */
+  overflow: hidden;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 2px;
+  -moz-border-radius: 2px;  /* For Firefox 3.6 and older */
 }
 
 .vis.timeline .item.rangeoverflow {
-    border-style: solid;
-    border-width: 1px;
-    border-radius: 2px;
-    -moz-border-radius: 2px;  /* For Firefox 3.6 and older */
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 2px;
+  -moz-border-radius: 2px;  /* For Firefox 3.6 and older */
 }
 
 .vis.timeline .item.range .drag-left, .vis.timeline .item.rangeoverflow .drag-left {
-    cursor: w-resize;
-    z-index: 1000;
+  cursor: w-resize;
+  z-index: 1000;
 }
 
 .vis.timeline .item.range .drag-right, .vis.timeline .item.rangeoverflow .drag-right {
-    cursor: e-resize;
-    z-index: 1000;
+  cursor: e-resize;
+  z-index: 1000;
 }
 
 .vis.timeline .item.range .content, .vis.timeline .item.rangeoverflow .content {
-    position: relative;
-    display: inline-block;
+  position: relative;
+  display: inline-block;
 }
 
 .vis.timeline .item.line {
-    position: absolute;
-    width: 0;
-    border-left-width: 1px;
-    border-left-style: solid;
+  position: absolute;
+  width: 0;
+  border-left-width: 1px;
+  border-left-style: solid;
 }
 
 .vis.timeline .item .content {
-    margin: 5px;
-    white-space: nowrap;
-    overflow: hidden;
+  margin: 5px;
+  white-space: nowrap;
+  overflow: hidden;
 }

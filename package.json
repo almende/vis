@@ -1,34 +1,35 @@
 {
-    "name": "vis",
-    "version": "0.3.0-SNAPSHOT",
-    "description": "A dynamic, browser-based visualization library.",
-    "homepage": "http://visjs.org/",
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/almende/vis.git"
-    },
-    "keywords": [
-        "vis",
-        "visualization",
-        "web based",
-        "browser based",
-        "javascript",
-        "chart",
-        "linechart",
-        "timeline",
-        "graph",
-        "network",
-        "browser"
-    ],
-    "scripts": {
-        "test": "jake test --trace"
-    },
-    "dependencies": {},
-    "devDependencies": {
-        "jake": "latest",
-        "jake-utils": "latest",
-        "browserify": "latest",
-        "moment": "latest",
-        "hammerjs": "latest"
-    }
+  "name": "vis",
+  "version": "0.4.0-SNAPSHOT",
+  "description": "A dynamic, browser-based visualization library.",
+  "homepage": "http://visjs.org/",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/almende/vis.git"
+  },
+  "keywords": [
+    "vis",
+    "visualization",
+    "web based",
+    "browser based",
+    "javascript",
+    "chart",
+    "linechart",
+    "timeline",
+    "graph",
+    "network",
+    "browser"
+  ],
+  "scripts": {
+    "test": "jake test --trace",
+    "build": "jake --trace"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "jake": "latest",
+    "jake-utils": "latest",
+    "browserify": "latest",
+    "moment": "latest",
+    "hammerjs": "1.0.5"
+  }
 }

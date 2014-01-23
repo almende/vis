@@ -14,40 +14,40 @@
  *                                example for the color
  */
 function Edge (properties, graph, constants) {
-    if (!graph) {
-        throw "No graph provided";
-    }
-    this.graph = graph;
+  if (!graph) {
+    throw "No graph provided";
+  }
+  this.graph = graph;
 
-    // initialize constants
-    this.widthMin = constants.edges.widthMin;
-    this.widthMax = constants.edges.widthMax;
+  // initialize constants
+  this.widthMin = constants.edges.widthMin;
+  this.widthMax = constants.edges.widthMax;
 
-    // initialize variables
-    this.id     = undefined;
-    this.fromId = undefined;
-    this.toId = undefined;
-    this.style  = constants.edges.style;
-    this.title  = undefined;
-    this.width  = constants.edges.width;
-    this.value  = undefined;
-    this.length = constants.edges.length;
+  // initialize variables
+  this.id     = undefined;
+  this.fromId = undefined;
+  this.toId = undefined;
+  this.style  = constants.edges.style;
+  this.title  = undefined;
+  this.width  = constants.edges.width;
+  this.value  = undefined;
+  this.length = constants.edges.length;
 
-    this.from = null;   // a node
-    this.to = null;     // a node
-    this.connected = false;
+  this.from = null;   // a node
+  this.to = null;     // a node
+  this.connected = false;
 
-    // Added to support dashed lines
-    // David Jordan
-    // 2012-08-08
-    this.dash = util.extend({}, constants.edges.dash); // contains properties length, gap, altLength
+  // Added to support dashed lines
+  // David Jordan
+  // 2012-08-08
+  this.dash = util.extend({}, constants.edges.dash); // contains properties length, gap, altLength
 
-    this.stiffness   = undefined; // depends on the length of the edge
-    this.color       = constants.edges.color;
-    this.widthFixed  = false;
-    this.lengthFixed = false;
+  this.stiffness   = undefined; // depends on the length of the edge
+  this.color       = constants.edges.color;
+  this.widthFixed  = false;
+  this.lengthFixed = false;
 
-    this.setProperties(properties, constants);
+  this.setProperties(properties, constants);
 }
 
 /**
@@ -56,95 +56,95 @@ function Edge (properties, graph, constants) {
  * @param {Object} constants   and object with default, global properties
  */
 Edge.prototype.setProperties = function(properties, constants) {
-    if (!properties) {
-        return;
-    }
+  if (!properties) {
+    return;
+  }
 
-    if (properties.from != undefined)           {this.fromId = properties.from;}
-    if (properties.to != undefined)             {this.toId = properties.to;}
+  if (properties.from != undefined)           {this.fromId = properties.from;}
+  if (properties.to != undefined)             {this.toId = properties.to;}
 
-    if (properties.id != undefined)             {this.id = properties.id;}
-    if (properties.style != undefined)          {this.style = properties.style;}
-    if (properties.label != undefined)          {this.label = properties.label;}
-    if (this.label) {
-        this.fontSize = constants.edges.fontSize;
-        this.fontFace = constants.edges.fontFace;
-        this.fontColor = constants.edges.fontColor;
-        if (properties.fontColor != undefined)  {this.fontColor = properties.fontColor;}
-        if (properties.fontSize != undefined)   {this.fontSize = properties.fontSize;}
-        if (properties.fontFace != undefined)   {this.fontFace = properties.fontFace;}
-    }
-    if (properties.title != undefined)          {this.title = properties.title;}
-    if (properties.width != undefined)          {this.width = properties.width;}
-    if (properties.value != undefined)          {this.value = properties.value;}
-    if (properties.length != undefined)         {this.length = properties.length;}
+  if (properties.id != undefined)             {this.id = properties.id;}
+  if (properties.style != undefined)          {this.style = properties.style;}
+  if (properties.label != undefined)          {this.label = properties.label;}
+  if (this.label) {
+    this.fontSize = constants.edges.fontSize;
+    this.fontFace = constants.edges.fontFace;
+    this.fontColor = constants.edges.fontColor;
+    if (properties.fontColor != undefined)  {this.fontColor = properties.fontColor;}
+    if (properties.fontSize != undefined)   {this.fontSize = properties.fontSize;}
+    if (properties.fontFace != undefined)   {this.fontFace = properties.fontFace;}
+  }
+  if (properties.title != undefined)          {this.title = properties.title;}
+  if (properties.width != undefined)          {this.width = properties.width;}
+  if (properties.value != undefined)          {this.value = properties.value;}
+  if (properties.length != undefined)         {this.length = properties.length;}
 
-    // Added to support dashed lines
-    // David Jordan
-    // 2012-08-08
-    if (properties.dash) {
-        if (properties.dash.length != undefined)    {this.dash.length = properties.dash.length;}
-        if (properties.dash.gap != undefined)       {this.dash.gap = properties.dash.gap;}
-        if (properties.dash.altLength != undefined) {this.dash.altLength = properties.dash.altLength;}
-    }
-    
-    if (properties.color != undefined) {this.color = properties.color;}
+  // Added to support dashed lines
+  // David Jordan
+  // 2012-08-08
+  if (properties.dash) {
+    if (properties.dash.length != undefined)    {this.dash.length = properties.dash.length;}
+    if (properties.dash.gap != undefined)       {this.dash.gap = properties.dash.gap;}
+    if (properties.dash.altLength != undefined) {this.dash.altLength = properties.dash.altLength;}
+  }
 
-    // A node is connected when it has a from and to node.
-    this.connect();
+  if (properties.color != undefined) {this.color = properties.color;}
 
-    this.widthFixed = this.widthFixed || (properties.width != undefined);
-    this.lengthFixed = this.lengthFixed || (properties.length != undefined);
-    this.stiffness = 1 / this.length;
+  // A node is connected when it has a from and to node.
+  this.connect();
 
-    // set draw method based on style
-    switch (this.style) {
-        case 'line':          this.draw = this._drawLine; break;
-        case 'arrow':         this.draw = this._drawArrow; break;
-        case 'arrow-center':  this.draw = this._drawArrowCenter; break;
-        case 'dash-line':     this.draw = this._drawDashLine; break;
-        default:              this.draw = this._drawLine; break;
-    }
+  this.widthFixed = this.widthFixed || (properties.width != undefined);
+  this.lengthFixed = this.lengthFixed || (properties.length != undefined);
+  this.stiffness = 1 / this.length;
+
+  // set draw method based on style
+  switch (this.style) {
+    case 'line':          this.draw = this._drawLine; break;
+    case 'arrow':         this.draw = this._drawArrow; break;
+    case 'arrow-center':  this.draw = this._drawArrowCenter; break;
+    case 'dash-line':     this.draw = this._drawDashLine; break;
+    default:              this.draw = this._drawLine; break;
+  }
 };
 
 /**
  * Connect an edge to its nodes
  */
 Edge.prototype.connect = function () {
-    this.disconnect();
+  this.disconnect();
 
-    this.from = this.graph.nodes[this.fromId] || null;
-    this.to = this.graph.nodes[this.toId] || null;
-    this.connected = (this.from && this.to);
+  this.from = this.graph.nodes[this.fromId] || null;
+  this.to = this.graph.nodes[this.toId] || null;
+  this.connected = (this.from && this.to);
 
-    if (this.connected) {
-        this.from.attachEdge(this);
-        this.to.attachEdge(this);
+  if (this.connected) {
+    this.from.attachEdge(this);
+    this.to.attachEdge(this);
+  }
+  else {
+    if (this.from) {
+      this.from.detachEdge(this);
     }
-    else {
-        if (this.from) {
-            this.from.detachEdge(this);
-        }
-        if (this.to) {
-            this.to.detachEdge(this);
-        }
+    if (this.to) {
+      this.to.detachEdge(this);
     }
+  }
 };
 
 /**
  * Disconnect an edge from its nodes
  */
 Edge.prototype.disconnect = function () {
-    if (this.from) {
-        this.from.detachEdge(this);
-        this.from = null;
-    }
-    if (this.to) {
-        this.to.detachEdge(this);
-        this.to = null;
-    }
+  if (this.from) {
+    this.from.detachEdge(this);
+    this.from = null;
+  }
+  if (this.to) {
+    this.to.detachEdge(this);
+    this.to = null;
+  }
 
-    this.connected = false;
+  this.connected = false;
 };
 
 /**
@@ -153,7 +153,7 @@ Edge.prototype.disconnect = function () {
  *                           has been set.
  */
 Edge.prototype.getTitle = function() {
-    return this.title;
+  return this.title;
 };
 
 
@@ -162,7 +162,7 @@ Edge.prototype.getTitle = function() {
  * @return {Number} value
  */
 Edge.prototype.getValue = function() {
-    return this.value;
+  return this.value;
 };
 
 /**
@@ -172,10 +172,10 @@ Edge.prototype.getValue = function() {
  * @param {Number} max
  */
 Edge.prototype.setValueRange = function(min, max) {
-    if (!this.widthFixed && this.value !== undefined) {
-        var factor = (this.widthMax - this.widthMin) / (max - min);
-        this.width = (this.value - min) * factor + this.widthMin;
-    }
+  if (!this.widthFixed && this.value !== undefined) {
+    var scale = (this.widthMax - this.widthMin) / (max - min);
+    this.width = (this.value - min) * scale + this.widthMin;
+  }
 };
 
 /**
@@ -185,7 +185,7 @@ Edge.prototype.setValueRange = function(min, max) {
  * @param {CanvasRenderingContext2D}   ctx
  */
 Edge.prototype.draw = function(ctx) {
-    throw "Method draw not initialized in edge";
+  throw "Method draw not initialized in edge";
 };
 
 /**
@@ -194,19 +194,19 @@ Edge.prototype.draw = function(ctx) {
  * @return {boolean}     True if location is located on the edge
  */
 Edge.prototype.isOverlappingWith = function(obj) {
-    var distMax = 10;
+  var distMax = 10;
 
-    var xFrom = this.from.x;
-    var yFrom = this.from.y;
-    var xTo = this.to.x;
-    var yTo = this.to.y;
-    var xObj = obj.left;
-    var yObj = obj.top;
+  var xFrom = this.from.x;
+  var yFrom = this.from.y;
+  var xTo = this.to.x;
+  var yTo = this.to.y;
+  var xObj = obj.left;
+  var yObj = obj.top;
 
 
-    var dist = Edge._dist(xFrom, yFrom, xTo, yTo, xObj, yObj);
+  var dist = Edge._dist(xFrom, yFrom, xTo, yTo, xObj, yObj);
 
-    return (dist < distMax);
+  return (dist < distMax);
 };
 
 
@@ -218,40 +218,40 @@ Edge.prototype.isOverlappingWith = function(obj) {
  * @private
  */
 Edge.prototype._drawLine = function(ctx) {
-    // set style
-    ctx.strokeStyle = this.color;
-    ctx.lineWidth = this._getLineWidth();
+  // set style
+  ctx.strokeStyle = this.color;
+  ctx.lineWidth = this._getLineWidth();
 
-    var point;
-    if (this.from != this.to) {
-        // draw line
-        this._line(ctx);
+  var point;
+  if (this.from != this.to) {
+    // draw line
+    this._line(ctx);
 
-        // draw label
-        if (this.label) {
-            point = this._pointOnLine(0.5);
-            this._label(ctx, this.label, point.x, point.y);
-        }
+    // draw label
+    if (this.label) {
+      point = this._pointOnLine(0.5);
+      this._label(ctx, this.label, point.x, point.y);
+    }
+  }
+  else {
+    var x, y;
+    var radius = this.length / 4;
+    var node = this.from;
+    if (!node.width) {
+      node.resize(ctx);
+    }
+    if (node.width > node.height) {
+      x = node.x + node.width / 2;
+      y = node.y - radius;
     }
     else {
-        var x, y;
-        var radius = this.length / 4;
-        var node = this.from;
-        if (!node.width) {
-            node.resize(ctx);
-        }
-        if (node.width > node.height) {
-            x = node.x + node.width / 2;
-            y = node.y - radius;
-        }
-        else {
-            x = node.x + radius;
-            y = node.y - node.height / 2;
-        }
-        this._circle(ctx, x, y, radius);
-        point = this._pointOnCircle(x, y, radius, 0.5);
-        this._label(ctx, this.label, point.x, point.y);
+      x = node.x + radius;
+      y = node.y - node.height / 2;
     }
+    this._circle(ctx, x, y, radius);
+    point = this._pointOnCircle(x, y, radius, 0.5);
+    this._label(ctx, this.label, point.x, point.y);
+  }
 };
 
 /**
@@ -261,12 +261,12 @@ Edge.prototype._drawLine = function(ctx) {
  * @private
  */
 Edge.prototype._getLineWidth = function() {
-    if (this.from.selected || this.to.selected) {
-        return Math.min(this.width * 2, this.widthMax);
-    }
-    else {
-        return this.width;
-    }
+  if (this.from.selected || this.to.selected) {
+    return Math.min(this.width * 2, this.widthMax);
+  }
+  else {
+    return this.width;
+  }
 };
 
 /**
@@ -275,11 +275,11 @@ Edge.prototype._getLineWidth = function() {
  * @private
  */
 Edge.prototype._line = function (ctx) {
-    // draw a straight line
-    ctx.beginPath();
-    ctx.moveTo(this.from.x, this.from.y);
-    ctx.lineTo(this.to.x, this.to.y);
-    ctx.stroke();
+  // draw a straight line
+  ctx.beginPath();
+  ctx.moveTo(this.from.x, this.from.y);
+  ctx.lineTo(this.to.x, this.to.y);
+  ctx.stroke();
 };
 
 /**
@@ -291,10 +291,10 @@ Edge.prototype._line = function (ctx) {
  * @private
  */
 Edge.prototype._circle = function (ctx, x, y, radius) {
-    // draw a circle
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-    ctx.stroke();
+  // draw a circle
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+  ctx.stroke();
 };
 
 /**
@@ -306,24 +306,24 @@ Edge.prototype._circle = function (ctx, x, y, radius) {
  * @private
  */
 Edge.prototype._label = function (ctx, text, x, y) {
-    if (text) {
-        // TODO: cache the calculated size
-        ctx.font = ((this.from.selected || this.to.selected) ? "bold " : "") +
-            this.fontSize + "px " + this.fontFace;
-        ctx.fillStyle = 'white';
-        var width = ctx.measureText(text).width;
-        var height = this.fontSize;
-        var left = x - width / 2;
-        var top = y - height / 2;
+  if (text) {
+    // TODO: cache the calculated size
+    ctx.font = ((this.from.selected || this.to.selected) ? "bold " : "") +
+        this.fontSize + "px " + this.fontFace;
+    ctx.fillStyle = 'white';
+    var width = ctx.measureText(text).width;
+    var height = this.fontSize;
+    var left = x - width / 2;
+    var top = y - height / 2;
 
-        ctx.fillRect(left, top, width, height);
+    ctx.fillRect(left, top, width, height);
 
-        // draw text
-        ctx.fillStyle = this.fontColor || "black";
-        ctx.textAlign = "left";
-        ctx.textBaseline = "top";
-        ctx.fillText(text, left, top);
-    }
+    // draw text
+    ctx.fillStyle = this.fontColor || "black";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.fillText(text, left, top);
+  }
 };
 
 /**
@@ -336,35 +336,35 @@ Edge.prototype._label = function (ctx, text, x, y) {
  * @private
  */
 Edge.prototype._drawDashLine = function(ctx) {
-    // set style
-    ctx.strokeStyle = this.color;
-    ctx.lineWidth = this._getLineWidth();
+  // set style
+  ctx.strokeStyle = this.color;
+  ctx.lineWidth = this._getLineWidth();
 
-    // draw dashed line
-    ctx.beginPath();
-    ctx.lineCap = 'round';
-    if (this.dash.altLength != undefined) //If an alt dash value has been set add to the array this value
-    {
-        ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
-            [this.dash.length,this.dash.gap,this.dash.altLength,this.dash.gap]);
-    }
-    else if (this.dash.length != undefined && this.dash.gap != undefined) //If a dash and gap value has been set add to the array this value
-    {
-        ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
-            [this.dash.length,this.dash.gap]);
-    }
-    else //If all else fails draw a line
-    {
-        ctx.moveTo(this.from.x, this.from.y);
-        ctx.lineTo(this.to.x, this.to.y);
-    }
-    ctx.stroke();
+  // draw dashed line
+  ctx.beginPath();
+  ctx.lineCap = 'round';
+  if (this.dash.altLength != undefined) //If an alt dash value has been set add to the array this value
+  {
+    ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
+        [this.dash.length,this.dash.gap,this.dash.altLength,this.dash.gap]);
+  }
+  else if (this.dash.length != undefined && this.dash.gap != undefined) //If a dash and gap value has been set add to the array this value
+  {
+    ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
+        [this.dash.length,this.dash.gap]);
+  }
+  else //If all else fails draw a line
+  {
+    ctx.moveTo(this.from.x, this.from.y);
+    ctx.lineTo(this.to.x, this.to.y);
+  }
+  ctx.stroke();
 
-    // draw label
-    if (this.label) {
-        var point = this._pointOnLine(0.5);
-        this._label(ctx, this.label, point.x, point.y);
-    }
+  // draw label
+  if (this.label) {
+    var point = this._pointOnLine(0.5);
+    this._label(ctx, this.label, point.x, point.y);
+  }
 };
 
 /**
@@ -374,10 +374,10 @@ Edge.prototype._drawDashLine = function(ctx) {
  * @private
  */
 Edge.prototype._pointOnLine = function (percentage) {
-    return {
-        x: (1 - percentage) * this.from.x + percentage * this.to.x,
-        y: (1 - percentage) * this.from.y + percentage * this.to.y
-    }
+  return {
+    x: (1 - percentage) * this.from.x + percentage * this.to.x,
+    y: (1 - percentage) * this.from.y + percentage * this.to.y
+  }
 };
 
 /**
@@ -390,11 +390,11 @@ Edge.prototype._pointOnLine = function (percentage) {
  * @private
  */
 Edge.prototype._pointOnCircle = function (x, y, radius, percentage) {
-    var angle = (percentage - 3/8) * 2 * Math.PI;
-    return {
-        x: x + radius * Math.cos(angle),
-        y: y - radius * Math.sin(angle)
-    }
+  var angle = (percentage - 3/8) * 2 * Math.PI;
+  return {
+    x: x + radius * Math.cos(angle),
+    y: y - radius * Math.sin(angle)
+  }
 };
 
 /**
@@ -405,62 +405,62 @@ Edge.prototype._pointOnCircle = function (x, y, radius, percentage) {
  * @private
  */
 Edge.prototype._drawArrowCenter = function(ctx) {
-    var point;
-    // set style
-    ctx.strokeStyle = this.color;
-    ctx.fillStyle = this.color;
-    ctx.lineWidth = this._getLineWidth();
+  var point;
+  // set style
+  ctx.strokeStyle = this.color;
+  ctx.fillStyle = this.color;
+  ctx.lineWidth = this._getLineWidth();
 
-    if (this.from != this.to) {
-        // draw line
-        this._line(ctx);
+  if (this.from != this.to) {
+    // draw line
+    this._line(ctx);
 
-        // draw an arrow halfway the line
-        var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
-        var length = 10 + 5 * this.width; // TODO: make customizable?
-        point = this._pointOnLine(0.5);
-        ctx.arrow(point.x, point.y, angle, length);
-        ctx.fill();
-        ctx.stroke();
+    // draw an arrow halfway the line
+    var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
+    var length = 10 + 5 * this.width; // TODO: make customizable?
+    point = this._pointOnLine(0.5);
+    ctx.arrow(point.x, point.y, angle, length);
+    ctx.fill();
+    ctx.stroke();
 
-        // draw label
-        if (this.label) {
-            point = this._pointOnLine(0.5);
-            this._label(ctx, this.label, point.x, point.y);
-        }
+    // draw label
+    if (this.label) {
+      point = this._pointOnLine(0.5);
+      this._label(ctx, this.label, point.x, point.y);
+    }
+  }
+  else {
+    // draw circle
+    var x, y;
+    var radius = this.length / 4;
+    var node = this.from;
+    if (!node.width) {
+      node.resize(ctx);
+    }
+    if (node.width > node.height) {
+      x = node.x + node.width / 2;
+      y = node.y - radius;
     }
     else {
-        // draw circle
-        var x, y;
-        var radius = this.length / 4;
-        var node = this.from;
-        if (!node.width) {
-            node.resize(ctx);
-        }
-        if (node.width > node.height) {
-            x = node.x + node.width / 2;
-            y = node.y - radius;
-        }
-        else {
-            x = node.x + radius;
-            y = node.y - node.height / 2;
-        }
-        this._circle(ctx, x, y, radius);
-
-        // draw all arrows
-        var angle = 0.2 * Math.PI;
-        var length = 10 + 5 * this.width; // TODO: make customizable?
-        point = this._pointOnCircle(x, y, radius, 0.5);
-        ctx.arrow(point.x, point.y, angle, length);
-        ctx.fill();
-        ctx.stroke();
-
-        // draw label
-        if (this.label) {
-            point = this._pointOnCircle(x, y, radius, 0.5);
-            this._label(ctx, this.label, point.x, point.y);
-        }
+      x = node.x + radius;
+      y = node.y - node.height / 2;
     }
+    this._circle(ctx, x, y, radius);
+
+    // draw all arrows
+    var angle = 0.2 * Math.PI;
+    var length = 10 + 5 * this.width; // TODO: make customizable?
+    point = this._pointOnCircle(x, y, radius, 0.5);
+    ctx.arrow(point.x, point.y, angle, length);
+    ctx.fill();
+    ctx.stroke();
+
+    // draw label
+    if (this.label) {
+      point = this._pointOnCircle(x, y, radius, 0.5);
+      this._label(ctx, this.label, point.x, point.y);
+    }
+  }
 };
 
 
@@ -473,91 +473,91 @@ Edge.prototype._drawArrowCenter = function(ctx) {
  * @private
  */
 Edge.prototype._drawArrow = function(ctx) {
-    // set style
-    ctx.strokeStyle = this.color;
-    ctx.fillStyle = this.color;
-    ctx.lineWidth = this._getLineWidth();
+  // set style
+  ctx.strokeStyle = this.color;
+  ctx.fillStyle = this.color;
+  ctx.lineWidth = this._getLineWidth();
 
-    // draw line
-    var angle, length;
-    if (this.from != this.to) {
-        // calculate length and angle of the line
-        angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
-        var dx = (this.to.x - this.from.x);
-        var dy = (this.to.y - this.from.y);
-        var lEdge = Math.sqrt(dx * dx + dy * dy);
+  // draw line
+  var angle, length;
+  if (this.from != this.to) {
+    // calculate length and angle of the line
+    angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
+    var dx = (this.to.x - this.from.x);
+    var dy = (this.to.y - this.from.y);
+    var lEdge = Math.sqrt(dx * dx + dy * dy);
 
-        var lFrom = this.from.distanceToBorder(ctx, angle + Math.PI);
-        var pFrom = (lEdge - lFrom) / lEdge;
-        var xFrom = (pFrom) * this.from.x + (1 - pFrom) * this.to.x;
-        var yFrom = (pFrom) * this.from.y + (1 - pFrom) * this.to.y;
+    var lFrom = this.from.distanceToBorder(ctx, angle + Math.PI);
+    var pFrom = (lEdge - lFrom) / lEdge;
+    var xFrom = (pFrom) * this.from.x + (1 - pFrom) * this.to.x;
+    var yFrom = (pFrom) * this.from.y + (1 - pFrom) * this.to.y;
 
-        var lTo = this.to.distanceToBorder(ctx, angle);
-        var pTo = (lEdge - lTo) / lEdge;
-        var xTo = (1 - pTo) * this.from.x + pTo * this.to.x;
-        var yTo = (1 - pTo) * this.from.y + pTo * this.to.y;
+    var lTo = this.to.distanceToBorder(ctx, angle);
+    var pTo = (lEdge - lTo) / lEdge;
+    var xTo = (1 - pTo) * this.from.x + pTo * this.to.x;
+    var yTo = (1 - pTo) * this.from.y + pTo * this.to.y;
 
-        ctx.beginPath();
-        ctx.moveTo(xFrom, yFrom);
-        ctx.lineTo(xTo, yTo);
-        ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(xFrom, yFrom);
+    ctx.lineTo(xTo, yTo);
+    ctx.stroke();
 
-        // draw arrow at the end of the line
-        length = 10 + 5 * this.width; // TODO: make customizable?
-        ctx.arrow(xTo, yTo, angle, length);
-        ctx.fill();
-        ctx.stroke();
+    // draw arrow at the end of the line
+    length = 10 + 5 * this.width; // TODO: make customizable?
+    ctx.arrow(xTo, yTo, angle, length);
+    ctx.fill();
+    ctx.stroke();
 
-        // draw label
-        if (this.label) {
-            var point = this._pointOnLine(0.5);
-            this._label(ctx, this.label, point.x, point.y);
-        }
+    // draw label
+    if (this.label) {
+      var point = this._pointOnLine(0.5);
+      this._label(ctx, this.label, point.x, point.y);
+    }
+  }
+  else {
+    // draw circle
+    var node = this.from;
+    var x, y, arrow;
+    var radius = this.length / 4;
+    if (!node.width) {
+      node.resize(ctx);
+    }
+    if (node.width > node.height) {
+      x = node.x + node.width / 2;
+      y = node.y - radius;
+      arrow = {
+        x: x,
+        y: node.y,
+        angle: 0.9 * Math.PI
+      };
     }
     else {
-        // draw circle
-        var node = this.from;
-        var x, y, arrow;
-        var radius = this.length / 4;
-        if (!node.width) {
-            node.resize(ctx);
-        }
-        if (node.width > node.height) {
-            x = node.x + node.width / 2;
-            y = node.y - radius;
-            arrow = {
-                x: x,
-                y: node.y,
-                angle: 0.9 * Math.PI
-            };
-        }
-        else {
-            x = node.x + radius;
-            y = node.y - node.height / 2;
-            arrow = {
-                x: node.x,
-                y: y,
-                angle: 0.6 * Math.PI
-            };
-        }
-        ctx.beginPath();
-        // TODO: do not draw a circle, but an arc
-        // TODO: similarly, for a line without arrows, draw to the border of the nodes instead of the center
-        ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-        ctx.stroke();
-
-        // draw all arrows
-        length = 10 + 5 * this.width; // TODO: make customizable?
-        ctx.arrow(arrow.x, arrow.y, arrow.angle, length);
-        ctx.fill();
-        ctx.stroke();
-
-        // draw label
-        if (this.label) {
-            point = this._pointOnCircle(x, y, radius, 0.5);
-            this._label(ctx, this.label, point.x, point.y);
-        }
+      x = node.x + radius;
+      y = node.y - node.height / 2;
+      arrow = {
+        x: node.x,
+        y: y,
+        angle: 0.6 * Math.PI
+      };
     }
+    ctx.beginPath();
+    // TODO: do not draw a circle, but an arc
+    // TODO: similarly, for a line without arrows, draw to the border of the nodes instead of the center
+    ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+    ctx.stroke();
+
+    // draw all arrows
+    length = 10 + 5 * this.width; // TODO: make customizable?
+    ctx.arrow(arrow.x, arrow.y, arrow.angle, length);
+    ctx.fill();
+    ctx.stroke();
+
+    // draw label
+    if (this.label) {
+      point = this._pointOnCircle(x, y, radius, 0.5);
+      this._label(ctx, this.label, point.x, point.y);
+    }
+  }
 };
 
 
@@ -575,28 +575,28 @@ Edge.prototype._drawArrow = function(ctx) {
  * @private
  */
 Edge._dist = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
-    var px = x2-x1,
-        py = y2-y1,
-        something = px*px + py*py,
-        u =  ((x3 - x1) * px + (y3 - y1) * py) / something;
+  var px = x2-x1,
+      py = y2-y1,
+      something = px*px + py*py,
+      u =  ((x3 - x1) * px + (y3 - y1) * py) / something;
 
-    if (u > 1) {
-        u = 1;
-    }
-    else if (u < 0) {
-        u = 0;
-    }
+  if (u > 1) {
+    u = 1;
+  }
+  else if (u < 0) {
+    u = 0;
+  }
 
-    var x = x1 + u * px,
-        y = y1 + u * py,
-        dx = x - x3,
-        dy = y - y3;
+  var x = x1 + u * px,
+      y = y1 + u * py,
+      dx = x - x3,
+      dy = y - y3;
 
-    //# Note: If the actual distance does not matter,
-    //# if you only want to compare what this function
-    //# returns to other results of this function, you
-    //# can just return the squared distance instead
-    //# (i.e. remove the sqrt) to gain a little performance
+  //# Note: If the actual distance does not matter,
+  //# if you only want to compare what this function
+  //# returns to other results of this function, you
+  //# can just return the squared distance instead
+  //# (i.e. remove the sqrt) to gain a little performance
 
-    return Math.sqrt(dx*dx + dy*dy);
+  return Math.sqrt(dx*dx + dy*dy);
 };

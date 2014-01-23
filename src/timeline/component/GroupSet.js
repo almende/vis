@@ -9,42 +9,42 @@
  * @extends Panel
  */
 function GroupSet(parent, depends, options) {
-    this.id = util.randomUUID();
-    this.parent = parent;
-    this.depends = depends;
+  this.id = util.randomUUID();
+  this.parent = parent;
+  this.depends = depends;
 
-    this.options = options || {};
+  this.options = options || {};
 
-    this.range = null;      // Range or Object {start: number, end: number}
-    this.itemsData = null;  // DataSet with items
-    this.groupsData = null; // DataSet with groups
+  this.range = null;      // Range or Object {start: number, end: number}
+  this.itemsData = null;  // DataSet with items
+  this.groupsData = null; // DataSet with groups
 
-    this.groups = {};       // map with groups
+  this.groups = {};       // map with groups
 
-    this.dom = {};
-    this.props = {
-        labels: {
-            width: 0
-        }
-    };
+  this.dom = {};
+  this.props = {
+    labels: {
+      width: 0
+    }
+  };
 
-    // TODO: implement right orientation of the labels
+  // TODO: implement right orientation of the labels
 
-    // changes in groups are queued  key/value map containing id/action
-    this.queue = {};
+  // changes in groups are queued  key/value map containing id/action
+  this.queue = {};
 
-    var me = this;
-    this.listeners = {
-        'add': function (event, params) {
-            me._onAdd(params.items);
-        },
-        'update': function (event, params) {
-            me._onUpdate(params.items);
-        },
-        'remove': function (event, params) {
-            me._onRemove(params.items);
-        }
-    };
+  var me = this;
+  this.listeners = {
+    'add': function (event, params) {
+      me._onAdd(params.items);
+    },
+    'update': function (event, params) {
+      me._onUpdate(params.items);
+    },
+    'remove': function (event, params) {
+      me._onRemove(params.items);
+    }
+  };
 }
 
 GroupSet.prototype = new Panel();
@@ -58,7 +58,7 @@ GroupSet.prototype = new Panel();
 GroupSet.prototype.setOptions = Component.prototype.setOptions;
 
 GroupSet.prototype.setRange = function (range) {
-    // TODO: implement setRange
+  // TODO: implement setRange
 };
 
 /**
@@ -66,14 +66,14 @@ GroupSet.prototype.setRange = function (range) {
  * @param {vis.DataSet | null} items
  */
 GroupSet.prototype.setItems = function setItems(items) {
-    this.itemsData = items;
+  this.itemsData = items;
 
-    for (var id in this.groups) {
-        if (this.groups.hasOwnProperty(id)) {
-            var group = this.groups[id];
-            group.setItems(items);
-        }
+  for (var id in this.groups) {
+    if (this.groups.hasOwnProperty(id)) {
+      var group = this.groups[id];
+      group.setItems(items);
     }
+  }
 };
 
 /**
@@ -81,7 +81,7 @@ GroupSet.prototype.setItems = function setItems(items) {
  * @return {vis.DataSet | null} items
  */
 GroupSet.prototype.getItems = function getItems() {
-    return this.itemsData;
+  return this.itemsData;
 };
 
 /**
@@ -89,7 +89,7 @@ GroupSet.prototype.getItems = function getItems() {
  * @param {Range | Object} range  A Range or an object containing start and end.
  */
 GroupSet.prototype.setRange = function setRange(range) {
-    this.range = range;
+  this.range = range;
 };
 
 /**
@@ -97,48 +97,48 @@ GroupSet.prototype.setRange = function setRange(range) {
  * @param {vis.DataSet} groups
  */
 GroupSet.prototype.setGroups = function setGroups(groups) {
-    var me = this,
-        ids;
+  var me = this,
+      ids;
 
-    // unsubscribe from current dataset
-    if (this.groupsData) {
-        util.forEach(this.listeners, function (callback, event) {
-            me.groupsData.unsubscribe(event, callback);
-        });
+  // unsubscribe from current dataset
+  if (this.groupsData) {
+    util.forEach(this.listeners, function (callback, event) {
+      me.groupsData.unsubscribe(event, callback);
+    });
 
-        // remove all drawn groups
-        ids = this.groupsData.getIds();
-        this._onRemove(ids);
-    }
+    // remove all drawn groups
+    ids = this.groupsData.getIds();
+    this._onRemove(ids);
+  }
 
-    // replace the dataset
-    if (!groups) {
-        this.groupsData = null;
-    }
-    else if (groups instanceof DataSet) {
-        this.groupsData = groups;
-    }
-    else {
-        this.groupsData = new DataSet({
-            convert: {
-                start: 'Date',
-                end: 'Date'
-            }
-        });
-        this.groupsData.add(groups);
-    }
+  // replace the dataset
+  if (!groups) {
+    this.groupsData = null;
+  }
+  else if (groups instanceof DataSet) {
+    this.groupsData = groups;
+  }
+  else {
+    this.groupsData = new DataSet({
+      convert: {
+        start: 'Date',
+        end: 'Date'
+      }
+    });
+    this.groupsData.add(groups);
+  }
 
-    if (this.groupsData) {
-        // subscribe to new dataset
-        var id = this.id;
-        util.forEach(this.listeners, function (callback, event) {
-            me.groupsData.subscribe(event, callback, id);
-        });
+  if (this.groupsData) {
+    // subscribe to new dataset
+    var id = this.id;
+    util.forEach(this.listeners, function (callback, event) {
+      me.groupsData.subscribe(event, callback, id);
+    });
 
-        // draw all new groups
-        ids = this.groupsData.getIds();
-        this._onAdd(ids);
-    }
+    // draw all new groups
+    ids = this.groupsData.getIds();
+    this._onAdd(ids);
+  }
 };
 
 /**
@@ -146,7 +146,27 @@ GroupSet.prototype.setGroups = function setGroups(groups) {
  * @return {vis.DataSet | null} groups
  */
 GroupSet.prototype.getGroups = function getGroups() {
-    return this.groupsData;
+  return this.groupsData;
+};
+
+/**
+ * Change the item selection, and/or get currently selected items
+ * @param {Array} [ids] An array with zero or more ids of the items to be selected.
+ * @return {Array} ids  The ids of the selected items
+ */
+GroupSet.prototype.select = function select(ids) {
+  var selection = [],
+      groups = this.groups;
+
+  // iterate over each of the groups
+  for (var id in groups) {
+    if (groups.hasOwnProperty(id)) {
+      var group = groups[id];
+      selection = selection.concat(group.select(ids));
+    }
+  }
+
+  return selection;
 };
 
 /**
@@ -154,167 +174,179 @@ GroupSet.prototype.getGroups = function getGroups() {
  * @return {Boolean} changed
  */
 GroupSet.prototype.repaint = function repaint() {
-    var changed = 0,
-        i, id, group, label,
-        update = util.updateProperty,
-        asSize = util.option.asSize,
-        asElement = util.option.asElement,
-        options = this.options,
-        frame = this.dom.frame,
-        labels = this.dom.labels;
+  var changed = 0,
+      i, id, group, label,
+      update = util.updateProperty,
+      asSize = util.option.asSize,
+      asElement = util.option.asElement,
+      options = this.options,
+      frame = this.dom.frame,
+      labels = this.dom.labels,
+      labelSet = this.dom.labelSet;
 
-    // create frame
-    if (!this.parent) {
-        throw new Error('Cannot repaint groupset: no parent attached');
-    }
-    var parentContainer = this.parent.getContainer();
-    if (!parentContainer) {
-        throw new Error('Cannot repaint groupset: parent has no container element');
-    }
-    if (!frame) {
-        frame = document.createElement('div');
-        frame.className = 'groupset';
-        this.dom.frame = frame;
+  // create frame
+  if (!this.parent) {
+    throw new Error('Cannot repaint groupset: no parent attached');
+  }
+  var parentContainer = this.parent.getContainer();
+  if (!parentContainer) {
+    throw new Error('Cannot repaint groupset: parent has no container element');
+  }
+  if (!frame) {
+    frame = document.createElement('div');
+    frame.className = 'groupset';
+    this.dom.frame = frame;
 
-        var className = options.className;
-        if (className) {
-            util.addClassName(frame, util.option.asString(className));
+    var className = options.className;
+    if (className) {
+      util.addClassName(frame, util.option.asString(className));
+    }
+
+    changed += 1;
+  }
+  if (!frame.parentNode) {
+    parentContainer.appendChild(frame);
+    changed += 1;
+  }
+
+  // create labels
+  var labelContainer = asElement(options.labelContainer);
+  if (!labelContainer) {
+    throw new Error('Cannot repaint groupset: option "labelContainer" not defined');
+  }
+  if (!labels) {
+    labels = document.createElement('div');
+    labels.className = 'labels';
+    this.dom.labels = labels;
+  }
+  if (!labelSet) {
+    labelSet = document.createElement('div');
+    labelSet.className = 'label-set';
+    labels.appendChild(labelSet);
+    this.dom.labelSet = labelSet;
+  }
+  if (!labels.parentNode || labels.parentNode != labelContainer) {
+    if (labels.parentNode) {
+      labels.parentNode.removeChild(labels.parentNode);
+    }
+    labelContainer.appendChild(labels);
+  }
+
+  // reposition frame
+  changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
+  changed += update(frame.style, 'top',    asSize(options.top, '0px'));
+  changed += update(frame.style, 'left',   asSize(options.left, '0px'));
+  changed += update(frame.style, 'width',  asSize(options.width, '100%'));
+
+  // reposition labels
+  changed += update(labelSet.style, 'top',    asSize(options.top, '0px'));
+  changed += update(labelSet.style, 'height', asSize(options.height, this.height + 'px'));
+
+  var me = this,
+      queue = this.queue,
+      groups = this.groups,
+      groupsData = this.groupsData;
+
+  // show/hide added/changed/removed groups
+  var ids = Object.keys(queue);
+  if (ids.length) {
+    ids.forEach(function (id) {
+      var action = queue[id];
+      var group = groups[id];
+
+      //noinspection FallthroughInSwitchStatementJS
+      switch (action) {
+        case 'add':
+        case 'update':
+          if (!group) {
+            var groupOptions = Object.create(me.options);
+            util.extend(groupOptions, {
+              height: null,
+              maxHeight: null
+            });
+
+            group = new Group(me, id, groupOptions);
+            group.setItems(me.itemsData); // attach items data
+            groups[id] = group;
+
+            me.controller.add(group);
+          }
+
+          // TODO: update group data
+          group.data = groupsData.get(id);
+
+          delete queue[id];
+          break;
+
+        case 'remove':
+          if (group) {
+            group.setItems(); // detach items data
+            delete groups[id];
+
+            me.controller.remove(group);
+          }
+
+          // update lists
+          delete queue[id];
+          break;
+
+        default:
+          console.log('Error: unknown action "' + action + '"');
+      }
+    });
+
+    // the groupset depends on each of the groups
+    //this.depends = this.groups; // TODO: gives a circular reference through the parent
+
+    // TODO: apply dependencies of the groupset
+
+    // update the top positions of the groups in the correct order
+    var orderedGroups = this.groupsData.getIds({
+      order: this.options.groupOrder
+    });
+    for (i = 0; i < orderedGroups.length; i++) {
+      (function (group, prevGroup) {
+        var top = 0;
+        if (prevGroup) {
+          top = function () {
+            // TODO: top must reckon with options.maxHeight
+            return prevGroup.top + prevGroup.height;
+          }
         }
-
-        changed += 1;
-    }
-    if (!frame.parentNode) {
-        parentContainer.appendChild(frame);
-        changed += 1;
-    }
-
-    // create labels
-    var labelContainer = asElement(options.labelContainer);
-    if (!labelContainer) {
-        throw new Error('Cannot repaint groupset: option "labelContainer" not defined');
-    }
-    if (!labels) {
-        labels = document.createElement('div');
-        labels.className = 'labels';
-        //frame.appendChild(labels);
-        this.dom.labels = labels;
-    }
-    if (!labels.parentNode || labels.parentNode != labelContainer) {
-        if (labels.parentNode) {
-            labels.parentNode.removeChild(labels.parentNode);
-        }
-        labelContainer.appendChild(labels);
-    }
-
-    // reposition frame
-    changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
-    changed += update(frame.style, 'top',    asSize(options.top, '0px'));
-    changed += update(frame.style, 'left',   asSize(options.left, '0px'));
-    changed += update(frame.style, 'width',  asSize(options.width, '100%'));
-
-    // reposition labels
-    changed += update(labels.style, 'top',    asSize(options.top, '0px'));
-
-    var me = this,
-        queue = this.queue,
-        groups = this.groups,
-        groupsData = this.groupsData;
-
-    // show/hide added/changed/removed groups
-    var ids = Object.keys(queue);
-    if (ids.length) {
-        ids.forEach(function (id) {
-            var action = queue[id];
-            var group = groups[id];
-
-            //noinspection FallthroughInSwitchStatementJS
-            switch (action) {
-                case 'add':
-                case 'update':
-                    if (!group) {
-                        var groupOptions = Object.create(me.options);
-                        group = new Group(me, id, groupOptions);
-                        group.setItems(me.itemsData); // attach items data
-                        groups[id] = group;
-
-                        me.controller.add(group);
-                    }
-
-                    // TODO: update group data
-                    group.data = groupsData.get(id);
-
-                    delete queue[id];
-                    break;
-
-                case 'remove':
-                    if (group) {
-                        group.setItems(); // detach items data
-                        delete groups[id];
-
-                        me.controller.remove(group);
-                    }
-
-                    // update lists
-                    delete queue[id];
-                    break;
-
-                default:
-                    console.log('Error: unknown action "' + action + '"');
-            }
+        group.setOptions({
+          top: top
         });
-
-        // the groupset depends on each of the groups
-        //this.depends = this.groups; // TODO: gives a circular reference through the parent
-
-        // TODO: apply dependencies of the groupset
-
-        // update the top positions of the groups in the correct order
-        var orderedGroups = this.groupsData.getIds({
-            order: this.options.groupsOrder
-        });
-        for (i = 0; i < orderedGroups.length; i++) {
-            (function (group, prevGroup) {
-                var top = 0;
-                if (prevGroup) {
-                    top = function () {
-                        // TODO: top must reckon with options.maxHeight
-                        return prevGroup.top + prevGroup.height;
-                    }
-                }
-                group.setOptions({
-                    top: top
-                });
-            })(groups[orderedGroups[i]], groups[orderedGroups[i - 1]]);
-        }
-
-        // (re)create the labels
-        while (labels.firstChild) {
-            labels.removeChild(labels.firstChild);
-        }
-        for (i = 0; i < orderedGroups.length; i++) {
-            id = orderedGroups[i];
-            label = this._createLabel(id);
-            labels.appendChild(label);
-        }
-
-        changed++;
+      })(groups[orderedGroups[i]], groups[orderedGroups[i - 1]]);
     }
 
-    // reposition the labels
-    // TODO: labels are not displayed correctly when orientation=='top'
-    // TODO: width of labelPanel is not immediately updated on a change in groups
-    for (id in groups) {
-        if (groups.hasOwnProperty(id)) {
-            group = groups[id];
-            label = group.label;
-            if (label) {
-                label.style.top = group.top + 'px';
-                label.style.height = group.height + 'px';
-            }
-        }
+    // (re)create the labels
+    while (labelSet.firstChild) {
+      labelSet.removeChild(labelSet.firstChild);
+    }
+    for (i = 0; i < orderedGroups.length; i++) {
+      id = orderedGroups[i];
+      label = this._createLabel(id);
+      labelSet.appendChild(label);
     }
 
-    return (changed > 0);
+    changed++;
+  }
+
+  // reposition the labels
+  // TODO: labels are not displayed correctly when orientation=='top'
+  // TODO: width of labelPanel is not immediately updated on a change in groups
+  for (id in groups) {
+    if (groups.hasOwnProperty(id)) {
+      group = groups[id];
+      label = group.label;
+      if (label) {
+        label.style.top = group.top + 'px';
+        label.style.height = group.height + 'px';
+      }
+    }
+  }
+
+  return (changed > 0);
 };
 
 /**
@@ -324,29 +356,29 @@ GroupSet.prototype.repaint = function repaint() {
  * @private
  */
 GroupSet.prototype._createLabel = function(id) {
-    var group = this.groups[id];
-    var label = document.createElement('div');
-    label.className = 'label';
-    var inner = document.createElement('div');
-    inner.className = 'inner';
-    label.appendChild(inner);
+  var group = this.groups[id];
+  var label = document.createElement('div');
+  label.className = 'label';
+  var inner = document.createElement('div');
+  inner.className = 'inner';
+  label.appendChild(inner);
 
-    var content = group.data && group.data.content;
-    if (content instanceof Element) {
-        inner.appendChild(content);
-    }
-    else if (content != undefined) {
-        inner.innerHTML = content;
-    }
+  var content = group.data && group.data.content;
+  if (content instanceof Element) {
+    inner.appendChild(content);
+  }
+  else if (content != undefined) {
+    inner.innerHTML = content;
+  }
 
-    var className = group.data && group.data.className;
-    if (className) {
-        util.addClassName(label, className);
-    }
+  var className = group.data && group.data.className;
+  if (className) {
+    util.addClassName(label, className);
+  }
 
-    group.label = label; // TODO: not so nice, parking labels in the group this way!!!
+  group.label = label; // TODO: not so nice, parking labels in the group this way!!!
 
-    return label;
+  return label;
 };
 
 /**
@@ -354,7 +386,7 @@ GroupSet.prototype._createLabel = function(id) {
  * @return {HTMLElement} container
  */
 GroupSet.prototype.getContainer = function getContainer() {
-    return this.dom.frame;
+  return this.dom.frame;
 };
 
 /**
@@ -362,7 +394,7 @@ GroupSet.prototype.getContainer = function getContainer() {
  * @return {Number} width
  */
 GroupSet.prototype.getLabelsWidth = function getContainer() {
-    return this.props.labels.width;
+  return this.props.labels.width;
 };
 
 /**
@@ -370,54 +402,54 @@ GroupSet.prototype.getLabelsWidth = function getContainer() {
  * @return {Boolean} resized
  */
 GroupSet.prototype.reflow = function reflow() {
-    var changed = 0,
-        id, group,
-        options = this.options,
-        update = util.updateProperty,
-        asNumber = util.option.asNumber,
-        asSize = util.option.asSize,
-        frame = this.dom.frame;
+  var changed = 0,
+      id, group,
+      options = this.options,
+      update = util.updateProperty,
+      asNumber = util.option.asNumber,
+      asSize = util.option.asSize,
+      frame = this.dom.frame;
 
-    if (frame) {
-        var maxHeight = asNumber(options.maxHeight);
-        var fixedHeight = (asSize(options.height) != null);
-        var height;
-        if (fixedHeight) {
-            height = frame.offsetHeight;
-        }
-        else {
-            // height is not specified, calculate the sum of the height of all groups
-            height = 0;
-
-            for (id in this.groups) {
-                if (this.groups.hasOwnProperty(id)) {
-                    group = this.groups[id];
-                    height += group.height;
-                }
-            }
-        }
-        if (maxHeight != null) {
-            height = Math.min(height, maxHeight);
-        }
-        changed += update(this, 'height', height);
-
-        changed += update(this, 'top', frame.offsetTop);
-        changed += update(this, 'left', frame.offsetLeft);
-        changed += update(this, 'width', frame.offsetWidth);
+  if (frame) {
+    var maxHeight = asNumber(options.maxHeight);
+    var fixedHeight = (asSize(options.height) != null);
+    var height;
+    if (fixedHeight) {
+      height = frame.offsetHeight;
     }
+    else {
+      // height is not specified, calculate the sum of the height of all groups
+      height = 0;
 
-    // calculate the maximum width of the labels
-    var width = 0;
-    for (id in this.groups) {
+      for (id in this.groups) {
         if (this.groups.hasOwnProperty(id)) {
-            group = this.groups[id];
-            var labelWidth = group.props && group.props.label && group.props.label.width || 0;
-            width = Math.max(width, labelWidth);
+          group = this.groups[id];
+          height += group.height;
         }
+      }
     }
-    changed += update(this.props.labels, 'width', width);
+    if (maxHeight != null) {
+      height = Math.min(height, maxHeight);
+    }
+    changed += update(this, 'height', height);
 
-    return (changed > 0);
+    changed += update(this, 'top', frame.offsetTop);
+    changed += update(this, 'left', frame.offsetLeft);
+    changed += update(this, 'width', frame.offsetWidth);
+  }
+
+  // calculate the maximum width of the labels
+  var width = 0;
+  for (id in this.groups) {
+    if (this.groups.hasOwnProperty(id)) {
+      group = this.groups[id];
+      var labelWidth = group.props && group.props.label && group.props.label.width || 0;
+      width = Math.max(width, labelWidth);
+    }
+  }
+  changed += update(this.props.labels, 'width', width);
+
+  return (changed > 0);
 };
 
 /**
@@ -425,13 +457,13 @@ GroupSet.prototype.reflow = function reflow() {
  * @return {Boolean} changed
  */
 GroupSet.prototype.hide = function hide() {
-    if (this.dom.frame && this.dom.frame.parentNode) {
-        this.dom.frame.parentNode.removeChild(this.dom.frame);
-        return true;
-    }
-    else {
-        return false;
-    }
+  if (this.dom.frame && this.dom.frame.parentNode) {
+    this.dom.frame.parentNode.removeChild(this.dom.frame);
+    return true;
+  }
+  else {
+    return false;
+  }
 };
 
 /**
@@ -440,12 +472,12 @@ GroupSet.prototype.hide = function hide() {
  * @return {Boolean} changed
  */
 GroupSet.prototype.show = function show() {
-    if (!this.dom.frame || !this.dom.frame.parentNode) {
-        return this.repaint();
-    }
-    else {
-        return false;
-    }
+  if (!this.dom.frame || !this.dom.frame.parentNode) {
+    return this.repaint();
+  }
+  else {
+    return false;
+  }
 };
 
 /**
@@ -454,7 +486,7 @@ GroupSet.prototype.show = function show() {
  * @private
  */
 GroupSet.prototype._onUpdate = function _onUpdate(ids) {
-    this._toQueue(ids, 'update');
+  this._toQueue(ids, 'update');
 };
 
 /**
@@ -463,7 +495,7 @@ GroupSet.prototype._onUpdate = function _onUpdate(ids) {
  * @private
  */
 GroupSet.prototype._onAdd = function _onAdd(ids) {
-    this._toQueue(ids, 'add');
+  this._toQueue(ids, 'add');
 };
 
 /**
@@ -472,7 +504,7 @@ GroupSet.prototype._onAdd = function _onAdd(ids) {
  * @private
  */
 GroupSet.prototype._onRemove = function _onRemove(ids) {
-    this._toQueue(ids, 'remove');
+  this._toQueue(ids, 'remove');
 };
 
 /**
@@ -481,13 +513,13 @@ GroupSet.prototype._onRemove = function _onRemove(ids) {
  * @param {String} action     can be 'add', 'update', 'remove'
  */
 GroupSet.prototype._toQueue = function _toQueue(ids, action) {
-    var queue = this.queue;
-    ids.forEach(function (id) {
-        queue[id] = action;
-    });
+  var queue = this.queue;
+  ids.forEach(function (id) {
+    queue[id] = action;
+  });
 
-    if (this.controller) {
-        //this.requestReflow();
-        this.requestRepaint();
-    }
+  if (this.controller) {
+    //this.requestReflow();
+    this.requestRepaint();
+  }
 };

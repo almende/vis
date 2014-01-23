@@ -15,17 +15,17 @@ var BUILD_COMMAND = 'jake build';
 
 // rebuilt vis.js on change of code
 function rebuild() {
-    var start = +new Date();
-    child_process.exec(BUILD_COMMAND, function () {
-        var end = +new Date();
-        console.log('rebuilt in ' + (end - start) + ' ms');
-    });
+  var start = +new Date();
+  child_process.exec(BUILD_COMMAND, function () {
+    var end = +new Date();
+    console.log('rebuilt in ' + (end - start) + ' ms');
+  });
 }
 
 // watch for changes in the code, rebuilt vis.js automatically
 watch(WATCH_FOLDER, function(filename) {
-    console.log(filename + ' changed');
-    rebuild();
+  console.log(filename + ' changed');
+  rebuild();
 });
 
 rebuild();

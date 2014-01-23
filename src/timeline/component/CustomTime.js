@@ -10,17 +10,17 @@
  */
 
 function CustomTime (parent, depends, options) {
-    this.id = util.randomUUID();
-    this.parent = parent;
-    this.depends = depends;
+  this.id = util.randomUUID();
+  this.parent = parent;
+  this.depends = depends;
 
-    this.options = options || {};
-    this.defaultOptions = {
-        showCustomTime: false
-    };
+  this.options = options || {};
+  this.defaultOptions = {
+    showCustomTime: false
+  };
 
-    this.listeners = [];
-    this.customTime = new Date();
+  this.listeners = [];
+  this.customTime = new Date();
 }
 
 CustomTime.prototype = new Component();
@@ -33,7 +33,7 @@ CustomTime.prototype.setOptions = Component.prototype.setOptions;
  * @returns {HTMLElement} container
  */
 CustomTime.prototype.getContainer = function () {
-    return this.frame;
+  return this.frame;
 };
 
 /**
@@ -41,59 +41,59 @@ CustomTime.prototype.getContainer = function () {
  * @return {Boolean} changed
  */
 CustomTime.prototype.repaint = function () {
-    var bar = this.frame,
-        parent = this.parent,
-        parentContainer = parent.parent.getContainer();
+  var bar = this.frame,
+      parent = this.parent,
+      parentContainer = parent.parent.getContainer();
 
-    if (!parent) {
-        throw new Error('Cannot repaint bar: no parent attached');
+  if (!parent) {
+    throw new Error('Cannot repaint bar: no parent attached');
+  }
+
+  if (!parentContainer) {
+    throw new Error('Cannot repaint bar: parent has no container element');
+  }
+
+  if (!this.getOption('showCustomTime')) {
+    if (bar) {
+      parentContainer.removeChild(bar);
+      delete this.frame;
     }
 
-    if (!parentContainer) {
-        throw new Error('Cannot repaint bar: parent has no container element');
-    }
+    return;
+  }
 
-    if (!this.getOption('showCustomTime')) {
-        if (bar) {
-            parentContainer.removeChild(bar);
-            delete this.frame;
-        }
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.className = 'customtime';
+    bar.style.position = 'absolute';
+    bar.style.top = '0px';
+    bar.style.height = '100%';
 
-        return;
-    }
+    parentContainer.appendChild(bar);
 
-    if (!bar) {
-        bar = document.createElement('div');
-        bar.className = 'customtime';
-        bar.style.position = 'absolute';
-        bar.style.top = '0px';
-        bar.style.height = '100%';
+    var drag = document.createElement('div');
+    drag.style.position = 'relative';
+    drag.style.top = '0px';
+    drag.style.left = '-10px';
+    drag.style.height = '100%';
+    drag.style.width = '20px';
+    bar.appendChild(drag);
 
-        parentContainer.appendChild(bar);
+    this.frame = bar;
 
-        var drag = document.createElement('div');
-        drag.style.position = 'relative';
-        drag.style.top = '0px';
-        drag.style.left = '-10px';
-        drag.style.height = '100%';
-        drag.style.width = '20px';
-        bar.appendChild(drag);
+    this.subscribe(this, 'movetime');
+  }
 
-        this.frame = bar;
+  if (!parent.conversion) {
+    parent._updateConversion();
+  }
 
-        this.subscribe(this, 'movetime');
-    }
+  var x = parent.toScreen(this.customTime);
 
-    if (!parent.conversion) {
-        parent._updateConversion();
-    }
+  bar.style.left = x + 'px';
+  bar.title = 'Time: ' + this.customTime;
 
-    var x = parent.toScreen(this.customTime);
-
-    bar.style.left = x + 'px';
-    bar.title = 'Time: ' + this.customTime;
-
-    return false;
+  return false;
 };
 
 /**
@@ -101,8 +101,8 @@ CustomTime.prototype.repaint = function () {
  * @param {Date} time
  */
 CustomTime.prototype._setCustomTime = function(time) {
-    this.customTime = new Date(time.valueOf());
-    this.repaint();
+  this.customTime = new Date(time.valueOf());
+  this.repaint();
 };
 
 /**
@@ -110,7 +110,7 @@ CustomTime.prototype._setCustomTime = function(time) {
  * @return {Date} customTime
  */
 CustomTime.prototype._getCustomTime = function() {
-    return new Date(this.customTime.valueOf());
+  return new Date(this.customTime.valueOf());
 };
 
 /**
@@ -118,18 +118,18 @@ CustomTime.prototype._getCustomTime = function() {
  * @param {Component} component
  */
 CustomTime.prototype.subscribe = function (component, event) {
-    var me = this;
-    var listener = {
-        component: component,
-        event: event,
-        callback: function (event) {
-            me._onMouseDown(event, listener);
-        },
-        params: {}
-    };
+  var me = this;
+  var listener = {
+    component: component,
+    event: event,
+    callback: function (event) {
+      me._onMouseDown(event, listener);
+    },
+    params: {}
+  };
 
-    component.on('mousedown', listener.callback);
-    me.listeners.push(listener);
+  component.on('mousedown', listener.callback);
+  me.listeners.push(listener);
 
 };
 
@@ -140,13 +140,13 @@ CustomTime.prototype.subscribe = function (component, event) {
  *                             as parameter.
  */
 CustomTime.prototype.on = function (event, callback) {
-    var bar = this.frame;
-    if (!bar) {
-        throw new Error('Cannot add event listener: no parent attached');
-    }
+  var bar = this.frame;
+  if (!bar) {
+    throw new Error('Cannot add event listener: no parent attached');
+  }
 
-    events.addListener(this, event, callback);
-    util.addEventListener(bar, event, callback);
+  events.addListener(this, event, callback);
+  util.addEventListener(bar, event, callback);
 };
 
 /**
@@ -156,38 +156,38 @@ CustomTime.prototype.on = function (event, callback) {
  * @private
  */
 CustomTime.prototype._onMouseDown = function(event, listener) {
-    event = event || window.event;
-    var params = listener.params;
+  event = event || window.event;
+  var params = listener.params;
 
-    // only react on left mouse button down
-    var leftButtonDown = event.which ? (event.which == 1) : (event.button == 1);
-    if (!leftButtonDown) {
-        return;
-    }
+  // only react on left mouse button down
+  var leftButtonDown = event.which ? (event.which == 1) : (event.button == 1);
+  if (!leftButtonDown) {
+    return;
+  }
 
-    // get mouse position
-    params.mouseX = util.getPageX(event);
-    params.moved = false;
-    
-    params.customTime = this.customTime;
+  // get mouse position
+  params.mouseX = util.getPageX(event);
+  params.moved = false;
 
-    // add event listeners to handle moving the custom time bar 
-    var me = this;
-    if (!params.onMouseMove) {
-        params.onMouseMove = function (event) {
-            me._onMouseMove(event, listener);
-        };
-        util.addEventListener(document, 'mousemove', params.onMouseMove);
-    }
-    if (!params.onMouseUp) {
-        params.onMouseUp = function (event) {
-            me._onMouseUp(event, listener);
-        };
-        util.addEventListener(document, 'mouseup', params.onMouseUp);
-    }
+  params.customTime = this.customTime;
 
-    util.stopPropagation(event);
-    util.preventDefault(event);
+  // add event listeners to handle moving the custom time bar
+  var me = this;
+  if (!params.onMouseMove) {
+    params.onMouseMove = function (event) {
+      me._onMouseMove(event, listener);
+    };
+    util.addEventListener(document, 'mousemove', params.onMouseMove);
+  }
+  if (!params.onMouseUp) {
+    params.onMouseUp = function (event) {
+      me._onMouseUp(event, listener);
+    };
+    util.addEventListener(document, 'mouseup', params.onMouseUp);
+  }
+
+  util.stopPropagation(event);
+  util.preventDefault(event);
 };
 
 /**
@@ -198,33 +198,33 @@ CustomTime.prototype._onMouseDown = function(event, listener) {
  * @private
  */
 CustomTime.prototype._onMouseMove = function (event, listener) {
-    event = event || window.event;
-    var params = listener.params;
-    var parent = this.parent;
+  event = event || window.event;
+  var params = listener.params;
+  var parent = this.parent;
 
-    // calculate change in mouse position
-    var mouseX = util.getPageX(event);
+  // calculate change in mouse position
+  var mouseX = util.getPageX(event);
 
-    if (params.mouseX === undefined) {
-        params.mouseX = mouseX;
-    }
+  if (params.mouseX === undefined) {
+    params.mouseX = mouseX;
+  }
 
-    var diff = mouseX - params.mouseX;
+  var diff = mouseX - params.mouseX;
 
-    // if mouse movement is big enough, register it as a "moved" event
-    if (Math.abs(diff) >= 1) {
-        params.moved = true;
-    }
+  // if mouse movement is big enough, register it as a "moved" event
+  if (Math.abs(diff) >= 1) {
+    params.moved = true;
+  }
 
-    var x = parent.toScreen(params.customTime);
-    var xnew = x + diff;
-    var time = parent.toTime(xnew);
-    this._setCustomTime(time);
+  var x = parent.toScreen(params.customTime);
+  var xnew = x + diff;
+  var time = parent.toTime(xnew);
+  this._setCustomTime(time);
 
-    // fire a timechange event
-    events.trigger(this, 'timechange', {customTime: this.customTime});
+  // fire a timechange event
+  events.trigger(this, 'timechange', {customTime: this.customTime});
 
-    util.preventDefault(event);
+  util.preventDefault(event);
 };
 
 /**
@@ -235,21 +235,21 @@ CustomTime.prototype._onMouseMove = function (event, listener) {
  * @private
  */
 CustomTime.prototype._onMouseUp = function (event, listener) {
-    event = event || window.event;
-    var params = listener.params;
+  event = event || window.event;
+  var params = listener.params;
 
-    // remove event listeners here, important for Safari
-    if (params.onMouseMove) {
-        util.removeEventListener(document, 'mousemove', params.onMouseMove);
-        params.onMouseMove = null;
-    }
-    if (params.onMouseUp) {
-        util.removeEventListener(document, 'mouseup', params.onMouseUp);
-        params.onMouseUp = null;
-    }
+  // remove event listeners here, important for Safari
+  if (params.onMouseMove) {
+    util.removeEventListener(document, 'mousemove', params.onMouseMove);
+    params.onMouseMove = null;
+  }
+  if (params.onMouseUp) {
+    util.removeEventListener(document, 'mouseup', params.onMouseUp);
+    params.onMouseUp = null;
+  }
 
-    if (params.moved) {
-        // fire a timechanged event
-        events.trigger(this, 'timechanged', {customTime: this.customTime});
-    }
+  if (params.moved) {
+    // fire a timechanged event
+    events.trigger(this, 'timechanged', {customTime: this.customTime});
+  }
 };
