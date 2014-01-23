@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.4.0-SNAPSHOT
- * @date    2014-01-22
+ * @date    2014-01-23
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -9252,7 +9252,7 @@ Node.prototype._resizeImage = function (ctx) {
     this.width  = width;
     this.height = height;
 
-    if (this.width && this.height) {
+    if (this.width > 0 && this.height > 0) {
       this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
       this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
       this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
@@ -12247,15 +12247,38 @@ var SelectionMixin = {
     }
   },
 
-  _getEdgeAt : function(pointer) {
 
+  /**
+   * Place holder. To implement change the _getNodeAt to a _getObjectAt. Have the _getObjectAt call
+   * _getNodeAt and _getEdgesAt, then priortize the selection to user preferences.
+   *
+   * @param pointer
+   * @returns {null}
+   * @private
+   */
+  _getEdgeAt : function(pointer) {
+    return null;
   },
 
+
+  /**
+   * Add object to the selection array. The this.selection id array may not be needed.
+   *
+   * @param obj
+   * @private
+   */
   _addToSelection : function(obj) {
     this.selection.push(obj.id);
     this.selectionObj[obj.id] = obj;
   },
 
+
+  /**
+   * Remove a single option from selection.
+   *
+   * @param obj
+   * @private
+   */
   _removeFromSelection : function(obj) {
     for (var i = 0; i < this.selection.length; i++) {
       if (obj.id == this.selection[i]) {
@@ -12266,6 +12289,12 @@ var SelectionMixin = {
     delete this.selectionObj[obj.id];
   },
 
+
+  /**
+   * Unselect all. The selectionObj is useful for this.
+   *
+   * @private
+   */
   _unselectAll : function() {
     this.selection = [];
     for (var objId in this.selectionObj) {
@@ -12276,6 +12305,13 @@ var SelectionMixin = {
     this.selectionObj = {};
   },
 
+
+  /**
+   * Check if anything is selected
+   *
+   * @returns {boolean}
+   * @private
+   */
   _selectionIsEmpty : function() {
     if (this.selection.length == 0) {
       return true;
@@ -12284,6 +12320,7 @@ var SelectionMixin = {
       return false;
     }
   },
+
 
   /**
    * This is called when someone clicks on a node. either select or deselect it.
@@ -12309,8 +12346,11 @@ var SelectionMixin = {
     }
   },
 
+
   /**
    * handles the selection part of the touch, only for UI elements;
+   * Touch is triggered before tap, also before hold. Hold triggers after a while.
+   * This is the most responsive solution
    *
    * @param {Object} pointer
    * @private
@@ -12342,6 +12382,7 @@ var SelectionMixin = {
     this._redraw();
   },
 
+
   /**
    * handles the selection part of the double tap and opens a cluster if needed
    *
@@ -12358,6 +12399,13 @@ var SelectionMixin = {
     }
   },
 
+
+  /**
+   * Handle the onHold selection part
+   *
+   * @param pointer
+   * @private
+   */
   _handleOnHold : function(pointer) {
     var node = this._getNodeAt(pointer);
     if (node != null) {
@@ -12366,12 +12414,88 @@ var SelectionMixin = {
     this._redraw();
   },
 
+
+  /**
+   * handle the onRelease event. These functions are here for the UI module.
+   *
+    * @private
+   */
   _handleOnRelease : function() {
     this.xIncrement = 0;
     this.yIncrement = 0;
     this.zoomIncrement = 0;
     this._unHighlightAll();
   },
+
+
+
+  /**
+   * * // TODO: rework this function, it is from the old system
+   *
+   * retrieve the currently selected nodes
+   * @return {Number[] | String[]} selection    An array with the ids of the
+   *                                            selected nodes.
+   */
+  getSelection : function() {
+    return this.selection.concat([]);
+  },
+
+  /**
+   * // TODO: rework this function, it is from the old system
+   *
+   * select zero or more nodes
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   */
+  setSelection : function(selection) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    for (i = 0, iMax = this.selection.length; i < iMax; i++) {
+      id = this.selection[i];
+      this.nodes[id].unselect();
+    }
+
+    this.selection = [];
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var node = this.nodes[id];
+      if (!node) {
+        throw new RangeError('Node with id "' + id + '" not found');
+      }
+      node.select();
+      this.selection.push(id);
+    }
+
+    this.redraw();
+  },
+
+
+  /**
+   * TODO: rework this function, it is from the old system
+   *
+   * Validate the selection: remove ids of nodes which no longer exist
+   * @private
+   */
+  _updateSelection : function () {
+    var i = 0;
+    while (i < this.selection.length) {
+      var nodeId = this.selection[i];
+      if (!this.nodes.hasOwnProperty(nodeId)) {
+        this.selection.splice(i, 1);
+        delete this.selectionObj[nodeId];
+      }
+      else {
+        i++;
+      }
+    }
+  }
+
 
   /**
    * Unselect selected nodes. If no selection array is provided, all nodes
@@ -12482,72 +12606,6 @@ var SelectionMixin = {
     return changed;
   },
   */
-
-  /**
-   * retrieve the currently selected nodes
-   * @return {Number[] | String[]} selection    An array with the ids of the
-   *                                            selected nodes.
-   */
-  getSelection : function() {
-    return this.selection.concat([]);
-  },
-
-  /**
-   * select zero or more nodes
-   * @param {Number[] | String[]} selection     An array with the ids of the
-   *                                            selected nodes.
-   */
-  setSelection : function(selection) {
-    var i, iMax, id;
-
-    if (!selection || (selection.length == undefined))
-      throw 'Selection must be an array with ids';
-
-    // first unselect any selected node
-    for (i = 0, iMax = this.selection.length; i < iMax; i++) {
-      id = this.selection[i];
-      this.nodes[id].unselect();
-    }
-
-    this.selection = [];
-
-    for (i = 0, iMax = selection.length; i < iMax; i++) {
-      id = selection[i];
-
-      var node = this.nodes[id];
-      if (!node) {
-        throw new RangeError('Node with id "' + id + '" not found');
-      }
-      node.select();
-      this.selection.push(id);
-    }
-
-    this.redraw();
-  },
-
-
-  /**
-   * Validate the selection: remove ids of nodes which no longer exist
-   * @private
-   */
-  _updateSelection : function () {
-    var i = 0;
-    while (i < this.selection.length) {
-      var nodeId = this.selection[i];
-      if (!this.nodes.hasOwnProperty(nodeId)) {
-        this.selection.splice(i, 1);
-        delete this.selectionObj[nodeId];
-      }
-      else {
-        i++;
-      }
-    }
-  }
-
-
-
-
-
 };
 
 
@@ -12559,6 +12617,12 @@ var SelectionMixin = {
 
 var UIMixin = {
 
+  /**
+   * This function moves the UI if the canvas size has been changed. If the arugments
+   * verticaAlignTop and horizontalAlignLeft are false, the correction will be made
+   *
+   * @private
+   */
   _relocateUI : function() {
     if (this.sectors !== undefined) {
       var xOffset = this.UIclientWidth - this.frame.canvas.clientWidth;
@@ -12581,6 +12645,15 @@ var UIMixin = {
     }
   },
 
+
+  /**
+   * Creation of the UI nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
+   * they have a triggerFunction which is called on click. If the position of the UI is dependent
+   * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
+   * This means that the location will be corrected by the _relocateUI function on a size change of the canvas.
+   *
+   * @private
+   */
   _loadUIElements : function() {
     var DIR = 'img/UI/';
     this.UIclientWidth = this.frame.canvas.clientWidth;
@@ -12598,10 +12671,16 @@ var UIMixin = {
         verticalAlignTop: false,  x: 20,  y: this.UIclientHeight - 20},
       {id: 'UI_right', shape: 'image', image: DIR + 'rightarrow.png',triggerFunction: "_moveRight",
         verticalAlignTop: false,  x: 84,  y: this.UIclientHeight - 20},
+
       {id: 'UI_plus',  shape: 'image', image: DIR + 'plus.png',      triggerFunction: "_zoomIn",
-        verticalAlignTop: false,  x: 140, y: this.UIclientHeight - 20},
+        verticalAlignTop: false, horizontalAlignLeft: false,
+        x: this.UIclientWidth - 52, y: this.UIclientHeight - 20},
       {id: 'UI_min', shape: 'image', image: DIR + 'minus.png',       triggerFunction: "_zoomOut",
-        verticalAlignTop: false,  x: 172, y: this.UIclientHeight - 20}
+        verticalAlignTop: false, horizontalAlignLeft: false,
+        x: this.UIclientWidth - 20, y: this.UIclientHeight - 20},
+      {id: 'UI_zoomExtends', shape: 'image', image: DIR + 'zoomExtends.png', triggerFunction: "zoomToFit",
+        verticalAlignTop: false, horizontalAlignLeft: false,
+        x: this.UIclientWidth - 20, y: this.UIclientHeight - 52}
     ];
 
     var nodeObj = null;
@@ -12611,92 +12690,160 @@ var UIMixin = {
     }
   },
 
+
+  /**
+   * By setting the clustersize to be larger than 1, we use the clustering drawing method
+   * to illustrate the buttons are presed. We call this highlighting.
+   *
+   * @param {String} elementId
+   * @private
+   */
   _highlightUIElement : function(elementId) {
     if (this.sectors["UI"]["nodes"].hasOwnProperty(elementId)) {
       this.sectors["UI"]["nodes"][elementId].clusterSize = 2;
     }
   },
 
+
+  /**
+   * Reverting back to a normal button
+   *
+   * @param {String} elementId
+   * @private
+   */
   _unHighlightUIElement : function(elementId) {
     if (this.sectors["UI"]["nodes"].hasOwnProperty(elementId)) {
       this.sectors["UI"]["nodes"][elementId].clusterSize = 1;
     }
   },
 
+
+  /**
+   * toggle the visibility of the UI
+   *
+   * @private
+   */
   _toggleUI : function() {
+    if (this.UIvisible === undefined) {
+      this.UIvisible = false;
+    }
     this.UIvisible = !this.UIvisible;
     this._redraw();
   },
 
+
+  /**
+   * un-highlight (for lack of a better term) all UI elements
+   * @private
+   */
   _unHighlightAll : function() {
     for (var nodeId in this.sectors['UI']['nodes']) {
       this._unHighlightUIElement(nodeId);
     }
   },
 
+
+  /**
+   * move the screen up
+   * By using the increments, instead of adding a fixed number to the translation, we keep fluent and
+   * instant movement. The onKeypress event triggers immediately, then pauses, then triggers frequently
+   * To avoid this behaviour, we do the translation in the start loop.
+   *
+   * @private
+   */
   _moveUp : function() {
     this._highlightUIElement("UI_up");
     this.yIncrement = this.constants.UI.yMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
   },
 
+
+  /**
+   * move the screen down
+   * @private
+   */
   _moveDown : function() {
     this._highlightUIElement("UI_down");
     this.yIncrement = -this.constants.UI.yMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
   },
 
+
+  /**
+   * move the screen left
+   * @private
+   */
   _moveLeft : function() {
     this._highlightUIElement("UI_left");
     this.xIncrement = this.constants.UI.xMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
   },
 
+
+  /**
+   * move the screen right
+   * @private
+   */
   _moveRight : function() {
     this._highlightUIElement("UI_right");
     this.xIncrement = -this.constants.UI.xMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
   },
 
+
+  /**
+   * Zoom in, using the same method as the movement.
+   * @private
+   */
   _zoomIn : function() {
     this._highlightUIElement("UI_plus");
     this.zoomIncrement = this.constants.UI.zoomMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
   },
 
+
+  /**
+   * Zoom out
+   * @private
+   */
   _zoomOut : function() {
     this._highlightUIElement("UI_min");
     this.zoomIncrement = -this.constants.UI.zoomMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
   },
 
+
+  /**
+   * Stop zooming and unhighlight the zoom controls
+   * @private
+   */
   _stopZoom : function() {
-    if (this.zoomIncrement > 0) {      // plus (zoomin)
-      this._unHighlightUIElement("UI_plus");
-    }
-    else if (this.zoomIncrement < 0) { // min (zoomout)
-      this._unHighlightUIElement("UI_min");
-    }
-    this.zoomIncrement = 0;
+    this._unHighlightUIElement("UI_plus");
+    this._unHighlightUIElement("UI_min");
+
   },
 
+
+  /**
+   * Stop moving in the Y direction and unHighlight the up and down
+   * @private
+   */
   _yStopMoving : function() {
-    if (this.yIncrement > 0) {      // up
-      this._unHighlightUIElement("UI_up");
-    }
-    else if (this.yIncrement < 0) { // down
-      this._unHighlightUIElement("UI_down");
-    }
+    this._unHighlightUIElement("UI_up");
+    this._unHighlightUIElement("UI_down");
+
     this.yIncrement = 0;
   },
 
+
+  /**
+   * Stop moving in the X direction and unHighlight left and right.
+   * @private
+   */
   _xStopMoving : function() {
-    if (this.xIncrement > 0) {      // left
-      this._unHighlightUIElement("UI_left");
-    }
-    else if (this.xIncrement < 0) { // right
-      this._unHighlightUIElement("UI_right");
-    }
+    this._unHighlightUIElement("UI_left");
+    this._unHighlightUIElement("UI_right");
+
     this.xIncrement = 0;
   }
 
@@ -12721,7 +12868,7 @@ function Graph (container, data, options) {
   // to give everything a nice fluidity, we seperate the rendering and calculating of the forces
   this.calculationRefreshRate = 40; // milliseconds
   this.calculationStartTime = 0;
-  this.renderRefreshRate = 10; // milliseconds
+  this.renderRefreshRate = 15; // milliseconds
   this.stabilize = true; // stabilize before displaying the graph
   this.selectable = true;
 
@@ -12791,6 +12938,7 @@ function Graph (container, data, options) {
     },
     UI: {
       enabled: true,
+      initiallyVisible: true,
       xMovementSpeed: 10,
       yMovementSpeed: 10,
       zoomMovementSpeed: 0.02
@@ -12808,7 +12956,7 @@ function Graph (container, data, options) {
   });
 
   // UI variables
-  this.UIvisible = true;
+  this.UIvisible = this.constants.UI.initiallyVisible;
   this.xIncrement = 0;
   this.yIncrement = 0;
   this.zoomIncrement = 0;
@@ -12819,19 +12967,17 @@ function Graph (container, data, options) {
   // apply options
   this.setOptions(options);
 
-  // load the cluster system.   (mandatory)
+  // load the cluster system.   (mandatory, even when not using the cluster system, there are function calls to it)
   this._loadClusterSystem();
 
-  // load the sector system.    (mandatory)
+  // load the sector system.    (mandatory, fully integrated with Graph)
   this._loadSectorSystem();
 
-  // load the selection system. (mandatory)
+  // load the selection system. (mandatory, required by Graph)
   this._loadSelectionSystem();
 
-  // load the UI system.        (mandatory)
+  // load the UI system.        (mandatory, few function calls even when UI is disabled (in this.setSize)
   this._loadUISystem();
-
-
 
   // other vars
   var graph = this;
@@ -12903,6 +13049,35 @@ function Graph (container, data, options) {
 
 
 /**
+ * Find the center position of the graph
+ * @private
+ */
+Graph.prototype._findCenter = function() {
+  var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
+  for (var i = 0; i < this.nodeIndices.length; i++) {
+    node = this.nodes[this.nodeIndices[i]];
+    if (minX > node.x) {minX = node.x;}
+    if (maxX < node.x) {maxX = node.x;}
+    if (minY > node.y) {minY = node.y;}
+    if (maxY < node.y) {maxY = node.y;}
+  }
+  return {x: (0.5 * (maxX + minX)),
+          y: (0.5 * (maxY + minY))};
+};
+
+
+/**
+ * center the graph
+ */
+Graph.prototype._centerGraph = function() {
+  var center = this._findCenter();
+  center.x -= 0.5 * this.frame.canvas.clientWidth;
+  center.y -= 0.5 * this.frame.canvas.clientHeight;
+  this._setTranslation(-center.x,-center.y);
+};
+
+
+/**
  * This function zooms out to fit all data on screen based on amount of nodes 
  */
 Graph.prototype.zoomToFit = function() {
@@ -12912,10 +13087,9 @@ Graph.prototype.zoomToFit = function() {
     zoomLevel = 1.0;
   }
 
-  if (!('mousewheelScale' in this.pinch)) {
-    this.pinch.mousewheelScale = zoomLevel;
-  }
+  this.pinch.mousewheelScale = zoomLevel;
   this._setScale(zoomLevel);
+  this._centerGraph();
 };
 
 
@@ -13139,6 +13313,11 @@ Graph.prototype._create = function () {
   this.containerElement.appendChild(this.frame);
 };
 
+
+/**
+ * Binding the keys for keyboard navigation. These functions are defined in the UIMixin
+ * @private
+ */
 Graph.prototype._createKeyBinds = function() {
   var me = this;
   this.mouseTrap = mouseTrap;
@@ -13163,7 +13342,7 @@ Graph.prototype._createKeyBinds = function() {
   this.mouseTrap.bind("pagedown",this._zoomOut.bind(me), "keydown");
   this.mouseTrap.bind("pagedown",this._stopZoom.bind(me), "keyup");
   this.mouseTrap.bind("u",this._toggleUI.bind(me)     , "keydown");
-  /*=
+  /*
    this.mouseTrap.bind("=",this.decreaseClusterLevel.bind(me));
    this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
    this.mouseTrap.bind("s",this.singleStep.bind(me));
@@ -13395,6 +13574,7 @@ Graph.prototype._zoom = function(scale, pointer) {
                      "y" : this._canvasToY(pointer.y)};
 
  // this.areaCenter = {"x" : pointer.x,"y" : pointer.y };
+//  console.log(translation.x,translation.y,pointer.x,pointer.y,scale);
   this.pinch.mousewheelScale = scale;
   this._setScale(scale);
   this._setTranslation(tx, ty);
@@ -14226,7 +14406,7 @@ Graph.prototype._initializeForceCalculation = function() {
  * @private
  */
 Graph.prototype._calculateForces = function() {
-  var centerPos = {"x":0.5*(this.canvasTopLeft.x + this.canvasBottomRight.x),
+  var screenCenterPos = {"x":0.5*(this.canvasTopLeft.x + this.canvasBottomRight.x),
                    "y":0.5*(this.canvasTopLeft.y + this.canvasBottomRight.y)}
 
   // create a local edge to the nodes and edges, that is faster
@@ -14245,8 +14425,8 @@ Graph.prototype._calculateForces = function() {
       node = nodes[this.nodeIndices[i]];
       // gravity does not apply when we are in a pocket sector
       if (this._sector() == "default") {
-        dx = -node.x + centerPos.x;
-        dy = -node.y + centerPos.y;
+        dx = -node.x + screenCenterPos.x;
+        dy = -node.y + screenCenterPos.y;
 
         angle = Math.atan2(dy, dx);
         fx = Math.cos(angle) * gravity;
@@ -14606,9 +14786,6 @@ Graph.prototype._loadSelectionSystem = function() {
   }
 }
 
-Graph.prototype._relocateUI = function() {
-  // empty, will be overloaded when loading the UI system
-}
 
 /**
  * Mixin the UI (User Interface) system and initialize the parameters required
@@ -14621,16 +14798,26 @@ Graph.prototype._loadUISystem = function() {
       Graph.prototype[mixinFunction] = UIMixin[mixinFunction];
     }
   }
-  this._loadUIElements();
 
   if (this.constants.UI.enabled == true) {
+    this._loadUIElements();
     this._createKeyBinds();
   }
 }
 
+/**
+ * this function exists to avoid errors when not loading the UI system
+ */
+Graph.prototype._relocateUI = function() {
+  // empty, is overloaded by UI system
+}
 
-
-
+/**
+ * * this function exists to avoid errors when not loading the UI system
+ */
+Graph.prototype._unHighlightAll = function() {
+  // empty, is overloaded by the UI system
+}
 
 
 

@@ -120,15 +120,38 @@ var SelectionMixin = {
     }
   },
 
-  _getEdgeAt : function(pointer) {
 
+  /**
+   * Place holder. To implement change the _getNodeAt to a _getObjectAt. Have the _getObjectAt call
+   * _getNodeAt and _getEdgesAt, then priortize the selection to user preferences.
+   *
+   * @param pointer
+   * @returns {null}
+   * @private
+   */
+  _getEdgeAt : function(pointer) {
+    return null;
   },
 
+
+  /**
+   * Add object to the selection array. The this.selection id array may not be needed.
+   *
+   * @param obj
+   * @private
+   */
   _addToSelection : function(obj) {
     this.selection.push(obj.id);
     this.selectionObj[obj.id] = obj;
   },
 
+
+  /**
+   * Remove a single option from selection.
+   *
+   * @param obj
+   * @private
+   */
   _removeFromSelection : function(obj) {
     for (var i = 0; i < this.selection.length; i++) {
       if (obj.id == this.selection[i]) {
@@ -139,6 +162,12 @@ var SelectionMixin = {
     delete this.selectionObj[obj.id];
   },
 
+
+  /**
+   * Unselect all. The selectionObj is useful for this.
+   *
+   * @private
+   */
   _unselectAll : function() {
     this.selection = [];
     for (var objId in this.selectionObj) {
@@ -149,6 +178,13 @@ var SelectionMixin = {
     this.selectionObj = {};
   },
 
+
+  /**
+   * Check if anything is selected
+   *
+   * @returns {boolean}
+   * @private
+   */
   _selectionIsEmpty : function() {
     if (this.selection.length == 0) {
       return true;
@@ -157,6 +193,7 @@ var SelectionMixin = {
       return false;
     }
   },
+
 
   /**
    * This is called when someone clicks on a node. either select or deselect it.
@@ -182,8 +219,11 @@ var SelectionMixin = {
     }
   },
 
+
   /**
    * handles the selection part of the touch, only for UI elements;
+   * Touch is triggered before tap, also before hold. Hold triggers after a while.
+   * This is the most responsive solution
    *
    * @param {Object} pointer
    * @private
@@ -215,6 +255,7 @@ var SelectionMixin = {
     this._redraw();
   },
 
+
   /**
    * handles the selection part of the double tap and opens a cluster if needed
    *
@@ -231,6 +272,13 @@ var SelectionMixin = {
     }
   },
 
+
+  /**
+   * Handle the onHold selection part
+   *
+   * @param pointer
+   * @private
+   */
   _handleOnHold : function(pointer) {
     var node = this._getNodeAt(pointer);
     if (node != null) {
@@ -239,12 +287,88 @@ var SelectionMixin = {
     this._redraw();
   },
 
+
+  /**
+   * handle the onRelease event. These functions are here for the UI module.
+   *
+    * @private
+   */
   _handleOnRelease : function() {
     this.xIncrement = 0;
     this.yIncrement = 0;
     this.zoomIncrement = 0;
     this._unHighlightAll();
   },
+
+
+
+  /**
+   * * // TODO: rework this function, it is from the old system
+   *
+   * retrieve the currently selected nodes
+   * @return {Number[] | String[]} selection    An array with the ids of the
+   *                                            selected nodes.
+   */
+  getSelection : function() {
+    return this.selection.concat([]);
+  },
+
+  /**
+   * // TODO: rework this function, it is from the old system
+   *
+   * select zero or more nodes
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   */
+  setSelection : function(selection) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    for (i = 0, iMax = this.selection.length; i < iMax; i++) {
+      id = this.selection[i];
+      this.nodes[id].unselect();
+    }
+
+    this.selection = [];
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var node = this.nodes[id];
+      if (!node) {
+        throw new RangeError('Node with id "' + id + '" not found');
+      }
+      node.select();
+      this.selection.push(id);
+    }
+
+    this.redraw();
+  },
+
+
+  /**
+   * TODO: rework this function, it is from the old system
+   *
+   * Validate the selection: remove ids of nodes which no longer exist
+   * @private
+   */
+  _updateSelection : function () {
+    var i = 0;
+    while (i < this.selection.length) {
+      var nodeId = this.selection[i];
+      if (!this.nodes.hasOwnProperty(nodeId)) {
+        this.selection.splice(i, 1);
+        delete this.selectionObj[nodeId];
+      }
+      else {
+        i++;
+      }
+    }
+  }
+
 
   /**
    * Unselect selected nodes. If no selection array is provided, all nodes
@@ -355,72 +479,6 @@ var SelectionMixin = {
     return changed;
   },
   */
-
-  /**
-   * retrieve the currently selected nodes
-   * @return {Number[] | String[]} selection    An array with the ids of the
-   *                                            selected nodes.
-   */
-  getSelection : function() {
-    return this.selection.concat([]);
-  },
-
-  /**
-   * select zero or more nodes
-   * @param {Number[] | String[]} selection     An array with the ids of the
-   *                                            selected nodes.
-   */
-  setSelection : function(selection) {
-    var i, iMax, id;
-
-    if (!selection || (selection.length == undefined))
-      throw 'Selection must be an array with ids';
-
-    // first unselect any selected node
-    for (i = 0, iMax = this.selection.length; i < iMax; i++) {
-      id = this.selection[i];
-      this.nodes[id].unselect();
-    }
-
-    this.selection = [];
-
-    for (i = 0, iMax = selection.length; i < iMax; i++) {
-      id = selection[i];
-
-      var node = this.nodes[id];
-      if (!node) {
-        throw new RangeError('Node with id "' + id + '" not found');
-      }
-      node.select();
-      this.selection.push(id);
-    }
-
-    this.redraw();
-  },
-
-
-  /**
-   * Validate the selection: remove ids of nodes which no longer exist
-   * @private
-   */
-  _updateSelection : function () {
-    var i = 0;
-    while (i < this.selection.length) {
-      var nodeId = this.selection[i];
-      if (!this.nodes.hasOwnProperty(nodeId)) {
-        this.selection.splice(i, 1);
-        delete this.selectionObj[nodeId];
-      }
-      else {
-        i++;
-      }
-    }
-  }
-
-
-
-
-
 };
 
 

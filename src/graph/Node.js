@@ -512,7 +512,7 @@ Node.prototype._resizeImage = function (ctx) {
     this.width  = width;
     this.height = height;
 
-    if (this.width && this.height) {
+    if (this.width > 0 && this.height > 0) {
       this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
       this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
       this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;

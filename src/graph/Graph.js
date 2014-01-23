@@ -17,7 +17,7 @@ function Graph (container, data, options) {
   // to give everything a nice fluidity, we seperate the rendering and calculating of the forces
   this.calculationRefreshRate = 40; // milliseconds
   this.calculationStartTime = 0;
-  this.renderRefreshRate = 10; // milliseconds
+  this.renderRefreshRate = 15; // milliseconds
   this.stabilize = true; // stabilize before displaying the graph
   this.selectable = true;
 
@@ -87,6 +87,7 @@ function Graph (container, data, options) {
     },
     UI: {
       enabled: true,
+      initiallyVisible: true,
       xMovementSpeed: 10,
       yMovementSpeed: 10,
       zoomMovementSpeed: 0.02
@@ -104,7 +105,7 @@ function Graph (container, data, options) {
   });
 
   // UI variables
-  this.UIvisible = true;
+  this.UIvisible = this.constants.UI.initiallyVisible;
   this.xIncrement = 0;
   this.yIncrement = 0;
   this.zoomIncrement = 0;
@@ -115,19 +116,17 @@ function Graph (container, data, options) {
   // apply options
   this.setOptions(options);
 
-  // load the cluster system.   (mandatory)
+  // load the cluster system.   (mandatory, even when not using the cluster system, there are function calls to it)
   this._loadClusterSystem();
 
-  // load the sector system.    (mandatory)
+  // load the sector system.    (mandatory, fully integrated with Graph)
   this._loadSectorSystem();
 
-  // load the selection system. (mandatory)
+  // load the selection system. (mandatory, required by Graph)
   this._loadSelectionSystem();
 
-  // load the UI system.        (mandatory)
+  // load the UI system.        (mandatory, few function calls even when UI is disabled (in this.setSize)
   this._loadUISystem();
-
-
 
   // other vars
   var graph = this;
@@ -199,6 +198,35 @@ function Graph (container, data, options) {
 
 
 /**
+ * Find the center position of the graph
+ * @private
+ */
+Graph.prototype._findCenter = function() {
+  var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
+  for (var i = 0; i < this.nodeIndices.length; i++) {
+    node = this.nodes[this.nodeIndices[i]];
+    if (minX > node.x) {minX = node.x;}
+    if (maxX < node.x) {maxX = node.x;}
+    if (minY > node.y) {minY = node.y;}
+    if (maxY < node.y) {maxY = node.y;}
+  }
+  return {x: (0.5 * (maxX + minX)),
+          y: (0.5 * (maxY + minY))};
+};
+
+
+/**
+ * center the graph
+ */
+Graph.prototype._centerGraph = function() {
+  var center = this._findCenter();
+  center.x -= 0.5 * this.frame.canvas.clientWidth;
+  center.y -= 0.5 * this.frame.canvas.clientHeight;
+  this._setTranslation(-center.x,-center.y);
+};
+
+
+/**
  * This function zooms out to fit all data on screen based on amount of nodes 
  */
 Graph.prototype.zoomToFit = function() {
@@ -208,10 +236,9 @@ Graph.prototype.zoomToFit = function() {
     zoomLevel = 1.0;
   }
 
-  if (!('mousewheelScale' in this.pinch)) {
-    this.pinch.mousewheelScale = zoomLevel;
-  }
+  this.pinch.mousewheelScale = zoomLevel;
   this._setScale(zoomLevel);
+  this._centerGraph();
 };
 
 
@@ -435,6 +462,11 @@ Graph.prototype._create = function () {
   this.containerElement.appendChild(this.frame);
 };
 
+
+/**
+ * Binding the keys for keyboard navigation. These functions are defined in the UIMixin
+ * @private
+ */
 Graph.prototype._createKeyBinds = function() {
   var me = this;
   this.mouseTrap = mouseTrap;
@@ -459,7 +491,7 @@ Graph.prototype._createKeyBinds = function() {
   this.mouseTrap.bind("pagedown",this._zoomOut.bind(me), "keydown");
   this.mouseTrap.bind("pagedown",this._stopZoom.bind(me), "keyup");
   this.mouseTrap.bind("u",this._toggleUI.bind(me)     , "keydown");
-  /*=
+  /*
    this.mouseTrap.bind("=",this.decreaseClusterLevel.bind(me));
    this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
    this.mouseTrap.bind("s",this.singleStep.bind(me));
@@ -691,6 +723,7 @@ Graph.prototype._zoom = function(scale, pointer) {
                      "y" : this._canvasToY(pointer.y)};
 
  // this.areaCenter = {"x" : pointer.x,"y" : pointer.y };
+//  console.log(translation.x,translation.y,pointer.x,pointer.y,scale);
   this.pinch.mousewheelScale = scale;
   this._setScale(scale);
   this._setTranslation(tx, ty);
@@ -1522,7 +1555,7 @@ Graph.prototype._initializeForceCalculation = function() {
  * @private
  */
 Graph.prototype._calculateForces = function() {
-  var centerPos = {"x":0.5*(this.canvasTopLeft.x + this.canvasBottomRight.x),
+  var screenCenterPos = {"x":0.5*(this.canvasTopLeft.x + this.canvasBottomRight.x),
                    "y":0.5*(this.canvasTopLeft.y + this.canvasBottomRight.y)}
 
   // create a local edge to the nodes and edges, that is faster
@@ -1541,8 +1574,8 @@ Graph.prototype._calculateForces = function() {
       node = nodes[this.nodeIndices[i]];
       // gravity does not apply when we are in a pocket sector
       if (this._sector() == "default") {
-        dx = -node.x + centerPos.x;
-        dy = -node.y + centerPos.y;
+        dx = -node.x + screenCenterPos.x;
+        dy = -node.y + screenCenterPos.y;
 
         angle = Math.atan2(dy, dx);
         fx = Math.cos(angle) * gravity;
@@ -1902,9 +1935,6 @@ Graph.prototype._loadSelectionSystem = function() {
   }
 }
 
-Graph.prototype._relocateUI = function() {
-  // empty, will be overloaded when loading the UI system
-}
 
 /**
  * Mixin the UI (User Interface) system and initialize the parameters required
@@ -1917,16 +1947,26 @@ Graph.prototype._loadUISystem = function() {
       Graph.prototype[mixinFunction] = UIMixin[mixinFunction];
     }
   }
-  this._loadUIElements();
 
   if (this.constants.UI.enabled == true) {
+    this._loadUIElements();
     this._createKeyBinds();
   }
 }
 
+/**
+ * this function exists to avoid errors when not loading the UI system
+ */
+Graph.prototype._relocateUI = function() {
+  // empty, is overloaded by UI system
+}
 
-
-
+/**
+ * * this function exists to avoid errors when not loading the UI system
+ */
+Graph.prototype._unHighlightAll = function() {
+  // empty, is overloaded by the UI system
+}
 
 
 
