@@ -208,6 +208,7 @@ var UIMixin = {
     this._unHighlightUIElement("UI_plus");
     this._unHighlightUIElement("UI_min");
 
+    this.zoomIncrement = 0;
   },
 
 

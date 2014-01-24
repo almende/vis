@@ -68,13 +68,14 @@ function Node(properties, imagelist, grouplist, constants) {
   this.clusterSizeRadiusFactor = constants.clustering.clusterSizeRadiusFactor;
 
   // mass, force, velocity
-  this.mass = 50;  // kg (mass is adjusted for the number of connected edges)
+  this.mass = 1;  // kg (mass is adjusted for the number of connected edges)
   this.fx = 0.0;  // external force x
   this.fy = 0.0;  // external force y
   this.vx = 0.0;  // velocity x
   this.vy = 0.0;  // velocity y
   this.minForce = constants.minForce;
-  this.damping = 0.9; // damping factor
+  this.damping = 0.9;
+  this.dampingFactor = 60;
 
   this.graphScaleInv = 1;
   this.canvasTopLeft = {"x": -300, "y": -300};
@@ -128,7 +129,7 @@ Node.prototype.detachEdge = function(edge) {
  * @private
  */
 Node.prototype._updateMass = function() {
-  this.mass = 50 + 20 * this.edges.length; // kg
+  this.mass = 1 + 0.6 * this.edges.length; // kg
 };
 
 /**
@@ -377,15 +378,15 @@ Node.prototype.discreteStep = function(interval) {
   if (!this.xFixed) {
     var dx   = -this.damping * this.vx;     // damping force
     var ax   = (this.fx + dx) / this.mass;  // acceleration
-    this.vx += ax / interval;               // velocity
-    this.x  += this.vx / interval;          // position
+    this.vx += ax * interval;               // velocity
+    this.x  += this.vx * interval;          // position
   }
 
   if (!this.yFixed) {
     var dy   = -this.damping * this.vy;     // damping force
     var ay   = (this.fy + dy) / this.mass;  // acceleration
-    this.vy += ay / interval;               // velocity
-    this.y  += this.vy / interval;          // position
+    this.vy += ay * interval;               // velocity
+    this.y  += this.vy * interval;          // position
   }
 };
 
@@ -405,9 +406,17 @@ Node.prototype.isFixed = function() {
  */
 // TODO: replace this method with calculating the kinetic energy
 Node.prototype.isMoving = function(vmin) {
-  return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin ||
-      (!this.xFixed && Math.abs(this.fx) > this.minForce) ||
-      (!this.yFixed && Math.abs(this.fy) > this.minForce));
+//  return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin ||
+//      (!this.xFixed && Math.abs(this.fx) > this.minForce) ||
+//      (!this.yFixed && Math.abs(this.fy) > this.minForce));
+  if (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin) {
+    return true;
+  }
+  else {
+    this.vx = 0; this.vy = 0;
+    return false;
+  }
+  //return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin);
 };
 
 /**
@@ -943,7 +952,8 @@ Node.prototype.setScale = function(scale) {
  * @param {Number} numberOfNodes
  */
 Node.prototype.updateDamping = function(numberOfNodes) {
-  this.damping = 0.8 + 0.1*this.clusterSize * (1 + 2/Math.pow(numberOfNodes,2));
+  this.damping = (0.8 + 0.1*this.clusterSize * (1 + Math.pow(numberOfNodes,-2)));
+  this.damping *= this.dampingFactor;
 };
 
 

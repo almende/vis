@@ -27,7 +27,7 @@ var SelectionMixin = {
    */
   _getAllNodesOverlappingWith : function (object) {
     var overlappingNodes = [];
-    this._doInAllSectors("_getNodesOverlappingWith",object,overlappingNodes);
+    this._doInAllActiveSectors("_getNodesOverlappingWith",object,overlappingNodes);
     return overlappingNodes;
   },
 
@@ -176,6 +176,8 @@ var SelectionMixin = {
       }
     }
     this.selectionObj = {};
+
+    this._trigger('select');
   },
 
 
@@ -204,7 +206,6 @@ var SelectionMixin = {
    * @private
    */
   _selectNode : function(node, append) {
-    // TODO: triggers?
     if (this._selectionIsEmpty() == false && append == false) {
       this._unselectAll();
     }
@@ -217,6 +218,7 @@ var SelectionMixin = {
       node.unselect();
       this._removeFromSelection(node);
     }
+    this._trigger('select');
   },
 
 

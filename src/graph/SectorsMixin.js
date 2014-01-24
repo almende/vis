@@ -432,7 +432,7 @@ var SectorMixin = {
 
 
   /**
-   * This runs a function in all frozen sectors. This is used in the _redraw().
+   * This runs a function in the UI sector.
    *
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
    *                              |   we don't pass the function itself because then the "this" is the window object

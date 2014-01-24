@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.4.0-SNAPSHOT
- * @date    2014-01-23
+ * @date    2014-01-24
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -22,7 +22,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-!function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.vis=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+!function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.vis=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 /**
  * vis.js module imports
  */
@@ -30,12 +30,12 @@
 // Try to load dependencies from the global window object.
 // If not available there, load via require.
 
-var moment = (typeof window !== 'undefined') && window['moment'] || require('moment');
+var moment = (typeof window !== 'undefined') && window['moment'] || _dereq_('moment');
 
 var Hammer;
 if (typeof window !== 'undefined') {
   // load hammer.js only when running in a browser (where window is available)
-  Hammer = window['Hammer'] || require('hammerjs');
+  Hammer = window['Hammer'] || _dereq_('hammerjs');
 }
 else {
   Hammer = function () {
@@ -46,7 +46,7 @@ else {
 var mouseTrap;
 if (typeof window !== 'undefined') {
   // load mousetrap.js only when running in a browser (where window is available)
-  mouseTrap = window['mouseTrap'] || require('mouseTrap');
+  mouseTrap = window['mouseTrap'] || _dereq_('mouseTrap');
 }
 else {
   mouseTrap = function () {
@@ -8808,13 +8808,14 @@ function Node(properties, imagelist, grouplist, constants) {
   this.clusterSizeRadiusFactor = constants.clustering.clusterSizeRadiusFactor;
 
   // mass, force, velocity
-  this.mass = 50;  // kg (mass is adjusted for the number of connected edges)
+  this.mass = 1;  // kg (mass is adjusted for the number of connected edges)
   this.fx = 0.0;  // external force x
   this.fy = 0.0;  // external force y
   this.vx = 0.0;  // velocity x
   this.vy = 0.0;  // velocity y
   this.minForce = constants.minForce;
-  this.damping = 0.9; // damping factor
+  this.damping = 0.9;
+  this.dampingFactor = 60;
 
   this.graphScaleInv = 1;
   this.canvasTopLeft = {"x": -300, "y": -300};
@@ -8868,7 +8869,7 @@ Node.prototype.detachEdge = function(edge) {
  * @private
  */
 Node.prototype._updateMass = function() {
-  this.mass = 50 + 20 * this.edges.length; // kg
+  this.mass = 1 + 0.6 * this.edges.length; // kg
 };
 
 /**
@@ -9117,15 +9118,15 @@ Node.prototype.discreteStep = function(interval) {
   if (!this.xFixed) {
     var dx   = -this.damping * this.vx;     // damping force
     var ax   = (this.fx + dx) / this.mass;  // acceleration
-    this.vx += ax / interval;               // velocity
-    this.x  += this.vx / interval;          // position
+    this.vx += ax * interval;               // velocity
+    this.x  += this.vx * interval;          // position
   }
 
   if (!this.yFixed) {
     var dy   = -this.damping * this.vy;     // damping force
     var ay   = (this.fy + dy) / this.mass;  // acceleration
-    this.vy += ay / interval;               // velocity
-    this.y  += this.vy / interval;          // position
+    this.vy += ay * interval;               // velocity
+    this.y  += this.vy * interval;          // position
   }
 };
 
@@ -9145,9 +9146,17 @@ Node.prototype.isFixed = function() {
  */
 // TODO: replace this method with calculating the kinetic energy
 Node.prototype.isMoving = function(vmin) {
-  return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin ||
-      (!this.xFixed && Math.abs(this.fx) > this.minForce) ||
-      (!this.yFixed && Math.abs(this.fy) > this.minForce));
+//  return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin ||
+//      (!this.xFixed && Math.abs(this.fx) > this.minForce) ||
+//      (!this.yFixed && Math.abs(this.fy) > this.minForce));
+  if (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin) {
+    return true;
+  }
+  else {
+    this.vx = 0; this.vy = 0;
+    return false;
+  }
+  //return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin);
 };
 
 /**
@@ -9683,7 +9692,8 @@ Node.prototype.setScale = function(scale) {
  * @param {Number} numberOfNodes
  */
 Node.prototype.updateDamping = function(numberOfNodes) {
-  this.damping = 0.8 + 0.1*this.clusterSize * (1 + 2/Math.pow(numberOfNodes,2));
+  this.damping = (0.8 + 0.1*this.clusterSize * (1 + Math.pow(numberOfNodes,-2)));
+  this.damping *= this.dampingFactor;
 };
 
 
@@ -10992,7 +11002,7 @@ var SectorMixin = {
 
 
   /**
-   * This runs a function in all frozen sectors. This is used in the _redraw().
+   * This runs a function in the UI sector.
    *
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
    *                              |   we don't pass the function itself because then the "this" is the window object
@@ -12154,7 +12164,7 @@ var SelectionMixin = {
    */
   _getAllNodesOverlappingWith : function (object) {
     var overlappingNodes = [];
-    this._doInAllSectors("_getNodesOverlappingWith",object,overlappingNodes);
+    this._doInAllActiveSectors("_getNodesOverlappingWith",object,overlappingNodes);
     return overlappingNodes;
   },
 
@@ -12303,6 +12313,8 @@ var SelectionMixin = {
       }
     }
     this.selectionObj = {};
+
+    this._trigger('select');
   },
 
 
@@ -12331,7 +12343,6 @@ var SelectionMixin = {
    * @private
    */
   _selectNode : function(node, append) {
-    // TODO: triggers?
     if (this._selectionIsEmpty() == false && append == false) {
       this._unselectAll();
     }
@@ -12344,6 +12355,7 @@ var SelectionMixin = {
       node.unselect();
       this._removeFromSelection(node);
     }
+    this._trigger('select');
   },
 
 
@@ -12821,6 +12833,7 @@ var UIMixin = {
     this._unHighlightUIElement("UI_plus");
     this._unHighlightUIElement("UI_min");
 
+    this.zoomIncrement = 0;
   },
 
 
@@ -12866,11 +12879,12 @@ function Graph (container, data, options) {
   this.width = '100%';
   this.height = '100%';
   // to give everything a nice fluidity, we seperate the rendering and calculating of the forces
-  this.calculationRefreshRate = 40; // milliseconds
-  this.calculationStartTime = 0;
-  this.renderRefreshRate = 15; // milliseconds
+  this.renderRefreshRate = 60; // hz (fps)
+  this.renderTimestep = 1000 / this.renderRefreshRate; // ms -- saves calculation later on
   this.stabilize = true; // stabilize before displaying the graph
   this.selectable = true;
+
+  this.forceFactor = 50000;
 
   // set constant values
   this.constants = {
@@ -12943,10 +12957,10 @@ function Graph (container, data, options) {
       yMovementSpeed: 10,
       zoomMovementSpeed: 0.02
     },
-    minForce: 0.05,
-    minVelocity: 0.02,   // px/s
+    minVelocity: 1.0,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
   };
+
 
   // Node variables
   this.groups = new Groups(); // object with groups
@@ -14420,7 +14434,7 @@ Graph.prototype._calculateForces = function() {
   // Gravity is required to keep separated groups from floating off
   // the forces are reset to zero in this loop by using _setForce instead
   // of _addForce
-  var gravity = 0.08;
+  var gravity = 0.3 * this.forceFactor;
   for (i = 0; i < this.nodeIndices.length; i++) {
       node = nodes[this.nodeIndices[i]];
       // gravity does not apply when we are in a pocket sector
@@ -14474,9 +14488,11 @@ Graph.prototype._calculateForces = function() {
         }
         // amplify the repulsion for clusters.
         repulsingForce *= (clusterSize == 0) ? 1 : 1 + clusterSize * this.constants.clustering.forceAmplification;
+        repulsingForce *= this.forceFactor;
+
 
         fx = Math.cos(angle) * repulsingForce;
-        fy = Math.sin(angle) * repulsingForce;
+        fy = Math.sin(angle) * repulsingForce ;
 
         node1._addForce(-fx, -fy);
         node2._addForce(fx, fy);
@@ -14544,7 +14560,7 @@ Graph.prototype._calculateForces = function() {
           length =  Math.sqrt(dx * dx + dy * dy);
           angle = Math.atan2(dy, dx);
 
-          springForce = edge.stiffness * (edgeLength - length);
+          springForce = edge.stiffness * (edgeLength - length) * this.forceFactor;
 
           fx = Math.cos(angle) * springForce;
           fy = Math.sin(angle) * springForce;
@@ -14615,11 +14631,14 @@ Graph.prototype._isMoving = function(vmin) {
 
 
 /**
+ * /**
  * Perform one discrete step for all nodes
+ *
+ * @param interval
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = this.calculationRefreshRate / 1000.0; // in seconds
+  var interval = 0.01;
   var nodes = this.nodes;
   for (var id in nodes) {
     if (nodes.hasOwnProperty(id)) {
@@ -14638,12 +14657,10 @@ Graph.prototype._discreteStepNodes = function() {
  *
  * @poram {Boolean} runCalculationStep
  */
-Graph.prototype.start = function(runCalculationStep) {
-  if (runCalculationStep === undefined) {
-    runCalculationStep = true;
-  }
+Graph.prototype.start = function() {
   if (!this.freezeSimulation) {
-    if (this.moving && runCalculationStep) {
+
+    if (this.moving) {
       this._doInAllActiveSectors("_initializeForceCalculation");
       this._doInAllActiveSectors("_discreteStepNodes");
     }
@@ -14664,21 +14681,8 @@ Graph.prototype.start = function(runCalculationStep) {
             graph._zoom(graph.scale*(1 + graph.zoomIncrement),graph.lastPointerPosition);
           }
 
-
-          var calculateNextStep = false;
-          var time = window.performance.now();
-          if (time - graph.calculationStartTime > graph.calculationRefreshRate && graph.moving) {
-            calculateNextStep = true;
-            graph.calculationStartTime = window.performance.now();
-          }
-          graph.start(calculateNextStep);
-
-
-          //var startTime = window.performance.now();
+          graph.start();
           graph._redraw();
-          //var end = window.performance.now();
-          //time = end - startTime;
-          //console.log('Drawing time: ' + time);
 
 
           //this.end = window.performance.now();
@@ -14686,7 +14690,7 @@ Graph.prototype.start = function(runCalculationStep) {
           //console.log('refresh time: ' + this.time);
           //this.startTime = window.performance.now();
 
-        }, this.renderRefreshRate);
+        }, this.renderTimestep);
       }
     }
     else {
@@ -14913,7 +14917,7 @@ if (typeof window !== 'undefined') {
 }
 
 
-},{"hammerjs":2,"moment":3,"mouseTrap":4}],2:[function(require,module,exports){
+},{"hammerjs":2,"moment":3,"mouseTrap":4}],2:[function(_dereq_,module,exports){
 /*! Hammer.JS - v1.0.5 - 2013-04-07
  * http://eightmedia.github.com/hammer.js
  *
@@ -16335,9 +16339,9 @@ else {
     }
 }
 })(this);
-},{}],3:[function(require,module,exports){
+},{}],3:[function(_dereq_,module,exports){
 //! moment.js
-//! version : 2.5.0
+//! version : 2.5.1
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
@@ -16349,7 +16353,7 @@ else {
     ************************************/
 
     var moment,
-        VERSION = "2.5.0",
+        VERSION = "2.5.1",
         global = this,
         round = Math.round,
         i,
@@ -16365,8 +16369,21 @@ else {
         // internal storage for language config files
         languages = {},
 
+        // moment internal properties
+        momentProperties = {
+            _isAMomentObject: null,
+            _i : null,
+            _f : null,
+            _l : null,
+            _strict : null,
+            _isUTC : null,
+            _offset : null,  // optional. Combine with _isUTC
+            _pf : null,
+            _lang : null  // optional
+        },
+
         // check for nodeJS
-        hasModule = (typeof module !== 'undefined' && module.exports && typeof require !== 'undefined'),
+        hasModule = (typeof module !== 'undefined' && module.exports && typeof _dereq_ !== 'undefined'),
 
         // ASP.NET json date format regex
         aspNetJsonRegex = /^\/?Date\((\-?\d+)/i,
@@ -16396,19 +16413,21 @@ else {
         parseTokenTwoDigits = /\d\d/, // 00 - 99
         parseTokenThreeDigits = /\d{3}/, // 000 - 999
         parseTokenFourDigits = /\d{4}/, // 0000 - 9999
-        parseTokenSixDigits = /[+\-]?\d{6}/, // -999,999 - 999,999
+        parseTokenSixDigits = /[+-]?\d{6}/, // -999,999 - 999,999
+        parseTokenSignedNumber = /[+-]?\d+/, // -inf - inf
 
         // iso 8601 regex
         // 0000-00-00 0000-W00 or 0000-W00-0 + T + 00 or 00:00 or 00:00:00 or 00:00:00.000 + +00:00 or +0000 or +00)
-        isoRegex = /^\s*\d{4}-(?:(\d\d-\d\d)|(W\d\d$)|(W\d\d-\d)|(\d\d\d))((T| )(\d\d(:\d\d(:\d\d(\.\d+)?)?)?)?([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/,
+        isoRegex = /^\s*(?:[+-]\d{6}|\d{4})-(?:(\d\d-\d\d)|(W\d\d$)|(W\d\d-\d)|(\d\d\d))((T| )(\d\d(:\d\d(:\d\d(\.\d+)?)?)?)?([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/,
 
         isoFormat = 'YYYY-MM-DDTHH:mm:ssZ',
 
         isoDates = [
-            'YYYY-MM-DD',
-            'GGGG-[W]WW',
-            'GGGG-[W]WW-E',
-            'YYYY-DDD'
+            ['YYYYYY-MM-DD', /[+-]\d{6}-\d{2}-\d{2}/],
+            ['YYYY-MM-DD', /\d{4}-\d{2}-\d{2}/],
+            ['GGGG-[W]WW-E', /\d{4}-W\d{2}-\d/],
+            ['GGGG-[W]WW', /\d{4}-W\d{2}/],
+            ['YYYY-DDD', /\d{4}-\d{3}/]
         ],
 
         // iso time formats and regexes
@@ -16518,7 +16537,7 @@ else {
                 return leftZeroFill(this.weekYear() % 100, 2);
             },
             gggg : function () {
-                return this.weekYear();
+                return leftZeroFill(this.weekYear(), 4);
             },
             ggggg : function () {
                 return leftZeroFill(this.weekYear(), 5);
@@ -16527,7 +16546,7 @@ else {
                 return leftZeroFill(this.isoWeekYear() % 100, 2);
             },
             GGGG : function () {
-                return this.isoWeekYear();
+                return leftZeroFill(this.isoWeekYear(), 4);
             },
             GGGGG : function () {
                 return leftZeroFill(this.isoWeekYear(), 5);
@@ -16601,6 +16620,23 @@ else {
         },
 
         lists = ['months', 'monthsShort', 'weekdays', 'weekdaysShort', 'weekdaysMin'];
+
+    function defaultParsingFlags() {
+        // We need to deep clone this object, and es5 standard is not very
+        // helpful.
+        return {
+            empty : false,
+            unusedTokens : [],
+            unusedInput : [],
+            overflow : -2,
+            charsLeftOver : 0,
+            nullInput : false,
+            invalidMonth : null,
+            invalidFormat : false,
+            userInvalidated : false,
+            iso: false
+        };
+    }
 
     function padToken(func, count) {
         return function (a) {
@@ -16693,6 +16729,17 @@ else {
         return a;
     }
 
+    function cloneMoment(m) {
+        var result = {}, i;
+        for (i in m) {
+            if (m.hasOwnProperty(i) && momentProperties.hasOwnProperty(i)) {
+                result[i] = m[i];
+            }
+        }
+
+        return result;
+    }
+
     function absRound(number) {
         if (number < 0) {
             return Math.ceil(number);
@@ -16704,7 +16751,7 @@ else {
     // left zero fill a number
     // see http://jsperf.com/left-zero-filling for performance comparison
     function leftZeroFill(number, targetLength, forceSign) {
-        var output = Math.abs(number) + '',
+        var output = '' + Math.abs(number),
             sign = number >= 0;
 
         while (output.length < targetLength) {
@@ -16882,21 +16929,6 @@ else {
 
             m._pf.overflow = overflow;
         }
-    }
-
-    function initializeParsingFlags(config) {
-        config._pf = {
-            empty : false,
-            unusedTokens : [],
-            unusedInput : [],
-            overflow : -2,
-            charsLeftOver : 0,
-            nullInput : false,
-            invalidMonth : null,
-            invalidFormat : false,
-            userInvalidated : false,
-            iso: false
-        };
     }
 
     function isValid(m) {
@@ -17143,7 +17175,7 @@ else {
             get = function (k) {
                 if (!languages[k] && hasModule) {
                     try {
-                        require('./lang/' + k);
+                        _dereq_('./lang/' + k);
                     } catch (e) { }
                 }
                 return languages[k];
@@ -17267,6 +17299,10 @@ else {
         case 'GGGG':
         case 'gggg':
             return strict ? parseTokenFourDigits : parseTokenOneToFourDigits;
+        case 'Y':
+        case 'G':
+        case 'g':
+            return parseTokenSignedNumber;
         case 'YYYYYY':
         case 'YYYYY':
         case 'GGGGG':
@@ -17279,8 +17315,10 @@ else {
             if (strict) { return parseTokenTwoDigits; }
             /* falls through */
         case 'SSS':
+            if (strict) { return parseTokenThreeDigits; }
+            /* falls through */
         case 'DDD':
-            return strict ? parseTokenThreeDigits : parseTokenOneToThreeDigits;
+            return parseTokenOneToThreeDigits;
         case 'MMM':
         case 'MMMM':
         case 'dd':
@@ -17322,7 +17360,7 @@ else {
         case 'W':
         case 'e':
         case 'E':
-            return strict ? parseTokenOneDigit : parseTokenOneOrTwoDigits;
+            return parseTokenOneOrTwoDigits;
         default :
             a = new RegExp(regexpEscape(unescapeFormat(token.replace('\\', '')), "i"));
             return a;
@@ -17653,7 +17691,7 @@ else {
         for (i = 0; i < config._f.length; i++) {
             currentScore = 0;
             tempConfig = extend({}, config);
-            initializeParsingFlags(tempConfig);
+            tempConfig._pf = defaultParsingFlags();
             tempConfig._f = config._f[i];
             makeDateFromStringAndFormat(tempConfig);
 
@@ -17680,20 +17718,20 @@ else {
 
     // date from iso format
     function makeDateFromString(config) {
-        var i,
+        var i, l,
             string = config._i,
             match = isoRegex.exec(string);
 
         if (match) {
             config._pf.iso = true;
-            for (i = 4; i > 0; i--) {
-                if (match[i]) {
+            for (i = 0, l = isoDates.length; i < l; i++) {
+                if (isoDates[i][1].exec(string)) {
                     // match[5] should be "T" or undefined
-                    config._f = isoDates[i - 1] + (match[6] || " ");
+                    config._f = isoDates[i][0] + (match[6] || " ");
                     break;
                 }
             }
-            for (i = 0; i < 4; i++) {
+            for (i = 0, l = isoTimes.length; i < l; i++) {
                 if (isoTimes[i][1].exec(string)) {
                     config._f += isoTimes[i][0];
                     break;
@@ -17834,14 +17872,10 @@ else {
 
     //http://en.wikipedia.org/wiki/ISO_week_date#Calculating_a_date_given_the_year.2C_week_number_and_weekday
     function dayOfYearFromWeeks(year, week, weekday, firstDayOfWeekOfYear, firstDayOfWeek) {
-        // The only solid way to create an iso date from year is to use
-        // a string format (Date.UTC handles only years > 1900). Don't ask why
-        // it doesn't need Z at the end.
-        var d = new Date(leftZeroFill(year, 6, true) + '-01-01').getUTCDay(),
-            daysToAdd, dayOfYear;
+        var d = makeUTCDate(year, 0, 1).getUTCDay(), daysToAdd, dayOfYear;
 
         weekday = weekday != null ? weekday : firstDayOfWeek;
-        daysToAdd = firstDayOfWeek - d + (d > firstDayOfWeekOfYear ? 7 : 0);
+        daysToAdd = firstDayOfWeek - d + (d > firstDayOfWeekOfYear ? 7 : 0) - (d < firstDayOfWeek ? 7 : 0);
         dayOfYear = 7 * (week - 1) + (weekday - firstDayOfWeek) + daysToAdd + 1;
 
         return {
@@ -17858,10 +17892,6 @@ else {
         var input = config._i,
             format = config._f;
 
-        if (typeof config._pf === 'undefined') {
-            initializeParsingFlags(config);
-        }
-
         if (input === null) {
             return moment.invalid({nullInput: true});
         }
@@ -17871,7 +17901,7 @@ else {
         }
 
         if (moment.isMoment(input)) {
-            config = extend({}, input);
+            config = cloneMoment(input);
 
             config._d = new Date(+input._d);
         } else if (format) {
@@ -17888,37 +17918,47 @@ else {
     }
 
     moment = function (input, format, lang, strict) {
+        var c;
+
         if (typeof(lang) === "boolean") {
             strict = lang;
             lang = undefined;
         }
-        return makeMoment({
-            _i : input,
-            _f : format,
-            _l : lang,
-            _strict : strict,
-            _isUTC : false
-        });
+        // object construction must be done this way.
+        // https://github.com/moment/moment/issues/1423
+        c = {};
+        c._isAMomentObject = true;
+        c._i = input;
+        c._f = format;
+        c._l = lang;
+        c._strict = strict;
+        c._isUTC = false;
+        c._pf = defaultParsingFlags();
+
+        return makeMoment(c);
     };
 
     // creating with utc
     moment.utc = function (input, format, lang, strict) {
-        var m;
+        var c;
 
         if (typeof(lang) === "boolean") {
             strict = lang;
             lang = undefined;
         }
-        m = makeMoment({
-            _useUTC : true,
-            _isUTC : true,
-            _l : lang,
-            _i : input,
-            _f : format,
-            _strict : strict
-        }).utc();
+        // object construction must be done this way.
+        // https://github.com/moment/moment/issues/1423
+        c = {};
+        c._isAMomentObject = true;
+        c._useUTC = true;
+        c._isUTC = true;
+        c._l = lang;
+        c._i = input;
+        c._f = format;
+        c._strict = strict;
+        c._pf = defaultParsingFlags();
 
-        return m;
+        return makeMoment(c).utc();
     };
 
     // creating with unix timestamp (in seconds)
@@ -18028,7 +18068,8 @@ else {
 
     // compare moment object
     moment.isMoment = function (obj) {
-        return obj instanceof Moment;
+        return obj instanceof Moment ||
+            (obj != null &&  obj.hasOwnProperty('_isAMomentObject'));
     };
 
     // for typechecking Duration objects
@@ -18687,7 +18728,7 @@ else {
         module.exports = moment;
         makeGlobal(true);
     } else if (typeof define === "function" && define.amd) {
-        define("moment", function (require, exports, module) {
+        define("moment", function (_dereq_, exports, module) {
             if (module.config && module.config() && module.config().noGlobal !== true) {
                 // If user provided noGlobal, he is aware of global
                 makeGlobal(module.config().noGlobal === undefined);
@@ -18700,7 +18741,7 @@ else {
     }
 }).call(this);
 
-},{}],4:[function(require,module,exports){
+},{}],4:[function(_dereq_,module,exports){
 /**
  * Copyright 2012 Craig Campbell
  *

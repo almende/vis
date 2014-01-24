@@ -29,7 +29,6 @@ task('default', ['build', 'minify'], function () {
 desc('Build the visualization library vis.js');
 task('build', {async: true}, function () {
   jake.mkdirP(DIST);
-
   // concatenate and stringify the css files
   concat({
     src: [
@@ -96,6 +95,8 @@ task('build', {async: true}, function () {
     separator: '\n'
   });
 
+
+  var timeStart = Date.now();
   // bundle the concatenated script and dependencies into one file
   var b = browserify();
   b.add(VIS_TMP);
@@ -105,7 +106,7 @@ task('build', {async: true}, function () {
     if(err) {
       throw err;
     }
-
+    console.log("browserify",Date.now() - timeStart); timeStart = Date.now();
     // add header and footer
     var lib = read('./src/module/header.js') + code;
 

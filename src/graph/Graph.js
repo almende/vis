@@ -15,11 +15,12 @@ function Graph (container, data, options) {
   this.width = '100%';
   this.height = '100%';
   // to give everything a nice fluidity, we seperate the rendering and calculating of the forces
-  this.calculationRefreshRate = 40; // milliseconds
-  this.calculationStartTime = 0;
-  this.renderRefreshRate = 15; // milliseconds
+  this.renderRefreshRate = 60; // hz (fps)
+  this.renderTimestep = 1000 / this.renderRefreshRate; // ms -- saves calculation later on
   this.stabilize = true; // stabilize before displaying the graph
   this.selectable = true;
+
+  this.forceFactor = 50000;
 
   // set constant values
   this.constants = {
@@ -92,10 +93,10 @@ function Graph (container, data, options) {
       yMovementSpeed: 10,
       zoomMovementSpeed: 0.02
     },
-    minForce: 0.05,
-    minVelocity: 0.02,   // px/s
+    minVelocity: 1.0,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
   };
+
 
   // Node variables
   this.groups = new Groups(); // object with groups
@@ -1569,7 +1570,7 @@ Graph.prototype._calculateForces = function() {
   // Gravity is required to keep separated groups from floating off
   // the forces are reset to zero in this loop by using _setForce instead
   // of _addForce
-  var gravity = 0.08;
+  var gravity = 0.3 * this.forceFactor;
   for (i = 0; i < this.nodeIndices.length; i++) {
       node = nodes[this.nodeIndices[i]];
       // gravity does not apply when we are in a pocket sector
@@ -1623,9 +1624,11 @@ Graph.prototype._calculateForces = function() {
         }
         // amplify the repulsion for clusters.
         repulsingForce *= (clusterSize == 0) ? 1 : 1 + clusterSize * this.constants.clustering.forceAmplification;
+        repulsingForce *= this.forceFactor;
+
 
         fx = Math.cos(angle) * repulsingForce;
-        fy = Math.sin(angle) * repulsingForce;
+        fy = Math.sin(angle) * repulsingForce ;
 
         node1._addForce(-fx, -fy);
         node2._addForce(fx, fy);
@@ -1693,7 +1696,7 @@ Graph.prototype._calculateForces = function() {
           length =  Math.sqrt(dx * dx + dy * dy);
           angle = Math.atan2(dy, dx);
 
-          springForce = edge.stiffness * (edgeLength - length);
+          springForce = edge.stiffness * (edgeLength - length) * this.forceFactor;
 
           fx = Math.cos(angle) * springForce;
           fy = Math.sin(angle) * springForce;
@@ -1764,11 +1767,14 @@ Graph.prototype._isMoving = function(vmin) {
 
 
 /**
+ * /**
  * Perform one discrete step for all nodes
+ *
+ * @param interval
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = this.calculationRefreshRate / 1000.0; // in seconds
+  var interval = 0.01;
   var nodes = this.nodes;
   for (var id in nodes) {
     if (nodes.hasOwnProperty(id)) {
@@ -1787,12 +1793,10 @@ Graph.prototype._discreteStepNodes = function() {
  *
  * @poram {Boolean} runCalculationStep
  */
-Graph.prototype.start = function(runCalculationStep) {
-  if (runCalculationStep === undefined) {
-    runCalculationStep = true;
-  }
+Graph.prototype.start = function() {
   if (!this.freezeSimulation) {
-    if (this.moving && runCalculationStep) {
+
+    if (this.moving) {
       this._doInAllActiveSectors("_initializeForceCalculation");
       this._doInAllActiveSectors("_discreteStepNodes");
     }
@@ -1813,21 +1817,8 @@ Graph.prototype.start = function(runCalculationStep) {
             graph._zoom(graph.scale*(1 + graph.zoomIncrement),graph.lastPointerPosition);
           }
 
-
-          var calculateNextStep = false;
-          var time = window.performance.now();
-          if (time - graph.calculationStartTime > graph.calculationRefreshRate && graph.moving) {
-            calculateNextStep = true;
-            graph.calculationStartTime = window.performance.now();
-          }
-          graph.start(calculateNextStep);
-
-
-          //var startTime = window.performance.now();
+          graph.start();
           graph._redraw();
-          //var end = window.performance.now();
-          //time = end - startTime;
-          //console.log('Drawing time: ' + time);
 
 
           //this.end = window.performance.now();
@@ -1835,7 +1826,7 @@ Graph.prototype.start = function(runCalculationStep) {
           //console.log('refresh time: ' + this.time);
           //this.startTime = window.performance.now();
 
-        }, this.renderRefreshRate);
+        }, this.renderTimestep);
       }
     }
     else {
