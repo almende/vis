@@ -87,8 +87,9 @@ function Graph (container, data, options) {
       massTransferCoefficient: 1    // (multiplier)          | parent.mass += massTransferCoefficient * child.mass
     },
     navigationUI: {
-      enabled: true,
+      enabled: false,
       initiallyVisible: true,
+      enableToggling: true,
       xMovementSpeed: 10,
       yMovementSpeed: 10,
       zoomMovementSpeed: 0.02,
@@ -132,6 +133,9 @@ function Graph (container, data, options) {
   // load the navigationUI system.        (mandatory, few function calls even when navigationUI is disabled (in this.setSize)
   this._loadUISystem();
 
+  // bind keys. If disabled, this will not do anything;
+  this._createKeyBinds();
+
   // other vars
   var graph = this;
   this.freezeSimulation = false;// freeze the simulation
@@ -146,6 +150,7 @@ function Graph (container, data, options) {
   this.areaCenter = {};               // object with x and y elements used for determining the center of the zoom action
   this.scale = 1;                     // defining the global scale variable in the constructor
   this.previousScale = this.scale;    // this is used to check if the zoom operation is zooming in or out
+  this.lastPointerPosition = {"x": 0,"y": 0}; // this is used for keyboard navigation
   // TODO: create a counter to keep track on the number of nodes having values
   // TODO: create a counter to keep track on the number of nodes currently moving
   // TODO: create a counter to keep track on the number of edges having values
@@ -539,27 +544,34 @@ Graph.prototype._create = function () {
 Graph.prototype._createKeyBinds = function() {
   var me = this;
   this.mousetrap = mousetrap;
-  this.mousetrap.bind("up",   this._moveUp.bind(me)   , "keydown");
-  this.mousetrap.bind("up",   this._yStopMoving.bind(me), "keyup");
-  this.mousetrap.bind("down", this._moveDown.bind(me) , "keydown");
-  this.mousetrap.bind("down", this._yStopMoving.bind(me), "keyup");
-  this.mousetrap.bind("left", this._moveLeft.bind(me) , "keydown");
-  this.mousetrap.bind("left", this._xStopMoving.bind(me), "keyup");
-  this.mousetrap.bind("right",this._moveRight.bind(me), "keydown");
-  this.mousetrap.bind("right",this._xStopMoving.bind(me), "keyup");
-  this.mousetrap.bind("=",this._zoomIn.bind(me), "keydown");
-  this.mousetrap.bind("=",this._stopZoom.bind(me), "keyup");
-  this.mousetrap.bind("-",this._zoomOut.bind(me), "keydown");
-  this.mousetrap.bind("-",this._stopZoom.bind(me), "keyup");
-  this.mousetrap.bind("[",this._zoomIn.bind(me), "keydown");
-  this.mousetrap.bind("[",this._stopZoom.bind(me), "keyup");
-  this.mousetrap.bind("]",this._zoomOut.bind(me), "keydown");
-  this.mousetrap.bind("]",this._stopZoom.bind(me), "keyup");
-  this.mousetrap.bind("pageup",this._zoomIn.bind(me), "keydown");
-  this.mousetrap.bind("pageup",this._stopZoom.bind(me), "keyup");
-  this.mousetrap.bind("pagedown",this._zoomOut.bind(me), "keydown");
-  this.mousetrap.bind("pagedown",this._stopZoom.bind(me), "keyup");
-  this.mousetrap.bind("u",this._toggleUI.bind(me)     , "keydown");
+
+  if (this.constants.navigationUI.enabled == true &&
+      this.constants.navigationUI.enableToggling == true) {
+    this.mousetrap.bind("u",this._toggleUI.bind(me)     , "keydown");
+  }
+
+  if (this.constants.keyboardNavigation.enabled == true) {
+    this.mousetrap.bind("up",   this._moveUp.bind(me)   , "keydown");
+    this.mousetrap.bind("up",   this._yStopMoving.bind(me), "keyup");
+    this.mousetrap.bind("down", this._moveDown.bind(me) , "keydown");
+    this.mousetrap.bind("down", this._yStopMoving.bind(me), "keyup");
+    this.mousetrap.bind("left", this._moveLeft.bind(me) , "keydown");
+    this.mousetrap.bind("left", this._xStopMoving.bind(me), "keyup");
+    this.mousetrap.bind("right",this._moveRight.bind(me), "keydown");
+    this.mousetrap.bind("right",this._xStopMoving.bind(me), "keyup");
+    this.mousetrap.bind("=",    this._zoomIn.bind(me),    "keydown");
+    this.mousetrap.bind("=",    this._stopZoom.bind(me),    "keyup");
+    this.mousetrap.bind("-",    this._zoomOut.bind(me),   "keydown");
+    this.mousetrap.bind("-",    this._stopZoom.bind(me),    "keyup");
+    this.mousetrap.bind("[",    this._zoomIn.bind(me),    "keydown");
+    this.mousetrap.bind("[",    this._stopZoom.bind(me),    "keyup");
+    this.mousetrap.bind("]",    this._zoomOut.bind(me),   "keydown");
+    this.mousetrap.bind("]",    this._stopZoom.bind(me),    "keyup");
+    this.mousetrap.bind("pageup",this._zoomIn.bind(me),   "keydown");
+    this.mousetrap.bind("pageup",this._stopZoom.bind(me),   "keyup");
+    this.mousetrap.bind("pagedown",this._zoomOut.bind(me),"keydown");
+    this.mousetrap.bind("pagedown",this._stopZoom.bind(me), "keyup");
+  }
   /*
    this.mousetrap.bind("=",this.decreaseClusterLevel.bind(me));
    this.mousetrap.bind("-",this.increaseClusterLevel.bind(me));
@@ -2008,8 +2020,6 @@ Graph.prototype._loadUISystem = function() {
 
   if (this.constants.navigationUI.enabled == true) {
     this._loadUIElements();
-
-    this._createKeyBinds();
   }
 }
 
