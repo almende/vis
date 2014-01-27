@@ -72,14 +72,14 @@ var SectorMixin = {
 
   /**
    * This function sets the global references to nodes, edges and nodeIndices to
-   * those of the UI sector.
+   * those of the navigationUI sector.
    *
    * @private
    */
   _switchToUISector : function() {
-    this.nodeIndices = this.sectors["UI"]["nodeIndices"];
-    this.nodes       = this.sectors["UI"]["nodes"];
-    this.edges       = this.sectors["UI"]["edges"];
+    this.nodeIndices = this.sectors["navigationUI"]["nodeIndices"];
+    this.nodes       = this.sectors["navigationUI"]["nodes"];
+    this.edges       = this.sectors["navigationUI"]["edges"];
   },
 
 
@@ -432,7 +432,7 @@ var SectorMixin = {
 
 
   /**
-   * This runs a function in the UI sector.
+   * This runs a function in the navigationUI sector.
    *
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
    *                              |   we don't pass the function itself because then the "this" is the window object

@@ -33,7 +33,7 @@ var SelectionMixin = {
 
 
   /**
-   * retrieve all nodes in the UI overlapping with given object
+   * retrieve all nodes in the navigationUI overlapping with given object
    * @param {Object} object  An object with parameters left, top, right, bottom
    * @return {Number[]}   An array with id's of the overlapping nodes
    * @private
@@ -80,7 +80,7 @@ var SelectionMixin = {
 
 
   /**
-   * Get the top UI node at the a specific point (like a click)
+   * Get the top navigationUI node at the a specific point (like a click)
    *
    * @param {{x: Number, y: Number}} pointer
    * @return {Node | null} node
@@ -90,7 +90,7 @@ var SelectionMixin = {
     var screenPositionObject = this._pointerToScreenPositionObject(pointer);
     var overlappingNodes = this._getAllUINodesOverlappingWith(screenPositionObject);
     if (this.UIvisible && overlappingNodes.length > 0) {
-      return this.sectors["UI"]["nodes"][overlappingNodes[overlappingNodes.length - 1]];
+      return this.sectors["navigationUI"]["nodes"][overlappingNodes[overlappingNodes.length - 1]];
     }
     else {
       return null;
@@ -106,7 +106,7 @@ var SelectionMixin = {
    * @private
    */
   _getNodeAt : function (pointer) {
-    // we first check if this is an UI element
+    // we first check if this is an navigationUI element
     var positionObject = this._pointerToPositionObject(pointer);
     overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
 
@@ -223,7 +223,7 @@ var SelectionMixin = {
 
 
   /**
-   * handles the selection part of the touch, only for UI elements;
+   * handles the selection part of the touch, only for navigationUI elements;
    * Touch is triggered before tap, also before hold. Hold triggers after a while.
    * This is the most responsive solution
    *
@@ -291,7 +291,7 @@ var SelectionMixin = {
 
 
   /**
-   * handle the onRelease event. These functions are here for the UI module.
+   * handle the onRelease event. These functions are here for the navigationUI module.
    *
     * @private
    */

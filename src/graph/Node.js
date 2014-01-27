@@ -44,8 +44,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.y = 0;
   this.xFixed = false;
   this.yFixed = false;
-  this.horizontalAlignLeft = true; // these are for the UI
-  this.verticalAlignTop    = true; // these are for the UI
+  this.horizontalAlignLeft = true; // these are for the navigationUI
+  this.verticalAlignTop    = true; // these are for the navigationUI
   this.radius = constants.nodes.radius;
   this.baseRadiusValue = constants.nodes.radius;
   this.radiusFixed = false;
@@ -151,7 +151,7 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.y !== undefined)         {this.y = properties.y;}
   if (properties.value !== undefined)     {this.value = properties.value;}
 
-  // UI properties
+  // navigationUI properties
   if (properties.horizontalAlignLeft !== undefined) {this.horizontalAlignLeft = properties.horizontalAlignLeft;}
   if (properties.verticalAlignTop    !== undefined) {this.verticalAlignTop    = properties.verticalAlignTop;}
   if (properties.triggerFunction     !== undefined) {this.triggerFunction     = properties.triggerFunction;}
@@ -406,9 +406,6 @@ Node.prototype.isFixed = function() {
  */
 // TODO: replace this method with calculating the kinetic energy
 Node.prototype.isMoving = function(vmin) {
-//  return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin ||
-//      (!this.xFixed && Math.abs(this.fx) > this.minForce) ||
-//      (!this.yFixed && Math.abs(this.fy) > this.minForce));
   if (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin) {
     return true;
   }

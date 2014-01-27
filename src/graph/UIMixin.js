@@ -5,7 +5,7 @@
 var UIMixin = {
 
   /**
-   * This function moves the UI if the canvas size has been changed. If the arugments
+   * This function moves the navigationUI if the canvas size has been changed. If the arugments
    * verticaAlignTop and horizontalAlignLeft are false, the correction will be made
    *
    * @private
@@ -18,9 +18,9 @@ var UIMixin = {
       this.UIclientHeight = this.frame.canvas.clientHeight;
       var node = null;
 
-      for (var nodeId in this.sectors["UI"]["nodes"]) {
-        if (this.sectors["UI"]["nodes"].hasOwnProperty(nodeId)) {
-          node = this.sectors["UI"]["nodes"][nodeId];
+      for (var nodeId in this.sectors["navigationUI"]["nodes"]) {
+        if (this.sectors["navigationUI"]["nodes"].hasOwnProperty(nodeId)) {
+          node = this.sectors["navigationUI"]["nodes"][nodeId];
           if (!node.horizontalAlignLeft) {
             node.x -= xOffset;
           }
@@ -34,15 +34,15 @@ var UIMixin = {
 
 
   /**
-   * Creation of the UI nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
-   * they have a triggerFunction which is called on click. If the position of the UI is dependent
+   * Creation of the navigationUI nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
+   * they have a triggerFunction which is called on click. If the position of the navigationUI is dependent
    * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
    * This means that the location will be corrected by the _relocateUI function on a size change of the canvas.
    *
    * @private
    */
   _loadUIElements : function() {
-    var DIR = 'img/UI/';
+    var DIR = this.constants.navigationUI.iconPath;
     this.UIclientWidth = this.frame.canvas.clientWidth;
     this.UIclientHeight = this.frame.canvas.clientHeight;
     if (this.UIclientWidth === undefined) {
@@ -53,7 +53,7 @@ var UIMixin = {
     var intermediateOffset = 7;
     var UINodes = [
       {id: 'UI_up',    shape: 'image', image: DIR + 'uparrow.png',   triggerFunction: "_moveUp",
-        verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.UIclientHeight - 47 - offset},
+        verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.UIclientHeight - 45 - offset - intermediateOffset},
       {id: 'UI_down',  shape: 'image', image: DIR + 'downarrow.png', triggerFunction: "_moveDown",
         verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.UIclientHeight - 15 - offset},
       {id: 'UI_left',  shape: 'image', image: DIR + 'leftarrow.png', triggerFunction: "_moveLeft",
@@ -74,7 +74,7 @@ var UIMixin = {
 
     var nodeObj = null;
     for (var i = 0; i < UINodes.length; i++) {
-      nodeObj = this.sectors["UI"]['nodes'];
+      nodeObj = this.sectors["navigationUI"]['nodes'];
       nodeObj[UINodes[i]['id']] = new Node(UINodes[i], this.images, this.groups, this.constants);
     }
   },
@@ -88,8 +88,8 @@ var UIMixin = {
    * @private
    */
   _highlightUIElement : function(elementId) {
-    if (this.sectors["UI"]["nodes"].hasOwnProperty(elementId)) {
-      this.sectors["UI"]["nodes"][elementId].clusterSize = 2;
+    if (this.sectors["navigationUI"]["nodes"].hasOwnProperty(elementId)) {
+      this.sectors["navigationUI"]["nodes"][elementId].clusterSize = 2;
     }
   },
 
@@ -101,14 +101,14 @@ var UIMixin = {
    * @private
    */
   _unHighlightUIElement : function(elementId) {
-    if (this.sectors["UI"]["nodes"].hasOwnProperty(elementId)) {
-      this.sectors["UI"]["nodes"][elementId].clusterSize = 1;
+    if (this.sectors["navigationUI"]["nodes"].hasOwnProperty(elementId)) {
+      this.sectors["navigationUI"]["nodes"][elementId].clusterSize = 1;
     }
   },
 
 
   /**
-   * toggle the visibility of the UI
+   * toggle the visibility of the navigationUI
    *
    * @private
    */
@@ -122,11 +122,11 @@ var UIMixin = {
 
 
   /**
-   * un-highlight (for lack of a better term) all UI elements
+   * un-highlight (for lack of a better term) all navigationUI elements
    * @private
    */
   _unHighlightAll : function() {
-    for (var nodeId in this.sectors['UI']['nodes']) {
+    for (var nodeId in this.sectors['navigationUI']['nodes']) {
       this._unHighlightUIElement(nodeId);
     }
   },
@@ -153,7 +153,7 @@ var UIMixin = {
    */
   _moveUp : function(event) {
     this._highlightUIElement("UI_up");
-    this.yIncrement = this.constants.UI.yMovementSpeed;
+    this.yIncrement = this.constants.navigationUI.yMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -165,7 +165,7 @@ var UIMixin = {
    */
   _moveDown : function(event) {
     this._highlightUIElement("UI_down");
-    this.yIncrement = -this.constants.UI.yMovementSpeed;
+    this.yIncrement = -this.constants.navigationUI.yMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -177,7 +177,7 @@ var UIMixin = {
    */
   _moveLeft : function(event) {
     this._highlightUIElement("UI_left");
-    this.xIncrement = this.constants.UI.xMovementSpeed;
+    this.xIncrement = this.constants.navigationUI.xMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -189,7 +189,7 @@ var UIMixin = {
    */
   _moveRight : function(event) {
     this._highlightUIElement("UI_right");
-    this.xIncrement = -this.constants.UI.xMovementSpeed;
+    this.xIncrement = -this.constants.navigationUI.xMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -201,7 +201,7 @@ var UIMixin = {
    */
   _zoomIn : function(event) {
     this._highlightUIElement("UI_plus");
-    this.zoomIncrement = this.constants.UI.zoomMovementSpeed;
+    this.zoomIncrement = this.constants.navigationUI.zoomMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -213,7 +213,7 @@ var UIMixin = {
    */
   _zoomOut : function() {
     this._highlightUIElement("UI_min");
-    this.zoomIncrement = -this.constants.UI.zoomMovementSpeed;
+    this.zoomIncrement = -this.constants.navigationUI.zoomMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },

@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.4.0-SNAPSHOT
- * @date    2014-01-27
+ * @version @@version
+ * @date    @@date
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -982,6 +982,34 @@ util.option.asElement = function (value, defaultValue) {
 
   return value || defaultValue || null;
 };
+
+
+/**
+ * Compare two numbers and return the lowest, non-negative number.
+ *
+ * @param {number} number1
+ * @param {number} number2
+ * @returns {number}        | number1 or number2, the lowest positive number. If both negative, return -1
+ * @private
+ */
+util._getLowestPositiveNumber = function(number1,number2) {
+  if (number1 >= 0) {
+    if (number2 >= 0) {
+      return (number1 < number2) ? number1 : number2;
+    }
+    else {
+      return number1;
+    }
+  }
+  else {
+    if (number2 >= 0) {
+      return number2;
+    }
+    else {
+      return -1;
+    }
+  }
+}
 
 /**
  * Event listener (singleton)
@@ -8784,8 +8812,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.y = 0;
   this.xFixed = false;
   this.yFixed = false;
-  this.horizontalAlignLeft = true; // these are for the UI
-  this.verticalAlignTop    = true; // these are for the UI
+  this.horizontalAlignLeft = true; // these are for the navigationUI
+  this.verticalAlignTop    = true; // these are for the navigationUI
   this.radius = constants.nodes.radius;
   this.baseRadiusValue = constants.nodes.radius;
   this.radiusFixed = false;
@@ -8891,7 +8919,7 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.y !== undefined)         {this.y = properties.y;}
   if (properties.value !== undefined)     {this.value = properties.value;}
 
-  // UI properties
+  // navigationUI properties
   if (properties.horizontalAlignLeft !== undefined) {this.horizontalAlignLeft = properties.horizontalAlignLeft;}
   if (properties.verticalAlignTop    !== undefined) {this.verticalAlignTop    = properties.verticalAlignTop;}
   if (properties.triggerFunction     !== undefined) {this.triggerFunction     = properties.triggerFunction;}
@@ -9146,9 +9174,6 @@ Node.prototype.isFixed = function() {
  */
 // TODO: replace this method with calculating the kinetic energy
 Node.prototype.isMoving = function(vmin) {
-//  return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin ||
-//      (!this.xFixed && Math.abs(this.fx) > this.minForce) ||
-//      (!this.yFixed && Math.abs(this.fy) > this.minForce));
   if (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin) {
     return true;
   }
@@ -10642,14 +10667,14 @@ var SectorMixin = {
 
   /**
    * This function sets the global references to nodes, edges and nodeIndices to
-   * those of the UI sector.
+   * those of the navigationUI sector.
    *
    * @private
    */
   _switchToUISector : function() {
-    this.nodeIndices = this.sectors["UI"]["nodeIndices"];
-    this.nodes       = this.sectors["UI"]["nodes"];
-    this.edges       = this.sectors["UI"]["edges"];
+    this.nodeIndices = this.sectors["navigationUI"]["nodeIndices"];
+    this.nodes       = this.sectors["navigationUI"]["nodes"];
+    this.edges       = this.sectors["navigationUI"]["edges"];
   },
 
 
@@ -11002,7 +11027,7 @@ var SectorMixin = {
 
 
   /**
-   * This runs a function in the UI sector.
+   * This runs a function in the navigationUI sector.
    *
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
    *                              |   we don't pass the function itself because then the "this" is the window object
@@ -12170,7 +12195,7 @@ var SelectionMixin = {
 
 
   /**
-   * retrieve all nodes in the UI overlapping with given object
+   * retrieve all nodes in the navigationUI overlapping with given object
    * @param {Object} object  An object with parameters left, top, right, bottom
    * @return {Number[]}   An array with id's of the overlapping nodes
    * @private
@@ -12217,7 +12242,7 @@ var SelectionMixin = {
 
 
   /**
-   * Get the top UI node at the a specific point (like a click)
+   * Get the top navigationUI node at the a specific point (like a click)
    *
    * @param {{x: Number, y: Number}} pointer
    * @return {Node | null} node
@@ -12227,7 +12252,7 @@ var SelectionMixin = {
     var screenPositionObject = this._pointerToScreenPositionObject(pointer);
     var overlappingNodes = this._getAllUINodesOverlappingWith(screenPositionObject);
     if (this.UIvisible && overlappingNodes.length > 0) {
-      return this.sectors["UI"]["nodes"][overlappingNodes[overlappingNodes.length - 1]];
+      return this.sectors["navigationUI"]["nodes"][overlappingNodes[overlappingNodes.length - 1]];
     }
     else {
       return null;
@@ -12243,7 +12268,7 @@ var SelectionMixin = {
    * @private
    */
   _getNodeAt : function (pointer) {
-    // we first check if this is an UI element
+    // we first check if this is an navigationUI element
     var positionObject = this._pointerToPositionObject(pointer);
     overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
 
@@ -12360,7 +12385,7 @@ var SelectionMixin = {
 
 
   /**
-   * handles the selection part of the touch, only for UI elements;
+   * handles the selection part of the touch, only for navigationUI elements;
    * Touch is triggered before tap, also before hold. Hold triggers after a while.
    * This is the most responsive solution
    *
@@ -12428,7 +12453,7 @@ var SelectionMixin = {
 
 
   /**
-   * handle the onRelease event. These functions are here for the UI module.
+   * handle the onRelease event. These functions are here for the navigationUI module.
    *
     * @private
    */
@@ -12630,7 +12655,7 @@ var SelectionMixin = {
 var UIMixin = {
 
   /**
-   * This function moves the UI if the canvas size has been changed. If the arugments
+   * This function moves the navigationUI if the canvas size has been changed. If the arugments
    * verticaAlignTop and horizontalAlignLeft are false, the correction will be made
    *
    * @private
@@ -12643,9 +12668,9 @@ var UIMixin = {
       this.UIclientHeight = this.frame.canvas.clientHeight;
       var node = null;
 
-      for (var nodeId in this.sectors["UI"]["nodes"]) {
-        if (this.sectors["UI"]["nodes"].hasOwnProperty(nodeId)) {
-          node = this.sectors["UI"]["nodes"][nodeId];
+      for (var nodeId in this.sectors["navigationUI"]["nodes"]) {
+        if (this.sectors["navigationUI"]["nodes"].hasOwnProperty(nodeId)) {
+          node = this.sectors["navigationUI"]["nodes"][nodeId];
           if (!node.horizontalAlignLeft) {
             node.x -= xOffset;
           }
@@ -12659,15 +12684,15 @@ var UIMixin = {
 
 
   /**
-   * Creation of the UI nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
-   * they have a triggerFunction which is called on click. If the position of the UI is dependent
+   * Creation of the navigationUI nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
+   * they have a triggerFunction which is called on click. If the position of the navigationUI is dependent
    * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
    * This means that the location will be corrected by the _relocateUI function on a size change of the canvas.
    *
    * @private
    */
   _loadUIElements : function() {
-    var DIR = 'img/UI/';
+    var DIR = this.constants.navigationUI.iconPath;
     this.UIclientWidth = this.frame.canvas.clientWidth;
     this.UIclientHeight = this.frame.canvas.clientHeight;
     if (this.UIclientWidth === undefined) {
@@ -12678,7 +12703,7 @@ var UIMixin = {
     var intermediateOffset = 7;
     var UINodes = [
       {id: 'UI_up',    shape: 'image', image: DIR + 'uparrow.png',   triggerFunction: "_moveUp",
-        verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.UIclientHeight - 47 - offset},
+        verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.UIclientHeight - 45 - offset - intermediateOffset},
       {id: 'UI_down',  shape: 'image', image: DIR + 'downarrow.png', triggerFunction: "_moveDown",
         verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.UIclientHeight - 15 - offset},
       {id: 'UI_left',  shape: 'image', image: DIR + 'leftarrow.png', triggerFunction: "_moveLeft",
@@ -12699,7 +12724,7 @@ var UIMixin = {
 
     var nodeObj = null;
     for (var i = 0; i < UINodes.length; i++) {
-      nodeObj = this.sectors["UI"]['nodes'];
+      nodeObj = this.sectors["navigationUI"]['nodes'];
       nodeObj[UINodes[i]['id']] = new Node(UINodes[i], this.images, this.groups, this.constants);
     }
   },
@@ -12713,8 +12738,8 @@ var UIMixin = {
    * @private
    */
   _highlightUIElement : function(elementId) {
-    if (this.sectors["UI"]["nodes"].hasOwnProperty(elementId)) {
-      this.sectors["UI"]["nodes"][elementId].clusterSize = 2;
+    if (this.sectors["navigationUI"]["nodes"].hasOwnProperty(elementId)) {
+      this.sectors["navigationUI"]["nodes"][elementId].clusterSize = 2;
     }
   },
 
@@ -12726,14 +12751,14 @@ var UIMixin = {
    * @private
    */
   _unHighlightUIElement : function(elementId) {
-    if (this.sectors["UI"]["nodes"].hasOwnProperty(elementId)) {
-      this.sectors["UI"]["nodes"][elementId].clusterSize = 1;
+    if (this.sectors["navigationUI"]["nodes"].hasOwnProperty(elementId)) {
+      this.sectors["navigationUI"]["nodes"][elementId].clusterSize = 1;
     }
   },
 
 
   /**
-   * toggle the visibility of the UI
+   * toggle the visibility of the navigationUI
    *
    * @private
    */
@@ -12747,11 +12772,11 @@ var UIMixin = {
 
 
   /**
-   * un-highlight (for lack of a better term) all UI elements
+   * un-highlight (for lack of a better term) all navigationUI elements
    * @private
    */
   _unHighlightAll : function() {
-    for (var nodeId in this.sectors['UI']['nodes']) {
+    for (var nodeId in this.sectors['navigationUI']['nodes']) {
       this._unHighlightUIElement(nodeId);
     }
   },
@@ -12778,7 +12803,7 @@ var UIMixin = {
    */
   _moveUp : function(event) {
     this._highlightUIElement("UI_up");
-    this.yIncrement = this.constants.UI.yMovementSpeed;
+    this.yIncrement = this.constants.navigationUI.yMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -12790,7 +12815,7 @@ var UIMixin = {
    */
   _moveDown : function(event) {
     this._highlightUIElement("UI_down");
-    this.yIncrement = -this.constants.UI.yMovementSpeed;
+    this.yIncrement = -this.constants.navigationUI.yMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -12802,7 +12827,7 @@ var UIMixin = {
    */
   _moveLeft : function(event) {
     this._highlightUIElement("UI_left");
-    this.xIncrement = this.constants.UI.xMovementSpeed;
+    this.xIncrement = this.constants.navigationUI.xMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -12814,7 +12839,7 @@ var UIMixin = {
    */
   _moveRight : function(event) {
     this._highlightUIElement("UI_right");
-    this.xIncrement = -this.constants.UI.xMovementSpeed;
+    this.xIncrement = -this.constants.navigationUI.xMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -12826,7 +12851,7 @@ var UIMixin = {
    */
   _zoomIn : function(event) {
     this._highlightUIElement("UI_plus");
-    this.zoomIncrement = this.constants.UI.zoomMovementSpeed;
+    this.zoomIncrement = this.constants.navigationUI.zoomMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -12838,7 +12863,7 @@ var UIMixin = {
    */
   _zoomOut : function() {
     this._highlightUIElement("UI_min");
-    this.zoomIncrement = -this.constants.UI.zoomMovementSpeed;
+    this.zoomIncrement = -this.constants.navigationUI.zoomMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -12970,18 +12995,20 @@ function Graph (container, data, options) {
       activeAreaBoxSize: 100,       // (px)                  | box area around the curser where clusters are popped open.
       massTransferCoefficient: 1    // (multiplier)          | parent.mass += massTransferCoefficient * child.mass
     },
-    UI: {
+    navigationUI: {
       enabled: true,
       initiallyVisible: true,
       xMovementSpeed: 10,
       yMovementSpeed: 10,
       zoomMovementSpeed: 0.02,
-      iconPath: 'img/UI/'
+      iconPath: this._getIconURL()
+    },
+    keyboardNavigation: {
+      enabled: false
     },
     minVelocity: 1.0,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
   };
-
 
   // Node variables
   this.groups = new Groups(); // object with groups
@@ -12990,13 +13017,12 @@ function Graph (container, data, options) {
     graph._redraw();
   });
 
-  // UI variables
-  this.UIvisible = this.constants.UI.initiallyVisible;
+  // navigationUI variables
+  this.UIvisible = this.constants.navigationUI.initiallyVisible;
   this.xIncrement = 0;
   this.yIncrement = 0;
   this.zoomIncrement = 0;
 
-  console.log
   // create a frame and canvas
   this._create();
 
@@ -13012,7 +13038,7 @@ function Graph (container, data, options) {
   // load the selection system. (mandatory, required by Graph)
   this._loadSelectionSystem();
 
-  // load the UI system.        (mandatory, few function calls even when UI is disabled (in this.setSize)
+  // load the navigationUI system.        (mandatory, few function calls even when navigationUI is disabled (in this.setSize)
   this._loadUISystem();
 
   // other vars
@@ -13083,6 +13109,28 @@ function Graph (container, data, options) {
   }
 }
 
+/**
+ * get the URL where the UI icons are located
+ *
+ * @returns {string}
+ * @private
+ */
+Graph.prototype._getIconURL = function() {
+  var scripts = document.getElementsByTagName( 'script' );
+  var scriptNamePosition, srcPosition, imagePath;
+  for (var i = 0; i < scripts.length; i++) {
+    srcPosition = scripts[i].outerHTML.search("src");
+    if (srcPosition != -1) {
+      scriptNamePosition = util._getLowestPositiveNumber(scripts[i].outerHTML.search("vis.js"),
+                                                  scripts[i].outerHTML.search("vis.min.js"));
+      if (scriptNamePosition != -1) {
+        imagePath = scripts[i].outerHTML.substring(srcPosition+5,scriptNamePosition).concat("UI_icons/");
+        return imagePath;
+      }
+    }
+  }
+};
+
 
 /**
  * Find the center position of the graph
@@ -13145,8 +13193,8 @@ Graph.prototype.zoomToFit = function(initialZoom) {
 
   if (initialZoom == true) {
     if (this.constants.clustering.enabled == true &&
-        numberOfNodes < this.constants.clustering.initialMaxNumberOfNodes) {
-      var zoomLevel = 38.8467 / (numberOfNodes - 14.50184) + 0.0116360476; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+        numberOfNodes >= this.constants.clustering.initialMaxNumberOfNodes) {
+      var zoomLevel = 38.8467 / (numberOfNodes - 14.50184) + 0.0116; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
     }
     else {
       var zoomLevel = 42.54117319 / (numberOfNodes + 39.31966387) + 0.1944405; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
@@ -13254,10 +13302,10 @@ Graph.prototype.setOptions = function (options) {
       }
     }
 
-    if (options.UI) {
-      for (var prop in options.UI) {
-        if (options.UI.hasOwnProperty(prop)) {
-          this.constants.UI[prop] = options.UI[prop];
+    if (options.navigationUI) {
+      for (var prop in options.navigationUI) {
+        if (options.navigationUI.hasOwnProperty(prop)) {
+          this.constants.navigationUI[prop] = options.navigationUI[prop];
         }
       }
     }
@@ -13925,7 +13973,7 @@ Graph.prototype.setSize = function(width, height) {
   this.frame.canvas.width = this.frame.canvas.clientWidth;
   this.frame.canvas.height = this.frame.canvas.clientHeight;
 
-  if (this.constants.UI.enabled == true) {
+  if (this.constants.navigationUI.enabled == true) {
     this._relocateUI();
   }
 };
@@ -14446,6 +14494,7 @@ Graph.prototype._doStabilize = function() {
     stable = !this._isMoving(vmin);
     count++;
   }
+  this.zoomToFit();
 
  // var end = new Date();
 
@@ -14495,7 +14544,7 @@ Graph.prototype._calculateForces = function() {
   // Gravity is required to keep separated groups from floating off
   // the forces are reset to zero in this loop by using _setForce instead
   // of _addForce
-  var gravity = 0.20 * this.forceFactor;
+  var gravity = 0.10 * this.forceFactor;
   for (i = 0; i < this.nodeIndices.length; i++) {
       node = nodes[this.nodeIndices[i]];
       // gravity does not apply when we are in a pocket sector
@@ -14680,10 +14729,10 @@ Graph.prototype._calculateForces = function() {
  * @private
  */
 Graph.prototype._isMoving = function(vmin) {
-  // TODO: ismoving does not work well: should check the kinetic energy, not its velocity
+  var vminCorrected = vmin / this.scale;
   var nodes = this.nodes;
   for (var id in nodes) {
-    if (nodes.hasOwnProperty(id) && nodes[id].isMoving(vmin)) {
+    if (nodes.hasOwnProperty(id) && nodes[id].isMoving(vminCorrected)) {
       return true;
     }
   }
@@ -14822,7 +14871,7 @@ Graph.prototype._loadSectorSystem = function() {
                                        "formationScale": 1.0,
                                        "drawingNode": undefined};
   this.sectors["frozen"] = {};
-  this.sectors["UI"] = {"nodes":{},
+  this.sectors["navigationUI"] = {"nodes":{},
                         "edges":{},
                         "nodeIndices":[],
                         "formationScale": 1.0,
@@ -14855,7 +14904,7 @@ Graph.prototype._loadSelectionSystem = function() {
 
 
 /**
- * Mixin the UI (User Interface) system and initialize the parameters required
+ * Mixin the navigationUI (User Interface) system and initialize the parameters required
  *
  * @private
  */
@@ -14866,7 +14915,7 @@ Graph.prototype._loadUISystem = function() {
     }
   }
 
-  if (this.constants.UI.enabled == true) {
+  if (this.constants.navigationUI.enabled == true) {
     this._loadUIElements();
 
     this._createKeyBinds();
@@ -14874,17 +14923,17 @@ Graph.prototype._loadUISystem = function() {
 }
 
 /**
- * this function exists to avoid errors when not loading the UI system
+ * this function exists to avoid errors when not loading the navigationUI system
  */
 Graph.prototype._relocateUI = function() {
-  // empty, is overloaded by UI system
+  // empty, is overloaded by navigationUI system
 }
 
 /**
- * * this function exists to avoid errors when not loading the UI system
+ * * this function exists to avoid errors when not loading the navigationUI system
  */
 Graph.prototype._unHighlightAll = function() {
-  // empty, is overloaded by the UI system
+  // empty, is overloaded by the navigationUI system
 }
 
 
