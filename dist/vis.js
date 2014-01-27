@@ -12803,7 +12803,7 @@ var UIMixin = {
    */
   _moveUp : function(event) {
     this._highlightUIElement("UI_up");
-    this.yIncrement = this.constants.navigationUI.yMovementSpeed;
+    this.yIncrement = this.constants.keyboardNavigation.yMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -12815,7 +12815,7 @@ var UIMixin = {
    */
   _moveDown : function(event) {
     this._highlightUIElement("UI_down");
-    this.yIncrement = -this.constants.navigationUI.yMovementSpeed;
+    this.yIncrement = -this.constants.keyboardNavigation.yMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -12827,7 +12827,7 @@ var UIMixin = {
    */
   _moveLeft : function(event) {
     this._highlightUIElement("UI_left");
-    this.xIncrement = this.constants.navigationUI.xMovementSpeed;
+    this.xIncrement = this.constants.keyboardNavigation.xMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -12839,7 +12839,7 @@ var UIMixin = {
    */
   _moveRight : function(event) {
     this._highlightUIElement("UI_right");
-    this.xIncrement = -this.constants.navigationUI.xMovementSpeed;
+    this.xIncrement = -this.constants.keyboardNavigation.xMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -12851,7 +12851,7 @@ var UIMixin = {
    */
   _zoomIn : function(event) {
     this._highlightUIElement("UI_plus");
-    this.zoomIncrement = this.constants.navigationUI.zoomMovementSpeed;
+    this.zoomIncrement = this.constants.keyboardNavigation.zoomMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -12863,7 +12863,7 @@ var UIMixin = {
    */
   _zoomOut : function() {
     this._highlightUIElement("UI_min");
-    this.zoomIncrement = -this.constants.navigationUI.zoomMovementSpeed;
+    this.zoomIncrement = -this.constants.keyboardNavigation.zoomMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -12999,13 +12999,13 @@ function Graph (container, data, options) {
       enabled: false,
       initiallyVisible: true,
       enableToggling: true,
-      xMovementSpeed: 10,
-      yMovementSpeed: 10,
-      zoomMovementSpeed: 0.02,
       iconPath: this._getIconURL()
     },
     keyboardNavigation: {
-      enabled: false
+      enabled: false,
+      xMovementSpeed: 10,
+      yMovementSpeed: 10,
+      zoomMovementSpeed: 0.02
     },
     minVelocity: 1.0,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
@@ -13314,6 +13314,15 @@ Graph.prototype.setOptions = function (options) {
         }
       }
     }
+
+    if (options.keyboardNavigation) {
+      for (var prop in options.keyboardNavigation) {
+        if (options.keyboardNavigation.hasOwnProperty(prop)) {
+          this.constants.keyboardNavigation[prop] = options.keyboardNavigation[prop];
+        }
+      }
+    }
+
 
     // TODO: work out these options and document them
     if (options.edges) {

@@ -29,7 +29,9 @@
     </ul>
   </li>
   <li><a href="#Configuration_Options">Configuration Options</a></li>
-  <li><a href="#Clustering">Clustering Options</a></li>
+  <li><a href="#Clustering">Clustering</a></li>
+  <li><a href="#NavigationUI">Navigation GUI</a></li>
+  <li><a href="#Keyboard">Keyboard Navigation</a></li>
   <li><a href="#Methods">Methods</a></li>
   <li><a href="#Events">Events</a></li>
   <li><a href="#Data_Policy">Data Policy</a></li>
@@ -1014,6 +1016,10 @@ var nodes = [
     The default state for clustering is <b>off</b>.
 </p>
 
+<pre class="prettyprint">
+// These variables must be defined in an options object named clustering.
+</pre>
+
 <table>
     <tr>
         <th>Name</th>
@@ -1131,6 +1137,117 @@ var nodes = [
         <td>Imagine a square with an edge length of <code>activeAreaBoxSize</code> pixels around your cursor.
             If a cluster is in this box as you zoom in, the cluster can be opened in a seperate sector.
             This is regardless of the zoom level.</td>
+    </tr>
+</table>
+
+<h2 id="NavigationUI">Navigation GUI Elements</h2>
+<p>
+    As of 0.4.0, a node-based navigation GUI system has been added to vis.js.
+    It can be configured with the following user-configurable settings.
+    The default state for the GUI navigation elements is <b>off</b>.
+</p>
+
+<pre class="prettyprint">
+// These variables must be defined in an options object named navigationUI.
+// If a variable is not supplied, the default value is used.
+options: {
+    navigationUI: {
+      enabled: false,
+      initiallyVisible: true,
+      enableToggling: true,
+      iconPath: this._getIconURL() // automatic loading of the default icons
+    },
+}
+</pre>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>enabled</td>
+        <td>Boolean</td>
+        <td>false</td>
+        <td>On/off switch for the navigation UI elements.</td>
+    </tr>
+    <tr>
+        <td>initiallyVisible</td>
+        <td>Boolean</td>
+        <td>true</td>
+        <td>The UI elements can be toggled by pressing the "u" key. If <code>initiallyVisible</code> is false, the UI is hidden
+            until "u" is pressed on the keyboard.
+        </td>
+    </tr>
+    <tr>
+        <td>enableToggling</td>
+        <td>Boolean</td>
+        <td>true</td>
+        <td>Enable or disable the option to press "u" to toggle the UI elements. If the UI is initially hidden and the toggling is off, the UI cannot be used!</td>
+    </tr>
+    <tr>
+        <td>iconPath</td>
+        <td>string</td>
+        <td>[path to vis.js]/UI_icons/</td>
+        <td>The path to the icon images can be defined here. If custom icons are used, they have to have the same filename as the ones originally packaged with vis.js.</td>
+    </tr>
+</table>
+
+<h2 id="Keyboard">Keyboard Navigation</h2>
+<p>
+    As of 0.4.0, keyboard navigation has been added to vis.js.
+    It can be configured with the following user-configurable settings.
+    The default state for the keyboard navigation is <b>off</b>. The predefined keys can be found in the <a href="../examples/graph/20_UI_example.html">UI example.</a>
+</p>
+
+<pre class="prettyprint">
+// These variables must be defined in an options object named keyboardNavigation.
+// If a variable is not supplied, the default value is used
+options: {
+    keyboardNavigation: {
+      enabled: false,
+      xMovementSpeed: 10,
+      yMovementSpeed: 10,
+      zoomMovementSpeed: 0.02
+    }
+}
+</pre>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>enabled</td>
+        <td>Boolean</td>
+        <td>false</td>
+        <td>On/off switch for the keyboard navigation.</td>
+    </tr>
+    <tr>
+        <td>xMovementSpeed</td>
+        <td>Number</td>
+        <td>10</td>
+        <td>This defines the speed of the camera movement in the x direction when using the keyboard navigation.
+        </td>
+    </tr>
+    <tr>
+        <td>yMovementSpeed</td>
+        <td>Boolean</td>
+        <td>10</td>
+        <td>This defines the speed of the camera movement in the y direction when using the keyboard navigation.</td>
+    </tr>
+    <tr>
+        <td>zoomMovementSpeed</td>
+        <td>string</td>
+        <td>0.02</td>
+        <td>This defines the zoomspeed when using the keyboard navigation.</td>
     </tr>
 </table>
 
