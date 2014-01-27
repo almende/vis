@@ -49,25 +49,27 @@ var UIMixin = {
       this.UIclientWidth = 0;
       this.UIclientHeight = 0;
     }
+    var offset = 15;
+    var intermediateOffset = 7;
     var UINodes = [
       {id: 'UI_up',    shape: 'image', image: DIR + 'uparrow.png',   triggerFunction: "_moveUp",
-        verticalAlignTop: false,  x: 52,  y: this.UIclientHeight - 52},
+        verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.UIclientHeight - 47 - offset},
       {id: 'UI_down',  shape: 'image', image: DIR + 'downarrow.png', triggerFunction: "_moveDown",
-        verticalAlignTop: false,  x: 52,  y: this.UIclientHeight - 20},
+        verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.UIclientHeight - 15 - offset},
       {id: 'UI_left',  shape: 'image', image: DIR + 'leftarrow.png', triggerFunction: "_moveLeft",
-        verticalAlignTop: false,  x: 20,  y: this.UIclientHeight - 20},
+        verticalAlignTop: false,  x: 15 + offset,  y: this.UIclientHeight - 15 - offset},
       {id: 'UI_right', shape: 'image', image: DIR + 'rightarrow.png',triggerFunction: "_moveRight",
-        verticalAlignTop: false,  x: 84,  y: this.UIclientHeight - 20},
+        verticalAlignTop: false,  x: 75 + offset + 2 * intermediateOffset,  y: this.UIclientHeight - 15 - offset},
 
       {id: 'UI_plus',  shape: 'image', image: DIR + 'plus.png',      triggerFunction: "_zoomIn",
         verticalAlignTop: false, horizontalAlignLeft: false,
-        x: this.UIclientWidth - 52, y: this.UIclientHeight - 20},
+        x: this.UIclientWidth - 45 - offset - intermediateOffset, y: this.UIclientHeight - 15 - offset},
       {id: 'UI_min', shape: 'image', image: DIR + 'minus.png',       triggerFunction: "_zoomOut",
         verticalAlignTop: false, horizontalAlignLeft: false,
-        x: this.UIclientWidth - 20, y: this.UIclientHeight - 20},
+        x: this.UIclientWidth - 15 - offset, y: this.UIclientHeight - 15 - offset},
       {id: 'UI_zoomExtends', shape: 'image', image: DIR + 'zoomExtends.png', triggerFunction: "zoomToFit",
         verticalAlignTop: false, horizontalAlignLeft: false,
-        x: this.UIclientWidth - 20, y: this.UIclientHeight - 52}
+        x: this.UIclientWidth - 15 - offset, y: this.UIclientHeight - 45 - offset - intermediateOffset}
     ];
 
     var nodeObj = null;
@@ -130,6 +132,17 @@ var UIMixin = {
   },
 
 
+  _preventDefault : function(event) {
+    if (event !== undefined) {
+      if (event.preventDefault) {
+        event.preventDefault();
+      } else {
+        event.returnValue = false;
+      }
+    }
+  },
+
+
   /**
    * move the screen up
    * By using the increments, instead of adding a fixed number to the translation, we keep fluent and
@@ -138,10 +151,11 @@ var UIMixin = {
    *
    * @private
    */
-  _moveUp : function() {
+  _moveUp : function(event) {
     this._highlightUIElement("UI_up");
     this.yIncrement = this.constants.UI.yMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
+    this._preventDefault(event);
   },
 
 
@@ -149,10 +163,11 @@ var UIMixin = {
    * move the screen down
    * @private
    */
-  _moveDown : function() {
+  _moveDown : function(event) {
     this._highlightUIElement("UI_down");
     this.yIncrement = -this.constants.UI.yMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
+    this._preventDefault(event);
   },
 
 
@@ -160,10 +175,11 @@ var UIMixin = {
    * move the screen left
    * @private
    */
-  _moveLeft : function() {
+  _moveLeft : function(event) {
     this._highlightUIElement("UI_left");
     this.xIncrement = this.constants.UI.xMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
+    this._preventDefault(event);
   },
 
 
@@ -171,10 +187,11 @@ var UIMixin = {
    * move the screen right
    * @private
    */
-  _moveRight : function() {
+  _moveRight : function(event) {
     this._highlightUIElement("UI_right");
     this.xIncrement = -this.constants.UI.xMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
+    this._preventDefault(event);
   },
 
 
@@ -182,10 +199,11 @@ var UIMixin = {
    * Zoom in, using the same method as the movement.
    * @private
    */
-  _zoomIn : function() {
+  _zoomIn : function(event) {
     this._highlightUIElement("UI_plus");
     this.zoomIncrement = this.constants.UI.zoomMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
+    this._preventDefault(event);
   },
 
 
@@ -197,6 +215,7 @@ var UIMixin = {
     this._highlightUIElement("UI_min");
     this.zoomIncrement = -this.constants.UI.zoomMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
+    this._preventDefault(event);
   },
 
 

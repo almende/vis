@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.4.0-SNAPSHOT
- * @date    2014-01-24
+ * @date    2014-01-27
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -22,7 +22,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-!function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.vis=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+!function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.vis=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /**
  * vis.js module imports
  */
@@ -30,12 +30,12 @@
 // Try to load dependencies from the global window object.
 // If not available there, load via require.
 
-var moment = (typeof window !== 'undefined') && window['moment'] || _dereq_('moment');
+var moment = (typeof window !== 'undefined') && window['moment'] || require('moment');
 
 var Hammer;
 if (typeof window !== 'undefined') {
   // load hammer.js only when running in a browser (where window is available)
-  Hammer = window['Hammer'] || _dereq_('hammerjs');
+  Hammer = window['Hammer'] || require('hammerjs');
 }
 else {
   Hammer = function () {
@@ -43,13 +43,13 @@ else {
   }
 }
 
-var mouseTrap;
+var mousetrap;
 if (typeof window !== 'undefined') {
   // load mousetrap.js only when running in a browser (where window is available)
-  mouseTrap = window['mouseTrap'] || _dereq_('mouseTrap');
+  mousetrap = window['mousetrap'] || require('mousetrap');
 }
 else {
-  mouseTrap = function () {
+  mousetrap = function () {
     throw Error('mouseTrap is only available in a browser, not in node.js.');
   }
 }
@@ -8815,7 +8815,7 @@ function Node(properties, imagelist, grouplist, constants) {
   this.vy = 0.0;  // velocity y
   this.minForce = constants.minForce;
   this.damping = 0.9;
-  this.dampingFactor = 60;
+  this.dampingFactor = 75;
 
   this.graphScaleInv = 1;
   this.canvasTopLeft = {"x": -300, "y": -300};
@@ -9641,10 +9641,10 @@ Node.prototype.getTextSize = function(ctx) {
  */
 Node.prototype.inArea = function() {
   if (this.width !== undefined) {
-  return (this.x + this.width*0.8  >= this.canvasTopLeft.x    &&
-          this.x - this.width*0.8  <  this.canvasBottomRight.x &&
-          this.y + this.height*0.8 >= this.canvasTopLeft.y    &&
-          this.y - this.height*0.8 <  this.canvasBottomRight.y);
+  return (this.x + this.width*this.graphScaleInv  >= this.canvasTopLeft.x    &&
+          this.x - this.width*this.graphScaleInv  <  this.canvasBottomRight.x &&
+          this.y + this.height*this.graphScaleInv >= this.canvasTopLeft.y    &&
+          this.y - this.height*this.graphScaleInv <  this.canvasBottomRight.y);
   }
   else {
     return true;
@@ -12674,25 +12674,27 @@ var UIMixin = {
       this.UIclientWidth = 0;
       this.UIclientHeight = 0;
     }
+    var offset = 15;
+    var intermediateOffset = 7;
     var UINodes = [
       {id: 'UI_up',    shape: 'image', image: DIR + 'uparrow.png',   triggerFunction: "_moveUp",
-        verticalAlignTop: false,  x: 52,  y: this.UIclientHeight - 52},
+        verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.UIclientHeight - 47 - offset},
       {id: 'UI_down',  shape: 'image', image: DIR + 'downarrow.png', triggerFunction: "_moveDown",
-        verticalAlignTop: false,  x: 52,  y: this.UIclientHeight - 20},
+        verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.UIclientHeight - 15 - offset},
       {id: 'UI_left',  shape: 'image', image: DIR + 'leftarrow.png', triggerFunction: "_moveLeft",
-        verticalAlignTop: false,  x: 20,  y: this.UIclientHeight - 20},
+        verticalAlignTop: false,  x: 15 + offset,  y: this.UIclientHeight - 15 - offset},
       {id: 'UI_right', shape: 'image', image: DIR + 'rightarrow.png',triggerFunction: "_moveRight",
-        verticalAlignTop: false,  x: 84,  y: this.UIclientHeight - 20},
+        verticalAlignTop: false,  x: 75 + offset + 2 * intermediateOffset,  y: this.UIclientHeight - 15 - offset},
 
       {id: 'UI_plus',  shape: 'image', image: DIR + 'plus.png',      triggerFunction: "_zoomIn",
         verticalAlignTop: false, horizontalAlignLeft: false,
-        x: this.UIclientWidth - 52, y: this.UIclientHeight - 20},
+        x: this.UIclientWidth - 45 - offset - intermediateOffset, y: this.UIclientHeight - 15 - offset},
       {id: 'UI_min', shape: 'image', image: DIR + 'minus.png',       triggerFunction: "_zoomOut",
         verticalAlignTop: false, horizontalAlignLeft: false,
-        x: this.UIclientWidth - 20, y: this.UIclientHeight - 20},
+        x: this.UIclientWidth - 15 - offset, y: this.UIclientHeight - 15 - offset},
       {id: 'UI_zoomExtends', shape: 'image', image: DIR + 'zoomExtends.png', triggerFunction: "zoomToFit",
         verticalAlignTop: false, horizontalAlignLeft: false,
-        x: this.UIclientWidth - 20, y: this.UIclientHeight - 52}
+        x: this.UIclientWidth - 15 - offset, y: this.UIclientHeight - 45 - offset - intermediateOffset}
     ];
 
     var nodeObj = null;
@@ -12755,6 +12757,17 @@ var UIMixin = {
   },
 
 
+  _preventDefault : function(event) {
+    if (event !== undefined) {
+      if (event.preventDefault) {
+        event.preventDefault();
+      } else {
+        event.returnValue = false;
+      }
+    }
+  },
+
+
   /**
    * move the screen up
    * By using the increments, instead of adding a fixed number to the translation, we keep fluent and
@@ -12763,10 +12776,11 @@ var UIMixin = {
    *
    * @private
    */
-  _moveUp : function() {
+  _moveUp : function(event) {
     this._highlightUIElement("UI_up");
     this.yIncrement = this.constants.UI.yMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
+    this._preventDefault(event);
   },
 
 
@@ -12774,10 +12788,11 @@ var UIMixin = {
    * move the screen down
    * @private
    */
-  _moveDown : function() {
+  _moveDown : function(event) {
     this._highlightUIElement("UI_down");
     this.yIncrement = -this.constants.UI.yMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
+    this._preventDefault(event);
   },
 
 
@@ -12785,10 +12800,11 @@ var UIMixin = {
    * move the screen left
    * @private
    */
-  _moveLeft : function() {
+  _moveLeft : function(event) {
     this._highlightUIElement("UI_left");
     this.xIncrement = this.constants.UI.xMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
+    this._preventDefault(event);
   },
 
 
@@ -12796,10 +12812,11 @@ var UIMixin = {
    * move the screen right
    * @private
    */
-  _moveRight : function() {
+  _moveRight : function(event) {
     this._highlightUIElement("UI_right");
     this.xIncrement = -this.constants.UI.xMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
+    this._preventDefault(event);
   },
 
 
@@ -12807,10 +12824,11 @@ var UIMixin = {
    * Zoom in, using the same method as the movement.
    * @private
    */
-  _zoomIn : function() {
+  _zoomIn : function(event) {
     this._highlightUIElement("UI_plus");
     this.zoomIncrement = this.constants.UI.zoomMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
+    this._preventDefault(event);
   },
 
 
@@ -12822,6 +12840,7 @@ var UIMixin = {
     this._highlightUIElement("UI_min");
     this.zoomIncrement = -this.constants.UI.zoomMovementSpeed;
     this.start(); // if there is no node movement, the calculation wont be done
+    this._preventDefault(event);
   },
 
 
@@ -12862,6 +12881,7 @@ var UIMixin = {
 
 
 };
+
 /**
  * @constructor Graph
  * Create a graph visualization, displaying nodes and edges.
@@ -12955,7 +12975,8 @@ function Graph (container, data, options) {
       initiallyVisible: true,
       xMovementSpeed: 10,
       yMovementSpeed: 10,
-      zoomMovementSpeed: 0.02
+      zoomMovementSpeed: 0.02,
+      iconPath: 'img/UI/'
     },
     minVelocity: 1.0,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
@@ -12975,6 +12996,7 @@ function Graph (container, data, options) {
   this.yIncrement = 0;
   this.zoomIncrement = 0;
 
+  console.log
   // create a frame and canvas
   this._create();
 
@@ -13053,7 +13075,7 @@ function Graph (container, data, options) {
   this.setData(data,this.constants.clustering.enabled);
 
   // zoom so all data will fit on the screen
-  this.zoomToFit();
+  this.zoomToFit(true);
 
   // if clustering is disabled, the simulation will have started in the setData function
   if (this.constants.clustering.enabled) {
@@ -13066,44 +13088,87 @@ function Graph (container, data, options) {
  * Find the center position of the graph
  * @private
  */
-Graph.prototype._findCenter = function() {
+Graph.prototype._getRange = function() {
   var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
   for (var i = 0; i < this.nodeIndices.length; i++) {
     node = this.nodes[this.nodeIndices[i]];
-    if (minX > node.x) {minX = node.x;}
-    if (maxX < node.x) {maxX = node.x;}
-    if (minY > node.y) {minY = node.y;}
-    if (maxY < node.y) {maxY = node.y;}
+    if (minX > (node.x - node.width)) {minX = node.x - node.width;}
+    if (maxX < (node.x + node.width)) {maxX = node.x + node.width;}
+    if (minY > (node.y - node.height)) {minY = node.y - node.height;}
+    if (maxY < (node.y + node.height)) {maxY = node.y + node.height;}
   }
-  return {x: (0.5 * (maxX + minX)),
-          y: (0.5 * (maxY + minY))};
+  return {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
+};
+
+
+/**
+ * @param {object} range = {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
+ * @returns {{x: number, y: number}}
+ * @private
+ */
+Graph.prototype._findCenter = function(range) {
+  var center = {x: (0.5 * (range.maxX + range.minX)),
+                y: (0.5 * (range.maxY + range.minY))};
+  return center;
 };
 
 
 /**
  * center the graph
+ *
+ * @param {object} range = {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
  */
-Graph.prototype._centerGraph = function() {
-  var center = this._findCenter();
+Graph.prototype._centerGraph = function(range) {
+  var center = this._findCenter(range);
+
+  center.x *= this.scale;
+  center.y *= this.scale;
   center.x -= 0.5 * this.frame.canvas.clientWidth;
   center.y -= 0.5 * this.frame.canvas.clientHeight;
-  this._setTranslation(-center.x,-center.y);
+
+  this._setTranslation(-center.x,-center.y); // set at 0,0
 };
 
 
 /**
- * This function zooms out to fit all data on screen based on amount of nodes 
+ * This function zooms out to fit all data on screen based on amount of nodes
+ *
+ * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
  */
-Graph.prototype.zoomToFit = function() {
+Graph.prototype.zoomToFit = function(initialZoom) {
+  if (initialZoom === undefined) {
+    initialZoom = false;
+  }
+
   var numberOfNodes = this.nodeIndices.length;
-  var zoomLevel = 46.5 / (numberOfNodes + 20.622); // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+  var range = this._getRange();
+
+  if (initialZoom == true) {
+    if (this.constants.clustering.enabled == true &&
+        numberOfNodes < this.constants.clustering.initialMaxNumberOfNodes) {
+      var zoomLevel = 38.8467 / (numberOfNodes - 14.50184) + 0.0116360476; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+    }
+    else {
+      var zoomLevel = 42.54117319 / (numberOfNodes + 39.31966387) + 0.1944405; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+    }
+  }
+  else {
+    var xDistance = (Math.abs(range.minX) + Math.abs(range.maxX)) * 1.1;
+    var yDistance = (Math.abs(range.minY) + Math.abs(range.maxY)) * 1.1;
+
+    var xZoomLevel = this.frame.canvas.clientWidth / xDistance;
+    var yZoomLevel = this.frame.canvas.clientHeight / yDistance;
+
+    zoomLevel = (xZoomLevel <= yZoomLevel) ? xZoomLevel : yZoomLevel;
+  }
+
   if (zoomLevel > 1.0) {
     zoomLevel = 1.0;
   }
 
   this.pinch.mousewheelScale = zoomLevel;
   this._setScale(zoomLevel);
-  this._centerGraph();
+  this._centerGraph(range);
 };
 
 
@@ -13334,35 +13399,35 @@ Graph.prototype._create = function () {
  */
 Graph.prototype._createKeyBinds = function() {
   var me = this;
-  this.mouseTrap = mouseTrap;
-  this.mouseTrap.bind("up",   this._moveUp.bind(me)   , "keydown");
-  this.mouseTrap.bind("up",   this._yStopMoving.bind(me), "keyup");
-  this.mouseTrap.bind("down", this._moveDown.bind(me) , "keydown");
-  this.mouseTrap.bind("down", this._yStopMoving.bind(me), "keyup");
-  this.mouseTrap.bind("left", this._moveLeft.bind(me) , "keydown");
-  this.mouseTrap.bind("left", this._xStopMoving.bind(me), "keyup");
-  this.mouseTrap.bind("right",this._moveRight.bind(me), "keydown");
-  this.mouseTrap.bind("right",this._xStopMoving.bind(me), "keyup");
-  this.mouseTrap.bind("=",this._zoomIn.bind(me), "keydown");
-  this.mouseTrap.bind("=",this._stopZoom.bind(me), "keyup");
-  this.mouseTrap.bind("-",this._zoomOut.bind(me), "keydown");
-  this.mouseTrap.bind("-",this._stopZoom.bind(me), "keyup");
-  this.mouseTrap.bind("[",this._zoomIn.bind(me), "keydown");
-  this.mouseTrap.bind("[",this._stopZoom.bind(me), "keyup");
-  this.mouseTrap.bind("]",this._zoomOut.bind(me), "keydown");
-  this.mouseTrap.bind("]",this._stopZoom.bind(me), "keyup");
-  this.mouseTrap.bind("pageup",this._zoomIn.bind(me), "keydown");
-  this.mouseTrap.bind("pageup",this._stopZoom.bind(me), "keyup");
-  this.mouseTrap.bind("pagedown",this._zoomOut.bind(me), "keydown");
-  this.mouseTrap.bind("pagedown",this._stopZoom.bind(me), "keyup");
-  this.mouseTrap.bind("u",this._toggleUI.bind(me)     , "keydown");
+  this.mousetrap = mousetrap;
+  this.mousetrap.bind("up",   this._moveUp.bind(me)   , "keydown");
+  this.mousetrap.bind("up",   this._yStopMoving.bind(me), "keyup");
+  this.mousetrap.bind("down", this._moveDown.bind(me) , "keydown");
+  this.mousetrap.bind("down", this._yStopMoving.bind(me), "keyup");
+  this.mousetrap.bind("left", this._moveLeft.bind(me) , "keydown");
+  this.mousetrap.bind("left", this._xStopMoving.bind(me), "keyup");
+  this.mousetrap.bind("right",this._moveRight.bind(me), "keydown");
+  this.mousetrap.bind("right",this._xStopMoving.bind(me), "keyup");
+  this.mousetrap.bind("=",this._zoomIn.bind(me), "keydown");
+  this.mousetrap.bind("=",this._stopZoom.bind(me), "keyup");
+  this.mousetrap.bind("-",this._zoomOut.bind(me), "keydown");
+  this.mousetrap.bind("-",this._stopZoom.bind(me), "keyup");
+  this.mousetrap.bind("[",this._zoomIn.bind(me), "keydown");
+  this.mousetrap.bind("[",this._stopZoom.bind(me), "keyup");
+  this.mousetrap.bind("]",this._zoomOut.bind(me), "keydown");
+  this.mousetrap.bind("]",this._stopZoom.bind(me), "keyup");
+  this.mousetrap.bind("pageup",this._zoomIn.bind(me), "keydown");
+  this.mousetrap.bind("pageup",this._stopZoom.bind(me), "keyup");
+  this.mousetrap.bind("pagedown",this._zoomOut.bind(me), "keydown");
+  this.mousetrap.bind("pagedown",this._stopZoom.bind(me), "keyup");
+  this.mousetrap.bind("u",this._toggleUI.bind(me)     , "keydown");
   /*
-   this.mouseTrap.bind("=",this.decreaseClusterLevel.bind(me));
-   this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
-   this.mouseTrap.bind("s",this.singleStep.bind(me));
-   this.mouseTrap.bind("h",this.updateClustersDefault.bind(me));
-   this.mouseTrap.bind("c",this._collapseSector.bind(me));
-   this.mouseTrap.bind("f",this.toggleFreeze.bind(me));
+   this.mousetrap.bind("=",this.decreaseClusterLevel.bind(me));
+   this.mousetrap.bind("-",this.increaseClusterLevel.bind(me));
+   this.mousetrap.bind("s",this.singleStep.bind(me));
+   this.mousetrap.bind("h",this.updateClustersDefault.bind(me));
+   this.mousetrap.bind("c",this._collapseSector.bind(me));
+   this.mousetrap.bind("f",this.toggleFreeze.bind(me));
    */
 }
 
@@ -13484,7 +13549,6 @@ Graph.prototype._onDrag = function (event) {
         this.drag.translation.x + diffX,
         this.drag.translation.y + diffY);
     this._redraw();
-
     this.moved = true;
   }
 };
@@ -13594,8 +13658,6 @@ Graph.prototype._zoom = function(scale, pointer) {
   this._setTranslation(tx, ty);
   this.updateClustersDefault();
   this._redraw();
-
-//  console.log("current zoomscale:",this.scale);
 
   return scale;
 };
@@ -14201,10 +14263,10 @@ Graph.prototype._redraw = function() {
   ctx.translate(this.translation.x, this.translation.y);
   ctx.scale(this.scale, this.scale);
 
-  this.canvasTopLeft = {"x": (0-this.translation.x)/this.scale,
-                        "y": (0-this.translation.y)/this.scale};
-  this.canvasBottomRight = {"x": (this.frame.canvas.clientWidth -this.translation.x)/this.scale,
-                            "y": (this.frame.canvas.clientHeight-this.translation.y)/this.scale};
+  this.canvasTopLeft = {"x": this._canvasToX(0),
+                        "y": this._canvasToY(0)};
+  this.canvasBottomRight = {"x": this._canvasToX(this.frame.canvas.clientWidth),
+                            "y": this._canvasToY(this.frame.canvas.clientHeight)};
 
   this._doInAllSectors("_drawAllSectorNodes",ctx);
   this._doInAllSectors("_drawEdges",ctx);
@@ -14420,9 +14482,8 @@ Graph.prototype._initializeForceCalculation = function() {
  * @private
  */
 Graph.prototype._calculateForces = function() {
-  var screenCenterPos = {"x":0.5*(this.canvasTopLeft.x + this.canvasBottomRight.x),
-                   "y":0.5*(this.canvasTopLeft.y + this.canvasBottomRight.y)}
-
+  var screenCenterPos = {"x":(0.5*(this.canvasTopLeft.x + this.canvasBottomRight.x)),
+                         "y":(0.5*(this.canvasTopLeft.y + this.canvasBottomRight.y))}
   // create a local edge to the nodes and edges, that is faster
   var dx, dy, angle, distance, fx, fy,
     repulsingForce, springForce, length, edgeLength,
@@ -14434,7 +14495,7 @@ Graph.prototype._calculateForces = function() {
   // Gravity is required to keep separated groups from floating off
   // the forces are reset to zero in this loop by using _setForce instead
   // of _addForce
-  var gravity = 0.3 * this.forceFactor;
+  var gravity = 0.20 * this.forceFactor;
   for (i = 0; i < this.nodeIndices.length; i++) {
       node = nodes[this.nodeIndices[i]];
       // gravity does not apply when we are in a pocket sector
@@ -14638,7 +14699,7 @@ Graph.prototype._isMoving = function(vmin) {
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = 0.01;
+  var interval = 0.010;
   var nodes = this.nodes;
   for (var id in nodes) {
     if (nodes.hasOwnProperty(id)) {
@@ -14663,6 +14724,8 @@ Graph.prototype.start = function() {
     if (this.moving) {
       this._doInAllActiveSectors("_initializeForceCalculation");
       this._doInAllActiveSectors("_discreteStepNodes");
+
+      this._findCenter(this._getRange())
     }
 
     if (this.moving || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0) {
@@ -14805,6 +14868,7 @@ Graph.prototype._loadUISystem = function() {
 
   if (this.constants.UI.enabled == true) {
     this._loadUIElements();
+
     this._createKeyBinds();
   }
 }
@@ -14917,7 +14981,7 @@ if (typeof window !== 'undefined') {
 }
 
 
-},{"hammerjs":2,"moment":3,"mouseTrap":4}],2:[function(_dereq_,module,exports){
+},{"hammerjs":2,"moment":3,"mousetrap":4}],2:[function(require,module,exports){
 /*! Hammer.JS - v1.0.5 - 2013-04-07
  * http://eightmedia.github.com/hammer.js
  *
@@ -16339,7 +16403,7 @@ else {
     }
 }
 })(this);
-},{}],3:[function(_dereq_,module,exports){
+},{}],3:[function(require,module,exports){
 //! moment.js
 //! version : 2.5.1
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
@@ -16383,7 +16447,7 @@ else {
         },
 
         // check for nodeJS
-        hasModule = (typeof module !== 'undefined' && module.exports && typeof _dereq_ !== 'undefined'),
+        hasModule = (typeof module !== 'undefined' && module.exports && typeof require !== 'undefined'),
 
         // ASP.NET json date format regex
         aspNetJsonRegex = /^\/?Date\((\-?\d+)/i,
@@ -17175,7 +17239,7 @@ else {
             get = function (k) {
                 if (!languages[k] && hasModule) {
                     try {
-                        _dereq_('./lang/' + k);
+                        require('./lang/' + k);
                     } catch (e) { }
                 }
                 return languages[k];
@@ -18728,7 +18792,7 @@ else {
         module.exports = moment;
         makeGlobal(true);
     } else if (typeof define === "function" && define.amd) {
-        define("moment", function (_dereq_, exports, module) {
+        define("moment", function (require, exports, module) {
             if (module.config && module.config() && module.config().noGlobal !== true) {
                 // If user provided noGlobal, he is aware of global
                 makeGlobal(module.config().noGlobal === undefined);
@@ -18741,7 +18805,7 @@ else {
     }
 }).call(this);
 
-},{}],4:[function(_dereq_,module,exports){
+},{}],4:[function(require,module,exports){
 /**
  * Copyright 2012 Craig Campbell
  *

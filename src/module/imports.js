@@ -18,13 +18,13 @@ else {
   }
 }
 
-var mouseTrap;
+var mousetrap;
 if (typeof window !== 'undefined') {
   // load mousetrap.js only when running in a browser (where window is available)
-  mouseTrap = window['mouseTrap'] || require('mouseTrap');
+  mousetrap = window['mousetrap'] || require('mousetrap');
 }
 else {
-  mouseTrap = function () {
+  mousetrap = function () {
     throw Error('mouseTrap is only available in a browser, not in node.js.');
   }
 }

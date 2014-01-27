@@ -75,7 +75,7 @@ function Node(properties, imagelist, grouplist, constants) {
   this.vy = 0.0;  // velocity y
   this.minForce = constants.minForce;
   this.damping = 0.9;
-  this.dampingFactor = 60;
+  this.dampingFactor = 75;
 
   this.graphScaleInv = 1;
   this.canvasTopLeft = {"x": -300, "y": -300};
@@ -901,10 +901,10 @@ Node.prototype.getTextSize = function(ctx) {
  */
 Node.prototype.inArea = function() {
   if (this.width !== undefined) {
-  return (this.x + this.width*0.8  >= this.canvasTopLeft.x    &&
-          this.x - this.width*0.8  <  this.canvasBottomRight.x &&
-          this.y + this.height*0.8 >= this.canvasTopLeft.y    &&
-          this.y - this.height*0.8 <  this.canvasBottomRight.y);
+  return (this.x + this.width*this.graphScaleInv  >= this.canvasTopLeft.x    &&
+          this.x - this.width*this.graphScaleInv  <  this.canvasBottomRight.x &&
+          this.y + this.height*this.graphScaleInv >= this.canvasTopLeft.y    &&
+          this.y - this.height*this.graphScaleInv <  this.canvasBottomRight.y);
   }
   else {
     return true;

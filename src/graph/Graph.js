@@ -91,7 +91,8 @@ function Graph (container, data, options) {
       initiallyVisible: true,
       xMovementSpeed: 10,
       yMovementSpeed: 10,
-      zoomMovementSpeed: 0.02
+      zoomMovementSpeed: 0.02,
+      iconPath: 'img/UI/'
     },
     minVelocity: 1.0,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
@@ -111,6 +112,7 @@ function Graph (container, data, options) {
   this.yIncrement = 0;
   this.zoomIncrement = 0;
 
+  console.log
   // create a frame and canvas
   this._create();
 
@@ -189,7 +191,7 @@ function Graph (container, data, options) {
   this.setData(data,this.constants.clustering.enabled);
 
   // zoom so all data will fit on the screen
-  this.zoomToFit();
+  this.zoomToFit(true);
 
   // if clustering is disabled, the simulation will have started in the setData function
   if (this.constants.clustering.enabled) {
@@ -202,44 +204,87 @@ function Graph (container, data, options) {
  * Find the center position of the graph
  * @private
  */
-Graph.prototype._findCenter = function() {
+Graph.prototype._getRange = function() {
   var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
   for (var i = 0; i < this.nodeIndices.length; i++) {
     node = this.nodes[this.nodeIndices[i]];
-    if (minX > node.x) {minX = node.x;}
-    if (maxX < node.x) {maxX = node.x;}
-    if (minY > node.y) {minY = node.y;}
-    if (maxY < node.y) {maxY = node.y;}
+    if (minX > (node.x - node.width)) {minX = node.x - node.width;}
+    if (maxX < (node.x + node.width)) {maxX = node.x + node.width;}
+    if (minY > (node.y - node.height)) {minY = node.y - node.height;}
+    if (maxY < (node.y + node.height)) {maxY = node.y + node.height;}
   }
-  return {x: (0.5 * (maxX + minX)),
-          y: (0.5 * (maxY + minY))};
+  return {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
+};
+
+
+/**
+ * @param {object} range = {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
+ * @returns {{x: number, y: number}}
+ * @private
+ */
+Graph.prototype._findCenter = function(range) {
+  var center = {x: (0.5 * (range.maxX + range.minX)),
+                y: (0.5 * (range.maxY + range.minY))};
+  return center;
 };
 
 
 /**
  * center the graph
+ *
+ * @param {object} range = {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
  */
-Graph.prototype._centerGraph = function() {
-  var center = this._findCenter();
+Graph.prototype._centerGraph = function(range) {
+  var center = this._findCenter(range);
+
+  center.x *= this.scale;
+  center.y *= this.scale;
   center.x -= 0.5 * this.frame.canvas.clientWidth;
   center.y -= 0.5 * this.frame.canvas.clientHeight;
-  this._setTranslation(-center.x,-center.y);
+
+  this._setTranslation(-center.x,-center.y); // set at 0,0
 };
 
 
 /**
- * This function zooms out to fit all data on screen based on amount of nodes 
+ * This function zooms out to fit all data on screen based on amount of nodes
+ *
+ * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
  */
-Graph.prototype.zoomToFit = function() {
+Graph.prototype.zoomToFit = function(initialZoom) {
+  if (initialZoom === undefined) {
+    initialZoom = false;
+  }
+
   var numberOfNodes = this.nodeIndices.length;
-  var zoomLevel = 46.5 / (numberOfNodes + 20.622); // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+  var range = this._getRange();
+
+  if (initialZoom == true) {
+    if (this.constants.clustering.enabled == true &&
+        numberOfNodes < this.constants.clustering.initialMaxNumberOfNodes) {
+      var zoomLevel = 38.8467 / (numberOfNodes - 14.50184) + 0.0116360476; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+    }
+    else {
+      var zoomLevel = 42.54117319 / (numberOfNodes + 39.31966387) + 0.1944405; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+    }
+  }
+  else {
+    var xDistance = (Math.abs(range.minX) + Math.abs(range.maxX)) * 1.1;
+    var yDistance = (Math.abs(range.minY) + Math.abs(range.maxY)) * 1.1;
+
+    var xZoomLevel = this.frame.canvas.clientWidth / xDistance;
+    var yZoomLevel = this.frame.canvas.clientHeight / yDistance;
+
+    zoomLevel = (xZoomLevel <= yZoomLevel) ? xZoomLevel : yZoomLevel;
+  }
+
   if (zoomLevel > 1.0) {
     zoomLevel = 1.0;
   }
 
   this.pinch.mousewheelScale = zoomLevel;
   this._setScale(zoomLevel);
-  this._centerGraph();
+  this._centerGraph(range);
 };
 
 
@@ -470,35 +515,35 @@ Graph.prototype._create = function () {
  */
 Graph.prototype._createKeyBinds = function() {
   var me = this;
-  this.mouseTrap = mouseTrap;
-  this.mouseTrap.bind("up",   this._moveUp.bind(me)   , "keydown");
-  this.mouseTrap.bind("up",   this._yStopMoving.bind(me), "keyup");
-  this.mouseTrap.bind("down", this._moveDown.bind(me) , "keydown");
-  this.mouseTrap.bind("down", this._yStopMoving.bind(me), "keyup");
-  this.mouseTrap.bind("left", this._moveLeft.bind(me) , "keydown");
-  this.mouseTrap.bind("left", this._xStopMoving.bind(me), "keyup");
-  this.mouseTrap.bind("right",this._moveRight.bind(me), "keydown");
-  this.mouseTrap.bind("right",this._xStopMoving.bind(me), "keyup");
-  this.mouseTrap.bind("=",this._zoomIn.bind(me), "keydown");
-  this.mouseTrap.bind("=",this._stopZoom.bind(me), "keyup");
-  this.mouseTrap.bind("-",this._zoomOut.bind(me), "keydown");
-  this.mouseTrap.bind("-",this._stopZoom.bind(me), "keyup");
-  this.mouseTrap.bind("[",this._zoomIn.bind(me), "keydown");
-  this.mouseTrap.bind("[",this._stopZoom.bind(me), "keyup");
-  this.mouseTrap.bind("]",this._zoomOut.bind(me), "keydown");
-  this.mouseTrap.bind("]",this._stopZoom.bind(me), "keyup");
-  this.mouseTrap.bind("pageup",this._zoomIn.bind(me), "keydown");
-  this.mouseTrap.bind("pageup",this._stopZoom.bind(me), "keyup");
-  this.mouseTrap.bind("pagedown",this._zoomOut.bind(me), "keydown");
-  this.mouseTrap.bind("pagedown",this._stopZoom.bind(me), "keyup");
-  this.mouseTrap.bind("u",this._toggleUI.bind(me)     , "keydown");
+  this.mousetrap = mousetrap;
+  this.mousetrap.bind("up",   this._moveUp.bind(me)   , "keydown");
+  this.mousetrap.bind("up",   this._yStopMoving.bind(me), "keyup");
+  this.mousetrap.bind("down", this._moveDown.bind(me) , "keydown");
+  this.mousetrap.bind("down", this._yStopMoving.bind(me), "keyup");
+  this.mousetrap.bind("left", this._moveLeft.bind(me) , "keydown");
+  this.mousetrap.bind("left", this._xStopMoving.bind(me), "keyup");
+  this.mousetrap.bind("right",this._moveRight.bind(me), "keydown");
+  this.mousetrap.bind("right",this._xStopMoving.bind(me), "keyup");
+  this.mousetrap.bind("=",this._zoomIn.bind(me), "keydown");
+  this.mousetrap.bind("=",this._stopZoom.bind(me), "keyup");
+  this.mousetrap.bind("-",this._zoomOut.bind(me), "keydown");
+  this.mousetrap.bind("-",this._stopZoom.bind(me), "keyup");
+  this.mousetrap.bind("[",this._zoomIn.bind(me), "keydown");
+  this.mousetrap.bind("[",this._stopZoom.bind(me), "keyup");
+  this.mousetrap.bind("]",this._zoomOut.bind(me), "keydown");
+  this.mousetrap.bind("]",this._stopZoom.bind(me), "keyup");
+  this.mousetrap.bind("pageup",this._zoomIn.bind(me), "keydown");
+  this.mousetrap.bind("pageup",this._stopZoom.bind(me), "keyup");
+  this.mousetrap.bind("pagedown",this._zoomOut.bind(me), "keydown");
+  this.mousetrap.bind("pagedown",this._stopZoom.bind(me), "keyup");
+  this.mousetrap.bind("u",this._toggleUI.bind(me)     , "keydown");
   /*
-   this.mouseTrap.bind("=",this.decreaseClusterLevel.bind(me));
-   this.mouseTrap.bind("-",this.increaseClusterLevel.bind(me));
-   this.mouseTrap.bind("s",this.singleStep.bind(me));
-   this.mouseTrap.bind("h",this.updateClustersDefault.bind(me));
-   this.mouseTrap.bind("c",this._collapseSector.bind(me));
-   this.mouseTrap.bind("f",this.toggleFreeze.bind(me));
+   this.mousetrap.bind("=",this.decreaseClusterLevel.bind(me));
+   this.mousetrap.bind("-",this.increaseClusterLevel.bind(me));
+   this.mousetrap.bind("s",this.singleStep.bind(me));
+   this.mousetrap.bind("h",this.updateClustersDefault.bind(me));
+   this.mousetrap.bind("c",this._collapseSector.bind(me));
+   this.mousetrap.bind("f",this.toggleFreeze.bind(me));
    */
 }
 
@@ -620,7 +665,6 @@ Graph.prototype._onDrag = function (event) {
         this.drag.translation.x + diffX,
         this.drag.translation.y + diffY);
     this._redraw();
-
     this.moved = true;
   }
 };
@@ -730,8 +774,6 @@ Graph.prototype._zoom = function(scale, pointer) {
   this._setTranslation(tx, ty);
   this.updateClustersDefault();
   this._redraw();
-
-//  console.log("current zoomscale:",this.scale);
 
   return scale;
 };
@@ -1337,10 +1379,10 @@ Graph.prototype._redraw = function() {
   ctx.translate(this.translation.x, this.translation.y);
   ctx.scale(this.scale, this.scale);
 
-  this.canvasTopLeft = {"x": (0-this.translation.x)/this.scale,
-                        "y": (0-this.translation.y)/this.scale};
-  this.canvasBottomRight = {"x": (this.frame.canvas.clientWidth -this.translation.x)/this.scale,
-                            "y": (this.frame.canvas.clientHeight-this.translation.y)/this.scale};
+  this.canvasTopLeft = {"x": this._canvasToX(0),
+                        "y": this._canvasToY(0)};
+  this.canvasBottomRight = {"x": this._canvasToX(this.frame.canvas.clientWidth),
+                            "y": this._canvasToY(this.frame.canvas.clientHeight)};
 
   this._doInAllSectors("_drawAllSectorNodes",ctx);
   this._doInAllSectors("_drawEdges",ctx);
@@ -1556,9 +1598,8 @@ Graph.prototype._initializeForceCalculation = function() {
  * @private
  */
 Graph.prototype._calculateForces = function() {
-  var screenCenterPos = {"x":0.5*(this.canvasTopLeft.x + this.canvasBottomRight.x),
-                   "y":0.5*(this.canvasTopLeft.y + this.canvasBottomRight.y)}
-
+  var screenCenterPos = {"x":(0.5*(this.canvasTopLeft.x + this.canvasBottomRight.x)),
+                         "y":(0.5*(this.canvasTopLeft.y + this.canvasBottomRight.y))}
   // create a local edge to the nodes and edges, that is faster
   var dx, dy, angle, distance, fx, fy,
     repulsingForce, springForce, length, edgeLength,
@@ -1570,7 +1611,7 @@ Graph.prototype._calculateForces = function() {
   // Gravity is required to keep separated groups from floating off
   // the forces are reset to zero in this loop by using _setForce instead
   // of _addForce
-  var gravity = 0.3 * this.forceFactor;
+  var gravity = 0.20 * this.forceFactor;
   for (i = 0; i < this.nodeIndices.length; i++) {
       node = nodes[this.nodeIndices[i]];
       // gravity does not apply when we are in a pocket sector
@@ -1774,7 +1815,7 @@ Graph.prototype._isMoving = function(vmin) {
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = 0.01;
+  var interval = 0.010;
   var nodes = this.nodes;
   for (var id in nodes) {
     if (nodes.hasOwnProperty(id)) {
@@ -1799,6 +1840,8 @@ Graph.prototype.start = function() {
     if (this.moving) {
       this._doInAllActiveSectors("_initializeForceCalculation");
       this._doInAllActiveSectors("_discreteStepNodes");
+
+      this._findCenter(this._getRange())
     }
 
     if (this.moving || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0) {
@@ -1941,6 +1984,7 @@ Graph.prototype._loadUISystem = function() {
 
   if (this.constants.UI.enabled == true) {
     this._loadUIElements();
+
     this._createKeyBinds();
   }
 }
