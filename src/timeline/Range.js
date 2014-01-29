@@ -94,13 +94,28 @@ Range.prototype.subscribe = function (component, event, direction) {
 };
 
 /**
- * Event handler
- * @param {String} event       name of the event, for example 'click', 'mousemove'
- * @param {function} callback  callback handler, invoked with the raw HTML Event
- *                             as parameter.
+ * Add event listener
+ * @param {String} event       Name of the event.
+ *                             Available events: 'rangechange', 'rangechanged'
+ * @param {function} callback  Callback function, invoked as callback({start: Date, end: Date})
  */
-Range.prototype.on = function (event, callback) {
+Range.prototype.on = function on (event, callback) {
+  var available = ['rangechange', 'rangechanged'];
+
+  if (available.indexOf(event) == -1) {
+    throw new Error('Unknown event "' + event + '". Choose from ' + available.join());
+  }
+
   events.addListener(this, event, callback);
+};
+
+/**
+ * Remove an event listener
+ * @param {String} event       name of the event
+ * @param {function} callback  callback handler
+ */
+Range.prototype.off = function off (event, callback) {
+  events.removeListener(this, event, callback);
 };
 
 /**

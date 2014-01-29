@@ -85,13 +85,15 @@ function Timeline (container, items, options) {
   // TODO: reckon with options moveable and zoomable
   this.range.subscribe(this.rootPanel, 'move', 'horizontal');
   this.range.subscribe(this.rootPanel, 'zoom', 'horizontal');
-  this.range.on('rangechange', function () {
+  this.range.on('rangechange', function (properties) {
     var force = true;
     me.controller.requestReflow(force);
+    me._trigger('rangechange', properties);
   });
-  this.range.on('rangechanged', function () {
+  this.range.on('rangechanged', function (properties) {
     var force = true;
     me.controller.requestReflow(force);
+    me._trigger('rangechanged', properties);
   });
 
   // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
@@ -348,4 +350,42 @@ Timeline.prototype.getItemRange = function getItemRange() {
  */
 Timeline.prototype.select = function select(ids) {
   return this.content ? this.content.select(ids) : [];
+};
+
+/**
+ * Add event listener
+ * @param {String} event       Event name. Available events:
+ *                             'rangechange', 'rangechanged', 'select'
+ * @param {function} callback  Callback function, invoked as callback(properties)
+ *                             where properties is an optional object containing
+ *                             event specific properties.
+ */
+Timeline.prototype.on = function on (event, callback) {
+  var available = ['rangechange', 'rangechanged', 'select'];
+
+  if (available.indexOf(event) == -1) {
+    throw new Error('Unknown event "' + event + '". Choose from ' + available.join());
+  }
+
+  events.addListener(this, event, callback);
+};
+
+/**
+ * Remove an event listener
+ * @param {String} event       Event name
+ * @param {function} callback  Callback function
+ */
+Timeline.prototype.off = function off (event, callback) {
+  events.removeListener(this, event, callback);
+};
+
+/**
+ * Trigger an event
+ * @param {String} event        Event name, available events: 'rangechange',
+ *                              'rangechanged', 'select'
+ * @param {Object} [properties] Event specific properties
+ * @private
+ */
+Timeline.prototype._trigger = function _trigger(event, properties) {
+  events.trigger(this, event, properties || {});
 };

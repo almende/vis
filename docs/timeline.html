@@ -544,12 +544,26 @@ var options = {
     <td>Retrieve the custom time. Only applicable when the option <code>showCustomTime</code> is true.
     </td>
   </tr>
+
   <tr>
     <td>setCustomTime(time)</td>
     <td>none</td>
     <td>Adjust the custom time bar. Only applicable when the option <code>showCustomTime</code> is true. <code>time</code> is a Date object.
     </td>
   </tr>
+
+  <tr>
+    <td>on(event, callback)</td>
+    <td>none</td>
+    <td>Create an event listener. The callback function is invoked every time the event is triggered. Avialable events: <code>rangechange</code>, <code>rangechanged</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties.</td>
+  </tr>
+
+  <tr>
+    <td>off(event, callback)</td>
+    <td>none</td>
+    <td>Remove an event listener created before via function <code>on(event, callback)</code>.</td>
+  </tr>
+
   <tr>
     <td>setGroups(groups)</td>
     <td>none</td>
@@ -560,6 +574,7 @@ var options = {
       must correspond with the id of the group.
     </td>
   </tr>
+
   <tr>
     <td>setItems(items)</td>
     <td>none</td>
@@ -572,14 +587,15 @@ var options = {
   <tr>
     <td>setOptions(options)</td>
     <td>none</td>
-    <td>Set or update options. It is possible to change any option
-      of the timeline at any time. You can for example switch orientation
-      on the fly.
+    <td>Set or update options. It is possible to change any option of the timeline at any time. You can for example switch orientation on the fly.
     </td>
   </tr>
 
-
 </table>
+
+
+<!-- TODO: write a section on Events -->
+
 
 
 <h2 id="Styles">Styles</h2>
