@@ -15,7 +15,26 @@
 
 <h1>Graph documentation</h1>
 
+<h2 id="Overview">Overview</h2>
+<p>
+  Graph is a visualization to display graphs and networks consisting of nodes
+  and edges. The visualization is easy to use and supports custom shapes,
+  styles, colors, sizes, images, and more.
+</p>
+
+<p>
+  The graph visualization works smooth on any modern browser for up to a
+  few hundred nodes and edges.
+</p>
+
+<p>
+  To get started with Graph, install or download the
+  <a href="http://visjs.org" target="_blank">vis.js</a> library.
+</p>
+
+
 <h2><a name="Contents"></a>Contents</h2>
+
 <ul>
   <li><a href="#Overview">Overview</a></li>
   <li><a href="#Example">Example</a></li>
@@ -43,23 +62,6 @@
   <li><a href="#Events">Events</a></li>
   <li><a href="#Data_policy">Data policy</a></li>
 </ul>
-
-<h2 id="Overview">Overview</h2>
-<p>
-  Graph is a visualization to display graphs and networks consisting of nodes
-  and edges. The visualization is easy to use and supports custom shapes,
-  styles, colors, sizes, images, and more.
-</p>
-
-<p>
-  The graph visualization works smooth on any modern browser for up to a
-  few hundred nodes and edges.
-</p>
-
-<p>
-  To get started with Graph, install or download the
-  <a href="http://visjs.org" target="_blank">vis.js</a> library.
-</p>
 
 <h2 id="Example">Example</h2>
 <p>
@@ -789,7 +791,7 @@ var options = {
     <td>color.highlight</td>
     <td>String | Object</td>
     <td>Object</td>
-    <td>Default color of the node when the node is selected. Applied to
+    <td>Default color of the node when the node is selected. In case of a string, the color is applied to
       both border and background of the node.</td>
   </tr>
   <tr>
@@ -1056,9 +1058,10 @@ var nodes = [
   </tr>
   <tr>
     <td>color.highlight</td>
-    <td>String</td>
+    <td>String | Object</td>
     <td>"#D2E5FF"</td>
-    <td>Color of the node when selected.</td>
+    <td>Default color of the node when the node is selected. In case of a string, the color is applied to
+      both border and background of the node.</td>
   </tr>
   <tr>
     <td>color.highlight.background</td>
