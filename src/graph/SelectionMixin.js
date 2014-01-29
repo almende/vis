@@ -166,9 +166,14 @@ var SelectionMixin = {
   /**
    * Unselect all. The selectionObj is useful for this.
    *
+   * @param {Boolean} [doNotTrigger] | ignore trigger
    * @private
    */
-  _unselectAll : function() {
+  _unselectAll : function(doNotTrigger) {
+    if (doNotTrigger === undefined) {
+      doNotTrigger = false;
+    }
+
     this.selection = [];
     for (var objId in this.selectionObj) {
       if (this.selectionObj.hasOwnProperty(objId)) {
@@ -177,7 +182,9 @@ var SelectionMixin = {
     }
     this.selectionObj = {};
 
-    this._trigger('select');
+    if (doNotTrigger == false) {
+      this._trigger('select');
+    }
   },
 
 
@@ -203,12 +210,18 @@ var SelectionMixin = {
    *
    * @param {Node} node
    * @param {Boolean} append
+   * @param {Boolean} [doNotTrigger] | ignore trigger
    * @private
    */
-  _selectNode : function(node, append) {
-    if (this._selectionIsEmpty() == false && append == false) {
-      this._unselectAll();
+  _selectNode : function(node, append, doNotTrigger) {
+    if (doNotTrigger === undefined) {
+      doNotTrigger = false;
     }
+
+    if (this._selectionIsEmpty() == false && append == false) {
+      this._unselectAll(true);
+    }
+
 
     if (node.selected == false) {
       node.select();
@@ -218,7 +231,9 @@ var SelectionMixin = {
       node.unselect();
       this._removeFromSelection(node);
     }
-    this._trigger('select');
+    if (doNotTrigger == false) {
+      this._trigger('select');
+    }
   },
 
 
@@ -329,12 +344,7 @@ var SelectionMixin = {
       throw 'Selection must be an array with ids';
 
     // first unselect any selected node
-    for (i = 0, iMax = this.selection.length; i < iMax; i++) {
-      id = this.selection[i];
-      this.nodes[id].unselect();
-    }
-
-    this.selection = [];
+    this._unselectAll(true);
 
     for (i = 0, iMax = selection.length; i < iMax; i++) {
       id = selection[i];
@@ -343,8 +353,7 @@ var SelectionMixin = {
       if (!node) {
         throw new RangeError('Node with id "' + id + '" not found');
       }
-      node.select();
-      this.selection.push(id);
+      this._selectNode(node,true,true);
     }
 
     this.redraw();

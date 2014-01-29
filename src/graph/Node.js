@@ -406,7 +406,9 @@ Node.prototype.isFixed = function() {
  */
 // TODO: replace this method with calculating the kinetic energy
 Node.prototype.isMoving = function(vmin) {
+
   if (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin) {
+//    console.log(vmin,this.vx,this.vy);
     return true;
   }
   else {

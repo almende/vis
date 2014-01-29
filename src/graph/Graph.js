@@ -98,7 +98,7 @@ function Graph (container, data, options) {
       yMovementSpeed: 10,
       zoomMovementSpeed: 0.02
     },
-    minVelocity: 1.0,   // px/s
+    minVelocity: 2,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
   };
 
@@ -313,6 +313,7 @@ Graph.prototype.zoomToFit = function(initialZoom) {
   this.pinch.mousewheelScale = zoomLevel;
   this._setScale(zoomLevel);
   this._centerGraph(range);
+  this.start();
 };
 
 
@@ -374,6 +375,7 @@ Graph.prototype.setData = function(data, disableStart) {
     if (this.stabilize) {
       this._doStabilize();
     }
+    this.moving = true;
     this.start();
   }
 };
@@ -1412,7 +1414,6 @@ Graph.prototype.redraw = function() {
  */
 Graph.prototype._redraw = function() {
   var ctx = this.frame.canvas.getContext('2d');
-
   // clear the canvas
   var w = this.frame.canvas.width;
   var h = this.frame.canvas.height;
@@ -1643,8 +1644,8 @@ Graph.prototype._initializeForceCalculation = function() {
  * @private
  */
 Graph.prototype._calculateForces = function() {
-  var screenCenterPos = {"x":(0.5*(this.canvasTopLeft.x + this.canvasBottomRight.x)),
-                         "y":(0.5*(this.canvasTopLeft.y + this.canvasBottomRight.y))}
+//  var screenCenterPos = {"x":(0.5*(this.canvasTopLeft.x + this.canvasBottomRight.x)),
+//                         "y":(0.5*(this.canvasTopLeft.y + this.canvasBottomRight.y))}
   // create a local edge to the nodes and edges, that is faster
   var dx, dy, angle, distance, fx, fy,
     repulsingForce, springForce, length, edgeLength,
@@ -1656,13 +1657,13 @@ Graph.prototype._calculateForces = function() {
   // Gravity is required to keep separated groups from floating off
   // the forces are reset to zero in this loop by using _setForce instead
   // of _addForce
-  var gravity = 0.10 * this.forceFactor;
+  var gravity = 0.08 * this.forceFactor;
   for (i = 0; i < this.nodeIndices.length; i++) {
       node = nodes[this.nodeIndices[i]];
       // gravity does not apply when we are in a pocket sector
       if (this._sector() == "default") {
-        dx = -node.x + screenCenterPos.x;
-        dy = -node.y + screenCenterPos.y;
+        dx = -node.x;// + screenCenterPos.x;
+        dy = -node.y;// + screenCenterPos.y;
 
         angle = Math.atan2(dy, dx);
         fx = Math.cos(angle) * gravity;
@@ -1860,7 +1861,7 @@ Graph.prototype._isMoving = function(vmin) {
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = 0.010;
+  var interval = 0.01;
   var nodes = this.nodes;
   for (var id in nodes) {
     if (nodes.hasOwnProperty(id)) {
@@ -1885,7 +1886,6 @@ Graph.prototype.start = function() {
     if (this.moving) {
       this._doInAllActiveSectors("_initializeForceCalculation");
       this._doInAllActiveSectors("_discreteStepNodes");
-
       this._findCenter(this._getRange())
     }
 
@@ -1907,7 +1907,6 @@ Graph.prototype.start = function() {
 
           graph.start();
           graph._redraw();
-
 
           //this.end = window.performance.now();
           //this.time = this.end - this.startTime;
