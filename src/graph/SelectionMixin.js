@@ -320,7 +320,6 @@ var SelectionMixin = {
 
 
   /**
-   * * // TODO: rework this function, it is from the old system
    *
    * retrieve the currently selected nodes
    * @return {Number[] | String[]} selection    An array with the ids of the
@@ -328,6 +327,16 @@ var SelectionMixin = {
    */
   getSelection : function() {
     return this.selection.concat([]);
+  },
+
+  /**
+   *
+   * retrieve the currently selected nodes as objects
+   * @return {Objects} selection    An array with the ids of the
+   *                                            selected nodes.
+   */
+  getSelectionObjects : function() {
+    return this.selectionObj;
   },
 
   /**
