@@ -26,6 +26,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.selected = false;
 
   this.edges = []; // all edges connected to this node
+  this.dynamicEdges = [];
+  this.reroutedEdges = {};
   this.group = constants.nodes.group;
 
   this.fontSize = constants.nodes.fontSize;
@@ -42,24 +44,54 @@ function Node(properties, imagelist, grouplist, constants) {
   this.y = 0;
   this.xFixed = false;
   this.yFixed = false;
+  this.horizontalAlignLeft = true; // these are for the navigationUI
+  this.verticalAlignTop    = true; // these are for the navigationUI
   this.radius = constants.nodes.radius;
+  this.baseRadiusValue = constants.nodes.radius;
   this.radiusFixed = false;
   this.radiusMin = constants.nodes.radiusMin;
   this.radiusMax = constants.nodes.radiusMax;
 
   this.imagelist = imagelist;
+
   this.grouplist = grouplist;
 
   this.setProperties(properties, constants);
 
+  // creating the variables for clustering
+  this.resetCluster();
+  this.dynamicEdgesLength = 0;
+  this.clusterSession = 0;
+
+  this.clusterSizeWidthFactor  = constants.clustering.clusterSizeWidthFactor;
+  this.clusterSizeHeightFactor = constants.clustering.clusterSizeHeightFactor;
+  this.clusterSizeRadiusFactor = constants.clustering.clusterSizeRadiusFactor;
+
   // mass, force, velocity
-  this.mass = 50;  // kg (mass is adjusted for the number of connected edges)
+  this.mass = 1;  // kg (mass is adjusted for the number of connected edges)
   this.fx = 0.0;  // external force x
   this.fy = 0.0;  // external force y
   this.vx = 0.0;  // velocity x
   this.vy = 0.0;  // velocity y
   this.minForce = constants.minForce;
-  this.damping = 0.9; // damping factor
+  this.damping = 0.9;
+  this.dampingFactor = 75;
+
+  this.graphScaleInv = 1;
+  this.canvasTopLeft = {"x": -300, "y": -300};
+  this.canvasBottomRight = {"x":  300, "y":  300};
+}
+
+/**
+ * (re)setting the clustering variables and objects
+ */
+Node.prototype.resetCluster = function() {
+  // clustering variables
+  this.formationScale = undefined; // this is used to determine when to open the cluster
+  this.clusterSize = 1;            // this signifies the total amount of nodes in this cluster
+  this.containedNodes = {};
+  this.containedEdges = {};
+  this.clusterSessions = [];
 };
 
 /**
@@ -70,6 +102,10 @@ Node.prototype.attachEdge = function(edge) {
   if (this.edges.indexOf(edge) == -1) {
     this.edges.push(edge);
   }
+  if (this.dynamicEdges.indexOf(edge) == -1) {
+    this.dynamicEdges.push(edge);
+  }
+  this.dynamicEdgesLength = this.dynamicEdges.length;
   this._updateMass();
 };
 
@@ -81,7 +117,9 @@ Node.prototype.detachEdge = function(edge) {
   var index = this.edges.indexOf(edge);
   if (index != -1) {
     this.edges.splice(index, 1);
+    this.dynamicEdges.splice(index, 1);
   }
+  this.dynamicEdgesLength = this.dynamicEdges.length;
   this._updateMass();
 };
 
@@ -91,7 +129,7 @@ Node.prototype.detachEdge = function(edge) {
  * @private
  */
 Node.prototype._updateMass = function() {
-  this.mass = 50 + 20 * this.edges.length; // kg
+  this.mass = 1 + 0.6 * this.edges.length; // kg
 };
 
 /**
@@ -103,15 +141,20 @@ Node.prototype.setProperties = function(properties, constants) {
   if (!properties) {
     return;
   }
-
+  this.originalLabel = undefined;
   // basic properties
-  if (properties.id != undefined)        {this.id = properties.id;}
-  if (properties.label != undefined)     {this.label = properties.label;}
-  if (properties.title != undefined)     {this.title = properties.title;}
-  if (properties.group != undefined)     {this.group = properties.group;}
-  if (properties.x != undefined)         {this.x = properties.x;}
-  if (properties.y != undefined)         {this.y = properties.y;}
-  if (properties.value != undefined)     {this.value = properties.value;}
+  if (properties.id !== undefined)        {this.id = properties.id;}
+  if (properties.label !== undefined)     {this.label = properties.label; this.originalLabel = properties.label;}
+  if (properties.title !== undefined)     {this.title = properties.title;}
+  if (properties.group !== undefined)     {this.group = properties.group;}
+  if (properties.x !== undefined)         {this.x = properties.x;}
+  if (properties.y !== undefined)         {this.y = properties.y;}
+  if (properties.value !== undefined)     {this.value = properties.value;}
+
+  // navigationUI properties
+  if (properties.horizontalAlignLeft !== undefined) {this.horizontalAlignLeft = properties.horizontalAlignLeft;}
+  if (properties.verticalAlignTop    !== undefined) {this.verticalAlignTop    = properties.verticalAlignTop;}
+  if (properties.triggerFunction     !== undefined) {this.triggerFunction     = properties.triggerFunction;}
 
   if (this.id === undefined) {
     throw "Node must have an id";
@@ -128,17 +171,16 @@ Node.prototype.setProperties = function(properties, constants) {
   }
 
   // individual shape properties
-  if (properties.shape != undefined)          {this.shape = properties.shape;}
-  if (properties.image != undefined)          {this.image = properties.image;}
-  if (properties.radius != undefined)         {this.radius = properties.radius;}
-  if (properties.color != undefined)          {this.color = Node.parseColor(properties.color);}
+  if (properties.shape !== undefined)          {this.shape = properties.shape;}
+  if (properties.image !== undefined)          {this.image = properties.image;}
+  if (properties.radius !== undefined)         {this.radius = properties.radius;}
+  if (properties.color !== undefined)          {this.color = Node.parseColor(properties.color);}
 
-  if (properties.fontColor != undefined)      {this.fontColor = properties.fontColor;}
-  if (properties.fontSize != undefined)       {this.fontSize = properties.fontSize;}
-  if (properties.fontFace != undefined)       {this.fontFace = properties.fontFace;}
+  if (properties.fontColor !== undefined)      {this.fontColor = properties.fontColor;}
+  if (properties.fontSize !== undefined)       {this.fontSize = properties.fontSize;}
+  if (properties.fontFace !== undefined)       {this.fontFace = properties.fontFace;}
 
-
-  if (this.image != undefined) {
+  if (this.image !== undefined) {
     if (this.imagelist) {
       this.imageObj = this.imagelist.load(this.image);
     }
@@ -147,9 +189,9 @@ Node.prototype.setProperties = function(properties, constants) {
     }
   }
 
-  this.xFixed = this.xFixed || (properties.x != undefined);
-  this.yFixed = this.yFixed || (properties.y != undefined);
-  this.radiusFixed = this.radiusFixed || (properties.radius != undefined);
+  this.xFixed = this.xFixed || (properties.x !== undefined);
+  this.yFixed = this.yFixed || (properties.y !== undefined);
+  this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
 
   if (this.shape == 'image') {
     this.radiusMin = constants.nodes.widthMin;
@@ -172,7 +214,6 @@ Node.prototype.setProperties = function(properties, constants) {
     case 'star':          this.draw = this._drawStar; this.resize = this._resizeShape; break;
     default:              this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
   }
-
   // reset the size of the node, this can be changed
   this._reset();
 };
@@ -200,6 +241,7 @@ Node.parseColor = function(color) {
     c = {};
     c.background = color.background || 'white';
     c.border = color.border || c.background;
+
     if (util.isString(color.highlight)) {
       c.highlight = {
         border: color.highlight,
@@ -212,6 +254,7 @@ Node.parseColor = function(color) {
       c.highlight.border = color.highlight && color.highlight.border || c.border;
     }
   }
+
   return c;
 };
 
@@ -228,6 +271,14 @@ Node.prototype.select = function() {
  */
 Node.prototype.unselect = function() {
   this.selected = false;
+  this._reset();
+};
+
+
+/**
+ * Reset the calculated size of the node, forces it to recalculate its size
+ */
+Node.prototype.clearSizeCache = function() {
   this._reset();
 };
 
@@ -327,15 +378,15 @@ Node.prototype.discreteStep = function(interval) {
   if (!this.xFixed) {
     var dx   = -this.damping * this.vx;     // damping force
     var ax   = (this.fx + dx) / this.mass;  // acceleration
-    this.vx += ax / interval;               // velocity
-    this.x  += this.vx / interval;          // position
+    this.vx += ax * interval;               // velocity
+    this.x  += this.vx * interval;          // position
   }
 
   if (!this.yFixed) {
     var dy   = -this.damping * this.vy;     // damping force
     var ay   = (this.fy + dy) / this.mass;  // acceleration
-    this.vy += ay / interval;               // velocity
-    this.y  += this.vy / interval;          // position
+    this.vy += ay * interval;               // velocity
+    this.y  += this.vy * interval;          // position
   }
 };
 
@@ -355,9 +406,14 @@ Node.prototype.isFixed = function() {
  */
 // TODO: replace this method with calculating the kinetic energy
 Node.prototype.isMoving = function(vmin) {
-  return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin ||
-      (!this.xFixed && Math.abs(this.fx) > this.minForce) ||
-      (!this.yFixed && Math.abs(this.fy) > this.minForce));
+  if (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin) {
+    return true;
+  }
+  else {
+    this.vx = 0; this.vy = 0;
+    return false;
+  }
+  //return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin);
 };
 
 /**
@@ -405,6 +461,7 @@ Node.prototype.setValueRange = function(min, max) {
       this.radius = (this.value - min) * scale + this.radiusMin;
     }
   }
+  this.baseRadiusValue = this.radius;
 };
 
 /**
@@ -431,20 +488,28 @@ Node.prototype.resize = function(ctx) {
  * @return {boolean}     True if location is located on node
  */
 Node.prototype.isOverlappingWith = function(obj) {
-  return (this.left          < obj.right &&
-      this.left + this.width > obj.left &&
-      this.top               < obj.bottom &&
-      this.top + this.height > obj.top);
+  return (this.left              < obj.right  &&
+          this.left + this.width > obj.left   &&
+          this.top               < obj.bottom &&
+          this.top + this.height > obj.top);
 };
 
 Node.prototype._resizeImage = function (ctx) {
   // TODO: pre calculate the image size
-  if (!this.width) {  // undefined or 0
+
+  if (!this.width || !this.height) {  // undefined or 0
     var width, height;
     if (this.value) {
+      this.radius = this.baseRadiusValue;
       var scale = this.imageObj.height / this.imageObj.width;
-      width = this.radius || this.imageObj.width;
-      height = this.radius * scale || this.imageObj.height;
+      if (scale !== undefined) {
+        width = this.radius || this.imageObj.width;
+        height = this.radius * scale || this.imageObj.height;
+      }
+      else {
+        width = 0;
+        height = 0;
+      }
     }
     else {
       width = this.imageObj.width;
@@ -452,7 +517,14 @@ Node.prototype._resizeImage = function (ctx) {
     }
     this.width  = width;
     this.height = height;
+
+    if (this.width > 0 && this.height > 0) {
+      this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
+      this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
+      this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
+    }
   }
+
 };
 
 Node.prototype._drawImage = function (ctx) {
@@ -462,7 +534,19 @@ Node.prototype._drawImage = function (ctx) {
   this.top    = this.y - this.height / 2;
 
   var yLabel;
-  if (this.imageObj) {
+  if (this.imageObj.width != 0 ) {
+    // draw the shade
+    if (this.clusterSize > 1) {
+      var lineWidth = ((this.clusterSize > 1) ? 10 : 0.0);
+      lineWidth *= this.graphScaleInv;
+      lineWidth = Math.min(0.2 * this.width,lineWidth);
+
+      ctx.globalAlpha = 0.5;
+      ctx.drawImage(this.imageObj, this.left - lineWidth, this.top - lineWidth, this.width + 2*lineWidth, this.height + 2*lineWidth);
+    }
+
+    // draw the image
+    ctx.globalAlpha = 1.0;
     ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
     yLabel = this.y + this.height / 2;
   }
@@ -481,6 +565,10 @@ Node.prototype._resizeBox = function (ctx) {
     var textSize = this.getTextSize(ctx);
     this.width = textSize.width + 2 * margin;
     this.height = textSize.height + 2 * margin;
+
+    this.width  += (this.clusterSize - 1) * 0.5 * this.clusterSizeWidthFactor;
+    this.height += (this.clusterSize - 1) * 0.5 * this.clusterSizeHeightFactor;
+//    this.radius += (this.clusterSize - 1) * 0.5 * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -490,9 +578,26 @@ Node.prototype._drawBox = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
+  var clusterLineWidth = 2.5;
+  var selectionLineWidth = 2;
+
   ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+
+  // draw the outer border
+  if (this.clusterSize > 1) {
+    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+    ctx.roundRect(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth, this.radius);
+    ctx.stroke();
+  }
+  ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  ctx.lineWidth = this.selected ? 2.0 : 1.0;
+
   ctx.roundRect(this.left, this.top, this.width, this.height, this.radius);
   ctx.fill();
   ctx.stroke();
@@ -508,6 +613,11 @@ Node.prototype._resizeDatabase = function (ctx) {
     var size = textSize.width + 2 * margin;
     this.width = size;
     this.height = size;
+
+    // scaling used for clustering
+    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
+    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
+    this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -516,9 +626,25 @@ Node.prototype._drawDatabase = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
+  var clusterLineWidth = 2.5;
+  var selectionLineWidth = 2;
+
   ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+
+  // draw the outer border
+  if (this.clusterSize > 1) {
+    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+    ctx.database(this.x - this.width/2 - 2*ctx.lineWidth, this.y - this.height*0.5 - 2*ctx.lineWidth, this.width + 4*ctx.lineWidth, this.height + 4*ctx.lineWidth);
+    ctx.stroke();
+  }
+  ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  ctx.lineWidth = this.selected ? 2.0 : 1.0;
   ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
   ctx.fill();
   ctx.stroke();
@@ -536,6 +662,11 @@ Node.prototype._resizeCircle = function (ctx) {
 
     this.width = diameter;
     this.height = diameter;
+
+    // scaling used for clustering
+//    this.width  += (this.clusterSize - 1) * 0.5 * this.clusterSizeWidthFactor;
+//    this.height += (this.clusterSize - 1) * 0.5 * this.clusterSizeHeightFactor;
+    this.radius += (this.clusterSize - 1) * 0.5 * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -544,9 +675,25 @@ Node.prototype._drawCircle = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
+  var clusterLineWidth = 2.5;
+  var selectionLineWidth = 2;
+
   ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+
+  // draw the outer border
+  if (this.clusterSize > 1) {
+    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+    ctx.circle(this.x, this.y, this.radius+2*ctx.lineWidth);
+    ctx.stroke();
+  }
+  ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  ctx.lineWidth = this.selected ? 2.0 : 1.0;
   ctx.circle(this.x, this.y, this.radius);
   ctx.fill();
   ctx.stroke();
@@ -563,6 +710,11 @@ Node.prototype._resizeEllipse = function (ctx) {
     if (this.width < this.height) {
       this.width = this.height;
     }
+
+    // scaling used for clustering
+    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
+    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
+    this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -571,13 +723,29 @@ Node.prototype._drawEllipse = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
+  var clusterLineWidth = 2.5;
+  var selectionLineWidth = 2;
+
   ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+
+  // draw the outer border
+  if (this.clusterSize > 1) {
+    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+    ctx.ellipse(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth);
+    ctx.stroke();
+  }
+  ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  ctx.lineWidth = this.selected ? 2.0 : 1.0;
+
   ctx.ellipse(this.left, this.top, this.width, this.height);
   ctx.fill();
   ctx.stroke();
-
   this._label(ctx, this.label, this.x, this.y);
 };
 
@@ -603,9 +771,15 @@ Node.prototype._drawStar = function (ctx) {
 
 Node.prototype._resizeShape = function (ctx) {
   if (!this.width) {
+    this.radius = this.baseRadiusValue;
     var size = 2 * this.radius;
     this.width = size;
     this.height = size;
+
+    // scaling used for clustering
+    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
+    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
+    this.radius += (this.clusterSize - 1) * 0.5 * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -615,9 +789,35 @@ Node.prototype._drawShape = function (ctx, shape) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
+  var clusterLineWidth = 2.5;
+  var selectionLineWidth = 2;
+  var radiusMultiplier = 2;
+
+  // choose draw method depending on the shape
+  switch (shape) {
+    case 'dot':           radiusMultiplier = 2; break;
+    case 'square':        radiusMultiplier = 2; break;
+    case 'triangle':      radiusMultiplier = 3; break;
+    case 'triangleDown':  radiusMultiplier = 3; break;
+    case 'star':          radiusMultiplier = 4; break;
+  }
+
   ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+
+  // draw the outer border
+  if (this.clusterSize > 1) {
+    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+    ctx[shape](this.x, this.y, this.radius + radiusMultiplier * ctx.lineWidth);
+    ctx.stroke();
+  }
+  ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  ctx.lineWidth = this.selected ? 2.0 : 1.0;
 
   ctx[shape](this.x, this.y, this.radius);
   ctx.fill();
@@ -634,6 +834,11 @@ Node.prototype._resizeText = function (ctx) {
     var textSize = this.getTextSize(ctx);
     this.width = textSize.width + 2 * margin;
     this.height = textSize.height + 2 * margin;
+
+    // scaling used for clustering
+    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
+    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
+    this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -667,7 +872,7 @@ Node.prototype._label = function (ctx, text, x, y, align, baseline) {
 
 
 Node.prototype.getTextSize = function(ctx) {
-  if (this.label != undefined) {
+  if (this.label !== undefined) {
     ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
 
     var lines = this.label.split('\n'),
@@ -684,3 +889,89 @@ Node.prototype.getTextSize = function(ctx) {
     return {"width": 0, "height": 0};
   }
 };
+
+/**
+ * this is used to determine if a node is visible at all. this is used to determine when it needs to be drawn.
+ * there is a safety margin of 0.3 * width;
+ *
+ * @returns {boolean}
+ */
+Node.prototype.inArea = function() {
+  if (this.width !== undefined) {
+  return (this.x + this.width*this.graphScaleInv  >= this.canvasTopLeft.x    &&
+          this.x - this.width*this.graphScaleInv  <  this.canvasBottomRight.x &&
+          this.y + this.height*this.graphScaleInv >= this.canvasTopLeft.y    &&
+          this.y - this.height*this.graphScaleInv <  this.canvasBottomRight.y);
+  }
+  else {
+    return true;
+  }
+}
+
+/**
+ * checks if the core of the node is in the display area, this is used for opening clusters around zoom
+ * @returns {boolean}
+ */
+Node.prototype.inView = function() {
+  return (this.x >= this.canvasTopLeft.x    &&
+          this.x < this.canvasBottomRight.x &&
+          this.y >= this.canvasTopLeft.y    &&
+          this.y < this.canvasBottomRight.y);
+}
+
+/**
+ * This allows the zoom level of the graph to influence the rendering
+ * We store the inverted scale and the coordinates of the top left, and bottom right points of the canvas
+ *
+ * @param scale
+ * @param canvasTopLeft
+ * @param canvasBottomRight
+ */
+Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) {
+  this.graphScaleInv = 1.0/scale;
+  this.canvasTopLeft = canvasTopLeft;
+  this.canvasBottomRight = canvasBottomRight;
+};
+
+
+/**
+ * This allows the zoom level of the graph to influence the rendering
+ *
+ * @param scale
+ */
+Node.prototype.setScale = function(scale) {
+  this.graphScaleInv = 1.0/scale;
+};
+
+/**
+ * This function updates the damping parameter for clusters, based ont he
+ *
+ * @param {Number} numberOfNodes
+ */
+Node.prototype.updateDamping = function(numberOfNodes) {
+  this.damping = (0.8 + 0.1*this.clusterSize * (1 + Math.pow(numberOfNodes,-2)));
+  this.damping *= this.dampingFactor;
+};
+
+
+/**
+ * set the velocity at 0. Is called when this node is contained in another during clustering
+ */
+Node.prototype.clearVelocity = function() {
+  this.vx = 0;
+  this.vy = 0;
+};
+
+
+/**
+ * Basic preservation of (kinectic) energy
+ *
+ * @param massBeforeClustering
+ */
+Node.prototype.updateVelocity = function(massBeforeClustering) {
+  var energyBefore = this.vx * this.vx * massBeforeClustering;
+  this.vx = Math.sqrt(energyBefore/this.mass);
+  energyBefore = this.vy * this.vy * massBeforeClustering;
+  this.vy = Math.sqrt(energyBefore/this.mass);
+};
+

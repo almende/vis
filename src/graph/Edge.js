@@ -26,7 +26,7 @@ function Edge (properties, graph, constants) {
   // initialize variables
   this.id     = undefined;
   this.fromId = undefined;
-  this.toId = undefined;
+  this.toId   = undefined;
   this.style  = constants.edges.style;
   this.title  = undefined;
   this.width  = constants.edges.width;
@@ -35,6 +35,12 @@ function Edge (properties, graph, constants) {
 
   this.from = null;   // a node
   this.to = null;     // a node
+
+  // we use this to be able to reconnect the edge to a cluster if its node is put into a cluster
+  // by storing the original information we can revert to the original connection when the cluser is opened.
+  this.originalFromId = [];
+  this.originalToId = [];
+
   this.connected = false;
 
   // Added to support dashed lines
@@ -48,6 +54,7 @@ function Edge (properties, graph, constants) {
   this.lengthFixed = false;
 
   this.setProperties(properties, constants);
+
 }
 
 /**
@@ -60,41 +67,41 @@ Edge.prototype.setProperties = function(properties, constants) {
     return;
   }
 
-  if (properties.from != undefined)           {this.fromId = properties.from;}
-  if (properties.to != undefined)             {this.toId = properties.to;}
+  if (properties.from !== undefined)           {this.fromId = properties.from;}
+  if (properties.to !== undefined)             {this.toId = properties.to;}
 
-  if (properties.id != undefined)             {this.id = properties.id;}
-  if (properties.style != undefined)          {this.style = properties.style;}
-  if (properties.label != undefined)          {this.label = properties.label;}
+  if (properties.id !== undefined)             {this.id = properties.id;}
+  if (properties.style !== undefined)          {this.style = properties.style;}
+  if (properties.label !== undefined)          {this.label = properties.label;}
   if (this.label) {
     this.fontSize = constants.edges.fontSize;
     this.fontFace = constants.edges.fontFace;
     this.fontColor = constants.edges.fontColor;
-    if (properties.fontColor != undefined)  {this.fontColor = properties.fontColor;}
-    if (properties.fontSize != undefined)   {this.fontSize = properties.fontSize;}
-    if (properties.fontFace != undefined)   {this.fontFace = properties.fontFace;}
+    if (properties.fontColor !== undefined)  {this.fontColor = properties.fontColor;}
+    if (properties.fontSize !== undefined)   {this.fontSize = properties.fontSize;}
+    if (properties.fontFace !== undefined)   {this.fontFace = properties.fontFace;}
   }
-  if (properties.title != undefined)          {this.title = properties.title;}
-  if (properties.width != undefined)          {this.width = properties.width;}
-  if (properties.value != undefined)          {this.value = properties.value;}
-  if (properties.length != undefined)         {this.length = properties.length;}
+  if (properties.title !== undefined)          {this.title = properties.title;}
+  if (properties.width !== undefined)          {this.width = properties.width;}
+  if (properties.value !== undefined)          {this.value = properties.value;}
+  if (properties.length !== undefined)         {this.length = properties.length;}
 
   // Added to support dashed lines
   // David Jordan
   // 2012-08-08
   if (properties.dash) {
-    if (properties.dash.length != undefined)    {this.dash.length = properties.dash.length;}
-    if (properties.dash.gap != undefined)       {this.dash.gap = properties.dash.gap;}
-    if (properties.dash.altLength != undefined) {this.dash.altLength = properties.dash.altLength;}
+    if (properties.dash.length !== undefined)    {this.dash.length = properties.dash.length;}
+    if (properties.dash.gap !== undefined)       {this.dash.gap = properties.dash.gap;}
+    if (properties.dash.altLength !== undefined) {this.dash.altLength = properties.dash.altLength;}
   }
 
-  if (properties.color != undefined) {this.color = properties.color;}
+  if (properties.color !== undefined) {this.color = properties.color;}
 
   // A node is connected when it has a from and to node.
   this.connect();
 
-  this.widthFixed = this.widthFixed || (properties.width != undefined);
-  this.lengthFixed = this.lengthFixed || (properties.length != undefined);
+  this.widthFixed = this.widthFixed || (properties.width !== undefined);
+  this.lengthFixed = this.lengthFixed || (properties.length !== undefined);
   this.stiffness = 1 / this.length;
 
   // set draw method based on style
@@ -262,10 +269,10 @@ Edge.prototype._drawLine = function(ctx) {
  */
 Edge.prototype._getLineWidth = function() {
   if (this.from.selected || this.to.selected) {
-    return Math.min(this.width * 2, this.widthMax);
+    return Math.min(this.width * 2, this.widthMax)*this.graphScaleInv;
   }
   else {
-    return this.width;
+    return this.width*this.graphScaleInv;
   }
 };
 
@@ -343,12 +350,12 @@ Edge.prototype._drawDashLine = function(ctx) {
   // draw dashed line
   ctx.beginPath();
   ctx.lineCap = 'round';
-  if (this.dash.altLength != undefined) //If an alt dash value has been set add to the array this value
+  if (this.dash.altLength !== undefined) //If an alt dash value has been set add to the array this value
   {
     ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
         [this.dash.length,this.dash.gap,this.dash.altLength,this.dash.gap]);
   }
-  else if (this.dash.length != undefined && this.dash.gap != undefined) //If a dash and gap value has been set add to the array this value
+  else if (this.dash.length !== undefined && this.dash.gap !== undefined) //If a dash and gap value has been set add to the array this value
   {
     ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
         [this.dash.length,this.dash.gap]);
@@ -599,4 +606,15 @@ Edge._dist = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
   //# (i.e. remove the sqrt) to gain a little performance
 
   return Math.sqrt(dx*dx + dy*dy);
+};
+
+
+
+/**
+ * This allows the zoom level of the graph to influence the rendering
+ *
+ * @param scale
+ */
+Edge.prototype.setScale = function(scale) {
+  this.graphScaleInv = 1.0/scale;
 };

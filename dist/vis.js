@@ -4,11 +4,11 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.3.0
- * @date    2014-01-14
+ * @version @@version
+ * @date    @@date
  *
  * @license
- * Copyright (C) 2011-2013 Almende B.V, http://almende.com
+ * Copyright (C) 2011-2014 Almende B.V, http://almende.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy
@@ -29,6 +29,7 @@
 
 // Try to load dependencies from the global window object.
 // If not available there, load via require.
+
 var moment = (typeof window !== 'undefined') && window['moment'] || require('moment');
 
 var Hammer;
@@ -41,6 +42,19 @@ else {
     throw Error('hammer.js is only available in a browser, not in node.js.');
   }
 }
+
+var mousetrap;
+if (typeof window !== 'undefined') {
+  // load mousetrap.js only when running in a browser (where window is available)
+  mousetrap = window['mousetrap'] || require('mousetrap');
+}
+else {
+  mousetrap = function () {
+    throw Error('mouseTrap is only available in a browser, not in node.js.');
+  }
+}
+
+
 
 
 // Internet Explorer 8 and older does not support Array.indexOf, so we define
@@ -969,6 +983,34 @@ util.option.asElement = function (value, defaultValue) {
   return value || defaultValue || null;
 };
 
+
+/**
+ * Compare two numbers and return the lowest, non-negative number.
+ *
+ * @param {number} number1
+ * @param {number} number2
+ * @returns {number}        | number1 or number2, the lowest positive number. If both negative, return -1
+ * @private
+ */
+util._getLowestPositiveNumber = function(number1,number2) {
+  if (number1 >= 0) {
+    if (number2 >= 0) {
+      return (number1 < number2) ? number1 : number2;
+    }
+    else {
+      return number1;
+    }
+  }
+  else {
+    if (number2 >= 0) {
+      return number2;
+    }
+    else {
+      return -1;
+    }
+  }
+}
+
 /**
  * Event listener (singleton)
  */
@@ -1220,6 +1262,7 @@ function DataSet (options) {
   this.data = {};                                 // map with data indexed by id
   this.fieldId = this.options.fieldId || 'id';    // name of the field containing id
   this.convert = {};                              // field types by field name
+  this.showInternalIds = this.options.showInternalIds || false; // show internal ids with the get function
 
   if (this.options.convert) {
     for (var field in this.options.convert) {
@@ -1453,6 +1496,7 @@ DataSet.prototype.update = function (data, senderId) {
  */
 DataSet.prototype.get = function (args) {
   var me = this;
+  var globalShowInternalIds = this.showInternalIds;
 
   // parse the arguments
   var id, ids, options, data;
@@ -1496,6 +1540,13 @@ DataSet.prototype.get = function (args) {
     type = 'Array';
   }
 
+  // we allow the setting of this value for a single get request.
+  if (options != undefined) {
+    if (options.showInternalIds != undefined) {
+      this.showInternalIds = options.showInternalIds;
+    }
+  }
+
   // build options
   var convert = options && options.convert || this.options.convert;
   var filter = options && options.filter;
@@ -1529,6 +1580,9 @@ DataSet.prototype.get = function (args) {
       }
     }
   }
+
+  // restore the global value of showInternalIds
+  this.showInternalIds = globalShowInternalIds;
 
   // order the results
   if (options && options.order && id == undefined) {
@@ -2009,7 +2063,7 @@ DataSet.prototype._getItem = function (id, convert) {
       if (raw.hasOwnProperty(field)) {
         value = raw[field];
         // output all fields, except internal ids
-        if ((field != fieldId) || !(value in internalIds)) {
+        if ((field != fieldId) || (!(value in internalIds) || this.showInternalIds)) {
           converted[field] = util.convert(value, convert[field]);
         }
       }
@@ -2021,13 +2075,12 @@ DataSet.prototype._getItem = function (id, convert) {
       if (raw.hasOwnProperty(field)) {
         value = raw[field];
         // output all fields, except internal ids
-        if ((field != fieldId) || !(value in internalIds)) {
+        if ((field != fieldId) || (!(value in internalIds) || this.showInternalIds)) {
           converted[field] = value;
         }
       }
     }
   }
-
   return converted;
 };
 
@@ -2060,6 +2113,17 @@ DataSet.prototype._updateItem = function (item) {
 
   return id;
 };
+
+/**
+ * check if an id is an internal or external id
+ * @param id
+ * @returns {boolean}
+ * @private
+ */
+DataSet.prototype.isInternalId = function(id) {
+  return (id in this.internalIds);
+};
+
 
 /**
  * Get an array with the column names of a Google DataTable
@@ -5142,8 +5206,9 @@ function ItemSet(parent, depends, options) {
     }
   };
 
-  this.items = {};    // object with an Item for every data item
-  this.queue = {};       // queue with id/actions: 'add', 'update', 'delete'
+  this.items = {};      // object with an Item for every data item
+  this.selection = [];  // list with the ids of all selected nodes
+  this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
   this.stack = new Stack(this, Object.create(this.options));
   this.conversion = null;
 
@@ -5197,6 +5262,69 @@ ItemSet.prototype.setRange = function setRange(range) {
         'or an object containing start and end.');
   }
   this.range = range;
+};
+
+/**
+ * Change the item selection, and/or get currently selected items
+ * @param {Array} [ids] An array with zero or more ids of the items to be selected.
+ * @return {Array} ids  The ids of the selected items
+ */
+ItemSet.prototype.select = function select(ids) {
+  var i, ii, id, item, selection;
+
+  if (ids) {
+    if (!Array.isArray(ids)) {
+      throw new TypeError('Array expected');
+    }
+
+    // unselect currently selected items
+    for (i = 0, ii = this.selection.length; i < ii; i++) {
+      id = this.selection[i];
+      item = this.items[id];
+      if (item) item.unselect();
+    }
+
+    // select items
+    this.selection = [];
+    for (i = 0, ii = ids.length; i < ii; i++) {
+      id = ids[i];
+      item = this.items[id];
+      if (item) {
+        this.selection.push(id);
+        item.select();
+      }
+    }
+
+    // trigger a select event
+    selection = this.selection.concat([]);
+    events.trigger(this, 'select', {
+      ids: selection
+    });
+
+    if (this.controller) {
+      this.requestRepaint();
+    }
+  }
+  else {
+    selection = this.selection.concat([]);
+  }
+
+  return selection;
+};
+
+/**
+ * Deselect a selected item
+ * @param {String | Number} id
+ * @private
+ */
+ItemSet.prototype._deselect = function _deselect(id) {
+  var selection = this.selection;
+  for (var i = 0, ii = selection.length; i < ii; i++) {
+    if (selection[i] == id) { // non-strict comparison!
+      selection.splice(i, 1);
+      break;
+    }
+  }
 };
 
 /**
@@ -5323,6 +5451,7 @@ ItemSet.prototype.repaint = function repaint() {
             // create item
             if (constructor) {
               item = new constructor(me, itemData, options, defaultOptions);
+              item.id = id;
               changed++;
             }
             else {
@@ -5342,6 +5471,11 @@ ItemSet.prototype.repaint = function repaint() {
 
       case 'remove':
         if (item) {
+          // remove the item from the set selected items
+          if (item.selected) {
+            me._deselect(id);
+          }
+
           // remove DOM of the item
           changed += item.hide();
         }
@@ -5649,6 +5783,7 @@ function Item (parent, data, options, defaultOptions) {
  */
 Item.prototype.select = function select() {
   this.selected = true;
+  if (this.visible) this.repaint();
 };
 
 /**
@@ -5656,6 +5791,7 @@ Item.prototype.select = function select() {
  */
 Item.prototype.unselect = function unselect() {
   this.selected = false;
+  if (this.visible) this.repaint();
 };
 
 /**
@@ -5730,24 +5866,6 @@ function ItemBox (parent, data, options, defaultOptions) {
 }
 
 ItemBox.prototype = new Item (null, null);
-
-/**
- * Select the item
- * @override
- */
-ItemBox.prototype.select = function select() {
-  this.selected = true;
-  // TODO: select and unselect
-};
-
-/**
- * Unselect the item
- * @override
- */
-ItemBox.prototype.unselect = function unselect() {
-  this.selected = false;
-  // TODO: select and unselect
-};
 
 /**
  * Repaint the item
@@ -6047,24 +6165,6 @@ function ItemPoint (parent, data, options, defaultOptions) {
 ItemPoint.prototype = new Item (null, null);
 
 /**
- * Select the item
- * @override
- */
-ItemPoint.prototype.select = function select() {
-  this.selected = true;
-  // TODO: select and unselect
-};
-
-/**
- * Unselect the item
- * @override
- */
-ItemPoint.prototype.unselect = function unselect() {
-  this.selected = false;
-  // TODO: select and unselect
-};
-
-/**
  * Repaint the item
  * @return {Boolean} changed
  */
@@ -6295,24 +6395,6 @@ function ItemRange (parent, data, options, defaultOptions) {
 ItemRange.prototype = new Item (null, null);
 
 /**
- * Select the item
- * @override
- */
-ItemRange.prototype.select = function select() {
-  this.selected = true;
-  // TODO: select and unselect
-};
-
-/**
- * Unselect the item
- * @override
- */
-ItemRange.prototype.unselect = function unselect() {
-  this.selected = false;
-  // TODO: select and unselect
-};
-
-/**
  * Repaint the item
  * @return {Boolean} changed
  */
@@ -6359,7 +6441,8 @@ ItemRange.prototype.repaint = function repaint() {
     }
 
     // update class
-    var className = this.data.className ? (' ' + this.data.className) : '';
+    var className = (this.data.className? ' ' + this.data.className : '') +
+        (this.selected ? ' selected' : '');
     if (this.className != className) {
       this.className = className;
       dom.box.className = 'item range' + className;
@@ -6707,6 +6790,15 @@ Group.prototype.setItems = function setItems(items) {
 };
 
 /**
+ * Change the item selection, and/or get currently selected items
+ * @param {Array} [ids] An array with zero or more ids of the items to be selected.
+ * @return {Array} ids  The ids of the selected items
+ */
+Group.prototype.select = function select(ids) {
+  return this.itemset ? this.itemset.select(ids) : [];
+};
+
+/**
  * Repaint the item
  * @return {Boolean} changed
  */
@@ -6889,6 +6981,26 @@ GroupSet.prototype.setGroups = function setGroups(groups) {
  */
 GroupSet.prototype.getGroups = function getGroups() {
   return this.groupsData;
+};
+
+/**
+ * Change the item selection, and/or get currently selected items
+ * @param {Array} [ids] An array with zero or more ids of the items to be selected.
+ * @return {Array} ids  The ids of the selected items
+ */
+GroupSet.prototype.select = function select(ids) {
+  var selection = [],
+      groups = this.groups;
+
+  // iterate over each of the groups
+  for (var id in groups) {
+    if (groups.hasOwnProperty(id)) {
+      var group = groups[id];
+      selection = selection.concat(group.select(ids));
+    }
+  }
+
+  return selection;
 };
 
 /**
@@ -7587,6 +7699,15 @@ Timeline.prototype.getItemRange = function getItemRange() {
     min: (min != null) ? new Date(min) : null,
     max: (max != null) ? new Date(max) : null
   };
+};
+
+/**
+ * Change the item selection, and/or get currently selected items
+ * @param {Array} [ids] An array with zero or more ids of the items to be selected.
+ * @return {Array} ids  The ids of the selected items
+ */
+Timeline.prototype.select = function select(ids) {
+  return this.content ? this.content.select(ids) : [];
 };
 
 (function(exports) {
@@ -8673,6 +8794,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.selected = false;
 
   this.edges = []; // all edges connected to this node
+  this.dynamicEdges = [];
+  this.reroutedEdges = {};
   this.group = constants.nodes.group;
 
   this.fontSize = constants.nodes.fontSize;
@@ -8689,24 +8812,54 @@ function Node(properties, imagelist, grouplist, constants) {
   this.y = 0;
   this.xFixed = false;
   this.yFixed = false;
+  this.horizontalAlignLeft = true; // these are for the navigationUI
+  this.verticalAlignTop    = true; // these are for the navigationUI
   this.radius = constants.nodes.radius;
+  this.baseRadiusValue = constants.nodes.radius;
   this.radiusFixed = false;
   this.radiusMin = constants.nodes.radiusMin;
   this.radiusMax = constants.nodes.radiusMax;
 
   this.imagelist = imagelist;
+
   this.grouplist = grouplist;
 
   this.setProperties(properties, constants);
 
+  // creating the variables for clustering
+  this.resetCluster();
+  this.dynamicEdgesLength = 0;
+  this.clusterSession = 0;
+
+  this.clusterSizeWidthFactor  = constants.clustering.clusterSizeWidthFactor;
+  this.clusterSizeHeightFactor = constants.clustering.clusterSizeHeightFactor;
+  this.clusterSizeRadiusFactor = constants.clustering.clusterSizeRadiusFactor;
+
   // mass, force, velocity
-  this.mass = 50;  // kg (mass is adjusted for the number of connected edges)
+  this.mass = 1;  // kg (mass is adjusted for the number of connected edges)
   this.fx = 0.0;  // external force x
   this.fy = 0.0;  // external force y
   this.vx = 0.0;  // velocity x
   this.vy = 0.0;  // velocity y
   this.minForce = constants.minForce;
-  this.damping = 0.9; // damping factor
+  this.damping = 0.9;
+  this.dampingFactor = 75;
+
+  this.graphScaleInv = 1;
+  this.canvasTopLeft = {"x": -300, "y": -300};
+  this.canvasBottomRight = {"x":  300, "y":  300};
+}
+
+/**
+ * (re)setting the clustering variables and objects
+ */
+Node.prototype.resetCluster = function() {
+  // clustering variables
+  this.formationScale = undefined; // this is used to determine when to open the cluster
+  this.clusterSize = 1;            // this signifies the total amount of nodes in this cluster
+  this.containedNodes = {};
+  this.containedEdges = {};
+  this.clusterSessions = [];
 };
 
 /**
@@ -8717,6 +8870,10 @@ Node.prototype.attachEdge = function(edge) {
   if (this.edges.indexOf(edge) == -1) {
     this.edges.push(edge);
   }
+  if (this.dynamicEdges.indexOf(edge) == -1) {
+    this.dynamicEdges.push(edge);
+  }
+  this.dynamicEdgesLength = this.dynamicEdges.length;
   this._updateMass();
 };
 
@@ -8728,7 +8885,9 @@ Node.prototype.detachEdge = function(edge) {
   var index = this.edges.indexOf(edge);
   if (index != -1) {
     this.edges.splice(index, 1);
+    this.dynamicEdges.splice(index, 1);
   }
+  this.dynamicEdgesLength = this.dynamicEdges.length;
   this._updateMass();
 };
 
@@ -8738,7 +8897,7 @@ Node.prototype.detachEdge = function(edge) {
  * @private
  */
 Node.prototype._updateMass = function() {
-  this.mass = 50 + 20 * this.edges.length; // kg
+  this.mass = 1 + 0.6 * this.edges.length; // kg
 };
 
 /**
@@ -8750,15 +8909,20 @@ Node.prototype.setProperties = function(properties, constants) {
   if (!properties) {
     return;
   }
-
+  this.originalLabel = undefined;
   // basic properties
-  if (properties.id != undefined)        {this.id = properties.id;}
-  if (properties.label != undefined)     {this.label = properties.label;}
-  if (properties.title != undefined)     {this.title = properties.title;}
-  if (properties.group != undefined)     {this.group = properties.group;}
-  if (properties.x != undefined)         {this.x = properties.x;}
-  if (properties.y != undefined)         {this.y = properties.y;}
-  if (properties.value != undefined)     {this.value = properties.value;}
+  if (properties.id !== undefined)        {this.id = properties.id;}
+  if (properties.label !== undefined)     {this.label = properties.label; this.originalLabel = properties.label;}
+  if (properties.title !== undefined)     {this.title = properties.title;}
+  if (properties.group !== undefined)     {this.group = properties.group;}
+  if (properties.x !== undefined)         {this.x = properties.x;}
+  if (properties.y !== undefined)         {this.y = properties.y;}
+  if (properties.value !== undefined)     {this.value = properties.value;}
+
+  // navigationUI properties
+  if (properties.horizontalAlignLeft !== undefined) {this.horizontalAlignLeft = properties.horizontalAlignLeft;}
+  if (properties.verticalAlignTop    !== undefined) {this.verticalAlignTop    = properties.verticalAlignTop;}
+  if (properties.triggerFunction     !== undefined) {this.triggerFunction     = properties.triggerFunction;}
 
   if (this.id === undefined) {
     throw "Node must have an id";
@@ -8775,17 +8939,16 @@ Node.prototype.setProperties = function(properties, constants) {
   }
 
   // individual shape properties
-  if (properties.shape != undefined)          {this.shape = properties.shape;}
-  if (properties.image != undefined)          {this.image = properties.image;}
-  if (properties.radius != undefined)         {this.radius = properties.radius;}
-  if (properties.color != undefined)          {this.color = Node.parseColor(properties.color);}
+  if (properties.shape !== undefined)          {this.shape = properties.shape;}
+  if (properties.image !== undefined)          {this.image = properties.image;}
+  if (properties.radius !== undefined)         {this.radius = properties.radius;}
+  if (properties.color !== undefined)          {this.color = Node.parseColor(properties.color);}
 
-  if (properties.fontColor != undefined)      {this.fontColor = properties.fontColor;}
-  if (properties.fontSize != undefined)       {this.fontSize = properties.fontSize;}
-  if (properties.fontFace != undefined)       {this.fontFace = properties.fontFace;}
+  if (properties.fontColor !== undefined)      {this.fontColor = properties.fontColor;}
+  if (properties.fontSize !== undefined)       {this.fontSize = properties.fontSize;}
+  if (properties.fontFace !== undefined)       {this.fontFace = properties.fontFace;}
 
-
-  if (this.image != undefined) {
+  if (this.image !== undefined) {
     if (this.imagelist) {
       this.imageObj = this.imagelist.load(this.image);
     }
@@ -8794,9 +8957,9 @@ Node.prototype.setProperties = function(properties, constants) {
     }
   }
 
-  this.xFixed = this.xFixed || (properties.x != undefined);
-  this.yFixed = this.yFixed || (properties.y != undefined);
-  this.radiusFixed = this.radiusFixed || (properties.radius != undefined);
+  this.xFixed = this.xFixed || (properties.x !== undefined);
+  this.yFixed = this.yFixed || (properties.y !== undefined);
+  this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
 
   if (this.shape == 'image') {
     this.radiusMin = constants.nodes.widthMin;
@@ -8819,7 +8982,6 @@ Node.prototype.setProperties = function(properties, constants) {
     case 'star':          this.draw = this._drawStar; this.resize = this._resizeShape; break;
     default:              this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
   }
-
   // reset the size of the node, this can be changed
   this._reset();
 };
@@ -8847,6 +9009,7 @@ Node.parseColor = function(color) {
     c = {};
     c.background = color.background || 'white';
     c.border = color.border || c.background;
+
     if (util.isString(color.highlight)) {
       c.highlight = {
         border: color.highlight,
@@ -8859,6 +9022,7 @@ Node.parseColor = function(color) {
       c.highlight.border = color.highlight && color.highlight.border || c.border;
     }
   }
+
   return c;
 };
 
@@ -8875,6 +9039,14 @@ Node.prototype.select = function() {
  */
 Node.prototype.unselect = function() {
   this.selected = false;
+  this._reset();
+};
+
+
+/**
+ * Reset the calculated size of the node, forces it to recalculate its size
+ */
+Node.prototype.clearSizeCache = function() {
   this._reset();
 };
 
@@ -8974,15 +9146,15 @@ Node.prototype.discreteStep = function(interval) {
   if (!this.xFixed) {
     var dx   = -this.damping * this.vx;     // damping force
     var ax   = (this.fx + dx) / this.mass;  // acceleration
-    this.vx += ax / interval;               // velocity
-    this.x  += this.vx / interval;          // position
+    this.vx += ax * interval;               // velocity
+    this.x  += this.vx * interval;          // position
   }
 
   if (!this.yFixed) {
     var dy   = -this.damping * this.vy;     // damping force
     var ay   = (this.fy + dy) / this.mass;  // acceleration
-    this.vy += ay / interval;               // velocity
-    this.y  += this.vy / interval;          // position
+    this.vy += ay * interval;               // velocity
+    this.y  += this.vy * interval;          // position
   }
 };
 
@@ -9002,9 +9174,14 @@ Node.prototype.isFixed = function() {
  */
 // TODO: replace this method with calculating the kinetic energy
 Node.prototype.isMoving = function(vmin) {
-  return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin ||
-      (!this.xFixed && Math.abs(this.fx) > this.minForce) ||
-      (!this.yFixed && Math.abs(this.fy) > this.minForce));
+  if (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin) {
+    return true;
+  }
+  else {
+    this.vx = 0; this.vy = 0;
+    return false;
+  }
+  //return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin);
 };
 
 /**
@@ -9052,6 +9229,7 @@ Node.prototype.setValueRange = function(min, max) {
       this.radius = (this.value - min) * scale + this.radiusMin;
     }
   }
+  this.baseRadiusValue = this.radius;
 };
 
 /**
@@ -9078,20 +9256,28 @@ Node.prototype.resize = function(ctx) {
  * @return {boolean}     True if location is located on node
  */
 Node.prototype.isOverlappingWith = function(obj) {
-  return (this.left          < obj.right &&
-      this.left + this.width > obj.left &&
-      this.top               < obj.bottom &&
-      this.top + this.height > obj.top);
+  return (this.left              < obj.right  &&
+          this.left + this.width > obj.left   &&
+          this.top               < obj.bottom &&
+          this.top + this.height > obj.top);
 };
 
 Node.prototype._resizeImage = function (ctx) {
   // TODO: pre calculate the image size
-  if (!this.width) {  // undefined or 0
+
+  if (!this.width || !this.height) {  // undefined or 0
     var width, height;
     if (this.value) {
+      this.radius = this.baseRadiusValue;
       var scale = this.imageObj.height / this.imageObj.width;
-      width = this.radius || this.imageObj.width;
-      height = this.radius * scale || this.imageObj.height;
+      if (scale !== undefined) {
+        width = this.radius || this.imageObj.width;
+        height = this.radius * scale || this.imageObj.height;
+      }
+      else {
+        width = 0;
+        height = 0;
+      }
     }
     else {
       width = this.imageObj.width;
@@ -9099,7 +9285,14 @@ Node.prototype._resizeImage = function (ctx) {
     }
     this.width  = width;
     this.height = height;
+
+    if (this.width > 0 && this.height > 0) {
+      this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
+      this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
+      this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
+    }
   }
+
 };
 
 Node.prototype._drawImage = function (ctx) {
@@ -9109,7 +9302,19 @@ Node.prototype._drawImage = function (ctx) {
   this.top    = this.y - this.height / 2;
 
   var yLabel;
-  if (this.imageObj) {
+  if (this.imageObj.width != 0 ) {
+    // draw the shade
+    if (this.clusterSize > 1) {
+      var lineWidth = ((this.clusterSize > 1) ? 10 : 0.0);
+      lineWidth *= this.graphScaleInv;
+      lineWidth = Math.min(0.2 * this.width,lineWidth);
+
+      ctx.globalAlpha = 0.5;
+      ctx.drawImage(this.imageObj, this.left - lineWidth, this.top - lineWidth, this.width + 2*lineWidth, this.height + 2*lineWidth);
+    }
+
+    // draw the image
+    ctx.globalAlpha = 1.0;
     ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
     yLabel = this.y + this.height / 2;
   }
@@ -9128,6 +9333,10 @@ Node.prototype._resizeBox = function (ctx) {
     var textSize = this.getTextSize(ctx);
     this.width = textSize.width + 2 * margin;
     this.height = textSize.height + 2 * margin;
+
+    this.width  += (this.clusterSize - 1) * 0.5 * this.clusterSizeWidthFactor;
+    this.height += (this.clusterSize - 1) * 0.5 * this.clusterSizeHeightFactor;
+//    this.radius += (this.clusterSize - 1) * 0.5 * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -9137,9 +9346,26 @@ Node.prototype._drawBox = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
+  var clusterLineWidth = 2.5;
+  var selectionLineWidth = 2;
+
   ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+
+  // draw the outer border
+  if (this.clusterSize > 1) {
+    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+    ctx.roundRect(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth, this.radius);
+    ctx.stroke();
+  }
+  ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  ctx.lineWidth = this.selected ? 2.0 : 1.0;
+
   ctx.roundRect(this.left, this.top, this.width, this.height, this.radius);
   ctx.fill();
   ctx.stroke();
@@ -9155,6 +9381,11 @@ Node.prototype._resizeDatabase = function (ctx) {
     var size = textSize.width + 2 * margin;
     this.width = size;
     this.height = size;
+
+    // scaling used for clustering
+    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
+    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
+    this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -9163,9 +9394,25 @@ Node.prototype._drawDatabase = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
+  var clusterLineWidth = 2.5;
+  var selectionLineWidth = 2;
+
   ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+
+  // draw the outer border
+  if (this.clusterSize > 1) {
+    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+    ctx.database(this.x - this.width/2 - 2*ctx.lineWidth, this.y - this.height*0.5 - 2*ctx.lineWidth, this.width + 4*ctx.lineWidth, this.height + 4*ctx.lineWidth);
+    ctx.stroke();
+  }
+  ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  ctx.lineWidth = this.selected ? 2.0 : 1.0;
   ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
   ctx.fill();
   ctx.stroke();
@@ -9183,6 +9430,11 @@ Node.prototype._resizeCircle = function (ctx) {
 
     this.width = diameter;
     this.height = diameter;
+
+    // scaling used for clustering
+//    this.width  += (this.clusterSize - 1) * 0.5 * this.clusterSizeWidthFactor;
+//    this.height += (this.clusterSize - 1) * 0.5 * this.clusterSizeHeightFactor;
+    this.radius += (this.clusterSize - 1) * 0.5 * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -9191,9 +9443,25 @@ Node.prototype._drawCircle = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
+  var clusterLineWidth = 2.5;
+  var selectionLineWidth = 2;
+
   ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+
+  // draw the outer border
+  if (this.clusterSize > 1) {
+    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+    ctx.circle(this.x, this.y, this.radius+2*ctx.lineWidth);
+    ctx.stroke();
+  }
+  ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  ctx.lineWidth = this.selected ? 2.0 : 1.0;
   ctx.circle(this.x, this.y, this.radius);
   ctx.fill();
   ctx.stroke();
@@ -9210,6 +9478,11 @@ Node.prototype._resizeEllipse = function (ctx) {
     if (this.width < this.height) {
       this.width = this.height;
     }
+
+    // scaling used for clustering
+    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
+    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
+    this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -9218,13 +9491,29 @@ Node.prototype._drawEllipse = function (ctx) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
+  var clusterLineWidth = 2.5;
+  var selectionLineWidth = 2;
+
   ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+
+  // draw the outer border
+  if (this.clusterSize > 1) {
+    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+    ctx.ellipse(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth);
+    ctx.stroke();
+  }
+  ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  ctx.lineWidth = this.selected ? 2.0 : 1.0;
+
   ctx.ellipse(this.left, this.top, this.width, this.height);
   ctx.fill();
   ctx.stroke();
-
   this._label(ctx, this.label, this.x, this.y);
 };
 
@@ -9250,9 +9539,15 @@ Node.prototype._drawStar = function (ctx) {
 
 Node.prototype._resizeShape = function (ctx) {
   if (!this.width) {
+    this.radius = this.baseRadiusValue;
     var size = 2 * this.radius;
     this.width = size;
     this.height = size;
+
+    // scaling used for clustering
+    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
+    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
+    this.radius += (this.clusterSize - 1) * 0.5 * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -9262,9 +9557,35 @@ Node.prototype._drawShape = function (ctx, shape) {
   this.left = this.x - this.width / 2;
   this.top = this.y - this.height / 2;
 
+  var clusterLineWidth = 2.5;
+  var selectionLineWidth = 2;
+  var radiusMultiplier = 2;
+
+  // choose draw method depending on the shape
+  switch (shape) {
+    case 'dot':           radiusMultiplier = 2; break;
+    case 'square':        radiusMultiplier = 2; break;
+    case 'triangle':      radiusMultiplier = 3; break;
+    case 'triangleDown':  radiusMultiplier = 3; break;
+    case 'star':          radiusMultiplier = 4; break;
+  }
+
   ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+
+  // draw the outer border
+  if (this.clusterSize > 1) {
+    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
+    ctx[shape](this.x, this.y, this.radius + radiusMultiplier * ctx.lineWidth);
+    ctx.stroke();
+  }
+  ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
+
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-  ctx.lineWidth = this.selected ? 2.0 : 1.0;
 
   ctx[shape](this.x, this.y, this.radius);
   ctx.fill();
@@ -9281,6 +9602,11 @@ Node.prototype._resizeText = function (ctx) {
     var textSize = this.getTextSize(ctx);
     this.width = textSize.width + 2 * margin;
     this.height = textSize.height + 2 * margin;
+
+    // scaling used for clustering
+    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
+    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
+    this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
   }
 };
 
@@ -9314,7 +9640,7 @@ Node.prototype._label = function (ctx, text, x, y, align, baseline) {
 
 
 Node.prototype.getTextSize = function(ctx) {
-  if (this.label != undefined) {
+  if (this.label !== undefined) {
     ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
 
     var lines = this.label.split('\n'),
@@ -9331,6 +9657,92 @@ Node.prototype.getTextSize = function(ctx) {
     return {"width": 0, "height": 0};
   }
 };
+
+/**
+ * this is used to determine if a node is visible at all. this is used to determine when it needs to be drawn.
+ * there is a safety margin of 0.3 * width;
+ *
+ * @returns {boolean}
+ */
+Node.prototype.inArea = function() {
+  if (this.width !== undefined) {
+  return (this.x + this.width*this.graphScaleInv  >= this.canvasTopLeft.x    &&
+          this.x - this.width*this.graphScaleInv  <  this.canvasBottomRight.x &&
+          this.y + this.height*this.graphScaleInv >= this.canvasTopLeft.y    &&
+          this.y - this.height*this.graphScaleInv <  this.canvasBottomRight.y);
+  }
+  else {
+    return true;
+  }
+}
+
+/**
+ * checks if the core of the node is in the display area, this is used for opening clusters around zoom
+ * @returns {boolean}
+ */
+Node.prototype.inView = function() {
+  return (this.x >= this.canvasTopLeft.x    &&
+          this.x < this.canvasBottomRight.x &&
+          this.y >= this.canvasTopLeft.y    &&
+          this.y < this.canvasBottomRight.y);
+}
+
+/**
+ * This allows the zoom level of the graph to influence the rendering
+ * We store the inverted scale and the coordinates of the top left, and bottom right points of the canvas
+ *
+ * @param scale
+ * @param canvasTopLeft
+ * @param canvasBottomRight
+ */
+Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) {
+  this.graphScaleInv = 1.0/scale;
+  this.canvasTopLeft = canvasTopLeft;
+  this.canvasBottomRight = canvasBottomRight;
+};
+
+
+/**
+ * This allows the zoom level of the graph to influence the rendering
+ *
+ * @param scale
+ */
+Node.prototype.setScale = function(scale) {
+  this.graphScaleInv = 1.0/scale;
+};
+
+/**
+ * This function updates the damping parameter for clusters, based ont he
+ *
+ * @param {Number} numberOfNodes
+ */
+Node.prototype.updateDamping = function(numberOfNodes) {
+  this.damping = (0.8 + 0.1*this.clusterSize * (1 + Math.pow(numberOfNodes,-2)));
+  this.damping *= this.dampingFactor;
+};
+
+
+/**
+ * set the velocity at 0. Is called when this node is contained in another during clustering
+ */
+Node.prototype.clearVelocity = function() {
+  this.vx = 0;
+  this.vy = 0;
+};
+
+
+/**
+ * Basic preservation of (kinectic) energy
+ *
+ * @param massBeforeClustering
+ */
+Node.prototype.updateVelocity = function(massBeforeClustering) {
+  var energyBefore = this.vx * this.vx * massBeforeClustering;
+  this.vx = Math.sqrt(energyBefore/this.mass);
+  energyBefore = this.vy * this.vy * massBeforeClustering;
+  this.vy = Math.sqrt(energyBefore/this.mass);
+};
+
 
 /**
  * @class Edge
@@ -9360,7 +9772,7 @@ function Edge (properties, graph, constants) {
   // initialize variables
   this.id     = undefined;
   this.fromId = undefined;
-  this.toId = undefined;
+  this.toId   = undefined;
   this.style  = constants.edges.style;
   this.title  = undefined;
   this.width  = constants.edges.width;
@@ -9369,6 +9781,12 @@ function Edge (properties, graph, constants) {
 
   this.from = null;   // a node
   this.to = null;     // a node
+
+  // we use this to be able to reconnect the edge to a cluster if its node is put into a cluster
+  // by storing the original information we can revert to the original connection when the cluser is opened.
+  this.originalFromId = [];
+  this.originalToId = [];
+
   this.connected = false;
 
   // Added to support dashed lines
@@ -9382,6 +9800,7 @@ function Edge (properties, graph, constants) {
   this.lengthFixed = false;
 
   this.setProperties(properties, constants);
+
 }
 
 /**
@@ -9394,41 +9813,41 @@ Edge.prototype.setProperties = function(properties, constants) {
     return;
   }
 
-  if (properties.from != undefined)           {this.fromId = properties.from;}
-  if (properties.to != undefined)             {this.toId = properties.to;}
+  if (properties.from !== undefined)           {this.fromId = properties.from;}
+  if (properties.to !== undefined)             {this.toId = properties.to;}
 
-  if (properties.id != undefined)             {this.id = properties.id;}
-  if (properties.style != undefined)          {this.style = properties.style;}
-  if (properties.label != undefined)          {this.label = properties.label;}
+  if (properties.id !== undefined)             {this.id = properties.id;}
+  if (properties.style !== undefined)          {this.style = properties.style;}
+  if (properties.label !== undefined)          {this.label = properties.label;}
   if (this.label) {
     this.fontSize = constants.edges.fontSize;
     this.fontFace = constants.edges.fontFace;
     this.fontColor = constants.edges.fontColor;
-    if (properties.fontColor != undefined)  {this.fontColor = properties.fontColor;}
-    if (properties.fontSize != undefined)   {this.fontSize = properties.fontSize;}
-    if (properties.fontFace != undefined)   {this.fontFace = properties.fontFace;}
+    if (properties.fontColor !== undefined)  {this.fontColor = properties.fontColor;}
+    if (properties.fontSize !== undefined)   {this.fontSize = properties.fontSize;}
+    if (properties.fontFace !== undefined)   {this.fontFace = properties.fontFace;}
   }
-  if (properties.title != undefined)          {this.title = properties.title;}
-  if (properties.width != undefined)          {this.width = properties.width;}
-  if (properties.value != undefined)          {this.value = properties.value;}
-  if (properties.length != undefined)         {this.length = properties.length;}
+  if (properties.title !== undefined)          {this.title = properties.title;}
+  if (properties.width !== undefined)          {this.width = properties.width;}
+  if (properties.value !== undefined)          {this.value = properties.value;}
+  if (properties.length !== undefined)         {this.length = properties.length;}
 
   // Added to support dashed lines
   // David Jordan
   // 2012-08-08
   if (properties.dash) {
-    if (properties.dash.length != undefined)    {this.dash.length = properties.dash.length;}
-    if (properties.dash.gap != undefined)       {this.dash.gap = properties.dash.gap;}
-    if (properties.dash.altLength != undefined) {this.dash.altLength = properties.dash.altLength;}
+    if (properties.dash.length !== undefined)    {this.dash.length = properties.dash.length;}
+    if (properties.dash.gap !== undefined)       {this.dash.gap = properties.dash.gap;}
+    if (properties.dash.altLength !== undefined) {this.dash.altLength = properties.dash.altLength;}
   }
 
-  if (properties.color != undefined) {this.color = properties.color;}
+  if (properties.color !== undefined) {this.color = properties.color;}
 
   // A node is connected when it has a from and to node.
   this.connect();
 
-  this.widthFixed = this.widthFixed || (properties.width != undefined);
-  this.lengthFixed = this.lengthFixed || (properties.length != undefined);
+  this.widthFixed = this.widthFixed || (properties.width !== undefined);
+  this.lengthFixed = this.lengthFixed || (properties.length !== undefined);
   this.stiffness = 1 / this.length;
 
   // set draw method based on style
@@ -9596,10 +10015,10 @@ Edge.prototype._drawLine = function(ctx) {
  */
 Edge.prototype._getLineWidth = function() {
   if (this.from.selected || this.to.selected) {
-    return Math.min(this.width * 2, this.widthMax);
+    return Math.min(this.width * 2, this.widthMax)*this.graphScaleInv;
   }
   else {
-    return this.width;
+    return this.width*this.graphScaleInv;
   }
 };
 
@@ -9677,12 +10096,12 @@ Edge.prototype._drawDashLine = function(ctx) {
   // draw dashed line
   ctx.beginPath();
   ctx.lineCap = 'round';
-  if (this.dash.altLength != undefined) //If an alt dash value has been set add to the array this value
+  if (this.dash.altLength !== undefined) //If an alt dash value has been set add to the array this value
   {
     ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
         [this.dash.length,this.dash.gap,this.dash.altLength,this.dash.gap]);
   }
-  else if (this.dash.length != undefined && this.dash.gap != undefined) //If a dash and gap value has been set add to the array this value
+  else if (this.dash.length !== undefined && this.dash.gap !== undefined) //If a dash and gap value has been set add to the array this value
   {
     ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
         [this.dash.length,this.dash.gap]);
@@ -9935,6 +10354,16 @@ Edge._dist = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
   return Math.sqrt(dx*dx + dy*dy);
 };
 
+
+
+/**
+ * This allows the zoom level of the graph to influence the rendering
+ *
+ * @param scale
+ */
+Edge.prototype.setScale = function(scale) {
+  this.graphScaleInv = 1.0/scale;
+};
 /**
  * Popup is a class to create a popup window with some text
  * @param {Element}  container     The container object.
@@ -9975,7 +10404,7 @@ function Popup(container, x, y, text) {
   style.boxShadow = "3px 3px 10px rgba(128, 128, 128, 0.5)";
   style.whiteSpace = "nowrap";
   this.container.appendChild(this.frame);
-};
+}
 
 /**
  * @param {number} x   Horizontal position of the popup window
@@ -10165,6 +10594,2320 @@ Images.prototype.load = function(url) {
 };
 
 /**
+ * Creation of the SectorMixin var.
+ *
+ * This contains all the functions the Graph object can use to employ the sector system.
+ * The sector system is always used by Graph, though the benefits only apply to the use of clustering.
+ * If clustering is not used, there is no overhead except for a duplicate object with references to nodes and edges.
+ *
+ * Alex de Mulder
+ * 21-01-2013
+ */
+var SectorMixin = {
+
+  /**
+   * This function is only called by the setData function of the Graph object.
+   * This loads the global references into the active sector. This initializes the sector.
+   *
+   * @private
+   */
+  _putDataInSector : function() {
+    this.sectors["active"][this._sector()].nodes = this.nodes;
+    this.sectors["active"][this._sector()].edges = this.edges;
+    this.sectors["active"][this._sector()].nodeIndices = this.nodeIndices;
+  },
+
+
+  /**
+   *  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied (active) sector. If a type is defined, do the specific type
+   *
+   * @param {String} sectorId
+   * @param {String} [sectorType] | "active" or "frozen"
+   * @private
+   */
+  _switchToSector : function(sectorId, sectorType) {
+    if (sectorType === undefined || sectorType == "active") {
+      this._switchToActiveSector(sectorId);
+    }
+    else {
+      this._switchToFrozenSector(sectorId);
+    }
+  },
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied active sector.
+   *
+   * @param sectorId
+   * @private
+   */
+  _switchToActiveSector : function(sectorId) {
+    this.nodeIndices = this.sectors["active"][sectorId]["nodeIndices"];
+    this.nodes       = this.sectors["active"][sectorId]["nodes"];
+    this.edges       = this.sectors["active"][sectorId]["edges"];
+  },
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied frozen sector.
+   *
+   * @param sectorId
+   * @private
+   */
+  _switchToFrozenSector : function(sectorId) {
+    this.nodeIndices = this.sectors["frozen"][sectorId]["nodeIndices"];
+    this.nodes       = this.sectors["frozen"][sectorId]["nodes"];
+    this.edges       = this.sectors["frozen"][sectorId]["edges"];
+  },
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices to
+   * those of the navigationUI sector.
+   *
+   * @private
+   */
+  _switchToUISector : function() {
+    this.nodeIndices = this.sectors["navigationUI"]["nodeIndices"];
+    this.nodes       = this.sectors["navigationUI"]["nodes"];
+    this.edges       = this.sectors["navigationUI"]["edges"];
+  },
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the currently active sector.
+   *
+   * @private
+   */
+  _loadLatestSector : function() {
+    this._switchToSector(this._sector());
+  },
+
+
+  /**
+   * This function returns the currently active sector Id
+   *
+   * @returns {String}
+   * @private
+   */
+  _sector : function() {
+    return this.activeSector[this.activeSector.length-1];
+  },
+
+
+  /**
+   * This function returns the previously active sector Id
+   *
+   * @returns {String}
+   * @private
+   */
+  _previousSector : function() {
+    if (this.activeSector.length > 1) {
+      return this.activeSector[this.activeSector.length-2];
+    }
+    else {
+      throw new TypeError('there are not enough sectors in the this.activeSector array.');
+    }
+  },
+
+
+  /**
+   * We add the active sector at the end of the this.activeSector array
+   * This ensures it is the currently active sector returned by _sector() and it reaches the top
+   * of the activeSector stack. When we reverse our steps we move from the end to the beginning of this stack.
+   *
+   * @param newId
+   * @private
+   */
+  _setActiveSector : function(newId) {
+    this.activeSector.push(newId);
+  },
+
+
+  /**
+   * We remove the currently active sector id from the active sector stack. This happens when
+   * we reactivate the previously active sector
+   *
+   * @private
+   */
+  _forgetLastSector : function() {
+    this.activeSector.pop();
+  },
+
+
+  /**
+   * This function creates a new active sector with the supplied newId. This newId
+   * is the expanding node id.
+   *
+   * @param {String} newId   | Id of the new active sector
+   * @private
+   */
+  _createNewSector : function(newId) {
+    // create the new sector
+    this.sectors["active"][newId] = {"nodes":{},
+                                     "edges":{},
+                                     "nodeIndices":[],
+                                     "formationScale": this.scale,
+                                     "drawingNode": undefined};
+
+    // create the new sector render node. This gives visual feedback that you are in a new sector.
+    this.sectors["active"][newId]['drawingNode'] = new Node(
+        {id:newId,
+          color: {
+            background: "#eaefef",
+            border: "495c5e"
+          }
+        },{},{},this.constants);
+    this.sectors["active"][newId]['drawingNode'].clusterSize = 2;
+  },
+
+
+  /**
+   * This function removes the currently active sector. This is called when we create a new
+   * active sector.
+   *
+   * @param {String} sectorId   | Id of the active sector that will be removed
+   * @private
+   */
+  _deleteActiveSector : function(sectorId) {
+    delete this.sectors["active"][sectorId];
+  },
+
+
+  /**
+   * This function removes the currently active sector. This is called when we reactivate
+   * the previously active sector.
+   *
+   * @param {String} sectorId   | Id of the active sector that will be removed
+   * @private
+   */
+  _deleteFrozenSector : function(sectorId) {
+    delete this.sectors["frozen"][sectorId];
+  },
+
+
+  /**
+   * Freezing an active sector means moving it from the "active" object to the "frozen" object.
+   * We copy the references, then delete the active entree.
+   *
+   * @param sectorId
+   * @private
+   */
+  _freezeSector : function(sectorId) {
+    // we move the set references from the active to the frozen stack.
+    this.sectors["frozen"][sectorId] = this.sectors["active"][sectorId];
+
+    // we have moved the sector data into the frozen set, we now remove it from the active set
+    this._deleteActiveSector(sectorId);
+  },
+
+
+  /**
+   * This is the reverse operation of _freezeSector. Activating means moving the sector from the "frozen"
+   * object to the "active" object.
+   *
+   * @param sectorId
+   * @private
+   */
+  _activateSector : function(sectorId) {
+    // we move the set references from the frozen to the active stack.
+    this.sectors["active"][sectorId] = this.sectors["frozen"][sectorId];
+
+    // we have moved the sector data into the active set, we now remove it from the frozen stack
+    this._deleteFrozenSector(sectorId);
+  },
+
+
+  /**
+   * This function merges the data from the currently active sector with a frozen sector. This is used
+   * in the process of reverting back to the previously active sector.
+   * The data that is placed in the frozen (the previously active) sector is the node that has been removed from it
+   * upon the creation of a new active sector.
+   *
+   * @param sectorId
+   * @private
+   */
+  _mergeThisWithFrozen : function(sectorId) {
+    // copy all nodes
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        this.sectors["frozen"][sectorId]["nodes"][nodeId] = this.nodes[nodeId];
+      }
+    }
+
+    // copy all edges (if not fully clustered, else there are no edges)
+    for (var edgeId in this.edges) {
+      if (this.edges.hasOwnProperty(edgeId)) {
+        this.sectors["frozen"][sectorId]["edges"][edgeId] = this.edges[edgeId];
+      }
+    }
+
+    // merge the nodeIndices
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+      this.sectors["frozen"][sectorId]["nodeIndices"].push(this.nodeIndices[i]);
+    }
+  },
+
+
+  /**
+   * This clusters the sector to one cluster. It was a single cluster before this process started so
+   * we revert to that state. The clusterToFit function with a maximum size of 1 node does this.
+   *
+   * @private
+   */
+  _collapseThisToSingleCluster : function() {
+    this.clusterToFit(1,false);
+  },
+
+
+  /**
+   * We create a new active sector from the node that we want to open.
+   *
+   * @param node
+   * @private
+   */
+  _addSector : function(node) {
+    // this is the currently active sector
+    var sector = this._sector();
+
+//    // this should allow me to select nodes from a frozen set.
+//    if (this.sectors['active'][sector]["nodes"].hasOwnProperty(node.id)) {
+//      console.log("the node is part of the active sector");
+//    }
+//    else {
+//      console.log("I dont know what the fuck happened!!");
+//    }
+
+    // when we switch to a new sector, we remove the node that will be expanded from the current nodes list.
+    delete this.nodes[node.id];
+
+    var unqiueIdentifier = util.randomUUID();
+
+    // we fully freeze the currently active sector
+    this._freezeSector(sector);
+
+    // we create a new active sector. This sector has the Id of the node to ensure uniqueness
+    this._createNewSector(unqiueIdentifier);
+
+    // we add the active sector to the sectors array to be able to revert these steps later on
+    this._setActiveSector(unqiueIdentifier);
+
+    // we redirect the global references to the new sector's references. this._sector() now returns unqiueIdentifier
+    this._switchToSector(this._sector());
+
+    // finally we add the node we removed from our previous active sector to the new active sector
+    this.nodes[node.id] = node;
+  },
+
+
+  /**
+   * We close the sector that is currently open and revert back to the one before.
+   * If the active sector is the "default" sector, nothing happens.
+   *
+   * @private
+   */
+  _collapseSector : function() {
+    // the currently active sector
+    var sector = this._sector();
+
+    // we cannot collapse the default sector
+    if (sector != "default") {
+      if ((this.nodeIndices.length == 1) ||
+       (this.sectors["active"][sector]["drawingNode"].width*this.scale < this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientWidth) ||
+       (this.sectors["active"][sector]["drawingNode"].height*this.scale < this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientHeight)) {
+        var previousSector = this._previousSector();
+
+        // we collapse the sector back to a single cluster
+        this._collapseThisToSingleCluster();
+
+        // we move the remaining nodes, edges and nodeIndices to the previous sector.
+        // This previous sector is the one we will reactivate
+        this._mergeThisWithFrozen(previousSector);
+
+        // the previously active (frozen) sector now has all the data from the currently active sector.
+        // we can now delete the active sector.
+        this._deleteActiveSector(sector);
+
+        // we activate the previously active (and currently frozen) sector.
+        this._activateSector(previousSector);
+
+        // we load the references from the newly active sector into the global references
+        this._switchToSector(previousSector);
+
+        // we forget the previously active sector because we reverted to the one before
+        this._forgetLastSector();
+
+        // finally, we update the node index list.
+        this._updateNodeIndexList();
+      }
+    }
+  },
+
+
+  /**
+   * This runs a function in all active sectors. This is used in _redraw() and the _initializeForceCalculation().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we dont pass the function itself because then the "this" is the window object
+   *                              |   instead of the Graph object
+   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  _doInAllActiveSectors : function(runFunction,argument) {
+    if (argument === undefined) {
+      for (var sector in this.sectors["active"]) {
+        if (this.sectors["active"].hasOwnProperty(sector)) {
+          // switch the global references to those of this sector
+          this._switchToActiveSector(sector);
+          this[runFunction]();
+        }
+      }
+    }
+    else {
+      for (var sector in this.sectors["active"]) {
+        if (this.sectors["active"].hasOwnProperty(sector)) {
+          // switch the global references to those of this sector
+          this._switchToActiveSector(sector);
+          var args = Array.prototype.splice.call(arguments, 1);
+          if (args.length > 1) {
+            this[runFunction](args[0],args[1]);
+          }
+          else {
+            this[runFunction](argument);
+          }
+        }
+      }
+    }
+    // we revert the global references back to our active sector
+    this._loadLatestSector();
+  },
+
+
+  /**
+   * This runs a function in all frozen sectors. This is used in the _redraw().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we don't pass the function itself because then the "this" is the window object
+   *                              |   instead of the Graph object
+   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  _doInAllFrozenSectors : function(runFunction,argument) {
+    if (argument === undefined) {
+      for (var sector in this.sectors["frozen"]) {
+        if (this.sectors["frozen"].hasOwnProperty(sector)) {
+          // switch the global references to those of this sector
+          this._switchToFrozenSector(sector);
+          this[runFunction]();
+        }
+      }
+    }
+    else {
+      for (var sector in this.sectors["frozen"]) {
+        if (this.sectors["frozen"].hasOwnProperty(sector)) {
+          // switch the global references to those of this sector
+          this._switchToFrozenSector(sector);
+          var args = Array.prototype.splice.call(arguments, 1);
+          if (args.length > 1) {
+            this[runFunction](args[0],args[1]);
+          }
+          else {
+            this[runFunction](argument);
+          }
+        }
+      }
+    }
+    this._loadLatestSector();
+  },
+
+
+  /**
+   * This runs a function in the navigationUI sector.
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we don't pass the function itself because then the "this" is the window object
+   *                              |   instead of the Graph object
+   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  _doInUISector : function(runFunction,argument) {
+    this._switchToUISector();
+    if (argument === undefined) {
+      this[runFunction]();
+    }
+    else {
+      var args = Array.prototype.splice.call(arguments, 1);
+      if (args.length > 1) {
+        this[runFunction](args[0],args[1]);
+      }
+      else {
+        this[runFunction](argument);
+      }
+    }
+    this._loadLatestSector();
+  },
+
+
+  /**
+   * This runs a function in all sectors. This is used in the _redraw().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we don't pass the function itself because then the "this" is the window object
+   *                              |   instead of the Graph object
+   * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  _doInAllSectors : function(runFunction,argument) {
+    var args = Array.prototype.splice.call(arguments, 1);
+    if (argument === undefined) {
+      this._doInAllActiveSectors(runFunction);
+      this._doInAllFrozenSectors(runFunction);
+    }
+    else {
+      if (args.length > 1) {
+        this._doInAllActiveSectors(runFunction,args[0],args[1]);
+        this._doInAllFrozenSectors(runFunction,args[0],args[1]);
+      }
+      else {
+        this._doInAllActiveSectors(runFunction,argument);
+        this._doInAllFrozenSectors(runFunction,argument);
+      }
+    }
+
+  },
+
+
+  /**
+   * This clears the nodeIndices list. We cannot use this.nodeIndices = [] because we would break the link with the
+   * active sector. Thus we clear the nodeIndices in the active sector, then reconnect the this.nodeIndices to it.
+   *
+   * @private
+   */
+  _clearNodeIndexList : function() {
+    var sector = this._sector();
+    this.sectors["active"][sector]["nodeIndices"] = [];
+    this.nodeIndices = this.sectors["active"][sector]["nodeIndices"];
+  },
+
+
+  /**
+   * Draw the encompassing sector node
+   *
+   * @param ctx
+   * @param sectorType
+   * @private
+   */
+  _drawSectorNodes : function(ctx,sectorType) {
+    var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
+    for (var sector in this.sectors[sectorType]) {
+      if (this.sectors[sectorType].hasOwnProperty(sector)) {
+        if (this.sectors[sectorType][sector]["drawingNode"] !== undefined) {
+
+          this._switchToSector(sector,sectorType);
+
+          minY = 1e9; maxY = -1e9; minX = 1e9; maxX = -1e9;
+          for (var nodeId in this.nodes) {
+            if (this.nodes.hasOwnProperty(nodeId)) {
+              node = this.nodes[nodeId];
+              node.resize(ctx);
+              if (minX > node.x - 0.5 * node.width) {minX = node.x - 0.5 * node.width;}
+              if (maxX < node.x + 0.5 * node.width) {maxX = node.x + 0.5 * node.width;}
+              if (minY > node.y - 0.5 * node.height) {minY = node.y - 0.5 * node.height;}
+              if (maxY < node.y + 0.5 * node.height) {maxY = node.y + 0.5 * node.height;}
+            }
+          }
+          node = this.sectors[sectorType][sector]["drawingNode"];
+          node.x = 0.5 * (maxX + minX);
+          node.y = 0.5 * (maxY + minY);
+          node.width = 2 * (node.x - minX);
+          node.height = 2 * (node.y - minY);
+          node.radius = Math.sqrt(Math.pow(0.5*node.width,2) + Math.pow(0.5*node.height,2));
+          node.setScale(this.scale);
+          node._drawCircle(ctx);
+        }
+      }
+    }
+  },
+
+  _drawAllSectorNodes : function(ctx) {
+    this._drawSectorNodes(ctx,"frozen");
+    this._drawSectorNodes(ctx,"active");
+    this._loadLatestSector();
+  }
+};
+/**
+ * Creation of the ClusterMixin var.
+ *
+ * This contains all the functions the Graph object can use to employ clustering
+ *
+ * Alex de Mulder
+ * 21-01-2013
+ */
+var ClusterMixin = {
+
+/**
+ * This is only called in the constructor of the graph object
+ * */
+ startWithClustering : function() {
+    // cluster if the data set is big
+    this.clusterToFit(this.constants.clustering.initialMaxNumberOfNodes, true);
+
+    // updates the lables after clustering
+    this.updateLabels();
+
+    // this is called here because if clusterin is disabled, the start and stabilize are called in
+    // the setData function.
+    if (this.stabilize) {
+      this._doStabilize();
+    }
+    this.start();
+  },
+
+  /**
+   * This function clusters until the initialMaxNumberOfNodes has been reached
+   *
+   * @param {Number}  maxNumberOfNodes
+   * @param {Boolean} reposition
+   */
+  clusterToFit : function(maxNumberOfNodes, reposition) {
+    var numberOfNodes = this.nodeIndices.length;
+
+    var maxLevels = 50;
+    var level = 0;
+
+    // we first cluster the hubs, then we pull in the outliers, repeat
+    while (numberOfNodes > maxNumberOfNodes && level < maxLevels) {
+      if (level % 3 == 0) {
+        this.forceAggregateHubs();
+      }
+      else {
+        this.increaseClusterLevel();
+      }
+      numberOfNodes = this.nodeIndices.length;
+      level += 1;
+    }
+
+    // after the clustering we reposition the nodes to reduce the initial chaos
+    if (level > 1 && reposition == true) {
+      this.repositionNodes();
+    }
+   },
+
+  /**
+   * This function can be called to open up a specific cluster. It is only called by
+   * It will unpack the cluster back one level.
+   *
+   * @param node    | Node object: cluster to open.
+   */
+  openCluster : function(node) {
+    var isMovingBeforeClustering = this.moving;
+    if (node.clusterSize > this.constants.clustering.sectorThreshold && this._nodeInActiveArea(node) &&
+      !(this._sector() == "default" && this.nodeIndices.length == 1)) {
+      this._addSector(node);
+      var level = 0;
+      while ((this.nodeIndices.length < this.constants.clustering.initialMaxNumberOfNodes) && (level < 10)) {
+        this.decreaseClusterLevel();
+        level += 1;
+      }
+    }
+    else {
+      this._expandClusterNode(node,false,true);
+
+      // update the index list, dynamic edges and labels
+      this._updateNodeIndexList();
+      this._updateDynamicEdges();
+      this.updateLabels();
+    }
+
+    // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+    if (this.moving != isMovingBeforeClustering) {
+      this.start();
+    }
+   },
+
+  /**
+   * This calls the updateClustes with default arguments
+   */
+  updateClustersDefault : function() {
+    if (this.constants.clustering.enabled == true) {
+      this.updateClusters(0,false,false);
+    }
+  },
+
+  /**
+   * This function can be called to increase the cluster level. This means that the nodes with only one edge connection will
+   * be clustered with their connected node. This can be repeated as many times as needed.
+   * This can be called externally (by a keybind for instance) to reduce the complexity of big datasets.
+   */
+  increaseClusterLevel : function() {
+    this.updateClusters(-1,false,true);
+   },
+
+
+
+  /**
+   * This function can be called to decrease the cluster level. This means that the nodes with only one edge connection will
+   * be unpacked if they are a cluster. This can be repeated as many times as needed.
+   * This can be called externally (by a key-bind for instance) to look into clusters without zooming.
+   */
+  decreaseClusterLevel : function() {
+    this.updateClusters(1,false,true);
+   },
+
+
+  /**
+   * This is the main clustering function. It clusters and declusters on zoom or forced
+   * This function clusters on zoom, it can be called with a predefined zoom direction
+   * If out, check if we can form clusters, if in, check if we can open clusters.
+   * This function is only called from _zoom()
+   *
+   * @param {Number} zoomDirection  | -1 / 0 / +1   for  zoomOut / determineByZoom / zoomIn
+   * @param {Boolean} recursive     | enabled or disable recursive calling of the opening of clusters
+   * @param {Boolean} force         | enabled or disable forcing
+   *
+   */
+  updateClusters : function(zoomDirection,recursive,force) {
+    var isMovingBeforeClustering = this.moving;
+    var amountOfNodes = this.nodeIndices.length;
+
+    // on zoom out collapse the sector if the scale is at the level the sector was made
+    if (this.previousScale > this.scale && zoomDirection == 0) {
+      this._collapseSector();
+    }
+
+    // check if we zoom in or out
+    if (this.previousScale > this.scale || zoomDirection == -1) { // zoom out
+      // forming clusters when forced pulls outliers in. When not forced, the edge length of the
+      // outer nodes determines if it is being clustered
+      this._formClusters(force);
+    }
+    else if (this.previousScale < this.scale || zoomDirection == 1) { // zoom in
+      if (force == true) {
+        // _openClusters checks for each node if the formationScale of the cluster is smaller than
+        // the current scale and if so, declusters. When forced, all clusters are reduced by one step
+        this._openClusters(recursive,force);
+      }
+      else {
+        // if a cluster takes up a set percentage of the active window
+        this._openClustersBySize();
+      }
+    }
+    this._updateNodeIndexList();
+
+    // if a cluster was NOT formed and the user zoomed out, we try clustering by hubs
+    if (this.nodeIndices.length == amountOfNodes && (this.previousScale > this.scale || zoomDirection == -1))  {
+      this._aggregateHubs(force);
+      this._updateNodeIndexList();
+    }
+
+    // we now reduce chains.
+    if (this.previousScale > this.scale || zoomDirection == -1) { // zoom out
+      this.handleChains();
+      this._updateNodeIndexList();
+    }
+
+    this.previousScale = this.scale;
+
+    // rest of the update the index list, dynamic edges and labels
+    this._updateDynamicEdges();
+    this.updateLabels();
+
+    // if a cluster was formed, we increase the clusterSession
+    if (this.nodeIndices.length < amountOfNodes) { // this means a clustering operation has taken place
+      this.clusterSession += 1;
+    }
+
+    // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+    if (this.moving != isMovingBeforeClustering) {
+      this.start();
+    }
+   },
+
+  /**
+   * This function handles the chains. It is called on every updateClusters().
+   */
+  handleChains : function() {
+    // after clustering we check how many chains there are
+    var chainPercentage = this._getChainFraction();
+    if (chainPercentage > this.constants.clustering.chainThreshold) {
+      this._reduceAmountOfChains(1 - this.constants.clustering.chainThreshold / chainPercentage)
+
+    }
+   },
+
+  /**
+   * this functions starts clustering by hubs
+   * The minimum hub threshold is set globally
+   *
+   * @private
+   */
+  _aggregateHubs : function(force) {
+    this._getHubSize();
+    this._formClustersByHub(force,false);
+   },
+
+
+  /**
+   * This function is fired by keypress. It forces hubs to form.
+   *
+   */
+  forceAggregateHubs : function() {
+    var isMovingBeforeClustering = this.moving;
+    var amountOfNodes = this.nodeIndices.length;
+
+    this._aggregateHubs(true);
+
+    // update the index list, dynamic edges and labels
+    this._updateNodeIndexList();
+    this._updateDynamicEdges();
+    this.updateLabels();
+
+    // if a cluster was formed, we increase the clusterSession
+    if (this.nodeIndices.length != amountOfNodes) {
+      this.clusterSession += 1;
+    }
+
+    // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+    if (this.moving != isMovingBeforeClustering) {
+      this.start();
+    }
+   },
+
+  /**
+   * If a cluster takes up more than a set percentage of the screen, open the cluster
+   *
+   * @private
+   */
+  _openClustersBySize : function() {
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        var node = this.nodes[nodeId];
+        if (node.inView() == true) {
+          if ((node.width*this.scale > this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientWidth) ||
+              (node.height*this.scale > this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientHeight)) {
+            this.openCluster(node);
+          }
+        }
+      }
+    }
+   },
+
+
+  /**
+   * This function loops over all nodes in the nodeIndices list. For each node it checks if it is a cluster and if it
+   * has to be opened based on the current zoom level.
+   *
+   * @private
+   */
+  _openClusters : function(recursive,force) {
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+      var node = this.nodes[this.nodeIndices[i]];
+      this._expandClusterNode(node,recursive,force);
+    }
+   },
+
+  /**
+   * This function checks if a node has to be opened. This is done by checking the zoom level.
+   * If the node contains child nodes, this function is recursively called on the child nodes as well.
+   * This recursive behaviour is optional and can be set by the recursive argument.
+   *
+   * @param {Node}    parentNode    | to check for cluster and expand
+   * @param {Boolean} recursive     | enabled or disable recursive calling
+   * @param {Boolean} force         | enabled or disable forcing
+   * @param {Boolean} [openAll]     | This will recursively force all nodes in the parent to be released
+   * @private
+   */
+  _expandClusterNode : function(parentNode, recursive, force, openAll) {
+    // first check if node is a cluster
+    if (parentNode.clusterSize > 1) {
+      // this means that on a double tap event or a zoom event, the cluster fully unpacks if it is smaller than 20
+      if (parentNode.clusterSize < this.constants.clustering.sectorThreshold) {
+        openAll = true;
+      }
+      recursive = openAll ? true : recursive;
+
+      // if the last child has been added on a smaller scale than current scale decluster
+      if (parentNode.formationScale < this.scale || force == true) {
+        // we will check if any of the contained child nodes should be removed from the cluster
+        for (var containedNodeId in parentNode.containedNodes) {
+          if (parentNode.containedNodes.hasOwnProperty(containedNodeId)) {
+            var childNode = parentNode.containedNodes[containedNodeId];
+
+            // force expand will expand the largest cluster size clusters. Since we cluster from outside in, we assume that
+            // the largest cluster is the one that comes from outside
+            if (force == true) {
+              if (childNode.clusterSession == parentNode.clusterSessions[parentNode.clusterSessions.length-1]
+                  || openAll) {
+                this._expelChildFromParent(parentNode,containedNodeId,recursive,force,openAll);
+              }
+            }
+            else {
+              if (this._nodeInActiveArea(parentNode)) {
+                this._expelChildFromParent(parentNode,containedNodeId,recursive,force,openAll);
+              }
+            }
+          }
+        }
+      }
+    }
+   },
+
+  /**
+   * ONLY CALLED FROM _expandClusterNode
+   *
+   * This function will expel a child_node from a parent_node. This is to de-cluster the node. This function will remove
+   * the child node from the parent contained_node object and put it back into the global nodes object.
+   * The same holds for the edge that was connected to the child node. It is moved back into the global edges object.
+   *
+   * @param {Node}    parentNode        | the parent node
+   * @param {String}  containedNodeId   | child_node id as it is contained in the containedNodes object of the parent node
+   * @param {Boolean} recursive         | This will also check if the child needs to be expanded.
+   *                                      With force and recursive both true, the entire cluster is unpacked
+   * @param {Boolean} force             | This will disregard the zoom level and will expel this child from the parent
+   * @param {Boolean} openAll           | This will recursively force all nodes in the parent to be released
+   * @private
+   */
+  _expelChildFromParent : function(parentNode, containedNodeId, recursive, force, openAll) {
+    var childNode = parentNode.containedNodes[containedNodeId];
+
+    // if child node has been added on smaller scale than current, kick out
+    if (childNode.formationScale < this.scale || force == true) {
+      // put the child node back in the global nodes object
+      this.nodes[containedNodeId] = childNode;
+
+      // release the contained edges from this childNode back into the global edges
+      this._releaseContainedEdges(parentNode,childNode);
+
+      // reconnect rerouted edges to the childNode
+      this._connectEdgeBackToChild(parentNode,childNode);
+
+      // validate all edges in dynamicEdges
+      this._validateEdges(parentNode);
+
+      // undo the changes from the clustering operation on the parent node
+      parentNode.mass -= this.constants.clustering.massTransferCoefficient * childNode.mass;
+      parentNode.fontSize -= this.constants.clustering.fontSizeMultiplier * childNode.clusterSize;
+      parentNode.clusterSize -= childNode.clusterSize;
+      parentNode.dynamicEdgesLength = parentNode.dynamicEdges.length;
+
+      // place the child node near the parent, not at the exact same location to avoid chaos in the system
+      childNode.x = parentNode.x + this.constants.edges.length * 0.3 * (0.5 - Math.random()) * parentNode.clusterSize;
+      childNode.y = parentNode.y + this.constants.edges.length * 0.3 * (0.5 - Math.random()) * parentNode.clusterSize;
+
+      // remove node from the list
+      delete parentNode.containedNodes[containedNodeId];
+
+      // check if there are other childs with this clusterSession in the parent.
+      var othersPresent = false;
+      for (var childNodeId in parentNode.containedNodes) {
+        if (parentNode.containedNodes.hasOwnProperty(childNodeId)) {
+          if (parentNode.containedNodes[childNodeId].clusterSession == childNode.clusterSession) {
+            othersPresent = true;
+            break;
+          }
+        }
+      }
+      // if there are no others, remove the cluster session from the list
+      if (othersPresent == false) {
+        parentNode.clusterSessions.pop();
+      }
+
+      // remove the clusterSession from the child node
+      childNode.clusterSession = 0;
+
+      // restart the simulation to reorganise all nodes
+      this.moving = true;
+
+      // recalculate the size of the node on the next time the node is rendered
+      parentNode.clearSizeCache();
+    }
+
+    // check if a further expansion step is possible if recursivity is enabled
+    if (recursive == true) {
+      this._expandClusterNode(childNode,recursive,force,openAll);
+    }
+   },
+
+
+  /**
+   * This function checks if any nodes at the end of their trees have edges below a threshold length
+   * This function is called only from updateClusters()
+   * forceLevelCollapse ignores the length of the edge and collapses one level
+   * This means that a node with only one edge will be clustered with its connected node
+   *
+   * @private
+   * @param {Boolean} force
+   */
+  _formClusters : function(force) {
+    if (force == false) {
+      this._formClustersByZoom();
+    }
+    else {
+      this._forceClustersByZoom();
+    }
+   },
+
+  /**
+   * This function handles the clustering by zooming out, this is based on a minimum edge distance
+   *
+   * @private
+   */
+  _formClustersByZoom : function() {
+    var dx,dy,length,
+        minLength = this.constants.clustering.clusterEdgeThreshold/this.scale;
+
+    // check if any edges are shorter than minLength and start the clustering
+    // the clustering favours the node with the larger mass
+    for (var edgeId in this.edges) {
+      if (this.edges.hasOwnProperty(edgeId)) {
+        var edge = this.edges[edgeId];
+        if (edge.connected) {
+          if (edge.toId != edge.fromId) {
+            dx = (edge.to.x - edge.from.x);
+            dy = (edge.to.y - edge.from.y);
+            length = Math.sqrt(dx * dx + dy * dy);
+
+
+            if (length < minLength) {
+              // first check which node is larger
+              var parentNode = edge.from;
+              var childNode = edge.to;
+              if (edge.to.mass > edge.from.mass) {
+                parentNode = edge.to;
+                childNode = edge.from;
+              }
+
+              if (childNode.dynamicEdgesLength == 1) {
+                this._addToCluster(parentNode,childNode,false);
+              }
+              else if (parentNode.dynamicEdgesLength == 1) {
+                this._addToCluster(childNode,parentNode,false);
+              }
+            }
+          }
+        }
+      }
+    }
+   },
+
+  /**
+   * This function forces the graph to cluster all nodes with only one connecting edge to their
+   * connected node.
+   *
+   * @private
+   */
+  _forceClustersByZoom : function() {
+    for (var nodeId in this.nodes) {
+      // another node could have absorbed this child.
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        var childNode = this.nodes[nodeId];
+
+        // the edges can be swallowed by another decrease
+        if (childNode.dynamicEdgesLength == 1 && childNode.dynamicEdges.length != 0) {
+          var edge = childNode.dynamicEdges[0];
+          var parentNode = (edge.toId == childNode.id) ? this.nodes[edge.fromId] : this.nodes[edge.toId];
+
+          // group to the largest node
+          if (childNode.id != parentNode.id) {
+            if (parentNode.mass > childNode.mass) {
+              this._addToCluster(parentNode,childNode,true);
+            }
+            else {
+              this._addToCluster(childNode,parentNode,true);
+            }
+          }
+        }
+      }
+    }
+   },
+
+
+
+  /**
+   * This function forms clusters from hubs, it loops over all nodes
+   *
+   * @param {Boolean} force         |   Disregard zoom level
+   * @param {Boolean} onlyEqual     |   This only clusters a hub with a specific number of edges
+   * @private
+   */
+  _formClustersByHub : function(force, onlyEqual) {
+    // we loop over all nodes in the list
+    for (var nodeId in this.nodes) {
+      // we check if it is still available since it can be used by the clustering in this loop
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        this._formClusterFromHub(this.nodes[nodeId],force,onlyEqual);
+      }
+    }
+   },
+
+  /**
+   * This function forms a cluster from a specific preselected hub node
+   *
+   * @param {Node}    hubNode       |   the node we will cluster as a hub
+   * @param {Boolean} force         |   Disregard zoom level
+   * @param {Boolean} onlyEqual     |   This only clusters a hub with a specific number of edges
+   * @param {Number} [absorptionSizeOffset] |
+   * @private
+   */
+  _formClusterFromHub : function(hubNode, force, onlyEqual, absorptionSizeOffset) {
+    if (absorptionSizeOffset === undefined) {
+      absorptionSizeOffset = 0;
+    }
+    // we decide if the node is a hub
+    if ((hubNode.dynamicEdgesLength >= this.hubThreshold && onlyEqual == false) ||
+      (hubNode.dynamicEdgesLength == this.hubThreshold && onlyEqual == true)) {
+      // initialize variables
+      var dx,dy,length;
+      var minLength = this.constants.clustering.clusterEdgeThreshold/this.scale;
+      var allowCluster = false;
+
+      // we create a list of edges because the dynamicEdges change over the course of this loop
+      var edgesIdarray = [];
+      var amountOfInitialEdges = hubNode.dynamicEdges.length;
+      for (var j = 0; j < amountOfInitialEdges; j++) {
+        edgesIdarray.push(hubNode.dynamicEdges[j].id);
+      }
+
+      // if the hub clustering is not forces, we check if one of the edges connected
+      // to a cluster is small enough based on the constants.clustering.clusterEdgeThreshold
+      if (force == false) {
+        allowCluster = false;
+        for (j = 0; j < amountOfInitialEdges; j++) {
+          var edge = this.edges[edgesIdarray[j]];
+          if (edge !== undefined) {
+            if (edge.connected) {
+              if (edge.toId != edge.fromId) {
+                dx = (edge.to.x - edge.from.x);
+                dy = (edge.to.y - edge.from.y);
+                length = Math.sqrt(dx * dx + dy * dy);
+
+                if (length < minLength) {
+                  allowCluster = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // start the clustering if allowed
+      if ((!force && allowCluster) || force) {
+        // we loop over all edges INITIALLY connected to this hub
+        for (j = 0; j < amountOfInitialEdges; j++) {
+          edge = this.edges[edgesIdarray[j]];
+          // the edge can be clustered by this function in a previous loop
+          if (edge !== undefined) {
+            var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
+            // we do not want hubs to merge with other hubs nor do we want to cluster itself.
+            if ((childNode.dynamicEdges.length <= (this.hubThreshold + absorptionSizeOffset)) &&
+                (childNode.id != hubNode.id)) {
+              this._addToCluster(hubNode,childNode,force);
+            }
+          }
+        }
+      }
+    }
+   },
+
+
+
+  /**
+   * This function adds the child node to the parent node, creating a cluster if it is not already.
+   *
+   * @param {Node} parentNode           | this is the node that will house the child node
+   * @param {Node} childNode            | this node will be deleted from the global this.nodes and stored in the parent node
+   * @param {Boolean} force             | true will only update the remainingEdges at the very end of the clustering, ensuring single level collapse
+   * @private
+   */
+  _addToCluster : function(parentNode, childNode, force) {
+    // join child node in the parent node
+    parentNode.containedNodes[childNode.id] = childNode;
+
+    // manage all the edges connected to the child and parent nodes
+    for (var i = 0; i < childNode.dynamicEdges.length; i++) {
+      var edge = childNode.dynamicEdges[i];
+      if (edge.toId == parentNode.id || edge.fromId == parentNode.id) { // edge connected to parentNode
+        this._addToContainedEdges(parentNode,childNode,edge);
+      }
+      else {
+        this._connectEdgeToCluster(parentNode,childNode,edge);
+      }
+    }
+    // a contained node has no dynamic edges.
+    childNode.dynamicEdges = [];
+
+    // remove circular edges from clusters
+    this._containCircularEdgesFromNode(parentNode,childNode);
+
+
+    // remove the childNode from the global nodes object
+    delete this.nodes[childNode.id];
+
+    // update the properties of the child and parent
+    var massBefore = parentNode.mass;
+    childNode.clusterSession = this.clusterSession;
+    parentNode.mass += this.constants.clustering.massTransferCoefficient * childNode.mass;
+    parentNode.clusterSize += childNode.clusterSize;
+    parentNode.fontSize += this.constants.clustering.fontSizeMultiplier * childNode.clusterSize;
+
+    // keep track of the clustersessions so we can open the cluster up as it has been formed.
+    if (parentNode.clusterSessions[parentNode.clusterSessions.length - 1] != this.clusterSession) {
+      parentNode.clusterSessions.push(this.clusterSession);
+    }
+
+    // forced clusters only open from screen size and double tap
+    if (force == true) {
+      // parentNode.formationScale = Math.pow(1 - (1.0/11.0),this.clusterSession+3);
+      parentNode.formationScale = 0;
+    }
+    else {
+      parentNode.formationScale = this.scale; // The latest child has been added on this scale
+    }
+
+    // recalculate the size of the node on the next time the node is rendered
+    parentNode.clearSizeCache();
+
+    // set the pop-out scale for the childnode
+    parentNode.containedNodes[childNode.id].formationScale = parentNode.formationScale;
+
+    // nullify the movement velocity of the child, this is to avoid hectic behaviour
+    childNode.clearVelocity();
+
+    // the mass has altered, preservation of energy dictates the velocity to be updated
+    parentNode.updateVelocity(massBefore);
+
+    // restart the simulation to reorganise all nodes
+    this.moving = true;
+   },
+
+
+  /**
+   * This function will apply the changes made to the remainingEdges during the formation of the clusters.
+   * This is a seperate function to allow for level-wise collapsing of the node tree.
+   * It has to be called if a level is collapsed. It is called by _formClusters().
+   * @private
+   */
+  _updateDynamicEdges : function() {
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+      var node = this.nodes[this.nodeIndices[i]];
+      node.dynamicEdgesLength = node.dynamicEdges.length;
+
+      // this corrects for multiple edges pointing at the same other node
+      var correction = 0;
+      if (node.dynamicEdgesLength > 1) {
+        for (var j = 0; j < node.dynamicEdgesLength - 1; j++) {
+          var edgeToId = node.dynamicEdges[j].toId;
+          var edgeFromId = node.dynamicEdges[j].fromId;
+          for (var k = j+1; k < node.dynamicEdgesLength; k++) {
+            if ((node.dynamicEdges[k].toId == edgeToId && node.dynamicEdges[k].fromId == edgeFromId) ||
+                (node.dynamicEdges[k].fromId == edgeToId && node.dynamicEdges[k].toId == edgeFromId)) {
+              correction += 1;
+            }
+          }
+        }
+      }
+      node.dynamicEdgesLength -= correction;
+    }
+   },
+
+
+  /**
+   * This adds an edge from the childNode to the contained edges of the parent node
+   *
+   * @param parentNode    | Node object
+   * @param childNode     | Node object
+   * @param edge          | Edge object
+   * @private
+   */
+  _addToContainedEdges : function(parentNode, childNode, edge) {
+    // create an array object if it does not yet exist for this childNode
+    if (!(parentNode.containedEdges.hasOwnProperty(childNode.id))) {
+      parentNode.containedEdges[childNode.id] = []
+    }
+    // add this edge to the list
+    parentNode.containedEdges[childNode.id].push(edge);
+
+    // remove the edge from the global edges object
+    delete this.edges[edge.id];
+
+    // remove the edge from the parent object
+    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
+      if (parentNode.dynamicEdges[i].id == edge.id) {
+        parentNode.dynamicEdges.splice(i,1);
+        break;
+      }
+    }
+   },
+
+  /**
+   * This function connects an edge that was connected to a child node to the parent node.
+   * It keeps track of which nodes it has been connected to with the originalId array.
+   *
+   * @param {Node} parentNode    | Node object
+   * @param {Node} childNode     | Node object
+   * @param {Edge} edge          | Edge object
+   * @private
+   */
+  _connectEdgeToCluster : function(parentNode, childNode, edge) {
+    // handle circular edges
+    if (edge.toId == edge.fromId) {
+      this._addToContainedEdges(parentNode, childNode, edge);
+    }
+    else {
+      if (edge.toId == childNode.id) {    // edge connected to other node on the "to" side
+        edge.originalToId.push(childNode.id);
+        edge.to = parentNode;
+        edge.toId = parentNode.id;
+      }
+      else {          // edge connected to other node with the "from" side
+
+        edge.originalFromId.push(childNode.id);
+        edge.from = parentNode;
+        edge.fromId = parentNode.id;
+      }
+
+      this._addToReroutedEdges(parentNode,childNode,edge);
+    }
+   },
+
+
+  _containCircularEdgesFromNode : function(parentNode, childNode) {
+    // manage all the edges connected to the child and parent nodes
+    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
+      var edge = parentNode.dynamicEdges[i];
+      // handle circular edges
+      if (edge.toId == edge.fromId) {
+        this._addToContainedEdges(parentNode, childNode, edge);
+      }
+    }
+  },
+
+
+  /**
+   * This adds an edge from the childNode to the rerouted edges of the parent node
+   *
+   * @param parentNode    | Node object
+   * @param childNode     | Node object
+   * @param edge          | Edge object
+   * @private
+   */
+  _addToReroutedEdges : function(parentNode, childNode, edge) {
+    // create an array object if it does not yet exist for this childNode
+    // we store the edge in the rerouted edges so we can restore it when the cluster pops open
+    if (!(parentNode.reroutedEdges.hasOwnProperty(childNode.id))) {
+      parentNode.reroutedEdges[childNode.id] = [];
+    }
+    parentNode.reroutedEdges[childNode.id].push(edge);
+
+    // this edge becomes part of the dynamicEdges of the cluster node
+    parentNode.dynamicEdges.push(edge);
+   },
+
+
+
+  /**
+   * This function connects an edge that was connected to a cluster node back to the child node.
+   *
+   * @param parentNode    | Node object
+   * @param childNode     | Node object
+   * @private
+   */
+  _connectEdgeBackToChild : function(parentNode, childNode) {
+    if (parentNode.reroutedEdges.hasOwnProperty(childNode.id)) {
+      for (var i = 0; i < parentNode.reroutedEdges[childNode.id].length; i++) {
+        var edge = parentNode.reroutedEdges[childNode.id][i];
+        if (edge.originalFromId[edge.originalFromId.length-1] == childNode.id) {
+          edge.originalFromId.pop();
+          edge.fromId = childNode.id;
+          edge.from = childNode;
+        }
+        else {
+          edge.originalToId.pop();
+          edge.toId = childNode.id;
+          edge.to = childNode;
+        }
+
+        // append this edge to the list of edges connecting to the childnode
+        childNode.dynamicEdges.push(edge);
+
+        // remove the edge from the parent object
+        for (var j = 0; j < parentNode.dynamicEdges.length; j++) {
+          if (parentNode.dynamicEdges[j].id == edge.id) {
+            parentNode.dynamicEdges.splice(j,1);
+            break;
+          }
+        }
+      }
+      // remove the entry from the rerouted edges
+      delete parentNode.reroutedEdges[childNode.id];
+    }
+   },
+
+
+  /**
+   * When loops are clustered, an edge can be both in the rerouted array and the contained array.
+   * This function is called last to verify that all edges in dynamicEdges are in fact connected to the
+   * parentNode
+   *
+   * @param parentNode    | Node object
+   * @private
+   */
+  _validateEdges : function(parentNode) {
+    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
+      var edge = parentNode.dynamicEdges[i];
+      if (parentNode.id != edge.toId && parentNode.id != edge.fromId) {
+        parentNode.dynamicEdges.splice(i,1);
+      }
+    }
+   },
+
+
+  /**
+   * This function released the contained edges back into the global domain and puts them back into the
+   * dynamic edges of both parent and child.
+   *
+   * @param {Node} parentNode    |
+   * @param {Node} childNode     |
+   * @private
+   */
+  _releaseContainedEdges : function(parentNode, childNode) {
+    for (var i = 0; i < parentNode.containedEdges[childNode.id].length; i++) {
+      var edge = parentNode.containedEdges[childNode.id][i];
+
+      // put the edge back in the global edges object
+      this.edges[edge.id] = edge;
+
+      // put the edge back in the dynamic edges of the child and parent
+      childNode.dynamicEdges.push(edge);
+      parentNode.dynamicEdges.push(edge);
+    }
+    // remove the entry from the contained edges
+    delete parentNode.containedEdges[childNode.id];
+
+   },
+
+
+
+
+  // ------------------- UTILITY FUNCTIONS ---------------------------- //
+
+
+  /**
+   * This updates the node labels for all nodes (for debugging purposes)
+   */
+  updateLabels : function() {
+    var nodeId;
+    // update node labels
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        var node = this.nodes[nodeId];
+        if (node.clusterSize > 1) {
+          node.label = "[".concat(String(node.clusterSize),"]");
+        }
+      }
+    }
+
+    // update node labels
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        if (node.clusterSize == 1) {
+          if (node.originalLabel !== undefined) {
+            node.label = node.originalLabel;
+          }
+          else {
+            node.label = String(node.id);
+          }
+        }
+      }
+    }
+
+    /* Debug Override */
+  //  for (nodeId in this.nodes) {
+  //    if (this.nodes.hasOwnProperty(nodeId)) {
+  //      node = this.nodes[nodeId];
+  //      node.label = String(Math.round(node.width)).concat(":",Math.round(node.width*this.scale));
+  //    }
+  //  }
+
+   },
+
+
+  /**
+   * This function determines if the cluster we want to decluster is in the active area
+   * this means around the zoom center
+   *
+   * @param {Node} node
+   * @returns {boolean}
+   * @private
+   */
+  _nodeInActiveArea : function(node) {
+    return (
+      Math.abs(node.x - this.areaCenter.x) <= this.constants.clustering.activeAreaBoxSize/this.scale
+        &&
+      Math.abs(node.y - this.areaCenter.y) <= this.constants.clustering.activeAreaBoxSize/this.scale
+      )
+   },
+
+
+  /**
+   * This is an adaptation of the original repositioning function. This is called if the system is clustered initially
+   * It puts large clusters away from the center and randomizes the order.
+   *
+   */
+  repositionNodes : function() {
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+      var node = this.nodes[this.nodeIndices[i]];
+      if (!node.isFixed()) {
+        var radius = this.constants.edges.length * (1 + 0.6*node.clusterSize);
+        var angle = 2 * Math.PI * Math.random();
+        node.x = radius * Math.cos(angle);
+        node.y = radius * Math.sin(angle);
+      }
+    }
+   },
+
+
+
+
+
+  /**
+   * We determine how many connections denote an important hub.
+   * We take the mean + 2*std as the important hub size. (Assuming a normal distribution of data, ~2.2%)
+   *
+   * @private
+   */
+  _getHubSize : function() {
+    var average = 0;
+    var averageSquared = 0;
+    var hubCounter = 0;
+    var largestHub = 0;
+
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+      var node = this.nodes[this.nodeIndices[i]];
+      if (node.dynamicEdgesLength > largestHub) {
+        largestHub = node.dynamicEdgesLength;
+      }
+      average += node.dynamicEdgesLength;
+      averageSquared += Math.pow(node.dynamicEdgesLength,2);
+      hubCounter += 1;
+    }
+    average = average / hubCounter;
+    averageSquared = averageSquared / hubCounter;
+
+    var variance = averageSquared - Math.pow(average,2);
+
+    var standardDeviation = Math.sqrt(variance);
+
+    this.hubThreshold = Math.floor(average + 2*standardDeviation);
+
+    // always have at least one to cluster
+    if (this.hubThreshold > largestHub) {
+      this.hubThreshold = largestHub;
+    }
+
+  //  console.log("average",average,"averageSQ",averageSquared,"var",variance,"std",standardDeviation);
+  //  console.log("hubThreshold:",this.hubThreshold);
+   },
+
+
+  /**
+   * We reduce the amount of "extension nodes" or chains. These are not quickly clustered with the outliers and hubs methods
+   * with this amount we can cluster specifically on these chains.
+   *
+   * @param   {Number} fraction     | between 0 and 1, the percentage of chains to reduce
+   * @private
+   */
+  _reduceAmountOfChains : function(fraction) {
+    this.hubThreshold = 2;
+    var reduceAmount = Math.floor(this.nodeIndices.length * fraction);
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        if (this.nodes[nodeId].dynamicEdgesLength == 2 && this.nodes[nodeId].dynamicEdges.length >= 2) {
+          if (reduceAmount > 0) {
+            this._formClusterFromHub(this.nodes[nodeId],true,true,1);
+            reduceAmount -= 1;
+          }
+        }
+      }
+    }
+   },
+
+  /**
+   * We get the amount of "extension nodes" or chains. These are not quickly clustered with the outliers and hubs methods
+   * with this amount we can cluster specifically on these chains.
+   *
+   * @private
+   */
+  _getChainFraction : function() {
+    var chains = 0;
+    var total = 0;
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        if (this.nodes[nodeId].dynamicEdgesLength == 2 && this.nodes[nodeId].dynamicEdges.length >= 2) {
+          chains += 1;
+        }
+        total += 1;
+      }
+    }
+    return chains/total;
+   }
+};
+
+
+var SelectionMixin = {
+
+  /**
+   * This function can be called from the _doInAllSectors function
+   *
+   * @param object
+   * @param overlappingNodes
+   * @private
+   */
+  _getNodesOverlappingWith : function(object, overlappingNodes) {
+    var nodes = this.nodes;
+    for (var nodeId in nodes) {
+      if (nodes.hasOwnProperty(nodeId)) {
+        if (nodes[nodeId].isOverlappingWith(object)) {
+          overlappingNodes.push(nodeId);
+        }
+      }
+    }
+  },
+
+  /**
+   * retrieve all nodes overlapping with given object
+   * @param {Object} object  An object with parameters left, top, right, bottom
+   * @return {Number[]}   An array with id's of the overlapping nodes
+   * @private
+   */
+  _getAllNodesOverlappingWith : function (object) {
+    var overlappingNodes = [];
+    this._doInAllActiveSectors("_getNodesOverlappingWith",object,overlappingNodes);
+    return overlappingNodes;
+  },
+
+
+  /**
+   * retrieve all nodes in the navigationUI overlapping with given object
+   * @param {Object} object  An object with parameters left, top, right, bottom
+   * @return {Number[]}   An array with id's of the overlapping nodes
+   * @private
+   */
+  _getAllUINodesOverlappingWith : function (object) {
+    var overlappingNodes = [];
+    this._doInUISector("_getNodesOverlappingWith",object,overlappingNodes);
+    return overlappingNodes;
+  },
+
+  /**
+   * Return a position object in canvasspace from a single point in screenspace
+   *
+   * @param pointer
+   * @returns {{left: number, top: number, right: number, bottom: number}}
+   * @private
+   */
+  _pointerToPositionObject : function(pointer) {
+    var x = this._canvasToX(pointer.x);
+    var y = this._canvasToY(pointer.y);
+
+    return {left:   x,
+            top:    y,
+            right:  x,
+            bottom: y};
+  },
+
+  /**
+   * Return a position object in canvasspace from a single point in screenspace
+   *
+   * @param pointer
+   * @returns {{left: number, top: number, right: number, bottom: number}}
+   * @private
+   */
+  _pointerToScreenPositionObject : function(pointer) {
+    var x = pointer.x;
+    var y = pointer.y;
+
+    return {left:   x,
+      top:    y,
+      right:  x,
+      bottom: y};
+  },
+
+
+  /**
+   * Get the top navigationUI node at the a specific point (like a click)
+   *
+   * @param {{x: Number, y: Number}} pointer
+   * @return {Node | null} node
+   * @private
+   */
+  _getUINodeAt : function (pointer) {
+    var screenPositionObject = this._pointerToScreenPositionObject(pointer);
+    var overlappingNodes = this._getAllUINodesOverlappingWith(screenPositionObject);
+    if (this.UIvisible && overlappingNodes.length > 0) {
+      return this.sectors["navigationUI"]["nodes"][overlappingNodes[overlappingNodes.length - 1]];
+    }
+    else {
+      return null;
+    }
+  },
+
+
+  /**
+   * Get the top node at the a specific point (like a click)
+   *
+   * @param {{x: Number, y: Number}} pointer
+   * @return {Node | null} node
+   * @private
+   */
+  _getNodeAt : function (pointer) {
+    // we first check if this is an navigationUI element
+    var positionObject = this._pointerToPositionObject(pointer);
+    overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
+
+    // if there are overlapping nodes, select the last one, this is the
+    // one which is drawn on top of the others
+    if (overlappingNodes.length > 0) {
+       return this.nodes[overlappingNodes[overlappingNodes.length - 1]];
+    }
+    else {
+      return null;
+    }
+  },
+
+
+  /**
+   * Place holder. To implement change the _getNodeAt to a _getObjectAt. Have the _getObjectAt call
+   * _getNodeAt and _getEdgesAt, then priortize the selection to user preferences.
+   *
+   * @param pointer
+   * @returns {null}
+   * @private
+   */
+  _getEdgeAt : function(pointer) {
+    return null;
+  },
+
+
+  /**
+   * Add object to the selection array. The this.selection id array may not be needed.
+   *
+   * @param obj
+   * @private
+   */
+  _addToSelection : function(obj) {
+    this.selection.push(obj.id);
+    this.selectionObj[obj.id] = obj;
+  },
+
+
+  /**
+   * Remove a single option from selection.
+   *
+   * @param obj
+   * @private
+   */
+  _removeFromSelection : function(obj) {
+    for (var i = 0; i < this.selection.length; i++) {
+      if (obj.id == this.selection[i]) {
+        this.selection.splice(i,1);
+        break;
+      }
+    }
+    delete this.selectionObj[obj.id];
+  },
+
+
+  /**
+   * Unselect all. The selectionObj is useful for this.
+   *
+   * @private
+   */
+  _unselectAll : function() {
+    this.selection = [];
+    for (var objId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objId)) {
+        this.selectionObj[objId].unselect();
+      }
+    }
+    this.selectionObj = {};
+
+    this._trigger('select');
+  },
+
+
+  /**
+   * Check if anything is selected
+   *
+   * @returns {boolean}
+   * @private
+   */
+  _selectionIsEmpty : function() {
+    if (this.selection.length == 0) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  },
+
+
+  /**
+   * This is called when someone clicks on a node. either select or deselect it.
+   * If there is an existing selection and we don't want to append to it, clear the existing selection
+   *
+   * @param {Node} node
+   * @param {Boolean} append
+   * @private
+   */
+  _selectNode : function(node, append) {
+    if (this._selectionIsEmpty() == false && append == false) {
+      this._unselectAll();
+    }
+
+    if (node.selected == false) {
+      node.select();
+      this._addToSelection(node);
+    }
+    else {
+      node.unselect();
+      this._removeFromSelection(node);
+    }
+    this._trigger('select');
+  },
+
+
+  /**
+   * handles the selection part of the touch, only for navigationUI elements;
+   * Touch is triggered before tap, also before hold. Hold triggers after a while.
+   * This is the most responsive solution
+   *
+   * @param {Object} pointer
+   * @private
+   */
+  _handleTouch : function(pointer) {
+    var node = this._getUINodeAt(pointer);
+    if (node != null) {
+      if (this[node.triggerFunction] !== undefined) {
+        this[node.triggerFunction]();
+      }
+    }
+  },
+
+
+  /**
+   * handles the selection part of the tap;
+   *
+   * @param {Object} pointer
+   * @private
+   */
+  _handleTap : function(pointer) {
+    var node = this._getNodeAt(pointer);
+    if (node != null) {
+      this._selectNode(node,false);
+    }
+    else {
+      this._unselectAll();
+    }
+    this._redraw();
+  },
+
+
+  /**
+   * handles the selection part of the double tap and opens a cluster if needed
+   *
+   * @param {Object} pointer
+   * @private
+   */
+  _handleDoubleTap : function(pointer) {
+    var node = this._getNodeAt(pointer);
+    if (node != null && node !== undefined) {
+      // we reset the areaCenter here so the opening of the node will occur
+      this.areaCenter =  {"x" : this._canvasToX(pointer.x),
+                          "y" : this._canvasToY(pointer.y)};
+      this.openCluster(node);
+    }
+  },
+
+
+  /**
+   * Handle the onHold selection part
+   *
+   * @param pointer
+   * @private
+   */
+  _handleOnHold : function(pointer) {
+    var node = this._getNodeAt(pointer);
+    if (node != null) {
+      this._selectNode(node,true);
+    }
+    this._redraw();
+  },
+
+
+  /**
+   * handle the onRelease event. These functions are here for the navigationUI module.
+   *
+    * @private
+   */
+  _handleOnRelease : function() {
+    this.xIncrement = 0;
+    this.yIncrement = 0;
+    this.zoomIncrement = 0;
+    this._unHighlightAll();
+  },
+
+
+
+  /**
+   * * // TODO: rework this function, it is from the old system
+   *
+   * retrieve the currently selected nodes
+   * @return {Number[] | String[]} selection    An array with the ids of the
+   *                                            selected nodes.
+   */
+  getSelection : function() {
+    return this.selection.concat([]);
+  },
+
+  /**
+   * // TODO: rework this function, it is from the old system
+   *
+   * select zero or more nodes
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   */
+  setSelection : function(selection) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    for (i = 0, iMax = this.selection.length; i < iMax; i++) {
+      id = this.selection[i];
+      this.nodes[id].unselect();
+    }
+
+    this.selection = [];
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var node = this.nodes[id];
+      if (!node) {
+        throw new RangeError('Node with id "' + id + '" not found');
+      }
+      node.select();
+      this.selection.push(id);
+    }
+
+    this.redraw();
+  },
+
+
+  /**
+   * TODO: rework this function, it is from the old system
+   *
+   * Validate the selection: remove ids of nodes which no longer exist
+   * @private
+   */
+  _updateSelection : function () {
+    var i = 0;
+    while (i < this.selection.length) {
+      var nodeId = this.selection[i];
+      if (!this.nodes.hasOwnProperty(nodeId)) {
+        this.selection.splice(i, 1);
+        delete this.selectionObj[nodeId];
+      }
+      else {
+        i++;
+      }
+    }
+  }
+
+
+  /**
+   * Unselect selected nodes. If no selection array is provided, all nodes
+   * are unselected
+   * @param {Object[]} selection     Array with selection objects, each selection
+   *                                 object has a parameter row. Optional
+   * @param {Boolean} triggerSelect  If true (default), the select event
+   *                                 is triggered when nodes are unselected
+   * @return {Boolean} changed       True if the selection is changed
+   * @private
+   */
+ /* _unselectNodes : function(selection, triggerSelect) {
+    var changed = false;
+    var i, iMax, id;
+
+    if (selection) {
+      // remove provided selections
+      for (i = 0, iMax = selection.length; i < iMax; i++) {
+        id = selection[i];
+        if (this.nodes.hasOwnProperty(id)) {
+          this.nodes[id].unselect();
+        }
+        var j = 0;
+        while (j < this.selection.length) {
+          if (this.selection[j] == id) {
+            this.selection.splice(j, 1);
+            changed = true;
+          }
+          else {
+            j++;
+          }
+        }
+      }
+    }
+    else if (this.selection && this.selection.length) {
+      // remove all selections
+      for (i = 0, iMax = this.selection.length; i < iMax; i++) {
+        id = this.selection[i];
+        if (this.nodes.hasOwnProperty(id)) {
+          this.nodes[id].unselect();
+        }
+        changed = true;
+      }
+      this.selection = [];
+    }
+
+    if (changed && (triggerSelect == true || triggerSelect == undefined)) {
+      // fire the select event
+      this._trigger('select');
+    }
+
+    return changed;
+  },
+*/
+/**
+ * select all nodes on given location x, y
+ * @param {Array} selection   an array with node ids
+ * @param {boolean} append    If true, the new selection will be appended to the
+ *                            current selection (except for duplicate entries)
+ * @return {Boolean} changed  True if the selection is changed
+ * @private
+ */
+/*  _selectNodes : function(selection, append) {
+    var changed = false;
+    var i, iMax;
+
+    // TODO: the selectNodes method is a little messy, rework this
+
+    // check if the current selection equals the desired selection
+    var selectionAlreadyThere = true;
+    if (selection.length != this.selection.length) {
+      selectionAlreadyThere = false;
+    }
+    else {
+      for (i = 0, iMax = Math.min(selection.length, this.selection.length); i < iMax; i++) {
+        if (selection[i] != this.selection[i]) {
+          selectionAlreadyThere = false;
+          break;
+        }
+      }
+    }
+    if (selectionAlreadyThere) {
+      return changed;
+    }
+
+    if (append == undefined || append == false) {
+      // first deselect any selected node
+      var triggerSelect = false;
+      changed = this._unselectNodes(undefined, triggerSelect);
+    }
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      // add each of the new selections, but only when they are not duplicate
+      var id = selection[i];
+      var isDuplicate = (this.selection.indexOf(id) != -1);
+      if (!isDuplicate) {
+        this.nodes[id].select();
+        this.selection.push(id);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      // fire the select event
+      this._trigger('select');
+    }
+
+    return changed;
+  },
+  */
+};
+
+
+
+
+/**
+ * Created by Alex on 1/22/14.
+ */
+
+var UIMixin = {
+
+  /**
+   * This function moves the navigationUI if the canvas size has been changed. If the arugments
+   * verticaAlignTop and horizontalAlignLeft are false, the correction will be made
+   *
+   * @private
+   */
+  _relocateUI : function() {
+    if (this.sectors !== undefined) {
+      var xOffset = this.UIclientWidth - this.frame.canvas.clientWidth;
+      var yOffset = this.UIclientHeight - this.frame.canvas.clientHeight;
+      this.UIclientWidth = this.frame.canvas.clientWidth;
+      this.UIclientHeight = this.frame.canvas.clientHeight;
+      var node = null;
+
+      for (var nodeId in this.sectors["navigationUI"]["nodes"]) {
+        if (this.sectors["navigationUI"]["nodes"].hasOwnProperty(nodeId)) {
+          node = this.sectors["navigationUI"]["nodes"][nodeId];
+          if (!node.horizontalAlignLeft) {
+            node.x -= xOffset;
+          }
+          if (!node.verticalAlignTop) {
+            node.y -= yOffset;
+          }
+        }
+      }
+    }
+  },
+
+
+  /**
+   * Creation of the navigationUI nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
+   * they have a triggerFunction which is called on click. If the position of the navigationUI is dependent
+   * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
+   * This means that the location will be corrected by the _relocateUI function on a size change of the canvas.
+   *
+   * @private
+   */
+  _loadUIElements : function() {
+    var DIR = this.constants.navigationUI.iconPath;
+    this.UIclientWidth = this.frame.canvas.clientWidth;
+    this.UIclientHeight = this.frame.canvas.clientHeight;
+    if (this.UIclientWidth === undefined) {
+      this.UIclientWidth = 0;
+      this.UIclientHeight = 0;
+    }
+    var offset = 15;
+    var intermediateOffset = 7;
+    var UINodes = [
+      {id: 'UI_up',    shape: 'image', image: DIR + 'uparrow.png',   triggerFunction: "_moveUp",
+        verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.UIclientHeight - 45 - offset - intermediateOffset},
+      {id: 'UI_down',  shape: 'image', image: DIR + 'downarrow.png', triggerFunction: "_moveDown",
+        verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.UIclientHeight - 15 - offset},
+      {id: 'UI_left',  shape: 'image', image: DIR + 'leftarrow.png', triggerFunction: "_moveLeft",
+        verticalAlignTop: false,  x: 15 + offset,  y: this.UIclientHeight - 15 - offset},
+      {id: 'UI_right', shape: 'image', image: DIR + 'rightarrow.png',triggerFunction: "_moveRight",
+        verticalAlignTop: false,  x: 75 + offset + 2 * intermediateOffset,  y: this.UIclientHeight - 15 - offset},
+
+      {id: 'UI_plus',  shape: 'image', image: DIR + 'plus.png',      triggerFunction: "_zoomIn",
+        verticalAlignTop: false, horizontalAlignLeft: false,
+        x: this.UIclientWidth - 45 - offset - intermediateOffset, y: this.UIclientHeight - 15 - offset},
+      {id: 'UI_min', shape: 'image', image: DIR + 'minus.png',       triggerFunction: "_zoomOut",
+        verticalAlignTop: false, horizontalAlignLeft: false,
+        x: this.UIclientWidth - 15 - offset, y: this.UIclientHeight - 15 - offset},
+      {id: 'UI_zoomExtends', shape: 'image', image: DIR + 'zoomExtends.png', triggerFunction: "zoomToFit",
+        verticalAlignTop: false, horizontalAlignLeft: false,
+        x: this.UIclientWidth - 15 - offset, y: this.UIclientHeight - 45 - offset - intermediateOffset}
+    ];
+
+    var nodeObj = null;
+    for (var i = 0; i < UINodes.length; i++) {
+      nodeObj = this.sectors["navigationUI"]['nodes'];
+      nodeObj[UINodes[i]['id']] = new Node(UINodes[i], this.images, this.groups, this.constants);
+    }
+  },
+
+
+  /**
+   * By setting the clustersize to be larger than 1, we use the clustering drawing method
+   * to illustrate the buttons are presed. We call this highlighting.
+   *
+   * @param {String} elementId
+   * @private
+   */
+  _highlightUIElement : function(elementId) {
+    if (this.sectors["navigationUI"]["nodes"].hasOwnProperty(elementId)) {
+      this.sectors["navigationUI"]["nodes"][elementId].clusterSize = 2;
+    }
+  },
+
+
+  /**
+   * Reverting back to a normal button
+   *
+   * @param {String} elementId
+   * @private
+   */
+  _unHighlightUIElement : function(elementId) {
+    if (this.sectors["navigationUI"]["nodes"].hasOwnProperty(elementId)) {
+      this.sectors["navigationUI"]["nodes"][elementId].clusterSize = 1;
+    }
+  },
+
+
+  /**
+   * toggle the visibility of the navigationUI
+   *
+   * @private
+   */
+  _toggleUI : function() {
+    if (this.UIvisible === undefined) {
+      this.UIvisible = false;
+    }
+    this.UIvisible = !this.UIvisible;
+    this._redraw();
+  },
+
+
+  /**
+   * un-highlight (for lack of a better term) all navigationUI elements
+   * @private
+   */
+  _unHighlightAll : function() {
+    for (var nodeId in this.sectors['navigationUI']['nodes']) {
+      this._unHighlightUIElement(nodeId);
+    }
+  },
+
+
+  _preventDefault : function(event) {
+    if (event !== undefined) {
+      if (event.preventDefault) {
+        event.preventDefault();
+      } else {
+        event.returnValue = false;
+      }
+    }
+  },
+
+
+  /**
+   * move the screen up
+   * By using the increments, instead of adding a fixed number to the translation, we keep fluent and
+   * instant movement. The onKeypress event triggers immediately, then pauses, then triggers frequently
+   * To avoid this behaviour, we do the translation in the start loop.
+   *
+   * @private
+   */
+  _moveUp : function(event) {
+    this._highlightUIElement("UI_up");
+    this.yIncrement = this.constants.keyboardNavigation.yMovementSpeed;
+    this.start(); // if there is no node movement, the calculation wont be done
+    this._preventDefault(event);
+  },
+
+
+  /**
+   * move the screen down
+   * @private
+   */
+  _moveDown : function(event) {
+    this._highlightUIElement("UI_down");
+    this.yIncrement = -this.constants.keyboardNavigation.yMovementSpeed;
+    this.start(); // if there is no node movement, the calculation wont be done
+    this._preventDefault(event);
+  },
+
+
+  /**
+   * move the screen left
+   * @private
+   */
+  _moveLeft : function(event) {
+    this._highlightUIElement("UI_left");
+    this.xIncrement = this.constants.keyboardNavigation.xMovementSpeed;
+    this.start(); // if there is no node movement, the calculation wont be done
+    this._preventDefault(event);
+  },
+
+
+  /**
+   * move the screen right
+   * @private
+   */
+  _moveRight : function(event) {
+    this._highlightUIElement("UI_right");
+    this.xIncrement = -this.constants.keyboardNavigation.xMovementSpeed;
+    this.start(); // if there is no node movement, the calculation wont be done
+    this._preventDefault(event);
+  },
+
+
+  /**
+   * Zoom in, using the same method as the movement.
+   * @private
+   */
+  _zoomIn : function(event) {
+    this._highlightUIElement("UI_plus");
+    this.zoomIncrement = this.constants.keyboardNavigation.zoomMovementSpeed;
+    this.start(); // if there is no node movement, the calculation wont be done
+    this._preventDefault(event);
+  },
+
+
+  /**
+   * Zoom out
+   * @private
+   */
+  _zoomOut : function() {
+    this._highlightUIElement("UI_min");
+    this.zoomIncrement = -this.constants.keyboardNavigation.zoomMovementSpeed;
+    this.start(); // if there is no node movement, the calculation wont be done
+    this._preventDefault(event);
+  },
+
+
+  /**
+   * Stop zooming and unhighlight the zoom controls
+   * @private
+   */
+  _stopZoom : function() {
+    this._unHighlightUIElement("UI_plus");
+    this._unHighlightUIElement("UI_min");
+
+    this.zoomIncrement = 0;
+  },
+
+
+  /**
+   * Stop moving in the Y direction and unHighlight the up and down
+   * @private
+   */
+  _yStopMoving : function() {
+    this._unHighlightUIElement("UI_up");
+    this._unHighlightUIElement("UI_down");
+
+    this.yIncrement = 0;
+  },
+
+
+  /**
+   * Stop moving in the X direction and unHighlight left and right.
+   * @private
+   */
+  _xStopMoving : function() {
+    this._unHighlightUIElement("UI_left");
+    this._unHighlightUIElement("UI_right");
+
+    this.xIncrement = 0;
+  }
+
+
+};
+
+/**
  * @constructor Graph
  * Create a graph visualization, displaying nodes and edges.
  *
@@ -10180,9 +12923,13 @@ function Graph (container, data, options) {
   this.containerElement = container;
   this.width = '100%';
   this.height = '100%';
-  this.refreshRate = 50; // milliseconds
+  // to give everything a nice fluidity, we seperate the rendering and calculating of the forces
+  this.renderRefreshRate = 60; // hz (fps)
+  this.renderTimestep = 1000 / this.renderRefreshRate; // ms -- saves calculation later on
   this.stabilize = true; // stabilize before displaying the graph
   this.selectable = true;
+
+  this.forceFactor = 50000;
 
   // set constant values
   this.constants = {
@@ -10200,8 +12947,8 @@ function Graph (container, data, options) {
       //fontFace: verdana,
       fontFace: 'arial',
       color: {
-        border: '#2B7CE9',
-        background: '#97C2FC',
+          border: '#2B7CE9',
+          background: '#97C2FC',
         highlight: {
           border: '#2B7CE9',
           background: '#D2E5FF'
@@ -10229,14 +12976,90 @@ function Graph (container, data, options) {
         altLength: undefined
       }
     },
-    minForce: 0.05,
-    minVelocity: 0.02,   // px/s
+    clustering: {                   // Per Node in Cluster = PNiC
+      enabled: false,               // (Boolean)             | global on/off switch for clustering.
+      initialMaxNumberOfNodes: 100, // (# nodes)             | if the initial amount of nodes is larger than this, we cluster until the total number is less than this threshold.
+      absoluteMaxNumberOfNodes:500, // (# nodes)             | during calculate forces, we check if the total number of nodes is larger than this. If it is, cluster until reduced to reduceToMaxNumberOfNodes
+      reduceToMaxNumberOfNodes:300, // (# nodes)             | during calculate forces, we check if the total number of nodes is larger than absoluteMaxNumberOfNodes. If it is, cluster until reduced to this
+      chainThreshold: 0.4,          // (% of all drawn nodes)| maximum percentage of allowed chainnodes (long strings of connected nodes) within all nodes. (lower means less chains).
+      clusterEdgeThreshold: 20,     // (px)                  | edge length threshold. if smaller, this node is clustered.
+      sectorThreshold: 50,          // (# nodes in cluster)  | cluster size threshold. If larger, expanding in own sector.
+      screenSizeThreshold: 0.2,     // (% of canvas)         | relative size threshold. If the width or height of a clusternode takes up this much of the screen, decluster node.
+      fontSizeMultiplier: 4.0,      // (px PNiC)             | how much the cluster font size grows per node in cluster (in px).
+      forceAmplification: 0.6,      // (multiplier PNiC)     | factor of increase fo the repulsion force of a cluster (per node in cluster).
+      distanceAmplification: 0.2,   // (multiplier PNiC)     | factor how much the repulsion distance of a cluster increases (per node in cluster).
+      edgeGrowth: 11,               // (px PNiC)             | amount of clusterSize connected to the edge is multiplied with this and added to edgeLength.
+      clusterSizeWidthFactor:  10,  // (px PNiC)             | growth of the width  per node in cluster.
+      clusterSizeHeightFactor: 10,  // (px PNiC)             | growth of the height per node in cluster.
+      clusterSizeRadiusFactor: 10,  // (px PNiC)             | growth of the radius per node in cluster.
+      activeAreaBoxSize: 100,       // (px)                  | box area around the curser where clusters are popped open.
+      massTransferCoefficient: 1    // (multiplier)          | parent.mass += massTransferCoefficient * child.mass
+    },
+    navigationUI: {
+      enabled: false,
+      initiallyVisible: true,
+      enableToggling: true,
+      iconPath: this._getIconURL()
+    },
+    keyboardNavigation: {
+      enabled: false,
+      xMovementSpeed: 10,
+      yMovementSpeed: 10,
+      zoomMovementSpeed: 0.02
+    },
+    minVelocity: 1.0,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
   };
 
+  // Node variables
+  this.groups = new Groups(); // object with groups
+  this.images = new Images(); // object with images
+  this.images.setOnloadCallback(function () {
+    graph._redraw();
+  });
+
+  // navigationUI variables
+  this.UIvisible = this.constants.navigationUI.initiallyVisible;
+  this.xIncrement = 0;
+  this.yIncrement = 0;
+  this.zoomIncrement = 0;
+
+  // create a frame and canvas
+  this._create();
+
+  // apply options
+  this.setOptions(options);
+
+  // load the cluster system.   (mandatory, even when not using the cluster system, there are function calls to it)
+  this._loadClusterSystem();
+
+  // load the sector system.    (mandatory, fully integrated with Graph)
+  this._loadSectorSystem();
+
+  // load the selection system. (mandatory, required by Graph)
+  this._loadSelectionSystem();
+
+  // load the navigationUI system.        (mandatory, few function calls even when navigationUI is disabled (in this.setSize)
+  this._loadUISystem();
+
+  // bind keys. If disabled, this will not do anything;
+  this._createKeyBinds();
+
+  // other vars
   var graph = this;
-  this.nodes = {};            // object with Node objects
-  this.edges = {};            // object with Edge objects
+  this.freezeSimulation = false;// freeze the simulation
+
+  this.nodeIndices = [];        // array with all the indices of the nodes. Used to speed up forces calculation
+  this.nodes = {};              // object with Node objects
+  this.edges = {};              // object with Edge objects
+
+  this.canvasTopLeft     = {"x": 0,"y": 0};   // coordinates of the top left of the canvas.     they will be set during _redraw.
+  this.canvasBottomRight = {"x": 0,"y": 0};   // coordinates of the bottom right of the canvas. they will be set during _redraw
+
+  this.areaCenter = {};               // object with x and y elements used for determining the center of the zoom action
+  this.scale = 1;                     // defining the global scale variable in the constructor
+  this.previousScale = this.scale;    // this is used to check if the zoom operation is zooming in or out
+  this.lastPointerPosition = {"x": 0,"y": 0}; // this is used for keyboard navigation
   // TODO: create a counter to keep track on the number of nodes having values
   // TODO: create a counter to keep track on the number of nodes currently moving
   // TODO: create a counter to keep track on the number of edges having values
@@ -10275,38 +13098,162 @@ function Graph (container, data, options) {
     }
   };
 
-  this.groups = new Groups(); // object with groups
-  this.images = new Images(); // object with images
-  this.images.setOnloadCallback(function () {
-    graph._redraw();
-  });
-
   // properties of the data
   this.moving = false;    // True if any of the nodes have an undefined position
-
-  this.selection = [];
   this.timer = undefined;
 
-  // create a frame and canvas
-  this._create();
+  // load data (the disable start variable will be the same as the enabled clustering)
+  this.setData(data,this.constants.clustering.enabled);
 
-  // apply options
-  this.setOptions(options);
+  // zoom so all data will fit on the screen
+  this.zoomToFit(true);
 
-  // draw data
-  this.setData(data);
+  // if clustering is disabled, the simulation will have started in the setData function
+  if (this.constants.clustering.enabled) {
+    this.startWithClustering();
+  }
 }
+
+/**
+ * get the URL where the UI icons are located
+ *
+ * @returns {string}
+ * @private
+ */
+Graph.prototype._getIconURL = function() {
+  var scripts = document.getElementsByTagName( 'script' );
+  var scriptNamePosition, srcPosition, imagePath;
+  for (var i = 0; i < scripts.length; i++) {
+    srcPosition = scripts[i].outerHTML.search("src");
+    if (srcPosition != -1) {
+      scriptNamePosition = util._getLowestPositiveNumber(scripts[i].outerHTML.search("vis.js"),
+                                                  scripts[i].outerHTML.search("vis.min.js"));
+      if (scriptNamePosition != -1) {
+        imagePath = scripts[i].outerHTML.substring(srcPosition+5,scriptNamePosition).concat("UI_icons/");
+        return imagePath;
+      }
+    }
+  }
+};
+
+
+/**
+ * Find the center position of the graph
+ * @private
+ */
+Graph.prototype._getRange = function() {
+  var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
+  for (var i = 0; i < this.nodeIndices.length; i++) {
+    node = this.nodes[this.nodeIndices[i]];
+    if (minX > (node.x - node.width)) {minX = node.x - node.width;}
+    if (maxX < (node.x + node.width)) {maxX = node.x + node.width;}
+    if (minY > (node.y - node.height)) {minY = node.y - node.height;}
+    if (maxY < (node.y + node.height)) {maxY = node.y + node.height;}
+  }
+  return {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
+};
+
+
+/**
+ * @param {object} range = {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
+ * @returns {{x: number, y: number}}
+ * @private
+ */
+Graph.prototype._findCenter = function(range) {
+  var center = {x: (0.5 * (range.maxX + range.minX)),
+                y: (0.5 * (range.maxY + range.minY))};
+  return center;
+};
+
+
+/**
+ * center the graph
+ *
+ * @param {object} range = {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
+ */
+Graph.prototype._centerGraph = function(range) {
+  var center = this._findCenter(range);
+
+  center.x *= this.scale;
+  center.y *= this.scale;
+  center.x -= 0.5 * this.frame.canvas.clientWidth;
+  center.y -= 0.5 * this.frame.canvas.clientHeight;
+
+  this._setTranslation(-center.x,-center.y); // set at 0,0
+};
+
+
+/**
+ * This function zooms out to fit all data on screen based on amount of nodes
+ *
+ * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
+ */
+Graph.prototype.zoomToFit = function(initialZoom) {
+  if (initialZoom === undefined) {
+    initialZoom = false;
+  }
+
+  var numberOfNodes = this.nodeIndices.length;
+  var range = this._getRange();
+
+  if (initialZoom == true) {
+    if (this.constants.clustering.enabled == true &&
+        numberOfNodes >= this.constants.clustering.initialMaxNumberOfNodes) {
+      var zoomLevel = 38.8467 / (numberOfNodes - 14.50184) + 0.0116; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+    }
+    else {
+      var zoomLevel = 42.54117319 / (numberOfNodes + 39.31966387) + 0.1944405; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+    }
+  }
+  else {
+    var xDistance = (Math.abs(range.minX) + Math.abs(range.maxX)) * 1.1;
+    var yDistance = (Math.abs(range.minY) + Math.abs(range.maxY)) * 1.1;
+
+    var xZoomLevel = this.frame.canvas.clientWidth / xDistance;
+    var yZoomLevel = this.frame.canvas.clientHeight / yDistance;
+
+    zoomLevel = (xZoomLevel <= yZoomLevel) ? xZoomLevel : yZoomLevel;
+  }
+
+  if (zoomLevel > 1.0) {
+    zoomLevel = 1.0;
+  }
+
+  this.pinch.mousewheelScale = zoomLevel;
+  this._setScale(zoomLevel);
+  this._centerGraph(range);
+};
+
+
+/**
+ * Update the this.nodeIndices with the most recent node index list
+ * @private
+ */
+Graph.prototype._updateNodeIndexList = function() {
+  this._clearNodeIndexList();
+  for (var idx in this.nodes) {
+    if (this.nodes.hasOwnProperty(idx)) {
+      this.nodeIndices.push(idx);
+    }
+  }
+};
+
 
 /**
  * Set nodes and edges, and optionally options as well.
  *
- * @param {Object} data    Object containing parameters:
- *                         {Array | DataSet | DataView} [nodes] Array with nodes
- *                         {Array | DataSet | DataView} [edges] Array with edges
- *                         {String} [dot] String containing data in DOT format
- *                         {Options} [options] Object with options
+ * @param {Object} data              Object containing parameters:
+ *                                   {Array | DataSet | DataView} [nodes] Array with nodes
+ *                                   {Array | DataSet | DataView} [edges] Array with edges
+ *                                   {String} [dot] String containing data in DOT format
+ *                                   {Options} [options] Object with options
+ * @param {Boolean} [disableStart]   | optional: disable the calling of the start function.
  */
-Graph.prototype.setData = function(data) {
+Graph.prototype.setData = function(data, disableStart) {
+  if (disableStart === undefined) {
+    disableStart = false;
+  }
+
   if (data && data.dot && (data.nodes || data.edges)) {
     throw new SyntaxError('Data must contain either parameter "dot" or ' +
         ' parameter pair "nodes" and "edges", but not both.');
@@ -10329,11 +13276,15 @@ Graph.prototype.setData = function(data) {
     this._setEdges(data && data.edges);
   }
 
-  // find a stable position or start animating to a stable position
-  if (this.stabilize) {
-    this._doStabilize();
+  this._putDataInSector();
+
+  if (!disableStart) {
+    // find a stable position or start animating to a stable position
+    if (this.stabilize) {
+      this._doStabilize();
+    }
+    this.start();
   }
-  this.start();
 };
 
 /**
@@ -10343,21 +13294,46 @@ Graph.prototype.setData = function(data) {
 Graph.prototype.setOptions = function (options) {
   if (options) {
     // retrieve parameter values
-    if (options.width != undefined)           {this.width = options.width;}
-    if (options.height != undefined)          {this.height = options.height;}
-    if (options.stabilize != undefined)       {this.stabilize = options.stabilize;}
-    if (options.selectable != undefined)      {this.selectable = options.selectable;}
+    if (options.width !== undefined)           {this.width = options.width;}
+    if (options.height !== undefined)          {this.height = options.height;}
+    if (options.stabilize !== undefined)       {this.stabilize = options.stabilize;}
+    if (options.selectable !== undefined)      {this.selectable = options.selectable;}
+
+    if (options.clustering) {
+      for (var prop in options.clustering) {
+        if (options.clustering.hasOwnProperty(prop)) {
+          this.constants.clustering[prop] = options.clustering[prop];
+        }
+      }
+    }
+
+    if (options.navigationUI) {
+      for (var prop in options.navigationUI) {
+        if (options.navigationUI.hasOwnProperty(prop)) {
+          this.constants.navigationUI[prop] = options.navigationUI[prop];
+        }
+      }
+    }
+
+    if (options.keyboardNavigation) {
+      for (var prop in options.keyboardNavigation) {
+        if (options.keyboardNavigation.hasOwnProperty(prop)) {
+          this.constants.keyboardNavigation[prop] = options.keyboardNavigation[prop];
+        }
+      }
+    }
+
 
     // TODO: work out these options and document them
     if (options.edges) {
-      for (var prop in options.edges) {
+      for (prop in options.edges) {
         if (options.edges.hasOwnProperty(prop)) {
           this.constants.edges[prop] = options.edges[prop];
         }
       }
 
-      if (options.edges.length != undefined &&
-          options.nodes && options.nodes.distance == undefined) {
+      if (options.edges.length !== undefined &&
+          options.nodes && options.nodes.distance === undefined) {
         this.constants.edges.length   = options.edges.length;
         this.constants.nodes.distance = options.edges.length * 1.25;
       }
@@ -10370,13 +13346,13 @@ Graph.prototype.setOptions = function (options) {
       // David Jordan
       // 2012-08-08
       if (options.edges.dash) {
-        if (options.edges.dash.length != undefined) {
+        if (options.edges.dash.length !== undefined) {
           this.constants.edges.dash.length = options.edges.dash.length;
         }
-        if (options.edges.dash.gap != undefined) {
+        if (options.edges.dash.gap !== undefined) {
           this.constants.edges.dash.gap = options.edges.dash.gap;
         }
-        if (options.edges.dash.altLength != undefined) {
+        if (options.edges.dash.altLength !== undefined) {
           this.constants.edges.dash.altLength = options.edges.dash.altLength;
         }
       }
@@ -10398,7 +13374,6 @@ Graph.prototype.setOptions = function (options) {
        if (options.nodes.widthMax) this.constants.nodes.radiusMax = options.nodes.widthMax;
        */
     }
-
     if (options.groups) {
       for (var groupname in options.groups) {
         if (options.groups.hasOwnProperty(groupname)) {
@@ -10463,12 +13438,14 @@ Graph.prototype._create = function () {
     prevent_default: true
   });
   this.hammer.on('tap',       me._onTap.bind(me) );
+  this.hammer.on('doubletap', me._onDoubleTap.bind(me) );
   this.hammer.on('hold',      me._onHold.bind(me) );
   this.hammer.on('pinch',     me._onPinch.bind(me) );
   this.hammer.on('touch',     me._onTouch.bind(me) );
   this.hammer.on('dragstart', me._onDragStart.bind(me) );
   this.hammer.on('drag',      me._onDrag.bind(me) );
   this.hammer.on('dragend',   me._onDragEnd.bind(me) );
+  this.hammer.on('release',   me._onRelease.bind(me) );
   this.hammer.on('mousewheel',me._onMouseWheel.bind(me) );
   this.hammer.on('DOMMouseScroll',me._onMouseWheel.bind(me) ); // for FF
   this.hammer.on('mousemove', me._onMouseMoveTitle.bind(me) );
@@ -10477,29 +13454,51 @@ Graph.prototype._create = function () {
   this.containerElement.appendChild(this.frame);
 };
 
+
 /**
- *
- * @param {{x: Number, y: Number}} pointer
- * @return {Number | null} node
+ * Binding the keys for keyboard navigation. These functions are defined in the UIMixin
  * @private
  */
-Graph.prototype._getNodeAt = function (pointer) {
-  var x = this._canvasToX(pointer.x);
-  var y = this._canvasToY(pointer.y);
+Graph.prototype._createKeyBinds = function() {
+  var me = this;
+  this.mousetrap = mousetrap;
 
-  var obj = {
-    left:   x,
-    top:    y,
-    right:  x,
-    bottom: y
-  };
+  if (this.constants.navigationUI.enabled == true &&
+      this.constants.navigationUI.enableToggling == true) {
+    this.mousetrap.bind("u",this._toggleUI.bind(me)     , "keydown");
+  }
 
-  // if there are overlapping nodes, select the last one, this is the
-  // one which is drawn on top of the others
-  var overlappingNodes = this._getNodesOverlappingWith(obj);
-  return (overlappingNodes.length > 0) ?
-      overlappingNodes[overlappingNodes.length - 1] : null;
-};
+  if (this.constants.keyboardNavigation.enabled == true) {
+    this.mousetrap.bind("up",   this._moveUp.bind(me)   , "keydown");
+    this.mousetrap.bind("up",   this._yStopMoving.bind(me), "keyup");
+    this.mousetrap.bind("down", this._moveDown.bind(me) , "keydown");
+    this.mousetrap.bind("down", this._yStopMoving.bind(me), "keyup");
+    this.mousetrap.bind("left", this._moveLeft.bind(me) , "keydown");
+    this.mousetrap.bind("left", this._xStopMoving.bind(me), "keyup");
+    this.mousetrap.bind("right",this._moveRight.bind(me), "keydown");
+    this.mousetrap.bind("right",this._xStopMoving.bind(me), "keyup");
+    this.mousetrap.bind("=",    this._zoomIn.bind(me),    "keydown");
+    this.mousetrap.bind("=",    this._stopZoom.bind(me),    "keyup");
+    this.mousetrap.bind("-",    this._zoomOut.bind(me),   "keydown");
+    this.mousetrap.bind("-",    this._stopZoom.bind(me),    "keyup");
+    this.mousetrap.bind("[",    this._zoomIn.bind(me),    "keydown");
+    this.mousetrap.bind("[",    this._stopZoom.bind(me),    "keyup");
+    this.mousetrap.bind("]",    this._zoomOut.bind(me),   "keydown");
+    this.mousetrap.bind("]",    this._stopZoom.bind(me),    "keyup");
+    this.mousetrap.bind("pageup",this._zoomIn.bind(me),   "keydown");
+    this.mousetrap.bind("pageup",this._stopZoom.bind(me),   "keyup");
+    this.mousetrap.bind("pagedown",this._zoomOut.bind(me),"keydown");
+    this.mousetrap.bind("pagedown",this._stopZoom.bind(me), "keyup");
+  }
+  /*
+   this.mousetrap.bind("=",this.decreaseClusterLevel.bind(me));
+   this.mousetrap.bind("-",this.increaseClusterLevel.bind(me));
+   this.mousetrap.bind("s",this.singleStep.bind(me));
+   this.mousetrap.bind("h",this.updateClustersDefault.bind(me));
+   this.mousetrap.bind("c",this._collapseSector.bind(me));
+   this.mousetrap.bind("f",this.toggleFreeze.bind(me));
+   */
+}
 
 /**
  * Get the pointer location from a touch location
@@ -10523,6 +13522,8 @@ Graph.prototype._onTouch = function (event) {
   this.drag.pointer = this._getPointer(event.gesture.touches[0]);
   this.drag.pinched = false;
   this.pinch.scale = this._getScale();
+
+  this._handleTouch(this.drag.pointer);
 };
 
 /**
@@ -10531,17 +13532,18 @@ Graph.prototype._onTouch = function (event) {
  */
 Graph.prototype._onDragStart = function () {
   var drag = this.drag;
+  var node = this._getNodeAt(drag.pointer);
+  // note: drag.pointer is set in _onTouch to get the initial touch location
 
   drag.selection = [];
   drag.translation = this._getTranslation();
-  drag.nodeId = this._getNodeAt(drag.pointer);
-  // note: drag.pointer is set in _onTouch to get the initial touch location
+  drag.nodeId = null;
 
-  var node = this.nodes[drag.nodeId];
-  if (node) {
+  if (node != null) {
+    drag.nodeId = node.id;
     // select the clicked node if not yet selected
     if (!node.isSelected()) {
-      this._selectNodes([drag.nodeId]);
+      this._selectNode(node,false);
     }
 
     // create an array with the selected nodes and their original location and status
@@ -10566,7 +13568,6 @@ Graph.prototype._onDragStart = function () {
         drag.selection.push(s);
       }
     });
-
   }
 };
 
@@ -10617,7 +13618,6 @@ Graph.prototype._onDrag = function (event) {
         this.drag.translation.x + diffX,
         this.drag.translation.y + diffY);
     this._redraw();
-
     this.moved = true;
   }
 };
@@ -10643,23 +13643,20 @@ Graph.prototype._onDragEnd = function () {
  */
 Graph.prototype._onTap = function (event) {
   var pointer = this._getPointer(event.gesture.touches[0]);
-
-  var nodeId = this._getNodeAt(pointer);
-  var node = this.nodes[nodeId];
-  if (node) {
-    // select this node
-    this._selectNodes([nodeId]);
-
-    if (!this.moving) {
-      this._redraw();
-    }
-  }
-  else {
-    // remove selection
-    this._unselectNodes();
-    this._redraw();
-  }
+  this._handleTap(pointer);
 };
+
+
+/**
+ * handle doubletap event
+ * @private
+ */
+Graph.prototype._onDoubleTap = function (event) {
+  var pointer = this._getPointer(event.gesture.touches[0]);
+  this._handleDoubleTap(pointer);
+
+};
+
 
 /**
  * handle long tap event: multi select nodes
@@ -10667,25 +13664,17 @@ Graph.prototype._onTap = function (event) {
  */
 Graph.prototype._onHold = function (event) {
   var pointer = this._getPointer(event.gesture.touches[0]);
-  var nodeId = this._getNodeAt(pointer);
-  var node = this.nodes[nodeId];
-  if (node) {
-    if (!node.isSelected()) {
-      // select this node, keep previous selection
-      var append = true;
-      this._selectNodes([nodeId], append);
-    }
-    else {
-      this._unselectNodes([nodeId]);
-    }
+  this._handleOnHold(pointer);
+};
 
-    if (!this.moving) {
-      this._redraw();
-    }
-  }
-  else {
-    // Do nothing
-  }
+/**
+ * handle the release of the screen
+ *
+ * @param event
+ * @private
+ */
+Graph.prototype._onRelease = function (event) {
+  this._handleOnRelease();
 };
 
 /**
@@ -10701,7 +13690,7 @@ Graph.prototype._onPinch = function (event) {
     this.pinch.scale = 1;
   }
 
-  // TODO: enable moving while pinching?
+  // TODO: enabled moving while pinching?
   var scale = this.pinch.scale * event.gesture.scale;
   this._zoom(scale, pointer)
 };
@@ -10715,20 +13704,28 @@ Graph.prototype._onPinch = function (event) {
  */
 Graph.prototype._zoom = function(scale, pointer) {
   var scaleOld = this._getScale();
-  if (scale < 0.01) {
-    scale = 0.01;
+  if (scale < 0.00001) {
+    scale = 0.00001;
   }
   if (scale > 10) {
     scale = 10;
   }
-
+// + this.frame.canvas.clientHeight / 2
   var translation = this._getTranslation();
+
   var scaleFrac = scale / scaleOld;
   var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
   var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
 
+  this.areaCenter = {"x" : this._canvasToX(pointer.x),
+                     "y" : this._canvasToY(pointer.y)};
+
+ // this.areaCenter = {"x" : pointer.x,"y" : pointer.y };
+//  console.log(translation.x,translation.y,pointer.x,pointer.y,scale);
+  this.pinch.mousewheelScale = scale;
   this._setScale(scale);
   this._setTranslation(tx, ty);
+  this.updateClustersDefault();
   this._redraw();
 
   return scale;
@@ -10756,12 +13753,12 @@ Graph.prototype._onMouseWheel = function(event) {
   // Basically, delta is now positive if wheel was scrolled up,
   // and negative, if wheel was scrolled down.
   if (delta) {
-    if (!('mouswheelScale' in this.pinch)) {
-      this.pinch.mouswheelScale = 1;
+    if (!('mousewheelScale' in this.pinch)) {
+      this.pinch.mousewheelScale = 1;
     }
 
     // calculate the new scale
-    var scale = this.pinch.mouswheelScale;
+    var scale = this.pinch.mousewheelScale;
     var zoom = delta / 10;
     if (delta < 0) {
       zoom = zoom / (1 - zoom);
@@ -10775,8 +13772,8 @@ Graph.prototype._onMouseWheel = function(event) {
     // apply the new scale
     scale = this._zoom(scale, pointer);
 
-    // store the new, applied scale
-    this.pinch.mouswheelScale = scale;
+    // store the new, applied scale -- this is now done in _zoom
+//    this.pinch.mousewheelScale = scale;
   }
 
   // Prevent default actions caused by mouse wheel.
@@ -10793,6 +13790,8 @@ Graph.prototype._onMouseMoveTitle = function (event) {
   var gesture = util.fakeGesture(this, event);
   var pointer = this._getPointer(gesture.center);
 
+  this.lastPointerPosition = pointer;
+
   // check if the previously selected node is still selected
   if (this.popupNode) {
     this._checkHidePopup(pointer);
@@ -10805,7 +13804,7 @@ Graph.prototype._onMouseMoveTitle = function (event) {
     me._checkShowPopup(pointer);
   };
   if (this.popupTimer) {
-    clearInterval(this.popupTimer); // stop any running timer
+    clearInterval(this.popupTimer); // stop any running calculationTimer
   }
   if (!this.leftButtonDown) {
     this.popupTimer = setTimeout(checkShow, 300);
@@ -10837,7 +13836,7 @@ Graph.prototype._checkShowPopup = function (pointer) {
     for (id in nodes) {
       if (nodes.hasOwnProperty(id)) {
         var node = nodes[id];
-        if (node.getTitle() != undefined && node.isOverlappingWith(obj)) {
+        if (node.getTitle() !== undefined && node.isOverlappingWith(obj)) {
           this.popupNode = node;
           break;
         }
@@ -10845,13 +13844,13 @@ Graph.prototype._checkShowPopup = function (pointer) {
     }
   }
 
-  if (this.popupNode == undefined) {
+  if (this.popupNode === undefined) {
     // search the edges for overlap
     var edges = this.edges;
     for (id in edges) {
       if (edges.hasOwnProperty(id)) {
         var edge = edges[id];
-        if (edge.connected && (edge.getTitle() != undefined) &&
+        if (edge.connected && (edge.getTitle() !== undefined) &&
             edge.isOverlappingWith(obj)) {
           this.popupNode = edge;
           break;
@@ -10898,191 +13897,6 @@ Graph.prototype._checkHidePopup = function (pointer) {
   }
 };
 
-/**
- * Unselect selected nodes. If no selection array is provided, all nodes
- * are unselected
- * @param {Object[]} selection     Array with selection objects, each selection
- *                                 object has a parameter row. Optional
- * @param {Boolean} triggerSelect  If true (default), the select event
- *                                 is triggered when nodes are unselected
- * @return {Boolean} changed       True if the selection is changed
- * @private
- */
-Graph.prototype._unselectNodes = function(selection, triggerSelect) {
-  var changed = false;
-  var i, iMax, id;
-
-  if (selection) {
-    // remove provided selections
-    for (i = 0, iMax = selection.length; i < iMax; i++) {
-      id = selection[i];
-      this.nodes[id].unselect();
-
-      var j = 0;
-      while (j < this.selection.length) {
-        if (this.selection[j] == id) {
-          this.selection.splice(j, 1);
-          changed = true;
-        }
-        else {
-          j++;
-        }
-      }
-    }
-  }
-  else if (this.selection && this.selection.length) {
-    // remove all selections
-    for (i = 0, iMax = this.selection.length; i < iMax; i++) {
-      id = this.selection[i];
-      this.nodes[id].unselect();
-      changed = true;
-    }
-    this.selection = [];
-  }
-
-  if (changed && (triggerSelect == true || triggerSelect == undefined)) {
-    // fire the select event
-    this._trigger('select');
-  }
-
-  return changed;
-};
-
-/**
- * select all nodes on given location x, y
- * @param {Array} selection   an array with node ids
- * @param {boolean} append    If true, the new selection will be appended to the
- *                            current selection (except for duplicate entries)
- * @return {Boolean} changed  True if the selection is changed
- * @private
- */
-Graph.prototype._selectNodes = function(selection, append) {
-  var changed = false;
-  var i, iMax;
-
-  // TODO: the selectNodes method is a little messy, rework this
-
-  // check if the current selection equals the desired selection
-  var selectionAlreadyThere = true;
-  if (selection.length != this.selection.length) {
-    selectionAlreadyThere = false;
-  }
-  else {
-    for (i = 0, iMax = Math.min(selection.length, this.selection.length); i < iMax; i++) {
-      if (selection[i] != this.selection[i]) {
-        selectionAlreadyThere = false;
-        break;
-      }
-    }
-  }
-  if (selectionAlreadyThere) {
-    return changed;
-  }
-
-  if (append == undefined || append == false) {
-    // first deselect any selected node
-    var triggerSelect = false;
-    changed = this._unselectNodes(undefined, triggerSelect);
-  }
-
-  for (i = 0, iMax = selection.length; i < iMax; i++) {
-    // add each of the new selections, but only when they are not duplicate
-    var id = selection[i];
-    var isDuplicate = (this.selection.indexOf(id) != -1);
-    if (!isDuplicate) {
-      this.nodes[id].select();
-      this.selection.push(id);
-      changed = true;
-    }
-  }
-
-  if (changed) {
-    // fire the select event
-    this._trigger('select');
-  }
-
-  return changed;
-};
-
-/**
- * retrieve all nodes overlapping with given object
- * @param {Object} obj  An object with parameters left, top, right, bottom
- * @return {Number[]}   An array with id's of the overlapping nodes
- * @private
- */
-Graph.prototype._getNodesOverlappingWith = function (obj) {
-  var nodes = this.nodes,
-      overlappingNodes = [];
-
-  for (var id in nodes) {
-    if (nodes.hasOwnProperty(id)) {
-      if (nodes[id].isOverlappingWith(obj)) {
-        overlappingNodes.push(id);
-      }
-    }
-  }
-
-  return overlappingNodes;
-};
-
-/**
- * retrieve the currently selected nodes
- * @return {Number[] | String[]} selection    An array with the ids of the
- *                                            selected nodes.
- */
-Graph.prototype.getSelection = function() {
-  return this.selection.concat([]);
-};
-
-/**
- * select zero or more nodes
- * @param {Number[] | String[]} selection     An array with the ids of the
- *                                            selected nodes.
- */
-Graph.prototype.setSelection = function(selection) {
-  var i, iMax, id;
-
-  if (!selection || (selection.length == undefined))
-    throw 'Selection must be an array with ids';
-
-  // first unselect any selected node
-  for (i = 0, iMax = this.selection.length; i < iMax; i++) {
-    id = this.selection[i];
-    this.nodes[id].unselect();
-  }
-
-  this.selection = [];
-
-  for (i = 0, iMax = selection.length; i < iMax; i++) {
-    id = selection[i];
-
-    var node = this.nodes[id];
-    if (!node) {
-      throw new RangeError('Node with id "' + id + '" not found');
-    }
-    node.select();
-    this.selection.push(id);
-  }
-
-  this.redraw();
-};
-
-/**
- * Validate the selection: remove ids of nodes which no longer exist
- * @private
- */
-Graph.prototype._updateSelection = function () {
-  var i = 0;
-  while (i < this.selection.length) {
-    var id = this.selection[i];
-    if (!this.nodes[id]) {
-      this.selection.splice(i, 1);
-    }
-    else {
-      i++;
-    }
-  }
-};
 
 /**
  * Temporary method to test calculating a hub value for the nodes
@@ -11163,7 +13977,6 @@ Graph.prototype._getConnectionCount = function(level) {
   return hubs;
 };
 
-
 /**
  * Set a new size for the graph
  * @param {string} width   Width in pixels or percentage (for example '800px'
@@ -11180,6 +13993,10 @@ Graph.prototype.setSize = function(width, height) {
 
   this.frame.canvas.width = this.frame.canvas.clientWidth;
   this.frame.canvas.height = this.frame.canvas.clientHeight;
+
+  if (this.constants.navigationUI.enabled == true) {
+    this._relocateUI();
+  }
 };
 
 /**
@@ -11225,7 +14042,6 @@ Graph.prototype._setNodes = function(nodes) {
     var ids = this.nodesData.getIds();
     this._addNodes(ids);
   }
-
   this._updateSelection();
 };
 
@@ -11255,7 +14071,7 @@ Graph.prototype._addNodes = function(ids) {
       this.moving = true;
     }
   }
-
+  this._updateNodeIndexList();
   this._reconnectEdges();
   this._updateValueRange(this.nodes);
 };
@@ -11286,7 +14102,7 @@ Graph.prototype._updateNodes = function(ids) {
       }
     }
   }
-
+  this._updateNodeIndexList();
   this._reconnectEdges();
   this._updateValueRange(nodes);
 };
@@ -11302,7 +14118,7 @@ Graph.prototype._removeNodes = function(ids) {
     var id = ids[i];
     delete nodes[id];
   }
-
+  this._updateNodeIndexList();
   this._reconnectEdges();
   this._updateSelection();
   this._updateValueRange(nodes);
@@ -11364,6 +14180,7 @@ Graph.prototype._setEdges = function(edges) {
 Graph.prototype._addEdges = function (ids) {
   var edges = this.edges,
       edgesData = this.edgesData;
+
   for (var i = 0, len = ids.length; i < len; i++) {
     var id = ids[i];
 
@@ -11372,7 +14189,7 @@ Graph.prototype._addEdges = function (ids) {
       oldEdge.disconnect();
     }
 
-    var data = edgesData.get(id);
+    var data = edgesData.get(id, {"showInternalIds" : true});
     edges[id] = new Edge(data, this, this.constants);
   }
 
@@ -11515,11 +14332,21 @@ Graph.prototype._redraw = function() {
   ctx.translate(this.translation.x, this.translation.y);
   ctx.scale(this.scale, this.scale);
 
-  this._drawEdges(ctx);
-  this._drawNodes(ctx);
+  this.canvasTopLeft = {"x": this._canvasToX(0),
+                        "y": this._canvasToY(0)};
+  this.canvasBottomRight = {"x": this._canvasToX(this.frame.canvas.clientWidth),
+                            "y": this._canvasToY(this.frame.canvas.clientHeight)};
+
+  this._doInAllSectors("_drawAllSectorNodes",ctx);
+  this._doInAllSectors("_drawEdges",ctx);
+  this._doInAllSectors("_drawNodes",ctx);
 
   // restore original scaling and translation
   ctx.restore();
+
+  if (this.UIvisible == true) {
+    this._doInUISector("_drawNodes",ctx,true);
+  }
 };
 
 /**
@@ -11564,6 +14391,7 @@ Graph.prototype._getTranslation = function() {
 Graph.prototype._setScale = function(scale) {
   this.scale = scale;
 };
+
 /**
  * Get the current scale of  the graph
  * @return {Number} scale   Scaling factor 1.0 is unscaled
@@ -11617,26 +14445,37 @@ Graph.prototype._yToCanvas = function(y) {
  * Redraw all nodes
  * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
  * @param {CanvasRenderingContext2D}   ctx
+ * @param {Boolean} [alwaysShow]
  * @private
  */
-Graph.prototype._drawNodes = function(ctx) {
+Graph.prototype._drawNodes = function(ctx,alwaysShow) {
+  if (alwaysShow === undefined) {
+    alwaysShow = false;
+  }
+
   // first draw the unselected nodes
   var nodes = this.nodes;
   var selected = [];
+
   for (var id in nodes) {
     if (nodes.hasOwnProperty(id)) {
+      nodes[id].setScaleAndPos(this.scale,this.canvasTopLeft,this.canvasBottomRight);
       if (nodes[id].isSelected()) {
         selected.push(id);
       }
       else {
-        nodes[id].draw(ctx);
+        if (nodes[id].inArea() || alwaysShow) {
+          nodes[id].draw(ctx);
+        }
       }
     }
   }
 
   // draw the selected nodes on top
   for (var s = 0, sMax = selected.length; s < sMax; s++) {
-    nodes[selected[s]].draw(ctx);
+    if (nodes[selected[s]].inArea() || alwaysShow) {
+      nodes[selected[s]].draw(ctx);
+    }
   }
 };
 
@@ -11651,6 +14490,7 @@ Graph.prototype._drawEdges = function(ctx) {
   for (var id in edges) {
     if (edges.hasOwnProperty(id)) {
       var edge = edges[id];
+      edge.setScale(this.scale);
       if (edge.connected) {
         edges[id].draw(ctx);
       }
@@ -11663,23 +14503,48 @@ Graph.prototype._drawEdges = function(ctx) {
  * @private
  */
 Graph.prototype._doStabilize = function() {
-  var start = new Date();
+  //var start = new Date();
 
   // find stable position
   var count = 0;
   var vmin = this.constants.minVelocity;
   var stable = false;
   while (!stable && count < this.constants.maxIterations) {
-    this._calculateForces();
+    this._initializeForceCalculation();
     this._discreteStepNodes();
     stable = !this._isMoving(vmin);
     count++;
   }
+  this.zoomToFit();
 
-  var end = new Date();
+ // var end = new Date();
 
   // console.log('Stabilized in ' + (end-start) + ' ms, ' + count + ' iterations' ); // TODO: cleanup
 };
+
+
+/**
+ * Before calculating the forces, we check if we need to cluster to keep up performance and we check
+ * if there is more than one node. If it is just one node, we dont calculate anything.
+ *
+ * @private
+ */
+Graph.prototype._initializeForceCalculation = function() {
+  // stop calculation if there is only one node
+  if (this.nodeIndices.length == 1) {
+    this.nodes[this.nodeIndices[0]]._setForce(0,0);
+  }
+  else {
+    // if there are too many nodes on screen, we cluster without repositioning
+    if (this.nodeIndices.length > this.constants.clustering.absoluteMaxNumberOfNodes && this.constants.clustering.enabled == true) {
+      this.clusterToFit(this.constants.clustering.reduceToMaxNumberOfNodes, false);
+    }
+
+    // we now start the force calculation
+    this._calculateForces();
+  }
+};
+
 
 /**
  * Calculate the external forces acting on the nodes
@@ -11687,114 +14552,159 @@ Graph.prototype._doStabilize = function() {
  * @private
  */
 Graph.prototype._calculateForces = function() {
+  var screenCenterPos = {"x":(0.5*(this.canvasTopLeft.x + this.canvasBottomRight.x)),
+                         "y":(0.5*(this.canvasTopLeft.y + this.canvasBottomRight.y))}
   // create a local edge to the nodes and edges, that is faster
-  var id, dx, dy, angle, distance, fx, fy,
-      repulsingForce, springForce, length, edgeLength,
-      nodes = this.nodes,
-      edges = this.edges;
+  var dx, dy, angle, distance, fx, fy,
+    repulsingForce, springForce, length, edgeLength,
+    node, node1, node2, edge, edgeId, i, j, nodeId, xCenter, yCenter;
+  var clusterSize;
+  var nodes = this.nodes;
+  var edges = this.edges;
 
-  // gravity, add a small constant force to pull the nodes towards the center of
-  // the graph
-  // Also, the forces are reset to zero in this loop by using _setForce instead
+  // Gravity is required to keep separated groups from floating off
+  // the forces are reset to zero in this loop by using _setForce instead
   // of _addForce
-  var gravity = 0.01,
-      gx = this.frame.canvas.clientWidth / 2,
-      gy = this.frame.canvas.clientHeight / 2;
-  for (id in nodes) {
-    if (nodes.hasOwnProperty(id)) {
-      var node = nodes[id];
-      dx = gx - node.x;
-      dy = gy - node.y;
-      angle = Math.atan2(dy, dx);
-      fx = Math.cos(angle) * gravity;
-      fy = Math.sin(angle) * gravity;
+  var gravity = 0.10 * this.forceFactor;
+  for (i = 0; i < this.nodeIndices.length; i++) {
+      node = nodes[this.nodeIndices[i]];
+      // gravity does not apply when we are in a pocket sector
+      if (this._sector() == "default") {
+        dx = -node.x + screenCenterPos.x;
+        dy = -node.y + screenCenterPos.y;
 
+        angle = Math.atan2(dy, dx);
+        fx = Math.cos(angle) * gravity;
+        fy = Math.sin(angle) * gravity;
+      }
+      else {
+        fx = 0;
+        fy = 0;
+      }
       node._setForce(fx, fy);
-    }
+
+      node.updateDamping(this.nodeIndices.length);
   }
 
   // repulsing forces between nodes
   var minimumDistance = this.constants.nodes.distance,
       steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
 
-  for (var id1 in nodes) {
-    if (nodes.hasOwnProperty(id1)) {
-      var node1 = nodes[id1];
-      for (var id2 in nodes) {
-        if (nodes.hasOwnProperty(id2)) {
-          var node2 = nodes[id2];
-          // calculate normally distributed force
-          dx = node2.x - node1.x;
-          dy = node2.y - node1.y;
-          distance = Math.sqrt(dx * dx + dy * dy);
-          angle = Math.atan2(dy, dx);
 
+  // we loop from i over all but the last entree in the array
+  // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
+  for (i = 0; i < this.nodeIndices.length-1; i++) {
+    node1 = nodes[this.nodeIndices[i]];
+    for (j = i+1; j < this.nodeIndices.length; j++) {
+      node2 = nodes[this.nodeIndices[j]];
+      clusterSize = (node1.clusterSize + node2.clusterSize - 2);
+      dx = node2.x - node1.x;
+      dy = node2.y - node1.y;
+      distance = Math.sqrt(dx * dx + dy * dy);
+
+
+      // clusters have a larger region of influence
+      minimumDistance = (clusterSize == 0) ? this.constants.nodes.distance : (this.constants.nodes.distance * (1 + clusterSize * this.constants.clustering.distanceAmplification));
+      if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
+        angle = Math.atan2(dy, dx);
+
+        if (distance < 0.5*minimumDistance) { // at 0.5 * the minimum distance, the force is 0.993307
+          repulsingForce = 1.0;
+        }
+        else {
           // TODO: correct factor for repulsing force
           //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
           //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
           repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
-          fx = Math.cos(angle) * repulsingForce;
-          fy = Math.sin(angle) * repulsingForce;
+        }
+        // amplify the repulsion for clusters.
+        repulsingForce *= (clusterSize == 0) ? 1 : 1 + clusterSize * this.constants.clustering.forceAmplification;
+        repulsingForce *= this.forceFactor;
 
-          node1._addForce(-fx, -fy);
-          node2._addForce(fx, fy);
+
+        fx = Math.cos(angle) * repulsingForce;
+        fy = Math.sin(angle) * repulsingForce ;
+
+        node1._addForce(-fx, -fy);
+        node2._addForce(fx, fy);
+      }
+    }
+  }
+
+/*
+  // repulsion of the edges on the nodes and
+  for (var nodeId in nodes) {
+    if (nodes.hasOwnProperty(nodeId)) {
+      node = nodes[nodeId];
+      for(var edgeId in edges) {
+        if (edges.hasOwnProperty(edgeId)) {
+          edge = edges[edgeId];
+
+          // get the center of the edge
+          xCenter = edge.from.x+(edge.to.x - edge.from.x)/2;
+          yCenter = edge.from.y+(edge.to.y - edge.from.y)/2;
+
+          // calculate normally distributed force
+          dx = node.x - xCenter;
+          dy = node.y - yCenter;
+          distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
+            angle = Math.atan2(dy, dx);
+
+            if (distance < 0.5*minimumDistance) { // at 0.5 * the minimum distance, the force is 0.993307
+              repulsingForce = 1.0;
+            }
+            else {
+              // TODO: correct factor for repulsing force
+              //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
+              //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
+              repulsingForce = 1 / (1 + Math.exp((distance / (minimumDistance / 2) - 1) * steepness)); // TODO: customize the repulsing force
+            }
+            fx = Math.cos(angle) * repulsingForce;
+            fy = Math.sin(angle) * repulsingForce;
+            node._addForce(fx, fy);
+            edge.from._addForce(-fx/2,-fy/2);
+            edge.to._addForce(-fx/2,-fy/2);
+          }
         }
       }
     }
   }
-
-  /* TODO: re-implement repulsion of edges
-   for (var n = 0; n < nodes.length; n++) {
-   for (var l = 0; l < edges.length; l++) {
-   var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
-   ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
-
-   // calculate normally distributed force
-   dx = nodes[n].x - lx,
-   dy = nodes[n].y - ly,
-   distance = Math.sqrt(dx * dx + dy * dy),
-   angle = Math.atan2(dy, dx),
-
-
-   // TODO: correct factor for repulsing force
-   //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-   //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
-   repulsingforce = 1 / (1 + Math.exp((distance / (minimumDistance / 2) - 1) * steepness)), // TODO: customize the repulsing force
-   fx = Math.cos(angle) * repulsingforce,
-   fy = Math.sin(angle) * repulsingforce;
-   nodes[n]._addForce(fx, fy);
-   edges[l].from._addForce(-fx/2,-fy/2);
-   edges[l].to._addForce(-fx/2,-fy/2);
-   }
-   }
-   */
+*/
 
   // forces caused by the edges, modelled as springs
-  for (id in edges) {
-    if (edges.hasOwnProperty(id)) {
-      var edge = edges[id];
+  for (edgeId in edges) {
+    if (edges.hasOwnProperty(edgeId)) {
+      edge = edges[edgeId];
       if (edge.connected) {
-        dx = (edge.to.x - edge.from.x);
-        dy = (edge.to.y - edge.from.y);
-        //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
-        //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length; // TODO: dmin
-        //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2;
-        edgeLength = edge.length;
-        length =  Math.sqrt(dx * dx + dy * dy);
-        angle = Math.atan2(dy, dx);
+        // only calculate forces if nodes are in the same sector
+        if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+          clusterSize = (edge.to.clusterSize + edge.from.clusterSize - 2);
+          dx = (edge.to.x - edge.from.x);
+          dy = (edge.to.y - edge.from.y);
+          //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
+          //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length; // TODO: dmin
+          //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2;
+          edgeLength = edge.length;
+          // this implies that the edges between big clusters are longer
+          edgeLength += clusterSize * this.constants.clustering.edgeGrowth;
+          length =  Math.sqrt(dx * dx + dy * dy);
+          angle = Math.atan2(dy, dx);
 
-        springForce = edge.stiffness * (edgeLength - length);
+          springForce = edge.stiffness * (edgeLength - length) * this.forceFactor;
 
-        fx = Math.cos(angle) * springForce;
-        fy = Math.sin(angle) * springForce;
+          fx = Math.cos(angle) * springForce;
+          fy = Math.sin(angle) * springForce;
 
-        edge.from._addForce(-fx, -fy);
-        edge.to._addForce(fx, fy);
+          edge.from._addForce(-fx, -fy);
+          edge.to._addForce(fx, fy);
+        }
       }
     }
   }
+/*
+  // TODO: re-implement repulsion of edges
 
-  /* TODO: re-implement repulsion of edges
    // repulsing forces between edges
    var minimumDistance = this.constants.edges.distance,
    steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
@@ -11829,7 +14739,7 @@ Graph.prototype._calculateForces = function() {
    edges[l2].to._addForce(fx, fy);
    }
    }
-   */
+*/
 };
 
 
@@ -11840,10 +14750,10 @@ Graph.prototype._calculateForces = function() {
  * @private
  */
 Graph.prototype._isMoving = function(vmin) {
-  // TODO: ismoving does not work well: should check the kinetic energy, not its velocity
+  var vminCorrected = vmin / this.scale;
   var nodes = this.nodes;
   for (var id in nodes) {
-    if (nodes.hasOwnProperty(id) && nodes[id].isMoving(vmin)) {
+    if (nodes.hasOwnProperty(id) && nodes[id].isMoving(vminCorrected)) {
       return true;
     }
   }
@@ -11852,56 +14762,222 @@ Graph.prototype._isMoving = function(vmin) {
 
 
 /**
+ * /**
  * Perform one discrete step for all nodes
+ *
+ * @param interval
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = this.refreshRate / 1000.0; // in seconds
+  var interval = 0.010;
   var nodes = this.nodes;
   for (var id in nodes) {
     if (nodes.hasOwnProperty(id)) {
       nodes[id].discreteStep(interval);
     }
   }
+
+  var vmin = this.constants.minVelocity;
+  this.moving = this._isMoving(vmin);
 };
+
+
 
 /**
  * Start animating nodes and edges
+ *
+ * @poram {Boolean} runCalculationStep
  */
 Graph.prototype.start = function() {
+  if (!this.freezeSimulation) {
+
+    if (this.moving) {
+      this._doInAllActiveSectors("_initializeForceCalculation");
+      this._doInAllActiveSectors("_discreteStepNodes");
+
+      this._findCenter(this._getRange())
+    }
+
+    if (this.moving || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0) {
+      // start animation. only start calculationTimer if it is not already running
+      if (!this.timer) {
+        var graph = this;
+        this.timer = window.setTimeout(function () {
+          graph.timer = undefined;
+
+          // keyboad movement
+          if (graph.xIncrement != 0 || graph.yIncrement != 0) {
+            var translation = graph._getTranslation();
+            graph._setTranslation(translation.x+graph.xIncrement,translation.y+graph.yIncrement);
+          }
+          if (graph.zoomIncrement != 0) {
+            graph._zoom(graph.scale*(1 + graph.zoomIncrement),graph.lastPointerPosition);
+          }
+
+          graph.start();
+          graph._redraw();
+
+
+          //this.end = window.performance.now();
+          //this.time = this.end - this.startTime;
+          //console.log('refresh time: ' + this.time);
+          //this.startTime = window.performance.now();
+
+        }, this.renderTimestep);
+      }
+    }
+    else {
+      this._redraw();
+    }
+  }
+};
+
+
+
+
+Graph.prototype.singleStep = function() {
   if (this.moving) {
-    this._calculateForces();
+    this._initializeForceCalculation();
     this._discreteStepNodes();
 
     var vmin = this.constants.minVelocity;
     this.moving = this._isMoving(vmin);
-  }
-
-  if (this.moving) {
-    // start animation. only start timer if it is not already running
-    if (!this.timer) {
-      var graph = this;
-      this.timer = window.setTimeout(function () {
-        graph.timer = undefined;
-        graph.start();
-        graph._redraw();
-      }, this.refreshRate);
-    }
-  }
-  else {
     this._redraw();
   }
 };
 
+
+
 /**
- * Stop animating nodes and edges.
+ *  Freeze the animation
  */
-Graph.prototype.stop = function () {
-  if (this.timer) {
-    window.clearInterval(this.timer);
-    this.timer = undefined;
+Graph.prototype.toggleFreeze = function() {
+  if (this.freezeSimulation == false) {
+    this.freezeSimulation = true;
+  }
+  else {
+    this.freezeSimulation = false;
+    this.start();
   }
 };
+
+/**
+ * Mixin the cluster system and initialize the parameters required.
+ *
+ * @private
+ */
+Graph.prototype._loadClusterSystem = function() {
+  this.clusterSession = 0;
+  this.hubThreshold = 5;
+
+  for (var mixinFunction in ClusterMixin) {
+    if (ClusterMixin.hasOwnProperty(mixinFunction)) {
+      Graph.prototype[mixinFunction] = ClusterMixin[mixinFunction];
+    }
+  }
+}
+
+/**
+ * Mixin the sector system and initialize the parameters required
+ *
+ * @private
+ */
+Graph.prototype._loadSectorSystem = function() {
+  this.sectors = {};
+  this.activeSector = ["default"];
+  this.sectors["active"] = {};
+  this.sectors["active"]["default"] = {"nodes":{},
+                                       "edges":{},
+                                       "nodeIndices":[],
+                                       "formationScale": 1.0,
+                                       "drawingNode": undefined};
+  this.sectors["frozen"] = {};
+  this.sectors["navigationUI"] = {"nodes":{},
+                        "edges":{},
+                        "nodeIndices":[],
+                        "formationScale": 1.0,
+                        "drawingNode": undefined};
+
+  this.nodeIndices = this.sectors["active"]["default"]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
+  for (var mixinFunction in SectorMixin) {
+    if (SectorMixin.hasOwnProperty(mixinFunction)) {
+      Graph.prototype[mixinFunction] = SectorMixin[mixinFunction];
+    }
+  }
+};
+
+
+/**
+ * Mixin the selection system and initialize the parameters required
+ *
+ * @private
+ */
+Graph.prototype._loadSelectionSystem = function() {
+  this.selection = [];
+  this.selectionObj = {};
+
+  for (var mixinFunction in SelectionMixin) {
+    if (SelectionMixin.hasOwnProperty(mixinFunction)) {
+      Graph.prototype[mixinFunction] = SelectionMixin[mixinFunction];
+    }
+  }
+}
+
+
+/**
+ * Mixin the navigationUI (User Interface) system and initialize the parameters required
+ *
+ * @private
+ */
+Graph.prototype._loadUISystem = function() {
+  for (var mixinFunction in UIMixin) {
+    if (UIMixin.hasOwnProperty(mixinFunction)) {
+      Graph.prototype[mixinFunction] = UIMixin[mixinFunction];
+    }
+  }
+
+  if (this.constants.navigationUI.enabled == true) {
+    this._loadUIElements();
+  }
+}
+
+/**
+ * this function exists to avoid errors when not loading the navigationUI system
+ */
+Graph.prototype._relocateUI = function() {
+  // empty, is overloaded by navigationUI system
+}
+
+/**
+ * * this function exists to avoid errors when not loading the navigationUI system
+ */
+Graph.prototype._unHighlightAll = function() {
+  // empty, is overloaded by the navigationUI system
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * vis.js module exports
@@ -11973,7 +15049,7 @@ if (typeof window !== 'undefined') {
 }
 
 
-},{"hammerjs":2,"moment":3}],2:[function(require,module,exports){
+},{"hammerjs":2,"moment":3,"mousetrap":4}],2:[function(require,module,exports){
 /*! Hammer.JS - v1.0.5 - 2013-04-07
  * http://eightmedia.github.com/hammer.js
  *
@@ -13397,7 +16473,7 @@ else {
 })(this);
 },{}],3:[function(require,module,exports){
 //! moment.js
-//! version : 2.5.0
+//! version : 2.5.1
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
@@ -13409,7 +16485,7 @@ else {
     ************************************/
 
     var moment,
-        VERSION = "2.5.0",
+        VERSION = "2.5.1",
         global = this,
         round = Math.round,
         i,
@@ -13424,6 +16500,19 @@ else {
 
         // internal storage for language config files
         languages = {},
+
+        // moment internal properties
+        momentProperties = {
+            _isAMomentObject: null,
+            _i : null,
+            _f : null,
+            _l : null,
+            _strict : null,
+            _isUTC : null,
+            _offset : null,  // optional. Combine with _isUTC
+            _pf : null,
+            _lang : null  // optional
+        },
 
         // check for nodeJS
         hasModule = (typeof module !== 'undefined' && module.exports && typeof require !== 'undefined'),
@@ -13456,19 +16545,21 @@ else {
         parseTokenTwoDigits = /\d\d/, // 00 - 99
         parseTokenThreeDigits = /\d{3}/, // 000 - 999
         parseTokenFourDigits = /\d{4}/, // 0000 - 9999
-        parseTokenSixDigits = /[+\-]?\d{6}/, // -999,999 - 999,999
+        parseTokenSixDigits = /[+-]?\d{6}/, // -999,999 - 999,999
+        parseTokenSignedNumber = /[+-]?\d+/, // -inf - inf
 
         // iso 8601 regex
         // 0000-00-00 0000-W00 or 0000-W00-0 + T + 00 or 00:00 or 00:00:00 or 00:00:00.000 + +00:00 or +0000 or +00)
-        isoRegex = /^\s*\d{4}-(?:(\d\d-\d\d)|(W\d\d$)|(W\d\d-\d)|(\d\d\d))((T| )(\d\d(:\d\d(:\d\d(\.\d+)?)?)?)?([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/,
+        isoRegex = /^\s*(?:[+-]\d{6}|\d{4})-(?:(\d\d-\d\d)|(W\d\d$)|(W\d\d-\d)|(\d\d\d))((T| )(\d\d(:\d\d(:\d\d(\.\d+)?)?)?)?([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/,
 
         isoFormat = 'YYYY-MM-DDTHH:mm:ssZ',
 
         isoDates = [
-            'YYYY-MM-DD',
-            'GGGG-[W]WW',
-            'GGGG-[W]WW-E',
-            'YYYY-DDD'
+            ['YYYYYY-MM-DD', /[+-]\d{6}-\d{2}-\d{2}/],
+            ['YYYY-MM-DD', /\d{4}-\d{2}-\d{2}/],
+            ['GGGG-[W]WW-E', /\d{4}-W\d{2}-\d/],
+            ['GGGG-[W]WW', /\d{4}-W\d{2}/],
+            ['YYYY-DDD', /\d{4}-\d{3}/]
         ],
 
         // iso time formats and regexes
@@ -13578,7 +16669,7 @@ else {
                 return leftZeroFill(this.weekYear() % 100, 2);
             },
             gggg : function () {
-                return this.weekYear();
+                return leftZeroFill(this.weekYear(), 4);
             },
             ggggg : function () {
                 return leftZeroFill(this.weekYear(), 5);
@@ -13587,7 +16678,7 @@ else {
                 return leftZeroFill(this.isoWeekYear() % 100, 2);
             },
             GGGG : function () {
-                return this.isoWeekYear();
+                return leftZeroFill(this.isoWeekYear(), 4);
             },
             GGGGG : function () {
                 return leftZeroFill(this.isoWeekYear(), 5);
@@ -13661,6 +16752,23 @@ else {
         },
 
         lists = ['months', 'monthsShort', 'weekdays', 'weekdaysShort', 'weekdaysMin'];
+
+    function defaultParsingFlags() {
+        // We need to deep clone this object, and es5 standard is not very
+        // helpful.
+        return {
+            empty : false,
+            unusedTokens : [],
+            unusedInput : [],
+            overflow : -2,
+            charsLeftOver : 0,
+            nullInput : false,
+            invalidMonth : null,
+            invalidFormat : false,
+            userInvalidated : false,
+            iso: false
+        };
+    }
 
     function padToken(func, count) {
         return function (a) {
@@ -13753,6 +16861,17 @@ else {
         return a;
     }
 
+    function cloneMoment(m) {
+        var result = {}, i;
+        for (i in m) {
+            if (m.hasOwnProperty(i) && momentProperties.hasOwnProperty(i)) {
+                result[i] = m[i];
+            }
+        }
+
+        return result;
+    }
+
     function absRound(number) {
         if (number < 0) {
             return Math.ceil(number);
@@ -13764,7 +16883,7 @@ else {
     // left zero fill a number
     // see http://jsperf.com/left-zero-filling for performance comparison
     function leftZeroFill(number, targetLength, forceSign) {
-        var output = Math.abs(number) + '',
+        var output = '' + Math.abs(number),
             sign = number >= 0;
 
         while (output.length < targetLength) {
@@ -13942,21 +17061,6 @@ else {
 
             m._pf.overflow = overflow;
         }
-    }
-
-    function initializeParsingFlags(config) {
-        config._pf = {
-            empty : false,
-            unusedTokens : [],
-            unusedInput : [],
-            overflow : -2,
-            charsLeftOver : 0,
-            nullInput : false,
-            invalidMonth : null,
-            invalidFormat : false,
-            userInvalidated : false,
-            iso: false
-        };
     }
 
     function isValid(m) {
@@ -14327,6 +17431,10 @@ else {
         case 'GGGG':
         case 'gggg':
             return strict ? parseTokenFourDigits : parseTokenOneToFourDigits;
+        case 'Y':
+        case 'G':
+        case 'g':
+            return parseTokenSignedNumber;
         case 'YYYYYY':
         case 'YYYYY':
         case 'GGGGG':
@@ -14339,8 +17447,10 @@ else {
             if (strict) { return parseTokenTwoDigits; }
             /* falls through */
         case 'SSS':
+            if (strict) { return parseTokenThreeDigits; }
+            /* falls through */
         case 'DDD':
-            return strict ? parseTokenThreeDigits : parseTokenOneToThreeDigits;
+            return parseTokenOneToThreeDigits;
         case 'MMM':
         case 'MMMM':
         case 'dd':
@@ -14382,7 +17492,7 @@ else {
         case 'W':
         case 'e':
         case 'E':
-            return strict ? parseTokenOneDigit : parseTokenOneOrTwoDigits;
+            return parseTokenOneOrTwoDigits;
         default :
             a = new RegExp(regexpEscape(unescapeFormat(token.replace('\\', '')), "i"));
             return a;
@@ -14713,7 +17823,7 @@ else {
         for (i = 0; i < config._f.length; i++) {
             currentScore = 0;
             tempConfig = extend({}, config);
-            initializeParsingFlags(tempConfig);
+            tempConfig._pf = defaultParsingFlags();
             tempConfig._f = config._f[i];
             makeDateFromStringAndFormat(tempConfig);
 
@@ -14740,20 +17850,20 @@ else {
 
     // date from iso format
     function makeDateFromString(config) {
-        var i,
+        var i, l,
             string = config._i,
             match = isoRegex.exec(string);
 
         if (match) {
             config._pf.iso = true;
-            for (i = 4; i > 0; i--) {
-                if (match[i]) {
+            for (i = 0, l = isoDates.length; i < l; i++) {
+                if (isoDates[i][1].exec(string)) {
                     // match[5] should be "T" or undefined
-                    config._f = isoDates[i - 1] + (match[6] || " ");
+                    config._f = isoDates[i][0] + (match[6] || " ");
                     break;
                 }
             }
-            for (i = 0; i < 4; i++) {
+            for (i = 0, l = isoTimes.length; i < l; i++) {
                 if (isoTimes[i][1].exec(string)) {
                     config._f += isoTimes[i][0];
                     break;
@@ -14894,14 +18004,10 @@ else {
 
     //http://en.wikipedia.org/wiki/ISO_week_date#Calculating_a_date_given_the_year.2C_week_number_and_weekday
     function dayOfYearFromWeeks(year, week, weekday, firstDayOfWeekOfYear, firstDayOfWeek) {
-        // The only solid way to create an iso date from year is to use
-        // a string format (Date.UTC handles only years > 1900). Don't ask why
-        // it doesn't need Z at the end.
-        var d = new Date(leftZeroFill(year, 6, true) + '-01-01').getUTCDay(),
-            daysToAdd, dayOfYear;
+        var d = makeUTCDate(year, 0, 1).getUTCDay(), daysToAdd, dayOfYear;
 
         weekday = weekday != null ? weekday : firstDayOfWeek;
-        daysToAdd = firstDayOfWeek - d + (d > firstDayOfWeekOfYear ? 7 : 0);
+        daysToAdd = firstDayOfWeek - d + (d > firstDayOfWeekOfYear ? 7 : 0) - (d < firstDayOfWeek ? 7 : 0);
         dayOfYear = 7 * (week - 1) + (weekday - firstDayOfWeek) + daysToAdd + 1;
 
         return {
@@ -14918,10 +18024,6 @@ else {
         var input = config._i,
             format = config._f;
 
-        if (typeof config._pf === 'undefined') {
-            initializeParsingFlags(config);
-        }
-
         if (input === null) {
             return moment.invalid({nullInput: true});
         }
@@ -14931,7 +18033,7 @@ else {
         }
 
         if (moment.isMoment(input)) {
-            config = extend({}, input);
+            config = cloneMoment(input);
 
             config._d = new Date(+input._d);
         } else if (format) {
@@ -14948,37 +18050,47 @@ else {
     }
 
     moment = function (input, format, lang, strict) {
+        var c;
+
         if (typeof(lang) === "boolean") {
             strict = lang;
             lang = undefined;
         }
-        return makeMoment({
-            _i : input,
-            _f : format,
-            _l : lang,
-            _strict : strict,
-            _isUTC : false
-        });
+        // object construction must be done this way.
+        // https://github.com/moment/moment/issues/1423
+        c = {};
+        c._isAMomentObject = true;
+        c._i = input;
+        c._f = format;
+        c._l = lang;
+        c._strict = strict;
+        c._isUTC = false;
+        c._pf = defaultParsingFlags();
+
+        return makeMoment(c);
     };
 
     // creating with utc
     moment.utc = function (input, format, lang, strict) {
-        var m;
+        var c;
 
         if (typeof(lang) === "boolean") {
             strict = lang;
             lang = undefined;
         }
-        m = makeMoment({
-            _useUTC : true,
-            _isUTC : true,
-            _l : lang,
-            _i : input,
-            _f : format,
-            _strict : strict
-        }).utc();
+        // object construction must be done this way.
+        // https://github.com/moment/moment/issues/1423
+        c = {};
+        c._isAMomentObject = true;
+        c._useUTC = true;
+        c._isUTC = true;
+        c._l = lang;
+        c._i = input;
+        c._f = format;
+        c._strict = strict;
+        c._pf = defaultParsingFlags();
 
-        return m;
+        return makeMoment(c).utc();
     };
 
     // creating with unix timestamp (in seconds)
@@ -15088,7 +18200,8 @@ else {
 
     // compare moment object
     moment.isMoment = function (obj) {
-        return obj instanceof Moment;
+        return obj instanceof Moment ||
+            (obj != null &&  obj.hasOwnProperty('_isAMomentObject'));
     };
 
     // for typechecking Duration objects
@@ -15759,6 +18872,807 @@ else {
         makeGlobal();
     }
 }).call(this);
+
+},{}],4:[function(require,module,exports){
+/**
+ * Copyright 2012 Craig Campbell
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Mousetrap is a simple keyboard shortcut library for Javascript with
+ * no external dependencies
+ *
+ * @version 1.1.2
+ * @url craig.is/killing/mice
+ */
+
+  /**
+   * mapping of special keycodes to their corresponding keys
+   *
+   * everything in this dictionary cannot use keypress events
+   * so it has to be here to map to the correct keycodes for
+   * keyup/keydown events
+   *
+   * @type {Object}
+   */
+  var _MAP = {
+          8: 'backspace',
+          9: 'tab',
+          13: 'enter',
+          16: 'shift',
+          17: 'ctrl',
+          18: 'alt',
+          20: 'capslock',
+          27: 'esc',
+          32: 'space',
+          33: 'pageup',
+          34: 'pagedown',
+          35: 'end',
+          36: 'home',
+          37: 'left',
+          38: 'up',
+          39: 'right',
+          40: 'down',
+          45: 'ins',
+          46: 'del',
+          91: 'meta',
+          93: 'meta',
+          224: 'meta'
+      },
+
+      /**
+       * mapping for special characters so they can support
+       *
+       * this dictionary is only used incase you want to bind a
+       * keyup or keydown event to one of these keys
+       *
+       * @type {Object}
+       */
+      _KEYCODE_MAP = {
+          106: '*',
+          107: '+',
+          109: '-',
+          110: '.',
+          111 : '/',
+          186: ';',
+          187: '=',
+          188: ',',
+          189: '-',
+          190: '.',
+          191: '/',
+          192: '`',
+          219: '[',
+          220: '\\',
+          221: ']',
+          222: '\''
+      },
+
+      /**
+       * this is a mapping of keys that require shift on a US keypad
+       * back to the non shift equivelents
+       *
+       * this is so you can use keyup events with these keys
+       *
+       * note that this will only work reliably on US keyboards
+       *
+       * @type {Object}
+       */
+      _SHIFT_MAP = {
+          '~': '`',
+          '!': '1',
+          '@': '2',
+          '#': '3',
+          '$': '4',
+          '%': '5',
+          '^': '6',
+          '&': '7',
+          '*': '8',
+          '(': '9',
+          ')': '0',
+          '_': '-',
+          '+': '=',
+          ':': ';',
+          '\"': '\'',
+          '<': ',',
+          '>': '.',
+          '?': '/',
+          '|': '\\'
+      },
+
+      /**
+       * this is a list of special strings you can use to map
+       * to modifier keys when you specify your keyboard shortcuts
+       *
+       * @type {Object}
+       */
+      _SPECIAL_ALIASES = {
+          'option': 'alt',
+          'command': 'meta',
+          'return': 'enter',
+          'escape': 'esc'
+      },
+
+      /**
+       * variable to store the flipped version of _MAP from above
+       * needed to check if we should use keypress or not when no action
+       * is specified
+       *
+       * @type {Object|undefined}
+       */
+      _REVERSE_MAP,
+
+      /**
+       * a list of all the callbacks setup via Mousetrap.bind()
+       *
+       * @type {Object}
+       */
+      _callbacks = {},
+
+      /**
+       * direct map of string combinations to callbacks used for trigger()
+       *
+       * @type {Object}
+       */
+      _direct_map = {},
+
+      /**
+       * keeps track of what level each sequence is at since multiple
+       * sequences can start out with the same sequence
+       *
+       * @type {Object}
+       */
+      _sequence_levels = {},
+
+      /**
+       * variable to store the setTimeout call
+       *
+       * @type {null|number}
+       */
+      _reset_timer,
+
+      /**
+       * temporary state where we will ignore the next keyup
+       *
+       * @type {boolean|string}
+       */
+      _ignore_next_keyup = false,
+
+      /**
+       * are we currently inside of a sequence?
+       * type of action ("keyup" or "keydown" or "keypress") or false
+       *
+       * @type {boolean|string}
+       */
+      _inside_sequence = false;
+
+  /**
+   * loop through the f keys, f1 to f19 and add them to the map
+   * programatically
+   */
+  for (var i = 1; i < 20; ++i) {
+      _MAP[111 + i] = 'f' + i;
+  }
+
+  /**
+   * loop through to map numbers on the numeric keypad
+   */
+  for (i = 0; i <= 9; ++i) {
+      _MAP[i + 96] = i;
+  }
+
+  /**
+   * cross browser add event method
+   *
+   * @param {Element|HTMLDocument} object
+   * @param {string} type
+   * @param {Function} callback
+   * @returns void
+   */
+  function _addEvent(object, type, callback) {
+      if (object.addEventListener) {
+          return object.addEventListener(type, callback, false);
+      }
+
+      object.attachEvent('on' + type, callback);
+  }
+
+  /**
+   * takes the event and returns the key character
+   *
+   * @param {Event} e
+   * @return {string}
+   */
+  function _characterFromEvent(e) {
+
+      // for keypress events we should return the character as is
+      if (e.type == 'keypress') {
+          return String.fromCharCode(e.which);
+      }
+
+      // for non keypress events the special maps are needed
+      if (_MAP[e.which]) {
+          return _MAP[e.which];
+      }
+
+      if (_KEYCODE_MAP[e.which]) {
+          return _KEYCODE_MAP[e.which];
+      }
+
+      // if it is not in the special map
+      return String.fromCharCode(e.which).toLowerCase();
+  }
+
+  /**
+   * should we stop this event before firing off callbacks
+   *
+   * @param {Event} e
+   * @return {boolean}
+   */
+  function _stop(e) {
+      var element = e.target || e.srcElement,
+          tag_name = element.tagName;
+
+      // if the element has the class "mousetrap" then no need to stop
+      if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
+          return false;
+      }
+
+      // stop for input, select, and textarea
+      return tag_name == 'INPUT' || tag_name == 'SELECT' || tag_name == 'TEXTAREA' || (element.contentEditable && element.contentEditable == 'true');
+  }
+
+  /**
+   * checks if two arrays are equal
+   *
+   * @param {Array} modifiers1
+   * @param {Array} modifiers2
+   * @returns {boolean}
+   */
+  function _modifiersMatch(modifiers1, modifiers2) {
+      return modifiers1.sort().join(',') === modifiers2.sort().join(',');
+  }
+
+  /**
+   * resets all sequence counters except for the ones passed in
+   *
+   * @param {Object} do_not_reset
+   * @returns void
+   */
+  function _resetSequences(do_not_reset) {
+      do_not_reset = do_not_reset || {};
+
+      var active_sequences = false,
+          key;
+
+      for (key in _sequence_levels) {
+          if (do_not_reset[key]) {
+              active_sequences = true;
+              continue;
+          }
+          _sequence_levels[key] = 0;
+      }
+
+      if (!active_sequences) {
+          _inside_sequence = false;
+      }
+  }
+
+  /**
+   * finds all callbacks that match based on the keycode, modifiers,
+   * and action
+   *
+   * @param {string} character
+   * @param {Array} modifiers
+   * @param {string} action
+   * @param {boolean=} remove - should we remove any matches
+   * @param {string=} combination
+   * @returns {Array}
+   */
+  function _getMatches(character, modifiers, action, remove, combination) {
+      var i,
+          callback,
+          matches = [];
+
+      // if there are no events related to this keycode
+      if (!_callbacks[character]) {
+          return [];
+      }
+
+      // if a modifier key is coming up on its own we should allow it
+      if (action == 'keyup' && _isModifier(character)) {
+          modifiers = [character];
+      }
+
+      // loop through all callbacks for the key that was pressed
+      // and see if any of them match
+      for (i = 0; i < _callbacks[character].length; ++i) {
+          callback = _callbacks[character][i];
+
+          // if this is a sequence but it is not at the right level
+          // then move onto the next match
+          if (callback.seq && _sequence_levels[callback.seq] != callback.level) {
+              continue;
+          }
+
+          // if the action we are looking for doesn't match the action we got
+          // then we should keep going
+          if (action != callback.action) {
+              continue;
+          }
+
+          // if this is a keypress event that means that we need to only
+          // look at the character, otherwise check the modifiers as
+          // well
+          if (action == 'keypress' || _modifiersMatch(modifiers, callback.modifiers)) {
+
+              // remove is used so if you change your mind and call bind a
+              // second time with a new function the first one is overwritten
+              if (remove && callback.combo == combination) {
+                  _callbacks[character].splice(i, 1);
+              }
+
+              matches.push(callback);
+          }
+      }
+
+      return matches;
+  }
+
+  /**
+   * takes a key event and figures out what the modifiers are
+   *
+   * @param {Event} e
+   * @returns {Array}
+   */
+  function _eventModifiers(e) {
+      var modifiers = [];
+
+      if (e.shiftKey) {
+          modifiers.push('shift');
+      }
+
+      if (e.altKey) {
+          modifiers.push('alt');
+      }
+
+      if (e.ctrlKey) {
+          modifiers.push('ctrl');
+      }
+
+      if (e.metaKey) {
+          modifiers.push('meta');
+      }
+
+      return modifiers;
+  }
+
+  /**
+   * actually calls the callback function
+   *
+   * if your callback function returns false this will use the jquery
+   * convention - prevent default and stop propogation on the event
+   *
+   * @param {Function} callback
+   * @param {Event} e
+   * @returns void
+   */
+  function _fireCallback(callback, e) {
+      if (callback(e) === false) {
+          if (e.preventDefault) {
+              e.preventDefault();
+          }
+
+          if (e.stopPropagation) {
+              e.stopPropagation();
+          }
+
+          e.returnValue = false;
+          e.cancelBubble = true;
+      }
+  }
+
+  /**
+   * handles a character key event
+   *
+   * @param {string} character
+   * @param {Event} e
+   * @returns void
+   */
+  function _handleCharacter(character, e) {
+
+      // if this event should not happen stop here
+      if (_stop(e)) {
+          return;
+      }
+
+      var callbacks = _getMatches(character, _eventModifiers(e), e.type),
+          i,
+          do_not_reset = {},
+          processed_sequence_callback = false;
+
+      // loop through matching callbacks for this key event
+      for (i = 0; i < callbacks.length; ++i) {
+
+          // fire for all sequence callbacks
+          // this is because if for example you have multiple sequences
+          // bound such as "g i" and "g t" they both need to fire the
+          // callback for matching g cause otherwise you can only ever
+          // match the first one
+          if (callbacks[i].seq) {
+              processed_sequence_callback = true;
+
+              // keep a list of which sequences were matches for later
+              do_not_reset[callbacks[i].seq] = 1;
+              _fireCallback(callbacks[i].callback, e);
+              continue;
+          }
+
+          // if there were no sequence matches but we are still here
+          // that means this is a regular match so we should fire that
+          if (!processed_sequence_callback && !_inside_sequence) {
+              _fireCallback(callbacks[i].callback, e);
+          }
+      }
+
+      // if you are inside of a sequence and the key you are pressing
+      // is not a modifier key then we should reset all sequences
+      // that were not matched by this key event
+      if (e.type == _inside_sequence && !_isModifier(character)) {
+          _resetSequences(do_not_reset);
+      }
+  }
+
+  /**
+   * handles a keydown event
+   *
+   * @param {Event} e
+   * @returns void
+   */
+  function _handleKey(e) {
+
+      // normalize e.which for key events
+      // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
+      e.which = typeof e.which == "number" ? e.which : e.keyCode;
+
+      var character = _characterFromEvent(e);
+
+      // no character found then stop
+      if (!character) {
+          return;
+      }
+
+      if (e.type == 'keyup' && _ignore_next_keyup == character) {
+          _ignore_next_keyup = false;
+          return;
+      }
+
+      _handleCharacter(character, e);
+  }
+
+  /**
+   * determines if the keycode specified is a modifier key or not
+   *
+   * @param {string} key
+   * @returns {boolean}
+   */
+  function _isModifier(key) {
+      return key == 'shift' || key == 'ctrl' || key == 'alt' || key == 'meta';
+  }
+
+  /**
+   * called to set a 1 second timeout on the specified sequence
+   *
+   * this is so after each key press in the sequence you have 1 second
+   * to press the next key before you have to start over
+   *
+   * @returns void
+   */
+  function _resetSequenceTimer() {
+      clearTimeout(_reset_timer);
+      _reset_timer = setTimeout(_resetSequences, 1000);
+  }
+
+  /**
+   * reverses the map lookup so that we can look for specific keys
+   * to see what can and can't use keypress
+   *
+   * @return {Object}
+   */
+  function _getReverseMap() {
+      if (!_REVERSE_MAP) {
+          _REVERSE_MAP = {};
+          for (var key in _MAP) {
+
+              // pull out the numeric keypad from here cause keypress should
+              // be able to detect the keys from the character
+              if (key > 95 && key < 112) {
+                  continue;
+              }
+
+              if (_MAP.hasOwnProperty(key)) {
+                  _REVERSE_MAP[_MAP[key]] = key;
+              }
+          }
+      }
+      return _REVERSE_MAP;
+  }
+
+  /**
+   * picks the best action based on the key combination
+   *
+   * @param {string} key - character for key
+   * @param {Array} modifiers
+   * @param {string=} action passed in
+   */
+  function _pickBestAction(key, modifiers, action) {
+
+      // if no action was picked in we should try to pick the one
+      // that we think would work best for this key
+      if (!action) {
+          action = _getReverseMap()[key] ? 'keydown' : 'keypress';
+      }
+
+      // modifier keys don't work as expected with keypress,
+      // switch to keydown
+      if (action == 'keypress' && modifiers.length) {
+          action = 'keydown';
+      }
+
+      return action;
+  }
+
+  /**
+   * binds a key sequence to an event
+   *
+   * @param {string} combo - combo specified in bind call
+   * @param {Array} keys
+   * @param {Function} callback
+   * @param {string=} action
+   * @returns void
+   */
+  function _bindSequence(combo, keys, callback, action) {
+
+      // start off by adding a sequence level record for this combination
+      // and setting the level to 0
+      _sequence_levels[combo] = 0;
+
+      // if there is no action pick the best one for the first key
+      // in the sequence
+      if (!action) {
+          action = _pickBestAction(keys[0], []);
+      }
+
+      /**
+       * callback to increase the sequence level for this sequence and reset
+       * all other sequences that were active
+       *
+       * @param {Event} e
+       * @returns void
+       */
+      var _increaseSequence = function(e) {
+              _inside_sequence = action;
+              ++_sequence_levels[combo];
+              _resetSequenceTimer();
+          },
+
+          /**
+           * wraps the specified callback inside of another function in order
+           * to reset all sequence counters as soon as this sequence is done
+           *
+           * @param {Event} e
+           * @returns void
+           */
+          _callbackAndReset = function(e) {
+              _fireCallback(callback, e);
+
+              // we should ignore the next key up if the action is key down
+              // or keypress.  this is so if you finish a sequence and
+              // release the key the final key will not trigger a keyup
+              if (action !== 'keyup') {
+                  _ignore_next_keyup = _characterFromEvent(e);
+              }
+
+              // weird race condition if a sequence ends with the key
+              // another sequence begins with
+              setTimeout(_resetSequences, 10);
+          },
+          i;
+
+      // loop through keys one at a time and bind the appropriate callback
+      // function.  for any key leading up to the final one it should
+      // increase the sequence. after the final, it should reset all sequences
+      for (i = 0; i < keys.length; ++i) {
+          _bindSingle(keys[i], i < keys.length - 1 ? _increaseSequence : _callbackAndReset, action, combo, i);
+      }
+  }
+
+  /**
+   * binds a single keyboard combination
+   *
+   * @param {string} combination
+   * @param {Function} callback
+   * @param {string=} action
+   * @param {string=} sequence_name - name of sequence if part of sequence
+   * @param {number=} level - what part of the sequence the command is
+   * @returns void
+   */
+  function _bindSingle(combination, callback, action, sequence_name, level) {
+
+      // make sure multiple spaces in a row become a single space
+      combination = combination.replace(/\s+/g, ' ');
+
+      var sequence = combination.split(' '),
+          i,
+          key,
+          keys,
+          modifiers = [];
+
+      // if this pattern is a sequence of keys then run through this method
+      // to reprocess each pattern one key at a time
+      if (sequence.length > 1) {
+          return _bindSequence(combination, sequence, callback, action);
+      }
+
+      // take the keys from this pattern and figure out what the actual
+      // pattern is all about
+      keys = combination === '+' ? ['+'] : combination.split('+');
+
+      for (i = 0; i < keys.length; ++i) {
+          key = keys[i];
+
+          // normalize key names
+          if (_SPECIAL_ALIASES[key]) {
+              key = _SPECIAL_ALIASES[key];
+          }
+
+          // if this is not a keypress event then we should
+          // be smart about using shift keys
+          // this will only work for US keyboards however
+          if (action && action != 'keypress' && _SHIFT_MAP[key]) {
+              key = _SHIFT_MAP[key];
+              modifiers.push('shift');
+          }
+
+          // if this key is a modifier then add it to the list of modifiers
+          if (_isModifier(key)) {
+              modifiers.push(key);
+          }
+      }
+
+      // depending on what the key combination is
+      // we will try to pick the best event for it
+      action = _pickBestAction(key, modifiers, action);
+
+      // make sure to initialize array if this is the first time
+      // a callback is added for this key
+      if (!_callbacks[key]) {
+          _callbacks[key] = [];
+      }
+
+      // remove an existing match if there is one
+      _getMatches(key, modifiers, action, !sequence_name, combination);
+
+      // add this call back to the array
+      // if it is a sequence put it at the beginning
+      // if not put it at the end
+      //
+      // this is important because the way these are processed expects
+      // the sequence ones to come first
+      _callbacks[key][sequence_name ? 'unshift' : 'push']({
+          callback: callback,
+          modifiers: modifiers,
+          action: action,
+          seq: sequence_name,
+          level: level,
+          combo: combination
+      });
+  }
+
+  /**
+   * binds multiple combinations to the same callback
+   *
+   * @param {Array} combinations
+   * @param {Function} callback
+   * @param {string|undefined} action
+   * @returns void
+   */
+  function _bindMultiple(combinations, callback, action) {
+      for (var i = 0; i < combinations.length; ++i) {
+          _bindSingle(combinations[i], callback, action);
+      }
+  }
+
+  // start!
+  _addEvent(document, 'keypress', _handleKey);
+  _addEvent(document, 'keydown', _handleKey);
+  _addEvent(document, 'keyup', _handleKey);
+
+  var mousetrap = {
+
+      /**
+       * binds an event to mousetrap
+       *
+       * can be a single key, a combination of keys separated with +,
+       * a comma separated list of keys, an array of keys, or
+       * a sequence of keys separated by spaces
+       *
+       * be sure to list the modifier keys first to make sure that the
+       * correct key ends up getting bound (the last key in the pattern)
+       *
+       * @param {string|Array} keys
+       * @param {Function} callback
+       * @param {string=} action - 'keypress', 'keydown', or 'keyup'
+       * @returns void
+       */
+      bind: function(keys, callback, action) {
+          _bindMultiple(keys instanceof Array ? keys : [keys], callback, action);
+          _direct_map[keys + ':' + action] = callback;
+          return this;
+      },
+
+      /**
+       * unbinds an event to mousetrap
+       *
+       * the unbinding sets the callback function of the specified key combo
+       * to an empty function and deletes the corresponding key in the
+       * _direct_map dict.
+       *
+       * the keycombo+action has to be exactly the same as
+       * it was defined in the bind method
+       *
+       * TODO: actually remove this from the _callbacks dictionary instead
+       * of binding an empty function
+       *
+       * @param {string|Array} keys
+       * @param {string} action
+       * @returns void
+       */
+      unbind: function(keys, action) {
+          if (_direct_map[keys + ':' + action]) {
+              delete _direct_map[keys + ':' + action];
+              this.bind(keys, function() {}, action);
+          }
+          return this;
+      },
+
+      /**
+       * triggers an event that has already been bound
+       *
+       * @param {string} keys
+       * @param {string=} action
+       * @returns void
+       */
+      trigger: function(keys, action) {
+          _direct_map[keys + ':' + action]();
+          return this;
+      },
+
+      /**
+       * resets the library back to its initial state.  this is useful
+       * if you want to clear out the current keyboard shortcuts and bind
+       * new ones - for example if you switch to another page
+       *
+       * @returns void
+       */
+      reset: function() {
+          _callbacks = {};
+          _direct_map = {};
+          return this;
+      }
+  };
+
+module.exports = mousetrap;
+
 
 },{}]},{},[1])
 (1)

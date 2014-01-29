@@ -1,2 +1,7 @@
 .idea
 node_modules
+.project
+.settings/.jsdtscope
+.settings/org.eclipse.wst.jsdt.ui.superType.container
+.settings/org.eclipse.wst.jsdt.ui.superType.name
+npm-debug.log

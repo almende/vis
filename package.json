@@ -28,8 +28,10 @@
   "devDependencies": {
     "jake": "latest",
     "jake-utils": "latest",
-    "browserify": "latest",
+    "browserify": "3.22",
     "moment": "latest",
-    "hammerjs": "1.0.5"
+    "hammerjs": "1.0.5",
+    "mousetrap": "latest",
+    "node-watch": "latest"
   }
 }

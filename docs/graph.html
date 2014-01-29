@@ -29,6 +29,9 @@
     </ul>
   </li>
   <li><a href="#Configuration_Options">Configuration Options</a></li>
+  <li><a href="#Clustering">Clustering</a></li>
+  <li><a href="#NavigationUI">Navigation GUI</a></li>
+  <li><a href="#Keyboard">Keyboard Navigation</a></li>
   <li><a href="#Methods">Methods</a></li>
   <li><a href="#Events">Events</a></li>
   <li><a href="#Data_Policy">Data Policy</a></li>
@@ -995,6 +998,258 @@ var nodes = [
 
 </table>
 
+<h2 id="Clustering">Clustering</h2>
+<p>
+    The graph now supports dynamic clustering of nodes. This allows a user to view a very large dataset (> 50.000 nodes) without
+    sacrificing performance. When loading a large dataset, the nodes are clustered initially (this may take a small while) to have a
+    responsive visualization to work with. The clustering is both outside-in and inside-out. Outside-in means that nodes with only one
+    connection will be contained, or clustered, in the node it is connected to. Inside-out clustering first determines which nodes are hubs.
+    Hubs are defined as the nodes with the top 3% highest amount of connections (assuming normal distribution). These hubs then "grow", meaning
+    they contain the nodes they are connected to within themselves. The edges that were connected to the nodes that are absorbed will be reconnected to the cluster.
+    <br />
+    <br />
+    A cluster is just a node that has references to the nodes and edges it contains. It has an internal counter to keep track of its size, which is then used
+    to calculate the required forces. The contained nodes are removed from the global nodes index, greatly speeding up the system.
+    <br />
+    <br />
+    The clustering has the following user-configurable settings. The default values have been tested with the Graph examples and work well.
+    The default state for clustering is <b>off</b>.
+</p>
+
+<pre class="prettyprint">
+// These variables must be defined in an options object named clustering.
+</pre>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>enabled</td>
+        <td>Boolean</td>
+        <td>false</td>
+        <td>On/off switch for clustering. It is assumed clustering is enabled in the descriptions below.</td>
+    </tr>
+    <tr>
+        <td>initialMaxNumberOfNodes</td>
+        <td>Number</td>
+        <td>100</td>
+        <td>If the initial amount of nodes is larger than this value, clustering starts until the total number of nodes is less than this value.</td>
+    </tr>
+    <tr>
+        <td>absoluteMaxNumberOfNodes</td>
+        <td>Number</td>
+        <td>500</td>
+        <td>While zooming in and out, clusters can open up. Once there are more than <code>absoluteMaxNumberOfNodes</code> nodes,
+            clustering starts until <code>reduceToMaxNumberOfNodes</code> nodes are left. This is done to ensure performance is continiously fluid.</td>
+    </tr>
+    <tr>
+        <td>reduceToMaxNumberOfNodes</td>
+        <td>Number</td>
+        <td>300</td>
+        <td>While zooming in and out, clusters can open up. Once there are more than <code>absoluteMaxNumberOfNodes</code> nodes,
+            clustering starts until <code>reduceToMaxNumberOfNodes</code> nodes are left. This is done to ensure performance is continiously fluid.</td>
+    </tr>
+    <tr>
+        <td>chainThreshold</td>
+        <td>Number</td>
+        <td>0.4</td>
+        <td>Because of the clustering methods used, long chains of nodes can be formed. To reduce these chains, this threshold is used.
+            A <code>chainThreshold</code> of 0.4 means that no more than 40% of all nodes are allowed to be a chain node (two connections).
+            If there are more, they are clustered together.</td>
+    </tr>
+    <tr>
+        <td>clusterEdgeThreshold</td>
+        <td>Number</td>
+        <td>20</td>
+        <td>This is the absolute edge length threshold in pixels. If the edge is smaller on screen (that means zooming out reduces this length)
+            the node will be clustered. This is triggered when zooming out.</td>
+    </tr>
+    <tr>
+        <td>sectorThreshold</td>
+        <td>Integer</td>
+        <td>50</td>
+        <td>If a cluster larger than <code>sectorThreshold</code> is opened, a seperate instance called a sector, will be created. All the simulation of
+        nodes outside of this instance will be paused. This is to maintain performance and clarity when examining large clusters.
+        A sector is collapsed when zooming out far enough. Also, when opening a cluster, if this cluster is smaller than this value, it is fully unpacked.</td>
+    </tr>
+    <tr>
+        <td>screenSizeThreshold</td>
+        <td>Number</td>
+        <td>0.2</td>
+        <td>When zooming in, the clusters become bigger. A <code>screenSizeThreshold</code> of 0.2 means that if the width or height of this cluster
+            becomes bigger than 20% of the width or height of the canvas, the cluster is opened. If a sector has been created, if the sector is smaller than
+            20%, we collapse this sector.</td>
+    </tr>
+    <tr>
+        <td>fontSizeMultiplier</td>
+        <td>Number</td>
+        <td>4.0</td>
+        <td>This parameter denotes the increase in fontSize of the cluster when a single node is added to it.</td>
+    </tr>
+    <tr>
+        <td>forceAmplification</td>
+        <td>Number</td>
+        <td>0.6</td>
+        <td>This factor is used to calculate the increase of the repulsive force of a cluster. It is calculated by the following
+        formula: <code>repulsingForce *= 1 + (clusterSize * forceAmplification)</code>.</td>
+    </tr>
+    <tr>
+        <td>distanceAmplification</td>
+        <td>Number</td>
+        <td>0.2</td>
+        <td>This factor is used to calculate the increase in effective range of the repulsive force of the cluster.
+            A larger cluster has a longer range. It is calculated by the following
+            formula: <code>minDistance *= 1 + (clusterSize * distanceAmplification)</code>.</td>
+    </tr>
+    <tr>
+        <td>edgeGrowth</td>
+        <td>Number</td>
+        <td>11</td>
+        <td>This factor determines the elongation of edges connected to a cluster.</td>
+    </tr>
+    <tr>
+        <td>clusterSizeWidthFactor</td>
+        <td>Number</td>
+        <td>10</td>
+        <td>This factor determines how much the width of a cluster increases in pixels per added node.</td>
+    </tr>
+    <tr>
+        <td>clusterSizeHeightFactor</td>
+        <td>Number</td>
+        <td>10</td>
+        <td>This factor determines how much the height of a cluster increases in pixels per added node.</td>
+    </tr>
+    <tr>
+        <td>clusterSizeRadiusFactor</td>
+        <td>Number</td>
+        <td>10</td>
+        <td>This factor determines how much the radius of a cluster increases in pixels per added node.</td>
+    </tr>
+    <tr>
+        <td>activeAreaBoxSize</td>
+        <td>Number</td>
+        <td>100</td>
+        <td>Imagine a square with an edge length of <code>activeAreaBoxSize</code> pixels around your cursor.
+            If a cluster is in this box as you zoom in, the cluster can be opened in a seperate sector.
+            This is regardless of the zoom level.</td>
+    </tr>
+</table>
+
+<h2 id="NavigationUI">Navigation GUI Elements</h2>
+<p>
+    As of 0.4.0, a node-based navigation GUI system has been added to vis.js.
+    It can be configured with the following user-configurable settings.
+    The default state for the GUI navigation elements is <b>off</b>.
+</p>
+
+<pre class="prettyprint">
+// These variables must be defined in an options object named navigationUI.
+// If a variable is not supplied, the default value is used.
+options: {
+    navigationUI: {
+      enabled: false,
+      initiallyVisible: true,
+      enableToggling: true,
+      iconPath: this._getIconURL() // automatic loading of the default icons
+    },
+}
+</pre>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>enabled</td>
+        <td>Boolean</td>
+        <td>false</td>
+        <td>On/off switch for the navigation UI elements.</td>
+    </tr>
+    <tr>
+        <td>initiallyVisible</td>
+        <td>Boolean</td>
+        <td>true</td>
+        <td>The UI elements can be toggled by pressing the "u" key. If <code>initiallyVisible</code> is false, the UI is hidden
+            until "u" is pressed on the keyboard.
+        </td>
+    </tr>
+    <tr>
+        <td>enableToggling</td>
+        <td>Boolean</td>
+        <td>true</td>
+        <td>Enable or disable the option to press "u" to toggle the UI elements. If the UI is initially hidden and the toggling is off, the UI cannot be used!</td>
+    </tr>
+    <tr>
+        <td>iconPath</td>
+        <td>string</td>
+        <td>[path to vis.js]/UI_icons/</td>
+        <td>The path to the icon images can be defined here. If custom icons are used, they have to have the same filename as the ones originally packaged with vis.js.</td>
+    </tr>
+</table>
+
+<h2 id="Keyboard">Keyboard Navigation</h2>
+<p>
+    As of 0.4.0, keyboard navigation has been added to vis.js.
+    It can be configured with the following user-configurable settings.
+    The default state for the keyboard navigation is <b>off</b>. The predefined keys can be found in the <a href="../examples/graph/20_UI_example.html">UI example.</a>
+</p>
+
+<pre class="prettyprint">
+// These variables must be defined in an options object named keyboardNavigation.
+// If a variable is not supplied, the default value is used
+options: {
+    keyboardNavigation: {
+      enabled: false,
+      xMovementSpeed: 10,
+      yMovementSpeed: 10,
+      zoomMovementSpeed: 0.02
+    }
+}
+</pre>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>enabled</td>
+        <td>Boolean</td>
+        <td>false</td>
+        <td>On/off switch for the keyboard navigation.</td>
+    </tr>
+    <tr>
+        <td>xMovementSpeed</td>
+        <td>Number</td>
+        <td>10</td>
+        <td>This defines the speed of the camera movement in the x direction when using the keyboard navigation.
+        </td>
+    </tr>
+    <tr>
+        <td>yMovementSpeed</td>
+        <td>Boolean</td>
+        <td>10</td>
+        <td>This defines the speed of the camera movement in the y direction when using the keyboard navigation.</td>
+    </tr>
+    <tr>
+        <td>zoomMovementSpeed</td>
+        <td>string</td>
+        <td>0.02</td>
+        <td>This defines the zoomspeed when using the keyboard navigation.</td>
+    </tr>
+</table>
 
 <h2 id="Methods">Methods</h2>
 <p>
@@ -1009,11 +1264,13 @@ var nodes = [
   </tr>
 
   <tr>
-    <td>setData(data)</td>
+    <td>setData(data,[disableStart])</td>
     <td>none</td>
     <td>Loads data. Parameter <code>data</code> is an object containing
       nodes, edges, and options. Parameters nodes, edges are an Array.
-      Options is a name-value map and is optional.
+      Options is a name-value map and is optional. Parameter <code>disableStart</code> is
+      an optional Boolean and can disable the start of the simulation that would begin at the end
+      of this function by default.
     </td>
   </tr>
 
