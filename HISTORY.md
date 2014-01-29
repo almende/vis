@@ -8,6 +8,9 @@ http://visjs.org
 
 - Implemented functions `on` and `off` to create event listeners for events
   `rangechange` and `rangechanged`.
+- Impelmented function `select` to get and set the selected items.
+- Items can be selected by clicking them, muti-select by holding them.
+
 
 ### Graph
 

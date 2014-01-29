@@ -83,6 +83,7 @@ function Timeline (container, items, options) {
   );
 
   // TODO: reckon with options moveable and zoomable
+  // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
   this.range.subscribe(this.rootPanel, 'move', 'horizontal');
   this.range.subscribe(this.rootPanel, 'zoom', 'horizontal');
   this.range.on('rangechange', function (properties) {
@@ -96,7 +97,12 @@ function Timeline (container, items, options) {
     me._trigger('rangechanged', properties);
   });
 
-  // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
+  // single select (or unselect) when tapping an item
+  // TODO: implement ctrl+click
+  this.rootPanel.on('tap',  this._onSelectItem.bind(this));
+
+  // multi select when holding mouse/touch, or on ctrl+click
+  this.rootPanel.on('hold', this._onMultiSelectItem.bind(this));
 
   // time axis
   var timeaxisOptions = Object.create(rootOptions);
@@ -344,7 +350,8 @@ Timeline.prototype.getItemRange = function getItemRange() {
 };
 
 /**
- * Change the item selection, and/or get currently selected items
+ * Select or deselect items, or get current selection.
+ * Returns the currently selected items
  * @param {Array} [ids] An array with zero or more ids of the items to be selected.
  * @return {Array} ids  The ids of the selected items
  */
@@ -388,4 +395,72 @@ Timeline.prototype.off = function off (event, callback) {
  */
 Timeline.prototype._trigger = function _trigger(event, properties) {
   events.trigger(this, event, properties || {});
+};
+
+/**
+ * Handle selecting/deselecting an item when tapping it
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onSelectItem = function (event) {
+  var item = this._itemFromTarget(event);
+
+  var selection = item ? [item.id] : [];
+  selection = this.select(selection);
+  this._trigger('select', {
+    items: selection
+  });
+
+  event.stopPropagation();
+};
+
+/**
+ * Handle selecting/deselecting multiple items when holding an item
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onMultiSelectItem = function (event) {
+  var selection,
+      item = this._itemFromTarget(event);
+
+  if (!item) {
+    // do nothing...
+    return;
+  }
+  selection = this.select(); // current selection
+  var index = selection.indexOf(item.id);
+  if (index == -1) {
+    // item is not yet selected -> select it
+    selection.push(item.id);
+  }
+  else {
+    // item is already selected -> deselect it
+    selection.splice(index, 1);
+  }
+
+  selection = this.select(selection);
+  this._trigger('select', {
+    items: selection
+  });
+
+  event.stopPropagation();
+};
+
+/**
+ * Find an item from an event target:
+ * searches for the attribute 'timeline-item' in the event target's element tree
+ * @param {Event} event
+ * @return {Item | null| item
+ * @private
+ */
+Timeline.prototype._itemFromTarget = function _itemFromTarget (event) {
+  var target = event.target;
+  while (target) {
+    if (target.hasOwnProperty('timeline-item')) {
+      return target['timeline-item'];
+    }
+    target = target.parentNode;
+  }
+
+  return null;
 };

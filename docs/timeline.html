@@ -555,13 +555,20 @@ var options = {
   <tr>
     <td>on(event, callback)</td>
     <td>none</td>
-    <td>Create an event listener. The callback function is invoked every time the event is triggered. Avialable events: <code>rangechange</code>, <code>rangechanged</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties.</td>
+    <td>Create an event listener. The callback function is invoked every time the event is triggered. Avialable events: <code>rangechange</code>, <code>rangechanged</code>, <code>select</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties.</td>
   </tr>
 
   <tr>
     <td>off(event, callback)</td>
     <td>none</td>
     <td>Remove an event listener created before via function <code>on(event, callback)</code>.</td>
+  </tr>
+
+  <tr>
+    <td>select([ids])</td>
+    <td>ids</td>
+    <td>Select or deselect items, or get current selection. Returns an array with the ids of the currently selected items.
+    </td>
   </tr>
 
   <tr>
