@@ -400,23 +400,11 @@ var SelectionMixin = {
    *                                            selected nodes.
    */
   getSelection : function() {
-    var nodeIdString = this.getSelectedNodes();
-   /*
-    var edgeIdString = this.getSelectedEdges();
+    var nodeIds = this.getSelectedNodes();
 
-    var idString = "";
-    if (nodeIdString != "") {
-      idString = idString.concat("Nodes: ",nodeIdString);
+    var edgeIds = this.getSelectedEdges();
 
-      if (edgeIdString != "") {
-        idString = idString.concat("; ");
-      }
-    }
-    if (edgeIdString != "") {
-      idString = idString.concat("Edges: ",edgeIdString);
-    }
-   */
-    return nodeIdString
+    return {nodes:nodeIds, edges:edgeIds};
   },
 
   /**
@@ -426,41 +414,33 @@ var SelectionMixin = {
    *                                            selected nodes.
    */
   getSelectedNodes : function() {
-    var idString = "", i = 0;
+    var idArray = [];
     for(var objectId in this.selectionObj) {
       if(this.selectionObj.hasOwnProperty(objectId)) {
         if (this.selectionObj[objectId] instanceof Node) {
-          if (i != 0) {
-            idString = idString.concat(", ");
-          }
-          idString = idString.concat(String(objectId));
-          i++;
+          idArray.push(objectId);
         }
       }
     }
-    return idString
+    return idArray
   },
 
   /**
    *
    * retrieve the currently selected edges
-   * @return {String} selection    An array with the ids of the
+   * @return {Array} selection    An array with the ids of the
    *                                            selected nodes.
    */
   getSelectedEdges : function() {
-    var idString = "", i = 0;
+    var idArray = [];
     for(var objectId in this.selectionObj) {
       if(this.selectionObj.hasOwnProperty(objectId)) {
         if (this.selectionObj[objectId] instanceof Edge) {
-          if (i != 0) {
-            idString = idString.concat(", ");
-          }
-          idString = idString.concat(String(objectId));
-          i++;
+          idArray.push(objectId);
         }
       }
     }
-    return idString
+    return idArray
   },
 
   /**
