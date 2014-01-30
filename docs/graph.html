@@ -1142,6 +1142,27 @@ var nodes = [
 
 <pre class="prettyprint">
 // These variables must be defined in an options object named clustering.
+// If a variable is not supplied, the default value is used.
+var options = {
+    clustering: {
+      enabled: false,
+      initialMaxNumberOfNodes: 100,
+      absoluteMaxNumberOfNodes:500,
+      reduceToMaxNumberOfNodes:300,
+      chainThreshold: 0.4,
+      clusterEdgeThreshold: 20,
+      sectorThreshold: 50,
+      screenSizeThreshold: 0.2,
+      fontSizeMultiplier:  4.0,
+      forceAmplification:  0.6,
+      distanceAmplification: 0.2,
+      edgeGrowth: 11,
+      clusterSizeWidthFactor:  10,
+      clusterSizeHeightFactor: 10,
+      clusterSizeRadiusFactor: 10,
+      activeAreaBoxSize: 100
+    }
+}
 </pre>
 
 <table>
@@ -1279,7 +1300,7 @@ var options: {
       initiallyVisible: true,
       enableToggling: true,
       iconPath: this._getIconURL() // automatic loading of the default icons
-    },
+    }
 }
 </pre>
 
