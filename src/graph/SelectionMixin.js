@@ -89,7 +89,7 @@ var SelectionMixin = {
   _getUINodeAt : function (pointer) {
     var screenPositionObject = this._pointerToScreenPositionObject(pointer);
     var overlappingNodes = this._getAllUINodesOverlappingWith(screenPositionObject);
-    if (this.UIvisible && overlappingNodes.length > 0) {
+    if (overlappingNodes.length > 0) {
       return this.sectors["navigationUI"]["nodes"][overlappingNodes[overlappingNodes.length - 1]];
     }
     else {
@@ -246,10 +246,12 @@ var SelectionMixin = {
    * @private
    */
   _handleTouch : function(pointer) {
-    var node = this._getUINodeAt(pointer);
-    if (node != null) {
-      if (this[node.triggerFunction] !== undefined) {
-        this[node.triggerFunction]();
+    if (this.constants.navigationUI.enabled == true) {
+      var node = this._getUINodeAt(pointer);
+      if (node != null) {
+        if (this[node.triggerFunction] !== undefined) {
+          this[node.triggerFunction]();
+        }
       }
     }
   },

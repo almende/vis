@@ -13,7 +13,7 @@ var ClusterMixin = {
  * */
  startWithClustering : function() {
     // cluster if the data set is big
-    this.clusterToFit(this.constants.clustering.initialMaxNumberOfNodes, true);
+    this.clusterToFit(this.constants.clustering.initialMaxNodes, true);
 
     // updates the lables after clustering
     this.updateLabels();
@@ -27,7 +27,7 @@ var ClusterMixin = {
   },
 
   /**
-   * This function clusters until the initialMaxNumberOfNodes has been reached
+   * This function clusters until the initialMaxNodes has been reached
    *
    * @param {Number}  maxNumberOfNodes
    * @param {Boolean} reposition
@@ -68,7 +68,7 @@ var ClusterMixin = {
       !(this._sector() == "default" && this.nodeIndices.length == 1)) {
       this._addSector(node);
       var level = 0;
-      while ((this.nodeIndices.length < this.constants.clustering.initialMaxNumberOfNodes) && (level < 10)) {
+      while ((this.nodeIndices.length < this.constants.clustering.initialMaxNodes) && (level < 10)) {
         this.decreaseClusterLevel();
         level += 1;
       }

@@ -62,10 +62,9 @@ function Node(properties, imagelist, grouplist, constants) {
   this.resetCluster();
   this.dynamicEdgesLength = 0;
   this.clusterSession = 0;
-
-  this.clusterSizeWidthFactor  = constants.clustering.clusterSizeWidthFactor;
-  this.clusterSizeHeightFactor = constants.clustering.clusterSizeHeightFactor;
-  this.clusterSizeRadiusFactor = constants.clustering.clusterSizeRadiusFactor;
+  this.clusterSizeWidthFactor  = constants.clustering.nodeScaling.width;
+  this.clusterSizeHeightFactor = constants.clustering.nodeScaling.height;
+  this.clusterSizeRadiusFactor = constants.clustering.nodeScaling.radius;
 
   // mass, force, velocity
   this.mass = 1;  // kg (mass is adjusted for the number of connected edges)

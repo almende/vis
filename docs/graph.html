@@ -1146,9 +1146,9 @@ var nodes = [
 var options = {
     clustering: {
       enabled: false,
-      initialMaxNumberOfNodes: 100,
-      absoluteMaxNumberOfNodes:500,
-      reduceToMaxNumberOfNodes:300,
+      initialMaxNodes: 100,
+      clusterThreshold:500,
+      reduceToNodes:300,
       chainThreshold: 0.4,
       clusterEdgeThreshold: 20,
       sectorThreshold: 50,
@@ -1157,11 +1157,15 @@ var options = {
       forceAmplification:  0.6,
       distanceAmplification: 0.2,
       edgeGrowth: 11,
-      clusterSizeWidthFactor:  10,
-      clusterSizeHeightFactor: 10,
-      clusterSizeRadiusFactor: 10,
+      nodeScaling: {width:  10,
+                    height: 10,
+                    radius: 10},
       activeAreaBoxSize: 100
     }
+}
+// OR to just load the module with default values:
+var options: {
+    clustering: true
 }
 </pre>
 
@@ -1180,20 +1184,20 @@ var options = {
     <td>On/off switch for clustering. It is assumed clustering is enabled in the descriptions below.</td>
   </tr>
   <tr>
-    <td>initialMaxNumberOfNodes</td>
+    <td>initialMaxNodes</td>
     <td>Number</td>
     <td>100</td>
     <td>If the initial amount of nodes is larger than this value, clustering starts until the total number of nodes is less than this value.</td>
   </tr>
   <tr>
-    <td>absoluteMaxNumberOfNodes</td>
+    <td>clusterThreshold</td>
     <td>Number</td>
     <td>500</td>
     <td>While zooming in and out, clusters can open up. Once there are more than <code>absoluteMaxNumberOfNodes</code> nodes,
       clustering starts until <code>reduceToMaxNumberOfNodes</code> nodes are left. This is done to ensure performance is continuously fluid.</td>
   </tr>
   <tr>
-    <td>reduceToMaxNumberOfNodes</td>
+    <td>reduceToNodes</td>
     <td>Number</td>
     <td>300</td>
     <td>While zooming in and out, clusters can open up. Once there are more than <code>absoluteMaxNumberOfNodes</code> nodes,
@@ -1258,19 +1262,19 @@ var options = {
     <td>This factor determines the elongation of edges connected to a cluster.</td>
   </tr>
   <tr>
-    <td>clusterSizeWidthFactor</td>
+    <td>nodeScaling.width</td>
     <td>Number</td>
     <td>10</td>
     <td>This factor determines how much the width of a cluster increases in pixels per added node.</td>
   </tr>
   <tr>
-    <td>clusterSizeHeightFactor</td>
+    <td>nodeScaling.height</td>
     <td>Number</td>
     <td>10</td>
     <td>This factor determines how much the height of a cluster increases in pixels per added node.</td>
   </tr>
   <tr>
-    <td>clusterSizeRadiusFactor</td>
+    <td>nodeScaling.radius</td>
     <td>Number</td>
     <td>10</td>
     <td>This factor determines how much the radius of a cluster increases in pixels per added node.</td>
@@ -1297,10 +1301,12 @@ var options = {
 var options: {
     navigationUI: {
       enabled: false,
-      initiallyVisible: true,
-      enableToggling: true,
       iconPath: this._getIconURL() // automatic loading of the default icons
     }
+}
+// OR to just load the module with default values:
+var options: {
+    navigationUI: true
 }
 </pre>
 
@@ -1317,20 +1323,6 @@ var options: {
     <td>Boolean</td>
     <td>false</td>
     <td>On/off switch for the navigation UI elements.</td>
-  </tr>
-  <tr>
-    <td>initiallyVisible</td>
-    <td>Boolean</td>
-    <td>true</td>
-    <td>The UI elements can be toggled by pressing the "u" key. If <code>initiallyVisible</code> is false, the UI is hidden
-      until "u" is pressed on the keyboard.
-    </td>
-  </tr>
-  <tr>
-    <td>enableToggling</td>
-    <td>Boolean</td>
-    <td>true</td>
-    <td>Enable or disable the option to press "u" to toggle the UI elements. If the UI is initially hidden and the toggling is off, the UI cannot be used!</td>
   </tr>
   <tr>
     <td>iconPath</td>
@@ -1353,10 +1345,12 @@ var options: {
 var options: {
     keyboardNavigation: {
       enabled: false,
-      xMovementSpeed: 10,
-      yMovementSpeed: 10,
-      zoomMovementSpeed: 0.02
+      speed: {x: 10, y: 10, zoom: 0.02}
     }
+}
+// OR to just load the module with default values:
+var options: {
+    keyboardNavigation: true
 }
 </pre>
 
@@ -1375,21 +1369,21 @@ var options: {
     <td>On/off switch for the keyboard navigation.</td>
   </tr>
   <tr>
-    <td>xMovementSpeed</td>
+    <td>speed.x</td>
     <td>Number</td>
     <td>10</td>
     <td>This defines the speed of the camera movement in the x direction when using the keyboard navigation.
     </td>
   </tr>
   <tr>
-    <td>yMovementSpeed</td>
-    <td>Boolean</td>
+    <td>speed.y</td>
+    <td>Number</td>
     <td>10</td>
     <td>This defines the speed of the camera movement in the y direction when using the keyboard navigation.</td>
   </tr>
   <tr>
-    <td>zoomMovementSpeed</td>
-    <td>string</td>
+    <td>speed.zoom</td>
+    <td>Number</td>
     <td>0.02</td>
     <td>This defines the zoomspeed when using the keyboard navigation.</td>
   </tr>

@@ -108,20 +108,6 @@ var UIMixin = {
 
 
   /**
-   * toggle the visibility of the navigationUI
-   *
-   * @private
-   */
-  _toggleUI : function() {
-    if (this.UIvisible === undefined) {
-      this.UIvisible = false;
-    }
-    this.UIvisible = !this.UIvisible;
-    this._redraw();
-  },
-
-
-  /**
    * un-highlight (for lack of a better term) all navigationUI elements
    * @private
    */
@@ -153,7 +139,7 @@ var UIMixin = {
    */
   _moveUp : function(event) {
     this._highlightUIElement("UI_up");
-    this.yIncrement = this.constants.keyboardNavigation.yMovementSpeed;
+    this.yIncrement = this.constants.keyboardNavigation.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -165,7 +151,7 @@ var UIMixin = {
    */
   _moveDown : function(event) {
     this._highlightUIElement("UI_down");
-    this.yIncrement = -this.constants.keyboardNavigation.yMovementSpeed;
+    this.yIncrement = -this.constants.keyboardNavigation.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -177,7 +163,7 @@ var UIMixin = {
    */
   _moveLeft : function(event) {
     this._highlightUIElement("UI_left");
-    this.xIncrement = this.constants.keyboardNavigation.xMovementSpeed;
+    this.xIncrement = this.constants.keyboardNavigation.speed.x;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -189,7 +175,7 @@ var UIMixin = {
    */
   _moveRight : function(event) {
     this._highlightUIElement("UI_right");
-    this.xIncrement = -this.constants.keyboardNavigation.xMovementSpeed;
+    this.xIncrement = -this.constants.keyboardNavigation.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -201,7 +187,7 @@ var UIMixin = {
    */
   _zoomIn : function(event) {
     this._highlightUIElement("UI_plus");
-    this.zoomIncrement = this.constants.keyboardNavigation.zoomMovementSpeed;
+    this.zoomIncrement = this.constants.keyboardNavigation.speed.zoom;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -213,7 +199,7 @@ var UIMixin = {
    */
   _zoomOut : function() {
     this._highlightUIElement("UI_min");
-    this.zoomIncrement = -this.constants.keyboardNavigation.zoomMovementSpeed;
+    this.zoomIncrement = -this.constants.keyboardNavigation.speed.zoom;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
