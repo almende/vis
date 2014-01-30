@@ -32,6 +32,7 @@ function Edge (properties, graph, constants) {
   this.width  = constants.edges.width;
   this.value  = undefined;
   this.length = constants.edges.length;
+  this.selected = false;
 
   this.from = null;   // a node
   this.to = null;     // a node
@@ -268,7 +269,7 @@ Edge.prototype._drawLine = function(ctx) {
  * @private
  */
 Edge.prototype._getLineWidth = function() {
-  if (this.from.selected || this.to.selected) {
+  if (this.selected == true) {
     return Math.min(this.width * 2, this.widthMax)*this.graphScaleInv;
   }
   else {
@@ -618,3 +619,12 @@ Edge._dist = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
 Edge.prototype.setScale = function(scale) {
   this.graphScaleInv = 1.0/scale;
 };
+
+
+Edge.prototype.select = function() {
+  this.selected = true;
+}
+
+Edge.prototype.unselect = function() {
+  this.selected = false;
+}

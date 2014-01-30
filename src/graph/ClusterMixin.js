@@ -335,6 +335,10 @@ var ClusterMixin = {
 
     // if child node has been added on smaller scale than current, kick out
     if (childNode.formationScale < this.scale || force == true) {
+      // remove the selection, first remove the selection from the connected edges
+      this._unselectConnectedEdges(parentNode);
+      parentNode.unselect();
+
       // put the child node back in the global nodes object
       this.nodes[containedNodeId] = childNode;
 
@@ -383,6 +387,9 @@ var ClusterMixin = {
 
       // recalculate the size of the node on the next time the node is rendered
       parentNode.clearSizeCache();
+
+      // this unselects the rest of the edges
+      this._unselectConnectedEdges(parentNode);
     }
 
     // check if a further expansion step is possible if recursivity is enabled
