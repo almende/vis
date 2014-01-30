@@ -76,12 +76,22 @@ Group.prototype.setItems = function setItems(items) {
 };
 
 /**
- * Change the item selection, and/or get currently selected items
- * @param {Array} [ids] An array with zero or more ids of the items to be selected.
+ * Set selected items by their id. Replaces the current selection.
+ * Unknown id's are silently ignored.
+ * @param {Array} [ids] An array with zero or more id's of the items to be
+ *                      selected. If ids is an empty array, all items will be
+ *                      unselected.
+ */
+Group.prototype.setSelection = function setSelection(ids) {
+  if (this.itemset) this.itemset.setSelection(ids);
+};
+
+/**
+ * Get the selected items by their id
  * @return {Array} ids  The ids of the selected items
  */
-Group.prototype.select = function select(ids) {
-  return this.itemset ? this.itemset.select(ids) : [];
+Group.prototype.getSelection = function getSelection() {
+  return this.itemset ? this.itemset.getSelection() : [];
 };
 
 /**

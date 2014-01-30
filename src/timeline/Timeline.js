@@ -350,13 +350,22 @@ Timeline.prototype.getItemRange = function getItemRange() {
 };
 
 /**
- * Select or deselect items, or get current selection.
- * Returns the currently selected items
- * @param {Array} [ids] An array with zero or more ids of the items to be selected.
+ * Set selected items by their id. Replaces the current selection
+ * Unknown id's are silently ignored.
+ * @param {Array} [ids] An array with zero or more id's of the items to be
+ *                      selected. If ids is an empty array, all items will be
+ *                      unselected.
+ */
+Timeline.prototype.setSelection = function setSelection (ids) {
+  if (this.content) this.content.setSelection(ids);
+};
+
+/**
+ * Get the selected items by their id
  * @return {Array} ids  The ids of the selected items
  */
-Timeline.prototype.select = function select(ids) {
-  return this.content ? this.content.select(ids) : [];
+Timeline.prototype.getSelection = function getSelection() {
+  return this.content ? this.content.getSelection() : [];
 };
 
 /**
@@ -406,9 +415,10 @@ Timeline.prototype._onSelectItem = function (event) {
   var item = this._itemFromTarget(event);
 
   var selection = item ? [item.id] : [];
-  selection = this.select(selection);
+  this.setSelection(selection);
+
   this._trigger('select', {
-    items: selection
+    items: this.getSelection()
   });
 
   event.stopPropagation();
@@ -427,7 +437,8 @@ Timeline.prototype._onMultiSelectItem = function (event) {
     // do nothing...
     return;
   }
-  selection = this.select(); // current selection
+
+  selection = this.getSelection(); // current selection
   var index = selection.indexOf(item.id);
   if (index == -1) {
     // item is not yet selected -> select it
@@ -437,10 +448,10 @@ Timeline.prototype._onMultiSelectItem = function (event) {
     // item is already selected -> deselect it
     selection.splice(index, 1);
   }
+  this.setSelection(selection);
 
-  selection = this.select(selection);
   this._trigger('select', {
-    items: selection
+    items: this.getSelection()
   });
 
   event.stopPropagation();

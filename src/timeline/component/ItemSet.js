@@ -112,11 +112,13 @@ ItemSet.prototype.setRange = function setRange(range) {
 };
 
 /**
- * Change the item selection, and/or get currently selected items
- * @param {Array} [ids] An array with zero or more ids of the items to be selected.
- * @return {Array} ids  The ids of the selected items
+ * Set selected items by their id. Replaces the current selection
+ * Unknown id's are silently ignored.
+ * @param {Array} [ids] An array with zero or more id's of the items to be
+ *                      selected. If ids is an empty array, all items will be
+ *                      unselected.
  */
-ItemSet.prototype.select = function select(ids) {
+ItemSet.prototype.setSelection = function setSelection(ids) {
   var i, ii, id, item, selection;
 
   if (ids) {
@@ -152,11 +154,14 @@ ItemSet.prototype.select = function select(ids) {
       this.requestRepaint();
     }
   }
-  else {
-    selection = this.selection.concat([]);
-  }
+};
 
-  return selection;
+/**
+ * Get the selected items by their id
+ * @return {Array} ids  The ids of the selected items
+ */
+ItemSet.prototype.getSelection = function getSelection() {
+  return this.selection.concat([]);
 };
 
 /**
