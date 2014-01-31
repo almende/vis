@@ -65,7 +65,7 @@
             // add event listeners
             vis.events.addListener(graph, 'select', function(params) {
                 document.getElementById('selection').innerHTML =
-                        'Selection: ' + graph.getSelection();
+                        'Selection: ' + JSON.stringify(graph.getSelection());
             });
         }
     </script>

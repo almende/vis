@@ -646,27 +646,28 @@ Graph.prototype._onDragStart = function () {
     }
 
     // create an array with the selected nodes and their original location and status
-    var me = this;
-    this.selection.forEach(function (id) {
-      var node = me.nodes[id];
-      if (node) {
-        var s = {
-          id: id,
-          node: node,
+    for (var objectId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objectId)) {
+        var object = this.selectionObj[objectId];
+        if (object instanceof Node) {
+          var s = {
+            id: object.id,
+            node: object,
 
-          // store original x, y, xFixed and yFixed, make the node temporarily Fixed
-          x: node.x,
-          y: node.y,
-          xFixed: node.xFixed,
-          yFixed: node.yFixed
-        };
+            // store original x, y, xFixed and yFixed, make the node temporarily Fixed
+            x: object.x,
+            y: object.y,
+            xFixed: object.xFixed,
+            yFixed: object.yFixed
+          };
 
-        node.xFixed = true;
-        node.yFixed = true;
+          object.xFixed = true;
+          object.yFixed = true;
 
-        drag.selection.push(s);
+          drag.selection.push(s);
+        }
       }
-    });
+    }
   }
 };
 
@@ -2009,7 +2010,6 @@ Graph.prototype._loadSectorSystem = function() {
  * @private
  */
 Graph.prototype._loadSelectionSystem = function() {
-  this.selection = [];
   this.selectionObj = {};
 
   for (var mixinFunction in SelectionMixin) {
