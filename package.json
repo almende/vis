@@ -1,6 +1,6 @@
 {
   "name": "vis",
-  "version": "0.4.0-SNAPSHOT",
+  "version": "0.4.0",
   "description": "A dynamic, browser-based visualization library.",
   "homepage": "http://visjs.org/",
   "repository": {
@@ -29,6 +29,7 @@
     "jake": "latest",
     "jake-utils": "latest",
     "browserify": "3.22",
+    "wrench": "latest",
     "moment": "latest",
     "hammerjs": "1.0.5",
     "mousetrap": "latest",

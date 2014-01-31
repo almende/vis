@@ -4,7 +4,7 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.4.0-SNAPSHOT
+ * @version 0.4.0
  * @date    2014-01-31
  *
  * @license
@@ -982,33 +982,6 @@ util.option.asElement = function (value, defaultValue) {
 
   return value || defaultValue || null;
 };
-
-
-/**
- * Compare two numbers and return the lowest, non-negative number.
- *
- * @param {number} number1
- * @param {number} number2
- * @returns {number}        | number1 or number2, the lowest positive number. If both negative, return -1
- */
-util.getLowestPositiveNumber = function(number1,number2) {
-  if (number1 >= 0) {
-    if (number2 >= 0) {
-      return (number1 < number2) ? number1 : number2;
-    }
-    else {
-      return number1;
-    }
-  }
-  else {
-    if (number2 >= 0) {
-      return number2;
-    }
-    else {
-      return -1;
-    }
-  }
-}
 
 /**
  * Event listener (singleton)
@@ -3235,8 +3208,8 @@ Range.prototype.setRange = function(start, end) {
  * @private
  */
 Range.prototype._applyRange = function(start, end) {
-  var newStart = (start != null) ? util.convert(start, 'Number') : this.start,
-      newEnd   = (end != null)   ? util.convert(end, 'Number')   : this.end,
+  var newStart = (start != null) ? util.convert(start, 'Date').valueOf() : this.start,
+      newEnd   = (end != null)   ? util.convert(end, 'Date').valueOf()   : this.end,
       max = (this.options.max != null) ? util.convert(this.options.max, 'Date').valueOf() : null,
       min = (this.options.min != null) ? util.convert(this.options.min, 'Date').valueOf() : null,
       diff;
@@ -7571,10 +7544,9 @@ function Timeline (container, items, options) {
 Timeline.prototype.setOptions = function (options) {
   util.extend(this.options, options);
 
-  // force update of range
-  // options.start and options.end can be undefined
-  //this.range.setRange(options.start, options.end);
-  this.range.setRange();
+  // force update of range (apply new min/max etc.)
+  // both start and end are optional
+  this.range.setRange(options.start, options.end);
 
   this.controller.reflow();
   this.controller.repaint();
@@ -7630,29 +7602,29 @@ Timeline.prototype.setItems = function(items) {
     var dataRange = this.getItemRange();
 
     // add 5% space on both sides
-    var min = dataRange.min;
-    var max = dataRange.max;
-    if (min != null && max != null) {
-      var interval = (max.valueOf() - min.valueOf());
+    var start = dataRange.min;
+    var end = dataRange.max;
+    if (start != null && end != null) {
+      var interval = (end.valueOf() - start.valueOf());
       if (interval <= 0) {
         // prevent an empty interval
         interval = 24 * 60 * 60 * 1000; // 1 day
       }
-      min = new Date(min.valueOf() - interval * 0.05);
-      max = new Date(max.valueOf() + interval * 0.05);
+      start = new Date(start.valueOf() - interval * 0.05);
+      end = new Date(end.valueOf() + interval * 0.05);
     }
 
     // override specified start and/or end date
     if (this.options.start != undefined) {
-      min = util.convert(this.options.start, 'Date');
+      start = util.convert(this.options.start, 'Date');
     }
     if (this.options.end != undefined) {
-      max = util.convert(this.options.end, 'Date');
+      end = util.convert(this.options.end, 'Date');
     }
 
     // apply range if there is a min or max available
-    if (min != null || max != null) {
-      this.range.setRange(min, max);
+    if (start != null || end != null) {
+      this.range.setRange(start, end);
     }
   }
 };
@@ -12535,7 +12507,9 @@ var SelectionMixin = {
     this.selectionObj = {};
 
     if (doNotTrigger == false) {
-      this._trigger('select');
+      this._trigger('select', {
+        nodes: this.getSelection()
+      });
     }
   },
 
@@ -12584,7 +12558,9 @@ var SelectionMixin = {
       this._removeFromSelection(node);
     }
     if (doNotTrigger == false) {
-      this._trigger('select');
+      this._trigger('select', {
+        nodes: this.getSelection()
+      });
     }
   },
 
@@ -12791,7 +12767,9 @@ var SelectionMixin = {
 
     if (changed && (triggerSelect == true || triggerSelect == undefined)) {
       // fire the select event
-      this._trigger('select');
+      this._trigger('select', {
+        nodes: this.getSelection()
+      });
     }
 
     return changed;
@@ -12847,7 +12825,9 @@ var SelectionMixin = {
 
     if (changed) {
       // fire the select event
-      this._trigger('select');
+      this._trigger('select', {
+        nodes: this.getSelection()
+      });
     }
 
     return changed;
@@ -12912,22 +12892,22 @@ var NavigationMixin = {
     var offset = 15;
     var intermediateOffset = 7;
     var navigationNodes = [
-      {id: 'navigation_up',    shape: 'image', image: DIR + 'uparrow.png',   triggerFunction: "_moveUp",
+      {id: 'navigation_up',    shape: 'image', image: DIR + '/uparrow.png',   triggerFunction: "_moveUp",
         verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.navigationClientHeight - 45 - offset - intermediateOffset},
-      {id: 'navigation_down',  shape: 'image', image: DIR + 'downarrow.png', triggerFunction: "_moveDown",
+      {id: 'navigation_down',  shape: 'image', image: DIR + '/downarrow.png', triggerFunction: "_moveDown",
         verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.navigationClientHeight - 15 - offset},
-      {id: 'navigation_left',  shape: 'image', image: DIR + 'leftarrow.png', triggerFunction: "_moveLeft",
+      {id: 'navigation_left',  shape: 'image', image: DIR + '/leftarrow.png', triggerFunction: "_moveLeft",
         verticalAlignTop: false,  x: 15 + offset,  y: this.navigationClientHeight - 15 - offset},
-      {id: 'navigation_right', shape: 'image', image: DIR + 'rightarrow.png',triggerFunction: "_moveRight",
+      {id: 'navigation_right', shape: 'image', image: DIR + '/rightarrow.png',triggerFunction: "_moveRight",
         verticalAlignTop: false,  x: 75 + offset + 2 * intermediateOffset,  y: this.navigationClientHeight - 15 - offset},
 
-      {id: 'navigation_plus',  shape: 'image', image: DIR + 'plus.png',      triggerFunction: "_zoomIn",
+      {id: 'navigation_plus',  shape: 'image', image: DIR + '/plus.png',      triggerFunction: "_zoomIn",
         verticalAlignTop: false, horizontalAlignLeft: false,
         x: this.navigationClientWidth - 45 - offset - intermediateOffset, y: this.navigationClientHeight - 15 - offset},
-      {id: 'navigation_min', shape: 'image', image: DIR + 'minus.png',       triggerFunction: "_zoomOut",
+      {id: 'navigation_min', shape: 'image', image: DIR + '/minus.png',       triggerFunction: "_zoomOut",
         verticalAlignTop: false, horizontalAlignLeft: false,
         x: this.navigationClientWidth - 15 - offset, y: this.navigationClientHeight - 15 - offset},
-      {id: 'navigation_zoomExtends', shape: 'image', image: DIR + 'zoomExtends.png', triggerFunction: "zoomToFit",
+      {id: 'navigation_zoomExtends', shape: 'image', image: DIR + '/zoomExtends.png', triggerFunction: "zoomToFit",
         verticalAlignTop: false, horizontalAlignLeft: false,
         x: this.navigationClientWidth - 15 - offset, y: this.navigationClientHeight - 45 - offset - intermediateOffset}
     ];
@@ -13194,7 +13174,7 @@ function Graph (container, data, options) {
     },
     navigation: {
       enabled: false,
-      iconPath: this._getIconURL()
+      iconPath: this._getScriptPath() + '/img'
     },
     keyboard: {
       enabled: false,
@@ -13245,7 +13225,6 @@ function Graph (container, data, options) {
   this.areaCenter = {};               // object with x and y elements used for determining the center of the zoom action
   this.scale = 1;                     // defining the global scale variable in the constructor
   this.previousScale = this.scale;    // this is used to check if the zoom operation is zooming in or out
-  this.lastPointerPosition = {"x": 0,"y": 0}; // this is used for keyboard navigation
   // TODO: create a counter to keep track on the number of nodes having values
   // TODO: create a counter to keep track on the number of nodes currently moving
   // TODO: create a counter to keep track on the number of edges having values
@@ -13301,23 +13280,22 @@ function Graph (container, data, options) {
 }
 
 /**
- * get the URL where the navigation icons are located
+ * Get the script path where the vis.js library is located
  *
- * @returns {string}
+ * @returns {string | null} path   Path or null when not found. Path does not
+ *                                 end with a slash.
  * @private
  */
-Graph.prototype._getIconURL = function() {
+Graph.prototype._getScriptPath = function() {
   var scripts = document.getElementsByTagName( 'script' );
-  var scriptNamePosition, srcPosition, imagePath;
+
+  // find script named vis.js or vis.min.js
   for (var i = 0; i < scripts.length; i++) {
-    srcPosition = scripts[i].outerHTML.search("src");
-    if (srcPosition != -1) {
-      scriptNamePosition = util.getLowestPositiveNumber(scripts[i].outerHTML.search("vis.js"),
-                                                  scripts[i].outerHTML.search("vis.min.js"));
-      if (scriptNamePosition != -1) {
-        imagePath = scripts[i].outerHTML.substring(srcPosition+5,scriptNamePosition).concat("img/");
-        return imagePath;
-      }
+    var src = scripts[i].src;
+    var match = src && /\/?vis(.min)?\.js$/.exec(src);
+    if (match) {
+      // return path without the script name
+      return src.substring(0, src.length - match[0].length);
     }
   }
 
@@ -13600,6 +13578,33 @@ Graph.prototype.setOptions = function (options) {
 };
 
 /**
+ * Add event listener
+ * @param {String} event       Event name. Available events:
+ *                             'select'
+ * @param {function} callback  Callback function, invoked as callback(properties)
+ *                             where properties is an optional object containing
+ *                             event specific properties.
+ */
+Graph.prototype.on = function on (event, callback) {
+  var available = ['select'];
+
+  if (available.indexOf(event) == -1) {
+    throw new Error('Unknown event "' + event + '". Choose from ' + available.join());
+  }
+
+  events.addListener(this, event, callback);
+};
+
+/**
+ * Remove an event listener
+ * @param {String} event       Event name
+ * @param {function} callback  Callback function
+ */
+Graph.prototype.off = function off (event, callback) {
+  events.removeListener(this, event, callback);
+};
+
+/**
  * fire an event
  * @param {String} event   The name of an event, for example 'select'
  * @param {Object} params  Optional object with event parameters
@@ -13742,6 +13747,7 @@ Graph.prototype._onDragStart = function () {
   var node = this._getNodeAt(drag.pointer);
   // note: drag.pointer is set in _onTouch to get the initial touch location
 
+  drag.dragging = true;
   drag.selection = [];
   drag.translation = this._getTranslation();
   drag.nodeId = null;
@@ -13834,6 +13840,7 @@ Graph.prototype._onDrag = function (event) {
  * @private
  */
 Graph.prototype._onDragEnd = function () {
+  this.drag.dragging = false;
   var selection = this.drag.selection;
   if (selection) {
     selection.forEach(function (s) {
@@ -13905,7 +13912,7 @@ Graph.prototype._onPinch = function (event) {
 /**
  * Zoom the graph in or out
  * @param {Number} scale a number around 1, and between 0.01 and 10
- * @param {{x: Number, y: Number}} pointer
+ * @param {{x: Number, y: Number}} pointer    Position on screen
  * @return {Number} appliedScale    scale is limited within the boundaries
  * @private
  */
@@ -13997,8 +14004,6 @@ Graph.prototype._onMouseMoveTitle = function (event) {
   var gesture = util.fakeGesture(this, event);
   var pointer = this._getPointer(gesture.center);
 
-  this.lastPointerPosition = pointer;
-
   // check if the previously selected node is still selected
   if (this.popupNode) {
     this._checkHidePopup(pointer);
@@ -14013,7 +14018,7 @@ Graph.prototype._onMouseMoveTitle = function (event) {
   if (this.popupTimer) {
     clearInterval(this.popupTimer); // stop any running calculationTimer
   }
-  if (!this.leftButtonDown) {
+  if (!this.drag.dragging) {
     this.popupTimer = setTimeout(checkShow, 300);
   }
 };
@@ -14538,10 +14543,14 @@ Graph.prototype._redraw = function() {
   ctx.translate(this.translation.x, this.translation.y);
   ctx.scale(this.scale, this.scale);
 
-  this.canvasTopLeft = {"x": this._canvasToX(0),
-                        "y": this._canvasToY(0)};
-  this.canvasBottomRight = {"x": this._canvasToX(this.frame.canvas.clientWidth),
-                            "y": this._canvasToY(this.frame.canvas.clientHeight)};
+  this.canvasTopLeft = {
+    "x": this._canvasToX(0),
+    "y": this._canvasToY(0)
+  };
+  this.canvasBottomRight = {
+    "x": this._canvasToX(this.frame.canvas.clientWidth),
+    "y": this._canvasToY(this.frame.canvas.clientHeight)
+  };
 
   this._doInAllSectors("_drawAllSectorNodes",ctx);
   this._doInAllSectors("_drawEdges",ctx);
@@ -15013,10 +15022,14 @@ Graph.prototype.start = function() {
           // keyboad movement
           if (graph.xIncrement != 0 || graph.yIncrement != 0) {
             var translation = graph._getTranslation();
-            graph._setTranslation(translation.x+graph.xIncrement,translation.y+graph.yIncrement);
+            graph._setTranslation(translation.x+graph.xIncrement, translation.y+graph.yIncrement);
           }
           if (graph.zoomIncrement != 0) {
-            graph._zoom(graph.scale*(1 + graph.zoomIncrement),graph.lastPointerPosition);
+            var center = {
+              x: graph.frame.canvas.clientWidth / 2,
+              y: graph.frame.canvas.clientHeight / 2
+            };
+            graph._zoom(graph.scale*(1 + graph.zoomIncrement), center);
           }
 
           graph.start();

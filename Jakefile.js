@@ -3,7 +3,7 @@
  */
 var jake = require('jake'),
     browserify = require('browserify'),
-    path = require('path'),
+    wrench = require('wrench'),
     fs = require('fs');
 
 require('jake-utils');
@@ -95,7 +95,9 @@ task('build', {async: true}, function () {
   });
 
   // copy images
-  jake.cpR('./src/graph/img', DIST+ '/img');
+  wrench.copyDirSyncRecursive('./src/graph/img', DIST+ '/img', {
+    forceDelete: true
+  });
 
   var timeStart = Date.now();
   // bundle the concatenated script and dependencies into one file

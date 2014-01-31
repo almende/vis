@@ -2,7 +2,7 @@ vis.js history
 http://visjs.org
 
 
-## not yet released, version 0.4.0
+## 2014-01-31, version 0.4.0
 
 ### Timeline
 
