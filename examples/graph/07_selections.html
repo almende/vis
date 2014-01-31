@@ -51,11 +51,9 @@
   graph = new vis.Graph(container, data, options);
 
   // add event listener
-  function onSelect() {
-    document.getElementById('info').innerHTML +=
-        'selection: ' + graph.getSelection().join(', ') + '<br>';
-  }
-  vis.events.addListener(graph, 'select', onSelect);
+  graph.on('select', function(params) {
+    document.getElementById('info').innerHTML += 'selection: ' + params.nodes + '<br>';
+  });
 
   // set initial selection (id's of some nodes)
   graph.setSelection([3, 4, 5]);

@@ -1385,6 +1385,33 @@ var options: {
   </tr>
 
   <tr>
+    <td>getSelection()</td>
+    <td>Array of ids</td>
+    <td>Returns an array with the ids of the selected nodes.
+      Returns an empty array if no nodes are selected.
+      The selections are not ordered.
+    </td>
+  </tr>
+
+  <tr>
+    <td>on(event, callback)</td>
+    <td>none</td>
+    <td>Create an event listener. The callback function is invoked every time the event is triggered. Avialable events: <code>select</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties. See section <a href="#Events">Events</a> for more information.</td>
+  </tr>
+
+  <tr>
+    <td>off(event, callback)</td>
+    <td>none</td>
+    <td>Remove an event listener created before via function <code>on(event, callback)</code>. See section <a href="#Events">Events</a> for more information.</td>
+  </tr>
+
+  <tr>
+    <td>redraw()</td>
+    <td>none</td>
+    <td>Redraw the graph. Useful when the layout of the webpage changed.</td>
+  </tr>
+
+  <tr>
     <td>setData(data,[disableStart])</td>
     <td>none</td>
     <td>Loads data. Parameter <code>data</code> is an object containing
@@ -1401,21 +1428,6 @@ var options: {
     <td>Set options for the graph. The available options are described in
       the section <a href="#Configuration_options">Configuration Options</a>.
     </td>
-  </tr>
-
-  <tr>
-    <td>getSelection()</td>
-    <td>Array of ids</td>
-    <td>Returns an array with the ids of the selected nodes.
-      Returns an empty array if no nodes are selected.
-      The selections are not ordered.
-    </td>
-  </tr>
-
-  <tr>
-    <td>redraw()</td>
-    <td>none</td>
-    <td>Redraw the graph. Useful when the layout of the webpage changed.</td>
   </tr>
 
   <tr>
@@ -1441,7 +1453,7 @@ var options: {
 
 <h2 id="Events">Events</h2>
 <p>
-  Graph fires events after one or multiple nodes are selected.
+  Graph fires events after one or multiple nodes are selected or deselected.
   The event can be catched by creating a listener.
 </p>
 
@@ -1450,12 +1462,29 @@ var options: {
 </p>
 
 <pre class="prettyprint lang-js">
-function onSelect() {
-  alert('selected nodes: ' + graph.getSelection());
+graph.on('select', function (properties) {
+  alert('selected nodes: ' + properties.nodes);
+});
+</pre>
+
+<p>
+  A listener can be removed via the function <code>off</code>:
+</p>
+
+<pre class="prettyprint lang-js">
+function onSelect (properties) {
+  alert('selected nodes: ' + properties.nodes);
 }
 
-vis.events.addListener(graph, 'select', onSelect);
+// add event listener
+graph.on('select', onSelect);
+
+// do stuff...
+
+// remove event listener
+graph.off('select', onSelect);
 </pre>
+
 
 <p>
   The following events are available.
@@ -1470,13 +1499,14 @@ vis.events.addListener(graph, 'select', onSelect);
 
   <tr>
     <td>select</td>
-    <td>Fired after the user selects or unselects a node by clicking it,
-      or when selecting a number of nodes by dragging a selection area
-      around them. Not fired when the method <code>setSelection</code>
-      is executed. The ids of the selected nodes can be retrieved via the
-      method <code>getSelection</code>.
+    <td>Fired after the user selects or deselects a node by clicking it.
+      Not fired when the method <code>setSelection</code>is executed.
     </td>
-    <td>none</td>
+    <td>
+      <ul>
+        <li><code>nodes</code>: an array with the ids of the selected nodes</li>
+      </ul>
+    </td>
   </tr>
 </table>
 

@@ -7,10 +7,9 @@ http://visjs.org
 ### Timeline
 
 - Implemented functions `on` and `off` to create event listeners for events
-  `rangechange` and `rangechanged`.
+  `rangechange`, `rangechanged`, and `select`.
 - Impelmented function `select` to get and set the selected items.
 - Items can be selected by clicking them, muti-select by holding them.
-
 
 ### Graph
 
@@ -25,8 +24,10 @@ http://visjs.org
 - Added local declustering to Graph, freezing the simulation of nodes outside
   of the cluster.
 - Added support for key-bindings by including mouseTrap in Graph.
-- Added node-based navigation GUI.
-- Added keyboard navigation option.
+- Added navigation controls.
+- Added keyboard navigation.
+- Implemented functions `on` and `off` to create event listeners for event
+  `select`.
 
 
 ## 2014-01-14, version 0.3.0

@@ -492,6 +492,33 @@ Graph.prototype.setOptions = function (options) {
 };
 
 /**
+ * Add event listener
+ * @param {String} event       Event name. Available events:
+ *                             'select'
+ * @param {function} callback  Callback function, invoked as callback(properties)
+ *                             where properties is an optional object containing
+ *                             event specific properties.
+ */
+Graph.prototype.on = function on (event, callback) {
+  var available = ['select'];
+
+  if (available.indexOf(event) == -1) {
+    throw new Error('Unknown event "' + event + '". Choose from ' + available.join());
+  }
+
+  events.addListener(this, event, callback);
+};
+
+/**
+ * Remove an event listener
+ * @param {String} event       Event name
+ * @param {function} callback  Callback function
+ */
+Graph.prototype.off = function off (event, callback) {
+  events.removeListener(this, event, callback);
+};
+
+/**
  * fire an event
  * @param {String} event   The name of an event, for example 'select'
  * @param {Object} params  Optional object with event parameters

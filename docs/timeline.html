@@ -38,6 +38,7 @@
   </li>
   <li><a href="#Configuration_Options">Configuration Options</a></li>
   <li><a href="#Methods">Methods</a></li>
+  <li><a href="#Events">Events</a></li>
   <li><a href="#Styles">Styles</a></li>
   <li><a href="#Data_Policy">Data Policy</a></li>
 </ul>
@@ -561,13 +562,13 @@ var options = {
   <tr>
     <td>on(event, callback)</td>
     <td>none</td>
-    <td>Create an event listener. The callback function is invoked every time the event is triggered. Avialable events: <code>rangechange</code>, <code>rangechanged</code>, <code>select</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties.</td>
+    <td>Create an event listener. The callback function is invoked every time the event is triggered. Avialable events: <code>rangechange</code>, <code>rangechanged</code>, <code>select</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties. See section <a href="#Events">Events for more information</a>.</td>
   </tr>
 
   <tr>
     <td>off(event, callback)</td>
     <td>none</td>
-    <td>Remove an event listener created before via function <code>on(event, callback)</code>.</td>
+    <td>Remove an event listener created before via function <code>on(event, callback)</code>. See section <a href="#Events">Events for more information</a>.</td>
   </tr>
 
   <tr>
@@ -607,8 +608,95 @@ var options = {
 </table>
 
 
-<!-- TODO: write a section on Events -->
+<h2 id="Events">Events</h2>
+<p>
+  Timeline fires events when changing the visible window by dragging, or when
+  selecting items.
+</p>
 
+<p>
+  Here an example on how to listen for a <code>select</code> event.
+</p>
+
+<pre class="prettyprint lang-js">
+timeline.on('select', function (properties) {
+  alert('selected items: ' + properties.nodes);
+});
+</pre>
+
+<p>
+  A listener can be removed via the function <code>off</code>:
+</p>
+
+<pre class="prettyprint lang-js">
+function onSelect (properties) {
+  alert('selected items: ' + properties.nodes);
+}
+
+// add event listener
+timeline.on('select', onSelect);
+
+// do stuff...
+
+// remove event listener
+timeline.off('select', onSelect);
+</pre>
+
+
+<p>
+  The following events are available.
+</p>
+
+<table>
+  <colgroup>
+    <col style="width: 20%;">
+    <col style="width: 40%;">
+    <col style="width: 40%;">
+  </colgroup>
+
+  <tr>
+    <th>name</th>
+    <th>Description</th>
+    <th>Properties</th>
+  </tr>
+
+  <tr>
+    <td>rangechange</td>
+    <td>Fired repeatedly when the user is dragging the timeline window.
+    </td>
+    <td>
+      <ul>
+        <li><code>start</code> (Number): timestamp of the current start of the window.</li>
+        <li><code>end</code> (Number): timestamp of the current end of the window.</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
+    <td>rangechanged</td>
+    <td>Fired once after the user has dragging the timeline window.
+    </td>
+    <td>
+      <ul>
+        <li><code>start</code> (Number): timestamp of the current start of the window.</li>
+        <li><code>end</code> (Number): timestamp of the current end of the window.</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
+    <td>select</td>
+    <td>Fired after the user selects or deselects items by tapping or holding them.
+      Not fired when the method <code>setSelection</code>is executed.
+    </td>
+    <td>
+      <ul>
+        <li><code>items</code>: an array with the ids of the selected items</li>
+      </ul>
+    </td>
+  </tr>
+
+</table>
 
 
 <h2 id="Styles">Styles</h2>

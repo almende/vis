@@ -183,7 +183,9 @@ var SelectionMixin = {
     this.selectionObj = {};
 
     if (doNotTrigger == false) {
-      this._trigger('select');
+      this._trigger('select', {
+        nodes: this.getSelection()
+      });
     }
   },
 
@@ -232,7 +234,9 @@ var SelectionMixin = {
       this._removeFromSelection(node);
     }
     if (doNotTrigger == false) {
-      this._trigger('select');
+      this._trigger('select', {
+        nodes: this.getSelection()
+      });
     }
   },
 
@@ -439,7 +443,9 @@ var SelectionMixin = {
 
     if (changed && (triggerSelect == true || triggerSelect == undefined)) {
       // fire the select event
-      this._trigger('select');
+      this._trigger('select', {
+        nodes: this.getSelection()
+      });
     }
 
     return changed;
@@ -495,7 +501,9 @@ var SelectionMixin = {
 
     if (changed) {
       // fire the select event
-      this._trigger('select');
+      this._trigger('select', {
+        nodes: this.getSelection()
+      });
     }
 
     return changed;
