@@ -139,7 +139,6 @@ function Graph (container, data, options) {
   this.areaCenter = {};               // object with x and y elements used for determining the center of the zoom action
   this.scale = 1;                     // defining the global scale variable in the constructor
   this.previousScale = this.scale;    // this is used to check if the zoom operation is zooming in or out
-  this.lastPointerPosition = {"x": 0,"y": 0}; // this is used for keyboard navigation
   // TODO: create a counter to keep track on the number of nodes having values
   // TODO: create a counter to keep track on the number of nodes currently moving
   // TODO: create a counter to keep track on the number of edges having values
@@ -635,6 +634,7 @@ Graph.prototype._onDragStart = function () {
   var node = this._getNodeAt(drag.pointer);
   // note: drag.pointer is set in _onTouch to get the initial touch location
 
+  drag.dragging = true;
   drag.selection = [];
   drag.translation = this._getTranslation();
   drag.nodeId = null;
@@ -727,6 +727,7 @@ Graph.prototype._onDrag = function (event) {
  * @private
  */
 Graph.prototype._onDragEnd = function () {
+  this.drag.dragging = false;
   var selection = this.drag.selection;
   if (selection) {
     selection.forEach(function (s) {
@@ -798,7 +799,7 @@ Graph.prototype._onPinch = function (event) {
 /**
  * Zoom the graph in or out
  * @param {Number} scale a number around 1, and between 0.01 and 10
- * @param {{x: Number, y: Number}} pointer
+ * @param {{x: Number, y: Number}} pointer    Position on screen
  * @return {Number} appliedScale    scale is limited within the boundaries
  * @private
  */
@@ -890,8 +891,6 @@ Graph.prototype._onMouseMoveTitle = function (event) {
   var gesture = util.fakeGesture(this, event);
   var pointer = this._getPointer(gesture.center);
 
-  this.lastPointerPosition = pointer;
-
   // check if the previously selected node is still selected
   if (this.popupNode) {
     this._checkHidePopup(pointer);
@@ -906,7 +905,7 @@ Graph.prototype._onMouseMoveTitle = function (event) {
   if (this.popupTimer) {
     clearInterval(this.popupTimer); // stop any running calculationTimer
   }
-  if (!this.leftButtonDown) {
+  if (!this.drag.dragging) {
     this.popupTimer = setTimeout(checkShow, 300);
   }
 };
@@ -1431,10 +1430,14 @@ Graph.prototype._redraw = function() {
   ctx.translate(this.translation.x, this.translation.y);
   ctx.scale(this.scale, this.scale);
 
-  this.canvasTopLeft = {"x": this._canvasToX(0),
-                        "y": this._canvasToY(0)};
-  this.canvasBottomRight = {"x": this._canvasToX(this.frame.canvas.clientWidth),
-                            "y": this._canvasToY(this.frame.canvas.clientHeight)};
+  this.canvasTopLeft = {
+    "x": this._canvasToX(0),
+    "y": this._canvasToY(0)
+  };
+  this.canvasBottomRight = {
+    "x": this._canvasToX(this.frame.canvas.clientWidth),
+    "y": this._canvasToY(this.frame.canvas.clientHeight)
+  };
 
   this._doInAllSectors("_drawAllSectorNodes",ctx);
   this._doInAllSectors("_drawEdges",ctx);
@@ -1906,10 +1909,14 @@ Graph.prototype.start = function() {
           // keyboad movement
           if (graph.xIncrement != 0 || graph.yIncrement != 0) {
             var translation = graph._getTranslation();
-            graph._setTranslation(translation.x+graph.xIncrement,translation.y+graph.yIncrement);
+            graph._setTranslation(translation.x+graph.xIncrement, translation.y+graph.yIncrement);
           }
           if (graph.zoomIncrement != 0) {
-            graph._zoom(graph.scale*(1 + graph.zoomIncrement),graph.lastPointerPosition);
+            var center = {
+              x: graph.frame.canvas.clientWidth / 2,
+              y: graph.frame.canvas.clientHeight / 2
+            };
+            graph._zoom(graph.scale*(1 + graph.zoomIncrement), center);
           }
 
           graph.start();
