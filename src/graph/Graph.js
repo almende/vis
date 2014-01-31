@@ -69,9 +69,9 @@ function Graph (container, data, options) {
     },
     clustering: {                   // Per Node in Cluster = PNiC
       enabled: false,               // (Boolean)             | global on/off switch for clustering.
-      initialMaxNumberOfNodes: 100, // (# nodes)             | if the initial amount of nodes is larger than this, we cluster until the total number is less than this threshold.
-      absoluteMaxNumberOfNodes:500, // (# nodes)             | during calculate forces, we check if the total number of nodes is larger than this. If it is, cluster until reduced to reduceToMaxNumberOfNodes
-      reduceToMaxNumberOfNodes:300, // (# nodes)             | during calculate forces, we check if the total number of nodes is larger than absoluteMaxNumberOfNodes. If it is, cluster until reduced to this
+      initialMaxNodes: 100,         // (# nodes)             | if the initial amount of nodes is larger than this, we cluster until the total number is less than this threshold.
+      clusterThreshold:500,         // (# nodes)             | during calculate forces, we check if the total number of nodes is larger than this. If it is, cluster until reduced to reduceToNodes
+      reduceToNodes:300,            // (# nodes)             | during calculate forces, we check if the total number of nodes is larger than clusterThreshold. If it is, cluster until reduced to this
       chainThreshold: 0.4,          // (% of all drawn nodes)| maximum percentage of allowed chainnodes (long strings of connected nodes) within all nodes. (lower means less chains).
       clusterEdgeThreshold: 20,     // (px)                  | edge length threshold. if smaller, this node is clustered.
       sectorThreshold: 50,          // (# nodes in cluster)  | cluster size threshold. If larger, expanding in own sector.
@@ -80,23 +80,19 @@ function Graph (container, data, options) {
       forceAmplification: 0.6,      // (multiplier PNiC)     | factor of increase fo the repulsion force of a cluster (per node in cluster).
       distanceAmplification: 0.2,   // (multiplier PNiC)     | factor how much the repulsion distance of a cluster increases (per node in cluster).
       edgeGrowth: 11,               // (px PNiC)             | amount of clusterSize connected to the edge is multiplied with this and added to edgeLength.
-      clusterSizeWidthFactor:  10,  // (px PNiC)             | growth of the width  per node in cluster.
-      clusterSizeHeightFactor: 10,  // (px PNiC)             | growth of the height per node in cluster.
-      clusterSizeRadiusFactor: 10,  // (px PNiC)             | growth of the radius per node in cluster.
+      nodeScaling: {width:  10,     // (px PNiC)             | growth of the width  per node in cluster.
+                    height: 10,     // (px PNiC)             | growth of the height per node in cluster.
+                    radius: 10},    // (px PNiC)             | growth of the radius per node in cluster.
       activeAreaBoxSize: 100,       // (px)                  | box area around the curser where clusters are popped open.
       massTransferCoefficient: 1    // (multiplier)          | parent.mass += massTransferCoefficient * child.mass
     },
     navigationUI: {
       enabled: false,
-      initiallyVisible: true,
-      enableToggling: true,
       iconPath: this._getIconURL()
     },
     keyboardNavigation: {
       enabled: false,
-      xMovementSpeed: 10,
-      yMovementSpeed: 10,
-      zoomMovementSpeed: 0.02
+      speed: {x: 10, y: 10, zoom: 0.02}
     },
     minVelocity: 2,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
@@ -110,7 +106,6 @@ function Graph (container, data, options) {
   });
 
   // navigationUI variables
-  this.UIvisible = this.constants.navigationUI.initiallyVisible;
   this.xIncrement = 0;
   this.yIncrement = 0;
   this.zoomIncrement = 0;
@@ -118,23 +113,17 @@ function Graph (container, data, options) {
   // create a frame and canvas
   this._create();
 
+  // load the sector system.    (mandatory, fully integrated with Graph)
+  this._loadSectorSystem();
+
   // apply options
   this.setOptions(options);
 
   // load the cluster system.   (mandatory, even when not using the cluster system, there are function calls to it)
   this._loadClusterSystem();
 
-  // load the sector system.    (mandatory, fully integrated with Graph)
-  this._loadSectorSystem();
-
   // load the selection system. (mandatory, required by Graph)
   this._loadSelectionSystem();
-
-  // load the navigationUI system.        (mandatory, few function calls even when navigationUI is disabled (in this.setSize)
-  this._loadUISystem();
-
-  // bind keys. If disabled, this will not do anything;
-  this._createKeyBinds();
 
   // other vars
   var graph = this;
@@ -289,7 +278,7 @@ Graph.prototype.zoomToFit = function(initialZoom) {
 
   if (initialZoom == true) {
     if (this.constants.clustering.enabled == true &&
-        numberOfNodes >= this.constants.clustering.initialMaxNumberOfNodes) {
+        numberOfNodes >= this.constants.clustering.initialMaxNodes) {
       var zoomLevel = 38.8467 / (numberOfNodes - 14.50184) + 0.0116; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
     }
     else {
@@ -393,27 +382,39 @@ Graph.prototype.setOptions = function (options) {
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
 
     if (options.clustering) {
+      this.constants.clustering.enabled = true;
       for (var prop in options.clustering) {
         if (options.clustering.hasOwnProperty(prop)) {
           this.constants.clustering[prop] = options.clustering[prop];
         }
       }
     }
+    else if (options.clustering !== undefined)  {
+      this.constants.clustering.enabled = false;
+    }
 
     if (options.navigationUI) {
+      this.constants.navigationUI.enabled = true;
       for (var prop in options.navigationUI) {
         if (options.navigationUI.hasOwnProperty(prop)) {
           this.constants.navigationUI[prop] = options.navigationUI[prop];
         }
       }
     }
+    else if (options.navigationUI !== undefined) {
+      this.constants.navigationUI.enabled = false;
+    }
 
     if (options.keyboardNavigation) {
+      this.constants.keyboardNavigation.enabled = true;
       for (var prop in options.keyboardNavigation) {
         if (options.keyboardNavigation.hasOwnProperty(prop)) {
           this.constants.keyboardNavigation[prop] = options.keyboardNavigation[prop];
         }
       }
+    }
+    else if (options.keyboardNavigation !== undefined)  {
+      this.constants.keyboardNavigation.enabled = false;
     }
 
 
@@ -480,6 +481,14 @@ Graph.prototype.setOptions = function (options) {
   this.setSize(this.width, this.height);
   this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
   this._setScale(1);
+
+  // load the navigationUI system.
+  this._loadUISystem();
+
+  // bind keys. If disabled, this will not do anything;
+  this._createKeyBinds();
+
+  this._redraw();
 };
 
 /**
@@ -556,10 +565,7 @@ Graph.prototype._createKeyBinds = function() {
   var me = this;
   this.mousetrap = mousetrap;
 
-  if (this.constants.navigationUI.enabled == true &&
-      this.constants.navigationUI.enableToggling == true) {
-    this.mousetrap.bind("u",this._toggleUI.bind(me)     , "keydown");
-  }
+  this.mousetrap.reset();
 
   if (this.constants.keyboardNavigation.enabled == true) {
     this.mousetrap.bind("up",   this._moveUp.bind(me)   , "keydown");
@@ -1436,7 +1442,7 @@ Graph.prototype._redraw = function() {
   // restore original scaling and translation
   ctx.restore();
 
-  if (this.UIvisible == true) {
+  if (this.constants.navigationUI.enabled == true) {
     this._doInUISector("_drawNodes",ctx,true);
   }
 };
@@ -1628,8 +1634,8 @@ Graph.prototype._initializeForceCalculation = function() {
   }
   else {
     // if there are too many nodes on screen, we cluster without repositioning
-    if (this.nodeIndices.length > this.constants.clustering.absoluteMaxNumberOfNodes && this.constants.clustering.enabled == true) {
-      this.clusterToFit(this.constants.clustering.reduceToMaxNumberOfNodes, false);
+    if (this.nodeIndices.length > this.constants.clustering.clusterThreshold && this.constants.clustering.enabled == true) {
+      this.clusterToFit(this.constants.clustering.reduceToNodes, false);
     }
 
     // we now start the force calculation
