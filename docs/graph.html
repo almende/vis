@@ -684,7 +684,7 @@ var options = {
   </tr>
 
   <tr>
-    <td><a href="#Keyboard_navigation">keyboardNavigation</a></td>
+    <td><a href="#Keyboard_navigation">keyboard</a></td>
     <td>Object</td>
     <td>none</td>
     <td>
@@ -1304,7 +1304,7 @@ var options: {
 // advanced use of navigation controls
 var options: {
   navigation: {
-    iconPath: this._getIconURL() // automatic loading of the default icons
+    iconPath: '/path/to/navigation/icons/'
   }
 }
 </pre>
@@ -1333,17 +1333,20 @@ var options: {
 </p>
 
 <pre class="prettyprint">
-// These variables must be defined in an options object named keyboardNavigation.
-// If a variable is not supplied, the default value is used
+// simple use of keyboard controls
 var options: {
-    keyboardNavigation: {
-      enabled: false,
-      speed: {x: 10, y: 10, zoom: 0.02}
-    }
+    keyboard: true
 }
-// OR to just load the module with default values:
+
+// advanced configuration for keyboard controls
 var options: {
-    keyboardNavigation: true
+  keyboard: {
+    speed: {
+      x: 10,
+      y: 10,
+      zoom: 0.02
+    }
+  }
 }
 </pre>
 

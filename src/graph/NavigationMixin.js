@@ -140,7 +140,7 @@ var NavigationMixin = {
    */
   _moveUp : function(event) {
     this._highlightUIElement("UI_up");
-    this.yIncrement = this.constants.keyboardNavigation.speed.y;
+    this.yIncrement = this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -152,7 +152,7 @@ var NavigationMixin = {
    */
   _moveDown : function(event) {
     this._highlightUIElement("UI_down");
-    this.yIncrement = -this.constants.keyboardNavigation.speed.y;
+    this.yIncrement = -this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -164,7 +164,7 @@ var NavigationMixin = {
    */
   _moveLeft : function(event) {
     this._highlightUIElement("UI_left");
-    this.xIncrement = this.constants.keyboardNavigation.speed.x;
+    this.xIncrement = this.constants.keyboard.speed.x;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -176,7 +176,7 @@ var NavigationMixin = {
    */
   _moveRight : function(event) {
     this._highlightUIElement("UI_right");
-    this.xIncrement = -this.constants.keyboardNavigation.speed.y;
+    this.xIncrement = -this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -188,7 +188,7 @@ var NavigationMixin = {
    */
   _zoomIn : function(event) {
     this._highlightUIElement("UI_plus");
-    this.zoomIncrement = this.constants.keyboardNavigation.speed.zoom;
+    this.zoomIncrement = this.constants.keyboard.speed.zoom;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -200,7 +200,7 @@ var NavigationMixin = {
    */
   _zoomOut : function() {
     this._highlightUIElement("UI_min");
-    this.zoomIncrement = -this.constants.keyboardNavigation.speed.zoom;
+    this.zoomIncrement = -this.constants.keyboard.speed.zoom;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },

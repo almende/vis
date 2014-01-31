@@ -90,7 +90,7 @@ function Graph (container, data, options) {
       enabled: false,
       iconPath: this._getIconURL()
     },
-    keyboardNavigation: {
+    keyboard: {
       enabled: false,
       speed: {x: 10, y: 10, zoom: 0.02}
     },
@@ -405,16 +405,16 @@ Graph.prototype.setOptions = function (options) {
       this.constants.navigation.enabled = false;
     }
 
-    if (options.keyboardNavigation) {
-      this.constants.keyboardNavigation.enabled = true;
-      for (var prop in options.keyboardNavigation) {
-        if (options.keyboardNavigation.hasOwnProperty(prop)) {
-          this.constants.keyboardNavigation[prop] = options.keyboardNavigation[prop];
+    if (options.keyboard) {
+      this.constants.keyboard.enabled = true;
+      for (var prop in options.keyboard) {
+        if (options.keyboard.hasOwnProperty(prop)) {
+          this.constants.keyboard[prop] = options.keyboard[prop];
         }
       }
     }
-    else if (options.keyboardNavigation !== undefined)  {
-      this.constants.keyboardNavigation.enabled = false;
+    else if (options.keyboard !== undefined)  {
+      this.constants.keyboard.enabled = false;
     }
 
 
@@ -567,7 +567,7 @@ Graph.prototype._createKeyBinds = function() {
 
   this.mousetrap.reset();
 
-  if (this.constants.keyboardNavigation.enabled == true) {
+  if (this.constants.keyboard.enabled == true) {
     this.mousetrap.bind("up",   this._moveUp.bind(me)   , "keydown");
     this.mousetrap.bind("up",   this._yStopMoving.bind(me), "keyup");
     this.mousetrap.bind("down", this._moveDown.bind(me) , "keydown");
