@@ -693,7 +693,7 @@ var options = {
   </tr>
 
   <tr>
-    <td><a href="#Navigation_controls">navigationUI</a></td>
+    <td><a href="#Navigation_controls">navigation</a></td>
     <td>Object</td>
     <td>none</td>
     <td>
@@ -1296,17 +1296,16 @@ var options: {
 </p>
 
 <pre class="prettyprint">
-// These variables must be defined in an options object named navigationUI.
-// If a variable is not supplied, the default value is used.
+// simple use of navigation controls
 var options: {
-    navigationUI: {
-      enabled: false,
-      iconPath: this._getIconURL() // automatic loading of the default icons
-    }
+  navigation: true
 }
-// OR to just load the module with default values:
+
+// advanced use of navigation controls
 var options: {
-    navigationUI: true
+  navigation: {
+    iconPath: this._getIconURL() // automatic loading of the default icons
+  }
 }
 </pre>
 
@@ -1319,15 +1318,9 @@ var options: {
   </tr>
 
   <tr>
-    <td>enabled</td>
-    <td>Boolean</td>
-    <td>false</td>
-    <td>On/off switch for the navigation UI elements.</td>
-  </tr>
-  <tr>
     <td>iconPath</td>
     <td>string</td>
-    <td>[path to vis.js]/UI_icons/</td>
+    <td>/path/to/navigation/icons/</td>
     <td>The path to the icon images can be defined here. If custom icons are used, they have to have the same filename as the ones originally packaged with vis.js.</td>
   </tr>
 </table>
@@ -1336,7 +1329,7 @@ var options: {
 <p>
   The graph can be navigated using shortcut keys.
   It can be configured with the following user-configurable settings.
-  The default state for the keyboard navigation is <b>off</b>. The predefined keys can be found in the <a href="../examples/graph/20_UI_example.html">UI example.</a>
+  The default state for the keyboard navigation is <b>off</b>. The predefined keys can be found in the example <a href="../examples/graph/20_navigation.html">20_navigation.html</a>.
 </p>
 
 <pre class="prettyprint">

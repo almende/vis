@@ -2,10 +2,10 @@
  * Created by Alex on 1/22/14.
  */
 
-var UIMixin = {
+var NavigationMixin = {
 
   /**
-   * This function moves the navigationUI if the canvas size has been changed. If the arugments
+   * This function moves the navigation controls if the canvas size has been changed. If the arugments
    * verticaAlignTop and horizontalAlignLeft are false, the correction will be made
    *
    * @private
@@ -18,9 +18,9 @@ var UIMixin = {
       this.UIclientHeight = this.frame.canvas.clientHeight;
       var node = null;
 
-      for (var nodeId in this.sectors["navigationUI"]["nodes"]) {
-        if (this.sectors["navigationUI"]["nodes"].hasOwnProperty(nodeId)) {
-          node = this.sectors["navigationUI"]["nodes"][nodeId];
+      for (var nodeId in this.sectors["navigation"]["nodes"]) {
+        if (this.sectors["navigation"]["nodes"].hasOwnProperty(nodeId)) {
+          node = this.sectors["navigation"]["nodes"][nodeId];
           if (!node.horizontalAlignLeft) {
             node.x -= xOffset;
           }
@@ -34,15 +34,15 @@ var UIMixin = {
 
 
   /**
-   * Creation of the navigationUI nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
-   * they have a triggerFunction which is called on click. If the position of the navigationUI is dependent
+   * Creation of the navigation controls nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
+   * they have a triggerFunction which is called on click. If the position of the navigation controls is dependent
    * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
    * This means that the location will be corrected by the _relocateUI function on a size change of the canvas.
    *
    * @private
    */
   _loadUIElements : function() {
-    var DIR = this.constants.navigationUI.iconPath;
+    var DIR = this.constants.navigation.iconPath;
     this.UIclientWidth = this.frame.canvas.clientWidth;
     this.UIclientHeight = this.frame.canvas.clientHeight;
     if (this.UIclientWidth === undefined) {
@@ -74,7 +74,7 @@ var UIMixin = {
 
     var nodeObj = null;
     for (var i = 0; i < UINodes.length; i++) {
-      nodeObj = this.sectors["navigationUI"]['nodes'];
+      nodeObj = this.sectors["navigation"]['nodes'];
       nodeObj[UINodes[i]['id']] = new Node(UINodes[i], this.images, this.groups, this.constants);
     }
   },
@@ -88,8 +88,8 @@ var UIMixin = {
    * @private
    */
   _highlightUIElement : function(elementId) {
-    if (this.sectors["navigationUI"]["nodes"].hasOwnProperty(elementId)) {
-      this.sectors["navigationUI"]["nodes"][elementId].clusterSize = 2;
+    if (this.sectors["navigation"]["nodes"].hasOwnProperty(elementId)) {
+      this.sectors["navigation"]["nodes"][elementId].clusterSize = 2;
     }
   },
 
@@ -101,19 +101,20 @@ var UIMixin = {
    * @private
    */
   _unHighlightUIElement : function(elementId) {
-    if (this.sectors["navigationUI"]["nodes"].hasOwnProperty(elementId)) {
-      this.sectors["navigationUI"]["nodes"][elementId].clusterSize = 1;
+    if (this.sectors["navigation"]["nodes"].hasOwnProperty(elementId)) {
+      this.sectors["navigation"]["nodes"][elementId].clusterSize = 1;
     }
   },
 
-
   /**
-   * un-highlight (for lack of a better term) all navigationUI elements
+   * un-highlight (for lack of a better term) all navigation controls elements
    * @private
    */
   _unHighlightAll : function() {
-    for (var nodeId in this.sectors['navigationUI']['nodes']) {
-      this._unHighlightUIElement(nodeId);
+    for (var nodeId in this.sectors['navigation']['nodes']) {
+      if (this.sectors['navigation']['nodes'].hasOwnProperty(nodeId)) {
+        this._unHighlightUIElement(nodeId);
+      }
     }
   },
 

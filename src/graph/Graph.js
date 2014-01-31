@@ -86,7 +86,7 @@ function Graph (container, data, options) {
       activeAreaBoxSize: 100,       // (px)                  | box area around the curser where clusters are popped open.
       massTransferCoefficient: 1    // (multiplier)          | parent.mass += massTransferCoefficient * child.mass
     },
-    navigationUI: {
+    navigation: {
       enabled: false,
       iconPath: this._getIconURL()
     },
@@ -105,7 +105,7 @@ function Graph (container, data, options) {
     graph._redraw();
   });
 
-  // navigationUI variables
+  // navigation variables
   this.xIncrement = 0;
   this.yIncrement = 0;
   this.zoomIncrement = 0;
@@ -393,16 +393,16 @@ Graph.prototype.setOptions = function (options) {
       this.constants.clustering.enabled = false;
     }
 
-    if (options.navigationUI) {
-      this.constants.navigationUI.enabled = true;
-      for (var prop in options.navigationUI) {
-        if (options.navigationUI.hasOwnProperty(prop)) {
-          this.constants.navigationUI[prop] = options.navigationUI[prop];
+    if (options.navigation) {
+      this.constants.navigation.enabled = true;
+      for (var prop in options.navigation) {
+        if (options.navigation.hasOwnProperty(prop)) {
+          this.constants.navigation[prop] = options.navigation[prop];
         }
       }
     }
-    else if (options.navigationUI !== undefined) {
-      this.constants.navigationUI.enabled = false;
+    else if (options.navigation !== undefined) {
+      this.constants.navigation.enabled = false;
     }
 
     if (options.keyboardNavigation) {
@@ -482,8 +482,8 @@ Graph.prototype.setOptions = function (options) {
   this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
   this._setScale(1);
 
-  // load the navigationUI system.
-  this._loadUISystem();
+  // load the navigation system.
+  this._loadNavigationControls();
 
   // bind keys. If disabled, this will not do anything;
   this._createKeyBinds();
@@ -558,7 +558,7 @@ Graph.prototype._create = function () {
 
 
 /**
- * Binding the keys for keyboard navigation. These functions are defined in the UIMixin
+ * Binding the keys for keyboard navigation. These functions are defined in the NavigationMixin
  * @private
  */
 Graph.prototype._createKeyBinds = function() {
@@ -1093,7 +1093,7 @@ Graph.prototype.setSize = function(width, height) {
   this.frame.canvas.width = this.frame.canvas.clientWidth;
   this.frame.canvas.height = this.frame.canvas.clientHeight;
 
-  if (this.constants.navigationUI.enabled == true) {
+  if (this.constants.navigation.enabled == true) {
     this._relocateUI();
   }
 };
@@ -1442,7 +1442,7 @@ Graph.prototype._redraw = function() {
   // restore original scaling and translation
   ctx.restore();
 
-  if (this.constants.navigationUI.enabled == true) {
+  if (this.constants.navigation.enabled == true) {
     this._doInUISector("_drawNodes",ctx,true);
   }
 };
@@ -1988,7 +1988,7 @@ Graph.prototype._loadSectorSystem = function() {
                                        "formationScale": 1.0,
                                        "drawingNode": undefined};
   this.sectors["frozen"] = {};
-  this.sectors["navigationUI"] = {"nodes":{},
+  this.sectors["navigation"] = {"nodes":{},
                         "edges":{},
                         "nodeIndices":[],
                         "formationScale": 1.0,
@@ -2021,34 +2021,34 @@ Graph.prototype._loadSelectionSystem = function() {
 
 
 /**
- * Mixin the navigationUI (User Interface) system and initialize the parameters required
+ * Mixin the navigation (User Interface) system and initialize the parameters required
  *
  * @private
  */
-Graph.prototype._loadUISystem = function() {
-  for (var mixinFunction in UIMixin) {
-    if (UIMixin.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = UIMixin[mixinFunction];
+Graph.prototype._loadNavigationControls = function() {
+  for (var mixinFunction in NavigationMixin) {
+    if (NavigationMixin.hasOwnProperty(mixinFunction)) {
+      Graph.prototype[mixinFunction] = NavigationMixin[mixinFunction];
     }
   }
 
-  if (this.constants.navigationUI.enabled == true) {
+  if (this.constants.navigation.enabled == true) {
     this._loadUIElements();
   }
 }
 
 /**
- * this function exists to avoid errors when not loading the navigationUI system
+ * this function exists to avoid errors when not loading the navigation system
  */
 Graph.prototype._relocateUI = function() {
-  // empty, is overloaded by navigationUI system
+  // empty, is overloaded by navigation system
 }
 
 /**
- * * this function exists to avoid errors when not loading the navigationUI system
+ * * this function exists to avoid errors when not loading the navigation system
  */
 Graph.prototype._unHighlightAll = function() {
-  // empty, is overloaded by the navigationUI system
+  // empty, is overloaded by the navigation system
 }
 
 

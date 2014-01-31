@@ -33,7 +33,7 @@ var SelectionMixin = {
 
 
   /**
-   * retrieve all nodes in the navigationUI overlapping with given object
+   * retrieve all nodes in the navigation controls overlapping with given object
    * @param {Object} object  An object with parameters left, top, right, bottom
    * @return {Number[]}   An array with id's of the overlapping nodes
    * @private
@@ -80,7 +80,7 @@ var SelectionMixin = {
 
 
   /**
-   * Get the top navigationUI node at the a specific point (like a click)
+   * Get the top navigation controls node at the a specific point (like a click)
    *
    * @param {{x: Number, y: Number}} pointer
    * @return {Node | null} node
@@ -90,7 +90,7 @@ var SelectionMixin = {
     var screenPositionObject = this._pointerToScreenPositionObject(pointer);
     var overlappingNodes = this._getAllUINodesOverlappingWith(screenPositionObject);
     if (overlappingNodes.length > 0) {
-      return this.sectors["navigationUI"]["nodes"][overlappingNodes[overlappingNodes.length - 1]];
+      return this.sectors["navigation"]["nodes"][overlappingNodes[overlappingNodes.length - 1]];
     }
     else {
       return null;
@@ -106,7 +106,7 @@ var SelectionMixin = {
    * @private
    */
   _getNodeAt : function (pointer) {
-    // we first check if this is an navigationUI element
+    // we first check if this is an navigation controls element
     var positionObject = this._pointerToPositionObject(pointer);
     overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
 
@@ -238,7 +238,7 @@ var SelectionMixin = {
 
 
   /**
-   * handles the selection part of the touch, only for navigationUI elements;
+   * handles the selection part of the touch, only for navigation controls elements;
    * Touch is triggered before tap, also before hold. Hold triggers after a while.
    * This is the most responsive solution
    *
@@ -246,7 +246,7 @@ var SelectionMixin = {
    * @private
    */
   _handleTouch : function(pointer) {
-    if (this.constants.navigationUI.enabled == true) {
+    if (this.constants.navigation.enabled == true) {
       var node = this._getUINodeAt(pointer);
       if (node != null) {
         if (this[node.triggerFunction] !== undefined) {
@@ -308,7 +308,7 @@ var SelectionMixin = {
 
 
   /**
-   * handle the onRelease event. These functions are here for the navigationUI module.
+   * handle the onRelease event. These functions are here for the navigation controls module.
    *
     * @private
    */

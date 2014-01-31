@@ -44,8 +44,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.y = 0;
   this.xFixed = false;
   this.yFixed = false;
-  this.horizontalAlignLeft = true; // these are for the navigationUI
-  this.verticalAlignTop    = true; // these are for the navigationUI
+  this.horizontalAlignLeft = true; // these are for the navigation controls
+  this.verticalAlignTop    = true; // these are for the navigation controls
   this.radius = constants.nodes.radius;
   this.baseRadiusValue = constants.nodes.radius;
   this.radiusFixed = false;
@@ -150,7 +150,7 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.y !== undefined)         {this.y = properties.y;}
   if (properties.value !== undefined)     {this.value = properties.value;}
 
-  // navigationUI properties
+  // navigation controls properties
   if (properties.horizontalAlignLeft !== undefined) {this.horizontalAlignLeft = properties.horizontalAlignLeft;}
   if (properties.verticalAlignTop    !== undefined) {this.verticalAlignTop    = properties.verticalAlignTop;}
   if (properties.triggerFunction     !== undefined) {this.triggerFunction     = properties.triggerFunction;}
