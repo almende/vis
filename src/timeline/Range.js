@@ -154,8 +154,8 @@ Range.prototype.setRange = function(start, end) {
  * @private
  */
 Range.prototype._applyRange = function(start, end) {
-  var newStart = (start != null) ? util.convert(start, 'Number') : this.start,
-      newEnd   = (end != null)   ? util.convert(end, 'Number')   : this.end,
+  var newStart = (start != null) ? util.convert(start, 'Date').valueOf() : this.start,
+      newEnd   = (end != null)   ? util.convert(end, 'Date').valueOf()   : this.end,
       max = (this.options.max != null) ? util.convert(this.options.max, 'Date').valueOf() : null,
       min = (this.options.min != null) ? util.convert(this.options.min, 'Date').valueOf() : null,
       diff;

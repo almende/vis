@@ -10,6 +10,7 @@ http://visjs.org
   `rangechange`, `rangechanged`, and `select`.
 - Impelmented function `select` to get and set the selected items.
 - Items can be selected by clicking them, muti-select by holding them.
+- Fixed non working `start` and `end` options.
 
 ### Graph
 

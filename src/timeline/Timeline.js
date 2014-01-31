@@ -147,10 +147,9 @@ function Timeline (container, items, options) {
 Timeline.prototype.setOptions = function (options) {
   util.extend(this.options, options);
 
-  // force update of range
-  // options.start and options.end can be undefined
-  //this.range.setRange(options.start, options.end);
-  this.range.setRange();
+  // force update of range (apply new min/max etc.)
+  // both start and end are optional
+  this.range.setRange(options.start, options.end);
 
   this.controller.reflow();
   this.controller.repaint();
@@ -206,29 +205,29 @@ Timeline.prototype.setItems = function(items) {
     var dataRange = this.getItemRange();
 
     // add 5% space on both sides
-    var min = dataRange.min;
-    var max = dataRange.max;
-    if (min != null && max != null) {
-      var interval = (max.valueOf() - min.valueOf());
+    var start = dataRange.min;
+    var end = dataRange.max;
+    if (start != null && end != null) {
+      var interval = (end.valueOf() - start.valueOf());
       if (interval <= 0) {
         // prevent an empty interval
         interval = 24 * 60 * 60 * 1000; // 1 day
       }
-      min = new Date(min.valueOf() - interval * 0.05);
-      max = new Date(max.valueOf() + interval * 0.05);
+      start = new Date(start.valueOf() - interval * 0.05);
+      end = new Date(end.valueOf() + interval * 0.05);
     }
 
     // override specified start and/or end date
     if (this.options.start != undefined) {
-      min = util.convert(this.options.start, 'Date');
+      start = util.convert(this.options.start, 'Date');
     }
     if (this.options.end != undefined) {
-      max = util.convert(this.options.end, 'Date');
+      end = util.convert(this.options.end, 'Date');
     }
 
     // apply range if there is a min or max available
-    if (min != null || max != null) {
-      this.range.setRange(min, max);
+    if (start != null || end != null) {
+      this.range.setRange(start, end);
     }
   }
 };
