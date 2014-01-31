@@ -88,7 +88,7 @@ function Graph (container, data, options) {
     },
     navigation: {
       enabled: false,
-      iconPath: this._getIconURL()
+      iconPath: this._getScriptPath() + '/img'
     },
     keyboard: {
       enabled: false,
@@ -195,23 +195,22 @@ function Graph (container, data, options) {
 }
 
 /**
- * get the URL where the navigation icons are located
+ * Get the script path where the vis.js library is located
  *
- * @returns {string}
+ * @returns {string | null} path   Path or null when not found. Path does not
+ *                                 end with a slash.
  * @private
  */
-Graph.prototype._getIconURL = function() {
+Graph.prototype._getScriptPath = function() {
   var scripts = document.getElementsByTagName( 'script' );
-  var scriptNamePosition, srcPosition, imagePath;
+
+  // find script named vis.js or vis.min.js
   for (var i = 0; i < scripts.length; i++) {
-    srcPosition = scripts[i].outerHTML.search("src");
-    if (srcPosition != -1) {
-      scriptNamePosition = util.getLowestPositiveNumber(scripts[i].outerHTML.search("vis.js"),
-                                                  scripts[i].outerHTML.search("vis.min.js"));
-      if (scriptNamePosition != -1) {
-        imagePath = scripts[i].outerHTML.substring(srcPosition+5,scriptNamePosition).concat("img/");
-        return imagePath;
-      }
+    var src = scripts[i].src;
+    var match = src && /\/?vis(.min)?\.js$/.exec(src);
+    if (match) {
+      // return path without the script name
+      return src.substring(0, src.length - match[0].length);
     }
   }
 

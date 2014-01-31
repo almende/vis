@@ -52,22 +52,22 @@ var NavigationMixin = {
     var offset = 15;
     var intermediateOffset = 7;
     var navigationNodes = [
-      {id: 'navigation_up',    shape: 'image', image: DIR + 'uparrow.png',   triggerFunction: "_moveUp",
+      {id: 'navigation_up',    shape: 'image', image: DIR + '/uparrow.png',   triggerFunction: "_moveUp",
         verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.navigationClientHeight - 45 - offset - intermediateOffset},
-      {id: 'navigation_down',  shape: 'image', image: DIR + 'downarrow.png', triggerFunction: "_moveDown",
+      {id: 'navigation_down',  shape: 'image', image: DIR + '/downarrow.png', triggerFunction: "_moveDown",
         verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.navigationClientHeight - 15 - offset},
-      {id: 'navigation_left',  shape: 'image', image: DIR + 'leftarrow.png', triggerFunction: "_moveLeft",
+      {id: 'navigation_left',  shape: 'image', image: DIR + '/leftarrow.png', triggerFunction: "_moveLeft",
         verticalAlignTop: false,  x: 15 + offset,  y: this.navigationClientHeight - 15 - offset},
-      {id: 'navigation_right', shape: 'image', image: DIR + 'rightarrow.png',triggerFunction: "_moveRight",
+      {id: 'navigation_right', shape: 'image', image: DIR + '/rightarrow.png',triggerFunction: "_moveRight",
         verticalAlignTop: false,  x: 75 + offset + 2 * intermediateOffset,  y: this.navigationClientHeight - 15 - offset},
 
-      {id: 'navigation_plus',  shape: 'image', image: DIR + 'plus.png',      triggerFunction: "_zoomIn",
+      {id: 'navigation_plus',  shape: 'image', image: DIR + '/plus.png',      triggerFunction: "_zoomIn",
         verticalAlignTop: false, horizontalAlignLeft: false,
         x: this.navigationClientWidth - 45 - offset - intermediateOffset, y: this.navigationClientHeight - 15 - offset},
-      {id: 'navigation_min', shape: 'image', image: DIR + 'minus.png',       triggerFunction: "_zoomOut",
+      {id: 'navigation_min', shape: 'image', image: DIR + '/minus.png',       triggerFunction: "_zoomOut",
         verticalAlignTop: false, horizontalAlignLeft: false,
         x: this.navigationClientWidth - 15 - offset, y: this.navigationClientHeight - 15 - offset},
-      {id: 'navigation_zoomExtends', shape: 'image', image: DIR + 'zoomExtends.png', triggerFunction: "zoomToFit",
+      {id: 'navigation_zoomExtends', shape: 'image', image: DIR + '/zoomExtends.png', triggerFunction: "zoomToFit",
         verticalAlignTop: false, horizontalAlignLeft: false,
         x: this.navigationClientWidth - 15 - offset, y: this.navigationClientHeight - 45 - offset - intermediateOffset}
     ];
