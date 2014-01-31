@@ -94,6 +94,8 @@ task('build', {async: true}, function () {
     separator: '\n'
   });
 
+  // copy images
+  jake.cpR('./src/graph/img', DIST+ '/img');
 
   var timeStart = Date.now();
   // bundle the concatenated script and dependencies into one file

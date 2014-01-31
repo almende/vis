@@ -76,7 +76,7 @@ var SectorMixin = {
    *
    * @private
    */
-  _switchToUISector : function() {
+  _switchToNavigationSector : function() {
     this.nodeIndices = this.sectors["navigation"]["nodeIndices"];
     this.nodes       = this.sectors["navigation"]["nodes"];
     this.edges       = this.sectors["navigation"]["edges"];
@@ -440,8 +440,8 @@ var SectorMixin = {
    * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
    * @private
    */
-  _doInUISector : function(runFunction,argument) {
-    this._switchToUISector();
+  _doInNavigationSector : function(runFunction,argument) {
+    this._switchToNavigationSector();
     if (argument === undefined) {
       this[runFunction]();
     }

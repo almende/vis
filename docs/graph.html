@@ -1145,7 +1145,6 @@ var nodes = [
 // If a variable is not supplied, the default value is used.
 var options = {
     clustering: {
-      enabled: false,
       initialMaxNodes: 100,
       clusterThreshold:500,
       reduceToNodes:300,
@@ -1177,12 +1176,6 @@ var options: {
     <th>Description</th>
   </tr>
 
-  <tr>
-    <td>enabled</td>
-    <td>Boolean</td>
-    <td>false</td>
-    <td>On/off switch for clustering. It is assumed clustering is enabled in the descriptions below.</td>
-  </tr>
   <tr>
     <td>initialMaxNodes</td>
     <td>Number</td>
@@ -1289,7 +1282,7 @@ var options: {
   </tr>
 </table>
 
-<h2 id="Navigation_controls">Navigation controls</h2>
+<h3 id="Navigation_controls">Navigation controls</h3>
 <p>
   Graph has a menu with navigation controls, which is disabled by default.
   It can be configured with the following settings.
@@ -1358,12 +1351,6 @@ var options: {
     <th>Description</th>
   </tr>
 
-  <tr>
-    <td>enabled</td>
-    <td>Boolean</td>
-    <td>false</td>
-    <td>On/off switch for the keyboard navigation.</td>
-  </tr>
   <tr>
     <td>speed.x</td>
     <td>Number</td>

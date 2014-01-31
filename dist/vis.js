@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version @@version
- * @date    @@date
+ * @version 0.4.0-SNAPSHOT
+ * @date    2014-01-31
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -990,9 +990,8 @@ util.option.asElement = function (value, defaultValue) {
  * @param {number} number1
  * @param {number} number2
  * @returns {number}        | number1 or number2, the lowest positive number. If both negative, return -1
- * @private
  */
-util._getLowestPositiveNumber = function(number1,number2) {
+util.getLowestPositiveNumber = function(number1,number2) {
   if (number1 >= 0) {
     if (number2 >= 0) {
       return (number1 < number2) ? number1 : number2;
@@ -3176,13 +3175,28 @@ Range.prototype.subscribe = function (component, event, direction) {
 };
 
 /**
- * Event handler
- * @param {String} event       name of the event, for example 'click', 'mousemove'
- * @param {function} callback  callback handler, invoked with the raw HTML Event
- *                             as parameter.
+ * Add event listener
+ * @param {String} event       Name of the event.
+ *                             Available events: 'rangechange', 'rangechanged'
+ * @param {function} callback  Callback function, invoked as callback({start: Date, end: Date})
  */
-Range.prototype.on = function (event, callback) {
+Range.prototype.on = function on (event, callback) {
+  var available = ['rangechange', 'rangechanged'];
+
+  if (available.indexOf(event) == -1) {
+    throw new Error('Unknown event "' + event + '". Choose from ' + available.join());
+  }
+
   events.addListener(this, event, callback);
+};
+
+/**
+ * Remove an event listener
+ * @param {String} event       name of the event
+ * @param {function} callback  callback handler
+ */
+Range.prototype.off = function off (event, callback) {
+  events.removeListener(this, event, callback);
 };
 
 /**
@@ -5265,11 +5279,13 @@ ItemSet.prototype.setRange = function setRange(range) {
 };
 
 /**
- * Change the item selection, and/or get currently selected items
- * @param {Array} [ids] An array with zero or more ids of the items to be selected.
- * @return {Array} ids  The ids of the selected items
+ * Set selected items by their id. Replaces the current selection
+ * Unknown id's are silently ignored.
+ * @param {Array} [ids] An array with zero or more id's of the items to be
+ *                      selected. If ids is an empty array, all items will be
+ *                      unselected.
  */
-ItemSet.prototype.select = function select(ids) {
+ItemSet.prototype.setSelection = function setSelection(ids) {
   var i, ii, id, item, selection;
 
   if (ids) {
@@ -5305,11 +5321,14 @@ ItemSet.prototype.select = function select(ids) {
       this.requestRepaint();
     }
   }
-  else {
-    selection = this.selection.concat([]);
-  }
+};
 
-  return selection;
+/**
+ * Get the selected items by their id
+ * @return {Array} ids  The ids of the selected items
+ */
+ItemSet.prototype.getSelection = function getSelection() {
+  return this.selection.concat([]);
 };
 
 /**
@@ -5415,80 +5434,82 @@ ItemSet.prototype.repaint = function repaint() {
       };
 
   // show/hide added/changed/removed items
-  Object.keys(queue).forEach(function (id) {
-    //var entry = queue[id];
-    var action = queue[id];
-    var item = items[id];
-    //var item = entry.item;
-    //noinspection FallthroughInSwitchStatementJS
-    switch (action) {
-      case 'add':
-      case 'update':
-        var itemData = itemsData && itemsData.get(id, dataOptions);
+  for (var id in queue) {
+    if (queue.hasOwnProperty(id)) {
+      var entry = queue[id],
+          item = items[id],
+          action = entry.action;
 
-        if (itemData) {
-          var type = itemData.type ||
-              (itemData.start && itemData.end && 'range') ||
-              options.type ||
-              'box';
-          var constructor = ItemSet.types[type];
+      //noinspection FallthroughInSwitchStatementJS
+      switch (action) {
+        case 'add':
+        case 'update':
+          var itemData = itemsData && itemsData.get(id, dataOptions);
 
-          // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
+          if (itemData) {
+            var type = itemData.type ||
+                (itemData.start && itemData.end && 'range') ||
+                options.type ||
+                'box';
+            var constructor = ItemSet.types[type];
+
+            // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
+            if (item) {
+              // update item
+              if (!constructor || !(item instanceof constructor)) {
+                // item type has changed, hide and delete the item
+                changed += item.hide();
+                item = null;
+              }
+              else {
+                item.data = itemData; // TODO: create a method item.setData ?
+                changed++;
+              }
+            }
+
+            if (!item) {
+              // create item
+              if (constructor) {
+                item = new constructor(me, itemData, options, defaultOptions);
+                item.id = entry.id; // we take entry.id, as id itself is stringified
+                changed++;
+              }
+              else {
+                throw new TypeError('Unknown item type "' + type + '"');
+              }
+            }
+
+            // force a repaint (not only a reposition)
+            item.repaint();
+
+            items[id] = item;
+          }
+
+          // update queue
+          delete queue[id];
+          break;
+
+        case 'remove':
           if (item) {
-            // update item
-            if (!constructor || !(item instanceof constructor)) {
-              // item type has changed, hide and delete the item
-              changed += item.hide();
-              item = null;
+            // remove the item from the set selected items
+            if (item.selected) {
+              me._deselect(id);
             }
-            else {
-              item.data = itemData; // TODO: create a method item.setData ?
-              changed++;
-            }
+
+            // remove DOM of the item
+            changed += item.hide();
           }
 
-          if (!item) {
-            // create item
-            if (constructor) {
-              item = new constructor(me, itemData, options, defaultOptions);
-              item.id = id;
-              changed++;
-            }
-            else {
-              throw new TypeError('Unknown item type "' + type + '"');
-            }
-          }
+          // update lists
+          delete items[id];
+          delete queue[id];
+          break;
 
-          // force a repaint (not only a reposition)
-          item.repaint();
-
-          items[id] = item;
-        }
-
-        // update queue
-        delete queue[id];
-        break;
-
-      case 'remove':
-        if (item) {
-          // remove the item from the set selected items
-          if (item.selected) {
-            me._deselect(id);
-          }
-
-          // remove DOM of the item
-          changed += item.hide();
-        }
-
-        // update lists
-        delete items[id];
-        delete queue[id];
-        break;
-
-      default:
-        console.log('Error: unknown action "' + action + '"');
+        default:
+          console.log('Error: unknown action "' + action + '"');
+      }
     }
-  });
+  }
 
   // reposition all items. Show items only when in the visible area
   util.forEach(this.items, function (item) {
@@ -5699,7 +5720,10 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
 ItemSet.prototype._toQueue = function _toQueue(action, ids) {
   var queue = this.queue;
   ids.forEach(function (id) {
-    queue[id] = action;
+    queue[id] = {
+      id: id,
+      action: action
+    };
   });
 
   if (this.controller) {
@@ -6098,6 +6122,9 @@ ItemBox.prototype._create = function _create() {
     // dot on axis
     dom.dot = document.createElement('DIV');
     dom.dot.className = 'dot';
+
+    // attach this item as attribute
+    dom.box['timeline-item'] = this;
   }
 };
 
@@ -6348,6 +6375,9 @@ ItemPoint.prototype._create = function _create() {
     dom.dot = document.createElement('div');
     dom.dot.className  = 'dot';
     dom.point.appendChild(dom.dot);
+
+    // attach this item as attribute
+    dom.point['timeline-item'] = this;
   }
 };
 
@@ -6599,6 +6629,9 @@ ItemRange.prototype._create = function _create() {
     dom.content = document.createElement('div');
     dom.content.className = 'content';
     dom.box.appendChild(dom.content);
+
+    // attach this item as attribute
+    dom.box['timeline-item'] = this;
   }
 };
 
@@ -6790,12 +6823,22 @@ Group.prototype.setItems = function setItems(items) {
 };
 
 /**
- * Change the item selection, and/or get currently selected items
- * @param {Array} [ids] An array with zero or more ids of the items to be selected.
+ * Set selected items by their id. Replaces the current selection.
+ * Unknown id's are silently ignored.
+ * @param {Array} [ids] An array with zero or more id's of the items to be
+ *                      selected. If ids is an empty array, all items will be
+ *                      unselected.
+ */
+Group.prototype.setSelection = function setSelection(ids) {
+  if (this.itemset) this.itemset.setSelection(ids);
+};
+
+/**
+ * Get the selected items by their id
  * @return {Array} ids  The ids of the selected items
  */
-Group.prototype.select = function select(ids) {
-  return this.itemset ? this.itemset.select(ids) : [];
+Group.prototype.getSelection = function getSelection() {
+  return this.itemset ? this.itemset.getSelection() : [];
 };
 
 /**
@@ -6984,11 +7027,13 @@ GroupSet.prototype.getGroups = function getGroups() {
 };
 
 /**
- * Change the item selection, and/or get currently selected items
- * @param {Array} [ids] An array with zero or more ids of the items to be selected.
- * @return {Array} ids  The ids of the selected items
+ * Set selected items by their id. Replaces the current selection.
+ * Unknown id's are silently ignored.
+ * @param {Array} [ids] An array with zero or more id's of the items to be
+ *                      selected. If ids is an empty array, all items will be
+ *                      unselected.
  */
-GroupSet.prototype.select = function select(ids) {
+GroupSet.prototype.setSelection = function setSelection(ids) {
   var selection = [],
       groups = this.groups;
 
@@ -6996,7 +7041,26 @@ GroupSet.prototype.select = function select(ids) {
   for (var id in groups) {
     if (groups.hasOwnProperty(id)) {
       var group = groups[id];
-      selection = selection.concat(group.select(ids));
+      group.setSelection(ids);
+    }
+  }
+
+  return selection;
+};
+
+/**
+ * Get the selected items by their id
+ * @return {Array} ids  The ids of the selected items
+ */
+GroupSet.prototype.getSelection = function getSelection() {
+  var selection = [],
+      groups = this.groups;
+
+  // iterate over each of the groups
+  for (var id in groups) {
+    if (groups.hasOwnProperty(id)) {
+      var group = groups[id];
+      selection = selection.concat(group.getSelection());
     }
   }
 
@@ -7443,18 +7507,26 @@ function Timeline (container, items, options) {
   );
 
   // TODO: reckon with options moveable and zoomable
+  // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
   this.range.subscribe(this.rootPanel, 'move', 'horizontal');
   this.range.subscribe(this.rootPanel, 'zoom', 'horizontal');
-  this.range.on('rangechange', function () {
+  this.range.on('rangechange', function (properties) {
     var force = true;
     me.controller.requestReflow(force);
+    me._trigger('rangechange', properties);
   });
-  this.range.on('rangechanged', function () {
+  this.range.on('rangechanged', function (properties) {
     var force = true;
     me.controller.requestReflow(force);
+    me._trigger('rangechanged', properties);
   });
 
-  // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
+  // single select (or unselect) when tapping an item
+  // TODO: implement ctrl+click
+  this.rootPanel.on('tap',  this._onSelectItem.bind(this));
+
+  // multi select when holding mouse/touch, or on ctrl+click
+  this.rootPanel.on('hold', this._onMultiSelectItem.bind(this));
 
   // time axis
   var timeaxisOptions = Object.create(rootOptions);
@@ -7702,14 +7774,131 @@ Timeline.prototype.getItemRange = function getItemRange() {
 };
 
 /**
- * Change the item selection, and/or get currently selected items
- * @param {Array} [ids] An array with zero or more ids of the items to be selected.
- * @return {Array} ids  The ids of the selected items
+ * Set selected items by their id. Replaces the current selection
+ * Unknown id's are silently ignored.
+ * @param {Array} [ids] An array with zero or more id's of the items to be
+ *                      selected. If ids is an empty array, all items will be
+ *                      unselected.
  */
-Timeline.prototype.select = function select(ids) {
-  return this.content ? this.content.select(ids) : [];
+Timeline.prototype.setSelection = function setSelection (ids) {
+  if (this.content) this.content.setSelection(ids);
 };
 
+/**
+ * Get the selected items by their id
+ * @return {Array} ids  The ids of the selected items
+ */
+Timeline.prototype.getSelection = function getSelection() {
+  return this.content ? this.content.getSelection() : [];
+};
+
+/**
+ * Add event listener
+ * @param {String} event       Event name. Available events:
+ *                             'rangechange', 'rangechanged', 'select'
+ * @param {function} callback  Callback function, invoked as callback(properties)
+ *                             where properties is an optional object containing
+ *                             event specific properties.
+ */
+Timeline.prototype.on = function on (event, callback) {
+  var available = ['rangechange', 'rangechanged', 'select'];
+
+  if (available.indexOf(event) == -1) {
+    throw new Error('Unknown event "' + event + '". Choose from ' + available.join());
+  }
+
+  events.addListener(this, event, callback);
+};
+
+/**
+ * Remove an event listener
+ * @param {String} event       Event name
+ * @param {function} callback  Callback function
+ */
+Timeline.prototype.off = function off (event, callback) {
+  events.removeListener(this, event, callback);
+};
+
+/**
+ * Trigger an event
+ * @param {String} event        Event name, available events: 'rangechange',
+ *                              'rangechanged', 'select'
+ * @param {Object} [properties] Event specific properties
+ * @private
+ */
+Timeline.prototype._trigger = function _trigger(event, properties) {
+  events.trigger(this, event, properties || {});
+};
+
+/**
+ * Handle selecting/deselecting an item when tapping it
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onSelectItem = function (event) {
+  var item = this._itemFromTarget(event);
+
+  var selection = item ? [item.id] : [];
+  this.setSelection(selection);
+
+  this._trigger('select', {
+    items: this.getSelection()
+  });
+
+  event.stopPropagation();
+};
+
+/**
+ * Handle selecting/deselecting multiple items when holding an item
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onMultiSelectItem = function (event) {
+  var selection,
+      item = this._itemFromTarget(event);
+
+  if (!item) {
+    // do nothing...
+    return;
+  }
+
+  selection = this.getSelection(); // current selection
+  var index = selection.indexOf(item.id);
+  if (index == -1) {
+    // item is not yet selected -> select it
+    selection.push(item.id);
+  }
+  else {
+    // item is already selected -> deselect it
+    selection.splice(index, 1);
+  }
+  this.setSelection(selection);
+
+  this._trigger('select', {
+    items: this.getSelection()
+  });
+
+  event.stopPropagation();
+};
+
+/**
+ * Find an item from an event target:
+ * searches for the attribute 'timeline-item' in the event target's element tree
+ * @param {Event} event
+ * @return {Item | null| item
+ * @private
+ */
+Timeline.prototype._itemFromTarget = function _itemFromTarget (event) {
+  var target = event.target;
+  while (target) {
+    if (target.hasOwnProperty('timeline-item')) {
+      return target['timeline-item'];
+    }
+    target = target.parentNode;
+  }
+
+  return null;
+};
 (function(exports) {
   /**
    * Parse a text source containing data in DOT language into a JSON object.
@@ -8812,8 +9001,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.y = 0;
   this.xFixed = false;
   this.yFixed = false;
-  this.horizontalAlignLeft = true; // these are for the navigationUI
-  this.verticalAlignTop    = true; // these are for the navigationUI
+  this.horizontalAlignLeft = true; // these are for the navigation controls
+  this.verticalAlignTop    = true; // these are for the navigation controls
   this.radius = constants.nodes.radius;
   this.baseRadiusValue = constants.nodes.radius;
   this.radiusFixed = false;
@@ -8918,7 +9107,7 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.y !== undefined)         {this.y = properties.y;}
   if (properties.value !== undefined)     {this.value = properties.value;}
 
-  // navigationUI properties
+  // navigation controls properties
   if (properties.horizontalAlignLeft !== undefined) {this.horizontalAlignLeft = properties.horizontalAlignLeft;}
   if (properties.verticalAlignTop    !== undefined) {this.verticalAlignTop    = properties.verticalAlignTop;}
   if (properties.triggerFunction     !== undefined) {this.triggerFunction     = properties.triggerFunction;}
@@ -10668,14 +10857,14 @@ var SectorMixin = {
 
   /**
    * This function sets the global references to nodes, edges and nodeIndices to
-   * those of the navigationUI sector.
+   * those of the navigation controls sector.
    *
    * @private
    */
-  _switchToUISector : function() {
-    this.nodeIndices = this.sectors["navigationUI"]["nodeIndices"];
-    this.nodes       = this.sectors["navigationUI"]["nodes"];
-    this.edges       = this.sectors["navigationUI"]["edges"];
+  _switchToNavigationSector : function() {
+    this.nodeIndices = this.sectors["navigation"]["nodeIndices"];
+    this.nodes       = this.sectors["navigation"]["nodes"];
+    this.edges       = this.sectors["navigation"]["edges"];
   },
 
 
@@ -11028,7 +11217,7 @@ var SectorMixin = {
 
 
   /**
-   * This runs a function in the navigationUI sector.
+   * This runs a function in the navigation controls sector.
    *
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
    *                              |   we don't pass the function itself because then the "this" is the window object
@@ -11036,8 +11225,8 @@ var SectorMixin = {
    * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
    * @private
    */
-  _doInUISector : function(runFunction,argument) {
-    this._switchToUISector();
+  _doInNavigationSector : function(runFunction,argument) {
+    this._switchToNavigationSector();
     if (argument === undefined) {
       this[runFunction]();
     }
@@ -12196,14 +12385,14 @@ var SelectionMixin = {
 
 
   /**
-   * retrieve all nodes in the navigationUI overlapping with given object
+   * retrieve all nodes in the navigation controls overlapping with given object
    * @param {Object} object  An object with parameters left, top, right, bottom
    * @return {Number[]}   An array with id's of the overlapping nodes
    * @private
    */
-  _getAllUINodesOverlappingWith : function (object) {
+  _getAllNavigationNodesOverlappingWith : function (object) {
     var overlappingNodes = [];
-    this._doInUISector("_getNodesOverlappingWith",object,overlappingNodes);
+    this._doInNavigationSector("_getNodesOverlappingWith",object,overlappingNodes);
     return overlappingNodes;
   },
 
@@ -12243,17 +12432,17 @@ var SelectionMixin = {
 
 
   /**
-   * Get the top navigationUI node at the a specific point (like a click)
+   * Get the top navigation controls node at the a specific point (like a click)
    *
    * @param {{x: Number, y: Number}} pointer
    * @return {Node | null} node
    * @private
    */
-  _getUINodeAt : function (pointer) {
+  _getNavigationNodeAt : function (pointer) {
     var screenPositionObject = this._pointerToScreenPositionObject(pointer);
-    var overlappingNodes = this._getAllUINodesOverlappingWith(screenPositionObject);
+    var overlappingNodes = this._getAllNavigationNodesOverlappingWith(screenPositionObject);
     if (overlappingNodes.length > 0) {
-      return this.sectors["navigationUI"]["nodes"][overlappingNodes[overlappingNodes.length - 1]];
+      return this.sectors["navigation"]["nodes"][overlappingNodes[overlappingNodes.length - 1]];
     }
     else {
       return null;
@@ -12269,7 +12458,7 @@ var SelectionMixin = {
    * @private
    */
   _getNodeAt : function (pointer) {
-    // we first check if this is an navigationUI element
+    // we first check if this is an navigation controls element
     var positionObject = this._pointerToPositionObject(pointer);
     overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
 
@@ -12401,7 +12590,7 @@ var SelectionMixin = {
 
 
   /**
-   * handles the selection part of the touch, only for navigationUI elements;
+   * handles the selection part of the touch, only for navigation controls elements;
    * Touch is triggered before tap, also before hold. Hold triggers after a while.
    * This is the most responsive solution
    *
@@ -12409,8 +12598,8 @@ var SelectionMixin = {
    * @private
    */
   _handleTouch : function(pointer) {
-    if (this.constants.navigationUI.enabled == true) {
-      var node = this._getUINodeAt(pointer);
+    if (this.constants.navigation.enabled == true) {
+      var node = this._getNavigationNodeAt(pointer);
       if (node != null) {
         if (this[node.triggerFunction] !== undefined) {
           this[node.triggerFunction]();
@@ -12471,7 +12660,7 @@ var SelectionMixin = {
 
 
   /**
-   * handle the onRelease event. These functions are here for the navigationUI module.
+   * handle the onRelease event. These functions are here for the navigation controls module.
    *
     * @private
    */
@@ -12673,25 +12862,25 @@ var SelectionMixin = {
  * Created by Alex on 1/22/14.
  */
 
-var UIMixin = {
+var NavigationMixin = {
 
   /**
-   * This function moves the navigationUI if the canvas size has been changed. If the arugments
+   * This function moves the navigation controls if the canvas size has been changed. If the arugments
    * verticaAlignTop and horizontalAlignLeft are false, the correction will be made
    *
    * @private
    */
-  _relocateUI : function() {
+  _relocateNavigation : function() {
     if (this.sectors !== undefined) {
-      var xOffset = this.UIclientWidth - this.frame.canvas.clientWidth;
-      var yOffset = this.UIclientHeight - this.frame.canvas.clientHeight;
-      this.UIclientWidth = this.frame.canvas.clientWidth;
-      this.UIclientHeight = this.frame.canvas.clientHeight;
+      var xOffset = this.navigationClientWidth - this.frame.canvas.clientWidth;
+      var yOffset = this.navigationClientHeight - this.frame.canvas.clientHeight;
+      this.navigationClientWidth = this.frame.canvas.clientWidth;
+      this.navigationClientHeight = this.frame.canvas.clientHeight;
       var node = null;
 
-      for (var nodeId in this.sectors["navigationUI"]["nodes"]) {
-        if (this.sectors["navigationUI"]["nodes"].hasOwnProperty(nodeId)) {
-          node = this.sectors["navigationUI"]["nodes"][nodeId];
+      for (var nodeId in this.sectors["navigation"]["nodes"]) {
+        if (this.sectors["navigation"]["nodes"].hasOwnProperty(nodeId)) {
+          node = this.sectors["navigation"]["nodes"][nodeId];
           if (!node.horizontalAlignLeft) {
             node.x -= xOffset;
           }
@@ -12705,48 +12894,48 @@ var UIMixin = {
 
 
   /**
-   * Creation of the navigationUI nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
-   * they have a triggerFunction which is called on click. If the position of the navigationUI is dependent
+   * Creation of the navigation controls nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
+   * they have a triggerFunction which is called on click. If the position of the navigation controls is dependent
    * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
-   * This means that the location will be corrected by the _relocateUI function on a size change of the canvas.
+   * This means that the location will be corrected by the _relocateNavigation function on a size change of the canvas.
    *
    * @private
    */
-  _loadUIElements : function() {
-    var DIR = this.constants.navigationUI.iconPath;
-    this.UIclientWidth = this.frame.canvas.clientWidth;
-    this.UIclientHeight = this.frame.canvas.clientHeight;
-    if (this.UIclientWidth === undefined) {
-      this.UIclientWidth = 0;
-      this.UIclientHeight = 0;
+  _loadNavigationElements : function() {
+    var DIR = this.constants.navigation.iconPath;
+    this.navigationClientWidth = this.frame.canvas.clientWidth;
+    this.navigationClientHeight = this.frame.canvas.clientHeight;
+    if (this.navigationClientWidth === undefined) {
+      this.navigationClientWidth = 0;
+      this.navigationClientHeight = 0;
     }
     var offset = 15;
     var intermediateOffset = 7;
-    var UINodes = [
-      {id: 'UI_up',    shape: 'image', image: DIR + 'uparrow.png',   triggerFunction: "_moveUp",
-        verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.UIclientHeight - 45 - offset - intermediateOffset},
-      {id: 'UI_down',  shape: 'image', image: DIR + 'downarrow.png', triggerFunction: "_moveDown",
-        verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.UIclientHeight - 15 - offset},
-      {id: 'UI_left',  shape: 'image', image: DIR + 'leftarrow.png', triggerFunction: "_moveLeft",
-        verticalAlignTop: false,  x: 15 + offset,  y: this.UIclientHeight - 15 - offset},
-      {id: 'UI_right', shape: 'image', image: DIR + 'rightarrow.png',triggerFunction: "_moveRight",
-        verticalAlignTop: false,  x: 75 + offset + 2 * intermediateOffset,  y: this.UIclientHeight - 15 - offset},
+    var navigationNodes = [
+      {id: 'navigation_up',    shape: 'image', image: DIR + 'uparrow.png',   triggerFunction: "_moveUp",
+        verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.navigationClientHeight - 45 - offset - intermediateOffset},
+      {id: 'navigation_down',  shape: 'image', image: DIR + 'downarrow.png', triggerFunction: "_moveDown",
+        verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.navigationClientHeight - 15 - offset},
+      {id: 'navigation_left',  shape: 'image', image: DIR + 'leftarrow.png', triggerFunction: "_moveLeft",
+        verticalAlignTop: false,  x: 15 + offset,  y: this.navigationClientHeight - 15 - offset},
+      {id: 'navigation_right', shape: 'image', image: DIR + 'rightarrow.png',triggerFunction: "_moveRight",
+        verticalAlignTop: false,  x: 75 + offset + 2 * intermediateOffset,  y: this.navigationClientHeight - 15 - offset},
 
-      {id: 'UI_plus',  shape: 'image', image: DIR + 'plus.png',      triggerFunction: "_zoomIn",
+      {id: 'navigation_plus',  shape: 'image', image: DIR + 'plus.png',      triggerFunction: "_zoomIn",
         verticalAlignTop: false, horizontalAlignLeft: false,
-        x: this.UIclientWidth - 45 - offset - intermediateOffset, y: this.UIclientHeight - 15 - offset},
-      {id: 'UI_min', shape: 'image', image: DIR + 'minus.png',       triggerFunction: "_zoomOut",
+        x: this.navigationClientWidth - 45 - offset - intermediateOffset, y: this.navigationClientHeight - 15 - offset},
+      {id: 'navigation_min', shape: 'image', image: DIR + 'minus.png',       triggerFunction: "_zoomOut",
         verticalAlignTop: false, horizontalAlignLeft: false,
-        x: this.UIclientWidth - 15 - offset, y: this.UIclientHeight - 15 - offset},
-      {id: 'UI_zoomExtends', shape: 'image', image: DIR + 'zoomExtends.png', triggerFunction: "zoomToFit",
+        x: this.navigationClientWidth - 15 - offset, y: this.navigationClientHeight - 15 - offset},
+      {id: 'navigation_zoomExtends', shape: 'image', image: DIR + 'zoomExtends.png', triggerFunction: "zoomToFit",
         verticalAlignTop: false, horizontalAlignLeft: false,
-        x: this.UIclientWidth - 15 - offset, y: this.UIclientHeight - 45 - offset - intermediateOffset}
+        x: this.navigationClientWidth - 15 - offset, y: this.navigationClientHeight - 45 - offset - intermediateOffset}
     ];
 
     var nodeObj = null;
-    for (var i = 0; i < UINodes.length; i++) {
-      nodeObj = this.sectors["navigationUI"]['nodes'];
-      nodeObj[UINodes[i]['id']] = new Node(UINodes[i], this.images, this.groups, this.constants);
+    for (var i = 0; i < navigationNodes.length; i++) {
+      nodeObj = this.sectors["navigation"]['nodes'];
+      nodeObj[navigationNodes[i]['id']] = new Node(navigationNodes[i], this.images, this.groups, this.constants);
     }
   },
 
@@ -12758,9 +12947,9 @@ var UIMixin = {
    * @param {String} elementId
    * @private
    */
-  _highlightUIElement : function(elementId) {
-    if (this.sectors["navigationUI"]["nodes"].hasOwnProperty(elementId)) {
-      this.sectors["navigationUI"]["nodes"][elementId].clusterSize = 2;
+  _highlightNavigationElement : function(elementId) {
+    if (this.sectors["navigation"]["nodes"].hasOwnProperty(elementId)) {
+      this.sectors["navigation"]["nodes"][elementId].clusterSize = 2;
     }
   },
 
@@ -12771,20 +12960,21 @@ var UIMixin = {
    * @param {String} elementId
    * @private
    */
-  _unHighlightUIElement : function(elementId) {
-    if (this.sectors["navigationUI"]["nodes"].hasOwnProperty(elementId)) {
-      this.sectors["navigationUI"]["nodes"][elementId].clusterSize = 1;
+  _unHighlightNavigationElement : function(elementId) {
+    if (this.sectors["navigation"]["nodes"].hasOwnProperty(elementId)) {
+      this.sectors["navigation"]["nodes"][elementId].clusterSize = 1;
     }
   },
 
-
   /**
-   * un-highlight (for lack of a better term) all navigationUI elements
+   * un-highlight (for lack of a better term) all navigation controls elements
    * @private
    */
   _unHighlightAll : function() {
-    for (var nodeId in this.sectors['navigationUI']['nodes']) {
-      this._unHighlightUIElement(nodeId);
+    for (var nodeId in this.sectors['navigation']['nodes']) {
+      if (this.sectors['navigation']['nodes'].hasOwnProperty(nodeId)) {
+        this._unHighlightNavigationElement(nodeId);
+      }
     }
   },
 
@@ -12809,8 +12999,8 @@ var UIMixin = {
    * @private
    */
   _moveUp : function(event) {
-    this._highlightUIElement("UI_up");
-    this.yIncrement = this.constants.keyboardNavigation.speed.y;
+    this._highlightNavigationElement("navigation_up");
+    this.yIncrement = this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -12821,8 +13011,8 @@ var UIMixin = {
    * @private
    */
   _moveDown : function(event) {
-    this._highlightUIElement("UI_down");
-    this.yIncrement = -this.constants.keyboardNavigation.speed.y;
+    this._highlightNavigationElement("navigation_down");
+    this.yIncrement = -this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -12833,8 +13023,8 @@ var UIMixin = {
    * @private
    */
   _moveLeft : function(event) {
-    this._highlightUIElement("UI_left");
-    this.xIncrement = this.constants.keyboardNavigation.speed.x;
+    this._highlightNavigationElement("navigation_left");
+    this.xIncrement = this.constants.keyboard.speed.x;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -12845,8 +13035,8 @@ var UIMixin = {
    * @private
    */
   _moveRight : function(event) {
-    this._highlightUIElement("UI_right");
-    this.xIncrement = -this.constants.keyboardNavigation.speed.y;
+    this._highlightNavigationElement("navigation_right");
+    this.xIncrement = -this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -12857,8 +13047,8 @@ var UIMixin = {
    * @private
    */
   _zoomIn : function(event) {
-    this._highlightUIElement("UI_plus");
-    this.zoomIncrement = this.constants.keyboardNavigation.speed.zoom;
+    this._highlightNavigationElement("navigation_plus");
+    this.zoomIncrement = this.constants.keyboard.speed.zoom;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -12869,8 +13059,8 @@ var UIMixin = {
    * @private
    */
   _zoomOut : function() {
-    this._highlightUIElement("UI_min");
-    this.zoomIncrement = -this.constants.keyboardNavigation.speed.zoom;
+    this._highlightNavigationElement("navigation_min");
+    this.zoomIncrement = -this.constants.keyboard.speed.zoom;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
   },
@@ -12881,8 +13071,8 @@ var UIMixin = {
    * @private
    */
   _stopZoom : function() {
-    this._unHighlightUIElement("UI_plus");
-    this._unHighlightUIElement("UI_min");
+    this._unHighlightNavigationElement("navigation_plus");
+    this._unHighlightNavigationElement("navigation_min");
 
     this.zoomIncrement = 0;
   },
@@ -12893,8 +13083,8 @@ var UIMixin = {
    * @private
    */
   _yStopMoving : function() {
-    this._unHighlightUIElement("UI_up");
-    this._unHighlightUIElement("UI_down");
+    this._unHighlightNavigationElement("navigation_up");
+    this._unHighlightNavigationElement("navigation_down");
 
     this.yIncrement = 0;
   },
@@ -12905,8 +13095,8 @@ var UIMixin = {
    * @private
    */
   _xStopMoving : function() {
-    this._unHighlightUIElement("UI_left");
-    this._unHighlightUIElement("UI_right");
+    this._unHighlightNavigationElement("navigation_left");
+    this._unHighlightNavigationElement("navigation_right");
 
     this.xIncrement = 0;
   }
@@ -13002,11 +13192,11 @@ function Graph (container, data, options) {
       activeAreaBoxSize: 100,       // (px)                  | box area around the curser where clusters are popped open.
       massTransferCoefficient: 1    // (multiplier)          | parent.mass += massTransferCoefficient * child.mass
     },
-    navigationUI: {
+    navigation: {
       enabled: false,
       iconPath: this._getIconURL()
     },
-    keyboardNavigation: {
+    keyboard: {
       enabled: false,
       speed: {x: 10, y: 10, zoom: 0.02}
     },
@@ -13021,7 +13211,7 @@ function Graph (container, data, options) {
     graph._redraw();
   });
 
-  // navigationUI variables
+  // navigation variables
   this.xIncrement = 0;
   this.yIncrement = 0;
   this.zoomIncrement = 0;
@@ -13111,7 +13301,7 @@ function Graph (container, data, options) {
 }
 
 /**
- * get the URL where the UI icons are located
+ * get the URL where the navigation icons are located
  *
  * @returns {string}
  * @private
@@ -13122,14 +13312,16 @@ Graph.prototype._getIconURL = function() {
   for (var i = 0; i < scripts.length; i++) {
     srcPosition = scripts[i].outerHTML.search("src");
     if (srcPosition != -1) {
-      scriptNamePosition = util._getLowestPositiveNumber(scripts[i].outerHTML.search("vis.js"),
+      scriptNamePosition = util.getLowestPositiveNumber(scripts[i].outerHTML.search("vis.js"),
                                                   scripts[i].outerHTML.search("vis.min.js"));
       if (scriptNamePosition != -1) {
-        imagePath = scripts[i].outerHTML.substring(srcPosition+5,scriptNamePosition).concat("UI_icons/");
+        imagePath = scripts[i].outerHTML.substring(srcPosition+5,scriptNamePosition).concat("img/");
         return imagePath;
       }
     }
   }
+
+  return null;
 };
 
 
@@ -13309,28 +13501,28 @@ Graph.prototype.setOptions = function (options) {
       this.constants.clustering.enabled = false;
     }
 
-    if (options.navigationUI) {
-      this.constants.navigationUI.enabled = true;
-      for (var prop in options.navigationUI) {
-        if (options.navigationUI.hasOwnProperty(prop)) {
-          this.constants.navigationUI[prop] = options.navigationUI[prop];
+    if (options.navigation) {
+      this.constants.navigation.enabled = true;
+      for (var prop in options.navigation) {
+        if (options.navigation.hasOwnProperty(prop)) {
+          this.constants.navigation[prop] = options.navigation[prop];
         }
       }
     }
-    else if (options.navigationUI !== undefined) {
-      this.constants.navigationUI.enabled = false;
+    else if (options.navigation !== undefined) {
+      this.constants.navigation.enabled = false;
     }
 
-    if (options.keyboardNavigation) {
-      this.constants.keyboardNavigation.enabled = true;
-      for (var prop in options.keyboardNavigation) {
-        if (options.keyboardNavigation.hasOwnProperty(prop)) {
-          this.constants.keyboardNavigation[prop] = options.keyboardNavigation[prop];
+    if (options.keyboard) {
+      this.constants.keyboard.enabled = true;
+      for (var prop in options.keyboard) {
+        if (options.keyboard.hasOwnProperty(prop)) {
+          this.constants.keyboard[prop] = options.keyboard[prop];
         }
       }
     }
-    else if (options.keyboardNavigation !== undefined)  {
-      this.constants.keyboardNavigation.enabled = false;
+    else if (options.keyboard !== undefined)  {
+      this.constants.keyboard.enabled = false;
     }
 
 
@@ -13398,8 +13590,8 @@ Graph.prototype.setOptions = function (options) {
   this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
   this._setScale(1);
 
-  // load the navigationUI system.
-  this._loadUISystem();
+  // load the navigation system.
+  this._loadNavigationControls();
 
   // bind keys. If disabled, this will not do anything;
   this._createKeyBinds();
@@ -13474,7 +13666,7 @@ Graph.prototype._create = function () {
 
 
 /**
- * Binding the keys for keyboard navigation. These functions are defined in the UIMixin
+ * Binding the keys for keyboard navigation. These functions are defined in the NavigationMixin
  * @private
  */
 Graph.prototype._createKeyBinds = function() {
@@ -13483,7 +13675,7 @@ Graph.prototype._createKeyBinds = function() {
 
   this.mousetrap.reset();
 
-  if (this.constants.keyboardNavigation.enabled == true) {
+  if (this.constants.keyboard.enabled == true) {
     this.mousetrap.bind("up",   this._moveUp.bind(me)   , "keydown");
     this.mousetrap.bind("up",   this._yStopMoving.bind(me), "keyup");
     this.mousetrap.bind("down", this._moveDown.bind(me) , "keydown");
@@ -14009,8 +14201,8 @@ Graph.prototype.setSize = function(width, height) {
   this.frame.canvas.width = this.frame.canvas.clientWidth;
   this.frame.canvas.height = this.frame.canvas.clientHeight;
 
-  if (this.constants.navigationUI.enabled == true) {
-    this._relocateUI();
+  if (this.constants.navigation.enabled == true) {
+    this._relocateNavigation();
   }
 };
 
@@ -14358,8 +14550,8 @@ Graph.prototype._redraw = function() {
   // restore original scaling and translation
   ctx.restore();
 
-  if (this.constants.navigationUI.enabled == true) {
-    this._doInUISector("_drawNodes",ctx,true);
+  if (this.constants.navigation.enabled == true) {
+    this._doInNavigationSector("_drawNodes",ctx,true);
   }
 };
 
@@ -14904,7 +15096,7 @@ Graph.prototype._loadSectorSystem = function() {
                                        "formationScale": 1.0,
                                        "drawingNode": undefined};
   this.sectors["frozen"] = {};
-  this.sectors["navigationUI"] = {"nodes":{},
+  this.sectors["navigation"] = {"nodes":{},
                         "edges":{},
                         "nodeIndices":[],
                         "formationScale": 1.0,
@@ -14937,34 +15129,34 @@ Graph.prototype._loadSelectionSystem = function() {
 
 
 /**
- * Mixin the navigationUI (User Interface) system and initialize the parameters required
+ * Mixin the navigation (User Interface) system and initialize the parameters required
  *
  * @private
  */
-Graph.prototype._loadUISystem = function() {
-  for (var mixinFunction in UIMixin) {
-    if (UIMixin.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = UIMixin[mixinFunction];
+Graph.prototype._loadNavigationControls = function() {
+  for (var mixinFunction in NavigationMixin) {
+    if (NavigationMixin.hasOwnProperty(mixinFunction)) {
+      Graph.prototype[mixinFunction] = NavigationMixin[mixinFunction];
     }
   }
 
-  if (this.constants.navigationUI.enabled == true) {
-    this._loadUIElements();
+  if (this.constants.navigation.enabled == true) {
+    this._loadNavigationElements();
   }
 }
 
 /**
- * this function exists to avoid errors when not loading the navigationUI system
+ * this function exists to avoid errors when not loading the navigation system
  */
-Graph.prototype._relocateUI = function() {
-  // empty, is overloaded by navigationUI system
+Graph.prototype._relocateNavigation = function() {
+  // empty, is overloaded by navigation system
 }
 
 /**
- * * this function exists to avoid errors when not loading the navigationUI system
+ * * this function exists to avoid errors when not loading the navigation system
  */
 Graph.prototype._unHighlightAll = function() {
-  // empty, is overloaded by the navigationUI system
+  // empty, is overloaded by the navigation system
 }
 
 

@@ -195,7 +195,7 @@ function Graph (container, data, options) {
 }
 
 /**
- * get the URL where the UI icons are located
+ * get the URL where the navigation icons are located
  *
  * @returns {string}
  * @private
@@ -206,14 +206,16 @@ Graph.prototype._getIconURL = function() {
   for (var i = 0; i < scripts.length; i++) {
     srcPosition = scripts[i].outerHTML.search("src");
     if (srcPosition != -1) {
-      scriptNamePosition = util._getLowestPositiveNumber(scripts[i].outerHTML.search("vis.js"),
+      scriptNamePosition = util.getLowestPositiveNumber(scripts[i].outerHTML.search("vis.js"),
                                                   scripts[i].outerHTML.search("vis.min.js"));
       if (scriptNamePosition != -1) {
-        imagePath = scripts[i].outerHTML.substring(srcPosition+5,scriptNamePosition).concat("UI_icons/");
+        imagePath = scripts[i].outerHTML.substring(srcPosition+5,scriptNamePosition).concat("img/");
         return imagePath;
       }
     }
   }
+
+  return null;
 };
 
 
@@ -1094,7 +1096,7 @@ Graph.prototype.setSize = function(width, height) {
   this.frame.canvas.height = this.frame.canvas.clientHeight;
 
   if (this.constants.navigation.enabled == true) {
-    this._relocateUI();
+    this._relocateNavigation();
   }
 };
 
@@ -1443,7 +1445,7 @@ Graph.prototype._redraw = function() {
   ctx.restore();
 
   if (this.constants.navigation.enabled == true) {
-    this._doInUISector("_drawNodes",ctx,true);
+    this._doInNavigationSector("_drawNodes",ctx,true);
   }
 };
 
@@ -2033,14 +2035,14 @@ Graph.prototype._loadNavigationControls = function() {
   }
 
   if (this.constants.navigation.enabled == true) {
-    this._loadUIElements();
+    this._loadNavigationElements();
   }
 }
 
 /**
  * this function exists to avoid errors when not loading the navigation system
  */
-Graph.prototype._relocateUI = function() {
+Graph.prototype._relocateNavigation = function() {
   // empty, is overloaded by navigation system
 }
 

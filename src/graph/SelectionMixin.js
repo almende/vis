@@ -38,9 +38,9 @@ var SelectionMixin = {
    * @return {Number[]}   An array with id's of the overlapping nodes
    * @private
    */
-  _getAllUINodesOverlappingWith : function (object) {
+  _getAllNavigationNodesOverlappingWith : function (object) {
     var overlappingNodes = [];
-    this._doInUISector("_getNodesOverlappingWith",object,overlappingNodes);
+    this._doInNavigationSector("_getNodesOverlappingWith",object,overlappingNodes);
     return overlappingNodes;
   },
 
@@ -86,9 +86,9 @@ var SelectionMixin = {
    * @return {Node | null} node
    * @private
    */
-  _getUINodeAt : function (pointer) {
+  _getNavigationNodeAt : function (pointer) {
     var screenPositionObject = this._pointerToScreenPositionObject(pointer);
-    var overlappingNodes = this._getAllUINodesOverlappingWith(screenPositionObject);
+    var overlappingNodes = this._getAllNavigationNodesOverlappingWith(screenPositionObject);
     if (overlappingNodes.length > 0) {
       return this.sectors["navigation"]["nodes"][overlappingNodes[overlappingNodes.length - 1]];
     }
@@ -247,7 +247,7 @@ var SelectionMixin = {
    */
   _handleTouch : function(pointer) {
     if (this.constants.navigation.enabled == true) {
-      var node = this._getUINodeAt(pointer);
+      var node = this._getNavigationNodeAt(pointer);
       if (node != null) {
         if (this[node.triggerFunction] !== undefined) {
           this[node.triggerFunction]();
