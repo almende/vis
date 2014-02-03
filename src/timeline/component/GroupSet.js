@@ -379,7 +379,7 @@ GroupSet.prototype.repaint = function repaint() {
 GroupSet.prototype._createLabel = function(id) {
   var group = this.groups[id];
   var label = document.createElement('div');
-  label.className = 'label';
+  label.className = 'vlabel';
   var inner = document.createElement('div');
   inner.className = 'inner';
   label.appendChild(inner);

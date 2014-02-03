@@ -54,7 +54,7 @@ Panel.prototype.repaint = function () {
       frame = this.frame;
   if (!frame) {
     frame = document.createElement('div');
-    frame.className = 'panel';
+    frame.className = 'vpanel';
 
     var className = options.className;
     if (className) {
