@@ -8956,8 +8956,8 @@ Node.prototype.setProperties = function(properties, constants) {
     }
   }
 
-  this.xFixed = this.xFixed || (properties.x !== undefined);
-  this.yFixed = this.yFixed || (properties.y !== undefined);
+  this.xFixed = this.xFixed || (properties.x !== undefined && properties.fixed);
+  this.yFixed = this.yFixed || (properties.y !== undefined && properties.fixed);
   this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
 
   if (this.shape == 'image') {
@@ -10604,6 +10604,134 @@ Images.prototype.load = function(url) {
   return img;
 };
 
+/**
+ * Created by Alex on 2/4/14.
+ */
+
+var manipulationMixin = {
+
+  _createManipulatorBar : function() {
+    while (this.manipulationDiv.hasChildNodes()) {
+      this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
+    }
+    // add the icons to the manipulator div
+    this.manipulationDiv.innerHTML = "" +
+      "<span class='manipulationUI add' id='manipulate-addNode'><span class='manipulationLabel'>Add Node</span></span>" +
+      "<div class='seperatorLine'></div>" +
+      "<span class='manipulationUI connect' id='manipulate-connectNode'><span class='manipulationLabel'>Connect Node</span></span>" +
+      "<div class='seperatorLine'></div>" +
+      "<span class='manipulationUI delete' id='manipulate-delete'><span class='manipulationLabel'>Delete selected</span></span>";
+
+    // bind the icons
+    var addButton = document.getElementById("manipulate-addNode");
+    addButton.onclick = this._createAddToolbar.bind(this);
+    var connectButton = document.getElementById("manipulate-connectNode");
+    connectButton.onclick = this._createConnectToolbar.bind(this);
+    var deleteButton = document.getElementById("manipulate-delete");
+    deleteButton.onclick = this._deleteSelected.bind(this);
+  },
+
+  _createAddToolbar : function() {
+    while (this.manipulationDiv.hasChildNodes()) {
+      this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
+    }
+
+    this.manipulationDiv.innerHTML = "" +
+      "<span class='manipulationUI back' id='manipulate-back'><span class='manipulationLabel'>Back</span></span>" +
+      "<div class='seperatorLine'></div>" +
+      "<span class='manipulationUI none' id='manipulate-back'><span class='manipulationLabel'>Click in an empty space to place a new node</span></span>";
+
+    // bind the icon
+    var backButton = document.getElementById("manipulate-back");
+    backButton.onclick = this._createManipulatorBar.bind(this);
+
+
+    var me = this;
+    events.addListener(me, 'select', me._addNode.bind(me));
+  },
+
+
+  _createConnectToolbar : function() {
+    while (this.manipulationDiv.hasChildNodes()) {
+      this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
+    }
+    var message = "hello";
+    if (!this._selectionIsEmpty()) {
+      message = "Select the node you want to connect to other nodes";
+    }
+
+    this.manipulationDiv.innerHTML = "" +
+      "<span class='manipulationUI back' id='manipulate-back'><span class='manipulationLabel'>Back</span></span>" +
+      "<div class='seperatorLine'></div>" +
+      "<span class='manipulationUI none' id='manipulate-back'><span id='manipulatorLabel' class='manipulationLabel'>"+message+"</span></span>";
+
+    // bind the icon
+    var backButton = document.getElementById("manipulate-back");
+    backButton.onclick = this._createManipulatorBar.bind(this);
+
+    var self = this;
+    events.addListener(self, 'select', function(params) {alert(self.selectForConnect)});
+  },
+
+  _continueConnect : function() {
+    if (this._clusterInSelection()) {
+      this._unselectAll();
+      this._createConnectToolbar("Select the node you want to connect (Clusters are not allowed).");
+      return true;
+    }
+    else if (!this._selectionIsEmpty()) {
+      this._connectNodes();
+      return true;
+    }
+    else {
+      var manipulatorLabel = document.getElementById['manipolatorLabel'];
+      manipulatorLabel
+      return false;
+    }
+  },
+
+
+  /**
+   * Adds a node on the specified location
+   *
+   * @param {Object} pointer
+   */
+  _addNode : function(pointer) {
+    console.log("HERE",this)
+    if (this._selectionIsEmpty()) {
+      var positionObject = this._pointerToPositionObject(pointer);
+      this.nodesData.add({id:util.randomUUID(),x:positionObject.left,y:positionObject.top,label:"new",fixed:false});
+      this.moving = true;
+      this.start();
+    }
+  },
+
+  _connectNodes : function() {
+    console.log(this.selectionObj)
+  },
+
+
+  /**
+   * delete everything in the selection
+   *
+   * @private
+   */
+  _deleteSelected : function() {
+    if (!this._clusterInSelection()) {
+      var selectedNodes = this.getSelectedNodes();
+      var selectedEdges = this.getSelectedEdges();
+      this._removeEdges(selectedEdges);
+      this._removeNodes(selectedNodes);
+      this._redraw();
+    }
+    else {
+      alert("Clusters cannot be deleted.")
+    }
+  }
+
+
+
+}
 /**
  * Creation of the SectorMixin var.
  *
@@ -12413,6 +12541,19 @@ var SelectionMixin = {
     return true;
   },
 
+  _clusterInSelection : function() {
+    for(var objectId in this.selectionObj) {
+      if(this.selectionObj.hasOwnProperty(objectId)) {
+        if (this.selectionObj[objectId] instanceof Node) {
+          if (this.selectionObj[objectId].clusterSize > 1) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  },
+
   /**
    * select the edges connected to the node that is being selected
    *
@@ -12583,9 +12724,7 @@ var SelectionMixin = {
    */
   getSelection : function() {
     var nodeIds = this.getSelectedNodes();
-
     var edgeIds = this.getSelectedEdges();
-
     return {nodes:nodeIds, edges:edgeIds};
   },
 
@@ -12625,15 +12764,6 @@ var SelectionMixin = {
     return idArray
   },
 
-  /**
-   *
-   * retrieve the currently selected nodes as objects
-   * @return {Objects} selection    An array with the ids of the
-   *                                            selected nodes.
-   */
-  getSelectionObjects : function() {
-    return this.selectionObj;
-  },
 
   /**
    * select zero or more nodes
@@ -13048,20 +13178,30 @@ function Graph (container, data, options) {
   this.yIncrement = 0;
   this.zoomIncrement = 0;
 
+
   // create a frame and canvas
   this._create();
 
   // load the sector system.    (mandatory, fully integrated with Graph)
   this._loadSectorSystem();
 
-  // apply options
-  this.setOptions(options);
-
   // load the cluster system.   (mandatory, even when not using the cluster system, there are function calls to it)
   this._loadClusterSystem();
 
   // load the selection system. (mandatory, required by Graph)
   this._loadSelectionSystem();
+
+  // load the data manipulation system
+  this._loadManipulationSystem();
+
+  // apply options
+  this.setOptions(options);
+
+
+
+
+
+
 
   // other vars
   var graph = this;
@@ -13457,6 +13597,7 @@ Graph.prototype._create = function () {
   this.frame.className = 'graph-frame';
   this.frame.style.position = 'relative';
   this.frame.style.overflow = 'hidden';
+  this.frame.style.zIndex = "1";
 
   // create the graph canvas (HTML canvas element)
   this.frame.canvas = document.createElement( 'canvas' );
@@ -13492,6 +13633,7 @@ Graph.prototype._create = function () {
 
   // add the frame to the container element
   this.containerElement.appendChild(this.frame);
+
 };
 
 
@@ -13527,14 +13669,6 @@ Graph.prototype._createKeyBinds = function() {
     this.mousetrap.bind("pagedown",this._zoomOut.bind(me),"keydown");
     this.mousetrap.bind("pagedown",this._stopZoom.bind(me), "keyup");
   }
-  /*
-   this.mousetrap.bind("=",this.decreaseClusterLevel.bind(me));
-   this.mousetrap.bind("-",this.increaseClusterLevel.bind(me));
-   this.mousetrap.bind("s",this.singleStep.bind(me));
-   this.mousetrap.bind("h",this.updateClustersDefault.bind(me));
-   this.mousetrap.bind("c",this._collapseSector.bind(me));
-   this.mousetrap.bind("f",this.toggleFreeze.bind(me));
-   */
 }
 
 /**
@@ -13580,7 +13714,7 @@ Graph.prototype._onDragStart = function () {
     drag.nodeId = node.id;
     // select the clicked node if not yet selected
     if (!node.isSelected()) {
-      this._selectNode(node,false);
+      this._selectObject(node,false);
     }
 
     // create an array with the selected nodes and their original location and status
@@ -13682,6 +13816,7 @@ Graph.prototype._onDragEnd = function () {
 Graph.prototype._onTap = function (event) {
   var pointer = this._getPointer(event.gesture.touches[0]);
   this._handleTap(pointer);
+
 };
 
 
@@ -14032,6 +14167,8 @@ Graph.prototype.setSize = function(width, height) {
   this.frame.canvas.width = this.frame.canvas.clientWidth;
   this.frame.canvas.height = this.frame.canvas.clientHeight;
 
+  this.manipulationDiv.style.width = this.frame.canvas.clientWidth;
+
   if (this.constants.navigationUI.enabled == true) {
     this._relocateUI();
   }
@@ -14096,7 +14233,7 @@ Graph.prototype._addNodes = function(ids) {
     var node = new Node(data, this.images, this.groups, this.constants);
     this.nodes[id] = node; // note: this may replace an existing node
 
-    if (!node.isFixed()) {
+    if (!node.isFixed() && this.createNodeOnClick != true) {
       // TODO: position new nodes in a smarter way!
       var radius = this.constants.edges.length * 2;
       var count = ids.length;
@@ -14112,6 +14249,7 @@ Graph.prototype._addNodes = function(ids) {
   this._updateNodeIndexList();
   this._reconnectEdges();
   this._updateValueRange(this.nodes);
+  this.updateLabels();
 };
 
 /**
@@ -14376,7 +14514,7 @@ Graph.prototype._redraw = function() {
 
   this._doInAllSectors("_drawAllSectorNodes",ctx);
   this._doInAllSectors("_drawEdges",ctx);
-  this._doInAllSectors("_drawNodes",ctx);
+  this._doInAllSectors("_drawNodes",ctx,true);
 
   // restore original scaling and translation
   ctx.restore();
@@ -14867,9 +15005,9 @@ Graph.prototype.start = function() {
   }
 };
 
-
-
-
+/**
+ * Debug function, does one step of the graph
+ */
 Graph.prototype.singleStep = function() {
   if (this.moving) {
     this._initializeForceCalculation();
@@ -14957,6 +15095,30 @@ Graph.prototype._loadSelectionSystem = function() {
   }
 }
 
+
+
+/**
+ * Mixin the navigationUI (User Interface) system and initialize the parameters required
+ *
+ * @private
+ */
+Graph.prototype._loadManipulationSystem = function() {
+  // load the manipulator HTML elements. All styling done in css.
+  this.manipulationDiv = document.createElement('div');
+  this.manipulationDiv.className = 'graph-manipulationDiv';
+  this.containerElement.insertBefore(this.manipulationDiv, this.frame);
+
+
+  // load the manipulation functions
+  for (var mixinFunction in manipulationMixin) {
+    if (manipulationMixin.hasOwnProperty(mixinFunction)) {
+      Graph.prototype[mixinFunction] = manipulationMixin[mixinFunction];
+    }
+  }
+
+  this._createManipulatorBar();
+
+}
 
 /**
  * Mixin the navigationUI (User Interface) system and initialize the parameters required

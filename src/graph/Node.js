@@ -188,8 +188,8 @@ Node.prototype.setProperties = function(properties, constants) {
     }
   }
 
-  this.xFixed = this.xFixed || (properties.x !== undefined);
-  this.yFixed = this.yFixed || (properties.y !== undefined);
+  this.xFixed = this.xFixed || (properties.x !== undefined && properties.fixed);
+  this.yFixed = this.yFixed || (properties.y !== undefined && properties.fixed);
   this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
 
   if (this.shape == 'image') {

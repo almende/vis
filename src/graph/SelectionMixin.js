@@ -233,6 +233,19 @@ var SelectionMixin = {
     return true;
   },
 
+  _clusterInSelection : function() {
+    for(var objectId in this.selectionObj) {
+      if(this.selectionObj.hasOwnProperty(objectId)) {
+        if (this.selectionObj[objectId] instanceof Node) {
+          if (this.selectionObj[objectId].clusterSize > 1) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  },
+
   /**
    * select the edges connected to the node that is being selected
    *
@@ -403,9 +416,7 @@ var SelectionMixin = {
    */
   getSelection : function() {
     var nodeIds = this.getSelectedNodes();
-
     var edgeIds = this.getSelectedEdges();
-
     return {nodes:nodeIds, edges:edgeIds};
   },
 
@@ -445,15 +456,6 @@ var SelectionMixin = {
     return idArray
   },
 
-  /**
-   *
-   * retrieve the currently selected nodes as objects
-   * @return {Objects} selection    An array with the ids of the
-   *                                            selected nodes.
-   */
-  getSelectionObjects : function() {
-    return this.selectionObj;
-  },
 
   /**
    * select zero or more nodes

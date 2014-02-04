@@ -82,6 +82,7 @@ task('build', {async: true}, function () {
       './src/graph/Popup.js',
       './src/graph/Groups.js',
       './src/graph/Images.js',
+      './src/graph/manipulationMixin.js',
       './src/graph/SectorsMixin.js',
       './src/graph/ClusterMixin.js',
       './src/graph/SelectionMixin.js',
