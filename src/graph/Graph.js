@@ -1126,15 +1126,10 @@ Graph.prototype.setSize = function(width, height) {
   this.frame.canvas.width = this.frame.canvas.clientWidth;
   this.frame.canvas.height = this.frame.canvas.clientHeight;
 
-<<<<<<< HEAD
   this.manipulationDiv.style.width = this.frame.canvas.clientWidth;
 
-  if (this.constants.navigationUI.enabled == true) {
-    this._relocateUI();
-=======
   if (this.constants.navigation.enabled == true) {
     this._relocateNavigation();
->>>>>>> develop
   }
 };
 

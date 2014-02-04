@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.4.0
- * @date    2014-01-31
+ * @version 0.5.0-SNAPSHOT
+ * @date    2014-02-04
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -12970,24 +12970,14 @@ var SelectionMixin = {
             delete this.selectionObj[objectId];
           }
         }
-<<<<<<< HEAD
         else { // assuming only edges and nodes are selected
           if (!this.edges.hasOwnProperty(objectId)) {
             delete this.selectionObj[objectId];
           }
-=======
-      }
-    }
-    else if (this.selection && this.selection.length) {
-      // remove all selections
-      for (i = 0, iMax = this.selection.length; i < iMax; i++) {
-        id = this.selection[i];
-        if (this.nodes.hasOwnProperty(id)) {
-          this.nodes[id].unselect();
+          changed = true;
         }
-        changed = true;
-      }
       this.selection = [];
+      }
     }
 
     if (changed && (triggerSelect == true || triggerSelect == undefined)) {
@@ -12998,8 +12988,9 @@ var SelectionMixin = {
     }
 
     return changed;
-  },
-*/
+  }
+
+}
 /**
  * select all nodes on given location x, y
  * @param {Array} selection   an array with node ids
@@ -13031,7 +13022,6 @@ var SelectionMixin = {
   }
 
 
-
 <<<<<<< HEAD
 =======
     if (changed) {
@@ -13040,11 +13030,8 @@ var SelectionMixin = {
         nodes: this.getSelection()
       });
     }
-
-    return changed;
-  },
-  */
 >>>>>>> develop
+
 };
 
 
@@ -14424,15 +14411,10 @@ Graph.prototype.setSize = function(width, height) {
   this.frame.canvas.width = this.frame.canvas.clientWidth;
   this.frame.canvas.height = this.frame.canvas.clientHeight;
 
-<<<<<<< HEAD
   this.manipulationDiv.style.width = this.frame.canvas.clientWidth;
 
-  if (this.constants.navigationUI.enabled == true) {
-    this._relocateUI();
-=======
   if (this.constants.navigation.enabled == true) {
     this._relocateNavigation();
->>>>>>> develop
   }
 };
 

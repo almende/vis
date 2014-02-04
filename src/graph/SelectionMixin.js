@@ -501,15 +501,14 @@ var SelectionMixin = {
             delete this.selectionObj[objectId];
           }
         }
-<<<<<<< HEAD
         else { // assuming only edges and nodes are selected
           if (!this.edges.hasOwnProperty(objectId)) {
             delete this.selectionObj[objectId];
           }
-=======
-        changed = true;
-      }
+          changed = true;
+        }
       this.selection = [];
+      }
     }
 
     if (changed && (triggerSelect == true || triggerSelect == undefined)) {
@@ -520,8 +519,9 @@ var SelectionMixin = {
     }
 
     return changed;
-  },
-*/
+  }
+
+}
 /**
  * select all nodes on given location x, y
  * @param {Array} selection   an array with node ids
