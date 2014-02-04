@@ -4,8 +4,13 @@
  *
  * A dynamic, browser-based visualization library.
  *
+<<<<<<< HEAD
  * @version 0.5.0-SNAPSHOT
  * @date    2014-02-04
+=======
+ * @version 0.4.0
+ * @date    2014-01-31
+>>>>>>> origin/gh-pages
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -9117,8 +9122,13 @@ Node.prototype.setProperties = function(properties, constants) {
     }
   }
 
+<<<<<<< HEAD
   this.xFixed = this.xFixed || (properties.x !== undefined && properties.fixed);
   this.yFixed = this.yFixed || (properties.y !== undefined && properties.fixed);
+=======
+  this.xFixed = this.xFixed || (properties.x !== undefined);
+  this.yFixed = this.yFixed || (properties.y !== undefined);
+>>>>>>> origin/gh-pages
   this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
 
   if (this.shape == 'image') {
@@ -9940,7 +9950,10 @@ function Edge (properties, graph, constants) {
   this.width  = constants.edges.width;
   this.value  = undefined;
   this.length = constants.edges.length;
+<<<<<<< HEAD
   this.selected = false;
+=======
+>>>>>>> origin/gh-pages
 
   this.from = null;   // a node
   this.to = null;     // a node
@@ -10177,7 +10190,11 @@ Edge.prototype._drawLine = function(ctx) {
  * @private
  */
 Edge.prototype._getLineWidth = function() {
+<<<<<<< HEAD
   if (this.selected == true) {
+=======
+  if (this.from.selected || this.to.selected) {
+>>>>>>> origin/gh-pages
     return Math.min(this.width * 2, this.widthMax)*this.graphScaleInv;
   }
   else {
@@ -10527,6 +10544,7 @@ Edge._dist = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
 Edge.prototype.setScale = function(scale) {
   this.graphScaleInv = 1.0/scale;
 };
+<<<<<<< HEAD
 
 
 Edge.prototype.select = function() {
@@ -10536,6 +10554,8 @@ Edge.prototype.select = function() {
 Edge.prototype.unselect = function() {
   this.selected = false;
 }
+=======
+>>>>>>> origin/gh-pages
 /**
  * Popup is a class to create a popup window with some text
  * @param {Element}  container     The container object.
@@ -10766,6 +10786,7 @@ Images.prototype.load = function(url) {
 };
 
 /**
+<<<<<<< HEAD
  * Created by Alex on 2/4/14.
  */
 
@@ -10894,6 +10915,8 @@ var manipulationMixin = {
 
 }
 /**
+=======
+>>>>>>> origin/gh-pages
  * Creation of the SectorMixin var.
  *
  * This contains all the functions the Graph object can use to employ the sector system.
@@ -11777,10 +11800,13 @@ var ClusterMixin = {
 
     // if child node has been added on smaller scale than current, kick out
     if (childNode.formationScale < this.scale || force == true) {
+<<<<<<< HEAD
       // remove the selection, first remove the selection from the connected edges
       this._unselectConnectedEdges(parentNode);
       parentNode.unselect();
 
+=======
+>>>>>>> origin/gh-pages
       // put the child node back in the global nodes object
       this.nodes[containedNodeId] = childNode;
 
@@ -11829,9 +11855,12 @@ var ClusterMixin = {
 
       // recalculate the size of the node on the next time the node is rendered
       parentNode.clearSizeCache();
+<<<<<<< HEAD
 
       // this unselects the rest of the edges
       this._unselectConnectedEdges(parentNode);
+=======
+>>>>>>> origin/gh-pages
     }
 
     // check if a further expansion step is possible if recursivity is enabled
@@ -12577,7 +12606,11 @@ var SelectionMixin = {
   _getNodeAt : function (pointer) {
     // we first check if this is an navigation controls element
     var positionObject = this._pointerToPositionObject(pointer);
+<<<<<<< HEAD
     var overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
+=======
+    overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
+>>>>>>> origin/gh-pages
 
     // if there are overlapping nodes, select the last one, this is the
     // one which is drawn on top of the others
@@ -12591,6 +12624,7 @@ var SelectionMixin = {
 
 
   /**
+<<<<<<< HEAD
    * retrieve all edges overlapping with given object, selector is around center
    * @param {Object} object  An object with parameters left, top, right, bottom
    * @return {Number[]}   An array with id's of the overlapping nodes
@@ -12621,6 +12655,8 @@ var SelectionMixin = {
   },
 
   /**
+=======
+>>>>>>> origin/gh-pages
    * Place holder. To implement change the _getNodeAt to a _getObjectAt. Have the _getObjectAt call
    * _getNodeAt and _getEdgesAt, then priortize the selection to user preferences.
    *
@@ -12629,6 +12665,7 @@ var SelectionMixin = {
    * @private
    */
   _getEdgeAt : function(pointer) {
+<<<<<<< HEAD
     var positionObject = this._pointerToPositionObject(pointer);
     var overlappingEdges = this._getAllEdgesOverlappingWith(positionObject);
 
@@ -12638,16 +12675,27 @@ var SelectionMixin = {
     else {
       return null;
     }
+=======
+    return null;
+>>>>>>> origin/gh-pages
   },
 
 
   /**
+<<<<<<< HEAD
    * Add object to the selection array.
+=======
+   * Add object to the selection array. The this.selection id array may not be needed.
+>>>>>>> origin/gh-pages
    *
    * @param obj
    * @private
    */
   _addToSelection : function(obj) {
+<<<<<<< HEAD
+=======
+    this.selection.push(obj.id);
+>>>>>>> origin/gh-pages
     this.selectionObj[obj.id] = obj;
   },
 
@@ -12659,6 +12707,15 @@ var SelectionMixin = {
    * @private
    */
   _removeFromSelection : function(obj) {
+<<<<<<< HEAD
+=======
+    for (var i = 0; i < this.selection.length; i++) {
+      if (obj.id == this.selection[i]) {
+        this.selection.splice(i,1);
+        break;
+      }
+    }
+>>>>>>> origin/gh-pages
     delete this.selectionObj[obj.id];
   },
 
@@ -12674,9 +12731,16 @@ var SelectionMixin = {
       doNotTrigger = false;
     }
 
+<<<<<<< HEAD
     for (var objectId in this.selectionObj) {
       if (this.selectionObj.hasOwnProperty(objectId)) {
         this.selectionObj[objectId].unselect();
+=======
+    this.selection = [];
+    for (var objId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objId)) {
+        this.selectionObj[objId].unselect();
+>>>>>>> origin/gh-pages
       }
     }
     this.selectionObj = {};
@@ -12696,6 +12760,7 @@ var SelectionMixin = {
    * @private
    */
   _selectionIsEmpty : function() {
+<<<<<<< HEAD
     for(var objectId in this.selectionObj) {
       if(this.selectionObj.hasOwnProperty(objectId)) {
         return false;
@@ -12743,21 +12808,39 @@ var SelectionMixin = {
       var edge = node.dynamicEdges[i];
       edge.unselect();
       this._removeFromSelection(edge);
+=======
+    if (this.selection.length == 0) {
+      return true;
+    }
+    else {
+      return false;
+>>>>>>> origin/gh-pages
     }
   },
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/gh-pages
   /**
    * This is called when someone clicks on a node. either select or deselect it.
    * If there is an existing selection and we don't want to append to it, clear the existing selection
    *
+<<<<<<< HEAD
    * @param {Node || Edge} object
+=======
+   * @param {Node} node
+>>>>>>> origin/gh-pages
    * @param {Boolean} append
    * @param {Boolean} [doNotTrigger] | ignore trigger
    * @private
    */
+<<<<<<< HEAD
   _selectObject : function(object, append, doNotTrigger) {
+=======
+  _selectNode : function(node, append, doNotTrigger) {
+>>>>>>> origin/gh-pages
     if (doNotTrigger === undefined) {
       doNotTrigger = false;
     }
@@ -12766,6 +12849,7 @@ var SelectionMixin = {
       this._unselectAll(true);
     }
 
+<<<<<<< HEAD
     if (object.selected == false) {
       object.select();
       this._addToSelection(object);
@@ -12776,6 +12860,16 @@ var SelectionMixin = {
     else {
       object.unselect();
       this._removeFromSelection(object);
+=======
+
+    if (node.selected == false) {
+      node.select();
+      this._addToSelection(node);
+    }
+    else {
+      node.unselect();
+      this._removeFromSelection(node);
+>>>>>>> origin/gh-pages
     }
     if (doNotTrigger == false) {
       this._trigger('select', {
@@ -12814,6 +12908,7 @@ var SelectionMixin = {
   _handleTap : function(pointer) {
     var node = this._getNodeAt(pointer);
     if (node != null) {
+<<<<<<< HEAD
       this._selectObject(node,false);
     }
     else {
@@ -12824,6 +12919,12 @@ var SelectionMixin = {
       else {
         this._unselectAll();
       }
+=======
+      this._selectNode(node,false);
+    }
+    else {
+      this._unselectAll();
+>>>>>>> origin/gh-pages
     }
     this._redraw();
   },
@@ -12855,6 +12956,7 @@ var SelectionMixin = {
   _handleOnHold : function(pointer) {
     var node = this._getNodeAt(pointer);
     if (node != null) {
+<<<<<<< HEAD
       this._selectObject(node,true);
     }
     else {
@@ -12862,6 +12964,9 @@ var SelectionMixin = {
       if (edge != null) {
         this._selectObject(edge,true);
       }
+=======
+      this._selectNode(node,true);
+>>>>>>> origin/gh-pages
     }
     this._redraw();
   },
@@ -12883,18 +12988,27 @@ var SelectionMixin = {
 
   /**
    *
+<<<<<<< HEAD
    * retrieve the currently selected objects
+=======
+   * retrieve the currently selected nodes
+>>>>>>> origin/gh-pages
    * @return {Number[] | String[]} selection    An array with the ids of the
    *                                            selected nodes.
    */
   getSelection : function() {
+<<<<<<< HEAD
     var nodeIds = this.getSelectedNodes();
     var edgeIds = this.getSelectedEdges();
     return {nodes:nodeIds, edges:edgeIds};
+=======
+    return this.selection.concat([]);
+>>>>>>> origin/gh-pages
   },
 
   /**
    *
+<<<<<<< HEAD
    * retrieve the currently selected nodes
    * @return {String} selection    An array with the ids of the
    *                                            selected nodes.
@@ -12931,6 +13045,19 @@ var SelectionMixin = {
 
 
   /**
+=======
+   * retrieve the currently selected nodes as objects
+   * @return {Objects} selection    An array with the ids of the
+   *                                            selected nodes.
+   */
+  getSelectionObjects : function() {
+    return this.selectionObj;
+  },
+
+  /**
+   * // TODO: rework this function, it is from the old system
+   *
+>>>>>>> origin/gh-pages
    * select zero or more nodes
    * @param {Number[] | String[]} selection     An array with the ids of the
    *                                            selected nodes.
@@ -12951,7 +13078,11 @@ var SelectionMixin = {
       if (!node) {
         throw new RangeError('Node with id "' + id + '" not found');
       }
+<<<<<<< HEAD
       this._selectObject(node,true,true);
+=======
+      this._selectNode(node,true,true);
+>>>>>>> origin/gh-pages
     }
 
     this.redraw();
@@ -12959,10 +13090,16 @@ var SelectionMixin = {
 
 
   /**
+<<<<<<< HEAD
+=======
+   * TODO: rework this function, it is from the old system
+   *
+>>>>>>> origin/gh-pages
    * Validate the selection: remove ids of nodes which no longer exist
    * @private
    */
   _updateSelection : function () {
+<<<<<<< HEAD
     for(var objectId in this.selectionObj) {
       if(this.selectionObj.hasOwnProperty(objectId)) {
         if (this.selectionObj[objectId] instanceof Node) {
@@ -12979,6 +13116,66 @@ var SelectionMixin = {
       this.selection = [];
       }
     }
+=======
+    var i = 0;
+    while (i < this.selection.length) {
+      var nodeId = this.selection[i];
+      if (!this.nodes.hasOwnProperty(nodeId)) {
+        this.selection.splice(i, 1);
+        delete this.selectionObj[nodeId];
+      }
+      else {
+        i++;
+      }
+    }
+  }
+
+
+  /**
+   * Unselect selected nodes. If no selection array is provided, all nodes
+   * are unselected
+   * @param {Object[]} selection     Array with selection objects, each selection
+   *                                 object has a parameter row. Optional
+   * @param {Boolean} triggerSelect  If true (default), the select event
+   *                                 is triggered when nodes are unselected
+   * @return {Boolean} changed       True if the selection is changed
+   * @private
+   */
+ /* _unselectNodes : function(selection, triggerSelect) {
+    var changed = false;
+    var i, iMax, id;
+
+    if (selection) {
+      // remove provided selections
+      for (i = 0, iMax = selection.length; i < iMax; i++) {
+        id = selection[i];
+        if (this.nodes.hasOwnProperty(id)) {
+          this.nodes[id].unselect();
+        }
+        var j = 0;
+        while (j < this.selection.length) {
+          if (this.selection[j] == id) {
+            this.selection.splice(j, 1);
+            changed = true;
+          }
+          else {
+            j++;
+          }
+        }
+      }
+    }
+    else if (this.selection && this.selection.length) {
+      // remove all selections
+      for (i = 0, iMax = this.selection.length; i < iMax; i++) {
+        id = this.selection[i];
+        if (this.nodes.hasOwnProperty(id)) {
+          this.nodes[id].unselect();
+        }
+        changed = true;
+      }
+      this.selection = [];
+    }
+>>>>>>> origin/gh-pages
 
     if (changed && (triggerSelect == true || triggerSelect == undefined)) {
       // fire the select event
@@ -12988,9 +13185,14 @@ var SelectionMixin = {
     }
 
     return changed;
+<<<<<<< HEAD
   }
 
 }
+=======
+  },
+*/
+>>>>>>> origin/gh-pages
 /**
  * select all nodes on given location x, y
  * @param {Array} selection   an array with node ids
@@ -13015,6 +13217,7 @@ var SelectionMixin = {
         if (selection[i] != this.selection[i]) {
           selectionAlreadyThere = false;
           break;
+<<<<<<< HEAD
 >>>>>>> develop
         }
       }
@@ -13024,14 +13227,47 @@ var SelectionMixin = {
 
 <<<<<<< HEAD
 =======
+=======
+        }
+      }
+    }
+    if (selectionAlreadyThere) {
+      return changed;
+    }
+
+    if (append == undefined || append == false) {
+      // first deselect any selected node
+      var triggerSelect = false;
+      changed = this._unselectNodes(undefined, triggerSelect);
+    }
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      // add each of the new selections, but only when they are not duplicate
+      var id = selection[i];
+      var isDuplicate = (this.selection.indexOf(id) != -1);
+      if (!isDuplicate) {
+        this.nodes[id].select();
+        this.selection.push(id);
+        changed = true;
+      }
+    }
+
+>>>>>>> origin/gh-pages
     if (changed) {
       // fire the select event
       this._trigger('select', {
         nodes: this.getSelection()
       });
     }
+<<<<<<< HEAD
 >>>>>>> develop
 
+=======
+
+    return changed;
+  },
+  */
+>>>>>>> origin/gh-pages
 };
 
 
@@ -13395,19 +13631,29 @@ function Graph (container, data, options) {
   this.yIncrement = 0;
   this.zoomIncrement = 0;
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/gh-pages
   // create a frame and canvas
   this._create();
 
   // load the sector system.    (mandatory, fully integrated with Graph)
   this._loadSectorSystem();
 
+<<<<<<< HEAD
+=======
+  // apply options
+  this.setOptions(options);
+
+>>>>>>> origin/gh-pages
   // load the cluster system.   (mandatory, even when not using the cluster system, there are function calls to it)
   this._loadClusterSystem();
 
   // load the selection system. (mandatory, required by Graph)
   this._loadSelectionSystem();
 
+<<<<<<< HEAD
   // load the data manipulation system
   this._loadManipulationSystem();
 
@@ -13420,6 +13666,8 @@ function Graph (container, data, options) {
 
 
 
+=======
+>>>>>>> origin/gh-pages
   // other vars
   var graph = this;
   this.freezeSimulation = false;// freeze the simulation
@@ -13841,7 +14089,10 @@ Graph.prototype._create = function () {
   this.frame.className = 'graph-frame';
   this.frame.style.position = 'relative';
   this.frame.style.overflow = 'hidden';
+<<<<<<< HEAD
   this.frame.style.zIndex = "1";
+=======
+>>>>>>> origin/gh-pages
 
   // create the graph canvas (HTML canvas element)
   this.frame.canvas = document.createElement( 'canvas' );
@@ -13877,7 +14128,10 @@ Graph.prototype._create = function () {
 
   // add the frame to the container element
   this.containerElement.appendChild(this.frame);
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/gh-pages
 };
 
 
@@ -13913,6 +14167,17 @@ Graph.prototype._createKeyBinds = function() {
     this.mousetrap.bind("pagedown",this._zoomOut.bind(me),"keydown");
     this.mousetrap.bind("pagedown",this._stopZoom.bind(me), "keyup");
   }
+<<<<<<< HEAD
+=======
+  /*
+   this.mousetrap.bind("=",this.decreaseClusterLevel.bind(me));
+   this.mousetrap.bind("-",this.increaseClusterLevel.bind(me));
+   this.mousetrap.bind("s",this.singleStep.bind(me));
+   this.mousetrap.bind("h",this.updateClustersDefault.bind(me));
+   this.mousetrap.bind("c",this._collapseSector.bind(me));
+   this.mousetrap.bind("f",this.toggleFreeze.bind(me));
+   */
+>>>>>>> origin/gh-pages
 }
 
 /**
@@ -13959,6 +14224,7 @@ Graph.prototype._onDragStart = function () {
     drag.nodeId = node.id;
     // select the clicked node if not yet selected
     if (!node.isSelected()) {
+<<<<<<< HEAD
       this._selectObject(node,false);
     }
 
@@ -13985,6 +14251,33 @@ Graph.prototype._onDragStart = function () {
         }
       }
     }
+=======
+      this._selectNode(node,false);
+    }
+
+    // create an array with the selected nodes and their original location and status
+    var me = this;
+    this.selection.forEach(function (id) {
+      var node = me.nodes[id];
+      if (node) {
+        var s = {
+          id: id,
+          node: node,
+
+          // store original x, y, xFixed and yFixed, make the node temporarily Fixed
+          x: node.x,
+          y: node.y,
+          xFixed: node.xFixed,
+          yFixed: node.yFixed
+        };
+
+        node.xFixed = true;
+        node.yFixed = true;
+
+        drag.selection.push(s);
+      }
+    });
+>>>>>>> origin/gh-pages
   }
 };
 
@@ -14062,7 +14355,10 @@ Graph.prototype._onDragEnd = function () {
 Graph.prototype._onTap = function (event) {
   var pointer = this._getPointer(event.gesture.touches[0]);
   this._handleTap(pointer);
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/gh-pages
 };
 
 
@@ -14411,8 +14707,11 @@ Graph.prototype.setSize = function(width, height) {
   this.frame.canvas.width = this.frame.canvas.clientWidth;
   this.frame.canvas.height = this.frame.canvas.clientHeight;
 
+<<<<<<< HEAD
   this.manipulationDiv.style.width = this.frame.canvas.clientWidth;
 
+=======
+>>>>>>> origin/gh-pages
   if (this.constants.navigation.enabled == true) {
     this._relocateNavigation();
   }
@@ -14477,7 +14776,11 @@ Graph.prototype._addNodes = function(ids) {
     var node = new Node(data, this.images, this.groups, this.constants);
     this.nodes[id] = node; // note: this may replace an existing node
 
+<<<<<<< HEAD
     if (!node.isFixed() && this.createNodeOnClick != true) {
+=======
+    if (!node.isFixed()) {
+>>>>>>> origin/gh-pages
       // TODO: position new nodes in a smarter way!
       var radius = this.constants.edges.length * 2;
       var count = ids.length;
@@ -14493,7 +14796,10 @@ Graph.prototype._addNodes = function(ids) {
   this._updateNodeIndexList();
   this._reconnectEdges();
   this._updateValueRange(this.nodes);
+<<<<<<< HEAD
   this.updateLabels();
+=======
+>>>>>>> origin/gh-pages
 };
 
 /**
@@ -14762,7 +15068,11 @@ Graph.prototype._redraw = function() {
 
   this._doInAllSectors("_drawAllSectorNodes",ctx);
   this._doInAllSectors("_drawEdges",ctx);
+<<<<<<< HEAD
   this._doInAllSectors("_drawNodes",ctx,true);
+=======
+  this._doInAllSectors("_drawNodes",ctx);
+>>>>>>> origin/gh-pages
 
   // restore original scaling and translation
   ctx.restore();
@@ -15257,9 +15567,15 @@ Graph.prototype.start = function() {
   }
 };
 
+<<<<<<< HEAD
 /**
  * Debug function, does one step of the graph
  */
+=======
+
+
+
+>>>>>>> origin/gh-pages
 Graph.prototype.singleStep = function() {
   if (this.moving) {
     this._initializeForceCalculation();
@@ -15338,6 +15654,10 @@ Graph.prototype._loadSectorSystem = function() {
  * @private
  */
 Graph.prototype._loadSelectionSystem = function() {
+<<<<<<< HEAD
+=======
+  this.selection = [];
+>>>>>>> origin/gh-pages
   this.selectionObj = {};
 
   for (var mixinFunction in SelectionMixin) {
@@ -15348,6 +15668,7 @@ Graph.prototype._loadSelectionSystem = function() {
 }
 
 
+<<<<<<< HEAD
 
 /**
  * Mixin the navigationUI (User Interface) system and initialize the parameters required
@@ -15372,6 +15693,8 @@ Graph.prototype._loadManipulationSystem = function() {
 
 }
 
+=======
+>>>>>>> origin/gh-pages
 /**
  * Mixin the navigation (User Interface) system and initialize the parameters required
  *

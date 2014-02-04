@@ -95,6 +95,7 @@
 
       // add event listeners
 <<<<<<< HEAD
+<<<<<<< HEAD
       vis.events.addListener(graph, 'select', function(params) {
         document.getElementById('selection').innerHTML =
             'Selection: ' + JSON.stringify(graph.getSelection());
@@ -102,6 +103,10 @@
       graph.on('select', function(params) {
         document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
 >>>>>>> develop
+=======
+      graph.on('select', function(params) {
+        document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
+>>>>>>> origin/gh-pages
       });
     }
   </script>
