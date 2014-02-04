@@ -83,18 +83,26 @@ function Timeline (container, items, options) {
   );
 
   // TODO: reckon with options moveable and zoomable
+  // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
   this.range.subscribe(this.rootPanel, 'move', 'horizontal');
   this.range.subscribe(this.rootPanel, 'zoom', 'horizontal');
-  this.range.on('rangechange', function () {
+  this.range.on('rangechange', function (properties) {
     var force = true;
     me.controller.requestReflow(force);
+    me._trigger('rangechange', properties);
   });
-  this.range.on('rangechanged', function () {
+  this.range.on('rangechanged', function (properties) {
     var force = true;
     me.controller.requestReflow(force);
+    me._trigger('rangechanged', properties);
   });
 
-  // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
+  // single select (or unselect) when tapping an item
+  // TODO: implement ctrl+click
+  this.rootPanel.on('tap',  this._onSelectItem.bind(this));
+
+  // multi select when holding mouse/touch, or on ctrl+click
+  this.rootPanel.on('hold', this._onMultiSelectItem.bind(this));
 
   // time axis
   var timeaxisOptions = Object.create(rootOptions);
@@ -139,10 +147,9 @@ function Timeline (container, items, options) {
 Timeline.prototype.setOptions = function (options) {
   util.extend(this.options, options);
 
-  // force update of range
-  // options.start and options.end can be undefined
-  //this.range.setRange(options.start, options.end);
-  this.range.setRange();
+  // force update of range (apply new min/max etc.)
+  // both start and end are optional
+  this.range.setRange(options.start, options.end);
 
   this.controller.reflow();
   this.controller.repaint();
@@ -198,29 +205,29 @@ Timeline.prototype.setItems = function(items) {
     var dataRange = this.getItemRange();
 
     // add 5% space on both sides
-    var min = dataRange.min;
-    var max = dataRange.max;
-    if (min != null && max != null) {
-      var interval = (max.valueOf() - min.valueOf());
+    var start = dataRange.min;
+    var end = dataRange.max;
+    if (start != null && end != null) {
+      var interval = (end.valueOf() - start.valueOf());
       if (interval <= 0) {
         // prevent an empty interval
         interval = 24 * 60 * 60 * 1000; // 1 day
       }
-      min = new Date(min.valueOf() - interval * 0.05);
-      max = new Date(max.valueOf() + interval * 0.05);
+      start = new Date(start.valueOf() - interval * 0.05);
+      end = new Date(end.valueOf() + interval * 0.05);
     }
 
     // override specified start and/or end date
     if (this.options.start != undefined) {
-      min = util.convert(this.options.start, 'Date');
+      start = util.convert(this.options.start, 'Date');
     }
     if (this.options.end != undefined) {
-      max = util.convert(this.options.end, 'Date');
+      end = util.convert(this.options.end, 'Date');
     }
 
     // apply range if there is a min or max available
-    if (min != null || max != null) {
-      this.range.setRange(min, max);
+    if (start != null || end != null) {
+      this.range.setRange(start, end);
     }
   }
 };
@@ -342,10 +349,128 @@ Timeline.prototype.getItemRange = function getItemRange() {
 };
 
 /**
- * Change the item selection, and/or get currently selected items
- * @param {Array} [ids] An array with zero or more ids of the items to be selected.
+ * Set selected items by their id. Replaces the current selection
+ * Unknown id's are silently ignored.
+ * @param {Array} [ids] An array with zero or more id's of the items to be
+ *                      selected. If ids is an empty array, all items will be
+ *                      unselected.
+ */
+Timeline.prototype.setSelection = function setSelection (ids) {
+  if (this.content) this.content.setSelection(ids);
+};
+
+/**
+ * Get the selected items by their id
  * @return {Array} ids  The ids of the selected items
  */
-Timeline.prototype.select = function select(ids) {
-  return this.content ? this.content.select(ids) : [];
+Timeline.prototype.getSelection = function getSelection() {
+  return this.content ? this.content.getSelection() : [];
+};
+
+/**
+ * Add event listener
+ * @param {String} event       Event name. Available events:
+ *                             'rangechange', 'rangechanged', 'select'
+ * @param {function} callback  Callback function, invoked as callback(properties)
+ *                             where properties is an optional object containing
+ *                             event specific properties.
+ */
+Timeline.prototype.on = function on (event, callback) {
+  var available = ['rangechange', 'rangechanged', 'select'];
+
+  if (available.indexOf(event) == -1) {
+    throw new Error('Unknown event "' + event + '". Choose from ' + available.join());
+  }
+
+  events.addListener(this, event, callback);
+};
+
+/**
+ * Remove an event listener
+ * @param {String} event       Event name
+ * @param {function} callback  Callback function
+ */
+Timeline.prototype.off = function off (event, callback) {
+  events.removeListener(this, event, callback);
+};
+
+/**
+ * Trigger an event
+ * @param {String} event        Event name, available events: 'rangechange',
+ *                              'rangechanged', 'select'
+ * @param {Object} [properties] Event specific properties
+ * @private
+ */
+Timeline.prototype._trigger = function _trigger(event, properties) {
+  events.trigger(this, event, properties || {});
+};
+
+/**
+ * Handle selecting/deselecting an item when tapping it
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onSelectItem = function (event) {
+  var item = this._itemFromTarget(event);
+
+  var selection = item ? [item.id] : [];
+  this.setSelection(selection);
+
+  this._trigger('select', {
+    items: this.getSelection()
+  });
+
+  event.stopPropagation();
+};
+
+/**
+ * Handle selecting/deselecting multiple items when holding an item
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onMultiSelectItem = function (event) {
+  var selection,
+      item = this._itemFromTarget(event);
+
+  if (!item) {
+    // do nothing...
+    return;
+  }
+
+  selection = this.getSelection(); // current selection
+  var index = selection.indexOf(item.id);
+  if (index == -1) {
+    // item is not yet selected -> select it
+    selection.push(item.id);
+  }
+  else {
+    // item is already selected -> deselect it
+    selection.splice(index, 1);
+  }
+  this.setSelection(selection);
+
+  this._trigger('select', {
+    items: this.getSelection()
+  });
+
+  event.stopPropagation();
+};
+
+/**
+ * Find an item from an event target:
+ * searches for the attribute 'timeline-item' in the event target's element tree
+ * @param {Event} event
+ * @return {Item | null| item
+ * @private
+ */
+Timeline.prototype._itemFromTarget = function _itemFromTarget (event) {
+  var target = event.target;
+  while (target) {
+    if (target.hasOwnProperty('timeline-item')) {
+      return target['timeline-item'];
+    }
+    target = target.parentNode;
+  }
+
+  return null;
 };

@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-    <title>Graph | Really Random nodes</title>
+    <title>Graph | Fully random nodes clustering</title>
 
     <style type="text/css">
         body {
@@ -62,10 +62,16 @@
                 stabilize: false
             };
             graph = new vis.Graph(container, data, options);
+
             // add event listeners
+<<<<<<< HEAD
             vis.events.addListener(graph, 'select', function(params) {
                 document.getElementById('selection').innerHTML =
                         'Selection: ' + JSON.stringify(graph.getSelection());
+=======
+            graph.on('select', function(params) {
+                document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
+>>>>>>> develop
             });
         }
     </script>

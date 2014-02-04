@@ -671,31 +671,3 @@ util.option.asElement = function (value, defaultValue) {
 
   return value || defaultValue || null;
 };
-
-
-/**
- * Compare two numbers and return the lowest, non-negative number.
- *
- * @param {number} number1
- * @param {number} number2
- * @returns {number}        | number1 or number2, the lowest positive number. If both negative, return -1
- * @private
- */
-util._getLowestPositiveNumber = function(number1,number2) {
-  if (number1 >= 0) {
-    if (number2 >= 0) {
-      return (number1 < number2) ? number1 : number2;
-    }
-    else {
-      return number1;
-    }
-  }
-  else {
-    if (number2 >= 0) {
-      return number2;
-    }
-    else {
-      return -1;
-    }
-  }
-}

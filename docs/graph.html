@@ -684,7 +684,7 @@ var options = {
   </tr>
 
   <tr>
-    <td><a href="#Keyboard_navigation">keyboardNavigation</a></td>
+    <td><a href="#Keyboard_navigation">keyboard</a></td>
     <td>Object</td>
     <td>none</td>
     <td>
@@ -693,7 +693,7 @@ var options = {
   </tr>
 
   <tr>
-    <td><a href="#Navigation_controls">navigationUI</a></td>
+    <td><a href="#Navigation_controls">navigation</a></td>
     <td>Object</td>
     <td>none</td>
     <td>
@@ -1145,7 +1145,6 @@ var nodes = [
 // If a variable is not supplied, the default value is used.
 var options = {
     clustering: {
-      enabled: false,
       initialMaxNodes: 100,
       clusterThreshold:500,
       reduceToNodes:300,
@@ -1177,12 +1176,6 @@ var options: {
     <th>Description</th>
   </tr>
 
-  <tr>
-    <td>enabled</td>
-    <td>Boolean</td>
-    <td>false</td>
-    <td>On/off switch for clustering. It is assumed clustering is enabled in the descriptions below.</td>
-  </tr>
   <tr>
     <td>initialMaxNodes</td>
     <td>Number</td>
@@ -1289,24 +1282,23 @@ var options: {
   </tr>
 </table>
 
-<h2 id="Navigation_controls">Navigation controls</h2>
+<h3 id="Navigation_controls">Navigation controls</h3>
 <p>
   Graph has a menu with navigation controls, which is disabled by default.
   It can be configured with the following settings.
 </p>
 
 <pre class="prettyprint">
-// These variables must be defined in an options object named navigationUI.
-// If a variable is not supplied, the default value is used.
+// simple use of navigation controls
 var options: {
-    navigationUI: {
-      enabled: false,
-      iconPath: this._getIconURL() // automatic loading of the default icons
-    }
+  navigation: true
 }
-// OR to just load the module with default values:
+
+// advanced use of navigation controls
 var options: {
-    navigationUI: true
+  navigation: {
+    iconPath: '/path/to/navigation/icons/'
+  }
 }
 </pre>
 
@@ -1319,15 +1311,9 @@ var options: {
   </tr>
 
   <tr>
-    <td>enabled</td>
-    <td>Boolean</td>
-    <td>false</td>
-    <td>On/off switch for the navigation UI elements.</td>
-  </tr>
-  <tr>
     <td>iconPath</td>
     <td>string</td>
-    <td>[path to vis.js]/UI_icons/</td>
+    <td>"/img"</td>
     <td>The path to the icon images can be defined here. If custom icons are used, they have to have the same filename as the ones originally packaged with vis.js.</td>
   </tr>
 </table>
@@ -1336,21 +1322,24 @@ var options: {
 <p>
   The graph can be navigated using shortcut keys.
   It can be configured with the following user-configurable settings.
-  The default state for the keyboard navigation is <b>off</b>. The predefined keys can be found in the <a href="../examples/graph/20_UI_example.html">UI example.</a>
+  The default state for the keyboard navigation is <b>off</b>. The predefined keys can be found in the example <a href="../examples/graph/20_navigation.html">20_navigation.html</a>.
 </p>
 
 <pre class="prettyprint">
-// These variables must be defined in an options object named keyboardNavigation.
-// If a variable is not supplied, the default value is used
+// simple use of keyboard controls
 var options: {
-    keyboardNavigation: {
-      enabled: false,
-      speed: {x: 10, y: 10, zoom: 0.02}
-    }
+    keyboard: true
 }
-// OR to just load the module with default values:
+
+// advanced configuration for keyboard controls
 var options: {
-    keyboardNavigation: true
+  keyboard: {
+    speed: {
+      x: 10,
+      y: 10,
+      zoom: 0.02
+    }
+  }
 }
 </pre>
 
@@ -1362,12 +1351,6 @@ var options: {
     <th>Description</th>
   </tr>
 
-  <tr>
-    <td>enabled</td>
-    <td>Boolean</td>
-    <td>false</td>
-    <td>On/off switch for the keyboard navigation.</td>
-  </tr>
   <tr>
     <td>speed.x</td>
     <td>Number</td>
@@ -1402,6 +1385,33 @@ var options: {
   </tr>
 
   <tr>
+    <td>getSelection()</td>
+    <td>Array of ids</td>
+    <td>Returns an array with the ids of the selected nodes.
+      Returns an empty array if no nodes are selected.
+      The selections are not ordered.
+    </td>
+  </tr>
+
+  <tr>
+    <td>on(event, callback)</td>
+    <td>none</td>
+    <td>Create an event listener. The callback function is invoked every time the event is triggered. Avialable events: <code>select</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties. See section <a href="#Events">Events</a> for more information.</td>
+  </tr>
+
+  <tr>
+    <td>off(event, callback)</td>
+    <td>none</td>
+    <td>Remove an event listener created before via function <code>on(event, callback)</code>. See section <a href="#Events">Events</a> for more information.</td>
+  </tr>
+
+  <tr>
+    <td>redraw()</td>
+    <td>none</td>
+    <td>Redraw the graph. Useful when the layout of the webpage changed.</td>
+  </tr>
+
+  <tr>
     <td>setData(data,[disableStart])</td>
     <td>none</td>
     <td>Loads data. Parameter <code>data</code> is an object containing
@@ -1418,21 +1428,6 @@ var options: {
     <td>Set options for the graph. The available options are described in
       the section <a href="#Configuration_options">Configuration Options</a>.
     </td>
-  </tr>
-
-  <tr>
-    <td>getSelection()</td>
-    <td>Array of ids</td>
-    <td>Returns an array with the ids of the selected nodes.
-      Returns an empty array if no nodes are selected.
-      The selections are not ordered.
-    </td>
-  </tr>
-
-  <tr>
-    <td>redraw()</td>
-    <td>none</td>
-    <td>Redraw the graph. Useful when the layout of the webpage changed.</td>
   </tr>
 
   <tr>
@@ -1458,7 +1453,7 @@ var options: {
 
 <h2 id="Events">Events</h2>
 <p>
-  Graph fires events after one or multiple nodes are selected.
+  Graph fires events after one or multiple nodes are selected or deselected.
   The event can be catched by creating a listener.
 </p>
 
@@ -1467,12 +1462,29 @@ var options: {
 </p>
 
 <pre class="prettyprint lang-js">
-function onSelect() {
-  alert('selected nodes: ' + graph.getSelection());
+graph.on('select', function (properties) {
+  alert('selected nodes: ' + properties.nodes);
+});
+</pre>
+
+<p>
+  A listener can be removed via the function <code>off</code>:
+</p>
+
+<pre class="prettyprint lang-js">
+function onSelect (properties) {
+  alert('selected nodes: ' + properties.nodes);
 }
 
-vis.events.addListener(graph, 'select', onSelect);
+// add event listener
+graph.on('select', onSelect);
+
+// do stuff...
+
+// remove event listener
+graph.off('select', onSelect);
 </pre>
+
 
 <p>
   The following events are available.
@@ -1487,13 +1499,14 @@ vis.events.addListener(graph, 'select', onSelect);
 
   <tr>
     <td>select</td>
-    <td>Fired after the user selects or unselects a node by clicking it,
-      or when selecting a number of nodes by dragging a selection area
-      around them. Not fired when the method <code>setSelection</code>
-      is executed. The ids of the selected nodes can be retrieved via the
-      method <code>getSelection</code>.
+    <td>Fired after the user selects or deselects a node by clicking it.
+      Not fired when the method <code>setSelection</code>is executed.
     </td>
-    <td>none</td>
+    <td>
+      <ul>
+        <li><code>nodes</code>: an array with the ids of the selected nodes</li>
+      </ul>
+    </td>
   </tr>
 </table>
 

@@ -33,14 +33,14 @@ var SelectionMixin = {
 
 
   /**
-   * retrieve all nodes in the navigationUI overlapping with given object
+   * retrieve all nodes in the navigation controls overlapping with given object
    * @param {Object} object  An object with parameters left, top, right, bottom
    * @return {Number[]}   An array with id's of the overlapping nodes
    * @private
    */
-  _getAllUINodesOverlappingWith : function (object) {
+  _getAllNavigationNodesOverlappingWith : function (object) {
     var overlappingNodes = [];
-    this._doInUISector("_getNodesOverlappingWith",object,overlappingNodes);
+    this._doInNavigationSector("_getNodesOverlappingWith",object,overlappingNodes);
     return overlappingNodes;
   },
 
@@ -80,17 +80,17 @@ var SelectionMixin = {
 
 
   /**
-   * Get the top navigationUI node at the a specific point (like a click)
+   * Get the top navigation controls node at the a specific point (like a click)
    *
    * @param {{x: Number, y: Number}} pointer
    * @return {Node | null} node
    * @private
    */
-  _getUINodeAt : function (pointer) {
+  _getNavigationNodeAt : function (pointer) {
     var screenPositionObject = this._pointerToScreenPositionObject(pointer);
-    var overlappingNodes = this._getAllUINodesOverlappingWith(screenPositionObject);
+    var overlappingNodes = this._getAllNavigationNodesOverlappingWith(screenPositionObject);
     if (overlappingNodes.length > 0) {
-      return this.sectors["navigationUI"]["nodes"][overlappingNodes[overlappingNodes.length - 1]];
+      return this.sectors["navigation"]["nodes"][overlappingNodes[overlappingNodes.length - 1]];
     }
     else {
       return null;
@@ -106,7 +106,7 @@ var SelectionMixin = {
    * @private
    */
   _getNodeAt : function (pointer) {
-    // we first check if this is an navigationUI element
+    // we first check if this is an navigation controls element
     var positionObject = this._pointerToPositionObject(pointer);
     var overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
 
@@ -213,7 +213,9 @@ var SelectionMixin = {
     this.selectionObj = {};
 
     if (doNotTrigger == false) {
-      this._trigger('select');
+      this._trigger('select', {
+        nodes: this.getSelection()
+      });
     }
   },
 
@@ -307,13 +309,15 @@ var SelectionMixin = {
       this._removeFromSelection(object);
     }
     if (doNotTrigger == false) {
-      this._trigger('select');
+      this._trigger('select', {
+        nodes: this.getSelection()
+      });
     }
   },
 
 
   /**
-   * handles the selection part of the touch, only for navigationUI elements;
+   * handles the selection part of the touch, only for navigation controls elements;
    * Touch is triggered before tap, also before hold. Hold triggers after a while.
    * This is the most responsive solution
    *
@@ -321,8 +325,8 @@ var SelectionMixin = {
    * @private
    */
   _handleTouch : function(pointer) {
-    if (this.constants.navigationUI.enabled == true) {
-      var node = this._getUINodeAt(pointer);
+    if (this.constants.navigation.enabled == true) {
+      var node = this._getNavigationNodeAt(pointer);
       if (node != null) {
         if (this[node.triggerFunction] !== undefined) {
           this[node.triggerFunction]();
@@ -395,7 +399,7 @@ var SelectionMixin = {
 
 
   /**
-   * handle the onRelease event. These functions are here for the navigationUI module.
+   * handle the onRelease event. These functions are here for the navigation controls module.
    *
     * @private
    */
@@ -497,16 +501,67 @@ var SelectionMixin = {
             delete this.selectionObj[objectId];
           }
         }
+<<<<<<< HEAD
         else { // assuming only edges and nodes are selected
           if (!this.edges.hasOwnProperty(objectId)) {
             delete this.selectionObj[objectId];
           }
+=======
+        changed = true;
+      }
+      this.selection = [];
+    }
+
+    if (changed && (triggerSelect == true || triggerSelect == undefined)) {
+      // fire the select event
+      this._trigger('select', {
+        nodes: this.getSelection()
+      });
+    }
+
+    return changed;
+  },
+*/
+/**
+ * select all nodes on given location x, y
+ * @param {Array} selection   an array with node ids
+ * @param {boolean} append    If true, the new selection will be appended to the
+ *                            current selection (except for duplicate entries)
+ * @return {Boolean} changed  True if the selection is changed
+ * @private
+ */
+/*  _selectNodes : function(selection, append) {
+    var changed = false;
+    var i, iMax;
+
+    // TODO: the selectNodes method is a little messy, rework this
+
+    // check if the current selection equals the desired selection
+    var selectionAlreadyThere = true;
+    if (selection.length != this.selection.length) {
+      selectionAlreadyThere = false;
+    }
+    else {
+      for (i = 0, iMax = Math.min(selection.length, this.selection.length); i < iMax; i++) {
+        if (selection[i] != this.selection[i]) {
+          selectionAlreadyThere = false;
+          break;
+>>>>>>> develop
         }
       }
     }
   }
 
 
+<<<<<<< HEAD
+=======
+    if (changed) {
+      // fire the select event
+      this._trigger('select', {
+        nodes: this.getSelection()
+      });
+    }
+>>>>>>> develop
 
 };
 

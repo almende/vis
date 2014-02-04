@@ -94,9 +94,14 @@
       graph = new vis.Graph(container, data, options);
 
       // add event listeners
+<<<<<<< HEAD
       vis.events.addListener(graph, 'select', function(params) {
         document.getElementById('selection').innerHTML =
             'Selection: ' + JSON.stringify(graph.getSelection());
+=======
+      graph.on('select', function(params) {
+        document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
+>>>>>>> develop
       });
     }
   </script>

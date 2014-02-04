@@ -226,6 +226,9 @@ ItemRange.prototype._create = function _create() {
     dom.content = document.createElement('div');
     dom.content.className = 'content';
     dom.box.appendChild(dom.content);
+
+    // attach this item as attribute
+    dom.box['timeline-item'] = this;
   }
 };
 

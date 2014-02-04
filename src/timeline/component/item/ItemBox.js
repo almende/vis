@@ -260,6 +260,9 @@ ItemBox.prototype._create = function _create() {
     // dot on axis
     dom.dot = document.createElement('DIV');
     dom.dot.className = 'dot';
+
+    // attach this item as attribute
+    dom.box['timeline-item'] = this;
   }
 };
 

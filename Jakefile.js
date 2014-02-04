@@ -3,7 +3,7 @@
  */
 var jake = require('jake'),
     browserify = require('browserify'),
-    path = require('path'),
+    wrench = require('wrench'),
     fs = require('fs');
 
 require('jake-utils');
@@ -86,9 +86,8 @@ task('build', {async: true}, function () {
       './src/graph/SectorsMixin.js',
       './src/graph/ClusterMixin.js',
       './src/graph/SelectionMixin.js',
-      './src/graph/UIMixin.js',
+      './src/graph/NavigationMixin.js',
       './src/graph/Graph.js',
-
 
       './src/module/exports.js'
     ],
@@ -96,6 +95,10 @@ task('build', {async: true}, function () {
     separator: '\n'
   });
 
+  // copy images
+  wrench.copyDirSyncRecursive('./src/graph/img', DIST+ '/img', {
+    forceDelete: true
+  });
 
   var timeStart = Date.now();
   // bundle the concatenated script and dependencies into one file

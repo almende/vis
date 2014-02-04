@@ -210,6 +210,9 @@ ItemPoint.prototype._create = function _create() {
     dom.dot = document.createElement('div');
     dom.dot.className  = 'dot';
     dom.point.appendChild(dom.dot);
+
+    // attach this item as attribute
+    dom.point['timeline-item'] = this;
   }
 };
 

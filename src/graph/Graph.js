@@ -86,11 +86,11 @@ function Graph (container, data, options) {
       activeAreaBoxSize: 100,       // (px)                  | box area around the curser where clusters are popped open.
       massTransferCoefficient: 1    // (multiplier)          | parent.mass += massTransferCoefficient * child.mass
     },
-    navigationUI: {
+    navigation: {
       enabled: false,
-      iconPath: this._getIconURL()
+      iconPath: this._getScriptPath() + '/img'
     },
-    keyboardNavigation: {
+    keyboard: {
       enabled: false,
       speed: {x: 10, y: 10, zoom: 0.02}
     },
@@ -105,7 +105,7 @@ function Graph (container, data, options) {
     graph._redraw();
   });
 
-  // navigationUI variables
+  // navigation variables
   this.xIncrement = 0;
   this.yIncrement = 0;
   this.zoomIncrement = 0;
@@ -149,7 +149,6 @@ function Graph (container, data, options) {
   this.areaCenter = {};               // object with x and y elements used for determining the center of the zoom action
   this.scale = 1;                     // defining the global scale variable in the constructor
   this.previousScale = this.scale;    // this is used to check if the zoom operation is zooming in or out
-  this.lastPointerPosition = {"x": 0,"y": 0}; // this is used for keyboard navigation
   // TODO: create a counter to keep track on the number of nodes having values
   // TODO: create a counter to keep track on the number of nodes currently moving
   // TODO: create a counter to keep track on the number of edges having values
@@ -205,25 +204,26 @@ function Graph (container, data, options) {
 }
 
 /**
- * get the URL where the UI icons are located
+ * Get the script path where the vis.js library is located
  *
- * @returns {string}
+ * @returns {string | null} path   Path or null when not found. Path does not
+ *                                 end with a slash.
  * @private
  */
-Graph.prototype._getIconURL = function() {
+Graph.prototype._getScriptPath = function() {
   var scripts = document.getElementsByTagName( 'script' );
-  var scriptNamePosition, srcPosition, imagePath;
+
+  // find script named vis.js or vis.min.js
   for (var i = 0; i < scripts.length; i++) {
-    srcPosition = scripts[i].outerHTML.search("src");
-    if (srcPosition != -1) {
-      scriptNamePosition = util._getLowestPositiveNumber(scripts[i].outerHTML.search("vis.js"),
-                                                  scripts[i].outerHTML.search("vis.min.js"));
-      if (scriptNamePosition != -1) {
-        imagePath = scripts[i].outerHTML.substring(srcPosition+5,scriptNamePosition).concat("UI_icons/");
-        return imagePath;
-      }
+    var src = scripts[i].src;
+    var match = src && /\/?vis(.min)?\.js$/.exec(src);
+    if (match) {
+      // return path without the script name
+      return src.substring(0, src.length - match[0].length);
     }
   }
+
+  return null;
 };
 
 
@@ -403,28 +403,28 @@ Graph.prototype.setOptions = function (options) {
       this.constants.clustering.enabled = false;
     }
 
-    if (options.navigationUI) {
-      this.constants.navigationUI.enabled = true;
-      for (var prop in options.navigationUI) {
-        if (options.navigationUI.hasOwnProperty(prop)) {
-          this.constants.navigationUI[prop] = options.navigationUI[prop];
+    if (options.navigation) {
+      this.constants.navigation.enabled = true;
+      for (var prop in options.navigation) {
+        if (options.navigation.hasOwnProperty(prop)) {
+          this.constants.navigation[prop] = options.navigation[prop];
         }
       }
     }
-    else if (options.navigationUI !== undefined) {
-      this.constants.navigationUI.enabled = false;
+    else if (options.navigation !== undefined) {
+      this.constants.navigation.enabled = false;
     }
 
-    if (options.keyboardNavigation) {
-      this.constants.keyboardNavigation.enabled = true;
-      for (var prop in options.keyboardNavigation) {
-        if (options.keyboardNavigation.hasOwnProperty(prop)) {
-          this.constants.keyboardNavigation[prop] = options.keyboardNavigation[prop];
+    if (options.keyboard) {
+      this.constants.keyboard.enabled = true;
+      for (var prop in options.keyboard) {
+        if (options.keyboard.hasOwnProperty(prop)) {
+          this.constants.keyboard[prop] = options.keyboard[prop];
         }
       }
     }
-    else if (options.keyboardNavigation !== undefined)  {
-      this.constants.keyboardNavigation.enabled = false;
+    else if (options.keyboard !== undefined)  {
+      this.constants.keyboard.enabled = false;
     }
 
 
@@ -492,13 +492,40 @@ Graph.prototype.setOptions = function (options) {
   this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
   this._setScale(1);
 
-  // load the navigationUI system.
-  this._loadUISystem();
+  // load the navigation system.
+  this._loadNavigationControls();
 
   // bind keys. If disabled, this will not do anything;
   this._createKeyBinds();
 
   this._redraw();
+};
+
+/**
+ * Add event listener
+ * @param {String} event       Event name. Available events:
+ *                             'select'
+ * @param {function} callback  Callback function, invoked as callback(properties)
+ *                             where properties is an optional object containing
+ *                             event specific properties.
+ */
+Graph.prototype.on = function on (event, callback) {
+  var available = ['select'];
+
+  if (available.indexOf(event) == -1) {
+    throw new Error('Unknown event "' + event + '". Choose from ' + available.join());
+  }
+
+  events.addListener(this, event, callback);
+};
+
+/**
+ * Remove an event listener
+ * @param {String} event       Event name
+ * @param {function} callback  Callback function
+ */
+Graph.prototype.off = function off (event, callback) {
+  events.removeListener(this, event, callback);
 };
 
 /**
@@ -570,7 +597,7 @@ Graph.prototype._create = function () {
 
 
 /**
- * Binding the keys for keyboard navigation. These functions are defined in the UIMixin
+ * Binding the keys for keyboard navigation. These functions are defined in the NavigationMixin
  * @private
  */
 Graph.prototype._createKeyBinds = function() {
@@ -579,7 +606,7 @@ Graph.prototype._createKeyBinds = function() {
 
   this.mousetrap.reset();
 
-  if (this.constants.keyboardNavigation.enabled == true) {
+  if (this.constants.keyboard.enabled == true) {
     this.mousetrap.bind("up",   this._moveUp.bind(me)   , "keydown");
     this.mousetrap.bind("up",   this._yStopMoving.bind(me), "keyup");
     this.mousetrap.bind("down", this._moveDown.bind(me) , "keydown");
@@ -638,6 +665,7 @@ Graph.prototype._onDragStart = function () {
   var node = this._getNodeAt(drag.pointer);
   // note: drag.pointer is set in _onTouch to get the initial touch location
 
+  drag.dragging = true;
   drag.selection = [];
   drag.translation = this._getTranslation();
   drag.nodeId = null;
@@ -731,6 +759,7 @@ Graph.prototype._onDrag = function (event) {
  * @private
  */
 Graph.prototype._onDragEnd = function () {
+  this.drag.dragging = false;
   var selection = this.drag.selection;
   if (selection) {
     selection.forEach(function (s) {
@@ -803,7 +832,7 @@ Graph.prototype._onPinch = function (event) {
 /**
  * Zoom the graph in or out
  * @param {Number} scale a number around 1, and between 0.01 and 10
- * @param {{x: Number, y: Number}} pointer
+ * @param {{x: Number, y: Number}} pointer    Position on screen
  * @return {Number} appliedScale    scale is limited within the boundaries
  * @private
  */
@@ -895,8 +924,6 @@ Graph.prototype._onMouseMoveTitle = function (event) {
   var gesture = util.fakeGesture(this, event);
   var pointer = this._getPointer(gesture.center);
 
-  this.lastPointerPosition = pointer;
-
   // check if the previously selected node is still selected
   if (this.popupNode) {
     this._checkHidePopup(pointer);
@@ -911,7 +938,7 @@ Graph.prototype._onMouseMoveTitle = function (event) {
   if (this.popupTimer) {
     clearInterval(this.popupTimer); // stop any running calculationTimer
   }
-  if (!this.leftButtonDown) {
+  if (!this.drag.dragging) {
     this.popupTimer = setTimeout(checkShow, 300);
   }
 };
@@ -1099,10 +1126,15 @@ Graph.prototype.setSize = function(width, height) {
   this.frame.canvas.width = this.frame.canvas.clientWidth;
   this.frame.canvas.height = this.frame.canvas.clientHeight;
 
+<<<<<<< HEAD
   this.manipulationDiv.style.width = this.frame.canvas.clientWidth;
 
   if (this.constants.navigationUI.enabled == true) {
     this._relocateUI();
+=======
+  if (this.constants.navigation.enabled == true) {
+    this._relocateNavigation();
+>>>>>>> develop
   }
 };
 
@@ -1439,10 +1471,14 @@ Graph.prototype._redraw = function() {
   ctx.translate(this.translation.x, this.translation.y);
   ctx.scale(this.scale, this.scale);
 
-  this.canvasTopLeft = {"x": this._canvasToX(0),
-                        "y": this._canvasToY(0)};
-  this.canvasBottomRight = {"x": this._canvasToX(this.frame.canvas.clientWidth),
-                            "y": this._canvasToY(this.frame.canvas.clientHeight)};
+  this.canvasTopLeft = {
+    "x": this._canvasToX(0),
+    "y": this._canvasToY(0)
+  };
+  this.canvasBottomRight = {
+    "x": this._canvasToX(this.frame.canvas.clientWidth),
+    "y": this._canvasToY(this.frame.canvas.clientHeight)
+  };
 
   this._doInAllSectors("_drawAllSectorNodes",ctx);
   this._doInAllSectors("_drawEdges",ctx);
@@ -1451,8 +1487,8 @@ Graph.prototype._redraw = function() {
   // restore original scaling and translation
   ctx.restore();
 
-  if (this.constants.navigationUI.enabled == true) {
-    this._doInUISector("_drawNodes",ctx,true);
+  if (this.constants.navigation.enabled == true) {
+    this._doInNavigationSector("_drawNodes",ctx,true);
   }
 };
 
@@ -1914,10 +1950,14 @@ Graph.prototype.start = function() {
           // keyboad movement
           if (graph.xIncrement != 0 || graph.yIncrement != 0) {
             var translation = graph._getTranslation();
-            graph._setTranslation(translation.x+graph.xIncrement,translation.y+graph.yIncrement);
+            graph._setTranslation(translation.x+graph.xIncrement, translation.y+graph.yIncrement);
           }
           if (graph.zoomIncrement != 0) {
-            graph._zoom(graph.scale*(1 + graph.zoomIncrement),graph.lastPointerPosition);
+            var center = {
+              x: graph.frame.canvas.clientWidth / 2,
+              y: graph.frame.canvas.clientHeight / 2
+            };
+            graph._zoom(graph.scale*(1 + graph.zoomIncrement), center);
           }
 
           graph.start();
@@ -1997,7 +2037,7 @@ Graph.prototype._loadSectorSystem = function() {
                                        "formationScale": 1.0,
                                        "drawingNode": undefined};
   this.sectors["frozen"] = {};
-  this.sectors["navigationUI"] = {"nodes":{},
+  this.sectors["navigation"] = {"nodes":{},
                         "edges":{},
                         "nodeIndices":[],
                         "formationScale": 1.0,
@@ -2053,34 +2093,34 @@ Graph.prototype._loadManipulationSystem = function() {
 }
 
 /**
- * Mixin the navigationUI (User Interface) system and initialize the parameters required
+ * Mixin the navigation (User Interface) system and initialize the parameters required
  *
  * @private
  */
-Graph.prototype._loadUISystem = function() {
-  for (var mixinFunction in UIMixin) {
-    if (UIMixin.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = UIMixin[mixinFunction];
+Graph.prototype._loadNavigationControls = function() {
+  for (var mixinFunction in NavigationMixin) {
+    if (NavigationMixin.hasOwnProperty(mixinFunction)) {
+      Graph.prototype[mixinFunction] = NavigationMixin[mixinFunction];
     }
   }
 
-  if (this.constants.navigationUI.enabled == true) {
-    this._loadUIElements();
+  if (this.constants.navigation.enabled == true) {
+    this._loadNavigationElements();
   }
 }
 
 /**
- * this function exists to avoid errors when not loading the navigationUI system
+ * this function exists to avoid errors when not loading the navigation system
  */
-Graph.prototype._relocateUI = function() {
-  // empty, is overloaded by navigationUI system
+Graph.prototype._relocateNavigation = function() {
+  // empty, is overloaded by navigation system
 }
 
 /**
- * * this function exists to avoid errors when not loading the navigationUI system
+ * * this function exists to avoid errors when not loading the navigation system
  */
 Graph.prototype._unHighlightAll = function() {
-  // empty, is overloaded by the navigationUI system
+  // empty, is overloaded by the navigation system
 }
 
 
