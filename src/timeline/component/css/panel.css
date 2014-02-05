@@ -8,7 +8,7 @@
   box-sizing: border-box;
 }
 
-.vis.timeline .panel {
+.vis.timeline .vpanel {
   position: absolute;
   overflow: hidden;
 }
