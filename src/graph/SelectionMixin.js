@@ -186,7 +186,7 @@ var SelectionMixin = {
   /**
    * Remove a single option from selection.
    *
-   * @param obj
+   * @param {Object} obj
    * @private
    */
   _removeFromSelection : function(obj) {
@@ -219,6 +219,89 @@ var SelectionMixin = {
     }
   },
 
+  /**
+   * Unselect all clusters. The selectionObj is useful for this.
+   *
+   * @param {Boolean} [doNotTrigger] | ignore trigger
+   * @private
+   */
+  _unselectClusters : function(doNotTrigger) {
+    if (doNotTrigger === undefined) {
+      doNotTrigger = false;
+    }
+
+    for (var objectId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objectId)) {
+        if (this.selectionObj[objectId] instanceof Node) {
+          if (this.selectionObj[objectId].clusterSize > 1) {
+            this.selectionObj[objectId].unselect();
+            this._removeFromSelection(this.selectionObj[objectId]);
+          }
+        }
+      }
+    }
+
+    if (doNotTrigger == false) {
+      this._trigger('select', {
+        nodes: this.getSelection()
+      });
+    }
+  },
+
+
+  /**
+   * return the number of selected nodes
+   *
+   * @returns {number}
+   * @private
+   */
+  _getSelectedNodeCount : function() {
+    var count = 0;
+    for (var objectId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objectId)) {
+        if (this.selectionObj[objectId] instanceof Node) {
+          count += 1;
+        }
+      }
+    }
+    return count;
+  },
+
+
+  /**
+   * return the number of selected edges
+   *
+   * @returns {number}
+   * @private
+   */
+  _getSelectedEdgeCount : function() {
+    var count = 0;
+    for (var objectId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objectId)) {
+        if (this.selectionObj[objectId] instanceof Edge) {
+          count += 1;
+        }
+      }
+    }
+    return count;
+  },
+
+
+  /**
+   * return the number of selected objects.
+   *
+   * @returns {number}
+   * @private
+   */
+  _getSelectedObjectCount : function() {
+    var count = 0;
+    for (var objectId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objectId)) {
+        count += 1;
+      }
+    }
+    return count;
+  },
 
   /**
    * Check if anything is selected
@@ -235,6 +318,13 @@ var SelectionMixin = {
     return true;
   },
 
+
+  /**
+   * check if one of the selected nodes is a cluster.
+   *
+   * @returns {boolean}
+   * @private
+   */
   _clusterInSelection : function() {
     for(var objectId in this.selectionObj) {
       if(this.selectionObj.hasOwnProperty(objectId)) {
@@ -293,14 +383,14 @@ var SelectionMixin = {
       doNotTrigger = false;
     }
 
-    if (this._selectionIsEmpty() == false && append == false) {
+    if (this._selectionIsEmpty() == false && append == false && this.forceAppendSelection == false) {
       this._unselectAll(true);
     }
 
     if (object.selected == false) {
       object.select();
       this._addToSelection(object);
-      if (object instanceof Node) {
+      if (object instanceof Node && this.blockConnectingEdgeSelection == false) {
         this._selectConnectedEdges(object);
       }
     }
@@ -326,6 +416,7 @@ var SelectionMixin = {
    */
   _handleTouch : function(pointer) {
     if (this.constants.navigation.enabled == true) {
+      this.pointerPosition = pointer;
       var node = this._getNavigationNodeAt(pointer);
       if (node != null) {
         if (this[node.triggerFunction] !== undefined) {
@@ -484,7 +575,6 @@ var SelectionMixin = {
       }
       this._selectObject(node,true,true);
     }
-
     this.redraw();
   },
 
@@ -505,20 +595,9 @@ var SelectionMixin = {
           if (!this.edges.hasOwnProperty(objectId)) {
             delete this.selectionObj[objectId];
           }
-          changed = true;
         }
-      this.selection = [];
       }
     }
-
-    if (changed && (triggerSelect == true || triggerSelect == undefined)) {
-      // fire the select event
-      this._trigger('select', {
-        nodes: this.getSelection()
-      });
-    }
-
-    return changed;
   }
 
 }

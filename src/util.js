@@ -671,3 +671,157 @@ util.option.asElement = function (value, defaultValue) {
 
   return value || defaultValue || null;
 };
+
+
+
+util.GiveDec = function GiveDec(Hex)
+{
+  if(Hex == "A")
+    Value = 10;
+  else
+  if(Hex == "B")
+    Value = 11;
+  else
+  if(Hex == "C")
+    Value = 12;
+  else
+  if(Hex == "D")
+    Value = 13;
+  else
+  if(Hex == "E")
+    Value = 14;
+  else
+  if(Hex == "F")
+    Value = 15;
+  else
+    Value = eval(Hex)
+  return Value;
+}
+
+util.GiveHex = function GiveHex(Dec)
+{
+  if(Dec == 10)
+    Value = "A";
+  else
+  if(Dec == 11)
+    Value = "B";
+  else
+  if(Dec == 12)
+    Value = "C";
+  else
+  if(Dec == 13)
+    Value = "D";
+  else
+  if(Dec == 14)
+    Value = "E";
+  else
+  if(Dec == 15)
+    Value = "F";
+  else
+    Value = "" + Dec;
+  return Value;
+}
+
+/**
+ * http://www.yellowpipe.com/yis/tools/hex-to-rgb/color-converter.php
+ *
+ * @param {String} hex
+ * @returns {{r: *, g: *, b: *}}
+ */
+util.hexToRGB = function hexToRGB(hex) {
+  hex = hex.replace("#","").toUpperCase();
+
+  var a = util.GiveDec(hex.substring(0, 1));
+  var b = util.GiveDec(hex.substring(1, 2));
+  var c = util.GiveDec(hex.substring(2, 3));
+  var d = util.GiveDec(hex.substring(3, 4));
+  var e = util.GiveDec(hex.substring(4, 5));
+  var f = util.GiveDec(hex.substring(5, 6));
+
+  var r = (a * 16) + b;
+  var g = (c * 16) + d;
+  var b = (e * 16) + f;
+
+  return {r:r,g:g,b:b};
+};
+
+util.RGBToHex = function RGBToHex(red,green,blue) {
+  var a = util.GiveHex(Math.floor(red / 16));
+  var b = util.GiveHex(red % 16);
+  var c = util.GiveHex(Math.floor(green / 16));
+  var d = util.GiveHex(green % 16);
+  var e = util.GiveHex(Math.floor(blue / 16));
+  var f = util.GiveHex(blue % 16);
+
+  var hex = a + b + c + d + e + f;
+  return "#" + hex;
+};
+
+
+/**
+ * http://www.javascripter.net/faq/rgb2hsv.htm
+ *
+ * @param red
+ * @param green
+ * @param blue
+ * @returns {*}
+ * @constructor
+ */
+util.RGBToHSV = function  RGBToHSV (red,green,blue) {
+  red=red/255; green=green/255; blue=blue/255;
+  var minRGB = Math.min(red,Math.min(green,blue));
+  var maxRGB = Math.max(red,Math.max(green,blue));
+
+  // Black-gray-white
+  if (minRGB == maxRGB) {
+    return {h:0,s:0,v:minRGB};
+  }
+
+  // Colors other than black-gray-white:
+  var d = (red==minRGB) ? green-blue : ((blue==minRGB) ? red-green : blue-red);
+  var h = (red==minRGB) ? 3 : ((blue==minRGB) ? 1 : 5);
+  var hue = 60*(h - d/(maxRGB - minRGB))/360;
+  var saturation = (maxRGB - minRGB)/maxRGB;
+  var value = maxRGB;
+  return {h:hue,s:saturation,v:value};
+};
+
+
+/**
+ * https://gist.github.com/mjijackson/5311256
+ * @param hue
+ * @param saturation
+ * @param value
+ * @returns {{r: number, g: number, b: number}}
+ * @constructor
+ */
+util.HSVToRGB = function HSVToRGB(h, s, v) {
+  var r, g, b;
+
+  var i = Math.floor(h * 6);
+  var f = h * 6 - i;
+  var p = v * (1 - s);
+  var q = v * (1 - f * s);
+  var t = v * (1 - (1 - f) * s);
+
+  switch (i % 6) {
+    case 0: r = v, g = t, b = p; break;
+    case 1: r = q, g = v, b = p; break;
+    case 2: r = p, g = v, b = t; break;
+    case 3: r = p, g = q, b = v; break;
+    case 4: r = t, g = p, b = v; break;
+    case 5: r = v, g = p, b = q; break;
+  }
+
+  return {r:Math.floor(r * 255), g:Math.floor(g * 255), b:Math.floor(b * 255) };
+};
+
+util.HSVToHex = function HSVToHex(h,s,v) {
+  var rgb = util.HSVToRGB(h,s,v);
+  return util.RGBToHex(rgb.r,rgb.g,rgb.b);
+}
+
+util.hexToHSV = function hexToHSV(hex) {
+  var rgb = util.hexToRGB(hex);
+  return util.RGBToHSV(rgb.r,rgb.g,rgb.b);
+}

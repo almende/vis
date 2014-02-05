@@ -4,13 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
-<<<<<<< HEAD
  * @version 0.5.0-SNAPSHOT
- * @date    2014-02-04
-=======
- * @version 0.4.0
- * @date    2014-01-31
->>>>>>> origin/gh-pages
+ * @date    2014-02-05
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -988,6 +983,159 @@ util.option.asElement = function (value, defaultValue) {
   return value || defaultValue || null;
 };
 
+
+
+util.GiveDec = function GiveDec(Hex)
+{
+  if(Hex == "A")
+    Value = 10;
+  else
+  if(Hex == "B")
+    Value = 11;
+  else
+  if(Hex == "C")
+    Value = 12;
+  else
+  if(Hex == "D")
+    Value = 13;
+  else
+  if(Hex == "E")
+    Value = 14;
+  else
+  if(Hex == "F")
+    Value = 15;
+  else
+    Value = eval(Hex)
+  return Value;
+}
+
+util.GiveHex = function GiveHex(Dec)
+{
+  if(Dec == 10)
+    Value = "A";
+  else
+  if(Dec == 11)
+    Value = "B";
+  else
+  if(Dec == 12)
+    Value = "C";
+  else
+  if(Dec == 13)
+    Value = "D";
+  else
+  if(Dec == 14)
+    Value = "E";
+  else
+  if(Dec == 15)
+    Value = "F";
+  else
+    Value = "" + Dec;
+  return Value;
+}
+
+/**
+ * http://www.yellowpipe.com/yis/tools/hex-to-rgb/color-converter.php
+ *
+ * @param {String} hex
+ * @returns {{r: *, g: *, b: *}}
+ */
+util.hexToRGB = function hexToRGB(hex) {
+  hex = hex.replace("#","").toUpperCase();
+
+  var a = util.GiveDec(hex.substring(0, 1));
+  var b = util.GiveDec(hex.substring(1, 2));
+  var c = util.GiveDec(hex.substring(2, 3));
+  var d = util.GiveDec(hex.substring(3, 4));
+  var e = util.GiveDec(hex.substring(4, 5));
+  var f = util.GiveDec(hex.substring(5, 6));
+
+  var r = (a * 16) + b;
+  var g = (c * 16) + d;
+  var b = (e * 16) + f;
+
+  return {r:r,g:g,b:b};
+};
+
+util.RGBToHex = function RGBToHex(red,green,blue) {
+  var a = util.GiveHex(Math.floor(red / 16));
+  var b = util.GiveHex(red % 16);
+  var c = util.GiveHex(Math.floor(green / 16));
+  var d = util.GiveHex(green % 16);
+  var e = util.GiveHex(Math.floor(blue / 16));
+  var f = util.GiveHex(blue % 16);
+
+  var hex = a + b + c + d + e + f;
+  return "#" + hex;
+};
+
+
+/**
+ * http://www.javascripter.net/faq/rgb2hsv.htm
+ *
+ * @param red
+ * @param green
+ * @param blue
+ * @returns {*}
+ * @constructor
+ */
+util.RGBToHSV = function  RGBToHSV (red,green,blue) {
+  red=red/255; green=green/255; blue=blue/255;
+  var minRGB = Math.min(red,Math.min(green,blue));
+  var maxRGB = Math.max(red,Math.max(green,blue));
+
+  // Black-gray-white
+  if (minRGB == maxRGB) {
+    return {h:0,s:0,v:minRGB};
+  }
+
+  // Colors other than black-gray-white:
+  var d = (red==minRGB) ? green-blue : ((blue==minRGB) ? red-green : blue-red);
+  var h = (red==minRGB) ? 3 : ((blue==minRGB) ? 1 : 5);
+  var hue = 60*(h - d/(maxRGB - minRGB))/360;
+  var saturation = (maxRGB - minRGB)/maxRGB;
+  var value = maxRGB;
+  return {h:hue,s:saturation,v:value};
+};
+
+
+/**
+ * https://gist.github.com/mjijackson/5311256
+ * @param hue
+ * @param saturation
+ * @param value
+ * @returns {{r: number, g: number, b: number}}
+ * @constructor
+ */
+util.HSVToRGB = function HSVToRGB(h, s, v) {
+  var r, g, b;
+
+  var i = Math.floor(h * 6);
+  var f = h * 6 - i;
+  var p = v * (1 - s);
+  var q = v * (1 - f * s);
+  var t = v * (1 - (1 - f) * s);
+
+  switch (i % 6) {
+    case 0: r = v, g = t, b = p; break;
+    case 1: r = q, g = v, b = p; break;
+    case 2: r = p, g = v, b = t; break;
+    case 3: r = p, g = q, b = v; break;
+    case 4: r = t, g = p, b = v; break;
+    case 5: r = v, g = p, b = q; break;
+  }
+
+  return {r:Math.floor(r * 255), g:Math.floor(g * 255), b:Math.floor(b * 255) };
+};
+
+util.HSVToHex = function HSVToHex(h,s,v) {
+  var rgb = util.HSVToRGB(h,s,v);
+  return util.RGBToHex(rgb.r,rgb.g,rgb.b);
+}
+
+util.hexToHSV = function hexToHSV(hex) {
+  var rgb = util.hexToRGB(hex);
+  return util.RGBToHSV(rgb.r,rgb.g,rgb.b);
+}
 /**
  * Event listener (singleton)
  */
@@ -9122,13 +9270,8 @@ Node.prototype.setProperties = function(properties, constants) {
     }
   }
 
-<<<<<<< HEAD
   this.xFixed = this.xFixed || (properties.x !== undefined && properties.fixed);
   this.yFixed = this.yFixed || (properties.y !== undefined && properties.fixed);
-=======
-  this.xFixed = this.xFixed || (properties.x !== undefined);
-  this.yFixed = this.yFixed || (properties.y !== undefined);
->>>>>>> origin/gh-pages
   this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
 
   if (this.shape == 'image') {
@@ -9950,10 +10093,7 @@ function Edge (properties, graph, constants) {
   this.width  = constants.edges.width;
   this.value  = undefined;
   this.length = constants.edges.length;
-<<<<<<< HEAD
   this.selected = false;
-=======
->>>>>>> origin/gh-pages
 
   this.from = null;   // a node
   this.to = null;     // a node
@@ -10190,11 +10330,7 @@ Edge.prototype._drawLine = function(ctx) {
  * @private
  */
 Edge.prototype._getLineWidth = function() {
-<<<<<<< HEAD
   if (this.selected == true) {
-=======
-  if (this.from.selected || this.to.selected) {
->>>>>>> origin/gh-pages
     return Math.min(this.width * 2, this.widthMax)*this.graphScaleInv;
   }
   else {
@@ -10544,7 +10680,6 @@ Edge._dist = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
 Edge.prototype.setScale = function(scale) {
   this.graphScaleInv = 1.0/scale;
 };
-<<<<<<< HEAD
 
 
 Edge.prototype.select = function() {
@@ -10554,8 +10689,6 @@ Edge.prototype.select = function() {
 Edge.prototype.unselect = function() {
   this.selected = false;
 }
-=======
->>>>>>> origin/gh-pages
 /**
  * Popup is a class to create a popup window with some text
  * @param {Element}  container     The container object.
@@ -10786,19 +10919,44 @@ Images.prototype.load = function(url) {
 };
 
 /**
-<<<<<<< HEAD
  * Created by Alex on 2/4/14.
  */
 
 var manipulationMixin = {
 
+  /**
+   * clears the toolbar div element of children
+   *
+   * @private
+   */
+  _clearManipulatorBar : function() {
+    while (this.manipulationDiv.hasChildNodes()) {
+      this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
+    }
+  },
+
+
+  /**
+   * main function, creates the main toolbar. Removes functions bound to the select event. Binds all the buttons of the toolbar.
+   *
+   * @private
+   */
   _createManipulatorBar : function() {
+    // remove bound functions
+    this.off('select', this.boundFunction);
+
+    // reset global variables
+    this.blockConnectingEdgeSelection = false;
+    this.forceAppendSelection = false
+
     while (this.manipulationDiv.hasChildNodes()) {
       this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
     }
     // add the icons to the manipulator div
     this.manipulationDiv.innerHTML = "" +
       "<span class='manipulationUI add' id='manipulate-addNode'><span class='manipulationLabel'>Add Node</span></span>" +
+      "<div class='seperatorLine'></div>" +
+      "<span class='manipulationUI edit' id='manipulate-editNode'><span class='manipulationLabel'>Edit Selected</span></span>" +
       "<div class='seperatorLine'></div>" +
       "<span class='manipulationUI connect' id='manipulate-connectNode'><span class='manipulationLabel'>Connect Node</span></span>" +
       "<div class='seperatorLine'></div>" +
@@ -10807,17 +10965,26 @@ var manipulationMixin = {
     // bind the icons
     var addButton = document.getElementById("manipulate-addNode");
     addButton.onclick = this._createAddToolbar.bind(this);
+    var editButton = document.getElementById("manipulate-editNode");
+    editButton.onclick = this._createEditToolbar.bind(this);
     var connectButton = document.getElementById("manipulate-connectNode");
     connectButton.onclick = this._createConnectToolbar.bind(this);
     var deleteButton = document.getElementById("manipulate-delete");
-    deleteButton.onclick = this._deleteSelected.bind(this);
+    deleteButton.onclick = this._createDeletionToolbar.bind(this);
   },
 
-  _createAddToolbar : function() {
-    while (this.manipulationDiv.hasChildNodes()) {
-      this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
-    }
 
+  /**
+   * Create the toolbar for adding Nodes
+   *
+   * @private
+   */
+  _createAddToolbar : function() {
+    // clear the toolbar
+    this._clearManipulatorBar();
+    this.off('select', this.boundFunction);
+
+    // create the toolbar contents
     this.manipulationDiv.innerHTML = "" +
       "<span class='manipulationUI back' id='manipulate-back'><span class='manipulationLabel'>Back</span></span>" +
       "<div class='seperatorLine'></div>" +
@@ -10827,49 +10994,338 @@ var manipulationMixin = {
     var backButton = document.getElementById("manipulate-back");
     backButton.onclick = this._createManipulatorBar.bind(this);
 
-
-    var me = this;
-    events.addListener(me, 'select', me._addNode.bind(me));
+    // we use the boundFunction so we can reference it when we unbind it from the "select" event.
+    this.boundFunction = this._addNode.bind(this);
+    this.on('select', this.boundFunction);
   },
 
 
-  _createConnectToolbar : function() {
-    while (this.manipulationDiv.hasChildNodes()) {
-      this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
+  /**
+   * Create the toolbar to edit nodes or edges.
+   * TODO: edges not implemented yet, unsure what to edit.
+   *
+   * @private
+   */
+  _createEditToolbar : function() {
+    // clear the toolbar
+    this.blockConnectingEdgeSelection = false;
+    this._clearManipulatorBar();
+    this.off('select', this.boundFunction);
+
+
+    var message = "";
+    if (this._selectionIsEmpty())  {
+      message = "Select a node or edge to edit.";
     }
-    var message = "hello";
-    if (!this._selectionIsEmpty()) {
-      message = "Select the node you want to connect to other nodes";
+    else {
+      if (this._getSelectedObjectCount() > 1) {
+        message = "Select a single node or edge to edit."
+        this._unselectAll(true);
+      }
+      else {
+        if (this._clusterInSelection()) {
+          message = "You cannot edit a cluster."
+          this._unselectAll(true);
+        }
+        else {
+          if (this._getSelectedNodeCount() > 0) { // the selected item is a node
+            this._createEditNodeToolbar();
+          }
+          else { // the selected item is an edge
+            this._createEditEdgeToolbar();
+          }
+        }
+      }
     }
 
+    if (message != "") {
+      this.blockConnectingEdgeSelection = true;
+      // create the toolbar contents
+      this.manipulationDiv.innerHTML = "" +
+        "<span class='manipulationUI back' id='manipulate-back'><span class='manipulationLabel'>Back</span></span>" +
+        "<div class='seperatorLine'></div>" +
+        "<span class='manipulationUI none' id='manipulate-back'><span class='manipulationLabel'>"+message+"</span></span>";
+
+      // bind the icon
+      var backButton = document.getElementById("manipulate-back");
+      backButton.onclick = this._createManipulatorBar.bind(this);
+
+      // we use the boundFunction so we can reference it when we unbind it from the "select" event.
+      this.boundFunction = this._createEditToolbar.bind(this);
+      this.on('select', this.boundFunction);
+    }
+  },
+
+
+  /**
+   * Create the toolbar to edit the selected node. The label and the color can be changed. Other colors are derived from the chosen color.
+   * TODO: change shape or group?
+   *
+   * @private
+   */
+  _createEditNodeToolbar : function() {
+    // clear the toolbar
+    this.blockConnectingEdgeSelection = false;
+    this._clearManipulatorBar();
+    this.off('select', this.boundFunction);
+
+    var editObject = this._getEditObject();
+
+    // create the toolbar contents
+    this.manipulationDiv.innerHTML = "" +
+      "<span class='manipulationUI back' id='manipulate-back'><span class='manipulationLabel'>Cancel</span></span>" +
+      "<div class='seperatorLine'></div>" +
+      "<span class='manipulationUI none'>label: <input type='text' class='manipulatorInput' value='" + editObject.label + "' id='manipulator-obj-label' /></span>" +
+      "<div class='seperatorLine'></div>" +
+      "<span class='manipulationUI none'>color: <input type='text' class='manipulatorInput' value='" + editObject.color.background + "' id='manipulator-obj-color' /></span>" +
+      "<div class='seperatorLine'></div>" +
+      "<span class='manipulationUI none'><input type='button' class='manipulatorInput' value='save' id='manipulator-obj-save' /></span>"
+
+    // bind the icon
+    var backButton = document.getElementById("manipulate-back");
+    backButton.onclick = this._createManipulatorBar.bind(this);
+    var saveButton = document.getElementById("manipulator-obj-save");
+    saveButton.onclick = this._saveNodeData.bind(this);
+
+    // we use the boundFunction so we can reference it when we unbind it from the "select" event.
+    this.boundFunction = this._createManipulatorBar.bind(this);
+    this.on('select', this.boundFunction);
+  },
+
+
+  /**
+   * save the changes in the node data
+   *
+   * @private
+   */
+  _saveNodeData : function() {
+    var editObjectId = this._getEditObject().id;
+    var label = document.getElementById('manipulator-obj-label').value;
+
+    var definedColor = document.getElementById('manipulator-obj-color').value;
+    var hsv = util.hexToHSV(definedColor);
+
+    var lighterColorHSV = {h:hsv.h,s:hsv.s * 0.45,v:Math.min(1,hsv.v * 1.05)};
+    var darkerColorHSV  = {h:hsv.h,s:Math.min(1,hsv.v * 1.25),v:hsv.v*0.6};
+    var darkerColorHex  = util.HSVToHex(darkerColorHSV.h ,darkerColorHSV.h ,darkerColorHSV.v);
+    var lighterColorHex = util.HSVToHex(lighterColorHSV.h,lighterColorHSV.s,lighterColorHSV.v);
+
+    var updatedSettings = {id:editObjectId,
+      label: label,
+      color: {
+        background:definedColor,
+        border:darkerColorHex,
+        highlight: {
+          background:lighterColorHex,
+          border:darkerColorHex
+        }
+      }};
+    this.nodesData.update(updatedSettings);
+    this._createManipulatorBar();
+  },
+
+
+  /**
+   * creating the toolbar to edit edges.
+   *
+   * @private
+   */
+  _createEditEdgeToolbar : function() {
+    // clear the toolbar
+    this.blockConnectingEdgeSelection = false;
+    this._clearManipulatorBar();
+    this.off('select', this.boundFunction);
+
+    // create the toolbar contents
     this.manipulationDiv.innerHTML = "" +
       "<span class='manipulationUI back' id='manipulate-back'><span class='manipulationLabel'>Back</span></span>" +
       "<div class='seperatorLine'></div>" +
-      "<span class='manipulationUI none' id='manipulate-back'><span id='manipulatorLabel' class='manipulationLabel'>"+message+"</span></span>";
+      "<span class='manipulationUI none' id='manipulate-back'><span class='manipulationLabel'>Currently only nodes can be edited.</span></span>";
 
     // bind the icon
     var backButton = document.getElementById("manipulate-back");
     backButton.onclick = this._createManipulatorBar.bind(this);
 
-    var self = this;
-    events.addListener(self, 'select', function(params) {alert(self.selectForConnect)});
+    // we use the boundFunction so we can reference it when we unbind it from the "select" event.
+    this.boundFunction = this._createManipulatorBar.bind(this);
+    this.on('select', this.boundFunction);
   },
 
-  _continueConnect : function() {
-    if (this._clusterInSelection()) {
-      this._unselectAll();
-      this._createConnectToolbar("Select the node you want to connect (Clusters are not allowed).");
-      return true;
-    }
-    else if (!this._selectionIsEmpty()) {
-      this._connectNodes();
-      return true;
+
+  /**
+   * create the toolbar to connect nodes
+   *
+   * @private
+   */
+  _createConnectToolbar : function() {
+    // clear the toolbar
+    this._clearManipulatorBar();
+    this.off('select', this.boundFunction);
+
+    this._unselectAll();
+    this.forceAppendSelection = false;
+    this.blockConnectingEdgeSelection = true;
+
+    this.manipulationDiv.innerHTML = "" +
+      "<span class='manipulationUI back' id='manipulate-back'><span class='manipulationLabel'>Back</span></span>" +
+      "<div class='seperatorLine'></div>" +
+      "<span class='manipulationUI none' id='manipulate-back'><span id='manipulatorLabel' class='manipulationLabel'>Select the node you want to connect to other nodes.</span></span>";
+
+    // bind the icon
+    var backButton = document.getElementById("manipulate-back");
+    backButton.onclick = this._createManipulatorBar.bind(this);
+
+    // we use the boundFunction so we can reference it when we unbind it from the "select" event.
+    this.boundFunction = this._handleConnect.bind(this);
+    this.on('select', this.boundFunction);
+  },
+
+
+  /**
+   * create the toolbar for deleting selected objects. User has to be sure.
+   *
+   * @private
+   */
+  _createDeletionToolbar : function() {
+    // clear the toolbar
+    this._clearManipulatorBar();
+    this.off('select', this.boundFunction);
+
+    if (this._selectionIsEmpty()) {
+      this.manipulationDiv.innerHTML = "" +
+        "<span class='manipulationUI none notification' id='manipulate-back'><span id='manipulatorLabel' class='manipulationLabel'>Cannot delete an empty selection.</span></span>";
+      var graph = this;
+      window.setTimeout (function() {graph._createManipulatorBar()},1500);
     }
     else {
-      var manipulatorLabel = document.getElementById['manipolatorLabel'];
-      manipulatorLabel
-      return false;
+      this.manipulationDiv.innerHTML = "" +
+        "<span class='manipulationUI back' id='manipulate-back'><span class='manipulationLabel'>Back</span></span>" +
+        "<div class='seperatorLine'></div>" +
+        "<span class='manipulationUI none' id='manipulate-back'><span id='manipulatorLabel' class='manipulationLabel'>Are you sure? This cannot be undone.</span></span>" +
+        "<div class='seperatorLine'></div>" +
+        "<span class='manipulationUI acceptDelete' id='manipulate-acceptDelete'><span class='manipulationLabel'>Yes.</span></span>";
+
+      // bind the buttons
+      var backButton = document.getElementById("manipulate-back");
+      backButton.onclick = this._createManipulatorBar.bind(this);
+      var acceptDeleteButton = document.getElementById("manipulate-acceptDelete");
+      acceptDeleteButton.onclick = this._deleteSelected.bind(this);
+
+      // we use the boundFunction so we can reference it when we unbind it from the "select" event.
+      this.boundFunction = this._createManipulatorBar.bind(this);
+      this.on('select', this.boundFunction);
     }
+  },
+
+
+  /**
+   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+   * to walk the user through the process.
+   *
+   * @private
+   */
+  _handleConnect : function() {
+    this.forceAppendSelection = false;
+    if (this._clusterInSelection()) {
+      this._unselectClusters(true);
+      if (!this._selectionIsEmpty()) {
+        this._setManipulationMessage("You cannot connect a node to a cluster.");
+        this.forceAppendSelection = true;
+      }
+      else {
+        this._setManipulationMessage("You cannot connect anything to a cluster.");
+      }
+    }
+    else if (!this._selectionIsEmpty()) {
+      if (this._getSelectedNodeCount() == 2) {
+        this._connectNodes();
+        this._restoreSourceNode();
+        this._setManipulationMessage("Click on another node you want to connect this node to or go back.");
+      }
+      else {
+        this._setManipulationMessage("Click on the node you want to connect this node.");
+        this._setSourceNode();
+        this.forceAppendSelection = true;
+      }
+    }
+    else {
+      this._setManipulationMessage("Select the node you want to connect to other nodes.");
+    }
+  },
+
+
+  /**
+   * returns the object that is selected
+   *
+   * @returns {*}
+   * @private
+   */
+  _getEditObject : function() {
+    for(var objectId in this.selectionObj) {
+      if(this.selectionObj.hasOwnProperty(objectId)) {
+        return this.selectionObj[objectId];
+      }
+    }
+    return null;
+  },
+
+
+  /**
+   * stores the first selected node for the connecting process as the source node. This allows us to remember the direction
+   *
+   * @private
+   */
+  _setSourceNode : function() {
+    for(var objectId in this.selectionObj) {
+      if(this.selectionObj.hasOwnProperty(objectId)) {
+        if (this.selectionObj[objectId] instanceof Node) {
+          this.manipulationSourceNode = this.selectionObj[objectId];
+        }
+      }
+    }
+  },
+
+
+  /**
+   * gets the node the source connects to.
+   *
+   * @returns {*}
+   * @private
+   */
+  _getTargetNode : function() {
+    for(var objectId in this.selectionObj) {
+      if(this.selectionObj.hasOwnProperty(objectId)) {
+        if (this.selectionObj[objectId] instanceof Node) {
+          if (this.manipulationSourceNode.id != this.selectionObj[objectId].id) {
+            return this.selectionObj[objectId];
+          }
+        }
+      }
+    }
+    return null;
+  },
+
+
+  /**
+   * restore the selection back to only the sourcenode
+   *
+   * @private
+   */
+  _restoreSourceNode : function() {
+    this._unselectAll(true);
+    this._selectObject(this.manipulationSourceNode);
+  },
+
+
+  /**
+   * change the description message on the toolbar
+   *
+   * @param message
+   * @private
+   */
+  _setManipulationMessage : function(message) {
+    var messageSpan = document.getElementById('manipulatorLabel');
+      messageSpan.innerHTML = message;
   },
 
 
@@ -10878,18 +11334,29 @@ var manipulationMixin = {
    *
    * @param {Object} pointer
    */
-  _addNode : function(pointer) {
-    console.log("HERE",this)
+  _addNode : function() {
     if (this._selectionIsEmpty()) {
-      var positionObject = this._pointerToPositionObject(pointer);
+      var positionObject = this._pointerToPositionObject(this.pointerPosition);
+      this.createNodeOnClick = true;
       this.nodesData.add({id:util.randomUUID(),x:positionObject.left,y:positionObject.top,label:"new",fixed:false});
+      this.createNodeOnClick = false;
       this.moving = true;
       this.start();
     }
   },
 
+
+  /**
+   * connect two nodes with a new edge.
+   *
+   * @private
+   */
   _connectNodes : function() {
-    console.log(this.selectionObj)
+    var targetNode = this._getTargetNode();
+    var sourceNode = this.manipulationSourceNode;
+    this.edgesData.add({from:sourceNode.id, to:targetNode.id})
+    this.moving = true;
+    this.start();
   },
 
 
@@ -10904,7 +11371,8 @@ var manipulationMixin = {
       var selectedEdges = this.getSelectedEdges();
       this._removeEdges(selectedEdges);
       this._removeNodes(selectedNodes);
-      this._redraw();
+      this.moving = true;
+      this.start();
     }
     else {
       alert("Clusters cannot be deleted.")
@@ -10912,11 +11380,8 @@ var manipulationMixin = {
   }
 
 
-
 }
 /**
-=======
->>>>>>> origin/gh-pages
  * Creation of the SectorMixin var.
  *
  * This contains all the functions the Graph object can use to employ the sector system.
@@ -11800,13 +12265,10 @@ var ClusterMixin = {
 
     // if child node has been added on smaller scale than current, kick out
     if (childNode.formationScale < this.scale || force == true) {
-<<<<<<< HEAD
       // remove the selection, first remove the selection from the connected edges
       this._unselectConnectedEdges(parentNode);
       parentNode.unselect();
 
-=======
->>>>>>> origin/gh-pages
       // put the child node back in the global nodes object
       this.nodes[containedNodeId] = childNode;
 
@@ -11855,12 +12317,9 @@ var ClusterMixin = {
 
       // recalculate the size of the node on the next time the node is rendered
       parentNode.clearSizeCache();
-<<<<<<< HEAD
 
       // this unselects the rest of the edges
       this._unselectConnectedEdges(parentNode);
-=======
->>>>>>> origin/gh-pages
     }
 
     // check if a further expansion step is possible if recursivity is enabled
@@ -12606,11 +13065,7 @@ var SelectionMixin = {
   _getNodeAt : function (pointer) {
     // we first check if this is an navigation controls element
     var positionObject = this._pointerToPositionObject(pointer);
-<<<<<<< HEAD
     var overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
-=======
-    overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
->>>>>>> origin/gh-pages
 
     // if there are overlapping nodes, select the last one, this is the
     // one which is drawn on top of the others
@@ -12624,7 +13079,6 @@ var SelectionMixin = {
 
 
   /**
-<<<<<<< HEAD
    * retrieve all edges overlapping with given object, selector is around center
    * @param {Object} object  An object with parameters left, top, right, bottom
    * @return {Number[]}   An array with id's of the overlapping nodes
@@ -12655,8 +13109,6 @@ var SelectionMixin = {
   },
 
   /**
-=======
->>>>>>> origin/gh-pages
    * Place holder. To implement change the _getNodeAt to a _getObjectAt. Have the _getObjectAt call
    * _getNodeAt and _getEdgesAt, then priortize the selection to user preferences.
    *
@@ -12665,7 +13117,6 @@ var SelectionMixin = {
    * @private
    */
   _getEdgeAt : function(pointer) {
-<<<<<<< HEAD
     var positionObject = this._pointerToPositionObject(pointer);
     var overlappingEdges = this._getAllEdgesOverlappingWith(positionObject);
 
@@ -12675,27 +13126,16 @@ var SelectionMixin = {
     else {
       return null;
     }
-=======
-    return null;
->>>>>>> origin/gh-pages
   },
 
 
   /**
-<<<<<<< HEAD
    * Add object to the selection array.
-=======
-   * Add object to the selection array. The this.selection id array may not be needed.
->>>>>>> origin/gh-pages
    *
    * @param obj
    * @private
    */
   _addToSelection : function(obj) {
-<<<<<<< HEAD
-=======
-    this.selection.push(obj.id);
->>>>>>> origin/gh-pages
     this.selectionObj[obj.id] = obj;
   },
 
@@ -12703,19 +13143,10 @@ var SelectionMixin = {
   /**
    * Remove a single option from selection.
    *
-   * @param obj
+   * @param {Object} obj
    * @private
    */
   _removeFromSelection : function(obj) {
-<<<<<<< HEAD
-=======
-    for (var i = 0; i < this.selection.length; i++) {
-      if (obj.id == this.selection[i]) {
-        this.selection.splice(i,1);
-        break;
-      }
-    }
->>>>>>> origin/gh-pages
     delete this.selectionObj[obj.id];
   },
 
@@ -12731,16 +13162,9 @@ var SelectionMixin = {
       doNotTrigger = false;
     }
 
-<<<<<<< HEAD
     for (var objectId in this.selectionObj) {
       if (this.selectionObj.hasOwnProperty(objectId)) {
         this.selectionObj[objectId].unselect();
-=======
-    this.selection = [];
-    for (var objId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objId)) {
-        this.selectionObj[objId].unselect();
->>>>>>> origin/gh-pages
       }
     }
     this.selectionObj = {};
@@ -12752,6 +13176,89 @@ var SelectionMixin = {
     }
   },
 
+  /**
+   * Unselect all clusters. The selectionObj is useful for this.
+   *
+   * @param {Boolean} [doNotTrigger] | ignore trigger
+   * @private
+   */
+  _unselectClusters : function(doNotTrigger) {
+    if (doNotTrigger === undefined) {
+      doNotTrigger = false;
+    }
+
+    for (var objectId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objectId)) {
+        if (this.selectionObj[objectId] instanceof Node) {
+          if (this.selectionObj[objectId].clusterSize > 1) {
+            this.selectionObj[objectId].unselect();
+            this._removeFromSelection(this.selectionObj[objectId]);
+          }
+        }
+      }
+    }
+
+    if (doNotTrigger == false) {
+      this._trigger('select', {
+        nodes: this.getSelection()
+      });
+    }
+  },
+
+
+  /**
+   * return the number of selected nodes
+   *
+   * @returns {number}
+   * @private
+   */
+  _getSelectedNodeCount : function() {
+    var count = 0;
+    for (var objectId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objectId)) {
+        if (this.selectionObj[objectId] instanceof Node) {
+          count += 1;
+        }
+      }
+    }
+    return count;
+  },
+
+
+  /**
+   * return the number of selected edges
+   *
+   * @returns {number}
+   * @private
+   */
+  _getSelectedEdgeCount : function() {
+    var count = 0;
+    for (var objectId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objectId)) {
+        if (this.selectionObj[objectId] instanceof Edge) {
+          count += 1;
+        }
+      }
+    }
+    return count;
+  },
+
+
+  /**
+   * return the number of selected objects.
+   *
+   * @returns {number}
+   * @private
+   */
+  _getSelectedObjectCount : function() {
+    var count = 0;
+    for (var objectId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objectId)) {
+        count += 1;
+      }
+    }
+    return count;
+  },
 
   /**
    * Check if anything is selected
@@ -12760,7 +13267,6 @@ var SelectionMixin = {
    * @private
    */
   _selectionIsEmpty : function() {
-<<<<<<< HEAD
     for(var objectId in this.selectionObj) {
       if(this.selectionObj.hasOwnProperty(objectId)) {
         return false;
@@ -12769,6 +13275,13 @@ var SelectionMixin = {
     return true;
   },
 
+
+  /**
+   * check if one of the selected nodes is a cluster.
+   *
+   * @returns {boolean}
+   * @private
+   */
   _clusterInSelection : function() {
     for(var objectId in this.selectionObj) {
       if(this.selectionObj.hasOwnProperty(objectId)) {
@@ -12808,68 +13321,39 @@ var SelectionMixin = {
       var edge = node.dynamicEdges[i];
       edge.unselect();
       this._removeFromSelection(edge);
-=======
-    if (this.selection.length == 0) {
-      return true;
-    }
-    else {
-      return false;
->>>>>>> origin/gh-pages
     }
   },
 
 
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/gh-pages
   /**
    * This is called when someone clicks on a node. either select or deselect it.
    * If there is an existing selection and we don't want to append to it, clear the existing selection
    *
-<<<<<<< HEAD
    * @param {Node || Edge} object
-=======
-   * @param {Node} node
->>>>>>> origin/gh-pages
    * @param {Boolean} append
    * @param {Boolean} [doNotTrigger] | ignore trigger
    * @private
    */
-<<<<<<< HEAD
   _selectObject : function(object, append, doNotTrigger) {
-=======
-  _selectNode : function(node, append, doNotTrigger) {
->>>>>>> origin/gh-pages
     if (doNotTrigger === undefined) {
       doNotTrigger = false;
     }
 
-    if (this._selectionIsEmpty() == false && append == false) {
+    if (this._selectionIsEmpty() == false && append == false && this.forceAppendSelection == false) {
       this._unselectAll(true);
     }
 
-<<<<<<< HEAD
     if (object.selected == false) {
       object.select();
       this._addToSelection(object);
-      if (object instanceof Node) {
+      if (object instanceof Node && this.blockConnectingEdgeSelection == false) {
         this._selectConnectedEdges(object);
       }
     }
     else {
       object.unselect();
       this._removeFromSelection(object);
-=======
-
-    if (node.selected == false) {
-      node.select();
-      this._addToSelection(node);
-    }
-    else {
-      node.unselect();
-      this._removeFromSelection(node);
->>>>>>> origin/gh-pages
     }
     if (doNotTrigger == false) {
       this._trigger('select', {
@@ -12889,6 +13373,7 @@ var SelectionMixin = {
    */
   _handleTouch : function(pointer) {
     if (this.constants.navigation.enabled == true) {
+      this.pointerPosition = pointer;
       var node = this._getNavigationNodeAt(pointer);
       if (node != null) {
         if (this[node.triggerFunction] !== undefined) {
@@ -12908,7 +13393,6 @@ var SelectionMixin = {
   _handleTap : function(pointer) {
     var node = this._getNodeAt(pointer);
     if (node != null) {
-<<<<<<< HEAD
       this._selectObject(node,false);
     }
     else {
@@ -12919,12 +13403,6 @@ var SelectionMixin = {
       else {
         this._unselectAll();
       }
-=======
-      this._selectNode(node,false);
-    }
-    else {
-      this._unselectAll();
->>>>>>> origin/gh-pages
     }
     this._redraw();
   },
@@ -12956,7 +13434,6 @@ var SelectionMixin = {
   _handleOnHold : function(pointer) {
     var node = this._getNodeAt(pointer);
     if (node != null) {
-<<<<<<< HEAD
       this._selectObject(node,true);
     }
     else {
@@ -12964,9 +13441,6 @@ var SelectionMixin = {
       if (edge != null) {
         this._selectObject(edge,true);
       }
-=======
-      this._selectNode(node,true);
->>>>>>> origin/gh-pages
     }
     this._redraw();
   },
@@ -12988,27 +13462,18 @@ var SelectionMixin = {
 
   /**
    *
-<<<<<<< HEAD
    * retrieve the currently selected objects
-=======
-   * retrieve the currently selected nodes
->>>>>>> origin/gh-pages
    * @return {Number[] | String[]} selection    An array with the ids of the
    *                                            selected nodes.
    */
   getSelection : function() {
-<<<<<<< HEAD
     var nodeIds = this.getSelectedNodes();
     var edgeIds = this.getSelectedEdges();
     return {nodes:nodeIds, edges:edgeIds};
-=======
-    return this.selection.concat([]);
->>>>>>> origin/gh-pages
   },
 
   /**
    *
-<<<<<<< HEAD
    * retrieve the currently selected nodes
    * @return {String} selection    An array with the ids of the
    *                                            selected nodes.
@@ -13045,19 +13510,6 @@ var SelectionMixin = {
 
 
   /**
-=======
-   * retrieve the currently selected nodes as objects
-   * @return {Objects} selection    An array with the ids of the
-   *                                            selected nodes.
-   */
-  getSelectionObjects : function() {
-    return this.selectionObj;
-  },
-
-  /**
-   * // TODO: rework this function, it is from the old system
-   *
->>>>>>> origin/gh-pages
    * select zero or more nodes
    * @param {Number[] | String[]} selection     An array with the ids of the
    *                                            selected nodes.
@@ -13078,28 +13530,17 @@ var SelectionMixin = {
       if (!node) {
         throw new RangeError('Node with id "' + id + '" not found');
       }
-<<<<<<< HEAD
       this._selectObject(node,true,true);
-=======
-      this._selectNode(node,true,true);
->>>>>>> origin/gh-pages
     }
-
     this.redraw();
   },
 
 
   /**
-<<<<<<< HEAD
-=======
-   * TODO: rework this function, it is from the old system
-   *
->>>>>>> origin/gh-pages
    * Validate the selection: remove ids of nodes which no longer exist
    * @private
    */
   _updateSelection : function () {
-<<<<<<< HEAD
     for(var objectId in this.selectionObj) {
       if(this.selectionObj.hasOwnProperty(objectId)) {
         if (this.selectionObj[objectId] instanceof Node) {
@@ -13111,88 +13552,12 @@ var SelectionMixin = {
           if (!this.edges.hasOwnProperty(objectId)) {
             delete this.selectionObj[objectId];
           }
-          changed = true;
-        }
-      this.selection = [];
-      }
-    }
-=======
-    var i = 0;
-    while (i < this.selection.length) {
-      var nodeId = this.selection[i];
-      if (!this.nodes.hasOwnProperty(nodeId)) {
-        this.selection.splice(i, 1);
-        delete this.selectionObj[nodeId];
-      }
-      else {
-        i++;
-      }
-    }
-  }
-
-
-  /**
-   * Unselect selected nodes. If no selection array is provided, all nodes
-   * are unselected
-   * @param {Object[]} selection     Array with selection objects, each selection
-   *                                 object has a parameter row. Optional
-   * @param {Boolean} triggerSelect  If true (default), the select event
-   *                                 is triggered when nodes are unselected
-   * @return {Boolean} changed       True if the selection is changed
-   * @private
-   */
- /* _unselectNodes : function(selection, triggerSelect) {
-    var changed = false;
-    var i, iMax, id;
-
-    if (selection) {
-      // remove provided selections
-      for (i = 0, iMax = selection.length; i < iMax; i++) {
-        id = selection[i];
-        if (this.nodes.hasOwnProperty(id)) {
-          this.nodes[id].unselect();
-        }
-        var j = 0;
-        while (j < this.selection.length) {
-          if (this.selection[j] == id) {
-            this.selection.splice(j, 1);
-            changed = true;
-          }
-          else {
-            j++;
-          }
         }
       }
     }
-    else if (this.selection && this.selection.length) {
-      // remove all selections
-      for (i = 0, iMax = this.selection.length; i < iMax; i++) {
-        id = this.selection[i];
-        if (this.nodes.hasOwnProperty(id)) {
-          this.nodes[id].unselect();
-        }
-        changed = true;
-      }
-      this.selection = [];
-    }
->>>>>>> origin/gh-pages
-
-    if (changed && (triggerSelect == true || triggerSelect == undefined)) {
-      // fire the select event
-      this._trigger('select', {
-        nodes: this.getSelection()
-      });
-    }
-
-    return changed;
-<<<<<<< HEAD
   }
 
 }
-=======
-  },
-*/
->>>>>>> origin/gh-pages
 /**
  * select all nodes on given location x, y
  * @param {Array} selection   an array with node ids
@@ -13217,7 +13582,6 @@ var SelectionMixin = {
         if (selection[i] != this.selection[i]) {
           selectionAlreadyThere = false;
           break;
-<<<<<<< HEAD
 >>>>>>> develop
         }
       }
@@ -13227,47 +13591,14 @@ var SelectionMixin = {
 
 <<<<<<< HEAD
 =======
-=======
-        }
-      }
-    }
-    if (selectionAlreadyThere) {
-      return changed;
-    }
-
-    if (append == undefined || append == false) {
-      // first deselect any selected node
-      var triggerSelect = false;
-      changed = this._unselectNodes(undefined, triggerSelect);
-    }
-
-    for (i = 0, iMax = selection.length; i < iMax; i++) {
-      // add each of the new selections, but only when they are not duplicate
-      var id = selection[i];
-      var isDuplicate = (this.selection.indexOf(id) != -1);
-      if (!isDuplicate) {
-        this.nodes[id].select();
-        this.selection.push(id);
-        changed = true;
-      }
-    }
-
->>>>>>> origin/gh-pages
     if (changed) {
       // fire the select event
       this._trigger('select', {
         nodes: this.getSelection()
       });
     }
-<<<<<<< HEAD
 >>>>>>> develop
 
-=======
-
-    return changed;
-  },
-  */
->>>>>>> origin/gh-pages
 };
 
 
@@ -13615,6 +13946,9 @@ function Graph (container, data, options) {
       enabled: false,
       speed: {x: 10, y: 10, zoom: 0.02}
     },
+    dataManipulationToolbar: {
+      enabled: false
+    },
     minVelocity: 2,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
   };
@@ -13631,43 +13965,21 @@ function Graph (container, data, options) {
   this.yIncrement = 0;
   this.zoomIncrement = 0;
 
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/gh-pages
   // create a frame and canvas
   this._create();
 
   // load the sector system.    (mandatory, fully integrated with Graph)
   this._loadSectorSystem();
 
-<<<<<<< HEAD
-=======
-  // apply options
-  this.setOptions(options);
-
->>>>>>> origin/gh-pages
   // load the cluster system.   (mandatory, even when not using the cluster system, there are function calls to it)
   this._loadClusterSystem();
 
   // load the selection system. (mandatory, required by Graph)
   this._loadSelectionSystem();
 
-<<<<<<< HEAD
-  // load the data manipulation system
-  this._loadManipulationSystem();
-
   // apply options
   this.setOptions(options);
 
-
-
-
-
-
-
-=======
->>>>>>> origin/gh-pages
   // other vars
   var graph = this;
   this.freezeSimulation = false;// freeze the simulation
@@ -13678,6 +13990,7 @@ function Graph (container, data, options) {
 
   this.canvasTopLeft     = {"x": 0,"y": 0};   // coordinates of the top left of the canvas.     they will be set during _redraw.
   this.canvasBottomRight = {"x": 0,"y": 0};   // coordinates of the bottom right of the canvas. they will be set during _redraw
+  this.pointerPosition = {"x": 0,"y": 0};   // coordinates of the bottom right of the canvas. they will be set during _redraw
 
   this.areaCenter = {};               // object with x and y elements used for determining the center of the zoom action
   this.scale = 1;                     // defining the global scale variable in the constructor
@@ -13960,6 +14273,17 @@ Graph.prototype.setOptions = function (options) {
       this.constants.keyboard.enabled = false;
     }
 
+    if (options.dataManipulationToolbar) {
+      this.constants.dataManipulationToolbar.enabled = true;
+      for (var prop in options.dataManipulationToolbar) {
+        if (options.dataManipulationToolbar.hasOwnProperty(prop)) {
+          this.constants.dataManipulationToolbar[prop] = options.dataManipulationToolbar[prop];
+        }
+      }
+    }
+    else if (options.dataManipulationToolbar !== undefined)  {
+      this.constants.dataManipulationToolbar.enabled = false;
+    }
 
     // TODO: work out these options and document them
     if (options.edges) {
@@ -14021,16 +14345,18 @@ Graph.prototype.setOptions = function (options) {
     }
   }
 
-  this.setSize(this.width, this.height);
-  this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
-  this._setScale(1);
-
   // load the navigation system.
   this._loadNavigationControls();
+
+  // load the data manipulation system
+  this._loadManipulationSystem();
 
   // bind keys. If disabled, this will not do anything;
   this._createKeyBinds();
 
+  this.setSize(this.width, this.height);
+  this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
+  this._setScale(1);
   this._redraw();
 };
 
@@ -14089,10 +14415,7 @@ Graph.prototype._create = function () {
   this.frame.className = 'graph-frame';
   this.frame.style.position = 'relative';
   this.frame.style.overflow = 'hidden';
-<<<<<<< HEAD
   this.frame.style.zIndex = "1";
-=======
->>>>>>> origin/gh-pages
 
   // create the graph canvas (HTML canvas element)
   this.frame.canvas = document.createElement( 'canvas' );
@@ -14128,10 +14451,7 @@ Graph.prototype._create = function () {
 
   // add the frame to the container element
   this.containerElement.appendChild(this.frame);
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/gh-pages
 };
 
 
@@ -14167,17 +14487,10 @@ Graph.prototype._createKeyBinds = function() {
     this.mousetrap.bind("pagedown",this._zoomOut.bind(me),"keydown");
     this.mousetrap.bind("pagedown",this._stopZoom.bind(me), "keyup");
   }
-<<<<<<< HEAD
-=======
-  /*
-   this.mousetrap.bind("=",this.decreaseClusterLevel.bind(me));
-   this.mousetrap.bind("-",this.increaseClusterLevel.bind(me));
-   this.mousetrap.bind("s",this.singleStep.bind(me));
-   this.mousetrap.bind("h",this.updateClustersDefault.bind(me));
-   this.mousetrap.bind("c",this._collapseSector.bind(me));
-   this.mousetrap.bind("f",this.toggleFreeze.bind(me));
-   */
->>>>>>> origin/gh-pages
+
+  if (this.constants.dataManipulationToolbar.enabled == true) {
+    this.mousetrap.bind("escape",this._createManipulatorBar.bind(me));
+  }
 }
 
 /**
@@ -14224,7 +14537,6 @@ Graph.prototype._onDragStart = function () {
     drag.nodeId = node.id;
     // select the clicked node if not yet selected
     if (!node.isSelected()) {
-<<<<<<< HEAD
       this._selectObject(node,false);
     }
 
@@ -14251,33 +14563,6 @@ Graph.prototype._onDragStart = function () {
         }
       }
     }
-=======
-      this._selectNode(node,false);
-    }
-
-    // create an array with the selected nodes and their original location and status
-    var me = this;
-    this.selection.forEach(function (id) {
-      var node = me.nodes[id];
-      if (node) {
-        var s = {
-          id: id,
-          node: node,
-
-          // store original x, y, xFixed and yFixed, make the node temporarily Fixed
-          x: node.x,
-          y: node.y,
-          xFixed: node.xFixed,
-          yFixed: node.yFixed
-        };
-
-        node.xFixed = true;
-        node.yFixed = true;
-
-        drag.selection.push(s);
-      }
-    });
->>>>>>> origin/gh-pages
   }
 };
 
@@ -14354,11 +14639,9 @@ Graph.prototype._onDragEnd = function () {
  */
 Graph.prototype._onTap = function (event) {
   var pointer = this._getPointer(event.gesture.touches[0]);
+  this.pointerPosition = pointer;
   this._handleTap(pointer);
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/gh-pages
 };
 
 
@@ -14379,6 +14662,7 @@ Graph.prototype._onDoubleTap = function (event) {
  */
 Graph.prototype._onHold = function (event) {
   var pointer = this._getPointer(event.gesture.touches[0]);
+  this.pointerPosition = pointer;
   this._handleOnHold(pointer);
 };
 
@@ -14707,11 +14991,10 @@ Graph.prototype.setSize = function(width, height) {
   this.frame.canvas.width = this.frame.canvas.clientWidth;
   this.frame.canvas.height = this.frame.canvas.clientHeight;
 
-<<<<<<< HEAD
-  this.manipulationDiv.style.width = this.frame.canvas.clientWidth;
+  if (this.manipulationDiv !== undefined) {
+    this.manipulationDiv.style.width = this.frame.canvas.clientWidth;
+  }
 
-=======
->>>>>>> origin/gh-pages
   if (this.constants.navigation.enabled == true) {
     this._relocateNavigation();
   }
@@ -14776,11 +15059,7 @@ Graph.prototype._addNodes = function(ids) {
     var node = new Node(data, this.images, this.groups, this.constants);
     this.nodes[id] = node; // note: this may replace an existing node
 
-<<<<<<< HEAD
     if (!node.isFixed() && this.createNodeOnClick != true) {
-=======
-    if (!node.isFixed()) {
->>>>>>> origin/gh-pages
       // TODO: position new nodes in a smarter way!
       var radius = this.constants.edges.length * 2;
       var count = ids.length;
@@ -14796,10 +15075,7 @@ Graph.prototype._addNodes = function(ids) {
   this._updateNodeIndexList();
   this._reconnectEdges();
   this._updateValueRange(this.nodes);
-<<<<<<< HEAD
   this.updateLabels();
-=======
->>>>>>> origin/gh-pages
 };
 
 /**
@@ -15068,11 +15344,7 @@ Graph.prototype._redraw = function() {
 
   this._doInAllSectors("_drawAllSectorNodes",ctx);
   this._doInAllSectors("_drawEdges",ctx);
-<<<<<<< HEAD
   this._doInAllSectors("_drawNodes",ctx,true);
-=======
-  this._doInAllSectors("_drawNodes",ctx);
->>>>>>> origin/gh-pages
 
   // restore original scaling and translation
   ctx.restore();
@@ -15326,6 +15598,7 @@ Graph.prototype._calculateForces = function() {
 
   // we loop from i over all but the last entree in the array
   // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
+  var a_base = (-2/3); var b = 4/3;
   for (i = 0; i < this.nodeIndices.length-1; i++) {
     node1 = nodes[this.nodeIndices[i]];
     for (j = i+1; j < this.nodeIndices.length; j++) {
@@ -15338,6 +15611,7 @@ Graph.prototype._calculateForces = function() {
 
       // clusters have a larger region of influence
       minimumDistance = (clusterSize == 0) ? this.constants.nodes.distance : (this.constants.nodes.distance * (1 + clusterSize * this.constants.clustering.distanceAmplification));
+      var a = a_base / minimumDistance;
       if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
         angle = Math.atan2(dy, dx);
 
@@ -15348,12 +15622,12 @@ Graph.prototype._calculateForces = function() {
           // TODO: correct factor for repulsing force
           //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
           //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-          repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
+          //repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
+          repulsingForce = a * distance + b;  // TODO: test the approximation of the function above
         }
         // amplify the repulsion for clusters.
         repulsingForce *= (clusterSize == 0) ? 1 : 1 + clusterSize * this.constants.clustering.forceAmplification;
         repulsingForce *= this.forceFactor;
-
 
         fx = Math.cos(angle) * repulsingForce;
         fy = Math.sin(angle) * repulsingForce ;
@@ -15567,15 +15841,9 @@ Graph.prototype.start = function() {
   }
 };
 
-<<<<<<< HEAD
 /**
  * Debug function, does one step of the graph
  */
-=======
-
-
-
->>>>>>> origin/gh-pages
 Graph.prototype.singleStep = function() {
   if (this.moving) {
     this._initializeForceCalculation();
@@ -15654,10 +15922,6 @@ Graph.prototype._loadSectorSystem = function() {
  * @private
  */
 Graph.prototype._loadSelectionSystem = function() {
-<<<<<<< HEAD
-=======
-  this.selection = [];
->>>>>>> origin/gh-pages
   this.selectionObj = {};
 
   for (var mixinFunction in SelectionMixin) {
@@ -15668,7 +15932,6 @@ Graph.prototype._loadSelectionSystem = function() {
 }
 
 
-<<<<<<< HEAD
 
 /**
  * Mixin the navigationUI (User Interface) system and initialize the parameters required
@@ -15676,25 +15939,30 @@ Graph.prototype._loadSelectionSystem = function() {
  * @private
  */
 Graph.prototype._loadManipulationSystem = function() {
-  // load the manipulator HTML elements. All styling done in css.
-  this.manipulationDiv = document.createElement('div');
-  this.manipulationDiv.className = 'graph-manipulationDiv';
-  this.containerElement.insertBefore(this.manipulationDiv, this.frame);
+  // reset global variables -- these are used by the selection of nodes and edges.
+  this.blockConnectingEdgeSelection = false;
+  this.forceAppendSelection = false
 
 
-  // load the manipulation functions
-  for (var mixinFunction in manipulationMixin) {
-    if (manipulationMixin.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = manipulationMixin[mixinFunction];
+  if (this.constants.dataManipulationToolbar.enabled == true) {
+    // load the manipulator HTML elements. All styling done in css.
+    if (this.manipulationDiv === undefined) {
+      this.manipulationDiv = document.createElement('div');
+      this.manipulationDiv.className = 'graph-manipulationDiv';
+      this.containerElement.insertBefore(this.manipulationDiv, this.frame);
     }
+    // load the manipulation functions
+    for (var mixinFunction in manipulationMixin) {
+      if (manipulationMixin.hasOwnProperty(mixinFunction)) {
+        Graph.prototype[mixinFunction] = manipulationMixin[mixinFunction];
+      }
+    }
+
+    // create the manipulator toolbar
+    this._createManipulatorBar();
   }
-
-  this._createManipulatorBar();
-
 }
 
-=======
->>>>>>> origin/gh-pages
 /**
  * Mixin the navigation (User Interface) system and initialize the parameters required
  *

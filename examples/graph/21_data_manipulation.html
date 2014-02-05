@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-  <title>Graph | Random nodes</title>
+  <title>Graph | Navigation</title>
 
   <style type="text/css">
     body {
@@ -13,24 +13,25 @@
       border: 1px solid lightgray;
     }
     table.legend_table {
-        font-size: 11px;
-        border-width:1px;
-        border-color:#d3d3d3;
-        border-style:solid;
+      font-size: 11px;
+      border-width:1px;
+      border-color:#d3d3d3;
+      border-style:solid;
     }
     table.legend_table,td {
-        border-width:1px;
-        border-color:#d3d3d3;
-        border-style:solid;
-        padding: 2px;
+      border-width:1px;
+      border-color:#d3d3d3;
+      border-style:solid;
+      padding: 2px;
     }
     div.table_content {
-        width:80px;
-        text-align:center;
+      width:80px;
+      text-align:center;
     }
     div.table_description {
-        width:100px;
+      width:100px;
     }
+
     div.graph-manipulationDiv {
         border-width:0px;
         border-bottom: 1px;
@@ -51,10 +52,12 @@
     }
 
     span.manipulationUI {
+        font-family: verdana;
+        font-size: 12px;
         -moz-border-radius: 15px;
         border-radius: 15px;
         display:inline-block;
-        background-position: 4px 0px;
+        background-position: 0px 0px;
         background-repeat:no-repeat;
         height:24px;
         margin: -14px 0px 0px 10px;
@@ -88,9 +91,20 @@
     span.manipulationUI.none:active {
         box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.0);
     }
+    span.manipulationUI.none {
+        padding: 0px 0px 0px 0px;
+    }
+    span.manipulationUI.notification{
+        margin: 2px;
+        font-weight: bold;
+    }
 
     span.manipulationUI.add {
         background-image: url("../../dist/img/addNodeIcon.png");
+    }
+
+    span.manipulationUI.edit {
+        background-image: url("../../dist/img/editIcon.png");
     }
 
     span.manipulationUI.connect {
@@ -100,19 +114,32 @@
     span.manipulationUI.delete {
         background-image: url("../../dist/img/deleteIcon.png");
     }
+    span.manipulationUI.acceptDelete {
+        background-image: url("../../dist/img/acceptDeleteIcon.png");
+    }
     /* top right bottom left */
     span.manipulationLabel {
-        margin: 0px 0px 0px 25px;
+        margin: 0px 0px 0px 23px;
         line-height: 25px;
     }
-
     div.seperatorLine {
         display:inline-block;
         width:1px;
         height:20px;
         background-color: #bdbdbd;
         margin: 5px 7px 0px 15px;
-
+    }
+    input.manipulatorInput[type="text"] {
+        width:80px;
+        height:15px;
+        font-size:11px;
+        margin: 2px 0px 0px 0px;
+    }
+    input.manipulatorInput[type="button"] {
+        width:80px;
+        height:22px;
+        font-size:12px;
+        margin: 2px 0px 0px 10px;
     }
 
   </style>
@@ -177,78 +204,76 @@
         nodes: nodes,
         edges: edges
       };
-        /*
+      /*
+       var options = {
+       nodes: {
+       shape: 'circle'
+       },
+       edges: {
+       length: 50
+       },
+       stabilize: false
+       };
+       */
       var options = {
-        nodes: {
-          shape: 'circle'
-        },
         edges: {
           length: 50
         },
-        stabilize: false
+        stabilize: false,
+        clustering:true,
+        navigation: true,
+        keyboard: true,
+        dataManipulationToolbar: true
       };
-      */
-    var options = {
-    edges: {
-        length: 50
-    },
-    stabilize: false,
-    navigationUI: {
-        enabled: true
-    },
-    keyboardNavigation: {
-        enabled: true
-    }
-    };
       graph = new vis.Graph(container, data, options);
 
       // add event listeners
-      vis.events.addListener(graph, 'select', function(params) {
-        document.getElementById('selection').innerHTML =
-                'Selection: ' + JSON.stringify(graph.getSelection());
+      graph.on('select', function(params) {
+        document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
       });
     }
   </script>
 </head>
 
 <body onload="draw();">
-<h2>UI - User Interface and Keyboad Navigation</h2>
+<h2>Navigation controls and keyboad navigation</h2>
 <div style="width: 700px; font-size:14px;">
-    This example is the same as example 2, except for the UI that has been activated. The UI icons are described below. <br /><br />
-    <table class="legend_table">
-        <tr>
-            <td>Icons: </td>
-            <td><div class="table_content"><img src="../../dist/img/uparrow.png" />     </div></td>
-            <td><div class="table_content"><img src="../../dist/img/downarrow.png" />   </div></td>
-            <td><div class="table_content"><img src="../../dist/img/leftarrow.png" />   </div></td>
-            <td><div class="table_content"><img src="../../dist/img/rightarrow.png" />  </div></td>
-            <td><div class="table_content"><img src="../../dist/img/plus.png" />        </div></td>
-            <td><div class="table_content"><img src="../../dist/img/minus.png" />       </div></td>
-            <td><div class="table_content"><img src="../../dist/img/zoomExtends.png" /> </div></td>
-        </tr>
-        <tr>
-            <td><div class="table_description">Keyboard shortcuts:</div></td>
-            <td><div class="table_content">Up arrow</div></td>
-            <td><div class="table_content">Down arrow</div></td>
-            <td><div class="table_content">Left arrow</div></td>
-            <td><div class="table_content">Right arrow</div></td>
-            <td><div class="table_content">=<br />[<br />Page up</div></td>
-            <td><div class="table_content">-<br />]<br />Page down</div></td>
-            <td><div class="table_content">None</div></td>
-        </tr>
-            <td><div class="table_description">Description:</div></td>
-            <td><div class="table_content">Move up</div></td>
-            <td><div class="table_content">Move down</div></td>
-            <td><div class="table_content">Move left</div></td>
-            <td><div class="table_content">Move right</div></td>
-            <td><div class="table_content">Zoom in</div></td>
-            <td><div class="table_content">Zoom out</div></td>
-            <td><div class="table_content">Zoom extends</div></td>
-        </tr>
-    </table>
-    <br />
-    Apart from clicking the icons, you can also navigate using the keyboard. The buttons are in table above.
-    Zoom Extends changes the zoom and position of the camera to encompass all visible nodes.
+  This example is the same as example 2, except for the navigation controls that has been activated. The navigation controls are described below. <br /><br />
+  <table class="legend_table">
+    <tr>
+      <td>Icons: </td>
+      <td><div class="table_content"><img src="../../dist/img/uparrow.png" />     </div></td>
+      <td><div class="table_content"><img src="../../dist/img/downarrow.png" />   </div></td>
+      <td><div class="table_content"><img src="../../dist/img/leftarrow.png" />   </div></td>
+      <td><div class="table_content"><img src="../../dist/img/rightarrow.png" />  </div></td>
+      <td><div class="table_content"><img src="../../dist/img/plus.png" />        </div></td>
+      <td><div class="table_content"><img src="../../dist/img/minus.png" />       </div></td>
+      <td><div class="table_content"><img src="../../dist/img/zoomExtends.png" /> </div></td>
+    </tr>
+    <tr>
+      <td><div class="table_description">Keyboard shortcuts:</div></td>
+      <td><div class="table_content">Up arrow</div></td>
+      <td><div class="table_content">Down arrow</div></td>
+      <td><div class="table_content">Left arrow</div></td>
+      <td><div class="table_content">Right arrow</div></td>
+      <td><div class="table_content">=<br />[<br />Page up</div></td>
+      <td><div class="table_content">-<br />]<br />Page down</div></td>
+      <td><div class="table_content">None</div></td>
+    </tr>
+    <tr>
+      <td><div class="table_description">Description:</div></td>
+      <td><div class="table_content">Move up</div></td>
+      <td><div class="table_content">Move down</div></td>
+      <td><div class="table_content">Move left</div></td>
+      <td><div class="table_content">Move right</div></td>
+      <td><div class="table_content">Zoom in</div></td>
+      <td><div class="table_content">Zoom out</div></td>
+      <td><div class="table_content">Zoom extends</div></td>
+    </tr>
+  </table>
+  <br />
+  Apart from clicking the icons, you can also navigate using the keyboard. The buttons are in table above.
+  Zoom Extends changes the zoom and position of the camera to encompass all visible nodes.
 
 
 </div>
