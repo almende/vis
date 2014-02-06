@@ -11,6 +11,9 @@ function Controller () {
   this.reflowTimer = undefined;
 }
 
+// Extend controller with Emitter mixin
+Emitter(Controller.prototype);
+
 /**
  * Add a component to the controller
  * @param {Component} component
@@ -26,7 +29,7 @@ Controller.prototype.add = function add(component) {
   }
 
   // add the component
-  component.controller = this;
+  component.setController(this);
   this.components[component.id] = component;
 };
 
@@ -38,13 +41,17 @@ Controller.prototype.remove = function remove(component) {
   var id;
   for (id in this.components) {
     if (this.components.hasOwnProperty(id)) {
-      if (id == component || this.components[id] == component) {
+      if (id == component || this.components[id] === component) {
         break;
       }
     }
   }
 
   if (id) {
+    // unregister the controller (gives the component the ability to unregister
+    // event listeners and clean up other stuff)
+    this.components[id].setController(null);
+
     delete this.components[id];
   }
 };

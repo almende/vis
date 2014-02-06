@@ -3254,26 +3254,27 @@ function validateDirection (direction) {
 
 /**
  * Add listeners for mouse and touch events to the component
- * @param {Component} component
+ * @param {Controller} controller
+ * @param {Component} component  Should be a rootpanel
  * @param {String} event        Available events: 'move', 'zoom'
  * @param {String} direction    Available directions: 'horizontal', 'vertical'
  */
-Range.prototype.subscribe = function (component, event, direction) {
+Range.prototype.subscribe = function (controller, component, event, direction) {
   var me = this;
 
   if (event == 'move') {
     // drag start listener
-    component.on('dragstart', function (event) {
+    controller.on('dragstart', function (event) {
       me._onDragStart(event, component);
     });
 
     // drag listener
-    component.on('drag', function (event) {
+    controller.on('drag', function (event) {
       me._onDrag(event, component, direction);
     });
 
     // drag end listener
-    component.on('dragend', function (event) {
+    controller.on('dragend', function (event) {
       me._onDragEnd(event, component);
     });
   }
@@ -3282,14 +3283,14 @@ Range.prototype.subscribe = function (component, event, direction) {
     function mousewheel (event) {
       me._onMouseWheel(event, component, direction);
     }
-    component.on('mousewheel', mousewheel);
-    component.on('DOMMouseScroll', mousewheel); // For FF
+    controller.on('mousewheel', mousewheel);
+    controller.on('DOMMouseScroll', mousewheel); // For FF
 
     // pinch
-    component.on('touch', function (event) {
+    controller.on('touch', function (event) {
       me._onTouch();
     });
-    component.on('pinch', function (event) {
+    controller.on('pinch', function (event) {
       me._onPinch(event, component, direction);
     });
   }
@@ -3771,6 +3772,9 @@ function Controller () {
   this.reflowTimer = undefined;
 }
 
+// Extend controller with Emitter mixin
+Emitter(Controller.prototype);
+
 /**
  * Add a component to the controller
  * @param {Component} component
@@ -3786,7 +3790,7 @@ Controller.prototype.add = function add(component) {
   }
 
   // add the component
-  component.controller = this;
+  component.setController(this);
   this.components[component.id] = component;
 };
 
@@ -3798,13 +3802,17 @@ Controller.prototype.remove = function remove(component) {
   var id;
   for (id in this.components) {
     if (this.components.hasOwnProperty(id)) {
-      if (id == component || this.components[id] == component) {
+      if (id == component || this.components[id] === component) {
         break;
       }
     }
   }
 
   if (id) {
+    // unregister the controller (gives the component the ability to unregister
+    // event listeners and clean up other stuff)
+    this.components[id].setController(null);
+
     delete this.components[id];
   }
 };
@@ -3986,6 +3994,23 @@ Component.prototype.getOption = function getOption(name) {
     value = this.defaultOptions[name];
   }
   return value;
+};
+
+/**
+ * Set controller for this component, or remove current controller by passing
+ * null as parameter value.
+ * @param {Controller | null} controller
+ */
+Component.prototype.setController = function setController (controller) {
+  this.controller = controller || null;
+};
+
+/**
+ * Get controller of this component
+ * @return {Controller} controller
+ */
+Component.prototype.getController = function getController () {
+  return this.controller;
 };
 
 /**
@@ -4205,12 +4230,29 @@ function RootPanel(container, options) {
   this.id = util.randomUUID();
   this.container = container;
 
+  // create functions to be used as DOM event listeners
+  var me = this;
+  this.hammer = null;
+
+  // create listeners for all interesting events, these events will be emitted
+  // via the controller
+  var events = [
+    'touch', 'pinch', 'tap', 'hold',
+    'dragstart', 'drag', 'dragend',
+    'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is for Firefox
+  ];
+  this.listeners = {};
+  events.forEach(function (event) {
+    me.listeners[event] = function () {
+      var args = [event].concat(Array.prototype.slice.call(arguments, 0));
+      me.controller.emit.apply(me.controller, args);
+    };
+  });
+
   this.options = options || {};
   this.defaultOptions = {
     autoResize: true
   };
-
-  this.listeners = {}; // event listeners
 }
 
 RootPanel.prototype = new Panel();
@@ -4243,6 +4285,8 @@ RootPanel.prototype.repaint = function () {
 
     this.frame = frame;
 
+    this._registerListeners();
+
     changed += 1;
   }
   if (!frame.parentNode) {
@@ -4264,7 +4308,6 @@ RootPanel.prototype.repaint = function () {
   changed += update(frame.style, 'width',  asSize(options.width, '100%'));
   changed += update(frame.style, 'height', asSize(options.height, '100%'));
 
-  this._updateEventEmitters();
   this._updateWatch();
 
   return (changed > 0);
@@ -4353,59 +4396,52 @@ RootPanel.prototype._unwatch = function () {
 };
 
 /**
- * Event handler
- * @param {String} event       name of the event, for example 'click', 'mousemove'
- * @param {function} callback  callback handler, invoked with the raw HTML Event
- *                             as parameter.
+ * Set controller for this component, or remove current controller by passing
+ * null as parameter value.
+ * @param {Controller | null} controller
  */
-RootPanel.prototype.on = function (event, callback) {
-  // register the listener at this component
-  var arr = this.listeners[event];
-  if (!arr) {
-    arr = [];
-    this.listeners[event] = arr;
-  }
-  arr.push(callback);
+RootPanel.prototype.setController = function setController (controller) {
+  this.controller = controller || null;
 
-  this._updateEventEmitters();
+  if (this.controller) {
+    this._registerListeners();
+  }
+  else {
+    this._unregisterListeners();
+  }
 };
 
 /**
- * Update the event listeners for all event emitters
+ * Register event emitters emitted by the rootpanel
  * @private
  */
-RootPanel.prototype._updateEventEmitters = function () {
-  if (this.listeners) {
-    var me = this;
-    util.forEach(this.listeners, function (listeners, event) {
-      if (!me.emitters) {
-        me.emitters = {};
-      }
-      if (!(event in me.emitters)) {
-        // create event
-        var frame = me.frame;
-        if (frame) {
-          //console.log('Created a listener for event ' + event + ' on component ' + me.id); // TODO: cleanup logging
-          var callback = function(event) {
-            listeners.forEach(function (listener) {
-              // TODO: filter on event target!
-              listener(event);
-            });
-          };
-          me.emitters[event] = callback;
-
-          if (!me.hammer) {
-            me.hammer = Hammer(frame, {
-              prevent_default: true
-            });
-          }
-          me.hammer.on(event, callback);
-        }
-      }
+RootPanel.prototype._registerListeners = function () {
+  if (this.frame && this.controller && !this.hammer) {
+    this.hammer = Hammer(this.frame, {
+      prevent_default: true
     });
 
-    // TODO: be able to delete event listeners
-    // TODO: be able to move event listeners to a parent when available
+    for (var event in this.listeners) {
+      if (this.listeners.hasOwnProperty(event)) {
+        this.hammer.on(event, this.listeners[event]);
+      }
+    }
+  }
+};
+
+/**
+ * Unregister event emitters from the rootpanel
+ * @private
+ */
+RootPanel.prototype._unregisterListeners = function () {
+  if (this.hammer) {
+    for (var event in this.listeners) {
+      if (this.listeners.hasOwnProperty(event)) {
+        this.hammer.off(event, this.listeners[event]);
+      }
+    }
+
+    this.hammer = null;
   }
 };
 
@@ -5308,6 +5344,13 @@ function ItemSet(parent, depends, options) {
   this.parent = parent;
   this.depends = depends;
 
+  // event listeners
+  this.listeners = {
+    dragstart: this._onDragStart.bind(this),
+    drag: this._onDrag.bind(this),
+    dragend: this._onDragEnd.bind(this)
+  };
+
   // one options object is shared by this itemset and all its items
   this.options = options || {};
   this.defaultOptions = {
@@ -5351,15 +5394,6 @@ function ItemSet(parent, depends, options) {
   this.stack = new Stack(this, Object.create(this.options));
   this.conversion = null;
 
-
-  // event listeners for items
-  // TODO: implement event listeners
-  // TODO: event listeners must be removed when the ItemSet is deleted
-  //this.on('dragstart', this._onDragStart.bind(this));
-  //this.on('drag', this._onDrag.bind(this));
-  //this.on('dragend', this._onDragEnd.bind(this));
-
-
   // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
 }
 
@@ -5399,6 +5433,55 @@ ItemSet.types = {
  *                              Must correspond with the items css. Default is 5.
  */
 ItemSet.prototype.setOptions = Component.prototype.setOptions;
+
+
+
+/**
+ * Set controller for this component
+ * @param {Controller | null} controller
+ */
+ItemSet.prototype.setController = function setController (controller) {
+  var event;
+
+  // unregister old event listeners
+  if (this.controller) {
+    for (event in this.listeners) {
+      if (this.listeners.hasOwnProperty(event)) {
+        this.controller.off(event, this.listeners[event]);
+      }
+    }
+  }
+
+  this.controller = controller || null;
+
+  // register new event listeners
+  if (this.controller) {
+    for (event in this.listeners) {
+      if (this.listeners.hasOwnProperty(event)) {
+        this.controller.on(event, this.listeners[event]);
+      }
+    }
+  }
+};
+
+// attach event listeners for dragging items to the controller
+(function (me) {
+  var _controller = null;
+  var _onDragStart = null;
+  var _onDrag = null;
+  var _onDragEnd = null;
+
+  Object.defineProperty(me, 'controller', {
+    get: function () {
+      return _controller;
+    },
+
+    set: function (controller) {
+
+    }
+  });
+}) (this);
+
 
 /**
  * Set range (start and end).
@@ -5923,7 +6006,7 @@ var touchParams = {};
 // TODO: move this function to ItemSet
 ItemSet.prototype._onDragStart = function (event) {
   var item = this._itemFromTarget(event);
-
+console.log('_onDragStart', event)
   if (item && item.selected) {
     touchParams.items = [item];
     //touchParams.items = this.getSelection(); // TODO: use the current selection
@@ -5970,7 +6053,24 @@ ItemSet.prototype._onDragEnd = function (event) {
   }
 };
 
+/**
+ * Find an item from an event target:
+ * searches for the attribute 'timeline-item' in the event target's element tree
+ * @param {Event} event
+ * @return {Item | null| item
+ * @private
+ */
+ItemSet.prototype._itemFromTarget = function _itemFromTarget (event) {
+  var target = event.target;
+  while (target) {
+    if (target.hasOwnProperty('timeline-item')) {
+      return target['timeline-item'];
+    }
+    target = target.parentNode;
+  }
 
+  return null;
+};
 /**
  * @constructor Item
  * @param {ItemSet} parent
@@ -7664,10 +7764,10 @@ function Timeline (container, items, options) {
 
   // single select (or unselect) when tapping an item
   // TODO: implement ctrl+click
-  this.rootPanel.on('tap',  this._onSelectItem.bind(this));
+  this.controller.on('tap',  this._onSelectItem.bind(this));
 
   // multi select when holding mouse/touch, or on ctrl+click
-  this.rootPanel.on('hold', this._onMultiSelectItem.bind(this));
+  this.controller.on('hold', this._onMultiSelectItem.bind(this));
 
   // item panel
   var itemOptions = Object.create(this.options);
@@ -7709,8 +7809,8 @@ function Timeline (container, items, options) {
   // TODO: reckon with options moveable and zoomable
   // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
   // TODO: enable moving again
-  this.range.subscribe(this.rootPanel, 'move', 'horizontal');
-  this.range.subscribe(this.rootPanel, 'zoom', 'horizontal');
+  this.range.subscribe(this.controller, this.rootPanel, 'move', 'horizontal');
+  this.range.subscribe(this.controller, this.rootPanel, 'zoom', 'horizontal');
   this.range.on('rangechange', function (properties) {
     var force = true;
     me.controller.requestReflow(force);

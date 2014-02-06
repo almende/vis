@@ -47,10 +47,10 @@ function Timeline (container, items, options) {
 
   // single select (or unselect) when tapping an item
   // TODO: implement ctrl+click
-  this.rootPanel.on('tap',  this._onSelectItem.bind(this));
+  this.controller.on('tap',  this._onSelectItem.bind(this));
 
   // multi select when holding mouse/touch, or on ctrl+click
-  this.rootPanel.on('hold', this._onMultiSelectItem.bind(this));
+  this.controller.on('hold', this._onMultiSelectItem.bind(this));
 
   // item panel
   var itemOptions = Object.create(this.options);
@@ -92,8 +92,8 @@ function Timeline (container, items, options) {
   // TODO: reckon with options moveable and zoomable
   // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
   // TODO: enable moving again
-  this.range.subscribe(this.rootPanel, 'move', 'horizontal');
-  this.range.subscribe(this.rootPanel, 'zoom', 'horizontal');
+  this.range.subscribe(this.controller, this.rootPanel, 'move', 'horizontal');
+  this.range.subscribe(this.controller, this.rootPanel, 'zoom', 'horizontal');
   this.range.on('rangechange', function (properties) {
     var force = true;
     me.controller.requestReflow(force);

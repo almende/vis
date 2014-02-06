@@ -56,6 +56,23 @@ Component.prototype.getOption = function getOption(name) {
 };
 
 /**
+ * Set controller for this component, or remove current controller by passing
+ * null as parameter value.
+ * @param {Controller | null} controller
+ */
+Component.prototype.setController = function setController (controller) {
+  this.controller = controller || null;
+};
+
+/**
+ * Get controller of this component
+ * @return {Controller} controller
+ */
+Component.prototype.getController = function getController () {
+  return this.controller;
+};
+
+/**
  * Get the container element of the component, which can be used by a child to
  * add its own widgets. Not all components do have a container for childs, in
  * that case null is returned.

@@ -16,6 +16,13 @@ function ItemSet(parent, depends, options) {
   this.parent = parent;
   this.depends = depends;
 
+  // event listeners
+  this.listeners = {
+    dragstart: this._onDragStart.bind(this),
+    drag: this._onDrag.bind(this),
+    dragend: this._onDragEnd.bind(this)
+  };
+
   // one options object is shared by this itemset and all its items
   this.options = options || {};
   this.defaultOptions = {
@@ -98,6 +105,55 @@ ItemSet.types = {
  *                              Must correspond with the items css. Default is 5.
  */
 ItemSet.prototype.setOptions = Component.prototype.setOptions;
+
+
+
+/**
+ * Set controller for this component
+ * @param {Controller | null} controller
+ */
+ItemSet.prototype.setController = function setController (controller) {
+  var event;
+
+  // unregister old event listeners
+  if (this.controller) {
+    for (event in this.listeners) {
+      if (this.listeners.hasOwnProperty(event)) {
+        this.controller.off(event, this.listeners[event]);
+      }
+    }
+  }
+
+  this.controller = controller || null;
+
+  // register new event listeners
+  if (this.controller) {
+    for (event in this.listeners) {
+      if (this.listeners.hasOwnProperty(event)) {
+        this.controller.on(event, this.listeners[event]);
+      }
+    }
+  }
+};
+
+// attach event listeners for dragging items to the controller
+(function (me) {
+  var _controller = null;
+  var _onDragStart = null;
+  var _onDrag = null;
+  var _onDragEnd = null;
+
+  Object.defineProperty(me, 'controller', {
+    get: function () {
+      return _controller;
+    },
+
+    set: function (controller) {
+
+    }
+  });
+}) (this);
+
 
 /**
  * Set range (start and end).
@@ -609,4 +665,81 @@ ItemSet.prototype.toTime = function toTime(x) {
 ItemSet.prototype.toScreen = function toScreen(time) {
   var conversion = this.conversion;
   return (time.valueOf() - conversion.offset) * conversion.scale;
+};
+
+// global (private) object to store drag params
+var touchParams = {};
+
+/**
+ * Start dragging the selected events
+ * @param {Event} event
+ * @private
+ */
+// TODO: move this function to ItemSet
+ItemSet.prototype._onDragStart = function (event) {
+  var item = this._itemFromTarget(event);
+console.log('_onDragStart', event)
+  if (item && item.selected) {
+    touchParams.items = [item];
+    //touchParams.items = this.getSelection(); // TODO: use the current selection
+    touchParams.itemsLeft = touchParams.items.map(function (item) {
+      return item.left;
+    });
+    console.log('_onDragStart', touchParams)
+    event.stopPropagation();
+  }
+};
+
+/**
+ * Drag selected items
+ * @param {Event} event
+ * @private
+ */
+// TODO: move this function to ItemSet
+ItemSet.prototype._onDrag = function (event) {
+  if (touchParams.items) {
+    var deltaX = event.gesture.deltaX;
+
+    touchParams.items.forEach(function (item, i) {
+      item.left = touchParams.itemsLeft[i] + deltaX;
+      item.reposition();
+    });
+
+    event.stopPropagation();
+  }
+};
+
+/**
+ * End of dragging selected items
+ * @param {Event} event
+ * @private
+ */
+// TODO: move this function to ItemSet
+ItemSet.prototype._onDragEnd = function (event) {
+  if (touchParams.items) {
+    // actually apply the new locations
+
+    touchParams.items = null;
+
+    event.stopPropagation();
+  }
+};
+
+/**
+ * Find an item from an event target:
+ * searches for the attribute 'timeline-item' in the event target's element tree
+ * @param {Event} event
+ * @return {Item | null| item
+ * @private
+ */
+ItemSet.prototype._itemFromTarget = function _itemFromTarget (event) {
+  var target = event.target;
+  while (target) {
+    if (target.hasOwnProperty('timeline-item')) {
+      return target['timeline-item'];
+    }
+    target = target.parentNode;
+  }
+
+  return null;
 };

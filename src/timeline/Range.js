@@ -48,26 +48,27 @@ function validateDirection (direction) {
 
 /**
  * Add listeners for mouse and touch events to the component
- * @param {Component} component
+ * @param {Controller} controller
+ * @param {Component} component  Should be a rootpanel
  * @param {String} event        Available events: 'move', 'zoom'
  * @param {String} direction    Available directions: 'horizontal', 'vertical'
  */
-Range.prototype.subscribe = function (component, event, direction) {
+Range.prototype.subscribe = function (controller, component, event, direction) {
   var me = this;
 
   if (event == 'move') {
     // drag start listener
-    component.on('dragstart', function (event) {
+    controller.on('dragstart', function (event) {
       me._onDragStart(event, component);
     });
 
     // drag listener
-    component.on('drag', function (event) {
+    controller.on('drag', function (event) {
       me._onDrag(event, component, direction);
     });
 
     // drag end listener
-    component.on('dragend', function (event) {
+    controller.on('dragend', function (event) {
       me._onDragEnd(event, component);
     });
   }
@@ -76,14 +77,14 @@ Range.prototype.subscribe = function (component, event, direction) {
     function mousewheel (event) {
       me._onMouseWheel(event, component, direction);
     }
-    component.on('mousewheel', mousewheel);
-    component.on('DOMMouseScroll', mousewheel); // For FF
+    controller.on('mousewheel', mousewheel);
+    controller.on('DOMMouseScroll', mousewheel); // For FF
 
     // pinch
-    component.on('touch', function (event) {
+    controller.on('touch', function (event) {
       me._onTouch();
     });
-    component.on('pinch', function (event) {
+    controller.on('pinch', function (event) {
       me._onPinch(event, component, direction);
     });
   }

@@ -74,8 +74,8 @@ Item.prototype.reflow = function reflow() {
 
 /**
  * Return the items width
- * @return {Integer} width
+ * @return {Number} width
  */
 Item.prototype.getWidth = function getWidth() {
   return this.width;
-}
+};
