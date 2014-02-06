@@ -1,7 +1,7 @@
 /**
  * Create a timeline visualization
  * @param {HTMLElement} container
- * @param {vis.DataSet | Array | DataTable} [items]
+ * @param {vis.DataSet | Array | google.visualization.DataTable} [items]
  * @param {Object} [options]  See Timeline.setOptions for the available options.
  * @constructor
  */
@@ -45,6 +45,13 @@ function Timeline (container, items, options) {
   this.rootPanel = new RootPanel(container, rootOptions);
   this.controller.add(this.rootPanel);
 
+  // single select (or unselect) when tapping an item
+  // TODO: implement ctrl+click
+  this.rootPanel.on('tap',  this._onSelectItem.bind(this));
+
+  // multi select when holding mouse/touch, or on ctrl+click
+  this.rootPanel.on('hold', this._onMultiSelectItem.bind(this));
+
   // item panel
   var itemOptions = Object.create(this.options);
   itemOptions.left = function () {
@@ -84,25 +91,19 @@ function Timeline (container, items, options) {
 
   // TODO: reckon with options moveable and zoomable
   // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
+  // TODO: enable moving again
   this.range.subscribe(this.rootPanel, 'move', 'horizontal');
   this.range.subscribe(this.rootPanel, 'zoom', 'horizontal');
   this.range.on('rangechange', function (properties) {
     var force = true;
     me.controller.requestReflow(force);
-    me._trigger('rangechange', properties);
+    me.emit('rangechange', properties);
   });
   this.range.on('rangechanged', function (properties) {
     var force = true;
     me.controller.requestReflow(force);
-    me._trigger('rangechanged', properties);
+    me.emit('rangechanged', properties);
   });
-
-  // single select (or unselect) when tapping an item
-  // TODO: implement ctrl+click
-  this.rootPanel.on('tap',  this._onSelectItem.bind(this));
-
-  // multi select when holding mouse/touch, or on ctrl+click
-  this.rootPanel.on('hold', this._onMultiSelectItem.bind(this));
 
   // time axis
   var timeaxisOptions = Object.create(rootOptions);
@@ -140,6 +141,9 @@ function Timeline (container, items, options) {
   }
 }
 
+// extend Timeline with the Emitter mixin
+Emitter(Timeline.prototype);
+
 /**
  * Set options
  * @param {Object} options  TODO: describe the available options
@@ -173,7 +177,7 @@ Timeline.prototype.getCustomTime = function() {
 
 /**
  * Set items
- * @param {vis.DataSet | Array | DataTable | null} items
+ * @param {vis.DataSet | Array | google.visualization.DataTable | null} items
  */
 Timeline.prototype.setItems = function(items) {
   var initialLoad = (this.itemsData == null);
@@ -234,7 +238,7 @@ Timeline.prototype.setItems = function(items) {
 
 /**
  * Set groups
- * @param {vis.DataSet | Array | DataTable} groups
+ * @param {vis.DataSet | Array | google.visualization.DataTable} groups
  */
 Timeline.prototype.setGroups = function(groups) {
   var me = this;
@@ -368,55 +372,18 @@ Timeline.prototype.getSelection = function getSelection() {
 };
 
 /**
- * Add event listener
- * @param {String} event       Event name. Available events:
- *                             'rangechange', 'rangechanged', 'select'
- * @param {function} callback  Callback function, invoked as callback(properties)
- *                             where properties is an optional object containing
- *                             event specific properties.
- */
-Timeline.prototype.on = function on (event, callback) {
-  var available = ['rangechange', 'rangechanged', 'select'];
-
-  if (available.indexOf(event) == -1) {
-    throw new Error('Unknown event "' + event + '". Choose from ' + available.join());
-  }
-
-  events.addListener(this, event, callback);
-};
-
-/**
- * Remove an event listener
- * @param {String} event       Event name
- * @param {function} callback  Callback function
- */
-Timeline.prototype.off = function off (event, callback) {
-  events.removeListener(this, event, callback);
-};
-
-/**
- * Trigger an event
- * @param {String} event        Event name, available events: 'rangechange',
- *                              'rangechanged', 'select'
- * @param {Object} [properties] Event specific properties
- * @private
- */
-Timeline.prototype._trigger = function _trigger(event, properties) {
-  events.trigger(this, event, properties || {});
-};
-
-/**
  * Handle selecting/deselecting an item when tapping it
  * @param {Event} event
  * @private
  */
+// TODO: move this function to ItemSet
 Timeline.prototype._onSelectItem = function (event) {
   var item = this._itemFromTarget(event);
 
   var selection = item ? [item.id] : [];
   this.setSelection(selection);
 
-  this._trigger('select', {
+  this.emit('select', {
     items: this.getSelection()
   });
 
@@ -428,6 +395,7 @@ Timeline.prototype._onSelectItem = function (event) {
  * @param {Event} event
  * @private
  */
+// TODO: move this function to ItemSet
 Timeline.prototype._onMultiSelectItem = function (event) {
   var selection,
       item = this._itemFromTarget(event);
@@ -449,7 +417,7 @@ Timeline.prototype._onMultiSelectItem = function (event) {
   }
   this.setSelection(selection);
 
-  this._trigger('select', {
+  this.emit('select', {
     items: this.getSelection()
   });
 
@@ -463,6 +431,7 @@ Timeline.prototype._onMultiSelectItem = function (event) {
  * @return {Item | null| item
  * @private
  */
+// TODO: move this function to ItemSet
 Timeline.prototype._itemFromTarget = function _itemFromTarget (event) {
   var target = event.target;
   while (target) {

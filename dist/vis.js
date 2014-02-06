@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.5.0-SNAPSHOT
- * @date    2014-02-05
+ * @date    2014-02-06
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -31,6 +31,7 @@
 // If not available there, load via require.
 
 var moment = (typeof window !== 'undefined') && window['moment'] || require('moment');
+var Emitter = require('emitter-component');
 
 var Hammer;
 if (typeof window !== 'undefined') {
@@ -53,8 +54,6 @@ else {
     throw Error('mouseTrap is only available in a browser, not in node.js.');
   }
 }
-
-
 
 
 // Internet Explorer 8 and older does not support Array.indexOf, so we define
@@ -5352,6 +5351,15 @@ function ItemSet(parent, depends, options) {
   this.stack = new Stack(this, Object.create(this.options));
   this.conversion = null;
 
+
+  // event listeners for items
+  // TODO: implement event listeners
+  // TODO: event listeners must be removed when the ItemSet is deleted
+  //this.on('dragstart', this._onDragStart.bind(this));
+  //this.on('drag', this._onDrag.bind(this));
+  //this.on('dragend', this._onDragEnd.bind(this));
+
+
   // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
 }
 
@@ -5904,6 +5912,65 @@ ItemSet.prototype.toScreen = function toScreen(time) {
   return (time.valueOf() - conversion.offset) * conversion.scale;
 };
 
+// global (private) object to store drag params
+var touchParams = {};
+
+/**
+ * Start dragging the selected events
+ * @param {Event} event
+ * @private
+ */
+// TODO: move this function to ItemSet
+ItemSet.prototype._onDragStart = function (event) {
+  var item = this._itemFromTarget(event);
+
+  if (item && item.selected) {
+    touchParams.items = [item];
+    //touchParams.items = this.getSelection(); // TODO: use the current selection
+    touchParams.itemsLeft = touchParams.items.map(function (item) {
+      return item.left;
+    });
+    console.log('_onDragStart', touchParams)
+    event.stopPropagation();
+  }
+};
+
+/**
+ * Drag selected items
+ * @param {Event} event
+ * @private
+ */
+// TODO: move this function to ItemSet
+ItemSet.prototype._onDrag = function (event) {
+  if (touchParams.items) {
+    var deltaX = event.gesture.deltaX;
+
+    touchParams.items.forEach(function (item, i) {
+      item.left = touchParams.itemsLeft[i] + deltaX;
+      item.reposition();
+    });
+
+    event.stopPropagation();
+  }
+};
+
+/**
+ * End of dragging selected items
+ * @param {Event} event
+ * @private
+ */
+// TODO: move this function to ItemSet
+ItemSet.prototype._onDragEnd = function (event) {
+  if (touchParams.items) {
+    // actually apply the new locations
+
+    touchParams.items = null;
+
+    event.stopPropagation();
+  }
+};
+
+
 /**
  * @constructor Item
  * @param {ItemSet} parent
@@ -5980,11 +6047,11 @@ Item.prototype.reflow = function reflow() {
 
 /**
  * Return the items width
- * @return {Integer} width
+ * @return {Number} width
  */
 Item.prototype.getWidth = function getWidth() {
   return this.width;
-}
+};
 
 /**
  * @constructor ItemBox
@@ -7551,7 +7618,7 @@ GroupSet.prototype._toQueue = function _toQueue(ids, action) {
 /**
  * Create a timeline visualization
  * @param {HTMLElement} container
- * @param {vis.DataSet | Array | DataTable} [items]
+ * @param {vis.DataSet | Array | google.visualization.DataTable} [items]
  * @param {Object} [options]  See Timeline.setOptions for the available options.
  * @constructor
  */
@@ -7595,6 +7662,13 @@ function Timeline (container, items, options) {
   this.rootPanel = new RootPanel(container, rootOptions);
   this.controller.add(this.rootPanel);
 
+  // single select (or unselect) when tapping an item
+  // TODO: implement ctrl+click
+  this.rootPanel.on('tap',  this._onSelectItem.bind(this));
+
+  // multi select when holding mouse/touch, or on ctrl+click
+  this.rootPanel.on('hold', this._onMultiSelectItem.bind(this));
+
   // item panel
   var itemOptions = Object.create(this.options);
   itemOptions.left = function () {
@@ -7634,25 +7708,19 @@ function Timeline (container, items, options) {
 
   // TODO: reckon with options moveable and zoomable
   // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
+  // TODO: enable moving again
   this.range.subscribe(this.rootPanel, 'move', 'horizontal');
   this.range.subscribe(this.rootPanel, 'zoom', 'horizontal');
   this.range.on('rangechange', function (properties) {
     var force = true;
     me.controller.requestReflow(force);
-    me._trigger('rangechange', properties);
+    me.emit('rangechange', properties);
   });
   this.range.on('rangechanged', function (properties) {
     var force = true;
     me.controller.requestReflow(force);
-    me._trigger('rangechanged', properties);
+    me.emit('rangechanged', properties);
   });
-
-  // single select (or unselect) when tapping an item
-  // TODO: implement ctrl+click
-  this.rootPanel.on('tap',  this._onSelectItem.bind(this));
-
-  // multi select when holding mouse/touch, or on ctrl+click
-  this.rootPanel.on('hold', this._onMultiSelectItem.bind(this));
 
   // time axis
   var timeaxisOptions = Object.create(rootOptions);
@@ -7690,6 +7758,9 @@ function Timeline (container, items, options) {
   }
 }
 
+// extend Timeline with the Emitter mixin
+Emitter(Timeline.prototype);
+
 /**
  * Set options
  * @param {Object} options  TODO: describe the available options
@@ -7723,7 +7794,7 @@ Timeline.prototype.getCustomTime = function() {
 
 /**
  * Set items
- * @param {vis.DataSet | Array | DataTable | null} items
+ * @param {vis.DataSet | Array | google.visualization.DataTable | null} items
  */
 Timeline.prototype.setItems = function(items) {
   var initialLoad = (this.itemsData == null);
@@ -7784,7 +7855,7 @@ Timeline.prototype.setItems = function(items) {
 
 /**
  * Set groups
- * @param {vis.DataSet | Array | DataTable} groups
+ * @param {vis.DataSet | Array | google.visualization.DataTable} groups
  */
 Timeline.prototype.setGroups = function(groups) {
   var me = this;
@@ -7918,55 +7989,18 @@ Timeline.prototype.getSelection = function getSelection() {
 };
 
 /**
- * Add event listener
- * @param {String} event       Event name. Available events:
- *                             'rangechange', 'rangechanged', 'select'
- * @param {function} callback  Callback function, invoked as callback(properties)
- *                             where properties is an optional object containing
- *                             event specific properties.
- */
-Timeline.prototype.on = function on (event, callback) {
-  var available = ['rangechange', 'rangechanged', 'select'];
-
-  if (available.indexOf(event) == -1) {
-    throw new Error('Unknown event "' + event + '". Choose from ' + available.join());
-  }
-
-  events.addListener(this, event, callback);
-};
-
-/**
- * Remove an event listener
- * @param {String} event       Event name
- * @param {function} callback  Callback function
- */
-Timeline.prototype.off = function off (event, callback) {
-  events.removeListener(this, event, callback);
-};
-
-/**
- * Trigger an event
- * @param {String} event        Event name, available events: 'rangechange',
- *                              'rangechanged', 'select'
- * @param {Object} [properties] Event specific properties
- * @private
- */
-Timeline.prototype._trigger = function _trigger(event, properties) {
-  events.trigger(this, event, properties || {});
-};
-
-/**
  * Handle selecting/deselecting an item when tapping it
  * @param {Event} event
  * @private
  */
+// TODO: move this function to ItemSet
 Timeline.prototype._onSelectItem = function (event) {
   var item = this._itemFromTarget(event);
 
   var selection = item ? [item.id] : [];
   this.setSelection(selection);
 
-  this._trigger('select', {
+  this.emit('select', {
     items: this.getSelection()
   });
 
@@ -7978,6 +8012,7 @@ Timeline.prototype._onSelectItem = function (event) {
  * @param {Event} event
  * @private
  */
+// TODO: move this function to ItemSet
 Timeline.prototype._onMultiSelectItem = function (event) {
   var selection,
       item = this._itemFromTarget(event);
@@ -7999,7 +8034,7 @@ Timeline.prototype._onMultiSelectItem = function (event) {
   }
   this.setSelection(selection);
 
-  this._trigger('select', {
+  this.emit('select', {
     items: this.getSelection()
   });
 
@@ -8013,6 +8048,7 @@ Timeline.prototype._onMultiSelectItem = function (event) {
  * @return {Item | null| item
  * @private
  */
+// TODO: move this function to ItemSet
 Timeline.prototype._itemFromTarget = function _itemFromTarget (event) {
   var target = event.target;
   while (target) {
@@ -16088,7 +16124,173 @@ if (typeof window !== 'undefined') {
 }
 
 
-},{"hammerjs":2,"moment":3,"mousetrap":4}],2:[function(require,module,exports){
+},{"emitter-component":2,"hammerjs":3,"moment":4,"mousetrap":5}],2:[function(require,module,exports){
+
+/**
+ * Expose `Emitter`.
+ */
+
+module.exports = Emitter;
+
+/**
+ * Initialize a new `Emitter`.
+ *
+ * @api public
+ */
+
+function Emitter(obj) {
+  if (obj) return mixin(obj);
+};
+
+/**
+ * Mixin the emitter properties.
+ *
+ * @param {Object} obj
+ * @return {Object}
+ * @api private
+ */
+
+function mixin(obj) {
+  for (var key in Emitter.prototype) {
+    obj[key] = Emitter.prototype[key];
+  }
+  return obj;
+}
+
+/**
+ * Listen on the given `event` with `fn`.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.on =
+Emitter.prototype.addEventListener = function(event, fn){
+  this._callbacks = this._callbacks || {};
+  (this._callbacks[event] = this._callbacks[event] || [])
+    .push(fn);
+  return this;
+};
+
+/**
+ * Adds an `event` listener that will be invoked a single
+ * time then automatically removed.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.once = function(event, fn){
+  var self = this;
+  this._callbacks = this._callbacks || {};
+
+  function on() {
+    self.off(event, on);
+    fn.apply(this, arguments);
+  }
+
+  on.fn = fn;
+  this.on(event, on);
+  return this;
+};
+
+/**
+ * Remove the given callback for `event` or all
+ * registered callbacks.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.off =
+Emitter.prototype.removeListener =
+Emitter.prototype.removeAllListeners =
+Emitter.prototype.removeEventListener = function(event, fn){
+  this._callbacks = this._callbacks || {};
+
+  // all
+  if (0 == arguments.length) {
+    this._callbacks = {};
+    return this;
+  }
+
+  // specific event
+  var callbacks = this._callbacks[event];
+  if (!callbacks) return this;
+
+  // remove all handlers
+  if (1 == arguments.length) {
+    delete this._callbacks[event];
+    return this;
+  }
+
+  // remove specific handler
+  var cb;
+  for (var i = 0; i < callbacks.length; i++) {
+    cb = callbacks[i];
+    if (cb === fn || cb.fn === fn) {
+      callbacks.splice(i, 1);
+      break;
+    }
+  }
+  return this;
+};
+
+/**
+ * Emit `event` with the given args.
+ *
+ * @param {String} event
+ * @param {Mixed} ...
+ * @return {Emitter}
+ */
+
+Emitter.prototype.emit = function(event){
+  this._callbacks = this._callbacks || {};
+  var args = [].slice.call(arguments, 1)
+    , callbacks = this._callbacks[event];
+
+  if (callbacks) {
+    callbacks = callbacks.slice(0);
+    for (var i = 0, len = callbacks.length; i < len; ++i) {
+      callbacks[i].apply(this, args);
+    }
+  }
+
+  return this;
+};
+
+/**
+ * Return array of callbacks for `event`.
+ *
+ * @param {String} event
+ * @return {Array}
+ * @api public
+ */
+
+Emitter.prototype.listeners = function(event){
+  this._callbacks = this._callbacks || {};
+  return this._callbacks[event] || [];
+};
+
+/**
+ * Check if this emitter has `event` handlers.
+ *
+ * @param {String} event
+ * @return {Boolean}
+ * @api public
+ */
+
+Emitter.prototype.hasListeners = function(event){
+  return !! this.listeners(event).length;
+};
+
+},{}],3:[function(require,module,exports){
 /*! Hammer.JS - v1.0.5 - 2013-04-07
  * http://eightmedia.github.com/hammer.js
  *
@@ -17510,7 +17712,7 @@ else {
     }
 }
 })(this);
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 //! moment.js
 //! version : 2.5.1
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
@@ -19912,7 +20114,7 @@ else {
     }
 }).call(this);
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 /**
  * Copyright 2012 Craig Campbell
  *
