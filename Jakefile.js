@@ -3,7 +3,7 @@
  */
 var jake = require('jake'),
     browserify = require('browserify'),
-    path = require('path'),
+    wrench = require('wrench'),
     fs = require('fs');
 
 require('jake-utils');
@@ -29,7 +29,6 @@ task('default', ['build', 'minify'], function () {
 desc('Build the visualization library vis.js');
 task('build', {async: true}, function () {
   jake.mkdirP(DIST);
-
   // concatenate and stringify the css files
   concat({
     src: [
@@ -83,6 +82,10 @@ task('build', {async: true}, function () {
       './src/graph/Popup.js',
       './src/graph/Groups.js',
       './src/graph/Images.js',
+      './src/graph/SectorsMixin.js',
+      './src/graph/ClusterMixin.js',
+      './src/graph/SelectionMixin.js',
+      './src/graph/NavigationMixin.js',
       './src/graph/Graph.js',
 
       './src/module/exports.js'
@@ -91,6 +94,12 @@ task('build', {async: true}, function () {
     separator: '\n'
   });
 
+  // copy images
+  wrench.copyDirSyncRecursive('./src/graph/img', DIST+ '/img', {
+    forceDelete: true
+  });
+
+  var timeStart = Date.now();
   // bundle the concatenated script and dependencies into one file
   var b = browserify();
   b.add(VIS_TMP);
@@ -100,13 +109,13 @@ task('build', {async: true}, function () {
     if(err) {
       throw err;
     }
-
+    console.log("browserify",Date.now() - timeStart); timeStart = Date.now();
     // add header and footer
     var lib = read('./src/module/header.js') + code;
 
     // write bundled file
     write(VIS, lib);
-    console.log('created ' + VIS);
+    console.log('created js' + VIS);
 
     // remove temporary file
     fs.unlinkSync(VIS_TMP);
@@ -133,7 +142,7 @@ task('minify', function () {
   // update version number and stuff in the javascript files
   replacePlaceholders(VIS_MIN);
 
-  console.log('created ' + VIS_MIN);
+  console.log('created minified ' + VIS_MIN);
 });
 
 /**

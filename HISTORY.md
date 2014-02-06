@@ -2,6 +2,35 @@ vis.js history
 http://visjs.org
 
 
+## 2014-01-31, version 0.4.0
+
+### Timeline
+
+- Implemented functions `on` and `off` to create event listeners for events
+  `rangechange`, `rangechanged`, and `select`.
+- Impelmented function `select` to get and set the selected items.
+- Items can be selected by clicking them, muti-select by holding them.
+- Fixed non working `start` and `end` options.
+
+### Graph
+
+- Fixed longstanding bug in the force calculation, increasing simulation
+  stability and fluidity.
+- Reworked the calculation of the Graph, increasing performance for larger
+  datasets (up to 10x!).
+- Support for automatic clustering in Graph to handle large (>50000) datasets
+  without losing performance.
+- Added automatic intial zooming to Graph, to more easily view large amounts
+  of data.
+- Added local declustering to Graph, freezing the simulation of nodes outside
+  of the cluster.
+- Added support for key-bindings by including mouseTrap in Graph.
+- Added navigation controls.
+- Added keyboard navigation.
+- Implemented functions `on` and `off` to create event listeners for event
+  `select`.
+
+
 ## 2014-01-14, version 0.3.0
 
 - Moved the generated library to folder `./dist`

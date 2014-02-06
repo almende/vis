@@ -38,7 +38,7 @@ function Popup(container, x, y, text) {
   style.boxShadow = "3px 3px 10px rgba(128, 128, 128, 0.5)";
   style.whiteSpace = "nowrap";
   this.container.appendChild(this.frame);
-};
+}
 
 /**
  * @param {number} x   Horizontal position of the popup window

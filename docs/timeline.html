@@ -14,6 +14,16 @@
 
 <h1>Timeline documentation</h1>
 
+<h2 id="Overview">Overview</h2>
+<p>
+  The Timeline is an interactive visualization chart to visualize data in time.
+  The data items can take place on a single date, or have a start and end date (a range).
+  You can freely move and zoom in the timeline by dragging and scrolling in the
+  Timeline. Items can be created, edited, and deleted in the timeline.
+  The time scale on the axis is adjusted automatically, and supports scales ranging
+  from milliseconds to years.
+</p>
+
 
 <h2 id="Contents">Contents</h2>
 <ul>
@@ -28,19 +38,10 @@
   </li>
   <li><a href="#Configuration_Options">Configuration Options</a></li>
   <li><a href="#Methods">Methods</a></li>
+  <li><a href="#Events">Events</a></li>
   <li><a href="#Styles">Styles</a></li>
   <li><a href="#Data_Policy">Data Policy</a></li>
 </ul>
-
-<h2 id="Overview">Overview</h2>
-<p>
-  The Timeline is an interactive visualization chart to visualize data in time.
-  The data items can take place on a single date, or have a start and end date (a range).
-  You can freely move and zoom in the timeline by dragging and scrolling in the
-  Timeline. Items can be created, edited, and deleted in the timeline.
-  The time scale on the axis is adjusted automatically, and supports scales ranging
-  from milliseconds to years.
-</p>
 
 <h2 id="Example">Example</h2>
 <p>
@@ -342,7 +343,7 @@ var options = {
 
 <tr>
   <td>end</td>
-  <td>Date</td>
+  <td>Date | Number | String</td>
   <td>none</td>
   <td>The initial end date for the axis of the timeline.
     If not provided, the latest date present in the items set is taken as
@@ -387,7 +388,7 @@ var options = {
 
 <tr>
   <td>max</td>
-  <td>Date</td>
+  <td>Date | Number | String</td>
   <td>none</td>
   <td>Set a maximum Date for the visible range.
     It will not be possible to move beyond this maximum.
@@ -404,7 +405,7 @@ var options = {
 
 <tr>
   <td>min</td>
-  <td>Date</td>
+  <td>Date | Number | String</td>
   <td>none</td>
   <td>Set a minimum Date for the visible range.
     It will not be possible to move beyond this minimum.
@@ -482,7 +483,7 @@ var options = {
 
 <tr>
   <td>start</td>
-  <td>Date</td>
+  <td>Date | Number | String</td>
   <td>none</td>
   <td>The initial start date for the axis of the timeline.
     If not provided, the earliest date present in the events is taken as start date.</td>
@@ -544,12 +545,32 @@ var options = {
     <td>Retrieve the custom time. Only applicable when the option <code>showCustomTime</code> is true.
     </td>
   </tr>
+
   <tr>
     <td>setCustomTime(time)</td>
     <td>none</td>
     <td>Adjust the custom time bar. Only applicable when the option <code>showCustomTime</code> is true. <code>time</code> is a Date object.
     </td>
   </tr>
+
+  <tr>
+    <td>getSelection()</td>
+    <td>ids</td>
+    <td>Get an array with the ids of the currently selected items.</td>
+  </tr>
+
+  <tr>
+    <td>on(event, callback)</td>
+    <td>none</td>
+    <td>Create an event listener. The callback function is invoked every time the event is triggered. Avialable events: <code>rangechange</code>, <code>rangechanged</code>, <code>select</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties. See section <a href="#Events">Events for more information</a>.</td>
+  </tr>
+
+  <tr>
+    <td>off(event, callback)</td>
+    <td>none</td>
+    <td>Remove an event listener created before via function <code>on(event, callback)</code>. See section <a href="#Events">Events for more information</a>.</td>
+  </tr>
+
   <tr>
     <td>setGroups(groups)</td>
     <td>none</td>
@@ -560,6 +581,7 @@ var options = {
       must correspond with the id of the group.
     </td>
   </tr>
+
   <tr>
     <td>setItems(items)</td>
     <td>none</td>
@@ -572,12 +594,107 @@ var options = {
   <tr>
     <td>setOptions(options)</td>
     <td>none</td>
-    <td>Set or update options. It is possible to change any option
-      of the timeline at any time. You can for example switch orientation
-      on the fly.
+    <td>Set or update options. It is possible to change any option of the timeline at any time. You can for example switch orientation on the fly.
     </td>
   </tr>
 
+  <tr>
+    <td>setSelection([ids])</td>
+    <td>none</td>
+    <td>Select or deselect items. Currently selected items will be unselected.
+    </td>
+  </tr>
+
+</table>
+
+
+<h2 id="Events">Events</h2>
+<p>
+  Timeline fires events when changing the visible window by dragging, or when
+  selecting items.
+</p>
+
+<p>
+  Here an example on how to listen for a <code>select</code> event.
+</p>
+
+<pre class="prettyprint lang-js">
+timeline.on('select', function (properties) {
+  alert('selected items: ' + properties.nodes);
+});
+</pre>
+
+<p>
+  A listener can be removed via the function <code>off</code>:
+</p>
+
+<pre class="prettyprint lang-js">
+function onSelect (properties) {
+  alert('selected items: ' + properties.nodes);
+}
+
+// add event listener
+timeline.on('select', onSelect);
+
+// do stuff...
+
+// remove event listener
+timeline.off('select', onSelect);
+</pre>
+
+
+<p>
+  The following events are available.
+</p>
+
+<table>
+  <colgroup>
+    <col style="width: 20%;">
+    <col style="width: 40%;">
+    <col style="width: 40%;">
+  </colgroup>
+
+  <tr>
+    <th>name</th>
+    <th>Description</th>
+    <th>Properties</th>
+  </tr>
+
+  <tr>
+    <td>rangechange</td>
+    <td>Fired repeatedly when the user is dragging the timeline window.
+    </td>
+    <td>
+      <ul>
+        <li><code>start</code> (Number): timestamp of the current start of the window.</li>
+        <li><code>end</code> (Number): timestamp of the current end of the window.</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
+    <td>rangechanged</td>
+    <td>Fired once after the user has dragging the timeline window.
+    </td>
+    <td>
+      <ul>
+        <li><code>start</code> (Number): timestamp of the current start of the window.</li>
+        <li><code>end</code> (Number): timestamp of the current end of the window.</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
+    <td>select</td>
+    <td>Fired after the user selects or deselects items by tapping or holding them.
+      Not fired when the method <code>setSelection</code>is executed.
+    </td>
+    <td>
+      <ul>
+        <li><code>items</code>: an array with the ids of the selected items</li>
+      </ul>
+    </td>
+  </tr>
 
 </table>
 

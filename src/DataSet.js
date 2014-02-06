@@ -42,6 +42,7 @@ function DataSet (options) {
   this.data = {};                                 // map with data indexed by id
   this.fieldId = this.options.fieldId || 'id';    // name of the field containing id
   this.convert = {};                              // field types by field name
+  this.showInternalIds = this.options.showInternalIds || false; // show internal ids with the get function
 
   if (this.options.convert) {
     for (var field in this.options.convert) {
@@ -275,6 +276,7 @@ DataSet.prototype.update = function (data, senderId) {
  */
 DataSet.prototype.get = function (args) {
   var me = this;
+  var globalShowInternalIds = this.showInternalIds;
 
   // parse the arguments
   var id, ids, options, data;
@@ -318,6 +320,13 @@ DataSet.prototype.get = function (args) {
     type = 'Array';
   }
 
+  // we allow the setting of this value for a single get request.
+  if (options != undefined) {
+    if (options.showInternalIds != undefined) {
+      this.showInternalIds = options.showInternalIds;
+    }
+  }
+
   // build options
   var convert = options && options.convert || this.options.convert;
   var filter = options && options.filter;
@@ -351,6 +360,9 @@ DataSet.prototype.get = function (args) {
       }
     }
   }
+
+  // restore the global value of showInternalIds
+  this.showInternalIds = globalShowInternalIds;
 
   // order the results
   if (options && options.order && id == undefined) {
@@ -831,7 +843,7 @@ DataSet.prototype._getItem = function (id, convert) {
       if (raw.hasOwnProperty(field)) {
         value = raw[field];
         // output all fields, except internal ids
-        if ((field != fieldId) || !(value in internalIds)) {
+        if ((field != fieldId) || (!(value in internalIds) || this.showInternalIds)) {
           converted[field] = util.convert(value, convert[field]);
         }
       }
@@ -843,13 +855,12 @@ DataSet.prototype._getItem = function (id, convert) {
       if (raw.hasOwnProperty(field)) {
         value = raw[field];
         // output all fields, except internal ids
-        if ((field != fieldId) || !(value in internalIds)) {
+        if ((field != fieldId) || (!(value in internalIds) || this.showInternalIds)) {
           converted[field] = value;
         }
       }
     }
   }
-
   return converted;
 };
 
@@ -882,6 +893,17 @@ DataSet.prototype._updateItem = function (item) {
 
   return id;
 };
+
+/**
+ * check if an id is an internal or external id
+ * @param id
+ * @returns {boolean}
+ * @private
+ */
+DataSet.prototype.isInternalId = function(id) {
+  return (id in this.internalIds);
+};
+
 
 /**
  * Get an array with the column names of a Google DataTable

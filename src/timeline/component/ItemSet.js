@@ -112,11 +112,13 @@ ItemSet.prototype.setRange = function setRange(range) {
 };
 
 /**
- * Change the item selection, and/or get currently selected items
- * @param {Array} [ids] An array with zero or more ids of the items to be selected.
- * @return {Array} ids  The ids of the selected items
+ * Set selected items by their id. Replaces the current selection
+ * Unknown id's are silently ignored.
+ * @param {Array} [ids] An array with zero or more id's of the items to be
+ *                      selected. If ids is an empty array, all items will be
+ *                      unselected.
  */
-ItemSet.prototype.select = function select(ids) {
+ItemSet.prototype.setSelection = function setSelection(ids) {
   var i, ii, id, item, selection;
 
   if (ids) {
@@ -152,11 +154,14 @@ ItemSet.prototype.select = function select(ids) {
       this.requestRepaint();
     }
   }
-  else {
-    selection = this.selection.concat([]);
-  }
+};
 
-  return selection;
+/**
+ * Get the selected items by their id
+ * @return {Array} ids  The ids of the selected items
+ */
+ItemSet.prototype.getSelection = function getSelection() {
+  return this.selection.concat([]);
 };
 
 /**
@@ -262,80 +267,82 @@ ItemSet.prototype.repaint = function repaint() {
       };
 
   // show/hide added/changed/removed items
-  Object.keys(queue).forEach(function (id) {
-    //var entry = queue[id];
-    var action = queue[id];
-    var item = items[id];
-    //var item = entry.item;
-    //noinspection FallthroughInSwitchStatementJS
-    switch (action) {
-      case 'add':
-      case 'update':
-        var itemData = itemsData && itemsData.get(id, dataOptions);
+  for (var id in queue) {
+    if (queue.hasOwnProperty(id)) {
+      var entry = queue[id],
+          item = items[id],
+          action = entry.action;
 
-        if (itemData) {
-          var type = itemData.type ||
-              (itemData.start && itemData.end && 'range') ||
-              options.type ||
-              'box';
-          var constructor = ItemSet.types[type];
+      //noinspection FallthroughInSwitchStatementJS
+      switch (action) {
+        case 'add':
+        case 'update':
+          var itemData = itemsData && itemsData.get(id, dataOptions);
 
-          // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
+          if (itemData) {
+            var type = itemData.type ||
+                (itemData.start && itemData.end && 'range') ||
+                options.type ||
+                'box';
+            var constructor = ItemSet.types[type];
+
+            // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
+            if (item) {
+              // update item
+              if (!constructor || !(item instanceof constructor)) {
+                // item type has changed, hide and delete the item
+                changed += item.hide();
+                item = null;
+              }
+              else {
+                item.data = itemData; // TODO: create a method item.setData ?
+                changed++;
+              }
+            }
+
+            if (!item) {
+              // create item
+              if (constructor) {
+                item = new constructor(me, itemData, options, defaultOptions);
+                item.id = entry.id; // we take entry.id, as id itself is stringified
+                changed++;
+              }
+              else {
+                throw new TypeError('Unknown item type "' + type + '"');
+              }
+            }
+
+            // force a repaint (not only a reposition)
+            item.repaint();
+
+            items[id] = item;
+          }
+
+          // update queue
+          delete queue[id];
+          break;
+
+        case 'remove':
           if (item) {
-            // update item
-            if (!constructor || !(item instanceof constructor)) {
-              // item type has changed, hide and delete the item
-              changed += item.hide();
-              item = null;
+            // remove the item from the set selected items
+            if (item.selected) {
+              me._deselect(id);
             }
-            else {
-              item.data = itemData; // TODO: create a method item.setData ?
-              changed++;
-            }
+
+            // remove DOM of the item
+            changed += item.hide();
           }
 
-          if (!item) {
-            // create item
-            if (constructor) {
-              item = new constructor(me, itemData, options, defaultOptions);
-              item.id = id;
-              changed++;
-            }
-            else {
-              throw new TypeError('Unknown item type "' + type + '"');
-            }
-          }
+          // update lists
+          delete items[id];
+          delete queue[id];
+          break;
 
-          // force a repaint (not only a reposition)
-          item.repaint();
-
-          items[id] = item;
-        }
-
-        // update queue
-        delete queue[id];
-        break;
-
-      case 'remove':
-        if (item) {
-          // remove the item from the set selected items
-          if (item.selected) {
-            me._deselect(id);
-          }
-
-          // remove DOM of the item
-          changed += item.hide();
-        }
-
-        // update lists
-        delete items[id];
-        delete queue[id];
-        break;
-
-      default:
-        console.log('Error: unknown action "' + action + '"');
+        default:
+          console.log('Error: unknown action "' + action + '"');
+      }
     }
-  });
+  }
 
   // reposition all items. Show items only when in the visible area
   util.forEach(this.items, function (item) {
@@ -546,7 +553,10 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
 ItemSet.prototype._toQueue = function _toQueue(action, ids) {
   var queue = this.queue;
   ids.forEach(function (id) {
-    queue[id] = action;
+    queue[id] = {
+      id: id,
+      action: action
+    };
   });
 
   if (this.controller) {

@@ -33,7 +33,7 @@
   border-bottom: 1px solid #bfbfbf;
 }
 
-.vis.timeline .labels .label-set .label {
+.vis.timeline .labels .label-set .vlabel {
   position: absolute;
   left: 0;
   top: 0;
@@ -41,19 +41,19 @@
   color: #4d4d4d;
 }
 
-.vis.timeline.top .labels .label-set .label,
+.vis.timeline.top .labels .label-set .vlabel,
 .vis.timeline.top .groupset .itemset-axis {
   border-top: 1px solid #bfbfbf;
   border-bottom: none;
 }
 
-.vis.timeline.bottom .labels .label-set .label,
+.vis.timeline.bottom .labels .label-set .vlabel,
 .vis.timeline.bottom .groupset .itemset-axis {
   border-top: none;
   border-bottom: 1px solid #bfbfbf;
 }
 
-.vis.timeline .labels .label-set .label .inner {
+.vis.timeline .labels .label-set .vlabel .inner {
   display: inline-block;
   padding: 5px;
 }

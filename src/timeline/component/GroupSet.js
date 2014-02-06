@@ -150,11 +150,13 @@ GroupSet.prototype.getGroups = function getGroups() {
 };
 
 /**
- * Change the item selection, and/or get currently selected items
- * @param {Array} [ids] An array with zero or more ids of the items to be selected.
- * @return {Array} ids  The ids of the selected items
+ * Set selected items by their id. Replaces the current selection.
+ * Unknown id's are silently ignored.
+ * @param {Array} [ids] An array with zero or more id's of the items to be
+ *                      selected. If ids is an empty array, all items will be
+ *                      unselected.
  */
-GroupSet.prototype.select = function select(ids) {
+GroupSet.prototype.setSelection = function setSelection(ids) {
   var selection = [],
       groups = this.groups;
 
@@ -162,7 +164,26 @@ GroupSet.prototype.select = function select(ids) {
   for (var id in groups) {
     if (groups.hasOwnProperty(id)) {
       var group = groups[id];
-      selection = selection.concat(group.select(ids));
+      group.setSelection(ids);
+    }
+  }
+
+  return selection;
+};
+
+/**
+ * Get the selected items by their id
+ * @return {Array} ids  The ids of the selected items
+ */
+GroupSet.prototype.getSelection = function getSelection() {
+  var selection = [],
+      groups = this.groups;
+
+  // iterate over each of the groups
+  for (var id in groups) {
+    if (groups.hasOwnProperty(id)) {
+      var group = groups[id];
+      selection = selection.concat(group.getSelection());
     }
   }
 
@@ -358,7 +379,7 @@ GroupSet.prototype.repaint = function repaint() {
 GroupSet.prototype._createLabel = function(id) {
   var group = this.groups[id];
   var label = document.createElement('div');
-  label.className = 'label';
+  label.className = 'vlabel';
   var inner = document.createElement('div');
   inner.className = 'inner';
   label.appendChild(inner);
