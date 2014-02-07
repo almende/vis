@@ -96,6 +96,9 @@ task('build', {async: true}, function () {
   wrench.copyDirSyncRecursive('./src/graph/img', DIST+ '/img', {
     forceDelete: true
   });
+  wrench.copyDirSyncRecursive('./src/timeline/img', DIST+ '/img/timeline', {
+    forceDelete: true
+  });
 
   var timeStart = Date.now();
   // bundle the concatenated script and dependencies into one file

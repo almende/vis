@@ -5,12 +5,14 @@
   border-color: #97B0F8;
   background-color: #D5DDF6;
   display: inline-block;
+  padding: 5px;
 }
 
 .vis.timeline .item.selected {
   border-color: #FFC200;
   background-color: #FFF785;
   z-index: 999;
+  cursor: move;
 }
 
 .vis.timeline .item.point.selected {
@@ -43,6 +45,7 @@
 }
 
 .vis.timeline .dot {
+  padding: 0;
   border: 5px solid #97B0F8;
   position: absolute;
   border-radius: 5px;
@@ -50,7 +53,6 @@
 }
 
 .vis.timeline .item.range {
-  overflow: hidden;
   border-style: solid;
   border-width: 1px;
   border-radius: 2px;
@@ -80,6 +82,7 @@
 }
 
 .vis.timeline .item.line {
+  padding: 0;
   position: absolute;
   width: 0;
   border-left-width: 1px;
@@ -87,7 +90,20 @@
 }
 
 .vis.timeline .item .content {
-  margin: 5px;
   white-space: nowrap;
   overflow: hidden;
+}
+
+.vis.timeline .item.range .content {
+  width: 100%;
+}
+
+.vis.timeline .item .delete {
+  background: url('img/timeline/delete.png') no-repeat top center;
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  top: 0;
+  right: -24px;
+  cursor: pointer;
 }

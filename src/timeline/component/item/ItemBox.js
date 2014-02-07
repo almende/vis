@@ -79,6 +79,8 @@ ItemBox.prototype.repaint = function repaint() {
       changed = true;
     }
 
+    this._repaintDeleteButton(dom.box);
+
     // update contents
     if (this.data.content != this.content) {
       this.content = this.data.content;

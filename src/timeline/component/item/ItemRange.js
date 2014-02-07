@@ -67,6 +67,8 @@ ItemRange.prototype.repaint = function repaint() {
       changed = true;
     }
 
+    this._repaintDeleteButton(dom.box);
+
     // update class
     var className = (this.data.className? ' ' + this.data.className : '') +
         (this.selected ? ' selected' : '');

@@ -80,3 +80,42 @@ Item.prototype.reflow = function reflow() {
 Item.prototype.setOffset = function setOffset(offset) {
   this.offset = offset;
 };
+
+/**
+ * Repaint a delete button on the top right of the item when the item is selected
+ * @param {HTMLElement} anchor
+ * @private
+ */
+Item.prototype._repaintDeleteButton = function (anchor) {
+  // show/remove delete button
+  if (this.selected && !this.dom.deleteButton) {
+    var parent = this.parent;
+    var id = this.id;
+    this.dom.deleteButton = Item.createDeleteButton(function () {
+      parent.removeItem(id);
+    });
+    anchor.appendChild(this.dom.deleteButton);
+  }
+  else if (!this.selected && this.dom.deleteButton) {
+    if (this.dom.deleteButton.parentNode) {
+      this.dom.deleteButton.parentNode.removeChild(this.dom.deleteButton);
+    }
+    this.dom.deleteButton = null;
+  }
+};
+
+/**
+ * Create a delete button which can be attached to this item
+ * @param {function} callback    Called when the button is clicked
+ * @returns {HTMLElement} deleteButton
+ */
+Item.createDeleteButton = function createDeleteButton (callback) {
+  var button = document.createElement('div');
+  button.className = 'delete';
+
+  Hammer(button, {
+    preventDefault: true
+  }).on('tap', callback);
+
+  return button;
+};

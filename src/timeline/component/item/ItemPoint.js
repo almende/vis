@@ -73,6 +73,8 @@ ItemPoint.prototype.repaint = function repaint() {
       changed = true;
     }
 
+    this._repaintDeleteButton(dom.point);
+
     // update class
     var className = (this.data.className? ' ' + this.data.className : '') +
         (this.selected ? ' selected' : '');

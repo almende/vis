@@ -6,7 +6,7 @@ http://visjs.org
 
 ### Timeline
 
-- items can be dragged.
+- items can be dragged and deleted.
 - Implemented options `selectable`, `editable`.
 - added events when dragging the custom time bar.
 

@@ -573,6 +573,15 @@ ItemSet.prototype.getItems = function getItems() {
 };
 
 /**
+ * Remove an item by its id
+ * @param {String | Number} id
+ */
+ItemSet.prototype.removeItem = function removeItem (id) {
+  var dataset = this._myDataSet();
+  dataset.remove(id);
+};
+
+/**
  * Handle updated items
  * @param {Number[]} ids
  * @private
@@ -742,14 +751,10 @@ ItemSet.prototype._onDragEnd = function (event) {
     });
     this.touchParams.items = null;
 
-    // find the root DataSet from our DataSet/DataView
-    var data = this.itemsData;
-    while (data instanceof DataView) {
-      data = data.data;
-    }
 
     // apply the changes to the data
-    data.update(changes);
+    var dataset = this._myDataSet();
+    dataset.update(changes);
 
     event.stopPropagation();
   }
@@ -789,4 +794,18 @@ ItemSet.itemSetFromTarget = function itemSetFromTarget (event) {
   }
 
   return null;
+};
+
+/**
+ * Find the DataSet to which this ItemSet is connected
+ * @returns {null | DataSet} dataset
+ * @private
+ */
+ItemSet.prototype._myDataSet = function _myDataSet() {
+  // find the root DataSet
+  var dataset = this.itemsData;
+  while (dataset instanceof DataView) {
+    dataset = dataset.data;
+  }
+  return dataset;
 };
