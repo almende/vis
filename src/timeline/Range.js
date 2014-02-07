@@ -16,6 +16,9 @@ function Range(options) {
   this.setOptions(options);
 }
 
+// extend the Range prototype with an event emitter mixin
+Emitter(Range.prototype);
+
 /**
  * Set options for the range controller
  * @param {Object} options      Available options:
@@ -100,44 +103,6 @@ Range.prototype.subscribe = function (controller, component, event, direction) {
 };
 
 /**
- * Add event listener
- * @param {String} event       Name of the event.
- *                             Available events: 'rangechange', 'rangechanged'
- * @param {function} callback  Callback function, invoked as callback({start: Date, end: Date})
- */
-Range.prototype.on = function on (event, callback) {
-  var available = ['rangechange', 'rangechanged'];
-
-  if (available.indexOf(event) == -1) {
-    throw new Error('Unknown event "' + event + '". Choose from ' + available.join());
-  }
-
-  events.addListener(this, event, callback);
-};
-
-/**
- * Remove an event listener
- * @param {String} event       name of the event
- * @param {function} callback  callback handler
- */
-Range.prototype.off = function off (event, callback) {
-  events.removeListener(this, event, callback);
-};
-
-/**
- * Trigger an event
- * @param {String} event    name of the event, available events: 'rangechange',
- *                          'rangechanged'
- * @private
- */
-Range.prototype._trigger = function (event) {
-  events.trigger(this, event, {
-    start: this.start,
-    end: this.end
-  });
-};
-
-/**
  * Set a new start and end range
  * @param {Number} [start]
  * @param {Number} [end]
@@ -145,8 +110,12 @@ Range.prototype._trigger = function (event) {
 Range.prototype.setRange = function(start, end) {
   var changed = this._applyRange(start, end);
   if (changed) {
-    this._trigger('rangechange');
-    this._trigger('rangechanged');
+    var params = {
+          start: this.start,
+          end: this.end
+    };
+    this.emit('rangechange', params);
+    this.emit('rangechanged', params);
   }
 };
 
@@ -350,7 +319,10 @@ Range.prototype._onDrag = function (event, component, direction) {
   this._applyRange(touchParams.start + diffRange, touchParams.end + diffRange);
 
   // fire a rangechange event
-  this._trigger('rangechange');
+  this.emit('rangechange', {
+    start: this.start,
+    end: this.end
+  });
 };
 
 /**
@@ -369,7 +341,10 @@ Range.prototype._onDragEnd = function (event, component) {
   }
 
   // fire a rangechanged event
-  this._trigger('rangechanged');
+  this.emit('rangechanged', {
+    start: this.start,
+    end: this.end
+  });
 };
 
 /**
