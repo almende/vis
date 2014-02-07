@@ -213,9 +213,7 @@ var SelectionMixin = {
     this.selectionObj = {};
 
     if (doNotTrigger == false) {
-      this._trigger('select', {
-        nodes: this.getSelection()
-      });
+      this.emit('select', this.getSelection());
     }
   },
 
@@ -242,9 +240,7 @@ var SelectionMixin = {
     }
 
     if (doNotTrigger == false) {
-      this._trigger('select', {
-        nodes: this.getSelection()
-      });
+      this.emit('select', this.getSelection());
     }
   },
 
@@ -399,9 +395,7 @@ var SelectionMixin = {
       this._removeFromSelection(object);
     }
     if (doNotTrigger == false) {
-      this._trigger('select', {
-        nodes: this.getSelection()
-      });
+      this.emit('select', this.getSelection());
     }
   },
 
@@ -512,7 +506,10 @@ var SelectionMixin = {
   getSelection : function() {
     var nodeIds = this.getSelectedNodes();
     var edgeIds = this.getSelectedEdges();
-    return {nodes:nodeIds, edges:edgeIds};
+    return {
+      nodes: nodeIds,
+      edges: edgeIds
+    };
   },
 
   /**
@@ -636,7 +633,7 @@ var SelectionMixin = {
 =======
     if (changed) {
       // fire the select event
-      this._trigger('select', {
+      this.emit('select', {
         nodes: this.getSelection()
       });
     }
