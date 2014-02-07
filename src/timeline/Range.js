@@ -394,7 +394,7 @@ Range.prototype._onMouseWheel = function(event, component, direction) {
 
   // Prevent default actions caused by mouse wheel
   // (else the page and timeline both zoom and scroll)
-  util.preventDefault(event);
+  event.preventDefault();
 };
 
 /**

@@ -534,21 +534,6 @@ util.getTarget = function getTarget(event) {
 };
 
 /**
- * Stop event propagation
- */
-util.stopPropagation = function stopPropagation(event) {
-  if (!event)
-    event = window.event;
-
-  if (event.stopPropagation) {
-    event.stopPropagation();  // non-IE browsers
-  }
-  else {
-    event.cancelBubble = true;  // IE browsers
-  }
-};
-
-/**
  * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
  * @param {Element} element
  * @param {Event} event
@@ -563,22 +548,6 @@ util.fakeGesture = function fakeGesture (element, event) {
   //var touches = Hammer.event.getTouchList(event, eventType);
   //return Hammer.event.collectEventData(this, eventType, touches, event);
 };
-
-/**
- * Cancels the event if it is cancelable, without stopping further propagation of the event.
- */
-util.preventDefault = function preventDefault (event) {
-  if (!event)
-    event = window.event;
-
-  if (event.preventDefault) {
-    event.preventDefault();  // non-IE browsers
-  }
-  else {
-    event.returnValue = false;  // IE browsers
-  }
-};
-
 
 util.option = {};
 
