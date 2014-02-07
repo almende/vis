@@ -677,8 +677,7 @@ ItemSet.prototype.toScreen = function toScreen(time) {
  * @private
  */
 ItemSet.prototype._onDragStart = function (event) {
-  var itemSet = ItemSet.itemSetFromTarget(event),
-      item = ItemSet.itemFromTarget(event),
+  var item = ItemSet.itemFromTarget(event),
       me = this;
 
   if (item && item.selected) {
@@ -703,6 +702,8 @@ ItemSet.prototype._onDrag = function (event) {
     this.touchParams.items.forEach(function (item) {
       item.setOffset(deltaX);
     });
+
+    // TODO: stacking on dragend changes the order. (stacking orders by start date, which isn't yet changed)
 
     // TODO: implement snapping to nice dates
 

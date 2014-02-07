@@ -96,12 +96,12 @@ function Timeline (container, items, options) {
   this.range.subscribe(this.controller, this.rootPanel, 'zoom', 'horizontal');
   this.range.on('rangechange', function (properties) {
     var force = true;
-    me.controller.requestReflow(force);
+    me.controller.emit('request-reflow', force);
     me.emit('rangechange', properties);
   });
   this.range.on('rangechanged', function (properties) {
     var force = true;
-    me.controller.requestReflow(force);
+    me.controller.emit('request-reflow', force);
     me.emit('rangechanged', properties);
   });
 

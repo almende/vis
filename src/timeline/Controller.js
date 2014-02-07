@@ -1,14 +1,54 @@
 /**
  * @constructor Controller
  *
- * A Controller controls the reflows and repaints of all visual components
+ * A Controller controls the reflows and repaints of all components,
+ * and is used as an event bus for all components.
  */
 function Controller () {
+  var me = this;
+
   this.id = util.randomUUID();
   this.components = {};
 
-  this.repaintTimer = undefined;
-  this.reflowTimer = undefined;
+  /**
+   * Listen for a 'request-reflow' event. The controller will schedule a reflow
+   * @param {Boolean} [force]     If true, an immediate reflow is forced. Default
+   *                              is false.
+   */
+  var reflowTimer = null;
+  this.on('request-reflow', function requestReflow(force) {
+    if (force) {
+      me.reflow();
+    }
+    else {
+      if (!reflowTimer) {
+        reflowTimer = setTimeout(function () {
+          reflowTimer = null;
+          me.reflow();
+        }, 0);
+      }
+    }
+  });
+
+  /**
+   * Request a repaint. The controller will schedule a repaint
+   * @param {Boolean} [force]    If true, an immediate repaint is forced. Default
+   *                             is false.
+   */
+  var repaintTimer = null;
+  this.on('request-repaint', function requestRepaint(force) {
+    if (force) {
+      me.repaint();
+    }
+    else {
+      if (!repaintTimer) {
+        repaintTimer = setTimeout(function () {
+          repaintTimer = null;
+          me.repaint();
+        }, 0);
+      }
+    }
+  });
 }
 
 // Extend controller with Emitter mixin
@@ -53,48 +93,6 @@ Controller.prototype.remove = function remove(component) {
     this.components[id].setController(null);
 
     delete this.components[id];
-  }
-};
-
-/**
- * Request a reflow. The controller will schedule a reflow
- * @param {Boolean} [force]     If true, an immediate reflow is forced. Default
- *                              is false.
- */
-// TODO: change requestReflow into an event
-Controller.prototype.requestReflow = function requestReflow(force) {
-  if (force) {
-    this.reflow();
-  }
-  else {
-    if (!this.reflowTimer) {
-      var me = this;
-      this.reflowTimer = setTimeout(function () {
-        me.reflowTimer = undefined;
-        me.reflow();
-      }, 0);
-    }
-  }
-};
-
-/**
- * Request a repaint. The controller will schedule a repaint
- * @param {Boolean} [force]    If true, an immediate repaint is forced. Default
- *                             is false.
- */
-// TODO: change requestReflow into an event
-Controller.prototype.requestRepaint = function requestRepaint(force) {
-  if (force) {
-    this.repaint();
-  }
-  else {
-    if (!this.repaintTimer) {
-      var me = this;
-      this.repaintTimer = setTimeout(function () {
-        me.repaintTimer = undefined;
-        me.repaint();
-      }, 0);
-    }
   }
 };
 

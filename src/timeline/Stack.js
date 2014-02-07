@@ -63,10 +63,8 @@ Stack.prototype.update = function update() {
 };
 
 /**
- * Order the items. The items are ordered by width first, and by left position
- * second.
- * If a custom order function has been provided via the options, then this will
- * be used.
+ * Order the items. If a custom order function has been provided via the options,
+ * then this will be used.
  * @private
  */
 Stack.prototype._order = function _order () {
