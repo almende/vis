@@ -54,7 +54,6 @@ task('build', {async: true}, function () {
 
       './src/shim.js',
       './src/util.js',
-      './src/events.js',
       './src/DataSet.js',
       './src/DataView.js',
 

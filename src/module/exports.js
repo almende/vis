@@ -3,7 +3,6 @@
  */
 var vis = {
   util: util,
-  events: events,
 
   Controller: Controller,
   DataSet: DataSet,
