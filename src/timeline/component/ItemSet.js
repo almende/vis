@@ -203,12 +203,6 @@ ItemSet.prototype.setSelection = function setSelection(ids) {
       }
     }
 
-    // trigger a select event
-    selection = this.selection.concat([]);
-    events.trigger(this, 'select', {
-      ids: selection
-    });
-
     if (this.controller) {
       this.requestRepaint();
     }

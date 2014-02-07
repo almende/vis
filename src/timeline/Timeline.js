@@ -96,13 +96,13 @@ function Timeline (container, items, options) {
   this.range.subscribe(this.controller, this.rootPanel, 'zoom', 'horizontal');
   this.range.on('rangechange', function (properties) {
     var force = true;
+    me.controller.emit('rangechange', properties);
     me.controller.emit('request-reflow', force);
-    me.emit('rangechange', properties);
   });
   this.range.on('rangechanged', function (properties) {
     var force = true;
+    me.controller.emit('rangechanged', properties);
     me.controller.emit('request-reflow', force);
-    me.emit('rangechanged', properties);
   });
 
   // time axis
@@ -141,8 +141,24 @@ function Timeline (container, items, options) {
   }
 }
 
-// extend Timeline with the Emitter mixin
-Emitter(Timeline.prototype);
+/**
+ * Add an event listener to the timeline
+ * @param {String} event    Available events: select, rangechange, rangechanged,
+ *                          timechange, timechanged
+ * @param {function} callback
+ */
+Timeline.prototype.on = function on (event, callback) {
+  this.controller.on(event, callback);
+};
+
+/**
+ * Add an event listener from the timeline
+ * @param {String} event
+ * @param {function} callback
+ */
+Timeline.prototype.off = function off (event, callback) {
+  this.controller.off(event, callback);
+};
 
 /**
  * Set options
@@ -164,7 +180,11 @@ Timeline.prototype.setOptions = function (options) {
  * @param {Date} time
  */
 Timeline.prototype.setCustomTime = function (time) {
-  this.customtime._setCustomTime(time);
+  if (!this.customtime) {
+    throw new Error('Cannot get custom time: Custom time bar is not enabled');
+  }
+
+  this.customtime.setCustomTime(time);
 };
 
 /**
@@ -172,7 +192,11 @@ Timeline.prototype.setCustomTime = function (time) {
  * @return {Date} customTime
  */
 Timeline.prototype.getCustomTime = function() {
-  return new Date(this.customtime.customTime.valueOf());
+  if (!this.customtime) {
+    throw new Error('Cannot get custom time: Custom time bar is not enabled');
+  }
+
+  return this.customtime.getCustomTime();
 };
 
 /**
@@ -383,7 +407,7 @@ Timeline.prototype._onSelectItem = function (event) {
   var selection = item ? [item.id] : [];
   this.setSelection(selection);
 
-  this.emit('select', {
+  this.controller.emit('select', {
     items: this.getSelection()
   });
 
@@ -417,7 +441,7 @@ Timeline.prototype._onMultiSelectItem = function (event) {
   }
   this.setSelection(selection);
 
-  this.emit('select', {
+  this.controller.emit('select', {
     items: this.getSelection()
   });
 

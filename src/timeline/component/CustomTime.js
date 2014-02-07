@@ -19,11 +19,13 @@ function CustomTime (parent, depends, options) {
     showCustomTime: false
   };
 
-  this.listeners = [];
   this.customTime = new Date();
+  this.eventParams = {}; // stores state parameters while dragging the bar
 }
 
 CustomTime.prototype = new Component();
+
+Emitter(CustomTime.prototype);
 
 CustomTime.prototype.setOptions = Component.prototype.setOptions;
 
@@ -59,7 +61,7 @@ CustomTime.prototype.repaint = function () {
       delete this.frame;
     }
 
-    return;
+    return false;
   }
 
   if (!bar) {
@@ -81,7 +83,8 @@ CustomTime.prototype.repaint = function () {
 
     this.frame = bar;
 
-    this.subscribe(this, 'movetime');
+    var me = this;
+    util.addEventListener(bar, 'mousedown', me._onMouseDown.bind(me));
   }
 
   if (!parent.conversion) {
@@ -100,7 +103,7 @@ CustomTime.prototype.repaint = function () {
  * Set custom time.
  * @param {Date} time
  */
-CustomTime.prototype._setCustomTime = function(time) {
+CustomTime.prototype.setCustomTime = function(time) {
   this.customTime = new Date(time.valueOf());
   this.repaint();
 };
@@ -109,55 +112,17 @@ CustomTime.prototype._setCustomTime = function(time) {
  * Retrieve the current custom time.
  * @return {Date} customTime
  */
-CustomTime.prototype._getCustomTime = function() {
+CustomTime.prototype.getCustomTime = function() {
   return new Date(this.customTime.valueOf());
-};
-
-/**
- * Add listeners for mouse and touch events to the component
- * @param {Component} component
- */
-CustomTime.prototype.subscribe = function (component, event) {
-  var me = this;
-  var listener = {
-    component: component,
-    event: event,
-    callback: function (event) {
-      me._onMouseDown(event, listener);
-    },
-    params: {}
-  };
-
-  component.on('mousedown', listener.callback);
-  me.listeners.push(listener);
-
-};
-
-/**
- * Event handler
- * @param {String} event       name of the event, for example 'click', 'mousemove'
- * @param {function} callback  callback handler, invoked with the raw HTML Event
- *                             as parameter.
- */
-CustomTime.prototype.on = function (event, callback) {
-  var bar = this.frame;
-  if (!bar) {
-    throw new Error('Cannot add event listener: no parent attached');
-  }
-
-  events.addListener(this, event, callback);
-  util.addEventListener(bar, event, callback);
 };
 
 /**
  * Start moving horizontally
  * @param {Event} event
- * @param {Object} listener   Listener containing the component and params
  * @private
  */
-CustomTime.prototype._onMouseDown = function(event, listener) {
+CustomTime.prototype._onMouseDown = function(event) {
   event = event || window.event;
-  var params = listener.params;
 
   // only react on left mouse button down
   var leftButtonDown = event.which ? (event.which == 1) : (event.button == 1);
@@ -166,24 +131,20 @@ CustomTime.prototype._onMouseDown = function(event, listener) {
   }
 
   // get mouse position
-  params.mouseX = util.getPageX(event);
-  params.moved = false;
+  this.eventParams.mouseX = util.getPageX(event);
+  this.eventParams.moved = false;
 
-  params.customTime = this.customTime;
+  this.eventParams.customTime = this.customTime;
 
   // add event listeners to handle moving the custom time bar
   var me = this;
-  if (!params.onMouseMove) {
-    params.onMouseMove = function (event) {
-      me._onMouseMove(event, listener);
-    };
-    util.addEventListener(document, 'mousemove', params.onMouseMove);
+  if (!this.eventParams.onMouseMove) {
+    this.eventParams.onMouseMove = me._onMouseMove.bind(me);
+    util.addEventListener(document, 'mousemove', this.eventParams.onMouseMove);
   }
-  if (!params.onMouseUp) {
-    params.onMouseUp = function (event) {
-      me._onMouseUp(event, listener);
-    };
-    util.addEventListener(document, 'mouseup', params.onMouseUp);
+  if (!this.eventParams.onMouseUp) {
+    this.eventParams.onMouseUp = me._onMouseUp.bind(me);
+    util.addEventListener(document, 'mouseup', this.eventParams.onMouseUp);
   }
 
   util.stopPropagation(event);
@@ -192,37 +153,38 @@ CustomTime.prototype._onMouseDown = function(event, listener) {
 
 /**
  * Perform moving operating.
- * This function activated from within the funcion CustomTime._onMouseDown().
+ * This function activated from within the function CustomTime._onMouseDown().
  * @param {Event} event
- * @param {Object} listener
  * @private
  */
-CustomTime.prototype._onMouseMove = function (event, listener) {
+CustomTime.prototype._onMouseMove = function (event) {
   event = event || window.event;
-  var params = listener.params;
   var parent = this.parent;
 
   // calculate change in mouse position
   var mouseX = util.getPageX(event);
 
-  if (params.mouseX === undefined) {
-    params.mouseX = mouseX;
+  if (this.eventParams.mouseX === undefined) {
+    this.eventParams.mouseX = mouseX;
   }
 
-  var diff = mouseX - params.mouseX;
+  var diff = mouseX - this.eventParams.mouseX;
 
   // if mouse movement is big enough, register it as a "moved" event
   if (Math.abs(diff) >= 1) {
-    params.moved = true;
+    this.eventParams.moved = true;
   }
 
-  var x = parent.toScreen(params.customTime);
+  var x = parent.toScreen(this.eventParams.customTime);
   var xnew = x + diff;
-  var time = parent.toTime(xnew);
-  this._setCustomTime(time);
+  this.setCustomTime(parent.toTime(xnew));
 
   // fire a timechange event
-  events.trigger(this, 'timechange', {customTime: this.customTime});
+  if (this.controller) {
+    this.controller.emit('timechange', {
+      time: this.customTime
+    })
+  }
 
   util.preventDefault(event);
 };
@@ -231,25 +193,25 @@ CustomTime.prototype._onMouseMove = function (event, listener) {
  * Stop moving operating.
  * This function activated from within the function CustomTime._onMouseDown().
  * @param {event} event
- * @param {Object} listener
  * @private
  */
-CustomTime.prototype._onMouseUp = function (event, listener) {
-  event = event || window.event;
-  var params = listener.params;
-
+CustomTime.prototype._onMouseUp = function (event) {
   // remove event listeners here, important for Safari
-  if (params.onMouseMove) {
-    util.removeEventListener(document, 'mousemove', params.onMouseMove);
-    params.onMouseMove = null;
+  if (this.eventParams.onMouseMove) {
+    util.removeEventListener(document, 'mousemove', this.eventParams.onMouseMove);
+    this.eventParams.onMouseMove = null;
   }
-  if (params.onMouseUp) {
-    util.removeEventListener(document, 'mouseup', params.onMouseUp);
-    params.onMouseUp = null;
+  if (this.eventParams.onMouseUp) {
+    util.removeEventListener(document, 'mouseup', this.eventParams.onMouseUp);
+    this.eventParams.onMouseUp = null;
   }
 
-  if (params.moved) {
+  if (this.eventParams.moved) {
     // fire a timechanged event
-    events.trigger(this, 'timechanged', {customTime: this.customTime});
+    if (this.controller) {
+      this.controller.emit('timechanged', {
+        time: this.customTime
+      })
+    }
   }
 };
