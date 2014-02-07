@@ -2,6 +2,14 @@ vis.js history
 http://visjs.org
 
 
+## not yet released, version 0.5.0
+
+### Timeline
+
+- items can be dragged
+- added events when dragging the custom time bar.
+
+
 ## 2014-01-31, version 0.4.0
 
 ### Timeline

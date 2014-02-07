@@ -610,8 +610,8 @@ var options = {
 
 <h2 id="Events">Events</h2>
 <p>
-  Timeline fires events when changing the visible window by dragging, or when
-  selecting items.
+  Timeline fires events when changing the visible window by dragging, when
+  selecting items, and when dragging the custom time bar.
 </p>
 
 <p>
@@ -674,7 +674,7 @@ timeline.off('select', onSelect);
 
   <tr>
     <td>rangechanged</td>
-    <td>Fired once after the user has dragging the timeline window.
+    <td>Fired once after the user has dragged the timeline window.
     </td>
     <td>
       <ul>
@@ -692,6 +692,30 @@ timeline.off('select', onSelect);
     <td>
       <ul>
         <li><code>items</code>: an array with the ids of the selected items</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
+    <td>timechange</td>
+    <td>Fired repeatedly when the user is dragging the custom time bar.
+      Only available when the custom time bar is enabled.
+    </td>
+    <td>
+      <ul>
+        <li><code>time</code> (Date): the current time.</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
+    <td>timechanged</td>
+    <td>Fired once after the user has dragged the custom time bar.
+      Only available when the custom time bar is enabled.
+    </td>
+    <td>
+      <ul>
+        <li><code>time</code> (Date): the current time.</li>
       </ul>
     </td>
   </tr>
