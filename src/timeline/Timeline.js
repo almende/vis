@@ -10,17 +10,21 @@ function Timeline (container, items, options) {
   var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
   this.options = {
     orientation: 'bottom',
+    autoResize: true,
+    editable: true,
+    selectable: true,
+
     min: null,
     max: null,
     zoomMin: 10,                                // milliseconds
     zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000, // milliseconds
     // moveable: true, // TODO: option moveable
     // zoomable: true, // TODO: option zoomable
+
     showMinorLabels: true,
     showMajorLabels: true,
     showCurrentTime: false,
     showCustomTime: false,
-    autoResize: false
   };
 
   // controller
@@ -402,6 +406,10 @@ Timeline.prototype.getSelection = function getSelection() {
  */
 // TODO: move this function to ItemSet
 Timeline.prototype._onSelectItem = function (event) {
+  if (!this.options.selectable) {
+    return;
+  }
+
   var item = ItemSet.itemFromTarget(event);
 
   var selection = item ? [item.id] : [];
@@ -421,6 +429,10 @@ Timeline.prototype._onSelectItem = function (event) {
  */
 // TODO: move this function to ItemSet
 Timeline.prototype._onMultiSelectItem = function (event) {
+  if (!this.options.selectable) {
+    return;
+  }
+
   var selection,
       item = ItemSet.itemFromTarget(event);
 

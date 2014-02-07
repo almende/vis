@@ -671,6 +671,10 @@ ItemSet.prototype.toScreen = function toScreen(time) {
  * @private
  */
 ItemSet.prototype._onDragStart = function (event) {
+  if (!this.options.editable) {
+    return;
+  }
+
   var item = ItemSet.itemFromTarget(event),
       me = this;
 

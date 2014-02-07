@@ -6,7 +6,8 @@ http://visjs.org
 
 ### Timeline
 
-- items can be dragged
+- items can be dragged.
+- Implemented options `selectable`, `editable`.
 - added events when dragging the custom time bar.
 
 
@@ -28,7 +29,7 @@ http://visjs.org
   datasets (up to 10x!).
 - Support for automatic clustering in Graph to handle large (>50000) datasets
   without losing performance.
-- Added automatic intial zooming to Graph, to more easily view large amounts
+- Added automatic initial zooming to Graph, to more easily view large amounts
   of data.
 - Added local declustering to Graph, freezing the simulation of nodes outside
   of the cluster.

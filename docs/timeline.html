@@ -336,9 +336,17 @@ var options = {
 <tr>
   <td>autoResize</td>
   <td>boolean</td>
-  <td>false</td>
+  <td>true</td>
   <td>If true, the Timeline will automatically detect when its
     container is resized, and redraw itself accordingly.</td>
+</tr>
+
+<tr>
+  <td>editable</td>
+  <td>Boolean</td>
+  <td>true</td>
+  <td>If true, the items on the timeline can be dragged.</td>
+  <!-- TODO: update documentation as soon as items can be deleted, created, changed -->
 </tr>
 
 <tr>
@@ -438,6 +446,13 @@ var options = {
   <td>5</td>
   <td>The padding of items, needed to correctly calculate the size
     of item ranges. Must correspond with the css of item ranges.</td>
+</tr>
+
+<tr>
+  <td>selectable</td>
+  <td>Boolean</td>
+  <td>true</td>
+  <td>If true, the items on the timeline can be selected.</td>
 </tr>
 
 <tr>

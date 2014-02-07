@@ -318,7 +318,6 @@ Range.prototype._onDrag = function (event, component, direction) {
 
   this._applyRange(touchParams.start + diffRange, touchParams.end + diffRange);
 
-  // fire a rangechange event
   this.emit('rangechange', {
     start: this.start,
     end: this.end
@@ -410,7 +409,7 @@ Range.prototype._onTouch = function (event) {
   // don't move the range when dragging a selected event
   // TODO: it's not so neat to have to know about the state of the ItemSet
   var item = ItemSet.itemFromTarget(event);
-  if (item && item.selected) {
+  if (item && item.selected && this.options.editable) {
     touchParams.ignore = true;
   }
 };
