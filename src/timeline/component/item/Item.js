@@ -87,35 +87,29 @@ Item.prototype.setOffset = function setOffset(offset) {
  * @private
  */
 Item.prototype._repaintDeleteButton = function (anchor) {
-  // show/remove delete button
   if (this.selected && !this.dom.deleteButton) {
+    // create and show button
     var parent = this.parent;
     var id = this.id;
-    this.dom.deleteButton = Item.createDeleteButton(function () {
+
+    var deleteButton = document.createElement('div');
+    deleteButton.className = 'delete';
+    deleteButton.title = 'Delete this item';
+
+    Hammer(deleteButton, {
+      preventDefault: true
+    }).on('tap', function () {
       parent.removeItem(id);
     });
-    anchor.appendChild(this.dom.deleteButton);
+
+    anchor.appendChild(deleteButton);
+    this.dom.deleteButton = deleteButton;
   }
   else if (!this.selected && this.dom.deleteButton) {
+    // remove button
     if (this.dom.deleteButton.parentNode) {
       this.dom.deleteButton.parentNode.removeChild(this.dom.deleteButton);
     }
     this.dom.deleteButton = null;
   }
-};
-
-/**
- * Create a delete button which can be attached to this item
- * @param {function} callback    Called when the button is clicked
- * @returns {HTMLElement} deleteButton
- */
-Item.createDeleteButton = function createDeleteButton (callback) {
-  var button = document.createElement('div');
-  button.className = 'delete';
-
-  Hammer(button, {
-    preventDefault: true
-  }).on('tap', callback);
-
-  return button;
 };

@@ -84,6 +84,8 @@ ItemRangeOverflow.prototype.repaint = function repaint() {
     }
 
     this._repaintDeleteButton(dom.box);
+    this._repaintDragLeft();
+    this._repaintDragRight();
 
     // update class
     var className = (this.data.className? ' ' + this.data.className : '') +

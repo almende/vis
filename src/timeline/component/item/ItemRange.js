@@ -68,6 +68,8 @@ ItemRange.prototype.repaint = function repaint() {
     }
 
     this._repaintDeleteButton(dom.box);
+    this._repaintDragLeft();
+    this._repaintDragRight();
 
     // update class
     var className = (this.data.className? ' ' + this.data.className : '') +
@@ -249,5 +251,65 @@ ItemRange.prototype.reposition = function reposition() {
     dom.box.style.width = this.width + 'px';
 
     dom.content.style.left = props.content.left + 'px';
+  }
+};
+
+/**
+ * Repaint a drag area on the left side of the range when the range is selected
+ * @private
+ */
+ItemRange.prototype._repaintDragLeft = function () {
+  if (this.selected && !this.dom.dragLeft) {
+    // create and show drag area
+    var dragLeft = document.createElement('div');
+    dragLeft.className = 'drag-left';
+    dragLeft.dragLeftItem = this;
+
+    // TODO: this should be redundant?
+    Hammer(dragLeft, {
+      preventDefault: true
+    }).on('drag', function () {
+          //console.log('drag left')
+        });
+
+    this.dom.box.appendChild(dragLeft);
+    this.dom.dragLeft = dragLeft;
+  }
+  else if (!this.selected && this.dom.dragLeft) {
+    // delete drag area
+    if (this.dom.dragLeft.parentNode) {
+      this.dom.dragLeft.parentNode.removeChild(this.dom.dragLeft);
+    }
+    this.dom.dragLeft = null;
+  }
+};
+
+/**
+ * Repaint a drag area on the right side of the range when the range is selected
+ * @private
+ */
+ItemRange.prototype._repaintDragRight = function () {
+  if (this.selected && !this.dom.dragRight) {
+    // create and show drag area
+    var dragRight = document.createElement('div');
+    dragRight.className = 'drag-right';
+    dragRight.dragRightItem = this;
+
+    // TODO: this should be redundant?
+    Hammer(dragRight, {
+      preventDefault: true
+    }).on('drag', function () {
+      //console.log('drag right')
+    });
+
+    this.dom.box.appendChild(dragRight);
+    this.dom.dragRight = dragRight;
+  }
+  else if (!this.selected && this.dom.dragRight) {
+    // delete drag area
+    if (this.dom.dragRight.parentNode) {
+      this.dom.dragRight.parentNode.removeChild(this.dom.dragRight);
+    }
+    this.dom.dragRight = null;
   }
 };

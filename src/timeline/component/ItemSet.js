@@ -688,9 +688,34 @@ ItemSet.prototype._onDragStart = function (event) {
       me = this;
 
   if (item && item.selected) {
-    this.touchParams.items = this.getSelection().map(function (id) {
-      return me.items[id];
-    });
+
+    var dragLeftItem = event.target.dragLeftItem;
+    var dragRightItem = event.target.dragRightItem;
+    if (dragLeftItem) {
+      this.touchParams.itemProps = [{
+        item: dragLeftItem,
+        start: item.data.start.valueOf()
+      }];
+    }
+    else if (dragRightItem) {
+      this.touchParams.itemProps = [{
+        item: dragRightItem,
+        end: item.data.end.valueOf()
+      }];
+    }
+    else {
+      this.touchParams.itemProps = this.getSelection().map(function (id) {
+        var item = me.items[id];
+        var props = {
+          item: item
+        };
+
+        if ('start' in item.data) { props.start = item.data.start.valueOf() }
+        if ('end' in item.data)   { props.end = item.data.end.valueOf() }
+
+        return props;
+      });
+    }
 
     event.stopPropagation();
   }
@@ -702,15 +727,15 @@ ItemSet.prototype._onDragStart = function (event) {
  * @private
  */
 ItemSet.prototype._onDrag = function (event) {
-  if (this.touchParams.items) {
-    var deltaX = event.gesture.deltaX;
+  if (this.touchParams.itemProps) {
+    var deltaX = event.gesture.deltaX,
+        offset = deltaX / this.conversion.scale;
 
-    // adjust the offset of the items being dragged
-    this.touchParams.items.forEach(function (item) {
-      item.setOffset(deltaX);
+    // move
+    this.touchParams.itemProps.forEach(function (props) {
+      if ('start' in props) { props.item.data.start = new Date(props.start + offset); }
+      if ('end' in props)   { props.item.data.end   = new Date(props.end + offset); }
     });
-
-    // TODO: stacking on dragend changes the order. (stacking orders by start date, which isn't yet changed)
 
     // TODO: implement snapping to nice dates
 
@@ -728,29 +753,21 @@ ItemSet.prototype._onDrag = function (event) {
  * @private
  */
 ItemSet.prototype._onDragEnd = function (event) {
-  if (this.touchParams.items) {
-    var deltaX = event.gesture.deltaX,
-        scale = this.conversion.scale;
-
+  if (this.touchParams.itemProps) {
     // prepare a changeset for the changed items
-    var changes = this.touchParams.items.map(function (item) {
-      item.setOffset(0);
-
+    var changes = this.touchParams.itemProps.map(function (props) {
       var change = {
-        id: item.id
+        id: props.item.id
       };
 
-      if ('start' in item.data) {
-        change.start = new Date(item.data.start.valueOf() + deltaX / scale);
-      }
-      if ('end' in item.data) {
-        change.end = new Date(item.data.end.valueOf() + deltaX / scale);
-      }
+      if ('start' in props.item.data) { change.start = props.item.data.start; }
+      if ('end' in props.item.data)   { change.end   = props.item.data.end; }
+
+      // TODO: only fire changes when start or end is actually changed
 
       return change;
     });
-    this.touchParams.items = null;
-
+    this.touchParams.itemProps = null;
 
     // apply the changes to the data
     var dataset = this._myDataSet();

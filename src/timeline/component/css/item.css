@@ -57,6 +57,7 @@
   border-width: 1px;
   border-radius: 2px;
   -moz-border-radius: 2px;  /* For Firefox 3.6 and older */
+  box-sizing: border-box;
 }
 
 .vis.timeline .item.rangeoverflow {
@@ -64,19 +65,11 @@
   border-width: 1px;
   border-radius: 2px;
   -moz-border-radius: 2px;  /* For Firefox 3.6 and older */
+  box-sizing: border-box;
 }
 
-.vis.timeline .item.range .drag-left, .vis.timeline .item.rangeoverflow .drag-left {
-  cursor: w-resize;
-  z-index: 1000;
-}
-
-.vis.timeline .item.range .drag-right, .vis.timeline .item.rangeoverflow .drag-right {
-  cursor: e-resize;
-  z-index: 1000;
-}
-
-.vis.timeline .item.range .content, .vis.timeline .item.rangeoverflow .content {
+.vis.timeline .item.range .content,
+.vis.timeline .item.rangeoverflow .content {
   position: relative;
   display: inline-block;
 }
@@ -106,4 +99,28 @@
   top: 0;
   right: -24px;
   cursor: pointer;
+}
+
+.vis.timeline .item.range .drag-left,
+.vis.timeline .item.rangeoverflow .drag-left {
+  position: absolute;
+  width: 24px;
+  height: 100%;
+  top: 0;
+  left: -4px;
+
+  cursor: w-resize;
+  z-index: 10000;
+}
+
+.vis.timeline .item.range .drag-right,
+.vis.timeline .item.rangeoverflow .drag-right {
+  position: absolute;
+  width: 24px;
+  height: 100%;
+  top: 0;
+  right: -4px;
+
+  cursor: e-resize;
+  z-index: 10001; /* a little higher z-index than .drag-left */
 }
