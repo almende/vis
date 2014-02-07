@@ -80,11 +80,3 @@ Item.prototype.reflow = function reflow() {
 Item.prototype.setOffset = function setOffset(offset) {
   this.offset = offset;
 };
-
-/**
- * Return the items width
- * @return {Number} width
- */
-Item.prototype.getWidth = function getWidth() {
-  return this.width;
-};

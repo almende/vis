@@ -466,9 +466,7 @@ var options = {
   <td>showCustomTime</td>
   <td>boolean</td>
   <td>false</td>
-  <td>Show a vertical bar displaying a custom time. This line can be dragged by the user. The custom time can be utilized to show a state in the past or in the future.
-    <!-- TODO: more docs on showCustomTime
-    When the custom time bar is dragged by the user, an event is triggered, on which the contents of the timeline can be changed in to the state at that moment in time.--></td>
+  <td>Show a vertical bar displaying a custom time. This line can be dragged by the user. The custom time can be utilized to show a state in the past or in the future. When the custom time bar is dragged by the user, the event <code>timechange</code> is fired repeatedly. After the bar is dragged, the event <code>timechanged</code> is fired once.</td>
 </tr>
 
 <tr>
