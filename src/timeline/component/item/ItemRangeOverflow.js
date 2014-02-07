@@ -84,7 +84,8 @@ ItemRangeOverflow.prototype.repaint = function repaint() {
     }
 
     // update class
-    var className = this.data.className ? (' ' + this.data.className) : '';
+    var className = (this.data.className? ' ' + this.data.className : '') +
+        (this.selected ? ' selected' : '');
     if (this.className != className) {
       this.className = className;
       dom.box.className = 'item rangeoverflow' + className;
