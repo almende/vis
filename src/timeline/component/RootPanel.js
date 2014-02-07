@@ -10,12 +10,29 @@ function RootPanel(container, options) {
   this.id = util.randomUUID();
   this.container = container;
 
+  // create functions to be used as DOM event listeners
+  var me = this;
+  this.hammer = null;
+
+  // create listeners for all interesting events, these events will be emitted
+  // via the controller
+  var events = [
+    'touch', 'pinch', 'tap', 'hold',
+    'dragstart', 'drag', 'dragend',
+    'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is for Firefox
+  ];
+  this.listeners = {};
+  events.forEach(function (event) {
+    me.listeners[event] = function () {
+      var args = [event].concat(Array.prototype.slice.call(arguments, 0));
+      me.controller.emit.apply(me.controller, args);
+    };
+  });
+
   this.options = options || {};
   this.defaultOptions = {
     autoResize: true
   };
-
-  this.listeners = {}; // event listeners
 }
 
 RootPanel.prototype = new Panel();
@@ -48,6 +65,8 @@ RootPanel.prototype.repaint = function () {
 
     this.frame = frame;
 
+    this._registerListeners();
+
     changed += 1;
   }
   if (!frame.parentNode) {
@@ -69,7 +88,6 @@ RootPanel.prototype.repaint = function () {
   changed += update(frame.style, 'width',  asSize(options.width, '100%'));
   changed += update(frame.style, 'height', asSize(options.height, '100%'));
 
-  this._updateEventEmitters();
   this._updateWatch();
 
   return (changed > 0);
@@ -158,58 +176,51 @@ RootPanel.prototype._unwatch = function () {
 };
 
 /**
- * Event handler
- * @param {String} event       name of the event, for example 'click', 'mousemove'
- * @param {function} callback  callback handler, invoked with the raw HTML Event
- *                             as parameter.
+ * Set controller for this component, or remove current controller by passing
+ * null as parameter value.
+ * @param {Controller | null} controller
  */
-RootPanel.prototype.on = function (event, callback) {
-  // register the listener at this component
-  var arr = this.listeners[event];
-  if (!arr) {
-    arr = [];
-    this.listeners[event] = arr;
-  }
-  arr.push(callback);
+RootPanel.prototype.setController = function setController (controller) {
+  this.controller = controller || null;
 
-  this._updateEventEmitters();
+  if (this.controller) {
+    this._registerListeners();
+  }
+  else {
+    this._unregisterListeners();
+  }
 };
 
 /**
- * Update the event listeners for all event emitters
+ * Register event emitters emitted by the rootpanel
  * @private
  */
-RootPanel.prototype._updateEventEmitters = function () {
-  if (this.listeners) {
-    var me = this;
-    util.forEach(this.listeners, function (listeners, event) {
-      if (!me.emitters) {
-        me.emitters = {};
-      }
-      if (!(event in me.emitters)) {
-        // create event
-        var frame = me.frame;
-        if (frame) {
-          //console.log('Created a listener for event ' + event + ' on component ' + me.id); // TODO: cleanup logging
-          var callback = function(event) {
-            listeners.forEach(function (listener) {
-              // TODO: filter on event target!
-              listener(event);
-            });
-          };
-          me.emitters[event] = callback;
-
-          if (!me.hammer) {
-            me.hammer = Hammer(frame, {
-              prevent_default: true
-            });
-          }
-          me.hammer.on(event, callback);
-        }
-      }
+RootPanel.prototype._registerListeners = function () {
+  if (this.frame && this.controller && !this.hammer) {
+    this.hammer = Hammer(this.frame, {
+      prevent_default: true
     });
 
-    // TODO: be able to delete event listeners
-    // TODO: be able to move event listeners to a parent when available
+    for (var event in this.listeners) {
+      if (this.listeners.hasOwnProperty(event)) {
+        this.hammer.on(event, this.listeners[event]);
+      }
+    }
+  }
+};
+
+/**
+ * Unregister event emitters from the rootpanel
+ * @private
+ */
+RootPanel.prototype._unregisterListeners = function () {
+  if (this.hammer) {
+    for (var event in this.listeners) {
+      if (this.listeners.hasOwnProperty(event)) {
+        this.hammer.off(event, this.listeners[event]);
+      }
+    }
+
+    this.hammer = null;
   }
 };

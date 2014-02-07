@@ -33,6 +33,7 @@
     "moment": "latest",
     "hammerjs": "1.0.5",
     "mousetrap": "latest",
+    "emitter-component": "latest",
     "node-watch": "latest"
   }
 }

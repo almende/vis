@@ -6,6 +6,7 @@
 // If not available there, load via require.
 
 var moment = (typeof window !== 'undefined') && window['moment'] || require('moment');
+var Emitter = require('emitter-component');
 
 var Hammer;
 if (typeof window !== 'undefined') {
@@ -28,5 +29,3 @@ else {
     throw Error('mouseTrap is only available in a browser, not in node.js.');
   }
 }
-
-
