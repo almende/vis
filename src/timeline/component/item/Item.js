@@ -20,6 +20,7 @@ function Item (parent, data, options, defaultOptions) {
   this.left = 0;
   this.width = 0;
   this.height = 0;
+  this.offset = 0;
 }
 
 /**
@@ -70,6 +71,14 @@ Item.prototype.repaint = function repaint() {
 Item.prototype.reflow = function reflow() {
   // should be implemented by the item
   return false;
+};
+
+/**
+ * Give the item a display offset in pixels
+ * @param {Number} offset    Offset on screen in pixels
+ */
+Item.prototype.setOffset = function setOffset(offset) {
+  this.offset = offset;
 };
 
 /**

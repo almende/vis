@@ -61,6 +61,7 @@ Controller.prototype.remove = function remove(component) {
  * @param {Boolean} [force]     If true, an immediate reflow is forced. Default
  *                              is false.
  */
+// TODO: change requestReflow into an event
 Controller.prototype.requestReflow = function requestReflow(force) {
   if (force) {
     this.reflow();
@@ -81,6 +82,7 @@ Controller.prototype.requestReflow = function requestReflow(force) {
  * @param {Boolean} [force]    If true, an immediate repaint is forced. Default
  *                             is false.
  */
+// TODO: change requestReflow into an event
 Controller.prototype.requestRepaint = function requestRepaint(force) {
   if (force) {
     this.repaint();

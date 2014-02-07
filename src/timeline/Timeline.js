@@ -378,7 +378,7 @@ Timeline.prototype.getSelection = function getSelection() {
  */
 // TODO: move this function to ItemSet
 Timeline.prototype._onSelectItem = function (event) {
-  var item = this._itemFromTarget(event);
+  var item = ItemSet.itemFromTarget(event);
 
   var selection = item ? [item.id] : [];
   this.setSelection(selection);
@@ -398,7 +398,7 @@ Timeline.prototype._onSelectItem = function (event) {
 // TODO: move this function to ItemSet
 Timeline.prototype._onMultiSelectItem = function (event) {
   var selection,
-      item = this._itemFromTarget(event);
+      item = ItemSet.itemFromTarget(event);
 
   if (!item) {
     // do nothing...
@@ -422,24 +422,4 @@ Timeline.prototype._onMultiSelectItem = function (event) {
   });
 
   event.stopPropagation();
-};
-
-/**
- * Find an item from an event target:
- * searches for the attribute 'timeline-item' in the event target's element tree
- * @param {Event} event
- * @return {Item | null| item
- * @private
- */
-// TODO: move this function to ItemSet
-Timeline.prototype._itemFromTarget = function _itemFromTarget (event) {
-  var target = event.target;
-  while (target) {
-    if (target.hasOwnProperty('timeline-item')) {
-      return target['timeline-item'];
-    }
-    target = target.parentNode;
-  }
-
-  return null;
 };

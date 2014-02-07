@@ -1,11 +1,11 @@
 /**
  * @constructor Stack
  * Stacks items on top of each other.
- * @param {ItemSet} parent
+ * @param {ItemSet} itemset
  * @param {Object} [options]
  */
-function Stack (parent, options) {
-  this.parent = parent;
+function Stack (itemset, options) {
+  this.itemset = itemset;
 
   this.options = options || {};
   this.defaultOptions = {
@@ -43,14 +43,14 @@ function Stack (parent, options) {
 /**
  * Set options for the stack
  * @param {Object} options  Available options:
- *                          {ItemSet} parent
+ *                          {ItemSet} itemset
  *                          {Number} margin
  *                          {function} order  Stacking order
  */
 Stack.prototype.setOptions = function setOptions (options) {
   util.extend(this.options, options);
 
-  // TODO: register on data changes at the connected parent itemset, and update the changed part only and immediately
+  // TODO: register on data changes at the connected itemset, and update the changed part only and immediately
 };
 
 /**
@@ -70,9 +70,9 @@ Stack.prototype.update = function update() {
  * @private
  */
 Stack.prototype._order = function _order () {
-  var items = this.parent.items;
+  var items = this.itemset.items;
   if (!items) {
-    throw new Error('Cannot stack items: parent does not contain items');
+    throw new Error('Cannot stack items: ItemSet does not contain items');
   }
 
   // TODO: store the sorted items, to have less work later on

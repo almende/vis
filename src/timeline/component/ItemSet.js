@@ -17,7 +17,7 @@ function ItemSet(parent, depends, options) {
   this.depends = depends;
 
   // event listeners
-  this.listeners = {
+  this.eventListeners = {
     dragstart: this._onDragStart.bind(this),
     drag: this._onDrag.bind(this),
     dragend: this._onDragEnd.bind(this)
@@ -42,6 +42,7 @@ function ItemSet(parent, depends, options) {
   this.itemsData = null;  // DataSet
   this.range = null;      // Range or Object {start: number, end: number}
 
+  // data change listeners
   this.listeners = {
     'add': function (event, params, senderId) {
       if (senderId != me.id) {
@@ -65,6 +66,8 @@ function ItemSet(parent, depends, options) {
   this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
   this.stack = new Stack(this, Object.create(this.options));
   this.conversion = null;
+
+  this.touchParams = {}; // stores properties while dragging
 
   // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
 }
@@ -117,9 +120,9 @@ ItemSet.prototype.setController = function setController (controller) {
 
   // unregister old event listeners
   if (this.controller) {
-    for (event in this.listeners) {
-      if (this.listeners.hasOwnProperty(event)) {
-        this.controller.off(event, this.listeners[event]);
+    for (event in this.eventListeners) {
+      if (this.eventListeners.hasOwnProperty(event)) {
+        this.controller.off(event, this.eventListeners[event]);
       }
     }
   }
@@ -128,9 +131,9 @@ ItemSet.prototype.setController = function setController (controller) {
 
   // register new event listeners
   if (this.controller) {
-    for (event in this.listeners) {
-      if (this.listeners.hasOwnProperty(event)) {
-        this.controller.on(event, this.listeners[event]);
+    for (event in this.eventListeners) {
+      if (this.eventListeners.hasOwnProperty(event)) {
+        this.controller.on(event, this.eventListeners[event]);
       }
     }
   }
@@ -251,6 +254,7 @@ ItemSet.prototype.repaint = function repaint() {
   if (!frame) {
     frame = document.createElement('div');
     frame.className = 'itemset';
+    frame['timeline-itemset'] = this;
 
     var className = options.className;
     if (className) {
@@ -667,25 +671,21 @@ ItemSet.prototype.toScreen = function toScreen(time) {
   return (time.valueOf() - conversion.offset) * conversion.scale;
 };
 
-// global (private) object to store drag params
-var touchParams = {};
-
 /**
  * Start dragging the selected events
  * @param {Event} event
  * @private
  */
-// TODO: move this function to ItemSet
 ItemSet.prototype._onDragStart = function (event) {
-  var item = this._itemFromTarget(event);
-console.log('_onDragStart', event)
+  var itemSet = ItemSet.itemSetFromTarget(event),
+      item = ItemSet.itemFromTarget(event),
+      me = this;
+
   if (item && item.selected) {
-    touchParams.items = [item];
-    //touchParams.items = this.getSelection(); // TODO: use the current selection
-    touchParams.itemsLeft = touchParams.items.map(function (item) {
-      return item.left;
+    this.touchParams.items = this.getSelection().map(function (id) {
+      return me.items[id];
     });
-    console.log('_onDragStart', touchParams)
+
     event.stopPropagation();
   }
 };
@@ -695,15 +695,20 @@ console.log('_onDragStart', event)
  * @param {Event} event
  * @private
  */
-// TODO: move this function to ItemSet
 ItemSet.prototype._onDrag = function (event) {
-  if (touchParams.items) {
+  if (this.touchParams.items) {
     var deltaX = event.gesture.deltaX;
 
-    touchParams.items.forEach(function (item, i) {
-      item.left = touchParams.itemsLeft[i] + deltaX;
-      item.reposition();
+    // adjust the offset of the items being dragged
+    this.touchParams.items.forEach(function (item) {
+      item.setOffset(deltaX);
     });
+
+    // TODO: implement snapping to nice dates
+
+    // TODO: implement dragging from one group to another
+
+    this.requestReflow();
 
     event.stopPropagation();
   }
@@ -714,12 +719,38 @@ ItemSet.prototype._onDrag = function (event) {
  * @param {Event} event
  * @private
  */
-// TODO: move this function to ItemSet
 ItemSet.prototype._onDragEnd = function (event) {
-  if (touchParams.items) {
-    // actually apply the new locations
+  if (this.touchParams.items) {
+    var deltaX = event.gesture.deltaX,
+        scale = this.conversion.scale;
 
-    touchParams.items = null;
+    // prepare a changeset for the changed items
+    var changes = this.touchParams.items.map(function (item) {
+      item.setOffset(0);
+
+      var change = {
+        id: item.id
+      };
+
+      if ('start' in item.data) {
+        change.start = new Date(item.data.start.valueOf() + deltaX / scale);
+      }
+      if ('end' in item.data) {
+        change.end = new Date(item.data.end.valueOf() + deltaX / scale);
+      }
+
+      return change;
+    });
+    this.touchParams.items = null;
+
+    // find the root DataSet from our DataSet/DataView
+    var data = this.itemsData;
+    while (data instanceof DataView) {
+      data = data.data;
+    }
+
+    // apply the changes to the data
+    data.update(changes);
 
     event.stopPropagation();
   }
@@ -729,14 +760,31 @@ ItemSet.prototype._onDragEnd = function (event) {
  * Find an item from an event target:
  * searches for the attribute 'timeline-item' in the event target's element tree
  * @param {Event} event
- * @return {Item | null| item
- * @private
+ * @return {Item | null} item
  */
-ItemSet.prototype._itemFromTarget = function _itemFromTarget (event) {
+ItemSet.itemFromTarget = function itemFromTarget (event) {
   var target = event.target;
   while (target) {
     if (target.hasOwnProperty('timeline-item')) {
       return target['timeline-item'];
+    }
+    target = target.parentNode;
+  }
+
+  return null;
+};
+
+/**
+ * Find the ItemSet from an event target:
+ * searches for the attribute 'timeline-itemset' in the event target's element tree
+ * @param {Event} event
+ * @return {ItemSet | null} item
+ */
+ItemSet.itemSetFromTarget = function itemSetFromTarget (event) {
+  var target = event.target;
+  while (target) {
+    if (target.hasOwnProperty('timeline-itemset')) {
+      return target['timeline-itemset'];
     }
     target = target.parentNode;
   }

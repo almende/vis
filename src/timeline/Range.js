@@ -71,6 +71,11 @@ Range.prototype.subscribe = function (controller, component, event, direction) {
     controller.on('dragend', function (event) {
       me._onDragEnd(event, component);
     });
+
+    // ignore dragging when holding
+    controller.on('hold', function (event) {
+      me._onHold();
+    });
   }
   else if (event == 'zoom') {
     // mouse wheel
@@ -82,7 +87,7 @@ Range.prototype.subscribe = function (controller, component, event, direction) {
 
     // pinch
     controller.on('touch', function (event) {
-      me._onTouch();
+      me._onTouch(event);
     });
     controller.on('pinch', function (event) {
       me._onPinch(event, component, direction);
@@ -312,7 +317,7 @@ var touchParams = {};
 Range.prototype._onDragStart = function(event, component) {
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
-  if (touchParams.pinching) return;
+  if (touchParams.ignore) return;
 
   touchParams.start = this.start;
   touchParams.end = this.end;
@@ -335,7 +340,7 @@ Range.prototype._onDrag = function (event, component, direction) {
 
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
-  if (touchParams.pinching) return;
+  if (touchParams.ignore) return;
 
   var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
       interval = (touchParams.end - touchParams.start),
@@ -357,7 +362,7 @@ Range.prototype._onDrag = function (event, component, direction) {
 Range.prototype._onDragEnd = function (event, component) {
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
-  if (touchParams.pinching) return;
+  if (touchParams.ignore) return;
 
   if (component.frame) {
     component.frame.style.cursor = 'auto';
@@ -418,14 +423,29 @@ Range.prototype._onMouseWheel = function(event, component, direction) {
 };
 
 /**
- * On start of a touch gesture, initialize scale to 1
+ * Start of a touch gesture
  * @private
  */
-Range.prototype._onTouch = function () {
+Range.prototype._onTouch = function (event) {
   touchParams.start = this.start;
   touchParams.end = this.end;
-  touchParams.pinching = false;
+  touchParams.ignore = false;
   touchParams.center = null;
+
+  // don't move the range when dragging a selected event
+  // TODO: it's not so neat to have to know about the state of the ItemSet
+  var item = ItemSet.itemFromTarget(event);
+  if (item && item.selected) {
+    touchParams.ignore = true;
+  }
+};
+
+/**
+ * On start of a hold gesture
+ * @private
+ */
+Range.prototype._onHold = function () {
+  touchParams.ignore = true;
 };
 
 /**
@@ -436,7 +456,7 @@ Range.prototype._onTouch = function () {
  * @private
  */
 Range.prototype._onPinch = function (event, component, direction) {
-  touchParams.pinching = true;
+  touchParams.ignore = true;
 
   if (event.gesture.touches.length > 1) {
     if (!touchParams.center) {
