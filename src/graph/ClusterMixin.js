@@ -654,7 +654,7 @@ var ClusterMixin = {
 
   /**
    * This function will apply the changes made to the remainingEdges during the formation of the clusters.
-   * This is a seperate function to allow for level-wise collapsing of the node tree.
+   * This is a seperate function to allow for level-wise collapsing of the node barnesHutTree.
    * It has to be called if a level is collapsed. It is called by _formClusters().
    * @private
    */

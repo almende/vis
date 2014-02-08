@@ -442,6 +442,8 @@ var manipulationMixin = {
 
   /**
    * delete everything in the selection
+   * TODO : place the alert in the gui.
+   *
    *
    * @private
    */
@@ -460,4 +462,4 @@ var manipulationMixin = {
   }
 
 
-}
+};

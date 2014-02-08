@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.5.0-SNAPSHOT
- * @date    2014-02-05
+ * @date    2014-02-08
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -9103,6 +9103,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined') {
  *                                            retrieving group properties
  * @param {Object}               constants    An object with default values for
  *                                            example for the color
+ *
  */
 function Node(properties, imagelist, grouplist, constants) {
   this.selected = false;
@@ -9155,8 +9156,7 @@ function Node(properties, imagelist, grouplist, constants) {
   this.vx = 0.0;  // velocity x
   this.vy = 0.0;  // velocity y
   this.minForce = constants.minForce;
-  this.damping = 0.9;
-  this.dampingFactor = 75;
+  this.damping = 0.9; // this is manipulated in the updateDaming function
 
   this.graphScaleInv = 1;
   this.canvasTopLeft = {"x": -300, "y": -300};
@@ -9210,7 +9210,7 @@ Node.prototype.detachEdge = function(edge) {
  * @private
  */
 Node.prototype._updateMass = function() {
-  this.mass = 1 + 0.6 * this.edges.length; // kg
+  this.mass = 1;// + 0.6 * this.edges.length; // kg
 };
 
 /**
@@ -9471,6 +9471,29 @@ Node.prototype.discreteStep = function(interval) {
   }
 };
 
+
+
+/**
+ * Perform one discrete step for the node
+ * @param {number} interval    Time interval in seconds
+ */
+Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
+  if (!this.xFixed) {
+    var dx   = -this.damping * this.vx;     // damping force
+    var ax   = (this.fx + dx) / this.mass;  // acceleration
+    this.vx += ax * interval;               // velocity
+    this.vx = (Math.abs(this.vx) > maxVelocity) ? ((this.vx > 0) ? maxVelocity : -maxVelocity) : this.vx;
+    this.x  += this.vx * interval;          // position
+  }
+
+  if (!this.yFixed) {
+    var dy   = -this.damping * this.vy;     // damping force
+    var ay   = (this.fy + dy) / this.mass;  // acceleration
+    this.vy += ay * interval;               // velocity
+    this.vy = (Math.abs(this.vy) > maxVelocity) ? ((this.vy > 0) ? maxVelocity : -maxVelocity) : this.vy;
+    this.y  += this.vy * interval;          // position
+  }
+};
 
 /**
  * Check if this node has a fixed x and y position
@@ -10032,8 +10055,7 @@ Node.prototype.setScale = function(scale) {
  * @param {Number} numberOfNodes
  */
 Node.prototype.updateDamping = function(numberOfNodes) {
-  this.damping = (0.8 + 0.1*this.clusterSize * (1 + Math.pow(numberOfNodes,-2)));
-  this.damping *= this.dampingFactor;
+  this.damping = (1 + 0.1*this.clusterSize * (1 + Math.pow(numberOfNodes,-2)));
 };
 
 
@@ -10143,10 +10165,10 @@ Edge.prototype.setProperties = function(properties, constants) {
     if (properties.fontSize !== undefined)   {this.fontSize = properties.fontSize;}
     if (properties.fontFace !== undefined)   {this.fontFace = properties.fontFace;}
   }
-  if (properties.title !== undefined)          {this.title = properties.title;}
-  if (properties.width !== undefined)          {this.width = properties.width;}
-  if (properties.value !== undefined)          {this.value = properties.value;}
-  if (properties.length !== undefined)         {this.length = properties.length;}
+  if (properties.title !== undefined)        {this.title = properties.title;}
+  if (properties.width !== undefined)        {this.width = properties.width;}
+  if (properties.value !== undefined)        {this.value = properties.value;}
+  if (properties.length !== undefined)       {this.length = properties.length;}
 
   // Added to support dashed lines
   // David Jordan
@@ -10919,6 +10941,545 @@ Images.prototype.load = function(url) {
 };
 
 /**
+ * Created by Alex on 2/6/14.
+ */
+
+
+var physicsMixin = {
+
+  /**
+   * Before calculating the forces, we check if we need to cluster to keep up performance and we check
+   * if there is more than one node. If it is just one node, we dont calculate anything.
+   *
+   * @private
+   */
+  _initializeForceCalculation : function() {
+    // stop calculation if there is only one node
+    if (this.nodeIndices.length == 1) {
+      this.nodes[this.nodeIndices[0]]._setForce(0,0);
+    }
+    else {
+      // if there are too many nodes on screen, we cluster without repositioning
+      if (this.nodeIndices.length > this.constants.clustering.clusterThreshold && this.constants.clustering.enabled == true) {
+        this.clusterToFit(this.constants.clustering.reduceToNodes, false);
+      }
+
+      // we now start the force calculation
+      this._calculateForcesBarnesHut();
+//      this._calculateForcesOriginal();
+    }
+  },
+
+
+  /**
+   * Calculate the external forces acting on the nodes
+   * Forces are caused by: edges, repulsing forces between nodes, gravity
+   * @private
+   */
+  _calculateForcesOriginal : function() {
+    // Gravity is required to keep separated groups from floating off
+    // the forces are reset to zero in this loop by using _setForce instead
+    // of _addForce
+
+//    var startTimeAll = Date.now();
+
+    this._calculateGravitationalForces(1);
+
+//    var startTimeRepulsion = Date.now();
+    // All nodes repel eachother.
+    this._calculateRepulsionForces();
+
+//    var endTimeRepulsion = Date.now();
+
+    // the edges are strings
+    this._calculateSpringForces(1);
+
+//    var endTimeAll = Date.now();
+
+//    echo("Time repulsion part:", endTimeRepulsion - startTimeRepulsion);
+//    echo("Time total force calc:", endTimeAll - startTimeAll);
+  },
+
+  /**
+   * Calculate the external forces acting on the nodes
+   * Forces are caused by: edges, repulsing forces between nodes, gravity
+   * @private
+   */
+  _calculateForcesBarnesHut : function() {
+    // Gravity is required to keep separated groups from floating off
+    // the forces are reset to zero in this loop by using _setForce instead
+    // of _addForce
+
+//    var startTimeAll = Date.now();
+
+    this._clearForces();
+
+//    var startTimeRepulsion = Date.now();
+    // All nodes repel eachother.
+    this._calculateBarnesHutForces();
+
+//    var endTimeRepulsion = Date.now();
+
+    // the edges are strings
+    this._calculateSpringForces(1);
+
+//    var endTimeAll = Date.now();
+
+//    echo("Time repulsion part:", endTimeRepulsion - startTimeRepulsion);
+//    echo("Time total force calc:",  endTimeAll - startTimeAll);
+  },
+
+
+  _clearForces : function() {
+    var node;
+    var nodes = this.nodes;
+
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+      node = nodes[this.nodeIndices[i]];
+      node._setForce(0, 0);
+      node.updateDamping(this.nodeIndices.length);
+    }
+  },
+
+  _calculateGravitationalForces : function(boost) {
+    var dx, dy, angle, fx, fy, node, i;
+    var nodes = this.nodes;
+    var gravity = 0.08 * boost;
+
+    for (i = 0; i < this.nodeIndices.length; i++) {
+      node = nodes[this.nodeIndices[i]];
+      // gravity does not apply when we are in a pocket sector
+      if (this._sector() == "default") {
+        dx = -node.x;// + screenCenterPos.x;
+        dy = -node.y;// + screenCenterPos.y;
+
+        angle = Math.atan2(dy, dx);
+        fx = Math.cos(angle) * gravity;
+        fy = Math.sin(angle) * gravity;
+      }
+      else {
+        fx = 0;
+        fy = 0;
+      }
+      node._setForce(fx, fy);
+      node.updateDamping(this.nodeIndices.length);
+    }
+  },
+
+  _calculateRepulsionForces : function() {
+    var dx, dy, angle, distance, fx, fy, clusterSize,
+        repulsingForce, node1, node2, i, j;
+    var nodes = this.nodes;
+
+    // approximation constants
+    var a_base = (-2/3);
+    var b = 4/3;
+
+    // repulsing forces between nodes
+    var minimumDistance = this.constants.nodes.distance;
+    //var steepness = 10;
+
+    // we loop from i over all but the last entree in the array
+    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
+    for (i = 0; i < this.nodeIndices.length-1; i++) {
+      node1 = nodes[this.nodeIndices[i]];
+      for (j = i+1; j < this.nodeIndices.length; j++) {
+        node2 = nodes[this.nodeIndices[j]];
+        clusterSize = (node1.clusterSize + node2.clusterSize - 2);
+        dx = node2.x - node1.x;
+        dy = node2.y - node1.y;
+        distance = Math.sqrt(dx * dx + dy * dy);
+
+
+        // clusters have a larger region of influence
+        minimumDistance = (clusterSize == 0) ? this.constants.nodes.distance : (this.constants.nodes.distance * (1 + clusterSize * this.constants.clustering.distanceAmplification));
+        var a = a_base / minimumDistance;
+        if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
+          angle = Math.atan2(dy, dx);
+
+          if (distance < 0.5*minimumDistance) { // at 0.5 * the minimum distance, the force is 0.993307
+            repulsingForce = 1.0;
+          }
+          else {
+            repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness))
+          }
+          // amplify the repulsion for clusters.
+          repulsingForce *= (clusterSize == 0) ? 1 : 1 + clusterSize * this.constants.clustering.forceAmplification;
+
+          fx = Math.cos(angle) * repulsingForce;
+          fy = Math.sin(angle) * repulsingForce ;
+
+          node1._addForce(-fx, -fy);
+          node2._addForce(fx, fy);
+        }
+      }
+    }
+  },
+
+  _calculateSpringForces : function(boost) {
+    var dx, dy, angle, fx, fy, springForce, length, edgeLength, edge, edgeId, clusterSize;
+    var edges = this.edges;
+
+    // forces caused by the edges, modelled as springs
+    for (edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        edge = edges[edgeId];
+        if (edge.connected) {
+          // only calculate forces if nodes are in the same sector
+          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+            clusterSize = (edge.to.clusterSize + edge.from.clusterSize - 2);
+            dx = (edge.to.x - edge.from.x);
+            dy = (edge.to.y - edge.from.y);
+
+            edgeLength = edge.length;
+
+            // this implies that the edges between big clusters are longer
+            edgeLength += clusterSize * this.constants.clustering.edgeGrowth;
+            length =  Math.sqrt(dx * dx + dy * dy);
+            angle = Math.atan2(dy, dx);
+
+            springForce = 0.02 * (edgeLength - length) * boost;
+
+            fx = Math.cos(angle) * springForce;
+            fy = Math.sin(angle) * springForce;
+
+            edge.from._addForce(-fx, -fy);
+            edge.to._addForce(fx, fy);
+          }
+        }
+      }
+    }
+  },
+
+  _calculateBarnesHutForces : function() {
+    this._formBarnesHutTree();
+
+    var nodes = this.nodes;
+    var nodeIndices = this.nodeIndices;
+    var node;
+    var nodeCount = nodeIndices.length;
+
+    var barnesHutTree = this.barnesHutTree;
+
+    this.theta = 0.2;
+    this.graviationalConstant = -10000;
+
+
+    // place the nodes one by one recursively
+    for (var i = 0; i < nodeCount; i++) {
+      node = nodes[nodeIndices[i]];
+      // starting with root is irrelevant, it never passes the BarnesHut condition
+      this._getForceContribution(barnesHutTree.root.children.NW,node);
+      this._getForceContribution(barnesHutTree.root.children.NE,node);
+      this._getForceContribution(barnesHutTree.root.children.SW,node);
+      this._getForceContribution(barnesHutTree.root.children.SE,node);
+    }
+  },
+
+  _getForceContribution : function(parentBranch,node) {
+    // we get no force contribution from an empty region
+    if (parentBranch.childrenCount > 0) {
+      var dx,dy,distance;
+
+      // get the distance from the center of mass to the node.
+      dx = parentBranch.CenterOfMass.x - node.x;
+      dy = parentBranch.CenterOfMass.y - node.y;
+      distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance > 0) { // distance is 0 if it looks to apply a force on itself.
+        // we invert it here because we need the inverted distance for the force calculation too.
+        var distanceInv = 1/distance;
+        // BarnesHut condition
+        if (parentBranch.size * distanceInv > this.theta) {
+          // Did not pass the condition, go into children if available
+          if (parentBranch.childrenCount == 4) {
+            this._getForceContribution(parentBranch.children.NW,node);
+            this._getForceContribution(parentBranch.children.NE,node);
+            this._getForceContribution(parentBranch.children.SW,node);
+            this._getForceContribution(parentBranch.children.SE,node);
+          }
+          else { // parentBranch must have only one node, if it was empty we wouldnt be here
+            this._getForceOnNode(parentBranch, node, dx ,dy, distanceInv);
+          }
+        }
+        else {
+          this._getForceOnNode(parentBranch, node, dx ,dy, distanceInv);
+        }
+      }
+    }
+  },
+
+  _getForceOnNode : function(parentBranch, node, dx ,dy, distanceInv) {
+    // even if the parentBranch only has one node, its Center of Mass is at the right place (the node in this case).
+    var gravityForce = this.graviationalConstant * parentBranch.mass * node.mass * distanceInv * distanceInv;
+    var angle = Math.atan2(dy, dx);
+    var fx = Math.cos(angle) * gravityForce;
+    var fy = Math.sin(angle) * gravityForce;
+    node._addForce(fx, fy);
+  },
+
+
+  _formBarnesHutTree : function() {
+    var nodes = this.nodes;
+    var nodeIndices = this.nodeIndices;
+    var node;
+    var nodeCount = nodeIndices.length;
+
+    var minX = Number.MAX_VALUE,
+        minY = Number.MAX_VALUE,
+        maxX =-Number.MAX_VALUE,
+        maxY =-Number.MAX_VALUE;
+
+    // get the range of the nodes
+    for (var i = 0; i < nodeCount; i++) {
+      var x = nodes[nodeIndices[i]].x;
+      var y = nodes[nodeIndices[i]].y;
+      if (x < minX) { minX = x; }
+      if (x > maxX) { maxX = x; }
+      if (y < minY) { minY = y; }
+      if (y > maxY) { maxY = y; }
+    }
+    // make the range a square
+    var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
+    if (sizeDiff > 0) {minY -= 0.5 * sizeDiff; maxY += 0.5 * sizeDiff;} // xSize > ySize
+    else              {minX += 0.5 * sizeDiff; maxY -= 0.5 * sizeDiff;} // xSize < ySize
+
+
+    // construct the barnesHutTree
+    var barnesHutTree = {root:{
+                CenterOfMass:{x:0,y:0}, // Center of Mass
+                mass:0,
+                range:{minX:minX,maxX:maxX,minY:minY,maxY:maxY},
+                size: Math.abs(maxX - minX),
+                children: {data:null},
+                childrenCount: 4
+              }};
+    this._splitBranch(barnesHutTree.root);
+
+    // place the nodes one by one recursively
+    for (i = 0; i < nodeCount; i++) {
+      node = nodes[nodeIndices[i]];
+      this._placeInTree(barnesHutTree.root,node);
+    }
+
+    // make global
+    this.barnesHutTree = barnesHutTree
+  },
+
+
+  _updateBranchMass : function(parentBranch, node) {
+    var totalMass = parentBranch.mass + node.mass;
+    var totalMassInv = 1/totalMass;
+
+    parentBranch.CenterOfMass.x = parentBranch.CenterOfMass.x * parentBranch.mass + node.x * node.mass;
+    parentBranch.CenterOfMass.x *= totalMassInv;
+
+    parentBranch.CenterOfMass.y = parentBranch.CenterOfMass.y * parentBranch.mass + node.y * node.mass;
+    parentBranch.CenterOfMass.y *= totalMassInv;
+
+    parentBranch.mass = totalMass;
+  },
+
+  _placeInTree : function(parentBranch,node) {
+    // update the mass of the branch.
+    this._updateBranchMass(parentBranch,node);
+
+    if (parentBranch.children.NW.range.maxX > node.x) { // in NW or SW
+      if (parentBranch.children.NW.range.maxY > node.y) { // in NW
+        this._placeInRegion(parentBranch,node,"NW");
+      }
+      else { // in SW
+        this._placeInRegion(parentBranch,node,"SW");
+      }
+    }
+    else { // in NE or SE
+      if (parentBranch.children.NE.range.maxY > node.y) { // in NE
+        this._placeInRegion(parentBranch,node,"NE");
+      }
+      else { // in SE
+        this._placeInRegion(parentBranch,node,"SE");
+      }
+    }
+  },
+
+  _placeInRegion : function(parentBranch,node,region) {
+    switch (parentBranch.children[region].childrenCount) {
+      case 0: // place node here
+        parentBranch.children[region].children.data = node;
+        parentBranch.children[region].childrenCount = 1;
+        this._updateBranchMass(parentBranch.children[region],node);
+        break;
+      case 1: // convert into children
+        this._splitBranch(parentBranch.children[region]);
+        this._placeInTree(parentBranch.children[region],node);
+        break;
+      case 4: // place in branch
+        this._placeInTree(parentBranch.children[region],node);
+        break;
+    }
+  },
+
+  _splitBranch : function(parentBranch) {
+    // if the branch is filled with a node, replace the node in the new subset.
+    var containedNode = null;
+    if (parentBranch.childrenCount == 1) {
+      containedNode = parentBranch.children.data;
+      parentBranch.mass = 0; parentBranch.CenterOfMass.x = 0; parentBranch.CenterOfMass.y = 0;
+    }
+    parentBranch.childrenCount = 4;
+    parentBranch.children.data = null;
+    this._insertRegion(parentBranch,"NW");
+    this._insertRegion(parentBranch,"NE");
+    this._insertRegion(parentBranch,"SW");
+    this._insertRegion(parentBranch,"SE");
+
+    if (containedNode != null) {
+      this._placeInTree(parentBranch,containedNode);
+    }
+  },
+
+
+  /**
+   * This function subdivides the region into four new segments.
+   * Specifically, this inserts a single new segment.
+   * It fills the children section of the parentBranch
+   *
+   * @param parentBranch
+   * @param region
+   * @param parentRange
+   * @private
+   */
+  _insertRegion : function(parentBranch, region) {
+    var minX,maxX,minY,maxY;
+    switch (region) {
+      case "NW":
+        minX = parentBranch.range.minX;
+        maxX = parentBranch.range.minX + parentBranch.size;
+        minY = parentBranch.range.minY;
+        maxY = parentBranch.range.minY + parentBranch.size;
+        break;
+      case "NE":
+        minX = parentBranch.range.minX + parentBranch.size;
+        maxX = parentBranch.range.maxX;
+        minY = parentBranch.range.minY;
+        maxY = parentBranch.range.minY + parentBranch.size;
+        break;
+      case "SW":
+        minX = parentBranch.range.minX;
+        maxX = parentBranch.range.minX + parentBranch.size;
+        minY = parentBranch.range.minY + parentBranch.size;
+        maxY = parentBranch.range.maxY;
+        break;
+      case "SE":
+        minX = parentBranch.range.minX + parentBranch.size;
+        maxX = parentBranch.range.maxX;
+        minY = parentBranch.range.minY + parentBranch.size;
+        maxY = parentBranch.range.maxY;
+        break;
+    }
+
+    parentBranch.children[region] = {
+      CenterOfMass:{x:0,y:0},
+      mass:0,
+      range:{minX:minX,maxX:maxX,minY:minY,maxY:maxY},
+      size: 0.5 * parentBranch.size,
+      children: {data:null},
+      childrenCount: 0
+    };
+  },
+
+
+  _drawTree : function(ctx,color) {
+    if (this.barnesHutTree !== undefined) {
+
+      ctx.lineWidth = 2;
+
+      this._drawBranch(this.barnesHutTree.root,ctx,color);
+    }
+  },
+
+  _drawBranch : function(branch,ctx,color) {
+    if (color === undefined) {
+      color = "#FF0000";
+    }
+
+    if (branch.childrenCount == 4) {
+      this._drawBranch(branch.children.NW,ctx);
+      this._drawBranch(branch.children.NE,ctx);
+      this._drawBranch(branch.children.SE,ctx);
+      this._drawBranch(branch.children.SW,ctx);
+    }
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(branch.range.minX,branch.range.minY);
+    ctx.lineTo(branch.range.maxX,branch.range.minY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(branch.range.maxX,branch.range.minY);
+    ctx.lineTo(branch.range.maxX,branch.range.maxY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(branch.range.maxX,branch.range.maxY);
+    ctx.lineTo(branch.range.minX,branch.range.maxY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(branch.range.minX,branch.range.maxY);
+    ctx.lineTo(branch.range.minX,branch.range.minY);
+    ctx.stroke();
+
+    /*
+    if (branch.mass > 0) {
+      ctx.circle(branch.CenterOfMass.x, branch.CenterOfMass.y, 3*branch.mass);
+      ctx.stroke();
+    }
+    */
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+};
+
+function echo() {
+  switch (arguments.length) {
+    case 1:
+      echoN1(arguments[0]); break;
+    case 2:
+      echoN2(arguments[0],arguments[1]); break;
+    case 3:
+      echoN3(arguments[0],arguments[1],arguments[2]); break;
+  }
+}
+
+function echoN1(message) {
+  console.log(message);
+}
+
+function echoN2(message1,message2) {
+  console.log(message1,message2);
+}
+
+function echoN3(message1,message2,message3) {
+  console.log(message1,message2,message3);
+}
+/**
  * Created by Alex on 2/4/14.
  */
 
@@ -11362,6 +11923,8 @@ var manipulationMixin = {
 
   /**
    * delete everything in the selection
+   * TODO : place the alert in the gui.
+   *
    *
    * @private
    */
@@ -11380,7 +11943,7 @@ var manipulationMixin = {
   }
 
 
-}
+};
 /**
  * Creation of the SectorMixin var.
  *
@@ -12584,7 +13147,7 @@ var ClusterMixin = {
 
   /**
    * This function will apply the changes made to the remainingEdges during the formation of the clusters.
-   * This is a seperate function to allow for level-wise collapsing of the node tree.
+   * This is a seperate function to allow for level-wise collapsing of the node barnesHutTree.
    * It has to be called if a level is collapsed. It is called by _formClusters().
    * @private
    */
@@ -13170,9 +13733,7 @@ var SelectionMixin = {
     this.selectionObj = {};
 
     if (doNotTrigger == false) {
-      this._trigger('select', {
-        nodes: this.getSelection()
-      });
+      this._trigger('select', this.getSelection());
     }
   },
 
@@ -13199,9 +13760,7 @@ var SelectionMixin = {
     }
 
     if (doNotTrigger == false) {
-      this._trigger('select', {
-        nodes: this.getSelection()
-      });
+      this._trigger('select', this.getSelection());
     }
   },
 
@@ -13356,9 +13915,7 @@ var SelectionMixin = {
       this._removeFromSelection(object);
     }
     if (doNotTrigger == false) {
-      this._trigger('select', {
-        nodes: this.getSelection()
-      });
+      this._trigger('select', this.getSelection());
     }
   },
 
@@ -13872,15 +14429,13 @@ function Graph (container, data, options) {
   this.stabilize = true; // stabilize before displaying the graph
   this.selectable = true;
 
-  this.forceFactor = 50000;
-
   // set constant values
   this.constants = {
     nodes: {
       radiusMin: 5,
       radiusMax: 20,
       radius: 5,
-      distance: 100, // px
+      distance: 100,  // px
       shape: 'ellipse',
       image: undefined,
       widthMin: 16, // px
@@ -13949,7 +14504,7 @@ function Graph (container, data, options) {
     dataManipulationToolbar: {
       enabled: false
     },
-    minVelocity: 2,   // px/s
+    minVelocity: 0.2,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
   };
 
@@ -13964,6 +14519,9 @@ function Graph (container, data, options) {
   this.xIncrement = 0;
   this.yIncrement = 0;
   this.zoomIncrement = 0;
+
+  // load the force calculation functions, grouped under the physics system.
+  this._loadPhysicsSystem();
 
   // create a frame and canvas
   this._create();
@@ -14487,6 +15045,7 @@ Graph.prototype._createKeyBinds = function() {
     this.mousetrap.bind("pagedown",this._zoomOut.bind(me),"keydown");
     this.mousetrap.bind("pagedown",this._stopZoom.bind(me), "keyup");
   }
+  this.mousetrap.bind("b",this._formBarnesHutTree.bind(me));
 
   if (this.constants.dataManipulationToolbar.enabled == true) {
     this.mousetrap.bind("escape",this._createManipulatorBar.bind(me));
@@ -15061,7 +15620,7 @@ Graph.prototype._addNodes = function(ids) {
 
     if (!node.isFixed() && this.createNodeOnClick != true) {
       // TODO: position new nodes in a smarter way!
-      var radius = this.constants.edges.length * 2;
+      var radius = this.constants.edges.length;
       var count = ids.length;
       var angle = 2 * Math.PI * (i / count);
       node.x = radius * Math.cos(angle);
@@ -15346,6 +15905,8 @@ Graph.prototype._redraw = function() {
   this._doInAllSectors("_drawEdges",ctx);
   this._doInAllSectors("_drawNodes",ctx,true);
 
+  //this._drawTree(ctx,"#F00F0F");
+
   // restore original scaling and translation
   ctx.restore();
 
@@ -15521,233 +16082,9 @@ Graph.prototype._doStabilize = function() {
     count++;
   }
   this.zoomToFit();
-
- // var end = new Date();
-
-  // console.log('Stabilized in ' + (end-start) + ' ms, ' + count + ' iterations' ); // TODO: cleanup
 };
 
 
-/**
- * Before calculating the forces, we check if we need to cluster to keep up performance and we check
- * if there is more than one node. If it is just one node, we dont calculate anything.
- *
- * @private
- */
-Graph.prototype._initializeForceCalculation = function() {
-  // stop calculation if there is only one node
-  if (this.nodeIndices.length == 1) {
-    this.nodes[this.nodeIndices[0]]._setForce(0,0);
-  }
-  else {
-    // if there are too many nodes on screen, we cluster without repositioning
-    if (this.nodeIndices.length > this.constants.clustering.clusterThreshold && this.constants.clustering.enabled == true) {
-      this.clusterToFit(this.constants.clustering.reduceToNodes, false);
-    }
-
-    // we now start the force calculation
-    this._calculateForces();
-  }
-};
-
-
-/**
- * Calculate the external forces acting on the nodes
- * Forces are caused by: edges, repulsing forces between nodes, gravity
- * @private
- */
-Graph.prototype._calculateForces = function() {
-//  var screenCenterPos = {"x":(0.5*(this.canvasTopLeft.x + this.canvasBottomRight.x)),
-//                         "y":(0.5*(this.canvasTopLeft.y + this.canvasBottomRight.y))}
-  // create a local edge to the nodes and edges, that is faster
-  var dx, dy, angle, distance, fx, fy,
-    repulsingForce, springForce, length, edgeLength,
-    node, node1, node2, edge, edgeId, i, j, nodeId, xCenter, yCenter;
-  var clusterSize;
-  var nodes = this.nodes;
-  var edges = this.edges;
-
-  // Gravity is required to keep separated groups from floating off
-  // the forces are reset to zero in this loop by using _setForce instead
-  // of _addForce
-  var gravity = 0.08 * this.forceFactor;
-  for (i = 0; i < this.nodeIndices.length; i++) {
-      node = nodes[this.nodeIndices[i]];
-      // gravity does not apply when we are in a pocket sector
-      if (this._sector() == "default") {
-        dx = -node.x;// + screenCenterPos.x;
-        dy = -node.y;// + screenCenterPos.y;
-
-        angle = Math.atan2(dy, dx);
-        fx = Math.cos(angle) * gravity;
-        fy = Math.sin(angle) * gravity;
-      }
-      else {
-        fx = 0;
-        fy = 0;
-      }
-      node._setForce(fx, fy);
-
-      node.updateDamping(this.nodeIndices.length);
-  }
-
-  // repulsing forces between nodes
-  var minimumDistance = this.constants.nodes.distance,
-      steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
-
-
-  // we loop from i over all but the last entree in the array
-  // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
-  var a_base = (-2/3); var b = 4/3;
-  for (i = 0; i < this.nodeIndices.length-1; i++) {
-    node1 = nodes[this.nodeIndices[i]];
-    for (j = i+1; j < this.nodeIndices.length; j++) {
-      node2 = nodes[this.nodeIndices[j]];
-      clusterSize = (node1.clusterSize + node2.clusterSize - 2);
-      dx = node2.x - node1.x;
-      dy = node2.y - node1.y;
-      distance = Math.sqrt(dx * dx + dy * dy);
-
-
-      // clusters have a larger region of influence
-      minimumDistance = (clusterSize == 0) ? this.constants.nodes.distance : (this.constants.nodes.distance * (1 + clusterSize * this.constants.clustering.distanceAmplification));
-      var a = a_base / minimumDistance;
-      if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
-        angle = Math.atan2(dy, dx);
-
-        if (distance < 0.5*minimumDistance) { // at 0.5 * the minimum distance, the force is 0.993307
-          repulsingForce = 1.0;
-        }
-        else {
-          // TODO: correct factor for repulsing force
-          //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-          //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-          //repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
-          repulsingForce = a * distance + b;  // TODO: test the approximation of the function above
-        }
-        // amplify the repulsion for clusters.
-        repulsingForce *= (clusterSize == 0) ? 1 : 1 + clusterSize * this.constants.clustering.forceAmplification;
-        repulsingForce *= this.forceFactor;
-
-        fx = Math.cos(angle) * repulsingForce;
-        fy = Math.sin(angle) * repulsingForce ;
-
-        node1._addForce(-fx, -fy);
-        node2._addForce(fx, fy);
-      }
-    }
-  }
-
-/*
-  // repulsion of the edges on the nodes and
-  for (var nodeId in nodes) {
-    if (nodes.hasOwnProperty(nodeId)) {
-      node = nodes[nodeId];
-      for(var edgeId in edges) {
-        if (edges.hasOwnProperty(edgeId)) {
-          edge = edges[edgeId];
-
-          // get the center of the edge
-          xCenter = edge.from.x+(edge.to.x - edge.from.x)/2;
-          yCenter = edge.from.y+(edge.to.y - edge.from.y)/2;
-
-          // calculate normally distributed force
-          dx = node.x - xCenter;
-          dy = node.y - yCenter;
-          distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
-            angle = Math.atan2(dy, dx);
-
-            if (distance < 0.5*minimumDistance) { // at 0.5 * the minimum distance, the force is 0.993307
-              repulsingForce = 1.0;
-            }
-            else {
-              // TODO: correct factor for repulsing force
-              //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-              //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
-              repulsingForce = 1 / (1 + Math.exp((distance / (minimumDistance / 2) - 1) * steepness)); // TODO: customize the repulsing force
-            }
-            fx = Math.cos(angle) * repulsingForce;
-            fy = Math.sin(angle) * repulsingForce;
-            node._addForce(fx, fy);
-            edge.from._addForce(-fx/2,-fy/2);
-            edge.to._addForce(-fx/2,-fy/2);
-          }
-        }
-      }
-    }
-  }
-*/
-
-  // forces caused by the edges, modelled as springs
-  for (edgeId in edges) {
-    if (edges.hasOwnProperty(edgeId)) {
-      edge = edges[edgeId];
-      if (edge.connected) {
-        // only calculate forces if nodes are in the same sector
-        if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
-          clusterSize = (edge.to.clusterSize + edge.from.clusterSize - 2);
-          dx = (edge.to.x - edge.from.x);
-          dy = (edge.to.y - edge.from.y);
-          //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
-          //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length; // TODO: dmin
-          //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2;
-          edgeLength = edge.length;
-          // this implies that the edges between big clusters are longer
-          edgeLength += clusterSize * this.constants.clustering.edgeGrowth;
-          length =  Math.sqrt(dx * dx + dy * dy);
-          angle = Math.atan2(dy, dx);
-
-          springForce = edge.stiffness * (edgeLength - length) * this.forceFactor;
-
-          fx = Math.cos(angle) * springForce;
-          fy = Math.sin(angle) * springForce;
-
-          edge.from._addForce(-fx, -fy);
-          edge.to._addForce(fx, fy);
-        }
-      }
-    }
-  }
-/*
-  // TODO: re-implement repulsion of edges
-
-   // repulsing forces between edges
-   var minimumDistance = this.constants.edges.distance,
-   steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
-   for (var l = 0; l < edges.length; l++) {
-   //Keep distance from other edge centers
-   for (var l2 = l + 1; l2 < this.edges.length; l2++) {
-   //var dmin = (nodes[n].width + nodes[n].height + nodes[n2].width + nodes[n2].height) / 1 || minimumDistance, // TODO: dmin
-   //var dmin = (nodes[n].width + nodes[n2].width)/2  || minimumDistance, // TODO: dmin
-   //dmin = 40 + ((nodes[n].width/2 + nodes[n2].width/2) || 0),
-   var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
-   ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
-   l2x = edges[l2].from.x+(edges[l2].to.x - edges[l2].from.x)/2,
-   l2y = edges[l2].from.y+(edges[l2].to.y - edges[l2].from.y)/2,
-
-   // calculate normally distributed force
-   dx = l2x - lx,
-   dy = l2y - ly,
-   distance = Math.sqrt(dx * dx + dy * dy),
-   angle = Math.atan2(dy, dx),
-
-
-   // TODO: correct factor for repulsing force
-   //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-   //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
-   repulsingforce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)), // TODO: customize the repulsing force
-   fx = Math.cos(angle) * repulsingforce,
-   fy = Math.sin(angle) * repulsingforce;
-
-   edges[l].from._addForce(-fx, -fy);
-   edges[l].to._addForce(-fx, -fy);
-   edges[l2].from._addForce(fx, fy);
-   edges[l2].to._addForce(fx, fy);
-   }
-   }
-*/
-};
 
 
 /**
@@ -15776,14 +16113,25 @@ Graph.prototype._isMoving = function(vmin) {
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = 0.01;
+  var interval = 1.0;
   var nodes = this.nodes;
-  for (var id in nodes) {
-    if (nodes.hasOwnProperty(id)) {
-      nodes[id].discreteStep(interval);
+
+  this.constants.maxVelocity = 30;
+
+  if (this.constants.maxVelocity > 0) {
+    for (var id in nodes) {
+      if (nodes.hasOwnProperty(id)) {
+        nodes[id].discreteStepLimited(interval, this.constants.maxVelocity);
+      }
     }
   }
-
+  else {
+    for (var id in nodes) {
+      if (nodes.hasOwnProperty(id)) {
+        nodes[id].discreteStep(interval);
+      }
+    }
+  }
   var vmin = this.constants.minVelocity;
   this.moving = this._isMoving(vmin);
 };
@@ -15831,7 +16179,6 @@ Graph.prototype.start = function() {
           //this.time = this.end - this.startTime;
           //console.log('refresh time: ' + this.time);
           //this.startTime = window.performance.now();
-
         }, this.renderTimestep);
       }
     }
@@ -15869,6 +16216,22 @@ Graph.prototype.toggleFreeze = function() {
     this.start();
   }
 };
+
+
+
+/**
+ * Mixin the physics system and initialize the parameters required.
+ *
+ * @private
+ */
+Graph.prototype._loadPhysicsSystem = function() {
+  for (var mixinFunction in physicsMixin) {
+    if (physicsMixin.hasOwnProperty(mixinFunction)) {
+      Graph.prototype[mixinFunction] = physicsMixin[mixinFunction];
+    }
+  }
+};
+
 
 /**
  * Mixin the cluster system and initialize the parameters required.

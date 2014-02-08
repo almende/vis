@@ -82,10 +82,10 @@ Edge.prototype.setProperties = function(properties, constants) {
     if (properties.fontSize !== undefined)   {this.fontSize = properties.fontSize;}
     if (properties.fontFace !== undefined)   {this.fontFace = properties.fontFace;}
   }
-  if (properties.title !== undefined)          {this.title = properties.title;}
-  if (properties.width !== undefined)          {this.width = properties.width;}
-  if (properties.value !== undefined)          {this.value = properties.value;}
-  if (properties.length !== undefined)         {this.length = properties.length;}
+  if (properties.title !== undefined)        {this.title = properties.title;}
+  if (properties.width !== undefined)        {this.width = properties.width;}
+  if (properties.value !== undefined)        {this.value = properties.value;}
+  if (properties.length !== undefined)       {this.length = properties.length;}
 
   // Added to support dashed lines
   // David Jordan

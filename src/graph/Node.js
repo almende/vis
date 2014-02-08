@@ -21,6 +21,7 @@
  *                                            retrieving group properties
  * @param {Object}               constants    An object with default values for
  *                                            example for the color
+ *
  */
 function Node(properties, imagelist, grouplist, constants) {
   this.selected = false;
@@ -73,8 +74,7 @@ function Node(properties, imagelist, grouplist, constants) {
   this.vx = 0.0;  // velocity x
   this.vy = 0.0;  // velocity y
   this.minForce = constants.minForce;
-  this.damping = 0.9;
-  this.dampingFactor = 75;
+  this.damping = 0.9; // this is manipulated in the updateDaming function
 
   this.graphScaleInv = 1;
   this.canvasTopLeft = {"x": -300, "y": -300};
@@ -128,7 +128,7 @@ Node.prototype.detachEdge = function(edge) {
  * @private
  */
 Node.prototype._updateMass = function() {
-  this.mass = 1 + 0.6 * this.edges.length; // kg
+  this.mass = 1;// + 0.6 * this.edges.length; // kg
 };
 
 /**
@@ -389,6 +389,29 @@ Node.prototype.discreteStep = function(interval) {
   }
 };
 
+
+
+/**
+ * Perform one discrete step for the node
+ * @param {number} interval    Time interval in seconds
+ */
+Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
+  if (!this.xFixed) {
+    var dx   = -this.damping * this.vx;     // damping force
+    var ax   = (this.fx + dx) / this.mass;  // acceleration
+    this.vx += ax * interval;               // velocity
+    this.vx = (Math.abs(this.vx) > maxVelocity) ? ((this.vx > 0) ? maxVelocity : -maxVelocity) : this.vx;
+    this.x  += this.vx * interval;          // position
+  }
+
+  if (!this.yFixed) {
+    var dy   = -this.damping * this.vy;     // damping force
+    var ay   = (this.fy + dy) / this.mass;  // acceleration
+    this.vy += ay * interval;               // velocity
+    this.vy = (Math.abs(this.vy) > maxVelocity) ? ((this.vy > 0) ? maxVelocity : -maxVelocity) : this.vy;
+    this.y  += this.vy * interval;          // position
+  }
+};
 
 /**
  * Check if this node has a fixed x and y position
@@ -950,8 +973,7 @@ Node.prototype.setScale = function(scale) {
  * @param {Number} numberOfNodes
  */
 Node.prototype.updateDamping = function(numberOfNodes) {
-  this.damping = (0.8 + 0.1*this.clusterSize * (1 + Math.pow(numberOfNodes,-2)));
-  this.damping *= this.dampingFactor;
+  this.damping = (1 + 0.1*this.clusterSize * (1 + Math.pow(numberOfNodes,-2)));
 };
 
 
