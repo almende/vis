@@ -90,8 +90,7 @@
     edges: {
         length: 50
     },
-    stabilize: false,
-        clustering : true
+    stabilize: false
     };
       graph = new vis.Graph(container, data, options);
 
@@ -104,7 +103,8 @@
 </head>
 
 <body onload="draw();">
-
+calculation time:<span id="calctimereporter" style="display:inline;"></span> ms
+render time:<span id="rendertimereporter"style="display:inline;"></span> ms
 <form onsubmit="draw(); return false;">
   <label for="nodeCount">Number of nodes:</label>
   <input id="nodeCount" type="text" value="25" style="width: 50px;">

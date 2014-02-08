@@ -66,11 +66,12 @@ function Graph (container, data, options) {
       }
     },
     physics: {
-      springConstant:0.05,
-      springLength: 100,
-      centralGravity: 0.1,
-      nodeGravityConstant: -10000,
-      barnesHutTheta: 0.2
+      enableBarnesHut: false,
+      barnesHutTheta: 1 / 0.4, // inverted to save time during calculation
+      barnesHutGravitationalConstant: -10000,
+      centralGravity: 0.08,
+      springLength: 50,
+      springConstant: 0.02
     },
     clustering: {                   // Per Node in Cluster = PNiC
       enabled: false,               // (Boolean)             | global on/off switch for clustering.
@@ -88,7 +89,8 @@ function Graph (container, data, options) {
       nodeScaling: {width:  10,     // (px PNiC)             | growth of the width  per node in cluster.
                     height: 10,     // (px PNiC)             | growth of the height per node in cluster.
                     radius: 10},    // (px PNiC)             | growth of the radius per node in cluster.
-      activeAreaBoxSize: 100        // (px)                  | box area around the curser where clusters are popped open.
+      activeAreaBoxSize: 100,       // (px)                  | box area around the curser where clusters are popped open.
+      massTransferCoefficient: 1    // (multiplier)          | parent.mass += massTransferCoefficient * child.mass
     },
     navigation: {
       enabled: false,
@@ -101,7 +103,7 @@ function Graph (container, data, options) {
     dataManipulationToolbar: {
       enabled: false
     },
-    minVelocity: 0.2,   // px/s
+    minVelocity: 0.1,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
   };
 
@@ -642,7 +644,7 @@ Graph.prototype._createKeyBinds = function() {
     this.mousetrap.bind("pagedown",this._zoomOut.bind(me),"keydown");
     this.mousetrap.bind("pagedown",this._stopZoom.bind(me), "keyup");
   }
-  this.mousetrap.bind("b",this._formBarnesHutTree.bind(me));
+  this.mousetrap.bind("b",this._toggleBarnesHut.bind(me));
 
   if (this.constants.dataManipulationToolbar.enabled == true) {
     this.mousetrap.bind("escape",this._createManipulatorBar.bind(me));
@@ -1502,7 +1504,7 @@ Graph.prototype._redraw = function() {
   this._doInAllSectors("_drawEdges",ctx);
   this._doInAllSectors("_drawNodes",ctx,true);
 
-  this._drawTree(ctx,"#F00F0F");
+//  this._drawTree(ctx,"#F00F0F");
 
   // restore original scaling and translation
   ctx.restore();
@@ -1710,7 +1712,7 @@ Graph.prototype._isMoving = function(vmin) {
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = 0.5;
+  var interval = 1;
   var nodes = this.nodes;
 
   this.constants.maxVelocity = 30;
@@ -1769,14 +1771,28 @@ Graph.prototype.start = function() {
             graph._zoom(graph.scale*(1 + graph.zoomIncrement), center);
           }
 
+          var calctimeStart = Date.now();
 
           graph.start();
+          graph.start();
+
+          var calctime = Date.now() - calctimeStart;
+          var rendertimeStart = Date.now();
           graph._redraw();
+          var rendertime = Date.now() - rendertimeStart;
 
           //this.end = window.performance.now();
           //this.time = this.end - this.startTime;
           //console.log('refresh time: ' + this.time);
           //this.startTime = window.performance.now();
+          var DOMelement = document.getElementById("calctimereporter");
+          if (DOMelement !== undefined) {
+            DOMelement.innerHTML = calctime;
+          }
+          DOMelement = document.getElementById("rendertimereporter");
+          if (DOMelement !== undefined) {
+            DOMelement.innerHTML = rendertime;
+          }
         }, this.renderTimestep);
       }
     }
@@ -1823,6 +1839,7 @@ Graph.prototype.toggleFreeze = function() {
  * @private
  */
 Graph.prototype._loadPhysicsSystem = function() {
+  this.forceCalculationTime = 0;
   for (var mixinFunction in physicsMixin) {
     if (physicsMixin.hasOwnProperty(mixinFunction)) {
       Graph.prototype[mixinFunction] = physicsMixin[mixinFunction];

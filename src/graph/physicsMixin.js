@@ -5,6 +5,12 @@
 
 var physicsMixin = {
 
+
+  _toggleBarnesHut : function() {
+    this.constants.physics.enableBarnesHut = !this.constants.physics.enableBarnesHut;
+    this.moving = true;
+    this.start();
+  },
   /**
    * Before calculating the forces, we check if we need to cluster to keep up performance and we check
    * if there is more than one node. If it is just one node, we dont calculate anything.
@@ -23,8 +29,13 @@ var physicsMixin = {
       }
 
       // we now start the force calculation
-     // this._calculateForcesBarnesHut();
-      this._calculateForcesOriginal();
+      if (this.constants.physics.enableBarnesHut == true) {
+        this._calculateForcesBarnesHut();
+      }
+      else {
+        this.barnesHutTree = undefined;
+        this._calculateForcesRepulsion();
+      }
     }
   },
 
@@ -34,28 +45,15 @@ var physicsMixin = {
    * Forces are caused by: edges, repulsing forces between nodes, gravity
    * @private
    */
-  _calculateForcesOriginal : function() {
+  _calculateForcesRepulsion : function() {
     // Gravity is required to keep separated groups from floating off
     // the forces are reset to zero in this loop by using _setForce instead
     // of _addForce
+    this._calculateGravitationalForces();
 
-//    var startTimeAll = Date.now();
-
-    this._calculateGravitationalForces(1);
-
-//    var startTimeRepulsion = Date.now();
-    // All nodes repel eachother.
     this._calculateRepulsionForces();
 
-//    var endTimeRepulsion = Date.now();
-
-    // the edges are strings
-    this._calculateSpringForces(1);
-
-//    var endTimeAll = Date.now();
-
-//    echo("Time repulsion part:", endTimeRepulsion - startTimeRepulsion);
-//    echo("Time total force calc:", endTimeAll - startTimeAll);
+    this._calculateSpringForces();
   },
 
   /**
@@ -64,27 +62,11 @@ var physicsMixin = {
    * @private
    */
   _calculateForcesBarnesHut : function() {
-    // Gravity is required to keep separated groups from floating off
-    // the forces are reset to zero in this loop by using _setForce instead
-    // of _addForce
+    this._calculateGravitationalForces();
 
-//    var startTimeAll = Date.now();
-
-    this._clearForces();
-
-//    var startTimeRepulsion = Date.now();
-    // All nodes repel eachother.
     this._calculateBarnesHutForces();
 
-//    var endTimeRepulsion = Date.now();
-
-    // the edges are strings
-    this._calculateSpringForces(1);
-
-//    var endTimeAll = Date.now();
-
-//    echo("Time repulsion part:", endTimeRepulsion - startTimeRepulsion);
-//    echo("Time total force calc:",  endTimeAll - startTimeAll);
+    this._calculateSpringForces();
   },
 
 
@@ -99,7 +81,7 @@ var physicsMixin = {
     }
   },
 
-  _calculateGravitationalForces : function(boost) {
+  _calculateGravitationalForces : function() {
     var dx, dy, angle, fx, fy, node, i;
     var nodes = this.nodes;
     var gravity = this.constants.physics.centralGravity;
@@ -135,7 +117,6 @@ var physicsMixin = {
 
     // repulsing forces between nodes
     var minimumDistance = this.constants.nodes.distance;
-    //var steepness = 10;
 
     // we loop from i over all but the last entree in the array
     // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
@@ -148,8 +129,6 @@ var physicsMixin = {
         dy = node2.y - node1.y;
         distance = Math.sqrt(dx * dx + dy * dy);
 
-
-        // clusters have a larger region of influence
         minimumDistance = (clusterSize == 0) ? this.constants.nodes.distance : (this.constants.nodes.distance * (1 + clusterSize * this.constants.clustering.distanceAmplification));
         var a = a_base / minimumDistance;
         if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
@@ -174,7 +153,7 @@ var physicsMixin = {
     }
   },
 
-  _calculateSpringForces : function(boost) {
+  _calculateSpringForces : function() {
     var dx, dy, angle, fx, fy, springForce, length, edgeLength, edge, edgeId, clusterSize;
     var edges = this.edges;
 
@@ -196,7 +175,7 @@ var physicsMixin = {
             length =  Math.sqrt(dx * dx + dy * dy);
             angle = Math.atan2(dy, dx);
 
-            springForce = edge.springConstant * (edgeLength - length);
+            springForce = this.constants.physics.springConstant * (edgeLength - length);
 
             fx = Math.cos(angle) * springForce;
             fy = Math.sin(angle) * springForce;
@@ -241,11 +220,8 @@ var physicsMixin = {
       distance = Math.sqrt(dx * dx + dy * dy);
 
       if (distance > 0) { // distance is 0 if it looks to apply a force on itself.
-        // we invert it here because we need the inverted distance for the force calculation too.
-        var distanceInv = 1/distance;
-
         // BarnesHut condition
-        if (parentBranch.size * distanceInv > this.constants.physics.barnesHutTheta) {
+        if (distance * parentBranch.calcSize < this.constants.physics.barnesHutTheta) {
           // Did not pass the condition, go into children if available
           if (parentBranch.childrenCount == 4) {
             this._getForceContribution(parentBranch.children.NW,node);
@@ -255,20 +231,20 @@ var physicsMixin = {
           }
           else { // parentBranch must have only one node, if it was empty we wouldnt be here
             if (parentBranch.children.data.id != node.id) { // if it is not self
-              this._getForceOnNode(parentBranch, node, dx ,dy, distanceInv);
+              this._getForceOnNode(parentBranch, node, dx ,dy, distance);
             }
           }
         }
         else {
-          this._getForceOnNode(parentBranch, node, dx ,dy, distanceInv);
+          this._getForceOnNode(parentBranch, node, dx ,dy, distance);
         }
       }
     }
   },
 
-  _getForceOnNode : function(parentBranch, node, dx ,dy, distanceInv) {
+  _getForceOnNode : function(parentBranch, node, dx ,dy, distance) {
     // even if the parentBranch only has one node, its Center of Mass is at the right place (the node in this case).
-    var gravityForce = this.constants.physics.nodeGravityConstant * parentBranch.mass * node.mass * distanceInv * distanceInv;
+    var gravityForce = this.constants.physics.barnesHutGravitationalConstant * parentBranch.mass * node.mass / (distance * distance);
     var angle = Math.atan2(dy, dx);
     var fx = Math.cos(angle) * gravityForce;
     var fy = Math.sin(angle) * gravityForce;
@@ -308,6 +284,7 @@ var physicsMixin = {
                 mass:0,
                 range:{minX:minX,maxX:maxX,minY:minY,maxY:maxY},
                 size: Math.abs(maxX - minX),
+                calcSize: 1 / Math.abs(maxX - minX),
                 children: {data:null},
                 level: 0,
                 childrenCount: 4
@@ -324,6 +301,7 @@ var physicsMixin = {
     this.barnesHutTree = barnesHutTree
   },
 
+
   _updateBranchMass : function(parentBranch, node) {
     var totalMass = parentBranch.mass + node.mass;
     var totalMassInv = 1/totalMass;
@@ -336,6 +314,7 @@ var physicsMixin = {
 
     parentBranch.mass = totalMass;
   },
+
 
   _placeInTree : function(parentBranch,node) {
     // update the mass of the branch.
@@ -359,6 +338,7 @@ var physicsMixin = {
     }
   },
 
+
   _placeInRegion : function(parentBranch,node,region) {
     switch (parentBranch.children[region].childrenCount) {
       case 0: // place node here
@@ -375,6 +355,7 @@ var physicsMixin = {
         break;
     }
   },
+
 
   _splitBranch : function(parentBranch) {
     // if the branch is filled with a node, replace the node in the new subset.
@@ -441,6 +422,7 @@ var physicsMixin = {
       mass:0,
       range:{minX:minX,maxX:maxX,minY:minY,maxY:maxY},
       size: 0.5 * parentBranch.size,
+      calcSize: 2 * parentBranch.calcSize,
       children: {data:null},
       level: parentBranch.level +1,
       childrenCount: 0
