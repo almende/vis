@@ -450,7 +450,7 @@ Graph.prototype.setOptions = function (options) {
 
       if (options.edges.length !== undefined &&
           options.nodes && options.nodes.distance === undefined) {
-        this.constants.physics.springLength = options.edges.length;
+        this.constants.edges.length   = options.edges.length;
         this.constants.nodes.distance = options.edges.length * 1.25;
       }
 
@@ -1771,7 +1771,6 @@ Graph.prototype.start = function() {
 
 
           graph.start();
-          graph.start();
           graph._redraw();
 
           //this.end = window.performance.now();
@@ -1792,7 +1791,7 @@ Graph.prototype.start = function() {
  */
 Graph.prototype.singleStep = function() {
   if (this.moving) {
-    this._initializeForceCalculation(true);
+    this._initializeForceCalculation();
     this._discreteStepNodes();
 
     var vmin = this.constants.minVelocity;

@@ -11,7 +11,7 @@ var physicsMixin = {
    *
    * @private
    */
-  _initializeForceCalculation : function(useBarnesHut) {
+  _initializeForceCalculation : function() {
     // stop calculation if there is only one node
     if (this.nodeIndices.length == 1) {
       this.nodes[this.nodeIndices[0]]._setForce(0,0);
@@ -22,15 +22,9 @@ var physicsMixin = {
         this.clusterToFit(this.constants.clustering.reduceToNodes, false);
       }
 
-      this._calculateForcesRepulsion();
-
-//      // we now start the force calculation
-//      if (useBarnesHut == true) {
-//        this._calculateForcesBarnesHut();
-//      }
-//      else {
-//        this._calculateForcesRepulsion();
-//      }
+      // we now start the force calculation
+     // this._calculateForcesBarnesHut();
+      this._calculateForcesOriginal();
     }
   },
 
@@ -40,23 +34,23 @@ var physicsMixin = {
    * Forces are caused by: edges, repulsing forces between nodes, gravity
    * @private
    */
-  _calculateForcesRepulsion : function() {
+  _calculateForcesOriginal : function() {
     // Gravity is required to keep separated groups from floating off
     // the forces are reset to zero in this loop by using _setForce instead
     // of _addForce
 
 //    var startTimeAll = Date.now();
 
-    this._applyCentralGravity();
+    this._calculateGravitationalForces(1);
 
 //    var startTimeRepulsion = Date.now();
     // All nodes repel eachother.
-    this._applyNodeRepulsion();
+    this._calculateRepulsionForces();
 
 //    var endTimeRepulsion = Date.now();
 
     // the edges are strings
-    this._applySpringForces();
+    this._calculateSpringForces(1);
 
 //    var endTimeAll = Date.now();
 
@@ -76,7 +70,7 @@ var physicsMixin = {
 
 //    var startTimeAll = Date.now();
 
-    this._applyCentralGravity();
+    this._clearForces();
 
 //    var startTimeRepulsion = Date.now();
     // All nodes repel eachother.
@@ -85,7 +79,7 @@ var physicsMixin = {
 //    var endTimeRepulsion = Date.now();
 
     // the edges are strings
-    this._applySpringForces();
+    this._calculateSpringForces(1);
 
 //    var endTimeAll = Date.now();
 
@@ -105,7 +99,7 @@ var physicsMixin = {
     }
   },
 
-  _applyCentralGravity : function() {
+  _calculateGravitationalForces : function(boost) {
     var dx, dy, angle, fx, fy, node, i;
     var nodes = this.nodes;
     var gravity = this.constants.physics.centralGravity;
@@ -130,7 +124,7 @@ var physicsMixin = {
     }
   },
 
-  _applyNodeRepulsion : function() {
+  _calculateRepulsionForces : function() {
     var dx, dy, angle, distance, fx, fy, clusterSize,
         repulsingForce, node1, node2, i, j;
     var nodes = this.nodes;
@@ -180,7 +174,7 @@ var physicsMixin = {
     }
   },
 
-  _applySpringForces : function() {
+  _calculateSpringForces : function(boost) {
     var dx, dy, angle, fx, fy, springForce, length, edgeLength, edge, edgeId, clusterSize;
     var edges = this.edges;
 
@@ -206,7 +200,7 @@ var physicsMixin = {
 
             fx = Math.cos(angle) * springForce;
             fy = Math.sin(angle) * springForce;
-            //console.log(edge.length,dx,dy,edge.springConstant,angle)
+
             edge.from._addForce(-fx, -fy);
             edge.to._addForce(fx, fy);
           }

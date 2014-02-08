@@ -31,7 +31,7 @@ function Edge (properties, graph, constants) {
   this.title  = undefined;
   this.width  = constants.edges.width;
   this.value  = undefined;
-  this.length = constants.physics.springLength;
+  this.length = constants.edges.length;
   this.selected = false;
 
   this.from = null;   // a node
@@ -55,6 +55,7 @@ function Edge (properties, graph, constants) {
   this.lengthFixed = false;
 
   this.setProperties(properties, constants);
+
 }
 
 /**
@@ -102,6 +103,7 @@ Edge.prototype.setProperties = function(properties, constants) {
 
   this.widthFixed = this.widthFixed || (properties.width !== undefined);
   this.lengthFixed = this.lengthFixed || (properties.length !== undefined);
+  this.stiffness = 1 / this.length;
 
   // set draw method based on style
   switch (this.style) {

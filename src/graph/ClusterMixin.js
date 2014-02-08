@@ -359,9 +359,9 @@ var ClusterMixin = {
       parentNode.dynamicEdgesLength = parentNode.dynamicEdges.length;
 
       // place the child node near the parent, not at the exact same location to avoid chaos in the system
-      childNode.x = parentNode.x + this.constants.physics.springLength * (0.1 * (0.5 - Math.random()) * parentNode.clusterSize);
-      childNode.y = parentNode.y + this.constants.physics.springLength * (0.1 * (0.5 - Math.random()) * parentNode.clusterSize);
-      console.log(childNode.x,childNode.y,parentNode.x,parentNode.y);
+      childNode.x = parentNode.x + this.constants.edges.length * 0.3 * (0.5 - Math.random()) * parentNode.clusterSize;
+      childNode.y = parentNode.y + this.constants.edges.length * 0.3 * (0.5 - Math.random()) * parentNode.clusterSize;
+
       // remove node from the list
       delete parentNode.containedNodes[containedNodeId];
 
