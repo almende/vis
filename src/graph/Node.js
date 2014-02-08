@@ -68,13 +68,13 @@ function Node(properties, imagelist, grouplist, constants) {
   this.clusterSizeRadiusFactor = constants.clustering.nodeScaling.radius;
 
   // mass, force, velocity
-  this.mass = 1;  // kg (mass is adjusted for the number of connected edges)
+  this.mass = 1;  // kg
   this.fx = 0.0;  // external force x
   this.fy = 0.0;  // external force y
   this.vx = 0.0;  // velocity x
   this.vy = 0.0;  // velocity y
   this.minForce = constants.minForce;
-  this.damping = 0.9; // this is manipulated in the updateDaming function
+  this.damping = 0.9; // this is manipulated in the updateDamping function
 
   this.graphScaleInv = 1;
   this.canvasTopLeft = {"x": -300, "y": -300};
@@ -105,7 +105,7 @@ Node.prototype.attachEdge = function(edge) {
     this.dynamicEdges.push(edge);
   }
   this.dynamicEdgesLength = this.dynamicEdges.length;
-  this._updateMass();
+//  this._updateMass();
 };
 
 /**
@@ -119,7 +119,7 @@ Node.prototype.detachEdge = function(edge) {
     this.dynamicEdges.splice(index, 1);
   }
   this.dynamicEdgesLength = this.dynamicEdges.length;
-  this._updateMass();
+//  this._updateMass();
 };
 
 /**
@@ -127,9 +127,9 @@ Node.prototype.detachEdge = function(edge) {
  * to it (more edges -> heavier node).
  * @private
  */
-Node.prototype._updateMass = function() {
-  this.mass = 1;// + 0.6 * this.edges.length; // kg
-};
+//Node.prototype._updateMass = function() {
+//  this.mass = 1;// + 0.6 * this.edges.length; // kg
+//};
 
 /**
  * Set or overwrite properties for the node
@@ -973,7 +973,7 @@ Node.prototype.setScale = function(scale) {
  * @param {Number} numberOfNodes
  */
 Node.prototype.updateDamping = function(numberOfNodes) {
-  this.damping = (1 + 0.1*this.clusterSize * (1 + Math.pow(numberOfNodes,-2)));
+  this.damping = (0.9 + 0.1*this.clusterSize * (1 + Math.pow(numberOfNodes,-2)));
 };
 
 
