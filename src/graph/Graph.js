@@ -1769,6 +1769,7 @@ Graph.prototype.start = function() {
             graph._zoom(graph.scale*(1 + graph.zoomIncrement), center);
           }
 
+
           graph.start();
           graph.start();
           graph._redraw();
@@ -1791,7 +1792,7 @@ Graph.prototype.start = function() {
  */
 Graph.prototype.singleStep = function() {
   if (this.moving) {
-    this._initializeForceCalculation();
+    this._initializeForceCalculation(true);
     this._discreteStepNodes();
 
     var vmin = this.constants.minVelocity;

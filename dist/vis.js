@@ -10953,7 +10953,7 @@ var physicsMixin = {
    *
    * @private
    */
-  _initializeForceCalculation : function() {
+  _initializeForceCalculation : function(useBarnesHut) {
     // stop calculation if there is only one node
     if (this.nodeIndices.length == 1) {
       this.nodes[this.nodeIndices[0]]._setForce(0,0);
@@ -10964,9 +10964,15 @@ var physicsMixin = {
         this.clusterToFit(this.constants.clustering.reduceToNodes, false);
       }
 
-      // we now start the force calculation
-      this._calculateForcesBarnesHut();
-//      this._calculateForcesRepulsion();
+      this._calculateForcesRepulsion();
+
+//      // we now start the force calculation
+//      if (useBarnesHut == true) {
+//        this._calculateForcesBarnesHut();
+//      }
+//      else {
+//        this._calculateForcesRepulsion();
+//      }
     }
   },
 
@@ -11142,7 +11148,7 @@ var physicsMixin = {
 
             fx = Math.cos(angle) * springForce;
             fy = Math.sin(angle) * springForce;
-
+            //console.log(edge.length,dx,dy,edge.springConstant,angle)
             edge.from._addForce(-fx, -fy);
             edge.to._addForce(fx, fy);
           }
@@ -11251,6 +11257,7 @@ var physicsMixin = {
                 range:{minX:minX,maxX:maxX,minY:minY,maxY:maxY},
                 size: Math.abs(maxX - minX),
                 children: {data:null},
+                level: 0,
                 childrenCount: 4
               }};
     this._splitBranch(barnesHutTree.root);
@@ -11264,7 +11271,6 @@ var physicsMixin = {
     // make global
     this.barnesHutTree = barnesHutTree
   },
-
 
   _updateBranchMass : function(parentBranch, node) {
     var totalMass = parentBranch.mass + node.mass;
@@ -11377,12 +11383,14 @@ var physicsMixin = {
         break;
     }
 
+
     parentBranch.children[region] = {
       CenterOfMass:{x:0,y:0},
       mass:0,
       range:{minX:minX,maxX:maxX,minY:minY,maxY:maxY},
       size: 0.5 * parentBranch.size,
       children: {data:null},
+      level: parentBranch.level +1,
       childrenCount: 0
     };
   },
@@ -12763,6 +12771,7 @@ var ClusterMixin = {
         }
       }
     }
+
    },
 
   /**
@@ -12808,9 +12817,9 @@ var ClusterMixin = {
       parentNode.dynamicEdgesLength = parentNode.dynamicEdges.length;
 
       // place the child node near the parent, not at the exact same location to avoid chaos in the system
-      childNode.x = parentNode.x + this.constants.edges.length * (0.1 + 0.3 * (0.5 - Math.random()) * parentNode.clusterSize);
-      childNode.y = parentNode.y + this.constants.edges.length * (0.1 + 0.3 * (0.5 - Math.random()) * parentNode.clusterSize);
-
+      childNode.x = parentNode.x + this.constants.physics.springLength * (0.1 * (0.5 - Math.random()) * parentNode.clusterSize);
+      childNode.y = parentNode.y + this.constants.physics.springLength * (0.1 * (0.5 - Math.random()) * parentNode.clusterSize);
+      console.log(childNode.x,childNode.y,parentNode.x,parentNode.y);
       // remove node from the list
       delete parentNode.containedNodes[containedNodeId];
 
@@ -16135,6 +16144,7 @@ Graph.prototype.start = function() {
             graph._zoom(graph.scale*(1 + graph.zoomIncrement), center);
           }
 
+
           graph.start();
           graph.start();
           graph._redraw();
@@ -16157,7 +16167,7 @@ Graph.prototype.start = function() {
  */
 Graph.prototype.singleStep = function() {
   if (this.moving) {
-    this._initializeForceCalculation();
+    this._initializeForceCalculation(true);
     this._discreteStepNodes();
 
     var vmin = this.constants.minVelocity;
