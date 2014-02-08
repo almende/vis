@@ -825,3 +825,4 @@ util.hexToHSV = function hexToHSV(hex) {
   var rgb = util.hexToRGB(hex);
   return util.RGBToHSV(rgb.r,rgb.g,rgb.b);
 }
+

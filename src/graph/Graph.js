@@ -65,6 +65,13 @@ function Graph (container, data, options) {
         altLength: undefined
       }
     },
+    physics: {
+      springConstant:0.05,
+      springLength: 100,
+      centralGravity: 0.1,
+      nodeGravityConstant: -10000,
+      barnesHutTheta: 0.2
+    },
     clustering: {                   // Per Node in Cluster = PNiC
       enabled: false,               // (Boolean)             | global on/off switch for clustering.
       initialMaxNodes: 100,         // (# nodes)             | if the initial amount of nodes is larger than this, we cluster until the total number is less than this threshold.
@@ -81,8 +88,7 @@ function Graph (container, data, options) {
       nodeScaling: {width:  10,     // (px PNiC)             | growth of the width  per node in cluster.
                     height: 10,     // (px PNiC)             | growth of the height per node in cluster.
                     radius: 10},    // (px PNiC)             | growth of the radius per node in cluster.
-      activeAreaBoxSize: 100,       // (px)                  | box area around the curser where clusters are popped open.
-      massTransferCoefficient: 1    // (multiplier)          | parent.mass += massTransferCoefficient * child.mass
+      activeAreaBoxSize: 100        // (px)                  | box area around the curser where clusters are popped open.
     },
     navigation: {
       enabled: false,
@@ -444,7 +450,7 @@ Graph.prototype.setOptions = function (options) {
 
       if (options.edges.length !== undefined &&
           options.nodes && options.nodes.distance === undefined) {
-        this.constants.edges.length   = options.edges.length;
+        this.constants.physics.springLength = options.edges.length;
         this.constants.nodes.distance = options.edges.length * 1.25;
       }
 
@@ -1496,7 +1502,7 @@ Graph.prototype._redraw = function() {
   this._doInAllSectors("_drawEdges",ctx);
   this._doInAllSectors("_drawNodes",ctx,true);
 
-  //this._drawTree(ctx,"#F00F0F");
+  this._drawTree(ctx,"#F00F0F");
 
   // restore original scaling and translation
   ctx.restore();
@@ -1704,7 +1710,7 @@ Graph.prototype._isMoving = function(vmin) {
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = 1.0;
+  var interval = 0.5;
   var nodes = this.nodes;
 
   this.constants.maxVelocity = 30;
@@ -1763,6 +1769,7 @@ Graph.prototype.start = function() {
             graph._zoom(graph.scale*(1 + graph.zoomIncrement), center);
           }
 
+          graph.start();
           graph.start();
           graph._redraw();
 

@@ -993,8 +993,8 @@ Node.prototype.clearVelocity = function() {
  */
 Node.prototype.updateVelocity = function(massBeforeClustering) {
   var energyBefore = this.vx * this.vx * massBeforeClustering;
-  this.vx = Math.sqrt(energyBefore/this.mass);
+  this.vx = (this.vx < 0) ? -Math.sqrt(energyBefore/this.mass) : Math.sqrt(energyBefore/this.mass);
   energyBefore = this.vy * this.vy * massBeforeClustering;
-  this.vy = Math.sqrt(energyBefore/this.mass);
+  this.vy = (this.vy < 0) ? -Math.sqrt(energyBefore/this.mass) : Math.sqrt(energyBefore/this.mass);
 };
 

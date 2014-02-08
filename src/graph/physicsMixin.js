@@ -24,7 +24,7 @@ var physicsMixin = {
 
       // we now start the force calculation
       this._calculateForcesBarnesHut();
-//      this._calculateForcesOriginal();
+//      this._calculateForcesRepulsion();
     }
   },
 
@@ -34,23 +34,23 @@ var physicsMixin = {
    * Forces are caused by: edges, repulsing forces between nodes, gravity
    * @private
    */
-  _calculateForcesOriginal : function() {
+  _calculateForcesRepulsion : function() {
     // Gravity is required to keep separated groups from floating off
     // the forces are reset to zero in this loop by using _setForce instead
     // of _addForce
 
 //    var startTimeAll = Date.now();
 
-    this._calculateGravitationalForces(1);
+    this._applyCentralGravity();
 
 //    var startTimeRepulsion = Date.now();
     // All nodes repel eachother.
-    this._calculateRepulsionForces();
+    this._applyNodeRepulsion();
 
 //    var endTimeRepulsion = Date.now();
 
     // the edges are strings
-    this._calculateSpringForces(1);
+    this._applySpringForces();
 
 //    var endTimeAll = Date.now();
 
@@ -70,7 +70,7 @@ var physicsMixin = {
 
 //    var startTimeAll = Date.now();
 
-    this._clearForces();
+    this._applyCentralGravity();
 
 //    var startTimeRepulsion = Date.now();
     // All nodes repel eachother.
@@ -79,7 +79,7 @@ var physicsMixin = {
 //    var endTimeRepulsion = Date.now();
 
     // the edges are strings
-    this._calculateSpringForces(1);
+    this._applySpringForces();
 
 //    var endTimeAll = Date.now();
 
@@ -99,10 +99,10 @@ var physicsMixin = {
     }
   },
 
-  _calculateGravitationalForces : function(boost) {
+  _applyCentralGravity : function() {
     var dx, dy, angle, fx, fy, node, i;
     var nodes = this.nodes;
-    var gravity = 0.08 * boost;
+    var gravity = this.constants.physics.centralGravity;
 
     for (i = 0; i < this.nodeIndices.length; i++) {
       node = nodes[this.nodeIndices[i]];
@@ -124,13 +124,13 @@ var physicsMixin = {
     }
   },
 
-  _calculateRepulsionForces : function() {
+  _applyNodeRepulsion : function() {
     var dx, dy, angle, distance, fx, fy, clusterSize,
         repulsingForce, node1, node2, i, j;
     var nodes = this.nodes;
 
     // approximation constants
-    var a_base = (-2/3);
+    var a_base = -2/3;
     var b = 4/3;
 
     // repulsing forces between nodes
@@ -174,7 +174,7 @@ var physicsMixin = {
     }
   },
 
-  _calculateSpringForces : function(boost) {
+  _applySpringForces : function() {
     var dx, dy, angle, fx, fy, springForce, length, edgeLength, edge, edgeId, clusterSize;
     var edges = this.edges;
 
@@ -196,7 +196,7 @@ var physicsMixin = {
             length =  Math.sqrt(dx * dx + dy * dy);
             angle = Math.atan2(dy, dx);
 
-            springForce = 0.02 * (edgeLength - length) * boost;
+            springForce = edge.springConstant * (edgeLength - length);
 
             fx = Math.cos(angle) * springForce;
             fy = Math.sin(angle) * springForce;
@@ -218,10 +218,6 @@ var physicsMixin = {
     var nodeCount = nodeIndices.length;
 
     var barnesHutTree = this.barnesHutTree;
-
-    this.theta = 0.2;
-    this.graviationalConstant = -10000;
-
 
     // place the nodes one by one recursively
     for (var i = 0; i < nodeCount; i++) {
@@ -247,8 +243,9 @@ var physicsMixin = {
       if (distance > 0) { // distance is 0 if it looks to apply a force on itself.
         // we invert it here because we need the inverted distance for the force calculation too.
         var distanceInv = 1/distance;
+
         // BarnesHut condition
-        if (parentBranch.size * distanceInv > this.theta) {
+        if (parentBranch.size * distanceInv > this.constants.physics.barnesHutTheta) {
           // Did not pass the condition, go into children if available
           if (parentBranch.childrenCount == 4) {
             this._getForceContribution(parentBranch.children.NW,node);
@@ -257,7 +254,9 @@ var physicsMixin = {
             this._getForceContribution(parentBranch.children.SE,node);
           }
           else { // parentBranch must have only one node, if it was empty we wouldnt be here
-            this._getForceOnNode(parentBranch, node, dx ,dy, distanceInv);
+            if (parentBranch.children.data.id != node.id) { // if it is not self
+              this._getForceOnNode(parentBranch, node, dx ,dy, distanceInv);
+            }
           }
         }
         else {
@@ -269,7 +268,7 @@ var physicsMixin = {
 
   _getForceOnNode : function(parentBranch, node, dx ,dy, distanceInv) {
     // even if the parentBranch only has one node, its Center of Mass is at the right place (the node in this case).
-    var gravityForce = this.graviationalConstant * parentBranch.mass * node.mass * distanceInv * distanceInv;
+    var gravityForce = this.constants.physics.nodeGravityConstant * parentBranch.mass * node.mass * distanceInv * distanceInv;
     var angle = Math.atan2(dy, dx);
     var fx = Math.cos(angle) * gravityForce;
     var fy = Math.sin(angle) * gravityForce;
@@ -300,7 +299,7 @@ var physicsMixin = {
     // make the range a square
     var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
     if (sizeDiff > 0) {minY -= 0.5 * sizeDiff; maxY += 0.5 * sizeDiff;} // xSize > ySize
-    else              {minX += 0.5 * sizeDiff; maxY -= 0.5 * sizeDiff;} // xSize < ySize
+    else              {minX += 0.5 * sizeDiff; maxX -= 0.5 * sizeDiff;} // xSize < ySize
 
 
     // construct the barnesHutTree
@@ -446,11 +445,10 @@ var physicsMixin = {
     };
   },
 
-
   _drawTree : function(ctx,color) {
     if (this.barnesHutTree !== undefined) {
 
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 1;
 
       this._drawBranch(this.barnesHutTree.root,ctx,color);
     }
@@ -495,45 +493,4 @@ var physicsMixin = {
     }
     */
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 };
-
-function echo() {
-  switch (arguments.length) {
-    case 1:
-      echoN1(arguments[0]); break;
-    case 2:
-      echoN2(arguments[0],arguments[1]); break;
-    case 3:
-      echoN3(arguments[0],arguments[1],arguments[2]); break;
-  }
-}
-
-function echoN1(message) {
-  console.log(message);
-}
-
-function echoN2(message1,message2) {
-  console.log(message1,message2);
-}
-
-function echoN3(message1,message2,message3) {
-  console.log(message1,message2,message3);
-}

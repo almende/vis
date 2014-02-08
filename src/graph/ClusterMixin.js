@@ -358,8 +358,8 @@ var ClusterMixin = {
       parentNode.dynamicEdgesLength = parentNode.dynamicEdges.length;
 
       // place the child node near the parent, not at the exact same location to avoid chaos in the system
-      childNode.x = parentNode.x + this.constants.edges.length * 0.3 * (0.5 - Math.random()) * parentNode.clusterSize;
-      childNode.y = parentNode.y + this.constants.edges.length * 0.3 * (0.5 - Math.random()) * parentNode.clusterSize;
+      childNode.x = parentNode.x + this.constants.edges.length * (0.1 + 0.3 * (0.5 - Math.random()) * parentNode.clusterSize);
+      childNode.y = parentNode.y + this.constants.edges.length * (0.1 + 0.3 * (0.5 - Math.random()) * parentNode.clusterSize);
 
       // remove node from the list
       delete parentNode.containedNodes[containedNodeId];
@@ -617,7 +617,7 @@ var ClusterMixin = {
     // update the properties of the child and parent
     var massBefore = parentNode.mass;
     childNode.clusterSession = this.clusterSession;
-    parentNode.mass += this.constants.clustering.massTransferCoefficient * childNode.mass;
+    parentNode.mass += childNode.mass;
     parentNode.clusterSize += childNode.clusterSize;
     parentNode.fontSize += this.constants.clustering.fontSizeMultiplier * childNode.clusterSize;
 
@@ -930,7 +930,7 @@ var ClusterMixin = {
     for (var i = 0; i < this.nodeIndices.length; i++) {
       var node = this.nodes[this.nodeIndices[i]];
       if (!node.isFixed()) {
-        var radius = this.constants.edges.length * (1 + 0.6*node.clusterSize);
+        var radius = this.constants.physics.springLength * (1 + 0.6*node.clusterSize);
         var angle = 2 * Math.PI * Math.random();
         node.x = radius * Math.cos(angle);
         node.y = radius * Math.sin(angle);

@@ -1136,6 +1136,8 @@ util.hexToHSV = function hexToHSV(hex) {
   var rgb = util.hexToRGB(hex);
   return util.RGBToHSV(rgb.r,rgb.g,rgb.b);
 }
+
+
 /**
  * Event listener (singleton)
  */
@@ -10075,9 +10077,9 @@ Node.prototype.clearVelocity = function() {
  */
 Node.prototype.updateVelocity = function(massBeforeClustering) {
   var energyBefore = this.vx * this.vx * massBeforeClustering;
-  this.vx = Math.sqrt(energyBefore/this.mass);
+  this.vx = (this.vx < 0) ? -Math.sqrt(energyBefore/this.mass) : Math.sqrt(energyBefore/this.mass);
   energyBefore = this.vy * this.vy * massBeforeClustering;
-  this.vy = Math.sqrt(energyBefore/this.mass);
+  this.vy = (this.vy < 0) ? -Math.sqrt(energyBefore/this.mass) : Math.sqrt(energyBefore/this.mass);
 };
 
 
@@ -10114,7 +10116,7 @@ function Edge (properties, graph, constants) {
   this.title  = undefined;
   this.width  = constants.edges.width;
   this.value  = undefined;
-  this.length = constants.edges.length;
+  this.length = constants.physics.springLength;
   this.selected = false;
 
   this.from = null;   // a node
@@ -10132,13 +10134,12 @@ function Edge (properties, graph, constants) {
   // 2012-08-08
   this.dash = util.extend({}, constants.edges.dash); // contains properties length, gap, altLength
 
-  this.stiffness   = undefined; // depends on the length of the edge
+  this.springConstant = constants.physics.springConstant;
   this.color       = constants.edges.color;
   this.widthFixed  = false;
   this.lengthFixed = false;
 
   this.setProperties(properties, constants);
-
 }
 
 /**
@@ -10186,7 +10187,6 @@ Edge.prototype.setProperties = function(properties, constants) {
 
   this.widthFixed = this.widthFixed || (properties.width !== undefined);
   this.lengthFixed = this.lengthFixed || (properties.length !== undefined);
-  this.stiffness = 1 / this.length;
 
   // set draw method based on style
   switch (this.style) {
@@ -10966,7 +10966,7 @@ var physicsMixin = {
 
       // we now start the force calculation
       this._calculateForcesBarnesHut();
-//      this._calculateForcesOriginal();
+//      this._calculateForcesRepulsion();
     }
   },
 
@@ -10976,23 +10976,23 @@ var physicsMixin = {
    * Forces are caused by: edges, repulsing forces between nodes, gravity
    * @private
    */
-  _calculateForcesOriginal : function() {
+  _calculateForcesRepulsion : function() {
     // Gravity is required to keep separated groups from floating off
     // the forces are reset to zero in this loop by using _setForce instead
     // of _addForce
 
 //    var startTimeAll = Date.now();
 
-    this._calculateGravitationalForces(1);
+    this._applyCentralGravity();
 
 //    var startTimeRepulsion = Date.now();
     // All nodes repel eachother.
-    this._calculateRepulsionForces();
+    this._applyNodeRepulsion();
 
 //    var endTimeRepulsion = Date.now();
 
     // the edges are strings
-    this._calculateSpringForces(1);
+    this._applySpringForces();
 
 //    var endTimeAll = Date.now();
 
@@ -11012,7 +11012,7 @@ var physicsMixin = {
 
 //    var startTimeAll = Date.now();
 
-    this._clearForces();
+    this._applyCentralGravity();
 
 //    var startTimeRepulsion = Date.now();
     // All nodes repel eachother.
@@ -11021,7 +11021,7 @@ var physicsMixin = {
 //    var endTimeRepulsion = Date.now();
 
     // the edges are strings
-    this._calculateSpringForces(1);
+    this._applySpringForces();
 
 //    var endTimeAll = Date.now();
 
@@ -11041,10 +11041,10 @@ var physicsMixin = {
     }
   },
 
-  _calculateGravitationalForces : function(boost) {
+  _applyCentralGravity : function() {
     var dx, dy, angle, fx, fy, node, i;
     var nodes = this.nodes;
-    var gravity = 0.08 * boost;
+    var gravity = this.constants.physics.centralGravity;
 
     for (i = 0; i < this.nodeIndices.length; i++) {
       node = nodes[this.nodeIndices[i]];
@@ -11066,13 +11066,13 @@ var physicsMixin = {
     }
   },
 
-  _calculateRepulsionForces : function() {
+  _applyNodeRepulsion : function() {
     var dx, dy, angle, distance, fx, fy, clusterSize,
         repulsingForce, node1, node2, i, j;
     var nodes = this.nodes;
 
     // approximation constants
-    var a_base = (-2/3);
+    var a_base = -2/3;
     var b = 4/3;
 
     // repulsing forces between nodes
@@ -11116,7 +11116,7 @@ var physicsMixin = {
     }
   },
 
-  _calculateSpringForces : function(boost) {
+  _applySpringForces : function() {
     var dx, dy, angle, fx, fy, springForce, length, edgeLength, edge, edgeId, clusterSize;
     var edges = this.edges;
 
@@ -11138,7 +11138,7 @@ var physicsMixin = {
             length =  Math.sqrt(dx * dx + dy * dy);
             angle = Math.atan2(dy, dx);
 
-            springForce = 0.02 * (edgeLength - length) * boost;
+            springForce = edge.springConstant * (edgeLength - length);
 
             fx = Math.cos(angle) * springForce;
             fy = Math.sin(angle) * springForce;
@@ -11160,10 +11160,6 @@ var physicsMixin = {
     var nodeCount = nodeIndices.length;
 
     var barnesHutTree = this.barnesHutTree;
-
-    this.theta = 0.2;
-    this.graviationalConstant = -10000;
-
 
     // place the nodes one by one recursively
     for (var i = 0; i < nodeCount; i++) {
@@ -11189,8 +11185,9 @@ var physicsMixin = {
       if (distance > 0) { // distance is 0 if it looks to apply a force on itself.
         // we invert it here because we need the inverted distance for the force calculation too.
         var distanceInv = 1/distance;
+
         // BarnesHut condition
-        if (parentBranch.size * distanceInv > this.theta) {
+        if (parentBranch.size * distanceInv > this.constants.physics.barnesHutTheta) {
           // Did not pass the condition, go into children if available
           if (parentBranch.childrenCount == 4) {
             this._getForceContribution(parentBranch.children.NW,node);
@@ -11199,7 +11196,9 @@ var physicsMixin = {
             this._getForceContribution(parentBranch.children.SE,node);
           }
           else { // parentBranch must have only one node, if it was empty we wouldnt be here
-            this._getForceOnNode(parentBranch, node, dx ,dy, distanceInv);
+            if (parentBranch.children.data.id != node.id) { // if it is not self
+              this._getForceOnNode(parentBranch, node, dx ,dy, distanceInv);
+            }
           }
         }
         else {
@@ -11211,7 +11210,7 @@ var physicsMixin = {
 
   _getForceOnNode : function(parentBranch, node, dx ,dy, distanceInv) {
     // even if the parentBranch only has one node, its Center of Mass is at the right place (the node in this case).
-    var gravityForce = this.graviationalConstant * parentBranch.mass * node.mass * distanceInv * distanceInv;
+    var gravityForce = this.constants.physics.nodeGravityConstant * parentBranch.mass * node.mass * distanceInv * distanceInv;
     var angle = Math.atan2(dy, dx);
     var fx = Math.cos(angle) * gravityForce;
     var fy = Math.sin(angle) * gravityForce;
@@ -11242,7 +11241,7 @@ var physicsMixin = {
     // make the range a square
     var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
     if (sizeDiff > 0) {minY -= 0.5 * sizeDiff; maxY += 0.5 * sizeDiff;} // xSize > ySize
-    else              {minX += 0.5 * sizeDiff; maxY -= 0.5 * sizeDiff;} // xSize < ySize
+    else              {minX += 0.5 * sizeDiff; maxX -= 0.5 * sizeDiff;} // xSize < ySize
 
 
     // construct the barnesHutTree
@@ -11388,11 +11387,10 @@ var physicsMixin = {
     };
   },
 
-
   _drawTree : function(ctx,color) {
     if (this.barnesHutTree !== undefined) {
 
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 1;
 
       this._drawBranch(this.barnesHutTree.root,ctx,color);
     }
@@ -11437,48 +11435,7 @@ var physicsMixin = {
     }
     */
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 };
-
-function echo() {
-  switch (arguments.length) {
-    case 1:
-      echoN1(arguments[0]); break;
-    case 2:
-      echoN2(arguments[0],arguments[1]); break;
-    case 3:
-      echoN3(arguments[0],arguments[1],arguments[2]); break;
-  }
-}
-
-function echoN1(message) {
-  console.log(message);
-}
-
-function echoN2(message1,message2) {
-  console.log(message1,message2);
-}
-
-function echoN3(message1,message2,message3) {
-  console.log(message1,message2,message3);
-}
 /**
  * Created by Alex on 2/4/14.
  */
@@ -12851,8 +12808,8 @@ var ClusterMixin = {
       parentNode.dynamicEdgesLength = parentNode.dynamicEdges.length;
 
       // place the child node near the parent, not at the exact same location to avoid chaos in the system
-      childNode.x = parentNode.x + this.constants.edges.length * 0.3 * (0.5 - Math.random()) * parentNode.clusterSize;
-      childNode.y = parentNode.y + this.constants.edges.length * 0.3 * (0.5 - Math.random()) * parentNode.clusterSize;
+      childNode.x = parentNode.x + this.constants.edges.length * (0.1 + 0.3 * (0.5 - Math.random()) * parentNode.clusterSize);
+      childNode.y = parentNode.y + this.constants.edges.length * (0.1 + 0.3 * (0.5 - Math.random()) * parentNode.clusterSize);
 
       // remove node from the list
       delete parentNode.containedNodes[containedNodeId];
@@ -13110,7 +13067,7 @@ var ClusterMixin = {
     // update the properties of the child and parent
     var massBefore = parentNode.mass;
     childNode.clusterSession = this.clusterSession;
-    parentNode.mass += this.constants.clustering.massTransferCoefficient * childNode.mass;
+    parentNode.mass += childNode.mass;
     parentNode.clusterSize += childNode.clusterSize;
     parentNode.fontSize += this.constants.clustering.fontSizeMultiplier * childNode.clusterSize;
 
@@ -13423,7 +13380,7 @@ var ClusterMixin = {
     for (var i = 0; i < this.nodeIndices.length; i++) {
       var node = this.nodes[this.nodeIndices[i]];
       if (!node.isFixed()) {
-        var radius = this.constants.edges.length * (1 + 0.6*node.clusterSize);
+        var radius = this.constants.physics.springLength * (1 + 0.6*node.clusterSize);
         var angle = 2 * Math.PI * Math.random();
         node.x = radius * Math.cos(angle);
         node.y = radius * Math.sin(angle);
@@ -14474,6 +14431,13 @@ function Graph (container, data, options) {
         altLength: undefined
       }
     },
+    physics: {
+      springConstant:0.05,
+      springLength: 100,
+      centralGravity: 0.1,
+      nodeGravityConstant: -10000,
+      barnesHutTheta: 0.2
+    },
     clustering: {                   // Per Node in Cluster = PNiC
       enabled: false,               // (Boolean)             | global on/off switch for clustering.
       initialMaxNodes: 100,         // (# nodes)             | if the initial amount of nodes is larger than this, we cluster until the total number is less than this threshold.
@@ -14490,8 +14454,7 @@ function Graph (container, data, options) {
       nodeScaling: {width:  10,     // (px PNiC)             | growth of the width  per node in cluster.
                     height: 10,     // (px PNiC)             | growth of the height per node in cluster.
                     radius: 10},    // (px PNiC)             | growth of the radius per node in cluster.
-      activeAreaBoxSize: 100,       // (px)                  | box area around the curser where clusters are popped open.
-      massTransferCoefficient: 1    // (multiplier)          | parent.mass += massTransferCoefficient * child.mass
+      activeAreaBoxSize: 100        // (px)                  | box area around the curser where clusters are popped open.
     },
     navigation: {
       enabled: false,
@@ -14853,7 +14816,7 @@ Graph.prototype.setOptions = function (options) {
 
       if (options.edges.length !== undefined &&
           options.nodes && options.nodes.distance === undefined) {
-        this.constants.edges.length   = options.edges.length;
+        this.constants.physics.springLength = options.edges.length;
         this.constants.nodes.distance = options.edges.length * 1.25;
       }
 
@@ -15905,7 +15868,7 @@ Graph.prototype._redraw = function() {
   this._doInAllSectors("_drawEdges",ctx);
   this._doInAllSectors("_drawNodes",ctx,true);
 
-  //this._drawTree(ctx,"#F00F0F");
+  this._drawTree(ctx,"#F00F0F");
 
   // restore original scaling and translation
   ctx.restore();
@@ -16113,7 +16076,7 @@ Graph.prototype._isMoving = function(vmin) {
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = 1.0;
+  var interval = 0.5;
   var nodes = this.nodes;
 
   this.constants.maxVelocity = 30;
@@ -16172,6 +16135,7 @@ Graph.prototype.start = function() {
             graph._zoom(graph.scale*(1 + graph.zoomIncrement), center);
           }
 
+          graph.start();
           graph.start();
           graph._redraw();
 
