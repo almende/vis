@@ -33,9 +33,11 @@ function Edge (properties, graph, constants) {
   this.value  = undefined;
   this.length = constants.physics.springLength;
   this.selected = false;
+  this.smooth = constants.smoothCurves;
 
   this.from = null;   // a node
   this.to = null;     // a node
+  this.via = null;    // a temp node
 
   // we use this to be able to reconnect the edge to a cluster if its node is put into a cluster
   // by storing the original information we can revert to the original connection when the cluser is opened.
@@ -54,7 +56,6 @@ function Edge (properties, graph, constants) {
   this.lengthFixed = false;
 
   this.setProperties(properties, constants);
-
 }
 
 /**
@@ -73,6 +74,7 @@ Edge.prototype.setProperties = function(properties, constants) {
   if (properties.id !== undefined)             {this.id = properties.id;}
   if (properties.style !== undefined)          {this.style = properties.style;}
   if (properties.label !== undefined)          {this.label = properties.label;}
+
   if (this.label) {
     this.fontSize = constants.edges.fontSize;
     this.fontFace = constants.edges.fontFace;
@@ -81,6 +83,7 @@ Edge.prototype.setProperties = function(properties, constants) {
     if (properties.fontSize !== undefined)   {this.fontSize = properties.fontSize;}
     if (properties.fontFace !== undefined)   {this.fontFace = properties.fontFace;}
   }
+
   if (properties.title !== undefined)        {this.title = properties.title;}
   if (properties.width !== undefined)        {this.width = properties.width;}
   if (properties.value !== undefined)        {this.value = properties.value;}
@@ -284,7 +287,12 @@ Edge.prototype._line = function (ctx) {
   // draw a straight line
   ctx.beginPath();
   ctx.moveTo(this.from.x, this.from.y);
-  ctx.lineTo(this.to.x, this.to.y);
+  if (this.smooth == true) {
+    ctx.quadraticCurveTo(this.via.x,this.via.y,this.to.x, this.to.y);
+  }
+  else {
+    ctx.lineTo(this.to.x, this.to.y);
+  }
   ctx.stroke();
 };
 
@@ -625,4 +633,11 @@ Edge.prototype.select = function() {
 
 Edge.prototype.unselect = function() {
   this.selected = false;
+}
+
+Edge.prototype.positionBezierNode = function() {
+  if (this.via !== null) {
+    this.via.x = 0.5 * (this.from.x + this.to.x);
+    this.via.y = 0.5 * (this.from.y + this.to.y);
+  }
 }

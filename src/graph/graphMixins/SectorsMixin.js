@@ -58,6 +58,20 @@ var SectorMixin = {
 
   /**
    * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied active sector.
+   *
+   * @param sectorId
+   * @private
+   */
+  _switchToSupportSector : function() {
+    this.nodeIndices = this.sectors["support"]["nodeIndices"];
+    this.nodes       = this.sectors["support"]["nodes"];
+    this.edges       = this.sectors["support"]["edges"];
+  },
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
    * those of the supplied frozen sector.
    *
    * @param sectorId
@@ -349,6 +363,9 @@ var SectorMixin = {
 
         // finally, we update the node index list.
         this._updateNodeIndexList();
+
+        // we refresh the list with calulation nodes and calculation node indices.
+        this._setCalculationNodes();
       }
     }
   },
@@ -386,6 +403,35 @@ var SectorMixin = {
             this[runFunction](argument);
           }
         }
+      }
+    }
+    // we revert the global references back to our active sector
+    this._loadLatestSector();
+  },
+
+
+  /**
+   * This runs a function in all active sectors. This is used in _redraw() and the _initializeForceCalculation().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we dont pass the function itself because then the "this" is the window object
+   *                              |   instead of the Graph object
+   * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  _doInSupportSector : function(runFunction,argument) {
+    if (argument === undefined) {
+      this._switchToSupportSector();
+      this[runFunction]();
+    }
+    else {
+      this._switchToSupportSector();
+      var args = Array.prototype.splice.call(arguments, 1);
+      if (args.length > 1) {
+        this[runFunction](args[0],args[1]);
+      }
+      else {
+        this[runFunction](argument);
       }
     }
     // we revert the global references back to our active sector
@@ -483,7 +529,6 @@ var SectorMixin = {
         this._doInAllFrozenSectors(runFunction,argument);
       }
     }
-
   },
 
 

@@ -58,6 +58,9 @@ function Node(properties, imagelist, grouplist, constants) {
 
   this.grouplist = grouplist;
 
+  this.dampingBase = 0.9;
+  this.damping = 0.9; // this is manipulated in the updateDamping function
+
   this.setProperties(properties, constants);
 
   // creating the variables for clustering
@@ -77,11 +80,11 @@ function Node(properties, imagelist, grouplist, constants) {
   this.vx = 0.0;  // velocity x
   this.vy = 0.0;  // velocity y
   this.minForce = constants.minForce;
-  this.damping = 0.9; // this is manipulated in the updateDamping function
 
   this.graphScaleInv = 1;
   this.canvasTopLeft = {"x": -300, "y": -300};
   this.canvasBottomRight = {"x":  300, "y":  300};
+  this.parentEdgeId = null;
 }
 
 /**
@@ -143,10 +146,10 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.y !== undefined)         {this.y = properties.y;}
   if (properties.value !== undefined)     {this.value = properties.value;}
 
+
   // physics
-  if (properties.internalMultiplier !== undefined)  {this.internalMultiplier = properties.value;}
-
-
+  if (properties.internalMultiplier !== undefined)  {this.internalMultiplier = properties.internalMultiplier;}
+  if (properties.damping !== undefined)             {this.dampingBase = properties.damping;}
   // navigation controls properties
   if (properties.horizontalAlignLeft !== undefined) {this.horizontalAlignLeft = properties.horizontalAlignLeft;}
   if (properties.verticalAlignTop    !== undefined) {this.verticalAlignTop    = properties.verticalAlignTop;}
@@ -591,7 +594,7 @@ Node.prototype._resizeBox = function (ctx) {
 
     this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeWidthFactor;
     this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeHeightFactor;
-    this.growthIndicator = this.width - textSize.width + 2 * margin;
+    this.growthIndicator = this.width - (textSize.width + 2 * margin);
 //    this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
 
   }
@@ -693,7 +696,7 @@ Node.prototype._resizeCircle = function (ctx) {
 //    this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeWidthFactor;
 //    this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeHeightFactor;
     this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
-    this.growthIndicator = this.radius - diameter;
+    this.growthIndicator = this.radius - 0.5*diameter;
   }
 };
 
@@ -869,7 +872,7 @@ Node.prototype._resizeText = function (ctx) {
     this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
     this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
     this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
-    this.growthIndicator = this.width - textSize.width + 2 * margin;
+    this.growthIndicator = this.width - (textSize.width + 2 * margin);
   }
 };
 
@@ -980,8 +983,8 @@ Node.prototype.setScale = function(scale) {
  *
  * @param {Number} numberOfNodes
  */
-Node.prototype.updateDamping = function(numberOfNodes) {
-  this.damping = Math.min(1.5,0.9 + 0.01*this.growthIndicator);
+Node.prototype.updateDamping = function() {
+  this.damping = Math.min(Math.max(1.5,this.dampingBase),this.dampingBase + 0.01*this.growthIndicator);
 };
 
 

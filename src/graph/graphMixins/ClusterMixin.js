@@ -81,6 +81,7 @@ var ClusterMixin = {
       // update the index list, dynamic edges and labels
       this._updateNodeIndexList();
       this._updateDynamicEdges();
+      this._setCalculationNodes();
       this.updateLabels();
     }
 
@@ -275,6 +276,7 @@ var ClusterMixin = {
     for (var i = 0; i < this.nodeIndices.length; i++) {
       var node = this.nodes[this.nodeIndices[i]];
       this._expandClusterNode(node,recursive,force);
+      this._setCalculationNodes();
     }
    },
 

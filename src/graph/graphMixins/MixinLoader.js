@@ -65,6 +65,7 @@ var graphMixinLoaders = {
     }
     else {
       this._clearMixin(barnesHutMixin);
+      this.barnesHutTree = undefined;
 
       this.constants.physics.centralGravity = this.constants.physics.repulsion.centralGravity;
       this.constants.physics.springLength   = this.constants.physics.repulsion.springLength;
@@ -101,13 +102,18 @@ var graphMixinLoaders = {
       "edges":{},
       "nodeIndices":[],
       "formationScale": 1.0,
-      "drawingNode": undefined },
+      "drawingNode": undefined };
     this.sectors["frozen"] = { },
     this.sectors["navigation"] = {"nodes":{},
       "edges":{},
       "nodeIndices":[],
       "formationScale": 1.0,
-      "drawingNode": undefined },
+      "drawingNode": undefined };
+    this.sectors["support"] = {"nodes":{},
+      "edges":{},
+      "nodeIndices":[],
+      "formationScale": 1.0,
+      "drawingNode": undefined };
 
     this.nodeIndices = this.sectors["active"]["default"]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
 

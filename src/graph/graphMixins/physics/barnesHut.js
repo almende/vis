@@ -6,12 +6,13 @@ var barnesHutMixin = {
 
 
   _calculateNodeForces : function() {
-    this._formBarnesHutTree();
-
-    var nodes = this.nodes;
-    var nodeIndices = this.nodeIndices;
     var node;
+    var nodes = this.calculationNodes;
+    var nodeIndices = this.calculationNodeIndices;
     var nodeCount = nodeIndices.length;
+
+    this._formBarnesHutTree(nodes,nodeIndices);
+
 
     var barnesHutTree = this.barnesHutTree;
 
@@ -70,9 +71,7 @@ var barnesHutMixin = {
   },
 
 
-  _formBarnesHutTree : function() {
-    var nodes = this.nodes;
-    var nodeIndices = this.nodeIndices;
+  _formBarnesHutTree : function(nodes,nodeIndices) {
     var node;
     var nodeCount = nodeIndices.length;
 

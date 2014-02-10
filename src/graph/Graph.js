@@ -118,6 +118,7 @@ function Graph (container, data, options) {
     dataManipulationToolbar: {
       enabled: false
     },
+    smoothCurves: true,
     maxVelocity: 35,
     minVelocity: 0.1,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
@@ -157,6 +158,9 @@ function Graph (container, data, options) {
   var graph = this;
   this.freezeSimulation = false;// freeze the simulation
 
+
+  this.calculationNodes = {};
+  this.calculationNodeIndices = [];
   this.nodeIndices = [];        // array with all the indices of the nodes. Used to speed up forces calculation
   this.nodes = {};              // object with Node objects
   this.edges = {};              // object with Edge objects
@@ -1398,6 +1402,7 @@ Graph.prototype._addEdges = function (ids) {
 
   this.moving = true;
   this._updateValueRange(edges);
+  this._createBezierNodes();
 };
 
 /**
@@ -1545,8 +1550,9 @@ Graph.prototype._redraw = function() {
 
   this._doInAllSectors("_drawAllSectorNodes",ctx);
   this._doInAllSectors("_drawEdges",ctx);
-  this._doInAllSectors("_drawNodes",ctx,true);
+  this._doInAllSectors("_drawNodes",ctx,false);
 
+//  this._doInSupportSector("_drawNodes",ctx,true);
 //  this._drawTree(ctx,"#F00F0F");
 
   // restore original scaling and translation
@@ -1660,7 +1666,6 @@ Graph.prototype._drawNodes = function(ctx,alwaysShow) {
   if (alwaysShow === undefined) {
     alwaysShow = false;
   }
-
   // first draw the unselected nodes
   var nodes = this.nodes;
   var selected = [];
@@ -1755,7 +1760,7 @@ Graph.prototype._isMoving = function(vmin) {
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = 1;
+  var interval = 1.2;
   var nodes = this.nodes;
 
   if (this.constants.maxVelocity > 0) {
@@ -1789,6 +1794,9 @@ Graph.prototype.start = function() {
     if (this.moving) {
       this._doInAllActiveSectors("_initializeForceCalculation");
       this._doInAllActiveSectors("_discreteStepNodes");
+      if (this.constants.smoothCurves) {
+        this._doInSupportSector("_discreteStepNodes");
+      }
       this._findCenter(this._getRange())
     }
 
@@ -1870,6 +1878,29 @@ Graph.prototype.toggleFreeze = function() {
     this.freezeSimulation = false;
     this.start();
   }
+};
+
+
+Graph.prototype._createBezierNodes = function() {
+  for (var edgeId in this.edges) {
+    if (this.edges.hasOwnProperty(edgeId)) {
+      var edge = this.edges[edgeId];
+      if (edge.smooth == true) {
+        if (edge.via == null) {
+          this.sectors['support']['nodes'][edge.id] = new Node(
+                  {id:edge.id,
+                    mass:1,
+                    shape:'circle',
+                    internalMultiplier:1,
+                    damping: 0.9},{},{},this.constants);
+          edge.via = this.sectors['support']['nodes'][edge.id];
+          edge.via.parentEdgeId = edge.id;
+          edge.positionBezierNode();
+        }
+      }
+    }
+  }
+
 };
 
 

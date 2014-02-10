@@ -40,25 +40,74 @@ var physicsMixin = {
    * @private
    */
   _calculateForces : function() {
-    this.barnesHutTree = undefined;
     // Gravity is required to keep separated groups from floating off
     // the forces are reset to zero in this loop by using _setForce instead
     // of _addForce
+    this._setCalculationNodes();
+
     this._calculateGravitationalForces();
 
     this._calculateNodeForces();
 
-    this._calculateSpringForces();
+
+    if (this.constants.smoothCurves == true) {
+      this._calculateSpringForcesOnSupport();
+    }
+    else {
+      this._calculateSpringForces();
+    }
+  },
+
+  _setCalculationNodes : function() {
+    if (this.constants.smoothCurves == true) {
+      this.calculationNodes = {};
+      this.calculationNodeIndices = [];
+
+      for (var nodeId in this.nodes) {
+        if (this.nodes.hasOwnProperty(nodeId)) {
+          this.calculationNodes[nodeId] = this.nodes[nodeId];
+        }
+      }
+      var supportNodes = this.sectors['support']['nodes'];
+      for (var supportNodeId in supportNodes) {
+        if (supportNodes.hasOwnProperty(supportNodeId)) {
+          if (this.edges.hasOwnProperty(supportNodes[supportNodeId].parentEdgeId)) {
+            this.calculationNodes[supportNodeId] = supportNodes[supportNodeId];
+          }
+        }
+      }
+
+      for (var idx in this.calculationNodes) {
+        if (this.calculationNodes.hasOwnProperty(idx)) {
+          this.calculationNodeIndices.push(idx);
+        }
+      }
+    }
+    else {
+      this.calculationNodes = this.nodes;
+      this.calculationNodeIndices = this.nodeIndices;
+    }
   },
 
 
-  _calculateGravitationalForces : function() {
-    var dx, dy, angle, fx, fy, node, i;
+  _clearForces : function() {
+    var node, i;
     var nodes = this.nodes;
-    var gravity = this.constants.physics.centralGravity;
 
     for (i = 0; i < this.nodeIndices.length; i++) {
       node = nodes[this.nodeIndices[i]];
+      node._setForce(0, 0);
+      node.updateDamping(this.nodeIndices.length);
+    }
+  },
+
+  _calculateGravitationalForces : function() {
+    var dx, dy, angle, fx, fy, node, i;
+    var nodes = this.calculationNodes;
+    var gravity = this.constants.physics.centralGravity;
+
+    for (i = 0; i < this.calculationNodeIndices.length; i++) {
+      node = nodes[this.calculationNodeIndices[i]];
       // gravity does not apply when we are in a pocket sector
       if (this._sector() == "default") {
         dx = -node.x;// + screenCenterPos.x;
@@ -73,7 +122,7 @@ var physicsMixin = {
         fy = 0;
       }
       node._setForce(fx, fy);
-      node.updateDamping(this.nodeIndices.length);
+      node.updateDamping();
     }
   },
 
@@ -109,6 +158,52 @@ var physicsMixin = {
         }
       }
     }
-  }
+  },
 
+  _calculateSpringForcesOnSupport : function() {
+    var edgeLength, edge, edgeId, growthIndicator;
+    var edges = this.edges;
+
+    // forces caused by the edges, modelled as springs
+    for (edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        edge = edges[edgeId];
+        if (edge.connected) {
+          // only calculate forces if nodes are in the same sector
+          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+            if (edge.via != null) {
+              var node1 = edge.to;
+              var node2 = edge.via;
+              var node3 = edge.from;
+
+              edgeLength = 0.5*edge.length;
+              growthIndicator = 0.5*(node1.growthIndicator + node3.growthIndicator);
+
+              // this implies that the edges between big clusters are longer
+              edgeLength += growthIndicator * this.constants.clustering.edgeGrowth;
+
+              this._calculateSpringForce(node1,node2,edgeLength);
+              this._calculateSpringForce(node2,node3,edgeLength);
+            }
+          }
+        }
+      }
+    }
+  },
+
+  _calculateSpringForce : function(node1,node2,edgeLength) {
+    var dx, dy, angle, fx, fy, springForce, length;
+
+    dx = (node1.x - node2.x);
+    dy = (node1.y - node2.y);
+    length =  Math.sqrt(dx * dx + dy * dy);
+    angle = Math.atan2(dy, dx);
+    springForce = this.constants.physics.springConstant * (edgeLength - length);
+
+    fx = Math.cos(angle) * springForce;
+    fy = Math.sin(angle) * springForce;
+
+    node1._addForce(fx, fy);
+    node2._addForce(-fx, -fy);
+  }
 }
