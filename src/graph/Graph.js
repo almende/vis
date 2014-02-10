@@ -10,6 +10,9 @@
  * @param {Object} options      Options
  */
 function Graph (container, data, options) {
+
+  this._initializeMixinLoaders();
+
   // create variables and set default values
   this.containerElement = container;
   this.width = '100%';
@@ -66,12 +69,22 @@ function Graph (container, data, options) {
       }
     },
     physics: {
-      enableBarnesHut: false,
-      barnesHutTheta: 1 / 0.4, // inverted to save time during calculation
-      barnesHutGravitationalConstant: -10000,
-      centralGravity: 0.08,
-      springLength: 50,
-      springConstant: 0.02
+      barnesHut: {
+        enabled: false,
+        theta: 1 / 0.3, // inverted to save time during calculation
+        gravitationalConstant: -10000,
+        centralGravity: 0.08,
+        springLength: 100,
+        springConstant: 0.02
+      },
+      repulsion: {
+        centralGravity: 0.01,
+        springLength: 100,
+        springConstant: 0.05
+      },
+      centralGravity: null,
+      springLength: null,
+      springConstant: null
     },
     clustering: {                   // Per Node in Cluster = PNiC
       enabled: false,               // (Boolean)             | global on/off switch for clustering.
@@ -80,17 +93,19 @@ function Graph (container, data, options) {
       reduceToNodes:300,            // (# nodes)             | during calculate forces, we check if the total number of nodes is larger than clusterThreshold. If it is, cluster until reduced to this
       chainThreshold: 0.4,          // (% of all drawn nodes)| maximum percentage of allowed chainnodes (long strings of connected nodes) within all nodes. (lower means less chains).
       clusterEdgeThreshold: 20,     // (px)                  | edge length threshold. if smaller, this node is clustered.
-      sectorThreshold: 50,          // (# nodes in cluster)  | cluster size threshold. If larger, expanding in own sector.
+      sectorThreshold: 100,         // (# nodes in cluster)  | cluster size threshold. If larger, expanding in own sector.
       screenSizeThreshold: 0.2,     // (% of canvas)         | relative size threshold. If the width or height of a clusternode takes up this much of the screen, decluster node.
       fontSizeMultiplier: 4.0,      // (px PNiC)             | how much the cluster font size grows per node in cluster (in px).
-      forceAmplification: 0.6,      // (multiplier PNiC)     | factor of increase fo the repulsion force of a cluster (per node in cluster).
-      distanceAmplification: 0.2,   // (multiplier PNiC)     | factor how much the repulsion distance of a cluster increases (per node in cluster).
-      edgeGrowth: 11,               // (px PNiC)             | amount of clusterSize connected to the edge is multiplied with this and added to edgeLength.
-      nodeScaling: {width:  10,     // (px PNiC)             | growth of the width  per node in cluster.
-                    height: 10,     // (px PNiC)             | growth of the height per node in cluster.
-                    radius: 10},    // (px PNiC)             | growth of the radius per node in cluster.
-      activeAreaBoxSize: 100,       // (px)                  | box area around the curser where clusters are popped open.
-      massTransferCoefficient: 1    // (multiplier)          | parent.mass += massTransferCoefficient * child.mass
+      forceAmplification: 0.1,      // (multiplier PNiC)     | factor of increase fo the repulsion force of a cluster (per node in cluster).
+      maxFontSize: 1000,
+      distanceAmplification: 0.03,   // (multiplier PNiC)     | factor how much the repulsion distance of a cluster increases (per node in cluster).
+      edgeGrowth: 1,               // (px PNiC)             | amount of clusterSize connected to the edge is multiplied with this and added to edgeLength.
+      nodeScaling: {width:  5,      // (px PNiC)             | growth of the width  per node in cluster.
+                    height: 5,      // (px PNiC)             | growth of the height per node in cluster.
+                    radius: 5},     // (px PNiC)             | growth of the radius per node in cluster.
+      maxNodeSizeIncrements: 600,   // (# increments)        | max growth of the width  per node in cluster.
+      activeAreaBoxSize: 80,       // (px)                  | box area around the curser where clusters are popped open.
+      clusterLevelDifference: 2
     },
     navigation: {
       enabled: false,
@@ -103,6 +118,7 @@ function Graph (container, data, options) {
     dataManipulationToolbar: {
       enabled: false
     },
+    maxVelocity: 35,
     minVelocity: 0.1,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
   };
@@ -194,11 +210,12 @@ function Graph (container, data, options) {
   this.moving = false;    // True if any of the nodes have an undefined position
   this.timer = undefined;
 
+
   // load data (the disable start variable will be the same as the enabled clustering)
   this.setData(data,this.constants.clustering.enabled);
 
   // zoom so all data will fit on the screen
-  this.zoomToFit(true);
+  this.zoomToFit(true,this.constants.clustering.enabled);
 
   // if clustering is disabled, the simulation will have started in the setData function
   if (this.constants.clustering.enabled) {
@@ -281,7 +298,7 @@ Graph.prototype._centerGraph = function(range) {
  *
  * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
  */
-Graph.prototype.zoomToFit = function(initialZoom) {
+Graph.prototype.zoomToFit = function(initialZoom, doNotStart) {
   if (initialZoom === undefined) {
     initialZoom = false;
   }
@@ -315,7 +332,9 @@ Graph.prototype.zoomToFit = function(initialZoom) {
   this.pinch.mousewheelScale = zoomLevel;
   this._setScale(zoomLevel);
   this._centerGraph(range);
-  this.start();
+  if (doNotStart == false || doNotStart === undefined) {
+    this.start();
+  }
 };
 
 
@@ -394,6 +413,27 @@ Graph.prototype.setOptions = function (options) {
     if (options.stabilize !== undefined)       {this.stabilize = options.stabilize;}
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
 
+/*
+    if (options.physics) {
+      if (options.physics.barnesHut) {
+        this.constants.physics.barnesHut.enabled = true;
+        for (var prop in options.physics.barnesHut) {
+          if (options.physics.barnesHut.hasOwnProperty(prop)) {
+            this.constants.physics.barnesHut[prop] = options.physics.barnesHut[prop];
+          }
+        }
+      }
+
+      if (options.physics.repulsion) {
+        this.constants.physics.barnesHut.enabled = false;
+        for (var prop in options.physics.repulsion) {
+          if (options.physics.repulsion.hasOwnProperty(prop)) {
+            this.constants.physics.repulsion[prop] = options.physics.repulsion[prop];
+          }
+        }
+      }
+    }
+*/
     if (options.clustering) {
       this.constants.clustering.enabled = true;
       for (var prop in options.clustering) {
@@ -501,6 +541,9 @@ Graph.prototype.setOptions = function (options) {
       }
     }
   }
+
+  // load the force calculation functions, grouped under the physics system.
+  this._loadPhysicsSystem();
 
   // load the navigation system.
   this._loadNavigationControls();
@@ -1693,7 +1736,7 @@ Graph.prototype._doStabilize = function() {
  * @private
  */
 Graph.prototype._isMoving = function(vmin) {
-  var vminCorrected = vmin / this.scale;
+  var vminCorrected = vmin / Math.max(this.scale,0.05);
   var nodes = this.nodes;
   for (var id in nodes) {
     if (nodes.hasOwnProperty(id) && nodes[id].isMoving(vminCorrected)) {
@@ -1714,8 +1757,6 @@ Graph.prototype._isMoving = function(vmin) {
 Graph.prototype._discreteStepNodes = function() {
   var interval = 1;
   var nodes = this.nodes;
-
-  this.constants.maxVelocity = 30;
 
   if (this.constants.maxVelocity > 0) {
     for (var id in nodes) {
@@ -1785,14 +1826,14 @@ Graph.prototype.start = function() {
           //this.time = this.end - this.startTime;
           //console.log('refresh time: ' + this.time);
           //this.startTime = window.performance.now();
-          var DOMelement = document.getElementById("calctimereporter");
-          if (DOMelement !== undefined) {
-            DOMelement.innerHTML = calctime;
-          }
-          DOMelement = document.getElementById("rendertimereporter");
-          if (DOMelement !== undefined) {
-            DOMelement.innerHTML = rendertime;
-          }
+//          var DOMelement = document.getElementById("calctimereporter");
+//          if (DOMelement !== undefined) {
+//            DOMelement.innerHTML = calctime;
+//          }
+//          DOMelement = document.getElementById("rendertimereporter");
+//          if (DOMelement !== undefined) {
+//            DOMelement.innerHTML = rendertime;
+//          }
         }, this.renderTimestep);
       }
     }
@@ -1832,150 +1873,13 @@ Graph.prototype.toggleFreeze = function() {
 };
 
 
-
-/**
- * Mixin the physics system and initialize the parameters required.
- *
- * @private
- */
-Graph.prototype._loadPhysicsSystem = function() {
-  this.forceCalculationTime = 0;
-  for (var mixinFunction in physicsMixin) {
-    if (physicsMixin.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = physicsMixin[mixinFunction];
-    }
-  }
-};
-
-
-/**
- * Mixin the cluster system and initialize the parameters required.
- *
- * @private
- */
-Graph.prototype._loadClusterSystem = function() {
-  this.clusterSession = 0;
-  this.hubThreshold = 5;
-
-  for (var mixinFunction in ClusterMixin) {
-    if (ClusterMixin.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = ClusterMixin[mixinFunction];
+Graph.prototype._initializeMixinLoaders = function () {
+  for (var mixinFunction in graphMixinLoaders) {
+    if (graphMixinLoaders.hasOwnProperty(mixinFunction)) {
+      Graph.prototype[mixinFunction] = graphMixinLoaders[mixinFunction];
     }
   }
 }
-
-/**
- * Mixin the sector system and initialize the parameters required
- *
- * @private
- */
-Graph.prototype._loadSectorSystem = function() {
-  this.sectors = {};
-  this.activeSector = ["default"];
-  this.sectors["active"] = {};
-  this.sectors["active"]["default"] = {"nodes":{},
-                                       "edges":{},
-                                       "nodeIndices":[],
-                                       "formationScale": 1.0,
-                                       "drawingNode": undefined};
-  this.sectors["frozen"] = {};
-  this.sectors["navigation"] = {"nodes":{},
-                        "edges":{},
-                        "nodeIndices":[],
-                        "formationScale": 1.0,
-                        "drawingNode": undefined};
-
-  this.nodeIndices = this.sectors["active"]["default"]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
-  for (var mixinFunction in SectorMixin) {
-    if (SectorMixin.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = SectorMixin[mixinFunction];
-    }
-  }
-};
-
-
-/**
- * Mixin the selection system and initialize the parameters required
- *
- * @private
- */
-Graph.prototype._loadSelectionSystem = function() {
-  this.selectionObj = {};
-
-  for (var mixinFunction in SelectionMixin) {
-    if (SelectionMixin.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = SelectionMixin[mixinFunction];
-    }
-  }
-}
-
-
-
-/**
- * Mixin the navigationUI (User Interface) system and initialize the parameters required
- *
- * @private
- */
-Graph.prototype._loadManipulationSystem = function() {
-  // reset global variables -- these are used by the selection of nodes and edges.
-  this.blockConnectingEdgeSelection = false;
-  this.forceAppendSelection = false
-
-
-  if (this.constants.dataManipulationToolbar.enabled == true) {
-    // load the manipulator HTML elements. All styling done in css.
-    if (this.manipulationDiv === undefined) {
-      this.manipulationDiv = document.createElement('div');
-      this.manipulationDiv.className = 'graph-manipulationDiv';
-      this.containerElement.insertBefore(this.manipulationDiv, this.frame);
-    }
-    // load the manipulation functions
-    for (var mixinFunction in manipulationMixin) {
-      if (manipulationMixin.hasOwnProperty(mixinFunction)) {
-        Graph.prototype[mixinFunction] = manipulationMixin[mixinFunction];
-      }
-    }
-
-    // create the manipulator toolbar
-    this._createManipulatorBar();
-  }
-}
-
-/**
- * Mixin the navigation (User Interface) system and initialize the parameters required
- *
- * @private
- */
-Graph.prototype._loadNavigationControls = function() {
-  for (var mixinFunction in NavigationMixin) {
-    if (NavigationMixin.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = NavigationMixin[mixinFunction];
-    }
-  }
-
-  if (this.constants.navigation.enabled == true) {
-    this._loadNavigationElements();
-  }
-}
-
-/**
- * this function exists to avoid errors when not loading the navigation system
- */
-Graph.prototype._relocateNavigation = function() {
-  // empty, is overloaded by navigation system
-}
-
-/**
- * * this function exists to avoid errors when not loading the navigation system
- */
-Graph.prototype._unHighlightAll = function() {
-  // empty, is overloaded by the navigation system
-}
-
-
-
-
-
 
 
 

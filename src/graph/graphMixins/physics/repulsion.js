@@ -1,0 +1,61 @@
+/**
+ * Created by Alex on 2/10/14.
+ */
+
+var repulsionMixin = {
+
+
+  /**
+   * Calculate the forces the nodes apply on eachother based on a repulsion field.
+   * This field is linearly approximated.
+   *
+   * @private
+  */
+  _calculateNodeForces : function() {
+    var dx, dy, angle, distance, fx, fy, combinedClusterSize,
+      repulsingForce, node1, node2, i, j;
+    var nodes = this.nodes;
+
+    // approximation constants
+    var a_base = -2/3;
+    var b = 4/3;
+
+    // repulsing forces between nodes
+    var minimumDistance = this.constants.nodes.distance;
+
+    // we loop from i over all but the last entree in the array
+    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
+    for (i = 0; i < this.nodeIndices.length-1; i++) {
+      node1 = nodes[this.nodeIndices[i]];
+      for (j = i+1; j < this.nodeIndices.length; j++) {
+        node2 = nodes[this.nodeIndices[j]];
+        combinedClusterSize = (node1.growthIndicator + node2.growthIndicator);
+        dx = node2.x - node1.x;
+        dy = node2.y - node1.y;
+        distance = Math.sqrt(dx * dx + dy * dy);
+
+        minimumDistance = (combinedClusterSize == 0) ? this.constants.nodes.distance : (this.constants.nodes.distance * (1 + combinedClusterSize * this.constants.clustering.distanceAmplification));
+        var a = a_base / minimumDistance;
+        if (distance < 2*minimumDistance) {
+          angle = Math.atan2(dy, dx);
+
+          if (distance < 0.5*minimumDistance) {
+            repulsingForce = 1.0;
+          }
+          else {
+            repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness))
+          }
+          // amplify the repulsion for clusters.
+          repulsingForce *= (combinedClusterSize == 0) ? 1 : 1 + combinedClusterSize * this.constants.clustering.forceAmplification;
+          repulsingForce *=  node1.internalMultiplier * node2.internalMultiplier;
+
+          fx = Math.cos(angle) * repulsingForce;
+          fy = Math.sin(angle) * repulsingForce;
+
+          node1._addForce(-fx, -fy);
+          node2._addForce(fx, fy);
+        }
+      }
+    }
+  }
+}

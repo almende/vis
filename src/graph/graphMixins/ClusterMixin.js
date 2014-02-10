@@ -41,17 +41,19 @@ var ClusterMixin = {
     // we first cluster the hubs, then we pull in the outliers, repeat
     while (numberOfNodes > maxNumberOfNodes && level < maxLevels) {
       if (level % 3 == 0) {
-        this.forceAggregateHubs();
+        this.forceAggregateHubs(true);
+        this.normalizeClusterLevels();
       }
       else {
-        this.increaseClusterLevel();
+        this.increaseClusterLevel(); // this also includes a cluster normalization
       }
+
       numberOfNodes = this.nodeIndices.length;
       level += 1;
     }
 
     // after the clustering we reposition the nodes to reduce the initial chaos
-    if (level > 1 && reposition == true) {
+    if (level > 0 && reposition == true) {
       this.repositionNodes();
     }
    },
@@ -88,6 +90,7 @@ var ClusterMixin = {
     }
    },
 
+
   /**
    * This calls the updateClustes with default arguments
    */
@@ -97,6 +100,7 @@ var ClusterMixin = {
     }
   },
 
+
   /**
    * This function can be called to increase the cluster level. This means that the nodes with only one edge connection will
    * be clustered with their connected node. This can be repeated as many times as needed.
@@ -105,7 +109,6 @@ var ClusterMixin = {
   increaseClusterLevel : function() {
     this.updateClusters(-1,false,true);
    },
-
 
 
   /**
@@ -129,7 +132,7 @@ var ClusterMixin = {
    * @param {Boolean} force         | enabled or disable forcing
    *
    */
-  updateClusters : function(zoomDirection,recursive,force) {
+  updateClusters : function(zoomDirection,recursive,force,doNotStart) {
     var isMovingBeforeClustering = this.moving;
     var amountOfNodes = this.nodeIndices.length;
 
@@ -178,11 +181,15 @@ var ClusterMixin = {
     // if a cluster was formed, we increase the clusterSession
     if (this.nodeIndices.length < amountOfNodes) { // this means a clustering operation has taken place
       this.clusterSession += 1;
+      // if clusters have been made, we normalize the cluster level
+      this.normalizeClusterLevels();
     }
 
-    // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
-    if (this.moving != isMovingBeforeClustering) {
-      this.start();
+    if (doNotStart == false || doNotStart === undefined) {
+      // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+      if (this.moving != isMovingBeforeClustering) {
+        this.start();
+      }
     }
    },
 
@@ -214,7 +221,7 @@ var ClusterMixin = {
    * This function is fired by keypress. It forces hubs to form.
    *
    */
-  forceAggregateHubs : function() {
+  forceAggregateHubs : function(doNotStart) {
     var isMovingBeforeClustering = this.moving;
     var amountOfNodes = this.nodeIndices.length;
 
@@ -230,9 +237,11 @@ var ClusterMixin = {
       this.clusterSession += 1;
     }
 
-    // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
-    if (this.moving != isMovingBeforeClustering) {
-      this.start();
+    if (doNotStart == false || doNotStart === undefined) {
+      // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+      if (this.moving != isMovingBeforeClustering) {
+        this.start();
+      }
     }
    },
 
@@ -353,14 +362,14 @@ var ClusterMixin = {
       this._validateEdges(parentNode);
 
       // undo the changes from the clustering operation on the parent node
-      parentNode.mass -= this.constants.clustering.massTransferCoefficient * childNode.mass;
-      parentNode.fontSize -= this.constants.clustering.fontSizeMultiplier * childNode.clusterSize;
+      parentNode.mass -= childNode.mass;
       parentNode.clusterSize -= childNode.clusterSize;
+      parentNode.fontSize = Math.min(this.constants.clustering.maxFontSize, this.constants.nodes.fontSize + this.constants.clustering.fontSizeMultiplier*parentNode.clusterSize);
       parentNode.dynamicEdgesLength = parentNode.dynamicEdges.length;
 
       // place the child node near the parent, not at the exact same location to avoid chaos in the system
-      childNode.x = parentNode.x + this.constants.edges.length * 0.3 * (0.5 - Math.random()) * parentNode.clusterSize;
-      childNode.y = parentNode.y + this.constants.edges.length * 0.3 * (0.5 - Math.random()) * parentNode.clusterSize;
+      childNode.x = parentNode.x + parentNode.growthIndicator * (0.5 - Math.random()) * childNode.clusterSize;
+      childNode.y = parentNode.y + parentNode.growthIndicator * (0.5 - Math.random()) * childNode.clusterSize;
 
       // remove node from the list
       delete parentNode.containedNodes[containedNodeId];
@@ -493,6 +502,32 @@ var ClusterMixin = {
    },
 
 
+  _clusterToSmallestNeighbour : function(node) {
+    var smallestNeighbour = -1;
+    var smallestNeighbourNode = null;
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      if (node.dynamicEdges[i] !== undefined) {
+        var neighbour = null;
+        if (node.dynamicEdges[i].fromId != node.id) {
+          neighbour = node.dynamicEdges[i].from;
+        }
+        else if (node.dynamicEdges[i].toId != node.id) {
+          neighbour = node.dynamicEdges[i].to;
+        }
+
+
+        if (neighbour != null && smallestNeighbour > neighbour.clusterSessions.length) {
+          smallestNeighbour = neighbour.clusterSessions.length;
+          smallestNeighbourNode = neighbour;
+        }
+      }
+    }
+
+    if (neighbour != null && this.nodes[neighbour.id] !== undefined) {
+      this._addToCluster(neighbour, node, true);
+    }
+  },
+
 
   /**
    * This function forms clusters from hubs, it loops over all nodes
@@ -618,9 +653,9 @@ var ClusterMixin = {
     // update the properties of the child and parent
     var massBefore = parentNode.mass;
     childNode.clusterSession = this.clusterSession;
-    parentNode.mass += this.constants.clustering.massTransferCoefficient * childNode.mass;
+    parentNode.mass += childNode.mass;
     parentNode.clusterSize += childNode.clusterSize;
-    parentNode.fontSize += this.constants.clustering.fontSizeMultiplier * childNode.clusterSize;
+    parentNode.fontSize = Math.min(this.constants.clustering.maxFontSize, this.constants.nodes.fontSize + this.constants.clustering.fontSizeMultiplier*parentNode.clusterSize);
 
     // keep track of the clustersessions so we can open the cluster up as it has been formed.
     if (parentNode.clusterSessions[parentNode.clusterSessions.length - 1] != this.clusterSession) {
@@ -895,14 +930,50 @@ var ClusterMixin = {
     }
 
     /* Debug Override */
-  //  for (nodeId in this.nodes) {
-  //    if (this.nodes.hasOwnProperty(nodeId)) {
-  //      node = this.nodes[nodeId];
-  //      node.label = String(Math.round(node.width)).concat(":",Math.round(node.width*this.scale));
-  //    }
-  //  }
+//    for (nodeId in this.nodes) {
+//      if (this.nodes.hasOwnProperty(nodeId)) {
+//        node = this.nodes[nodeId];
+//        node.label = String(node.fx).concat(",",node.fy);
+//      }
+//    }
 
    },
+
+
+  normalizeClusterLevels : function() {
+    var maxLevel = 0;
+    var minLevel = 1e9;
+    var clusterLevel = 0;
+
+    // we loop over all nodes in the list
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        clusterLevel = this.nodes[nodeId].clusterSessions.length;
+        if (maxLevel < clusterLevel) {maxLevel = clusterLevel;}
+        if (minLevel > clusterLevel) {minLevel = clusterLevel;}
+      }
+    }
+
+    if (maxLevel - minLevel > this.constants.clustering.clusterLevelDifference) {
+      var amountOfNodes = this.nodeIndices.length;
+      var targetLevel = maxLevel - this.constants.clustering.clusterLevelDifference;
+      // we loop over all nodes in the list
+      for (var nodeId in this.nodes) {
+        if (this.nodes.hasOwnProperty(nodeId)) {
+          if (this.nodes[nodeId].clusterSessions.length < targetLevel) {
+            this._clusterToSmallestNeighbour(this.nodes[nodeId]);
+          }
+        }
+      }
+      this._updateNodeIndexList();
+      this._updateDynamicEdges();
+      // if a cluster was formed, we increase the clusterSession
+      if (this.nodeIndices.length != amountOfNodes) {
+        this.clusterSession += 1;
+      }
+    }
+  },
+
 
 
   /**
@@ -931,7 +1002,7 @@ var ClusterMixin = {
     for (var i = 0; i < this.nodeIndices.length; i++) {
       var node = this.nodes[this.nodeIndices[i]];
       if (!node.isFixed()) {
-        var radius = this.constants.edges.length * (1 + 0.6*node.clusterSize);
+        var radius = this.constants.physics.springLength * (1 + 0.1*node.mass);
         var angle = 2 * Math.PI * Math.random();
         node.x = radius * Math.cos(angle);
         node.y = radius * Math.sin(angle);
@@ -956,6 +1027,7 @@ var ClusterMixin = {
     var largestHub = 0;
 
     for (var i = 0; i < this.nodeIndices.length; i++) {
+
       var node = this.nodes[this.nodeIndices[i]];
       if (node.dynamicEdgesLength > largestHub) {
         largestHub = node.dynamicEdgesLength;
