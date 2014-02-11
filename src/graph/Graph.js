@@ -1149,7 +1149,7 @@ Graph.prototype._setNodes = function(nodes) {
     // subscribe to new dataset
     var me = this;
     util.forEach(this.nodesListeners, function (callback, event) {
-      me.nodesData.subscribe(event, callback);
+      me.nodesData.on(event, callback);
     });
 
     // draw all new nodes
@@ -1276,7 +1276,7 @@ Graph.prototype._setEdges = function(edges) {
     // subscribe to new dataset
     var me = this;
     util.forEach(this.edgesListeners, function (callback, event) {
-      me.edgesData.subscribe(event, callback);
+      me.edgesData.on(event, callback);
     });
 
     // draw all new nodes

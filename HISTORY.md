@@ -6,9 +6,13 @@ http://visjs.org
 
 ### Timeline
 
-- items can be dragged and removed.
+- Items can be dragged and removed.
 - Implemented options `selectable`, `editable`.
-- added events when dragging the custom time bar.
+- Added events when dragging the custom time bar.
+
+### DataSet
+
+- Renamed functions `subscribe` and `unsubscribe` to `on` and `off` respectively.
 
 
 ## 2014-01-31, version 0.4.0

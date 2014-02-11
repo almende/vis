@@ -132,7 +132,7 @@ GroupSet.prototype.setGroups = function setGroups(groups) {
     // subscribe to new dataset
     var id = this.id;
     util.forEach(this.listeners, function (callback, event) {
-      me.groupsData.subscribe(event, callback, id);
+      me.groupsData.on(event, callback, id);
     });
 
     // draw all new groups

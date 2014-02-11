@@ -73,7 +73,7 @@ function DataSet (options) {
  *                                  {Object | null} params
  *                                  {String | Number} senderId
  */
-DataSet.prototype.subscribe = function (event, callback) {
+DataSet.prototype.on = function on (event, callback) {
   var subscribers = this.subscribers[event];
   if (!subscribers) {
     subscribers = [];
@@ -85,12 +85,15 @@ DataSet.prototype.subscribe = function (event, callback) {
   });
 };
 
+// TODO: make this function deprecated (replaced with `on` since version 0.5)
+DataSet.prototype.subscribe = DataSet.prototype.on;
+
 /**
  * Unsubscribe from an event, remove an event listener
  * @param {String} event
  * @param {function} callback
  */
-DataSet.prototype.unsubscribe = function (event, callback) {
+DataSet.prototype.off = function off(event, callback) {
   var subscribers = this.subscribers[event];
   if (subscribers) {
     this.subscribers[event] = subscribers.filter(function (listener) {
@@ -98,6 +101,9 @@ DataSet.prototype.unsubscribe = function (event, callback) {
     });
   }
 };
+
+// TODO: make this function deprecated (replaced with `on` since version 0.5)
+DataSet.prototype.unsubscribe = DataSet.prototype.off;
 
 /**
  * Trigger an event

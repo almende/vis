@@ -558,7 +558,7 @@ ItemSet.prototype.setItems = function setItems(items) {
     // subscribe to new dataset
     var id = this.id;
     util.forEach(this.listeners, function (callback, event) {
-      me.itemsData.subscribe(event, callback, id);
+      me.itemsData.on(event, callback, id);
     });
 
     // draw all new items
