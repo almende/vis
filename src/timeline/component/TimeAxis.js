@@ -520,3 +520,13 @@ TimeAxis.prototype._updateConversion = function() {
     this.conversion = Range.conversion(range.start, range.end, this.width);
   }
 };
+
+/**
+ * Snap a date to a rounded value.
+ * The snap intervals are dependent on the current scale and step.
+ * @param {Date} date   the date to be snapped.
+ * @return {Date} snappedDate
+ */
+TimeAxis.prototype.snap = function snap (date) {
+  return this.step.snap(date);
+};

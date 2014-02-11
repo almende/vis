@@ -106,6 +106,9 @@ ItemSet.types = {
  *                           {Number} padding
  *                              Padding of the contents of an item in pixels.
  *                              Must correspond with the items css. Default is 5.
+ *                           {Function} snap
+ *                              Function to let items snap to nice dates when
+ *                              dragging items.
  */
 ItemSet.prototype.setOptions = Component.prototype.setOptions;
 
@@ -688,9 +691,9 @@ ItemSet.prototype._onDragStart = function (event) {
       me = this;
 
   if (item && item.selected) {
-
     var dragLeftItem = event.target.dragLeftItem;
     var dragRightItem = event.target.dragRightItem;
+
     if (dragLeftItem) {
       this.touchParams.itemProps = [{
         item: dragLeftItem,
@@ -710,8 +713,12 @@ ItemSet.prototype._onDragStart = function (event) {
           item: item
         };
 
-        if ('start' in item.data) { props.start = item.data.start.valueOf() }
-        if ('end' in item.data)   { props.end = item.data.end.valueOf() }
+        if ('start' in item.data) {
+          props.start = item.data.start.valueOf()
+        }
+        if ('end' in item.data)   {
+          props.end = item.data.end.valueOf()
+        }
 
         return props;
       });
@@ -728,16 +735,21 @@ ItemSet.prototype._onDragStart = function (event) {
  */
 ItemSet.prototype._onDrag = function (event) {
   if (this.touchParams.itemProps) {
-    var deltaX = event.gesture.deltaX,
+    var snap = this.options.snap || null,
+        deltaX = event.gesture.deltaX,
         offset = deltaX / this.conversion.scale;
 
     // move
     this.touchParams.itemProps.forEach(function (props) {
-      if ('start' in props) { props.item.data.start = new Date(props.start + offset); }
-      if ('end' in props)   { props.item.data.end   = new Date(props.end + offset); }
+      if ('start' in props) {
+        var start = new Date(props.start + offset);
+        props.item.data.start = snap ? snap(start) : start;
+      }
+      if ('end' in props) {
+        var end = new Date(props.end + offset);
+        props.item.data.end = snap ? snap(end) : end;
+      }
     });
-
-    // TODO: implement snapping to nice dates
 
     // TODO: implement dragging from one group to another
 
@@ -754,24 +766,35 @@ ItemSet.prototype._onDrag = function (event) {
  */
 ItemSet.prototype._onDragEnd = function (event) {
   if (this.touchParams.itemProps) {
-    // prepare a changeset for the changed items
-    var changes = this.touchParams.itemProps.map(function (props) {
+    // prepare a change set for the changed items
+    var changes = [];
+    this.touchParams.itemProps.forEach(function (props) {
       var change = {
         id: props.item.id
       };
 
-      if ('start' in props.item.data) { change.start = props.item.data.start; }
-      if ('end' in props.item.data)   { change.end   = props.item.data.end; }
+      var changed = false;
+      if ('start' in props.item.data) {
+        changed = (props.start != props.item.data.start.valueOf());
+        change.start = props.item.data.start;
+      }
+      if ('end' in props.item.data) {
+        changed = changed  || (props.end != props.item.data.end.valueOf());
+        change.end = props.item.data.end;
+      }
 
-      // TODO: only fire changes when start or end is actually changed
-
-      return change;
+      // only add changes when start or end is actually changed
+      if (changed) {
+        changes.push(change);
+      }
     });
     this.touchParams.itemProps = null;
 
-    // apply the changes to the data
-    var dataset = this._myDataSet();
-    dataset.update(changes);
+    // apply the changes to the data (if there are changes)
+    if (changes.length) {
+      var dataset = this._myDataSet();
+      dataset.update(changes);
+    }
 
     event.stopPropagation();
   }

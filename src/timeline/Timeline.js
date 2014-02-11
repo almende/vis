@@ -13,6 +13,7 @@ function Timeline (container, items, options) {
     autoResize: true,
     editable: true,
     selectable: true,
+    snap: null, // will be specified after timeaxis is created
 
     min: null,
     max: null,
@@ -24,7 +25,7 @@ function Timeline (container, items, options) {
     showMinorLabels: true,
     showMajorLabels: true,
     showCurrentTime: false,
-    showCustomTime: false,
+    showCustomTime: false
   };
 
   // controller
@@ -119,6 +120,7 @@ function Timeline (container, items, options) {
   this.timeaxis = new TimeAxis(this.itemPanel, [], timeaxisOptions);
   this.timeaxis.setRange(this.range);
   this.controller.add(this.timeaxis);
+  this.options.snap = this.timeaxis.snap.bind(this.timeaxis);
 
   // current time bar
   this.currenttime = new CurrentTime(this.timeaxis, [], rootOptions);
@@ -211,26 +213,26 @@ Timeline.prototype.setItems = function(items) {
   var initialLoad = (this.itemsData == null);
 
   // convert to type DataSet when needed
-  var newItemSet;
+  var newDataSet;
   if (!items) {
-    newItemSet = null;
+    newDataSet = null;
   }
   else if (items instanceof DataSet) {
-    newItemSet = items;
+    newDataSet = items;
   }
   if (!(items instanceof DataSet)) {
-    newItemSet = new DataSet({
+    newDataSet = new DataSet({
       convert: {
         start: 'Date',
         end: 'Date'
       }
     });
-    newItemSet.add(items);
+    newDataSet.add(items);
   }
 
   // set items
-  this.itemsData = newItemSet;
-  this.content.setItems(newItemSet);
+  this.itemsData = newDataSet;
+  this.content.setItems(newDataSet);
 
   if (initialLoad && (this.options.start == undefined || this.options.end == undefined)) {
     // apply the data range as range
