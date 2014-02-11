@@ -36,8 +36,8 @@ function Graph (container, data, options) {
       widthMax: 64, // px
       fontColor: 'black',
       fontSize: 14, // px
-      //fontFace: verdana,
-      fontFace: 'arial',
+      fontFace: 'verdana',
+//      fontFace: 'arial',
       color: {
           border: '#2B7CE9',
           background: '#97C2FC',
@@ -71,11 +71,11 @@ function Graph (container, data, options) {
     physics: {
       barnesHut: {
         enabled: true,
-        theta: 1 / 0.4, // inverted to save time during calculation
+        theta: 1 / 0.3, // inverted to save time during calculation
         gravitationalConstant: -7500,
         centralGravity: 0.9,
-        springLength: 20,
-        springConstant: 0.06
+        springLength: 25,
+        springConstant: 0.05
       },
       repulsion: {
         centralGravity: 0.01,
