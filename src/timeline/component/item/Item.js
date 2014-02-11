@@ -98,8 +98,9 @@ Item.prototype._repaintDeleteButton = function (anchor) {
 
     Hammer(deleteButton, {
       preventDefault: true
-    }).on('tap', function () {
+    }).on('tap', function (event) {
       parent.removeItem(id);
+      event.stopPropagation();
     });
 
     anchor.appendChild(deleteButton);
