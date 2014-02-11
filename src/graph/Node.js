@@ -60,6 +60,7 @@ function Node(properties, imagelist, grouplist, constants) {
 
   this.dampingBase = 0.9;
   this.damping = 0.9; // this is manipulated in the updateDamping function
+  this.mass = 1;  // kg
 
   this.setProperties(properties, constants);
 
@@ -74,7 +75,7 @@ function Node(properties, imagelist, grouplist, constants) {
   this.growthIndicator = 0;
 
   // mass, force, velocity
-  this.mass = 1;  // kg
+
   this.fx = 0.0;  // external force x
   this.fy = 0.0;  // external force y
   this.vx = 0.0;  // velocity x
@@ -150,6 +151,8 @@ Node.prototype.setProperties = function(properties, constants) {
   // physics
   if (properties.internalMultiplier !== undefined)  {this.internalMultiplier = properties.internalMultiplier;}
   if (properties.damping !== undefined)             {this.dampingBase = properties.damping;}
+  if (properties.mass !== undefined)                {this.mass = properties.mass;}
+
   // navigation controls properties
   if (properties.horizontalAlignLeft !== undefined) {this.horizontalAlignLeft = properties.horizontalAlignLeft;}
   if (properties.verticalAlignTop    !== undefined) {this.verticalAlignTop    = properties.verticalAlignTop;}
@@ -984,7 +987,7 @@ Node.prototype.setScale = function(scale) {
  * @param {Number} numberOfNodes
  */
 Node.prototype.updateDamping = function() {
-  this.damping = Math.min(Math.max(1.5,this.dampingBase),this.dampingBase + 0.01*this.growthIndicator);
+  this.damping = Math.min(Math.max(1.2,this.dampingBase),this.dampingBase + 0.01*this.growthIndicator);
 };
 
 

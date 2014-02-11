@@ -5,12 +5,19 @@
 
 var physicsMixin = {
 
+  /**
+   * Toggling barnes Hut calculation on and off.
+   *
+   * @private
+   */
   _toggleBarnesHut : function() {
     this.constants.physics.barnesHut.enabled = !this.constants.physics.barnesHut.enabled;
     this._loadSelectedForceSolver();
     this.moving = true;
     this.start();
   },
+
+
   /**
    * Before calculating the forces, we check if we need to cluster to keep up performance and we check
    * if there is more than one node. If it is just one node, we dont calculate anything.
@@ -51,13 +58,22 @@ var physicsMixin = {
 
 
     if (this.constants.smoothCurves == true) {
-      this._calculateSpringForcesOnSupport();
+      this._calculateSpringForcesWithSupport();
     }
     else {
       this._calculateSpringForces();
     }
   },
 
+
+  /**
+   * Smooth curves are created by adding invisible nodes in the center of the edges. These nodes are also
+   * handled in the calculateForces function. We then use a quadratic curve with the center node as control.
+   * This function joins the datanodes and invisible (called support) nodes into one object.
+   * We do this so we do not contaminate this.nodes with the support nodes.
+   *
+   * @private
+   */
   _setCalculationNodes : function() {
     if (this.constants.smoothCurves == true) {
       this.calculationNodes = {};
@@ -73,6 +89,9 @@ var physicsMixin = {
         if (supportNodes.hasOwnProperty(supportNodeId)) {
           if (this.edges.hasOwnProperty(supportNodes[supportNodeId].parentEdgeId)) {
             this.calculationNodes[supportNodeId] = supportNodes[supportNodeId];
+          }
+          else {
+            supportNodes[supportNodeId]._setForce(0,0);
           }
         }
       }
@@ -90,17 +109,11 @@ var physicsMixin = {
   },
 
 
-  _clearForces : function() {
-    var node, i;
-    var nodes = this.nodes;
-
-    for (i = 0; i < this.nodeIndices.length; i++) {
-      node = nodes[this.nodeIndices[i]];
-      node._setForce(0, 0);
-      node.updateDamping(this.nodeIndices.length);
-    }
-  },
-
+  /**
+   * this function applies the central gravity effect to keep groups from floating off
+   *
+   * @private
+   */
   _calculateGravitationalForces : function() {
     var dx, dy, angle, fx, fy, node, i;
     var nodes = this.calculationNodes;
@@ -110,8 +123,8 @@ var physicsMixin = {
       node = nodes[this.calculationNodeIndices[i]];
       // gravity does not apply when we are in a pocket sector
       if (this._sector() == "default") {
-        dx = -node.x;// + screenCenterPos.x;
-        dy = -node.y;// + screenCenterPos.y;
+        dx = -node.x;
+        dy = -node.y;
 
         angle = Math.atan2(dy, dx);
         fx = Math.cos(angle) * gravity;
@@ -126,8 +139,14 @@ var physicsMixin = {
     }
   },
 
+
+  /**
+   * this function calculates the effects of the springs in the case of unsmooth curves.
+   *
+   * @private
+   */
   _calculateSpringForces : function() {
-    var dx, dy, angle, fx, fy, springForce, length, edgeLength, edge, edgeId;
+    var edgeLength, edge, edgeId;
     var edges = this.edges;
 
     // forces caused by the edges, modelled as springs
@@ -137,30 +156,23 @@ var physicsMixin = {
         if (edge.connected) {
           // only calculate forces if nodes are in the same sector
           if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
-            dx = (edge.to.x - edge.from.x);
-            dy = (edge.to.y - edge.from.y);
-
             edgeLength = edge.length;
-
             // this implies that the edges between big clusters are longer
             edgeLength += (edge.to.growthIndicator + edge.from.growthIndicator) * this.constants.clustering.edgeGrowth;
-            length =  Math.sqrt(dx * dx + dy * dy);
-            angle = Math.atan2(dy, dx);
-
-            springForce = this.constants.physics.springConstant * (edgeLength - length);
-
-            fx = Math.cos(angle) * springForce;
-            fy = Math.sin(angle) * springForce;
-
-            edge.from._addForce(-fx, -fy);
-            edge.to._addForce(fx, fy);
+            this._calculateSpringForce(edge.from,edge.to,edgeLength);
           }
         }
       }
     }
   },
 
-  _calculateSpringForcesOnSupport : function() {
+
+  /**
+   * This function calculates the springforces on the nodes, accounting for the support nodes.
+   *
+   * @private
+   */
+  _calculateSpringForcesWithSupport : function() {
     var edgeLength, edge, edgeId, growthIndicator;
     var edges = this.edges;
 
@@ -177,11 +189,11 @@ var physicsMixin = {
               var node3 = edge.from;
 
               edgeLength = 0.5*edge.length;
+
               growthIndicator = 0.5*(node1.growthIndicator + node3.growthIndicator);
 
               // this implies that the edges between big clusters are longer
               edgeLength += growthIndicator * this.constants.clustering.edgeGrowth;
-
               this._calculateSpringForce(node1,node2,edgeLength);
               this._calculateSpringForce(node2,node3,edgeLength);
             }
@@ -191,6 +203,15 @@ var physicsMixin = {
     }
   },
 
+
+  /**
+   * This is the code actually performing the calculation for the function above. It is split out to avoid repetition.
+   *
+   * @param node1
+   * @param node2
+   * @param edgeLength
+   * @private
+   */
   _calculateSpringForce : function(node1,node2,edgeLength) {
     var dx, dy, angle, fx, fy, springForce, length;
 
@@ -198,6 +219,7 @@ var physicsMixin = {
     dy = (node1.y - node2.y);
     length =  Math.sqrt(dx * dx + dy * dy);
     angle = Math.atan2(dy, dx);
+
     springForce = this.constants.physics.springConstant * (edgeLength - length);
 
     fx = Math.cos(angle) * springForce;

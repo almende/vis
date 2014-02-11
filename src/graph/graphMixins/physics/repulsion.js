@@ -30,7 +30,7 @@ var repulsionMixin = {
       node1 = nodes[nodeIndices[i]];
       for (j = i+1; j < nodeIndices.length; j++) {
         node2 = nodes[nodeIndices[j]];
-        combinedClusterSize = (node1.growthIndicator + node2.growthIndicator);
+        combinedClusterSize = node1.clusterSize + node2.clusterSize - 2;
 
         dx = node2.x - node1.x;
         dy = node2.y - node1.y;

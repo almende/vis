@@ -4,7 +4,12 @@
 
 var barnesHutMixin = {
 
-
+  /**
+   * This function calculates the forces the nodes apply on eachother based on a gravitational model.
+   * The Barnes Hut method is used to speed up this N-body simulation.
+   *
+   * @private
+   */
   _calculateNodeForces : function() {
     var node;
     var nodes = this.calculationNodes;
@@ -12,7 +17,6 @@ var barnesHutMixin = {
     var nodeCount = nodeIndices.length;
 
     this._formBarnesHutTree(nodes,nodeIndices);
-
 
     var barnesHutTree = this.barnesHutTree;
 
@@ -27,14 +31,23 @@ var barnesHutMixin = {
     }
   },
 
+
+  /**
+   * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
+   * If a region contains a single node, we check if it is not itself, then we apply the force.
+   *
+   * @param parentBranch
+   * @param node
+   * @private
+   */
   _getForceContribution : function(parentBranch,node) {
     // we get no force contribution from an empty region
     if (parentBranch.childrenCount > 0) {
       var dx,dy,distance;
 
       // get the distance from the center of mass to the node.
-      dx = parentBranch.CenterOfMass.x - node.x;
-      dy = parentBranch.CenterOfMass.y - node.y;
+      dx = parentBranch.centerOfMass.x - node.x;
+      dy = parentBranch.centerOfMass.y - node.y;
       distance = Math.sqrt(dx * dx + dy * dy);
 
       if (distance > 0) { // distance is 0 if it looks to apply a force on itself.
@@ -60,8 +73,17 @@ var barnesHutMixin = {
     }
   },
 
+  /**
+   * The gravitational force applied on the node by the mass of the branch.
+   *
+   * @param parentBranch
+   * @param node
+   * @param dx
+   * @param dy
+   * @param distance
+   * @private
+   */
   _getForceOnNode : function(parentBranch, node, dx ,dy, distance) {
-    //console.log(Math.max(Math.max(node.height,node.radius),node.width),parentBranch.maxWidth,distance);
     // even if the parentBranch only has one node, its Center of Mass is at the right place (the node in this case).
     var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.mass / (distance * distance);
     var angle = Math.atan2(dy, dx);
@@ -71,6 +93,13 @@ var barnesHutMixin = {
   },
 
 
+  /**
+   * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
+   *
+   * @param nodes
+   * @param nodeIndices
+   * @private
+   */
   _formBarnesHutTree : function(nodes,nodeIndices) {
     var node;
     var nodeCount = nodeIndices.length;
@@ -95,13 +124,19 @@ var barnesHutMixin = {
     else              {minX += 0.5 * sizeDiff; maxX -= 0.5 * sizeDiff;} // xSize < ySize
 
 
+    var minimumTreeSize = 1e-5;
+    var rootSize = Math.max(minimumTreeSize,Math.abs(maxX - minX));
+    var halfRootSize = 0.5 * rootSize;
+    var centerX = 0.5 * (minX + maxX), centerY = 0.5 * (minY + maxY);
+
     // construct the barnesHutTree
     var barnesHutTree = {root:{
-      CenterOfMass:{x:0,y:0}, // Center of Mass
+      centerOfMass:{x:0,y:0}, // Center of Mass
       mass:0,
-      range:{minX:minX,maxX:maxX,minY:minY,maxY:maxY},
-      size: Math.abs(maxX - minX),
-      calcSize: 1 / Math.abs(maxX - minX),
+      range: {minX:centerX-halfRootSize,maxX:centerX+halfRootSize,
+              minY:centerY-halfRootSize,maxY:centerY+halfRootSize},
+      size: rootSize,
+      calcSize: 1 / rootSize,
       children: {data:null},
       maxWidth: 0,
       level: 0,
@@ -124,11 +159,11 @@ var barnesHutMixin = {
     var totalMass = parentBranch.mass + node.mass;
     var totalMassInv = 1/totalMass;
 
-    parentBranch.CenterOfMass.x = parentBranch.CenterOfMass.x * parentBranch.mass + node.x * node.mass;
-    parentBranch.CenterOfMass.x *= totalMassInv;
+    parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.mass;
+    parentBranch.centerOfMass.x *= totalMassInv;
 
-    parentBranch.CenterOfMass.y = parentBranch.CenterOfMass.y * parentBranch.mass + node.y * node.mass;
-    parentBranch.CenterOfMass.y *= totalMassInv;
+    parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.mass;
+    parentBranch.centerOfMass.y *= totalMassInv;
 
     parentBranch.mass = totalMass;
     var biggestSize = Math.max(Math.max(node.height,node.radius),node.width);
@@ -137,10 +172,12 @@ var barnesHutMixin = {
   },
 
 
-  _placeInTree : function(parentBranch,node) {
-    // update the mass of the branch.
-    this._updateBranchMass(parentBranch,node);
-
+  _placeInTree : function(parentBranch,node,skipMassUpdate) {
+    if (skipMassUpdate != true || skipMassUpdate === undefined) {
+      // update the mass of the branch.
+      this._updateBranchMass(parentBranch,node);
+    }
+    //console.log(parentBranch.children.NW.range.maxX,parentBranch.children.NW.range.maxY, node.x,node.y);
     if (parentBranch.children.NW.range.maxX > node.x) { // in NW or SW
       if (parentBranch.children.NW.range.maxY > node.y) { // in NW
         this._placeInRegion(parentBranch,node,"NW");
@@ -150,7 +187,7 @@ var barnesHutMixin = {
       }
     }
     else { // in NE or SE
-      if (parentBranch.children.NE.range.maxY > node.y) { // in NE
+      if (parentBranch.children.NW.range.maxY > node.y) { // in NE
         this._placeInRegion(parentBranch,node,"NE");
       }
       else { // in SE
@@ -168,8 +205,16 @@ var barnesHutMixin = {
         this._updateBranchMass(parentBranch.children[region],node);
         break;
       case 1: // convert into children
-        this._splitBranch(parentBranch.children[region]);
-        this._placeInTree(parentBranch.children[region],node);
+        // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
+        // we move one node a pixel and we do not put it in the tree.
+        if (parentBranch.children[region].children.data.x == node.x &&
+            parentBranch.children[region].children.data.y == node.y) {
+          node.x += 0.1;
+        }
+        else {
+          this._splitBranch(parentBranch.children[region]);
+          this._placeInTree(parentBranch.children[region],node);
+        }
         break;
       case 4: // place in branch
         this._placeInTree(parentBranch.children[region],node);
@@ -178,12 +223,19 @@ var barnesHutMixin = {
   },
 
 
+  /**
+   * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
+   * after the split is complete.
+   *
+   * @param parentBranch
+   * @private
+   */
   _splitBranch : function(parentBranch) {
     // if the branch is filled with a node, replace the node in the new subset.
     var containedNode = null;
     if (parentBranch.childrenCount == 1) {
       containedNode = parentBranch.children.data;
-      parentBranch.mass = 0; parentBranch.CenterOfMass.x = 0; parentBranch.CenterOfMass.y = 0;
+      parentBranch.mass = 0; parentBranch.centerOfMass.x = 0; parentBranch.centerOfMass.y = 0;
     }
     parentBranch.childrenCount = 4;
     parentBranch.children.data = null;
@@ -210,47 +262,56 @@ var barnesHutMixin = {
    */
   _insertRegion : function(parentBranch, region) {
     var minX,maxX,minY,maxY;
+    var childSize = 0.5 * parentBranch.size;
     switch (region) {
       case "NW":
         minX = parentBranch.range.minX;
-        maxX = parentBranch.range.minX + parentBranch.size;
+        maxX = parentBranch.range.minX + childSize;
         minY = parentBranch.range.minY;
-        maxY = parentBranch.range.minY + parentBranch.size;
+        maxY = parentBranch.range.minY + childSize;
         break;
       case "NE":
-        minX = parentBranch.range.minX + parentBranch.size;
+        minX = parentBranch.range.minX + childSize;
         maxX = parentBranch.range.maxX;
         minY = parentBranch.range.minY;
-        maxY = parentBranch.range.minY + parentBranch.size;
+        maxY = parentBranch.range.minY + childSize;
         break;
       case "SW":
         minX = parentBranch.range.minX;
-        maxX = parentBranch.range.minX + parentBranch.size;
-        minY = parentBranch.range.minY + parentBranch.size;
+        maxX = parentBranch.range.minX + childSize;
+        minY = parentBranch.range.minY + childSize;
         maxY = parentBranch.range.maxY;
         break;
       case "SE":
-        minX = parentBranch.range.minX + parentBranch.size;
+        minX = parentBranch.range.minX + childSize;
         maxX = parentBranch.range.maxX;
-        minY = parentBranch.range.minY + parentBranch.size;
+        minY = parentBranch.range.minY + childSize;
         maxY = parentBranch.range.maxY;
         break;
     }
 
 
     parentBranch.children[region] = {
-      CenterOfMass:{x:0,y:0},
+      centerOfMass:{x:0,y:0},
       mass:0,
       range:{minX:minX,maxX:maxX,minY:minY,maxY:maxY},
       size: 0.5 * parentBranch.size,
       calcSize: 2 * parentBranch.calcSize,
       children: {data:null},
       maxWidth: 0,
-      level: parentBranch.level +1,
+      level: parentBranch.level+1,
       childrenCount: 0
     };
   },
 
+
+  /**
+   * This function is for debugging purposed, it draws the tree.
+   *
+   * @param ctx
+   * @param color
+   * @private
+   */
   _drawTree : function(ctx,color) {
     if (this.barnesHutTree !== undefined) {
 
@@ -260,6 +321,15 @@ var barnesHutMixin = {
     }
   },
 
+
+  /**
+   * This function is for debugging purposes. It draws the branches recursively.
+   *
+   * @param branch
+   * @param ctx
+   * @param color
+   * @private
+   */
   _drawBranch : function(branch,ctx,color) {
     if (color === undefined) {
       color = "#FF0000";
@@ -294,7 +364,7 @@ var barnesHutMixin = {
 
     /*
      if (branch.mass > 0) {
-     ctx.circle(branch.CenterOfMass.x, branch.CenterOfMass.y, 3*branch.mass);
+     ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
      ctx.stroke();
      }
      */

@@ -70,16 +70,16 @@ function Graph (container, data, options) {
     },
     physics: {
       barnesHut: {
-        enabled: false,
-        theta: 1 / 0.3, // inverted to save time during calculation
-        gravitationalConstant: -10000,
-        centralGravity: 0.08,
-        springLength: 100,
-        springConstant: 0.02
+        enabled: true,
+        theta: 1 / 0.4, // inverted to save time during calculation
+        gravitationalConstant: -7500,
+        centralGravity: 0.9,
+        springLength: 20,
+        springConstant: 0.06
       },
       repulsion: {
         centralGravity: 0.01,
-        springLength: 100,
+        springLength: 60,
         springConstant: 0.05
       },
       centralGravity: null,
@@ -98,11 +98,11 @@ function Graph (container, data, options) {
       fontSizeMultiplier: 4.0,      // (px PNiC)             | how much the cluster font size grows per node in cluster (in px).
       forceAmplification: 0.1,      // (multiplier PNiC)     | factor of increase fo the repulsion force of a cluster (per node in cluster).
       maxFontSize: 1000,
-      distanceAmplification: 0.03,   // (multiplier PNiC)     | factor how much the repulsion distance of a cluster increases (per node in cluster).
+      distanceAmplification: 0.1,   // (multiplier PNiC)     | factor how much the repulsion distance of a cluster increases (per node in cluster).
       edgeGrowth: 1,               // (px PNiC)             | amount of clusterSize connected to the edge is multiplied with this and added to edgeLength.
-      nodeScaling: {width:  5,      // (px PNiC)             | growth of the width  per node in cluster.
-                    height: 5,      // (px PNiC)             | growth of the height per node in cluster.
-                    radius: 5},     // (px PNiC)             | growth of the radius per node in cluster.
+      nodeScaling: {width:  1,      // (px PNiC)             | growth of the width  per node in cluster.
+                    height: 1,      // (px PNiC)             | growth of the height per node in cluster.
+                    radius: 1},     // (px PNiC)             | growth of the radius per node in cluster.
       maxNodeSizeIncrements: 600,   // (# increments)        | max growth of the width  per node in cluster.
       activeAreaBoxSize: 80,       // (px)                  | box area around the curser where clusters are popped open.
       clusterLevelDifference: 2
@@ -417,7 +417,6 @@ Graph.prototype.setOptions = function (options) {
     if (options.stabilize !== undefined)       {this.stabilize = options.stabilize;}
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
 
-/*
     if (options.physics) {
       if (options.physics.barnesHut) {
         this.constants.physics.barnesHut.enabled = true;
@@ -437,7 +436,7 @@ Graph.prototype.setOptions = function (options) {
         }
       }
     }
-*/
+
     if (options.clustering) {
       this.constants.clustering.enabled = true;
       for (var prop in options.clustering) {
@@ -1264,13 +1263,11 @@ Graph.prototype._addNodes = function(ids) {
     var node = new Node(data, this.images, this.groups, this.constants);
     this.nodes[id] = node; // note: this may replace an existing node
 
-    if (!node.isFixed() && this.createNodeOnClick != true) {
-      // TODO: position new nodes in a smarter way!
-      var radius = this.constants.edges.length;
-      var count = ids.length;
-      var angle = 2 * Math.PI * (i / count);
-      node.x = radius * Math.cos(angle);
-      node.y = radius * Math.sin(angle);
+    if ((node.xFixed == false || node.yFixed == false) && this.createNodeOnClick != true) {
+      var radius = this.constants.physics.springLength * 0.1*ids.length;
+      var angle = 2 * Math.PI * Math.random();
+      if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
+      if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
 
       // note: no not use node.isMoving() here, as that gives the current
       // velocity of the node, which is zero after creation of the node.
@@ -1431,6 +1428,7 @@ Graph.prototype._updateEdges = function (ids) {
     }
   }
 
+  this._createBezierNodes();
   this.moving = true;
   this._updateValueRange(edges);
 };
@@ -1446,6 +1444,9 @@ Graph.prototype._removeEdges = function (ids) {
     var id = ids[i];
     var edge = edges[id];
     if (edge) {
+      if (edge.via != null) {
+        delete this.sectors['support']['nodes'][edge.via.id];
+      }
       edge.disconnect();
       delete edges[id];
     }
@@ -1453,6 +1454,7 @@ Graph.prototype._removeEdges = function (ids) {
 
   this.moving = true;
   this._updateValueRange(edges);
+  this._setCalculationNodes();
 };
 
 /**
@@ -1741,10 +1743,9 @@ Graph.prototype._doStabilize = function() {
  * @private
  */
 Graph.prototype._isMoving = function(vmin) {
-  var vminCorrected = vmin / Math.max(this.scale,0.05);
   var nodes = this.nodes;
   for (var id in nodes) {
-    if (nodes.hasOwnProperty(id) && nodes[id].isMoving(vminCorrected)) {
+    if (nodes.hasOwnProperty(id) && nodes[id].isMoving(vmin)) {
       return true;
     }
   }
@@ -1760,7 +1761,7 @@ Graph.prototype._isMoving = function(vmin) {
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = 1.2;
+  var interval = 1.0;
   var nodes = this.nodes;
 
   if (this.constants.maxVelocity > 0) {
@@ -1777,8 +1778,13 @@ Graph.prototype._discreteStepNodes = function() {
       }
     }
   }
-  var vmin = this.constants.minVelocity;
-  this.moving = this._isMoving(vmin);
+  var vminCorrected = this.constants.minVelocity / Math.max(this.scale,0.05);
+  if (vminCorrected > 0.5*this.constants.maxVelocity) {
+    this.moving = true;
+  }
+  else {
+    this.moving = this._isMoving(vminCorrected);
+  }
 };
 
 
@@ -1820,15 +1826,15 @@ Graph.prototype.start = function() {
             graph._zoom(graph.scale*(1 + graph.zoomIncrement), center);
           }
 
-          var calctimeStart = Date.now();
+//          var calctimeStart = Date.now();
 
           graph.start();
           graph.start();
 
-          var calctime = Date.now() - calctimeStart;
-          var rendertimeStart = Date.now();
+//          var calctime = Date.now() - calctimeStart;
+//          var rendertimeStart = Date.now();
           graph._redraw();
-          var rendertime = Date.now() - rendertimeStart;
+//          var rendertime = Date.now() - rendertimeStart;
 
           //this.end = window.performance.now();
           //this.time = this.end - this.startTime;
@@ -1882,25 +1888,27 @@ Graph.prototype.toggleFreeze = function() {
 
 
 Graph.prototype._createBezierNodes = function() {
-  for (var edgeId in this.edges) {
-    if (this.edges.hasOwnProperty(edgeId)) {
-      var edge = this.edges[edgeId];
-      if (edge.smooth == true) {
-        if (edge.via == null) {
-          this.sectors['support']['nodes'][edge.id] = new Node(
-                  {id:edge.id,
-                    mass:1,
-                    shape:'circle',
-                    internalMultiplier:1,
-                    damping: 0.9},{},{},this.constants);
-          edge.via = this.sectors['support']['nodes'][edge.id];
-          edge.via.parentEdgeId = edge.id;
-          edge.positionBezierNode();
+  if (this.constants.smoothCurves == true) {
+    for (var edgeId in this.edges) {
+      if (this.edges.hasOwnProperty(edgeId)) {
+        var edge = this.edges[edgeId];
+        if (edge.smooth == true) {
+          if (edge.via == null) {
+            var nodeId = "edgeId:".concat(edge.id);
+            this.sectors['support']['nodes'][nodeId] = new Node(
+                    {id:nodeId,
+                      mass:1,
+                      shape:'circle',
+                      internalMultiplier:1,
+                      damping: 1},{},{},this.constants);
+            edge.via = this.sectors['support']['nodes'][nodeId];
+            edge.via.parentEdgeId = edge.id;
+            edge.positionBezierNode();
+          }
         }
       }
     }
   }
-
 };
 
 

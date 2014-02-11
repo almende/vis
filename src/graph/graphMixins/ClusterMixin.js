@@ -8,23 +8,24 @@
  */
 var ClusterMixin = {
 
-/**
- * This is only called in the constructor of the graph object
- * */
+ /**
+  * This is only called in the constructor of the graph object
+  *
+  */
  startWithClustering : function() {
-    // cluster if the data set is big
-    this.clusterToFit(this.constants.clustering.initialMaxNodes, true);
+   // cluster if the data set is big
+   this.clusterToFit(this.constants.clustering.initialMaxNodes, true);
 
-    // updates the lables after clustering
-    this.updateLabels();
+   // updates the lables after clustering
+   this.updateLabels();
 
-    // this is called here because if clusterin is disabled, the start and stabilize are called in
-    // the setData function.
-    if (this.stabilize) {
-      this._doStabilize();
-    }
-    this.start();
-  },
+   // this is called here because if clusterin is disabled, the start and stabilize are called in
+   // the setData function.
+   if (this.stabilize) {
+     this._doStabilize();
+   }
+   this.start();
+ },
 
   /**
    * This function clusters until the initialMaxNodes has been reached
@@ -56,7 +57,7 @@ var ClusterMixin = {
     if (level > 0 && reposition == true) {
       this.repositionNodes();
     }
-   },
+  },
 
   /**
    * This function can be called to open up a specific cluster. It is only called by
@@ -68,12 +69,16 @@ var ClusterMixin = {
     var isMovingBeforeClustering = this.moving;
     if (node.clusterSize > this.constants.clustering.sectorThreshold && this._nodeInActiveArea(node) &&
       !(this._sector() == "default" && this.nodeIndices.length == 1)) {
+      // this loads a new sector, loads the nodes and edges and nodeIndices of it.
       this._addSector(node);
       var level = 0;
+
+      // we decluster until we reach a decent number of nodes
       while ((this.nodeIndices.length < this.constants.clustering.initialMaxNodes) && (level < 10)) {
         this.decreaseClusterLevel();
         level += 1;
       }
+
     }
     else {
       this._expandClusterNode(node,false,true);
@@ -89,7 +94,7 @@ var ClusterMixin = {
     if (this.moving != isMovingBeforeClustering) {
       this.start();
     }
-   },
+  },
 
 
   /**
@@ -109,7 +114,7 @@ var ClusterMixin = {
    */
   increaseClusterLevel : function() {
     this.updateClusters(-1,false,true);
-   },
+  },
 
 
   /**
@@ -119,7 +124,7 @@ var ClusterMixin = {
    */
   decreaseClusterLevel : function() {
     this.updateClusters(1,false,true);
-   },
+  },
 
 
   /**
@@ -192,7 +197,9 @@ var ClusterMixin = {
         this.start();
       }
     }
-   },
+
+    this._setCalculationNodes();
+  },
 
   /**
    * This function handles the chains. It is called on every updateClusters().
@@ -204,7 +211,7 @@ var ClusterMixin = {
       this._reduceAmountOfChains(1 - this.constants.clustering.chainThreshold / chainPercentage)
 
     }
-   },
+  },
 
   /**
    * this functions starts clustering by hubs
@@ -215,7 +222,7 @@ var ClusterMixin = {
   _aggregateHubs : function(force) {
     this._getHubSize();
     this._formClustersByHub(force,false);
-   },
+  },
 
 
   /**
@@ -244,7 +251,7 @@ var ClusterMixin = {
         this.start();
       }
     }
-   },
+  },
 
   /**
    * If a cluster takes up more than a set percentage of the screen, open the cluster
@@ -263,7 +270,7 @@ var ClusterMixin = {
         }
       }
     }
-   },
+  },
 
 
   /**
@@ -278,7 +285,7 @@ var ClusterMixin = {
       this._expandClusterNode(node,recursive,force);
       this._setCalculationNodes();
     }
-   },
+  },
 
   /**
    * This function checks if a node has to be opened. This is done by checking the zoom level.
@@ -324,8 +331,7 @@ var ClusterMixin = {
         }
       }
     }
-
-   },
+  },
 
   /**
    * ONLY CALLED FROM _expandClusterNode
@@ -342,14 +348,13 @@ var ClusterMixin = {
    * @param {Boolean} openAll           | This will recursively force all nodes in the parent to be released
    * @private
    */
-  _expelChildFromParent : function(parentNode, containedNodeId, recursive, force, openAll) {
+   _expelChildFromParent : function(parentNode, containedNodeId, recursive, force, openAll) {
     var childNode = parentNode.containedNodes[containedNodeId];
 
     // if child node has been added on smaller scale than current, kick out
     if (childNode.formationScale < this.scale || force == true) {
-      // remove the selection, first remove the selection from the connected edges
-      this._unselectConnectedEdges(parentNode);
-      parentNode.unselect();
+      // unselect all selected items
+      this._unselectAll();
 
       // put the child node back in the global nodes object
       this.nodes[containedNodeId] = childNode;
@@ -370,8 +375,8 @@ var ClusterMixin = {
       parentNode.dynamicEdgesLength = parentNode.dynamicEdges.length;
 
       // place the child node near the parent, not at the exact same location to avoid chaos in the system
-      childNode.x = parentNode.x + parentNode.growthIndicator * (0.5 - Math.random()) * childNode.clusterSize;
-      childNode.y = parentNode.y + parentNode.growthIndicator * (0.5 - Math.random()) * childNode.clusterSize;
+      childNode.x = parentNode.x + parentNode.growthIndicator * (0.5 - Math.random());
+      childNode.y = parentNode.y + parentNode.growthIndicator * (0.5 - Math.random());
 
       // remove node from the list
       delete parentNode.containedNodes[containedNodeId];
@@ -391,24 +396,37 @@ var ClusterMixin = {
         parentNode.clusterSessions.pop();
       }
 
+      this._repositionBezierNodes(childNode);
+//      this._repositionBezierNodes(parentNode);
+
       // remove the clusterSession from the child node
       childNode.clusterSession = 0;
-
-      // restart the simulation to reorganise all nodes
-      this.moving = true;
 
       // recalculate the size of the node on the next time the node is rendered
       parentNode.clearSizeCache();
 
-      // this unselects the rest of the edges
-      this._unselectConnectedEdges(parentNode);
+      // restart the simulation to reorganise all nodes
+      this.moving = true;
     }
 
     // check if a further expansion step is possible if recursivity is enabled
     if (recursive == true) {
       this._expandClusterNode(childNode,recursive,force,openAll);
     }
-   },
+  },
+
+
+  /**
+   * position the bezier nodes at the center of the edges
+   *
+   * @param node
+   * @private
+   */
+  _repositionBezierNodes : function(node) {
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      node.dynamicEdges[i].positionBezierNode();
+    }
+  },
 
 
   /**
@@ -427,7 +445,8 @@ var ClusterMixin = {
     else {
       this._forceClustersByZoom();
     }
-   },
+  },
+
 
   /**
    * This function handles the clustering by zooming out, this is based on a minimum edge distance
@@ -470,7 +489,7 @@ var ClusterMixin = {
         }
       }
     }
-   },
+  },
 
   /**
    * This function forces the graph to cluster all nodes with only one connecting edge to their
@@ -501,9 +520,16 @@ var ClusterMixin = {
         }
       }
     }
-   },
+  },
 
 
+  /**
+   * To keep the nodes of roughly equal size we normalize the cluster levels.
+   * This function clusters a node to its smallest connected neighbour.
+   *
+   * @param node
+   * @private
+   */
   _clusterToSmallestNeighbour : function(node) {
     var smallestNeighbour = -1;
     var smallestNeighbourNode = null;
@@ -546,7 +572,7 @@ var ClusterMixin = {
         this._formClusterFromHub(this.nodes[nodeId],force,onlyEqual);
       }
     }
-   },
+  },
 
   /**
    * This function forms a cluster from a specific preselected hub node
@@ -616,7 +642,7 @@ var ClusterMixin = {
         }
       }
     }
-   },
+  },
 
 
 
@@ -687,7 +713,7 @@ var ClusterMixin = {
 
     // restart the simulation to reorganise all nodes
     this.moving = true;
-   },
+  },
 
 
   /**
@@ -717,7 +743,7 @@ var ClusterMixin = {
       }
       node.dynamicEdgesLength -= correction;
     }
-   },
+  },
 
 
   /**
@@ -746,7 +772,7 @@ var ClusterMixin = {
         break;
       }
     }
-   },
+  },
 
   /**
    * This function connects an edge that was connected to a child node to the parent node.
@@ -777,9 +803,17 @@ var ClusterMixin = {
 
       this._addToReroutedEdges(parentNode,childNode,edge);
     }
-   },
+  },
 
 
+  /**
+   * If a node is connected to itself, a circular edge is drawn. When clustering we want to contain
+   * these edges inside of the cluster.
+   *
+   * @param parentNode
+   * @param childNode
+   * @private
+   */
   _containCircularEdgesFromNode : function(parentNode, childNode) {
     // manage all the edges connected to the child and parent nodes
     for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
@@ -850,7 +884,7 @@ var ClusterMixin = {
       // remove the entry from the rerouted edges
       delete parentNode.reroutedEdges[childNode.id];
     }
-   },
+  },
 
 
   /**
@@ -868,7 +902,7 @@ var ClusterMixin = {
         parentNode.dynamicEdges.splice(i,1);
       }
     }
-   },
+  },
 
 
   /**
@@ -893,7 +927,7 @@ var ClusterMixin = {
     // remove the entry from the contained edges
     delete parentNode.containedEdges[childNode.id];
 
-   },
+  },
 
 
 
@@ -939,9 +973,15 @@ var ClusterMixin = {
 //      }
 //    }
 
-   },
+  },
 
 
+  /**
+   * We want to keep the cluster level distribution rather small. This means we do not want unclustered nodes
+   * if the rest of the nodes are already a few cluster levels in.
+   * To fix this we use this function. It determines the min and max cluster level and sends nodes that have not
+   * clustered enough to the clusterToSmallestNeighbours function.
+   */
   normalizeClusterLevels : function() {
     var maxLevel = 0;
     var minLevel = 1e9;
@@ -992,7 +1032,7 @@ var ClusterMixin = {
         &&
       Math.abs(node.y - this.areaCenter.y) <= this.constants.clustering.activeAreaBoxSize/this.scale
       )
-   },
+  },
 
 
   /**
@@ -1003,17 +1043,14 @@ var ClusterMixin = {
   repositionNodes : function() {
     for (var i = 0; i < this.nodeIndices.length; i++) {
       var node = this.nodes[this.nodeIndices[i]];
-      if (!node.isFixed()) {
+      if ((node.xFixed == false || node.yFixed == false) && this.createNodeOnClick != true) {
         var radius = this.constants.physics.springLength * (1 + 0.1*node.mass);
         var angle = 2 * Math.PI * Math.random();
-        node.x = radius * Math.cos(angle);
-        node.y = radius * Math.sin(angle);
+        if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
+        if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
       }
     }
-   },
-
-
-
+  },
 
 
   /**
@@ -1054,7 +1091,7 @@ var ClusterMixin = {
 
   //  console.log("average",average,"averageSQ",averageSquared,"var",variance,"std",standardDeviation);
   //  console.log("hubThreshold:",this.hubThreshold);
-   },
+  },
 
 
   /**
@@ -1077,7 +1114,7 @@ var ClusterMixin = {
         }
       }
     }
-   },
+  },
 
   /**
    * We get the amount of "extension nodes" or chains. These are not quickly clustered with the outliers and hubs methods
@@ -1097,5 +1134,6 @@ var ClusterMixin = {
       }
     }
     return chains/total;
-   }
+  }
+
 };
