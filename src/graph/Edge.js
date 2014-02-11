@@ -354,25 +354,70 @@ Edge.prototype._drawDashLine = function(ctx) {
   ctx.strokeStyle = this.color;
   ctx.lineWidth = this._getLineWidth();
 
-  // draw dashed line
-  ctx.beginPath();
-  ctx.lineCap = 'round';
-  if (this.dash.altLength !== undefined) //If an alt dash value has been set add to the array this value
-  {
-    ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
-        [this.dash.length,this.dash.gap,this.dash.altLength,this.dash.gap]);
-  }
-  else if (this.dash.length !== undefined && this.dash.gap !== undefined) //If a dash and gap value has been set add to the array this value
-  {
-    ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
-        [this.dash.length,this.dash.gap]);
-  }
-  else //If all else fails draw a line
-  {
+  // only firefox and chrome support this method, else we use the legacy one.
+  if (ctx.mozDash !== undefined || ctx.setLineDash !== undefined) {
+    ctx.beginPath();
     ctx.moveTo(this.from.x, this.from.y);
-    ctx.lineTo(this.to.x, this.to.y);
+
+    // configure the dash pattern
+    var pattern = [0];
+    if (this.dash.length !== undefined && this.dash.gap !== undefined) {
+      pattern = [this.dash.length,this.dash.gap];
+    }
+    else {
+      pattern = [5,5];
+    }
+
+    // set dash settings for chrome or firefox
+    if (typeof ctx.setLineDash !== 'undefined') { //Chrome
+      ctx.setLineDash(pattern);
+      ctx.lineDashOffset = 0;
+
+    } else { //Firefox
+      ctx.mozDash = pattern;
+      ctx.mozDashOffset = 0;
+    }
+
+    // draw the line
+    if (this.smooth == true) {
+      ctx.quadraticCurveTo(this.via.x,this.via.y,this.to.x, this.to.y);
+    }
+    else {
+      ctx.lineTo(this.to.x, this.to.y);
+    }
+    ctx.stroke();
+
+    // restore the dash settings.
+    if (typeof ctx.setLineDash !== 'undefined') { //Chrome
+      ctx.setLineDash([0]);
+      ctx.lineDashOffset = 0;
+
+    } else { //Firefox
+      ctx.mozDash = [0];
+      ctx.mozDashOffset = 0;
+    }
   }
-  ctx.stroke();
+  else { // unsupporting smooth lines
+    // draw dashed line
+    ctx.beginPath();
+    ctx.lineCap = 'round';
+    if (this.dash.altLength !== undefined) //If an alt dash value has been set add to the array this value
+    {
+      ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
+          [this.dash.length,this.dash.gap,this.dash.altLength,this.dash.gap]);
+    }
+    else if (this.dash.length !== undefined && this.dash.gap !== undefined) //If a dash and gap value has been set add to the array this value
+    {
+      ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
+          [this.dash.length,this.dash.gap]);
+    }
+    else //If all else fails draw a line
+    {
+      ctx.moveTo(this.from.x, this.from.y);
+      ctx.lineTo(this.to.x, this.to.y);
+    }
+    ctx.stroke();
+  }
 
   // draw label
   if (this.label) {
