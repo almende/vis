@@ -287,8 +287,8 @@ Edge.prototype._line = function (ctx) {
   // draw a straight line
   ctx.beginPath();
   ctx.moveTo(this.from.x, this.from.y);
-  if (this.smooth == true) {
-    ctx.quadraticCurveTo(this.via.x,this.via.y,this.to.x, this.to.y);
+ if (this.smooth == true) {
+      ctx.quadraticCurveTo(this.via.x,this.via.y,this.to.x, this.to.y);
   }
   else {
     ctx.lineTo(this.to.x, this.to.y);
@@ -429,10 +429,18 @@ Edge.prototype._drawArrowCenter = function(ctx) {
     // draw line
     this._line(ctx);
 
-    // draw an arrow halfway the line
     var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
     var length = 10 + 5 * this.width; // TODO: make customizable?
-    point = this._pointOnLine(0.5);
+    // draw an arrow halfway the line
+    if (this.smooth == true) {
+      var midpointX = 0.5*(0.5*(this.from.x + this.via.x) + 0.5*(this.to.x + this.via.x));
+      var midpointY = 0.5*(0.5*(this.from.y + this.via.y) + 0.5*(this.to.y + this.via.y));
+      point = {x:midpointX, y:midpointY};
+    }
+    else {
+      point = this._pointOnLine(0.5);
+    }
+
     ctx.arrow(point.x, point.y, angle, length);
     ctx.fill();
     ctx.stroke();
@@ -446,18 +454,18 @@ Edge.prototype._drawArrowCenter = function(ctx) {
   else {
     // draw circle
     var x, y;
-    var radius = this.length / 4;
+    var radius = 0.25 * Math.max(100,this.length);
     var node = this.from;
     if (!node.width) {
       node.resize(ctx);
     }
     if (node.width > node.height) {
-      x = node.x + node.width / 2;
+      x = node.x + node.width * 0.5;
       y = node.y - radius;
     }
     else {
       x = node.x + radius;
-      y = node.y - node.height / 2;
+      y = node.y - node.height * 0.5;
     }
     this._circle(ctx, x, y, radius);
 
@@ -492,32 +500,43 @@ Edge.prototype._drawArrow = function(ctx) {
   ctx.fillStyle = this.color;
   ctx.lineWidth = this._getLineWidth();
 
-  // draw line
   var angle, length;
+  //draw a line
   if (this.from != this.to) {
-    // calculate length and angle of the line
     angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
     var dx = (this.to.x - this.from.x);
     var dy = (this.to.y - this.from.y);
-    var lEdge = Math.sqrt(dx * dx + dy * dy);
+    var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
 
-    var lFrom = this.from.distanceToBorder(ctx, angle + Math.PI);
-    var pFrom = (lEdge - lFrom) / lEdge;
-    var xFrom = (pFrom) * this.from.x + (1 - pFrom) * this.to.x;
-    var yFrom = (pFrom) * this.from.y + (1 - pFrom) * this.to.y;
+    var fromBorderDist = this.from.distanceToBorder(ctx, angle + Math.PI);
+    var fromBorderPoint = (edgeSegmentLength - fromBorderDist) / edgeSegmentLength;
+    var xFrom = (fromBorderPoint) * this.from.x + (1 - fromBorderPoint) * this.to.x;
+    var yFrom = (fromBorderPoint) * this.from.y + (1 - fromBorderPoint) * this.to.y;
 
-    var lTo = this.to.distanceToBorder(ctx, angle);
-    var pTo = (lEdge - lTo) / lEdge;
-    var xTo = (1 - pTo) * this.from.x + pTo * this.to.x;
-    var yTo = (1 - pTo) * this.from.y + pTo * this.to.y;
+    if (this.smooth == true) {
+      angle = Math.atan2((this.to.y - this.via.y), (this.to.x - this.via.x));
+      dx = (this.to.x - this.via.x);
+      dy = (this.to.y - this.via.y);
+      edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
+    }
+    var toBorderDist = this.to.distanceToBorder(ctx, angle);
+    var toBorderPoint = (edgeSegmentLength - toBorderDist) / edgeSegmentLength;
+    var xTo = (1 - toBorderPoint) * this.via.x + toBorderPoint * this.to.x;
+    var yTo = (1 - toBorderPoint) * this.via.y + toBorderPoint * this.to.y;
+
 
     ctx.beginPath();
-    ctx.moveTo(xFrom, yFrom);
-    ctx.lineTo(xTo, yTo);
+    ctx.moveTo(xFrom,yFrom);
+    if (this.smooth == true) {
+      ctx.quadraticCurveTo(this.via.x,this.via.y,xTo, yTo);
+    }
+    else {
+      ctx.lineTo(xTo, yTo);
+    }
     ctx.stroke();
 
     // draw arrow at the end of the line
-    length = 10 + 5 * this.width; // TODO: make customizable?
+    length = 10 + 5 * this.width;
     ctx.arrow(xTo, yTo, angle, length);
     ctx.fill();
     ctx.stroke();
@@ -532,12 +551,12 @@ Edge.prototype._drawArrow = function(ctx) {
     // draw circle
     var node = this.from;
     var x, y, arrow;
-    var radius = this.length / 4;
+    var radius = 0.25 * Math.max(100,this.length);
     if (!node.width) {
       node.resize(ctx);
     }
     if (node.width > node.height) {
-      x = node.x + node.width / 2;
+      x = node.x + node.width * 0.5;
       y = node.y - radius;
       arrow = {
         x: x,
@@ -547,7 +566,7 @@ Edge.prototype._drawArrow = function(ctx) {
     }
     else {
       x = node.x + radius;
-      y = node.y - node.height / 2;
+      y = node.y - node.height * 0.5;
       arrow = {
         x: node.x,
         y: y,
@@ -555,7 +574,6 @@ Edge.prototype._drawArrow = function(ctx) {
       };
     }
     ctx.beginPath();
-    // TODO: do not draw a circle, but an arc
     // TODO: similarly, for a line without arrows, draw to the border of the nodes instead of the center
     ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
     ctx.stroke();

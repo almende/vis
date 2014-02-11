@@ -315,7 +315,6 @@ Node.prototype.distanceToBorder = function (ctx, angle) {
     this.resize(ctx);
   }
 
-  //noinspection FallthroughInSwitchStatementJS
   switch (this.shape) {
     case 'circle':
     case 'dot':
@@ -347,7 +346,6 @@ Node.prototype.distanceToBorder = function (ctx, angle) {
       }
 
   }
-
   // TODO: implement calculation of distance to border for all shapes
 };
 
