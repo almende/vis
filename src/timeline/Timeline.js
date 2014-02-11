@@ -438,26 +438,77 @@ Timeline.prototype._onMultiSelectItem = function (event) {
   var selection,
       item = ItemSet.itemFromTarget(event);
 
-  if (!item) {
-    // do nothing...
-    return;
-  }
+  if (item) {
+    // multi select items
+    selection = this.getSelection(); // current selection
+    var index = selection.indexOf(item.id);
+    if (index == -1) {
+      // item is not yet selected -> select it
+      selection.push(item.id);
+    }
+    else {
+      // item is already selected -> deselect it
+      selection.splice(index, 1);
+    }
+    this.setSelection(selection);
 
-  selection = this.getSelection(); // current selection
-  var index = selection.indexOf(item.id);
-  if (index == -1) {
-    // item is not yet selected -> select it
-    selection.push(item.id);
+    this.controller.emit('select', {
+      items: this.getSelection()
+    });
+
+    event.stopPropagation();
   }
   else {
-    // item is already selected -> deselect it
-    selection.splice(index, 1);
+    // create a new item
+    var xAbs = vis.util.getAbsoluteLeft(this.rootPanel.frame);
+    var x = event.gesture.center.pageX - xAbs;
+    var newItem = {
+      start: this.timeaxis.snap(this._toTime(x)),
+      content: 'new item'
+    };
+
+    var id = util.randomUUID();
+    newItem[this.itemsData.fieldId] = id;
+
+    var group = GroupSet.groupFromTarget(event);
+    if (group) {
+      newItem.group = group.groupId;
+    }
+
+    // TODO: implement an async handler to customize adding an item
+
+    this.itemsData.add(newItem);
+
+    // select the created item after it is repainted
+    this.controller.once('repaint', function () {
+      this.setSelection([id]);
+
+      this.controller.emit('select', {
+        items: this.getSelection()
+      });
+    }.bind(this));
   }
-  this.setSelection(selection);
+};
 
-  this.controller.emit('select', {
-    items: this.getSelection()
-  });
+/**
+ * Convert a position on screen (pixels) to a datetime
+ * @param {int}     x    Position on the screen in pixels
+ * @return {Date}   time The datetime the corresponds with given position x
+ * @private
+ */
+Timeline.prototype._toTime = function _toTime(x) {
+  var conversion = this.range.conversion(this.content.width);
+  return new Date(x / conversion.scale + conversion.offset);
+};
 
-  event.stopPropagation();
+/**
+ * Convert a datetime (Date object) into a position on the screen
+ * @param {Date}   time A date
+ * @return {int}   x    The position on the screen in pixels which corresponds
+ *                      with the given date.
+ * @private
+ */
+Timeline.prototype._toScreen = function _toScreen(time) {
+  var conversion = this.range.conversion(this.content.width);
+  return (time.valueOf() - conversion.offset) * conversion.scale;
 };

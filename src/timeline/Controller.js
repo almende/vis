@@ -130,6 +130,8 @@ Controller.prototype.repaint = function repaint() {
 
   util.forEach(this.components, repaint);
 
+  this.emit('repaint');
+
   // immediately reflow when needed
   if (changed) {
     this.reflow();
@@ -170,6 +172,8 @@ Controller.prototype.reflow = function reflow() {
   }
 
   util.forEach(this.components, reflow);
+
+  this.emit('reflow');
 
   // immediately repaint when needed
   if (resized) {
