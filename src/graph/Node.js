@@ -52,7 +52,6 @@ function Node(properties, imagelist, grouplist, constants) {
   this.radiusFixed = false;
   this.radiusMin = constants.nodes.radiusMin;
   this.radiusMax = constants.nodes.radiusMax;
-  this.internalMultiplier = 1;
 
   this.imagelist = imagelist;
 
@@ -376,15 +375,15 @@ Node.prototype._addForce = function(fx, fy) {
  */
 Node.prototype.discreteStep = function(interval) {
   if (!this.xFixed) {
-    var dx   = -this.damping * this.vx;     // damping force
-    var ax   = (this.fx + dx) / this.mass;  // acceleration
+    var dx   = this.damping * this.vx;     // damping force
+    var ax   = (this.fx - dx) / this.mass;  // acceleration
     this.vx += ax * interval;               // velocity
     this.x  += this.vx * interval;          // position
   }
 
   if (!this.yFixed) {
-    var dy   = -this.damping * this.vy;     // damping force
-    var ay   = (this.fy + dy) / this.mass;  // acceleration
+    var dy   = this.damping * this.vy;     // damping force
+    var ay   = (this.fy - dy) / this.mass;  // acceleration
     this.vy += ay * interval;               // velocity
     this.y  += this.vy * interval;          // position
   }
@@ -398,16 +397,16 @@ Node.prototype.discreteStep = function(interval) {
  */
 Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
   if (!this.xFixed) {
-    var dx   = -this.damping * this.vx;     // damping force
-    var ax   = (this.fx + dx) / this.mass;  // acceleration
+    var dx   = this.damping * this.vx;     // damping force
+    var ax   = (this.fx - dx) / this.mass;  // acceleration
     this.vx += ax * interval;               // velocity
     this.vx = (Math.abs(this.vx) > maxVelocity) ? ((this.vx > 0) ? maxVelocity : -maxVelocity) : this.vx;
     this.x  += this.vx * interval;          // position
   }
 
   if (!this.yFixed) {
-    var dy   = -this.damping * this.vy;     // damping force
-    var ay   = (this.fy + dy) / this.mass;  // acceleration
+    var dy   = this.damping * this.vy;     // damping force
+    var ay   = (this.fy - dy) / this.mass;  // acceleration
     this.vy += ay * interval;               // velocity
     this.vy = (Math.abs(this.vy) > maxVelocity) ? ((this.vy > 0) ? maxVelocity : -maxVelocity) : this.vy;
     this.y  += this.vy * interval;          // position
@@ -435,7 +434,6 @@ Node.prototype.isMoving = function(vmin) {
     return true;
   }
   else {
-    this.vx = 0; this.vy = 0;
     return false;
   }
   //return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin);

@@ -56,7 +56,7 @@ function Graph (container, data, options) {
       widthMax: 15,
       width: 1,
       style: 'line',
-      color: '#343434',
+      color: '#848484',
       fontColor: '#343434',
       fontSize: 14, // px
       fontFace: 'arial',
@@ -71,16 +71,17 @@ function Graph (container, data, options) {
     physics: {
       barnesHut: {
         enabled: true,
-        theta: 1 / 0.3, // inverted to save time during calculation
-        gravitationalConstant: -7500,
+        theta: 1 / 0.5, // inverted to save time during calculation
+        gravitationalConstant: -3000,
         centralGravity: 0.9,
-        springLength: 25,
-        springConstant: 0.05
+        springLength: 40,
+        springConstant: 0.04
       },
       repulsion: {
         centralGravity: 0.01,
-        springLength: 60,
-        springConstant: 0.05
+        springLength: 80,
+        springConstant: 0.05,
+        nodeDistance: 100
       },
       centralGravity: null,
       springLength: null,
@@ -99,7 +100,7 @@ function Graph (container, data, options) {
       forceAmplification: 0.1,      // (multiplier PNiC)     | factor of increase fo the repulsion force of a cluster (per node in cluster).
       maxFontSize: 1000,
       distanceAmplification: 0.1,   // (multiplier PNiC)     | factor how much the repulsion distance of a cluster increases (per node in cluster).
-      edgeGrowth: 1,               // (px PNiC)             | amount of clusterSize connected to the edge is multiplied with this and added to edgeLength.
+      edgeGrowth: 20,               // (px PNiC)             | amount of clusterSize connected to the edge is multiplied with this and added to edgeLength.
       nodeScaling: {width:  1,      // (px PNiC)             | growth of the width  per node in cluster.
                     height: 1,      // (px PNiC)             | growth of the height per node in cluster.
                     radius: 1},     // (px PNiC)             | growth of the radius per node in cluster.
@@ -119,7 +120,7 @@ function Graph (container, data, options) {
       enabled: false
     },
     smoothCurves: true,
-    maxVelocity: 35,
+    maxVelocity: 25,
     minVelocity: 0.1,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
   };
@@ -172,9 +173,6 @@ function Graph (container, data, options) {
   this.areaCenter = {};               // object with x and y elements used for determining the center of the zoom action
   this.scale = 1;                     // defining the global scale variable in the constructor
   this.previousScale = this.scale;    // this is used to check if the zoom operation is zooming in or out
-  // TODO: create a counter to keep track on the number of nodes having values
-  // TODO: create a counter to keep track on the number of nodes currently moving
-  // TODO: create a counter to keep track on the number of edges having values
 
   this.nodesData = null;      // A DataSet or DataView
   this.edgesData = null;      // A DataSet or DataView
@@ -218,7 +216,7 @@ function Graph (container, data, options) {
   // load data (the disable start variable will be the same as the enabled clustering)
   this.setData(data,this.constants.clustering.enabled);
 
-  // zoom so all data will fit on the screen
+  // zoom so all data will fit on the screen, if clustering is enabled, we do not want start to be called here.
   this.zoomToFit(true,this.constants.clustering.enabled);
 
   // if clustering is disabled, the simulation will have started in the setData function
@@ -274,9 +272,8 @@ Graph.prototype._getRange = function() {
  * @private
  */
 Graph.prototype._findCenter = function(range) {
-  var center = {x: (0.5 * (range.maxX + range.minX)),
-                y: (0.5 * (range.maxY + range.minY))};
-  return center;
+  return {x: (0.5 * (range.maxX + range.minX)),
+          y: (0.5 * (range.maxY + range.minY))};
 };
 
 
@@ -309,14 +306,15 @@ Graph.prototype.zoomToFit = function(initialZoom, doNotStart) {
 
   var numberOfNodes = this.nodeIndices.length;
   var range = this._getRange();
+  var zoomLevel;
 
   if (initialZoom == true) {
     if (this.constants.clustering.enabled == true &&
         numberOfNodes >= this.constants.clustering.initialMaxNodes) {
-      var zoomLevel = 38.8467 / (numberOfNodes - 14.50184) + 0.0116; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+      zoomLevel = 38.8467 / (numberOfNodes - 14.50184) + 0.0116; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
     }
     else {
-      var zoomLevel = 42.54117319 / (numberOfNodes + 39.31966387) + 0.1944405; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+      zoomLevel = 42.54117319 / (numberOfNodes + 39.31966387) + 0.1944405; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
     }
   }
   else {
@@ -411,6 +409,7 @@ Graph.prototype.setData = function(data, disableStart) {
  */
 Graph.prototype.setOptions = function (options) {
   if (options) {
+    var prop;
     // retrieve parameter values
     if (options.width !== undefined)           {this.width = options.width;}
     if (options.height !== undefined)          {this.height = options.height;}
@@ -420,7 +419,7 @@ Graph.prototype.setOptions = function (options) {
     if (options.physics) {
       if (options.physics.barnesHut) {
         this.constants.physics.barnesHut.enabled = true;
-        for (var prop in options.physics.barnesHut) {
+        for (prop in options.physics.barnesHut) {
           if (options.physics.barnesHut.hasOwnProperty(prop)) {
             this.constants.physics.barnesHut[prop] = options.physics.barnesHut[prop];
           }
@@ -429,7 +428,7 @@ Graph.prototype.setOptions = function (options) {
 
       if (options.physics.repulsion) {
         this.constants.physics.barnesHut.enabled = false;
-        for (var prop in options.physics.repulsion) {
+        for (prop in options.physics.repulsion) {
           if (options.physics.repulsion.hasOwnProperty(prop)) {
             this.constants.physics.repulsion[prop] = options.physics.repulsion[prop];
           }
@@ -439,7 +438,7 @@ Graph.prototype.setOptions = function (options) {
 
     if (options.clustering) {
       this.constants.clustering.enabled = true;
-      for (var prop in options.clustering) {
+      for (prop in options.clustering) {
         if (options.clustering.hasOwnProperty(prop)) {
           this.constants.clustering[prop] = options.clustering[prop];
         }
@@ -451,7 +450,7 @@ Graph.prototype.setOptions = function (options) {
 
     if (options.navigation) {
       this.constants.navigation.enabled = true;
-      for (var prop in options.navigation) {
+      for (prop in options.navigation) {
         if (options.navigation.hasOwnProperty(prop)) {
           this.constants.navigation[prop] = options.navigation[prop];
         }
@@ -463,7 +462,7 @@ Graph.prototype.setOptions = function (options) {
 
     if (options.keyboard) {
       this.constants.keyboard.enabled = true;
-      for (var prop in options.keyboard) {
+      for (prop in options.keyboard) {
         if (options.keyboard.hasOwnProperty(prop)) {
           this.constants.keyboard[prop] = options.keyboard[prop];
         }
@@ -475,7 +474,7 @@ Graph.prototype.setOptions = function (options) {
 
     if (options.dataManipulationToolbar) {
       this.constants.dataManipulationToolbar.enabled = true;
-      for (var prop in options.dataManipulationToolbar) {
+      for (prop in options.dataManipulationToolbar) {
         if (options.dataManipulationToolbar.hasOwnProperty(prop)) {
           this.constants.dataManipulationToolbar[prop] = options.dataManipulationToolbar[prop];
         }
@@ -491,12 +490,6 @@ Graph.prototype.setOptions = function (options) {
         if (options.edges.hasOwnProperty(prop)) {
           this.constants.edges[prop] = options.edges[prop];
         }
-      }
-
-      if (options.edges.length !== undefined &&
-          options.nodes && options.nodes.distance === undefined) {
-        this.constants.edges.length   = options.edges.length;
-        this.constants.nodes.distance = options.edges.length * 1.25;
       }
 
       if (!options.edges.fontColor) {
@@ -873,7 +866,6 @@ Graph.prototype._onHold = function (event) {
 /**
  * handle the release of the screen
  *
- * @param event
  * @private
  */
 Graph.prototype._onRelease = function (event) {
@@ -973,7 +965,7 @@ Graph.prototype._onMouseWheel = function(event) {
     var pointer = this._getPointer(gesture.center);
 
     // apply the new scale
-    scale = this._zoom(scale, pointer);
+    this._zoom(scale, pointer);
 
     // store the new, applied scale -- this is now done in _zoom
 //    this.pinch.mousewheelScale = scale;
@@ -1100,85 +1092,6 @@ Graph.prototype._checkHidePopup = function (pointer) {
 
 
 /**
- * Temporary method to test calculating a hub value for the nodes
- * @param {number} level        Maximum number edges between two nodes in order
- *                              to call them connected. Optional, 1 by default
- * @return {Number[]} connectioncount array with the connection count
- *                                    for each node
- * @private
- */
-Graph.prototype._getConnectionCount = function(level) {
-  if (level == undefined) {
-    level = 1;
-  }
-
-  // get the nodes connected to given nodes
-  function getConnectedNodes(nodes) {
-    var connectedNodes = [];
-
-    for (var j = 0, jMax = nodes.length; j < jMax; j++) {
-      var node = nodes[j];
-
-      // find all nodes connected to this node
-      var edges = node.edges;
-      for (var i = 0, iMax = edges.length; i < iMax; i++) {
-        var edge = edges[i];
-        var other = null;
-
-        // check if connected
-        if (edge.from == node)
-          other = edge.to;
-        else if (edge.to == node)
-          other = edge.from;
-
-        // check if the other node is not already in the list with nodes
-        var k, kMax;
-        if (other) {
-          for (k = 0, kMax = nodes.length; k < kMax; k++) {
-            if (nodes[k] == other) {
-              other = null;
-              break;
-            }
-          }
-        }
-        if (other) {
-          for (k = 0, kMax = connectedNodes.length; k < kMax; k++) {
-            if (connectedNodes[k] == other) {
-              other = null;
-              break;
-            }
-          }
-        }
-
-        if (other)
-          connectedNodes.push(other);
-      }
-    }
-
-    return connectedNodes;
-  }
-
-  var connections = [];
-  var nodes = this.nodes;
-  for (var id in nodes) {
-    if (nodes.hasOwnProperty(id)) {
-      var c = [nodes[id]];
-      for (var l = 0; l < level; l++) {
-        c = c.concat(getConnectedNodes(c));
-      }
-      connections.push(c);
-    }
-  }
-
-  var hubs = [];
-  for (var i = 0, len = connections.length; i < len; i++) {
-    hubs.push(connections[i].length);
-  }
-
-  return hubs;
-};
-
-/**
  * Set a new size for the graph
  * @param {string} width   Width in pixels or percentage (for example '800px'
  *                         or '50%')
@@ -1264,7 +1177,7 @@ Graph.prototype._addNodes = function(ids) {
     this.nodes[id] = node; // note: this may replace an existing node
 
     if ((node.xFixed == false || node.yFixed == false) && this.createNodeOnClick != true) {
-      var radius = this.constants.physics.springLength * 0.1*ids.length;
+      var radius = this.constants.physics.springLength * 0.2*ids.length;
       var angle = 2 * Math.PI * Math.random();
       if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
       if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
@@ -1400,6 +1313,7 @@ Graph.prototype._addEdges = function (ids) {
   this.moving = true;
   this._updateValueRange(edges);
   this._createBezierNodes();
+  this._setCalculationNodes();
 };
 
 /**
@@ -1757,24 +1671,24 @@ Graph.prototype._isMoving = function(vmin) {
  * /**
  * Perform one discrete step for all nodes
  *
- * @param interval
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
   var interval = 1.0;
   var nodes = this.nodes;
+  var nodeId;
 
   if (this.constants.maxVelocity > 0) {
-    for (var id in nodes) {
-      if (nodes.hasOwnProperty(id)) {
-        nodes[id].discreteStepLimited(interval, this.constants.maxVelocity);
+    for (nodeId in nodes) {
+      if (nodes.hasOwnProperty(nodeId)) {
+        nodes[nodeId].discreteStepLimited(interval, this.constants.maxVelocity);
       }
     }
   }
   else {
-    for (var id in nodes) {
-      if (nodes.hasOwnProperty(id)) {
-        nodes[id].discreteStep(interval);
+    for (nodeId in nodes) {
+      if (nodes.hasOwnProperty(nodeId)) {
+        nodes[nodeId].discreteStep(interval);
       }
     }
   }
@@ -1799,10 +1713,10 @@ Graph.prototype.start = function() {
 
     if (this.moving) {
       this._doInAllActiveSectors("_initializeForceCalculation");
-      this._doInAllActiveSectors("_discreteStepNodes");
       if (this.constants.smoothCurves) {
         this._doInSupportSector("_discreteStepNodes");
       }
+      this._doInAllActiveSectors("_discreteStepNodes");
       this._findCenter(this._getRange())
     }
 
@@ -1830,16 +1744,15 @@ Graph.prototype.start = function() {
 
           graph.start();
           graph.start();
-
 //          var calctime = Date.now() - calctimeStart;
 //          var rendertimeStart = Date.now();
           graph._redraw();
 //          var rendertime = Date.now() - rendertimeStart;
 
-          //this.end = window.performance.now();
-          //this.time = this.end - this.startTime;
-          //console.log('refresh time: ' + this.time);
-          //this.startTime = window.performance.now();
+//          this.end = window.performance.now();
+//          this.time = this.end - this.startTime;
+//          console.log('refresh time: ' + this.time);
+//          this.startTime = window.performance.now();
 //          var DOMelement = document.getElementById("calctimereporter");
 //          if (DOMelement !== undefined) {
 //            DOMelement.innerHTML = calctime;
@@ -1900,7 +1813,7 @@ Graph.prototype._createBezierNodes = function() {
                       mass:1,
                       shape:'circle',
                       internalMultiplier:1,
-                      damping: 1},{},{},this.constants);
+                      damping: 1.2},{},{},this.constants);
             edge.via = this.sectors['support']['nodes'][nodeId];
             edge.via.parentEdgeId = edge.id;
             edge.positionBezierNode();

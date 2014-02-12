@@ -49,12 +49,10 @@ var repulsionMixin = {
           }
 
           if (this.sectors['support']['nodes'].hasOwnProperty(node1.id)) {
-           // console.log(combinedClusterSize, repulsingForce, minimumDistance);
           }
 
           // amplify the repulsion for clusters.
           repulsingForce *= (combinedClusterSize == 0) ? 1 : 1 + combinedClusterSize * this.constants.clustering.forceAmplification;
-          repulsingForce *=  node1.internalMultiplier * node2.internalMultiplier;
 
           fx = Math.cos(angle) * repulsingForce;
           fy = Math.sin(angle) * repulsingForce;

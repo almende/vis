@@ -1048,6 +1048,7 @@ var ClusterMixin = {
         var angle = 2 * Math.PI * Math.random();
         if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
         if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
+        this._repositionBezierNodes(node);
       }
     }
   },

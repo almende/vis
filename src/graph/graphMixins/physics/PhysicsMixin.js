@@ -50,10 +50,8 @@ var physicsMixin = {
     // Gravity is required to keep separated groups from floating off
     // the forces are reset to zero in this loop by using _setForce instead
     // of _addForce
-    this._setCalculationNodes();
 
     this._calculateGravitationalForces();
-
     this._calculateNodeForces();
 
 
@@ -158,7 +156,7 @@ var physicsMixin = {
           if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
             edgeLength = edge.length;
             // this implies that the edges between big clusters are longer
-            edgeLength += (edge.to.growthIndicator + edge.from.growthIndicator) * this.constants.clustering.edgeGrowth;
+            edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
             this._calculateSpringForce(edge.from,edge.to,edgeLength);
           }
         }
@@ -173,7 +171,7 @@ var physicsMixin = {
    * @private
    */
   _calculateSpringForcesWithSupport : function() {
-    var edgeLength, edge, edgeId, growthIndicator;
+    var edgeLength, edge, edgeId, combinedClusterSize;
     var edges = this.edges;
 
     // forces caused by the edges, modelled as springs
@@ -188,14 +186,14 @@ var physicsMixin = {
               var node2 = edge.via;
               var node3 = edge.from;
 
-              edgeLength = 0.5*edge.length;
+              edgeLength = edge.length;
 
-              growthIndicator = 0.5*(node1.growthIndicator + node3.growthIndicator);
+              combinedClusterSize = node1.clusterSize + node3.clusterSize - 2;
 
               // this implies that the edges between big clusters are longer
-              edgeLength += growthIndicator * this.constants.clustering.edgeGrowth;
-              this._calculateSpringForce(node1,node2,edgeLength);
-              this._calculateSpringForce(node2,node3,edgeLength);
+              edgeLength += combinedClusterSize * this.constants.clustering.edgeGrowth;
+              this._calculateSpringForce(node1,node2,0.5*edgeLength);
+              this._calculateSpringForce(node2,node3,0.5*edgeLength);
             }
           }
         }
