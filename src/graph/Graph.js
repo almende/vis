@@ -22,6 +22,8 @@ function Graph (container, data, options) {
   this.renderTimestep = 1000 / this.renderRefreshRate; // ms -- saves calculation later on
   this.stabilize = true; // stabilize before displaying the graph
   this.selectable = true;
+  // these functions can be triggered when the dataset is edited
+  this.triggerFunctions = {add:null,edit:null,connect:null,delete:null};
 
   // set constant values
   this.constants = {
@@ -29,7 +31,6 @@ function Graph (container, data, options) {
       radiusMin: 5,
       radiusMax: 20,
       radius: 5,
-      distance: 100,  // px
       shape: 'ellipse',
       image: undefined,
       widthMin: 16, // px
@@ -117,13 +118,15 @@ function Graph (container, data, options) {
       speed: {x: 10, y: 10, zoom: 0.02}
     },
     dataManipulationToolbar: {
-      enabled: false
+      enabled: false,
+      initiallyVisible: false
     },
     smoothCurves: true,
     maxVelocity: 25,
     minVelocity: 0.1,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
   };
+  this.editMode = this.constants.dataManipulationToolbar.initiallyVisible;
 
   // Node variables
   this.groups = new Groups(); // object with groups
@@ -158,7 +161,7 @@ function Graph (container, data, options) {
   // other vars
   var graph = this;
   this.freezeSimulation = false;// freeze the simulation
-
+  this.cachedFunctions = {};
 
   this.calculationNodes = {};
   this.calculationNodeIndices = [];
@@ -416,6 +419,12 @@ Graph.prototype.setOptions = function (options) {
     if (options.stabilize !== undefined)       {this.stabilize = options.stabilize;}
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
 
+    if (options.triggerFunctions) {
+      for (prop in options.triggerFunctions) {
+        this.triggerFunctions[prop] = options.triggerFunctions[prop];
+      }
+    }
+
     if (options.physics) {
       if (options.physics.barnesHut) {
         this.constants.physics.barnesHut.enabled = true;
@@ -553,6 +562,7 @@ Graph.prototype.setOptions = function (options) {
   this.setSize(this.width, this.height);
   this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
   this._setScale(1);
+  this.zoomToFit()
   this._redraw();
 };
 
@@ -687,6 +697,8 @@ Graph.prototype._createKeyBinds = function() {
 
   if (this.constants.dataManipulationToolbar.enabled == true) {
     this.mousetrap.bind("escape",this._createManipulatorBar.bind(me));
+    this.mousetrap.bind("del",this._deleteSelected.bind(me));
+    this.mousetrap.bind("e",this._toggleEditMode.bind(me));
   }
 }
 
@@ -721,6 +733,11 @@ Graph.prototype._onTouch = function (event) {
  * @private
  */
 Graph.prototype._onDragStart = function () {
+  this._handleDragStart();
+};
+
+
+Graph.prototype._handleDragStart = function() {
   var drag = this.drag;
   var node = this._getNodeAt(drag.pointer);
   // note: drag.pointer is set in _onTouch to get the initial touch location
@@ -761,13 +778,18 @@ Graph.prototype._onDragStart = function () {
       }
     }
   }
-};
+}
+
 
 /**
  * handle drag event
  * @private
  */
 Graph.prototype._onDrag = function (event) {
+  this._handleOnDrag(event)
+};
+
+Graph.prototype._handleOnDrag = function(event) {
   if (this.drag.pinched) {
     return;
   }
@@ -775,12 +797,12 @@ Graph.prototype._onDrag = function (event) {
   var pointer = this._getPointer(event.gesture.touches[0]);
 
   var me = this,
-      drag = this.drag,
-      selection = drag.selection;
+    drag = this.drag,
+    selection = drag.selection;
   if (selection && selection.length) {
     // calculate delta's and new location
     var deltaX = pointer.x - drag.pointer.x,
-        deltaY = pointer.y - drag.pointer.y;
+      deltaY = pointer.y - drag.pointer.y;
 
     // update position of all selected nodes
     selection.forEach(function (s) {
@@ -807,12 +829,12 @@ Graph.prototype._onDrag = function (event) {
     var diffY = pointer.y - this.drag.pointer.y;
 
     this._setTranslation(
-        this.drag.translation.x + diffX,
-        this.drag.translation.y + diffY);
+      this.drag.translation.x + diffX,
+      this.drag.translation.y + diffY);
     this._redraw();
     this.moved = true;
   }
-};
+}
 
 /**
  * handle drag start event
@@ -869,7 +891,8 @@ Graph.prototype._onHold = function (event) {
  * @private
  */
 Graph.prototype._onRelease = function (event) {
-  this._handleOnRelease();
+  var pointer = this._getPointer(event.gesture.touches[0]);
+  this._handleOnRelease(pointer);
 };
 
 /**
@@ -1188,6 +1211,7 @@ Graph.prototype._addNodes = function(ids) {
     }
   }
   this._updateNodeIndexList();
+  this._setCalculationNodes()
   this._reconnectEdges();
   this._updateValueRange(this.nodes);
   this.updateLabels();
@@ -1710,7 +1734,6 @@ Graph.prototype._discreteStepNodes = function() {
  */
 Graph.prototype.start = function() {
   if (!this.freezeSimulation) {
-
     if (this.moving) {
       this._doInAllActiveSectors("_initializeForceCalculation");
       if (this.constants.smoothCurves) {
@@ -1719,54 +1742,38 @@ Graph.prototype.start = function() {
       this._doInAllActiveSectors("_discreteStepNodes");
       this._findCenter(this._getRange())
     }
+  }
 
-    if (this.moving || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0) {
-      // start animation. only start calculationTimer if it is not already running
-      if (!this.timer) {
-        var graph = this;
-        this.timer = window.setTimeout(function () {
-          graph.timer = undefined;
+  if (this.moving || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0) {
+    // start animation. only start calculationTimer if it is not already running
+    if (!this.timer) {
+      var graph = this;
+      this.timer = window.setTimeout(function () {
+        graph.timer = undefined;
 
-          // keyboad movement
-          if (graph.xIncrement != 0 || graph.yIncrement != 0) {
-            var translation = graph._getTranslation();
-            graph._setTranslation(translation.x+graph.xIncrement, translation.y+graph.yIncrement);
-          }
-          if (graph.zoomIncrement != 0) {
-            var center = {
-              x: graph.frame.canvas.clientWidth / 2,
-              y: graph.frame.canvas.clientHeight / 2
-            };
-            graph._zoom(graph.scale*(1 + graph.zoomIncrement), center);
-          }
+        // keyboad movement
+        if (graph.xIncrement != 0 || graph.yIncrement != 0) {
+          var translation = graph._getTranslation();
+          graph._setTranslation(translation.x+graph.xIncrement, translation.y+graph.yIncrement);
+        }
+        if (graph.zoomIncrement != 0) {
+          var center = {
+            x: graph.frame.canvas.clientWidth / 2,
+            y: graph.frame.canvas.clientHeight / 2
+          };
+          graph._zoom(graph.scale*(1 + graph.zoomIncrement), center);
+        }
 
-//          var calctimeStart = Date.now();
 
-          graph.start();
-          graph.start();
-//          var calctime = Date.now() - calctimeStart;
-//          var rendertimeStart = Date.now();
-          graph._redraw();
-//          var rendertime = Date.now() - rendertimeStart;
+        graph.start();
+        graph.start();
+        graph._redraw();
 
-//          this.end = window.performance.now();
-//          this.time = this.end - this.startTime;
-//          console.log('refresh time: ' + this.time);
-//          this.startTime = window.performance.now();
-//          var DOMelement = document.getElementById("calctimereporter");
-//          if (DOMelement !== undefined) {
-//            DOMelement.innerHTML = calctime;
-//          }
-//          DOMelement = document.getElementById("rendertimereporter");
-//          if (DOMelement !== undefined) {
-//            DOMelement.innerHTML = rendertime;
-//          }
-        }, this.renderTimestep);
-      }
+      }, this.renderTimestep);
     }
-    else {
-      this._redraw();
-    }
+  }
+  else {
+    this._redraw();
   }
 };
 

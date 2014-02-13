@@ -228,15 +228,32 @@ Node.prototype.setProperties = function(properties, constants) {
 Node.parseColor = function(color) {
   var c;
   if (util.isString(color)) {
-    c = {
-      border: color,
-      background: color,
-      highlight: {
+    if (util.isValidHex(color)) {
+      var hsv = util.hexToHSV(color);
+      var lighterColorHSV = {h:hsv.h,s:hsv.s * 0.45,v:Math.min(1,hsv.v * 1.05)};
+      var darkerColorHSV  = {h:hsv.h,s:Math.min(1,hsv.v * 1.25),v:hsv.v*0.6};
+      var darkerColorHex  = util.HSVToHex(darkerColorHSV.h ,darkerColorHSV.h ,darkerColorHSV.v);
+      var lighterColorHex = util.HSVToHex(lighterColorHSV.h,lighterColorHSV.s,lighterColorHSV.v);
+
+      c = {
         border: color,
-        background: color
-      }
-    };
-    // TODO: automatically generate a nice highlight color
+        border:darkerColorHex,
+        highlight: {
+          background:lighterColorHex,
+          border:darkerColorHex
+        }
+      };
+    }
+    else {
+      c = {
+        border:color,
+        border:color,
+        highlight: {
+          background:color,
+          border:color
+        }
+      };
+    }
   }
   else {
     c = {};

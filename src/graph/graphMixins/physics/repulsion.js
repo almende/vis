@@ -23,7 +23,9 @@ var repulsionMixin = {
     var b = 4/3;
 
     // repulsing forces between nodes
-    var minimumDistance = this.constants.nodes.distance;
+    var nodeDistance = this.constants.physics.repulsion.nodeDistance;
+    var minimumDistance = nodeDistance;
+
     // we loop from i over all but the last entree in the array
     // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
     for (i = 0; i < nodeIndices.length-1; i++) {
@@ -36,7 +38,7 @@ var repulsionMixin = {
         dy = node2.y - node1.y;
         distance = Math.sqrt(dx * dx + dy * dy);
 
-        minimumDistance = (combinedClusterSize == 0) ? this.constants.nodes.distance : (this.constants.nodes.distance * (1 + combinedClusterSize * this.constants.clustering.distanceAmplification));
+        minimumDistance = (combinedClusterSize == 0) ? nodeDistance : (nodeDistance * (1 + combinedClusterSize * this.constants.clustering.distanceAmplification));
         var a = a_base / minimumDistance;
         if (distance < 2*minimumDistance) {
           angle = Math.atan2(dy, dx);

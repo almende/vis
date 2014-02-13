@@ -149,6 +149,13 @@ var graphMixinLoaders = {
       if (this.manipulationDiv === undefined) {
         this.manipulationDiv = document.createElement('div');
         this.manipulationDiv.className = 'graph-manipulationDiv';
+        this.manipulationDiv.id = 'graph-manipulationDiv';
+        if (this.editMode == true) {
+          this.manipulationDiv.style.display = "block";
+        }
+        else {
+          this.manipulationDiv.style.display = "none";
+        }
         this.containerElement.insertBefore(this.manipulationDiv, this.frame);
       }
       // load the manipulation functions
@@ -156,6 +163,14 @@ var graphMixinLoaders = {
 
       // create the manipulator toolbar
       this._createManipulatorBar();
+    }
+    else {
+      if (this.manipulationDiv !== undefined) {
+        this._createManipulatorBar();
+        this.containerElement.removeChild(this.manipulationDiv);
+        this.manipulationDiv = undefined;
+        this._clearMixin(manipulationMixin);
+      }
     }
    },
 

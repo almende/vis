@@ -16,6 +16,27 @@ var manipulationMixin = {
   },
 
 
+  _restoreOverloadedFunctions : function() {
+    for (var functionName in this.cachedFunctions) {
+      if (this.cachedFunctions.hasOwnProperty(functionName)) {
+        this[functionName] = this.cachedFunctions[functionName];
+      }
+    }
+  },
+
+
+  _toggleEditMode : function() {
+    this.editMode = !this.editMode;
+    var toolbar = document.getElementById("graph-manipulationDiv")
+    if (this.editMode == true) {
+      toolbar.style.display="block";
+    }
+    else {
+      toolbar.style.display="none";
+    }
+    this._createManipulatorBar()
+  },
+
   /**
    * main function, creates the main toolbar. Removes functions bound to the select event. Binds all the buttons of the toolbar.
    *
@@ -25,33 +46,55 @@ var manipulationMixin = {
     // remove bound functions
     this.off('select', this.boundFunction);
 
+    // restore overloaded functions
+    this._restoreOverloadedFunctions();
+
+    // resume calculation
+    this.freezeSimulation = false;
+
     // reset global variables
     this.blockConnectingEdgeSelection = false;
     this.forceAppendSelection = false
 
-    while (this.manipulationDiv.hasChildNodes()) {
-      this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
-    }
-    // add the icons to the manipulator div
-    this.manipulationDiv.innerHTML = "" +
-      "<span class='manipulationUI add' id='manipulate-addNode'><span class='manipulationLabel'>Add Node</span></span>" +
-      "<div class='seperatorLine'></div>" +
-      "<span class='manipulationUI edit' id='manipulate-editNode'><span class='manipulationLabel'>Edit Selected</span></span>" +
-      "<div class='seperatorLine'></div>" +
-      "<span class='manipulationUI connect' id='manipulate-connectNode'><span class='manipulationLabel'>Connect Node</span></span>" +
-      "<div class='seperatorLine'></div>" +
-      "<span class='manipulationUI delete' id='manipulate-delete'><span class='manipulationLabel'>Delete selected</span></span>";
+    if (this.editMode == true) {
+      while (this.manipulationDiv.hasChildNodes()) {
+        this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
+      }
+      // add the icons to the manipulator div
+      this.manipulationDiv.innerHTML = "" +
+        "<span class='manipulationUI add' id='manipulate-addNode'><span class='manipulationLabel'>Add Node</span></span>" +
+        "<div class='seperatorLine'></div>" +
+        "<span class='manipulationUI connect' id='manipulate-connectNode'><span class='manipulationLabel'>Add Link</span></span>";
+      if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
+        this.manipulationDiv.innerHTML += "" +
+          "<div class='seperatorLine'></div>" +
+          "<span class='manipulationUI edit' id='manipulate-editNode'><span class='manipulationLabel'>Edit Node</span></span>";
+      }
+      if (this._selectionIsEmpty() == false) {
+        this.manipulationDiv.innerHTML += "" +
+          "<div class='seperatorLine'></div>" +
+          "<span class='manipulationUI delete' id='manipulate-delete'><span class='manipulationLabel'>Delete selected</span></span>";
+      }
 
-    // bind the icons
-    var addButton = document.getElementById("manipulate-addNode");
-    addButton.onclick = this._createAddToolbar.bind(this);
-    var editButton = document.getElementById("manipulate-editNode");
-    editButton.onclick = this._createEditToolbar.bind(this);
-    var connectButton = document.getElementById("manipulate-connectNode");
-    connectButton.onclick = this._createConnectToolbar.bind(this);
-    var deleteButton = document.getElementById("manipulate-delete");
-    deleteButton.onclick = this._createDeletionToolbar.bind(this);
+
+      // bind the icons
+      var addNodeButton = document.getElementById("manipulate-addNode");
+      addNodeButton.onclick = this._createAddNodeToolbar.bind(this);
+      var addEdgeButton = document.getElementById("manipulate-connectNode");
+      addEdgeButton.onclick = this._createAddEdgeToolbar.bind(this);
+      if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
+        var editButton = document.getElementById("manipulate-editNode");
+        editButton.onclick = this._editNode.bind(this);
+      }
+      if (this._selectionIsEmpty() == false) {
+        var deleteButton = document.getElementById("manipulate-delete");
+        deleteButton.onclick = this._deleteSelected.bind(this);
+      }
+      this.boundFunction = this._createManipulatorBar.bind(this);
+      this.on('select', this.boundFunction);
+    }
   },
+
 
 
   /**
@@ -59,7 +102,7 @@ var manipulationMixin = {
    *
    * @private
    */
-  _createAddToolbar : function() {
+  _createAddNodeToolbar : function() {
     // clear the toolbar
     this._clearManipulatorBar();
     this.off('select', this.boundFunction);
@@ -81,165 +124,16 @@ var manipulationMixin = {
 
 
   /**
-   * Create the toolbar to edit nodes or edges.
-   * TODO: edges not implemented yet, unsure what to edit.
-   *
-   * @private
-   */
-  _createEditToolbar : function() {
-    // clear the toolbar
-    this.blockConnectingEdgeSelection = false;
-    this._clearManipulatorBar();
-    this.off('select', this.boundFunction);
-
-
-    var message = "";
-    if (this._selectionIsEmpty())  {
-      message = "Select a node or edge to edit.";
-    }
-    else {
-      if (this._getSelectedObjectCount() > 1) {
-        message = "Select a single node or edge to edit."
-        this._unselectAll(true);
-      }
-      else {
-        if (this._clusterInSelection()) {
-          message = "You cannot edit a cluster."
-          this._unselectAll(true);
-        }
-        else {
-          if (this._getSelectedNodeCount() > 0) { // the selected item is a node
-            this._createEditNodeToolbar();
-          }
-          else { // the selected item is an edge
-            this._createEditEdgeToolbar();
-          }
-        }
-      }
-    }
-
-    if (message != "") {
-      this.blockConnectingEdgeSelection = true;
-      // create the toolbar contents
-      this.manipulationDiv.innerHTML = "" +
-        "<span class='manipulationUI back' id='manipulate-back'><span class='manipulationLabel'>Back</span></span>" +
-        "<div class='seperatorLine'></div>" +
-        "<span class='manipulationUI none' id='manipulate-back'><span class='manipulationLabel'>"+message+"</span></span>";
-
-      // bind the icon
-      var backButton = document.getElementById("manipulate-back");
-      backButton.onclick = this._createManipulatorBar.bind(this);
-
-      // we use the boundFunction so we can reference it when we unbind it from the "select" event.
-      this.boundFunction = this._createEditToolbar.bind(this);
-      this.on('select', this.boundFunction);
-    }
-  },
-
-
-  /**
-   * Create the toolbar to edit the selected node. The label and the color can be changed. Other colors are derived from the chosen color.
-   * TODO: change shape or group?
-   *
-   * @private
-   */
-  _createEditNodeToolbar : function() {
-    // clear the toolbar
-    this.blockConnectingEdgeSelection = false;
-    this._clearManipulatorBar();
-    this.off('select', this.boundFunction);
-
-    var editObject = this._getEditObject();
-
-    // create the toolbar contents
-    this.manipulationDiv.innerHTML = "" +
-      "<span class='manipulationUI back' id='manipulate-back'><span class='manipulationLabel'>Cancel</span></span>" +
-      "<div class='seperatorLine'></div>" +
-      "<span class='manipulationUI none'>label: <input type='text' class='manipulatorInput' value='" + editObject.label + "' id='manipulator-obj-label' /></span>" +
-      "<div class='seperatorLine'></div>" +
-      "<span class='manipulationUI none'>color: <input type='text' class='manipulatorInput' value='" + editObject.color.background + "' id='manipulator-obj-color' /></span>" +
-      "<div class='seperatorLine'></div>" +
-      "<span class='manipulationUI none'><input type='button' class='manipulatorInput' value='save' id='manipulator-obj-save' /></span>"
-
-    // bind the icon
-    var backButton = document.getElementById("manipulate-back");
-    backButton.onclick = this._createManipulatorBar.bind(this);
-    var saveButton = document.getElementById("manipulator-obj-save");
-    saveButton.onclick = this._saveNodeData.bind(this);
-
-    // we use the boundFunction so we can reference it when we unbind it from the "select" event.
-    this.boundFunction = this._createManipulatorBar.bind(this);
-    this.on('select', this.boundFunction);
-  },
-
-
-  /**
-   * save the changes in the node data
-   *
-   * @private
-   */
-  _saveNodeData : function() {
-    var editObjectId = this._getEditObject().id;
-    var label = document.getElementById('manipulator-obj-label').value;
-
-    var definedColor = document.getElementById('manipulator-obj-color').value;
-    var hsv = util.hexToHSV(definedColor);
-
-    var lighterColorHSV = {h:hsv.h,s:hsv.s * 0.45,v:Math.min(1,hsv.v * 1.05)};
-    var darkerColorHSV  = {h:hsv.h,s:Math.min(1,hsv.v * 1.25),v:hsv.v*0.6};
-    var darkerColorHex  = util.HSVToHex(darkerColorHSV.h ,darkerColorHSV.h ,darkerColorHSV.v);
-    var lighterColorHex = util.HSVToHex(lighterColorHSV.h,lighterColorHSV.s,lighterColorHSV.v);
-
-    var updatedSettings = {id:editObjectId,
-      label: label,
-      color: {
-        background:definedColor,
-        border:darkerColorHex,
-        highlight: {
-          background:lighterColorHex,
-          border:darkerColorHex
-        }
-      }};
-    this.nodesData.update(updatedSettings);
-    this._createManipulatorBar();
-  },
-
-
-  /**
-   * creating the toolbar to edit edges.
-   *
-   * @private
-   */
-  _createEditEdgeToolbar : function() {
-    // clear the toolbar
-    this.blockConnectingEdgeSelection = false;
-    this._clearManipulatorBar();
-    this.off('select', this.boundFunction);
-
-    // create the toolbar contents
-    this.manipulationDiv.innerHTML = "" +
-      "<span class='manipulationUI back' id='manipulate-back'><span class='manipulationLabel'>Back</span></span>" +
-      "<div class='seperatorLine'></div>" +
-      "<span class='manipulationUI none' id='manipulate-back'><span class='manipulationLabel'>Currently only nodes can be edited.</span></span>";
-
-    // bind the icon
-    var backButton = document.getElementById("manipulate-back");
-    backButton.onclick = this._createManipulatorBar.bind(this);
-
-    // we use the boundFunction so we can reference it when we unbind it from the "select" event.
-    this.boundFunction = this._createManipulatorBar.bind(this);
-    this.on('select', this.boundFunction);
-  },
-
-
-  /**
    * create the toolbar to connect nodes
    *
    * @private
    */
-  _createConnectToolbar : function() {
+  _createAddEdgeToolbar : function() {
     // clear the toolbar
     this._clearManipulatorBar();
+    this._unselectAll(true);
+    this.freezeSimulation = true;
+
     this.off('select', this.boundFunction);
 
     this._unselectAll();
@@ -249,7 +143,7 @@ var manipulationMixin = {
     this.manipulationDiv.innerHTML = "" +
       "<span class='manipulationUI back' id='manipulate-back'><span class='manipulationLabel'>Back</span></span>" +
       "<div class='seperatorLine'></div>" +
-      "<span class='manipulationUI none' id='manipulate-back'><span id='manipulatorLabel' class='manipulationLabel'>Select the node you want to connect to other nodes.</span></span>";
+      "<span class='manipulationUI none' id='manipulate-back'><span id='manipulatorLabel' class='manipulationLabel'>Click on a node and drag the edge to another node.</span></span>";
 
     // bind the icon
     var backButton = document.getElementById("manipulate-back");
@@ -258,43 +152,16 @@ var manipulationMixin = {
     // we use the boundFunction so we can reference it when we unbind it from the "select" event.
     this.boundFunction = this._handleConnect.bind(this);
     this.on('select', this.boundFunction);
-  },
 
+    // temporarily overload functions
+    this.cachedFunctions["_handleTouch"] = this._handleTouch;
+    this.cachedFunctions["_handleOnRelease"] = this._handleOnRelease;
+    this._handleTouch = this._handleConnect;
+    this._handleOnRelease = this._finishConnect;
 
-  /**
-   * create the toolbar for deleting selected objects. User has to be sure.
-   *
-   * @private
-   */
-  _createDeletionToolbar : function() {
-    // clear the toolbar
-    this._clearManipulatorBar();
-    this.off('select', this.boundFunction);
+    // redraw to show the unselect
+    this._redraw();
 
-    if (this._selectionIsEmpty()) {
-      this.manipulationDiv.innerHTML = "" +
-        "<span class='manipulationUI none notification' id='manipulate-back'><span id='manipulatorLabel' class='manipulationLabel'>Cannot delete an empty selection.</span></span>";
-      var graph = this;
-      window.setTimeout (function() {graph._createManipulatorBar()},1500);
-    }
-    else {
-      this.manipulationDiv.innerHTML = "" +
-        "<span class='manipulationUI back' id='manipulate-back'><span class='manipulationLabel'>Back</span></span>" +
-        "<div class='seperatorLine'></div>" +
-        "<span class='manipulationUI none' id='manipulate-back'><span id='manipulatorLabel' class='manipulationLabel'>Are you sure? This cannot be undone.</span></span>" +
-        "<div class='seperatorLine'></div>" +
-        "<span class='manipulationUI acceptDelete' id='manipulate-acceptDelete'><span class='manipulationLabel'>Yes.</span></span>";
-
-      // bind the buttons
-      var backButton = document.getElementById("manipulate-back");
-      backButton.onclick = this._createManipulatorBar.bind(this);
-      var acceptDeleteButton = document.getElementById("manipulate-acceptDelete");
-      acceptDeleteButton.onclick = this._deleteSelected.bind(this);
-
-      // we use the boundFunction so we can reference it when we unbind it from the "select" event.
-      this.boundFunction = this._createManipulatorBar.bind(this);
-      this.on('select', this.boundFunction);
-    }
   },
 
 
@@ -304,108 +171,76 @@ var manipulationMixin = {
    *
    * @private
    */
-  _handleConnect : function() {
-    this.forceAppendSelection = false;
-    if (this._clusterInSelection()) {
-      this._unselectClusters(true);
-      if (!this._selectionIsEmpty()) {
-        this._setManipulationMessage("You cannot connect a node to a cluster.");
-        this.forceAppendSelection = true;
-      }
-      else {
-        this._setManipulationMessage("You cannot connect anything to a cluster.");
-      }
-    }
-    else if (!this._selectionIsEmpty()) {
-      if (this._getSelectedNodeCount() == 2) {
-        this._connectNodes();
-        this._restoreSourceNode();
-        this._setManipulationMessage("Click on another node you want to connect this node to or go back.");
-      }
-      else {
-        this._setManipulationMessage("Click on the node you want to connect this node.");
-        this._setSourceNode();
-        this.forceAppendSelection = true;
-      }
-    }
-    else {
-      this._setManipulationMessage("Select the node you want to connect to other nodes.");
-    }
-  },
+  _handleConnect : function(pointer) {
+    if (this._getSelectedNodeCount() == 0) {
+      var node = this._getNodeAt(pointer);
+      if (node != null) {
+        if (node.clusterSize > 1) {
+          alert("Cannot create edges to a cluster.")
+        }
+        else {
+          this._selectObject(node,false);
+          // create a node the temporary line can look at
+          this.sectors['support']['nodes']['targetNode'] = new Node({id:'targetNode'},{},{},this.constants);
+          this.sectors['support']['nodes']['targetNode'].x = node.x;
+          this.sectors['support']['nodes']['targetNode'].y = node.y;
+          this.sectors['support']['nodes']['targetViaNode'] = new Node({id:'targetViaNode'},{},{},this.constants);
+          this.sectors['support']['nodes']['targetViaNode'].x = node.x;
+          this.sectors['support']['nodes']['targetViaNode'].y = node.y;
+          this.sectors['support']['nodes']['targetViaNode'].parentEdgeId = "connectionEdge";
 
+          // create a temporary edge
+          this.edges['connectionEdge'] = new Edge({id:"connectionEdge",from:node.id,to:this.sectors['support']['nodes']['targetNode'].id}, this, this.constants);
+          this.edges['connectionEdge'].from = node;
+          this.edges['connectionEdge'].connected = true;
+          this.edges['connectionEdge'].smooth = true;
+          this.edges['connectionEdge'].selected = true;
+          this.edges['connectionEdge'].to = this.sectors['support']['nodes']['targetNode'];
+          this.edges['connectionEdge'].via = this.sectors['support']['nodes']['targetViaNode'];
 
-  /**
-   * returns the object that is selected
-   *
-   * @returns {*}
-   * @private
-   */
-  _getEditObject : function() {
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
-        return this.selectionObj[objectId];
-      }
-    }
-    return null;
-  },
+          this.cachedFunctions["_handleOnDrag"] = this._handleOnDrag;
+          this._handleOnDrag = function(event) {
+            var pointer = this._getPointer(event.gesture.touches[0]);
+            this.sectors['support']['nodes']['targetNode'].x = this._canvasToX(pointer.x);
+            this.sectors['support']['nodes']['targetNode'].y = this._canvasToY(pointer.y);
+            this.sectors['support']['nodes']['targetViaNode'].x = 0.5 * (this._canvasToX(pointer.x) + this.edges['connectionEdge'].from.x);
+            this.sectors['support']['nodes']['targetViaNode'].y = this._canvasToY(pointer.y);
+          };
 
-
-  /**
-   * stores the first selected node for the connecting process as the source node. This allows us to remember the direction
-   *
-   * @private
-   */
-  _setSourceNode : function() {
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          this.manipulationSourceNode = this.selectionObj[objectId];
+          this.moving = true;
+          this.start();
         }
       }
     }
   },
 
+  _finishConnect : function(pointer) {
+    if (this._getSelectedNodeCount() == 1) {
 
-  /**
-   * gets the node the source connects to.
-   *
-   * @returns {*}
-   * @private
-   */
-  _getTargetNode : function() {
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          if (this.manipulationSourceNode.id != this.selectionObj[objectId].id) {
-            return this.selectionObj[objectId];
-          }
+      // restore the drag function
+      this._handleOnDrag = this.cachedFunctions["_handleOnDrag"];
+      delete this.cachedFunctions["_handleOnDrag"];
+
+      // remember the edge id
+      var connectFromId = this.edges['connectionEdge'].fromId;
+
+      // remove the temporary nodes and edge
+      delete this.edges['connectionEdge']
+      delete this.sectors['support']['nodes']['targetNode'];
+      delete this.sectors['support']['nodes']['targetViaNode'];
+
+      var node = this._getNodeAt(pointer);
+      if (node != null) {
+        if (node.clusterSize > 1) {
+          alert("Cannot create edges to a cluster.")
+        }
+        else {
+          this._createEdge(connectFromId,node.id);
+          this._createManipulatorBar();
         }
       }
+      this._unselectAll();
     }
-    return null;
-  },
-
-
-  /**
-   * restore the selection back to only the sourcenode
-   *
-   * @private
-   */
-  _restoreSourceNode : function() {
-    this._unselectAll(true);
-    this._selectObject(this.manipulationSourceNode);
-  },
-
-
-  /**
-   * change the description message on the toolbar
-   *
-   * @param message
-   * @private
-   */
-  _setManipulationMessage : function(message) {
-    var messageSpan = document.getElementById('manipulatorLabel');
-      messageSpan.innerHTML = message;
   },
 
 
@@ -415,13 +250,37 @@ var manipulationMixin = {
    * @param {Object} pointer
    */
   _addNode : function() {
-    if (this._selectionIsEmpty()) {
+    if (this._selectionIsEmpty() && this.editMode == true) {
       var positionObject = this._pointerToPositionObject(this.pointerPosition);
-      this.createNodeOnClick = true;
-      this.nodesData.add({id:util.randomUUID(),x:positionObject.left,y:positionObject.top,label:"new",fixed:false});
-      this.createNodeOnClick = false;
-      this.moving = true;
-      this.start();
+      var defaultData = {id:util.randomUUID(),x:positionObject.left,y:positionObject.top,label:"new",fixed:false};
+      if (this.triggerFunctions.add) {
+        if (this.triggerFunctions.add.length == 2) {
+          var me = this;
+          this.triggerFunctions.add(defaultData, function(finalizedData) {
+            me.createNodeOnClick = true;
+            me.nodesData.add(finalizedData);
+            me.createNodeOnClick = false;
+            me._createManipulatorBar();
+            me.moving = true;
+            me.start();
+          });
+        }
+        else {
+          alert("The function for add does not support two arguments (data,callback).");
+          this._createManipulatorBar();
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        console.log("didnt use funciton")
+        this.createNodeOnClick = true;
+        this.nodesData.add(defaultData);
+        this.createNodeOnClick = false;
+        this._createManipulatorBar();
+        this.moving = true;
+        this.start();
+      }
     }
   },
 
@@ -431,35 +290,107 @@ var manipulationMixin = {
    *
    * @private
    */
-  _connectNodes : function() {
-    var targetNode = this._getTargetNode();
-    var sourceNode = this.manipulationSourceNode;
-    this.edgesData.add({from:sourceNode.id, to:targetNode.id})
-    this.moving = true;
-    this.start();
+  _createEdge : function(sourceNodeId,targetNodeId) {
+    if (this.editMode == true) {
+      var defaultData = {from:sourceNodeId, to:targetNodeId};
+      if (this.triggerFunctions.connect) {
+        if (this.triggerFunctions.connect.length == 2) {
+          var me = this;
+          this.triggerFunctions.connect(defaultData, function(finalizedData) {
+            me.edgesData.add(finalizedData)
+            me.moving = true;
+            me.start();
+          });
+        }
+        else {
+          alert("The function for connect does not support two arguments (data,callback).");
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        this.edgesData.add(defaultData)
+        this.moving = true;
+        this.start();
+      }
+    }
+  },
+
+
+  /**
+   * Create the toolbar to edit the selected node. The label and the color can be changed. Other colors are derived from the chosen color.
+   *
+   * @private
+   */
+  _editNode : function() {
+    if (this.triggerFunctions.edit && this.editMode == true) {
+      var node = this._getSelectedNode();
+      var data = {id:node.id,
+        label: node.label,
+        group: node.group,
+        shape: node.shape,
+        color: {
+          background:node.color.background,
+          border:node.color.border,
+          highlight: {
+            background:node.color.highlight.background,
+            border:node.color.highlight.border
+          }
+        }};
+      if (this.triggerFunctions.edit.length == 2) {
+        var me = this;
+        this.triggerFunctions.edit(data, function (finalizedData) {
+          me.nodesData.update(finalizedData);
+          me._createManipulatorBar();
+          me.moving = true;
+          me.start();
+        });
+      }
+      else {
+        alert("The function for edit does not support two arguments (data, callback).")
+      }
+    }
+    else {
+      alert("No edit function has been bound to this button.")
+    }
   },
 
 
   /**
    * delete everything in the selection
-   * TODO : place the alert in the gui.
-   *
    *
    * @private
    */
   _deleteSelected : function() {
-    if (!this._clusterInSelection()) {
-      var selectedNodes = this.getSelectedNodes();
-      var selectedEdges = this.getSelectedEdges();
-      this._removeEdges(selectedEdges);
-      this._removeNodes(selectedNodes);
-      this.moving = true;
-      this.start();
-    }
-    else {
-      alert("Clusters cannot be deleted.")
+    if (!this._selectionIsEmpty() && this.editMode == true) {
+      if (!this._clusterInSelection()) {
+        var selectedNodes = this.getSelectedNodes();
+        var selectedEdges = this.getSelectedEdges();
+        if (this.triggerFunctions.delete) {
+          var me = this;
+          var data = {nodes: selectedNodes, edges: selectedEdges};
+          if (this.triggerFunctions.delete.length = 2) {
+            this.triggerFunctions.delete(data, function (finalizedData) {
+              me.edgesData.remove(finalizedData.edges);
+              me.nodesData.remove(finalizedData.nodes);
+              me.moving = true;
+              me.start();
+            });
+          }
+          else {
+            alert("The function for edit does not support two arguments (data, callback).")
+          }
+        }
+        else {
+          this.edgesData.remove(selectedEdges);
+          this.nodesData.remove(selectedNodes);
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        alert("Clusters cannot be deleted.");
+      }
     }
   }
-
-
 };

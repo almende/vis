@@ -263,6 +263,23 @@ var SelectionMixin = {
     return count;
   },
 
+  /**
+   * return the number of selected nodes
+   *
+   * @returns {number}
+   * @private
+   */
+  _getSelectedNode : function() {
+    for (var objectId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objectId)) {
+        if (this.selectionObj[objectId] instanceof Node) {
+          return this.selectionObj[objectId];
+        }
+      }
+    }
+    return null;
+  },
+
 
   /**
    * return the number of selected edges
@@ -488,7 +505,7 @@ var SelectionMixin = {
    *
     * @private
    */
-  _handleOnRelease : function() {
+  _handleOnRelease : function(pointer) {
     this.xIncrement = 0;
     this.yIncrement = 0;
     this.zoomIncrement = 0;
