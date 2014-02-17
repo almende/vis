@@ -57,6 +57,7 @@ var ClusterMixin = {
     if (level > 0 && reposition == true) {
       this.repositionNodes();
     }
+    this._updateCalculationNodes();
   },
 
   /**
@@ -86,7 +87,7 @@ var ClusterMixin = {
       // update the index list, dynamic edges and labels
       this._updateNodeIndexList();
       this._updateDynamicEdges();
-      this._setCalculationNodes();
+      this._updateCalculationNodes();
       this.updateLabels();
     }
 
@@ -198,7 +199,7 @@ var ClusterMixin = {
       }
     }
 
-    this._setCalculationNodes();
+    this._updateCalculationNodes();
   },
 
   /**
@@ -283,7 +284,7 @@ var ClusterMixin = {
     for (var i = 0; i < this.nodeIndices.length; i++) {
       var node = this.nodes[this.nodeIndices[i]];
       this._expandClusterNode(node,recursive,force);
-      this._setCalculationNodes();
+      this._updateCalculationNodes();
     }
   },
 
@@ -1044,7 +1045,7 @@ var ClusterMixin = {
     for (var i = 0; i < this.nodeIndices.length; i++) {
       var node = this.nodes[this.nodeIndices[i]];
       if ((node.xFixed == false || node.yFixed == false) && this.createNodeOnClick != true) {
-        var radius = this.constants.physics.springLength * (1 + 0.1*node.mass);
+        var radius = this.constants.physics.springLength * node.mass;
         var angle = 2 * Math.PI * Math.random();
         if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
         if (node.yFixed == false) {node.y = radius * Math.sin(angle);}

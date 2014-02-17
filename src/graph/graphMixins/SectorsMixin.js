@@ -85,19 +85,6 @@ var SectorMixin = {
 
 
   /**
-   * This function sets the global references to nodes, edges and nodeIndices to
-   * those of the navigation controls sector.
-   *
-   * @private
-   */
-  _switchToNavigationSector : function() {
-    this.nodeIndices = this.sectors["navigation"]["nodeIndices"];
-    this.nodes       = this.sectors["navigation"]["nodes"];
-    this.edges       = this.sectors["navigation"]["edges"];
-  },
-
-
-  /**
    * This function sets the global references to nodes, edges and nodeIndices back to
    * those of the currently active sector.
    *
@@ -365,7 +352,7 @@ var SectorMixin = {
         this._updateNodeIndexList();
 
         // we refresh the list with calulation nodes and calculation node indices.
-        this._setCalculationNodes();
+        this._updateCalculationNodes();
       }
     }
   },
@@ -471,33 +458,6 @@ var SectorMixin = {
             this[runFunction](argument);
           }
         }
-      }
-    }
-    this._loadLatestSector();
-  },
-
-
-  /**
-   * This runs a function in the navigation controls sector.
-   *
-   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we don't pass the function itself because then the "this" is the window object
-   *                              |   instead of the Graph object
-   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
-   * @private
-   */
-  _doInNavigationSector : function(runFunction,argument) {
-    this._switchToNavigationSector();
-    if (argument === undefined) {
-      this[runFunction]();
-    }
-    else {
-      var args = Array.prototype.splice.call(arguments, 1);
-      if (args.length > 1) {
-        this[runFunction](args[0],args[1]);
-      }
-      else {
-        this[runFunction](argument);
       }
     }
     this._loadLatestSector();

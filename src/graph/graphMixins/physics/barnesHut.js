@@ -50,48 +50,46 @@ var barnesHutMixin = {
       dy = parentBranch.centerOfMass.y - node.y;
       distance = Math.sqrt(dx * dx + dy * dy);
 
-      if (distance > 0) { // distance is 0 if it looks to apply a force on itself.
-        // BarnesHut condition
-        if (distance * parentBranch.calcSize < this.constants.physics.barnesHut.theta) {
-          // Did not pass the condition, go into children if available
-          if (parentBranch.childrenCount == 4) {
-            this._getForceContribution(parentBranch.children.NW,node);
-            this._getForceContribution(parentBranch.children.NE,node);
-            this._getForceContribution(parentBranch.children.SW,node);
-            this._getForceContribution(parentBranch.children.SE,node);
-          }
-          else { // parentBranch must have only one node, if it was empty we wouldnt be here
-            if (parentBranch.children.data.id != node.id) { // if it is not self
-              this._getForceOnNode(parentBranch, node, dx ,dy, distance);
-            }
-          }
+      // BarnesHut condition
+      // original condition : s/d < theta = passed  ===  d/s > 1/theta = passed
+      // calcSize = 1/s --> d * 1/s > 1/theta = passed
+      if (distance * parentBranch.calcSize > this.constants.physics.barnesHut.theta) {
+        // duplicate code to reduce function calls to speed up program
+        if (distance == 0) {
+          distance = 0.5*Math.random();
+          dx = distance;
         }
-        else {
-          this._getForceOnNode(parentBranch, node, dx ,dy, distance);
+        var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.mass / (distance * distance * distance);
+        var fx = dx * gravityForce;
+        var fy = dy * gravityForce;
+        node.fx += fx;
+        node.fy += fy;
+      }
+      else {
+        // Did not pass the condition, go into children if available
+        if (parentBranch.childrenCount == 4) {
+          this._getForceContribution(parentBranch.children.NW,node);
+          this._getForceContribution(parentBranch.children.NE,node);
+          this._getForceContribution(parentBranch.children.SW,node);
+          this._getForceContribution(parentBranch.children.SE,node);
+        }
+        else { // parentBranch must have only one node, if it was empty we wouldnt be here
+          if (parentBranch.children.data.id != node.id) { // if it is not self
+            // duplicate code to reduce function calls to speed up program
+            if (distance == 0) {
+              distance = 0.5*Math.random();
+              dx = distance;
+            }
+            var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.mass / (distance * distance * distance);
+            var fx = dx * gravityForce;
+            var fy = dy * gravityForce;
+            node.fx += fx;
+            node.fy += fy;
+          }
         }
       }
     }
   },
-
-  /**
-   * The gravitational force applied on the node by the mass of the branch.
-   *
-   * @param parentBranch
-   * @param node
-   * @param dx
-   * @param dy
-   * @param distance
-   * @private
-   */
-  _getForceOnNode : function(parentBranch, node, dx ,dy, distance) {
-    // even if the parentBranch only has one node, its Center of Mass is at the right place (the node in this case).
-    var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.mass / (distance * distance);
-    var angle = Math.atan2(dy, dx);
-    var fx = Math.cos(angle) * gravityForce;
-    var fy = Math.sin(angle) * gravityForce;
-    node._addForce(fx, fy);
-  },
-
 
   /**
    * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
@@ -177,7 +175,7 @@ var barnesHutMixin = {
       // update the mass of the branch.
       this._updateBranchMass(parentBranch,node);
     }
-    //console.log(parentBranch.children.NW.range.maxX,parentBranch.children.NW.range.maxY, node.x,node.y);
+
     if (parentBranch.children.NW.range.maxX > node.x) { // in NW or SW
       if (parentBranch.children.NW.range.maxY > node.y) { // in NW
         this._placeInRegion(parentBranch,node,"NW");
@@ -209,7 +207,9 @@ var barnesHutMixin = {
         // we move one node a pixel and we do not put it in the tree.
         if (parentBranch.children[region].children.data.x == node.x &&
             parentBranch.children[region].children.data.y == node.y) {
-          node.x += 0.1;
+          node.x += Math.random();
+          node.y += Math.random();
+          this._placeInTree(parentBranch,node, true);
         }
         else {
           this._splitBranch(parentBranch.children[region]);

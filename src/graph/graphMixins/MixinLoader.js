@@ -59,6 +59,7 @@ var graphMixinLoaders = {
       this.constants.physics.centralGravity = this.constants.physics.barnesHut.centralGravity;
       this.constants.physics.springLength   = this.constants.physics.barnesHut.springLength;
       this.constants.physics.springConstant = this.constants.physics.barnesHut.springConstant;
+      this.constants.physics.damping        = this.constants.physics.barnesHut.damping;
       this.constants.physics.springGrowthPerMass = this.constants.physics.barnesHut.springGrowthPerMass;
 
       this._loadMixin(barnesHutMixin);
@@ -70,6 +71,7 @@ var graphMixinLoaders = {
       this.constants.physics.centralGravity = this.constants.physics.repulsion.centralGravity;
       this.constants.physics.springLength   = this.constants.physics.repulsion.springLength;
       this.constants.physics.springConstant = this.constants.physics.repulsion.springConstant;
+      this.constants.physics.damping        = this.constants.physics.repulsion.damping;
       this.constants.physics.springGrowthPerMass = this.constants.physics.repulsion.springGrowthPerMass;
 
       this._loadMixin(repulsionMixin);
@@ -103,12 +105,7 @@ var graphMixinLoaders = {
       "nodeIndices":[],
       "formationScale": 1.0,
       "drawingNode": undefined };
-    this.sectors["frozen"] = { },
-    this.sectors["navigation"] = {"nodes":{},
-      "edges":{},
-      "nodeIndices":[],
-      "formationScale": 1.0,
-      "drawingNode": undefined };
+    this.sectors["frozen"] = {},
     this.sectors["support"] = {"nodes":{},
       "edges":{},
       "nodeIndices":[],
@@ -143,8 +140,7 @@ var graphMixinLoaders = {
     this.blockConnectingEdgeSelection = false;
     this.forceAppendSelection = false
 
-
-    if (this.constants.dataManipulationToolbar.enabled == true) {
+    if (this.constants.dataManipulation.enabled == true) {
       // load the manipulator HTML elements. All styling done in css.
       if (this.manipulationDiv === undefined) {
         this.manipulationDiv = document.createElement('div');
@@ -158,6 +154,28 @@ var graphMixinLoaders = {
         }
         this.containerElement.insertBefore(this.manipulationDiv, this.frame);
       }
+
+      if (this.editModeDiv === undefined) {
+        this.editModeDiv = document.createElement('div');
+        this.editModeDiv.className = 'graph-manipulation-editMode';
+        this.editModeDiv.id = 'graph-manipulation-editMode';
+        if (this.editMode == true) {
+          this.editModeDiv.style.display = "none";
+        }
+        else {
+          this.editModeDiv.style.display = "block";
+        }
+        this.containerElement.insertBefore(this.editModeDiv, this.frame);
+      }
+
+      if (this.closeDiv === undefined) {
+        this.closeDiv = document.createElement('div');
+        this.closeDiv.className = 'graph-manipulation-closeDiv';
+        this.closeDiv.id = 'graph-manipulation-closeDiv';
+        this.closeDiv.style.display = this.manipulationDiv.style.display;
+        this.containerElement.insertBefore(this.closeDiv, this.frame);
+      }
+
       // load the manipulation functions
       this._loadMixin(manipulationMixin);
 
@@ -166,9 +184,17 @@ var graphMixinLoaders = {
     }
     else {
       if (this.manipulationDiv !== undefined) {
+        // removes all the bindings and overloads
         this._createManipulatorBar();
+        // remove the manipulation divs
         this.containerElement.removeChild(this.manipulationDiv);
+        this.containerElement.removeChild(this.editModeDiv);
+        this.containerElement.removeChild(this.closeDiv);
+
         this.manipulationDiv = undefined;
+        this.editModeDiv = undefined;
+        this.closeDiv = undefined;
+        // remove the mixin functions
         this._clearMixin(manipulationMixin);
       }
     }
@@ -183,24 +209,11 @@ var graphMixinLoaders = {
   _loadNavigationControls : function() {
     this._loadMixin(NavigationMixin);
 
+    // the clean function removes the button divs, this is done to remove the bindings.
+    this._cleanNavigation();
     if (this.constants.navigation.enabled == true) {
       this._loadNavigationElements();
     }
-   },
+   }
 
-
-  /**
-   * this function exists to avoid errors when not loading the navigation system
-   */
-  _relocateNavigation : function() {
-    // empty, is overloaded by navigation system
-   },
-
-
-  /**
-   * this function exists to avoid errors when not loading the navigation system
-   */
-  _unHighlightAll : function() {
-    // empty, is overloaded by the navigation system
-  }
 }

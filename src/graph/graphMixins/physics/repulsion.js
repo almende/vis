@@ -41,8 +41,6 @@ var repulsionMixin = {
         minimumDistance = (combinedClusterSize == 0) ? nodeDistance : (nodeDistance * (1 + combinedClusterSize * this.constants.clustering.distanceAmplification));
         var a = a_base / minimumDistance;
         if (distance < 2*minimumDistance) {
-          angle = Math.atan2(dy, dx);
-
           if (distance < 0.5*minimumDistance) {
             repulsingForce = 1.0;
           }
@@ -50,17 +48,17 @@ var repulsionMixin = {
             repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness))
           }
 
-          if (this.sectors['support']['nodes'].hasOwnProperty(node1.id)) {
-          }
-
           // amplify the repulsion for clusters.
           repulsingForce *= (combinedClusterSize == 0) ? 1 : 1 + combinedClusterSize * this.constants.clustering.forceAmplification;
+          repulsingForce = repulsingForce/distance;
 
-          fx = Math.cos(angle) * repulsingForce;
-          fy = Math.sin(angle) * repulsingForce;
+          fx = dx * repulsingForce;
+          fy = dy * repulsingForce;
 
-          node1._addForce(-fx, -fy);
-          node2._addForce(fx, fy);
+          node1.fx -= fx;
+          node1.fy -= fy;
+          node2.fx += fx;
+          node2.fy += fy;
         }
       }
     }

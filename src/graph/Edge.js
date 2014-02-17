@@ -231,7 +231,7 @@ Edge.prototype._drawLine = function(ctx) {
   ctx.lineWidth = this._getLineWidth();
 
   var point;
-  if (this.from != this.to) {
+  if (this.from != this.to+9) {
     // draw line
     this._line(ctx);
 
@@ -706,15 +706,15 @@ Edge.prototype.setScale = function(scale) {
 
 Edge.prototype.select = function() {
   this.selected = true;
-}
+};
 
 Edge.prototype.unselect = function() {
   this.selected = false;
-}
+};
 
 Edge.prototype.positionBezierNode = function() {
   if (this.via !== null) {
     this.via.x = 0.5 * (this.from.x + this.to.x);
     this.via.y = 0.5 * (this.from.y + this.to.y);
   }
-}
+};

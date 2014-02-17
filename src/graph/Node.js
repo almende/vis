@@ -34,6 +34,7 @@ function Node(properties, imagelist, grouplist, constants) {
   this.fontSize = constants.nodes.fontSize;
   this.fontFace = constants.nodes.fontFace;
   this.fontColor = constants.nodes.fontColor;
+  this.fontDrawThreshold = 3;
 
   this.color = constants.nodes.color;
 
@@ -54,11 +55,15 @@ function Node(properties, imagelist, grouplist, constants) {
   this.radiusMax = constants.nodes.radiusMax;
 
   this.imagelist = imagelist;
-
   this.grouplist = grouplist;
 
-  this.dampingBase = 0.9;
-  this.damping = 0.9; // this is manipulated in the updateDamping function
+  // physics properties
+  this.fx = 0.0;  // external force x
+  this.fy = 0.0;  // external force y
+  this.vx = 0.0;  // velocity x
+  this.vy = 0.0;  // velocity y
+  this.minForce = constants.minForce;
+  this.damping = constants.physics.damping;
   this.mass = 1;  // kg
 
   this.setProperties(properties, constants);
@@ -73,15 +78,9 @@ function Node(properties, imagelist, grouplist, constants) {
   this.maxNodeSizeIncrements = constants.clustering.maxNodeSizeIncrements;
   this.growthIndicator = 0;
 
-  // mass, force, velocity
-
-  this.fx = 0.0;  // external force x
-  this.fy = 0.0;  // external force y
-  this.vx = 0.0;  // velocity x
-  this.vy = 0.0;  // velocity y
-  this.minForce = constants.minForce;
-
+  // variables to tell the node about the graph.
   this.graphScaleInv = 1;
+  this.graphScale = 1;
   this.canvasTopLeft = {"x": -300, "y": -300};
   this.canvasBottomRight = {"x":  300, "y":  300};
   this.parentEdgeId = null;
@@ -445,15 +444,7 @@ Node.prototype.isFixed = function() {
  */
 // TODO: replace this method with calculating the kinetic energy
 Node.prototype.isMoving = function(vmin) {
-
-  if (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin) {
-//    console.log(vmin,this.vx,this.vy);
-    return true;
-  }
-  else {
-    return false;
-  }
-  //return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin);
+  return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin);
 };
 
 /**
@@ -902,7 +893,7 @@ Node.prototype._drawText = function (ctx) {
 
 
 Node.prototype._label = function (ctx, text, x, y, align, baseline) {
-  if (text) {
+  if (text && this.fontSize * this.graphScale > this.fontDrawThreshold) {
     ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
     ctx.fillStyle = this.fontColor || "black";
     ctx.textAlign = align || "center";
@@ -956,7 +947,7 @@ Node.prototype.inArea = function() {
   else {
     return true;
   }
-}
+};
 
 /**
  * checks if the core of the node is in the display area, this is used for opening clusters around zoom
@@ -967,7 +958,7 @@ Node.prototype.inView = function() {
           this.x < this.canvasBottomRight.x &&
           this.y >= this.canvasTopLeft.y    &&
           this.y < this.canvasBottomRight.y);
-}
+};
 
 /**
  * This allows the zoom level of the graph to influence the rendering
@@ -979,6 +970,7 @@ Node.prototype.inView = function() {
  */
 Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) {
   this.graphScaleInv = 1.0/scale;
+  this.graphScale = scale;
   this.canvasTopLeft = canvasTopLeft;
   this.canvasBottomRight = canvasBottomRight;
 };
@@ -991,17 +983,9 @@ Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) 
  */
 Node.prototype.setScale = function(scale) {
   this.graphScaleInv = 1.0/scale;
+  this.graphScale = scale;
 };
 
-/**
- * This function updates the damping parameter of the node based on its mass,
- * heavier nodes have more damping.
- *
- * @param {Number} numberOfNodes
- */
-Node.prototype.updateDamping = function() {
-  this.damping = Math.min(Math.max(1.2,this.dampingBase),this.dampingBase + 0.01*this.growthIndicator);
-};
 
 
 /**

@@ -83,8 +83,8 @@ task('build', {async: true}, function () {
       './src/graph/Groups.js',
       './src/graph/Images.js',
       './src/graph/graphMixins/physics/PhysicsMixin.js',
-      './src/graph/graphMixins/physics/barnesHut.js',
-      './src/graph/graphMixins/physics/repulsion.js',
+      './src/graph/graphMixins/physics/BarnesHut.js',
+      './src/graph/graphMixins/physics/Repulsion.js',
       './src/graph/graphMixins/ManipulationMixin.js',
       './src/graph/graphMixins/SectorsMixin.js',
       './src/graph/graphMixins/ClusterMixin.js',
@@ -101,6 +101,10 @@ task('build', {async: true}, function () {
 
   // copy images
   wrench.copyDirSyncRecursive('./src/graph/img', DIST+ '/img', {
+    forceDelete: true
+  });
+  // copy css
+  wrench.copyDirSyncRecursive('./src/graph/css', DIST+ '/css', {
     forceDelete: true
   });
 

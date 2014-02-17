@@ -53,7 +53,9 @@
       <li><a href="#Nodes_configuration">Nodes</a></li>
       <li><a href="#Edges_configuration">Edges</a></li>
       <li><a href="#Groups_configuration">Groups</a></li>
-      <li><a href="#Clustering">Clustering</a></li>
+        <li><a href="#Physics">Physics</a></li>
+        <li><a href="#Data_manipulation">Data_manipulation</a></li>
+        <li><a href="#Clustering">Clustering</a></li>
       <li><a href="#Navigation_controls">Navigation controls</a></li>
       <li><a href="#Keyboard_navigation">Keyboard navigation</a></li>
     </ul>
@@ -530,13 +532,6 @@ var edges = [
   </tr>
 
   <tr>
-    <td>length</td>
-    <td>number</td>
-    <td>no</td>
-    <td>The length of the edge in pixels.</td>
-  </tr>
-
-  <tr>
     <td>style</td>
     <td>string</td>
     <td>no</td>
@@ -647,6 +642,25 @@ var options = {
     <th>Description</th>
   </tr>
 
+    <tr>
+        <td><a href="#Physics">physics</a></td>
+        <td>Object</td>
+        <td>none</td>
+        <td>
+            Configuration of the physics system governing the simulation of the nodes and edges.
+            Barnes-Hut nBody simulation is used by default. See section <a href="#Physics">Physics</a> for an overview of the available options.
+        </td>
+    </tr>
+
+    <tr>
+        <td><a href="#Data_manipulation">dataManipulation</a></td>
+        <td>Object</td>
+        <td>none</td>
+        <td>
+            Settings for manipulating the Dataset. See section <a href="#Data_manipulation">Data manipulation</a> for an overview of the available options.
+        </td>
+    </tr>
+
   <tr>
     <td><a href="#Clustering">clustering</a></td>
     <td>Object</td>
@@ -709,6 +723,13 @@ var options = {
       Configuration options applied to all nodes. See section <a href="#Nodes_configuration">Nodes configuration</a> for an overview of the available options.
     </td>
   </tr>
+
+    <tr>
+        <td>smoothCurves</td>
+        <td>Boolean</td>
+        <td>true</td>
+        <td>If true, edges are drawn as smooth curves. This is more computationally intensive since the edge now is a quadratic Bezier curve with control points on both nodes and an invisible node in the center of the edge. This support node is also handed by the physics simulation.</td>
+    </tr>
 
   <tr>
     <td>selectable</td>
@@ -965,12 +986,6 @@ var options = {
   </tr>
 
   <tr>
-    <td>length</td>
-    <td>Number</td>
-    <td>100</td>
-    <td>The default length of a edge.</td>
-  </tr>
-  <tr>
     <td>style</td>
     <td>String</td>
     <td>"line"</td>
@@ -1122,6 +1137,235 @@ var nodes = [
 
 </table>
 
+<h3 id="Physics">Physics</h3>
+<p>
+    The physics system has been overhauled to increase performance. The original simulation method was based on particel physics with a repulsion field (potential) around each node,
+    and the edges were modelled as springs. The new system employed the <a href="http://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation">Barnes-Hut</a> gravitational simulation model. The edges are still modelled as springs.
+    To unify the physics system, the damping, repulsion distance and edge length have been combined in an physics option. To retain good behaviour, both the old repulsion model and the Barnes-Hut model have their own parameters.
+    If no options for the physics system are supplied, the Barnes-Hut method will be used with the default parameters.
+</p>
+<pre class="prettyprint">
+// These variables must be defined in an options object named physics.
+// If a variable is not supplied, the default value is used.
+var options = {
+    physics: {
+        barnesHut: {
+            enabled: true,
+            gravitationalConstant: -2000,
+            centralGravity: 0.1,
+            springLength: 100,
+            springConstant: 0.05,
+            damping: 0.09
+        },
+        repulsion: {
+            centralGravity: 0.1,
+            springLength: 50,
+            springConstant: 0.05,
+            nodeDistance: 100,
+            damping: 0.09
+        },
+    }
+</pre>
+<h5>barnesHut:</h5>
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>enabled</td>
+        <td>Boolean</td>
+        <td>true</td>
+        <td>This switches the Barnes-Hut simulation on or off. If it is turned off, the old repulsion model is used. Barnes-Hut is generally faster and yields better results.</td>
+    </tr>
+    <tr>
+        <td>gravitationalConstant</td>
+        <td>Number</td>
+        <td>-2000</td>
+        <td>This is the gravitational constand used to calculate the gravity forces. More information is available <a href="http://en.wikipedia.org/wiki/Newton's_law_of_universal_gravitation" target="_blank">here</a>.</td>
+    </tr>
+    <tr>
+        <td>centralGravity</td>
+        <td>Number</td>
+        <td>0.1</td>
+        <td>The central gravity is a force that pulls all nodes to the center. This ensures independent groups do not float apart.</td>
+    </tr>
+    <tr>
+        <td>springLength</td>
+        <td>Number</td>
+        <td>100</td>
+        <td>In the previous versions this was a property of the edges, called length. This is the length of the springs when they are at rest. During the simulation they will be streched by the gravitational fields.
+            To greatly reduce the edge length, the gravitationalConstant has to be reduced as well.</td>
+    </tr>
+    <tr>
+        <td>springConstant</td>
+        <td>Number</td>
+        <td>0.05</td>
+        <td>This is the spring constant used to calculate the spring forces based on Hooke&prime;s Law. More information is available <a href="http://en.wikipedia.org/wiki/Hooke's_law" target="_blank">here</a>.</td>
+    </tr>
+    <tr>
+        <td>damping</td>
+        <td>Number</td>
+        <td>0.09</td>
+        <td>This is the damping constant. It is used to dissipate energy from the system to have it settle in an equilibrium. More information is available <a href="http://en.wikipedia.org/wiki/Damping" target="_blank">here</a>.</td>
+    </tr>
+</table>
+<h5>repulsion:</h5>
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>centralGravity</td>
+        <td>Number</td>
+        <td>0.1</td>
+        <td>The central gravity is a force that pulls all nodes to the center. This ensures independent groups do not float apart.</td>
+    </tr>
+    <tr>
+        <td>springLength</td>
+        <td>Number</td>
+        <td>50</td>
+        <td>In the previous versions this was a property of the edges, called length. This is the length of the springs when they are at rest. During the simulation they will be streched by the gravitational fields.
+            To greatly reduce the edge length, the gravitationalConstant has to be reduced as well.</td>
+    </tr>
+    <tr>
+        <td>nodeDistance</td>
+        <td>Number</td>
+        <td>100</td>
+        <td>This parameter is used to define the distance of influence of the repulsion field of the nodes. Below half this distance, the repulsion is maximal and beyond twice this distance the repulsion is zero.</td>
+    </tr>
+
+    <tr>
+        <td>springConstant</td>
+        <td>Number</td>
+        <td>0.05</td>
+        <td>This is the spring constant used to calculate the spring forces based on Hooke&prime;s Law. More information is available <a href="http://en.wikipedia.org/wiki/Hooke's_law" target="_blank">here</a>.</td>
+    </tr>
+    <tr>
+        <td>damping</td>
+        <td>Number</td>
+        <td>0.09</td>
+        <td>This is the damping constant. It is used to dissipate energy from the system to have it settle in an equilibrium. More information is available <a href="http://en.wikipedia.org/wiki/Damping" target="_blank">here</a>.</td>
+    </tr>
+</table>
+
+<h3 id="Data_manipulation">Data manipulation</h3>
+<p>
+    By using the data manipulation feature of the graph you can dynamically create nodes, connect nodes with edges, edit nodes or delete nodes and edges.
+    The toolbar is fully HTML and CSS so the user can style this to their preference. To control the behaviour of the data manipulation, users can insert custom functions
+    into the data manipulation process. For example, an injected function can show an detailed pop-up when a user wants to add a node. In <a href="../examples/graph/21_data_manipulation.html">example 21</a>,
+    two functions have been injected into the add and edit functionality. This is described in more detail in the next subsection.
+</p>
+<pre class="prettyprint">
+// These variables must be defined in an options object named dataManipulation.
+// If a variable is not supplied, the default value is used.
+var options = {
+    dataManipulation: {
+      enabled: false,
+      initiallyVisible: false
+    }
+}
+// OR to just load the module with default values:
+var options: {
+    dataManipulation: true
+}
+</pre>
+<table>
+<tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+</tr>
+
+<tr>
+    <td>enabled</td>
+    <td>Boolean</td>
+    <td>false</td>
+    <td>Enabling or disabling of the data manipulation toolbar. If it is initially hidden, an edit button appears in the top left corner.</td>
+</tr>
+<tr>
+    <td>initiallyVisible</td>
+    <td>Boolean</td>
+    <td>false</td>
+    <td>Initially hide or show the data manipulation toolbar.</td>
+</tr>
+</table>
+
+<h4 id="Data_manipulation_custom">Data manipulation: custom functionality</h4>
+<p>
+    Users can insert custom functions into the add node, edit node, connect nodes, and delete selected operations. This is done by supplying them in the options.
+    If the callback is NOT called, nothing happens. <a href="../examples/graph/21_data_manipulation.html">Example 21</a> has two working examples
+    for the add and edit functions. The data the user is supplied with in these functions has been described in the code below.
+    For the add data, you can add any and all options that are accepted for node creation as described above. The same goes for edit, however only the fields described
+    in the code below contain information on the selected node. The callback for connect accepts any options that are used for edge creation. Only the callback for delete selected
+    requires the same data structure that is supplied to the user.
+</p>
+<pre class="prettyprint">
+// If a variable is not supplied, the default value is used.
+var options: {
+    dataManipulation: true,
+    onAdd: function(data,callback) {
+        // fixed must be false because we define a set x and y position.
+        // If fixed is not false, the node cannot move.
+        /** data = {id: random unique id,
+        *           label: new,
+        *           x: x position of click (canvas space),
+        *           y: y position of click (canvas space),
+        *           fixed: false
+        *          };
+        */
+        var newData = {..}; // alter the data as you want.
+                            // all fields normally accepted by a node can be used.
+        callback(newData);  // call the callback to add a node.
+    },
+    onEdit: function(data,callback) {
+        /** data = {id:...,
+        *           label: ...,
+        *           group: ...,
+        *           shape: ...,
+        *           color: {
+        *             background:...,
+        *             border:...,
+        *             highlight: {
+        *               background:...,
+        *               border:...
+        *             }
+        *           }
+        *          };
+        */
+        var newData = {..}; // alter the data as you want.
+                            // all fields normally accepted by a node can be used.
+        callback(newData);  // call the callback with the new data to edit the node.
+    }
+    onConnect: function(data,callback) {
+        // data = {from: nodeId1, to: nodeId2};
+        var newData = {..};      // check or alter data as you see fit.
+        callback(newData);       // call the callback to connect the nodes.
+    },
+    onDelete: function(data,callback) {
+        // data = {nodes: [selectedNodeIds], edges: [selectedEdgeIds]};
+        var newData = {..}; // alter the data as you want.
+                            // the same data structure is required.
+        callback(newData);  // call the callback to delete the objects.
+    }
+};
+</pre>
+<p>
+    Because the interface elements are CSS and HTML, the user will have to correct for size changes of the canvas. To facilitate this, a new event has been added called frameResize.
+    A function can be bound to this event. This function is supplied with the new widht and height of the canvas. The CSS can then be updated accordingly.
+    An code snippet from example 21 is shown below.
+</p>
+<pre class="prettyprint">
+graph.on("frameResize", function(params) {console.log(params.width,params.height)});
+</pre>
+
 <h3 id="Clustering">Clustering</h3>
 <p>
   The graph now supports dynamic clustering of nodes. This allows a user to view a very large dataset (> 50.000 nodes) without
@@ -1150,16 +1394,19 @@ var options = {
       reduceToNodes:300,
       chainThreshold: 0.4,
       clusterEdgeThreshold: 20,
-      sectorThreshold: 50,
+      sectorThreshold: 100,
       screenSizeThreshold: 0.2,
       fontSizeMultiplier:  4.0,
-      forceAmplification:  0.6,
-      distanceAmplification: 0.2,
-      edgeGrowth: 11,
-      nodeScaling: {width:  10,
-                    height: 10,
-                    radius: 10},
-      activeAreaBoxSize: 100
+      maxFontSize: 1000,
+      forceAmplification:  0.1,
+      distanceAmplification: 0.1,
+      edgeGrowth: 20,
+      nodeScaling: {width:  1,
+                    height: 1,
+                    radius: 1},
+      maxNodeSizeIncrements: 600,
+      activeAreaBoxSize: 100,
+      clusterLevelDifference: 2
     }
 }
 // OR to just load the module with default values:
@@ -1233,6 +1480,12 @@ var options: {
     <td>4.0</td>
     <td>This parameter denotes the increase in fontSize of the cluster when a single node is added to it.</td>
   </tr>
+    <tr>
+        <td>maxFontSize</td>
+        <td>Number</td>
+        <td>1000</td>
+        <td>This parameter denotes the largest allowed font size. If the font becomes too large, some browsers experience problems displaying this.</td>
+    </tr>
   <tr>
     <td>forceAmplification</td>
     <td>Number</td>
@@ -1251,7 +1504,7 @@ var options: {
   <tr>
     <td>edgeGrowth</td>
     <td>Number</td>
-    <td>11</td>
+    <td>20</td>
     <td>This factor determines the elongation of edges connected to a cluster.</td>
   </tr>
   <tr>
@@ -1272,13 +1525,29 @@ var options: {
     <td>10</td>
     <td>This factor determines how much the radius of a cluster increases in pixels per added node.</td>
   </tr>
+    <tr>
+        <td>maxNodeSizeIncrements</td>
+        <td>Number</td>
+        <td>600</td>
+        <td>This limits the size clusters can grow to. The default value, 600, implies that if a cluster contains more than 600 nodes, it will no longer grow.</td>
+    </tr>
+    <tr>
+        <td>activeAreaBoxSize</td>
+        <td>Number</td>
+        <td>100</td>
+        <td>Imagine a square with an edge length of <code>activeAreaBoxSize</code> pixels around your cursor.
+            If a cluster is in this box as you zoom in, the cluster can be opened in a seperate sector.
+            This is regardless of the zoom level.</td>
+    </tr>
   <tr>
-    <td>activeAreaBoxSize</td>
+    <td>clusterLevelDifference</td>
     <td>Number</td>
-    <td>100</td>
-    <td>Imagine a square with an edge length of <code>activeAreaBoxSize</code> pixels around your cursor.
-      If a cluster is in this box as you zoom in, the cluster can be opened in a seperate sector.
-      This is regardless of the zoom level.</td>
+    <td>2</td>
+    <td>At every clustering session, Graph will check if the difference between cluster levels is
+        acceptable. When a cluster is formed when zooming out, that is one cluster level.
+        If you zoom out further and it encompasses more nodes, that is another level. For example:
+        If the highest level of your graph at any given time is 3, nodes that have not clustered or
+        have clustered only once will join their neighbour with the lowest cluster level.</td>
   </tr>
 </table>
 

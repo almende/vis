@@ -1,0 +1,62 @@
+div.graph-navigation {
+    width:34px;
+    height:34px;
+    z-index:10;
+    -moz-border-radius: 17px;
+    border-radius: 17px;
+    position:absolute;
+    display:inline-block;
+    background-position: 2px 2px;
+    background-repeat:no-repeat;
+    cursor: pointer;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+div.graph-navigation:hover {
+    box-shadow: 0px 0px 3px 3px rgba(56, 207, 21, 0.30);
+}
+
+div.graph-navigation:active {
+    box-shadow: 0px 0px 1px 3px rgba(56, 207, 21, 0.95);
+}
+
+div.graph-navigation.up {
+    background-image: url("../../dist/img/upArrow.png");
+    margin-top:520px;
+    margin-left:55px;
+}
+div.graph-navigation.down {
+    background-image: url("../../dist/img/downArrow.png");
+    margin-top:560px;
+    margin-left:55px;
+}
+div.graph-navigation.left {
+    background-image: url("../../dist/img/leftArrow.png");
+    margin-top:560px;
+    margin-left:15px;
+}
+div.graph-navigation.right {
+    background-image: url("../../dist/img/rightArrow.png");
+    margin-top:560px;
+    margin-left:95px;
+}
+div.graph-navigation.zoomIn {
+    background-image: url("../../dist/img/plus.png");
+    margin-top:560px;
+    margin-left:555px;
+}
+div.graph-navigation.zoomOut {
+    background-image: url("../../dist/img/minus.png");
+    margin-top:560px;
+    margin-left:515px;
+}
+div.graph-navigation.zoomExtends {
+    background-image: url("../../dist/img/zoomExtends.png");
+    margin-top:520px;
+    margin-left:555px;
+}

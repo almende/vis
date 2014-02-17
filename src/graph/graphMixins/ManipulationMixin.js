@@ -15,7 +15,13 @@ var manipulationMixin = {
     }
   },
 
-
+  /**
+   * Manipulation UI temporarily overloads certain functions to extend or replace them. To be able to restore
+   * these functions to their original functionality, we saved them in this.cachedFunctions.
+   * This function restores these functions to their original function.
+   *
+   * @private
+   */
   _restoreOverloadedFunctions : function() {
     for (var functionName in this.cachedFunctions) {
       if (this.cachedFunctions.hasOwnProperty(functionName)) {
@@ -24,15 +30,27 @@ var manipulationMixin = {
     }
   },
 
-
+  /**
+   * Enable or disable edit-mode.
+   *
+   * @private
+   */
   _toggleEditMode : function() {
     this.editMode = !this.editMode;
-    var toolbar = document.getElementById("graph-manipulationDiv")
+    var toolbar = document.getElementById("graph-manipulationDiv");
+    var closeDiv = document.getElementById("graph-manipulation-closeDiv");
+    var editModeDiv = document.getElementById("graph-manipulation-editMode");
     if (this.editMode == true) {
       toolbar.style.display="block";
+      closeDiv.style.display="block";
+      editModeDiv.style.display="none";
+      closeDiv.onclick = this._toggleEditMode.bind(this);
     }
     else {
       toolbar.style.display="none";
+      closeDiv.style.display="none";
+      editModeDiv.style.display="block";
+      closeDiv.onclick = null;
     }
     this._createManipulatorBar()
   },
@@ -62,36 +80,50 @@ var manipulationMixin = {
       }
       // add the icons to the manipulator div
       this.manipulationDiv.innerHTML = "" +
-        "<span class='manipulationUI add' id='manipulate-addNode'><span class='manipulationLabel'>Add Node</span></span>" +
-        "<div class='seperatorLine'></div>" +
-        "<span class='manipulationUI connect' id='manipulate-connectNode'><span class='manipulationLabel'>Add Link</span></span>";
+        "<span class='graph-manipulationUI add' id='graph-manipulate-addNode'>" +
+          "<span class='graph-manipulationLabel'>Add Node</span></span>" +
+        "<div class='graph-seperatorLine'></div>" +
+        "<span class='graph-manipulationUI connect' id='graph-manipulate-connectNode'>" +
+          "<span class='graph-manipulationLabel'>Add Link</span></span>";
       if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
         this.manipulationDiv.innerHTML += "" +
-          "<div class='seperatorLine'></div>" +
-          "<span class='manipulationUI edit' id='manipulate-editNode'><span class='manipulationLabel'>Edit Node</span></span>";
+          "<div class='graph-seperatorLine'></div>" +
+          "<span class='graph-manipulationUI edit' id='graph-manipulate-editNode'>" +
+            "<span class='graph-manipulationLabel'>Edit Node</span></span>";
       }
       if (this._selectionIsEmpty() == false) {
         this.manipulationDiv.innerHTML += "" +
-          "<div class='seperatorLine'></div>" +
-          "<span class='manipulationUI delete' id='manipulate-delete'><span class='manipulationLabel'>Delete selected</span></span>";
+          "<div class='graph-seperatorLine'></div>" +
+          "<span class='graph-manipulationUI delete' id='graph-manipulate-delete'>" +
+            "<span class='graph-manipulationLabel'>Delete selected</span></span>";
       }
 
 
       // bind the icons
-      var addNodeButton = document.getElementById("manipulate-addNode");
+      var addNodeButton = document.getElementById("graph-manipulate-addNode");
       addNodeButton.onclick = this._createAddNodeToolbar.bind(this);
-      var addEdgeButton = document.getElementById("manipulate-connectNode");
+      var addEdgeButton = document.getElementById("graph-manipulate-connectNode");
       addEdgeButton.onclick = this._createAddEdgeToolbar.bind(this);
       if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
-        var editButton = document.getElementById("manipulate-editNode");
+        var editButton = document.getElementById("graph-manipulate-editNode");
         editButton.onclick = this._editNode.bind(this);
       }
       if (this._selectionIsEmpty() == false) {
-        var deleteButton = document.getElementById("manipulate-delete");
+        var deleteButton = document.getElementById("graph-manipulate-delete");
         deleteButton.onclick = this._deleteSelected.bind(this);
       }
+      var closeDiv = document.getElementById("graph-manipulation-closeDiv");
+      closeDiv.onclick = this._toggleEditMode.bind(this);
+
       this.boundFunction = this._createManipulatorBar.bind(this);
       this.on('select', this.boundFunction);
+    }
+    else {
+      this.editModeDiv.innerHTML = "" +
+        "<span class='graph-manipulationUI edit editmode' id='graph-manipulate-editModeButton'>" +
+        "<span class='graph-manipulationLabel'>Edit</span></span>"
+      var editModeButton = document.getElementById("graph-manipulate-editModeButton");
+      editModeButton.onclick = this._toggleEditMode.bind(this);
     }
   },
 
@@ -109,12 +141,14 @@ var manipulationMixin = {
 
     // create the toolbar contents
     this.manipulationDiv.innerHTML = "" +
-      "<span class='manipulationUI back' id='manipulate-back'><span class='manipulationLabel'>Back</span></span>" +
-      "<div class='seperatorLine'></div>" +
-      "<span class='manipulationUI none' id='manipulate-back'><span class='manipulationLabel'>Click in an empty space to place a new node</span></span>";
+      "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
+        "<span class='graph-manipulationLabel'>Back</span></span>" +
+      "<div class='graph-seperatorLine'></div>" +
+      "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
+        "<span class='graph-manipulationLabel'>Click in an empty space to place a new node</span></span>";
 
     // bind the icon
-    var backButton = document.getElementById("manipulate-back");
+    var backButton = document.getElementById("graph-manipulate-back");
     backButton.onclick = this._createManipulatorBar.bind(this);
 
     // we use the boundFunction so we can reference it when we unbind it from the "select" event.
@@ -141,12 +175,14 @@ var manipulationMixin = {
     this.blockConnectingEdgeSelection = true;
 
     this.manipulationDiv.innerHTML = "" +
-      "<span class='manipulationUI back' id='manipulate-back'><span class='manipulationLabel'>Back</span></span>" +
-      "<div class='seperatorLine'></div>" +
-      "<span class='manipulationUI none' id='manipulate-back'><span id='manipulatorLabel' class='manipulationLabel'>Click on a node and drag the edge to another node.</span></span>";
+      "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
+        "<span class='graph-manipulationLabel'>Back</span></span>" +
+      "<div class='graph-seperatorLine'></div>" +
+      "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
+        "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>Click on a node and drag the edge to another node to connect them.</span></span>";
 
     // bind the icon
-    var backButton = document.getElementById("manipulate-back");
+    var backButton = document.getElementById("graph-manipulate-back");
     backButton.onclick = this._createManipulatorBar.bind(this);
 
     // we use the boundFunction so we can reference it when we unbind it from the "select" event.
@@ -273,7 +309,6 @@ var manipulationMixin = {
         }
       }
       else {
-        console.log("didnt use funciton")
         this.createNodeOnClick = true;
         this.nodesData.add(defaultData);
         this.createNodeOnClick = false;
@@ -373,6 +408,7 @@ var manipulationMixin = {
             this.triggerFunctions.delete(data, function (finalizedData) {
               me.edgesData.remove(finalizedData.edges);
               me.nodesData.remove(finalizedData.nodes);
+              this._unselectAll();
               me.moving = true;
               me.start();
             });
@@ -384,6 +420,7 @@ var manipulationMixin = {
         else {
           this.edgesData.remove(selectedEdges);
           this.nodesData.remove(selectedNodes);
+          this._unselectAll();
           this.moving = true;
           this.start();
         }

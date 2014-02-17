@@ -72,7 +72,7 @@ var physicsMixin = {
    *
    * @private
    */
-  _setCalculationNodes : function() {
+  _updateCalculationNodes : function() {
     if (this.constants.smoothCurves == true) {
       this.calculationNodes = {};
       this.calculationNodeIndices = [];
@@ -113,27 +113,28 @@ var physicsMixin = {
    * @private
    */
   _calculateGravitationalForces : function() {
-    var dx, dy, angle, fx, fy, node, i;
+    var dx, dy, distance, node, i;
     var nodes = this.calculationNodes;
     var gravity = this.constants.physics.centralGravity;
+    var gravityForce = 0;
 
     for (i = 0; i < this.calculationNodeIndices.length; i++) {
       node = nodes[this.calculationNodeIndices[i]];
+      node.damping = this.constants.physics.damping; // possibly add function to alter damping properties of clusters.
       // gravity does not apply when we are in a pocket sector
       if (this._sector() == "default") {
         dx = -node.x;
         dy = -node.y;
+        distance = Math.sqrt(dx*dx + dy*dy);
+        gravityForce = gravity / distance;
 
-        angle = Math.atan2(dy, dx);
-        fx = Math.cos(angle) * gravity;
-        fy = Math.sin(angle) * gravity;
+        node.fx = dx * gravityForce;
+        node.fy = dy * gravityForce;
       }
       else {
-        fx = 0;
-        fy = 0;
+        node.fx = 0;
+        node.fy = 0;
       }
-      node._setForce(fx, fy);
-      node.updateDamping();
     }
   },
 
@@ -145,6 +146,7 @@ var physicsMixin = {
    */
   _calculateSpringForces : function() {
     var edgeLength, edge, edgeId;
+    var dx, dy, fx, fy, springForce, length;
     var edges = this.edges;
 
     // forces caused by the edges, modelled as springs
@@ -157,7 +159,20 @@ var physicsMixin = {
             edgeLength = edge.length;
             // this implies that the edges between big clusters are longer
             edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
-            this._calculateSpringForce(edge.from,edge.to,edgeLength);
+
+            dx = (edge.from.x - edge.to.x);
+            dy = (edge.from.y - edge.to.y);
+            length =  Math.sqrt(dx * dx + dy * dy);
+
+            springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
+
+            fx = dx * springForce;
+            fy = dy * springForce;
+
+            edge.from.fx += fx;
+            edge.from.fy += fy;
+            edge.to.fx -= fx;
+            edge.to.fy -= fy;
           }
         }
       }
@@ -211,19 +226,20 @@ var physicsMixin = {
    * @private
    */
   _calculateSpringForce : function(node1,node2,edgeLength) {
-    var dx, dy, angle, fx, fy, springForce, length;
+    var dx, dy, fx, fy, springForce, length;
 
     dx = (node1.x - node2.x);
     dy = (node1.y - node2.y);
     length =  Math.sqrt(dx * dx + dy * dy);
-    angle = Math.atan2(dy, dx);
 
-    springForce = this.constants.physics.springConstant * (edgeLength - length);
+    springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
 
-    fx = Math.cos(angle) * springForce;
-    fy = Math.sin(angle) * springForce;
+    fx = dx * springForce;
+    fy = dy * springForce;
 
-    node1._addForce(fx, fy);
-    node2._addForce(-fx, -fy);
+    node1.fx += fx;
+    node1.fy += fy;
+    node2.fx -= fx;
+    node2.fy -= fy;
   }
 }
