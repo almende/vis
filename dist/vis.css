@@ -11,7 +11,7 @@
   box-sizing: border-box;
 }
 
-.vis.timeline .panel {
+.vis.timeline .vpanel {
   position: absolute;
   overflow: hidden;
 }
@@ -51,7 +51,7 @@
   border-bottom: 1px solid #bfbfbf;
 }
 
-.vis.timeline .labels .label-set .label {
+.vis.timeline .labels .label-set .vlabel {
   position: absolute;
   left: 0;
   top: 0;
@@ -59,19 +59,19 @@
   color: #4d4d4d;
 }
 
-.vis.timeline.top .labels .label-set .label,
+.vis.timeline.top .labels .label-set .vlabel,
 .vis.timeline.top .groupset .itemset-axis {
   border-top: 1px solid #bfbfbf;
   border-bottom: none;
 }
 
-.vis.timeline.bottom .labels .label-set .label,
+.vis.timeline.bottom .labels .label-set .vlabel,
 .vis.timeline.bottom .groupset .itemset-axis {
   border-top: none;
   border-bottom: 1px solid #bfbfbf;
 }
 
-.vis.timeline .labels .label-set .label .inner {
+.vis.timeline .labels .label-set .vlabel .inner {
   display: inline-block;
   padding: 5px;
 }
@@ -101,12 +101,17 @@
   border-color: #97B0F8;
   background-color: #D5DDF6;
   display: inline-block;
+  padding: 5px;
 }
 
 .vis.timeline .item.selected {
   border-color: #FFC200;
   background-color: #FFF785;
   z-index: 999;
+}
+
+.vis.timeline.editable .item.selected {
+  cursor: move;
 }
 
 .vis.timeline .item.point.selected {
@@ -139,43 +144,35 @@
 }
 
 .vis.timeline .dot {
+  padding: 0;
   border: 5px solid #97B0F8;
   position: absolute;
   border-radius: 5px;
   -moz-border-radius: 5px;  /* For Firefox 3.6 and older */
 }
 
-.vis.timeline .item.range {
-  overflow: hidden;
+.vis.timeline .item.range,
+.vis.timeline .item.rangeoverflow{
   border-style: solid;
   border-width: 1px;
   border-radius: 2px;
   -moz-border-radius: 2px;  /* For Firefox 3.6 and older */
+  box-sizing: border-box;
 }
 
-.vis.timeline .item.rangeoverflow {
-  border-style: solid;
-  border-width: 1px;
-  border-radius: 2px;
-  -moz-border-radius: 2px;  /* For Firefox 3.6 and older */
-}
-
-.vis.timeline .item.range .drag-left, .vis.timeline .item.rangeoverflow .drag-left {
-  cursor: w-resize;
-  z-index: 1000;
-}
-
-.vis.timeline .item.range .drag-right, .vis.timeline .item.rangeoverflow .drag-right {
-  cursor: e-resize;
-  z-index: 1000;
-}
-
-.vis.timeline .item.range .content, .vis.timeline .item.rangeoverflow .content {
+.vis.timeline .item.range .content,
+.vis.timeline .item.rangeoverflow .content {
   position: relative;
   display: inline-block;
 }
 
+.vis.timeline .item.range .content {
+  overflow: hidden;
+  max-width: 100%;
+}
+
 .vis.timeline .item.line {
+  padding: 0;
   position: absolute;
   width: 0;
   border-left-width: 1px;
@@ -183,9 +180,42 @@
 }
 
 .vis.timeline .item .content {
-  margin: 5px;
   white-space: nowrap;
   overflow: hidden;
+}
+
+.vis.timeline .item .delete {
+  background: url('img/timeline/delete.png') no-repeat top center;
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  top: 0;
+  right: -24px;
+  cursor: pointer;
+}
+
+.vis.timeline .item.range .drag-left,
+.vis.timeline .item.rangeoverflow .drag-left {
+  position: absolute;
+  width: 24px;
+  height: 100%;
+  top: 0;
+  left: -4px;
+
+  cursor: w-resize;
+  z-index: 10000;
+}
+
+.vis.timeline .item.range .drag-right,
+.vis.timeline .item.rangeoverflow .drag-right {
+  position: absolute;
+  width: 24px;
+  height: 100%;
+  top: 0;
+  right: -4px;
+
+  cursor: e-resize;
+  z-index: 10001; /* a little higher z-index than .drag-left */
 }
 
 .vis.timeline .axis {

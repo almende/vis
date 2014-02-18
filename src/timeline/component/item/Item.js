@@ -74,9 +74,43 @@ Item.prototype.reflow = function reflow() {
 };
 
 /**
- * Return the items width
- * @return {Integer} width
+ * Give the item a display offset in pixels
+ * @param {Number} offset    Offset on screen in pixels
  */
-Item.prototype.getWidth = function getWidth() {
-  return this.width;
-}
+Item.prototype.setOffset = function setOffset(offset) {
+  this.offset = offset;
+};
+
+/**
+ * Repaint a delete button on the top right of the item when the item is selected
+ * @param {HTMLElement} anchor
+ * @private
+ */
+Item.prototype._repaintDeleteButton = function (anchor) {
+  if (this.selected && this.options.editable && !this.dom.deleteButton) {
+    // create and show button
+    var parent = this.parent;
+    var id = this.id;
+
+    var deleteButton = document.createElement('div');
+    deleteButton.className = 'delete';
+    deleteButton.title = 'Delete this item';
+
+    Hammer(deleteButton, {
+      preventDefault: true
+    }).on('tap', function (event) {
+      parent.removeItem(id);
+      event.stopPropagation();
+    });
+
+    anchor.appendChild(deleteButton);
+    this.dom.deleteButton = deleteButton;
+  }
+  else if (!this.selected && this.dom.deleteButton) {
+    // remove button
+    if (this.dom.deleteButton.parentNode) {
+      this.dom.deleteButton.parentNode.removeChild(this.dom.deleteButton);
+    }
+    this.dom.deleteButton = null;
+  }
+};

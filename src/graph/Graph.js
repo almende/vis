@@ -231,6 +231,9 @@ function Graph (container, data, options) {
   }
 }
 
+// Extend Graph with an Emitter mixin
+Emitter(Graph.prototype);
+
 /**
  * Get the script path where the vis.js library is located
  *
@@ -591,44 +594,6 @@ Graph.prototype.setOptions = function (options) {
   this._setScale(1);
   this._redraw();
 };
-
-/**
- * Add event listener
- * @param {String} event       Event name. Available events:
- *                             'select'
- * @param {function} callback  Callback function, invoked as callback(properties)
- *                             where properties is an optional object containing
- *                             event specific properties.
- */
-Graph.prototype.on = function on (event, callback) {
-  var available = ['select','frameResize'];
-
-  if (available.indexOf(event) == -1) {
-    throw new Error('Unknown event "' + event + '". Choose from ' + available.join());
-  }
-
-  events.addListener(this, event, callback);
-};
-
-/**
- * Remove an event listener
- * @param {String} event       Event name
- * @param {function} callback  Callback function
- */
-Graph.prototype.off = function off (event, callback) {
-  events.removeListener(this, event, callback);
-};
-
-/**
- * fire an event
- * @param {String} event   The name of an event, for example 'select'
- * @param {Object} params  Optional object with event parameters
- * @private
- */
-Graph.prototype._trigger = function (event, params) {
-  events.trigger(this, event, params);
-};
-
 
 /**
  * Create the main frame for the Graph.
@@ -1173,7 +1138,7 @@ Graph.prototype.setSize = function(width, height) {
     this.manipulationDiv.style.width = this.frame.canvas.clientWidth;
   }
 
-  this._trigger('frameResize', {width:this.frame.canvas.width,height:this.frame.canvas.height});
+  this.emit('frameResize', {width:this.frame.canvas.width,height:this.frame.canvas.height});
 };
 
 /**
@@ -1212,7 +1177,7 @@ Graph.prototype._setNodes = function(nodes) {
     // subscribe to new dataset
     var me = this;
     util.forEach(this.nodesListeners, function (callback, event) {
-      me.nodesData.subscribe(event, callback);
+      me.nodesData.on(event, callback);
     });
 
     // draw all new nodes
@@ -1338,7 +1303,7 @@ Graph.prototype._setEdges = function(edges) {
     // subscribe to new dataset
     var me = this;
     util.forEach(this.edgesListeners, function (callback, event) {
-      me.edgesData.subscribe(event, callback);
+      me.edgesData.on(event, callback);
     });
 
     // draw all new nodes
@@ -1638,6 +1603,7 @@ Graph.prototype._drawNodes = function(ctx,alwaysShow) {
   if (alwaysShow === undefined) {
     alwaysShow = false;
   }
+
   // first draw the unselected nodes
   var nodes = this.nodes;
   var selected = [];
