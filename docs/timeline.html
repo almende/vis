@@ -39,6 +39,7 @@
   <li><a href="#Configuration_Options">Configuration Options</a></li>
   <li><a href="#Methods">Methods</a></li>
   <li><a href="#Events">Events</a></li>
+  <li><a href="#Editing_Items">Editing Items</a></li>
   <li><a href="#Styles">Styles</a></li>
   <li><a href="#Data_Policy">Data Policy</a></li>
 </ul>
@@ -344,9 +345,9 @@ var options = {
 <tr>
   <td>editable</td>
   <td>Boolean</td>
-  <td>true</td>
-  <td>If true, the items on the timeline can be dragged.</td>
-  <!-- TODO: update documentation as soon as items can be deleted, created, changed -->
+  <td>false</td>
+  <td>If true, the items on the timeline can be dragged. Only applicable when option <code>selectable</code> is <code>true</code>. See also the callbacks <code>onAdd</code>, <code>onUpdate</code>, <code>onMove</code>, and <code>onRemove</code>, described in detail in section <a href="#Editing_Items">Editing Items</a>.
+  </td>
 </tr>
 
 <tr>
@@ -421,6 +422,38 @@ var options = {
 </tr>
 
 <tr>
+  <td>onAdd</td>
+  <td>Function</td>
+  <td>none</td>
+  <td>Callback function triggered when an item is about to be added: when the user double taps an empty space in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable</code> are set <code>true</code>.
+  </td>
+</tr>
+
+<tr>
+  <td>onUpdate</td>
+  <td>Function</td>
+  <td>none</td>
+  <td>Callback function triggered when an item is about to be updated, when the user double taps an item in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable</code> are set <code>true</code>.
+  </td>
+</tr>
+
+<tr>
+  <td>onMove</td>
+  <td>Function</td>
+  <td>none</td>
+  <td>Callback function triggered when an item has been moved: after the user has dragged the item to an other position. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable</code> are set <code>true</code>.
+  </td>
+</tr>
+
+<tr>
+  <td>onRemove</td>
+  <td>Function</td>
+  <td>none</td>
+  <td>Callback function triggered when an item is about to be removed: when the user tapped the delete button on the top right of a selected item. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable</code> are set <code>true</code>.
+  </td>
+</tr>
+
+<tr>
   <td>order</td>
   <td>Function</td>
   <td>none</td>
@@ -435,9 +468,7 @@ var options = {
   <td>orientation</td>
   <td>String</td>
   <td>'bottom'</td>
-  <td>Orientation of the timeline: 'top' or 'bottom' (default).
-    If orientation is 'bottom', the time axis is drawn at the bottom,
-    and if 'top', the axis is drawn on top.</td>
+  <td>Orientation of the timeline: 'top' or 'bottom' (default). If orientation is 'bottom', the time axis is drawn at the bottom, and if 'top', the axis is drawn on top.</td>
 </tr>
 
 <tr>
@@ -735,6 +766,49 @@ timeline.off('select', onSelect);
 
 </table>
 
+<h2 id="Editing_Items">Editing Items</h2>
+<p>
+  When the Timeline is configured to be editable (both options <code>selectable</code> and <code>editable</code> are <code>true</code>), the user can move items by dragging them, can create a new item by double tapping on an empty space, can update an item by double tapping it, and can delete a selected item by clicking the delete button on the top right.
+</p>
+
+<p>
+  One can specify callback functions to validate changes made by the user. There are a number of callback functions for this purpose:
+</p>
+
+<ul>
+  <li><code>onAdd(item, callback)</code> Fired when a new item is about to be added. If not implemented, the item will be added with default text contents.</li>
+  <li><code>onUpdate(item, callback)</code> Fired when an item is about to be updated. This function typically has to show a dialog where the user change the item. If not implemented, nothing happens.</li>
+  <li><code>onMove(item, callback)</code> Fired when an item has been moved. If not implemented, the move action will be accepted.</li>
+  <li><code>onRemove(item, callback)</code> Fired when an item is about to be deleted. If not implemented, the item will be always removed.</li>
+</ul>
+
+<p>
+  Each of the callbacks is invoked with two arguments:
+</p>
+<ul>
+  <li><code>item</code>: the item being manipulated</li>
+  <li><code>callback</code>: a callback function which must be invoked to report back. The callback must be invoked as <code>callback(item | null)</code>. Here, <code>item</code> can contain changes to the passed item. When invoked as <code>callback(null)</code>, the action will be cancelled.</li>
+</ul>
+
+<p>
+  Example code:
+</p>
+
+<pre class="prettyprint lang-js">var options = {
+  onUpdate: function (item, callback) {
+    item.content = prompt('Edit items text:', item.content);
+    if (item.content != null) {
+      callback(item); // send back adjusted item
+    }
+    else {
+      callback(null); // cancel updating the item
+    }
+  }
+}
+</pre>
+
+A full example is available here: <a href="../examples/timeline/08_validate_changes.html">08_validate_changes.html</a>.
+
 
 <h2 id="Styles">Styles</h2>
 <p>
@@ -746,7 +820,7 @@ timeline.off('select', onSelect);
 <p>For example, to change the border and background color of all items, include the
   following code inside the head of your html code or in a separate stylesheet.</p>
 <pre class="prettyprint lang-html">&lt;style&gt;
-  .graph .item {
+  .vis.timeline .item {
     border-color: orange;
     background-color: yellow;
   }
