@@ -16,6 +16,13 @@ function ItemSet(parent, depends, options) {
   this.parent = parent;
   this.depends = depends;
 
+  // event listeners
+  this.eventListeners = {
+    dragstart: this._onDragStart.bind(this),
+    drag: this._onDrag.bind(this),
+    dragend: this._onDragEnd.bind(this)
+  };
+
   // one options object is shared by this itemset and all its items
   this.options = options || {};
   this.defaultOptions = {
@@ -35,6 +42,7 @@ function ItemSet(parent, depends, options) {
   this.itemsData = null;  // DataSet
   this.range = null;      // Range or Object {start: number, end: number}
 
+  // data change listeners
   this.listeners = {
     'add': function (event, params, senderId) {
       if (senderId != me.id) {
@@ -58,6 +66,8 @@ function ItemSet(parent, depends, options) {
   this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
   this.stack = new Stack(this, Object.create(this.options));
   this.conversion = null;
+
+  this.touchParams = {}; // stores properties while dragging
 
   // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
 }
@@ -98,6 +108,55 @@ ItemSet.types = {
  *                              Must correspond with the items css. Default is 5.
  */
 ItemSet.prototype.setOptions = Component.prototype.setOptions;
+
+
+
+/**
+ * Set controller for this component
+ * @param {Controller | null} controller
+ */
+ItemSet.prototype.setController = function setController (controller) {
+  var event;
+
+  // unregister old event listeners
+  if (this.controller) {
+    for (event in this.eventListeners) {
+      if (this.eventListeners.hasOwnProperty(event)) {
+        this.controller.off(event, this.eventListeners[event]);
+      }
+    }
+  }
+
+  this.controller = controller || null;
+
+  // register new event listeners
+  if (this.controller) {
+    for (event in this.eventListeners) {
+      if (this.eventListeners.hasOwnProperty(event)) {
+        this.controller.on(event, this.eventListeners[event]);
+      }
+    }
+  }
+};
+
+// attach event listeners for dragging items to the controller
+(function (me) {
+  var _controller = null;
+  var _onDragStart = null;
+  var _onDrag = null;
+  var _onDragEnd = null;
+
+  Object.defineProperty(me, 'controller', {
+    get: function () {
+      return _controller;
+    },
+
+    set: function (controller) {
+
+    }
+  });
+}) (this);
+
 
 /**
  * Set range (start and end).
@@ -195,6 +254,7 @@ ItemSet.prototype.repaint = function repaint() {
   if (!frame) {
     frame = document.createElement('div');
     frame.className = 'itemset';
+    frame['timeline-itemset'] = this;
 
     var className = options.className;
     if (className) {
@@ -609,4 +669,125 @@ ItemSet.prototype.toTime = function toTime(x) {
 ItemSet.prototype.toScreen = function toScreen(time) {
   var conversion = this.conversion;
   return (time.valueOf() - conversion.offset) * conversion.scale;
+};
+
+/**
+ * Start dragging the selected events
+ * @param {Event} event
+ * @private
+ */
+ItemSet.prototype._onDragStart = function (event) {
+  var itemSet = ItemSet.itemSetFromTarget(event),
+      item = ItemSet.itemFromTarget(event),
+      me = this;
+
+  if (item && item.selected) {
+    this.touchParams.items = this.getSelection().map(function (id) {
+      return me.items[id];
+    });
+
+    event.stopPropagation();
+  }
+};
+
+/**
+ * Drag selected items
+ * @param {Event} event
+ * @private
+ */
+ItemSet.prototype._onDrag = function (event) {
+  if (this.touchParams.items) {
+    var deltaX = event.gesture.deltaX;
+
+    // adjust the offset of the items being dragged
+    this.touchParams.items.forEach(function (item) {
+      item.setOffset(deltaX);
+    });
+
+    // TODO: implement snapping to nice dates
+
+    // TODO: implement dragging from one group to another
+
+    this.requestReflow();
+
+    event.stopPropagation();
+  }
+};
+
+/**
+ * End of dragging selected items
+ * @param {Event} event
+ * @private
+ */
+ItemSet.prototype._onDragEnd = function (event) {
+  if (this.touchParams.items) {
+    var deltaX = event.gesture.deltaX,
+        scale = this.conversion.scale;
+
+    // prepare a changeset for the changed items
+    var changes = this.touchParams.items.map(function (item) {
+      item.setOffset(0);
+
+      var change = {
+        id: item.id
+      };
+
+      if ('start' in item.data) {
+        change.start = new Date(item.data.start.valueOf() + deltaX / scale);
+      }
+      if ('end' in item.data) {
+        change.end = new Date(item.data.end.valueOf() + deltaX / scale);
+      }
+
+      return change;
+    });
+    this.touchParams.items = null;
+
+    // find the root DataSet from our DataSet/DataView
+    var data = this.itemsData;
+    while (data instanceof DataView) {
+      data = data.data;
+    }
+
+    // apply the changes to the data
+    data.update(changes);
+
+    event.stopPropagation();
+  }
+};
+
+/**
+ * Find an item from an event target:
+ * searches for the attribute 'timeline-item' in the event target's element tree
+ * @param {Event} event
+ * @return {Item | null} item
+ */
+ItemSet.itemFromTarget = function itemFromTarget (event) {
+  var target = event.target;
+  while (target) {
+    if (target.hasOwnProperty('timeline-item')) {
+      return target['timeline-item'];
+    }
+    target = target.parentNode;
+  }
+
+  return null;
+};
+
+/**
+ * Find the ItemSet from an event target:
+ * searches for the attribute 'timeline-itemset' in the event target's element tree
+ * @param {Event} event
+ * @return {ItemSet | null} item
+ */
+ItemSet.itemSetFromTarget = function itemSetFromTarget (event) {
+  var target = event.target;
+  while (target) {
+    if (target.hasOwnProperty('timeline-itemset')) {
+      return target['timeline-itemset'];
+    }
+    target = target.parentNode;
+  }
+
+  return null;
 };

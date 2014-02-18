@@ -157,7 +157,7 @@ ItemPoint.prototype.reflow = function reflow() {
       options = this.options;
       orientation = options.orientation || this.defaultOptions.orientation;
       margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
-      start = this.parent.toScreen(this.data.start);
+      start = this.parent.toScreen(this.data.start) + this.offset;
 
       changed += update(this, 'width', dom.point.offsetWidth);
       changed += update(this, 'height', dom.point.offsetHeight);
