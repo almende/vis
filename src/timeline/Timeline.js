@@ -110,9 +110,6 @@ function Timeline (container, items, options) {
       now.clone().add('days', 4).valueOf()
   );
 
-  // TODO: reckon with options moveable and zoomable
-  // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
-  // TODO: enable moving again
   this.range.subscribe(this.controller, this.rootPanel, 'move', 'horizontal');
   this.range.subscribe(this.controller, this.rootPanel, 'zoom', 'horizontal');
   this.range.on('rangechange', function (properties) {
@@ -194,8 +191,23 @@ Timeline.prototype.setOptions = function (options) {
   this.range.setRange(options.start, options.end);
 
   if ('editable' in options || 'selectable' in options) {
-    // TODO: update current selection according to changed options
+    if (this.options.selectable) {
+      // force update of selection
+      this.setSelection(this.getSelection());
+    }
+    else {
+      // remove selection
+      this.setSelection([]);
+    }
   }
+
+  // validate the callback functions
+  var validateCallback = (function (fn) {
+    if (!(this.options[fn] instanceof Function) || this.options[fn].length != 2) {
+      throw new Error('option ' + fn + ' must be a function ' + fn + '(item, callback)');
+    }
+  }).bind(this);
+  ['onAdd', 'onUpdate', 'onRemove', 'onMove'].forEach(validateCallback);
 
   this.controller.reflow();
   this.controller.repaint();
@@ -531,10 +543,6 @@ Timeline.prototype._onMultiSelectItem = function (event) {
     });
 
     event.stopPropagation();
-  }
-  else {
-    // create a new item
-    this._onAddItem(event);
   }
 };
 

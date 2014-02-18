@@ -288,6 +288,8 @@ Range.prototype._onDragStart = function(event, component) {
   // when releasing the fingers in opposite order from the touch screen
   if (touchParams.ignore) return;
 
+  // TODO: reckon with option movable
+
   touchParams.start = this.start;
   touchParams.end = this.end;
 
@@ -306,6 +308,9 @@ Range.prototype._onDragStart = function(event, component) {
  */
 Range.prototype._onDrag = function (event, component, direction) {
   validateDirection(direction);
+
+  // TODO: reckon with option movable
+
 
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
@@ -335,6 +340,8 @@ Range.prototype._onDragEnd = function (event, component) {
   // when releasing the fingers in opposite order from the touch screen
   if (touchParams.ignore) return;
 
+  // TODO: reckon with option movable
+
   if (component.frame) {
     component.frame.style.cursor = 'auto';
   }
@@ -356,6 +363,8 @@ Range.prototype._onDragEnd = function (event, component) {
  */
 Range.prototype._onMouseWheel = function(event, component, direction) {
   validateDirection(direction);
+
+  // TODO: reckon with option zoomable
 
   // retrieve delta
   var delta = 0;
@@ -431,6 +440,8 @@ Range.prototype._onHold = function () {
  */
 Range.prototype._onPinch = function (event, component, direction) {
   touchParams.ignore = true;
+
+  // TODO: reckon with option zoomable
 
   if (event.gesture.touches.length > 1) {
     if (!touchParams.center) {

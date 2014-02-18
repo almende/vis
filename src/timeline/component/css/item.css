@@ -64,14 +64,15 @@
   box-sizing: border-box;
 }
 
-.vis.timeline .item.range {
-  overflow: hidden;
-}
-
 .vis.timeline .item.range .content,
 .vis.timeline .item.rangeoverflow .content {
   position: relative;
   display: inline-block;
+}
+
+.vis.timeline .item.range .content {
+  overflow: hidden;
+  max-width: 100%;
 }
 
 .vis.timeline .item.line {
