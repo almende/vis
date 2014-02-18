@@ -11,7 +11,7 @@ function Timeline (container, items, options) {
   this.options = {
     orientation: 'bottom',
     autoResize: true,
-    editable: true,
+    editable: false,
     selectable: true,
     snap: null, // will be specified after timeaxis is created
 
@@ -25,7 +25,20 @@ function Timeline (container, items, options) {
     showMinorLabels: true,
     showMajorLabels: true,
     showCurrentTime: false,
-    showCustomTime: false
+    showCustomTime: false,
+
+    onAdd: function (item, callback) {
+      callback(item);
+    },
+    onUpdate: function (item, callback) {
+      callback(item);
+    },
+    onMoved: function (item, callback) {
+      callback(item);
+    },
+    onRemove: function (item, callback) {
+      callback(item);
+    }
   };
 
   // controller
@@ -56,6 +69,9 @@ function Timeline (container, items, options) {
 
   // multi select when holding mouse/touch, or on ctrl+click
   this.controller.on('hold', this._onMultiSelectItem.bind(this));
+
+  // add item on doubletap
+  this.controller.on('doubletap', this._onAddItem.bind(this));
 
   // item panel
   var itemOptions = Object.create(this.options);
@@ -408,9 +424,7 @@ Timeline.prototype.getSelection = function getSelection() {
  */
 // TODO: move this function to ItemSet
 Timeline.prototype._onSelectItem = function (event) {
-  if (!this.options.selectable) {
-    return;
-  }
+  if (!this.options.selectable) return;
 
   var item = ItemSet.itemFromTarget(event);
 
@@ -425,15 +439,70 @@ Timeline.prototype._onSelectItem = function (event) {
 };
 
 /**
+ * Handle creation and updates of an item on double tap
+ * @param event
+ * @private
+ */
+Timeline.prototype._onAddItem = function (event) {
+  if (!this.options.selectable) return;
+
+  var me = this,
+      item = ItemSet.itemFromTarget(event);
+
+  if (item) {
+    // update item
+
+    // execute async handler to update the item (or cancel it)
+    var itemData = me.itemsData.get(item.id); // get a clone of the data from the dataset
+    this.options.onUpdate(itemData, function (itemData) {
+      if (itemData) {
+        me.itemsData.update(itemData);
+      }
+    });
+  }
+  else {
+    // add item
+    var xAbs = vis.util.getAbsoluteLeft(this.rootPanel.frame);
+    var x = event.gesture.center.pageX - xAbs;
+    var newItem = {
+      start: this.timeaxis.snap(this._toTime(x)),
+      content: 'new item'
+    };
+
+    var id = util.randomUUID();
+    newItem[this.itemsData.fieldId] = id;
+
+    var group = GroupSet.groupFromTarget(event);
+    if (group) {
+      newItem.group = group.groupId;
+    }
+
+    // execute async handler to customize (or cancel) adding an item
+    this.options.onAdd(newItem, function (item) {
+      if (item) {
+        me.itemsData.add(newItem);
+
+        // select the created item after it is repainted
+        me.controller.once('repaint', function () {
+          me.setSelection([id]);
+
+          me.controller.emit('select', {
+            items: me.getSelection()
+          });
+        }.bind(me));
+      }
+    });
+  }
+};
+
+/**
  * Handle selecting/deselecting multiple items when holding an item
  * @param {Event} event
  * @private
  */
 // TODO: move this function to ItemSet
 Timeline.prototype._onMultiSelectItem = function (event) {
-  if (!this.options.selectable) {
-    return;
-  }
+  if (!this.options.selectable) return;
 
   var selection,
       item = ItemSet.itemFromTarget(event);
@@ -460,33 +529,7 @@ Timeline.prototype._onMultiSelectItem = function (event) {
   }
   else {
     // create a new item
-    var xAbs = vis.util.getAbsoluteLeft(this.rootPanel.frame);
-    var x = event.gesture.center.pageX - xAbs;
-    var newItem = {
-      start: this.timeaxis.snap(this._toTime(x)),
-      content: 'new item'
-    };
-
-    var id = util.randomUUID();
-    newItem[this.itemsData.fieldId] = id;
-
-    var group = GroupSet.groupFromTarget(event);
-    if (group) {
-      newItem.group = group.groupId;
-    }
-
-    // TODO: implement an async handler to customize adding an item
-
-    this.itemsData.add(newItem);
-
-    // select the created item after it is repainted
-    this.controller.once('repaint', function () {
-      this.setSelection([id]);
-
-      this.controller.emit('select', {
-        items: this.getSelection()
-      });
-    }.bind(this));
+    this._onAddItem(event);
   }
 };
 

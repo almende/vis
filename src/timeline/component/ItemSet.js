@@ -580,8 +580,17 @@ ItemSet.prototype.getItems = function getItems() {
  * @param {String | Number} id
  */
 ItemSet.prototype.removeItem = function removeItem (id) {
-  var dataset = this._myDataSet();
-  dataset.remove(id);
+  var item = this.itemsData.get(id),
+      dataset = this._myDataSet();
+
+  if (item) {
+    // confirm deletion
+    this.options.onRemove(item, function (item) {
+      if (item) {
+        dataset.remove(item);
+      }
+    });
+  }
 };
 
 /**
@@ -751,6 +760,8 @@ ItemSet.prototype._onDrag = function (event) {
       }
     });
 
+    // TODO: implement onMoving handler
+
     // TODO: implement dragging from one group to another
 
     this.requestReflow();
@@ -767,25 +778,37 @@ ItemSet.prototype._onDrag = function (event) {
 ItemSet.prototype._onDragEnd = function (event) {
   if (this.touchParams.itemProps) {
     // prepare a change set for the changed items
-    var changes = [];
+    var changes = [],
+        me = this;
+
     this.touchParams.itemProps.forEach(function (props) {
-      var change = {
-        id: props.item.id
-      };
+      var id = props.item.id,
+          item = me.itemsData.get(id);
 
       var changed = false;
       if ('start' in props.item.data) {
         changed = (props.start != props.item.data.start.valueOf());
-        change.start = props.item.data.start;
+        item.start = util.convert(props.item.data.start, me.itemsData.convert['start']);
       }
       if ('end' in props.item.data) {
         changed = changed  || (props.end != props.item.data.end.valueOf());
-        change.end = props.item.data.end;
+        item.end = util.convert(props.item.data.end, me.itemsData.convert['end']);
       }
 
-      // only add changes when start or end is actually changed
+      // only apply changes when start or end is actually changed
       if (changed) {
-        changes.push(change);
+        me.options.onMove(item, function (item) {
+          if (item) {
+            // apply changes
+            changes.push(item);
+          }
+          else {
+            // restore original values
+            if ('start' in props) props.item.data.start = props.start;
+            if ('end' in props)   props.item.data.end   = props.end;
+            me.requestReflow();
+          }
+        });
       }
     });
     this.touchParams.itemProps = null;

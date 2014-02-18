@@ -17,7 +17,7 @@ function RootPanel(container, options) {
   // create listeners for all interesting events, these events will be emitted
   // via the controller
   var events = [
-    'touch', 'pinch', 'tap', 'hold',
+    'touch', 'pinch', 'tap', 'doubletap', 'hold',
     'dragstart', 'drag', 'dragend',
     'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is for Firefox
   ];
