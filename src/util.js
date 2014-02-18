@@ -794,3 +794,8 @@ util.hexToHSV = function hexToHSV(hex) {
   var rgb = util.hexToRGB(hex);
   return util.RGBToHSV(rgb.r,rgb.g,rgb.b);
 }
+
+util.isValidHex = function isValidHex(hex) {
+  var isOk  = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
+  return isOk;
+}

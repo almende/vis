@@ -21,6 +21,7 @@
  *                                            retrieving group properties
  * @param {Object}               constants    An object with default values for
  *                                            example for the color
+ *
  */
 function Node(properties, imagelist, grouplist, constants) {
   this.selected = false;
@@ -33,6 +34,7 @@ function Node(properties, imagelist, grouplist, constants) {
   this.fontSize = constants.nodes.fontSize;
   this.fontFace = constants.nodes.fontFace;
   this.fontColor = constants.nodes.fontColor;
+  this.fontDrawThreshold = 3;
 
   this.color = constants.nodes.color;
 
@@ -53,8 +55,16 @@ function Node(properties, imagelist, grouplist, constants) {
   this.radiusMax = constants.nodes.radiusMax;
 
   this.imagelist = imagelist;
-
   this.grouplist = grouplist;
+
+  // physics properties
+  this.fx = 0.0;  // external force x
+  this.fy = 0.0;  // external force y
+  this.vx = 0.0;  // velocity x
+  this.vy = 0.0;  // velocity y
+  this.minForce = constants.minForce;
+  this.damping = constants.physics.damping;
+  this.mass = 1;  // kg
 
   this.setProperties(properties, constants);
 
@@ -65,20 +75,15 @@ function Node(properties, imagelist, grouplist, constants) {
   this.clusterSizeWidthFactor  = constants.clustering.nodeScaling.width;
   this.clusterSizeHeightFactor = constants.clustering.nodeScaling.height;
   this.clusterSizeRadiusFactor = constants.clustering.nodeScaling.radius;
+  this.maxNodeSizeIncrements = constants.clustering.maxNodeSizeIncrements;
+  this.growthIndicator = 0;
 
-  // mass, force, velocity
-  this.mass = 1;  // kg (mass is adjusted for the number of connected edges)
-  this.fx = 0.0;  // external force x
-  this.fy = 0.0;  // external force y
-  this.vx = 0.0;  // velocity x
-  this.vy = 0.0;  // velocity y
-  this.minForce = constants.minForce;
-  this.damping = 0.9;
-  this.dampingFactor = 75;
-
+  // variables to tell the node about the graph.
   this.graphScaleInv = 1;
+  this.graphScale = 1;
   this.canvasTopLeft = {"x": -300, "y": -300};
   this.canvasBottomRight = {"x":  300, "y":  300};
+  this.parentEdgeId = null;
 }
 
 /**
@@ -105,7 +110,6 @@ Node.prototype.attachEdge = function(edge) {
     this.dynamicEdges.push(edge);
   }
   this.dynamicEdgesLength = this.dynamicEdges.length;
-  this._updateMass();
 };
 
 /**
@@ -119,17 +123,8 @@ Node.prototype.detachEdge = function(edge) {
     this.dynamicEdges.splice(index, 1);
   }
   this.dynamicEdgesLength = this.dynamicEdges.length;
-  this._updateMass();
 };
 
-/**
- * Update the nodes mass, which is determined by the number of edges connecting
- * to it (more edges -> heavier node).
- * @private
- */
-Node.prototype._updateMass = function() {
-  this.mass = 1 + 0.6 * this.edges.length; // kg
-};
 
 /**
  * Set or overwrite properties for the node
@@ -149,6 +144,12 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.x !== undefined)         {this.x = properties.x;}
   if (properties.y !== undefined)         {this.y = properties.y;}
   if (properties.value !== undefined)     {this.value = properties.value;}
+
+
+  // physics
+  if (properties.internalMultiplier !== undefined)  {this.internalMultiplier = properties.internalMultiplier;}
+  if (properties.damping !== undefined)             {this.dampingBase = properties.damping;}
+  if (properties.mass !== undefined)                {this.mass = properties.mass;}
 
   // navigation controls properties
   if (properties.horizontalAlignLeft !== undefined) {this.horizontalAlignLeft = properties.horizontalAlignLeft;}
@@ -226,15 +227,32 @@ Node.prototype.setProperties = function(properties, constants) {
 Node.parseColor = function(color) {
   var c;
   if (util.isString(color)) {
-    c = {
-      border: color,
-      background: color,
-      highlight: {
+    if (util.isValidHex(color)) {
+      var hsv = util.hexToHSV(color);
+      var lighterColorHSV = {h:hsv.h,s:hsv.s * 0.45,v:Math.min(1,hsv.v * 1.05)};
+      var darkerColorHSV  = {h:hsv.h,s:Math.min(1,hsv.v * 1.25),v:hsv.v*0.6};
+      var darkerColorHex  = util.HSVToHex(darkerColorHSV.h ,darkerColorHSV.h ,darkerColorHSV.v);
+      var lighterColorHex = util.HSVToHex(lighterColorHSV.h,lighterColorHSV.s,lighterColorHSV.v);
+
+      c = {
         border: color,
-        background: color
-      }
-    };
-    // TODO: automatically generate a nice highlight color
+        border:darkerColorHex,
+        highlight: {
+          background:lighterColorHex,
+          border:darkerColorHex
+        }
+      };
+    }
+    else {
+      c = {
+        border:color,
+        border:color,
+        highlight: {
+          background:color,
+          border:color
+        }
+      };
+    }
   }
   else {
     c = {};
@@ -312,7 +330,6 @@ Node.prototype.distanceToBorder = function (ctx, angle) {
     this.resize(ctx);
   }
 
-  //noinspection FallthroughInSwitchStatementJS
   switch (this.shape) {
     case 'circle':
     case 'dot':
@@ -344,7 +361,6 @@ Node.prototype.distanceToBorder = function (ctx, angle) {
       }
 
   }
-
   // TODO: implement calculation of distance to border for all shapes
 };
 
@@ -375,20 +391,43 @@ Node.prototype._addForce = function(fx, fy) {
  */
 Node.prototype.discreteStep = function(interval) {
   if (!this.xFixed) {
-    var dx   = -this.damping * this.vx;     // damping force
-    var ax   = (this.fx + dx) / this.mass;  // acceleration
+    var dx   = this.damping * this.vx;     // damping force
+    var ax   = (this.fx - dx) / this.mass;  // acceleration
     this.vx += ax * interval;               // velocity
     this.x  += this.vx * interval;          // position
   }
 
   if (!this.yFixed) {
-    var dy   = -this.damping * this.vy;     // damping force
-    var ay   = (this.fy + dy) / this.mass;  // acceleration
+    var dy   = this.damping * this.vy;     // damping force
+    var ay   = (this.fy - dy) / this.mass;  // acceleration
     this.vy += ay * interval;               // velocity
     this.y  += this.vy * interval;          // position
   }
 };
 
+
+
+/**
+ * Perform one discrete step for the node
+ * @param {number} interval    Time interval in seconds
+ */
+Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
+  if (!this.xFixed) {
+    var dx   = this.damping * this.vx;     // damping force
+    var ax   = (this.fx - dx) / this.mass;  // acceleration
+    this.vx += ax * interval;               // velocity
+    this.vx = (Math.abs(this.vx) > maxVelocity) ? ((this.vx > 0) ? maxVelocity : -maxVelocity) : this.vx;
+    this.x  += this.vx * interval;          // position
+  }
+
+  if (!this.yFixed) {
+    var dy   = this.damping * this.vy;     // damping force
+    var ay   = (this.fy - dy) / this.mass;  // acceleration
+    this.vy += ay * interval;               // velocity
+    this.vy = (Math.abs(this.vy) > maxVelocity) ? ((this.vy > 0) ? maxVelocity : -maxVelocity) : this.vy;
+    this.y  += this.vy * interval;          // position
+  }
+};
 
 /**
  * Check if this node has a fixed x and y position
@@ -405,16 +444,7 @@ Node.prototype.isFixed = function() {
  */
 // TODO: replace this method with calculating the kinetic energy
 Node.prototype.isMoving = function(vmin) {
-
-  if (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin) {
-//    console.log(vmin,this.vx,this.vy);
-    return true;
-  }
-  else {
-    this.vx = 0; this.vy = 0;
-    return false;
-  }
-  //return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin);
+  return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin);
 };
 
 /**
@@ -519,10 +549,12 @@ Node.prototype._resizeImage = function (ctx) {
     this.width  = width;
     this.height = height;
 
+    this.growthIndicator = 0;
     if (this.width > 0 && this.height > 0) {
-      this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
-      this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
-      this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
+      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements)  * this.clusterSizeWidthFactor;
+      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+      this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
+      this.growthIndicator = this.width - width;
     }
   }
 
@@ -567,9 +599,11 @@ Node.prototype._resizeBox = function (ctx) {
     this.width = textSize.width + 2 * margin;
     this.height = textSize.height + 2 * margin;
 
-    this.width  += (this.clusterSize - 1) * 0.5 * this.clusterSizeWidthFactor;
-    this.height += (this.clusterSize - 1) * 0.5 * this.clusterSizeHeightFactor;
-//    this.radius += (this.clusterSize - 1) * 0.5 * this.clusterSizeRadiusFactor;
+    this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeWidthFactor;
+    this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeHeightFactor;
+    this.growthIndicator = this.width - (textSize.width + 2 * margin);
+//    this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
+
   }
 };
 
@@ -616,9 +650,10 @@ Node.prototype._resizeDatabase = function (ctx) {
     this.height = size;
 
     // scaling used for clustering
-    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
-    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
-    this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
+    this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
+    this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+    this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
+    this.growthIndicator = this.width - size;
   }
 };
 
@@ -665,9 +700,10 @@ Node.prototype._resizeCircle = function (ctx) {
     this.height = diameter;
 
     // scaling used for clustering
-//    this.width  += (this.clusterSize - 1) * 0.5 * this.clusterSizeWidthFactor;
-//    this.height += (this.clusterSize - 1) * 0.5 * this.clusterSizeHeightFactor;
-    this.radius += (this.clusterSize - 1) * 0.5 * this.clusterSizeRadiusFactor;
+//    this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeWidthFactor;
+//    this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeHeightFactor;
+    this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
+    this.growthIndicator = this.radius - 0.5*diameter;
   }
 };
 
@@ -711,11 +747,13 @@ Node.prototype._resizeEllipse = function (ctx) {
     if (this.width < this.height) {
       this.width = this.height;
     }
+    var defaultSize = this.width;
 
-    // scaling used for clustering
-    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
-    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
-    this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
+      // scaling used for clustering
+    this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
+    this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+    this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
+    this.growthIndicator = this.width - defaultSize;
   }
 };
 
@@ -778,9 +816,10 @@ Node.prototype._resizeShape = function (ctx) {
     this.height = size;
 
     // scaling used for clustering
-    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
-    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
-    this.radius += (this.clusterSize - 1) * 0.5 * this.clusterSizeRadiusFactor;
+    this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
+    this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+    this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
+    this.growthIndicator = this.width - size;
   }
 };
 
@@ -837,9 +876,10 @@ Node.prototype._resizeText = function (ctx) {
     this.height = textSize.height + 2 * margin;
 
     // scaling used for clustering
-    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
-    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
-    this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
+    this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
+    this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+    this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
+    this.growthIndicator = this.width - (textSize.width + 2 * margin);
   }
 };
 
@@ -853,7 +893,7 @@ Node.prototype._drawText = function (ctx) {
 
 
 Node.prototype._label = function (ctx, text, x, y, align, baseline) {
-  if (text) {
+  if (text && this.fontSize * this.graphScale > this.fontDrawThreshold) {
     ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
     ctx.fillStyle = this.fontColor || "black";
     ctx.textAlign = align || "center";
@@ -907,7 +947,7 @@ Node.prototype.inArea = function() {
   else {
     return true;
   }
-}
+};
 
 /**
  * checks if the core of the node is in the display area, this is used for opening clusters around zoom
@@ -918,7 +958,7 @@ Node.prototype.inView = function() {
           this.x < this.canvasBottomRight.x &&
           this.y >= this.canvasTopLeft.y    &&
           this.y < this.canvasBottomRight.y);
-}
+};
 
 /**
  * This allows the zoom level of the graph to influence the rendering
@@ -930,6 +970,7 @@ Node.prototype.inView = function() {
  */
 Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) {
   this.graphScaleInv = 1.0/scale;
+  this.graphScale = scale;
   this.canvasTopLeft = canvasTopLeft;
   this.canvasBottomRight = canvasBottomRight;
 };
@@ -942,17 +983,9 @@ Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) 
  */
 Node.prototype.setScale = function(scale) {
   this.graphScaleInv = 1.0/scale;
+  this.graphScale = scale;
 };
 
-/**
- * This function updates the damping parameter for clusters, based ont he
- *
- * @param {Number} numberOfNodes
- */
-Node.prototype.updateDamping = function(numberOfNodes) {
-  this.damping = (0.8 + 0.1*this.clusterSize * (1 + Math.pow(numberOfNodes,-2)));
-  this.damping *= this.dampingFactor;
-};
 
 
 /**
@@ -971,8 +1004,10 @@ Node.prototype.clearVelocity = function() {
  */
 Node.prototype.updateVelocity = function(massBeforeClustering) {
   var energyBefore = this.vx * this.vx * massBeforeClustering;
+  //this.vx = (this.vx < 0) ? -Math.sqrt(energyBefore/this.mass) : Math.sqrt(energyBefore/this.mass);
   this.vx = Math.sqrt(energyBefore/this.mass);
   energyBefore = this.vy * this.vy * massBeforeClustering;
+  //this.vy = (this.vy < 0) ? -Math.sqrt(energyBefore/this.mass) : Math.sqrt(energyBefore/this.mass);
   this.vy = Math.sqrt(energyBefore/this.mass);
 };
 

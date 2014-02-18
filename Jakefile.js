@@ -80,10 +80,15 @@ task('build', {async: true}, function () {
       './src/graph/Popup.js',
       './src/graph/Groups.js',
       './src/graph/Images.js',
-      './src/graph/SectorsMixin.js',
-      './src/graph/ClusterMixin.js',
-      './src/graph/SelectionMixin.js',
-      './src/graph/NavigationMixin.js',
+      './src/graph/graphMixins/physics/PhysicsMixin.js',
+      './src/graph/graphMixins/physics/BarnesHut.js',
+      './src/graph/graphMixins/physics/Repulsion.js',
+      './src/graph/graphMixins/ManipulationMixin.js',
+      './src/graph/graphMixins/SectorsMixin.js',
+      './src/graph/graphMixins/ClusterMixin.js',
+      './src/graph/graphMixins/SelectionMixin.js',
+      './src/graph/graphMixins/NavigationMixin.js',
+      './src/graph/graphMixins/MixinLoader.js',
       './src/graph/Graph.js',
 
       './src/module/exports.js'
@@ -97,6 +102,10 @@ task('build', {async: true}, function () {
     forceDelete: true
   });
   wrench.copyDirSyncRecursive('./src/timeline/img', DIST+ '/img/timeline', {
+    forceDelete: true
+  });
+  // copy css
+  wrench.copyDirSyncRecursive('./src/graph/css', DIST+ '/css', {
     forceDelete: true
   });
 
