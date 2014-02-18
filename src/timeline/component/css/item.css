@@ -12,6 +12,9 @@
   border-color: #FFC200;
   background-color: #FFF785;
   z-index: 999;
+}
+
+.vis.timeline.editable .item.selected {
   cursor: move;
 }
 

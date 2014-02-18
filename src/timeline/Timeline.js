@@ -33,7 +33,7 @@ function Timeline (container, items, options) {
     onUpdate: function (item, callback) {
       callback(item);
     },
-    onMoved: function (item, callback) {
+    onMove: function (item, callback) {
       callback(item);
     },
     onRemove: function (item, callback) {
@@ -192,6 +192,10 @@ Timeline.prototype.setOptions = function (options) {
   // force update of range (apply new min/max etc.)
   // both start and end are optional
   this.range.setRange(options.start, options.end);
+
+  if ('editable' in options || 'selectable' in options) {
+    // TODO: update current selection according to changed options
+  }
 
   this.controller.reflow();
   this.controller.repaint();
@@ -445,6 +449,7 @@ Timeline.prototype._onSelectItem = function (event) {
  */
 Timeline.prototype._onAddItem = function (event) {
   if (!this.options.selectable) return;
+  if (!this.options.editable) return;
 
   var me = this,
       item = ItemSet.itemFromTarget(event);

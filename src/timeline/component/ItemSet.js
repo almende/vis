@@ -779,7 +779,9 @@ ItemSet.prototype._onDragEnd = function (event) {
   if (this.touchParams.itemProps) {
     // prepare a change set for the changed items
     var changes = [],
-        me = this;
+        me = this,
+        dataset = this._myDataSet(),
+        type;
 
     this.touchParams.itemProps.forEach(function (props) {
       var id = props.item.id,
@@ -788,11 +790,11 @@ ItemSet.prototype._onDragEnd = function (event) {
       var changed = false;
       if ('start' in props.item.data) {
         changed = (props.start != props.item.data.start.valueOf());
-        item.start = util.convert(props.item.data.start, me.itemsData.convert['start']);
+        item.start = util.convert(props.item.data.start, dataset.convert['start']);
       }
       if ('end' in props.item.data) {
         changed = changed  || (props.end != props.item.data.end.valueOf());
-        item.end = util.convert(props.item.data.end, me.itemsData.convert['end']);
+        item.end = util.convert(props.item.data.end, dataset.convert['end']);
       }
 
       // only apply changes when start or end is actually changed
@@ -815,7 +817,6 @@ ItemSet.prototype._onDragEnd = function (event) {
 
     // apply the changes to the data (if there are changes)
     if (changes.length) {
-      var dataset = this._myDataSet();
       dataset.update(changes);
     }
 

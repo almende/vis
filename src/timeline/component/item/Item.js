@@ -87,7 +87,7 @@ Item.prototype.setOffset = function setOffset(offset) {
  * @private
  */
 Item.prototype._repaintDeleteButton = function (anchor) {
-  if (this.selected && !this.dom.deleteButton) {
+  if (this.selected && this.options.editable && !this.dom.deleteButton) {
     // create and show button
     var parent = this.parent;
     var id = this.id;

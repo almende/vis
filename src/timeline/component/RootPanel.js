@@ -77,7 +77,8 @@ RootPanel.prototype.repaint = function () {
     changed += 1;
   }
 
-  frame.className = 'vis timeline rootpanel ' + options.orientation;
+  frame.className = 'vis timeline rootpanel ' + options.orientation +
+      (options.editable ? ' editable' : '');
   var className = options.className;
   if (className) {
     util.addClassName(frame, util.option.asString(className));
