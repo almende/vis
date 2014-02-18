@@ -216,7 +216,7 @@ function Graph (container, data, options) {
   };
 
   // properties for the animation
-  this.moving = false;    // True if any of the nodes have an undefined position
+  this.moving = true;
   this.timer = undefined; // Scheduling function. Is definded in this.start();
 
   // load data (the disable start variable will be the same as the enabled clustering)
@@ -305,7 +305,7 @@ Graph.prototype._centerGraph = function(range) {
  *
  * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
  */
-Graph.prototype.zoomToFit = function(initialZoom, doNotStart) {
+Graph.prototype.zoomToFit = function(initialZoom, disableStart) {
   if (initialZoom === undefined) {
     initialZoom = false;
   }
@@ -315,12 +315,23 @@ Graph.prototype.zoomToFit = function(initialZoom, doNotStart) {
   var zoomLevel;
 
   if (initialZoom == true) {
-    if (this.constants.clustering.enabled == true &&
+    if (this.constants.smoothCurves == true) {
+      if (this.constants.clustering.enabled == true &&
         numberOfNodes >= this.constants.clustering.initialMaxNodes) {
-      zoomLevel = 77.5271985 / (numberOfNodes + 187.266146) + 4.76710517e-05; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+        zoomLevel = 49.07548 / (numberOfNodes + 142.05338) + 9.1444e-04; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+      }
+      else {
+        zoomLevel = 12.662 / (numberOfNodes + 7.4147) + 0.0964822; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+      }
     }
     else {
-      zoomLevel = 30.5062972 / (numberOfNodes + 19.93597763) + 0.08413486; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+      if (this.constants.clustering.enabled == true &&
+          numberOfNodes >= this.constants.clustering.initialMaxNodes) {
+        zoomLevel = 77.5271985 / (numberOfNodes + 187.266146) + 4.76710517e-05; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+      }
+      else {
+        zoomLevel = 30.5062972 / (numberOfNodes + 19.93597763) + 0.08413486; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+      }
     }
   }
   else {
@@ -340,7 +351,7 @@ Graph.prototype.zoomToFit = function(initialZoom, doNotStart) {
   this.pinch.mousewheelScale = zoomLevel;
   this._setScale(zoomLevel);
   this._centerGraph(range);
-  if (doNotStart == false || doNotStart === undefined) {
+  if (disableStart == false || disableStart === undefined) {
     this.start();
   }
 };
@@ -404,7 +415,6 @@ Graph.prototype.setData = function(data, disableStart) {
     if (this.stabilize) {
       this._doStabilize();
     }
-    this.moving = true;
     this.start();
   }
 };
@@ -579,7 +589,6 @@ Graph.prototype.setOptions = function (options) {
   this.setSize(this.width, this.height);
   this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
   this._setScale(1);
-  this.zoomToFit();
   this._redraw();
 };
 
@@ -1679,19 +1688,14 @@ Graph.prototype._drawEdges = function(ctx) {
  * @private
  */
 Graph.prototype._doStabilize = function() {
-  //var start = new Date();
-
   // find stable position
   var count = 0;
-  var vmin = this.constants.minVelocity;
-  var stable = false;
-  while (!stable && count < this.constants.maxIterations) {
-    this._initializeForceCalculation();
-    this._discreteStepNodes();
-    stable = !this._isMoving(vmin);
+  while (this.moving && count < this.constants.maxIterations) {
+    this._physicsTick();
     count++;
   }
-  this.zoomToFit();
+
+  this.zoomToFit(false,true);
 };
 
 
