@@ -557,6 +557,7 @@ Edge.prototype._drawArrow = function(ctx) {
     var xFrom = (fromBorderPoint) * this.from.x + (1 - fromBorderPoint) * this.to.x;
     var yFrom = (fromBorderPoint) * this.from.y + (1 - fromBorderPoint) * this.to.y;
 
+
     if (this.smooth == true) {
       angle = Math.atan2((this.to.y - this.via.y), (this.to.x - this.via.x));
       dx = (this.to.x - this.via.x);
@@ -565,9 +566,16 @@ Edge.prototype._drawArrow = function(ctx) {
     }
     var toBorderDist = this.to.distanceToBorder(ctx, angle);
     var toBorderPoint = (edgeSegmentLength - toBorderDist) / edgeSegmentLength;
-    var xTo = (1 - toBorderPoint) * this.via.x + toBorderPoint * this.to.x;
-    var yTo = (1 - toBorderPoint) * this.via.y + toBorderPoint * this.to.y;
 
+    var xTo,yTo;
+    if (this.smooth == true) {
+     xTo = (1 - toBorderPoint) * this.via.x + toBorderPoint * this.to.x;
+     yTo = (1 - toBorderPoint) * this.via.y + toBorderPoint * this.to.y;
+    }
+    else {
+      xTo = (1 - toBorderPoint) * this.from.x + toBorderPoint * this.to.x;
+      yTo = (1 - toBorderPoint) * this.from.y + toBorderPoint * this.to.y;
+    }
 
     ctx.beginPath();
     ctx.moveTo(xFrom,yFrom);
