@@ -9,6 +9,7 @@ http://visjs.org
 - Items can be dragged, added, and removed.
 - Implemented options `selectable`, `editable`.
 - Added events when dragging the custom time bar.
+- Multiple items can be selected using ctrl+click or shift+click.
 
 ### DataSet
 
@@ -21,7 +22,7 @@ http://visjs.org
 
 - Implemented functions `on` and `off` to create event listeners for events
   `rangechange`, `rangechanged`, and `select`.
-- Impelmented function `select` to get and set the selected items.
+- Implemented function `select` to get and set the selected items.
 - Items can be selected by clicking them, muti-select by holding them.
 - Fixed non working `start` and `end` options.
 

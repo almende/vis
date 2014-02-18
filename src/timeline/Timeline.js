@@ -64,7 +64,6 @@ function Timeline (container, items, options) {
   this.controller.add(this.rootPanel);
 
   // single select (or unselect) when tapping an item
-  // TODO: implement ctrl+click
   this.controller.on('tap',  this._onSelectItem.bind(this));
 
   // multi select when holding mouse/touch, or on ctrl+click
@@ -441,6 +440,13 @@ Timeline.prototype.getSelection = function getSelection() {
 // TODO: move this function to ItemSet
 Timeline.prototype._onSelectItem = function (event) {
   if (!this.options.selectable) return;
+
+  var ctrlKey  = event.gesture.srcEvent && event.gesture.srcEvent.ctrlKey;
+  var shiftKey = event.gesture.srcEvent && event.gesture.srcEvent.shiftKey;
+  if (ctrlKey || shiftKey) {
+    this._onMultiSelectItem(event);
+    return;
+  }
 
   var item = ItemSet.itemFromTarget(event);
 
