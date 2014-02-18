@@ -90,10 +90,6 @@
   overflow: hidden;
 }
 
-.vis.timeline .item.range .content {
-  width: 100%;
-}
-
 .vis.timeline .item .delete {
   background: url('img/timeline/delete.png') no-repeat top center;
   position: absolute;
