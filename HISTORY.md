@@ -10,6 +10,7 @@ http://visjs.org
 - Implemented options `selectable`, `editable`.
 - Added events when dragging the custom time bar.
 - Multiple items can be selected using ctrl+click or shift+click.
+- Implemented functions `setWindow(start, end)` and `getWindow()`.
 
 ### DataSet
 

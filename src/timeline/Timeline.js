@@ -433,6 +433,28 @@ Timeline.prototype.getSelection = function getSelection() {
 };
 
 /**
+ * Set the visible window. Both parameters are optional, you can change only
+ * start or only end.
+ * @param {Date | Number | String} [start] Start date of visible window
+ * @param {Date | Number | String} [end]   End date of visible window
+ */
+Timeline.prototype.setWindow = function setWindow(start, end) {
+  this.range.setRange(start, end);
+};
+
+/**
+ * Get the visible window
+ * @return {{start: Date, end: Date}}   Visible range
+ */
+Timeline.prototype.getWindow = function setWindow() {
+  var range = this.range.getRange();
+  return {
+    start: new Date(range.start),
+    end: new Date(range.end)
+  };
+};
+
+/**
  * Handle selecting/deselecting an item when tapping it
  * @param {Event} event
  * @private
