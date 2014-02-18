@@ -57,6 +57,7 @@
             j++;
           }
 
+
           var from = i;
           var to = j;
           edges.push({
@@ -87,7 +88,6 @@
       */
     var options = {
     edges: {
-        length: 50
     },
     stabilize: false
     };
@@ -102,7 +102,6 @@
 </head>
 
 <body onload="draw();">
-
 <form onsubmit="draw(); return false;">
   <label for="nodeCount">Number of nodes:</label>
   <input id="nodeCount" type="text" value="25" style="width: 50px;">

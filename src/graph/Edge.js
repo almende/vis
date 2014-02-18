@@ -31,11 +31,13 @@ function Edge (properties, graph, constants) {
   this.title  = undefined;
   this.width  = constants.edges.width;
   this.value  = undefined;
-  this.length = constants.edges.length;
+  this.length = constants.physics.springLength;
   this.selected = false;
+  this.smooth = constants.smoothCurves;
 
   this.from = null;   // a node
   this.to = null;     // a node
+  this.via = null;    // a temp node
 
   // we use this to be able to reconnect the edge to a cluster if its node is put into a cluster
   // by storing the original information we can revert to the original connection when the cluser is opened.
@@ -49,13 +51,11 @@ function Edge (properties, graph, constants) {
   // 2012-08-08
   this.dash = util.extend({}, constants.edges.dash); // contains properties length, gap, altLength
 
-  this.stiffness   = undefined; // depends on the length of the edge
   this.color       = constants.edges.color;
   this.widthFixed  = false;
   this.lengthFixed = false;
 
   this.setProperties(properties, constants);
-
 }
 
 /**
@@ -74,6 +74,7 @@ Edge.prototype.setProperties = function(properties, constants) {
   if (properties.id !== undefined)             {this.id = properties.id;}
   if (properties.style !== undefined)          {this.style = properties.style;}
   if (properties.label !== undefined)          {this.label = properties.label;}
+
   if (this.label) {
     this.fontSize = constants.edges.fontSize;
     this.fontFace = constants.edges.fontFace;
@@ -82,10 +83,11 @@ Edge.prototype.setProperties = function(properties, constants) {
     if (properties.fontSize !== undefined)   {this.fontSize = properties.fontSize;}
     if (properties.fontFace !== undefined)   {this.fontFace = properties.fontFace;}
   }
-  if (properties.title !== undefined)          {this.title = properties.title;}
-  if (properties.width !== undefined)          {this.width = properties.width;}
-  if (properties.value !== undefined)          {this.value = properties.value;}
-  if (properties.length !== undefined)         {this.length = properties.length;}
+
+  if (properties.title !== undefined)        {this.title = properties.title;}
+  if (properties.width !== undefined)        {this.width = properties.width;}
+  if (properties.value !== undefined)        {this.value = properties.value;}
+  if (properties.length !== undefined)       {this.length = properties.length;}
 
   // Added to support dashed lines
   // David Jordan
@@ -103,7 +105,6 @@ Edge.prototype.setProperties = function(properties, constants) {
 
   this.widthFixed = this.widthFixed || (properties.width !== undefined);
   this.lengthFixed = this.lengthFixed || (properties.length !== undefined);
-  this.stiffness = 1 / this.length;
 
   // set draw method based on style
   switch (this.style) {
@@ -211,8 +212,7 @@ Edge.prototype.isOverlappingWith = function(obj) {
   var xObj = obj.left;
   var yObj = obj.top;
 
-
-  var dist = Edge._dist(xFrom, yFrom, xTo, yTo, xObj, yObj);
+  var dist = this._getDistanceToEdge(xFrom, yFrom, xTo, yTo, xObj, yObj);
 
   return (dist < distMax);
 };
@@ -231,7 +231,7 @@ Edge.prototype._drawLine = function(ctx) {
   ctx.lineWidth = this._getLineWidth();
 
   var point;
-  if (this.from != this.to) {
+  if (this.from != this.to+9) {
     // draw line
     this._line(ctx);
 
@@ -286,7 +286,12 @@ Edge.prototype._line = function (ctx) {
   // draw a straight line
   ctx.beginPath();
   ctx.moveTo(this.from.x, this.from.y);
-  ctx.lineTo(this.to.x, this.to.y);
+ if (this.smooth == true) {
+      ctx.quadraticCurveTo(this.via.x,this.via.y,this.to.x, this.to.y);
+  }
+  else {
+    ctx.lineTo(this.to.x, this.to.y);
+  }
   ctx.stroke();
 };
 
@@ -348,25 +353,70 @@ Edge.prototype._drawDashLine = function(ctx) {
   ctx.strokeStyle = this.color;
   ctx.lineWidth = this._getLineWidth();
 
-  // draw dashed line
-  ctx.beginPath();
-  ctx.lineCap = 'round';
-  if (this.dash.altLength !== undefined) //If an alt dash value has been set add to the array this value
-  {
-    ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
-        [this.dash.length,this.dash.gap,this.dash.altLength,this.dash.gap]);
-  }
-  else if (this.dash.length !== undefined && this.dash.gap !== undefined) //If a dash and gap value has been set add to the array this value
-  {
-    ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
-        [this.dash.length,this.dash.gap]);
-  }
-  else //If all else fails draw a line
-  {
+  // only firefox and chrome support this method, else we use the legacy one.
+  if (ctx.mozDash !== undefined || ctx.setLineDash !== undefined) {
+    ctx.beginPath();
     ctx.moveTo(this.from.x, this.from.y);
-    ctx.lineTo(this.to.x, this.to.y);
+
+    // configure the dash pattern
+    var pattern = [0];
+    if (this.dash.length !== undefined && this.dash.gap !== undefined) {
+      pattern = [this.dash.length,this.dash.gap];
+    }
+    else {
+      pattern = [5,5];
+    }
+
+    // set dash settings for chrome or firefox
+    if (typeof ctx.setLineDash !== 'undefined') { //Chrome
+      ctx.setLineDash(pattern);
+      ctx.lineDashOffset = 0;
+
+    } else { //Firefox
+      ctx.mozDash = pattern;
+      ctx.mozDashOffset = 0;
+    }
+
+    // draw the line
+    if (this.smooth == true) {
+      ctx.quadraticCurveTo(this.via.x,this.via.y,this.to.x, this.to.y);
+    }
+    else {
+      ctx.lineTo(this.to.x, this.to.y);
+    }
+    ctx.stroke();
+
+    // restore the dash settings.
+    if (typeof ctx.setLineDash !== 'undefined') { //Chrome
+      ctx.setLineDash([0]);
+      ctx.lineDashOffset = 0;
+
+    } else { //Firefox
+      ctx.mozDash = [0];
+      ctx.mozDashOffset = 0;
+    }
   }
-  ctx.stroke();
+  else { // unsupporting smooth lines
+    // draw dashed line
+    ctx.beginPath();
+    ctx.lineCap = 'round';
+    if (this.dash.altLength !== undefined) //If an alt dash value has been set add to the array this value
+    {
+      ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
+          [this.dash.length,this.dash.gap,this.dash.altLength,this.dash.gap]);
+    }
+    else if (this.dash.length !== undefined && this.dash.gap !== undefined) //If a dash and gap value has been set add to the array this value
+    {
+      ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
+          [this.dash.length,this.dash.gap]);
+    }
+    else //If all else fails draw a line
+    {
+      ctx.moveTo(this.from.x, this.from.y);
+      ctx.lineTo(this.to.x, this.to.y);
+    }
+    ctx.stroke();
+  }
 
   // draw label
   if (this.label) {
@@ -423,10 +473,18 @@ Edge.prototype._drawArrowCenter = function(ctx) {
     // draw line
     this._line(ctx);
 
-    // draw an arrow halfway the line
     var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
     var length = 10 + 5 * this.width; // TODO: make customizable?
-    point = this._pointOnLine(0.5);
+    // draw an arrow halfway the line
+    if (this.smooth == true) {
+      var midpointX = 0.5*(0.5*(this.from.x + this.via.x) + 0.5*(this.to.x + this.via.x));
+      var midpointY = 0.5*(0.5*(this.from.y + this.via.y) + 0.5*(this.to.y + this.via.y));
+      point = {x:midpointX, y:midpointY};
+    }
+    else {
+      point = this._pointOnLine(0.5);
+    }
+
     ctx.arrow(point.x, point.y, angle, length);
     ctx.fill();
     ctx.stroke();
@@ -440,18 +498,18 @@ Edge.prototype._drawArrowCenter = function(ctx) {
   else {
     // draw circle
     var x, y;
-    var radius = this.length / 4;
+    var radius = 0.25 * Math.max(100,this.length);
     var node = this.from;
     if (!node.width) {
       node.resize(ctx);
     }
     if (node.width > node.height) {
-      x = node.x + node.width / 2;
+      x = node.x + node.width * 0.5;
       y = node.y - radius;
     }
     else {
       x = node.x + radius;
-      y = node.y - node.height / 2;
+      y = node.y - node.height * 0.5;
     }
     this._circle(ctx, x, y, radius);
 
@@ -486,32 +544,43 @@ Edge.prototype._drawArrow = function(ctx) {
   ctx.fillStyle = this.color;
   ctx.lineWidth = this._getLineWidth();
 
-  // draw line
   var angle, length;
+  //draw a line
   if (this.from != this.to) {
-    // calculate length and angle of the line
     angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
     var dx = (this.to.x - this.from.x);
     var dy = (this.to.y - this.from.y);
-    var lEdge = Math.sqrt(dx * dx + dy * dy);
+    var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
 
-    var lFrom = this.from.distanceToBorder(ctx, angle + Math.PI);
-    var pFrom = (lEdge - lFrom) / lEdge;
-    var xFrom = (pFrom) * this.from.x + (1 - pFrom) * this.to.x;
-    var yFrom = (pFrom) * this.from.y + (1 - pFrom) * this.to.y;
+    var fromBorderDist = this.from.distanceToBorder(ctx, angle + Math.PI);
+    var fromBorderPoint = (edgeSegmentLength - fromBorderDist) / edgeSegmentLength;
+    var xFrom = (fromBorderPoint) * this.from.x + (1 - fromBorderPoint) * this.to.x;
+    var yFrom = (fromBorderPoint) * this.from.y + (1 - fromBorderPoint) * this.to.y;
 
-    var lTo = this.to.distanceToBorder(ctx, angle);
-    var pTo = (lEdge - lTo) / lEdge;
-    var xTo = (1 - pTo) * this.from.x + pTo * this.to.x;
-    var yTo = (1 - pTo) * this.from.y + pTo * this.to.y;
+    if (this.smooth == true) {
+      angle = Math.atan2((this.to.y - this.via.y), (this.to.x - this.via.x));
+      dx = (this.to.x - this.via.x);
+      dy = (this.to.y - this.via.y);
+      edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
+    }
+    var toBorderDist = this.to.distanceToBorder(ctx, angle);
+    var toBorderPoint = (edgeSegmentLength - toBorderDist) / edgeSegmentLength;
+    var xTo = (1 - toBorderPoint) * this.via.x + toBorderPoint * this.to.x;
+    var yTo = (1 - toBorderPoint) * this.via.y + toBorderPoint * this.to.y;
+
 
     ctx.beginPath();
-    ctx.moveTo(xFrom, yFrom);
-    ctx.lineTo(xTo, yTo);
+    ctx.moveTo(xFrom,yFrom);
+    if (this.smooth == true) {
+      ctx.quadraticCurveTo(this.via.x,this.via.y,xTo, yTo);
+    }
+    else {
+      ctx.lineTo(xTo, yTo);
+    }
     ctx.stroke();
 
     // draw arrow at the end of the line
-    length = 10 + 5 * this.width; // TODO: make customizable?
+    length = 10 + 5 * this.width;
     ctx.arrow(xTo, yTo, angle, length);
     ctx.fill();
     ctx.stroke();
@@ -526,12 +595,12 @@ Edge.prototype._drawArrow = function(ctx) {
     // draw circle
     var node = this.from;
     var x, y, arrow;
-    var radius = this.length / 4;
+    var radius = 0.25 * Math.max(100,this.length);
     if (!node.width) {
       node.resize(ctx);
     }
     if (node.width > node.height) {
-      x = node.x + node.width / 2;
+      x = node.x + node.width * 0.5;
       y = node.y - radius;
       arrow = {
         x: x,
@@ -541,7 +610,7 @@ Edge.prototype._drawArrow = function(ctx) {
     }
     else {
       x = node.x + radius;
-      y = node.y - node.height / 2;
+      y = node.y - node.height * 0.5;
       arrow = {
         x: node.x,
         y: y,
@@ -549,7 +618,6 @@ Edge.prototype._drawArrow = function(ctx) {
       };
     }
     ctx.beginPath();
-    // TODO: do not draw a circle, but an arc
     // TODO: similarly, for a line without arrows, draw to the border of the nodes instead of the center
     ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
     ctx.stroke();
@@ -582,31 +650,46 @@ Edge.prototype._drawArrow = function(ctx) {
  * @param {number} y3
  * @private
  */
-Edge._dist = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
-  var px = x2-x1,
-      py = y2-y1,
-      something = px*px + py*py,
-      u =  ((x3 - x1) * px + (y3 - y1) * py) / something;
-
-  if (u > 1) {
-    u = 1;
+Edge.prototype._getDistanceToEdge = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
+  if (this.smooth == true) {
+    var minDistance = 1e9;
+    var i,t,x,y,dx,dy;
+    for (i = 0; i < 10; i++) {
+      t = 0.1*i;
+      x = Math.pow(1-t,2)*x1 + (2*t*(1 - t))*this.via.x + Math.pow(t,2)*x2;
+      y = Math.pow(1-t,2)*y1 + (2*t*(1 - t))*this.via.y + Math.pow(t,2)*y2;
+      dx = Math.abs(x3-x);
+      dy = Math.abs(y3-y);
+      minDistance = Math.min(minDistance,Math.sqrt(dx*dx + dy*dy));
+    }
+    return minDistance
   }
-  else if (u < 0) {
-    u = 0;
+  else {
+    var px = x2-x1,
+        py = y2-y1,
+        something = px*px + py*py,
+        u =  ((x3 - x1) * px + (y3 - y1) * py) / something;
+
+    if (u > 1) {
+      u = 1;
+    }
+    else if (u < 0) {
+      u = 0;
+    }
+
+    var x = x1 + u * px,
+        y = y1 + u * py,
+        dx = x - x3,
+        dy = y - y3;
+
+    //# Note: If the actual distance does not matter,
+    //# if you only want to compare what this function
+    //# returns to other results of this function, you
+    //# can just return the squared distance instead
+    //# (i.e. remove the sqrt) to gain a little performance
+
+    return Math.sqrt(dx*dx + dy*dy);
   }
-
-  var x = x1 + u * px,
-      y = y1 + u * py,
-      dx = x - x3,
-      dy = y - y3;
-
-  //# Note: If the actual distance does not matter,
-  //# if you only want to compare what this function
-  //# returns to other results of this function, you
-  //# can just return the squared distance instead
-  //# (i.e. remove the sqrt) to gain a little performance
-
-  return Math.sqrt(dx*dx + dy*dy);
 };
 
 
@@ -623,8 +706,15 @@ Edge.prototype.setScale = function(scale) {
 
 Edge.prototype.select = function() {
   this.selected = true;
-}
+};
 
 Edge.prototype.unselect = function() {
   this.selected = false;
-}
+};
+
+Edge.prototype.positionBezierNode = function() {
+  if (this.via !== null) {
+    this.via.x = 0.5 * (this.from.x + this.to.x);
+    this.via.y = 0.5 * (this.from.y + this.to.y);
+  }
+};

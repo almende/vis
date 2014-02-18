@@ -33,18 +33,6 @@ var SelectionMixin = {
 
 
   /**
-   * retrieve all nodes in the navigation controls overlapping with given object
-   * @param {Object} object  An object with parameters left, top, right, bottom
-   * @return {Number[]}   An array with id's of the overlapping nodes
-   * @private
-   */
-  _getAllNavigationNodesOverlappingWith : function (object) {
-    var overlappingNodes = [];
-    this._doInNavigationSector("_getNodesOverlappingWith",object,overlappingNodes);
-    return overlappingNodes;
-  },
-
-  /**
    * Return a position object in canvasspace from a single point in screenspace
    *
    * @param pointer
@@ -59,42 +47,6 @@ var SelectionMixin = {
             top:    y,
             right:  x,
             bottom: y};
-  },
-
-  /**
-   * Return a position object in canvasspace from a single point in screenspace
-   *
-   * @param pointer
-   * @returns {{left: number, top: number, right: number, bottom: number}}
-   * @private
-   */
-  _pointerToScreenPositionObject : function(pointer) {
-    var x = pointer.x;
-    var y = pointer.y;
-
-    return {left:   x,
-      top:    y,
-      right:  x,
-      bottom: y};
-  },
-
-
-  /**
-   * Get the top navigation controls node at the a specific point (like a click)
-   *
-   * @param {{x: Number, y: Number}} pointer
-   * @return {Node | null} node
-   * @private
-   */
-  _getNavigationNodeAt : function (pointer) {
-    var screenPositionObject = this._pointerToScreenPositionObject(pointer);
-    var overlappingNodes = this._getAllNavigationNodesOverlappingWith(screenPositionObject);
-    if (overlappingNodes.length > 0) {
-      return this.sectors["navigation"]["nodes"][overlappingNodes[overlappingNodes.length - 1]];
-    }
-    else {
-      return null;
-    }
   },
 
 
@@ -213,9 +165,7 @@ var SelectionMixin = {
     this.selectionObj = {};
 
     if (doNotTrigger == false) {
-      this._trigger('select', {
-        nodes: this.getSelection()
-      });
+      this._trigger('select', this.getSelection());
     }
   },
 
@@ -242,9 +192,7 @@ var SelectionMixin = {
     }
 
     if (doNotTrigger == false) {
-      this._trigger('select', {
-        nodes: this.getSelection()
-      });
+      this._trigger('select', this.getSelection());
     }
   },
 
@@ -265,6 +213,23 @@ var SelectionMixin = {
       }
     }
     return count;
+  },
+
+  /**
+   * return the number of selected nodes
+   *
+   * @returns {number}
+   * @private
+   */
+  _getSelectedNode : function() {
+    for (var objectId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objectId)) {
+        if (this.selectionObj[objectId] instanceof Node) {
+          return this.selectionObj[objectId];
+        }
+      }
+    }
+    return null;
   },
 
 
@@ -399,9 +364,7 @@ var SelectionMixin = {
       this._removeFromSelection(object);
     }
     if (doNotTrigger == false) {
-      this._trigger('select', {
-        nodes: this.getSelection()
-      });
+      this._trigger('select', this.getSelection());
     }
   },
 
@@ -415,15 +378,7 @@ var SelectionMixin = {
    * @private
    */
   _handleTouch : function(pointer) {
-    if (this.constants.navigation.enabled == true) {
-      this.pointerPosition = pointer;
-      var node = this._getNavigationNodeAt(pointer);
-      if (node != null) {
-        if (this[node.triggerFunction] !== undefined) {
-          this[node.triggerFunction]();
-        }
-      }
-    }
+
   },
 
 
@@ -494,11 +449,8 @@ var SelectionMixin = {
    *
     * @private
    */
-  _handleOnRelease : function() {
-    this.xIncrement = 0;
-    this.yIncrement = 0;
-    this.zoomIncrement = 0;
-    this._unHighlightAll();
+  _handleOnRelease : function(pointer) {
+
   },
 
 
