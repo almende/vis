@@ -55,7 +55,8 @@
   -moz-border-radius: 5px;  /* For Firefox 3.6 and older */
 }
 
-.vis.timeline .item.range {
+.vis.timeline .item.range,
+.vis.timeline .item.rangeoverflow{
   border-style: solid;
   border-width: 1px;
   border-radius: 2px;
@@ -63,12 +64,8 @@
   box-sizing: border-box;
 }
 
-.vis.timeline .item.rangeoverflow {
-  border-style: solid;
-  border-width: 1px;
-  border-radius: 2px;
-  -moz-border-radius: 2px;  /* For Firefox 3.6 and older */
-  box-sizing: border-box;
+.vis.timeline .item.range {
+  overflow: hidden;
 }
 
 .vis.timeline .item.range .content,
