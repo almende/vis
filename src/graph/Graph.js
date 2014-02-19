@@ -22,7 +22,7 @@ function Graph (container, data, options) {
   this.renderRefreshRate = 60;                         // hz (fps)
   this.renderTimestep = 1000 / this.renderRefreshRate; // ms -- saves calculation later on
   this.renderTime = 0.5 * this.renderTimestep;         // measured time it takes to render a frame
-  this.maxRenderSteps = 4;                             // max amount of physics ticks per render step.
+  this.maxRenderSteps = 3;                             // max amount of physics ticks per render step.
 
   this.stabilize = true;  // stabilize before displaying the graph
   this.selectable = true;
@@ -1691,7 +1691,7 @@ Graph.prototype._isMoving = function(vmin) {
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = 0.75;
+  var interval = 0.5;
   var nodes = this.nodes;
   var nodeId;
 

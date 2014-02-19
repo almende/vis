@@ -235,7 +235,7 @@ Node.parseColor = function(color) {
       var lighterColorHex = util.HSVToHex(lighterColorHSV.h,lighterColorHSV.s,lighterColorHSV.v);
 
       c = {
-        border: color,
+        background: color,
         border:darkerColorHex,
         highlight: {
           background:lighterColorHex,
@@ -245,7 +245,7 @@ Node.parseColor = function(color) {
     }
     else {
       c = {
-        border:color,
+        background:color,
         border:color,
         highlight: {
           background:color,
