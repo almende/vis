@@ -6,11 +6,19 @@ http://visjs.org
 
 ### Timeline
 
-- Editable Items: dragged them, add new items, update items, and remove items.
+- Editable Items: drag items, add new items, update items, and remove items.
 - Implemented options `selectable`, `editable`.
-- Added events when dragging the custom time bar.
+- Added events `timechange` and `timechanged` when dragging the custom time bar.
 - Multiple items can be selected using ctrl+click or shift+click.
 - Implemented functions `setWindow(start, end)` and `getWindow()`.
+- Fixed scroll to zoom not working on IE in standards mode.
+
+### Graph
+
+- Editable nodes and edges: create, update, and remove them.
+- Support for smooth, curved edges (on by default).
+- Performance improvements.
+- Fixed scroll to zoom not working on IE in standards mode.
 
 ### DataSet
 
