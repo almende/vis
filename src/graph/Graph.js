@@ -1166,7 +1166,7 @@ Graph.prototype._setNodes = function(nodes) {
   if (oldNodesData) {
     // unsubscribe from old dataset
     util.forEach(this.nodesListeners, function (callback, event) {
-      oldNodesData.unsubscribe(event, callback);
+      oldNodesData.off(event, callback);
     });
   }
 
@@ -1292,7 +1292,7 @@ Graph.prototype._setEdges = function(edges) {
   if (oldEdgesData) {
     // unsubscribe from old dataset
     util.forEach(this.edgesListeners, function (callback, event) {
-      oldEdgesData.unsubscribe(event, callback);
+      oldEdgesData.off(event, callback);
     });
   }
 
