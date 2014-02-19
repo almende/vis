@@ -236,7 +236,7 @@ var manipulationMixin = {
 
           this.cachedFunctions["_handleOnDrag"] = this._handleOnDrag;
           this._handleOnDrag = function(event) {
-            var pointer = this._getPointer(event.gesture.touches[0]);
+            var pointer = this._getPointer(event.gesture.center);
             this.sectors['support']['nodes']['targetNode'].x = this._canvasToX(pointer.x);
             this.sectors['support']['nodes']['targetNode'].y = this._canvasToY(pointer.y);
             this.sectors['support']['nodes']['targetViaNode'].x = 0.5 * (this._canvasToX(pointer.x) + this.edges['connectionEdge'].from.x);

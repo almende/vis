@@ -711,7 +711,7 @@ Graph.prototype._getPointer = function (touch) {
  * @private
  */
 Graph.prototype._onTouch = function (event) {
-  this.drag.pointer = this._getPointer(event.gesture.touches[0]);
+  this.drag.pointer = this._getPointer(event.gesture.center);
   this.drag.pinched = false;
   this.pinch.scale = this._getScale();
 
@@ -797,7 +797,7 @@ Graph.prototype._handleOnDrag = function(event) {
     return;
   }
 
-  var pointer = this._getPointer(event.gesture.touches[0]);
+  var pointer = this._getPointer(event.gesture.center);
 
   var me = this,
     drag = this.drag,
@@ -860,7 +860,7 @@ Graph.prototype._onDragEnd = function () {
  * @private
  */
 Graph.prototype._onTap = function (event) {
-  var pointer = this._getPointer(event.gesture.touches[0]);
+  var pointer = this._getPointer(event.gesture.center);
   this.pointerPosition = pointer;
   this._handleTap(pointer);
 
@@ -872,7 +872,7 @@ Graph.prototype._onTap = function (event) {
  * @private
  */
 Graph.prototype._onDoubleTap = function (event) {
-  var pointer = this._getPointer(event.gesture.touches[0]);
+  var pointer = this._getPointer(event.gesture.center);
   this._handleDoubleTap(pointer);
 
 };
@@ -883,7 +883,7 @@ Graph.prototype._onDoubleTap = function (event) {
  * @private
  */
 Graph.prototype._onHold = function (event) {
-  var pointer = this._getPointer(event.gesture.touches[0]);
+  var pointer = this._getPointer(event.gesture.center);
   this.pointerPosition = pointer;
   this._handleOnHold(pointer);
 };
@@ -894,7 +894,7 @@ Graph.prototype._onHold = function (event) {
  * @private
  */
 Graph.prototype._onRelease = function (event) {
-  var pointer = this._getPointer(event.gesture.touches[0]);
+  var pointer = this._getPointer(event.gesture.center);
   this._handleOnRelease(pointer);
 };
 
