@@ -24,7 +24,7 @@
 
 <p>
   The graph visualization works smooth on any modern browser for up to a
-  few hundred nodes and edges.
+  few thousand nodes and edges.
 </p>
 
 <p>
@@ -1139,10 +1139,7 @@ var nodes = [
 
 <h3 id="Physics">Physics</h3>
 <p>
-    The physics system has been overhauled to increase performance. The original simulation method was based on particel physics with a repulsion field (potential) around each node,
-    and the edges were modelled as springs. The new system employed the <a href="http://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation">Barnes-Hut</a> gravitational simulation model. The edges are still modelled as springs.
-    To unify the physics system, the damping, repulsion distance and edge length have been combined in an physics option. To retain good behaviour, both the old repulsion model and the Barnes-Hut model have their own parameters.
-    If no options for the physics system are supplied, the Barnes-Hut method will be used with the default parameters.
+    Graph uses a <a href="http://en.wikipedia.org/wiki/Force-directed_graph_drawing">force directed algorithm</a> to layout nodes and edges, and uses the <a href="http://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation">Barnes-Hut</a> gravitational simulation model. There are a number of configuration options available to tune the physics model. Note that wrong configuration can lead to instable behaviour.
 </p>
 <pre class="prettyprint">
 // These variables must be defined in an options object named physics.
