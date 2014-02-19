@@ -40,11 +40,10 @@ function Graph (container, data, options) {
       image: undefined,
       widthMin: 16, // px
       widthMax: 64, // px
-      fixed:false,
+      fixed: false,
       fontColor: 'black',
       fontSize: 14, // px
       fontFace: 'verdana',
-//      fontFace: 'arial',
       color: {
           border: '#2B7CE9',
           background: '#97C2FC',
