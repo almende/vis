@@ -966,11 +966,11 @@ var ClusterMixin = {
       }
     }
 
-    /* Debug Override */
+//    /* Debug Override */
 //    for (nodeId in this.nodes) {
 //      if (this.nodes.hasOwnProperty(nodeId)) {
 //        node = this.nodes[nodeId];
-//        node.label = String(node.fx).concat(",",node.fy);
+//        node.label = String(node.level);
 //      }
 //    }
 

@@ -44,6 +44,7 @@ function Graph (container, data, options) {
       fontColor: 'black',
       fontSize: 14, // px
       fontFace: 'verdana',
+      level: -1,
       color: {
           border: '#2B7CE9',
           background: '#97C2FC',
@@ -77,16 +78,24 @@ function Graph (container, data, options) {
         enabled: true,
         theta: 1 / 0.6, // inverted to save time during calculation
         gravitationalConstant: -2000,
-        centralGravity: 0.1,
+        centralGravity: 0.3,
         springLength: 100,
         springConstant: 0.05,
         damping: 0.09
       },
       repulsion: {
         centralGravity: 0.1,
-        springLength: 50,
+        springLength: 200,
         springConstant: 0.05,
         nodeDistance: 100,
+        damping: 0.09
+      },
+      hierarchicalRepulsion: {
+        enabled: false,
+        centralGravity: 0.0,
+        springLength: 100,
+        springConstant: 0.01,
+        nodeDistance: 60,
         damping: 0.09
       },
       damping: null,
@@ -127,6 +136,11 @@ function Graph (container, data, options) {
       enabled: false,
       initiallyVisible: false
     },
+    hierarchicalLayout: {
+      enabled:false,
+      levelSeparation: 150,
+      nodeSpacing: 100
+    },
     smoothCurves: true,
     maxVelocity:  10,
     minVelocity:  0.1,   // px/s
@@ -141,7 +155,6 @@ function Graph (container, data, options) {
   this.images.setOnloadCallback(function () {
     graph._redraw();
   });
-
 
   // keyboard navigation variables
   this.xIncrement = 0;
@@ -159,6 +172,9 @@ function Graph (container, data, options) {
   this._loadClusterSystem();
   // load the selection system. (mandatory, required by Graph)
   this._loadSelectionSystem();
+  // load the selection system. (mandatory, required by Graph)
+  this._loadHierarchySystem();
+
   // apply options
   this.setOptions(options);
 
@@ -220,16 +236,26 @@ function Graph (container, data, options) {
   this.timer = undefined; // Scheduling function. Is definded in this.start();
 
   // load data (the disable start variable will be the same as the enabled clustering)
-  this.setData(data,this.constants.clustering.enabled);
+  this.setData(data,this.constants.clustering.enabled || this.constants.hierarchicalLayout.enabled);
 
-  // zoom so all data will fit on the screen, if clustering is enabled, we do not want start to be called here.
-  this.zoomToFit(true,this.constants.clustering.enabled);
+  // hierarchical layout
+  if (this.constants.hierarchicalLayout.enabled == true) {
+    this._setupHierarchicalLayout();
+  }
+  else {
+    // zoom so all data will fit on the screen, if clustering is enabled, we do not want start to be called here.
+    this.zoomToFit(true,this.constants.clustering.enabled);
+  }
+
 
   // if clustering is disabled, the simulation will have started in the setData function
   if (this.constants.clustering.enabled) {
     this.startWithClustering();
   }
 }
+
+
+
 
 /**
  * Get the script path where the vis.js library is located
@@ -261,12 +287,14 @@ Graph.prototype._getScriptPath = function() {
  */
 Graph.prototype._getRange = function() {
   var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
-  for (var i = 0; i < this.nodeIndices.length; i++) {
-    node = this.nodes[this.nodeIndices[i]];
-    if (minX > (node.x - node.width)) {minX = node.x - node.width;}
-    if (maxX < (node.x + node.width)) {maxX = node.x + node.width;}
-    if (minY > (node.y - node.height)) {minY = node.y - node.height;}
-    if (maxY < (node.y + node.height)) {maxY = node.y + node.height;}
+  for (var nodeId in this.nodes) {
+    if (this.nodes.hasOwnProperty(nodeId)) {
+      node = this.nodes[nodeId];
+      if (minX > (node.x - node.width)) {minX = node.x - node.width;}
+      if (maxX < (node.x + node.width)) {maxX = node.x + node.width;}
+      if (minY > (node.y - node.height)) {minY = node.y - node.height;}
+      if (maxY < (node.y + node.height)) {maxY = node.y + node.height;}
+    }
   }
   return {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
 };
@@ -310,11 +338,11 @@ Graph.prototype.zoomToFit = function(initialZoom, disableStart) {
     initialZoom = false;
   }
 
-  var numberOfNodes = this.nodeIndices.length;
   var range = this._getRange();
   var zoomLevel;
 
   if (initialZoom == true) {
+    var numberOfNodes = this.nodeIndices.length;
     if (this.constants.smoothCurves == true) {
       if (this.constants.clustering.enabled == true &&
         numberOfNodes >= this.constants.clustering.initialMaxNodes) {
@@ -352,6 +380,7 @@ Graph.prototype.zoomToFit = function(initialZoom, disableStart) {
   this._setScale(zoomLevel);
   this._centerGraph(range);
   if (disableStart == false || disableStart === undefined) {
+    this.moving = true;
     this.start();
   }
 };
@@ -467,6 +496,18 @@ Graph.prototype.setOptions = function (options) {
           }
         }
       }
+    }
+
+    if (options.hierarchicalLayout) {
+      this.constants.hierarchicalLayout.enabled = true;
+      for (prop in options.hierarchicalLayout) {
+        if (options.hierarchicalLayout.hasOwnProperty(prop)) {
+          this.constants.hierarchicalLayout[prop] = options.hierarchicalLayout[prop];
+        }
+      }
+    }
+    else if (options.hierarchicalLayout !== undefined)  {
+      this.constants.hierarchicalLayout.enabled = false;
     }
 
     if (options.clustering) {
@@ -719,7 +760,6 @@ Graph.prototype._createKeyBinds = function() {
     this.mousetrap.bind("pagedown",this._zoomOut.bind(me),"keydown");
     this.mousetrap.bind("pagedown",this._stopZoom.bind(me), "keyup");
   }
-//  this.mousetrap.bind("b",this._toggleBarnesHut.bind(me));
 
   if (this.constants.dataManipulation.enabled == true) {
     this.mousetrap.bind("escape",this._createManipulatorBar.bind(me));
@@ -1725,7 +1765,7 @@ Graph.prototype._isMoving = function(vmin) {
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = 0.5;
+  var interval = 0.65;
   var nodes = this.nodes;
   var nodeId;
 
@@ -1776,7 +1816,6 @@ Graph.prototype._physicsTick = function() {
 Graph.prototype._animationStep = function() {
   // reset the timer so a new scheduled animation step can be set
   this.timer = undefined;
-
   // handle the keyboad movement
   this._handleNavigation();
 
@@ -1854,7 +1893,11 @@ Graph.prototype.toggleFreeze = function() {
 
 
 
-Graph.prototype._configureSmoothCurves = function() {
+Graph.prototype._configureSmoothCurves = function(disableStart) {
+  if (disableStart === undefined) {
+    disableStart = true;
+  }
+
   if (this.constants.smoothCurves == true) {
     this._createBezierNodes();
   }
@@ -1869,8 +1912,10 @@ Graph.prototype._configureSmoothCurves = function() {
     }
   }
   this._updateCalculationNodes();
-  this.moving = true;
-  this.start();
+  if (!disableStart) {
+    this.moving = true;
+    this.start();
+  }
 };
 
 Graph.prototype._createBezierNodes = function() {

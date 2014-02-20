@@ -58,6 +58,7 @@
         <li><a href="#Clustering">Clustering</a></li>
       <li><a href="#Navigation_controls">Navigation controls</a></li>
       <li><a href="#Keyboard_navigation">Keyboard navigation</a></li>
+        <li><a href="#Hierarchical_layout">Hierarchical layout</a></li>
     </ul>
   </li>
   <li><a href="#Methods">Methods</a></li>
@@ -291,10 +292,10 @@ var nodes = [
   </tr>
 
     <tr>
-        <td>fixed</td>
+        <td>allowedToMove</td>
         <td>Boolean</td>
-        <td>false</td>
-        <td>If fixed is true, then the node will not move from its supplied position.
+        <td>true</td>
+        <td>If allowedToMove is false, then the node will not move from its supplied position.
             If only an x position has been supplied, it is only fixed in the x-direction.
             The same holds for y. If both x and y have been defined, the node will not move.</td>
     </tr>
@@ -334,8 +335,15 @@ var nodes = [
     <td>string</td>
     <td>no</td>
     <td>Url of an image. Only applicable when the shape of the node is
-      <code>image</code>.</td>
-  </tr>
+        <code>image</code>.</td>
+</tr>
+
+    <tr>
+        <td>level</td>
+        <td>number</td>
+        <td>-1</td>
+        <td>This level is used in the hierarchical layout. If this is not selected, the level does not do anything.</td>
+    </tr>
 
   <tr>
     <td>radius</td>
@@ -836,10 +844,10 @@ var options = {
     <td>Default border color of the node when selected.</td>
   </tr>
     <tr>
-        <td>fixed</td>
+        <td>allowedToMove</td>
         <td>Boolean</td>
         <td>false</td>
-        <td>If fixed is true, then the node will not move from its supplied position.
+        <td>If allowedToMove is false, then the node will not move from its supplied position.
             If only an x position has been supplied, it is only fixed in the x-direction.
             The same holds for y. If both x and y have been defined, the node will not move.</td>
     </tr>
@@ -875,6 +883,12 @@ var options = {
     <td>Default image url for the nodes. only applicable to shape <code>image</code>.</td>
   </tr>
 
+    <tr>
+        <td>level</td>
+        <td>number</td>
+        <td>-1</td>
+        <td>This level is used in the hierarchical layout. If this is not selected, the level does not do anything.</td>
+    </tr>
   <tr>
     <td>widthMin</td>
     <td>Number</td>
@@ -1329,13 +1343,11 @@ var options: {
 var options: {
     dataManipulation: true,
     onAdd: function(data,callback) {
-        // fixed must be false because we define a set x and y position.
-        // If fixed is not false, the node cannot move.
         /** data = {id: random unique id,
         *           label: new,
         *           x: x position of click (canvas space),
         *           y: y position of click (canvas space),
-        *           fixed: false
+        *           allowedToMove: true
         *          };
         */
         var newData = {..}; // alter the data as you want.
@@ -1658,6 +1670,58 @@ var options: {
   </tr>
 </table>
 
+
+<h3 id="Hierarchical_layout">Hierarchical layout</h3>
+<p>
+    The graph can be used to display nodes in a hierarchical way. This can be determined automatically, based on the amount of edges connected to each node, or defined by the user.
+    If the user wants to manually determine the hierarchy, each node has to be supplied with a level (from 0 being heighest to n). The automatic method
+    is shown in <a href="../examples/graph/23_hierarchical_layout.html">example 23</a> and the user-defined method is shown in <a href="../examples/graph/24_hierarchical_layout_userdefined.html">example 24</a>.
+</p>
+
+<pre class="prettyprint">
+// simple use of the hierarchical layout
+var options: {
+    hierarchicalLayout: true
+}
+
+// advanced configuration for keyboard controls
+var options: {
+    hierarchicalLayout: {
+      enabled:false,
+      levelSeparation: 150,
+      nodeSpacing: 100
+    }
+}
+</pre>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>enabled</td>
+        <td>Boolean</td>
+        <td>false</td>
+        <td>Enable or disable the hierarchical layout.
+        </td>
+    </tr>
+    <tr>
+        <td>levelSeparation</td>
+        <td>Number</td>
+        <td>150</td>
+        <td>This defines the space between levels (in the Y-direction).</td>
+    </tr>
+    <tr>
+        <td>nodeSpacing</td>
+        <td>Number</td>
+        <td>100</td>
+        <td>This defines the space between nodes in the same level (in the X-direction).</td>
+    </tr>
+</table>
 <h2 id="Methods">Methods</h2>
 <p>
   Graph supports the following methods.

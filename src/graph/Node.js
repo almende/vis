@@ -53,6 +53,7 @@ function Node(properties, imagelist, grouplist, constants) {
   this.radiusFixed = false;
   this.radiusMin = constants.nodes.radiusMin;
   this.radiusMax = constants.nodes.radiusMax;
+  this.level = -1;
 
   this.imagelist = imagelist;
   this.grouplist = grouplist;
@@ -144,6 +145,7 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.x !== undefined)         {this.x = properties.x;}
   if (properties.y !== undefined)         {this.y = properties.y;}
   if (properties.value !== undefined)     {this.value = properties.value;}
+  if (properties.level !== undefined)     {this.level = properties.level;}
 
 
   // physics
@@ -189,8 +191,8 @@ Node.prototype.setProperties = function(properties, constants) {
     }
   }
 
-  this.xFixed = this.xFixed || (properties.x !== undefined && properties.fixed);
-  this.yFixed = this.yFixed || (properties.y !== undefined && properties.fixed);
+  this.xFixed = this.xFixed || (properties.x !== undefined && !properties.allowedToMove);
+  this.yFixed = this.yFixed || (properties.y !== undefined && !properties.allowedToMove);
   this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
 
   if (this.shape == 'image') {
