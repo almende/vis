@@ -122,7 +122,7 @@ var physicsMixin = {
       node = nodes[this.calculationNodeIndices[i]];
       node.damping = this.constants.physics.damping; // possibly add function to alter damping properties of clusters.
       // gravity does not apply when we are in a pocket sector
-      if (this._sector() == "default") {
+      if (this._sector() == "default" && gravity != 0) {
         dx = -node.x;
         dy = -node.y;
         distance = Math.sqrt(dx*dx + dy*dy);
@@ -163,6 +163,10 @@ var physicsMixin = {
             dx = (edge.from.x - edge.to.x);
             dy = (edge.from.y - edge.to.y);
             length =  Math.sqrt(dx * dx + dy * dy);
+
+            if (length == 0) {
+              length = 0.01;
+            }
 
             springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
 

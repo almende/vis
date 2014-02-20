@@ -288,7 +288,7 @@ var manipulationMixin = {
   _addNode : function() {
     if (this._selectionIsEmpty() && this.editMode == true) {
       var positionObject = this._pointerToPositionObject(this.pointerPosition);
-      var defaultData = {id:util.randomUUID(),x:positionObject.left,y:positionObject.top,label:"new",fixed:false};
+      var defaultData = {id:util.randomUUID(),x:positionObject.left,y:positionObject.top,label:"new",allowedToMove:true};
       if (this.triggerFunctions.add) {
         if (this.triggerFunctions.add.length == 2) {
           var me = this;

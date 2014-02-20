@@ -56,7 +56,7 @@ var barnesHutMixin = {
       if (distance * parentBranch.calcSize > this.constants.physics.barnesHut.theta) {
         // duplicate code to reduce function calls to speed up program
         if (distance == 0) {
-          distance = 0.5*Math.random();
+          distance = 0.1*Math.random();
           dx = distance;
         }
         var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.mass / (distance * distance * distance);
