@@ -2,6 +2,11 @@ vis.js history
 http://visjs.org
 
 
+## 2014-02-20, version 0.5.1
+
+- Fixed broken bower module.
+
+
 ## 2014-02-20, version 0.5.0
 
 ### Timeline
