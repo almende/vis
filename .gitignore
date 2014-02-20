@@ -5,4 +5,3 @@ node_modules
 .settings/org.eclipse.wst.jsdt.ui.superType.container
 .settings/org.eclipse.wst.jsdt.ui.superType.name
 npm-debug.log
-dist/
