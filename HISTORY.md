@@ -17,9 +17,12 @@ http://visjs.org
 
 - Editable nodes and edges: create, update, and remove them.
 - Support for smooth, curved edges (on by default).
-- Fixed scroll to zoom not working on IE in standards mode.
-- Implemented support for hierarchical layout.
 - Performance improvements.
+- Fixed scroll to zoom not working on IE in standards mode.
+- Added hierarchical layout option.
+- Overhauled physics system, now using Barnes-Hut simulation by default. Great performance gains.
+- Modified clustering system to give better results.
+- Adaptive performance system to increase visual performance (60fps target).
 
 ### DataSet
 
