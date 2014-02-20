@@ -125,8 +125,7 @@ function Graph (container, data, options) {
       clusterLevelDifference: 2
     },
     navigation: {
-      enabled: false,
-      iconPath: this._getScriptPath() + '/img'
+      enabled: false
     },
     keyboard: {
       enabled: false,
