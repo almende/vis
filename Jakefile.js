@@ -29,6 +29,8 @@ task('default', ['build', 'minify'], function () {
 desc('Build the visualization library vis.js');
 task('build', {async: true}, function () {
   jake.mkdirP(DIST);
+  jake.mkdirP(DIST + '/img');
+
   // concatenate and stringify the css files
   concat({
     src: [
@@ -39,7 +41,10 @@ task('build', {async: true}, function () {
       './src/timeline/component/css/item.css',
       './src/timeline/component/css/timeaxis.css',
       './src/timeline/component/css/currenttime.css',
-      './src/timeline/component/css/customtime.css'
+      './src/timeline/component/css/customtime.css',
+
+      './src/graph/css/graph-manipulation.css',
+      './src/graph/css/graph-navigation.css'
     ],
     dest: VIS_CSS,
     separator: '\n'
@@ -100,14 +105,10 @@ task('build', {async: true}, function () {
   });
 
   // copy images
-  wrench.copyDirSyncRecursive('./src/graph/img', DIST+ '/img', {
+  wrench.copyDirSyncRecursive('./src/graph/img', DIST + '/img/graph', {
     forceDelete: true
   });
-  wrench.copyDirSyncRecursive('./src/timeline/img', DIST+ '/img/timeline', {
-    forceDelete: true
-  });
-  // copy css
-  wrench.copyDirSyncRecursive('./src/graph/css', DIST+ '/css', {
+  wrench.copyDirSyncRecursive('./src/timeline/img', DIST + '/img/timeline', {
     forceDelete: true
   });
 

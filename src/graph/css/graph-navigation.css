@@ -26,37 +26,37 @@ div.graph-navigation:active {
 }
 
 div.graph-navigation.up {
-    background-image: url("../../dist/img/upArrow.png");
+    background-image: url("img/graph/upArrow.png");
     margin-top:520px;
     margin-left:55px;
 }
 div.graph-navigation.down {
-    background-image: url("../../dist/img/downArrow.png");
+    background-image: url("img/graph/downArrow.png");
     margin-top:560px;
     margin-left:55px;
 }
 div.graph-navigation.left {
-    background-image: url("../../dist/img/leftArrow.png");
+    background-image: url("img/graph/leftArrow.png");
     margin-top:560px;
     margin-left:15px;
 }
 div.graph-navigation.right {
-    background-image: url("../../dist/img/rightArrow.png");
+    background-image: url("img/graph/rightArrow.png");
     margin-top:560px;
     margin-left:95px;
 }
 div.graph-navigation.zoomIn {
-    background-image: url("../../dist/img/plus.png");
+    background-image: url("img/graph/plus.png");
     margin-top:560px;
     margin-left:555px;
 }
 div.graph-navigation.zoomOut {
-    background-image: url("../../dist/img/minus.png");
+    background-image: url("img/graph/minus.png");
     margin-top:560px;
     margin-left:515px;
 }
 div.graph-navigation.zoomExtends {
-    background-image: url("../../dist/img/zoomExtends.png");
+    background-image: url("img/graph/zoomExtends.png");
     margin-top:520px;
     margin-left:555px;
 }
