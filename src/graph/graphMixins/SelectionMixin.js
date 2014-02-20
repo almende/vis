@@ -551,50 +551,6 @@ var SelectionMixin = {
       }
     }
   }
-
-}
-/**
- * select all nodes on given location x, y
- * @param {Array} selection   an array with node ids
- * @param {boolean} append    If true, the new selection will be appended to the
- *                            current selection (except for duplicate entries)
- * @return {Boolean} changed  True if the selection is changed
- * @private
- */
-/*  _selectNodes : function(selection, append) {
-    var changed = false;
-    var i, iMax;
-
-    // TODO: the selectNodes method is a little messy, rework this
-
-    // check if the current selection equals the desired selection
-    var selectionAlreadyThere = true;
-    if (selection.length != this.selection.length) {
-      selectionAlreadyThere = false;
-    }
-    else {
-      for (i = 0, iMax = Math.min(selection.length, this.selection.length); i < iMax; i++) {
-        if (selection[i] != this.selection[i]) {
-          selectionAlreadyThere = false;
-          break;
->>>>>>> develop
-        }
-      }
-    }
-  }
-
-
-<<<<<<< HEAD
-=======
-    if (changed) {
-      // fire the select event
-      this._trigger('select', {
-        nodes: this.getSelection()
-      });
-    }
->>>>>>> develop
-
 };
-
 
 
