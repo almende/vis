@@ -17,8 +17,9 @@ http://visjs.org
 
 - Editable nodes and edges: create, update, and remove them.
 - Support for smooth, curved edges (on by default).
-- Performance improvements.
 - Fixed scroll to zoom not working on IE in standards mode.
+- Implemented support for hierarchical layout.
+- Performance improvements.
 
 ### DataSet
 
