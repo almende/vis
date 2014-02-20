@@ -63,8 +63,8 @@ var view = new vis.DataView(data, {
 });
 
 // subscribe to any change in the DataView
-view.subscribe('*', function (event, params, senderId) {
-  console.log('event', event, params);
+view.on('*', function (event, properties, senderId) {
+  console.log('event', event, properties);
 });
 
 // update an item in the data set
@@ -201,8 +201,8 @@ var view = new vis.DataView({
 });
 
 // subscribe to any change in the DataView
-view.subscribe('*', function (event, params, senderId) {
-  console.log('event:', event, 'params:', params, 'senderId:', senderId);
+view.on('*', function (event, properties, senderId) {
+  console.log('event:', event, 'properties:', properties, 'senderId:', senderId);
 });
 
 // add, update, and remove data in the DataSet...
