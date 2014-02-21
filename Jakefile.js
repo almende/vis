@@ -4,6 +4,7 @@
 var jake = require('jake'),
     browserify = require('browserify'),
     wrench = require('wrench'),
+    CleanCSS = require('clean-css'),
     fs = require('fs');
 
 require('jake-utils');
@@ -14,6 +15,7 @@ var VIS = DIST + '/vis.js';
 var VIS_CSS = DIST + '/vis.css';
 var VIS_TMP = DIST + '/vis.js.tmp';
 var VIS_MIN = DIST + '/vis.min.js';
+var VIS_MIN_CSS = DIST + '/vis.min.css';
 
 /**
  * default task
@@ -144,7 +146,7 @@ task('build', {async: true}, function () {
  * minify the visualization library vis.js
  */
 desc('Minify the visualization library vis.js');
-task('minify', function () {
+task('minify', {async: true}, function () {
   // minify javascript
   minify({
     src: VIS,
@@ -156,6 +158,10 @@ task('minify', function () {
   replacePlaceholders(VIS_MIN);
 
   console.log('created minified ' + VIS_MIN);
+
+  var minified = new CleanCSS().minify(read(VIS_CSS));
+  write(VIS_MIN_CSS, minified);
+  console.log('created minified ' + VIS_MIN_CSS);
 });
 
 /**
