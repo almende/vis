@@ -360,6 +360,10 @@ Graph.prototype.zoomToFit = function(initialZoom, disableStart) {
         zoomLevel = 30.5062972 / (numberOfNodes + 19.93597763) + 0.08413486; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
       }
     }
+
+    // correct for larger canvasses.
+    var factor = Math.min(this.frame.canvas.clientWidth / 600, this.frame.canvas.clientHeight / 600);
+    zoomLevel *= factor;
   }
   else {
     var xDistance = (Math.abs(range.minX) + Math.abs(range.maxX)) * 1.1;
@@ -374,6 +378,8 @@ Graph.prototype.zoomToFit = function(initialZoom, disableStart) {
   if (zoomLevel > 1.0) {
     zoomLevel = 1.0;
   }
+
+
 
   this.pinch.mousewheelScale = zoomLevel;
   this._setScale(zoomLevel);
