@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.5.1
- * @date    2014-02-20
+ * @version @@version
+ * @date    @@date
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -12156,7 +12156,7 @@ var HierarchicalLayoutMixin = {
       // if the user defined some levels but not all, alert and run without hierarchical layout
       if (undefinedLevel == true && definedLevel == true) {
         alert("To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.")
-        this.zoomToFit(true,this.constants.clustering.enabled);
+        this.zoomExtent(true,this.constants.clustering.enabled);
         if (!this.constants.clustering.enabled) {
           this.start();
         }
@@ -12204,24 +12204,8 @@ var HierarchicalLayoutMixin = {
       }
     }
 
-    // give the nodes a defined width so the zoomToFit can be used. This size is arbitrary.
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        node.width = 100;
-        node.height = 100;
-      }
-    }
-
-    // stabilize the system after positioning. This function calls zoomToFit.
+    // stabilize the system after positioning. This function calls zoomExtent.
     this._doStabilize();
-
-    // reset the arbitrary width and height we gave the nodes.
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        this.nodes[nodeId]._reset();
-      }
-    }
   },
 
 
@@ -15095,7 +15079,7 @@ var NavigationMixin = {
 
     this.navigationDivs = {};
     var navigationDivs = ['up','down','left','right','zoomIn','zoomOut','zoomExtends'];
-    var navigationDivActions = ['_moveUp','_moveDown','_moveLeft','_moveRight','_zoomIn','_zoomOut','zoomToFit'];
+    var navigationDivActions = ['_moveUp','_moveDown','_moveLeft','_moveRight','_zoomIn','_zoomOut','zoomExtent'];
 
     this.navigationDivs['wrapper'] = document.createElement('div');
     this.navigationDivs['wrapper'].id = "graph-navigation_wrapper";
@@ -15727,7 +15711,9 @@ function Graph (container, data, options) {
   }
   else {
     // zoom so all data will fit on the screen, if clustering is enabled, we do not want start to be called here.
-    this.zoomToFit(true,this.constants.clustering.enabled);
+    if (this.stabilize == false) {
+      this.zoomExtent(true,this.constants.clustering.enabled);
+    }
   }
 
 
@@ -15773,10 +15759,10 @@ Graph.prototype._getRange = function() {
   for (var nodeId in this.nodes) {
     if (this.nodes.hasOwnProperty(nodeId)) {
       node = this.nodes[nodeId];
-      if (minX > (node.x - node.width)) {minX = node.x - node.width;}
-      if (maxX < (node.x + node.width)) {maxX = node.x + node.width;}
-      if (minY > (node.y - node.height)) {minY = node.y - node.height;}
-      if (maxY < (node.y + node.height)) {maxY = node.y + node.height;}
+      if (minX > (node.x)) {minX = node.x;}
+      if (maxX < (node.x)) {maxX = node.x;}
+      if (minY > (node.y)) {minY = node.y;}
+      if (maxY < (node.y)) {maxY = node.y;}
     }
   }
   return {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
@@ -15816,9 +15802,12 @@ Graph.prototype._centerGraph = function(range) {
  *
  * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
  */
-Graph.prototype.zoomToFit = function(initialZoom, disableStart) {
+Graph.prototype.zoomExtent = function(initialZoom, disableStart) {
   if (initialZoom === undefined) {
     initialZoom = false;
+  }
+  if (disableStart === undefined) {
+    disableStart = false;
   }
 
   var range = this._getRange();
@@ -15844,6 +15833,10 @@ Graph.prototype.zoomToFit = function(initialZoom, disableStart) {
         zoomLevel = 30.5062972 / (numberOfNodes + 19.93597763) + 0.08413486; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
       }
     }
+
+    // correct for larger canvasses.
+    var factor = Math.min(this.frame.canvas.clientWidth / 600, this.frame.canvas.clientHeight / 600);
+    zoomLevel *= factor;
   }
   else {
     var xDistance = (Math.abs(range.minX) + Math.abs(range.maxX)) * 1.1;
@@ -15859,10 +15852,12 @@ Graph.prototype.zoomToFit = function(initialZoom, disableStart) {
     zoomLevel = 1.0;
   }
 
+
+
   this.pinch.mousewheelScale = zoomLevel;
   this._setScale(zoomLevel);
   this._centerGraph(range);
-  if (disableStart == false || disableStart === undefined) {
+  if (disableStart == false) {
     this.moving = true;
     this.start();
   }
@@ -17181,7 +17176,7 @@ Graph.prototype._doStabilize = function() {
     count++;
   }
 
-  this.zoomToFit(false,true);
+  this.zoomExtent(false,true);
 };
 
 

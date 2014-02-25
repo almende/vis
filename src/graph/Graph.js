@@ -243,7 +243,9 @@ function Graph (container, data, options) {
   }
   else {
     // zoom so all data will fit on the screen, if clustering is enabled, we do not want start to be called here.
-    this.zoomToFit(true,this.constants.clustering.enabled);
+    if (this.stabilize == false) {
+      this.zoomExtent(true,this.constants.clustering.enabled);
+    }
   }
 
 
@@ -289,10 +291,10 @@ Graph.prototype._getRange = function() {
   for (var nodeId in this.nodes) {
     if (this.nodes.hasOwnProperty(nodeId)) {
       node = this.nodes[nodeId];
-      if (minX > (node.x - node.width)) {minX = node.x - node.width;}
-      if (maxX < (node.x + node.width)) {maxX = node.x + node.width;}
-      if (minY > (node.y - node.height)) {minY = node.y - node.height;}
-      if (maxY < (node.y + node.height)) {maxY = node.y + node.height;}
+      if (minX > (node.x)) {minX = node.x;}
+      if (maxX < (node.x)) {maxX = node.x;}
+      if (minY > (node.y)) {minY = node.y;}
+      if (maxY < (node.y)) {maxY = node.y;}
     }
   }
   return {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
@@ -332,9 +334,12 @@ Graph.prototype._centerGraph = function(range) {
  *
  * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
  */
-Graph.prototype.zoomToFit = function(initialZoom, disableStart) {
+Graph.prototype.zoomExtent = function(initialZoom, disableStart) {
   if (initialZoom === undefined) {
     initialZoom = false;
+  }
+  if (disableStart === undefined) {
+    disableStart = false;
   }
 
   var range = this._getRange();
@@ -384,7 +389,7 @@ Graph.prototype.zoomToFit = function(initialZoom, disableStart) {
   this.pinch.mousewheelScale = zoomLevel;
   this._setScale(zoomLevel);
   this._centerGraph(range);
-  if (disableStart == false || disableStart === undefined) {
+  if (disableStart == false) {
     this.moving = true;
     this.start();
   }
@@ -1703,7 +1708,7 @@ Graph.prototype._doStabilize = function() {
     count++;
   }
 
-  this.zoomToFit(false,true);
+  this.zoomExtent(false,true);
 };
 
 

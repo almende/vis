@@ -34,7 +34,7 @@ var HierarchicalLayoutMixin = {
       // if the user defined some levels but not all, alert and run without hierarchical layout
       if (undefinedLevel == true && definedLevel == true) {
         alert("To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.")
-        this.zoomToFit(true,this.constants.clustering.enabled);
+        this.zoomExtent(true,this.constants.clustering.enabled);
         if (!this.constants.clustering.enabled) {
           this.start();
         }
@@ -82,24 +82,8 @@ var HierarchicalLayoutMixin = {
       }
     }
 
-    // give the nodes a defined width so the zoomToFit can be used. This size is arbitrary.
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        node.width = 100;
-        node.height = 100;
-      }
-    }
-
-    // stabilize the system after positioning. This function calls zoomToFit.
+    // stabilize the system after positioning. This function calls zoomExtent.
     this._doStabilize();
-
-    // reset the arbitrary width and height we gave the nodes.
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        this.nodes[nodeId]._reset();
-      }
-    }
   },
 
 
