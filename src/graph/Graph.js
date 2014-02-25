@@ -138,7 +138,8 @@ function Graph (container, data, options) {
     hierarchicalLayout: {
       enabled:false,
       levelSeparation: 150,
-      nodeSpacing: 100
+      nodeSpacing: 100,
+      direction: "UD"   // UD, DU, LR, RL
     },
     smoothCurves: true,
     maxVelocity:  10,
@@ -247,7 +248,6 @@ function Graph (container, data, options) {
       this.zoomExtent(true,this.constants.clustering.enabled);
     }
   }
-
 
   // if clustering is disabled, the simulation will have started in the setData function
   if (this.constants.clustering.enabled) {
@@ -921,7 +921,6 @@ Graph.prototype._onTap = function (event) {
 Graph.prototype._onDoubleTap = function (event) {
   var pointer = this._getPointer(event.gesture.center);
   this._handleDoubleTap(pointer);
-
 };
 
 
@@ -1922,12 +1921,6 @@ Graph.prototype._initializeMixinLoaders = function () {
     }
   }
 };
-
-
-
-
-
-
 
 
 

@@ -21,6 +21,8 @@
     var edges = null;
     var graph = null;
 
+
+
     function draw() {
       nodes = [];
       edges = [];
@@ -75,12 +77,14 @@
         nodes: nodes,
         edges: edges
       };
-
+    var directionInput = document.getElementById("direction");
     var options = {
         edges: {
         },
         stabilize: false,
-        hierarchicalLayout:true
+        hierarchicalLayout: {
+            direction: directionInput.value
+        }
     };
       graph = new vis.Graph(container, data, options);
 
@@ -89,6 +93,7 @@
         document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
       });
     }
+
   </script>
 </head>
 
@@ -104,6 +109,35 @@
   <input id="nodeCount" type="text" value="25" style="width: 50px;">
   <input type="submit" value="Go">
 </form>
+<input type="button" id="btn-UD" value="Up-Down">
+<input type="button" id="btn-DU" value="Down-Up">
+<input type="button" id="btn-LR" value="Left-Right">
+<input type="button" id="btn-RL" value="Right-Left">
+<input type="hidden" id='direction' value="UD">
+
+<script language="javascript">
+    var directionInput = document.getElementById("direction");
+    var btnUD = document.getElementById("btn-UD");
+    btnUD.onclick = function() {
+        directionInput.value = "UD";
+        draw();
+    }
+    var btnDU = document.getElementById("btn-DU");
+    btnDU.onclick = function() {
+        directionInput.value = "DU";
+        draw();
+    };
+    var btnLR = document.getElementById("btn-LR");
+    btnLR.onclick = function() {
+        directionInput.value = "LR";
+        draw();
+    };
+    var btnRL = document.getElementById("btn-RL");
+    btnRL.onclick = function() {
+        directionInput.value = "RL";
+        draw();
+    };
+</script>
 <br>
 
 <div id="mygraph"></div>

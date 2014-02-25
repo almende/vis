@@ -1663,12 +1663,20 @@ var options: {
     hierarchicalLayout: true
 }
 
-// advanced configuration for keyboard controls
+// advanced configuration for hierarchical layout
 var options: {
     hierarchicalLayout: {
       enabled:false,
       levelSeparation: 150,
-      nodeSpacing: 100
+      nodeSpacing: 100,
+      direction: "UD"
+    }
+}
+// partial configuration automatically sets enabled to true
+var options: {
+    hierarchicalLayout: {
+      nodeSpacing: 100,
+      direction: "UD"
     }
 }
 </pre>
@@ -1692,13 +1700,20 @@ var options: {
         <td>levelSeparation</td>
         <td>Number</td>
         <td>150</td>
-        <td>This defines the space between levels (in the Y-direction).</td>
+        <td>This defines the space between levels (in the Y-direction, considering UP-DOWN direction).</td>
     </tr>
     <tr>
         <td>nodeSpacing</td>
         <td>Number</td>
         <td>100</td>
-        <td>This defines the space between nodes in the same level (in the X-direction).</td>
+        <td>This defines the space between nodes in the same level (in the X-direction, considering UP-DOWN direction).</td>
+    </tr>
+    <tr>
+        <td>direction</td>
+        <td>String</td>
+        <td>UD</td>
+        <td>This defines the direction the graph is drawn in. The supported directions are: Up-Down (UD), Down-Up (DU), Left-Right (LR) and Right-Left (RL).
+        These need to be supplied by the acronyms in parentheses.</td>
     </tr>
 </table>
 <h2 id="Methods">Methods</h2>
