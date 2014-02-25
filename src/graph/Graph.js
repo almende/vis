@@ -138,7 +138,8 @@ function Graph (container, data, options) {
     hierarchicalLayout: {
       enabled:false,
       levelSeparation: 150,
-      nodeSpacing: 100
+      nodeSpacing: 100,
+      direction: "UD"   // UD, DU, LR, RL
     },
     smoothCurves: true,
     maxVelocity:  10,
@@ -243,9 +244,10 @@ function Graph (container, data, options) {
   }
   else {
     // zoom so all data will fit on the screen, if clustering is enabled, we do not want start to be called here.
-    this.zoomToFit(true,this.constants.clustering.enabled);
+    if (this.stabilize == false) {
+      this.zoomExtent(true,this.constants.clustering.enabled);
+    }
   }
-
 
   // if clustering is disabled, the simulation will have started in the setData function
   if (this.constants.clustering.enabled) {
@@ -289,10 +291,10 @@ Graph.prototype._getRange = function() {
   for (var nodeId in this.nodes) {
     if (this.nodes.hasOwnProperty(nodeId)) {
       node = this.nodes[nodeId];
-      if (minX > (node.x - node.width)) {minX = node.x - node.width;}
-      if (maxX < (node.x + node.width)) {maxX = node.x + node.width;}
-      if (minY > (node.y - node.height)) {minY = node.y - node.height;}
-      if (maxY < (node.y + node.height)) {maxY = node.y + node.height;}
+      if (minX > (node.x)) {minX = node.x;}
+      if (maxX < (node.x)) {maxX = node.x;}
+      if (minY > (node.y)) {minY = node.y;}
+      if (maxY < (node.y)) {maxY = node.y;}
     }
   }
   return {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
@@ -332,9 +334,12 @@ Graph.prototype._centerGraph = function(range) {
  *
  * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
  */
-Graph.prototype.zoomToFit = function(initialZoom, disableStart) {
+Graph.prototype.zoomExtent = function(initialZoom, disableStart) {
   if (initialZoom === undefined) {
     initialZoom = false;
+  }
+  if (disableStart === undefined) {
+    disableStart = false;
   }
 
   var range = this._getRange();
@@ -360,6 +365,10 @@ Graph.prototype.zoomToFit = function(initialZoom, disableStart) {
         zoomLevel = 30.5062972 / (numberOfNodes + 19.93597763) + 0.08413486; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
       }
     }
+
+    // correct for larger canvasses.
+    var factor = Math.min(this.frame.canvas.clientWidth / 600, this.frame.canvas.clientHeight / 600);
+    zoomLevel *= factor;
   }
   else {
     var xDistance = (Math.abs(range.minX) + Math.abs(range.maxX)) * 1.1;
@@ -375,10 +384,12 @@ Graph.prototype.zoomToFit = function(initialZoom, disableStart) {
     zoomLevel = 1.0;
   }
 
+
+
   this.pinch.mousewheelScale = zoomLevel;
   this._setScale(zoomLevel);
   this._centerGraph(range);
-  if (disableStart == false || disableStart === undefined) {
+  if (disableStart == false) {
     this.moving = true;
     this.start();
   }
@@ -910,7 +921,6 @@ Graph.prototype._onTap = function (event) {
 Graph.prototype._onDoubleTap = function (event) {
   var pointer = this._getPointer(event.gesture.center);
   this._handleDoubleTap(pointer);
-
 };
 
 
@@ -1697,7 +1707,7 @@ Graph.prototype._doStabilize = function() {
     count++;
   }
 
-  this.zoomToFit(false,true);
+  this.zoomExtent(false,true);
 };
 
 
@@ -1911,12 +1921,6 @@ Graph.prototype._initializeMixinLoaders = function () {
     }
   }
 };
-
-
-
-
-
-
 
 
 

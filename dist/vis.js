@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.5.1
- * @date    2014-02-21
+ * @version @@version
+ * @date    @@date
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -12131,7 +12131,9 @@ var HierarchicalLayoutMixin = {
    */
   _setupHierarchicalLayout : function() {
     if (this.constants.hierarchicalLayout.enabled == true) {
-
+      if (this.constants.hierarchicalLayout.direction == "RL" || this.constants.hierarchicalLayout.direction == "DU") {
+        this.constants.hierarchicalLayout.levelSeparation *= -1;
+      }
       // get the size of the largest hubs and check if the user has defined a level for a node.
       var hubsize = 0;
       var node, nodeId;
@@ -12156,7 +12158,7 @@ var HierarchicalLayoutMixin = {
       // if the user defined some levels but not all, alert and run without hierarchical layout
       if (undefinedLevel == true && definedLevel == true) {
         alert("To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.")
-        this.zoomToFit(true,this.constants.clustering.enabled);
+        this.zoomExtent(true,this.constants.clustering.enabled);
         if (!this.constants.clustering.enabled) {
           this.start();
         }
@@ -12195,33 +12197,28 @@ var HierarchicalLayoutMixin = {
     for (nodeId in distribution[0].nodes) {
       if (distribution[0].nodes.hasOwnProperty(nodeId)) {
         node = distribution[0].nodes[nodeId];
-        if (node.xFixed) {
-          node.x = distribution[0].minPos;
-          distribution[0].minPos += distribution[0].nodeSpacing;
-          node.xFixed = false;
+        if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+          if (node.xFixed) {
+            node.x = distribution[0].minPos;
+            node.xFixed = false;
+
+            distribution[0].minPos += distribution[0].nodeSpacing;
+          }
+        }
+        else {
+          if (node.yFixed) {
+            node.y = distribution[0].minPos;
+            node.yFixed = false;
+
+            distribution[0].minPos += distribution[0].nodeSpacing;
+          }
         }
         this._placeBranchNodes(node.edges,node.id,distribution,node.level);
       }
     }
 
-    // give the nodes a defined width so the zoomToFit can be used. This size is arbitrary.
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        node.width = 100;
-        node.height = 100;
-      }
-    }
-
-    // stabilize the system after positioning. This function calls zoomToFit.
+    // stabilize the system after positioning. This function calls zoomExtent.
     this._doStabilize();
-
-    // reset the arbitrary width and height we gave the nodes.
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        this.nodes[nodeId]._reset();
-      }
-    }
   },
 
 
@@ -12242,7 +12239,12 @@ var HierarchicalLayoutMixin = {
         node = this.nodes[nodeId];
         node.xFixed = true;
         node.yFixed = true;
-        node.y = this.constants.hierarchicalLayout.levelSeparation*node.level;
+        if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+          node.y = this.constants.hierarchicalLayout.levelSeparation*node.level;
+        }
+        else {
+          node.x = this.constants.hierarchicalLayout.levelSeparation*node.level;
+        }
         if (!distribution.hasOwnProperty(node.level)) {
           distribution[node.level] = {amount: 0, nodes: {}, minPos:0, nodeSpacing:0};
         }
@@ -12345,9 +12347,23 @@ var HierarchicalLayoutMixin = {
       }
 
       // if a node is conneceted to another node on the same level (or higher (means lower level))!, this is not handled here.
-      if (childNode.xFixed && childNode.level > parentLevel) {
-        childNode.xFixed = false;
-        childNode.x = distribution[childNode.level].minPos;
+      var nodeMoved = false;
+      if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+        if (childNode.xFixed && childNode.level > parentLevel) {
+          childNode.xFixed = false;
+          childNode.x = distribution[childNode.level].minPos;
+          nodeMoved = true;
+        }
+      }
+      else {
+        if (childNode.yFixed && childNode.level > parentLevel) {
+          childNode.yFixed = false;
+          childNode.y = distribution[childNode.level].minPos;
+          nodeMoved = true;
+        }
+      }
+
+      if (nodeMoved == true) {
         distribution[childNode.level].minPos += distribution[childNode.level].nodeSpacing;
         if (childNode.edges.length > 1) {
           this._placeBranchNodes(childNode.edges,childNode.id,distribution,childNode.level);
@@ -15095,7 +15111,7 @@ var NavigationMixin = {
 
     this.navigationDivs = {};
     var navigationDivs = ['up','down','left','right','zoomIn','zoomOut','zoomExtends'];
-    var navigationDivActions = ['_moveUp','_moveDown','_moveLeft','_moveRight','_zoomIn','_zoomOut','zoomToFit'];
+    var navigationDivActions = ['_moveUp','_moveDown','_moveLeft','_moveRight','_zoomIn','_zoomOut','zoomExtent'];
 
     this.navigationDivs['wrapper'] = document.createElement('div');
     this.navigationDivs['wrapper'].id = "graph-navigation_wrapper";
@@ -15622,7 +15638,8 @@ function Graph (container, data, options) {
     hierarchicalLayout: {
       enabled:false,
       levelSeparation: 150,
-      nodeSpacing: 100
+      nodeSpacing: 100,
+      direction: "UD"   // UD, DU, LR, RL
     },
     smoothCurves: true,
     maxVelocity:  10,
@@ -15727,9 +15744,10 @@ function Graph (container, data, options) {
   }
   else {
     // zoom so all data will fit on the screen, if clustering is enabled, we do not want start to be called here.
-    this.zoomToFit(true,this.constants.clustering.enabled);
+    if (this.stabilize == false) {
+      this.zoomExtent(true,this.constants.clustering.enabled);
+    }
   }
-
 
   // if clustering is disabled, the simulation will have started in the setData function
   if (this.constants.clustering.enabled) {
@@ -15773,10 +15791,10 @@ Graph.prototype._getRange = function() {
   for (var nodeId in this.nodes) {
     if (this.nodes.hasOwnProperty(nodeId)) {
       node = this.nodes[nodeId];
-      if (minX > (node.x - node.width)) {minX = node.x - node.width;}
-      if (maxX < (node.x + node.width)) {maxX = node.x + node.width;}
-      if (minY > (node.y - node.height)) {minY = node.y - node.height;}
-      if (maxY < (node.y + node.height)) {maxY = node.y + node.height;}
+      if (minX > (node.x)) {minX = node.x;}
+      if (maxX < (node.x)) {maxX = node.x;}
+      if (minY > (node.y)) {minY = node.y;}
+      if (maxY < (node.y)) {maxY = node.y;}
     }
   }
   return {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
@@ -15816,9 +15834,12 @@ Graph.prototype._centerGraph = function(range) {
  *
  * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
  */
-Graph.prototype.zoomToFit = function(initialZoom, disableStart) {
+Graph.prototype.zoomExtent = function(initialZoom, disableStart) {
   if (initialZoom === undefined) {
     initialZoom = false;
+  }
+  if (disableStart === undefined) {
+    disableStart = false;
   }
 
   var range = this._getRange();
@@ -15844,6 +15865,10 @@ Graph.prototype.zoomToFit = function(initialZoom, disableStart) {
         zoomLevel = 30.5062972 / (numberOfNodes + 19.93597763) + 0.08413486; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
       }
     }
+
+    // correct for larger canvasses.
+    var factor = Math.min(this.frame.canvas.clientWidth / 600, this.frame.canvas.clientHeight / 600);
+    zoomLevel *= factor;
   }
   else {
     var xDistance = (Math.abs(range.minX) + Math.abs(range.maxX)) * 1.1;
@@ -15859,10 +15884,12 @@ Graph.prototype.zoomToFit = function(initialZoom, disableStart) {
     zoomLevel = 1.0;
   }
 
+
+
   this.pinch.mousewheelScale = zoomLevel;
   this._setScale(zoomLevel);
   this._centerGraph(range);
-  if (disableStart == false || disableStart === undefined) {
+  if (disableStart == false) {
     this.moving = true;
     this.start();
   }
@@ -16394,7 +16421,6 @@ Graph.prototype._onTap = function (event) {
 Graph.prototype._onDoubleTap = function (event) {
   var pointer = this._getPointer(event.gesture.center);
   this._handleDoubleTap(pointer);
-
 };
 
 
@@ -17181,7 +17207,7 @@ Graph.prototype._doStabilize = function() {
     count++;
   }
 
-  this.zoomToFit(false,true);
+  this.zoomExtent(false,true);
 };
 
 
@@ -17395,12 +17421,6 @@ Graph.prototype._initializeMixinLoaders = function () {
     }
   }
 };
-
-
-
-
-
-
 
 
 

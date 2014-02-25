@@ -9,7 +9,9 @@ var HierarchicalLayoutMixin = {
    */
   _setupHierarchicalLayout : function() {
     if (this.constants.hierarchicalLayout.enabled == true) {
-
+      if (this.constants.hierarchicalLayout.direction == "RL" || this.constants.hierarchicalLayout.direction == "DU") {
+        this.constants.hierarchicalLayout.levelSeparation *= -1;
+      }
       // get the size of the largest hubs and check if the user has defined a level for a node.
       var hubsize = 0;
       var node, nodeId;
@@ -34,7 +36,7 @@ var HierarchicalLayoutMixin = {
       // if the user defined some levels but not all, alert and run without hierarchical layout
       if (undefinedLevel == true && definedLevel == true) {
         alert("To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.")
-        this.zoomToFit(true,this.constants.clustering.enabled);
+        this.zoomExtent(true,this.constants.clustering.enabled);
         if (!this.constants.clustering.enabled) {
           this.start();
         }
@@ -73,33 +75,28 @@ var HierarchicalLayoutMixin = {
     for (nodeId in distribution[0].nodes) {
       if (distribution[0].nodes.hasOwnProperty(nodeId)) {
         node = distribution[0].nodes[nodeId];
-        if (node.xFixed) {
-          node.x = distribution[0].minPos;
-          distribution[0].minPos += distribution[0].nodeSpacing;
-          node.xFixed = false;
+        if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+          if (node.xFixed) {
+            node.x = distribution[0].minPos;
+            node.xFixed = false;
+
+            distribution[0].minPos += distribution[0].nodeSpacing;
+          }
+        }
+        else {
+          if (node.yFixed) {
+            node.y = distribution[0].minPos;
+            node.yFixed = false;
+
+            distribution[0].minPos += distribution[0].nodeSpacing;
+          }
         }
         this._placeBranchNodes(node.edges,node.id,distribution,node.level);
       }
     }
 
-    // give the nodes a defined width so the zoomToFit can be used. This size is arbitrary.
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        node.width = 100;
-        node.height = 100;
-      }
-    }
-
-    // stabilize the system after positioning. This function calls zoomToFit.
+    // stabilize the system after positioning. This function calls zoomExtent.
     this._doStabilize();
-
-    // reset the arbitrary width and height we gave the nodes.
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        this.nodes[nodeId]._reset();
-      }
-    }
   },
 
 
@@ -120,7 +117,12 @@ var HierarchicalLayoutMixin = {
         node = this.nodes[nodeId];
         node.xFixed = true;
         node.yFixed = true;
-        node.y = this.constants.hierarchicalLayout.levelSeparation*node.level;
+        if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+          node.y = this.constants.hierarchicalLayout.levelSeparation*node.level;
+        }
+        else {
+          node.x = this.constants.hierarchicalLayout.levelSeparation*node.level;
+        }
         if (!distribution.hasOwnProperty(node.level)) {
           distribution[node.level] = {amount: 0, nodes: {}, minPos:0, nodeSpacing:0};
         }
@@ -223,9 +225,23 @@ var HierarchicalLayoutMixin = {
       }
 
       // if a node is conneceted to another node on the same level (or higher (means lower level))!, this is not handled here.
-      if (childNode.xFixed && childNode.level > parentLevel) {
-        childNode.xFixed = false;
-        childNode.x = distribution[childNode.level].minPos;
+      var nodeMoved = false;
+      if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+        if (childNode.xFixed && childNode.level > parentLevel) {
+          childNode.xFixed = false;
+          childNode.x = distribution[childNode.level].minPos;
+          nodeMoved = true;
+        }
+      }
+      else {
+        if (childNode.yFixed && childNode.level > parentLevel) {
+          childNode.yFixed = false;
+          childNode.y = distribution[childNode.level].minPos;
+          nodeMoved = true;
+        }
+      }
+
+      if (nodeMoved == true) {
         distribution[childNode.level].minPos += distribution[childNode.level].nodeSpacing;
         if (childNode.edges.length > 1) {
           this._placeBranchNodes(childNode.edges,childNode.id,distribution,childNode.level);
