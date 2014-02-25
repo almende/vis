@@ -146,6 +146,17 @@
           saveButton.onclick = saveData.bind(this,data,callback);
           cancelButton.onclick = clearPopUp.bind();
           div.style.display = 'block';
+        },
+        onConnect: function(data,callback) {
+          if (data.from == data.to) {
+            var r=confirm("Do you want to connect the node to itself?");
+            if (r==true) {
+              callback(data);
+            }
+          }
+          else {
+            callback(data);
+          }
         }
       };
       graph = new vis.Graph(container, data, options);

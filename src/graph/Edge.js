@@ -231,7 +231,7 @@ Edge.prototype._drawLine = function(ctx) {
   ctx.lineWidth = this._getLineWidth();
 
   var point;
-  if (this.from != this.to+9) {
+  if (this.from != this.to) {
     // draw line
     this._line(ctx);
 

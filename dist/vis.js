@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version @@version
- * @date    @@date
+ * @version 0.6.0-SNAPSHOT
+ * @date    2014-02-25
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -10644,7 +10644,7 @@ Edge.prototype._drawLine = function(ctx) {
   ctx.lineWidth = this._getLineWidth();
 
   var point;
-  if (this.from != this.to+9) {
+  if (this.from != this.to) {
     // draw line
     this._line(ctx);
 
