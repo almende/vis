@@ -392,13 +392,11 @@ var SelectionMixin = {
     var node = this._getNodeAt(pointer);
     if (node != null) {
       this._selectObject(node,false);
-      this.emit("clickNode", this.getSelection());
     }
     else {
       var edge = this._getEdgeAt(pointer);
       if (edge != null) {
         this._selectObject(edge,false);
-        this.emit("clickEdge", this.getSelection());
       }
       else {
         this._unselectAll();
@@ -417,20 +415,13 @@ var SelectionMixin = {
    */
   _handleDoubleTap : function(pointer) {
     var node = this._getNodeAt(pointer);
-    var selection = this.getSelection();
     if (node != null && node !== undefined) {
       // we reset the areaCenter here so the opening of the node will occur
       this.areaCenter =  {"x" : this._canvasToX(pointer.x),
                           "y" : this._canvasToY(pointer.y)};
       this.openCluster(node);
-      this.emit("doubleClickNode", selection);
     }
-    else {
-      if (this._getSelectedEdgeCount() == 1) {
-        this.emit("doubleClickEdge", selection);
-      }
-    }
-    this.emit("doubleClick", selection);
+    this.emit("doubleClick", this.getSelection());
   },
 
 
