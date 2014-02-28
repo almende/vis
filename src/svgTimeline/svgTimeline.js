@@ -148,7 +148,10 @@ function SvgTimeline (container, items, options) {
                }
 
   this.items = {};
+  this.sortedItems = [];
   this.activeItems = {};
+  this.sortedActiveItems = [];
+
   this._createItems(items);
 
   this.container = container;
@@ -175,6 +178,8 @@ function SvgTimeline (container, items, options) {
   this.hammer.on('mousemove', me._onMouseMoveTitle.bind(me) );
   //this._drawLines();
 
+  this._update();
+
 }
 
 SvgTimeline.prototype._createSVG = function() {
@@ -188,15 +193,15 @@ SvgTimeline.prototype._createSVG = function() {
 SvgTimeline.prototype._createItems = function (items) {
   for (var i = 0; i < items.length; i++) {
     this.items[items[i].id] = new Item(items[i], this.constants);
+    this.sortedItems.push(this.items[items[i].id]);
   }
+  this._sortItems(this.sortedItems);
 }
 
-/**
- * Get the pointer location from a touch location
- * @param {{pageX: Number, pageY: Number}} touch
- * @return {{x: Number, y: Number}} pointer
- * @private
- */
+SvgTimeline.prototype._sortItems = function (items) {
+  items.sort(function(a,b) {return a.start - b.start});
+}
+
 SvgTimeline.prototype._getPointer = function (touch) {
   return {
     x: touch.pageX,
@@ -260,6 +265,7 @@ SvgTimeline.prototype._onMouseMoveTitle = function() {};
 SvgTimeline.prototype._update = function() {
   this.axis._update();
   this._getActiveItems();
+  this._updateItems();
 };
 
 SvgTimeline.prototype._getActiveItems = function() {
@@ -269,19 +275,24 @@ SvgTimeline.prototype._getActiveItems = function() {
     }
   }
 
+  this.sortedActiveItems = []
+  var rangeStart = this.range.start-200*this.axis.msPerPixel
+  var rangeEnd = (this.range.end+200*this.axis.msPerPixel)
   for (var itemId in this.items) {
     if (this.items.hasOwnProperty(itemId)) {
-      if (this.items[itemId].start >= this.range.start && this.items[itemId].start < this.range.end ||
-          this.items[itemId].end   >= this.range.start && this.items[itemId].end   < this.range.end
-        ) {
+      if (this.items[itemId].start >= rangeStart && this.items[itemId].start < rangeEnd ||
+          this.items[itemId].end   >= rangeStart && this.items[itemId].end   < rangeEnd) {
         if (this.items[itemId].active == false) {
           this.activeItems[itemId] = this.items[itemId];
         }
         this.activeItems[itemId].active = true;
+        this.sortedActiveItems.push(this.activeItems[itemId]);
       }
     }
   }
+  this._sortItems(this.sortedActiveItems);
 
+  // cleanup
   for (var itemId in this.activeItems) {
     if (this.activeItems.hasOwnProperty(itemId)) {
       if (this.activeItems[itemId].active == false) {
@@ -297,26 +308,57 @@ SvgTimeline.prototype._getActiveItems = function() {
 
 
 SvgTimeline.prototype._updateItems = function() {
-  for (var itemId in this.activeItems) {
-    if (this.activeItems.hasOwnProperty(itemId)) {
-      var item = this.activeItems[itemId];
-      if (item.svg == null) {
-        item.svg = d3.select("svg#main")
-                     .append("rect")
-          .attr("x")
-        item.svgLine = d3.select("svg#main")
-          .append("line")
+  for (var i = 0; i < this.sortedActiveItems.length; i++) {
+    var item = this.sortedActiveItems[i];
+    if (item.svg == null) {
+      item.svg = d3.select("svg#main")
+                   .append("rect")
+                   .attr("class","item")
+                   .style("stroke", "rgb(6,120,155)")
+                   .style("fill", "rgb(6,120,155)");
 
+      if (item.end == 0) {
+        item.svgLine = d3.select("svg#main")
+                         .append("line")
+                         .attr("y1",this.constants.barHeight)
+                         .style("stroke", "rgb(200,200,255)")
+                         .style("stroke-width", 3)
       }
+    }
+    item.svg.attr('width',item.getLength(this.axis.msPerPixel))
+            .attr("x",this._getXforItem(item))
+            .attr("y",this._getYforItem(item, i))
+
+            .attr('height',25)
+    if (item.end == 0) {
+      item.svgLine.attr('y2',item.y)
+                  .attr('x1',item.timeX)
+                  .attr('x2',item.timeX)
     }
   }
 };
 
-SvgTimeline.prototype._getXforTime = function(time) {
-
+SvgTimeline.prototype._getXforItem = function(item) {
+  item.timeX = (item.start - this.range.start)/this.axis.msPerPixel;
+  if (item.end == 0) {
+    item.drawX = item.timeX - item.width * 0.5;
+  }
+  else {
+    item.drawX = item.timeX;
+  }
+  return item.drawX;
 }
 
-SvgTimeline.prototype._getLengthforDuration = function(time) {
-
+SvgTimeline.prototype._getYforItem = function(item, index) {
+  var bounds = 10;
+  var startIndex = Math.max(0,index-bounds);
+  item.level = 0;
+  for (var i = startIndex; i < index; i++) {
+    var item2 = this.sortedActiveItems[i];
+    if (item.drawX <= (item2.drawX + item2.width + 5) && item2.level == item.level) {
+      item.level += 1;
+    }
+  }
+  item.y = 100 + 50*item.level;
+  return item.y;
 }
-

@@ -26,8 +26,15 @@ function Item(properties, constants) {
   this.end = 0;
   this.content = "no content";
   this.class = "";
+  this.level = 0;
   this.active = false;
   this.setProperties(properties, constants);
+
+
+  this.timeX = 0;
+  this.drawX = 0;
+  this.y = 0;
+  this.width = 40;
 
   this.convertDatesToUNIX();
 
@@ -38,7 +45,6 @@ function Item(properties, constants) {
 
   this.svg = null;
   this.svgLine = null;
-
 }
 
 
@@ -67,7 +73,12 @@ Item.prototype.setProperties = function(properties, constants) {
 
 Item.prototype.convertDatesToUNIX = function() {
   this.start = moment(this.start,"YYYY-MM-DD").valueOf();
-  if (this.end != null) {
+  if (this.end != 0) {
     this.end = moment(this.end,"YYYY-MM-DD").valueOf();
   }
+}
+
+Item.prototype.getLength = function(msPerPixel) {
+  this.width = Math.max(40,this.duration/msPerPixel);
+  return this.width;
 }
