@@ -1,7 +1,4 @@
 /**
- * Created by Alex on 2/27/14.
- */
-/**
  * @class Item
  * A node. A node can be connected to other nodes via one or multiple edges.
  * @param {object} properties An object containing properties for the node. All
@@ -18,10 +15,6 @@
  *                              {string} image  An image url
  *                              {string} title  An title text, can be HTML
  *                              {anytype} group A group name or number
- * @param {Graph.Images} imagelist    A list with images. Only needed
- *                                            when the node has an image
- * @param {Graph.Groups} grouplist    A list with groups. Needed for
- *                                            retrieving group properties
  * @param {Object}               constants    An object with default values for
  *                                            example for the color
  *
@@ -30,11 +23,21 @@ function Item(properties, constants) {
 
   this.id = null;
   this.start = null;
-  this.end = null;
-  this.content = null;
-  this.duration = null;
-
+  this.end = 0;
+  this.content = "no content";
+  this.class = "";
+  this.active = false;
   this.setProperties(properties, constants);
+
+  this.convertDatesToUNIX();
+
+  this.duration = 0;
+  if (this.end != 0) {
+    this.duration = this.end - this.start;
+  }
+
+  this.svg = null;
+  this.svgLine = null;
 
 }
 
@@ -49,15 +52,22 @@ Item.prototype.setProperties = function(properties, constants) {
     return;
   }
 
-  this.originalLabel = undefined;
   // basic properties
-  if (properties.id !== undefined)        {this.id = properties.id;}
-  if (properties.label !== undefined)     {this.label = properties.label; this.originalLabel = properties.label;}
-  if (properties.title !== undefined)     {this.title = properties.title;}
-  if (properties.group !== undefined)     {this.group = properties.group;}
-  if (properties.x !== undefined)         {this.x = properties.x;}
-  if (properties.y !== undefined)         {this.y = properties.y;}
-  if (properties.value !== undefined)     {this.value = properties.value;}
-  if (properties.level !== undefined)     {this.level = properties.level;}
+  if (properties.id      !== undefined)  {this.id = properties.id;}
+    else  {throw("An ID is required.")}
+
+  if (properties.start   !== undefined)  {this.start = properties.start;}
+    else  {throw("A start property is required. -->" + this.id)}
+
+  if (properties.end     !== undefined)  {this.end = properties.end;}
+  if (properties.class   !== undefined)  {this.class = properties.class;}
+  if (properties.content !== undefined)  {this.content = properties.content;}
 
 };
+
+Item.prototype.convertDatesToUNIX = function() {
+  this.start = moment(this.start,"YYYY-MM-DD").valueOf();
+  if (this.end != null) {
+    this.end = moment(this.end,"YYYY-MM-DD").valueOf();
+  }
+}

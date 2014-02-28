@@ -9,7 +9,7 @@
         }
 
         #bars {
-            fill:#FF0000;
+            fill: #d2e2ff;
         }
     </style>
 
@@ -18,6 +18,7 @@
     <script src="../../src/svgTimeline/d3.v3.js" charset="utf-8"></script>
     <script src="../../src/svgTimeline/hammer.min.js" charset="utf-8"></script>
     <script src="../../src/svgTimeline/moment-with-langs.min.js"></script>
+    <script src="../../src/svgTimeline/Item.js"></script>
     <script src="../../src/svgTimeline/svgTimeline.js"></script>
     <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
 </head>
@@ -27,12 +28,12 @@
 <script type="text/javascript">
     var container = document.getElementById('visualization');
     var items = [
-        {id: 1, content: 'item 1', start: '2013-04-20'},
-        {id: 2, content: 'item 2', start: '2013-04-14'},
-        {id: 3, content: 'item 3', start: '2013-04-18'},
-        {id: 4, content: 'item 4', start: '2013-04-16', end: '2013-04-19'},
-        {id: 5, content: 'item 5', start: '2013-04-25'},
-        {id: 6, content: 'item 6', start: '2013-04-27'}
+        {id: 1, content: 'item 1', start: '2014-02-20'},
+        {id: 2, content: 'item 2', start: '2014-02-14'},
+        {id: 3, content: 'item 3', start: '2014-02-18'},
+        {id: 4, content: 'item 4', start: '2014-02-16', end: '2014-02-19'},
+        {id: 5, content: 'item 5', start: '2014-02-25'},
+        {id: 6, content: 'item 6', start: '2014-02-27'}
     ];
     var options = {};
     var timeline = new SvgTimeline(container, items, options);

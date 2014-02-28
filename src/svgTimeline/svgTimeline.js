@@ -77,7 +77,7 @@ SvgAxis.prototype._update = function() {
   var yearScale = [1,2,3,4,5,6,7,8,9,10,15,20,25,50,75,100,150,250,500,1000];
   var multipliers = [1,1000,60000,3600000,24*3600000,30*24*3600000,365*24*3600000];
   var scales = [milliSecondScale,secondScale,minuteScale,hourScale,dayScale,monthScale,yearScale]
-  var formats = ["SSS","mm:ss","hh:mm:ss","DD HH:mm","MM-DD","MM","YYYY"]
+  var formats = ["SSS","mm:ss","hh:mm:ss","DD HH:mm","DD-MM","MM-YYYY","YYYY"]
   var indices = this._getAppropriateScale(scales,multipliers);
   var scale = scales[indices[0]][indices[1]] * multipliers[indices[0]];
 
@@ -135,15 +135,21 @@ SvgAxis.prototype._getAppropriateScale = function(scales,multipliers) {
  * @param {Object} options      Options
  */
 function SvgTimeline (container, items, options) {
-  var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
-
-  this.range = {start:now.clone().add('days', -3).valueOf(),
-                end:  now.clone().add('days', 4).valueOf()}
   this.constants = {
     width:1400,
     height:400,
     barHeight: 60
   }
+
+  var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
+  this.range = {
+                start:now.clone().add('days', -3).valueOf(),
+                end:  now.clone().add('days', 4).valueOf()
+               }
+
+  this.items = {};
+  this.activeItems = {};
+  this._createItems(items);
 
   this.container = container;
   this._createSVG();
@@ -179,7 +185,11 @@ SvgTimeline.prototype._createSVG = function() {
     .attr("style","border:1px solid black")
 };
 
-
+SvgTimeline.prototype._createItems = function (items) {
+  for (var i = 0; i < items.length; i++) {
+    this.items[items[i].id] = new Item(items[i], this.constants);
+  }
+}
 
 /**
  * Get the pointer location from a touch location
@@ -247,7 +257,66 @@ SvgTimeline.prototype._onMouseWheel = function(event) {
 };
 SvgTimeline.prototype._onMouseMoveTitle = function() {};
 
-
 SvgTimeline.prototype._update = function() {
   this.axis._update();
+  this._getActiveItems();
+};
+
+SvgTimeline.prototype._getActiveItems = function() {
+  for (var itemId in this.activeItems) {
+    if (this.activeItems.hasOwnProperty(itemId)) {
+      this.activeItems[itemId].active = false;
+    }
+  }
+
+  for (var itemId in this.items) {
+    if (this.items.hasOwnProperty(itemId)) {
+      if (this.items[itemId].start >= this.range.start && this.items[itemId].start < this.range.end ||
+          this.items[itemId].end   >= this.range.start && this.items[itemId].end   < this.range.end
+        ) {
+        if (this.items[itemId].active == false) {
+          this.activeItems[itemId] = this.items[itemId];
+        }
+        this.activeItems[itemId].active = true;
+      }
+    }
+  }
+
+  for (var itemId in this.activeItems) {
+    if (this.activeItems.hasOwnProperty(itemId)) {
+      if (this.activeItems[itemId].active == false) {
+        this.activeItems[itemId].svg.remove();
+        this.activeItems[itemId].svg = null;
+        this.activeItems[itemId].svgLine.remove();
+        this.activeItems[itemId].svgLine = null;
+        delete this.activeItems[itemId];
+      }
+    }
+  }
+};
+
+
+SvgTimeline.prototype._updateItems = function() {
+  for (var itemId in this.activeItems) {
+    if (this.activeItems.hasOwnProperty(itemId)) {
+      var item = this.activeItems[itemId];
+      if (item.svg == null) {
+        item.svg = d3.select("svg#main")
+                     .append("rect")
+          .attr("x")
+        item.svgLine = d3.select("svg#main")
+          .append("line")
+
+      }
+    }
+  }
+};
+
+SvgTimeline.prototype._getXforTime = function(time) {
+
 }
+
+SvgTimeline.prototype._getLengthforDuration = function(time) {
+
+}
+
