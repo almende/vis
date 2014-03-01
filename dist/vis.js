@@ -8965,6 +8965,8 @@ function Node(properties, imagelist, grouplist, constants) {
 
   this.color = constants.nodes.color;
 
+  this.blurSize = constants.nodes.blurSize;
+  
   // set defaults for the properties
   this.id = undefined;
   this.shape = constants.nodes.shape;
@@ -9158,9 +9160,11 @@ Node.parseColor = function(color) {
     c = {
       border: color,
       background: color,
+	  shadow: color,
       highlight: {
         border: color,
-        background: color
+        background: color,
+		shadow: color
       }
     };
     // TODO: automatically generate a nice highlight color
@@ -9169,17 +9173,20 @@ Node.parseColor = function(color) {
     c = {};
     c.background = color.background || 'white';
     c.border = color.border || c.background;
+	c.shadow = color.shadow || c.background;
 
     if (util.isString(color.highlight)) {
       c.highlight = {
         border: color.highlight,
-        background: color.highlight
+        background: color.highlight,
+		shadow: color.highlight
       }
     }
     else {
       c.highlight = {};
       c.highlight.background = color.highlight && color.highlight.background || c.background;
       c.highlight.border = color.highlight && color.highlight.border || c.border;
+	  c.highlight.shadow = color.highlight && color.highlight.shadow || c.shadow;
     }
   }
 
@@ -9462,30 +9469,35 @@ Node.prototype._drawImage = function (ctx) {
 
   this.left   = this.x - this.width / 2;
   this.top    = this.y - this.height / 2;
+  ctx.save();
+	 // Add a shadow blur around the object		  
+	  ctx.shadowBlur = this.blurSize;
+	  ctx.shadowColor = this.selected ? this.color.highlight.shadow : this.color.shadow;
+	  ctx.shadowOffsetX = this.blurSize/5;
+	  ctx.shadowOffsetY = this.blurSize/5;
+			  
+	  var yLabel;
+	  if (this.imageObj.width != 0 ) {
+		// draw the shade
+		if (this.clusterSize > 1) {
+		  var lineWidth = ((this.clusterSize > 1) ? 10 : 0.0);
+		  lineWidth *= this.graphScaleInv;
+		  lineWidth = Math.min(0.2 * this.width,lineWidth);
 
-  var yLabel;
-  if (this.imageObj.width != 0 ) {
-    // draw the shade
-    if (this.clusterSize > 1) {
-      var lineWidth = ((this.clusterSize > 1) ? 10 : 0.0);
-      lineWidth *= this.graphScaleInv;
-      lineWidth = Math.min(0.2 * this.width,lineWidth);
-
-      ctx.globalAlpha = 0.5;
-      ctx.drawImage(this.imageObj, this.left - lineWidth, this.top - lineWidth, this.width + 2*lineWidth, this.height + 2*lineWidth);
-    }
-
-    // draw the image
-    ctx.globalAlpha = 1.0;
-    ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
-    yLabel = this.y + this.height / 2;
-  }
-  else {
-    // image still loading... just draw the label for now
-    yLabel = this.y;
-  }
-
-  this._label(ctx, this.label, this.x, yLabel, undefined, "top");
+		  ctx.globalAlpha = 0.1;
+		  ctx.drawImage(this.imageObj, this.left - lineWidth, this.top - lineWidth, this.width + 2*lineWidth, this.height + 2*lineWidth);
+		}  
+       // draw the image
+       ctx.globalAlpha = 1.0;
+       ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
+       yLabel = this.y + this.height / 2;
+     }
+     else {
+        // image still loading... just draw the label for now
+        yLabel = this.y;
+     }	 
+      this._label(ctx, this.label, this.x, yLabel, undefined, "top");
+  ctx.restore();
 };
 
 
@@ -9530,9 +9542,17 @@ Node.prototype._drawBox = function (ctx) {
 
   ctx.roundRect(this.left, this.top, this.width, this.height, this.radius);
   ctx.fill();
-  ctx.stroke();
+  ctx.save();  
+    // Add a shadow blur around the object	
+	ctx.shadowBlur = this.blurSize;
+    ctx.shadowColor = this.selected ? this.color.highlight.shadow : this.color.shadow;
+    ctx.shadowOffsetX = this.blurSize/5;
+    ctx.shadowOffsetY = this.blurSize/5;
 
-  this._label(ctx, this.label, this.x, this.y);
+    ctx.stroke();
+    this._label(ctx, this.label, this.x, this.y);
+
+  ctx.restore();
 };
 
 
@@ -9626,9 +9646,17 @@ Node.prototype._drawCircle = function (ctx) {
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
   ctx.circle(this.x, this.y, this.radius);
   ctx.fill();
-  ctx.stroke();
-
-  this._label(ctx, this.label, this.x, this.y);
+  
+  ctx.save();
+    // Add a shadow blur around the object    
+	ctx.shadowBlur = this.blurSize;
+    ctx.shadowColor = this.selected ? this.color.highlight.shadow : this.color.shadow; //use same color as the fill color
+    ctx.shadowOffsetX = this.blurSize/5;
+    ctx.shadowOffsetY = this.blurSize/5;
+    ctx.stroke();
+    this._label(ctx, this.label, this.x, this.y);
+  ctx.restore();
+ 
 };
 
 Node.prototype._resizeEllipse = function (ctx) {
@@ -9672,11 +9700,18 @@ Node.prototype._drawEllipse = function (ctx) {
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-
   ctx.ellipse(this.left, this.top, this.width, this.height);
   ctx.fill();
-  ctx.stroke();
-  this._label(ctx, this.label, this.x, this.y);
+  ctx.save();
+    // Add a shadow blur around the object	
+	ctx.shadowBlur = this.blurSize;
+    ctx.shadowColor = this.selected ? this.color.highlight.shadow : this.color.shadow;
+    ctx.shadowOffsetX = this.blurSize/5;
+    ctx.shadowOffsetY = this.blurSize/5;
+  
+     ctx.stroke();
+	 this._label(ctx, this.label, this.x, this.y);
+  ctx.restore();
 };
 
 Node.prototype._drawDot = function (ctx) {
@@ -9751,11 +9786,21 @@ Node.prototype._drawShape = function (ctx, shape) {
 
   ctx[shape](this.x, this.y, this.radius);
   ctx.fill();
-  ctx.stroke();
 
-  if (this.label) {
-    this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, 'top');
-  }
+ // Add a shadow blur around the object	
+  ctx.save();
+	  ctx.shadowBlur = this.blurSize;
+	  ctx.shadowColor = this.selected ? this.color.highlight.shadow : this.color.shadow;
+	  ctx.shadowOffsetX = this.blurSize/5;
+	  ctx.shadowOffsetY = this.blurSize/5;
+	  
+	  ctx.stroke();
+
+	  if (this.label) {
+        this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, 'top');
+      }
+  ctx.restore();
+   
 };
 
 Node.prototype._resizeText = function (ctx) {

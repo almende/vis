@@ -27,8 +27,8 @@
     function draw() {
       // create people
       nodes = [
-        {id: 1,  label: 'Algie',   image: DIR + 'Smiley-Angry-icon.png', shape: 'image'},
-        {id: 2,  label: 'Alston',  image: DIR + 'Smiley-Grin-icon.png', shape: 'image'},
+        {id: 1,  label: 'Algie',   image: DIR + 'Smiley-Angry-icon.png', shape: 'image',color: { shadow:"grey", highlight: { shadow:"red"}}},
+        {id: 2,  label: 'Alston',  image: DIR + 'Smiley-Grin-icon.png', shape: 'image',color: { shadow:"grey", highlight: { shadow:"green"}}},
         {id: 3,  label: 'Barney',  image: DIR + 'User-Administrator-Blue-icon.png', shape: 'image'},
         {id: 4,  label: 'Coley',   image: DIR + 'User-Administrator-Green-icon.png', shape: 'image'},
         {id: 5,  label: 'Grant',   image: DIR + 'User-Coat-Blue-icon.png', shape: 'image'},
@@ -61,7 +61,7 @@
         nodes: nodes,
         edges: edges
       };
-      var options = {};
+      var options = { nodes: { blurSize: 9 } };
       graph = new vis.Graph(container, data, options);
     }
   </script>
