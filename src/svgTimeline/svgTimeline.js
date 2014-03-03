@@ -269,6 +269,7 @@ SvgTimeline.prototype._update = function() {
 };
 
 SvgTimeline.prototype._getActiveItems = function() {
+  // reset all currently active items to inactive
   for (var itemId in this.activeItems) {
     if (this.activeItems.hasOwnProperty(itemId)) {
       this.activeItems[itemId].active = false;
@@ -311,11 +312,19 @@ SvgTimeline.prototype._updateItems = function() {
   for (var i = 0; i < this.sortedActiveItems.length; i++) {
     var item = this.sortedActiveItems[i];
     if (item.svg == null) {
+//      item.svg = d3.select("svg#main")
+//                   .append("rect")
+//                   .attr("class","item")
+//                   .style("stroke", "rgb(6,120,155)")
+//                   .style("fill", "rgb(6,120,155)");
       item.svg = d3.select("svg#main")
-                   .append("rect")
-                   .attr("class","item")
-                   .style("stroke", "rgb(6,120,155)")
-                   .style("fill", "rgb(6,120,155)");
+                .append("foreignObject")
+      item.svgContent = item.svg.append("xhtml:body")
+        .style("font", "14px 'Helvetica Neue'")
+        .style("background-color", "#ff00ff")
+        .html("<h1>An HTML Foreign Object in SVG</h1><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eu enim quam. Quisque nisi risus, sagittis quis tempor nec, aliquam eget neque. Nulla bibendum semper lorem non ullamcorper. Nulla non ligula lorem. Praesent porttitor, tellus nec suscipit aliquam, enim elit posuere lorem, at laoreet enim ligula sed tortor. Ut sodales, urna a aliquam semper, nibh diam gravida sapien, sit amet fermentum purus lacus eget massa. Donec ac arcu vel magna consequat pretium et vel ligula. Donec sit amet erat elit. Vivamus eu metus eget est hendrerit rutrum. Curabitur vitae orci et leo interdum egestas ut sit amet dui. In varius enim ut sem posuere in tristique metus ultrices.<p>Integer mollis massa at orci porta vestibulum. Pellentesque dignissim turpis ut tortor ultricies condimentum et quis nibh. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer euismod lorem vulputate dui pharetra luctus. Sed vulputate, nunc quis porttitor scelerisque, dui est varius ipsum, eu blandit mauris nibh pellentesque tortor. Vivamus ultricies ante eget ipsum pulvinar ac tempor turpis mollis. Morbi tortor orci, euismod vel sagittis ac, lobortis nec est. Quisque euismod venenatis felis at dapibus. Vestibulum dignissim nulla ut nisi tristique porttitor. Proin et nunc id arcu cursus dapibus non quis libero. Nunc ligula mi, bibendum non mattis nec, luctus id neque. Suspendisse ut eros lacus. Praesent eget lacus eget risus congue vestibulum. Morbi tincidunt pulvinar lacus sed faucibus. Phasellus sed vestibulum sapien.");
+
+
 
       if (item.end == 0) {
         item.svgLine = d3.select("svg#main")
@@ -328,6 +337,7 @@ SvgTimeline.prototype._updateItems = function() {
     item.svg.attr('width',item.getLength(this.axis.msPerPixel))
             .attr("x",this._getXforItem(item))
             .attr("y",this._getYforItem(item, i))
+
 
             .attr('height',25)
     if (item.end == 0) {

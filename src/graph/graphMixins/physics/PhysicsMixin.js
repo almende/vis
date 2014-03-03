@@ -18,6 +18,50 @@ var physicsMixin = {
   },
 
 
+
+  /**
+   * This loads the node force solver based on the barnes hut or repulsion algorithm
+   *
+   * @private
+   */
+  _loadSelectedForceSolver : function() {
+    // this overloads the this._calculateNodeForces
+    if (this.constants.physics.barnesHut.enabled == true) {
+      this._clearMixin(repulsionMixin);
+      this._clearMixin(hierarchalRepulsionMixin);
+
+      this.constants.physics.centralGravity = this.constants.physics.barnesHut.centralGravity;
+      this.constants.physics.springLength   = this.constants.physics.barnesHut.springLength;
+      this.constants.physics.springConstant = this.constants.physics.barnesHut.springConstant;
+      this.constants.physics.damping        = this.constants.physics.barnesHut.damping;
+
+      this._loadMixin(barnesHutMixin);
+    }
+    else if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
+      this._clearMixin(barnesHutMixin);
+      this._clearMixin(repulsionMixin);
+
+      this.constants.physics.centralGravity = this.constants.physics.hierarchicalRepulsion.centralGravity;
+      this.constants.physics.springLength   = this.constants.physics.hierarchicalRepulsion.springLength;
+      this.constants.physics.springConstant = this.constants.physics.hierarchicalRepulsion.springConstant;
+      this.constants.physics.damping        = this.constants.physics.hierarchicalRepulsion.damping;
+
+      this._loadMixin(hierarchalRepulsionMixin);
+    }
+    else {
+      this._clearMixin(barnesHutMixin);
+      this._clearMixin(hierarchalRepulsionMixin);
+      this.barnesHutTree = undefined;
+
+      this.constants.physics.centralGravity = this.constants.physics.repulsion.centralGravity;
+      this.constants.physics.springLength   = this.constants.physics.repulsion.springLength;
+      this.constants.physics.springConstant = this.constants.physics.repulsion.springConstant;
+      this.constants.physics.damping        = this.constants.physics.repulsion.damping;
+
+      this._loadMixin(repulsionMixin);
+    }
+  },
+
   /**
    * Before calculating the forces, we check if we need to cluster to keep up performance and we check
    * if there is more than one node. If it is just one node, we dont calculate anything.
