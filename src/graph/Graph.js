@@ -1186,7 +1186,7 @@ Graph.prototype.setSize = function(width, height) {
     this.manipulationDiv.style.width = this.frame.canvas.clientWidth;
   }
 
-  this.emit('frameResize', {width:this.frame.canvas.width,height:this.frame.canvas.height});
+  this.emit('resize', {width:this.frame.canvas.width,height:this.frame.canvas.height});
 };
 
 /**

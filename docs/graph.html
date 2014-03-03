@@ -1399,12 +1399,12 @@ var options: {
 };
 </pre>
 <p>
-    Because the interface elements are CSS and HTML, the user will have to correct for size changes of the canvas. To facilitate this, a new event has been added called frameResize.
+    Because the interface elements are CSS and HTML, the user will have to correct for size changes of the canvas. To facilitate this, a new event has been added called resize.
     A function can be bound to this event. This function is supplied with the new widht and height of the canvas. The CSS can then be updated accordingly.
     An code snippet from example 21 is shown below.
 </p>
 <pre class="prettyprint">
-graph.on("frameResize", function(params) {console.log(params.width,params.height)});
+graph.on("resize", function(params) {console.log(params.width,params.height)});
 </pre>
 
 <h3 id="Clustering">Clustering</h3>
@@ -1892,7 +1892,7 @@ graph.off('select', onSelect);
         </td>
     </tr>
     <tr>
-        <td>frameResize</td>
+        <td>resize</td>
         <td>Fired when the size of the canvas has been updated (not neccecarily changed) by the setSize() function or by the setOptions() function.</td>
         <td>
             <ul>
