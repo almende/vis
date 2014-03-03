@@ -166,7 +166,7 @@
         document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
       });
 
-      graph.on("frameResize", function(params) {console.log(params.width,params.height)});
+      graph.on("resize", function(params) {console.log(params.width,params.height)});
 
       function clearPopUp() {
         var saveButton = document.getElementById('saveButton');
