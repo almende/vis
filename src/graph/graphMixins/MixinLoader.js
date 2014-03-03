@@ -43,6 +43,9 @@ var graphMixinLoaders = {
   _loadPhysicsSystem : function() {
     this._loadMixin(physicsMixin);
     this._loadSelectedForceSolver();
+    if (this.constants.configurePhysics == true) {
+      this._loadPhysicsConfiguration();
+    }
    },
 
 

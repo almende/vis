@@ -669,6 +669,15 @@ var options = {
             Barnes-Hut nBody simulation is used by default. See section <a href="#Physics">Physics</a> for an overview of the available options.
         </td>
     </tr>
+    <tr>
+        <td><a href="#Physics">configurePhysics</a></td>
+        <td>Boolean</td>
+        <td>false</td>
+        <td>
+            Enabling this setting will create a physics configuration div above the graph. You can use this to fine tune the physics system to suit your needs.
+            Because of the many possible configurations, there is not a one-size-fits-all setting. By using this tool, you can adapt the physics to your dataset.
+        </td>
+    </tr>
 
     <tr>
         <td><a href="#Data_manipulation">dataManipulation</a></td>
@@ -1175,7 +1184,7 @@ var nodes = [
     The original simulation method was based on particel physics with a repulsion field (potential) around each node,
     and the edges were modelled as springs. The new system employed the <a href="http://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation">Barnes-Hut</a> gravitational simulation model. The edges are still modelled as springs.
     To unify the physics system, the damping, repulsion distance and edge length have been combined in an physics option. To retain good behaviour, both the old repulsion model and the Barnes-Hut model have their own parameters.
-    If no options for the physics system are supplied, the Barnes-Hut method will be used with the default parameters.
+    If no options for the physics system are supplied, the Barnes-Hut method will be used with the default parameters. If you want to customize the physics system easily, you can use the configurePhysics option.
 </p>
 <pre class="prettyprint">
 // These variables must be defined in an options object named physics.
@@ -1708,7 +1717,8 @@ var options: {
         <td>nodeSpacing</td>
         <td>Number</td>
         <td>100</td>
-        <td>This defines the space between nodes in the same level (in the X-direction, considering UP-DOWN direction).</td>
+        <td>This defines the space between nodes in the same level (in the X-direction, considering UP-DOWN direction).
+            This is only relevant during the initial placing of nodes.</td>
     </tr>
     <tr>
         <td>direction</td>
