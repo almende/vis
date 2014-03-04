@@ -64,8 +64,6 @@ task('build', {async: true}, function () {
       './src/DataSet.js',
       './src/DataView.js',
 
-      './src/svgTimeline/svgTimeline.js',
-
       './src/timeline/TimeStep.js',
       './src/timeline/Stack.js',
       './src/timeline/Range.js',
