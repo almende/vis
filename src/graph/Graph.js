@@ -73,6 +73,7 @@ function Graph (container, data, options) {
         altLength: undefined
       }
     },
+    configurePhysics:false,
     physics: {
       barnesHut: {
         enabled: true,
@@ -471,6 +472,7 @@ Graph.prototype.setOptions = function (options) {
     if (options.stabilize !== undefined)       {this.stabilize = options.stabilize;}
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
     if (options.smoothCurves !== undefined)    {this.constants.smoothCurves = options.smoothCurves;}
+    if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
 
     if (options.onAdd) {
         this.triggerFunctions.add = options.onAdd;
@@ -1184,7 +1186,7 @@ Graph.prototype.setSize = function(width, height) {
     this.manipulationDiv.style.width = this.frame.canvas.clientWidth;
   }
 
-  this.emit('frameResize', {width:this.frame.canvas.width,height:this.frame.canvas.height});
+  this.emit('resize', {width:this.frame.canvas.width,height:this.frame.canvas.height});
 };
 
 /**

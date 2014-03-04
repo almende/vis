@@ -275,5 +275,22 @@ var HierarchicalLayoutMixin = {
         }
       }
     }
+  },
+
+
+  /**
+   * Unfix nodes
+   *
+   * @private
+   */
+  _restoreNodes : function() {
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        this.nodes[nodeId].xFixed = false;
+        this.nodes[nodeId].yFixed = false;
+      }
+    }
   }
+
+
 };

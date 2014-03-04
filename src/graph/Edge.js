@@ -32,6 +32,7 @@ function Edge (properties, graph, constants) {
   this.width  = constants.edges.width;
   this.value  = undefined;
   this.length = constants.physics.springLength;
+  this.customLength = false;
   this.selected = false;
   this.smooth = constants.smoothCurves;
 
@@ -87,7 +88,8 @@ Edge.prototype.setProperties = function(properties, constants) {
   if (properties.title !== undefined)        {this.title = properties.title;}
   if (properties.width !== undefined)        {this.width = properties.width;}
   if (properties.value !== undefined)        {this.value = properties.value;}
-  if (properties.length !== undefined)       {this.length = properties.length;}
+  if (properties.length !== undefined)       {this.length = properties.length;
+                                              this.customLength = true;}
 
   // Added to support dashed lines
   // David Jordan
@@ -231,7 +233,7 @@ Edge.prototype._drawLine = function(ctx) {
   ctx.lineWidth = this._getLineWidth();
 
   var point;
-  if (this.from != this.to+9) {
+  if (this.from != this.to) {
     // draw line
     this._line(ctx);
 

@@ -24,7 +24,7 @@ var hierarchalRepulsionMixin = {
 
 
     // repulsing forces between nodes
-    var nodeDistance = this.constants.physics.repulsion.nodeDistance;
+    var nodeDistance = this.constants.physics.hierarchicalRepulsion.nodeDistance;
     var minimumDistance = nodeDistance;
 
     // we loop from i over all but the last entree in the array

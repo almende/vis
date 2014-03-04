@@ -402,6 +402,7 @@ var SelectionMixin = {
         this._unselectAll();
       }
     }
+    this.emit("click", this.getSelection());
     this._redraw();
   },
 
@@ -420,6 +421,7 @@ var SelectionMixin = {
                           "y" : this._canvasToY(pointer.y)};
       this.openCluster(node);
     }
+    this.emit("doubleClick", this.getSelection());
   },
 
 

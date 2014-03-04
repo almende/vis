@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-  <title>Graph | Random nodes</title>
+  <title>Graph | Playing with Physics</title>
 
   <style type="text/css">
     body {
@@ -80,6 +80,7 @@
     edges: {
     },
     stabilize: false,
+    configurePhysics:true
     };
       graph = new vis.Graph(container, data, options);
 
@@ -92,6 +93,16 @@
 </head>
 
 <body onload="draw();">
+
+<h2>Playing with Physics</h2>
+<div style="width: 700px; font-size:14px;">
+    Every dataset is different. Nodes can have different sizes based on content, interconnectivity can be high or low etc. Because of this, graph has a special option
+    that the user can use to explore which settings may be good for him or her. This is ment to be used during the development phase when you are implementing vis.js. Once you have found
+    settings you are happy with, you can supply them to graph using the documented physics options.
+
+    On start, the default settings will be loaded. Keep in mind that selecting the hierarchical simulation mode <b>disables</b> smooth curves. These will not be enabled again afterwards.
+</div>
+<br />
 <form onsubmit="draw(); return false;">
   <label for="nodeCount">Number of nodes:</label>
   <input id="nodeCount" type="text" value="25" style="width: 50px;">
