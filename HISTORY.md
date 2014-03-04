@@ -1,6 +1,15 @@
 vis.js history
 http://visjs.org
 
+## 2014-03-04, version 0.6.0
+
+### Graph
+
+- Added Physics Configuration option. This makes tweaking the physics system to suit your needs easier.
+- Click and doubleClick events.
+- Initial zoom bugfix.
+- Directions for Hierarchical layout.
+- Refactoring and bugfixes.
 
 ## 2014-02-20, version 0.5.1
 
