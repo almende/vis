@@ -1,6 +1,12 @@
 vis.js history
 http://visjs.org
 
+## 2014-03-04, version 0.6.1
+
+### Graph
+
+- Bugfix graphviz examples
+
 ## 2014-03-04, version 0.6.0
 
 ### Graph

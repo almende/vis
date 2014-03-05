@@ -386,8 +386,6 @@ Graph.prototype.zoomExtent = function(initialZoom, disableStart) {
   }
 
 
-
-  this.pinch.mousewheelScale = zoomLevel;
   this._setScale(zoomLevel);
   this._centerGraph(range);
   if (disableStart == false) {
@@ -1589,6 +1587,7 @@ Graph.prototype._getTranslation = function() {
  */
 Graph.prototype._setScale = function(scale) {
   this.scale = scale;
+  this.pinch.mousewheelScale = scale;
 };
 
 /**
