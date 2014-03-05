@@ -1185,6 +1185,8 @@ var nodes = [
     and the edges were modelled as springs. The new system employed the <a href="http://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation">Barnes-Hut</a> gravitational simulation model. The edges are still modelled as springs.
     To unify the physics system, the damping, repulsion distance and edge length have been combined in an physics option. To retain good behaviour, both the old repulsion model and the Barnes-Hut model have their own parameters.
     If no options for the physics system are supplied, the Barnes-Hut method will be used with the default parameters. If you want to customize the physics system easily, you can use the configurePhysics option.
+
+<p class="important_note">Note: if the behaviour of your graph is not the way you want it, use configurePhysics as described <u><a href="#PhysicsConfiguration">below</a></u> or by <u><a href="../examples/graph/25_physics_configuration.html">example 25</a></u>.</p>
 </p>
 <pre class="prettyprint">
 // These variables must be defined in an options object named physics.
@@ -1296,7 +1298,17 @@ var options = {
         <td>This is the damping constant. It is used to dissipate energy from the system to have it settle in an equilibrium. More information is available <a href="http://en.wikipedia.org/wiki/Damping" target="_blank">here</a>.</td>
     </tr>
 </table>
+<h4 id="PhysicsConfiguration">Configuration:</h5>
+Every dataset is different. Nodes can have different sizes based on content, interconnectivity can be high or low etc. Because of this, graph has a special option
+that the user can use to explore which settings may be good for him or her. This is ment to be used during the development phase when you are implementing vis.js. Once you have found
+settings you are happy with, you can supply them to graph using the physics options as described above.
 
+On start, the default settings will be loaded. Keep in mind that selecting the hierarchical simulation mode <b>disables</b> smooth curves. These will not be enabled again afterwards.
+<pre class="prettyprint">
+var options = {
+    configurePhysics:true
+}
+</pre>
 <h3 id="Data_manipulation">Data manipulation</h3>
 <p>
     By using the data manipulation feature of the graph you can dynamically create nodes, connect nodes with edges, edit nodes or delete nodes and edges.
