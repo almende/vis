@@ -61,7 +61,11 @@ function ItemSet(parent, depends, options) {
     }
   };
 
-  this.items = {};      // object with an Item for every data item
+  this.items = {};        // object with an Item for every data item
+  this.orderedItems = []; // ordered items
+  this.visibleItems = []; // visible, ordered items
+  this.visibleItemsStart = 0; // start index of visible items in this.orderedItems
+  this.visibleItemsEnd = 0;   // start index of visible items in this.orderedItems
   this.selection = [];  // list with the ids of all selected nodes
   this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
   this.stack = new Stack(this, Object.create(this.options));
@@ -141,25 +145,6 @@ ItemSet.prototype.setController = function setController (controller) {
     }
   }
 };
-
-// attach event listeners for dragging items to the controller
-(function (me) {
-  var _controller = null;
-  var _onDragStart = null;
-  var _onDrag = null;
-  var _onDragEnd = null;
-
-  Object.defineProperty(me, 'controller', {
-    get: function () {
-      return _controller;
-    },
-
-    set: function (controller) {
-
-    }
-  });
-}) (this);
-
 
 /**
  * Set range (start and end).
@@ -245,7 +230,6 @@ ItemSet.prototype.repaint = function repaint() {
       asSize = util.option.asSize,
       options = this.options,
       orientation = this.getOption('orientation'),
-      defaultOptions = this.defaultOptions,
       frame = this.frame;
 
   if (!frame) {
@@ -314,105 +298,56 @@ ItemSet.prototype.repaint = function repaint() {
 
   this._updateConversion();
 
-  var me = this,
-      queue = this.queue,
-      itemsData = this.itemsData,
-      items = this.items,
-      dataOptions = {
-        // TODO: cleanup
-        // fields: [(itemsData && itemsData.fieldId || 'id'), 'start', 'end', 'content', 'type', 'className']
-      };
+  // find start of visible items
+  var start = this.visibleItemsStart;
+  var item = this.orderedItems[start];
+  while (item && item.isVisible() && start > 0) {
+    start--;
+    item = this.orderedItems[start];
+  }
+  while (item && !item.isVisible()) {
+    if (item.displayed) item.hide();
 
-  // show/hide added/changed/removed items
-  for (var id in queue) {
-    if (queue.hasOwnProperty(id)) {
-      var entry = queue[id],
-          item = items[id],
-          action = entry.action;
+    start++;
+    item = this.orderedItems[start];
+  }
+  this.visibleItemsStart = start;
 
-      //noinspection FallthroughInSwitchStatementJS
-      switch (action) {
-        case 'add':
-        case 'update':
-          var itemData = itemsData && itemsData.get(id, dataOptions);
+  // find end of visible items
+  var end = Math.max(this.visibleItemsStart, this.visibleItemsEnd);
+  item = this.orderedItems[end];
+  while (item && item.isVisible()) {
+    end++;
+    item = this.orderedItems[end];
+  }
+  item = this.orderedItems[end - 1];
+  while (item && !item.isVisible() && end > 0) {
+    if (item.displayed) item.hide();
 
-          if (itemData) {
-            var type = itemData.type ||
-                (itemData.start && itemData.end && 'range') ||
-                options.type ||
-                'box';
-            var constructor = ItemSet.types[type];
+    end--;
+    item = this.orderedItems[end - 1];
+  }
+  this.visibleItemsEnd = end;
 
-            // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
-            if (item) {
-              // update item
-              if (!constructor || !(item instanceof constructor)) {
-                // item type has changed, hide and delete the item
-                changed += item.hide();
-                item = null;
-              }
-              else {
-                item.data = itemData; // TODO: create a method item.setData ?
-                changed++;
-              }
-            }
+  console.log('visible items', start, end); // TODO: cleanup
 
-            if (!item) {
-              // create item
-              if (constructor) {
-                item = new constructor(me, itemData, options, defaultOptions);
-                item.id = entry.id; // we take entry.id, as id itself is stringified
-                changed++;
-              }
-              else {
-                throw new TypeError('Unknown item type "' + type + '"');
-              }
-            }
+  this.visibleItems = this.orderedItems.slice(start, end);
 
-            // force a repaint (not only a reposition)
-            item.repaint();
-
-            items[id] = item;
-          }
-
-          // update queue
-          delete queue[id];
-          break;
-
-        case 'remove':
-          if (item) {
-            // remove the item from the set selected items
-            if (item.selected) {
-              me._deselect(id);
-            }
-
-            // remove DOM of the item
-            changed += item.hide();
-          }
-
-          // update lists
-          delete items[id];
-          delete queue[id];
-          break;
-
-        default:
-          console.log('Error: unknown action "' + action + '"');
-      }
-    }
+  // show visible items
+  for (var i = start; i < end; i++) {
+    var item = this.orderedItems[i];
+    if (!item.displayed) item.show();
+    item.top = null; // TODO: do not re-stack every time, only on scroll
   }
 
-  // reposition all items. Show items only when in the visible area
-  util.forEach(this.items, function (item) {
-    if (item.visible) {
-      changed += item.show();
-      item.reposition();
-    }
-    else {
-      changed += item.hide();
-    }
-  });
+  // reposition visible items
+  for (var i = start; i < end; i++) {
+    var item = this.orderedItems[i];
+    this.stack.stack(item, this.visibleItems);
+    item.reposition();
+  }
 
-  return (changed > 0);
+  return false;
 };
 
 /**
@@ -456,13 +391,15 @@ ItemSet.prototype.reflow = function reflow () {
   if (frame) {
     this._updateConversion();
 
+    /* TODO
     util.forEach(this.items, function (item) {
       changed += item.reflow();
     });
+    */
 
     // TODO: stack.update should be triggered via an event, in stack itself
     // TODO: only update the stack when there are changed items
-    this.stack.update();
+    //this.stack.update();
 
     var maxHeight = asNumber(options.maxHeight);
     var fixedHeight = (asSize(options.height) != null);
@@ -473,7 +410,8 @@ ItemSet.prototype.reflow = function reflow () {
     else {
       // height is not specified, determine the height from the height and positioned items
       var visibleItems = this.stack.ordered; // TODO: not so nice way to get the filtered items
-      if (visibleItems.length) {
+      //if (visibleItems.length) { // TODO: calculate max height again
+      if (false) {
         var min = visibleItems[0].top;
         var max = visibleItems[0].top + visibleItems[0].height;
         util.forEach(visibleItems, function (item) {
@@ -489,6 +427,7 @@ ItemSet.prototype.reflow = function reflow () {
     if (maxHeight != null) {
       height = Math.min(height, maxHeight);
     }
+    height = 200; // TODO: cleanup
     changed += update(this, 'height', height);
 
     // calculate height from items
@@ -500,7 +439,7 @@ ItemSet.prototype.reflow = function reflow () {
     changed += 1;
   }
 
-  return (changed > 0);
+  return false;
 };
 
 /**
@@ -599,17 +538,65 @@ ItemSet.prototype.removeItem = function removeItem (id) {
  * @private
  */
 ItemSet.prototype._onUpdate = function _onUpdate(ids) {
-  this._toQueue('update', ids);
+  var me = this,
+      defaultOptions = {
+        type: 'box',
+        align: 'center',
+        orientation: 'bottom',
+        margin: {
+          axis: 20,
+          item: 10
+        },
+        padding: 5
+      };
+
+  ids.forEach(function (id) {
+    var itemData = me.itemsData.get(id),
+        item = items[id],
+        type = itemData.type ||
+            (itemData.start && itemData.end && 'range') ||
+            options.type ||
+            'box';
+
+    var constructor = ItemSet.types[type];
+
+    // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
+    if (item) {
+      // update item
+      if (!constructor || !(item instanceof constructor)) {
+        // item type has changed, hide and delete the item
+        item.hide();
+        item = null;
+      }
+      else {
+        item.data = itemData; // TODO: create a method item.setData ?
+      }
+    }
+
+    if (!item) {
+      // create item
+      if (constructor) {
+        item = new constructor(me, itemData, options, defaultOptions);
+        item.id = id;
+      }
+      else {
+        throw new TypeError('Unknown item type "' + type + '"');
+      }
+    }
+
+    me.items[id] = item;
+  });
+
+  this._order();
+  this.repaint();
 };
 
 /**
- * Handle changed items
+ * Handle added items
  * @param {Number[]} ids
  * @private
  */
-ItemSet.prototype._onAdd = function _onAdd(ids) {
-  this._toQueue('add', ids);
-};
+ItemSet.prototype._onAdd = ItemSet.prototype._onUpdate;
 
 /**
  * Handle removed items
@@ -617,28 +604,27 @@ ItemSet.prototype._onAdd = function _onAdd(ids) {
  * @private
  */
 ItemSet.prototype._onRemove = function _onRemove(ids) {
-  this._toQueue('remove', ids);
+  var me = this;
+  ids.forEach(function (id) {
+    var item = me.items[id];
+    if (item) {
+      item.hide(); // TODO: only hide when displayed
+      delete me.items[id];
+      delete me.visibleItems[id];
+    }
+  });
+
+  this._order();
 };
 
 /**
- * Put items in the queue to be added/updated/remove
- * @param {String} action     can be 'add', 'update', 'remove'
- * @param {Number[]} ids
+ * Order the items
+ * @private
  */
-ItemSet.prototype._toQueue = function _toQueue(action, ids) {
-  var queue = this.queue;
-  ids.forEach(function (id) {
-    queue[id] = {
-      id: id,
-      action: action
-    };
-  });
-
-  if (this.controller) {
-    //this.requestReflow();
-    this.requestRepaint();
-  }
-};
+ItemSet.prototype._order = function _order() {
+  // reorder the items
+  this.orderedItems = this.stack.order(this.items);
+}
 
 /**
  * Calculate the scale and offset to convert a position on screen to the

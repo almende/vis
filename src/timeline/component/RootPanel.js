@@ -150,8 +150,10 @@ RootPanel.prototype._watch = function () {
 
     if (me.frame) {
       // check whether the frame is resized
-      if ((me.frame.clientWidth != me.width) ||
-          (me.frame.clientHeight != me.height)) {
+      if ((me.frame.clientWidth != me.lastWidth) ||
+          (me.frame.clientHeight != me.lastHeight)) {
+        me.lastWidth = me.frame.clientWidth;
+        me.lastHeight = me.frame.clientHeight;
         me.requestReflow();
       }
     }
