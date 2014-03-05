@@ -1,6 +1,6 @@
 {
   "name": "vis",
-  "version": "0.6.0-SNAPSHOT",
+  "version": "0.7.0-SNAPSHOT",
   "description": "A dynamic, browser-based visualization library.",
   "homepage": "http://visjs.org/",
   "repository": {
@@ -28,6 +28,7 @@
   "devDependencies": {
     "jake": "latest",
     "jake-utils": "latest",
+    "clean-css": "latest",
     "browserify": "3.22",
     "wrench": "latest",
     "moment": "latest",

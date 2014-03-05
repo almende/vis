@@ -28,7 +28,7 @@ This generates the vis.js library in the folder `./dist`.
 
 - Commit the changes to the `develop` branch.
 - Merge the `develop` branch into the `master` branch.
-- Push the brances to github
+- Push the branches to github
 - Create a version tag (with the new version number) and push it to github:
 
         git tag v0.3.0

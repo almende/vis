@@ -1,13 +1,14 @@
 vis.js history
 http://visjs.org
 
-## 2014-03-04, version 0.6.1
+
+## 2014-03-05, version 0.6.1
 
 ### Graph
 
 - Bugfix graphviz examples
 
-## 2014-03-04, version 0.6.0
+## 2014-03-05, version 0.6.0
 
 ### Graph
 
@@ -16,6 +17,7 @@ http://visjs.org
 - Initial zoom bugfix.
 - Directions for Hierarchical layout.
 - Refactoring and bugfixes.
+
 
 ## 2014-02-20, version 0.5.1
 
