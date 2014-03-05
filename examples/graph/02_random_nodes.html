@@ -75,21 +75,11 @@
         nodes: nodes,
         edges: edges
       };
-        /*
-      var options = {
-        nodes: {
-          shape: 'circle'
-        },
-        edges: {
-          length: 50
-        },
-        stabilize: false
-      };
-      */
+
     var options = {
     edges: {
     },
-    stabilize: false
+    stabilize: false,
     };
       graph = new vis.Graph(container, data, options);
 
@@ -107,6 +97,7 @@
   <input id="nodeCount" type="text" value="25" style="width: 50px;">
   <input type="submit" value="Go">
 </form>
+
 <br>
 
 <div id="mygraph"></div>

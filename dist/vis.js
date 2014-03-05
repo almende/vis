@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.5.1
- * @date    2014-02-20
+ * @version 0.6.0
+ * @date    2014-03-05
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -10445,6 +10445,7 @@ function Edge (properties, graph, constants) {
   this.width  = constants.edges.width;
   this.value  = undefined;
   this.length = constants.physics.springLength;
+  this.customLength = false;
   this.selected = false;
   this.smooth = constants.smoothCurves;
 
@@ -10500,7 +10501,8 @@ Edge.prototype.setProperties = function(properties, constants) {
   if (properties.title !== undefined)        {this.title = properties.title;}
   if (properties.width !== undefined)        {this.width = properties.width;}
   if (properties.value !== undefined)        {this.value = properties.value;}
-  if (properties.length !== undefined)       {this.length = properties.length;}
+  if (properties.length !== undefined)       {this.length = properties.length;
+                                              this.customLength = true;}
 
   // Added to support dashed lines
   // David Jordan
@@ -10644,7 +10646,7 @@ Edge.prototype._drawLine = function(ctx) {
   ctx.lineWidth = this._getLineWidth();
 
   var point;
-  if (this.from != this.to+9) {
+  if (this.from != this.to) {
     // draw line
     this._line(ctx);
 
@@ -11388,6 +11390,50 @@ var physicsMixin = {
   },
 
 
+
+  /**
+   * This loads the node force solver based on the barnes hut or repulsion algorithm
+   *
+   * @private
+   */
+  _loadSelectedForceSolver : function() {
+    // this overloads the this._calculateNodeForces
+    if (this.constants.physics.barnesHut.enabled == true) {
+      this._clearMixin(repulsionMixin);
+      this._clearMixin(hierarchalRepulsionMixin);
+
+      this.constants.physics.centralGravity = this.constants.physics.barnesHut.centralGravity;
+      this.constants.physics.springLength   = this.constants.physics.barnesHut.springLength;
+      this.constants.physics.springConstant = this.constants.physics.barnesHut.springConstant;
+      this.constants.physics.damping        = this.constants.physics.barnesHut.damping;
+
+      this._loadMixin(barnesHutMixin);
+    }
+    else if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
+      this._clearMixin(barnesHutMixin);
+      this._clearMixin(repulsionMixin);
+
+      this.constants.physics.centralGravity = this.constants.physics.hierarchicalRepulsion.centralGravity;
+      this.constants.physics.springLength   = this.constants.physics.hierarchicalRepulsion.springLength;
+      this.constants.physics.springConstant = this.constants.physics.hierarchicalRepulsion.springConstant;
+      this.constants.physics.damping        = this.constants.physics.hierarchicalRepulsion.damping;
+
+      this._loadMixin(hierarchalRepulsionMixin);
+    }
+    else {
+      this._clearMixin(barnesHutMixin);
+      this._clearMixin(hierarchalRepulsionMixin);
+      this.barnesHutTree = undefined;
+
+      this.constants.physics.centralGravity = this.constants.physics.repulsion.centralGravity;
+      this.constants.physics.springLength   = this.constants.physics.repulsion.springLength;
+      this.constants.physics.springConstant = this.constants.physics.repulsion.springConstant;
+      this.constants.physics.damping        = this.constants.physics.repulsion.damping;
+
+      this._loadMixin(repulsionMixin);
+    }
+  },
+
   /**
    * Before calculating the forces, we check if we need to cluster to keep up performance and we check
    * if there is more than one node. If it is just one node, we dont calculate anything.
@@ -11526,7 +11572,7 @@ var physicsMixin = {
         if (edge.connected) {
           // only calculate forces if nodes are in the same sector
           if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
-            edgeLength = edge.length;
+            edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
             // this implies that the edges between big clusters are longer
             edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
 
@@ -11575,7 +11621,7 @@ var physicsMixin = {
               var node2 = edge.via;
               var node3 = edge.from;
 
-              edgeLength = edge.length;
+              edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
 
               combinedClusterSize = node1.clusterSize + node3.clusterSize - 2;
 
@@ -11608,6 +11654,10 @@ var physicsMixin = {
 
     springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
 
+    if (length == 0) {
+      length = 0.01;
+    }
+
     fx = dx * springForce;
     fy = dy * springForce;
 
@@ -11615,8 +11665,242 @@ var physicsMixin = {
     node1.fy += fy;
     node2.fx -= fx;
     node2.fy -= fy;
+  },
+
+
+  /**
+   * Load the HTML for the physics config and bind it
+   * @private
+   */
+  _loadPhysicsConfiguration : function() {
+    if (this.physicsConfiguration === undefined) {
+      this.physicsConfiguration = document.createElement('div');
+      this.physicsConfiguration.className = "PhysicsConfiguration";
+      this.physicsConfiguration.innerHTML = '' +
+        '<table><tr><td><b>Simulation Mode:</b></td></tr>' +
+        '<tr>' +
+        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod1" value="BH" checked="checked">Barnes Hut</td>' +
+        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod2" value="R">Repulsion</td>'+
+        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod3" value="H">Hierarchical</td>' +
+        '</tr>'+
+        '</table>' +
+        '<table id="graph_BH_table" style="display:none">'+
+        '<tr><td><b>Barnes Hut</b></td></tr>'+
+        '<tr>'+
+        '<td width="150px">gravitationalConstant</td><td>0</td><td><input type="range" min="500" max="20000" value="2000" step="25" style="width:300px" id="graph_BH_gc"></td><td  width="50px">-20000</td><td><input value="-2000" id="graph_BH_gc_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="0.3" step="0.05"  style="width:300px" id="graph_BH_cg"></td><td>3</td><td><input value="0.03" id="graph_BH_cg_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="100" step="1" style="width:300px" id="graph_BH_sl"></td><td>500</td><td><input value="100" id="graph_BH_sl_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="0.05" step="0.005" style="width:300px" id="graph_BH_sc"></td><td>0.5</td><td><input value="0.05" id="graph_BH_sc_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="0.09" step="0.005" style="width:300px" id="graph_BH_damp"></td><td>0.3</td><td><input value="0.09" id="graph_BH_damp_value" style="width:60px"></td>'+
+        '</tr>'+
+        '</table>'+
+        '<table id="graph_R_table" style="display:none">'+
+        '<tr><td><b>Repulsion</b></td></tr>'+
+        '<tr>'+
+        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="100" step="1" style="width:300px" id="graph_R_nd"></td><td width="50px">300</td><td><input value="100" id="graph_R_nd_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="0.1" step="0.05"  style="width:300px" id="graph_R_cg"></td><td>3</td><td><input value="0.01" id="graph_R_cg_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="200" step="1" style="width:300px" id="graph_R_sl"></td><td>500</td><td><input value="200" id="graph_R_sl_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="0.05" step="0.005" style="width:300px" id="graph_R_sc"></td><td>0.5</td><td><input value="0.05" id="graph_R_sc_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="0.09" step="0.005" style="width:300px" id="graph_R_damp"></td><td>0.3</td><td><input value="0.09" id="graph_R_damp_value" style="width:60px"></td>'+
+        '</tr>'+
+        '</table>'+
+        '<table id="graph_H_table" style="display:none">'+
+        '<tr><td width="150"><b>Hierarchical</b></td></tr>'+
+        '<tr>'+
+        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="60" step="1" style="width:300px" id="graph_H_nd"></td><td width="50px">300</td><td><input value="60" id="graph_H_nd_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="0" step="0.05"  style="width:300px" id="graph_H_cg"></td><td>3</td><td><input value="0" id="graph_H_cg_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="100" step="1" style="width:300px" id="graph_H_sl"></td><td>500</td><td><input value="100" id="graph_H_sl_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="0.01" step="0.005" style="width:300px" id="graph_H_sc"></td><td>0.5</td><td><input value="0.01" id="graph_H_sc_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="0.09" step="0.005" style="width:300px" id="graph_H_damp"></td><td>0.3</td><td><input value="0.09" id="graph_H_damp_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">direction</td><td>1</td><td><input type="range" min="0" max="3" value="0" step="1" style="width:300px" id="graph_H_direction"></td><td>4</td><td><input value="LR" id="graph_H_direction_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">levelSeparation</td><td>1</td><td><input type="range" min="0" max="500" value="150" step="1" style="width:300px" id="graph_H_levsep"></td><td>500</td><td><input value="150" id="graph_H_levsep_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">nodeSpacing</td><td>1</td><td><input type="range" min="0" max="500" value="100" step="1" style="width:300px" id="graph_H_nspac"></td><td>500</td><td><input value="100" id="graph_H_nspac_value" style="width:60px"></td>'+
+        '</tr>'+
+        '</table>'
+      this.containerElement.parentElement.insertBefore(this.physicsConfiguration,this.containerElement);
+
+
+      var hierarchicalLayoutDirections = ["LR","RL","UD","DU"];
+      var rangeElement;
+      rangeElement = document.getElementById('graph_BH_gc');
+      rangeElement.innerHTML = this.constants.physics.barnesHut.gravitationalConstant;
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_gc',-1,"physics_barnesHut_gravitationalConstant");
+      rangeElement = document.getElementById('graph_BH_cg');
+      rangeElement.innerHTML = this.constants.physics.barnesHut.centralGravity;
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_cg',1,"physics_centralGravity");
+      rangeElement = document.getElementById('graph_BH_sc');
+      rangeElement.innerHTML = this.constants.physics.barnesHut.springConstant;
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_sc',1,"physics_springConstant");
+      rangeElement = document.getElementById('graph_BH_sl');
+      rangeElement.innerHTML = this.constants.physics.barnesHut.springLength;
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_sl',1,"physics_springLength");
+      rangeElement = document.getElementById('graph_BH_damp');
+      rangeElement.innerHTML = this.constants.physics.barnesHut.damping;
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_damp',1,"physics_damping");
+
+
+      rangeElement = document.getElementById('graph_R_nd');
+      rangeElement.innerHTML = this.constants.physics.repulsion.nodeDistance;
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_R_nd',1,"physics_repulsion_nodeDistance");
+      rangeElement = document.getElementById('graph_R_cg');
+      rangeElement.innerHTML = this.constants.physics.repulsion.centralGravity;
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_R_cg',1,"physics_centralGravity");
+      rangeElement = document.getElementById('graph_R_sc');
+      rangeElement.innerHTML = this.constants.physics.repulsion.springConstant;
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_R_sc',1,"physics_springConstant");
+      rangeElement = document.getElementById('graph_R_sl');
+      rangeElement.innerHTML = this.constants.physics.repulsion.springLength;
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_R_sl',1,"physics_springLength");
+      rangeElement = document.getElementById('graph_R_damp');
+      rangeElement.innerHTML = this.constants.physics.repulsion.damping;
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_R_damp',1,"physics_damping");
+
+      rangeElement = document.getElementById('graph_H_nd');
+      rangeElement.innerHTML = this.constants.physics.hierarchicalRepulsion.nodeDistance;
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_nd',1,"physics_hierarchicalRepulsion_nodeDistance");
+      rangeElement = document.getElementById('graph_H_cg');
+      rangeElement.innerHTML = this.constants.physics.hierarchicalRepulsion.centralGravity;
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_cg',1,"physics_centralGravity");
+      rangeElement = document.getElementById('graph_H_sc');
+      rangeElement.innerHTML = this.constants.physics.hierarchicalRepulsion.springConstant;
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_sc',1,"physics_springConstant");
+      rangeElement = document.getElementById('graph_H_sl');
+      rangeElement.innerHTML = this.constants.physics.hierarchicalRepulsion.springLength;
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_sl',1,"physics_springLength");
+      rangeElement = document.getElementById('graph_H_damp');
+      rangeElement.innerHTML = this.constants.physics.hierarchicalRepulsion.damping;
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_damp',1,"physics_damping");
+      rangeElement = document.getElementById('graph_H_direction');
+      rangeElement.innerHTML = hierarchicalLayoutDirections.indexOf(this.constants.hierarchicalLayout.direction);
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_direction',hierarchicalLayoutDirections,"hierarchicalLayout_direction");
+      rangeElement = document.getElementById('graph_H_levsep');
+      rangeElement.innerHTML = this.constants.hierarchicalLayout.levelSeparation;
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_levsep',1,"hierarchicalLayout_levelSeparation");
+      rangeElement = document.getElementById('graph_H_nspac');
+      rangeElement.innerHTML = this.constants.hierarchicalLayout.nodeSpacing;
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_nspac',1,"hierarchicalLayout_nodeSpacing");
+
+      var radioButton1 = document.getElementById("graph_physicsMethod1");
+      var radioButton2 = document.getElementById("graph_physicsMethod2");
+      var radioButton3 = document.getElementById("graph_physicsMethod3");
+
+      radioButton2.checked = true;
+      if (this.constants.physics.barnesHut.enabled) {
+        radioButton1.checked = true;
+      }
+      if (this.constants.hierarchicalLayout.enabled) {
+        radioButton3.checked = true;
+      }
+
+      switchConfigurations.apply(this);
+
+      radioButton1.onchange = switchConfigurations.bind(this);
+      radioButton2.onchange = switchConfigurations.bind(this);
+      radioButton3.onchange = switchConfigurations.bind(this);
+    }
+  },
+
+  _overWriteGraphConstants : function(constantsVariableName, value) {
+    var nameArray = constantsVariableName.split("_");
+    if (nameArray.length == 1) {
+      this.constants[nameArray[0]] = value;
+    }
+    else if (nameArray.length == 2) {
+      this.constants[nameArray[0]][nameArray[1]] = value;
+    }
+    else if (nameArray.length == 3) {
+      this.constants[nameArray[0]][nameArray[1]][nameArray[2]] = value;
+    }
   }
 }
+
+
+function switchConfigurations () {
+  var ids = ["graph_BH_table","graph_R_table","graph_H_table"]
+  var radioButton = document.querySelector('input[name="graph_physicsMethod"]:checked').value;
+  var tableId = "graph_" + radioButton + "_table";
+  var table = document.getElementById(tableId);
+  table.style.display = "block";
+  for (var i = 0; i < ids.length; i++) {
+    if (ids[i] != tableId) {
+      table = document.getElementById(ids[i]);
+      table.style.display = "none";
+    }
+  }
+  this._restoreNodes();
+  if (radioButton == "R") {
+    this.constants.hierarchicalLayout.enabled = false;
+    this.constants.physics.hierarchicalRepulsion.enabeled = false;
+    this.constants.physics.barnesHut.enabled = false;
+  }
+  else if (radioButton == "H") {
+    this.constants.hierarchicalLayout.enabled = true;
+    this.constants.physics.hierarchicalRepulsion.enabeled = true;
+    this.constants.physics.barnesHut.enabled = false;
+    this._setupHierarchicalLayout();
+  }
+  else {
+    this.constants.hierarchicalLayout.enabled = false;
+    this.constants.physics.hierarchicalRepulsion.enabeled = false;
+    this.constants.physics.barnesHut.enabled = true;
+  }
+  this._loadSelectedForceSolver();
+  this.moving = true;
+  this.start();
+}
+
+function showValueOfRange (id,map,constantsVariableName) {
+  var valueId = id + "_value";
+  var rangeValue = document.getElementById(id).value;
+  if (constantsVariableName == "hierarchicalLayout_direction" ||
+      constantsVariableName == "hierarchicalLayout_levelSeparation" ||
+      constantsVariableName == "hierarchicalLayout_nodeSpacing") {
+    this._setupHierarchicalLayout();
+  }
+
+  if (map instanceof Array) {
+    document.getElementById(valueId).value = map[parseInt(rangeValue)];
+    this._overWriteGraphConstants(constantsVariableName,map[parseInt(rangeValue)]);
+  }
+  else {
+    document.getElementById(valueId).value = map * parseFloat(rangeValue);
+    this._overWriteGraphConstants(constantsVariableName,map * parseFloat(rangeValue));
+  }
+  this.moving = true;
+  this.start();
+};
+
+
 /**
  * Created by Alex on 2/10/14.
  */
@@ -11643,7 +11927,7 @@ var hierarchalRepulsionMixin = {
 
 
     // repulsing forces between nodes
-    var nodeDistance = this.constants.physics.repulsion.nodeDistance;
+    var nodeDistance = this.constants.physics.hierarchicalRepulsion.nodeDistance;
     var minimumDistance = nodeDistance;
 
     // we loop from i over all but the last entree in the array
@@ -12131,7 +12415,9 @@ var HierarchicalLayoutMixin = {
    */
   _setupHierarchicalLayout : function() {
     if (this.constants.hierarchicalLayout.enabled == true) {
-
+      if (this.constants.hierarchicalLayout.direction == "RL" || this.constants.hierarchicalLayout.direction == "DU") {
+        this.constants.hierarchicalLayout.levelSeparation *= -1;
+      }
       // get the size of the largest hubs and check if the user has defined a level for a node.
       var hubsize = 0;
       var node, nodeId;
@@ -12156,7 +12442,7 @@ var HierarchicalLayoutMixin = {
       // if the user defined some levels but not all, alert and run without hierarchical layout
       if (undefinedLevel == true && definedLevel == true) {
         alert("To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.")
-        this.zoomToFit(true,this.constants.clustering.enabled);
+        this.zoomExtent(true,this.constants.clustering.enabled);
         if (!this.constants.clustering.enabled) {
           this.start();
         }
@@ -12195,33 +12481,28 @@ var HierarchicalLayoutMixin = {
     for (nodeId in distribution[0].nodes) {
       if (distribution[0].nodes.hasOwnProperty(nodeId)) {
         node = distribution[0].nodes[nodeId];
-        if (node.xFixed) {
-          node.x = distribution[0].minPos;
-          distribution[0].minPos += distribution[0].nodeSpacing;
-          node.xFixed = false;
+        if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+          if (node.xFixed) {
+            node.x = distribution[0].minPos;
+            node.xFixed = false;
+
+            distribution[0].minPos += distribution[0].nodeSpacing;
+          }
+        }
+        else {
+          if (node.yFixed) {
+            node.y = distribution[0].minPos;
+            node.yFixed = false;
+
+            distribution[0].minPos += distribution[0].nodeSpacing;
+          }
         }
         this._placeBranchNodes(node.edges,node.id,distribution,node.level);
       }
     }
 
-    // give the nodes a defined width so the zoomToFit can be used. This size is arbitrary.
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        node.width = 100;
-        node.height = 100;
-      }
-    }
-
-    // stabilize the system after positioning. This function calls zoomToFit.
+    // stabilize the system after positioning. This function calls zoomExtent.
     this._doStabilize();
-
-    // reset the arbitrary width and height we gave the nodes.
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        this.nodes[nodeId]._reset();
-      }
-    }
   },
 
 
@@ -12242,7 +12523,12 @@ var HierarchicalLayoutMixin = {
         node = this.nodes[nodeId];
         node.xFixed = true;
         node.yFixed = true;
-        node.y = this.constants.hierarchicalLayout.levelSeparation*node.level;
+        if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+          node.y = this.constants.hierarchicalLayout.levelSeparation*node.level;
+        }
+        else {
+          node.x = this.constants.hierarchicalLayout.levelSeparation*node.level;
+        }
         if (!distribution.hasOwnProperty(node.level)) {
           distribution[node.level] = {amount: 0, nodes: {}, minPos:0, nodeSpacing:0};
         }
@@ -12345,9 +12631,23 @@ var HierarchicalLayoutMixin = {
       }
 
       // if a node is conneceted to another node on the same level (or higher (means lower level))!, this is not handled here.
-      if (childNode.xFixed && childNode.level > parentLevel) {
-        childNode.xFixed = false;
-        childNode.x = distribution[childNode.level].minPos;
+      var nodeMoved = false;
+      if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+        if (childNode.xFixed && childNode.level > parentLevel) {
+          childNode.xFixed = false;
+          childNode.x = distribution[childNode.level].minPos;
+          nodeMoved = true;
+        }
+      }
+      else {
+        if (childNode.yFixed && childNode.level > parentLevel) {
+          childNode.yFixed = false;
+          childNode.y = distribution[childNode.level].minPos;
+          nodeMoved = true;
+        }
+      }
+
+      if (nodeMoved == true) {
         distribution[childNode.level].minPos += distribution[childNode.level].nodeSpacing;
         if (childNode.edges.length > 1) {
           this._placeBranchNodes(childNode.edges,childNode.id,distribution,childNode.level);
@@ -12381,7 +12681,24 @@ var HierarchicalLayoutMixin = {
         }
       }
     }
+  },
+
+
+  /**
+   * Unfix nodes
+   *
+   * @private
+   */
+  _restoreNodes : function() {
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        this.nodes[nodeId].xFixed = false;
+        this.nodes[nodeId].yFixed = false;
+      }
+    }
   }
+
+
 };
 /**
  * Created by Alex on 2/4/14.
@@ -14914,6 +15231,7 @@ var SelectionMixin = {
         this._unselectAll();
       }
     }
+    this.emit("click", this.getSelection());
     this._redraw();
   },
 
@@ -14932,6 +15250,7 @@ var SelectionMixin = {
                           "y" : this._canvasToY(pointer.y)};
       this.openCluster(node);
     }
+    this.emit("doubleClick", this.getSelection());
   },
 
 
@@ -15095,7 +15414,7 @@ var NavigationMixin = {
 
     this.navigationDivs = {};
     var navigationDivs = ['up','down','left','right','zoomIn','zoomOut','zoomExtends'];
-    var navigationDivActions = ['_moveUp','_moveDown','_moveLeft','_moveRight','_zoomIn','_zoomOut','zoomToFit'];
+    var navigationDivActions = ['_moveUp','_moveDown','_moveLeft','_moveRight','_zoomIn','_zoomOut','zoomExtent'];
 
     this.navigationDivs['wrapper'] = document.createElement('div');
     this.navigationDivs['wrapper'].id = "graph-navigation_wrapper";
@@ -15286,51 +15605,12 @@ var graphMixinLoaders = {
   _loadPhysicsSystem : function() {
     this._loadMixin(physicsMixin);
     this._loadSelectedForceSolver();
+    if (this.constants.configurePhysics == true) {
+      this._loadPhysicsConfiguration();
+    }
    },
 
 
-  /**
-   * This loads the node force solver based on the barnes hut or repulsion algorithm
-   *
-   * @private
-   */
-  _loadSelectedForceSolver : function() {
-    // this overloads the this._calculateNodeForces
-    if (this.constants.physics.barnesHut.enabled == true) {
-      this._clearMixin(repulsionMixin);
-      this._clearMixin(hierarchalRepulsionMixin);
-
-      this.constants.physics.centralGravity = this.constants.physics.barnesHut.centralGravity;
-      this.constants.physics.springLength   = this.constants.physics.barnesHut.springLength;
-      this.constants.physics.springConstant = this.constants.physics.barnesHut.springConstant;
-      this.constants.physics.damping        = this.constants.physics.barnesHut.damping;
-
-      this._loadMixin(barnesHutMixin);
-    }
-    else if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
-      this._clearMixin(barnesHutMixin);
-      this._clearMixin(repulsionMixin);
-
-      this.constants.physics.centralGravity = this.constants.physics.hierarchicalRepulsion.centralGravity;
-      this.constants.physics.springLength   = this.constants.physics.hierarchicalRepulsion.springLength;
-      this.constants.physics.springConstant = this.constants.physics.hierarchicalRepulsion.springConstant;
-      this.constants.physics.damping        = this.constants.physics.hierarchicalRepulsion.damping;
-
-      this._loadMixin(hierarchalRepulsionMixin);
-    }
-    else {
-      this._clearMixin(barnesHutMixin);
-      this._clearMixin(hierarchalRepulsionMixin);
-      this.barnesHutTree = undefined;
-
-      this.constants.physics.centralGravity = this.constants.physics.repulsion.centralGravity;
-      this.constants.physics.springLength   = this.constants.physics.repulsion.springLength;
-      this.constants.physics.springConstant = this.constants.physics.repulsion.springConstant;
-      this.constants.physics.damping        = this.constants.physics.repulsion.damping;
-
-      this._loadMixin(repulsionMixin);
-    }
-  },
 
 
   /**
@@ -15557,6 +15837,7 @@ function Graph (container, data, options) {
         altLength: undefined
       }
     },
+    configurePhysics:false,
     physics: {
       barnesHut: {
         enabled: true,
@@ -15622,7 +15903,8 @@ function Graph (container, data, options) {
     hierarchicalLayout: {
       enabled:false,
       levelSeparation: 150,
-      nodeSpacing: 100
+      nodeSpacing: 100,
+      direction: "UD"   // UD, DU, LR, RL
     },
     smoothCurves: true,
     maxVelocity:  10,
@@ -15727,9 +16009,10 @@ function Graph (container, data, options) {
   }
   else {
     // zoom so all data will fit on the screen, if clustering is enabled, we do not want start to be called here.
-    this.zoomToFit(true,this.constants.clustering.enabled);
+    if (this.stabilize == false) {
+      this.zoomExtent(true,this.constants.clustering.enabled);
+    }
   }
-
 
   // if clustering is disabled, the simulation will have started in the setData function
   if (this.constants.clustering.enabled) {
@@ -15773,10 +16056,10 @@ Graph.prototype._getRange = function() {
   for (var nodeId in this.nodes) {
     if (this.nodes.hasOwnProperty(nodeId)) {
       node = this.nodes[nodeId];
-      if (minX > (node.x - node.width)) {minX = node.x - node.width;}
-      if (maxX < (node.x + node.width)) {maxX = node.x + node.width;}
-      if (minY > (node.y - node.height)) {minY = node.y - node.height;}
-      if (maxY < (node.y + node.height)) {maxY = node.y + node.height;}
+      if (minX > (node.x)) {minX = node.x;}
+      if (maxX < (node.x)) {maxX = node.x;}
+      if (minY > (node.y)) {minY = node.y;}
+      if (maxY < (node.y)) {maxY = node.y;}
     }
   }
   return {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
@@ -15816,9 +16099,12 @@ Graph.prototype._centerGraph = function(range) {
  *
  * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
  */
-Graph.prototype.zoomToFit = function(initialZoom, disableStart) {
+Graph.prototype.zoomExtent = function(initialZoom, disableStart) {
   if (initialZoom === undefined) {
     initialZoom = false;
+  }
+  if (disableStart === undefined) {
+    disableStart = false;
   }
 
   var range = this._getRange();
@@ -15844,6 +16130,10 @@ Graph.prototype.zoomToFit = function(initialZoom, disableStart) {
         zoomLevel = 30.5062972 / (numberOfNodes + 19.93597763) + 0.08413486; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
       }
     }
+
+    // correct for larger canvasses.
+    var factor = Math.min(this.frame.canvas.clientWidth / 600, this.frame.canvas.clientHeight / 600);
+    zoomLevel *= factor;
   }
   else {
     var xDistance = (Math.abs(range.minX) + Math.abs(range.maxX)) * 1.1;
@@ -15859,10 +16149,12 @@ Graph.prototype.zoomToFit = function(initialZoom, disableStart) {
     zoomLevel = 1.0;
   }
 
+
+
   this.pinch.mousewheelScale = zoomLevel;
   this._setScale(zoomLevel);
   this._centerGraph(range);
-  if (disableStart == false || disableStart === undefined) {
+  if (disableStart == false) {
     this.moving = true;
     this.start();
   }
@@ -15944,6 +16236,7 @@ Graph.prototype.setOptions = function (options) {
     if (options.stabilize !== undefined)       {this.stabilize = options.stabilize;}
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
     if (options.smoothCurves !== undefined)    {this.constants.smoothCurves = options.smoothCurves;}
+    if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
 
     if (options.onAdd) {
         this.triggerFunctions.add = options.onAdd;
@@ -16394,7 +16687,6 @@ Graph.prototype._onTap = function (event) {
 Graph.prototype._onDoubleTap = function (event) {
   var pointer = this._getPointer(event.gesture.center);
   this._handleDoubleTap(pointer);
-
 };
 
 
@@ -16658,7 +16950,7 @@ Graph.prototype.setSize = function(width, height) {
     this.manipulationDiv.style.width = this.frame.canvas.clientWidth;
   }
 
-  this.emit('frameResize', {width:this.frame.canvas.width,height:this.frame.canvas.height});
+  this.emit('resize', {width:this.frame.canvas.width,height:this.frame.canvas.height});
 };
 
 /**
@@ -17181,7 +17473,7 @@ Graph.prototype._doStabilize = function() {
     count++;
   }
 
-  this.zoomToFit(false,true);
+  this.zoomExtent(false,true);
 };
 
 
@@ -17395,12 +17687,6 @@ Graph.prototype._initializeMixinLoaders = function () {
     }
   }
 };
-
-
-
-
-
-
 
 
 
