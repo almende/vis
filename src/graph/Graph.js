@@ -987,7 +987,6 @@ Graph.prototype._zoom = function(scale, pointer) {
   this.areaCenter = {"x" : this._canvasToX(pointer.x),
                      "y" : this._canvasToY(pointer.y)};
 
-  this.pinch.mousewheelScale = scale;
   this._setScale(scale);
   this._setTranslation(tx, ty);
   this.updateClustersDefault();
@@ -1019,12 +1018,9 @@ Graph.prototype._onMouseWheel = function(event) {
   // Basically, delta is now positive if wheel was scrolled up,
   // and negative, if wheel was scrolled down.
   if (delta) {
-    if (!('mousewheelScale' in this.pinch)) {
-      this.pinch.mousewheelScale = 1;
-    }
 
     // calculate the new scale
-    var scale = this.pinch.mousewheelScale;
+    var scale = this._getScale();
     var zoom = delta / 10;
     if (delta < 0) {
       zoom = zoom / (1 - zoom);
@@ -1037,9 +1033,6 @@ Graph.prototype._onMouseWheel = function(event) {
 
     // apply the new scale
     this._zoom(scale, pointer);
-
-    // store the new, applied scale -- this is now done in _zoom
-//    this.pinch.mousewheelScale = scale;
   }
 
   // Prevent default actions caused by mouse wheel.
@@ -1587,7 +1580,6 @@ Graph.prototype._getTranslation = function() {
  */
 Graph.prototype._setScale = function(scale) {
   this.scale = scale;
-  this.pinch.mousewheelScale = scale;
 };
 
 /**
