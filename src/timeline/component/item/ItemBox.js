@@ -170,9 +170,9 @@ ItemBox.prototype.show = function show() {
  * Hide the item from the DOM (when visible)
  */
 ItemBox.prototype.hide = function hide() {
-  var dom = this.dom;
-
   if (this.displayed) {
+    var dom = this.dom;
+
     if (dom.box.parentNode)   dom.box.parentNode.removeChild(dom.box);
     if (dom.line.parentNode)  dom.line.parentNode.removeChild(dom.line);
     if (dom.dot.parentNode)   dom.dot.parentNode.removeChild(dom.dot);
@@ -181,27 +181,22 @@ ItemBox.prototype.hide = function hide() {
   }
 
   this.top = null;
+  this.left = null;
 };
 
 /**
- * Reposition the item, recalculate its left, top, and width, using the current
- * range and size of the items ItemSet
- * @override
+ * Reposition the item horizontally
+ * @Override
  */
-ItemBox.prototype.reposition = function reposition() {
-  var dom = this.dom,
-      props = this.props,
-      options = this.options,
-      start = this.parent.toScreen(this.data.start) + this.offset,
-      align = options.align || this.defaultOptions.align,
-      orientation = this.options.orientation || this.defaultOptions.orientation,
-      left;
+ItemBox.prototype.repositionX = function repositionX() {
+  var start = this.parent.toScreen(this.data.start) + this.offset,
+      align = this.options.align || this.defaultOptions.align,
+      left,
+      box = this.dom.box,
+      line = this.dom.line,
+      dot = this.dom.dot;
 
-  var box = dom.box,
-      line = dom.line,
-      dot = dom.dot;
-
-  // calculate left and top position of the box
+  // calculate left position of the box
   if (align == 'right') {
     this.left = start - this.width;
   }
@@ -213,14 +208,30 @@ ItemBox.prototype.reposition = function reposition() {
     this.left = start - this.width / 2;
   }
 
-  // NOTE: this.top is determined when stacking items
-
   // reposition box
   box.style.left = this.left + 'px';
+
+  // reposition line
+  line.style.left = (start - this.props.line.width / 2) + 'px';
+
+  // reposition dot
+  dot.style.left = (start - this.props.dot.width / 2) + 'px';
+};
+
+/**
+ * Reposition the item vertically
+ * @Override
+ */
+ItemBox.prototype.repositionY = function repositionY () {
+  var orientation = this.options.orientation || this.defaultOptions.orientation,
+      box = this.dom.box,
+      line = this.dom.line,
+      dot = this.dom.dot;
+
+  // reposition box
   box.style.top = (this.top || 0) + 'px';
 
   // reposition line
-  line.style.left = (start - props.line.width / 2) + 'px';
   if (orientation == 'top') {
     line.style.top = 0 + 'px';
     line.style.height = this.top + 'px';
@@ -233,6 +244,5 @@ ItemBox.prototype.reposition = function reposition() {
   }
 
   // reposition dot
-  dot.style.left = (start - props.dot.width / 2) + 'px';
-  dot.style.top = (-props.dot.height / 2) + 'px';
-};
+  dot.style.top = (-this.props.dot.height / 2) + 'px';
+}

@@ -175,17 +175,19 @@ Stack.prototype._stack = function _stack (items) {
 };
 
 /**
- * Stack an item on top of given set of items
- * @param {Item} item
- * @param {Item[]} items
+ * Adjust vertical positions of the events such that they don't overlap each
+ * other.
+ * @param {Item[]} items           All visible items
  * @private
  */
-Stack.prototype.stack = function stack (item, items) {
-  var options = this.options,
+Stack.prototype.stack = function stack (items) {
+  var i,
+      iMax,
+      options = this.options,
       orientation = options.orientation || this.defaultOptions.orientation,
       axisOnTop = (orientation == 'top'),
       margin,
-      parentHeight = this.itemset.height; // TODO: should use the height of the itemsets parent
+      parentHeight = this.itemset.height;
 
   if (options.margin && options.margin.item !== undefined) {
     margin = options.margin.item;
@@ -194,30 +196,36 @@ Stack.prototype.stack = function stack (item, items) {
     margin = this.defaultOptions.margin.item
   }
 
-  // initialize top position
-  if (orientation == 'top') {
-    item.top = margin;
-  }
-  else {
-    // default or 'bottom'
-    item.top = parentHeight - item.height - 2 * margin;
-  }
-
-    // calculate new, non-overlapping position
-  do {
-    // TODO: optimize checking for overlap. when there is a gap without items,
-    //  you only need to check for items from the next item on, not from zero
-    var collidingItem = this.checkOverlap(item, items, margin);
-    if (collidingItem != null) {
-      // There is a collision. Reposition the event above the colliding element
+  // calculate new, non-overlapping positions
+  for (i = 0, iMax = items.length; i < iMax; i++) {
+    var item = items[i];
+    if (item.top === null) {
+      // initialize top position
       if (axisOnTop) {
-        item.top = collidingItem.top + collidingItem.height + margin;
+        item.top = margin;
       }
       else {
-        item.top = collidingItem.top - item.height - margin;
+        // default or 'bottom'
+        item.top = parentHeight - item.height - 2 * margin;
       }
+
+      var collidingItem;
+      do {
+        // TODO: optimize checking for overlap. when there is a gap without items,
+        //       you only need to check for items from the next item on, not from zero
+        collidingItem = this.checkOverlap (item, items, margin);
+        if (collidingItem != null) {
+          // There is a collision. Reposition the event above the colliding element
+          if (axisOnTop) {
+            item.top = collidingItem.top + collidingItem.height + margin;
+          }
+          else {
+            item.top = collidingItem.top - item.height - margin;
+          }
+        }
+      } while (collidingItem);
     }
-  } while (collidingItem);
+  }
 };
 
 /**
@@ -235,7 +243,7 @@ Stack.prototype.stack = function stack (item, items) {
 Stack.prototype.checkOverlap = function checkOverlap (item, items, margin) {
   for (var i = 0, ii = items.length; i < ii; i++) {
     var b = items[i];
-    if (b !== item && b.top !== null && this.collision(item, b, margin)) {
+    if (b.top !== null && b !== item && this.collision(item, b, margin)) {
       return b;
     }
   }

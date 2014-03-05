@@ -16,11 +16,11 @@ function Item (parent, data, options, defaultOptions) {
 
   this.selected = false;
   this.visible = false;
-  this.top = 0;
-  this.left = 0;
-  this.width = 0;
-  this.height = 0;
-  this.offset = 0;
+  this.top = null;
+  this.left = null;
+  this.width = null;
+  this.height = null;
+  this.offset = 0; // TODO: is offset still used or redundant?
 }
 
 /**
@@ -74,9 +74,24 @@ Item.prototype.reflow = function reflow() {
 };
 
 /**
+ * Reposition the Item horizontally
+ */
+Item.prototype.repositionX = function repositionX() {
+  // should be implemented by the item
+};
+
+/**
+ * Reposition the Item vertically
+ */
+Item.prototype.repositionY = function repositionY() {
+  // should be implemented by the item
+};
+
+/**
  * Give the item a display offset in pixels
  * @param {Number} offset    Offset on screen in pixels
  */
+// TODO: is setOffset redundant?
 Item.prototype.setOffset = function setOffset(offset) {
   this.offset = offset;
 };

@@ -232,6 +232,8 @@ ItemSet.prototype.repaint = function repaint() {
       orientation = this.getOption('orientation'),
       frame = this.frame;
 
+  this._updateConversion();
+
   if (!frame) {
     frame = document.createElement('div');
     frame.className = 'itemset';
@@ -296,8 +298,6 @@ ItemSet.prototype.repaint = function repaint() {
     changed += update(this.dom.axis.style, 'top', this.top + 'px');
   }
 
-  this._updateConversion();
-
   // find start of visible items
   var start = this.visibleItemsStart;
   var item = this.orderedItems[start];
@@ -333,18 +333,27 @@ ItemSet.prototype.repaint = function repaint() {
 
   this.visibleItems = this.orderedItems.slice(start, end);
 
+  // check whether zoomed (in that case we need to re-stack everything)
+  var visibleInterval = this.range.end - this.range.start;
+  var zoomed = this.visibleInterval != visibleInterval;
+  this.visibleInterval = visibleInterval;
+
   // show visible items
-  for (var i = start; i < end; i++) {
-    var item = this.orderedItems[i];
+  for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
+    var item = this.visibleItems[i];
+
     if (!item.displayed) item.show();
-    item.top = null; // TODO: do not re-stack every time, only on scroll
+    if (zoomed) item.top = null; // reset stacking position
+
+    // reposition item horizontally
+    item.repositionX();
   }
 
-  // reposition visible items
-  for (var i = start; i < end; i++) {
-    var item = this.orderedItems[i];
-    this.stack.stack(item, this.visibleItems);
-    item.reposition();
+  // reposition visible items vertically
+  // TODO: improve stacking, when moving the timeline to the right, update stacking in backward order
+  this.stack.stack(this.visibleItems);
+  for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
+    this.visibleItems[i].repositionY();
   }
 
   return false;
@@ -409,9 +418,8 @@ ItemSet.prototype.reflow = function reflow () {
     }
     else {
       // height is not specified, determine the height from the height and positioned items
-      var visibleItems = this.stack.ordered; // TODO: not so nice way to get the filtered items
-      //if (visibleItems.length) { // TODO: calculate max height again
-      if (false) {
+      var visibleItems = this.visibleItems; // TODO: not so nice way to get the filtered items
+      if (visibleItems.length) { // TODO: calculate max height again
         var min = visibleItems[0].top;
         var max = visibleItems[0].top + visibleItems[0].height;
         util.forEach(visibleItems, function (item) {
