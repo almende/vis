@@ -20,9 +20,6 @@ function ItemBox (parent, data, options, defaultOptions) {
     }
   };
 
-  this.displayed = false;
-  this.dirty = true;
-
   // validate data
   if (data.start == undefined) {
     throw new Error('Property "start" missing in item ' + data);

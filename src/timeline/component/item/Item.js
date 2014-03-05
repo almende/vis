@@ -15,7 +15,9 @@ function Item (parent, data, options, defaultOptions) {
   this.defaultOptions = defaultOptions || {};
 
   this.selected = false;
-  this.visible = false;
+  this.displayed = false;
+  this.dirty = true;
+
   this.top = null;
   this.left = null;
   this.width = null;
