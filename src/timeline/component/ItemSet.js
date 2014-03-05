@@ -299,7 +299,7 @@ ItemSet.prototype.repaint = function repaint() {
   }
 
   // find start of visible items
-  var start = this.visibleItemsStart;
+  var start = Math.min(this.visibleItemsStart, Math.max(this.orderedItems.length - 1, 0));
   var item = this.orderedItems[start];
   while (item && item.isVisible() && start > 0) {
     start--;
@@ -314,7 +314,7 @@ ItemSet.prototype.repaint = function repaint() {
   this.visibleItemsStart = start;
 
   // find end of visible items
-  var end = Math.max(this.visibleItemsStart, this.visibleItemsEnd);
+  var end = Math.max(Math.min(this.visibleItemsEnd, this.orderedItems.length), this.visibleItemsStart);
   item = this.orderedItems[end];
   while (item && item.isVisible()) {
     end++;
