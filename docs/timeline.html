@@ -310,7 +310,10 @@ var groups = [
 <pre class="prettyprint lang-js">
 var options = {
   width: '100%',
-  height: '30px'
+  height: '30px',
+  margin: {
+    item: 20
+  }
 };
 </pre>
 
@@ -476,7 +479,13 @@ var options = {
   <td>Number</td>
   <td>5</td>
   <td>The padding of items, needed to correctly calculate the size
-    of item ranges. Must correspond with the css of item ranges.</td>
+    of item ranges. Must correspond with the css of items, for example when setting <code>options.padding=10</code>, corresponding css is:
+  <pre class="prettyprint lang-css">
+.vis.timeline .item {
+  padding: 10px;
+}
+  </pre>
+  </td>
 </tr>
 
 <tr>
