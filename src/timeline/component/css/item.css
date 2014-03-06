@@ -50,7 +50,8 @@
   background: none;
 }
 
-.vis.timeline .dot {
+.vis.timeline .dot,
+.vis.timeline .item.dot {
   padding: 0;
   border: 5px solid #97B0F8;
   position: absolute;

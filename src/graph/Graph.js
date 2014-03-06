@@ -386,8 +386,6 @@ Graph.prototype.zoomExtent = function(initialZoom, disableStart) {
   }
 
 
-
-  this.pinch.mousewheelScale = zoomLevel;
   this._setScale(zoomLevel);
   this._centerGraph(range);
   if (disableStart == false) {
@@ -989,7 +987,6 @@ Graph.prototype._zoom = function(scale, pointer) {
   this.areaCenter = {"x" : this._canvasToX(pointer.x),
                      "y" : this._canvasToY(pointer.y)};
 
-  this.pinch.mousewheelScale = scale;
   this._setScale(scale);
   this._setTranslation(tx, ty);
   this.updateClustersDefault();
@@ -1021,12 +1018,9 @@ Graph.prototype._onMouseWheel = function(event) {
   // Basically, delta is now positive if wheel was scrolled up,
   // and negative, if wheel was scrolled down.
   if (delta) {
-    if (!('mousewheelScale' in this.pinch)) {
-      this.pinch.mousewheelScale = 1;
-    }
 
     // calculate the new scale
-    var scale = this.pinch.mousewheelScale;
+    var scale = this._getScale();
     var zoom = delta / 10;
     if (delta < 0) {
       zoom = zoom / (1 - zoom);
@@ -1039,9 +1033,6 @@ Graph.prototype._onMouseWheel = function(event) {
 
     // apply the new scale
     this._zoom(scale, pointer);
-
-    // store the new, applied scale -- this is now done in _zoom
-//    this.pinch.mousewheelScale = scale;
   }
 
   // Prevent default actions caused by mouse wheel.
@@ -1815,6 +1806,9 @@ Graph.prototype._animationStep = function() {
 };
 
 
+window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+                               window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+
 /**
  * Schedule a animation step with the refreshrate interval.
  *
@@ -1822,8 +1816,8 @@ Graph.prototype._animationStep = function() {
  */
 Graph.prototype.start = function() {
   if (this.moving || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0) {
-    if (!this.timer) {
-      this.timer = window.setTimeout(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+    if (!this.timer) { 
+      this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
     }
   }
   else {

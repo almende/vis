@@ -2,6 +2,32 @@ vis.js history
 http://visjs.org
 
 
+## 2014-03-06, version 0.6.1
+
+### Graph
+
+- Bugfix graphviz examples.
+- Bugfix labels position for smooth curves.
+- Tweaked graphviz example physics.
+- Updated physics documentation to stress importance of configurePhysics.
+
+### Timeline
+
+- Fixed a bug with options `margin.axis` and `margin.item` being ignored when setting them to zero.
+- Some clarifications in the documentation.
+
+
+## 2014-03-05, version 0.6.0
+
+### Graph
+
+- Added Physics Configuration option. This makes tweaking the physics system to suit your needs easier.
+- Click and doubleClick events.
+- Initial zoom bugfix.
+- Directions for Hierarchical layout.
+- Refactoring and bugfixes.
+
+
 ## 2014-02-20, version 0.5.1
 
 - Fixed broken bower module.

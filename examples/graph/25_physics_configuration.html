@@ -27,7 +27,7 @@
       var connectionCount = [];
 
       // randomly create some nodes and edges
-      var nodeCount = document.getElementById('nodeCount').value;
+      var nodeCount = 60;
       for (var i = 0; i < nodeCount; i++) {
         nodes.push({
           id: i,
@@ -103,14 +103,6 @@
     On start, the default settings will be loaded. Keep in mind that selecting the hierarchical simulation mode <b>disables</b> smooth curves. These will not be enabled again afterwards.
 </div>
 <br />
-<form onsubmit="draw(); return false;">
-  <label for="nodeCount">Number of nodes:</label>
-  <input id="nodeCount" type="text" value="25" style="width: 50px;">
-  <input type="submit" value="Go">
-</form>
-
-<br>
-
 <div id="mygraph"></div>
 
 <p id="selection"></p>
