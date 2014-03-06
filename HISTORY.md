@@ -6,7 +6,10 @@ http://visjs.org
 
 ### Graph
 
-- Bugfix graphviz examples
+- Bugfix graphviz examples.
+- Bugfix labels position for smooth curves.
+- Tweaked graphviz example physics.
+- Updated physics documentation to stress importance of configurePhysics.
 
 ## 2014-03-05, version 0.6.0
 

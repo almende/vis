@@ -232,14 +232,21 @@ Edge.prototype._drawLine = function(ctx) {
   ctx.strokeStyle = this.color;
   ctx.lineWidth = this._getLineWidth();
 
-  var point;
   if (this.from != this.to) {
     // draw line
     this._line(ctx);
 
     // draw label
+    var point;
     if (this.label) {
-      point = this._pointOnLine(0.5);
+      if (this.smooth == true) {
+        var midpointX = 0.5*(0.5*(this.from.x + this.via.x) + 0.5*(this.to.x + this.via.x));
+        var midpointY = 0.5*(0.5*(this.from.y + this.via.y) + 0.5*(this.to.y + this.via.y));
+        point = {x:midpointX, y:midpointY};
+      }
+      else {
+        point = this._pointOnLine(0.5);
+      }
       this._label(ctx, this.label, point.x, point.y);
     }
   }
@@ -422,7 +429,15 @@ Edge.prototype._drawDashLine = function(ctx) {
 
   // draw label
   if (this.label) {
-    var point = this._pointOnLine(0.5);
+    var point;
+    if (this.smooth == true) {
+      var midpointX = 0.5*(0.5*(this.from.x + this.via.x) + 0.5*(this.to.x + this.via.x));
+      var midpointY = 0.5*(0.5*(this.from.y + this.via.y) + 0.5*(this.to.y + this.via.y));
+      point = {x:midpointX, y:midpointY};
+    }
+    else {
+      point = this._pointOnLine(0.5);
+    }
     this._label(ctx, this.label, point.x, point.y);
   }
 };
@@ -493,7 +508,6 @@ Edge.prototype._drawArrowCenter = function(ctx) {
 
     // draw label
     if (this.label) {
-      point = this._pointOnLine(0.5);
       this._label(ctx, this.label, point.x, point.y);
     }
   }
@@ -597,7 +611,15 @@ Edge.prototype._drawArrow = function(ctx) {
 
     // draw label
     if (this.label) {
-      var point = this._pointOnLine(0.5);
+      var point;
+      if (this.smooth == true) {
+        var midpointX = 0.5*(0.5*(this.from.x + this.via.x) + 0.5*(this.to.x + this.via.x));
+        var midpointY = 0.5*(0.5*(this.from.y + this.via.y) + 0.5*(this.to.y + this.via.y));
+        point = {x:midpointX, y:midpointY};
+      }
+      else {
+        point = this._pointOnLine(0.5);
+      }
       this._label(ctx, this.label, point.x, point.y);
     }
   }

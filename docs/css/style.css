@@ -75,3 +75,8 @@ td {
   padding: 5px;
   vertical-align: top;
 }
+
+p.important_note {
+  color: #3a6baa;
+    font-weight:bold;
+}
