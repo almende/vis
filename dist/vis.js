@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.7.0-SNAPSHOT
- * @date    2014-03-05
+ * @version 0.6.1
+ * @date    2014-03-06
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -5504,8 +5504,8 @@ ItemSet.prototype.getAxis = function getAxis() {
 ItemSet.prototype.reflow = function reflow () {
   var changed = 0,
       options = this.options,
-      marginAxis = options.margin && options.margin.axis || this.defaultOptions.margin.axis,
-      marginItem = options.margin && options.margin.item || this.defaultOptions.margin.item,
+      marginAxis = (options.margin && 'axis' in options.margin) ? options.margin.axis : this.defaultOptions.margin.axis,
+      marginItem = (options.margin && 'item' in options.margin) ? options.margin.item : this.defaultOptions.margin.item,
       update = util.updateProperty,
       asNumber = util.option.asNumber,
       asSize = util.option.asSize,
@@ -17574,9 +17574,10 @@ Graph.prototype._animationStep = function() {
   this.renderTime = Date.now() - renderTime;
 };
 
-
-window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
-                               window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+if (typeof window !== 'undefined') {
+  window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+                                 window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+}
 
 /**
  * Schedule a animation step with the refreshrate interval.
