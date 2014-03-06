@@ -56,7 +56,7 @@ CurrentTime.prototype.repaint = function () {
       delete this.frame;
     }
 
-    return;
+    return false;
   }
 
   if (!bar) {

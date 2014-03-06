@@ -1,11 +1,11 @@
 /**
  * @constructor Stack
  * Stacks items on top of each other.
- * @param {ItemSet} parent
+ * @param {ItemSet} itemset
  * @param {Object} [options]
  */
-function Stack (parent, options) {
-  this.parent = parent;
+function Stack (itemset, options) {
+  this.itemset = itemset;
 
   this.options = options || {};
   this.defaultOptions = {
@@ -43,14 +43,14 @@ function Stack (parent, options) {
 /**
  * Set options for the stack
  * @param {Object} options  Available options:
- *                          {ItemSet} parent
+ *                          {ItemSet} itemset
  *                          {Number} margin
  *                          {function} order  Stacking order
  */
 Stack.prototype.setOptions = function setOptions (options) {
   util.extend(this.options, options);
 
-  // TODO: register on data changes at the connected parent itemset, and update the changed part only and immediately
+  // TODO: register on data changes at the connected itemset, and update the changed part only and immediately
 };
 
 /**
@@ -63,16 +63,14 @@ Stack.prototype.update = function update() {
 };
 
 /**
- * Order the items. The items are ordered by width first, and by left position
- * second.
- * If a custom order function has been provided via the options, then this will
- * be used.
+ * Order the items. If a custom order function has been provided via the options,
+ * then this will be used.
  * @private
  */
 Stack.prototype._order = function _order () {
-  var items = this.parent.items;
+  var items = this.itemset.items;
   if (!items) {
-    throw new Error('Cannot stack items: parent does not contain items');
+    throw new Error('Cannot stack items: ItemSet does not contain items');
   }
 
   // TODO: store the sorted items, to have less work later on
@@ -185,8 +183,8 @@ Stack.prototype.checkOverlap = function checkOverlap (items, itemIndex,
  * @return {boolean}        true if a and b collide, else false
  */
 Stack.prototype.collision = function collision (a, b, margin) {
-  return ((a.left - margin) < (b.left + b.getWidth()) &&
-      (a.left + a.getWidth() + margin) > b.left &&
+  return ((a.left - margin) < (b.left + b.width) &&
+      (a.left + a.width + margin) > b.left &&
       (a.top - margin) < (b.top + b.height) &&
       (a.top + a.height + margin) > b.top);
 };

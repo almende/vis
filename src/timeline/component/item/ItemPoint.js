@@ -73,6 +73,8 @@ ItemPoint.prototype.repaint = function repaint() {
       changed = true;
     }
 
+    this._repaintDeleteButton(dom.point);
+
     // update class
     var className = (this.data.className? ' ' + this.data.className : '') +
         (this.selected ? ' selected' : '');
@@ -157,7 +159,7 @@ ItemPoint.prototype.reflow = function reflow() {
       options = this.options;
       orientation = options.orientation || this.defaultOptions.orientation;
       margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
-      start = this.parent.toScreen(this.data.start);
+      start = this.parent.toScreen(this.data.start) + this.offset;
 
       changed += update(this, 'width', dom.point.offsetWidth);
       changed += update(this, 'height', dom.point.offsetHeight);

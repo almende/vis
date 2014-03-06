@@ -16,6 +16,13 @@ function ItemSet(parent, depends, options) {
   this.parent = parent;
   this.depends = depends;
 
+  // event listeners
+  this.eventListeners = {
+    dragstart: this._onDragStart.bind(this),
+    drag: this._onDrag.bind(this),
+    dragend: this._onDragEnd.bind(this)
+  };
+
   // one options object is shared by this itemset and all its items
   this.options = options || {};
   this.defaultOptions = {
@@ -35,6 +42,7 @@ function ItemSet(parent, depends, options) {
   this.itemsData = null;  // DataSet
   this.range = null;      // Range or Object {start: number, end: number}
 
+  // data change listeners
   this.listeners = {
     'add': function (event, params, senderId) {
       if (senderId != me.id) {
@@ -58,6 +66,8 @@ function ItemSet(parent, depends, options) {
   this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
   this.stack = new Stack(this, Object.create(this.options));
   this.conversion = null;
+
+  this.touchParams = {}; // stores properties while dragging
 
   // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
 }
@@ -96,8 +106,60 @@ ItemSet.types = {
  *                           {Number} padding
  *                              Padding of the contents of an item in pixels.
  *                              Must correspond with the items css. Default is 5.
+ *                           {Function} snap
+ *                              Function to let items snap to nice dates when
+ *                              dragging items.
  */
 ItemSet.prototype.setOptions = Component.prototype.setOptions;
+
+
+
+/**
+ * Set controller for this component
+ * @param {Controller | null} controller
+ */
+ItemSet.prototype.setController = function setController (controller) {
+  var event;
+
+  // unregister old event listeners
+  if (this.controller) {
+    for (event in this.eventListeners) {
+      if (this.eventListeners.hasOwnProperty(event)) {
+        this.controller.off(event, this.eventListeners[event]);
+      }
+    }
+  }
+
+  this.controller = controller || null;
+
+  // register new event listeners
+  if (this.controller) {
+    for (event in this.eventListeners) {
+      if (this.eventListeners.hasOwnProperty(event)) {
+        this.controller.on(event, this.eventListeners[event]);
+      }
+    }
+  }
+};
+
+// attach event listeners for dragging items to the controller
+(function (me) {
+  var _controller = null;
+  var _onDragStart = null;
+  var _onDrag = null;
+  var _onDragEnd = null;
+
+  Object.defineProperty(me, 'controller', {
+    get: function () {
+      return _controller;
+    },
+
+    set: function (controller) {
+
+    }
+  });
+}) (this);
+
 
 /**
  * Set range (start and end).
@@ -144,12 +206,6 @@ ItemSet.prototype.setSelection = function setSelection(ids) {
       }
     }
 
-    // trigger a select event
-    selection = this.selection.concat([]);
-    events.trigger(this, 'select', {
-      ids: selection
-    });
-
     if (this.controller) {
       this.requestRepaint();
     }
@@ -195,6 +251,7 @@ ItemSet.prototype.repaint = function repaint() {
   if (!frame) {
     frame = document.createElement('div');
     frame.className = 'itemset';
+    frame['timeline-itemset'] = this;
 
     var className = options.className;
     if (className) {
@@ -389,8 +446,8 @@ ItemSet.prototype.getAxis = function getAxis() {
 ItemSet.prototype.reflow = function reflow () {
   var changed = 0,
       options = this.options,
-      marginAxis = options.margin && options.margin.axis || this.defaultOptions.margin.axis,
-      marginItem = options.margin && options.margin.item || this.defaultOptions.margin.item,
+      marginAxis = (options.margin && 'axis' in options.margin) ? options.margin.axis : this.defaultOptions.margin.axis,
+      marginItem = (options.margin && 'item' in options.margin) ? options.margin.item : this.defaultOptions.margin.item,
       update = util.updateProperty,
       asNumber = util.option.asNumber,
       asSize = util.option.asSize,
@@ -501,7 +558,7 @@ ItemSet.prototype.setItems = function setItems(items) {
     // subscribe to new dataset
     var id = this.id;
     util.forEach(this.listeners, function (callback, event) {
-      me.itemsData.subscribe(event, callback, id);
+      me.itemsData.on(event, callback, id);
     });
 
     // draw all new items
@@ -516,6 +573,24 @@ ItemSet.prototype.setItems = function setItems(items) {
  */
 ItemSet.prototype.getItems = function getItems() {
   return this.itemsData;
+};
+
+/**
+ * Remove an item by its id
+ * @param {String | Number} id
+ */
+ItemSet.prototype.removeItem = function removeItem (id) {
+  var item = this.itemsData.get(id),
+      dataset = this._myDataSet();
+
+  if (item) {
+    // confirm deletion
+    this.options.onRemove(item, function (item) {
+      if (item) {
+        dataset.remove(item);
+      }
+    });
+  }
 };
 
 /**
@@ -609,4 +684,192 @@ ItemSet.prototype.toTime = function toTime(x) {
 ItemSet.prototype.toScreen = function toScreen(time) {
   var conversion = this.conversion;
   return (time.valueOf() - conversion.offset) * conversion.scale;
+};
+
+/**
+ * Start dragging the selected events
+ * @param {Event} event
+ * @private
+ */
+ItemSet.prototype._onDragStart = function (event) {
+  if (!this.options.editable) {
+    return;
+  }
+
+  var item = ItemSet.itemFromTarget(event),
+      me = this;
+
+  if (item && item.selected) {
+    var dragLeftItem = event.target.dragLeftItem;
+    var dragRightItem = event.target.dragRightItem;
+
+    if (dragLeftItem) {
+      this.touchParams.itemProps = [{
+        item: dragLeftItem,
+        start: item.data.start.valueOf()
+      }];
+    }
+    else if (dragRightItem) {
+      this.touchParams.itemProps = [{
+        item: dragRightItem,
+        end: item.data.end.valueOf()
+      }];
+    }
+    else {
+      this.touchParams.itemProps = this.getSelection().map(function (id) {
+        var item = me.items[id];
+        var props = {
+          item: item
+        };
+
+        if ('start' in item.data) {
+          props.start = item.data.start.valueOf()
+        }
+        if ('end' in item.data)   {
+          props.end = item.data.end.valueOf()
+        }
+
+        return props;
+      });
+    }
+
+    event.stopPropagation();
+  }
+};
+
+/**
+ * Drag selected items
+ * @param {Event} event
+ * @private
+ */
+ItemSet.prototype._onDrag = function (event) {
+  if (this.touchParams.itemProps) {
+    var snap = this.options.snap || null,
+        deltaX = event.gesture.deltaX,
+        offset = deltaX / this.conversion.scale;
+
+    // move
+    this.touchParams.itemProps.forEach(function (props) {
+      if ('start' in props) {
+        var start = new Date(props.start + offset);
+        props.item.data.start = snap ? snap(start) : start;
+      }
+      if ('end' in props) {
+        var end = new Date(props.end + offset);
+        props.item.data.end = snap ? snap(end) : end;
+      }
+    });
+
+    // TODO: implement onMoving handler
+
+    // TODO: implement dragging from one group to another
+
+    this.requestReflow();
+
+    event.stopPropagation();
+  }
+};
+
+/**
+ * End of dragging selected items
+ * @param {Event} event
+ * @private
+ */
+ItemSet.prototype._onDragEnd = function (event) {
+  if (this.touchParams.itemProps) {
+    // prepare a change set for the changed items
+    var changes = [],
+        me = this,
+        dataset = this._myDataSet(),
+        type;
+
+    this.touchParams.itemProps.forEach(function (props) {
+      var id = props.item.id,
+          item = me.itemsData.get(id);
+
+      var changed = false;
+      if ('start' in props.item.data) {
+        changed = (props.start != props.item.data.start.valueOf());
+        item.start = util.convert(props.item.data.start, dataset.convert['start']);
+      }
+      if ('end' in props.item.data) {
+        changed = changed  || (props.end != props.item.data.end.valueOf());
+        item.end = util.convert(props.item.data.end, dataset.convert['end']);
+      }
+
+      // only apply changes when start or end is actually changed
+      if (changed) {
+        me.options.onMove(item, function (item) {
+          if (item) {
+            // apply changes
+            changes.push(item);
+          }
+          else {
+            // restore original values
+            if ('start' in props) props.item.data.start = props.start;
+            if ('end' in props)   props.item.data.end   = props.end;
+            me.requestReflow();
+          }
+        });
+      }
+    });
+    this.touchParams.itemProps = null;
+
+    // apply the changes to the data (if there are changes)
+    if (changes.length) {
+      dataset.update(changes);
+    }
+
+    event.stopPropagation();
+  }
+};
+
+/**
+ * Find an item from an event target:
+ * searches for the attribute 'timeline-item' in the event target's element tree
+ * @param {Event} event
+ * @return {Item | null} item
+ */
+ItemSet.itemFromTarget = function itemFromTarget (event) {
+  var target = event.target;
+  while (target) {
+    if (target.hasOwnProperty('timeline-item')) {
+      return target['timeline-item'];
+    }
+    target = target.parentNode;
+  }
+
+  return null;
+};
+
+/**
+ * Find the ItemSet from an event target:
+ * searches for the attribute 'timeline-itemset' in the event target's element tree
+ * @param {Event} event
+ * @return {ItemSet | null} item
+ */
+ItemSet.itemSetFromTarget = function itemSetFromTarget (event) {
+  var target = event.target;
+  while (target) {
+    if (target.hasOwnProperty('timeline-itemset')) {
+      return target['timeline-itemset'];
+    }
+    target = target.parentNode;
+  }
+
+  return null;
+};
+
+/**
+ * Find the DataSet to which this ItemSet is connected
+ * @returns {null | DataSet} dataset
+ * @private
+ */
+ItemSet.prototype._myDataSet = function _myDataSet() {
+  // find the root DataSet
+  var dataset = this.itemsData;
+  while (dataset instanceof DataView) {
+    dataset = dataset.data;
+  }
+  return dataset;
 };

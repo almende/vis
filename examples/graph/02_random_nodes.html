@@ -57,6 +57,7 @@
             j++;
           }
 
+
           var from = i;
           var to = j;
           edges.push({
@@ -74,22 +75,11 @@
         nodes: nodes,
         edges: edges
       };
-        /*
-      var options = {
-        nodes: {
-          shape: 'circle'
-        },
-        edges: {
-          length: 50
-        },
-        stabilize: false
-      };
-      */
+
     var options = {
     edges: {
-        length: 50
     },
-    stabilize: false
+    stabilize: false,
     };
       graph = new vis.Graph(container, data, options);
 
@@ -102,12 +92,12 @@
 </head>
 
 <body onload="draw();">
-
 <form onsubmit="draw(); return false;">
   <label for="nodeCount">Number of nodes:</label>
   <input id="nodeCount" type="text" value="25" style="width: 50px;">
   <input type="submit" value="Go">
 </form>
+
 <br>
 
 <div id="mygraph"></div>

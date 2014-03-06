@@ -16,6 +16,22 @@ function ItemRangeOverflow (parent, data, options, defaultOptions) {
     }
   };
 
+  // define a private property _width, which is the with of the range box
+  // adhering to the ranges start and end date. The property width has a
+  // getter which returns the max of border width and content width
+  this._width = 0;
+  Object.defineProperty(this, 'width', {
+    get: function () {
+      return (this.props.content && this._width < this.props.content.width) ?
+          this.props.content.width :
+          this._width;
+    },
+
+    set: function (width) {
+      this._width = width;
+    }
+  });
+
   ItemRange.call(this, parent, data, options, defaultOptions);
 }
 
@@ -62,13 +78,18 @@ ItemRangeOverflow.prototype.repaint = function repaint() {
         dom.content.innerHTML = this.content;
       }
       else {
-        throw new Error('Property "content" missing in item ' + this.data.id);
+        throw new Error('Property "content" missing in item ' + this.id);
       }
       changed = true;
     }
 
+    this._repaintDeleteButton(dom.box);
+    this._repaintDragLeft();
+    this._repaintDragRight();
+
     // update class
-    var className = this.data.className ? (' ' + this.data.className) : '';
+    var className = (this.data.className? ' ' + this.data.className : '') +
+        (this.selected ? ' selected' : '');
     if (this.className != className) {
       this.className = className;
       dom.box.className = 'item rangeoverflow' + className;
@@ -80,12 +101,19 @@ ItemRangeOverflow.prototype.repaint = function repaint() {
 };
 
 /**
- * Return the items width
- * @return {Number} width
+ * Reposition the item, recalculate its left, top, and width, using the current
+ * range and size of the items itemset
+ * @override
  */
-ItemRangeOverflow.prototype.getWidth = function getWidth() {
-  if (this.props.content !== undefined && this.width < this.props.content.width)
-    return this.props.content.width;
-  else
-    return this.width;
+ItemRangeOverflow.prototype.reposition = function reposition() {
+  var dom = this.dom,
+      props = this.props;
+
+  if (dom) {
+    dom.box.style.top = this.top + 'px';
+    dom.box.style.left = this.left + 'px';
+    dom.box.style.width = this._width + 'px';
+
+    dom.content.style.left = props.content.left + 'px';
+  }
 };

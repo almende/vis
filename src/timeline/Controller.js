@@ -1,15 +1,58 @@
 /**
  * @constructor Controller
  *
- * A Controller controls the reflows and repaints of all visual components
+ * A Controller controls the reflows and repaints of all components,
+ * and is used as an event bus for all components.
  */
 function Controller () {
+  var me = this;
+
   this.id = util.randomUUID();
   this.components = {};
 
-  this.repaintTimer = undefined;
-  this.reflowTimer = undefined;
+  /**
+   * Listen for a 'request-reflow' event. The controller will schedule a reflow
+   * @param {Boolean} [force]     If true, an immediate reflow is forced. Default
+   *                              is false.
+   */
+  var reflowTimer = null;
+  this.on('request-reflow', function requestReflow(force) {
+    if (force) {
+      me.reflow();
+    }
+    else {
+      if (!reflowTimer) {
+        reflowTimer = setTimeout(function () {
+          reflowTimer = null;
+          me.reflow();
+        }, 0);
+      }
+    }
+  });
+
+  /**
+   * Request a repaint. The controller will schedule a repaint
+   * @param {Boolean} [force]    If true, an immediate repaint is forced. Default
+   *                             is false.
+   */
+  var repaintTimer = null;
+  this.on('request-repaint', function requestRepaint(force) {
+    if (force) {
+      me.repaint();
+    }
+    else {
+      if (!repaintTimer) {
+        repaintTimer = setTimeout(function () {
+          repaintTimer = null;
+          me.repaint();
+        }, 0);
+      }
+    }
+  });
 }
+
+// Extend controller with Emitter mixin
+Emitter(Controller.prototype);
 
 /**
  * Add a component to the controller
@@ -26,7 +69,7 @@ Controller.prototype.add = function add(component) {
   }
 
   // add the component
-  component.controller = this;
+  component.setController(this);
   this.components[component.id] = component;
 };
 
@@ -38,54 +81,18 @@ Controller.prototype.remove = function remove(component) {
   var id;
   for (id in this.components) {
     if (this.components.hasOwnProperty(id)) {
-      if (id == component || this.components[id] == component) {
+      if (id == component || this.components[id] === component) {
         break;
       }
     }
   }
 
   if (id) {
+    // unregister the controller (gives the component the ability to unregister
+    // event listeners and clean up other stuff)
+    this.components[id].setController(null);
+
     delete this.components[id];
-  }
-};
-
-/**
- * Request a reflow. The controller will schedule a reflow
- * @param {Boolean} [force]     If true, an immediate reflow is forced. Default
- *                              is false.
- */
-Controller.prototype.requestReflow = function requestReflow(force) {
-  if (force) {
-    this.reflow();
-  }
-  else {
-    if (!this.reflowTimer) {
-      var me = this;
-      this.reflowTimer = setTimeout(function () {
-        me.reflowTimer = undefined;
-        me.reflow();
-      }, 0);
-    }
-  }
-};
-
-/**
- * Request a repaint. The controller will schedule a repaint
- * @param {Boolean} [force]    If true, an immediate repaint is forced. Default
- *                             is false.
- */
-Controller.prototype.requestRepaint = function requestRepaint(force) {
-  if (force) {
-    this.repaint();
-  }
-  else {
-    if (!this.repaintTimer) {
-      var me = this;
-      this.repaintTimer = setTimeout(function () {
-        me.repaintTimer = undefined;
-        me.repaint();
-      }, 0);
-    }
   }
 };
 
@@ -122,6 +129,8 @@ Controller.prototype.repaint = function repaint() {
   }
 
   util.forEach(this.components, repaint);
+
+  this.emit('repaint');
 
   // immediately reflow when needed
   if (changed) {
@@ -163,6 +172,8 @@ Controller.prototype.reflow = function reflow() {
   }
 
   util.forEach(this.components, reflow);
+
+  this.emit('reflow');
 
   // immediately repaint when needed
   if (resized) {

@@ -65,7 +65,7 @@
 <script type="text/javascript">
   var container = document.getElementById('mygraph');
   var url = document.getElementById('url');
-  var graph = new vis.Graph(container);
+  var graph = new vis.Graph(container,{},{physics:{barnesHut:{springLength:75,springConstant:0.015}}});
 
   function loadData () {
     $.ajax({

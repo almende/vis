@@ -39,11 +39,11 @@ assert.deepEqual(group2.get({
 
 // test event subscription
 var groupsTriggerCount = 0;
-groups.subscribe('*', function () {
+groups.on('*', function () {
   groupsTriggerCount++;
 });
 var group2TriggerCount = 0;
-group2.subscribe('*', function () {
+group2.on('*', function () {
   group2TriggerCount++;
 });
 

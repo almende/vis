@@ -163,3 +163,4 @@ assert.deepEqual(data.isInternalId(data.get()[0].id), true);
 assert.deepEqual((data.get({"showInternalIds": false})[0].id == undefined),true);
 
 // TODO: extensively test DataSet
+// TODO: test subscribing to events

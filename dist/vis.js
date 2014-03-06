@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.4.0
- * @date    2014-01-31
+ * @version 0.6.1
+ * @date    2014-03-06
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -31,6 +31,7 @@
 // If not available there, load via require.
 
 var moment = (typeof window !== 'undefined') && window['moment'] || require('moment');
+var Emitter = require('emitter-component');
 
 var Hammer;
 if (typeof window !== 'undefined') {
@@ -53,8 +54,6 @@ else {
     throw Error('mouseTrap is only available in a browser, not in node.js.');
   }
 }
-
-
 
 
 // Internet Explorer 8 and older does not support Array.indexOf, so we define
@@ -845,21 +844,6 @@ util.getTarget = function getTarget(event) {
 };
 
 /**
- * Stop event propagation
- */
-util.stopPropagation = function stopPropagation(event) {
-  if (!event)
-    event = window.event;
-
-  if (event.stopPropagation) {
-    event.stopPropagation();  // non-IE browsers
-  }
-  else {
-    event.cancelBubble = true;  // IE browsers
-  }
-};
-
-/**
  * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
  * @param {Element} element
  * @param {Event} event
@@ -868,28 +852,23 @@ util.fakeGesture = function fakeGesture (element, event) {
   var eventType = null;
 
   // for hammer.js 1.0.5
-  return Hammer.event.collectEventData(this, eventType, event);
+  var gesture = Hammer.event.collectEventData(this, eventType, event);
 
   // for hammer.js 1.0.6
   //var touches = Hammer.event.getTouchList(event, eventType);
-  //return Hammer.event.collectEventData(this, eventType, touches, event);
-};
+  // var gesture = Hammer.event.collectEventData(this, eventType, touches, event);
 
-/**
- * Cancels the event if it is cancelable, without stopping further propagation of the event.
- */
-util.preventDefault = function preventDefault (event) {
-  if (!event)
-    event = window.event;
-
-  if (event.preventDefault) {
-    event.preventDefault();  // non-IE browsers
+  // on IE in standards mode, no touches are recognized by hammer.js,
+  // resulting in NaN values for center.pageX and center.pageY
+  if (isNaN(gesture.center.pageX)) {
+    gesture.center.pageX = event.pageX;
   }
-  else {
-    event.returnValue = false;  // IE browsers
+  if (isNaN(gesture.center.pageY)) {
+    gesture.center.pageY = event.pageY;
   }
-};
 
+  return gesture;
+};
 
 util.option = {};
 
@@ -983,212 +962,164 @@ util.option.asElement = function (value, defaultValue) {
   return value || defaultValue || null;
 };
 
-/**
- * Event listener (singleton)
- */
-// TODO: replace usage of the event listener for the EventBus
-var events = {
-  'listeners': [],
 
-  /**
-   * Find a single listener by its object
-   * @param {Object} object
-   * @return {Number} index  -1 when not found
-   */
-  'indexOf': function (object) {
-    var listeners = this.listeners;
-    for (var i = 0, iMax = this.listeners.length; i < iMax; i++) {
-      var listener = listeners[i];
-      if (listener && listener.object == object) {
-        return i;
-      }
-    }
-    return -1;
-  },
 
-  /**
-   * Add an event listener
-   * @param {Object} object
-   * @param {String} event       The name of an event, for example 'select'
-   * @param {function} callback  The callback method, called when the
-   *                             event takes place
-   */
-  'addListener': function (object, event, callback) {
-    var index = this.indexOf(object);
-    var listener = this.listeners[index];
-    if (!listener) {
-      listener = {
-        'object': object,
-        'events': {}
-      };
-      this.listeners.push(listener);
-    }
+util.GiveDec = function GiveDec(Hex)
+{
+  if(Hex == "A")
+    Value = 10;
+  else
+  if(Hex == "B")
+    Value = 11;
+  else
+  if(Hex == "C")
+    Value = 12;
+  else
+  if(Hex == "D")
+    Value = 13;
+  else
+  if(Hex == "E")
+    Value = 14;
+  else
+  if(Hex == "F")
+    Value = 15;
+  else
+    Value = eval(Hex)
+  return Value;
+}
 
-    var callbacks = listener.events[event];
-    if (!callbacks) {
-      callbacks = [];
-      listener.events[event] = callbacks;
-    }
-
-    // add the callback if it does not yet exist
-    if (callbacks.indexOf(callback) == -1) {
-      callbacks.push(callback);
-    }
-  },
-
-  /**
-   * Remove an event listener
-   * @param {Object} object
-   * @param {String} event       The name of an event, for example 'select'
-   * @param {function} callback  The registered callback method
-   */
-  'removeListener': function (object, event, callback) {
-    var index = this.indexOf(object);
-    var listener = this.listeners[index];
-    if (listener) {
-      var callbacks = listener.events[event];
-      if (callbacks) {
-        index = callbacks.indexOf(callback);
-        if (index != -1) {
-          callbacks.splice(index, 1);
-        }
-
-        // remove the array when empty
-        if (callbacks.length == 0) {
-          delete listener.events[event];
-        }
-      }
-
-      // count the number of registered events. remove listener when empty
-      var count = 0;
-      var events = listener.events;
-      for (var e in events) {
-        if (events.hasOwnProperty(e)) {
-          count++;
-        }
-      }
-      if (count == 0) {
-        delete this.listeners[index];
-      }
-    }
-  },
-
-  /**
-   * Remove all registered event listeners
-   */
-  'removeAllListeners': function () {
-    this.listeners = [];
-  },
-
-  /**
-   * Trigger an event. All registered event handlers will be called
-   * @param {Object} object
-   * @param {String} event
-   * @param {Object} properties (optional)
-   */
-  'trigger': function (object, event, properties) {
-    var index = this.indexOf(object);
-    var listener = this.listeners[index];
-    if (listener) {
-      var callbacks = listener.events[event];
-      if (callbacks) {
-        for (var i = 0, iMax = callbacks.length; i < iMax; i++) {
-          callbacks[i](properties);
-        }
-      }
-    }
-  }
-};
-
-/**
- * An event bus can be used to emit events, and to subscribe to events
- * @constructor EventBus
- */
-function EventBus() {
-  this.subscriptions = [];
+util.GiveHex = function GiveHex(Dec)
+{
+  if(Dec == 10)
+    Value = "A";
+  else
+  if(Dec == 11)
+    Value = "B";
+  else
+  if(Dec == 12)
+    Value = "C";
+  else
+  if(Dec == 13)
+    Value = "D";
+  else
+  if(Dec == 14)
+    Value = "E";
+  else
+  if(Dec == 15)
+    Value = "F";
+  else
+    Value = "" + Dec;
+  return Value;
 }
 
 /**
- * Subscribe to an event
- * @param {String | RegExp} event   The event can be a regular expression, or
- *                                  a string with wildcards, like 'server.*'.
- * @param {function} callback.      Callback are called with three parameters:
- *                                  {String} event, {*} [data], {*} [source]
- * @param {*} [target]
- * @returns {String} id    A subscription id
+ * http://www.yellowpipe.com/yis/tools/hex-to-rgb/color-converter.php
+ *
+ * @param {String} hex
+ * @returns {{r: *, g: *, b: *}}
  */
-EventBus.prototype.on = function (event, callback, target) {
-  var regexp = (event instanceof RegExp) ?
-      event :
-      new RegExp(event.replace('*', '\\w+'));
+util.hexToRGB = function hexToRGB(hex) {
+  hex = hex.replace("#","").toUpperCase();
 
-  var subscription = {
-    id:       util.randomUUID(),
-    event:    event,
-    regexp:   regexp,
-    callback: (typeof callback === 'function') ? callback : null,
-    target:   target
-  };
+  var a = util.GiveDec(hex.substring(0, 1));
+  var b = util.GiveDec(hex.substring(1, 2));
+  var c = util.GiveDec(hex.substring(2, 3));
+  var d = util.GiveDec(hex.substring(3, 4));
+  var e = util.GiveDec(hex.substring(4, 5));
+  var f = util.GiveDec(hex.substring(5, 6));
 
-  this.subscriptions.push(subscription);
+  var r = (a * 16) + b;
+  var g = (c * 16) + d;
+  var b = (e * 16) + f;
 
-  return subscription.id;
+  return {r:r,g:g,b:b};
 };
+
+util.RGBToHex = function RGBToHex(red,green,blue) {
+  var a = util.GiveHex(Math.floor(red / 16));
+  var b = util.GiveHex(red % 16);
+  var c = util.GiveHex(Math.floor(green / 16));
+  var d = util.GiveHex(green % 16);
+  var e = util.GiveHex(Math.floor(blue / 16));
+  var f = util.GiveHex(blue % 16);
+
+  var hex = a + b + c + d + e + f;
+  return "#" + hex;
+};
+
 
 /**
- * Unsubscribe from an event
- * @param {String | Object} filter   Filter for subscriptions to be removed
- *                                   Filter can be a string containing a
- *                                   subscription id, or an object containing
- *                                   one or more of the fields id, event,
- *                                   callback, and target.
+ * http://www.javascripter.net/faq/rgb2hsv.htm
+ *
+ * @param red
+ * @param green
+ * @param blue
+ * @returns {*}
+ * @constructor
  */
-EventBus.prototype.off = function (filter) {
-  var i = 0;
-  while (i < this.subscriptions.length) {
-    var subscription = this.subscriptions[i];
+util.RGBToHSV = function  RGBToHSV (red,green,blue) {
+  red=red/255; green=green/255; blue=blue/255;
+  var minRGB = Math.min(red,Math.min(green,blue));
+  var maxRGB = Math.max(red,Math.max(green,blue));
 
-    var match = true;
-    if (filter instanceof Object) {
-      // filter is an object. All fields must match
-      for (var prop in filter) {
-        if (filter.hasOwnProperty(prop)) {
-          if (filter[prop] !== subscription[prop]) {
-            match = false;
-          }
-        }
-      }
-    }
-    else {
-      // filter is a string, filter on id
-      match = (subscription.id == filter);
-    }
-
-    if (match) {
-      this.subscriptions.splice(i, 1);
-    }
-    else {
-      i++;
-    }
+  // Black-gray-white
+  if (minRGB == maxRGB) {
+    return {h:0,s:0,v:minRGB};
   }
+
+  // Colors other than black-gray-white:
+  var d = (red==minRGB) ? green-blue : ((blue==minRGB) ? red-green : blue-red);
+  var h = (red==minRGB) ? 3 : ((blue==minRGB) ? 1 : 5);
+  var hue = 60*(h - d/(maxRGB - minRGB))/360;
+  var saturation = (maxRGB - minRGB)/maxRGB;
+  var value = maxRGB;
+  return {h:hue,s:saturation,v:value};
 };
+
 
 /**
- * Emit an event
- * @param {String} event
- * @param {*} [data]
- * @param {*} [source]
+ * https://gist.github.com/mjijackson/5311256
+ * @param hue
+ * @param saturation
+ * @param value
+ * @returns {{r: number, g: number, b: number}}
+ * @constructor
  */
-EventBus.prototype.emit = function (event, data, source) {
-  for (var i =0; i < this.subscriptions.length; i++) {
-    var subscription = this.subscriptions[i];
-    if (subscription.regexp.test(event)) {
-      if (subscription.callback) {
-        subscription.callback(event, data, source);
-      }
-    }
+util.HSVToRGB = function HSVToRGB(h, s, v) {
+  var r, g, b;
+
+  var i = Math.floor(h * 6);
+  var f = h * 6 - i;
+  var p = v * (1 - s);
+  var q = v * (1 - f * s);
+  var t = v * (1 - (1 - f) * s);
+
+  switch (i % 6) {
+    case 0: r = v, g = t, b = p; break;
+    case 1: r = q, g = v, b = p; break;
+    case 2: r = p, g = v, b = t; break;
+    case 3: r = p, g = q, b = v; break;
+    case 4: r = t, g = p, b = v; break;
+    case 5: r = v, g = p, b = q; break;
   }
+
+  return {r:Math.floor(r * 255), g:Math.floor(g * 255), b:Math.floor(b * 255) };
 };
+
+util.HSVToHex = function HSVToHex(h,s,v) {
+  var rgb = util.HSVToRGB(h,s,v);
+  return util.RGBToHex(rgb.r,rgb.g,rgb.b);
+}
+
+util.hexToHSV = function hexToHSV(hex) {
+  var rgb = util.hexToRGB(hex);
+  return util.RGBToHSV(rgb.r,rgb.g,rgb.b);
+}
+
+util.isValidHex = function isValidHex(hex) {
+  var isOk  = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
+  return isOk;
+}
 
 /**
  * DataSet
@@ -1265,7 +1196,7 @@ function DataSet (options) {
  *                                  {Object | null} params
  *                                  {String | Number} senderId
  */
-DataSet.prototype.subscribe = function (event, callback) {
+DataSet.prototype.on = function on (event, callback) {
   var subscribers = this.subscribers[event];
   if (!subscribers) {
     subscribers = [];
@@ -1277,12 +1208,15 @@ DataSet.prototype.subscribe = function (event, callback) {
   });
 };
 
+// TODO: make this function deprecated (replaced with `on` since version 0.5)
+DataSet.prototype.subscribe = DataSet.prototype.on;
+
 /**
  * Unsubscribe from an event, remove an event listener
  * @param {String} event
  * @param {function} callback
  */
-DataSet.prototype.unsubscribe = function (event, callback) {
+DataSet.prototype.off = function off(event, callback) {
   var subscribers = this.subscribers[event];
   if (subscribers) {
     this.subscribers[event] = subscribers.filter(function (listener) {
@@ -1290,6 +1224,9 @@ DataSet.prototype.unsubscribe = function (event, callback) {
     });
   }
 };
+
+// TODO: make this function deprecated (replaced with `on` since version 0.5)
+DataSet.prototype.unsubscribe = DataSet.prototype.off;
 
 /**
  * Trigger an event
@@ -2198,8 +2135,8 @@ DataView.prototype.setData = function (data) {
     this._trigger('add', {items: ids});
 
     // subscribe to new dataset
-    if (this.data.subscribe) {
-      this.data.subscribe('*', this.listener);
+    if (this.data.on) {
+      this.data.on('*', this.listener);
     }
   }
 };
@@ -2405,9 +2342,13 @@ DataView.prototype._onEvent = function (event, params, senderId) {
 };
 
 // copy subscription functionality from DataSet
-DataView.prototype.subscribe = DataSet.prototype.subscribe;
-DataView.prototype.unsubscribe = DataSet.prototype.unsubscribe;
+DataView.prototype.on = DataSet.prototype.on;
+DataView.prototype.off = DataSet.prototype.off;
 DataView.prototype._trigger = DataSet.prototype._trigger;
+
+// TODO: make these functions deprecated (replaced with `on` and `off` since version 0.5)
+DataView.prototype.subscribe = DataView.prototype.on;
+DataView.prototype.unsubscribe = DataView.prototype.off;
 
 /**
  * @constructor  TimeStep
@@ -2692,35 +2633,38 @@ TimeStep.prototype.setMinimumStep = function(minimumStep) {
 };
 
 /**
- * Snap a date to a rounded value. The snap intervals are dependent on the
- * current scale and step.
- * @param {Date} date   the date to be snapped
+ * Snap a date to a rounded value.
+ * The snap intervals are dependent on the current scale and step.
+ * @param {Date} date   the date to be snapped.
+ * @return {Date} snappedDate
  */
 TimeStep.prototype.snap = function(date) {
+  var clone = new Date(date.valueOf());
+
   if (this.scale == TimeStep.SCALE.YEAR) {
-    var year = date.getFullYear() + Math.round(date.getMonth() / 12);
-    date.setFullYear(Math.round(year / this.step) * this.step);
-    date.setMonth(0);
-    date.setDate(0);
-    date.setHours(0);
-    date.setMinutes(0);
-    date.setSeconds(0);
-    date.setMilliseconds(0);
+    var year = clone.getFullYear() + Math.round(clone.getMonth() / 12);
+    clone.setFullYear(Math.round(year / this.step) * this.step);
+    clone.setMonth(0);
+    clone.setDate(0);
+    clone.setHours(0);
+    clone.setMinutes(0);
+    clone.setSeconds(0);
+    clone.setMilliseconds(0);
   }
   else if (this.scale == TimeStep.SCALE.MONTH) {
-    if (date.getDate() > 15) {
-      date.setDate(1);
-      date.setMonth(date.getMonth() + 1);
+    if (clone.getDate() > 15) {
+      clone.setDate(1);
+      clone.setMonth(clone.getMonth() + 1);
       // important: first set Date to 1, after that change the month.
     }
     else {
-      date.setDate(1);
+      clone.setDate(1);
     }
 
-    date.setHours(0);
-    date.setMinutes(0);
-    date.setSeconds(0);
-    date.setMilliseconds(0);
+    clone.setHours(0);
+    clone.setMinutes(0);
+    clone.setSeconds(0);
+    clone.setMilliseconds(0);
   }
   else if (this.scale == TimeStep.SCALE.DAY ||
       this.scale == TimeStep.SCALE.WEEKDAY) {
@@ -2728,56 +2672,58 @@ TimeStep.prototype.snap = function(date) {
     switch (this.step) {
       case 5:
       case 2:
-        date.setHours(Math.round(date.getHours() / 24) * 24); break;
+        clone.setHours(Math.round(clone.getHours() / 24) * 24); break;
       default:
-        date.setHours(Math.round(date.getHours() / 12) * 12); break;
+        clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
     }
-    date.setMinutes(0);
-    date.setSeconds(0);
-    date.setMilliseconds(0);
+    clone.setMinutes(0);
+    clone.setSeconds(0);
+    clone.setMilliseconds(0);
   }
   else if (this.scale == TimeStep.SCALE.HOUR) {
     switch (this.step) {
       case 4:
-        date.setMinutes(Math.round(date.getMinutes() / 60) * 60); break;
+        clone.setMinutes(Math.round(clone.getMinutes() / 60) * 60); break;
       default:
-        date.setMinutes(Math.round(date.getMinutes() / 30) * 30); break;
+        clone.setMinutes(Math.round(clone.getMinutes() / 30) * 30); break;
     }
-    date.setSeconds(0);
-    date.setMilliseconds(0);
+    clone.setSeconds(0);
+    clone.setMilliseconds(0);
   } else if (this.scale == TimeStep.SCALE.MINUTE) {
     //noinspection FallthroughInSwitchStatementJS
     switch (this.step) {
       case 15:
       case 10:
-        date.setMinutes(Math.round(date.getMinutes() / 5) * 5);
-        date.setSeconds(0);
+        clone.setMinutes(Math.round(clone.getMinutes() / 5) * 5);
+        clone.setSeconds(0);
         break;
       case 5:
-        date.setSeconds(Math.round(date.getSeconds() / 60) * 60); break;
+        clone.setSeconds(Math.round(clone.getSeconds() / 60) * 60); break;
       default:
-        date.setSeconds(Math.round(date.getSeconds() / 30) * 30); break;
+        clone.setSeconds(Math.round(clone.getSeconds() / 30) * 30); break;
     }
-    date.setMilliseconds(0);
+    clone.setMilliseconds(0);
   }
   else if (this.scale == TimeStep.SCALE.SECOND) {
     //noinspection FallthroughInSwitchStatementJS
     switch (this.step) {
       case 15:
       case 10:
-        date.setSeconds(Math.round(date.getSeconds() / 5) * 5);
-        date.setMilliseconds(0);
+        clone.setSeconds(Math.round(clone.getSeconds() / 5) * 5);
+        clone.setMilliseconds(0);
         break;
       case 5:
-        date.setMilliseconds(Math.round(date.getMilliseconds() / 1000) * 1000); break;
+        clone.setMilliseconds(Math.round(clone.getMilliseconds() / 1000) * 1000); break;
       default:
-        date.setMilliseconds(Math.round(date.getMilliseconds() / 500) * 500); break;
+        clone.setMilliseconds(Math.round(clone.getMilliseconds() / 500) * 500); break;
     }
   }
   else if (this.scale == TimeStep.SCALE.MILLISECOND) {
     var step = this.step > 5 ? this.step / 2 : 1;
-    date.setMilliseconds(Math.round(date.getMilliseconds() / step) * step);
+    clone.setMilliseconds(Math.round(clone.getMilliseconds() / step) * step);
   }
+  
+  return clone;
 };
 
 /**
@@ -2862,11 +2808,11 @@ TimeStep.prototype.getLabelMajor = function(date) {
 /**
  * @constructor Stack
  * Stacks items on top of each other.
- * @param {ItemSet} parent
+ * @param {ItemSet} itemset
  * @param {Object} [options]
  */
-function Stack (parent, options) {
-  this.parent = parent;
+function Stack (itemset, options) {
+  this.itemset = itemset;
 
   this.options = options || {};
   this.defaultOptions = {
@@ -2904,14 +2850,14 @@ function Stack (parent, options) {
 /**
  * Set options for the stack
  * @param {Object} options  Available options:
- *                          {ItemSet} parent
+ *                          {ItemSet} itemset
  *                          {Number} margin
  *                          {function} order  Stacking order
  */
 Stack.prototype.setOptions = function setOptions (options) {
   util.extend(this.options, options);
 
-  // TODO: register on data changes at the connected parent itemset, and update the changed part only and immediately
+  // TODO: register on data changes at the connected itemset, and update the changed part only and immediately
 };
 
 /**
@@ -2924,16 +2870,14 @@ Stack.prototype.update = function update() {
 };
 
 /**
- * Order the items. The items are ordered by width first, and by left position
- * second.
- * If a custom order function has been provided via the options, then this will
- * be used.
+ * Order the items. If a custom order function has been provided via the options,
+ * then this will be used.
  * @private
  */
 Stack.prototype._order = function _order () {
-  var items = this.parent.items;
+  var items = this.itemset.items;
   if (!items) {
-    throw new Error('Cannot stack items: parent does not contain items');
+    throw new Error('Cannot stack items: ItemSet does not contain items');
   }
 
   // TODO: store the sorted items, to have less work later on
@@ -3046,8 +2990,8 @@ Stack.prototype.checkOverlap = function checkOverlap (items, itemIndex,
  * @return {boolean}        true if a and b collide, else false
  */
 Stack.prototype.collision = function collision (a, b, margin) {
-  return ((a.left - margin) < (b.left + b.getWidth()) &&
-      (a.left + a.getWidth() + margin) > b.left &&
+  return ((a.left - margin) < (b.left + b.width) &&
+      (a.left + a.width + margin) > b.left &&
       (a.top - margin) < (b.top + b.height) &&
       (a.top + a.height + margin) > b.top);
 };
@@ -3069,6 +3013,9 @@ function Range(options) {
 
   this.setOptions(options);
 }
+
+// extend the Range prototype with an event emitter mixin
+Emitter(Range.prototype);
 
 /**
  * Set options for the range controller
@@ -3102,27 +3049,33 @@ function validateDirection (direction) {
 
 /**
  * Add listeners for mouse and touch events to the component
- * @param {Component} component
+ * @param {Controller} controller
+ * @param {Component} component  Should be a rootpanel
  * @param {String} event        Available events: 'move', 'zoom'
  * @param {String} direction    Available directions: 'horizontal', 'vertical'
  */
-Range.prototype.subscribe = function (component, event, direction) {
+Range.prototype.subscribe = function (controller, component, event, direction) {
   var me = this;
 
   if (event == 'move') {
     // drag start listener
-    component.on('dragstart', function (event) {
+    controller.on('dragstart', function (event) {
       me._onDragStart(event, component);
     });
 
     // drag listener
-    component.on('drag', function (event) {
+    controller.on('drag', function (event) {
       me._onDrag(event, component, direction);
     });
 
     // drag end listener
-    component.on('dragend', function (event) {
+    controller.on('dragend', function (event) {
       me._onDragEnd(event, component);
+    });
+
+    // ignore dragging when holding
+    controller.on('hold', function (event) {
+      me._onHold();
     });
   }
   else if (event == 'zoom') {
@@ -3130,14 +3083,14 @@ Range.prototype.subscribe = function (component, event, direction) {
     function mousewheel (event) {
       me._onMouseWheel(event, component, direction);
     }
-    component.on('mousewheel', mousewheel);
-    component.on('DOMMouseScroll', mousewheel); // For FF
+    controller.on('mousewheel', mousewheel);
+    controller.on('DOMMouseScroll', mousewheel); // For FF
 
     // pinch
-    component.on('touch', function (event) {
-      me._onTouch();
+    controller.on('touch', function (event) {
+      me._onTouch(event);
     });
-    component.on('pinch', function (event) {
+    controller.on('pinch', function (event) {
       me._onPinch(event, component, direction);
     });
   }
@@ -3148,44 +3101,6 @@ Range.prototype.subscribe = function (component, event, direction) {
 };
 
 /**
- * Add event listener
- * @param {String} event       Name of the event.
- *                             Available events: 'rangechange', 'rangechanged'
- * @param {function} callback  Callback function, invoked as callback({start: Date, end: Date})
- */
-Range.prototype.on = function on (event, callback) {
-  var available = ['rangechange', 'rangechanged'];
-
-  if (available.indexOf(event) == -1) {
-    throw new Error('Unknown event "' + event + '". Choose from ' + available.join());
-  }
-
-  events.addListener(this, event, callback);
-};
-
-/**
- * Remove an event listener
- * @param {String} event       name of the event
- * @param {function} callback  callback handler
- */
-Range.prototype.off = function off (event, callback) {
-  events.removeListener(this, event, callback);
-};
-
-/**
- * Trigger an event
- * @param {String} event    name of the event, available events: 'rangechange',
- *                          'rangechanged'
- * @private
- */
-Range.prototype._trigger = function (event) {
-  events.trigger(this, event, {
-    start: this.start,
-    end: this.end
-  });
-};
-
-/**
  * Set a new start and end range
  * @param {Number} [start]
  * @param {Number} [end]
@@ -3193,8 +3108,12 @@ Range.prototype._trigger = function (event) {
 Range.prototype.setRange = function(start, end) {
   var changed = this._applyRange(start, end);
   if (changed) {
-    this._trigger('rangechange');
-    this._trigger('rangechanged');
+    var params = {
+          start: this.start,
+          end: this.end
+    };
+    this.emit('rangechange', params);
+    this.emit('rangechanged', params);
   }
 };
 
@@ -3365,7 +3284,9 @@ var touchParams = {};
 Range.prototype._onDragStart = function(event, component) {
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
-  if (touchParams.pinching) return;
+  if (touchParams.ignore) return;
+
+  // TODO: reckon with option movable
 
   touchParams.start = this.start;
   touchParams.end = this.end;
@@ -3386,9 +3307,12 @@ Range.prototype._onDragStart = function(event, component) {
 Range.prototype._onDrag = function (event, component, direction) {
   validateDirection(direction);
 
+  // TODO: reckon with option movable
+
+
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
-  if (touchParams.pinching) return;
+  if (touchParams.ignore) return;
 
   var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
       interval = (touchParams.end - touchParams.start),
@@ -3397,8 +3321,10 @@ Range.prototype._onDrag = function (event, component, direction) {
 
   this._applyRange(touchParams.start + diffRange, touchParams.end + diffRange);
 
-  // fire a rangechange event
-  this._trigger('rangechange');
+  this.emit('rangechange', {
+    start: this.start,
+    end: this.end
+  });
 };
 
 /**
@@ -3410,14 +3336,19 @@ Range.prototype._onDrag = function (event, component, direction) {
 Range.prototype._onDragEnd = function (event, component) {
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
-  if (touchParams.pinching) return;
+  if (touchParams.ignore) return;
+
+  // TODO: reckon with option movable
 
   if (component.frame) {
     component.frame.style.cursor = 'auto';
   }
 
   // fire a rangechanged event
-  this._trigger('rangechanged');
+  this.emit('rangechanged', {
+    start: this.start,
+    end: this.end
+  });
 };
 
 /**
@@ -3430,6 +3361,8 @@ Range.prototype._onDragEnd = function (event, component) {
  */
 Range.prototype._onMouseWheel = function(event, component, direction) {
   validateDirection(direction);
+
+  // TODO: reckon with option zoomable
 
   // retrieve delta
   var delta = 0;
@@ -3459,7 +3392,7 @@ Range.prototype._onMouseWheel = function(event, component, direction) {
 
     // calculate center, the date to zoom around
     var gesture = util.fakeGesture(this, event),
-        pointer = getPointer(gesture.touches[0], component.frame),
+        pointer = getPointer(gesture.center, component.frame),
         pointerDate = this._pointerToDate(component, direction, pointer);
 
     this.zoom(scale, pointerDate);
@@ -3467,18 +3400,33 @@ Range.prototype._onMouseWheel = function(event, component, direction) {
 
   // Prevent default actions caused by mouse wheel
   // (else the page and timeline both zoom and scroll)
-  util.preventDefault(event);
+  event.preventDefault();
 };
 
 /**
- * On start of a touch gesture, initialize scale to 1
+ * Start of a touch gesture
  * @private
  */
-Range.prototype._onTouch = function () {
+Range.prototype._onTouch = function (event) {
   touchParams.start = this.start;
   touchParams.end = this.end;
-  touchParams.pinching = false;
+  touchParams.ignore = false;
   touchParams.center = null;
+
+  // don't move the range when dragging a selected event
+  // TODO: it's not so neat to have to know about the state of the ItemSet
+  var item = ItemSet.itemFromTarget(event);
+  if (item && item.selected && this.options.editable) {
+    touchParams.ignore = true;
+  }
+};
+
+/**
+ * On start of a hold gesture
+ * @private
+ */
+Range.prototype._onHold = function () {
+  touchParams.ignore = true;
 };
 
 /**
@@ -3489,7 +3437,9 @@ Range.prototype._onTouch = function () {
  * @private
  */
 Range.prototype._onPinch = function (event, component, direction) {
-  touchParams.pinching = true;
+  touchParams.ignore = true;
+
+  // TODO: reckon with option zoomable
 
   if (event.gesture.touches.length > 1) {
     if (!touchParams.center) {
@@ -3609,15 +3559,58 @@ Range.prototype.moveTo = function(moveTo) {
 /**
  * @constructor Controller
  *
- * A Controller controls the reflows and repaints of all visual components
+ * A Controller controls the reflows and repaints of all components,
+ * and is used as an event bus for all components.
  */
 function Controller () {
+  var me = this;
+
   this.id = util.randomUUID();
   this.components = {};
 
-  this.repaintTimer = undefined;
-  this.reflowTimer = undefined;
+  /**
+   * Listen for a 'request-reflow' event. The controller will schedule a reflow
+   * @param {Boolean} [force]     If true, an immediate reflow is forced. Default
+   *                              is false.
+   */
+  var reflowTimer = null;
+  this.on('request-reflow', function requestReflow(force) {
+    if (force) {
+      me.reflow();
+    }
+    else {
+      if (!reflowTimer) {
+        reflowTimer = setTimeout(function () {
+          reflowTimer = null;
+          me.reflow();
+        }, 0);
+      }
+    }
+  });
+
+  /**
+   * Request a repaint. The controller will schedule a repaint
+   * @param {Boolean} [force]    If true, an immediate repaint is forced. Default
+   *                             is false.
+   */
+  var repaintTimer = null;
+  this.on('request-repaint', function requestRepaint(force) {
+    if (force) {
+      me.repaint();
+    }
+    else {
+      if (!repaintTimer) {
+        repaintTimer = setTimeout(function () {
+          repaintTimer = null;
+          me.repaint();
+        }, 0);
+      }
+    }
+  });
 }
+
+// Extend controller with Emitter mixin
+Emitter(Controller.prototype);
 
 /**
  * Add a component to the controller
@@ -3634,7 +3627,7 @@ Controller.prototype.add = function add(component) {
   }
 
   // add the component
-  component.controller = this;
+  component.setController(this);
   this.components[component.id] = component;
 };
 
@@ -3646,54 +3639,18 @@ Controller.prototype.remove = function remove(component) {
   var id;
   for (id in this.components) {
     if (this.components.hasOwnProperty(id)) {
-      if (id == component || this.components[id] == component) {
+      if (id == component || this.components[id] === component) {
         break;
       }
     }
   }
 
   if (id) {
+    // unregister the controller (gives the component the ability to unregister
+    // event listeners and clean up other stuff)
+    this.components[id].setController(null);
+
     delete this.components[id];
-  }
-};
-
-/**
- * Request a reflow. The controller will schedule a reflow
- * @param {Boolean} [force]     If true, an immediate reflow is forced. Default
- *                              is false.
- */
-Controller.prototype.requestReflow = function requestReflow(force) {
-  if (force) {
-    this.reflow();
-  }
-  else {
-    if (!this.reflowTimer) {
-      var me = this;
-      this.reflowTimer = setTimeout(function () {
-        me.reflowTimer = undefined;
-        me.reflow();
-      }, 0);
-    }
-  }
-};
-
-/**
- * Request a repaint. The controller will schedule a repaint
- * @param {Boolean} [force]    If true, an immediate repaint is forced. Default
- *                             is false.
- */
-Controller.prototype.requestRepaint = function requestRepaint(force) {
-  if (force) {
-    this.repaint();
-  }
-  else {
-    if (!this.repaintTimer) {
-      var me = this;
-      this.repaintTimer = setTimeout(function () {
-        me.repaintTimer = undefined;
-        me.repaint();
-      }, 0);
-    }
   }
 };
 
@@ -3730,6 +3687,8 @@ Controller.prototype.repaint = function repaint() {
   }
 
   util.forEach(this.components, repaint);
+
+  this.emit('repaint');
 
   // immediately reflow when needed
   if (changed) {
@@ -3772,6 +3731,8 @@ Controller.prototype.reflow = function reflow() {
 
   util.forEach(this.components, reflow);
 
+  this.emit('reflow');
+
   // immediately repaint when needed
   if (resized) {
     this.repaint();
@@ -3801,7 +3762,6 @@ function Component () {
  * set.
  * @param {Object} options  Available parameters:
  *                          {String | function} [className]
- *                          {EventBus} [eventBus]
  *                          {String | Number | function} [left]
  *                          {String | Number | function} [top]
  *                          {String | Number | function} [width]
@@ -3834,6 +3794,23 @@ Component.prototype.getOption = function getOption(name) {
     value = this.defaultOptions[name];
   }
   return value;
+};
+
+/**
+ * Set controller for this component, or remove current controller by passing
+ * null as parameter value.
+ * @param {Controller | null} controller
+ */
+Component.prototype.setController = function setController (controller) {
+  this.controller = controller || null;
+};
+
+/**
+ * Get controller of this component
+ * @return {Controller} controller
+ */
+Component.prototype.getController = function getController () {
+  return this.controller;
 };
 
 /**
@@ -3907,7 +3884,7 @@ Component.prototype.show = function show() {
  */
 Component.prototype.requestRepaint = function requestRepaint() {
   if (this.controller) {
-    this.controller.requestRepaint();
+    this.controller.emit('request-repaint');
   }
   else {
     throw new Error('Cannot request a repaint: no controller configured');
@@ -3920,7 +3897,7 @@ Component.prototype.requestRepaint = function requestRepaint() {
  */
 Component.prototype.requestReflow = function requestReflow() {
   if (this.controller) {
-    this.controller.requestReflow();
+    this.controller.emit('request-reflow');
   }
   else {
     throw new Error('Cannot request a reflow: no controller configured');
@@ -3984,7 +3961,7 @@ Panel.prototype.repaint = function () {
       frame = this.frame;
   if (!frame) {
     frame = document.createElement('div');
-    frame.className = 'panel';
+    frame.className = 'vpanel';
 
     var className = options.className;
     if (className) {
@@ -4053,12 +4030,29 @@ function RootPanel(container, options) {
   this.id = util.randomUUID();
   this.container = container;
 
+  // create functions to be used as DOM event listeners
+  var me = this;
+  this.hammer = null;
+
+  // create listeners for all interesting events, these events will be emitted
+  // via the controller
+  var events = [
+    'touch', 'pinch', 'tap', 'doubletap', 'hold',
+    'dragstart', 'drag', 'dragend',
+    'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is for Firefox
+  ];
+  this.listeners = {};
+  events.forEach(function (event) {
+    me.listeners[event] = function () {
+      var args = [event].concat(Array.prototype.slice.call(arguments, 0));
+      me.controller.emit.apply(me.controller, args);
+    };
+  });
+
   this.options = options || {};
   this.defaultOptions = {
     autoResize: true
   };
-
-  this.listeners = {}; // event listeners
 }
 
 RootPanel.prototype = new Panel();
@@ -4091,6 +4085,8 @@ RootPanel.prototype.repaint = function () {
 
     this.frame = frame;
 
+    this._registerListeners();
+
     changed += 1;
   }
   if (!frame.parentNode) {
@@ -4101,7 +4097,8 @@ RootPanel.prototype.repaint = function () {
     changed += 1;
   }
 
-  frame.className = 'vis timeline rootpanel ' + options.orientation;
+  frame.className = 'vis timeline rootpanel ' + options.orientation +
+      (options.editable ? ' editable' : '');
   var className = options.className;
   if (className) {
     util.addClassName(frame, util.option.asString(className));
@@ -4112,7 +4109,6 @@ RootPanel.prototype.repaint = function () {
   changed += update(frame.style, 'width',  asSize(options.width, '100%'));
   changed += update(frame.style, 'height', asSize(options.height, '100%'));
 
-  this._updateEventEmitters();
   this._updateWatch();
 
   return (changed > 0);
@@ -4201,59 +4197,52 @@ RootPanel.prototype._unwatch = function () {
 };
 
 /**
- * Event handler
- * @param {String} event       name of the event, for example 'click', 'mousemove'
- * @param {function} callback  callback handler, invoked with the raw HTML Event
- *                             as parameter.
+ * Set controller for this component, or remove current controller by passing
+ * null as parameter value.
+ * @param {Controller | null} controller
  */
-RootPanel.prototype.on = function (event, callback) {
-  // register the listener at this component
-  var arr = this.listeners[event];
-  if (!arr) {
-    arr = [];
-    this.listeners[event] = arr;
-  }
-  arr.push(callback);
+RootPanel.prototype.setController = function setController (controller) {
+  this.controller = controller || null;
 
-  this._updateEventEmitters();
+  if (this.controller) {
+    this._registerListeners();
+  }
+  else {
+    this._unregisterListeners();
+  }
 };
 
 /**
- * Update the event listeners for all event emitters
+ * Register event emitters emitted by the rootpanel
  * @private
  */
-RootPanel.prototype._updateEventEmitters = function () {
-  if (this.listeners) {
-    var me = this;
-    util.forEach(this.listeners, function (listeners, event) {
-      if (!me.emitters) {
-        me.emitters = {};
-      }
-      if (!(event in me.emitters)) {
-        // create event
-        var frame = me.frame;
-        if (frame) {
-          //console.log('Created a listener for event ' + event + ' on component ' + me.id); // TODO: cleanup logging
-          var callback = function(event) {
-            listeners.forEach(function (listener) {
-              // TODO: filter on event target!
-              listener(event);
-            });
-          };
-          me.emitters[event] = callback;
-
-          if (!me.hammer) {
-            me.hammer = Hammer(frame, {
-              prevent_default: true
-            });
-          }
-          me.hammer.on(event, callback);
-        }
-      }
+RootPanel.prototype._registerListeners = function () {
+  if (this.frame && this.controller && !this.hammer) {
+    this.hammer = Hammer(this.frame, {
+      prevent_default: true
     });
 
-    // TODO: be able to delete event listeners
-    // TODO: be able to move event listeners to a parent when available
+    for (var event in this.listeners) {
+      if (this.listeners.hasOwnProperty(event)) {
+        this.hammer.on(event, this.listeners[event]);
+      }
+    }
+  }
+};
+
+/**
+ * Unregister event emitters from the rootpanel
+ * @private
+ */
+RootPanel.prototype._unregisterListeners = function () {
+  if (this.hammer) {
+    for (var event in this.listeners) {
+      if (this.listeners.hasOwnProperty(event)) {
+        this.hammer.off(event, this.listeners[event]);
+      }
+    }
+
+    this.hammer = null;
   }
 };
 
@@ -4781,6 +4770,16 @@ TimeAxis.prototype._updateConversion = function() {
 };
 
 /**
+ * Snap a date to a rounded value.
+ * The snap intervals are dependent on the current scale and step.
+ * @param {Date} date   the date to be snapped.
+ * @return {Date} snappedDate
+ */
+TimeAxis.prototype.snap = function snap (date) {
+  return this.step.snap(date);
+};
+
+/**
  * A current time bar
  * @param {Component} parent
  * @param {Component[]} [depends]   Components on which this components depends
@@ -4838,7 +4837,7 @@ CurrentTime.prototype.repaint = function () {
       delete this.frame;
     }
 
-    return;
+    return false;
   }
 
   if (!bar) {
@@ -4903,11 +4902,13 @@ function CustomTime (parent, depends, options) {
     showCustomTime: false
   };
 
-  this.listeners = [];
   this.customTime = new Date();
+  this.eventParams = {}; // stores state parameters while dragging the bar
 }
 
 CustomTime.prototype = new Component();
+
+Emitter(CustomTime.prototype);
 
 CustomTime.prototype.setOptions = Component.prototype.setOptions;
 
@@ -4926,13 +4927,13 @@ CustomTime.prototype.getContainer = function () {
  */
 CustomTime.prototype.repaint = function () {
   var bar = this.frame,
-      parent = this.parent,
-      parentContainer = parent.parent.getContainer();
+      parent = this.parent;
 
   if (!parent) {
     throw new Error('Cannot repaint bar: no parent attached');
   }
 
+  var parentContainer = parent.parent.getContainer();
   if (!parentContainer) {
     throw new Error('Cannot repaint bar: parent has no container element');
   }
@@ -4943,7 +4944,7 @@ CustomTime.prototype.repaint = function () {
       delete this.frame;
     }
 
-    return;
+    return false;
   }
 
   if (!bar) {
@@ -4965,7 +4966,13 @@ CustomTime.prototype.repaint = function () {
 
     this.frame = bar;
 
-    this.subscribe(this, 'movetime');
+    // attach event listeners
+    this.hammer = Hammer(bar, {
+      prevent_default: true
+    });
+    this.hammer.on('dragstart', this._onDragStart.bind(this));
+    this.hammer.on('drag',      this._onDrag.bind(this));
+    this.hammer.on('dragend',   this._onDragEnd.bind(this));
   }
 
   if (!parent.conversion) {
@@ -4984,7 +4991,7 @@ CustomTime.prototype.repaint = function () {
  * Set custom time.
  * @param {Date} time
  */
-CustomTime.prototype._setCustomTime = function(time) {
+CustomTime.prototype.setCustomTime = function(time) {
   this.customTime = new Date(time.valueOf());
   this.repaint();
 };
@@ -4993,149 +5000,60 @@ CustomTime.prototype._setCustomTime = function(time) {
  * Retrieve the current custom time.
  * @return {Date} customTime
  */
-CustomTime.prototype._getCustomTime = function() {
+CustomTime.prototype.getCustomTime = function() {
   return new Date(this.customTime.valueOf());
-};
-
-/**
- * Add listeners for mouse and touch events to the component
- * @param {Component} component
- */
-CustomTime.prototype.subscribe = function (component, event) {
-  var me = this;
-  var listener = {
-    component: component,
-    event: event,
-    callback: function (event) {
-      me._onMouseDown(event, listener);
-    },
-    params: {}
-  };
-
-  component.on('mousedown', listener.callback);
-  me.listeners.push(listener);
-
-};
-
-/**
- * Event handler
- * @param {String} event       name of the event, for example 'click', 'mousemove'
- * @param {function} callback  callback handler, invoked with the raw HTML Event
- *                             as parameter.
- */
-CustomTime.prototype.on = function (event, callback) {
-  var bar = this.frame;
-  if (!bar) {
-    throw new Error('Cannot add event listener: no parent attached');
-  }
-
-  events.addListener(this, event, callback);
-  util.addEventListener(bar, event, callback);
 };
 
 /**
  * Start moving horizontally
  * @param {Event} event
- * @param {Object} listener   Listener containing the component and params
  * @private
  */
-CustomTime.prototype._onMouseDown = function(event, listener) {
-  event = event || window.event;
-  var params = listener.params;
+CustomTime.prototype._onDragStart = function(event) {
+  this.eventParams.customTime = this.customTime;
 
-  // only react on left mouse button down
-  var leftButtonDown = event.which ? (event.which == 1) : (event.button == 1);
-  if (!leftButtonDown) {
-    return;
-  }
-
-  // get mouse position
-  params.mouseX = util.getPageX(event);
-  params.moved = false;
-
-  params.customTime = this.customTime;
-
-  // add event listeners to handle moving the custom time bar
-  var me = this;
-  if (!params.onMouseMove) {
-    params.onMouseMove = function (event) {
-      me._onMouseMove(event, listener);
-    };
-    util.addEventListener(document, 'mousemove', params.onMouseMove);
-  }
-  if (!params.onMouseUp) {
-    params.onMouseUp = function (event) {
-      me._onMouseUp(event, listener);
-    };
-    util.addEventListener(document, 'mouseup', params.onMouseUp);
-  }
-
-  util.stopPropagation(event);
-  util.preventDefault(event);
+  event.stopPropagation();
+  event.preventDefault();
 };
 
 /**
  * Perform moving operating.
- * This function activated from within the funcion CustomTime._onMouseDown().
  * @param {Event} event
- * @param {Object} listener
  * @private
  */
-CustomTime.prototype._onMouseMove = function (event, listener) {
-  event = event || window.event;
-  var params = listener.params;
-  var parent = this.parent;
+CustomTime.prototype._onDrag = function (event) {
+  var deltaX = event.gesture.deltaX,
+      x = this.parent.toScreen(this.eventParams.customTime) + deltaX,
+      time = this.parent.toTime(x);
 
-  // calculate change in mouse position
-  var mouseX = util.getPageX(event);
-
-  if (params.mouseX === undefined) {
-    params.mouseX = mouseX;
-  }
-
-  var diff = mouseX - params.mouseX;
-
-  // if mouse movement is big enough, register it as a "moved" event
-  if (Math.abs(diff) >= 1) {
-    params.moved = true;
-  }
-
-  var x = parent.toScreen(params.customTime);
-  var xnew = x + diff;
-  var time = parent.toTime(xnew);
-  this._setCustomTime(time);
+  this.setCustomTime(time);
 
   // fire a timechange event
-  events.trigger(this, 'timechange', {customTime: this.customTime});
+  if (this.controller) {
+    this.controller.emit('timechange', {
+      time: this.customTime
+    })
+  }
 
-  util.preventDefault(event);
+  event.stopPropagation();
+  event.preventDefault();
 };
 
 /**
  * Stop moving operating.
- * This function activated from within the function CustomTime._onMouseDown().
  * @param {event} event
- * @param {Object} listener
  * @private
  */
-CustomTime.prototype._onMouseUp = function (event, listener) {
-  event = event || window.event;
-  var params = listener.params;
-
-  // remove event listeners here, important for Safari
-  if (params.onMouseMove) {
-    util.removeEventListener(document, 'mousemove', params.onMouseMove);
-    params.onMouseMove = null;
-  }
-  if (params.onMouseUp) {
-    util.removeEventListener(document, 'mouseup', params.onMouseUp);
-    params.onMouseUp = null;
+CustomTime.prototype._onDragEnd = function (event) {
+  // fire a timechanged event
+  if (this.controller) {
+    this.controller.emit('timechanged', {
+      time: this.customTime
+    })
   }
 
-  if (params.moved) {
-    // fire a timechanged event
-    events.trigger(this, 'timechanged', {customTime: this.customTime});
-  }
+  event.stopPropagation();
+  event.preventDefault();
 };
 
 /**
@@ -5156,6 +5074,13 @@ function ItemSet(parent, depends, options) {
   this.parent = parent;
   this.depends = depends;
 
+  // event listeners
+  this.eventListeners = {
+    dragstart: this._onDragStart.bind(this),
+    drag: this._onDrag.bind(this),
+    dragend: this._onDragEnd.bind(this)
+  };
+
   // one options object is shared by this itemset and all its items
   this.options = options || {};
   this.defaultOptions = {
@@ -5175,6 +5100,7 @@ function ItemSet(parent, depends, options) {
   this.itemsData = null;  // DataSet
   this.range = null;      // Range or Object {start: number, end: number}
 
+  // data change listeners
   this.listeners = {
     'add': function (event, params, senderId) {
       if (senderId != me.id) {
@@ -5198,6 +5124,8 @@ function ItemSet(parent, depends, options) {
   this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
   this.stack = new Stack(this, Object.create(this.options));
   this.conversion = null;
+
+  this.touchParams = {}; // stores properties while dragging
 
   // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
 }
@@ -5236,8 +5164,60 @@ ItemSet.types = {
  *                           {Number} padding
  *                              Padding of the contents of an item in pixels.
  *                              Must correspond with the items css. Default is 5.
+ *                           {Function} snap
+ *                              Function to let items snap to nice dates when
+ *                              dragging items.
  */
 ItemSet.prototype.setOptions = Component.prototype.setOptions;
+
+
+
+/**
+ * Set controller for this component
+ * @param {Controller | null} controller
+ */
+ItemSet.prototype.setController = function setController (controller) {
+  var event;
+
+  // unregister old event listeners
+  if (this.controller) {
+    for (event in this.eventListeners) {
+      if (this.eventListeners.hasOwnProperty(event)) {
+        this.controller.off(event, this.eventListeners[event]);
+      }
+    }
+  }
+
+  this.controller = controller || null;
+
+  // register new event listeners
+  if (this.controller) {
+    for (event in this.eventListeners) {
+      if (this.eventListeners.hasOwnProperty(event)) {
+        this.controller.on(event, this.eventListeners[event]);
+      }
+    }
+  }
+};
+
+// attach event listeners for dragging items to the controller
+(function (me) {
+  var _controller = null;
+  var _onDragStart = null;
+  var _onDrag = null;
+  var _onDragEnd = null;
+
+  Object.defineProperty(me, 'controller', {
+    get: function () {
+      return _controller;
+    },
+
+    set: function (controller) {
+
+    }
+  });
+}) (this);
+
 
 /**
  * Set range (start and end).
@@ -5284,12 +5264,6 @@ ItemSet.prototype.setSelection = function setSelection(ids) {
       }
     }
 
-    // trigger a select event
-    selection = this.selection.concat([]);
-    events.trigger(this, 'select', {
-      ids: selection
-    });
-
     if (this.controller) {
       this.requestRepaint();
     }
@@ -5335,6 +5309,7 @@ ItemSet.prototype.repaint = function repaint() {
   if (!frame) {
     frame = document.createElement('div');
     frame.className = 'itemset';
+    frame['timeline-itemset'] = this;
 
     var className = options.className;
     if (className) {
@@ -5529,8 +5504,8 @@ ItemSet.prototype.getAxis = function getAxis() {
 ItemSet.prototype.reflow = function reflow () {
   var changed = 0,
       options = this.options,
-      marginAxis = options.margin && options.margin.axis || this.defaultOptions.margin.axis,
-      marginItem = options.margin && options.margin.item || this.defaultOptions.margin.item,
+      marginAxis = (options.margin && 'axis' in options.margin) ? options.margin.axis : this.defaultOptions.margin.axis,
+      marginItem = (options.margin && 'item' in options.margin) ? options.margin.item : this.defaultOptions.margin.item,
       update = util.updateProperty,
       asNumber = util.option.asNumber,
       asSize = util.option.asSize,
@@ -5641,7 +5616,7 @@ ItemSet.prototype.setItems = function setItems(items) {
     // subscribe to new dataset
     var id = this.id;
     util.forEach(this.listeners, function (callback, event) {
-      me.itemsData.subscribe(event, callback, id);
+      me.itemsData.on(event, callback, id);
     });
 
     // draw all new items
@@ -5656,6 +5631,24 @@ ItemSet.prototype.setItems = function setItems(items) {
  */
 ItemSet.prototype.getItems = function getItems() {
   return this.itemsData;
+};
+
+/**
+ * Remove an item by its id
+ * @param {String | Number} id
+ */
+ItemSet.prototype.removeItem = function removeItem (id) {
+  var item = this.itemsData.get(id),
+      dataset = this._myDataSet();
+
+  if (item) {
+    // confirm deletion
+    this.options.onRemove(item, function (item) {
+      if (item) {
+        dataset.remove(item);
+      }
+    });
+  }
 };
 
 /**
@@ -5752,6 +5745,193 @@ ItemSet.prototype.toScreen = function toScreen(time) {
 };
 
 /**
+ * Start dragging the selected events
+ * @param {Event} event
+ * @private
+ */
+ItemSet.prototype._onDragStart = function (event) {
+  if (!this.options.editable) {
+    return;
+  }
+
+  var item = ItemSet.itemFromTarget(event),
+      me = this;
+
+  if (item && item.selected) {
+    var dragLeftItem = event.target.dragLeftItem;
+    var dragRightItem = event.target.dragRightItem;
+
+    if (dragLeftItem) {
+      this.touchParams.itemProps = [{
+        item: dragLeftItem,
+        start: item.data.start.valueOf()
+      }];
+    }
+    else if (dragRightItem) {
+      this.touchParams.itemProps = [{
+        item: dragRightItem,
+        end: item.data.end.valueOf()
+      }];
+    }
+    else {
+      this.touchParams.itemProps = this.getSelection().map(function (id) {
+        var item = me.items[id];
+        var props = {
+          item: item
+        };
+
+        if ('start' in item.data) {
+          props.start = item.data.start.valueOf()
+        }
+        if ('end' in item.data)   {
+          props.end = item.data.end.valueOf()
+        }
+
+        return props;
+      });
+    }
+
+    event.stopPropagation();
+  }
+};
+
+/**
+ * Drag selected items
+ * @param {Event} event
+ * @private
+ */
+ItemSet.prototype._onDrag = function (event) {
+  if (this.touchParams.itemProps) {
+    var snap = this.options.snap || null,
+        deltaX = event.gesture.deltaX,
+        offset = deltaX / this.conversion.scale;
+
+    // move
+    this.touchParams.itemProps.forEach(function (props) {
+      if ('start' in props) {
+        var start = new Date(props.start + offset);
+        props.item.data.start = snap ? snap(start) : start;
+      }
+      if ('end' in props) {
+        var end = new Date(props.end + offset);
+        props.item.data.end = snap ? snap(end) : end;
+      }
+    });
+
+    // TODO: implement onMoving handler
+
+    // TODO: implement dragging from one group to another
+
+    this.requestReflow();
+
+    event.stopPropagation();
+  }
+};
+
+/**
+ * End of dragging selected items
+ * @param {Event} event
+ * @private
+ */
+ItemSet.prototype._onDragEnd = function (event) {
+  if (this.touchParams.itemProps) {
+    // prepare a change set for the changed items
+    var changes = [],
+        me = this,
+        dataset = this._myDataSet(),
+        type;
+
+    this.touchParams.itemProps.forEach(function (props) {
+      var id = props.item.id,
+          item = me.itemsData.get(id);
+
+      var changed = false;
+      if ('start' in props.item.data) {
+        changed = (props.start != props.item.data.start.valueOf());
+        item.start = util.convert(props.item.data.start, dataset.convert['start']);
+      }
+      if ('end' in props.item.data) {
+        changed = changed  || (props.end != props.item.data.end.valueOf());
+        item.end = util.convert(props.item.data.end, dataset.convert['end']);
+      }
+
+      // only apply changes when start or end is actually changed
+      if (changed) {
+        me.options.onMove(item, function (item) {
+          if (item) {
+            // apply changes
+            changes.push(item);
+          }
+          else {
+            // restore original values
+            if ('start' in props) props.item.data.start = props.start;
+            if ('end' in props)   props.item.data.end   = props.end;
+            me.requestReflow();
+          }
+        });
+      }
+    });
+    this.touchParams.itemProps = null;
+
+    // apply the changes to the data (if there are changes)
+    if (changes.length) {
+      dataset.update(changes);
+    }
+
+    event.stopPropagation();
+  }
+};
+
+/**
+ * Find an item from an event target:
+ * searches for the attribute 'timeline-item' in the event target's element tree
+ * @param {Event} event
+ * @return {Item | null} item
+ */
+ItemSet.itemFromTarget = function itemFromTarget (event) {
+  var target = event.target;
+  while (target) {
+    if (target.hasOwnProperty('timeline-item')) {
+      return target['timeline-item'];
+    }
+    target = target.parentNode;
+  }
+
+  return null;
+};
+
+/**
+ * Find the ItemSet from an event target:
+ * searches for the attribute 'timeline-itemset' in the event target's element tree
+ * @param {Event} event
+ * @return {ItemSet | null} item
+ */
+ItemSet.itemSetFromTarget = function itemSetFromTarget (event) {
+  var target = event.target;
+  while (target) {
+    if (target.hasOwnProperty('timeline-itemset')) {
+      return target['timeline-itemset'];
+    }
+    target = target.parentNode;
+  }
+
+  return null;
+};
+
+/**
+ * Find the DataSet to which this ItemSet is connected
+ * @returns {null | DataSet} dataset
+ * @private
+ */
+ItemSet.prototype._myDataSet = function _myDataSet() {
+  // find the root DataSet
+  var dataset = this.itemsData;
+  while (dataset instanceof DataView) {
+    dataset = dataset.data;
+  }
+  return dataset;
+};
+/**
  * @constructor Item
  * @param {ItemSet} parent
  * @param {Object} data             Object containing (optional) parameters type,
@@ -5773,6 +5953,7 @@ function Item (parent, data, options, defaultOptions) {
   this.left = 0;
   this.width = 0;
   this.height = 0;
+  this.offset = 0;
 }
 
 /**
@@ -5826,12 +6007,46 @@ Item.prototype.reflow = function reflow() {
 };
 
 /**
- * Return the items width
- * @return {Integer} width
+ * Give the item a display offset in pixels
+ * @param {Number} offset    Offset on screen in pixels
  */
-Item.prototype.getWidth = function getWidth() {
-  return this.width;
-}
+Item.prototype.setOffset = function setOffset(offset) {
+  this.offset = offset;
+};
+
+/**
+ * Repaint a delete button on the top right of the item when the item is selected
+ * @param {HTMLElement} anchor
+ * @private
+ */
+Item.prototype._repaintDeleteButton = function (anchor) {
+  if (this.selected && this.options.editable && !this.dom.deleteButton) {
+    // create and show button
+    var parent = this.parent;
+    var id = this.id;
+
+    var deleteButton = document.createElement('div');
+    deleteButton.className = 'delete';
+    deleteButton.title = 'Delete this item';
+
+    Hammer(deleteButton, {
+      preventDefault: true
+    }).on('tap', function (event) {
+      parent.removeItem(id);
+      event.stopPropagation();
+    });
+
+    anchor.appendChild(deleteButton);
+    this.dom.deleteButton = deleteButton;
+  }
+  else if (!this.selected && this.dom.deleteButton) {
+    // remove button
+    if (this.dom.deleteButton.parentNode) {
+      this.dom.deleteButton.parentNode.removeChild(this.dom.deleteButton);
+    }
+    this.dom.deleteButton = null;
+  }
+};
 
 /**
  * @constructor ItemBox
@@ -5913,6 +6128,8 @@ ItemBox.prototype.repaint = function repaint() {
       axis.appendChild(dom.dot);
       changed = true;
     }
+
+    this._repaintDeleteButton(dom.box);
 
     // update contents
     if (this.data.content != this.content) {
@@ -6022,7 +6239,7 @@ ItemBox.prototype.reflow = function reflow() {
       update = util.updateProperty;
       props = this.props;
       options = this.options;
-      start = this.parent.toScreen(this.data.start);
+      start = this.parent.toScreen(this.data.start) + this.offset;
       align = options.align || this.defaultOptions.align;
       margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
       orientation = options.orientation || this.defaultOptions.orientation;
@@ -6211,6 +6428,8 @@ ItemPoint.prototype.repaint = function repaint() {
       changed = true;
     }
 
+    this._repaintDeleteButton(dom.point);
+
     // update class
     var className = (this.data.className? ' ' + this.data.className : '') +
         (this.selected ? ' selected' : '');
@@ -6295,7 +6514,7 @@ ItemPoint.prototype.reflow = function reflow() {
       options = this.options;
       orientation = options.orientation || this.defaultOptions.orientation;
       margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
-      start = this.parent.toScreen(this.data.start);
+      start = this.parent.toScreen(this.data.start) + this.offset;
 
       changed += update(this, 'width', dom.point.offsetWidth);
       changed += update(this, 'height', dom.point.offsetHeight);
@@ -6443,8 +6662,12 @@ ItemRange.prototype.repaint = function repaint() {
       changed = true;
     }
 
+    this._repaintDeleteButton(dom.box);
+    this._repaintDragLeft();
+    this._repaintDragRight();
+
     // update class
-    var className = (this.data.className? ' ' + this.data.className : '') +
+    var className = (this.data.className ? (' ' + this.data.className) : '') +
         (this.selected ? ' selected' : '');
     if (this.className != className) {
       this.className = className;
@@ -6533,8 +6756,8 @@ ItemRange.prototype.reflow = function reflow() {
       props = this.props;
       options = this.options;
       parent = this.parent;
-      start = parent.toScreen(this.data.start);
-      end = parent.toScreen(this.data.end);
+      start = parent.toScreen(this.data.start) + this.offset;
+      end = parent.toScreen(this.data.end) + this.offset;
       update = util.updateProperty;
       box = dom.box;
       parentWidth = parent.width;
@@ -6627,6 +6850,66 @@ ItemRange.prototype.reposition = function reposition() {
 };
 
 /**
+ * Repaint a drag area on the left side of the range when the range is selected
+ * @private
+ */
+ItemRange.prototype._repaintDragLeft = function () {
+  if (this.selected && this.options.editable && !this.dom.dragLeft) {
+    // create and show drag area
+    var dragLeft = document.createElement('div');
+    dragLeft.className = 'drag-left';
+    dragLeft.dragLeftItem = this;
+
+    // TODO: this should be redundant?
+    Hammer(dragLeft, {
+      preventDefault: true
+    }).on('drag', function () {
+          //console.log('drag left')
+        });
+
+    this.dom.box.appendChild(dragLeft);
+    this.dom.dragLeft = dragLeft;
+  }
+  else if (!this.selected && this.dom.dragLeft) {
+    // delete drag area
+    if (this.dom.dragLeft.parentNode) {
+      this.dom.dragLeft.parentNode.removeChild(this.dom.dragLeft);
+    }
+    this.dom.dragLeft = null;
+  }
+};
+
+/**
+ * Repaint a drag area on the right side of the range when the range is selected
+ * @private
+ */
+ItemRange.prototype._repaintDragRight = function () {
+  if (this.selected && this.options.editable && !this.dom.dragRight) {
+    // create and show drag area
+    var dragRight = document.createElement('div');
+    dragRight.className = 'drag-right';
+    dragRight.dragRightItem = this;
+
+    // TODO: this should be redundant?
+    Hammer(dragRight, {
+      preventDefault: true
+    }).on('drag', function () {
+      //console.log('drag right')
+    });
+
+    this.dom.box.appendChild(dragRight);
+    this.dom.dragRight = dragRight;
+  }
+  else if (!this.selected && this.dom.dragRight) {
+    // delete drag area
+    if (this.dom.dragRight.parentNode) {
+      this.dom.dragRight.parentNode.removeChild(this.dom.dragRight);
+    }
+    this.dom.dragRight = null;
+  }
+};
+
+/**
  * @constructor ItemRangeOverflow
  * @extends ItemRange
  * @param {ItemSet} parent
@@ -6643,6 +6926,22 @@ function ItemRangeOverflow (parent, data, options, defaultOptions) {
       width: 0
     }
   };
+
+  // define a private property _width, which is the with of the range box
+  // adhering to the ranges start and end date. The property width has a
+  // getter which returns the max of border width and content width
+  this._width = 0;
+  Object.defineProperty(this, 'width', {
+    get: function () {
+      return (this.props.content && this._width < this.props.content.width) ?
+          this.props.content.width :
+          this._width;
+    },
+
+    set: function (width) {
+      this._width = width;
+    }
+  });
 
   ItemRange.call(this, parent, data, options, defaultOptions);
 }
@@ -6690,13 +6989,18 @@ ItemRangeOverflow.prototype.repaint = function repaint() {
         dom.content.innerHTML = this.content;
       }
       else {
-        throw new Error('Property "content" missing in item ' + this.data.id);
+        throw new Error('Property "content" missing in item ' + this.id);
       }
       changed = true;
     }
 
+    this._repaintDeleteButton(dom.box);
+    this._repaintDragLeft();
+    this._repaintDragRight();
+
     // update class
-    var className = this.data.className ? (' ' + this.data.className) : '';
+    var className = (this.data.className? ' ' + this.data.className : '') +
+        (this.selected ? ' selected' : '');
     if (this.className != className) {
       this.className = className;
       dom.box.className = 'item rangeoverflow' + className;
@@ -6708,14 +7012,21 @@ ItemRangeOverflow.prototype.repaint = function repaint() {
 };
 
 /**
- * Return the items width
- * @return {Number} width
+ * Reposition the item, recalculate its left, top, and width, using the current
+ * range and size of the items itemset
+ * @override
  */
-ItemRangeOverflow.prototype.getWidth = function getWidth() {
-  if (this.props.content !== undefined && this.width < this.props.content.width)
-    return this.props.content.width;
-  else
-    return this.width;
+ItemRangeOverflow.prototype.reposition = function reposition() {
+  var dom = this.dom,
+      props = this.props;
+
+  if (dom) {
+    dom.box.style.top = this.top + 'px';
+    dom.box.style.left = this.left + 'px';
+    dom.box.style.width = this._width + 'px';
+
+    dom.content.style.left = props.content.left + 'px';
+  }
 };
 
 /**
@@ -6982,7 +7293,7 @@ GroupSet.prototype.setGroups = function setGroups(groups) {
     // subscribe to new dataset
     var id = this.id;
     util.forEach(this.listeners, function (callback, event) {
-      me.groupsData.subscribe(event, callback, id);
+      me.groupsData.on(event, callback, id);
     });
 
     // draw all new groups
@@ -7066,6 +7377,7 @@ GroupSet.prototype.repaint = function repaint() {
   if (!frame) {
     frame = document.createElement('div');
     frame.className = 'groupset';
+    frame['timeline-groupset'] = this;
     this.dom.frame = frame;
 
     var className = options.className;
@@ -7229,7 +7541,7 @@ GroupSet.prototype.repaint = function repaint() {
 GroupSet.prototype._createLabel = function(id) {
   var group = this.groups[id];
   var label = document.createElement('div');
-  label.className = 'label';
+  label.className = 'vlabel';
   var inner = document.createElement('div');
   inner.className = 'inner';
   label.appendChild(inner);
@@ -7396,9 +7708,42 @@ GroupSet.prototype._toQueue = function _toQueue(ids, action) {
 };
 
 /**
+ * Find the Group from an event target:
+ * searches for the attribute 'timeline-groupset' in the event target's element
+ * tree, then finds the right group in this groupset
+ * @param {Event} event
+ * @return {Group | null} group
+ */
+GroupSet.groupFromTarget = function groupFromTarget (event) {
+  var groupset,
+      target = event.target;
+
+  while (target) {
+    if (target.hasOwnProperty('timeline-groupset')) {
+      groupset = target['timeline-groupset'];
+      break;
+    }
+    target = target.parentNode;
+  }
+
+  if (groupset) {
+    for (var groupId in groupset.groups) {
+      if (groupset.groups.hasOwnProperty(groupId)) {
+        var group = groupset.groups[groupId];
+        if (group.itemset && ItemSet.itemSetFromTarget(event) == group.itemset) {
+          return group;
+        }
+      }
+    }
+  }
+
+  return null;
+};
+
+/**
  * Create a timeline visualization
  * @param {HTMLElement} container
- * @param {vis.DataSet | Array | DataTable} [items]
+ * @param {vis.DataSet | Array | google.visualization.DataTable} [items]
  * @param {Object} [options]  See Timeline.setOptions for the available options.
  * @constructor
  */
@@ -7407,17 +7752,35 @@ function Timeline (container, items, options) {
   var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
   this.options = {
     orientation: 'bottom',
+    autoResize: true,
+    editable: false,
+    selectable: true,
+    snap: null, // will be specified after timeaxis is created
+
     min: null,
     max: null,
     zoomMin: 10,                                // milliseconds
     zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000, // milliseconds
     // moveable: true, // TODO: option moveable
     // zoomable: true, // TODO: option zoomable
+
     showMinorLabels: true,
     showMajorLabels: true,
     showCurrentTime: false,
     showCustomTime: false,
-    autoResize: false
+
+    onAdd: function (item, callback) {
+      callback(item);
+    },
+    onUpdate: function (item, callback) {
+      callback(item);
+    },
+    onMove: function (item, callback) {
+      callback(item);
+    },
+    onRemove: function (item, callback) {
+      callback(item);
+    }
   };
 
   // controller
@@ -7441,6 +7804,15 @@ function Timeline (container, items, options) {
   };
   this.rootPanel = new RootPanel(container, rootOptions);
   this.controller.add(this.rootPanel);
+
+  // single select (or unselect) when tapping an item
+  this.controller.on('tap',  this._onSelectItem.bind(this));
+
+  // multi select when holding mouse/touch, or on ctrl+click
+  this.controller.on('hold', this._onMultiSelectItem.bind(this));
+
+  // add item on doubletap
+  this.controller.on('doubletap', this._onAddItem.bind(this));
 
   // item panel
   var itemOptions = Object.create(this.options);
@@ -7479,27 +7851,18 @@ function Timeline (container, items, options) {
       now.clone().add('days', 4).valueOf()
   );
 
-  // TODO: reckon with options moveable and zoomable
-  // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
-  this.range.subscribe(this.rootPanel, 'move', 'horizontal');
-  this.range.subscribe(this.rootPanel, 'zoom', 'horizontal');
+  this.range.subscribe(this.controller, this.rootPanel, 'move', 'horizontal');
+  this.range.subscribe(this.controller, this.rootPanel, 'zoom', 'horizontal');
   this.range.on('rangechange', function (properties) {
     var force = true;
-    me.controller.requestReflow(force);
-    me._trigger('rangechange', properties);
+    me.controller.emit('rangechange', properties);
+    me.controller.emit('request-reflow', force);
   });
   this.range.on('rangechanged', function (properties) {
     var force = true;
-    me.controller.requestReflow(force);
-    me._trigger('rangechanged', properties);
+    me.controller.emit('rangechanged', properties);
+    me.controller.emit('request-reflow', force);
   });
-
-  // single select (or unselect) when tapping an item
-  // TODO: implement ctrl+click
-  this.rootPanel.on('tap',  this._onSelectItem.bind(this));
-
-  // multi select when holding mouse/touch, or on ctrl+click
-  this.rootPanel.on('hold', this._onMultiSelectItem.bind(this));
 
   // time axis
   var timeaxisOptions = Object.create(rootOptions);
@@ -7511,6 +7874,7 @@ function Timeline (container, items, options) {
   this.timeaxis = new TimeAxis(this.itemPanel, [], timeaxisOptions);
   this.timeaxis.setRange(this.range);
   this.controller.add(this.timeaxis);
+  this.options.snap = this.timeaxis.snap.bind(this.timeaxis);
 
   // current time bar
   this.currenttime = new CurrentTime(this.timeaxis, [], rootOptions);
@@ -7538,6 +7902,25 @@ function Timeline (container, items, options) {
 }
 
 /**
+ * Add an event listener to the timeline
+ * @param {String} event    Available events: select, rangechange, rangechanged,
+ *                          timechange, timechanged
+ * @param {function} callback
+ */
+Timeline.prototype.on = function on (event, callback) {
+  this.controller.on(event, callback);
+};
+
+/**
+ * Add an event listener from the timeline
+ * @param {String} event
+ * @param {function} callback
+ */
+Timeline.prototype.off = function off (event, callback) {
+  this.controller.off(event, callback);
+};
+
+/**
  * Set options
  * @param {Object} options  TODO: describe the available options
  */
@@ -7548,6 +7931,25 @@ Timeline.prototype.setOptions = function (options) {
   // both start and end are optional
   this.range.setRange(options.start, options.end);
 
+  if ('editable' in options || 'selectable' in options) {
+    if (this.options.selectable) {
+      // force update of selection
+      this.setSelection(this.getSelection());
+    }
+    else {
+      // remove selection
+      this.setSelection([]);
+    }
+  }
+
+  // validate the callback functions
+  var validateCallback = (function (fn) {
+    if (!(this.options[fn] instanceof Function) || this.options[fn].length != 2) {
+      throw new Error('option ' + fn + ' must be a function ' + fn + '(item, callback)');
+    }
+  }).bind(this);
+  ['onAdd', 'onUpdate', 'onRemove', 'onMove'].forEach(validateCallback);
+
   this.controller.reflow();
   this.controller.repaint();
 };
@@ -7557,7 +7959,11 @@ Timeline.prototype.setOptions = function (options) {
  * @param {Date} time
  */
 Timeline.prototype.setCustomTime = function (time) {
-  this.customtime._setCustomTime(time);
+  if (!this.customtime) {
+    throw new Error('Cannot get custom time: Custom time bar is not enabled');
+  }
+
+  this.customtime.setCustomTime(time);
 };
 
 /**
@@ -7565,37 +7971,41 @@ Timeline.prototype.setCustomTime = function (time) {
  * @return {Date} customTime
  */
 Timeline.prototype.getCustomTime = function() {
-  return new Date(this.customtime.customTime.valueOf());
+  if (!this.customtime) {
+    throw new Error('Cannot get custom time: Custom time bar is not enabled');
+  }
+
+  return this.customtime.getCustomTime();
 };
 
 /**
  * Set items
- * @param {vis.DataSet | Array | DataTable | null} items
+ * @param {vis.DataSet | Array | google.visualization.DataTable | null} items
  */
 Timeline.prototype.setItems = function(items) {
   var initialLoad = (this.itemsData == null);
 
   // convert to type DataSet when needed
-  var newItemSet;
+  var newDataSet;
   if (!items) {
-    newItemSet = null;
+    newDataSet = null;
   }
   else if (items instanceof DataSet) {
-    newItemSet = items;
+    newDataSet = items;
   }
   if (!(items instanceof DataSet)) {
-    newItemSet = new DataSet({
+    newDataSet = new DataSet({
       convert: {
         start: 'Date',
         end: 'Date'
       }
     });
-    newItemSet.add(items);
+    newDataSet.add(items);
   }
 
   // set items
-  this.itemsData = newItemSet;
-  this.content.setItems(newItemSet);
+  this.itemsData = newDataSet;
+  this.content.setItems(newDataSet);
 
   if (initialLoad && (this.options.start == undefined || this.options.end == undefined)) {
     // apply the data range as range
@@ -7631,7 +8041,7 @@ Timeline.prototype.setItems = function(items) {
 
 /**
  * Set groups
- * @param {vis.DataSet | Array | DataTable} groups
+ * @param {vis.DataSet | Array | google.visualization.DataTable} groups
  */
 Timeline.prototype.setGroups = function(groups) {
   var me = this;
@@ -7765,41 +8175,25 @@ Timeline.prototype.getSelection = function getSelection() {
 };
 
 /**
- * Add event listener
- * @param {String} event       Event name. Available events:
- *                             'rangechange', 'rangechanged', 'select'
- * @param {function} callback  Callback function, invoked as callback(properties)
- *                             where properties is an optional object containing
- *                             event specific properties.
+ * Set the visible window. Both parameters are optional, you can change only
+ * start or only end.
+ * @param {Date | Number | String} [start] Start date of visible window
+ * @param {Date | Number | String} [end]   End date of visible window
  */
-Timeline.prototype.on = function on (event, callback) {
-  var available = ['rangechange', 'rangechanged', 'select'];
-
-  if (available.indexOf(event) == -1) {
-    throw new Error('Unknown event "' + event + '". Choose from ' + available.join());
-  }
-
-  events.addListener(this, event, callback);
+Timeline.prototype.setWindow = function setWindow(start, end) {
+  this.range.setRange(start, end);
 };
 
 /**
- * Remove an event listener
- * @param {String} event       Event name
- * @param {function} callback  Callback function
+ * Get the visible window
+ * @return {{start: Date, end: Date}}   Visible range
  */
-Timeline.prototype.off = function off (event, callback) {
-  events.removeListener(this, event, callback);
-};
-
-/**
- * Trigger an event
- * @param {String} event        Event name, available events: 'rangechange',
- *                              'rangechanged', 'select'
- * @param {Object} [properties] Event specific properties
- * @private
- */
-Timeline.prototype._trigger = function _trigger(event, properties) {
-  events.trigger(this, event, properties || {});
+Timeline.prototype.getWindow = function setWindow() {
+  var range = this.range.getRange();
+  return {
+    start: new Date(range.start),
+    end: new Date(range.end)
+  };
 };
 
 /**
@@ -7807,17 +8201,85 @@ Timeline.prototype._trigger = function _trigger(event, properties) {
  * @param {Event} event
  * @private
  */
+// TODO: move this function to ItemSet
 Timeline.prototype._onSelectItem = function (event) {
-  var item = this._itemFromTarget(event);
+  if (!this.options.selectable) return;
+
+  var ctrlKey  = event.gesture.srcEvent && event.gesture.srcEvent.ctrlKey;
+  var shiftKey = event.gesture.srcEvent && event.gesture.srcEvent.shiftKey;
+  if (ctrlKey || shiftKey) {
+    this._onMultiSelectItem(event);
+    return;
+  }
+
+  var item = ItemSet.itemFromTarget(event);
 
   var selection = item ? [item.id] : [];
   this.setSelection(selection);
 
-  this._trigger('select', {
+  this.controller.emit('select', {
     items: this.getSelection()
   });
 
   event.stopPropagation();
+};
+
+/**
+ * Handle creation and updates of an item on double tap
+ * @param event
+ * @private
+ */
+Timeline.prototype._onAddItem = function (event) {
+  if (!this.options.selectable) return;
+  if (!this.options.editable) return;
+
+  var me = this,
+      item = ItemSet.itemFromTarget(event);
+
+  if (item) {
+    // update item
+
+    // execute async handler to update the item (or cancel it)
+    var itemData = me.itemsData.get(item.id); // get a clone of the data from the dataset
+    this.options.onUpdate(itemData, function (itemData) {
+      if (itemData) {
+        me.itemsData.update(itemData);
+      }
+    });
+  }
+  else {
+    // add item
+    var xAbs = vis.util.getAbsoluteLeft(this.rootPanel.frame);
+    var x = event.gesture.center.pageX - xAbs;
+    var newItem = {
+      start: this.timeaxis.snap(this._toTime(x)),
+      content: 'new item'
+    };
+
+    var id = util.randomUUID();
+    newItem[this.itemsData.fieldId] = id;
+
+    var group = GroupSet.groupFromTarget(event);
+    if (group) {
+      newItem.group = group.groupId;
+    }
+
+    // execute async handler to customize (or cancel) adding an item
+    this.options.onAdd(newItem, function (item) {
+      if (item) {
+        me.itemsData.add(newItem);
+
+        // select the created item after it is repainted
+        me.controller.once('repaint', function () {
+          me.setSelection([id]);
+
+          me.controller.emit('select', {
+            items: me.getSelection()
+          });
+        }.bind(me));
+      }
+    });
+  }
 };
 
 /**
@@ -7825,52 +8287,58 @@ Timeline.prototype._onSelectItem = function (event) {
  * @param {Event} event
  * @private
  */
+// TODO: move this function to ItemSet
 Timeline.prototype._onMultiSelectItem = function (event) {
+  if (!this.options.selectable) return;
+
   var selection,
-      item = this._itemFromTarget(event);
+      item = ItemSet.itemFromTarget(event);
 
-  if (!item) {
-    // do nothing...
-    return;
+  if (item) {
+    // multi select items
+    selection = this.getSelection(); // current selection
+    var index = selection.indexOf(item.id);
+    if (index == -1) {
+      // item is not yet selected -> select it
+      selection.push(item.id);
+    }
+    else {
+      // item is already selected -> deselect it
+      selection.splice(index, 1);
+    }
+    this.setSelection(selection);
+
+    this.controller.emit('select', {
+      items: this.getSelection()
+    });
+
+    event.stopPropagation();
   }
-
-  selection = this.getSelection(); // current selection
-  var index = selection.indexOf(item.id);
-  if (index == -1) {
-    // item is not yet selected -> select it
-    selection.push(item.id);
-  }
-  else {
-    // item is already selected -> deselect it
-    selection.splice(index, 1);
-  }
-  this.setSelection(selection);
-
-  this._trigger('select', {
-    items: this.getSelection()
-  });
-
-  event.stopPropagation();
 };
 
 /**
- * Find an item from an event target:
- * searches for the attribute 'timeline-item' in the event target's element tree
- * @param {Event} event
- * @return {Item | null| item
+ * Convert a position on screen (pixels) to a datetime
+ * @param {int}     x    Position on the screen in pixels
+ * @return {Date}   time The datetime the corresponds with given position x
  * @private
  */
-Timeline.prototype._itemFromTarget = function _itemFromTarget (event) {
-  var target = event.target;
-  while (target) {
-    if (target.hasOwnProperty('timeline-item')) {
-      return target['timeline-item'];
-    }
-    target = target.parentNode;
-  }
-
-  return null;
+Timeline.prototype._toTime = function _toTime(x) {
+  var conversion = this.range.conversion(this.content.width);
+  return new Date(x / conversion.scale + conversion.offset);
 };
+
+/**
+ * Convert a datetime (Date object) into a position on the screen
+ * @param {Date}   time A date
+ * @return {int}   x    The position on the screen in pixels which corresponds
+ *                      with the given date.
+ * @private
+ */
+Timeline.prototype._toScreen = function _toScreen(time) {
+  var conversion = this.range.conversion(this.content.width);
+  return (time.valueOf() - conversion.offset) * conversion.scale;
+};
+
 (function(exports) {
   /**
    * Parse a text source containing data in DOT language into a JSON object.
@@ -8950,6 +9418,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined') {
  *                                            retrieving group properties
  * @param {Object}               constants    An object with default values for
  *                                            example for the color
+ *
  */
 function Node(properties, imagelist, grouplist, constants) {
   this.selected = false;
@@ -8962,6 +9431,7 @@ function Node(properties, imagelist, grouplist, constants) {
   this.fontSize = constants.nodes.fontSize;
   this.fontFace = constants.nodes.fontFace;
   this.fontColor = constants.nodes.fontColor;
+  this.fontDrawThreshold = 3;
 
   this.color = constants.nodes.color;
 
@@ -8980,10 +9450,19 @@ function Node(properties, imagelist, grouplist, constants) {
   this.radiusFixed = false;
   this.radiusMin = constants.nodes.radiusMin;
   this.radiusMax = constants.nodes.radiusMax;
+  this.level = -1;
 
   this.imagelist = imagelist;
-
   this.grouplist = grouplist;
+
+  // physics properties
+  this.fx = 0.0;  // external force x
+  this.fy = 0.0;  // external force y
+  this.vx = 0.0;  // velocity x
+  this.vy = 0.0;  // velocity y
+  this.minForce = constants.minForce;
+  this.damping = constants.physics.damping;
+  this.mass = 1;  // kg
 
   this.setProperties(properties, constants);
 
@@ -8994,20 +9473,15 @@ function Node(properties, imagelist, grouplist, constants) {
   this.clusterSizeWidthFactor  = constants.clustering.nodeScaling.width;
   this.clusterSizeHeightFactor = constants.clustering.nodeScaling.height;
   this.clusterSizeRadiusFactor = constants.clustering.nodeScaling.radius;
+  this.maxNodeSizeIncrements = constants.clustering.maxNodeSizeIncrements;
+  this.growthIndicator = 0;
 
-  // mass, force, velocity
-  this.mass = 1;  // kg (mass is adjusted for the number of connected edges)
-  this.fx = 0.0;  // external force x
-  this.fy = 0.0;  // external force y
-  this.vx = 0.0;  // velocity x
-  this.vy = 0.0;  // velocity y
-  this.minForce = constants.minForce;
-  this.damping = 0.9;
-  this.dampingFactor = 75;
-
+  // variables to tell the node about the graph.
   this.graphScaleInv = 1;
+  this.graphScale = 1;
   this.canvasTopLeft = {"x": -300, "y": -300};
   this.canvasBottomRight = {"x":  300, "y":  300};
+  this.parentEdgeId = null;
 }
 
 /**
@@ -9034,7 +9508,6 @@ Node.prototype.attachEdge = function(edge) {
     this.dynamicEdges.push(edge);
   }
   this.dynamicEdgesLength = this.dynamicEdges.length;
-  this._updateMass();
 };
 
 /**
@@ -9048,17 +9521,8 @@ Node.prototype.detachEdge = function(edge) {
     this.dynamicEdges.splice(index, 1);
   }
   this.dynamicEdgesLength = this.dynamicEdges.length;
-  this._updateMass();
 };
 
-/**
- * Update the nodes mass, which is determined by the number of edges connecting
- * to it (more edges -> heavier node).
- * @private
- */
-Node.prototype._updateMass = function() {
-  this.mass = 1 + 0.6 * this.edges.length; // kg
-};
 
 /**
  * Set or overwrite properties for the node
@@ -9078,6 +9542,13 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.x !== undefined)         {this.x = properties.x;}
   if (properties.y !== undefined)         {this.y = properties.y;}
   if (properties.value !== undefined)     {this.value = properties.value;}
+  if (properties.level !== undefined)     {this.level = properties.level;}
+
+
+  // physics
+  if (properties.internalMultiplier !== undefined)  {this.internalMultiplier = properties.internalMultiplier;}
+  if (properties.damping !== undefined)             {this.dampingBase = properties.damping;}
+  if (properties.mass !== undefined)                {this.mass = properties.mass;}
 
   // navigation controls properties
   if (properties.horizontalAlignLeft !== undefined) {this.horizontalAlignLeft = properties.horizontalAlignLeft;}
@@ -9117,8 +9588,8 @@ Node.prototype.setProperties = function(properties, constants) {
     }
   }
 
-  this.xFixed = this.xFixed || (properties.x !== undefined);
-  this.yFixed = this.yFixed || (properties.y !== undefined);
+  this.xFixed = this.xFixed || (properties.x !== undefined && !properties.allowedToMove);
+  this.yFixed = this.yFixed || (properties.y !== undefined && !properties.allowedToMove);
   this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
 
   if (this.shape == 'image') {
@@ -9155,15 +9626,32 @@ Node.prototype.setProperties = function(properties, constants) {
 Node.parseColor = function(color) {
   var c;
   if (util.isString(color)) {
-    c = {
-      border: color,
-      background: color,
-      highlight: {
-        border: color,
-        background: color
-      }
-    };
-    // TODO: automatically generate a nice highlight color
+    if (util.isValidHex(color)) {
+      var hsv = util.hexToHSV(color);
+      var lighterColorHSV = {h:hsv.h,s:hsv.s * 0.45,v:Math.min(1,hsv.v * 1.05)};
+      var darkerColorHSV  = {h:hsv.h,s:Math.min(1,hsv.v * 1.25),v:hsv.v*0.6};
+      var darkerColorHex  = util.HSVToHex(darkerColorHSV.h ,darkerColorHSV.h ,darkerColorHSV.v);
+      var lighterColorHex = util.HSVToHex(lighterColorHSV.h,lighterColorHSV.s,lighterColorHSV.v);
+
+      c = {
+        background: color,
+        border:darkerColorHex,
+        highlight: {
+          background:lighterColorHex,
+          border:darkerColorHex
+        }
+      };
+    }
+    else {
+      c = {
+        background:color,
+        border:color,
+        highlight: {
+          background:color,
+          border:color
+        }
+      };
+    }
   }
   else {
     c = {};
@@ -9241,7 +9729,6 @@ Node.prototype.distanceToBorder = function (ctx, angle) {
     this.resize(ctx);
   }
 
-  //noinspection FallthroughInSwitchStatementJS
   switch (this.shape) {
     case 'circle':
     case 'dot':
@@ -9273,7 +9760,6 @@ Node.prototype.distanceToBorder = function (ctx, angle) {
       }
 
   }
-
   // TODO: implement calculation of distance to border for all shapes
 };
 
@@ -9304,20 +9790,43 @@ Node.prototype._addForce = function(fx, fy) {
  */
 Node.prototype.discreteStep = function(interval) {
   if (!this.xFixed) {
-    var dx   = -this.damping * this.vx;     // damping force
-    var ax   = (this.fx + dx) / this.mass;  // acceleration
+    var dx   = this.damping * this.vx;     // damping force
+    var ax   = (this.fx - dx) / this.mass;  // acceleration
     this.vx += ax * interval;               // velocity
     this.x  += this.vx * interval;          // position
   }
 
   if (!this.yFixed) {
-    var dy   = -this.damping * this.vy;     // damping force
-    var ay   = (this.fy + dy) / this.mass;  // acceleration
+    var dy   = this.damping * this.vy;     // damping force
+    var ay   = (this.fy - dy) / this.mass;  // acceleration
     this.vy += ay * interval;               // velocity
     this.y  += this.vy * interval;          // position
   }
 };
 
+
+
+/**
+ * Perform one discrete step for the node
+ * @param {number} interval    Time interval in seconds
+ */
+Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
+  if (!this.xFixed) {
+    var dx   = this.damping * this.vx;     // damping force
+    var ax   = (this.fx - dx) / this.mass;  // acceleration
+    this.vx += ax * interval;               // velocity
+    this.vx = (Math.abs(this.vx) > maxVelocity) ? ((this.vx > 0) ? maxVelocity : -maxVelocity) : this.vx;
+    this.x  += this.vx * interval;          // position
+  }
+
+  if (!this.yFixed) {
+    var dy   = this.damping * this.vy;     // damping force
+    var ay   = (this.fy - dy) / this.mass;  // acceleration
+    this.vy += ay * interval;               // velocity
+    this.vy = (Math.abs(this.vy) > maxVelocity) ? ((this.vy > 0) ? maxVelocity : -maxVelocity) : this.vy;
+    this.y  += this.vy * interval;          // position
+  }
+};
 
 /**
  * Check if this node has a fixed x and y position
@@ -9334,16 +9843,7 @@ Node.prototype.isFixed = function() {
  */
 // TODO: replace this method with calculating the kinetic energy
 Node.prototype.isMoving = function(vmin) {
-
-  if (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin) {
-//    console.log(vmin,this.vx,this.vy);
-    return true;
-  }
-  else {
-    this.vx = 0; this.vy = 0;
-    return false;
-  }
-  //return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin);
+  return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin);
 };
 
 /**
@@ -9448,10 +9948,12 @@ Node.prototype._resizeImage = function (ctx) {
     this.width  = width;
     this.height = height;
 
+    this.growthIndicator = 0;
     if (this.width > 0 && this.height > 0) {
-      this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
-      this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
-      this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
+      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements)  * this.clusterSizeWidthFactor;
+      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+      this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
+      this.growthIndicator = this.width - width;
     }
   }
 
@@ -9496,9 +9998,11 @@ Node.prototype._resizeBox = function (ctx) {
     this.width = textSize.width + 2 * margin;
     this.height = textSize.height + 2 * margin;
 
-    this.width  += (this.clusterSize - 1) * 0.5 * this.clusterSizeWidthFactor;
-    this.height += (this.clusterSize - 1) * 0.5 * this.clusterSizeHeightFactor;
-//    this.radius += (this.clusterSize - 1) * 0.5 * this.clusterSizeRadiusFactor;
+    this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeWidthFactor;
+    this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeHeightFactor;
+    this.growthIndicator = this.width - (textSize.width + 2 * margin);
+//    this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
+
   }
 };
 
@@ -9545,9 +10049,10 @@ Node.prototype._resizeDatabase = function (ctx) {
     this.height = size;
 
     // scaling used for clustering
-    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
-    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
-    this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
+    this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
+    this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+    this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
+    this.growthIndicator = this.width - size;
   }
 };
 
@@ -9594,9 +10099,10 @@ Node.prototype._resizeCircle = function (ctx) {
     this.height = diameter;
 
     // scaling used for clustering
-//    this.width  += (this.clusterSize - 1) * 0.5 * this.clusterSizeWidthFactor;
-//    this.height += (this.clusterSize - 1) * 0.5 * this.clusterSizeHeightFactor;
-    this.radius += (this.clusterSize - 1) * 0.5 * this.clusterSizeRadiusFactor;
+//    this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeWidthFactor;
+//    this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeHeightFactor;
+    this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
+    this.growthIndicator = this.radius - 0.5*diameter;
   }
 };
 
@@ -9640,11 +10146,13 @@ Node.prototype._resizeEllipse = function (ctx) {
     if (this.width < this.height) {
       this.width = this.height;
     }
+    var defaultSize = this.width;
 
-    // scaling used for clustering
-    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
-    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
-    this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
+      // scaling used for clustering
+    this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
+    this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+    this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
+    this.growthIndicator = this.width - defaultSize;
   }
 };
 
@@ -9707,9 +10215,10 @@ Node.prototype._resizeShape = function (ctx) {
     this.height = size;
 
     // scaling used for clustering
-    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
-    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
-    this.radius += (this.clusterSize - 1) * 0.5 * this.clusterSizeRadiusFactor;
+    this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
+    this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+    this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
+    this.growthIndicator = this.width - size;
   }
 };
 
@@ -9766,9 +10275,10 @@ Node.prototype._resizeText = function (ctx) {
     this.height = textSize.height + 2 * margin;
 
     // scaling used for clustering
-    this.width  += (this.clusterSize - 1) * this.clusterSizeWidthFactor;
-    this.height += (this.clusterSize - 1) * this.clusterSizeHeightFactor;
-    this.radius += (this.clusterSize - 1) * this.clusterSizeRadiusFactor;
+    this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
+    this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+    this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
+    this.growthIndicator = this.width - (textSize.width + 2 * margin);
   }
 };
 
@@ -9782,7 +10292,7 @@ Node.prototype._drawText = function (ctx) {
 
 
 Node.prototype._label = function (ctx, text, x, y, align, baseline) {
-  if (text) {
+  if (text && this.fontSize * this.graphScale > this.fontDrawThreshold) {
     ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
     ctx.fillStyle = this.fontColor || "black";
     ctx.textAlign = align || "center";
@@ -9836,7 +10346,7 @@ Node.prototype.inArea = function() {
   else {
     return true;
   }
-}
+};
 
 /**
  * checks if the core of the node is in the display area, this is used for opening clusters around zoom
@@ -9847,7 +10357,7 @@ Node.prototype.inView = function() {
           this.x < this.canvasBottomRight.x &&
           this.y >= this.canvasTopLeft.y    &&
           this.y < this.canvasBottomRight.y);
-}
+};
 
 /**
  * This allows the zoom level of the graph to influence the rendering
@@ -9859,6 +10369,7 @@ Node.prototype.inView = function() {
  */
 Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) {
   this.graphScaleInv = 1.0/scale;
+  this.graphScale = scale;
   this.canvasTopLeft = canvasTopLeft;
   this.canvasBottomRight = canvasBottomRight;
 };
@@ -9871,17 +10382,9 @@ Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) 
  */
 Node.prototype.setScale = function(scale) {
   this.graphScaleInv = 1.0/scale;
+  this.graphScale = scale;
 };
 
-/**
- * This function updates the damping parameter for clusters, based ont he
- *
- * @param {Number} numberOfNodes
- */
-Node.prototype.updateDamping = function(numberOfNodes) {
-  this.damping = (0.8 + 0.1*this.clusterSize * (1 + Math.pow(numberOfNodes,-2)));
-  this.damping *= this.dampingFactor;
-};
 
 
 /**
@@ -9900,8 +10403,10 @@ Node.prototype.clearVelocity = function() {
  */
 Node.prototype.updateVelocity = function(massBeforeClustering) {
   var energyBefore = this.vx * this.vx * massBeforeClustering;
+  //this.vx = (this.vx < 0) ? -Math.sqrt(energyBefore/this.mass) : Math.sqrt(energyBefore/this.mass);
   this.vx = Math.sqrt(energyBefore/this.mass);
   energyBefore = this.vy * this.vy * massBeforeClustering;
+  //this.vy = (this.vy < 0) ? -Math.sqrt(energyBefore/this.mass) : Math.sqrt(energyBefore/this.mass);
   this.vy = Math.sqrt(energyBefore/this.mass);
 };
 
@@ -9939,10 +10444,14 @@ function Edge (properties, graph, constants) {
   this.title  = undefined;
   this.width  = constants.edges.width;
   this.value  = undefined;
-  this.length = constants.edges.length;
+  this.length = constants.physics.springLength;
+  this.customLength = false;
+  this.selected = false;
+  this.smooth = constants.smoothCurves;
 
   this.from = null;   // a node
   this.to = null;     // a node
+  this.via = null;    // a temp node
 
   // we use this to be able to reconnect the edge to a cluster if its node is put into a cluster
   // by storing the original information we can revert to the original connection when the cluser is opened.
@@ -9956,13 +10465,11 @@ function Edge (properties, graph, constants) {
   // 2012-08-08
   this.dash = util.extend({}, constants.edges.dash); // contains properties length, gap, altLength
 
-  this.stiffness   = undefined; // depends on the length of the edge
   this.color       = constants.edges.color;
   this.widthFixed  = false;
   this.lengthFixed = false;
 
   this.setProperties(properties, constants);
-
 }
 
 /**
@@ -9981,6 +10488,7 @@ Edge.prototype.setProperties = function(properties, constants) {
   if (properties.id !== undefined)             {this.id = properties.id;}
   if (properties.style !== undefined)          {this.style = properties.style;}
   if (properties.label !== undefined)          {this.label = properties.label;}
+
   if (this.label) {
     this.fontSize = constants.edges.fontSize;
     this.fontFace = constants.edges.fontFace;
@@ -9989,10 +10497,12 @@ Edge.prototype.setProperties = function(properties, constants) {
     if (properties.fontSize !== undefined)   {this.fontSize = properties.fontSize;}
     if (properties.fontFace !== undefined)   {this.fontFace = properties.fontFace;}
   }
-  if (properties.title !== undefined)          {this.title = properties.title;}
-  if (properties.width !== undefined)          {this.width = properties.width;}
-  if (properties.value !== undefined)          {this.value = properties.value;}
-  if (properties.length !== undefined)         {this.length = properties.length;}
+
+  if (properties.title !== undefined)        {this.title = properties.title;}
+  if (properties.width !== undefined)        {this.width = properties.width;}
+  if (properties.value !== undefined)        {this.value = properties.value;}
+  if (properties.length !== undefined)       {this.length = properties.length;
+                                              this.customLength = true;}
 
   // Added to support dashed lines
   // David Jordan
@@ -10010,7 +10520,6 @@ Edge.prototype.setProperties = function(properties, constants) {
 
   this.widthFixed = this.widthFixed || (properties.width !== undefined);
   this.lengthFixed = this.lengthFixed || (properties.length !== undefined);
-  this.stiffness = 1 / this.length;
 
   // set draw method based on style
   switch (this.style) {
@@ -10118,8 +10627,7 @@ Edge.prototype.isOverlappingWith = function(obj) {
   var xObj = obj.left;
   var yObj = obj.top;
 
-
-  var dist = Edge._dist(xFrom, yFrom, xTo, yTo, xObj, yObj);
+  var dist = this._getDistanceToEdge(xFrom, yFrom, xTo, yTo, xObj, yObj);
 
   return (dist < distMax);
 };
@@ -10137,14 +10645,21 @@ Edge.prototype._drawLine = function(ctx) {
   ctx.strokeStyle = this.color;
   ctx.lineWidth = this._getLineWidth();
 
-  var point;
   if (this.from != this.to) {
     // draw line
     this._line(ctx);
 
     // draw label
+    var point;
     if (this.label) {
-      point = this._pointOnLine(0.5);
+      if (this.smooth == true) {
+        var midpointX = 0.5*(0.5*(this.from.x + this.via.x) + 0.5*(this.to.x + this.via.x));
+        var midpointY = 0.5*(0.5*(this.from.y + this.via.y) + 0.5*(this.to.y + this.via.y));
+        point = {x:midpointX, y:midpointY};
+      }
+      else {
+        point = this._pointOnLine(0.5);
+      }
       this._label(ctx, this.label, point.x, point.y);
     }
   }
@@ -10176,7 +10691,7 @@ Edge.prototype._drawLine = function(ctx) {
  * @private
  */
 Edge.prototype._getLineWidth = function() {
-  if (this.from.selected || this.to.selected) {
+  if (this.selected == true) {
     return Math.min(this.width * 2, this.widthMax)*this.graphScaleInv;
   }
   else {
@@ -10193,7 +10708,12 @@ Edge.prototype._line = function (ctx) {
   // draw a straight line
   ctx.beginPath();
   ctx.moveTo(this.from.x, this.from.y);
-  ctx.lineTo(this.to.x, this.to.y);
+ if (this.smooth == true) {
+      ctx.quadraticCurveTo(this.via.x,this.via.y,this.to.x, this.to.y);
+  }
+  else {
+    ctx.lineTo(this.to.x, this.to.y);
+  }
   ctx.stroke();
 };
 
@@ -10255,29 +10775,82 @@ Edge.prototype._drawDashLine = function(ctx) {
   ctx.strokeStyle = this.color;
   ctx.lineWidth = this._getLineWidth();
 
-  // draw dashed line
-  ctx.beginPath();
-  ctx.lineCap = 'round';
-  if (this.dash.altLength !== undefined) //If an alt dash value has been set add to the array this value
-  {
-    ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
-        [this.dash.length,this.dash.gap,this.dash.altLength,this.dash.gap]);
-  }
-  else if (this.dash.length !== undefined && this.dash.gap !== undefined) //If a dash and gap value has been set add to the array this value
-  {
-    ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
-        [this.dash.length,this.dash.gap]);
-  }
-  else //If all else fails draw a line
-  {
+  // only firefox and chrome support this method, else we use the legacy one.
+  if (ctx.mozDash !== undefined || ctx.setLineDash !== undefined) {
+    ctx.beginPath();
     ctx.moveTo(this.from.x, this.from.y);
-    ctx.lineTo(this.to.x, this.to.y);
+
+    // configure the dash pattern
+    var pattern = [0];
+    if (this.dash.length !== undefined && this.dash.gap !== undefined) {
+      pattern = [this.dash.length,this.dash.gap];
+    }
+    else {
+      pattern = [5,5];
+    }
+
+    // set dash settings for chrome or firefox
+    if (typeof ctx.setLineDash !== 'undefined') { //Chrome
+      ctx.setLineDash(pattern);
+      ctx.lineDashOffset = 0;
+
+    } else { //Firefox
+      ctx.mozDash = pattern;
+      ctx.mozDashOffset = 0;
+    }
+
+    // draw the line
+    if (this.smooth == true) {
+      ctx.quadraticCurveTo(this.via.x,this.via.y,this.to.x, this.to.y);
+    }
+    else {
+      ctx.lineTo(this.to.x, this.to.y);
+    }
+    ctx.stroke();
+
+    // restore the dash settings.
+    if (typeof ctx.setLineDash !== 'undefined') { //Chrome
+      ctx.setLineDash([0]);
+      ctx.lineDashOffset = 0;
+
+    } else { //Firefox
+      ctx.mozDash = [0];
+      ctx.mozDashOffset = 0;
+    }
   }
-  ctx.stroke();
+  else { // unsupporting smooth lines
+    // draw dashed line
+    ctx.beginPath();
+    ctx.lineCap = 'round';
+    if (this.dash.altLength !== undefined) //If an alt dash value has been set add to the array this value
+    {
+      ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
+          [this.dash.length,this.dash.gap,this.dash.altLength,this.dash.gap]);
+    }
+    else if (this.dash.length !== undefined && this.dash.gap !== undefined) //If a dash and gap value has been set add to the array this value
+    {
+      ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
+          [this.dash.length,this.dash.gap]);
+    }
+    else //If all else fails draw a line
+    {
+      ctx.moveTo(this.from.x, this.from.y);
+      ctx.lineTo(this.to.x, this.to.y);
+    }
+    ctx.stroke();
+  }
 
   // draw label
   if (this.label) {
-    var point = this._pointOnLine(0.5);
+    var point;
+    if (this.smooth == true) {
+      var midpointX = 0.5*(0.5*(this.from.x + this.via.x) + 0.5*(this.to.x + this.via.x));
+      var midpointY = 0.5*(0.5*(this.from.y + this.via.y) + 0.5*(this.to.y + this.via.y));
+      point = {x:midpointX, y:midpointY};
+    }
+    else {
+      point = this._pointOnLine(0.5);
+    }
     this._label(ctx, this.label, point.x, point.y);
   }
 };
@@ -10330,35 +10903,42 @@ Edge.prototype._drawArrowCenter = function(ctx) {
     // draw line
     this._line(ctx);
 
-    // draw an arrow halfway the line
     var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
     var length = 10 + 5 * this.width; // TODO: make customizable?
-    point = this._pointOnLine(0.5);
+    // draw an arrow halfway the line
+    if (this.smooth == true) {
+      var midpointX = 0.5*(0.5*(this.from.x + this.via.x) + 0.5*(this.to.x + this.via.x));
+      var midpointY = 0.5*(0.5*(this.from.y + this.via.y) + 0.5*(this.to.y + this.via.y));
+      point = {x:midpointX, y:midpointY};
+    }
+    else {
+      point = this._pointOnLine(0.5);
+    }
+
     ctx.arrow(point.x, point.y, angle, length);
     ctx.fill();
     ctx.stroke();
 
     // draw label
     if (this.label) {
-      point = this._pointOnLine(0.5);
       this._label(ctx, this.label, point.x, point.y);
     }
   }
   else {
     // draw circle
     var x, y;
-    var radius = this.length / 4;
+    var radius = 0.25 * Math.max(100,this.length);
     var node = this.from;
     if (!node.width) {
       node.resize(ctx);
     }
     if (node.width > node.height) {
-      x = node.x + node.width / 2;
+      x = node.x + node.width * 0.5;
       y = node.y - radius;
     }
     else {
       x = node.x + radius;
-      y = node.y - node.height / 2;
+      y = node.y - node.height * 0.5;
     }
     this._circle(ctx, x, y, radius);
 
@@ -10393,39 +10973,66 @@ Edge.prototype._drawArrow = function(ctx) {
   ctx.fillStyle = this.color;
   ctx.lineWidth = this._getLineWidth();
 
-  // draw line
   var angle, length;
+  //draw a line
   if (this.from != this.to) {
-    // calculate length and angle of the line
     angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
     var dx = (this.to.x - this.from.x);
     var dy = (this.to.y - this.from.y);
-    var lEdge = Math.sqrt(dx * dx + dy * dy);
+    var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
 
-    var lFrom = this.from.distanceToBorder(ctx, angle + Math.PI);
-    var pFrom = (lEdge - lFrom) / lEdge;
-    var xFrom = (pFrom) * this.from.x + (1 - pFrom) * this.to.x;
-    var yFrom = (pFrom) * this.from.y + (1 - pFrom) * this.to.y;
+    var fromBorderDist = this.from.distanceToBorder(ctx, angle + Math.PI);
+    var fromBorderPoint = (edgeSegmentLength - fromBorderDist) / edgeSegmentLength;
+    var xFrom = (fromBorderPoint) * this.from.x + (1 - fromBorderPoint) * this.to.x;
+    var yFrom = (fromBorderPoint) * this.from.y + (1 - fromBorderPoint) * this.to.y;
 
-    var lTo = this.to.distanceToBorder(ctx, angle);
-    var pTo = (lEdge - lTo) / lEdge;
-    var xTo = (1 - pTo) * this.from.x + pTo * this.to.x;
-    var yTo = (1 - pTo) * this.from.y + pTo * this.to.y;
+
+    if (this.smooth == true) {
+      angle = Math.atan2((this.to.y - this.via.y), (this.to.x - this.via.x));
+      dx = (this.to.x - this.via.x);
+      dy = (this.to.y - this.via.y);
+      edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
+    }
+    var toBorderDist = this.to.distanceToBorder(ctx, angle);
+    var toBorderPoint = (edgeSegmentLength - toBorderDist) / edgeSegmentLength;
+
+    var xTo,yTo;
+    if (this.smooth == true) {
+     xTo = (1 - toBorderPoint) * this.via.x + toBorderPoint * this.to.x;
+     yTo = (1 - toBorderPoint) * this.via.y + toBorderPoint * this.to.y;
+    }
+    else {
+      xTo = (1 - toBorderPoint) * this.from.x + toBorderPoint * this.to.x;
+      yTo = (1 - toBorderPoint) * this.from.y + toBorderPoint * this.to.y;
+    }
 
     ctx.beginPath();
-    ctx.moveTo(xFrom, yFrom);
-    ctx.lineTo(xTo, yTo);
+    ctx.moveTo(xFrom,yFrom);
+    if (this.smooth == true) {
+      ctx.quadraticCurveTo(this.via.x,this.via.y,xTo, yTo);
+    }
+    else {
+      ctx.lineTo(xTo, yTo);
+    }
     ctx.stroke();
 
     // draw arrow at the end of the line
-    length = 10 + 5 * this.width; // TODO: make customizable?
+    length = 10 + 5 * this.width;
     ctx.arrow(xTo, yTo, angle, length);
     ctx.fill();
     ctx.stroke();
 
     // draw label
     if (this.label) {
-      var point = this._pointOnLine(0.5);
+      var point;
+      if (this.smooth == true) {
+        var midpointX = 0.5*(0.5*(this.from.x + this.via.x) + 0.5*(this.to.x + this.via.x));
+        var midpointY = 0.5*(0.5*(this.from.y + this.via.y) + 0.5*(this.to.y + this.via.y));
+        point = {x:midpointX, y:midpointY};
+      }
+      else {
+        point = this._pointOnLine(0.5);
+      }
       this._label(ctx, this.label, point.x, point.y);
     }
   }
@@ -10433,12 +11040,12 @@ Edge.prototype._drawArrow = function(ctx) {
     // draw circle
     var node = this.from;
     var x, y, arrow;
-    var radius = this.length / 4;
+    var radius = 0.25 * Math.max(100,this.length);
     if (!node.width) {
       node.resize(ctx);
     }
     if (node.width > node.height) {
-      x = node.x + node.width / 2;
+      x = node.x + node.width * 0.5;
       y = node.y - radius;
       arrow = {
         x: x,
@@ -10448,7 +11055,7 @@ Edge.prototype._drawArrow = function(ctx) {
     }
     else {
       x = node.x + radius;
-      y = node.y - node.height / 2;
+      y = node.y - node.height * 0.5;
       arrow = {
         x: node.x,
         y: y,
@@ -10456,7 +11063,6 @@ Edge.prototype._drawArrow = function(ctx) {
       };
     }
     ctx.beginPath();
-    // TODO: do not draw a circle, but an arc
     // TODO: similarly, for a line without arrows, draw to the border of the nodes instead of the center
     ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
     ctx.stroke();
@@ -10489,31 +11095,46 @@ Edge.prototype._drawArrow = function(ctx) {
  * @param {number} y3
  * @private
  */
-Edge._dist = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
-  var px = x2-x1,
-      py = y2-y1,
-      something = px*px + py*py,
-      u =  ((x3 - x1) * px + (y3 - y1) * py) / something;
-
-  if (u > 1) {
-    u = 1;
+Edge.prototype._getDistanceToEdge = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
+  if (this.smooth == true) {
+    var minDistance = 1e9;
+    var i,t,x,y,dx,dy;
+    for (i = 0; i < 10; i++) {
+      t = 0.1*i;
+      x = Math.pow(1-t,2)*x1 + (2*t*(1 - t))*this.via.x + Math.pow(t,2)*x2;
+      y = Math.pow(1-t,2)*y1 + (2*t*(1 - t))*this.via.y + Math.pow(t,2)*y2;
+      dx = Math.abs(x3-x);
+      dy = Math.abs(y3-y);
+      minDistance = Math.min(minDistance,Math.sqrt(dx*dx + dy*dy));
+    }
+    return minDistance
   }
-  else if (u < 0) {
-    u = 0;
+  else {
+    var px = x2-x1,
+        py = y2-y1,
+        something = px*px + py*py,
+        u =  ((x3 - x1) * px + (y3 - y1) * py) / something;
+
+    if (u > 1) {
+      u = 1;
+    }
+    else if (u < 0) {
+      u = 0;
+    }
+
+    var x = x1 + u * px,
+        y = y1 + u * py,
+        dx = x - x3,
+        dy = y - y3;
+
+    //# Note: If the actual distance does not matter,
+    //# if you only want to compare what this function
+    //# returns to other results of this function, you
+    //# can just return the squared distance instead
+    //# (i.e. remove the sqrt) to gain a little performance
+
+    return Math.sqrt(dx*dx + dy*dy);
   }
-
-  var x = x1 + u * px,
-      y = y1 + u * py,
-      dx = x - x3,
-      dy = y - y3;
-
-  //# Note: If the actual distance does not matter,
-  //# if you only want to compare what this function
-  //# returns to other results of this function, you
-  //# can just return the squared distance instead
-  //# (i.e. remove the sqrt) to gain a little performance
-
-  return Math.sqrt(dx*dx + dy*dy);
 };
 
 
@@ -10525,6 +11146,22 @@ Edge._dist = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
  */
 Edge.prototype.setScale = function(scale) {
   this.graphScaleInv = 1.0/scale;
+};
+
+
+Edge.prototype.select = function() {
+  this.selected = true;
+};
+
+Edge.prototype.unselect = function() {
+  this.selected = false;
+};
+
+Edge.prototype.positionBezierNode = function() {
+  if (this.via !== null) {
+    this.via.x = 0.5 * (this.from.x + this.to.x);
+    this.via.y = 0.5 * (this.from.y + this.to.y);
+  }
 };
 /**
  * Popup is a class to create a popup window with some text
@@ -10756,6 +11393,1752 @@ Images.prototype.load = function(url) {
 };
 
 /**
+ * Created by Alex on 2/6/14.
+ */
+
+
+var physicsMixin = {
+
+  /**
+   * Toggling barnes Hut calculation on and off.
+   *
+   * @private
+   */
+  _toggleBarnesHut : function() {
+    this.constants.physics.barnesHut.enabled = !this.constants.physics.barnesHut.enabled;
+    this._loadSelectedForceSolver();
+    this.moving = true;
+    this.start();
+  },
+
+
+
+  /**
+   * This loads the node force solver based on the barnes hut or repulsion algorithm
+   *
+   * @private
+   */
+  _loadSelectedForceSolver : function() {
+    // this overloads the this._calculateNodeForces
+    if (this.constants.physics.barnesHut.enabled == true) {
+      this._clearMixin(repulsionMixin);
+      this._clearMixin(hierarchalRepulsionMixin);
+
+      this.constants.physics.centralGravity = this.constants.physics.barnesHut.centralGravity;
+      this.constants.physics.springLength   = this.constants.physics.barnesHut.springLength;
+      this.constants.physics.springConstant = this.constants.physics.barnesHut.springConstant;
+      this.constants.physics.damping        = this.constants.physics.barnesHut.damping;
+
+      this._loadMixin(barnesHutMixin);
+    }
+    else if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
+      this._clearMixin(barnesHutMixin);
+      this._clearMixin(repulsionMixin);
+
+      this.constants.physics.centralGravity = this.constants.physics.hierarchicalRepulsion.centralGravity;
+      this.constants.physics.springLength   = this.constants.physics.hierarchicalRepulsion.springLength;
+      this.constants.physics.springConstant = this.constants.physics.hierarchicalRepulsion.springConstant;
+      this.constants.physics.damping        = this.constants.physics.hierarchicalRepulsion.damping;
+
+      this._loadMixin(hierarchalRepulsionMixin);
+    }
+    else {
+      this._clearMixin(barnesHutMixin);
+      this._clearMixin(hierarchalRepulsionMixin);
+      this.barnesHutTree = undefined;
+
+      this.constants.physics.centralGravity = this.constants.physics.repulsion.centralGravity;
+      this.constants.physics.springLength   = this.constants.physics.repulsion.springLength;
+      this.constants.physics.springConstant = this.constants.physics.repulsion.springConstant;
+      this.constants.physics.damping        = this.constants.physics.repulsion.damping;
+
+      this._loadMixin(repulsionMixin);
+    }
+  },
+
+  /**
+   * Before calculating the forces, we check if we need to cluster to keep up performance and we check
+   * if there is more than one node. If it is just one node, we dont calculate anything.
+   *
+   * @private
+   */
+  _initializeForceCalculation : function() {
+    // stop calculation if there is only one node
+    if (this.nodeIndices.length == 1) {
+      this.nodes[this.nodeIndices[0]]._setForce(0,0);
+    }
+    else {
+      // if there are too many nodes on screen, we cluster without repositioning
+      if (this.nodeIndices.length > this.constants.clustering.clusterThreshold && this.constants.clustering.enabled == true) {
+        this.clusterToFit(this.constants.clustering.reduceToNodes, false);
+      }
+
+      // we now start the force calculation
+      this._calculateForces();
+    }
+  },
+
+
+  /**
+   * Calculate the external forces acting on the nodes
+   * Forces are caused by: edges, repulsing forces between nodes, gravity
+   * @private
+   */
+  _calculateForces : function() {
+    // Gravity is required to keep separated groups from floating off
+    // the forces are reset to zero in this loop by using _setForce instead
+    // of _addForce
+
+    this._calculateGravitationalForces();
+    this._calculateNodeForces();
+
+
+    if (this.constants.smoothCurves == true) {
+      this._calculateSpringForcesWithSupport();
+    }
+    else {
+      this._calculateSpringForces();
+    }
+  },
+
+
+  /**
+   * Smooth curves are created by adding invisible nodes in the center of the edges. These nodes are also
+   * handled in the calculateForces function. We then use a quadratic curve with the center node as control.
+   * This function joins the datanodes and invisible (called support) nodes into one object.
+   * We do this so we do not contaminate this.nodes with the support nodes.
+   *
+   * @private
+   */
+  _updateCalculationNodes : function() {
+    if (this.constants.smoothCurves == true) {
+      this.calculationNodes = {};
+      this.calculationNodeIndices = [];
+
+      for (var nodeId in this.nodes) {
+        if (this.nodes.hasOwnProperty(nodeId)) {
+          this.calculationNodes[nodeId] = this.nodes[nodeId];
+        }
+      }
+      var supportNodes = this.sectors['support']['nodes'];
+      for (var supportNodeId in supportNodes) {
+        if (supportNodes.hasOwnProperty(supportNodeId)) {
+          if (this.edges.hasOwnProperty(supportNodes[supportNodeId].parentEdgeId)) {
+            this.calculationNodes[supportNodeId] = supportNodes[supportNodeId];
+          }
+          else {
+            supportNodes[supportNodeId]._setForce(0,0);
+          }
+        }
+      }
+
+      for (var idx in this.calculationNodes) {
+        if (this.calculationNodes.hasOwnProperty(idx)) {
+          this.calculationNodeIndices.push(idx);
+        }
+      }
+    }
+    else {
+      this.calculationNodes = this.nodes;
+      this.calculationNodeIndices = this.nodeIndices;
+    }
+  },
+
+
+  /**
+   * this function applies the central gravity effect to keep groups from floating off
+   *
+   * @private
+   */
+  _calculateGravitationalForces : function() {
+    var dx, dy, distance, node, i;
+    var nodes = this.calculationNodes;
+    var gravity = this.constants.physics.centralGravity;
+    var gravityForce = 0;
+
+    for (i = 0; i < this.calculationNodeIndices.length; i++) {
+      node = nodes[this.calculationNodeIndices[i]];
+      node.damping = this.constants.physics.damping; // possibly add function to alter damping properties of clusters.
+      // gravity does not apply when we are in a pocket sector
+      if (this._sector() == "default" && gravity != 0) {
+        dx = -node.x;
+        dy = -node.y;
+        distance = Math.sqrt(dx*dx + dy*dy);
+        gravityForce = gravity / distance;
+
+        node.fx = dx * gravityForce;
+        node.fy = dy * gravityForce;
+      }
+      else {
+        node.fx = 0;
+        node.fy = 0;
+      }
+    }
+  },
+
+
+  /**
+   * this function calculates the effects of the springs in the case of unsmooth curves.
+   *
+   * @private
+   */
+  _calculateSpringForces : function() {
+    var edgeLength, edge, edgeId;
+    var dx, dy, fx, fy, springForce, length;
+    var edges = this.edges;
+
+    // forces caused by the edges, modelled as springs
+    for (edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        edge = edges[edgeId];
+        if (edge.connected) {
+          // only calculate forces if nodes are in the same sector
+          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+            edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
+            // this implies that the edges between big clusters are longer
+            edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
+
+            dx = (edge.from.x - edge.to.x);
+            dy = (edge.from.y - edge.to.y);
+            length =  Math.sqrt(dx * dx + dy * dy);
+
+            if (length == 0) {
+              length = 0.01;
+            }
+
+            springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
+
+            fx = dx * springForce;
+            fy = dy * springForce;
+
+            edge.from.fx += fx;
+            edge.from.fy += fy;
+            edge.to.fx -= fx;
+            edge.to.fy -= fy;
+          }
+        }
+      }
+    }
+  },
+
+
+  /**
+   * This function calculates the springforces on the nodes, accounting for the support nodes.
+   *
+   * @private
+   */
+  _calculateSpringForcesWithSupport : function() {
+    var edgeLength, edge, edgeId, combinedClusterSize;
+    var edges = this.edges;
+
+    // forces caused by the edges, modelled as springs
+    for (edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        edge = edges[edgeId];
+        if (edge.connected) {
+          // only calculate forces if nodes are in the same sector
+          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+            if (edge.via != null) {
+              var node1 = edge.to;
+              var node2 = edge.via;
+              var node3 = edge.from;
+
+              edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
+
+              combinedClusterSize = node1.clusterSize + node3.clusterSize - 2;
+
+              // this implies that the edges between big clusters are longer
+              edgeLength += combinedClusterSize * this.constants.clustering.edgeGrowth;
+              this._calculateSpringForce(node1,node2,0.5*edgeLength);
+              this._calculateSpringForce(node2,node3,0.5*edgeLength);
+            }
+          }
+        }
+      }
+    }
+  },
+
+
+  /**
+   * This is the code actually performing the calculation for the function above. It is split out to avoid repetition.
+   *
+   * @param node1
+   * @param node2
+   * @param edgeLength
+   * @private
+   */
+  _calculateSpringForce : function(node1,node2,edgeLength) {
+    var dx, dy, fx, fy, springForce, length;
+
+    dx = (node1.x - node2.x);
+    dy = (node1.y - node2.y);
+    length =  Math.sqrt(dx * dx + dy * dy);
+
+    springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
+
+    if (length == 0) {
+      length = 0.01;
+    }
+
+    fx = dx * springForce;
+    fy = dy * springForce;
+
+    node1.fx += fx;
+    node1.fy += fy;
+    node2.fx -= fx;
+    node2.fy -= fy;
+  },
+
+
+  /**
+   * Load the HTML for the physics config and bind it
+   * @private
+   */
+  _loadPhysicsConfiguration : function() {
+    if (this.physicsConfiguration === undefined) {
+      var hierarchicalLayoutDirections = ["LR","RL","UD","DU"];
+      this.physicsConfiguration = document.createElement('div');
+      this.physicsConfiguration.className = "PhysicsConfiguration";
+      this.physicsConfiguration.innerHTML = '' +
+        '<table><tr><td><b>Simulation Mode:</b></td></tr>' +
+        '<tr>' +
+        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod1" value="BH" checked="checked">Barnes Hut</td>' +
+        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod2" value="R">Repulsion</td>'+
+        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod3" value="H">Hierarchical</td>' +
+        '</tr>'+
+        '</table>' +
+        '<table id="graph_BH_table" style="display:none">'+
+        '<tr><td><b>Barnes Hut</b></td></tr>'+
+        '<tr>'+
+        '<td width="150px">gravitationalConstant</td><td>0</td><td><input type="range" min="500" max="20000" value="' + (-1* this.constants.physics.barnesHut.gravitationalConstant) + '" step="25" style="width:300px" id="graph_BH_gc"></td><td  width="50px">-20000</td><td><input value="' + (-1* this.constants.physics.barnesHut.gravitationalConstant) + '" id="graph_BH_gc_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.barnesHut.centralGravity + '" step="0.05"  style="width:300px" id="graph_BH_cg"></td><td>3</td><td><input value="' + this.constants.physics.barnesHut.centralGravity + '" id="graph_BH_cg_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.barnesHut.springLength + '" step="1" style="width:300px" id="graph_BH_sl"></td><td>500</td><td><input value="' + this.constants.physics.barnesHut.springLength + '" id="graph_BH_sl_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.barnesHut.springConstant + '" step="0.001" style="width:300px" id="graph_BH_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.barnesHut.springConstant + '" id="graph_BH_sc_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.barnesHut.damping + '" step="0.005" style="width:300px" id="graph_BH_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.barnesHut.damping + '" id="graph_BH_damp_value" style="width:60px"></td>'+
+        '</tr>'+
+        '</table>'+
+        '<table id="graph_R_table" style="display:none">'+
+        '<tr><td><b>Repulsion</b></td></tr>'+
+        '<tr>'+
+        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.repulsion.nodeDistance + '" step="1" style="width:300px" id="graph_R_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.repulsion.nodeDistance + '" id="graph_R_nd_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.repulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_R_cg"></td><td>3</td><td><input value="' + this.constants.physics.repulsion.centralGravity + '" id="graph_R_cg_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.repulsion.springLength + '" step="1" style="width:300px" id="graph_R_sl"></td><td>500</td><td><input value="' + this.constants.physics.repulsion.springLength + '" id="graph_R_sl_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.repulsion.springConstant + '" step="0.001" style="width:300px" id="graph_R_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.repulsion.springConstant + '" id="graph_R_sc_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.repulsion.damping + '" step="0.005" style="width:300px" id="graph_R_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.repulsion.damping + '" id="graph_R_damp_value" style="width:60px"></td>'+
+        '</tr>'+
+        '</table>'+
+        '<table id="graph_H_table" style="display:none">'+
+        '<tr><td width="150"><b>Hierarchical</b></td></tr>'+
+        '<tr>'+
+        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" step="1" style="width:300px" id="graph_H_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" id="graph_H_nd_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_H_cg"></td><td>3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" id="graph_H_cg_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" step="1" style="width:300px" id="graph_H_sl"></td><td>500</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" id="graph_H_sl_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" step="0.001" style="width:300px" id="graph_H_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" id="graph_H_sc_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.hierarchicalRepulsion.damping + '" step="0.005" style="width:300px" id="graph_H_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.damping + '" id="graph_H_damp_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">direction</td><td>1</td><td><input type="range" min="0" max="3" value="' + hierarchicalLayoutDirections.indexOf(this.constants.hierarchicalLayout.direction) + '" step="1" style="width:300px" id="graph_H_direction"></td><td>4</td><td><input value="' + this.constants.hierarchicalLayout.direction + '" id="graph_H_direction_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">levelSeparation</td><td>1</td><td><input type="range" min="0" max="' + this.constants.hierarchicalLayout.levelSeparation + '" value="150" step="1" style="width:300px" id="graph_H_levsep"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.levelSeparation + '" id="graph_H_levsep_value" style="width:60px"></td>'+
+        '</tr>'+
+        '<tr>'+
+        '<td width="150px">nodeSpacing</td><td>1</td><td><input type="range" min="0" max="' + this.constants.hierarchicalLayout.nodeSpacing + '" value="100" step="1" style="width:300px" id="graph_H_nspac"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.nodeSpacing + '" id="graph_H_nspac_value" style="width:60px"></td>'+
+        '</tr>'+
+        '</table>'
+      this.containerElement.parentElement.insertBefore(this.physicsConfiguration,this.containerElement);
+
+
+
+      var rangeElement;
+      rangeElement = document.getElementById('graph_BH_gc');
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_gc',-1,"physics_barnesHut_gravitationalConstant");
+      rangeElement = document.getElementById('graph_BH_cg');
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_cg',1,"physics_centralGravity");
+      rangeElement = document.getElementById('graph_BH_sc');
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_sc',1,"physics_springConstant");
+      rangeElement = document.getElementById('graph_BH_sl');
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_sl',1,"physics_springLength");
+      rangeElement = document.getElementById('graph_BH_damp');
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_damp',1,"physics_damping");
+
+
+      rangeElement = document.getElementById('graph_R_nd');
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_R_nd',1,"physics_repulsion_nodeDistance");
+      rangeElement = document.getElementById('graph_R_cg');
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_R_cg',1,"physics_centralGravity");
+      rangeElement = document.getElementById('graph_R_sc');
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_R_sc',1,"physics_springConstant");
+      rangeElement = document.getElementById('graph_R_sl');
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_R_sl',1,"physics_springLength");
+      rangeElement = document.getElementById('graph_R_damp');
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_R_damp',1,"physics_damping");
+
+      rangeElement = document.getElementById('graph_H_nd');
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_nd',1,"physics_hierarchicalRepulsion_nodeDistance");
+      rangeElement = document.getElementById('graph_H_cg');
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_cg',1,"physics_centralGravity");
+      rangeElement = document.getElementById('graph_H_sc');
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_sc',1,"physics_springConstant");
+      rangeElement = document.getElementById('graph_H_sl');
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_sl',1,"physics_springLength");
+      rangeElement = document.getElementById('graph_H_damp');
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_damp',1,"physics_damping");
+      rangeElement = document.getElementById('graph_H_direction');
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_direction',hierarchicalLayoutDirections,"hierarchicalLayout_direction");
+      rangeElement = document.getElementById('graph_H_levsep');
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_levsep',1,"hierarchicalLayout_levelSeparation");
+      rangeElement = document.getElementById('graph_H_nspac');
+      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_nspac',1,"hierarchicalLayout_nodeSpacing");
+
+      var radioButton1 = document.getElementById("graph_physicsMethod1");
+      var radioButton2 = document.getElementById("graph_physicsMethod2");
+      var radioButton3 = document.getElementById("graph_physicsMethod3");
+
+      radioButton2.checked = true;
+      if (this.constants.physics.barnesHut.enabled) {
+        radioButton1.checked = true;
+      }
+      if (this.constants.hierarchicalLayout.enabled) {
+        radioButton3.checked = true;
+      }
+
+      switchConfigurations.apply(this);
+
+      radioButton1.onchange = switchConfigurations.bind(this);
+      radioButton2.onchange = switchConfigurations.bind(this);
+      radioButton3.onchange = switchConfigurations.bind(this);
+    }
+  },
+
+  _overWriteGraphConstants : function(constantsVariableName, value) {
+    var nameArray = constantsVariableName.split("_");
+    if (nameArray.length == 1) {
+      this.constants[nameArray[0]] = value;
+    }
+    else if (nameArray.length == 2) {
+      this.constants[nameArray[0]][nameArray[1]] = value;
+    }
+    else if (nameArray.length == 3) {
+      this.constants[nameArray[0]][nameArray[1]][nameArray[2]] = value;
+    }
+  }
+}
+
+
+function switchConfigurations () {
+  var ids = ["graph_BH_table","graph_R_table","graph_H_table"]
+  var radioButton = document.querySelector('input[name="graph_physicsMethod"]:checked').value;
+  var tableId = "graph_" + radioButton + "_table";
+  var table = document.getElementById(tableId);
+  table.style.display = "block";
+  for (var i = 0; i < ids.length; i++) {
+    if (ids[i] != tableId) {
+      table = document.getElementById(ids[i]);
+      table.style.display = "none";
+    }
+  }
+  this._restoreNodes();
+  if (radioButton == "R") {
+    this.constants.hierarchicalLayout.enabled = false;
+    this.constants.physics.hierarchicalRepulsion.enabeled = false;
+    this.constants.physics.barnesHut.enabled = false;
+  }
+  else if (radioButton == "H") {
+    this.constants.hierarchicalLayout.enabled = true;
+    this.constants.physics.hierarchicalRepulsion.enabeled = true;
+    this.constants.physics.barnesHut.enabled = false;
+    this._setupHierarchicalLayout();
+  }
+  else {
+    this.constants.hierarchicalLayout.enabled = false;
+    this.constants.physics.hierarchicalRepulsion.enabeled = false;
+    this.constants.physics.barnesHut.enabled = true;
+  }
+  this._loadSelectedForceSolver();
+  this.moving = true;
+  this.start();
+}
+
+function showValueOfRange (id,map,constantsVariableName) {
+  var valueId = id + "_value";
+  var rangeValue = document.getElementById(id).value;
+  if (constantsVariableName == "hierarchicalLayout_direction" ||
+      constantsVariableName == "hierarchicalLayout_levelSeparation" ||
+      constantsVariableName == "hierarchicalLayout_nodeSpacing") {
+    this._setupHierarchicalLayout();
+  }
+
+  if (map instanceof Array) {
+    document.getElementById(valueId).value = map[parseInt(rangeValue)];
+    this._overWriteGraphConstants(constantsVariableName,map[parseInt(rangeValue)]);
+  }
+  else {
+    document.getElementById(valueId).value = map * parseFloat(rangeValue);
+    this._overWriteGraphConstants(constantsVariableName,map * parseFloat(rangeValue));
+  }
+  this.moving = true;
+  this.start();
+};
+
+
+/**
+ * Created by Alex on 2/10/14.
+ */
+
+var hierarchalRepulsionMixin = {
+
+
+  /**
+   * Calculate the forces the nodes apply on eachother based on a repulsion field.
+   * This field is linearly approximated.
+   *
+   * @private
+  */
+  _calculateNodeForces : function() {
+    var dx, dy, distance, fx, fy, combinedClusterSize,
+      repulsingForce, node1, node2, i, j;
+
+    var nodes = this.calculationNodes;
+    var nodeIndices = this.calculationNodeIndices;
+
+    // approximation constants
+    var b = 5;
+    var a_base = 0.5*-b;
+
+
+    // repulsing forces between nodes
+    var nodeDistance = this.constants.physics.hierarchicalRepulsion.nodeDistance;
+    var minimumDistance = nodeDistance;
+
+    // we loop from i over all but the last entree in the array
+    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
+    for (i = 0; i < nodeIndices.length-1; i++) {
+
+      node1 = nodes[nodeIndices[i]];
+      for (j = i+1; j < nodeIndices.length; j++) {
+        node2 = nodes[nodeIndices[j]];
+
+        dx = node2.x - node1.x;
+        dy = node2.y - node1.y;
+        distance = Math.sqrt(dx * dx + dy * dy);
+
+        var a = a_base / minimumDistance;
+        if (distance < 2*minimumDistance) {
+          repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness))
+
+          // normalize force with
+          if (distance == 0) {
+            distance = 0.01;
+          }
+          else {
+            repulsingForce = repulsingForce/distance;
+          }
+          fx = dx * repulsingForce;
+          fy = dy * repulsingForce;
+
+          node1.fx -= fx;
+          node1.fy -= fy;
+          node2.fx += fx;
+          node2.fy += fy;
+        }
+      }
+    }
+  }
+}
+/**
+ * Created by Alex on 2/10/14.
+ */
+
+var barnesHutMixin = {
+
+  /**
+   * This function calculates the forces the nodes apply on eachother based on a gravitational model.
+   * The Barnes Hut method is used to speed up this N-body simulation.
+   *
+   * @private
+   */
+  _calculateNodeForces : function() {
+    var node;
+    var nodes = this.calculationNodes;
+    var nodeIndices = this.calculationNodeIndices;
+    var nodeCount = nodeIndices.length;
+
+    this._formBarnesHutTree(nodes,nodeIndices);
+
+    var barnesHutTree = this.barnesHutTree;
+
+    // place the nodes one by one recursively
+    for (var i = 0; i < nodeCount; i++) {
+      node = nodes[nodeIndices[i]];
+      // starting with root is irrelevant, it never passes the BarnesHut condition
+      this._getForceContribution(barnesHutTree.root.children.NW,node);
+      this._getForceContribution(barnesHutTree.root.children.NE,node);
+      this._getForceContribution(barnesHutTree.root.children.SW,node);
+      this._getForceContribution(barnesHutTree.root.children.SE,node);
+    }
+  },
+
+
+  /**
+   * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
+   * If a region contains a single node, we check if it is not itself, then we apply the force.
+   *
+   * @param parentBranch
+   * @param node
+   * @private
+   */
+  _getForceContribution : function(parentBranch,node) {
+    // we get no force contribution from an empty region
+    if (parentBranch.childrenCount > 0) {
+      var dx,dy,distance;
+
+      // get the distance from the center of mass to the node.
+      dx = parentBranch.centerOfMass.x - node.x;
+      dy = parentBranch.centerOfMass.y - node.y;
+      distance = Math.sqrt(dx * dx + dy * dy);
+
+      // BarnesHut condition
+      // original condition : s/d < theta = passed  ===  d/s > 1/theta = passed
+      // calcSize = 1/s --> d * 1/s > 1/theta = passed
+      if (distance * parentBranch.calcSize > this.constants.physics.barnesHut.theta) {
+        // duplicate code to reduce function calls to speed up program
+        if (distance == 0) {
+          distance = 0.1*Math.random();
+          dx = distance;
+        }
+        var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.mass / (distance * distance * distance);
+        var fx = dx * gravityForce;
+        var fy = dy * gravityForce;
+        node.fx += fx;
+        node.fy += fy;
+      }
+      else {
+        // Did not pass the condition, go into children if available
+        if (parentBranch.childrenCount == 4) {
+          this._getForceContribution(parentBranch.children.NW,node);
+          this._getForceContribution(parentBranch.children.NE,node);
+          this._getForceContribution(parentBranch.children.SW,node);
+          this._getForceContribution(parentBranch.children.SE,node);
+        }
+        else { // parentBranch must have only one node, if it was empty we wouldnt be here
+          if (parentBranch.children.data.id != node.id) { // if it is not self
+            // duplicate code to reduce function calls to speed up program
+            if (distance == 0) {
+              distance = 0.5*Math.random();
+              dx = distance;
+            }
+            var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.mass / (distance * distance * distance);
+            var fx = dx * gravityForce;
+            var fy = dy * gravityForce;
+            node.fx += fx;
+            node.fy += fy;
+          }
+        }
+      }
+    }
+  },
+
+  /**
+   * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
+   *
+   * @param nodes
+   * @param nodeIndices
+   * @private
+   */
+  _formBarnesHutTree : function(nodes,nodeIndices) {
+    var node;
+    var nodeCount = nodeIndices.length;
+
+    var minX = Number.MAX_VALUE,
+      minY = Number.MAX_VALUE,
+      maxX =-Number.MAX_VALUE,
+      maxY =-Number.MAX_VALUE;
+
+    // get the range of the nodes
+    for (var i = 0; i < nodeCount; i++) {
+      var x = nodes[nodeIndices[i]].x;
+      var y = nodes[nodeIndices[i]].y;
+      if (x < minX) { minX = x; }
+      if (x > maxX) { maxX = x; }
+      if (y < minY) { minY = y; }
+      if (y > maxY) { maxY = y; }
+    }
+    // make the range a square
+    var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
+    if (sizeDiff > 0) {minY -= 0.5 * sizeDiff; maxY += 0.5 * sizeDiff;} // xSize > ySize
+    else              {minX += 0.5 * sizeDiff; maxX -= 0.5 * sizeDiff;} // xSize < ySize
+
+
+    var minimumTreeSize = 1e-5;
+    var rootSize = Math.max(minimumTreeSize,Math.abs(maxX - minX));
+    var halfRootSize = 0.5 * rootSize;
+    var centerX = 0.5 * (minX + maxX), centerY = 0.5 * (minY + maxY);
+
+    // construct the barnesHutTree
+    var barnesHutTree = {root:{
+      centerOfMass:{x:0,y:0}, // Center of Mass
+      mass:0,
+      range: {minX:centerX-halfRootSize,maxX:centerX+halfRootSize,
+              minY:centerY-halfRootSize,maxY:centerY+halfRootSize},
+      size: rootSize,
+      calcSize: 1 / rootSize,
+      children: {data:null},
+      maxWidth: 0,
+      level: 0,
+      childrenCount: 4
+    }};
+    this._splitBranch(barnesHutTree.root);
+
+    // place the nodes one by one recursively
+    for (i = 0; i < nodeCount; i++) {
+      node = nodes[nodeIndices[i]];
+      this._placeInTree(barnesHutTree.root,node);
+    }
+
+    // make global
+    this.barnesHutTree = barnesHutTree
+  },
+
+
+  _updateBranchMass : function(parentBranch, node) {
+    var totalMass = parentBranch.mass + node.mass;
+    var totalMassInv = 1/totalMass;
+
+    parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.mass;
+    parentBranch.centerOfMass.x *= totalMassInv;
+
+    parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.mass;
+    parentBranch.centerOfMass.y *= totalMassInv;
+
+    parentBranch.mass = totalMass;
+    var biggestSize = Math.max(Math.max(node.height,node.radius),node.width);
+    parentBranch.maxWidth = (parentBranch.maxWidth < biggestSize) ? biggestSize : parentBranch.maxWidth;
+
+  },
+
+
+  _placeInTree : function(parentBranch,node,skipMassUpdate) {
+    if (skipMassUpdate != true || skipMassUpdate === undefined) {
+      // update the mass of the branch.
+      this._updateBranchMass(parentBranch,node);
+    }
+
+    if (parentBranch.children.NW.range.maxX > node.x) { // in NW or SW
+      if (parentBranch.children.NW.range.maxY > node.y) { // in NW
+        this._placeInRegion(parentBranch,node,"NW");
+      }
+      else { // in SW
+        this._placeInRegion(parentBranch,node,"SW");
+      }
+    }
+    else { // in NE or SE
+      if (parentBranch.children.NW.range.maxY > node.y) { // in NE
+        this._placeInRegion(parentBranch,node,"NE");
+      }
+      else { // in SE
+        this._placeInRegion(parentBranch,node,"SE");
+      }
+    }
+  },
+
+
+  _placeInRegion : function(parentBranch,node,region) {
+    switch (parentBranch.children[region].childrenCount) {
+      case 0: // place node here
+        parentBranch.children[region].children.data = node;
+        parentBranch.children[region].childrenCount = 1;
+        this._updateBranchMass(parentBranch.children[region],node);
+        break;
+      case 1: // convert into children
+        // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
+        // we move one node a pixel and we do not put it in the tree.
+        if (parentBranch.children[region].children.data.x == node.x &&
+            parentBranch.children[region].children.data.y == node.y) {
+          node.x += Math.random();
+          node.y += Math.random();
+          this._placeInTree(parentBranch,node, true);
+        }
+        else {
+          this._splitBranch(parentBranch.children[region]);
+          this._placeInTree(parentBranch.children[region],node);
+        }
+        break;
+      case 4: // place in branch
+        this._placeInTree(parentBranch.children[region],node);
+        break;
+    }
+  },
+
+
+  /**
+   * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
+   * after the split is complete.
+   *
+   * @param parentBranch
+   * @private
+   */
+  _splitBranch : function(parentBranch) {
+    // if the branch is filled with a node, replace the node in the new subset.
+    var containedNode = null;
+    if (parentBranch.childrenCount == 1) {
+      containedNode = parentBranch.children.data;
+      parentBranch.mass = 0; parentBranch.centerOfMass.x = 0; parentBranch.centerOfMass.y = 0;
+    }
+    parentBranch.childrenCount = 4;
+    parentBranch.children.data = null;
+    this._insertRegion(parentBranch,"NW");
+    this._insertRegion(parentBranch,"NE");
+    this._insertRegion(parentBranch,"SW");
+    this._insertRegion(parentBranch,"SE");
+
+    if (containedNode != null) {
+      this._placeInTree(parentBranch,containedNode);
+    }
+  },
+
+
+  /**
+   * This function subdivides the region into four new segments.
+   * Specifically, this inserts a single new segment.
+   * It fills the children section of the parentBranch
+   *
+   * @param parentBranch
+   * @param region
+   * @param parentRange
+   * @private
+   */
+  _insertRegion : function(parentBranch, region) {
+    var minX,maxX,minY,maxY;
+    var childSize = 0.5 * parentBranch.size;
+    switch (region) {
+      case "NW":
+        minX = parentBranch.range.minX;
+        maxX = parentBranch.range.minX + childSize;
+        minY = parentBranch.range.minY;
+        maxY = parentBranch.range.minY + childSize;
+        break;
+      case "NE":
+        minX = parentBranch.range.minX + childSize;
+        maxX = parentBranch.range.maxX;
+        minY = parentBranch.range.minY;
+        maxY = parentBranch.range.minY + childSize;
+        break;
+      case "SW":
+        minX = parentBranch.range.minX;
+        maxX = parentBranch.range.minX + childSize;
+        minY = parentBranch.range.minY + childSize;
+        maxY = parentBranch.range.maxY;
+        break;
+      case "SE":
+        minX = parentBranch.range.minX + childSize;
+        maxX = parentBranch.range.maxX;
+        minY = parentBranch.range.minY + childSize;
+        maxY = parentBranch.range.maxY;
+        break;
+    }
+
+
+    parentBranch.children[region] = {
+      centerOfMass:{x:0,y:0},
+      mass:0,
+      range:{minX:minX,maxX:maxX,minY:minY,maxY:maxY},
+      size: 0.5 * parentBranch.size,
+      calcSize: 2 * parentBranch.calcSize,
+      children: {data:null},
+      maxWidth: 0,
+      level: parentBranch.level+1,
+      childrenCount: 0
+    };
+  },
+
+
+  /**
+   * This function is for debugging purposed, it draws the tree.
+   *
+   * @param ctx
+   * @param color
+   * @private
+   */
+  _drawTree : function(ctx,color) {
+    if (this.barnesHutTree !== undefined) {
+
+      ctx.lineWidth = 1;
+
+      this._drawBranch(this.barnesHutTree.root,ctx,color);
+    }
+  },
+
+
+  /**
+   * This function is for debugging purposes. It draws the branches recursively.
+   *
+   * @param branch
+   * @param ctx
+   * @param color
+   * @private
+   */
+  _drawBranch : function(branch,ctx,color) {
+    if (color === undefined) {
+      color = "#FF0000";
+    }
+
+    if (branch.childrenCount == 4) {
+      this._drawBranch(branch.children.NW,ctx);
+      this._drawBranch(branch.children.NE,ctx);
+      this._drawBranch(branch.children.SE,ctx);
+      this._drawBranch(branch.children.SW,ctx);
+    }
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(branch.range.minX,branch.range.minY);
+    ctx.lineTo(branch.range.maxX,branch.range.minY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(branch.range.maxX,branch.range.minY);
+    ctx.lineTo(branch.range.maxX,branch.range.maxY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(branch.range.maxX,branch.range.maxY);
+    ctx.lineTo(branch.range.minX,branch.range.maxY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(branch.range.minX,branch.range.maxY);
+    ctx.lineTo(branch.range.minX,branch.range.minY);
+    ctx.stroke();
+
+    /*
+     if (branch.mass > 0) {
+     ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
+     ctx.stroke();
+     }
+     */
+  }
+
+};
+/**
+ * Created by Alex on 2/10/14.
+ */
+
+var repulsionMixin = {
+
+
+  /**
+   * Calculate the forces the nodes apply on eachother based on a repulsion field.
+   * This field is linearly approximated.
+   *
+   * @private
+  */
+  _calculateNodeForces : function() {
+    var dx, dy, angle, distance, fx, fy, combinedClusterSize,
+      repulsingForce, node1, node2, i, j;
+
+    var nodes = this.calculationNodes;
+    var nodeIndices = this.calculationNodeIndices;
+
+    // approximation constants
+    var a_base = -2/3;
+    var b = 4/3;
+
+    // repulsing forces between nodes
+    var nodeDistance = this.constants.physics.repulsion.nodeDistance;
+    var minimumDistance = nodeDistance;
+
+    // we loop from i over all but the last entree in the array
+    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
+    for (i = 0; i < nodeIndices.length-1; i++) {
+      node1 = nodes[nodeIndices[i]];
+      for (j = i+1; j < nodeIndices.length; j++) {
+        node2 = nodes[nodeIndices[j]];
+        combinedClusterSize = node1.clusterSize + node2.clusterSize - 2;
+
+        dx = node2.x - node1.x;
+        dy = node2.y - node1.y;
+        distance = Math.sqrt(dx * dx + dy * dy);
+
+        minimumDistance = (combinedClusterSize == 0) ? nodeDistance : (nodeDistance * (1 + combinedClusterSize * this.constants.clustering.distanceAmplification));
+        var a = a_base / minimumDistance;
+        if (distance < 2*minimumDistance) {
+          if (distance < 0.5*minimumDistance) {
+            repulsingForce = 1.0;
+          }
+          else {
+            repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness))
+          }
+
+          // amplify the repulsion for clusters.
+          repulsingForce *= (combinedClusterSize == 0) ? 1 : 1 + combinedClusterSize * this.constants.clustering.forceAmplification;
+          repulsingForce = repulsingForce/distance;
+
+          fx = dx * repulsingForce;
+          fy = dy * repulsingForce;
+
+          node1.fx -= fx;
+          node1.fy -= fy;
+          node2.fx += fx;
+          node2.fy += fy;
+        }
+      }
+    }
+  }
+}
+var HierarchicalLayoutMixin = {
+
+
+  /**
+   * This is the main function to layout the nodes in a hierarchical way.
+   * It checks if the node details are supplied correctly
+   *
+   * @private
+   */
+  _setupHierarchicalLayout : function() {
+    if (this.constants.hierarchicalLayout.enabled == true) {
+      if (this.constants.hierarchicalLayout.direction == "RL" || this.constants.hierarchicalLayout.direction == "DU") {
+        this.constants.hierarchicalLayout.levelSeparation *= -1;
+      }
+      // get the size of the largest hubs and check if the user has defined a level for a node.
+      var hubsize = 0;
+      var node, nodeId;
+      var definedLevel = false;
+      var undefinedLevel = false;
+
+      for (nodeId in this.nodes) {
+        if (this.nodes.hasOwnProperty(nodeId)) {
+          node = this.nodes[nodeId];
+          if (node.level != -1) {
+            definedLevel = true;
+          }
+          else {
+            undefinedLevel = true;
+          }
+          if (hubsize < node.edges.length) {
+            hubsize = node.edges.length;
+          }
+        }
+      }
+
+      // if the user defined some levels but not all, alert and run without hierarchical layout
+      if (undefinedLevel == true && definedLevel == true) {
+        alert("To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.")
+        this.zoomExtent(true,this.constants.clustering.enabled);
+        if (!this.constants.clustering.enabled) {
+          this.start();
+        }
+      }
+      else {
+        // setup the system to use hierarchical method.
+        this._changeConstants();
+
+        // define levels if undefined by the users. Based on hubsize
+        if (undefinedLevel == true) {
+          this._determineLevels(hubsize);
+        }
+        // check the distribution of the nodes per level.
+        var distribution = this._getDistribution();
+
+        // place the nodes on the canvas. This also stablilizes the system.
+        this._placeNodesByHierarchy(distribution);
+
+        // start the simulation.
+        this.start();
+      }
+    }
+  },
+
+
+  /**
+   * This function places the nodes on the canvas based on the hierarchial distribution.
+   *
+   * @param {Object} distribution | obtained by the function this._getDistribution()
+   * @private
+   */
+  _placeNodesByHierarchy : function(distribution) {
+    var nodeId, node;
+
+    // start placing all the level 0 nodes first. Then recursively position their branches.
+    for (nodeId in distribution[0].nodes) {
+      if (distribution[0].nodes.hasOwnProperty(nodeId)) {
+        node = distribution[0].nodes[nodeId];
+        if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+          if (node.xFixed) {
+            node.x = distribution[0].minPos;
+            node.xFixed = false;
+
+            distribution[0].minPos += distribution[0].nodeSpacing;
+          }
+        }
+        else {
+          if (node.yFixed) {
+            node.y = distribution[0].minPos;
+            node.yFixed = false;
+
+            distribution[0].minPos += distribution[0].nodeSpacing;
+          }
+        }
+        this._placeBranchNodes(node.edges,node.id,distribution,node.level);
+      }
+    }
+
+    // stabilize the system after positioning. This function calls zoomExtent.
+    this._doStabilize();
+  },
+
+
+  /**
+   * This function get the distribution of levels based on hubsize
+   *
+   * @returns {Object}
+   * @private
+   */
+  _getDistribution : function() {
+    var distribution = {};
+    var nodeId, node;
+
+    // we fix Y because the hierarchy is vertical, we fix X so we do not give a node an x position for a second time.
+    // the fix of X is removed after the x value has been set.
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        node.xFixed = true;
+        node.yFixed = true;
+        if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+          node.y = this.constants.hierarchicalLayout.levelSeparation*node.level;
+        }
+        else {
+          node.x = this.constants.hierarchicalLayout.levelSeparation*node.level;
+        }
+        if (!distribution.hasOwnProperty(node.level)) {
+          distribution[node.level] = {amount: 0, nodes: {}, minPos:0, nodeSpacing:0};
+        }
+        distribution[node.level].amount += 1;
+        distribution[node.level].nodes[node.id] = node;
+      }
+    }
+
+    // determine the largest amount of nodes of all levels
+    var maxCount = 0;
+    for (var level in distribution) {
+      if (distribution.hasOwnProperty(level)) {
+        if (maxCount < distribution[level].amount) {
+          maxCount = distribution[level].amount;
+        }
+      }
+    }
+
+    // set the initial position and spacing of each nodes accordingly
+    for (var level in distribution) {
+      if (distribution.hasOwnProperty(level)) {
+        distribution[level].nodeSpacing = (maxCount + 1) * this.constants.hierarchicalLayout.nodeSpacing;
+        distribution[level].nodeSpacing /= (distribution[level].amount + 1);
+        distribution[level].minPos = distribution[level].nodeSpacing - (0.5 * (distribution[level].amount + 1) * distribution[level].nodeSpacing);
+      }
+    }
+
+    return distribution;
+  },
+
+
+  /**
+   * this function allocates nodes in levels based on the recursive branching from the largest hubs.
+   *
+   * @param hubsize
+   * @private
+   */
+  _determineLevels : function(hubsize) {
+    var nodeId, node;
+
+    // determine hubs
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        if (node.edges.length == hubsize) {
+          node.level = 0;
+        }
+      }
+    }
+
+    // branch from hubs
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        if (node.level == 0) {
+          this._setLevel(1,node.edges,node.id);
+        }
+      }
+    }
+  },
+
+
+  /**
+   * Since hierarchical layout does not support:
+   *    - smooth curves (based on the physics),
+   *    - clustering (based on dynamic node counts)
+   *
+   * We disable both features so there will be no problems.
+   *
+   * @private
+   */
+  _changeConstants : function() {
+    this.constants.clustering.enabled = false;
+    this.constants.physics.barnesHut.enabled = false;
+    this.constants.physics.hierarchicalRepulsion.enabled = true;
+    this._loadSelectedForceSolver();
+    this.constants.smoothCurves = false;
+    this._configureSmoothCurves();
+  },
+
+
+  /**
+   * This is a recursively called function to enumerate the branches from the largest hubs and place the nodes
+   * on a X position that ensures there will be no overlap.
+   *
+   * @param edges
+   * @param parentId
+   * @param distribution
+   * @param parentLevel
+   * @private
+   */
+  _placeBranchNodes : function(edges, parentId, distribution, parentLevel) {
+    for (var i = 0; i < edges.length; i++) {
+      var childNode = null;
+      if (edges[i].toId == parentId) {
+        childNode = edges[i].from;
+      }
+      else {
+        childNode = edges[i].to;
+      }
+
+      // if a node is conneceted to another node on the same level (or higher (means lower level))!, this is not handled here.
+      var nodeMoved = false;
+      if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+        if (childNode.xFixed && childNode.level > parentLevel) {
+          childNode.xFixed = false;
+          childNode.x = distribution[childNode.level].minPos;
+          nodeMoved = true;
+        }
+      }
+      else {
+        if (childNode.yFixed && childNode.level > parentLevel) {
+          childNode.yFixed = false;
+          childNode.y = distribution[childNode.level].minPos;
+          nodeMoved = true;
+        }
+      }
+
+      if (nodeMoved == true) {
+        distribution[childNode.level].minPos += distribution[childNode.level].nodeSpacing;
+        if (childNode.edges.length > 1) {
+          this._placeBranchNodes(childNode.edges,childNode.id,distribution,childNode.level);
+        }
+      }
+    }
+  },
+
+
+  /**
+   * this function is called recursively to enumerate the barnches of the largest hubs and give each node a level.
+   *
+   * @param level
+   * @param edges
+   * @param parentId
+   * @private
+   */
+  _setLevel : function(level, edges, parentId) {
+    for (var i = 0; i < edges.length; i++) {
+      var childNode = null;
+      if (edges[i].toId == parentId) {
+        childNode = edges[i].from;
+      }
+      else {
+        childNode = edges[i].to;
+      }
+      if (childNode.level == -1 || childNode.level > level) {
+        childNode.level = level;
+        if (edges.length > 1) {
+          this._setLevel(level+1, childNode.edges, childNode.id);
+        }
+      }
+    }
+  },
+
+
+  /**
+   * Unfix nodes
+   *
+   * @private
+   */
+  _restoreNodes : function() {
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        this.nodes[nodeId].xFixed = false;
+        this.nodes[nodeId].yFixed = false;
+      }
+    }
+  }
+
+
+};
+/**
+ * Created by Alex on 2/4/14.
+ */
+
+var manipulationMixin = {
+
+  /**
+   * clears the toolbar div element of children
+   *
+   * @private
+   */
+  _clearManipulatorBar : function() {
+    while (this.manipulationDiv.hasChildNodes()) {
+      this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
+    }
+  },
+
+  /**
+   * Manipulation UI temporarily overloads certain functions to extend or replace them. To be able to restore
+   * these functions to their original functionality, we saved them in this.cachedFunctions.
+   * This function restores these functions to their original function.
+   *
+   * @private
+   */
+  _restoreOverloadedFunctions : function() {
+    for (var functionName in this.cachedFunctions) {
+      if (this.cachedFunctions.hasOwnProperty(functionName)) {
+        this[functionName] = this.cachedFunctions[functionName];
+      }
+    }
+  },
+
+  /**
+   * Enable or disable edit-mode.
+   *
+   * @private
+   */
+  _toggleEditMode : function() {
+    this.editMode = !this.editMode;
+    var toolbar = document.getElementById("graph-manipulationDiv");
+    var closeDiv = document.getElementById("graph-manipulation-closeDiv");
+    var editModeDiv = document.getElementById("graph-manipulation-editMode");
+    if (this.editMode == true) {
+      toolbar.style.display="block";
+      closeDiv.style.display="block";
+      editModeDiv.style.display="none";
+      closeDiv.onclick = this._toggleEditMode.bind(this);
+    }
+    else {
+      toolbar.style.display="none";
+      closeDiv.style.display="none";
+      editModeDiv.style.display="block";
+      closeDiv.onclick = null;
+    }
+    this._createManipulatorBar()
+  },
+
+  /**
+   * main function, creates the main toolbar. Removes functions bound to the select event. Binds all the buttons of the toolbar.
+   *
+   * @private
+   */
+  _createManipulatorBar : function() {
+    // remove bound functions
+    this.off('select', this.boundFunction);
+
+    // restore overloaded functions
+    this._restoreOverloadedFunctions();
+
+    // resume calculation
+    this.freezeSimulation = false;
+
+    // reset global variables
+    this.blockConnectingEdgeSelection = false;
+    this.forceAppendSelection = false
+
+    if (this.editMode == true) {
+      while (this.manipulationDiv.hasChildNodes()) {
+        this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
+      }
+      // add the icons to the manipulator div
+      this.manipulationDiv.innerHTML = "" +
+        "<span class='graph-manipulationUI add' id='graph-manipulate-addNode'>" +
+          "<span class='graph-manipulationLabel'>Add Node</span></span>" +
+        "<div class='graph-seperatorLine'></div>" +
+        "<span class='graph-manipulationUI connect' id='graph-manipulate-connectNode'>" +
+          "<span class='graph-manipulationLabel'>Add Link</span></span>";
+      if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
+        this.manipulationDiv.innerHTML += "" +
+          "<div class='graph-seperatorLine'></div>" +
+          "<span class='graph-manipulationUI edit' id='graph-manipulate-editNode'>" +
+            "<span class='graph-manipulationLabel'>Edit Node</span></span>";
+      }
+      if (this._selectionIsEmpty() == false) {
+        this.manipulationDiv.innerHTML += "" +
+          "<div class='graph-seperatorLine'></div>" +
+          "<span class='graph-manipulationUI delete' id='graph-manipulate-delete'>" +
+            "<span class='graph-manipulationLabel'>Delete selected</span></span>";
+      }
+
+
+      // bind the icons
+      var addNodeButton = document.getElementById("graph-manipulate-addNode");
+      addNodeButton.onclick = this._createAddNodeToolbar.bind(this);
+      var addEdgeButton = document.getElementById("graph-manipulate-connectNode");
+      addEdgeButton.onclick = this._createAddEdgeToolbar.bind(this);
+      if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
+        var editButton = document.getElementById("graph-manipulate-editNode");
+        editButton.onclick = this._editNode.bind(this);
+      }
+      if (this._selectionIsEmpty() == false) {
+        var deleteButton = document.getElementById("graph-manipulate-delete");
+        deleteButton.onclick = this._deleteSelected.bind(this);
+      }
+      var closeDiv = document.getElementById("graph-manipulation-closeDiv");
+      closeDiv.onclick = this._toggleEditMode.bind(this);
+
+      this.boundFunction = this._createManipulatorBar.bind(this);
+      this.on('select', this.boundFunction);
+    }
+    else {
+      this.editModeDiv.innerHTML = "" +
+        "<span class='graph-manipulationUI edit editmode' id='graph-manipulate-editModeButton'>" +
+        "<span class='graph-manipulationLabel'>Edit</span></span>"
+      var editModeButton = document.getElementById("graph-manipulate-editModeButton");
+      editModeButton.onclick = this._toggleEditMode.bind(this);
+    }
+  },
+
+
+
+  /**
+   * Create the toolbar for adding Nodes
+   *
+   * @private
+   */
+  _createAddNodeToolbar : function() {
+    // clear the toolbar
+    this._clearManipulatorBar();
+    this.off('select', this.boundFunction);
+
+    // create the toolbar contents
+    this.manipulationDiv.innerHTML = "" +
+      "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
+        "<span class='graph-manipulationLabel'>Back</span></span>" +
+      "<div class='graph-seperatorLine'></div>" +
+      "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
+        "<span class='graph-manipulationLabel'>Click in an empty space to place a new node</span></span>";
+
+    // bind the icon
+    var backButton = document.getElementById("graph-manipulate-back");
+    backButton.onclick = this._createManipulatorBar.bind(this);
+
+    // we use the boundFunction so we can reference it when we unbind it from the "select" event.
+    this.boundFunction = this._addNode.bind(this);
+    this.on('select', this.boundFunction);
+  },
+
+
+  /**
+   * create the toolbar to connect nodes
+   *
+   * @private
+   */
+  _createAddEdgeToolbar : function() {
+    // clear the toolbar
+    this._clearManipulatorBar();
+    this._unselectAll(true);
+    this.freezeSimulation = true;
+
+    this.off('select', this.boundFunction);
+
+    this._unselectAll();
+    this.forceAppendSelection = false;
+    this.blockConnectingEdgeSelection = true;
+
+    this.manipulationDiv.innerHTML = "" +
+      "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
+        "<span class='graph-manipulationLabel'>Back</span></span>" +
+      "<div class='graph-seperatorLine'></div>" +
+      "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
+        "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>Click on a node and drag the edge to another node to connect them.</span></span>";
+
+    // bind the icon
+    var backButton = document.getElementById("graph-manipulate-back");
+    backButton.onclick = this._createManipulatorBar.bind(this);
+
+    // we use the boundFunction so we can reference it when we unbind it from the "select" event.
+    this.boundFunction = this._handleConnect.bind(this);
+    this.on('select', this.boundFunction);
+
+    // temporarily overload functions
+    this.cachedFunctions["_handleTouch"] = this._handleTouch;
+    this.cachedFunctions["_handleOnRelease"] = this._handleOnRelease;
+    this._handleTouch = this._handleConnect;
+    this._handleOnRelease = this._finishConnect;
+
+    // redraw to show the unselect
+    this._redraw();
+
+  },
+
+
+  /**
+   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+   * to walk the user through the process.
+   *
+   * @private
+   */
+  _handleConnect : function(pointer) {
+    if (this._getSelectedNodeCount() == 0) {
+      var node = this._getNodeAt(pointer);
+      if (node != null) {
+        if (node.clusterSize > 1) {
+          alert("Cannot create edges to a cluster.")
+        }
+        else {
+          this._selectObject(node,false);
+          // create a node the temporary line can look at
+          this.sectors['support']['nodes']['targetNode'] = new Node({id:'targetNode'},{},{},this.constants);
+          this.sectors['support']['nodes']['targetNode'].x = node.x;
+          this.sectors['support']['nodes']['targetNode'].y = node.y;
+          this.sectors['support']['nodes']['targetViaNode'] = new Node({id:'targetViaNode'},{},{},this.constants);
+          this.sectors['support']['nodes']['targetViaNode'].x = node.x;
+          this.sectors['support']['nodes']['targetViaNode'].y = node.y;
+          this.sectors['support']['nodes']['targetViaNode'].parentEdgeId = "connectionEdge";
+
+          // create a temporary edge
+          this.edges['connectionEdge'] = new Edge({id:"connectionEdge",from:node.id,to:this.sectors['support']['nodes']['targetNode'].id}, this, this.constants);
+          this.edges['connectionEdge'].from = node;
+          this.edges['connectionEdge'].connected = true;
+          this.edges['connectionEdge'].smooth = true;
+          this.edges['connectionEdge'].selected = true;
+          this.edges['connectionEdge'].to = this.sectors['support']['nodes']['targetNode'];
+          this.edges['connectionEdge'].via = this.sectors['support']['nodes']['targetViaNode'];
+
+          this.cachedFunctions["_handleOnDrag"] = this._handleOnDrag;
+          this._handleOnDrag = function(event) {
+            var pointer = this._getPointer(event.gesture.center);
+            this.sectors['support']['nodes']['targetNode'].x = this._canvasToX(pointer.x);
+            this.sectors['support']['nodes']['targetNode'].y = this._canvasToY(pointer.y);
+            this.sectors['support']['nodes']['targetViaNode'].x = 0.5 * (this._canvasToX(pointer.x) + this.edges['connectionEdge'].from.x);
+            this.sectors['support']['nodes']['targetViaNode'].y = this._canvasToY(pointer.y);
+          };
+
+          this.moving = true;
+          this.start();
+        }
+      }
+    }
+  },
+
+  _finishConnect : function(pointer) {
+    if (this._getSelectedNodeCount() == 1) {
+
+      // restore the drag function
+      this._handleOnDrag = this.cachedFunctions["_handleOnDrag"];
+      delete this.cachedFunctions["_handleOnDrag"];
+
+      // remember the edge id
+      var connectFromId = this.edges['connectionEdge'].fromId;
+
+      // remove the temporary nodes and edge
+      delete this.edges['connectionEdge']
+      delete this.sectors['support']['nodes']['targetNode'];
+      delete this.sectors['support']['nodes']['targetViaNode'];
+
+      var node = this._getNodeAt(pointer);
+      if (node != null) {
+        if (node.clusterSize > 1) {
+          alert("Cannot create edges to a cluster.")
+        }
+        else {
+          this._createEdge(connectFromId,node.id);
+          this._createManipulatorBar();
+        }
+      }
+      this._unselectAll();
+    }
+  },
+
+
+  /**
+   * Adds a node on the specified location
+   *
+   * @param {Object} pointer
+   */
+  _addNode : function() {
+    if (this._selectionIsEmpty() && this.editMode == true) {
+      var positionObject = this._pointerToPositionObject(this.pointerPosition);
+      var defaultData = {id:util.randomUUID(),x:positionObject.left,y:positionObject.top,label:"new",allowedToMove:true};
+      if (this.triggerFunctions.add) {
+        if (this.triggerFunctions.add.length == 2) {
+          var me = this;
+          this.triggerFunctions.add(defaultData, function(finalizedData) {
+            me.createNodeOnClick = true;
+            me.nodesData.add(finalizedData);
+            me.createNodeOnClick = false;
+            me._createManipulatorBar();
+            me.moving = true;
+            me.start();
+          });
+        }
+        else {
+          alert("The function for add does not support two arguments (data,callback).");
+          this._createManipulatorBar();
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        this.createNodeOnClick = true;
+        this.nodesData.add(defaultData);
+        this.createNodeOnClick = false;
+        this._createManipulatorBar();
+        this.moving = true;
+        this.start();
+      }
+    }
+  },
+
+
+  /**
+   * connect two nodes with a new edge.
+   *
+   * @private
+   */
+  _createEdge : function(sourceNodeId,targetNodeId) {
+    if (this.editMode == true) {
+      var defaultData = {from:sourceNodeId, to:targetNodeId};
+      if (this.triggerFunctions.connect) {
+        if (this.triggerFunctions.connect.length == 2) {
+          var me = this;
+          this.triggerFunctions.connect(defaultData, function(finalizedData) {
+            me.edgesData.add(finalizedData)
+            me.moving = true;
+            me.start();
+          });
+        }
+        else {
+          alert("The function for connect does not support two arguments (data,callback).");
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        this.edgesData.add(defaultData)
+        this.moving = true;
+        this.start();
+      }
+    }
+  },
+
+
+  /**
+   * Create the toolbar to edit the selected node. The label and the color can be changed. Other colors are derived from the chosen color.
+   *
+   * @private
+   */
+  _editNode : function() {
+    if (this.triggerFunctions.edit && this.editMode == true) {
+      var node = this._getSelectedNode();
+      var data = {id:node.id,
+        label: node.label,
+        group: node.group,
+        shape: node.shape,
+        color: {
+          background:node.color.background,
+          border:node.color.border,
+          highlight: {
+            background:node.color.highlight.background,
+            border:node.color.highlight.border
+          }
+        }};
+      if (this.triggerFunctions.edit.length == 2) {
+        var me = this;
+        this.triggerFunctions.edit(data, function (finalizedData) {
+          me.nodesData.update(finalizedData);
+          me._createManipulatorBar();
+          me.moving = true;
+          me.start();
+        });
+      }
+      else {
+        alert("The function for edit does not support two arguments (data, callback).")
+      }
+    }
+    else {
+      alert("No edit function has been bound to this button.")
+    }
+  },
+
+
+  /**
+   * delete everything in the selection
+   *
+   * @private
+   */
+  _deleteSelected : function() {
+    if (!this._selectionIsEmpty() && this.editMode == true) {
+      if (!this._clusterInSelection()) {
+        var selectedNodes = this.getSelectedNodes();
+        var selectedEdges = this.getSelectedEdges();
+        if (this.triggerFunctions.delete) {
+          var me = this;
+          var data = {nodes: selectedNodes, edges: selectedEdges};
+          if (this.triggerFunctions.delete.length = 2) {
+            this.triggerFunctions.delete(data, function (finalizedData) {
+              me.edgesData.remove(finalizedData.edges);
+              me.nodesData.remove(finalizedData.nodes);
+              this._unselectAll();
+              me.moving = true;
+              me.start();
+            });
+          }
+          else {
+            alert("The function for edit does not support two arguments (data, callback).")
+          }
+        }
+        else {
+          this.edgesData.remove(selectedEdges);
+          this.nodesData.remove(selectedNodes);
+          this._unselectAll();
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        alert("Clusters cannot be deleted.");
+      }
+    }
+  }
+};
+/**
  * Creation of the SectorMixin var.
  *
  * This contains all the functions the Graph object can use to employ the sector system.
@@ -10815,6 +13198,20 @@ var SectorMixin = {
 
   /**
    * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied active sector.
+   *
+   * @param sectorId
+   * @private
+   */
+  _switchToSupportSector : function() {
+    this.nodeIndices = this.sectors["support"]["nodeIndices"];
+    this.nodes       = this.sectors["support"]["nodes"];
+    this.edges       = this.sectors["support"]["edges"];
+  },
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
    * those of the supplied frozen sector.
    *
    * @param sectorId
@@ -10824,19 +13221,6 @@ var SectorMixin = {
     this.nodeIndices = this.sectors["frozen"][sectorId]["nodeIndices"];
     this.nodes       = this.sectors["frozen"][sectorId]["nodes"];
     this.edges       = this.sectors["frozen"][sectorId]["edges"];
-  },
-
-
-  /**
-   * This function sets the global references to nodes, edges and nodeIndices to
-   * those of the navigation controls sector.
-   *
-   * @private
-   */
-  _switchToNavigationSector : function() {
-    this.nodeIndices = this.sectors["navigation"]["nodeIndices"];
-    this.nodes       = this.sectors["navigation"]["nodes"];
-    this.edges       = this.sectors["navigation"]["edges"];
   },
 
 
@@ -11106,6 +13490,9 @@ var SectorMixin = {
 
         // finally, we update the node index list.
         this._updateNodeIndexList();
+
+        // we refresh the list with calulation nodes and calculation node indices.
+        this._updateCalculationNodes();
       }
     }
   },
@@ -11143,6 +13530,35 @@ var SectorMixin = {
             this[runFunction](argument);
           }
         }
+      }
+    }
+    // we revert the global references back to our active sector
+    this._loadLatestSector();
+  },
+
+
+  /**
+   * This runs a function in all active sectors. This is used in _redraw() and the _initializeForceCalculation().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we dont pass the function itself because then the "this" is the window object
+   *                              |   instead of the Graph object
+   * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  _doInSupportSector : function(runFunction,argument) {
+    if (argument === undefined) {
+      this._switchToSupportSector();
+      this[runFunction]();
+    }
+    else {
+      this._switchToSupportSector();
+      var args = Array.prototype.splice.call(arguments, 1);
+      if (args.length > 1) {
+        this[runFunction](args[0],args[1]);
+      }
+      else {
+        this[runFunction](argument);
       }
     }
     // we revert the global references back to our active sector
@@ -11189,33 +13605,6 @@ var SectorMixin = {
 
 
   /**
-   * This runs a function in the navigation controls sector.
-   *
-   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we don't pass the function itself because then the "this" is the window object
-   *                              |   instead of the Graph object
-   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
-   * @private
-   */
-  _doInNavigationSector : function(runFunction,argument) {
-    this._switchToNavigationSector();
-    if (argument === undefined) {
-      this[runFunction]();
-    }
-    else {
-      var args = Array.prototype.splice.call(arguments, 1);
-      if (args.length > 1) {
-        this[runFunction](args[0],args[1]);
-      }
-      else {
-        this[runFunction](argument);
-      }
-    }
-    this._loadLatestSector();
-  },
-
-
-  /**
    * This runs a function in all sectors. This is used in the _redraw().
    *
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
@@ -11240,7 +13629,6 @@ var SectorMixin = {
         this._doInAllFrozenSectors(runFunction,argument);
       }
     }
-
   },
 
 
@@ -11312,23 +13700,24 @@ var SectorMixin = {
  */
 var ClusterMixin = {
 
-/**
- * This is only called in the constructor of the graph object
- * */
+ /**
+  * This is only called in the constructor of the graph object
+  *
+  */
  startWithClustering : function() {
-    // cluster if the data set is big
-    this.clusterToFit(this.constants.clustering.initialMaxNodes, true);
+   // cluster if the data set is big
+   this.clusterToFit(this.constants.clustering.initialMaxNodes, true);
 
-    // updates the lables after clustering
-    this.updateLabels();
+   // updates the lables after clustering
+   this.updateLabels();
 
-    // this is called here because if clusterin is disabled, the start and stabilize are called in
-    // the setData function.
-    if (this.stabilize) {
-      this._doStabilize();
-    }
-    this.start();
-  },
+   // this is called here because if clusterin is disabled, the start and stabilize are called in
+   // the setData function.
+   if (this.stabilize) {
+     this._doStabilize();
+   }
+   this.start();
+ },
 
   /**
    * This function clusters until the initialMaxNodes has been reached
@@ -11345,20 +13734,23 @@ var ClusterMixin = {
     // we first cluster the hubs, then we pull in the outliers, repeat
     while (numberOfNodes > maxNumberOfNodes && level < maxLevels) {
       if (level % 3 == 0) {
-        this.forceAggregateHubs();
+        this.forceAggregateHubs(true);
+        this.normalizeClusterLevels();
       }
       else {
-        this.increaseClusterLevel();
+        this.increaseClusterLevel(); // this also includes a cluster normalization
       }
+
       numberOfNodes = this.nodeIndices.length;
       level += 1;
     }
 
     // after the clustering we reposition the nodes to reduce the initial chaos
-    if (level > 1 && reposition == true) {
+    if (level > 0 && reposition == true) {
       this.repositionNodes();
     }
-   },
+    this._updateCalculationNodes();
+  },
 
   /**
    * This function can be called to open up a specific cluster. It is only called by
@@ -11370,12 +13762,16 @@ var ClusterMixin = {
     var isMovingBeforeClustering = this.moving;
     if (node.clusterSize > this.constants.clustering.sectorThreshold && this._nodeInActiveArea(node) &&
       !(this._sector() == "default" && this.nodeIndices.length == 1)) {
+      // this loads a new sector, loads the nodes and edges and nodeIndices of it.
       this._addSector(node);
       var level = 0;
+
+      // we decluster until we reach a decent number of nodes
       while ((this.nodeIndices.length < this.constants.clustering.initialMaxNodes) && (level < 10)) {
         this.decreaseClusterLevel();
         level += 1;
       }
+
     }
     else {
       this._expandClusterNode(node,false,true);
@@ -11383,6 +13779,7 @@ var ClusterMixin = {
       // update the index list, dynamic edges and labels
       this._updateNodeIndexList();
       this._updateDynamicEdges();
+      this._updateCalculationNodes();
       this.updateLabels();
     }
 
@@ -11390,7 +13787,8 @@ var ClusterMixin = {
     if (this.moving != isMovingBeforeClustering) {
       this.start();
     }
-   },
+  },
+
 
   /**
    * This calls the updateClustes with default arguments
@@ -11401,6 +13799,7 @@ var ClusterMixin = {
     }
   },
 
+
   /**
    * This function can be called to increase the cluster level. This means that the nodes with only one edge connection will
    * be clustered with their connected node. This can be repeated as many times as needed.
@@ -11408,8 +13807,7 @@ var ClusterMixin = {
    */
   increaseClusterLevel : function() {
     this.updateClusters(-1,false,true);
-   },
-
+  },
 
 
   /**
@@ -11419,7 +13817,7 @@ var ClusterMixin = {
    */
   decreaseClusterLevel : function() {
     this.updateClusters(1,false,true);
-   },
+  },
 
 
   /**
@@ -11433,7 +13831,7 @@ var ClusterMixin = {
    * @param {Boolean} force         | enabled or disable forcing
    *
    */
-  updateClusters : function(zoomDirection,recursive,force) {
+  updateClusters : function(zoomDirection,recursive,force,doNotStart) {
     var isMovingBeforeClustering = this.moving;
     var amountOfNodes = this.nodeIndices.length;
 
@@ -11482,13 +13880,19 @@ var ClusterMixin = {
     // if a cluster was formed, we increase the clusterSession
     if (this.nodeIndices.length < amountOfNodes) { // this means a clustering operation has taken place
       this.clusterSession += 1;
+      // if clusters have been made, we normalize the cluster level
+      this.normalizeClusterLevels();
     }
 
-    // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
-    if (this.moving != isMovingBeforeClustering) {
-      this.start();
+    if (doNotStart == false || doNotStart === undefined) {
+      // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+      if (this.moving != isMovingBeforeClustering) {
+        this.start();
+      }
     }
-   },
+
+    this._updateCalculationNodes();
+  },
 
   /**
    * This function handles the chains. It is called on every updateClusters().
@@ -11500,7 +13904,7 @@ var ClusterMixin = {
       this._reduceAmountOfChains(1 - this.constants.clustering.chainThreshold / chainPercentage)
 
     }
-   },
+  },
 
   /**
    * this functions starts clustering by hubs
@@ -11511,14 +13915,14 @@ var ClusterMixin = {
   _aggregateHubs : function(force) {
     this._getHubSize();
     this._formClustersByHub(force,false);
-   },
+  },
 
 
   /**
    * This function is fired by keypress. It forces hubs to form.
    *
    */
-  forceAggregateHubs : function() {
+  forceAggregateHubs : function(doNotStart) {
     var isMovingBeforeClustering = this.moving;
     var amountOfNodes = this.nodeIndices.length;
 
@@ -11534,11 +13938,13 @@ var ClusterMixin = {
       this.clusterSession += 1;
     }
 
-    // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
-    if (this.moving != isMovingBeforeClustering) {
-      this.start();
+    if (doNotStart == false || doNotStart === undefined) {
+      // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+      if (this.moving != isMovingBeforeClustering) {
+        this.start();
+      }
     }
-   },
+  },
 
   /**
    * If a cluster takes up more than a set percentage of the screen, open the cluster
@@ -11557,7 +13963,7 @@ var ClusterMixin = {
         }
       }
     }
-   },
+  },
 
 
   /**
@@ -11570,8 +13976,9 @@ var ClusterMixin = {
     for (var i = 0; i < this.nodeIndices.length; i++) {
       var node = this.nodes[this.nodeIndices[i]];
       this._expandClusterNode(node,recursive,force);
+      this._updateCalculationNodes();
     }
-   },
+  },
 
   /**
    * This function checks if a node has to be opened. This is done by checking the zoom level.
@@ -11617,7 +14024,7 @@ var ClusterMixin = {
         }
       }
     }
-   },
+  },
 
   /**
    * ONLY CALLED FROM _expandClusterNode
@@ -11634,11 +14041,14 @@ var ClusterMixin = {
    * @param {Boolean} openAll           | This will recursively force all nodes in the parent to be released
    * @private
    */
-  _expelChildFromParent : function(parentNode, containedNodeId, recursive, force, openAll) {
+   _expelChildFromParent : function(parentNode, containedNodeId, recursive, force, openAll) {
     var childNode = parentNode.containedNodes[containedNodeId];
 
     // if child node has been added on smaller scale than current, kick out
     if (childNode.formationScale < this.scale || force == true) {
+      // unselect all selected items
+      this._unselectAll();
+
       // put the child node back in the global nodes object
       this.nodes[containedNodeId] = childNode;
 
@@ -11652,14 +14062,14 @@ var ClusterMixin = {
       this._validateEdges(parentNode);
 
       // undo the changes from the clustering operation on the parent node
-      parentNode.mass -= this.constants.clustering.massTransferCoefficient * childNode.mass;
-      parentNode.fontSize -= this.constants.clustering.fontSizeMultiplier * childNode.clusterSize;
+      parentNode.mass -= childNode.mass;
       parentNode.clusterSize -= childNode.clusterSize;
+      parentNode.fontSize = Math.min(this.constants.clustering.maxFontSize, this.constants.nodes.fontSize + this.constants.clustering.fontSizeMultiplier*parentNode.clusterSize);
       parentNode.dynamicEdgesLength = parentNode.dynamicEdges.length;
 
       // place the child node near the parent, not at the exact same location to avoid chaos in the system
-      childNode.x = parentNode.x + this.constants.edges.length * 0.3 * (0.5 - Math.random()) * parentNode.clusterSize;
-      childNode.y = parentNode.y + this.constants.edges.length * 0.3 * (0.5 - Math.random()) * parentNode.clusterSize;
+      childNode.x = parentNode.x + parentNode.growthIndicator * (0.5 - Math.random());
+      childNode.y = parentNode.y + parentNode.growthIndicator * (0.5 - Math.random());
 
       // remove node from the list
       delete parentNode.containedNodes[containedNodeId];
@@ -11679,21 +14089,37 @@ var ClusterMixin = {
         parentNode.clusterSessions.pop();
       }
 
+      this._repositionBezierNodes(childNode);
+//      this._repositionBezierNodes(parentNode);
+
       // remove the clusterSession from the child node
       childNode.clusterSession = 0;
 
-      // restart the simulation to reorganise all nodes
-      this.moving = true;
-
       // recalculate the size of the node on the next time the node is rendered
       parentNode.clearSizeCache();
+
+      // restart the simulation to reorganise all nodes
+      this.moving = true;
     }
 
     // check if a further expansion step is possible if recursivity is enabled
     if (recursive == true) {
       this._expandClusterNode(childNode,recursive,force,openAll);
     }
-   },
+  },
+
+
+  /**
+   * position the bezier nodes at the center of the edges
+   *
+   * @param node
+   * @private
+   */
+  _repositionBezierNodes : function(node) {
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      node.dynamicEdges[i].positionBezierNode();
+    }
+  },
 
 
   /**
@@ -11712,7 +14138,8 @@ var ClusterMixin = {
     else {
       this._forceClustersByZoom();
     }
-   },
+  },
+
 
   /**
    * This function handles the clustering by zooming out, this is based on a minimum edge distance
@@ -11755,7 +14182,7 @@ var ClusterMixin = {
         }
       }
     }
-   },
+  },
 
   /**
    * This function forces the graph to cluster all nodes with only one connecting edge to their
@@ -11786,8 +14213,41 @@ var ClusterMixin = {
         }
       }
     }
-   },
+  },
 
+
+  /**
+   * To keep the nodes of roughly equal size we normalize the cluster levels.
+   * This function clusters a node to its smallest connected neighbour.
+   *
+   * @param node
+   * @private
+   */
+  _clusterToSmallestNeighbour : function(node) {
+    var smallestNeighbour = -1;
+    var smallestNeighbourNode = null;
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      if (node.dynamicEdges[i] !== undefined) {
+        var neighbour = null;
+        if (node.dynamicEdges[i].fromId != node.id) {
+          neighbour = node.dynamicEdges[i].from;
+        }
+        else if (node.dynamicEdges[i].toId != node.id) {
+          neighbour = node.dynamicEdges[i].to;
+        }
+
+
+        if (neighbour != null && smallestNeighbour > neighbour.clusterSessions.length) {
+          smallestNeighbour = neighbour.clusterSessions.length;
+          smallestNeighbourNode = neighbour;
+        }
+      }
+    }
+
+    if (neighbour != null && this.nodes[neighbour.id] !== undefined) {
+      this._addToCluster(neighbour, node, true);
+    }
+  },
 
 
   /**
@@ -11805,7 +14265,7 @@ var ClusterMixin = {
         this._formClusterFromHub(this.nodes[nodeId],force,onlyEqual);
       }
     }
-   },
+  },
 
   /**
    * This function forms a cluster from a specific preselected hub node
@@ -11875,7 +14335,7 @@ var ClusterMixin = {
         }
       }
     }
-   },
+  },
 
 
 
@@ -11914,9 +14374,9 @@ var ClusterMixin = {
     // update the properties of the child and parent
     var massBefore = parentNode.mass;
     childNode.clusterSession = this.clusterSession;
-    parentNode.mass += this.constants.clustering.massTransferCoefficient * childNode.mass;
+    parentNode.mass += childNode.mass;
     parentNode.clusterSize += childNode.clusterSize;
-    parentNode.fontSize += this.constants.clustering.fontSizeMultiplier * childNode.clusterSize;
+    parentNode.fontSize = Math.min(this.constants.clustering.maxFontSize, this.constants.nodes.fontSize + this.constants.clustering.fontSizeMultiplier*parentNode.clusterSize);
 
     // keep track of the clustersessions so we can open the cluster up as it has been formed.
     if (parentNode.clusterSessions[parentNode.clusterSessions.length - 1] != this.clusterSession) {
@@ -11946,12 +14406,12 @@ var ClusterMixin = {
 
     // restart the simulation to reorganise all nodes
     this.moving = true;
-   },
+  },
 
 
   /**
    * This function will apply the changes made to the remainingEdges during the formation of the clusters.
-   * This is a seperate function to allow for level-wise collapsing of the node tree.
+   * This is a seperate function to allow for level-wise collapsing of the node barnesHutTree.
    * It has to be called if a level is collapsed. It is called by _formClusters().
    * @private
    */
@@ -11976,7 +14436,7 @@ var ClusterMixin = {
       }
       node.dynamicEdgesLength -= correction;
     }
-   },
+  },
 
 
   /**
@@ -12005,7 +14465,7 @@ var ClusterMixin = {
         break;
       }
     }
-   },
+  },
 
   /**
    * This function connects an edge that was connected to a child node to the parent node.
@@ -12036,9 +14496,17 @@ var ClusterMixin = {
 
       this._addToReroutedEdges(parentNode,childNode,edge);
     }
-   },
+  },
 
 
+  /**
+   * If a node is connected to itself, a circular edge is drawn. When clustering we want to contain
+   * these edges inside of the cluster.
+   *
+   * @param parentNode
+   * @param childNode
+   * @private
+   */
   _containCircularEdgesFromNode : function(parentNode, childNode) {
     // manage all the edges connected to the child and parent nodes
     for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
@@ -12109,7 +14577,7 @@ var ClusterMixin = {
       // remove the entry from the rerouted edges
       delete parentNode.reroutedEdges[childNode.id];
     }
-   },
+  },
 
 
   /**
@@ -12127,7 +14595,7 @@ var ClusterMixin = {
         parentNode.dynamicEdges.splice(i,1);
       }
     }
-   },
+  },
 
 
   /**
@@ -12152,7 +14620,7 @@ var ClusterMixin = {
     // remove the entry from the contained edges
     delete parentNode.containedEdges[childNode.id];
 
-   },
+  },
 
 
 
@@ -12190,15 +14658,57 @@ var ClusterMixin = {
       }
     }
 
-    /* Debug Override */
-  //  for (nodeId in this.nodes) {
-  //    if (this.nodes.hasOwnProperty(nodeId)) {
-  //      node = this.nodes[nodeId];
-  //      node.label = String(Math.round(node.width)).concat(":",Math.round(node.width*this.scale));
-  //    }
-  //  }
+//    /* Debug Override */
+//    for (nodeId in this.nodes) {
+//      if (this.nodes.hasOwnProperty(nodeId)) {
+//        node = this.nodes[nodeId];
+//        node.label = String(node.level);
+//      }
+//    }
 
-   },
+  },
+
+
+  /**
+   * We want to keep the cluster level distribution rather small. This means we do not want unclustered nodes
+   * if the rest of the nodes are already a few cluster levels in.
+   * To fix this we use this function. It determines the min and max cluster level and sends nodes that have not
+   * clustered enough to the clusterToSmallestNeighbours function.
+   */
+  normalizeClusterLevels : function() {
+    var maxLevel = 0;
+    var minLevel = 1e9;
+    var clusterLevel = 0;
+
+    // we loop over all nodes in the list
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        clusterLevel = this.nodes[nodeId].clusterSessions.length;
+        if (maxLevel < clusterLevel) {maxLevel = clusterLevel;}
+        if (minLevel > clusterLevel) {minLevel = clusterLevel;}
+      }
+    }
+
+    if (maxLevel - minLevel > this.constants.clustering.clusterLevelDifference) {
+      var amountOfNodes = this.nodeIndices.length;
+      var targetLevel = maxLevel - this.constants.clustering.clusterLevelDifference;
+      // we loop over all nodes in the list
+      for (var nodeId in this.nodes) {
+        if (this.nodes.hasOwnProperty(nodeId)) {
+          if (this.nodes[nodeId].clusterSessions.length < targetLevel) {
+            this._clusterToSmallestNeighbour(this.nodes[nodeId]);
+          }
+        }
+      }
+      this._updateNodeIndexList();
+      this._updateDynamicEdges();
+      // if a cluster was formed, we increase the clusterSession
+      if (this.nodeIndices.length != amountOfNodes) {
+        this.clusterSession += 1;
+      }
+    }
+  },
+
 
 
   /**
@@ -12215,7 +14725,7 @@ var ClusterMixin = {
         &&
       Math.abs(node.y - this.areaCenter.y) <= this.constants.clustering.activeAreaBoxSize/this.scale
       )
-   },
+  },
 
 
   /**
@@ -12226,17 +14736,15 @@ var ClusterMixin = {
   repositionNodes : function() {
     for (var i = 0; i < this.nodeIndices.length; i++) {
       var node = this.nodes[this.nodeIndices[i]];
-      if (!node.isFixed()) {
-        var radius = this.constants.edges.length * (1 + 0.6*node.clusterSize);
+      if ((node.xFixed == false || node.yFixed == false) && this.createNodeOnClick != true) {
+        var radius = this.constants.physics.springLength * Math.min(100,node.mass);
         var angle = 2 * Math.PI * Math.random();
-        node.x = radius * Math.cos(angle);
-        node.y = radius * Math.sin(angle);
+        if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
+        if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
+        this._repositionBezierNodes(node);
       }
     }
-   },
-
-
-
+  },
 
 
   /**
@@ -12252,6 +14760,7 @@ var ClusterMixin = {
     var largestHub = 0;
 
     for (var i = 0; i < this.nodeIndices.length; i++) {
+
       var node = this.nodes[this.nodeIndices[i]];
       if (node.dynamicEdgesLength > largestHub) {
         largestHub = node.dynamicEdgesLength;
@@ -12276,7 +14785,7 @@ var ClusterMixin = {
 
   //  console.log("average",average,"averageSQ",averageSquared,"var",variance,"std",standardDeviation);
   //  console.log("hubThreshold:",this.hubThreshold);
-   },
+  },
 
 
   /**
@@ -12299,7 +14808,7 @@ var ClusterMixin = {
         }
       }
     }
-   },
+  },
 
   /**
    * We get the amount of "extension nodes" or chains. These are not quickly clustered with the outliers and hubs methods
@@ -12319,7 +14828,8 @@ var ClusterMixin = {
       }
     }
     return chains/total;
-   }
+  }
+
 };
 
 
@@ -12357,18 +14867,6 @@ var SelectionMixin = {
 
 
   /**
-   * retrieve all nodes in the navigation controls overlapping with given object
-   * @param {Object} object  An object with parameters left, top, right, bottom
-   * @return {Number[]}   An array with id's of the overlapping nodes
-   * @private
-   */
-  _getAllNavigationNodesOverlappingWith : function (object) {
-    var overlappingNodes = [];
-    this._doInNavigationSector("_getNodesOverlappingWith",object,overlappingNodes);
-    return overlappingNodes;
-  },
-
-  /**
    * Return a position object in canvasspace from a single point in screenspace
    *
    * @param pointer
@@ -12385,42 +14883,6 @@ var SelectionMixin = {
             bottom: y};
   },
 
-  /**
-   * Return a position object in canvasspace from a single point in screenspace
-   *
-   * @param pointer
-   * @returns {{left: number, top: number, right: number, bottom: number}}
-   * @private
-   */
-  _pointerToScreenPositionObject : function(pointer) {
-    var x = pointer.x;
-    var y = pointer.y;
-
-    return {left:   x,
-      top:    y,
-      right:  x,
-      bottom: y};
-  },
-
-
-  /**
-   * Get the top navigation controls node at the a specific point (like a click)
-   *
-   * @param {{x: Number, y: Number}} pointer
-   * @return {Node | null} node
-   * @private
-   */
-  _getNavigationNodeAt : function (pointer) {
-    var screenPositionObject = this._pointerToScreenPositionObject(pointer);
-    var overlappingNodes = this._getAllNavigationNodesOverlappingWith(screenPositionObject);
-    if (overlappingNodes.length > 0) {
-      return this.sectors["navigation"]["nodes"][overlappingNodes[overlappingNodes.length - 1]];
-    }
-    else {
-      return null;
-    }
-  },
-
 
   /**
    * Get the top node at the a specific point (like a click)
@@ -12432,7 +14894,7 @@ var SelectionMixin = {
   _getNodeAt : function (pointer) {
     // we first check if this is an navigation controls element
     var positionObject = this._pointerToPositionObject(pointer);
-    overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
+    var overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
 
     // if there are overlapping nodes, select the last one, this is the
     // one which is drawn on top of the others
@@ -12446,6 +14908,36 @@ var SelectionMixin = {
 
 
   /**
+   * retrieve all edges overlapping with given object, selector is around center
+   * @param {Object} object  An object with parameters left, top, right, bottom
+   * @return {Number[]}   An array with id's of the overlapping nodes
+   * @private
+   */
+  _getEdgesOverlappingWith : function (object, overlappingEdges) {
+    var edges = this.edges;
+    for (var edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        if (edges[edgeId].isOverlappingWith(object)) {
+          overlappingEdges.push(edgeId);
+        }
+      }
+    }
+  },
+
+
+  /**
+   * retrieve all nodes overlapping with given object
+   * @param {Object} object  An object with parameters left, top, right, bottom
+   * @return {Number[]}   An array with id's of the overlapping nodes
+   * @private
+   */
+  _getAllEdgesOverlappingWith : function (object) {
+    var overlappingEdges = [];
+    this._doInAllActiveSectors("_getEdgesOverlappingWith",object,overlappingEdges);
+    return overlappingEdges;
+  },
+
+  /**
    * Place holder. To implement change the _getNodeAt to a _getObjectAt. Have the _getObjectAt call
    * _getNodeAt and _getEdgesAt, then priortize the selection to user preferences.
    *
@@ -12454,18 +14946,25 @@ var SelectionMixin = {
    * @private
    */
   _getEdgeAt : function(pointer) {
-    return null;
+    var positionObject = this._pointerToPositionObject(pointer);
+    var overlappingEdges = this._getAllEdgesOverlappingWith(positionObject);
+
+    if (overlappingEdges.length > 0) {
+      return this.edges[overlappingEdges[overlappingEdges.length - 1]];
+    }
+    else {
+      return null;
+    }
   },
 
 
   /**
-   * Add object to the selection array. The this.selection id array may not be needed.
+   * Add object to the selection array.
    *
    * @param obj
    * @private
    */
   _addToSelection : function(obj) {
-    this.selection.push(obj.id);
     this.selectionObj[obj.id] = obj;
   },
 
@@ -12473,16 +14972,10 @@ var SelectionMixin = {
   /**
    * Remove a single option from selection.
    *
-   * @param obj
+   * @param {Object} obj
    * @private
    */
   _removeFromSelection : function(obj) {
-    for (var i = 0; i < this.selection.length; i++) {
-      if (obj.id == this.selection[i]) {
-        this.selection.splice(i,1);
-        break;
-      }
-    }
     delete this.selectionObj[obj.id];
   },
 
@@ -12498,21 +14991,116 @@ var SelectionMixin = {
       doNotTrigger = false;
     }
 
-    this.selection = [];
-    for (var objId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objId)) {
-        this.selectionObj[objId].unselect();
+    for (var objectId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objectId)) {
+        this.selectionObj[objectId].unselect();
       }
     }
     this.selectionObj = {};
 
     if (doNotTrigger == false) {
-      this._trigger('select', {
-        nodes: this.getSelection()
-      });
+      this.emit('select', this.getSelection());
     }
   },
 
+  /**
+   * Unselect all clusters. The selectionObj is useful for this.
+   *
+   * @param {Boolean} [doNotTrigger] | ignore trigger
+   * @private
+   */
+  _unselectClusters : function(doNotTrigger) {
+    if (doNotTrigger === undefined) {
+      doNotTrigger = false;
+    }
+
+    for (var objectId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objectId)) {
+        if (this.selectionObj[objectId] instanceof Node) {
+          if (this.selectionObj[objectId].clusterSize > 1) {
+            this.selectionObj[objectId].unselect();
+            this._removeFromSelection(this.selectionObj[objectId]);
+          }
+        }
+      }
+    }
+
+    if (doNotTrigger == false) {
+      this.emit('select', this.getSelection());
+    }
+  },
+
+
+  /**
+   * return the number of selected nodes
+   *
+   * @returns {number}
+   * @private
+   */
+  _getSelectedNodeCount : function() {
+    var count = 0;
+    for (var objectId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objectId)) {
+        if (this.selectionObj[objectId] instanceof Node) {
+          count += 1;
+        }
+      }
+    }
+    return count;
+  },
+
+  /**
+   * return the number of selected nodes
+   *
+   * @returns {number}
+   * @private
+   */
+  _getSelectedNode : function() {
+    for (var objectId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objectId)) {
+        if (this.selectionObj[objectId] instanceof Node) {
+          return this.selectionObj[objectId];
+        }
+      }
+    }
+    return null;
+  },
+
+
+  /**
+   * return the number of selected edges
+   *
+   * @returns {number}
+   * @private
+   */
+  _getSelectedEdgeCount : function() {
+    var count = 0;
+    for (var objectId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objectId)) {
+        if (this.selectionObj[objectId] instanceof Edge) {
+          count += 1;
+        }
+      }
+    }
+    return count;
+  },
+
+
+  /**
+   * return the number of selected objects.
+   *
+   * @returns {number}
+   * @private
+   */
+  _getSelectedObjectCount : function() {
+    var count = 0;
+    for (var objectId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objectId)) {
+        count += 1;
+      }
+    }
+    return count;
+  },
 
   /**
    * Check if anything is selected
@@ -12521,46 +15109,96 @@ var SelectionMixin = {
    * @private
    */
   _selectionIsEmpty : function() {
-    if (this.selection.length == 0) {
-      return true;
+    for(var objectId in this.selectionObj) {
+      if(this.selectionObj.hasOwnProperty(objectId)) {
+        return false;
+      }
     }
-    else {
-      return false;
+    return true;
+  },
+
+
+  /**
+   * check if one of the selected nodes is a cluster.
+   *
+   * @returns {boolean}
+   * @private
+   */
+  _clusterInSelection : function() {
+    for(var objectId in this.selectionObj) {
+      if(this.selectionObj.hasOwnProperty(objectId)) {
+        if (this.selectionObj[objectId] instanceof Node) {
+          if (this.selectionObj[objectId].clusterSize > 1) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  },
+
+  /**
+   * select the edges connected to the node that is being selected
+   *
+   * @param {Node} node
+   * @private
+   */
+  _selectConnectedEdges : function(node) {
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      var edge = node.dynamicEdges[i];
+      edge.select();
+      this._addToSelection(edge);
     }
   },
+
+
+  /**
+   * unselect the edges connected to the node that is being selected
+   *
+   * @param {Node} node
+   * @private
+   */
+  _unselectConnectedEdges : function(node) {
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      var edge = node.dynamicEdges[i];
+      edge.unselect();
+      this._removeFromSelection(edge);
+    }
+  },
+
 
 
   /**
    * This is called when someone clicks on a node. either select or deselect it.
    * If there is an existing selection and we don't want to append to it, clear the existing selection
    *
-   * @param {Node} node
+   * @param {Node || Edge} object
    * @param {Boolean} append
    * @param {Boolean} [doNotTrigger] | ignore trigger
    * @private
    */
-  _selectNode : function(node, append, doNotTrigger) {
+  _selectObject : function(object, append, doNotTrigger) {
     if (doNotTrigger === undefined) {
       doNotTrigger = false;
     }
 
-    if (this._selectionIsEmpty() == false && append == false) {
+    if (this._selectionIsEmpty() == false && append == false && this.forceAppendSelection == false) {
       this._unselectAll(true);
     }
 
-
-    if (node.selected == false) {
-      node.select();
-      this._addToSelection(node);
+    if (object.selected == false) {
+      object.select();
+      this._addToSelection(object);
+      if (object instanceof Node && this.blockConnectingEdgeSelection == false) {
+        this._selectConnectedEdges(object);
+      }
     }
     else {
-      node.unselect();
-      this._removeFromSelection(node);
+      object.unselect();
+      this._removeFromSelection(object);
     }
     if (doNotTrigger == false) {
-      this._trigger('select', {
-        nodes: this.getSelection()
-      });
+      this.emit('select', this.getSelection());
     }
   },
 
@@ -12574,14 +15212,7 @@ var SelectionMixin = {
    * @private
    */
   _handleTouch : function(pointer) {
-    if (this.constants.navigation.enabled == true) {
-      var node = this._getNavigationNodeAt(pointer);
-      if (node != null) {
-        if (this[node.triggerFunction] !== undefined) {
-          this[node.triggerFunction]();
-        }
-      }
-    }
+
   },
 
 
@@ -12594,11 +15225,18 @@ var SelectionMixin = {
   _handleTap : function(pointer) {
     var node = this._getNodeAt(pointer);
     if (node != null) {
-      this._selectNode(node,false);
+      this._selectObject(node,false);
     }
     else {
-      this._unselectAll();
+      var edge = this._getEdgeAt(pointer);
+      if (edge != null) {
+        this._selectObject(edge,false);
+      }
+      else {
+        this._unselectAll();
+      }
     }
+    this.emit("click", this.getSelection());
     this._redraw();
   },
 
@@ -12617,6 +15255,7 @@ var SelectionMixin = {
                           "y" : this._canvasToY(pointer.y)};
       this.openCluster(node);
     }
+    this.emit("doubleClick", this.getSelection());
   },
 
 
@@ -12629,7 +15268,13 @@ var SelectionMixin = {
   _handleOnHold : function(pointer) {
     var node = this._getNodeAt(pointer);
     if (node != null) {
-      this._selectNode(node,true);
+      this._selectObject(node,true);
+    }
+    else {
+      var edge = this._getEdgeAt(pointer);
+      if (edge != null) {
+        this._selectObject(edge,true);
+      }
     }
     this._redraw();
   },
@@ -12640,38 +15285,62 @@ var SelectionMixin = {
    *
     * @private
    */
-  _handleOnRelease : function() {
-    this.xIncrement = 0;
-    this.yIncrement = 0;
-    this.zoomIncrement = 0;
-    this._unHighlightAll();
+  _handleOnRelease : function(pointer) {
+
   },
 
 
 
   /**
    *
-   * retrieve the currently selected nodes
+   * retrieve the currently selected objects
    * @return {Number[] | String[]} selection    An array with the ids of the
    *                                            selected nodes.
    */
   getSelection : function() {
-    return this.selection.concat([]);
+    var nodeIds = this.getSelectedNodes();
+    var edgeIds = this.getSelectedEdges();
+    return {nodes:nodeIds, edges:edgeIds};
   },
 
   /**
    *
-   * retrieve the currently selected nodes as objects
-   * @return {Objects} selection    An array with the ids of the
+   * retrieve the currently selected nodes
+   * @return {String} selection    An array with the ids of the
    *                                            selected nodes.
    */
-  getSelectionObjects : function() {
-    return this.selectionObj;
+  getSelectedNodes : function() {
+    var idArray = [];
+    for(var objectId in this.selectionObj) {
+      if(this.selectionObj.hasOwnProperty(objectId)) {
+        if (this.selectionObj[objectId] instanceof Node) {
+          idArray.push(objectId);
+        }
+      }
+    }
+    return idArray
   },
 
   /**
-   * // TODO: rework this function, it is from the old system
    *
+   * retrieve the currently selected edges
+   * @return {Array} selection    An array with the ids of the
+   *                                            selected nodes.
+   */
+  getSelectedEdges : function() {
+    var idArray = [];
+    for(var objectId in this.selectionObj) {
+      if(this.selectionObj.hasOwnProperty(objectId)) {
+        if (this.selectionObj[objectId] instanceof Edge) {
+          idArray.push(objectId);
+        }
+      }
+    }
+    return idArray
+  },
+
+
+  /**
    * select zero or more nodes
    * @param {Number[] | String[]} selection     An array with the ids of the
    *                                            selected nodes.
@@ -12692,149 +15361,33 @@ var SelectionMixin = {
       if (!node) {
         throw new RangeError('Node with id "' + id + '" not found');
       }
-      this._selectNode(node,true,true);
+      this._selectObject(node,true,true);
     }
-
     this.redraw();
   },
 
 
   /**
-   * TODO: rework this function, it is from the old system
-   *
    * Validate the selection: remove ids of nodes which no longer exist
    * @private
    */
   _updateSelection : function () {
-    var i = 0;
-    while (i < this.selection.length) {
-      var nodeId = this.selection[i];
-      if (!this.nodes.hasOwnProperty(nodeId)) {
-        this.selection.splice(i, 1);
-        delete this.selectionObj[nodeId];
-      }
-      else {
-        i++;
+    for(var objectId in this.selectionObj) {
+      if(this.selectionObj.hasOwnProperty(objectId)) {
+        if (this.selectionObj[objectId] instanceof Node) {
+          if (!this.nodes.hasOwnProperty(objectId)) {
+            delete this.selectionObj[objectId];
+          }
+        }
+        else { // assuming only edges and nodes are selected
+          if (!this.edges.hasOwnProperty(objectId)) {
+            delete this.selectionObj[objectId];
+          }
+        }
       }
     }
   }
-
-
-  /**
-   * Unselect selected nodes. If no selection array is provided, all nodes
-   * are unselected
-   * @param {Object[]} selection     Array with selection objects, each selection
-   *                                 object has a parameter row. Optional
-   * @param {Boolean} triggerSelect  If true (default), the select event
-   *                                 is triggered when nodes are unselected
-   * @return {Boolean} changed       True if the selection is changed
-   * @private
-   */
- /* _unselectNodes : function(selection, triggerSelect) {
-    var changed = false;
-    var i, iMax, id;
-
-    if (selection) {
-      // remove provided selections
-      for (i = 0, iMax = selection.length; i < iMax; i++) {
-        id = selection[i];
-        if (this.nodes.hasOwnProperty(id)) {
-          this.nodes[id].unselect();
-        }
-        var j = 0;
-        while (j < this.selection.length) {
-          if (this.selection[j] == id) {
-            this.selection.splice(j, 1);
-            changed = true;
-          }
-          else {
-            j++;
-          }
-        }
-      }
-    }
-    else if (this.selection && this.selection.length) {
-      // remove all selections
-      for (i = 0, iMax = this.selection.length; i < iMax; i++) {
-        id = this.selection[i];
-        if (this.nodes.hasOwnProperty(id)) {
-          this.nodes[id].unselect();
-        }
-        changed = true;
-      }
-      this.selection = [];
-    }
-
-    if (changed && (triggerSelect == true || triggerSelect == undefined)) {
-      // fire the select event
-      this._trigger('select', {
-        nodes: this.getSelection()
-      });
-    }
-
-    return changed;
-  },
-*/
-/**
- * select all nodes on given location x, y
- * @param {Array} selection   an array with node ids
- * @param {boolean} append    If true, the new selection will be appended to the
- *                            current selection (except for duplicate entries)
- * @return {Boolean} changed  True if the selection is changed
- * @private
- */
-/*  _selectNodes : function(selection, append) {
-    var changed = false;
-    var i, iMax;
-
-    // TODO: the selectNodes method is a little messy, rework this
-
-    // check if the current selection equals the desired selection
-    var selectionAlreadyThere = true;
-    if (selection.length != this.selection.length) {
-      selectionAlreadyThere = false;
-    }
-    else {
-      for (i = 0, iMax = Math.min(selection.length, this.selection.length); i < iMax; i++) {
-        if (selection[i] != this.selection[i]) {
-          selectionAlreadyThere = false;
-          break;
-        }
-      }
-    }
-    if (selectionAlreadyThere) {
-      return changed;
-    }
-
-    if (append == undefined || append == false) {
-      // first deselect any selected node
-      var triggerSelect = false;
-      changed = this._unselectNodes(undefined, triggerSelect);
-    }
-
-    for (i = 0, iMax = selection.length; i < iMax; i++) {
-      // add each of the new selections, but only when they are not duplicate
-      var id = selection[i];
-      var isDuplicate = (this.selection.indexOf(id) != -1);
-      if (!isDuplicate) {
-        this.nodes[id].select();
-        this.selection.push(id);
-        changed = true;
-      }
-    }
-
-    if (changed) {
-      // fire the select event
-      this._trigger('select', {
-        nodes: this.getSelection()
-      });
-    }
-
-    return changed;
-  },
-  */
 };
-
 
 
 
@@ -12844,34 +15397,14 @@ var SelectionMixin = {
 
 var NavigationMixin = {
 
-  /**
-   * This function moves the navigation controls if the canvas size has been changed. If the arugments
-   * verticaAlignTop and horizontalAlignLeft are false, the correction will be made
-   *
-   * @private
-   */
-  _relocateNavigation : function() {
-    if (this.sectors !== undefined) {
-      var xOffset = this.navigationClientWidth - this.frame.canvas.clientWidth;
-      var yOffset = this.navigationClientHeight - this.frame.canvas.clientHeight;
-      this.navigationClientWidth = this.frame.canvas.clientWidth;
-      this.navigationClientHeight = this.frame.canvas.clientHeight;
-      var node = null;
-
-      for (var nodeId in this.sectors["navigation"]["nodes"]) {
-        if (this.sectors["navigation"]["nodes"].hasOwnProperty(nodeId)) {
-          node = this.sectors["navigation"]["nodes"][nodeId];
-          if (!node.horizontalAlignLeft) {
-            node.x -= xOffset;
-          }
-          if (!node.verticalAlignTop) {
-            node.y -= yOffset;
-          }
-        }
-      }
+  _cleanNavigation : function() {
+    // clean up previosu navigation items
+    var wrapper = document.getElementById('graph-navigation_wrapper');
+    if (wrapper != null) {
+      this.containerElement.removeChild(wrapper);
     }
+    document.onmouseup = null;
   },
-
 
   /**
    * Creation of the navigation controls nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
@@ -12882,83 +15415,45 @@ var NavigationMixin = {
    * @private
    */
   _loadNavigationElements : function() {
-    var DIR = this.constants.navigation.iconPath;
-    this.navigationClientWidth = this.frame.canvas.clientWidth;
-    this.navigationClientHeight = this.frame.canvas.clientHeight;
-    if (this.navigationClientWidth === undefined) {
-      this.navigationClientWidth = 0;
-      this.navigationClientHeight = 0;
-    }
-    var offset = 15;
-    var intermediateOffset = 7;
-    var navigationNodes = [
-      {id: 'navigation_up',    shape: 'image', image: DIR + '/uparrow.png',   triggerFunction: "_moveUp",
-        verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.navigationClientHeight - 45 - offset - intermediateOffset},
-      {id: 'navigation_down',  shape: 'image', image: DIR + '/downarrow.png', triggerFunction: "_moveDown",
-        verticalAlignTop: false,  x: 45 + offset + intermediateOffset,  y: this.navigationClientHeight - 15 - offset},
-      {id: 'navigation_left',  shape: 'image', image: DIR + '/leftarrow.png', triggerFunction: "_moveLeft",
-        verticalAlignTop: false,  x: 15 + offset,  y: this.navigationClientHeight - 15 - offset},
-      {id: 'navigation_right', shape: 'image', image: DIR + '/rightarrow.png',triggerFunction: "_moveRight",
-        verticalAlignTop: false,  x: 75 + offset + 2 * intermediateOffset,  y: this.navigationClientHeight - 15 - offset},
+    this._cleanNavigation();
 
-      {id: 'navigation_plus',  shape: 'image', image: DIR + '/plus.png',      triggerFunction: "_zoomIn",
-        verticalAlignTop: false, horizontalAlignLeft: false,
-        x: this.navigationClientWidth - 45 - offset - intermediateOffset, y: this.navigationClientHeight - 15 - offset},
-      {id: 'navigation_min', shape: 'image', image: DIR + '/minus.png',       triggerFunction: "_zoomOut",
-        verticalAlignTop: false, horizontalAlignLeft: false,
-        x: this.navigationClientWidth - 15 - offset, y: this.navigationClientHeight - 15 - offset},
-      {id: 'navigation_zoomExtends', shape: 'image', image: DIR + '/zoomExtends.png', triggerFunction: "zoomToFit",
-        verticalAlignTop: false, horizontalAlignLeft: false,
-        x: this.navigationClientWidth - 15 - offset, y: this.navigationClientHeight - 45 - offset - intermediateOffset}
-    ];
+    this.navigationDivs = {};
+    var navigationDivs = ['up','down','left','right','zoomIn','zoomOut','zoomExtends'];
+    var navigationDivActions = ['_moveUp','_moveDown','_moveLeft','_moveRight','_zoomIn','_zoomOut','zoomExtent'];
 
-    var nodeObj = null;
-    for (var i = 0; i < navigationNodes.length; i++) {
-      nodeObj = this.sectors["navigation"]['nodes'];
-      nodeObj[navigationNodes[i]['id']] = new Node(navigationNodes[i], this.images, this.groups, this.constants);
+    this.navigationDivs['wrapper'] = document.createElement('div');
+    this.navigationDivs['wrapper'].id = "graph-navigation_wrapper";
+    this.containerElement.insertBefore(this.navigationDivs['wrapper'],this.frame);
+
+    for (var i = 0; i < navigationDivs.length; i++) {
+      this.navigationDivs[navigationDivs[i]] = document.createElement('div');
+      this.navigationDivs[navigationDivs[i]].id = "graph-navigation_" + navigationDivs[i];
+      this.navigationDivs[navigationDivs[i]].className = "graph-navigation " + navigationDivs[i];
+      this.navigationDivs['wrapper'].appendChild(this.navigationDivs[navigationDivs[i]]);
+      this.navigationDivs[navigationDivs[i]].onmousedown = this[navigationDivActions[i]].bind(this);
     }
+
+    document.onmouseup = this._stopMovement.bind(this);
   },
 
-
   /**
-   * By setting the clustersize to be larger than 1, we use the clustering drawing method
-   * to illustrate the buttons are presed. We call this highlighting.
+   * this stops all movement induced by the navigation buttons
    *
-   * @param {String} elementId
    * @private
    */
-  _highlightNavigationElement : function(elementId) {
-    if (this.sectors["navigation"]["nodes"].hasOwnProperty(elementId)) {
-      this.sectors["navigation"]["nodes"][elementId].clusterSize = 2;
-    }
+  _stopMovement : function() {
+    this._xStopMoving();
+    this._yStopMoving();
+    this._stopZoom();
   },
 
 
   /**
-   * Reverting back to a normal button
+   * stops the actions performed by page up and down etc.
    *
-   * @param {String} elementId
+   * @param event
    * @private
    */
-  _unHighlightNavigationElement : function(elementId) {
-    if (this.sectors["navigation"]["nodes"].hasOwnProperty(elementId)) {
-      this.sectors["navigation"]["nodes"][elementId].clusterSize = 1;
-    }
-  },
-
-  /**
-   * un-highlight (for lack of a better term) all navigation controls elements
-   * @private
-   */
-  _unHighlightAll : function() {
-    for (var nodeId in this.sectors['navigation']['nodes']) {
-      if (this.sectors['navigation']['nodes'].hasOwnProperty(nodeId)) {
-        this._unHighlightNavigationElement(nodeId);
-      }
-    }
-  },
-
-
   _preventDefault : function(event) {
     if (event !== undefined) {
       if (event.preventDefault) {
@@ -12979,7 +15474,7 @@ var NavigationMixin = {
    * @private
    */
   _moveUp : function(event) {
-    this._highlightNavigationElement("navigation_up");
+    console.log("here")
     this.yIncrement = this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
@@ -12991,7 +15486,6 @@ var NavigationMixin = {
    * @private
    */
   _moveDown : function(event) {
-    this._highlightNavigationElement("navigation_down");
     this.yIncrement = -this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
@@ -13003,7 +15497,6 @@ var NavigationMixin = {
    * @private
    */
   _moveLeft : function(event) {
-    this._highlightNavigationElement("navigation_left");
     this.xIncrement = this.constants.keyboard.speed.x;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
@@ -13015,7 +15508,6 @@ var NavigationMixin = {
    * @private
    */
   _moveRight : function(event) {
-    this._highlightNavigationElement("navigation_right");
     this.xIncrement = -this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
@@ -13027,7 +15519,6 @@ var NavigationMixin = {
    * @private
    */
   _zoomIn : function(event) {
-    this._highlightNavigationElement("navigation_plus");
     this.zoomIncrement = this.constants.keyboard.speed.zoom;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
@@ -13039,7 +15530,6 @@ var NavigationMixin = {
    * @private
    */
   _zoomOut : function() {
-    this._highlightNavigationElement("navigation_min");
     this.zoomIncrement = -this.constants.keyboard.speed.zoom;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
@@ -13051,9 +15541,6 @@ var NavigationMixin = {
    * @private
    */
   _stopZoom : function() {
-    this._unHighlightNavigationElement("navigation_plus");
-    this._unHighlightNavigationElement("navigation_min");
-
     this.zoomIncrement = 0;
   },
 
@@ -13063,9 +15550,6 @@ var NavigationMixin = {
    * @private
    */
   _yStopMoving : function() {
-    this._unHighlightNavigationElement("navigation_up");
-    this._unHighlightNavigationElement("navigation_down");
-
     this.yIncrement = 0;
   },
 
@@ -13075,14 +15559,213 @@ var NavigationMixin = {
    * @private
    */
   _xStopMoving : function() {
-    this._unHighlightNavigationElement("navigation_left");
-    this._unHighlightNavigationElement("navigation_right");
-
     this.xIncrement = 0;
   }
 
 
 };
+
+/**
+ * Created by Alex on 2/10/14.
+ */
+
+
+var graphMixinLoaders = {
+
+  /**
+   * Load a mixin into the graph object
+   *
+   * @param {Object} sourceVariable | this object has to contain functions.
+   * @private
+   */
+  _loadMixin : function(sourceVariable) {
+    for (var mixinFunction in sourceVariable) {
+      if (sourceVariable.hasOwnProperty(mixinFunction)) {
+        Graph.prototype[mixinFunction] = sourceVariable[mixinFunction];
+      }
+    }
+  },
+
+
+  /**
+   * removes a mixin from the graph object.
+   *
+   * @param {Object} sourceVariable | this object has to contain functions.
+   * @private
+   */
+  _clearMixin : function(sourceVariable) {
+    for (var mixinFunction in sourceVariable) {
+      if (sourceVariable.hasOwnProperty(mixinFunction)) {
+        Graph.prototype[mixinFunction] = undefined;
+      }
+    }
+  },
+
+
+  /**
+   * Mixin the physics system and initialize the parameters required.
+   *
+   * @private
+   */
+  _loadPhysicsSystem : function() {
+    this._loadMixin(physicsMixin);
+    this._loadSelectedForceSolver();
+    if (this.constants.configurePhysics == true) {
+      this._loadPhysicsConfiguration();
+    }
+   },
+
+
+
+
+  /**
+   * Mixin the cluster system and initialize the parameters required.
+   *
+   * @private
+   */
+  _loadClusterSystem : function() {
+    this.clusterSession = 0;
+    this.hubThreshold = 5;
+    this._loadMixin(ClusterMixin);
+  },
+
+
+  /**
+   * Mixin the sector system and initialize the parameters required
+   *
+   * @private
+   */
+  _loadSectorSystem : function() {
+    this.sectors = { },
+    this.activeSector = ["default"];
+    this.sectors["active"] = { },
+    this.sectors["active"]["default"] = {"nodes":{},
+      "edges":{},
+      "nodeIndices":[],
+      "formationScale": 1.0,
+      "drawingNode": undefined };
+    this.sectors["frozen"] = {},
+    this.sectors["support"] = {"nodes":{},
+      "edges":{},
+      "nodeIndices":[],
+      "formationScale": 1.0,
+      "drawingNode": undefined };
+
+    this.nodeIndices = this.sectors["active"]["default"]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
+
+    this._loadMixin(SectorMixin);
+   },
+
+
+  /**
+   * Mixin the selection system and initialize the parameters required
+   *
+   * @private
+   */
+  _loadSelectionSystem : function() {
+    this.selectionObj = { };
+
+    this._loadMixin(SelectionMixin);
+   },
+
+
+  /**
+   * Mixin the navigationUI (User Interface) system and initialize the parameters required
+   *
+   * @private
+   */
+  _loadManipulationSystem : function() {
+    // reset global variables -- these are used by the selection of nodes and edges.
+    this.blockConnectingEdgeSelection = false;
+    this.forceAppendSelection = false
+
+    if (this.constants.dataManipulation.enabled == true) {
+      // load the manipulator HTML elements. All styling done in css.
+      if (this.manipulationDiv === undefined) {
+        this.manipulationDiv = document.createElement('div');
+        this.manipulationDiv.className = 'graph-manipulationDiv';
+        this.manipulationDiv.id = 'graph-manipulationDiv';
+        if (this.editMode == true) {
+          this.manipulationDiv.style.display = "block";
+        }
+        else {
+          this.manipulationDiv.style.display = "none";
+        }
+        this.containerElement.insertBefore(this.manipulationDiv, this.frame);
+      }
+
+      if (this.editModeDiv === undefined) {
+        this.editModeDiv = document.createElement('div');
+        this.editModeDiv.className = 'graph-manipulation-editMode';
+        this.editModeDiv.id = 'graph-manipulation-editMode';
+        if (this.editMode == true) {
+          this.editModeDiv.style.display = "none";
+        }
+        else {
+          this.editModeDiv.style.display = "block";
+        }
+        this.containerElement.insertBefore(this.editModeDiv, this.frame);
+      }
+
+      if (this.closeDiv === undefined) {
+        this.closeDiv = document.createElement('div');
+        this.closeDiv.className = 'graph-manipulation-closeDiv';
+        this.closeDiv.id = 'graph-manipulation-closeDiv';
+        this.closeDiv.style.display = this.manipulationDiv.style.display;
+        this.containerElement.insertBefore(this.closeDiv, this.frame);
+      }
+
+      // load the manipulation functions
+      this._loadMixin(manipulationMixin);
+
+      // create the manipulator toolbar
+      this._createManipulatorBar();
+    }
+    else {
+      if (this.manipulationDiv !== undefined) {
+        // removes all the bindings and overloads
+        this._createManipulatorBar();
+        // remove the manipulation divs
+        this.containerElement.removeChild(this.manipulationDiv);
+        this.containerElement.removeChild(this.editModeDiv);
+        this.containerElement.removeChild(this.closeDiv);
+
+        this.manipulationDiv = undefined;
+        this.editModeDiv = undefined;
+        this.closeDiv = undefined;
+        // remove the mixin functions
+        this._clearMixin(manipulationMixin);
+      }
+    }
+   },
+
+
+  /**
+   * Mixin the navigation (User Interface) system and initialize the parameters required
+   *
+   * @private
+   */
+  _loadNavigationControls : function() {
+    this._loadMixin(NavigationMixin);
+
+    // the clean function removes the button divs, this is done to remove the bindings.
+    this._cleanNavigation();
+    if (this.constants.navigation.enabled == true) {
+      this._loadNavigationElements();
+    }
+   },
+
+
+  /**
+   * Mixin the hierarchical layout system.
+   *
+   * @private
+   */
+  _loadHierarchySystem : function() {
+    this._loadMixin(HierarchicalLayoutMixin);
+  }
+
+}
 
 /**
  * @constructor Graph
@@ -13096,17 +15779,25 @@ var NavigationMixin = {
  * @param {Object} options      Options
  */
 function Graph (container, data, options) {
+
+  this._initializeMixinLoaders();
+
   // create variables and set default values
   this.containerElement = container;
   this.width = '100%';
   this.height = '100%';
-  // to give everything a nice fluidity, we seperate the rendering and calculating of the forces
-  this.renderRefreshRate = 60; // hz (fps)
+
+  // render and calculation settings
+  this.renderRefreshRate = 60;                         // hz (fps)
   this.renderTimestep = 1000 / this.renderRefreshRate; // ms -- saves calculation later on
-  this.stabilize = true; // stabilize before displaying the graph
+  this.renderTime = 0.5 * this.renderTimestep;         // measured time it takes to render a frame
+  this.maxRenderSteps = 3;                             // max amount of physics ticks per render step.
+
+  this.stabilize = true;  // stabilize before displaying the graph
   this.selectable = true;
 
-  this.forceFactor = 50000;
+  // these functions are triggered when the dataset is edited
+  this.triggerFunctions = {add:null,edit:null,connect:null,delete:null};
 
   // set constant values
   this.constants = {
@@ -13114,15 +15805,15 @@ function Graph (container, data, options) {
       radiusMin: 5,
       radiusMax: 20,
       radius: 5,
-      distance: 100, // px
       shape: 'ellipse',
       image: undefined,
       widthMin: 16, // px
       widthMax: 64, // px
+      fixed: false,
       fontColor: 'black',
       fontSize: 14, // px
-      //fontFace: verdana,
-      fontFace: 'arial',
+      fontFace: 'verdana',
+      level: -1,
       color: {
           border: '#2B7CE9',
           background: '#97C2FC',
@@ -13141,17 +15832,46 @@ function Graph (container, data, options) {
       widthMax: 15,
       width: 1,
       style: 'line',
-      color: '#343434',
+      color: '#848484',
       fontColor: '#343434',
       fontSize: 14, // px
       fontFace: 'arial',
-      //distance: 100, //px
-      length: 100,   // px
       dash: {
         length: 10,
         gap: 5,
         altLength: undefined
       }
+    },
+    configurePhysics:false,
+    physics: {
+      barnesHut: {
+        enabled: true,
+        theta: 1 / 0.6, // inverted to save time during calculation
+        gravitationalConstant: -2000,
+        centralGravity: 0.3,
+        springLength: 100,
+        springConstant: 0.05,
+        damping: 0.09
+      },
+      repulsion: {
+        centralGravity: 0.1,
+        springLength: 200,
+        springConstant: 0.05,
+        nodeDistance: 100,
+        damping: 0.09
+      },
+      hierarchicalRepulsion: {
+        enabled: false,
+        centralGravity: 0.0,
+        springLength: 100,
+        springConstant: 0.01,
+        nodeDistance: 60,
+        damping: 0.09
+      },
+      damping: null,
+      centralGravity: null,
+      springLength: null,
+      springConstant: null
     },
     clustering: {                   // Per Node in Cluster = PNiC
       enabled: false,               // (Boolean)             | global on/off switch for clustering.
@@ -13160,124 +15880,153 @@ function Graph (container, data, options) {
       reduceToNodes:300,            // (# nodes)             | during calculate forces, we check if the total number of nodes is larger than clusterThreshold. If it is, cluster until reduced to this
       chainThreshold: 0.4,          // (% of all drawn nodes)| maximum percentage of allowed chainnodes (long strings of connected nodes) within all nodes. (lower means less chains).
       clusterEdgeThreshold: 20,     // (px)                  | edge length threshold. if smaller, this node is clustered.
-      sectorThreshold: 50,          // (# nodes in cluster)  | cluster size threshold. If larger, expanding in own sector.
+      sectorThreshold: 100,         // (# nodes in cluster)  | cluster size threshold. If larger, expanding in own sector.
       screenSizeThreshold: 0.2,     // (% of canvas)         | relative size threshold. If the width or height of a clusternode takes up this much of the screen, decluster node.
       fontSizeMultiplier: 4.0,      // (px PNiC)             | how much the cluster font size grows per node in cluster (in px).
-      forceAmplification: 0.6,      // (multiplier PNiC)     | factor of increase fo the repulsion force of a cluster (per node in cluster).
-      distanceAmplification: 0.2,   // (multiplier PNiC)     | factor how much the repulsion distance of a cluster increases (per node in cluster).
-      edgeGrowth: 11,               // (px PNiC)             | amount of clusterSize connected to the edge is multiplied with this and added to edgeLength.
-      nodeScaling: {width:  10,     // (px PNiC)             | growth of the width  per node in cluster.
-                    height: 10,     // (px PNiC)             | growth of the height per node in cluster.
-                    radius: 10},    // (px PNiC)             | growth of the radius per node in cluster.
-      activeAreaBoxSize: 100,       // (px)                  | box area around the curser where clusters are popped open.
-      massTransferCoefficient: 1    // (multiplier)          | parent.mass += massTransferCoefficient * child.mass
+      maxFontSize: 1000,
+      forceAmplification: 0.1,      // (multiplier PNiC)     | factor of increase fo the repulsion force of a cluster (per node in cluster).
+      distanceAmplification: 0.1,   // (multiplier PNiC)     | factor how much the repulsion distance of a cluster increases (per node in cluster).
+      edgeGrowth: 20,               // (px PNiC)             | amount of clusterSize connected to the edge is multiplied with this and added to edgeLength.
+      nodeScaling: {width:  1,      // (px PNiC)             | growth of the width  per node in cluster.
+                    height: 1,      // (px PNiC)             | growth of the height per node in cluster.
+                    radius: 1},     // (px PNiC)             | growth of the radius per node in cluster.
+      maxNodeSizeIncrements: 600,   // (# increments)        | max growth of the width  per node in cluster.
+      activeAreaBoxSize: 80,       // (px)                  | box area around the curser where clusters are popped open.
+      clusterLevelDifference: 2
     },
     navigation: {
-      enabled: false,
-      iconPath: this._getScriptPath() + '/img'
+      enabled: false
     },
     keyboard: {
       enabled: false,
       speed: {x: 10, y: 10, zoom: 0.02}
     },
-    minVelocity: 2,   // px/s
+    dataManipulation: {
+      enabled: false,
+      initiallyVisible: false
+    },
+    hierarchicalLayout: {
+      enabled:false,
+      levelSeparation: 150,
+      nodeSpacing: 100,
+      direction: "UD"   // UD, DU, LR, RL
+    },
+    smoothCurves: true,
+    maxVelocity:  10,
+    minVelocity:  0.1,   // px/s
     maxIterations: 1000  // maximum number of iteration to stabilize
   };
+  this.editMode = this.constants.dataManipulation.initiallyVisible;
 
   // Node variables
+  var graph = this;
   this.groups = new Groups(); // object with groups
   this.images = new Images(); // object with images
   this.images.setOnloadCallback(function () {
     graph._redraw();
   });
 
-  // navigation variables
+  // keyboard navigation variables
   this.xIncrement = 0;
   this.yIncrement = 0;
   this.zoomIncrement = 0;
 
+  // loading all the mixins:
+  // load the force calculation functions, grouped under the physics system.
+  this._loadPhysicsSystem();
   // create a frame and canvas
   this._create();
-
   // load the sector system.    (mandatory, fully integrated with Graph)
   this._loadSectorSystem();
+  // load the cluster system.   (mandatory, even when not using the cluster system, there are function calls to it)
+  this._loadClusterSystem();
+  // load the selection system. (mandatory, required by Graph)
+  this._loadSelectionSystem();
+  // load the selection system. (mandatory, required by Graph)
+  this._loadHierarchySystem();
 
   // apply options
   this.setOptions(options);
 
-  // load the cluster system.   (mandatory, even when not using the cluster system, there are function calls to it)
-  this._loadClusterSystem();
-
-  // load the selection system. (mandatory, required by Graph)
-  this._loadSelectionSystem();
-
   // other vars
-  var graph = this;
   this.freezeSimulation = false;// freeze the simulation
+  this.cachedFunctions = {};
 
+  // containers for nodes and edges
+  this.calculationNodes = {};
+  this.calculationNodeIndices = [];
   this.nodeIndices = [];        // array with all the indices of the nodes. Used to speed up forces calculation
   this.nodes = {};              // object with Node objects
   this.edges = {};              // object with Edge objects
 
+  // position and scale variables and objects
   this.canvasTopLeft     = {"x": 0,"y": 0};   // coordinates of the top left of the canvas.     they will be set during _redraw.
   this.canvasBottomRight = {"x": 0,"y": 0};   // coordinates of the bottom right of the canvas. they will be set during _redraw
-
+  this.pointerPosition = {"x": 0,"y": 0};   // coordinates of the bottom right of the canvas. they will be set during _redraw
   this.areaCenter = {};               // object with x and y elements used for determining the center of the zoom action
   this.scale = 1;                     // defining the global scale variable in the constructor
   this.previousScale = this.scale;    // this is used to check if the zoom operation is zooming in or out
-  // TODO: create a counter to keep track on the number of nodes having values
-  // TODO: create a counter to keep track on the number of nodes currently moving
-  // TODO: create a counter to keep track on the number of edges having values
 
+  // datasets or dataviews
   this.nodesData = null;      // A DataSet or DataView
   this.edgesData = null;      // A DataSet or DataView
 
   // create event listeners used to subscribe on the DataSets of the nodes and edges
-  var me = this;
   this.nodesListeners = {
     'add': function (event, params) {
-      me._addNodes(params.items);
-      me.start();
+      graph._addNodes(params.items);
+      graph.start();
     },
     'update': function (event, params) {
-      me._updateNodes(params.items);
-      me.start();
+      graph._updateNodes(params.items);
+      graph.start();
     },
     'remove': function (event, params) {
-      me._removeNodes(params.items);
-      me.start();
+      graph._removeNodes(params.items);
+      graph.start();
     }
   };
   this.edgesListeners = {
     'add': function (event, params) {
-      me._addEdges(params.items);
-      me.start();
+      graph._addEdges(params.items);
+      graph.start();
     },
     'update': function (event, params) {
-      me._updateEdges(params.items);
-      me.start();
+      graph._updateEdges(params.items);
+      graph.start();
     },
     'remove': function (event, params) {
-      me._removeEdges(params.items);
-      me.start();
+      graph._removeEdges(params.items);
+      graph.start();
     }
   };
 
-  // properties of the data
-  this.moving = false;    // True if any of the nodes have an undefined position
-  this.timer = undefined;
+  // properties for the animation
+  this.moving = true;
+  this.timer = undefined; // Scheduling function. Is definded in this.start();
 
   // load data (the disable start variable will be the same as the enabled clustering)
-  this.setData(data,this.constants.clustering.enabled);
+  this.setData(data,this.constants.clustering.enabled || this.constants.hierarchicalLayout.enabled);
 
-  // zoom so all data will fit on the screen
-  this.zoomToFit(true);
+  // hierarchical layout
+  if (this.constants.hierarchicalLayout.enabled == true) {
+    this._setupHierarchicalLayout();
+  }
+  else {
+    // zoom so all data will fit on the screen, if clustering is enabled, we do not want start to be called here.
+    if (this.stabilize == false) {
+      this.zoomExtent(true,this.constants.clustering.enabled);
+    }
+  }
 
   // if clustering is disabled, the simulation will have started in the setData function
   if (this.constants.clustering.enabled) {
     this.startWithClustering();
   }
 }
+
+// Extend Graph with an Emitter mixin
+Emitter(Graph.prototype);
 
 /**
  * Get the script path where the vis.js library is located
@@ -13309,12 +16058,14 @@ Graph.prototype._getScriptPath = function() {
  */
 Graph.prototype._getRange = function() {
   var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
-  for (var i = 0; i < this.nodeIndices.length; i++) {
-    node = this.nodes[this.nodeIndices[i]];
-    if (minX > (node.x - node.width)) {minX = node.x - node.width;}
-    if (maxX < (node.x + node.width)) {maxX = node.x + node.width;}
-    if (minY > (node.y - node.height)) {minY = node.y - node.height;}
-    if (maxY < (node.y + node.height)) {maxY = node.y + node.height;}
+  for (var nodeId in this.nodes) {
+    if (this.nodes.hasOwnProperty(nodeId)) {
+      node = this.nodes[nodeId];
+      if (minX > (node.x)) {minX = node.x;}
+      if (maxX < (node.x)) {maxX = node.x;}
+      if (minY > (node.y)) {minY = node.y;}
+      if (maxY < (node.y)) {maxY = node.y;}
+    }
   }
   return {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
 };
@@ -13326,9 +16077,8 @@ Graph.prototype._getRange = function() {
  * @private
  */
 Graph.prototype._findCenter = function(range) {
-  var center = {x: (0.5 * (range.maxX + range.minX)),
-                y: (0.5 * (range.maxY + range.minY))};
-  return center;
+  return {x: (0.5 * (range.maxX + range.minX)),
+          y: (0.5 * (range.maxY + range.minY))};
 };
 
 
@@ -13354,22 +16104,41 @@ Graph.prototype._centerGraph = function(range) {
  *
  * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
  */
-Graph.prototype.zoomToFit = function(initialZoom) {
+Graph.prototype.zoomExtent = function(initialZoom, disableStart) {
   if (initialZoom === undefined) {
     initialZoom = false;
   }
+  if (disableStart === undefined) {
+    disableStart = false;
+  }
 
-  var numberOfNodes = this.nodeIndices.length;
   var range = this._getRange();
+  var zoomLevel;
 
   if (initialZoom == true) {
-    if (this.constants.clustering.enabled == true &&
+    var numberOfNodes = this.nodeIndices.length;
+    if (this.constants.smoothCurves == true) {
+      if (this.constants.clustering.enabled == true &&
         numberOfNodes >= this.constants.clustering.initialMaxNodes) {
-      var zoomLevel = 38.8467 / (numberOfNodes - 14.50184) + 0.0116; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+        zoomLevel = 49.07548 / (numberOfNodes + 142.05338) + 9.1444e-04; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+      }
+      else {
+        zoomLevel = 12.662 / (numberOfNodes + 7.4147) + 0.0964822; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+      }
     }
     else {
-      var zoomLevel = 42.54117319 / (numberOfNodes + 39.31966387) + 0.1944405; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+      if (this.constants.clustering.enabled == true &&
+          numberOfNodes >= this.constants.clustering.initialMaxNodes) {
+        zoomLevel = 77.5271985 / (numberOfNodes + 187.266146) + 4.76710517e-05; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+      }
+      else {
+        zoomLevel = 30.5062972 / (numberOfNodes + 19.93597763) + 0.08413486; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+      }
     }
+
+    // correct for larger canvasses.
+    var factor = Math.min(this.frame.canvas.clientWidth / 600, this.frame.canvas.clientHeight / 600);
+    zoomLevel *= factor;
   }
   else {
     var xDistance = (Math.abs(range.minX) + Math.abs(range.maxX)) * 1.1;
@@ -13385,10 +16154,13 @@ Graph.prototype.zoomToFit = function(initialZoom) {
     zoomLevel = 1.0;
   }
 
-  this.pinch.mousewheelScale = zoomLevel;
+
   this._setScale(zoomLevel);
   this._centerGraph(range);
-  this.start();
+  if (disableStart == false) {
+    this.moving = true;
+    this.start();
+  }
 };
 
 
@@ -13450,7 +16222,6 @@ Graph.prototype.setData = function(data, disableStart) {
     if (this.stabilize) {
       this._doStabilize();
     }
-    this.moving = true;
     this.start();
   }
 };
@@ -13461,15 +16232,66 @@ Graph.prototype.setData = function(data, disableStart) {
  */
 Graph.prototype.setOptions = function (options) {
   if (options) {
+    var prop;
     // retrieve parameter values
     if (options.width !== undefined)           {this.width = options.width;}
     if (options.height !== undefined)          {this.height = options.height;}
     if (options.stabilize !== undefined)       {this.stabilize = options.stabilize;}
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
+    if (options.smoothCurves !== undefined)    {this.constants.smoothCurves = options.smoothCurves;}
+    if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
+
+    if (options.onAdd) {
+        this.triggerFunctions.add = options.onAdd;
+      }
+
+    if (options.onEdit) {
+      this.triggerFunctions.edit = options.onEdit;
+    }
+
+    if (options.onConnect) {
+      this.triggerFunctions.connect = options.onConnect;
+    }
+
+    if (options.onDelete) {
+      this.triggerFunctions.delete = options.onDelete;
+    }
+
+    if (options.physics) {
+      if (options.physics.barnesHut) {
+        this.constants.physics.barnesHut.enabled = true;
+        for (prop in options.physics.barnesHut) {
+          if (options.physics.barnesHut.hasOwnProperty(prop)) {
+            this.constants.physics.barnesHut[prop] = options.physics.barnesHut[prop];
+          }
+        }
+      }
+
+      if (options.physics.repulsion) {
+        this.constants.physics.barnesHut.enabled = false;
+        for (prop in options.physics.repulsion) {
+          if (options.physics.repulsion.hasOwnProperty(prop)) {
+            this.constants.physics.repulsion[prop] = options.physics.repulsion[prop];
+          }
+        }
+      }
+    }
+
+    if (options.hierarchicalLayout) {
+      this.constants.hierarchicalLayout.enabled = true;
+      for (prop in options.hierarchicalLayout) {
+        if (options.hierarchicalLayout.hasOwnProperty(prop)) {
+          this.constants.hierarchicalLayout[prop] = options.hierarchicalLayout[prop];
+        }
+      }
+    }
+    else if (options.hierarchicalLayout !== undefined)  {
+      this.constants.hierarchicalLayout.enabled = false;
+    }
 
     if (options.clustering) {
       this.constants.clustering.enabled = true;
-      for (var prop in options.clustering) {
+      for (prop in options.clustering) {
         if (options.clustering.hasOwnProperty(prop)) {
           this.constants.clustering[prop] = options.clustering[prop];
         }
@@ -13481,7 +16303,7 @@ Graph.prototype.setOptions = function (options) {
 
     if (options.navigation) {
       this.constants.navigation.enabled = true;
-      for (var prop in options.navigation) {
+      for (prop in options.navigation) {
         if (options.navigation.hasOwnProperty(prop)) {
           this.constants.navigation[prop] = options.navigation[prop];
         }
@@ -13493,7 +16315,7 @@ Graph.prototype.setOptions = function (options) {
 
     if (options.keyboard) {
       this.constants.keyboard.enabled = true;
-      for (var prop in options.keyboard) {
+      for (prop in options.keyboard) {
         if (options.keyboard.hasOwnProperty(prop)) {
           this.constants.keyboard[prop] = options.keyboard[prop];
         }
@@ -13503,6 +16325,17 @@ Graph.prototype.setOptions = function (options) {
       this.constants.keyboard.enabled = false;
     }
 
+    if (options.dataManipulation) {
+      this.constants.dataManipulation.enabled = true;
+      for (prop in options.dataManipulation) {
+        if (options.dataManipulation.hasOwnProperty(prop)) {
+          this.constants.dataManipulation[prop] = options.dataManipulation[prop];
+        }
+      }
+    }
+    else if (options.dataManipulation !== undefined)  {
+      this.constants.dataManipulation.enabled = false;
+    }
 
     // TODO: work out these options and document them
     if (options.edges) {
@@ -13510,12 +16343,6 @@ Graph.prototype.setOptions = function (options) {
         if (options.edges.hasOwnProperty(prop)) {
           this.constants.edges[prop] = options.edges[prop];
         }
-      }
-
-      if (options.edges.length !== undefined &&
-          options.nodes && options.nodes.distance === undefined) {
-        this.constants.edges.length   = options.edges.length;
-        this.constants.nodes.distance = options.edges.length * 1.25;
       }
 
       if (!options.edges.fontColor) {
@@ -13564,56 +16391,26 @@ Graph.prototype.setOptions = function (options) {
     }
   }
 
-  this.setSize(this.width, this.height);
-  this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
-  this._setScale(1);
 
+  // (Re)loading the mixins that can be enabled or disabled in the options.
+  // load the force calculation functions, grouped under the physics system.
+  this._loadPhysicsSystem();
   // load the navigation system.
   this._loadNavigationControls();
+  // load the data manipulation system
+  this._loadManipulationSystem();
+  // configure the smooth curves
+  this._configureSmoothCurves();
+
 
   // bind keys. If disabled, this will not do anything;
   this._createKeyBinds();
 
+  this.setSize(this.width, this.height);
+  this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
+  this._setScale(1);
   this._redraw();
 };
-
-/**
- * Add event listener
- * @param {String} event       Event name. Available events:
- *                             'select'
- * @param {function} callback  Callback function, invoked as callback(properties)
- *                             where properties is an optional object containing
- *                             event specific properties.
- */
-Graph.prototype.on = function on (event, callback) {
-  var available = ['select'];
-
-  if (available.indexOf(event) == -1) {
-    throw new Error('Unknown event "' + event + '". Choose from ' + available.join());
-  }
-
-  events.addListener(this, event, callback);
-};
-
-/**
- * Remove an event listener
- * @param {String} event       Event name
- * @param {function} callback  Callback function
- */
-Graph.prototype.off = function off (event, callback) {
-  events.removeListener(this, event, callback);
-};
-
-/**
- * fire an event
- * @param {String} event   The name of an event, for example 'select'
- * @param {Object} params  Optional object with event parameters
- * @private
- */
-Graph.prototype._trigger = function (event, params) {
-  events.trigger(this, event, params);
-};
-
 
 /**
  * Create the main frame for the Graph.
@@ -13632,6 +16429,7 @@ Graph.prototype._create = function () {
   this.frame.className = 'graph-frame';
   this.frame.style.position = 'relative';
   this.frame.style.overflow = 'hidden';
+  this.frame.style.zIndex = "1";
 
   // create the graph canvas (HTML canvas element)
   this.frame.canvas = document.createElement( 'canvas' );
@@ -13667,6 +16465,7 @@ Graph.prototype._create = function () {
 
   // add the frame to the container element
   this.containerElement.appendChild(this.frame);
+
 };
 
 
@@ -13702,15 +16501,12 @@ Graph.prototype._createKeyBinds = function() {
     this.mousetrap.bind("pagedown",this._zoomOut.bind(me),"keydown");
     this.mousetrap.bind("pagedown",this._stopZoom.bind(me), "keyup");
   }
-  /*
-   this.mousetrap.bind("=",this.decreaseClusterLevel.bind(me));
-   this.mousetrap.bind("-",this.increaseClusterLevel.bind(me));
-   this.mousetrap.bind("s",this.singleStep.bind(me));
-   this.mousetrap.bind("h",this.updateClustersDefault.bind(me));
-   this.mousetrap.bind("c",this._collapseSector.bind(me));
-   this.mousetrap.bind("f",this.toggleFreeze.bind(me));
-   */
-}
+
+  if (this.constants.dataManipulation.enabled == true) {
+    this.mousetrap.bind("escape",this._createManipulatorBar.bind(me));
+    this.mousetrap.bind("del",this._deleteSelected.bind(me));
+  }
+};
 
 /**
  * Get the pointer location from a touch location
@@ -13731,7 +16527,7 @@ Graph.prototype._getPointer = function (touch) {
  * @private
  */
 Graph.prototype._onTouch = function (event) {
-  this.drag.pointer = this._getPointer(event.gesture.touches[0]);
+  this.drag.pointer = this._getPointer(event.gesture.center);
   this.drag.pinched = false;
   this.pinch.scale = this._getScale();
 
@@ -13743,6 +16539,17 @@ Graph.prototype._onTouch = function (event) {
  * @private
  */
 Graph.prototype._onDragStart = function () {
+  this._handleDragStart();
+};
+
+
+/**
+ * This function is called by _onDragStart.
+ * It is separated out because we can then overload it for the datamanipulation system.
+ *
+ * @private
+ */
+Graph.prototype._handleDragStart = function() {
   var drag = this.drag;
   var node = this._getNodeAt(drag.pointer);
   // note: drag.pointer is set in _onTouch to get the initial touch location
@@ -13756,52 +16563,65 @@ Graph.prototype._onDragStart = function () {
     drag.nodeId = node.id;
     // select the clicked node if not yet selected
     if (!node.isSelected()) {
-      this._selectNode(node,false);
+      this._selectObject(node,false);
     }
 
     // create an array with the selected nodes and their original location and status
-    var me = this;
-    this.selection.forEach(function (id) {
-      var node = me.nodes[id];
-      if (node) {
-        var s = {
-          id: id,
-          node: node,
+    for (var objectId in this.selectionObj) {
+      if (this.selectionObj.hasOwnProperty(objectId)) {
+        var object = this.selectionObj[objectId];
+        if (object instanceof Node) {
+          var s = {
+            id: object.id,
+            node: object,
 
-          // store original x, y, xFixed and yFixed, make the node temporarily Fixed
-          x: node.x,
-          y: node.y,
-          xFixed: node.xFixed,
-          yFixed: node.yFixed
-        };
+            // store original x, y, xFixed and yFixed, make the node temporarily Fixed
+            x: object.x,
+            y: object.y,
+            xFixed: object.xFixed,
+            yFixed: object.yFixed
+          };
 
-        node.xFixed = true;
-        node.yFixed = true;
+          object.xFixed = true;
+          object.yFixed = true;
 
-        drag.selection.push(s);
+          drag.selection.push(s);
+        }
       }
-    });
+    }
   }
 };
+
 
 /**
  * handle drag event
  * @private
  */
 Graph.prototype._onDrag = function (event) {
+  this._handleOnDrag(event)
+};
+
+
+/**
+ * This function is called by _onDrag.
+ * It is separated out because we can then overload it for the datamanipulation system.
+ *
+ * @private
+ */
+Graph.prototype._handleOnDrag = function(event) {
   if (this.drag.pinched) {
     return;
   }
 
-  var pointer = this._getPointer(event.gesture.touches[0]);
+  var pointer = this._getPointer(event.gesture.center);
 
   var me = this,
-      drag = this.drag,
-      selection = drag.selection;
+    drag = this.drag,
+    selection = drag.selection;
   if (selection && selection.length) {
     // calculate delta's and new location
     var deltaX = pointer.x - drag.pointer.x,
-        deltaY = pointer.y - drag.pointer.y;
+      deltaY = pointer.y - drag.pointer.y;
 
     // update position of all selected nodes
     selection.forEach(function (s) {
@@ -13816,7 +16636,7 @@ Graph.prototype._onDrag = function (event) {
       }
     });
 
-    // start animation if not yet running
+    // start _animationStep if not yet running
     if (!this.moving) {
       this.moving = true;
       this.start();
@@ -13828,8 +16648,8 @@ Graph.prototype._onDrag = function (event) {
     var diffY = pointer.y - this.drag.pointer.y;
 
     this._setTranslation(
-        this.drag.translation.x + diffX,
-        this.drag.translation.y + diffY);
+      this.drag.translation.x + diffX,
+      this.drag.translation.y + diffY);
     this._redraw();
     this.moved = true;
   }
@@ -13856,8 +16676,10 @@ Graph.prototype._onDragEnd = function () {
  * @private
  */
 Graph.prototype._onTap = function (event) {
-  var pointer = this._getPointer(event.gesture.touches[0]);
+  var pointer = this._getPointer(event.gesture.center);
+  this.pointerPosition = pointer;
   this._handleTap(pointer);
+
 };
 
 
@@ -13866,9 +16688,8 @@ Graph.prototype._onTap = function (event) {
  * @private
  */
 Graph.prototype._onDoubleTap = function (event) {
-  var pointer = this._getPointer(event.gesture.touches[0]);
+  var pointer = this._getPointer(event.gesture.center);
   this._handleDoubleTap(pointer);
-
 };
 
 
@@ -13877,18 +16698,19 @@ Graph.prototype._onDoubleTap = function (event) {
  * @private
  */
 Graph.prototype._onHold = function (event) {
-  var pointer = this._getPointer(event.gesture.touches[0]);
+  var pointer = this._getPointer(event.gesture.center);
+  this.pointerPosition = pointer;
   this._handleOnHold(pointer);
 };
 
 /**
  * handle the release of the screen
  *
- * @param event
  * @private
  */
 Graph.prototype._onRelease = function (event) {
-  this._handleOnRelease();
+  var pointer = this._getPointer(event.gesture.center);
+  this._handleOnRelease(pointer);
 };
 
 /**
@@ -13934,9 +16756,6 @@ Graph.prototype._zoom = function(scale, pointer) {
   this.areaCenter = {"x" : this._canvasToX(pointer.x),
                      "y" : this._canvasToY(pointer.y)};
 
- // this.areaCenter = {"x" : pointer.x,"y" : pointer.y };
-//  console.log(translation.x,translation.y,pointer.x,pointer.y,scale);
-  this.pinch.mousewheelScale = scale;
   this._setScale(scale);
   this._setTranslation(tx, ty);
   this.updateClustersDefault();
@@ -13944,6 +16763,7 @@ Graph.prototype._zoom = function(scale, pointer) {
 
   return scale;
 };
+
 
 /**
  * Event handler for mouse wheel event, used to zoom the timeline
@@ -13967,12 +16787,9 @@ Graph.prototype._onMouseWheel = function(event) {
   // Basically, delta is now positive if wheel was scrolled up,
   // and negative, if wheel was scrolled down.
   if (delta) {
-    if (!('mousewheelScale' in this.pinch)) {
-      this.pinch.mousewheelScale = 1;
-    }
 
     // calculate the new scale
-    var scale = this.pinch.mousewheelScale;
+    var scale = this._getScale();
     var zoom = delta / 10;
     if (delta < 0) {
       zoom = zoom / (1 - zoom);
@@ -13984,10 +16801,7 @@ Graph.prototype._onMouseWheel = function(event) {
     var pointer = this._getPointer(gesture.center);
 
     // apply the new scale
-    scale = this._zoom(scale, pointer);
-
-    // store the new, applied scale -- this is now done in _zoom
-//    this.pinch.mousewheelScale = scale;
+    this._zoom(scale, pointer);
   }
 
   // Prevent default actions caused by mouse wheel.
@@ -14094,6 +16908,7 @@ Graph.prototype._checkShowPopup = function (pointer) {
   }
 };
 
+
 /**
  * Check if the popup must be hided, which is the case when the mouse is no
  * longer hovering on the object
@@ -14109,85 +16924,6 @@ Graph.prototype._checkHidePopup = function (pointer) {
   }
 };
 
-
-/**
- * Temporary method to test calculating a hub value for the nodes
- * @param {number} level        Maximum number edges between two nodes in order
- *                              to call them connected. Optional, 1 by default
- * @return {Number[]} connectioncount array with the connection count
- *                                    for each node
- * @private
- */
-Graph.prototype._getConnectionCount = function(level) {
-  if (level == undefined) {
-    level = 1;
-  }
-
-  // get the nodes connected to given nodes
-  function getConnectedNodes(nodes) {
-    var connectedNodes = [];
-
-    for (var j = 0, jMax = nodes.length; j < jMax; j++) {
-      var node = nodes[j];
-
-      // find all nodes connected to this node
-      var edges = node.edges;
-      for (var i = 0, iMax = edges.length; i < iMax; i++) {
-        var edge = edges[i];
-        var other = null;
-
-        // check if connected
-        if (edge.from == node)
-          other = edge.to;
-        else if (edge.to == node)
-          other = edge.from;
-
-        // check if the other node is not already in the list with nodes
-        var k, kMax;
-        if (other) {
-          for (k = 0, kMax = nodes.length; k < kMax; k++) {
-            if (nodes[k] == other) {
-              other = null;
-              break;
-            }
-          }
-        }
-        if (other) {
-          for (k = 0, kMax = connectedNodes.length; k < kMax; k++) {
-            if (connectedNodes[k] == other) {
-              other = null;
-              break;
-            }
-          }
-        }
-
-        if (other)
-          connectedNodes.push(other);
-      }
-    }
-
-    return connectedNodes;
-  }
-
-  var connections = [];
-  var nodes = this.nodes;
-  for (var id in nodes) {
-    if (nodes.hasOwnProperty(id)) {
-      var c = [nodes[id]];
-      for (var l = 0; l < level; l++) {
-        c = c.concat(getConnectedNodes(c));
-      }
-      connections.push(c);
-    }
-  }
-
-  var hubs = [];
-  for (var i = 0, len = connections.length; i < len; i++) {
-    hubs.push(connections[i].length);
-  }
-
-  return hubs;
-};
 
 /**
  * Set a new size for the graph
@@ -14206,9 +16942,11 @@ Graph.prototype.setSize = function(width, height) {
   this.frame.canvas.width = this.frame.canvas.clientWidth;
   this.frame.canvas.height = this.frame.canvas.clientHeight;
 
-  if (this.constants.navigation.enabled == true) {
-    this._relocateNavigation();
+  if (this.manipulationDiv !== undefined) {
+    this.manipulationDiv.style.width = this.frame.canvas.clientWidth;
   }
+
+  this.emit('resize', {width:this.frame.canvas.width,height:this.frame.canvas.height});
 };
 
 /**
@@ -14236,7 +16974,7 @@ Graph.prototype._setNodes = function(nodes) {
   if (oldNodesData) {
     // unsubscribe from old dataset
     util.forEach(this.nodesListeners, function (callback, event) {
-      oldNodesData.unsubscribe(event, callback);
+      oldNodesData.off(event, callback);
     });
   }
 
@@ -14247,7 +16985,7 @@ Graph.prototype._setNodes = function(nodes) {
     // subscribe to new dataset
     var me = this;
     util.forEach(this.nodesListeners, function (callback, event) {
-      me.nodesData.subscribe(event, callback);
+      me.nodesData.on(event, callback);
     });
 
     // draw all new nodes
@@ -14270,13 +17008,11 @@ Graph.prototype._addNodes = function(ids) {
     var node = new Node(data, this.images, this.groups, this.constants);
     this.nodes[id] = node; // note: this may replace an existing node
 
-    if (!node.isFixed()) {
-      // TODO: position new nodes in a smarter way!
-      var radius = this.constants.edges.length * 2;
-      var count = ids.length;
-      var angle = 2 * Math.PI * (i / count);
-      node.x = radius * Math.cos(angle);
-      node.y = radius * Math.sin(angle);
+    if ((node.xFixed == false || node.yFixed == false) && this.createNodeOnClick != true) {
+      var radius = 10 * 0.1*ids.length;
+      var angle = 2 * Math.PI * Math.random();
+      if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
+      if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
 
       // note: no not use node.isMoving() here, as that gives the current
       // velocity of the node, which is zero after creation of the node.
@@ -14284,8 +17020,10 @@ Graph.prototype._addNodes = function(ids) {
     }
   }
   this._updateNodeIndexList();
+  this._updateCalculationNodes();
   this._reconnectEdges();
   this._updateValueRange(this.nodes);
+  this.updateLabels();
 };
 
 /**
@@ -14362,7 +17100,7 @@ Graph.prototype._setEdges = function(edges) {
   if (oldEdgesData) {
     // unsubscribe from old dataset
     util.forEach(this.edgesListeners, function (callback, event) {
-      oldEdgesData.unsubscribe(event, callback);
+      oldEdgesData.off(event, callback);
     });
   }
 
@@ -14373,7 +17111,7 @@ Graph.prototype._setEdges = function(edges) {
     // subscribe to new dataset
     var me = this;
     util.forEach(this.edgesListeners, function (callback, event) {
-      me.edgesData.subscribe(event, callback);
+      me.edgesData.on(event, callback);
     });
 
     // draw all new nodes
@@ -14407,6 +17145,8 @@ Graph.prototype._addEdges = function (ids) {
 
   this.moving = true;
   this._updateValueRange(edges);
+  this._createBezierNodes();
+  this._updateCalculationNodes();
 };
 
 /**
@@ -14435,6 +17175,7 @@ Graph.prototype._updateEdges = function (ids) {
     }
   }
 
+  this._createBezierNodes();
   this.moving = true;
   this._updateValueRange(edges);
 };
@@ -14450,6 +17191,9 @@ Graph.prototype._removeEdges = function (ids) {
     var id = ids[i];
     var edge = edges[id];
     if (edge) {
+      if (edge.via != null) {
+        delete this.sectors['support']['nodes'][edge.via.id];
+      }
       edge.disconnect();
       delete edges[id];
     }
@@ -14457,6 +17201,7 @@ Graph.prototype._removeEdges = function (ids) {
 
   this.moving = true;
   this._updateValueRange(edges);
+  this._updateCalculationNodes();
 };
 
 /**
@@ -14554,14 +17299,13 @@ Graph.prototype._redraw = function() {
 
   this._doInAllSectors("_drawAllSectorNodes",ctx);
   this._doInAllSectors("_drawEdges",ctx);
-  this._doInAllSectors("_drawNodes",ctx);
+  this._doInAllSectors("_drawNodes",ctx,false);
+
+//  this._doInSupportSector("_drawNodes",ctx,true);
+//  this._drawTree(ctx,"#F00F0F");
 
   // restore original scaling and translation
   ctx.restore();
-
-  if (this.constants.navigation.enabled == true) {
-    this._doInNavigationSector("_drawNodes",ctx,true);
-  }
 };
 
 /**
@@ -14718,244 +17462,17 @@ Graph.prototype._drawEdges = function(ctx) {
  * @private
  */
 Graph.prototype._doStabilize = function() {
-  //var start = new Date();
-
   // find stable position
   var count = 0;
-  var vmin = this.constants.minVelocity;
-  var stable = false;
-  while (!stable && count < this.constants.maxIterations) {
-    this._initializeForceCalculation();
-    this._discreteStepNodes();
-    stable = !this._isMoving(vmin);
+  while (this.moving && count < this.constants.maxIterations) {
+    this._physicsTick();
     count++;
   }
-  this.zoomToFit();
 
- // var end = new Date();
-
-  // console.log('Stabilized in ' + (end-start) + ' ms, ' + count + ' iterations' ); // TODO: cleanup
+  this.zoomExtent(false,true);
 };
 
 
-/**
- * Before calculating the forces, we check if we need to cluster to keep up performance and we check
- * if there is more than one node. If it is just one node, we dont calculate anything.
- *
- * @private
- */
-Graph.prototype._initializeForceCalculation = function() {
-  // stop calculation if there is only one node
-  if (this.nodeIndices.length == 1) {
-    this.nodes[this.nodeIndices[0]]._setForce(0,0);
-  }
-  else {
-    // if there are too many nodes on screen, we cluster without repositioning
-    if (this.nodeIndices.length > this.constants.clustering.clusterThreshold && this.constants.clustering.enabled == true) {
-      this.clusterToFit(this.constants.clustering.reduceToNodes, false);
-    }
-
-    // we now start the force calculation
-    this._calculateForces();
-  }
-};
-
-
-/**
- * Calculate the external forces acting on the nodes
- * Forces are caused by: edges, repulsing forces between nodes, gravity
- * @private
- */
-Graph.prototype._calculateForces = function() {
-//  var screenCenterPos = {"x":(0.5*(this.canvasTopLeft.x + this.canvasBottomRight.x)),
-//                         "y":(0.5*(this.canvasTopLeft.y + this.canvasBottomRight.y))}
-  // create a local edge to the nodes and edges, that is faster
-  var dx, dy, angle, distance, fx, fy,
-    repulsingForce, springForce, length, edgeLength,
-    node, node1, node2, edge, edgeId, i, j, nodeId, xCenter, yCenter;
-  var clusterSize;
-  var nodes = this.nodes;
-  var edges = this.edges;
-
-  // Gravity is required to keep separated groups from floating off
-  // the forces are reset to zero in this loop by using _setForce instead
-  // of _addForce
-  var gravity = 0.08 * this.forceFactor;
-  for (i = 0; i < this.nodeIndices.length; i++) {
-      node = nodes[this.nodeIndices[i]];
-      // gravity does not apply when we are in a pocket sector
-      if (this._sector() == "default") {
-        dx = -node.x;// + screenCenterPos.x;
-        dy = -node.y;// + screenCenterPos.y;
-
-        angle = Math.atan2(dy, dx);
-        fx = Math.cos(angle) * gravity;
-        fy = Math.sin(angle) * gravity;
-      }
-      else {
-        fx = 0;
-        fy = 0;
-      }
-      node._setForce(fx, fy);
-
-      node.updateDamping(this.nodeIndices.length);
-  }
-
-  // repulsing forces between nodes
-  var minimumDistance = this.constants.nodes.distance,
-      steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
-
-
-  // we loop from i over all but the last entree in the array
-  // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
-  for (i = 0; i < this.nodeIndices.length-1; i++) {
-    node1 = nodes[this.nodeIndices[i]];
-    for (j = i+1; j < this.nodeIndices.length; j++) {
-      node2 = nodes[this.nodeIndices[j]];
-      clusterSize = (node1.clusterSize + node2.clusterSize - 2);
-      dx = node2.x - node1.x;
-      dy = node2.y - node1.y;
-      distance = Math.sqrt(dx * dx + dy * dy);
-
-
-      // clusters have a larger region of influence
-      minimumDistance = (clusterSize == 0) ? this.constants.nodes.distance : (this.constants.nodes.distance * (1 + clusterSize * this.constants.clustering.distanceAmplification));
-      if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
-        angle = Math.atan2(dy, dx);
-
-        if (distance < 0.5*minimumDistance) { // at 0.5 * the minimum distance, the force is 0.993307
-          repulsingForce = 1.0;
-        }
-        else {
-          // TODO: correct factor for repulsing force
-          //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-          //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-          repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
-        }
-        // amplify the repulsion for clusters.
-        repulsingForce *= (clusterSize == 0) ? 1 : 1 + clusterSize * this.constants.clustering.forceAmplification;
-        repulsingForce *= this.forceFactor;
-
-
-        fx = Math.cos(angle) * repulsingForce;
-        fy = Math.sin(angle) * repulsingForce ;
-
-        node1._addForce(-fx, -fy);
-        node2._addForce(fx, fy);
-      }
-    }
-  }
-
-/*
-  // repulsion of the edges on the nodes and
-  for (var nodeId in nodes) {
-    if (nodes.hasOwnProperty(nodeId)) {
-      node = nodes[nodeId];
-      for(var edgeId in edges) {
-        if (edges.hasOwnProperty(edgeId)) {
-          edge = edges[edgeId];
-
-          // get the center of the edge
-          xCenter = edge.from.x+(edge.to.x - edge.from.x)/2;
-          yCenter = edge.from.y+(edge.to.y - edge.from.y)/2;
-
-          // calculate normally distributed force
-          dx = node.x - xCenter;
-          dy = node.y - yCenter;
-          distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
-            angle = Math.atan2(dy, dx);
-
-            if (distance < 0.5*minimumDistance) { // at 0.5 * the minimum distance, the force is 0.993307
-              repulsingForce = 1.0;
-            }
-            else {
-              // TODO: correct factor for repulsing force
-              //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-              //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
-              repulsingForce = 1 / (1 + Math.exp((distance / (minimumDistance / 2) - 1) * steepness)); // TODO: customize the repulsing force
-            }
-            fx = Math.cos(angle) * repulsingForce;
-            fy = Math.sin(angle) * repulsingForce;
-            node._addForce(fx, fy);
-            edge.from._addForce(-fx/2,-fy/2);
-            edge.to._addForce(-fx/2,-fy/2);
-          }
-        }
-      }
-    }
-  }
-*/
-
-  // forces caused by the edges, modelled as springs
-  for (edgeId in edges) {
-    if (edges.hasOwnProperty(edgeId)) {
-      edge = edges[edgeId];
-      if (edge.connected) {
-        // only calculate forces if nodes are in the same sector
-        if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
-          clusterSize = (edge.to.clusterSize + edge.from.clusterSize - 2);
-          dx = (edge.to.x - edge.from.x);
-          dy = (edge.to.y - edge.from.y);
-          //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
-          //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length; // TODO: dmin
-          //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2;
-          edgeLength = edge.length;
-          // this implies that the edges between big clusters are longer
-          edgeLength += clusterSize * this.constants.clustering.edgeGrowth;
-          length =  Math.sqrt(dx * dx + dy * dy);
-          angle = Math.atan2(dy, dx);
-
-          springForce = edge.stiffness * (edgeLength - length) * this.forceFactor;
-
-          fx = Math.cos(angle) * springForce;
-          fy = Math.sin(angle) * springForce;
-
-          edge.from._addForce(-fx, -fy);
-          edge.to._addForce(fx, fy);
-        }
-      }
-    }
-  }
-/*
-  // TODO: re-implement repulsion of edges
-
-   // repulsing forces between edges
-   var minimumDistance = this.constants.edges.distance,
-   steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
-   for (var l = 0; l < edges.length; l++) {
-   //Keep distance from other edge centers
-   for (var l2 = l + 1; l2 < this.edges.length; l2++) {
-   //var dmin = (nodes[n].width + nodes[n].height + nodes[n2].width + nodes[n2].height) / 1 || minimumDistance, // TODO: dmin
-   //var dmin = (nodes[n].width + nodes[n2].width)/2  || minimumDistance, // TODO: dmin
-   //dmin = 40 + ((nodes[n].width/2 + nodes[n2].width/2) || 0),
-   var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
-   ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
-   l2x = edges[l2].from.x+(edges[l2].to.x - edges[l2].from.x)/2,
-   l2y = edges[l2].from.y+(edges[l2].to.y - edges[l2].from.y)/2,
-
-   // calculate normally distributed force
-   dx = l2x - lx,
-   dy = l2y - ly,
-   distance = Math.sqrt(dx * dx + dy * dy),
-   angle = Math.atan2(dy, dx),
-
-
-   // TODO: correct factor for repulsing force
-   //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-   //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
-   repulsingforce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)), // TODO: customize the repulsing force
-   fx = Math.cos(angle) * repulsingforce,
-   fy = Math.sin(angle) * repulsingforce;
-
-   edges[l].from._addForce(-fx, -fy);
-   edges[l].to._addForce(-fx, -fy);
-   edges[l2].from._addForce(fx, fy);
-   edges[l2].to._addForce(fx, fy);
-   }
-   }
-*/
-};
 
 
 /**
@@ -14965,10 +17482,9 @@ Graph.prototype._calculateForces = function() {
  * @private
  */
 Graph.prototype._isMoving = function(vmin) {
-  var vminCorrected = vmin / this.scale;
   var nodes = this.nodes;
   for (var id in nodes) {
-    if (nodes.hasOwnProperty(id) && nodes[id].isMoving(vminCorrected)) {
+    if (nodes.hasOwnProperty(id) && nodes[id].isMoving(vmin)) {
       return true;
     }
   }
@@ -14980,93 +17496,128 @@ Graph.prototype._isMoving = function(vmin) {
  * /**
  * Perform one discrete step for all nodes
  *
- * @param interval
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = 0.01;
+  var interval = 0.65;
   var nodes = this.nodes;
-  for (var id in nodes) {
-    if (nodes.hasOwnProperty(id)) {
-      nodes[id].discreteStep(interval);
+  var nodeId;
+
+  if (this.constants.maxVelocity > 0) {
+    for (nodeId in nodes) {
+      if (nodes.hasOwnProperty(nodeId)) {
+        nodes[nodeId].discreteStepLimited(interval, this.constants.maxVelocity);
+      }
     }
   }
-
-  var vmin = this.constants.minVelocity;
-  this.moving = this._isMoving(vmin);
+  else {
+    for (nodeId in nodes) {
+      if (nodes.hasOwnProperty(nodeId)) {
+        nodes[nodeId].discreteStep(interval);
+      }
+    }
+  }
+  var vminCorrected = this.constants.minVelocity / Math.max(this.scale,0.05);
+  if (vminCorrected > 0.5*this.constants.maxVelocity) {
+    this.moving = true;
+  }
+  else {
+    this.moving = this._isMoving(vminCorrected);
+  }
 };
 
 
+Graph.prototype._physicsTick = function() {
+  if (!this.freezeSimulation) {
+    if (this.moving) {
+      this._doInAllActiveSectors("_initializeForceCalculation");
+      if (this.constants.smoothCurves) {
+        this._doInSupportSector("_discreteStepNodes");
+      }
+      this._doInAllActiveSectors("_discreteStepNodes");
+      this._findCenter(this._getRange())
+    }
+  }
+};
+
 
 /**
- * Start animating nodes and edges
+ * This function runs one step of the animation. It calls an x amount of physics ticks and one render tick.
+ * It reschedules itself at the beginning of the function
+ *
+ * @private
+ */
+Graph.prototype._animationStep = function() {
+  // reset the timer so a new scheduled animation step can be set
+  this.timer = undefined;
+  // handle the keyboad movement
+  this._handleNavigation();
+
+  // this schedules a new animation step
+  this.start();
+
+  // start the physics simulation
+  var calculationTime = Date.now();
+  var maxSteps = 1;
+  this._physicsTick();
+  var timeRequired = Date.now() - calculationTime;
+  while (timeRequired < (this.renderTimestep - this.renderTime) && maxSteps < this.maxRenderSteps) {
+    this._physicsTick();
+    timeRequired = Date.now() - calculationTime;
+    maxSteps++;
+
+  }
+
+  // start the rendering process
+  var renderTime = Date.now();
+  this._redraw();
+  this.renderTime = Date.now() - renderTime;
+};
+
+if (typeof window !== 'undefined') {
+  window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+                                 window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+}
+
+/**
+ * Schedule a animation step with the refreshrate interval.
  *
  * @poram {Boolean} runCalculationStep
  */
 Graph.prototype.start = function() {
-  if (!this.freezeSimulation) {
-
-    if (this.moving) {
-      this._doInAllActiveSectors("_initializeForceCalculation");
-      this._doInAllActiveSectors("_discreteStepNodes");
-      this._findCenter(this._getRange())
-    }
-
-    if (this.moving || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0) {
-      // start animation. only start calculationTimer if it is not already running
-      if (!this.timer) {
-        var graph = this;
-        this.timer = window.setTimeout(function () {
-          graph.timer = undefined;
-
-          // keyboad movement
-          if (graph.xIncrement != 0 || graph.yIncrement != 0) {
-            var translation = graph._getTranslation();
-            graph._setTranslation(translation.x+graph.xIncrement, translation.y+graph.yIncrement);
-          }
-          if (graph.zoomIncrement != 0) {
-            var center = {
-              x: graph.frame.canvas.clientWidth / 2,
-              y: graph.frame.canvas.clientHeight / 2
-            };
-            graph._zoom(graph.scale*(1 + graph.zoomIncrement), center);
-          }
-
-          graph.start();
-          graph._redraw();
-
-          //this.end = window.performance.now();
-          //this.time = this.end - this.startTime;
-          //console.log('refresh time: ' + this.time);
-          //this.startTime = window.performance.now();
-
-        }, this.renderTimestep);
-      }
-    }
-    else {
-      this._redraw();
+  if (this.moving || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0) {
+    if (!this.timer) { 
+      this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
     }
   }
-};
-
-
-
-
-Graph.prototype.singleStep = function() {
-  if (this.moving) {
-    this._initializeForceCalculation();
-    this._discreteStepNodes();
-
-    var vmin = this.constants.minVelocity;
-    this.moving = this._isMoving(vmin);
+  else {
     this._redraw();
   }
 };
 
 
+/**
+ * Move the graph according to the keyboard presses.
+ *
+ * @private
+ */
+Graph.prototype._handleNavigation = function() {
+  if (this.xIncrement != 0 || this.yIncrement != 0) {
+    var translation = this._getTranslation();
+    this._setTranslation(translation.x+this.xIncrement, translation.y+this.yIncrement);
+  }
+  if (this.zoomIncrement != 0) {
+    var center = {
+      x: this.frame.canvas.clientWidth / 2,
+      y: this.frame.canvas.clientHeight / 2
+    };
+    this._zoom(this.scale*(1 + this.zoomIncrement), center);
+  }
+};
+
 
 /**
- *  Freeze the animation
+ *  Freeze the _animationStep
  */
 Graph.prototype.toggleFreeze = function() {
   if (this.freezeSimulation == false) {
@@ -15078,110 +17629,64 @@ Graph.prototype.toggleFreeze = function() {
   }
 };
 
-/**
- * Mixin the cluster system and initialize the parameters required.
- *
- * @private
- */
-Graph.prototype._loadClusterSystem = function() {
-  this.clusterSession = 0;
-  this.hubThreshold = 5;
 
-  for (var mixinFunction in ClusterMixin) {
-    if (ClusterMixin.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = ClusterMixin[mixinFunction];
+
+Graph.prototype._configureSmoothCurves = function(disableStart) {
+  if (disableStart === undefined) {
+    disableStart = true;
+  }
+
+  if (this.constants.smoothCurves == true) {
+    this._createBezierNodes();
+  }
+  else {
+    // delete the support nodes
+    this.sectors['support']['nodes'] = {};
+    for (var edgeId in this.edges) {
+      if (this.edges.hasOwnProperty(edgeId)) {
+        this.edges[edgeId].smooth = false;
+        this.edges[edgeId].via = null;
+      }
     }
   }
-}
+  this._updateCalculationNodes();
+  if (!disableStart) {
+    this.moving = true;
+    this.start();
+  }
+};
 
-/**
- * Mixin the sector system and initialize the parameters required
- *
- * @private
- */
-Graph.prototype._loadSectorSystem = function() {
-  this.sectors = {};
-  this.activeSector = ["default"];
-  this.sectors["active"] = {};
-  this.sectors["active"]["default"] = {"nodes":{},
-                                       "edges":{},
-                                       "nodeIndices":[],
-                                       "formationScale": 1.0,
-                                       "drawingNode": undefined};
-  this.sectors["frozen"] = {};
-  this.sectors["navigation"] = {"nodes":{},
-                        "edges":{},
-                        "nodeIndices":[],
-                        "formationScale": 1.0,
-                        "drawingNode": undefined};
-
-  this.nodeIndices = this.sectors["active"]["default"]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
-  for (var mixinFunction in SectorMixin) {
-    if (SectorMixin.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = SectorMixin[mixinFunction];
+Graph.prototype._createBezierNodes = function() {
+  if (this.constants.smoothCurves == true) {
+    for (var edgeId in this.edges) {
+      if (this.edges.hasOwnProperty(edgeId)) {
+        var edge = this.edges[edgeId];
+        if (edge.via == null) {
+          edge.smooth = true;
+          var nodeId = "edgeId:".concat(edge.id);
+          this.sectors['support']['nodes'][nodeId] = new Node(
+                  {id:nodeId,
+                    mass:1,
+                    shape:'circle',
+                    internalMultiplier:1
+                  },{},{},this.constants);
+          edge.via = this.sectors['support']['nodes'][nodeId];
+          edge.via.parentEdgeId = edge.id;
+          edge.positionBezierNode();
+        }
+      }
     }
   }
 };
 
 
-/**
- * Mixin the selection system and initialize the parameters required
- *
- * @private
- */
-Graph.prototype._loadSelectionSystem = function() {
-  this.selection = [];
-  this.selectionObj = {};
-
-  for (var mixinFunction in SelectionMixin) {
-    if (SelectionMixin.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = SelectionMixin[mixinFunction];
+Graph.prototype._initializeMixinLoaders = function () {
+  for (var mixinFunction in graphMixinLoaders) {
+    if (graphMixinLoaders.hasOwnProperty(mixinFunction)) {
+      Graph.prototype[mixinFunction] = graphMixinLoaders[mixinFunction];
     }
   }
-}
-
-
-/**
- * Mixin the navigation (User Interface) system and initialize the parameters required
- *
- * @private
- */
-Graph.prototype._loadNavigationControls = function() {
-  for (var mixinFunction in NavigationMixin) {
-    if (NavigationMixin.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = NavigationMixin[mixinFunction];
-    }
-  }
-
-  if (this.constants.navigation.enabled == true) {
-    this._loadNavigationElements();
-  }
-}
-
-/**
- * this function exists to avoid errors when not loading the navigation system
- */
-Graph.prototype._relocateNavigation = function() {
-  // empty, is overloaded by navigation system
-}
-
-/**
- * * this function exists to avoid errors when not loading the navigation system
- */
-Graph.prototype._unHighlightAll = function() {
-  // empty, is overloaded by the navigation system
-}
-
-
-
-
-
-
-
-
-
-
-
+};
 
 
 
@@ -15201,7 +17706,6 @@ Graph.prototype._unHighlightAll = function() {
  */
 var vis = {
   util: util,
-  events: events,
 
   Controller: Controller,
   DataSet: DataSet,
@@ -15209,7 +17713,6 @@ var vis = {
   Range: Range,
   Stack: Stack,
   TimeStep: TimeStep,
-  EventBus: EventBus,
 
   components: {
     items: {
@@ -15266,7 +17769,173 @@ if (typeof window !== 'undefined') {
 }
 
 
-},{"hammerjs":2,"moment":3,"mousetrap":4}],2:[function(require,module,exports){
+},{"emitter-component":2,"hammerjs":3,"moment":4,"mousetrap":5}],2:[function(require,module,exports){
+
+/**
+ * Expose `Emitter`.
+ */
+
+module.exports = Emitter;
+
+/**
+ * Initialize a new `Emitter`.
+ *
+ * @api public
+ */
+
+function Emitter(obj) {
+  if (obj) return mixin(obj);
+};
+
+/**
+ * Mixin the emitter properties.
+ *
+ * @param {Object} obj
+ * @return {Object}
+ * @api private
+ */
+
+function mixin(obj) {
+  for (var key in Emitter.prototype) {
+    obj[key] = Emitter.prototype[key];
+  }
+  return obj;
+}
+
+/**
+ * Listen on the given `event` with `fn`.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.on =
+Emitter.prototype.addEventListener = function(event, fn){
+  this._callbacks = this._callbacks || {};
+  (this._callbacks[event] = this._callbacks[event] || [])
+    .push(fn);
+  return this;
+};
+
+/**
+ * Adds an `event` listener that will be invoked a single
+ * time then automatically removed.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.once = function(event, fn){
+  var self = this;
+  this._callbacks = this._callbacks || {};
+
+  function on() {
+    self.off(event, on);
+    fn.apply(this, arguments);
+  }
+
+  on.fn = fn;
+  this.on(event, on);
+  return this;
+};
+
+/**
+ * Remove the given callback for `event` or all
+ * registered callbacks.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.off =
+Emitter.prototype.removeListener =
+Emitter.prototype.removeAllListeners =
+Emitter.prototype.removeEventListener = function(event, fn){
+  this._callbacks = this._callbacks || {};
+
+  // all
+  if (0 == arguments.length) {
+    this._callbacks = {};
+    return this;
+  }
+
+  // specific event
+  var callbacks = this._callbacks[event];
+  if (!callbacks) return this;
+
+  // remove all handlers
+  if (1 == arguments.length) {
+    delete this._callbacks[event];
+    return this;
+  }
+
+  // remove specific handler
+  var cb;
+  for (var i = 0; i < callbacks.length; i++) {
+    cb = callbacks[i];
+    if (cb === fn || cb.fn === fn) {
+      callbacks.splice(i, 1);
+      break;
+    }
+  }
+  return this;
+};
+
+/**
+ * Emit `event` with the given args.
+ *
+ * @param {String} event
+ * @param {Mixed} ...
+ * @return {Emitter}
+ */
+
+Emitter.prototype.emit = function(event){
+  this._callbacks = this._callbacks || {};
+  var args = [].slice.call(arguments, 1)
+    , callbacks = this._callbacks[event];
+
+  if (callbacks) {
+    callbacks = callbacks.slice(0);
+    for (var i = 0, len = callbacks.length; i < len; ++i) {
+      callbacks[i].apply(this, args);
+    }
+  }
+
+  return this;
+};
+
+/**
+ * Return array of callbacks for `event`.
+ *
+ * @param {String} event
+ * @return {Array}
+ * @api public
+ */
+
+Emitter.prototype.listeners = function(event){
+  this._callbacks = this._callbacks || {};
+  return this._callbacks[event] || [];
+};
+
+/**
+ * Check if this emitter has `event` handlers.
+ *
+ * @param {String} event
+ * @return {Boolean}
+ * @api public
+ */
+
+Emitter.prototype.hasListeners = function(event){
+  return !! this.listeners(event).length;
+};
+
+},{}],3:[function(require,module,exports){
 /*! Hammer.JS - v1.0.5 - 2013-04-07
  * http://eightmedia.github.com/hammer.js
  *
@@ -16688,7 +19357,7 @@ else {
     }
 }
 })(this);
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 //! moment.js
 //! version : 2.5.1
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
@@ -19090,7 +21759,7 @@ else {
     }
 }).call(this);
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 /**
  * Copyright 2012 Craig Campbell
  *

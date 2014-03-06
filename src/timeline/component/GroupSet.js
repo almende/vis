@@ -132,7 +132,7 @@ GroupSet.prototype.setGroups = function setGroups(groups) {
     // subscribe to new dataset
     var id = this.id;
     util.forEach(this.listeners, function (callback, event) {
-      me.groupsData.subscribe(event, callback, id);
+      me.groupsData.on(event, callback, id);
     });
 
     // draw all new groups
@@ -216,6 +216,7 @@ GroupSet.prototype.repaint = function repaint() {
   if (!frame) {
     frame = document.createElement('div');
     frame.className = 'groupset';
+    frame['timeline-groupset'] = this;
     this.dom.frame = frame;
 
     var className = options.className;
@@ -543,4 +544,37 @@ GroupSet.prototype._toQueue = function _toQueue(ids, action) {
     //this.requestReflow();
     this.requestRepaint();
   }
+};
+
+/**
+ * Find the Group from an event target:
+ * searches for the attribute 'timeline-groupset' in the event target's element
+ * tree, then finds the right group in this groupset
+ * @param {Event} event
+ * @return {Group | null} group
+ */
+GroupSet.groupFromTarget = function groupFromTarget (event) {
+  var groupset,
+      target = event.target;
+
+  while (target) {
+    if (target.hasOwnProperty('timeline-groupset')) {
+      groupset = target['timeline-groupset'];
+      break;
+    }
+    target = target.parentNode;
+  }
+
+  if (groupset) {
+    for (var groupId in groupset.groups) {
+      if (groupset.groups.hasOwnProperty(groupId)) {
+        var group = groupset.groups[groupId];
+        if (group.itemset && ItemSet.itemSetFromTarget(event) == group.itemset) {
+          return group;
+        }
+      }
+    }
+  }
+
+  return null;
 };

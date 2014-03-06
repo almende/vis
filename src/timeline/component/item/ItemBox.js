@@ -79,6 +79,8 @@ ItemBox.prototype.repaint = function repaint() {
       changed = true;
     }
 
+    this._repaintDeleteButton(dom.box);
+
     // update contents
     if (this.data.content != this.content) {
       this.content = this.data.content;
@@ -187,7 +189,7 @@ ItemBox.prototype.reflow = function reflow() {
       update = util.updateProperty;
       props = this.props;
       options = this.options;
-      start = this.parent.toScreen(this.data.start);
+      start = this.parent.toScreen(this.data.start) + this.offset;
       align = options.align || this.defaultOptions.align;
       margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
       orientation = options.orientation || this.defaultOptions.orientation;

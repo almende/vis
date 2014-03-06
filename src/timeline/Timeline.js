@@ -1,7 +1,7 @@
 /**
  * Create a timeline visualization
  * @param {HTMLElement} container
- * @param {vis.DataSet | Array | DataTable} [items]
+ * @param {vis.DataSet | Array | google.visualization.DataTable} [items]
  * @param {Object} [options]  See Timeline.setOptions for the available options.
  * @constructor
  */
@@ -10,17 +10,35 @@ function Timeline (container, items, options) {
   var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
   this.options = {
     orientation: 'bottom',
+    autoResize: true,
+    editable: false,
+    selectable: true,
+    snap: null, // will be specified after timeaxis is created
+
     min: null,
     max: null,
     zoomMin: 10,                                // milliseconds
     zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000, // milliseconds
     // moveable: true, // TODO: option moveable
     // zoomable: true, // TODO: option zoomable
+
     showMinorLabels: true,
     showMajorLabels: true,
     showCurrentTime: false,
     showCustomTime: false,
-    autoResize: false
+
+    onAdd: function (item, callback) {
+      callback(item);
+    },
+    onUpdate: function (item, callback) {
+      callback(item);
+    },
+    onMove: function (item, callback) {
+      callback(item);
+    },
+    onRemove: function (item, callback) {
+      callback(item);
+    }
   };
 
   // controller
@@ -44,6 +62,15 @@ function Timeline (container, items, options) {
   };
   this.rootPanel = new RootPanel(container, rootOptions);
   this.controller.add(this.rootPanel);
+
+  // single select (or unselect) when tapping an item
+  this.controller.on('tap',  this._onSelectItem.bind(this));
+
+  // multi select when holding mouse/touch, or on ctrl+click
+  this.controller.on('hold', this._onMultiSelectItem.bind(this));
+
+  // add item on doubletap
+  this.controller.on('doubletap', this._onAddItem.bind(this));
 
   // item panel
   var itemOptions = Object.create(this.options);
@@ -82,27 +109,18 @@ function Timeline (container, items, options) {
       now.clone().add('days', 4).valueOf()
   );
 
-  // TODO: reckon with options moveable and zoomable
-  // TODO: put the listeners in setOptions, be able to dynamically change with options moveable and zoomable
-  this.range.subscribe(this.rootPanel, 'move', 'horizontal');
-  this.range.subscribe(this.rootPanel, 'zoom', 'horizontal');
+  this.range.subscribe(this.controller, this.rootPanel, 'move', 'horizontal');
+  this.range.subscribe(this.controller, this.rootPanel, 'zoom', 'horizontal');
   this.range.on('rangechange', function (properties) {
     var force = true;
-    me.controller.requestReflow(force);
-    me._trigger('rangechange', properties);
+    me.controller.emit('rangechange', properties);
+    me.controller.emit('request-reflow', force);
   });
   this.range.on('rangechanged', function (properties) {
     var force = true;
-    me.controller.requestReflow(force);
-    me._trigger('rangechanged', properties);
+    me.controller.emit('rangechanged', properties);
+    me.controller.emit('request-reflow', force);
   });
-
-  // single select (or unselect) when tapping an item
-  // TODO: implement ctrl+click
-  this.rootPanel.on('tap',  this._onSelectItem.bind(this));
-
-  // multi select when holding mouse/touch, or on ctrl+click
-  this.rootPanel.on('hold', this._onMultiSelectItem.bind(this));
 
   // time axis
   var timeaxisOptions = Object.create(rootOptions);
@@ -114,6 +132,7 @@ function Timeline (container, items, options) {
   this.timeaxis = new TimeAxis(this.itemPanel, [], timeaxisOptions);
   this.timeaxis.setRange(this.range);
   this.controller.add(this.timeaxis);
+  this.options.snap = this.timeaxis.snap.bind(this.timeaxis);
 
   // current time bar
   this.currenttime = new CurrentTime(this.timeaxis, [], rootOptions);
@@ -141,6 +160,25 @@ function Timeline (container, items, options) {
 }
 
 /**
+ * Add an event listener to the timeline
+ * @param {String} event    Available events: select, rangechange, rangechanged,
+ *                          timechange, timechanged
+ * @param {function} callback
+ */
+Timeline.prototype.on = function on (event, callback) {
+  this.controller.on(event, callback);
+};
+
+/**
+ * Add an event listener from the timeline
+ * @param {String} event
+ * @param {function} callback
+ */
+Timeline.prototype.off = function off (event, callback) {
+  this.controller.off(event, callback);
+};
+
+/**
  * Set options
  * @param {Object} options  TODO: describe the available options
  */
@@ -151,6 +189,25 @@ Timeline.prototype.setOptions = function (options) {
   // both start and end are optional
   this.range.setRange(options.start, options.end);
 
+  if ('editable' in options || 'selectable' in options) {
+    if (this.options.selectable) {
+      // force update of selection
+      this.setSelection(this.getSelection());
+    }
+    else {
+      // remove selection
+      this.setSelection([]);
+    }
+  }
+
+  // validate the callback functions
+  var validateCallback = (function (fn) {
+    if (!(this.options[fn] instanceof Function) || this.options[fn].length != 2) {
+      throw new Error('option ' + fn + ' must be a function ' + fn + '(item, callback)');
+    }
+  }).bind(this);
+  ['onAdd', 'onUpdate', 'onRemove', 'onMove'].forEach(validateCallback);
+
   this.controller.reflow();
   this.controller.repaint();
 };
@@ -160,7 +217,11 @@ Timeline.prototype.setOptions = function (options) {
  * @param {Date} time
  */
 Timeline.prototype.setCustomTime = function (time) {
-  this.customtime._setCustomTime(time);
+  if (!this.customtime) {
+    throw new Error('Cannot get custom time: Custom time bar is not enabled');
+  }
+
+  this.customtime.setCustomTime(time);
 };
 
 /**
@@ -168,37 +229,41 @@ Timeline.prototype.setCustomTime = function (time) {
  * @return {Date} customTime
  */
 Timeline.prototype.getCustomTime = function() {
-  return new Date(this.customtime.customTime.valueOf());
+  if (!this.customtime) {
+    throw new Error('Cannot get custom time: Custom time bar is not enabled');
+  }
+
+  return this.customtime.getCustomTime();
 };
 
 /**
  * Set items
- * @param {vis.DataSet | Array | DataTable | null} items
+ * @param {vis.DataSet | Array | google.visualization.DataTable | null} items
  */
 Timeline.prototype.setItems = function(items) {
   var initialLoad = (this.itemsData == null);
 
   // convert to type DataSet when needed
-  var newItemSet;
+  var newDataSet;
   if (!items) {
-    newItemSet = null;
+    newDataSet = null;
   }
   else if (items instanceof DataSet) {
-    newItemSet = items;
+    newDataSet = items;
   }
   if (!(items instanceof DataSet)) {
-    newItemSet = new DataSet({
+    newDataSet = new DataSet({
       convert: {
         start: 'Date',
         end: 'Date'
       }
     });
-    newItemSet.add(items);
+    newDataSet.add(items);
   }
 
   // set items
-  this.itemsData = newItemSet;
-  this.content.setItems(newItemSet);
+  this.itemsData = newDataSet;
+  this.content.setItems(newDataSet);
 
   if (initialLoad && (this.options.start == undefined || this.options.end == undefined)) {
     // apply the data range as range
@@ -234,7 +299,7 @@ Timeline.prototype.setItems = function(items) {
 
 /**
  * Set groups
- * @param {vis.DataSet | Array | DataTable} groups
+ * @param {vis.DataSet | Array | google.visualization.DataTable} groups
  */
 Timeline.prototype.setGroups = function(groups) {
   var me = this;
@@ -368,41 +433,25 @@ Timeline.prototype.getSelection = function getSelection() {
 };
 
 /**
- * Add event listener
- * @param {String} event       Event name. Available events:
- *                             'rangechange', 'rangechanged', 'select'
- * @param {function} callback  Callback function, invoked as callback(properties)
- *                             where properties is an optional object containing
- *                             event specific properties.
+ * Set the visible window. Both parameters are optional, you can change only
+ * start or only end.
+ * @param {Date | Number | String} [start] Start date of visible window
+ * @param {Date | Number | String} [end]   End date of visible window
  */
-Timeline.prototype.on = function on (event, callback) {
-  var available = ['rangechange', 'rangechanged', 'select'];
-
-  if (available.indexOf(event) == -1) {
-    throw new Error('Unknown event "' + event + '". Choose from ' + available.join());
-  }
-
-  events.addListener(this, event, callback);
+Timeline.prototype.setWindow = function setWindow(start, end) {
+  this.range.setRange(start, end);
 };
 
 /**
- * Remove an event listener
- * @param {String} event       Event name
- * @param {function} callback  Callback function
+ * Get the visible window
+ * @return {{start: Date, end: Date}}   Visible range
  */
-Timeline.prototype.off = function off (event, callback) {
-  events.removeListener(this, event, callback);
-};
-
-/**
- * Trigger an event
- * @param {String} event        Event name, available events: 'rangechange',
- *                              'rangechanged', 'select'
- * @param {Object} [properties] Event specific properties
- * @private
- */
-Timeline.prototype._trigger = function _trigger(event, properties) {
-  events.trigger(this, event, properties || {});
+Timeline.prototype.getWindow = function setWindow() {
+  var range = this.range.getRange();
+  return {
+    start: new Date(range.start),
+    end: new Date(range.end)
+  };
 };
 
 /**
@@ -410,17 +459,85 @@ Timeline.prototype._trigger = function _trigger(event, properties) {
  * @param {Event} event
  * @private
  */
+// TODO: move this function to ItemSet
 Timeline.prototype._onSelectItem = function (event) {
-  var item = this._itemFromTarget(event);
+  if (!this.options.selectable) return;
+
+  var ctrlKey  = event.gesture.srcEvent && event.gesture.srcEvent.ctrlKey;
+  var shiftKey = event.gesture.srcEvent && event.gesture.srcEvent.shiftKey;
+  if (ctrlKey || shiftKey) {
+    this._onMultiSelectItem(event);
+    return;
+  }
+
+  var item = ItemSet.itemFromTarget(event);
 
   var selection = item ? [item.id] : [];
   this.setSelection(selection);
 
-  this._trigger('select', {
+  this.controller.emit('select', {
     items: this.getSelection()
   });
 
   event.stopPropagation();
+};
+
+/**
+ * Handle creation and updates of an item on double tap
+ * @param event
+ * @private
+ */
+Timeline.prototype._onAddItem = function (event) {
+  if (!this.options.selectable) return;
+  if (!this.options.editable) return;
+
+  var me = this,
+      item = ItemSet.itemFromTarget(event);
+
+  if (item) {
+    // update item
+
+    // execute async handler to update the item (or cancel it)
+    var itemData = me.itemsData.get(item.id); // get a clone of the data from the dataset
+    this.options.onUpdate(itemData, function (itemData) {
+      if (itemData) {
+        me.itemsData.update(itemData);
+      }
+    });
+  }
+  else {
+    // add item
+    var xAbs = vis.util.getAbsoluteLeft(this.rootPanel.frame);
+    var x = event.gesture.center.pageX - xAbs;
+    var newItem = {
+      start: this.timeaxis.snap(this._toTime(x)),
+      content: 'new item'
+    };
+
+    var id = util.randomUUID();
+    newItem[this.itemsData.fieldId] = id;
+
+    var group = GroupSet.groupFromTarget(event);
+    if (group) {
+      newItem.group = group.groupId;
+    }
+
+    // execute async handler to customize (or cancel) adding an item
+    this.options.onAdd(newItem, function (item) {
+      if (item) {
+        me.itemsData.add(newItem);
+
+        // select the created item after it is repainted
+        me.controller.once('repaint', function () {
+          me.setSelection([id]);
+
+          me.controller.emit('select', {
+            items: me.getSelection()
+          });
+        }.bind(me));
+      }
+    });
+  }
 };
 
 /**
@@ -428,49 +545,54 @@ Timeline.prototype._onSelectItem = function (event) {
  * @param {Event} event
  * @private
  */
+// TODO: move this function to ItemSet
 Timeline.prototype._onMultiSelectItem = function (event) {
+  if (!this.options.selectable) return;
+
   var selection,
-      item = this._itemFromTarget(event);
+      item = ItemSet.itemFromTarget(event);
 
-  if (!item) {
-    // do nothing...
-    return;
+  if (item) {
+    // multi select items
+    selection = this.getSelection(); // current selection
+    var index = selection.indexOf(item.id);
+    if (index == -1) {
+      // item is not yet selected -> select it
+      selection.push(item.id);
+    }
+    else {
+      // item is already selected -> deselect it
+      selection.splice(index, 1);
+    }
+    this.setSelection(selection);
+
+    this.controller.emit('select', {
+      items: this.getSelection()
+    });
+
+    event.stopPropagation();
   }
-
-  selection = this.getSelection(); // current selection
-  var index = selection.indexOf(item.id);
-  if (index == -1) {
-    // item is not yet selected -> select it
-    selection.push(item.id);
-  }
-  else {
-    // item is already selected -> deselect it
-    selection.splice(index, 1);
-  }
-  this.setSelection(selection);
-
-  this._trigger('select', {
-    items: this.getSelection()
-  });
-
-  event.stopPropagation();
 };
 
 /**
- * Find an item from an event target:
- * searches for the attribute 'timeline-item' in the event target's element tree
- * @param {Event} event
- * @return {Item | null| item
+ * Convert a position on screen (pixels) to a datetime
+ * @param {int}     x    Position on the screen in pixels
+ * @return {Date}   time The datetime the corresponds with given position x
  * @private
  */
-Timeline.prototype._itemFromTarget = function _itemFromTarget (event) {
-  var target = event.target;
-  while (target) {
-    if (target.hasOwnProperty('timeline-item')) {
-      return target['timeline-item'];
-    }
-    target = target.parentNode;
-  }
+Timeline.prototype._toTime = function _toTime(x) {
+  var conversion = this.range.conversion(this.content.width);
+  return new Date(x / conversion.scale + conversion.offset);
+};
 
-  return null;
+/**
+ * Convert a datetime (Date object) into a position on the screen
+ * @param {Date}   time A date
+ * @return {int}   x    The position on the screen in pixels which corresponds
+ *                      with the given date.
+ * @private
+ */
+Timeline.prototype._toScreen = function _toScreen(time) {
+  var conversion = this.range.conversion(this.content.width);
+  return (time.valueOf() - conversion.offset) * conversion.scale;
 };

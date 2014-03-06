@@ -281,35 +281,38 @@ TimeStep.prototype.setMinimumStep = function(minimumStep) {
 };
 
 /**
- * Snap a date to a rounded value. The snap intervals are dependent on the
- * current scale and step.
- * @param {Date} date   the date to be snapped
+ * Snap a date to a rounded value.
+ * The snap intervals are dependent on the current scale and step.
+ * @param {Date} date   the date to be snapped.
+ * @return {Date} snappedDate
  */
 TimeStep.prototype.snap = function(date) {
+  var clone = new Date(date.valueOf());
+
   if (this.scale == TimeStep.SCALE.YEAR) {
-    var year = date.getFullYear() + Math.round(date.getMonth() / 12);
-    date.setFullYear(Math.round(year / this.step) * this.step);
-    date.setMonth(0);
-    date.setDate(0);
-    date.setHours(0);
-    date.setMinutes(0);
-    date.setSeconds(0);
-    date.setMilliseconds(0);
+    var year = clone.getFullYear() + Math.round(clone.getMonth() / 12);
+    clone.setFullYear(Math.round(year / this.step) * this.step);
+    clone.setMonth(0);
+    clone.setDate(0);
+    clone.setHours(0);
+    clone.setMinutes(0);
+    clone.setSeconds(0);
+    clone.setMilliseconds(0);
   }
   else if (this.scale == TimeStep.SCALE.MONTH) {
-    if (date.getDate() > 15) {
-      date.setDate(1);
-      date.setMonth(date.getMonth() + 1);
+    if (clone.getDate() > 15) {
+      clone.setDate(1);
+      clone.setMonth(clone.getMonth() + 1);
       // important: first set Date to 1, after that change the month.
     }
     else {
-      date.setDate(1);
+      clone.setDate(1);
     }
 
-    date.setHours(0);
-    date.setMinutes(0);
-    date.setSeconds(0);
-    date.setMilliseconds(0);
+    clone.setHours(0);
+    clone.setMinutes(0);
+    clone.setSeconds(0);
+    clone.setMilliseconds(0);
   }
   else if (this.scale == TimeStep.SCALE.DAY ||
       this.scale == TimeStep.SCALE.WEEKDAY) {
@@ -317,56 +320,58 @@ TimeStep.prototype.snap = function(date) {
     switch (this.step) {
       case 5:
       case 2:
-        date.setHours(Math.round(date.getHours() / 24) * 24); break;
+        clone.setHours(Math.round(clone.getHours() / 24) * 24); break;
       default:
-        date.setHours(Math.round(date.getHours() / 12) * 12); break;
+        clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
     }
-    date.setMinutes(0);
-    date.setSeconds(0);
-    date.setMilliseconds(0);
+    clone.setMinutes(0);
+    clone.setSeconds(0);
+    clone.setMilliseconds(0);
   }
   else if (this.scale == TimeStep.SCALE.HOUR) {
     switch (this.step) {
       case 4:
-        date.setMinutes(Math.round(date.getMinutes() / 60) * 60); break;
+        clone.setMinutes(Math.round(clone.getMinutes() / 60) * 60); break;
       default:
-        date.setMinutes(Math.round(date.getMinutes() / 30) * 30); break;
+        clone.setMinutes(Math.round(clone.getMinutes() / 30) * 30); break;
     }
-    date.setSeconds(0);
-    date.setMilliseconds(0);
+    clone.setSeconds(0);
+    clone.setMilliseconds(0);
   } else if (this.scale == TimeStep.SCALE.MINUTE) {
     //noinspection FallthroughInSwitchStatementJS
     switch (this.step) {
       case 15:
       case 10:
-        date.setMinutes(Math.round(date.getMinutes() / 5) * 5);
-        date.setSeconds(0);
+        clone.setMinutes(Math.round(clone.getMinutes() / 5) * 5);
+        clone.setSeconds(0);
         break;
       case 5:
-        date.setSeconds(Math.round(date.getSeconds() / 60) * 60); break;
+        clone.setSeconds(Math.round(clone.getSeconds() / 60) * 60); break;
       default:
-        date.setSeconds(Math.round(date.getSeconds() / 30) * 30); break;
+        clone.setSeconds(Math.round(clone.getSeconds() / 30) * 30); break;
     }
-    date.setMilliseconds(0);
+    clone.setMilliseconds(0);
   }
   else if (this.scale == TimeStep.SCALE.SECOND) {
     //noinspection FallthroughInSwitchStatementJS
     switch (this.step) {
       case 15:
       case 10:
-        date.setSeconds(Math.round(date.getSeconds() / 5) * 5);
-        date.setMilliseconds(0);
+        clone.setSeconds(Math.round(clone.getSeconds() / 5) * 5);
+        clone.setMilliseconds(0);
         break;
       case 5:
-        date.setMilliseconds(Math.round(date.getMilliseconds() / 1000) * 1000); break;
+        clone.setMilliseconds(Math.round(clone.getMilliseconds() / 1000) * 1000); break;
       default:
-        date.setMilliseconds(Math.round(date.getMilliseconds() / 500) * 500); break;
+        clone.setMilliseconds(Math.round(clone.getMilliseconds() / 500) * 500); break;
     }
   }
   else if (this.scale == TimeStep.SCALE.MILLISECOND) {
     var step = this.step > 5 ? this.step / 2 : 1;
-    date.setMilliseconds(Math.round(date.getMilliseconds() / step) * step);
+    clone.setMilliseconds(Math.round(clone.getMilliseconds() / step) * step);
   }
+  
+  return clone;
 };
 
 /**

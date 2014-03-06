@@ -3,7 +3,6 @@
  */
 var vis = {
   util: util,
-  events: events,
 
   Controller: Controller,
   DataSet: DataSet,
@@ -11,7 +10,6 @@ var vis = {
   Range: Range,
   Stack: Stack,
   TimeStep: TimeStep,
-  EventBus: EventBus,
 
   components: {
     items: {

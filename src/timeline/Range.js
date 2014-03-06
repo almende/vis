@@ -16,6 +16,9 @@ function Range(options) {
   this.setOptions(options);
 }
 
+// extend the Range prototype with an event emitter mixin
+Emitter(Range.prototype);
+
 /**
  * Set options for the range controller
  * @param {Object} options      Available options:
@@ -48,27 +51,33 @@ function validateDirection (direction) {
 
 /**
  * Add listeners for mouse and touch events to the component
- * @param {Component} component
+ * @param {Controller} controller
+ * @param {Component} component  Should be a rootpanel
  * @param {String} event        Available events: 'move', 'zoom'
  * @param {String} direction    Available directions: 'horizontal', 'vertical'
  */
-Range.prototype.subscribe = function (component, event, direction) {
+Range.prototype.subscribe = function (controller, component, event, direction) {
   var me = this;
 
   if (event == 'move') {
     // drag start listener
-    component.on('dragstart', function (event) {
+    controller.on('dragstart', function (event) {
       me._onDragStart(event, component);
     });
 
     // drag listener
-    component.on('drag', function (event) {
+    controller.on('drag', function (event) {
       me._onDrag(event, component, direction);
     });
 
     // drag end listener
-    component.on('dragend', function (event) {
+    controller.on('dragend', function (event) {
       me._onDragEnd(event, component);
+    });
+
+    // ignore dragging when holding
+    controller.on('hold', function (event) {
+      me._onHold();
     });
   }
   else if (event == 'zoom') {
@@ -76,14 +85,14 @@ Range.prototype.subscribe = function (component, event, direction) {
     function mousewheel (event) {
       me._onMouseWheel(event, component, direction);
     }
-    component.on('mousewheel', mousewheel);
-    component.on('DOMMouseScroll', mousewheel); // For FF
+    controller.on('mousewheel', mousewheel);
+    controller.on('DOMMouseScroll', mousewheel); // For FF
 
     // pinch
-    component.on('touch', function (event) {
-      me._onTouch();
+    controller.on('touch', function (event) {
+      me._onTouch(event);
     });
-    component.on('pinch', function (event) {
+    controller.on('pinch', function (event) {
       me._onPinch(event, component, direction);
     });
   }
@@ -94,44 +103,6 @@ Range.prototype.subscribe = function (component, event, direction) {
 };
 
 /**
- * Add event listener
- * @param {String} event       Name of the event.
- *                             Available events: 'rangechange', 'rangechanged'
- * @param {function} callback  Callback function, invoked as callback({start: Date, end: Date})
- */
-Range.prototype.on = function on (event, callback) {
-  var available = ['rangechange', 'rangechanged'];
-
-  if (available.indexOf(event) == -1) {
-    throw new Error('Unknown event "' + event + '". Choose from ' + available.join());
-  }
-
-  events.addListener(this, event, callback);
-};
-
-/**
- * Remove an event listener
- * @param {String} event       name of the event
- * @param {function} callback  callback handler
- */
-Range.prototype.off = function off (event, callback) {
-  events.removeListener(this, event, callback);
-};
-
-/**
- * Trigger an event
- * @param {String} event    name of the event, available events: 'rangechange',
- *                          'rangechanged'
- * @private
- */
-Range.prototype._trigger = function (event) {
-  events.trigger(this, event, {
-    start: this.start,
-    end: this.end
-  });
-};
-
-/**
  * Set a new start and end range
  * @param {Number} [start]
  * @param {Number} [end]
@@ -139,8 +110,12 @@ Range.prototype._trigger = function (event) {
 Range.prototype.setRange = function(start, end) {
   var changed = this._applyRange(start, end);
   if (changed) {
-    this._trigger('rangechange');
-    this._trigger('rangechanged');
+    var params = {
+          start: this.start,
+          end: this.end
+    };
+    this.emit('rangechange', params);
+    this.emit('rangechanged', params);
   }
 };
 
@@ -311,7 +286,9 @@ var touchParams = {};
 Range.prototype._onDragStart = function(event, component) {
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
-  if (touchParams.pinching) return;
+  if (touchParams.ignore) return;
+
+  // TODO: reckon with option movable
 
   touchParams.start = this.start;
   touchParams.end = this.end;
@@ -332,9 +309,12 @@ Range.prototype._onDragStart = function(event, component) {
 Range.prototype._onDrag = function (event, component, direction) {
   validateDirection(direction);
 
+  // TODO: reckon with option movable
+
+
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
-  if (touchParams.pinching) return;
+  if (touchParams.ignore) return;
 
   var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
       interval = (touchParams.end - touchParams.start),
@@ -343,8 +323,10 @@ Range.prototype._onDrag = function (event, component, direction) {
 
   this._applyRange(touchParams.start + diffRange, touchParams.end + diffRange);
 
-  // fire a rangechange event
-  this._trigger('rangechange');
+  this.emit('rangechange', {
+    start: this.start,
+    end: this.end
+  });
 };
 
 /**
@@ -356,14 +338,19 @@ Range.prototype._onDrag = function (event, component, direction) {
 Range.prototype._onDragEnd = function (event, component) {
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
-  if (touchParams.pinching) return;
+  if (touchParams.ignore) return;
+
+  // TODO: reckon with option movable
 
   if (component.frame) {
     component.frame.style.cursor = 'auto';
   }
 
   // fire a rangechanged event
-  this._trigger('rangechanged');
+  this.emit('rangechanged', {
+    start: this.start,
+    end: this.end
+  });
 };
 
 /**
@@ -376,6 +363,8 @@ Range.prototype._onDragEnd = function (event, component) {
  */
 Range.prototype._onMouseWheel = function(event, component, direction) {
   validateDirection(direction);
+
+  // TODO: reckon with option zoomable
 
   // retrieve delta
   var delta = 0;
@@ -405,7 +394,7 @@ Range.prototype._onMouseWheel = function(event, component, direction) {
 
     // calculate center, the date to zoom around
     var gesture = util.fakeGesture(this, event),
-        pointer = getPointer(gesture.touches[0], component.frame),
+        pointer = getPointer(gesture.center, component.frame),
         pointerDate = this._pointerToDate(component, direction, pointer);
 
     this.zoom(scale, pointerDate);
@@ -413,18 +402,33 @@ Range.prototype._onMouseWheel = function(event, component, direction) {
 
   // Prevent default actions caused by mouse wheel
   // (else the page and timeline both zoom and scroll)
-  util.preventDefault(event);
+  event.preventDefault();
 };
 
 /**
- * On start of a touch gesture, initialize scale to 1
+ * Start of a touch gesture
  * @private
  */
-Range.prototype._onTouch = function () {
+Range.prototype._onTouch = function (event) {
   touchParams.start = this.start;
   touchParams.end = this.end;
-  touchParams.pinching = false;
+  touchParams.ignore = false;
   touchParams.center = null;
+
+  // don't move the range when dragging a selected event
+  // TODO: it's not so neat to have to know about the state of the ItemSet
+  var item = ItemSet.itemFromTarget(event);
+  if (item && item.selected && this.options.editable) {
+    touchParams.ignore = true;
+  }
+};
+
+/**
+ * On start of a hold gesture
+ * @private
+ */
+Range.prototype._onHold = function () {
+  touchParams.ignore = true;
 };
 
 /**
@@ -435,7 +439,9 @@ Range.prototype._onTouch = function () {
  * @private
  */
 Range.prototype._onPinch = function (event, component, direction) {
-  touchParams.pinching = true;
+  touchParams.ignore = true;
+
+  // TODO: reckon with option zoomable
 
   if (event.gesture.touches.length > 1) {
     if (!touchParams.center) {

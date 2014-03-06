@@ -20,7 +20,6 @@ function Component () {
  * set.
  * @param {Object} options  Available parameters:
  *                          {String | function} [className]
- *                          {EventBus} [eventBus]
  *                          {String | Number | function} [left]
  *                          {String | Number | function} [top]
  *                          {String | Number | function} [width]
@@ -53,6 +52,23 @@ Component.prototype.getOption = function getOption(name) {
     value = this.defaultOptions[name];
   }
   return value;
+};
+
+/**
+ * Set controller for this component, or remove current controller by passing
+ * null as parameter value.
+ * @param {Controller | null} controller
+ */
+Component.prototype.setController = function setController (controller) {
+  this.controller = controller || null;
+};
+
+/**
+ * Get controller of this component
+ * @return {Controller} controller
+ */
+Component.prototype.getController = function getController () {
+  return this.controller;
 };
 
 /**
@@ -126,7 +142,7 @@ Component.prototype.show = function show() {
  */
 Component.prototype.requestRepaint = function requestRepaint() {
   if (this.controller) {
-    this.controller.requestRepaint();
+    this.controller.emit('request-repaint');
   }
   else {
     throw new Error('Cannot request a repaint: no controller configured');
@@ -139,7 +155,7 @@ Component.prototype.requestRepaint = function requestRepaint() {
  */
 Component.prototype.requestReflow = function requestReflow() {
   if (this.controller) {
-    this.controller.requestReflow();
+    this.controller.emit('request-reflow');
   }
   else {
     throw new Error('Cannot request a reflow: no controller configured');
