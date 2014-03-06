@@ -1929,7 +1929,7 @@ Graph.prototype._initializeMixinLoaders = function () {
 /**
  * Load the XY positions of the nodes into the dataset.
  */
-Graph.prototype.loadXYinDataset = function() {
+Graph.prototype.storePosition = function() {
   var dataArray = [];
   for (var nodeId in this.nodes) {
     if (this.nodes.hasOwnProperty(nodeId)) {
