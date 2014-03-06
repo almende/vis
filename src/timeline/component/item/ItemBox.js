@@ -21,8 +21,10 @@ function ItemBox (parent, data, options, defaultOptions) {
   };
 
   // validate data
-  if (data.start == undefined) {
-    throw new Error('Property "start" missing in item ' + data);
+  if (data) {
+    if (data.start == undefined) {
+      throw new Error('Property "start" missing in item ' + data);
+    }
   }
 
   Item.call(this, parent, data, options, defaultOptions);
@@ -52,10 +54,8 @@ ItemBox.prototype.isVisible = function isVisible () {
 
 /**
  * Repaint the item
- * @return {Boolean} changed
  */
 ItemBox.prototype.repaint = function repaint() {
-  // TODO: make an efficient repaint
   var dom,
       update = util.updateProperty,
       props= this.props;
@@ -147,10 +147,7 @@ ItemBox.prototype.repaint = function repaint() {
     this.dirty = false;
   }
 
-  // TODO: repaint delete button
   this._repaintDeleteButton(dom.box);
-
-  return false;
 };
 
 /**

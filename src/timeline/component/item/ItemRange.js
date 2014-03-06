@@ -11,10 +11,19 @@
 function ItemRange (parent, data, options, defaultOptions) {
   this.props = {
     content: {
-      left: 0,
       width: 0
     }
   };
+
+  // validate data
+  if (data) {
+    if (data.start == undefined) {
+      throw new Error('Property "start" missing in item ' + data.id);
+    }
+    if (data.end == undefined) {
+      throw new Error('Property "end" missing in item ' + data.id);
+    }
+  }
 
   Item.call(this, parent, data, options, defaultOptions);
 }
@@ -22,79 +31,105 @@ function ItemRange (parent, data, options, defaultOptions) {
 ItemRange.prototype = new Item (null, null);
 
 /**
+ * Check whether this item is visible in the current time window
+ * @returns {boolean} True if visible
+ */
+ItemRange.prototype.isVisible = function isVisible () {
+  // determine visibility
+  var data = this.data;
+  var range = this.parent && this.parent.range;
+
+  if (data && range) {
+    return (data.start < range.end) && (data.end > range.start);
+  }
+  else {
+    return false;
+  }
+}
+
+/**
  * Repaint the item
- * @return {Boolean} changed
  */
 ItemRange.prototype.repaint = function repaint() {
-  // TODO: make an efficient repaint
-  var changed = false;
-  var dom = this.dom;
+  var dom,
+      update = util.updateProperty,
+      props= this.props;
 
+  // create DOM
+  dom = this.dom;
   if (!dom) {
-    this._create();
+    this.dom = {};
     dom = this.dom;
-    changed = true;
+
+      // background box
+    dom.box = document.createElement('div');
+    // className is updated in repaint()
+
+    // contents box
+    dom.content = document.createElement('div');
+    dom.content.className = 'content';
+    dom.box.appendChild(dom.content);
+
+    // attach this item as attribute
+    dom.box['timeline-item'] = this;
   }
 
-  if (dom) {
-    if (!this.parent) {
-      throw new Error('Cannot repaint item: no parent attached');
-    }
+  // append DOM to parent DOM
+  if (!this.parent) {
+    throw new Error('Cannot repaint item: no parent attached');
+  }
+  if (!dom.box.parentNode) {
     var foreground = this.parent.getForeground();
     if (!foreground) {
-      throw new Error('Cannot repaint time axis: ' +
-          'parent has no foreground container element');
+      throw new Error('Cannot repaint time axis: parent has no foreground container element');
     }
+    foreground.appendChild(dom.box);
+  }
+  this.displayed = true;
 
-    if (!dom.box.parentNode) {
-      foreground.appendChild(dom.box);
-      changed = true;
+  // update contents
+  if (this.data.content != this.content) {
+    this.content = this.data.content;
+    if (this.content instanceof Element) {
+      dom.content.innerHTML = '';
+      dom.content.appendChild(this.content);
     }
-
-    // update content
-    if (this.data.content != this.content) {
-      this.content = this.data.content;
-      if (this.content instanceof Element) {
-        dom.content.innerHTML = '';
-        dom.content.appendChild(this.content);
-      }
-      else if (this.data.content != undefined) {
-        dom.content.innerHTML = this.content;
-      }
-      else {
-        throw new Error('Property "content" missing in item ' + this.data.id);
-      }
-      changed = true;
+    else if (this.data.content != undefined) {
+      dom.content.innerHTML = this.content;
     }
-
-    this._repaintDeleteButton(dom.box);
-    this._repaintDragLeft();
-    this._repaintDragRight();
-
-    // update class
-    var className = (this.data.className ? (' ' + this.data.className) : '') +
-        (this.selected ? ' selected' : '');
-    if (this.className != className) {
-      this.className = className;
-      dom.box.className = 'item range' + className;
-      changed = true;
+    else {
+      throw new Error('Property "content" missing in item ' + this.data.id);
     }
   }
 
-  return changed;
+  // update class
+  var className = (this.data.className ? (' ' + this.data.className) : '') +
+      (this.selected ? ' selected' : '');
+  if (this.className != className) {
+    this.className = className;
+    dom.box.className = 'item range' + className;
+  }
+
+  // recalculate size
+  if (this.dirty) {
+    update(props.content, 'width', this.dom.content.offsetWidth);
+    update(this, 'height', this.dom.box.offsetHeight);
+
+    this.dirty = false;
+  }
+
+  this._repaintDeleteButton(dom.box);
+  this._repaintDragLeft();
+  this._repaintDragRight();
 };
 
 /**
  * Show the item in the DOM (when not already visible). The items DOM will
  * be created when needed.
- * @return {Boolean} changed
  */
 ItemRange.prototype.show = function show() {
-  if (!this.dom || !this.dom.box.parentNode) {
-    return this.repaint();
-  }
-  else {
-    return false;
+  if (!this.displayed) {
+    this.repaint();
   }
 };
 
@@ -103,15 +138,15 @@ ItemRange.prototype.show = function show() {
  * @return {Boolean} changed
  */
 ItemRange.prototype.hide = function hide() {
-  var changed = false,
-      dom = this.dom;
-  if (dom) {
-    if (dom.box.parentNode) {
-      dom.box.parentNode.removeChild(dom.box);
-      changed = true;
+  if (this.displayed) {
+    var box = this.dom.box;
+
+    if (box.parentNode) {
+      box.parentNode.removeChild(box);
     }
+
+    this.displayed = false;
   }
-  return changed;
 };
 
 /**
@@ -119,7 +154,10 @@ ItemRange.prototype.hide = function hide() {
  * @return {boolean} resized    returns true if the axis is resized
  * @override
  */
+// TODO: remove function
 ItemRange.prototype.reflow = function reflow() {
+  return false;
+
   var changed = 0,
       dom,
       props,
@@ -137,23 +175,6 @@ ItemRange.prototype.reflow = function reflow() {
       contentLeft,
       orientation,
       top;
-
-  if (this.data.start == undefined) {
-    throw new Error('Property "start" missing in item ' + this.data.id);
-  }
-  if (this.data.end == undefined) {
-    throw new Error('Property "end" missing in item ' + this.data.id);
-  }
-
-  data = this.data;
-  range = this.parent && this.parent.range;
-  if (data && range) {
-    // TODO: account for the width of the item. Take some margin
-    this.visible = (data.start < range.end) && (data.end > range.start);
-  }
-  else {
-    this.visible = false;
-  }
 
   if (this.visible) {
     dom = this.dom;
@@ -237,21 +258,49 @@ ItemRange.prototype._create = function _create() {
 };
 
 /**
- * Reposition the item, recalculate its left, top, and width, using the current
- * range and size of the items itemset
- * @override
+ * Reposition the item horizontally
+ * @Override
  */
-ItemRange.prototype.reposition = function reposition() {
-  var dom = this.dom,
-      props = this.props;
+ItemRange.prototype.repositionX = function repositionX() {
+  var props = this.props,
+      parentWidth = this.parent.width,
+      start = this.parent.toScreen(this.data.start) + this.offset,
+      end = this.parent.toScreen(this.data.end) + this.offset,
+      padding = 'padding' in this.options ? this.options.padding : this.defaultOptions.padding,
+      contentLeft;
 
-  if (dom) {
-    dom.box.style.top = this.top + 'px';
-    dom.box.style.left = this.left + 'px';
-    dom.box.style.width = this.width + 'px';
-
-    dom.content.style.left = props.content.left + 'px';
+  // limit the width of the this, as browsers cannot draw very wide divs
+  if (start < -parentWidth) {
+    start = -parentWidth;
   }
+  if (end > 2 * parentWidth) {
+    end = 2 * parentWidth;
+  }
+
+  // when range exceeds left of the window, position the contents at the left of the visible area
+  if (start < 0) {
+    contentLeft = Math.min(-start,
+        (end - start - props.content.width - 2 * padding));
+    // TODO: remove the need for options.padding. it's terrible.
+  }
+  else {
+    contentLeft = 0;
+  }
+
+  this.left = start;
+  this.width = Math.max(end - start, 1);
+
+  this.dom.box.style.left = this.left + 'px';
+  this.dom.box.style.width = this.width + 'px';
+  this.dom.content.style.left = contentLeft + 'px';
+};
+
+/**
+ * Reposition the item vertically
+ * @Override
+ */
+ItemRange.prototype.repositionY = function repositionY() {
+  this.dom.box.style.top = this.top + 'px';
 };
 
 /**

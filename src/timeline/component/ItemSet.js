@@ -547,6 +547,7 @@ ItemSet.prototype.removeItem = function removeItem (id) {
  */
 ItemSet.prototype._onUpdate = function _onUpdate(ids) {
   var me = this,
+      items = this.items,
       defaultOptions = {
         type: 'box',
         align: 'center',
@@ -573,6 +574,11 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
       // update item
       if (!constructor || !(item instanceof constructor)) {
         // item type has changed, hide and delete the item
+        if (!('hide' in item)) {
+          console.log('item has no hide?!', item, Object.keys(items))
+          console.trace()
+        }
+
         item.hide();
         item = null;
       }
