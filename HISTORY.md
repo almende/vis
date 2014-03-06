@@ -1,6 +1,12 @@
 vis.js history
 http://visjs.org
 
+## 2014-03-06, version 0.6.2
+
+### Graph
+
+- changed navigation CSS. Icons are now always correctly positioned.
+- added stabilizationIterations option to graph.
 
 ## 2014-03-06, version 0.6.1
 
