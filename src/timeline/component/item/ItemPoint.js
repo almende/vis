@@ -34,21 +34,14 @@ function ItemPoint (parent, data, options, defaultOptions) {
 ItemPoint.prototype = new Item (null, null);
 
 /**
- * Check whether this item is visible in the current time window
+ * Check whether this item is visible inside given range
+ * @returns {{start: Number, end: Number}} range with a timestamp for start and end
  * @returns {boolean} True if visible
  */
-ItemPoint.prototype.isVisible = function isVisible () {
+ItemPoint.prototype.isVisible = function isVisible (range) {
   // determine visibility
-  var data = this.data;
-  var range = this.parent && this.parent.range;
-
-  if (data && range) {
-    var interval = (range.end - range.start);
-    return (data.start > range.start - interval) && (data.start < range.end);
-  }
-  else {
-    return false;
-  }
+  var interval = (range.end - range.start);
+  return (this.data.start > range.start - interval) && (this.data.start < range.end);
 }
 
 /**

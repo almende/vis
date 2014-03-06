@@ -301,11 +301,11 @@ ItemSet.prototype.repaint = function repaint() {
   // find start of visible items
   var start = Math.min(this.visibleItemsStart, Math.max(this.orderedItems.length - 1, 0));
   var item = this.orderedItems[start];
-  while (item && item.isVisible() && start > 0) {
+  while (item && item.isVisible(this.range) && start > 0) {
     start--;
     item = this.orderedItems[start];
   }
-  while (item && !item.isVisible()) {
+  while (item && !item.isVisible(this.range)) {
     if (item.displayed) item.hide();
 
     start++;
@@ -316,12 +316,12 @@ ItemSet.prototype.repaint = function repaint() {
   // find end of visible items
   var end = Math.max(Math.min(this.visibleItemsEnd, this.orderedItems.length), this.visibleItemsStart);
   item = this.orderedItems[end];
-  while (item && item.isVisible()) {
+  while (item && item.isVisible(this.range)) {
     end++;
     item = this.orderedItems[end];
   }
   item = this.orderedItems[end - 1];
-  while (item && !item.isVisible() && end > 0) {
+  while (item && !item.isVisible(this.range) && end > 0) {
     if (item.displayed) item.hide();
 
     end--;

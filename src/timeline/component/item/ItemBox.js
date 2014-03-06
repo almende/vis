@@ -33,23 +33,16 @@ function ItemBox (parent, data, options, defaultOptions) {
 ItemBox.prototype = new Item (null, null);
 
 /**
- * Check whether this item is visible in the current time window
+ * Check whether this item is visible inside given range
+ * @returns {{start: Number, end: Number}} range with a timestamp for start and end
  * @returns {boolean} True if visible
  */
-ItemBox.prototype.isVisible = function isVisible () {
+ItemBox.prototype.isVisible = function isVisible (range) {
   // determine visibility
-  var data = this.data;
-  var range = this.parent && this.parent.range;
-
-  if (data && range) {
-    // TODO: account for the width of the item. Right now we add 1/4 to the window
-    var interval = (range.end - range.start) / 4;
-    interval = 0; // TODO: remove
-    return (data.start > range.start - interval) && (data.start < range.end + interval);
-  }
-  else {
-    return false;
-  }
+  // TODO: account for the width of the item. Right now we add 1/4 to the window
+  var interval = (range.end - range.start) / 4;
+  interval = 0; // TODO: remove
+  return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
 }
 
 /**

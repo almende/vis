@@ -33,20 +33,13 @@ ItemRange.prototype = new Item (null, null);
 ItemRange.prototype.baseClassName = 'item range';
 
 /**
- * Check whether this item is visible in the current time window
+ * Check whether this item is visible inside given range
+ * @returns {{start: Number, end: Number}} range with a timestamp for start and end
  * @returns {boolean} True if visible
  */
-ItemRange.prototype.isVisible = function isVisible () {
+ItemRange.prototype.isVisible = function isVisible (range) {
   // determine visibility
-  var data = this.data;
-  var range = this.parent && this.parent.range;
-
-  if (data && range) {
-    return (data.start < range.end) && (data.end > range.start);
-  }
-  else {
-    return false;
-  }
+  return (this.data.start < range.end) && (this.data.end > range.start);
 }
 
 /**
