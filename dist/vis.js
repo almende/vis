@@ -11764,10 +11764,10 @@ var physicsMixin = {
         '<td width="150px">direction</td><td>1</td><td><input type="range" min="0" max="3" value="' + hierarchicalLayoutDirections.indexOf(this.constants.hierarchicalLayout.direction) + '" step="1" style="width:300px" id="graph_H_direction"></td><td>4</td><td><input value="' + this.constants.hierarchicalLayout.direction + '" id="graph_H_direction_value" style="width:60px"></td>'+
         '</tr>'+
         '<tr>'+
-        '<td width="150px">levelSeparation</td><td>1</td><td><input type="range" min="0" max="' + this.constants.hierarchicalLayout.levelSeparation + '" value="150" step="1" style="width:300px" id="graph_H_levsep"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.levelSeparation + '" id="graph_H_levsep_value" style="width:60px"></td>'+
+        '<td width="150px">levelSeparation</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.levelSeparation + '" step="1" style="width:300px" id="graph_H_levsep"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.levelSeparation + '" id="graph_H_levsep_value" style="width:60px"></td>'+
         '</tr>'+
         '<tr>'+
-        '<td width="150px">nodeSpacing</td><td>1</td><td><input type="range" min="0" max="' + this.constants.hierarchicalLayout.nodeSpacing + '" value="100" step="1" style="width:300px" id="graph_H_nspac"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.nodeSpacing + '" id="graph_H_nspac_value" style="width:60px"></td>'+
+        '<td width="150px">nodeSpacing</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.nodeSpacing + '" step="1" style="width:300px" id="graph_H_nspac"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.nodeSpacing + '" id="graph_H_nspac_value" style="width:60px"></td>'+
         '</tr>'+
         '</table>'
       this.containerElement.parentElement.insertBefore(this.physicsConfiguration,this.containerElement);
@@ -11887,19 +11887,20 @@ function switchConfigurations () {
 function showValueOfRange (id,map,constantsVariableName) {
   var valueId = id + "_value";
   var rangeValue = document.getElementById(id).value;
-  if (constantsVariableName == "hierarchicalLayout_direction" ||
-      constantsVariableName == "hierarchicalLayout_levelSeparation" ||
-      constantsVariableName == "hierarchicalLayout_nodeSpacing") {
-    this._setupHierarchicalLayout();
-  }
 
   if (map instanceof Array) {
     document.getElementById(valueId).value = map[parseInt(rangeValue)];
     this._overWriteGraphConstants(constantsVariableName,map[parseInt(rangeValue)]);
   }
   else {
-    document.getElementById(valueId).value = map * parseFloat(rangeValue);
-    this._overWriteGraphConstants(constantsVariableName,map * parseFloat(rangeValue));
+    document.getElementById(valueId).value = parseInt(map) * parseFloat(rangeValue);
+    this._overWriteGraphConstants(constantsVariableName, parseInt(map) * parseFloat(rangeValue));
+  }
+
+  if (constantsVariableName == "hierarchicalLayout_direction" ||
+    constantsVariableName == "hierarchicalLayout_levelSeparation" ||
+    constantsVariableName == "hierarchicalLayout_nodeSpacing") {
+    this._setupHierarchicalLayout();
   }
   this.moving = true;
   this.start();
@@ -12422,6 +12423,9 @@ var HierarchicalLayoutMixin = {
     if (this.constants.hierarchicalLayout.enabled == true) {
       if (this.constants.hierarchicalLayout.direction == "RL" || this.constants.hierarchicalLayout.direction == "DU") {
         this.constants.hierarchicalLayout.levelSeparation *= -1;
+      }
+      else {
+        this.constants.hierarchicalLayout.levelSeparation = Math.abs(this.constants.hierarchicalLayout.levelSeparation);
       }
       // get the size of the largest hubs and check if the user has defined a level for a node.
       var hubsize = 0;
