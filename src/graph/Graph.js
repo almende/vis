@@ -1805,9 +1805,10 @@ Graph.prototype._animationStep = function() {
   this.renderTime = Date.now() - renderTime;
 };
 
-
-window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
-                               window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+if (typeof window !== 'undefined') {
+  window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+                                 window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+}
 
 /**
  * Schedule a animation step with the refreshrate interval.

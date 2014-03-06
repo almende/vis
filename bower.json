@@ -8,6 +8,7 @@
     "url": "git://github.com/almende/vis.git"
   },
   "ignore": [
+    "misc",
     "node_modules",
     "src",
     "test",
