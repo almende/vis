@@ -56,13 +56,9 @@ ItemBox.prototype.isVisible = function isVisible () {
  * Repaint the item
  */
 ItemBox.prototype.repaint = function repaint() {
-  var dom,
-      update = util.updateProperty,
-      props= this.props;
-
-  // create DOM
-  dom = this.dom;
+  var dom = this.dom;
   if (!dom) {
+    // create DOM
     this.dom = {};
     dom = this.dom;
 
@@ -138,11 +134,11 @@ ItemBox.prototype.repaint = function repaint() {
 
   // recalculate size
   if (this.dirty) {
-    update(props.dot, 'height', dom.dot.offsetHeight);
-    update(props.dot, 'width', dom.dot.offsetWidth);
-    update(props.line, 'width', dom.line.offsetWidth);
-    update(this, 'width', dom.box.offsetWidth);
-    update(this, 'height', dom.box.offsetHeight);
+    this.props.dot.height = dom.dot.offsetHeight;
+    this.props.dot.width = dom.dot.offsetWidth;
+    this.props.line.width = dom.line.offsetWidth;
+    this.width = dom.box.offsetWidth;
+    this.height = dom.box.offsetHeight;
 
     this.dirty = false;
   }
