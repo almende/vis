@@ -30,6 +30,8 @@ function ItemRange (parent, data, options, defaultOptions) {
 
 ItemRange.prototype = new Item (null, null);
 
+ItemRange.prototype.baseClassName = 'item range';
+
 /**
  * Check whether this item is visible in the current time window
  * @returns {boolean} True if visible
@@ -105,7 +107,7 @@ ItemRange.prototype.repaint = function repaint() {
       (this.selected ? ' selected' : '');
   if (this.className != className) {
     this.className = className;
-    dom.box.className = 'item range' + className;
+    dom.box.className = this.baseClassName + className;
 
     this.dirty = true;
   }
