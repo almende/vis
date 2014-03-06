@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version @@version
- * @date    @@date
+ * @version 0.7.0-SNAPSHOT
+ * @date    2014-03-06
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -9588,8 +9588,8 @@ Node.prototype.setProperties = function(properties, constants) {
     }
   }
 
-  this.xFixed = this.xFixed || (properties.x !== undefined && !properties.allowedToMove);
-  this.yFixed = this.yFixed || (properties.y !== undefined && !properties.allowedToMove);
+  this.xFixed = this.xFixed || (properties.x !== undefined && !properties.allowedToMoveX);
+  this.yFixed = this.yFixed || (properties.y !== undefined && !properties.allowedToMoveY);
   this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
 
   if (this.shape == 'image') {
@@ -12995,7 +12995,7 @@ var manipulationMixin = {
   _addNode : function() {
     if (this._selectionIsEmpty() && this.editMode == true) {
       var positionObject = this._pointerToPositionObject(this.pointerPosition);
-      var defaultData = {id:util.randomUUID(),x:positionObject.left,y:positionObject.top,label:"new",allowedToMove:true};
+      var defaultData = {id:util.randomUUID(),x:positionObject.left,y:positionObject.top,label:"new",allowedToMoveX:true,allowedToMoveY:true};
       if (this.triggerFunctions.add) {
         if (this.triggerFunctions.add.length == 2) {
           var me = this;
@@ -17697,6 +17697,23 @@ Graph.prototype._initializeMixinLoaders = function () {
   }
 };
 
+/**
+ * Load the XY positions of the nodes into the dataset.
+ */
+Graph.prototype.loadXYinDataset = function() {
+  var dataArray = [];
+  for (var nodeId in this.nodes) {
+    if (this.nodes.hasOwnProperty(nodeId)) {
+      var node = this.nodes[nodeId];
+      var allowedToMoveX = !this.nodes.xFixed;
+      var allowedToMoveY = !this.nodes.yFixed;
+      if (this.nodesData.data[nodeId].x != Math.round(node.x) || this.nodesData.data[nodeId].y != Math.round(node.y)) {
+        dataArray.push({id:nodeId,x:Math.round(node.x),y:Math.round(node.y),allowedToMoveX:allowedToMoveX,allowedToMoveY:allowedToMoveY});
+      }
+    }
+  }
+  this.nodesData.update(dataArray);
+};
 
 
 

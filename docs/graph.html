@@ -863,13 +863,20 @@ var options = {
     <td>Default border color of the node when selected.</td>
   </tr>
     <tr>
-        <td>allowedToMove</td>
+        <td>allowedToMoveX</td>
         <td>Boolean</td>
         <td>false</td>
-        <td>If allowedToMove is false, then the node will not move from its supplied position.
-            If only an x position has been supplied, it is only fixed in the x-direction.
-            The same holds for y. If both x and y have been defined, the node will not move.
-            If no x or y have been supplied, this argument will not do anything.</td>
+        <td>If allowedToMoveX is false, then the node will not move from its supplied position.
+            If an X position has been supplied, it is fixed in the X-direction.
+            If no X value has been supplied, this argument will not do anything.</td>
+    </tr>
+    <tr>
+        <td>allowedToMoveY</td>
+        <td>Boolean</td>
+        <td>false</td>
+        <td>If allowedToMoveY is false, then the node will not move from its supplied position.
+            If an Y position has been supplied, it is fixed in the Y-direction.
+            If no Y value has been supplied, this argument will not do anything.</td>
     </tr>
 
   <tr>
@@ -1768,6 +1775,13 @@ var options: {
       The selections are not ordered.
     </td>
   </tr>
+    <tr>
+        <td>loadXYinDataset()</td>
+        <td>none</td>
+        <td>This will put the X and Y positions of all nodes in the dataset. It will also include allowedToMoveX and allowedToMoveY with the correct values.
+            You can use this to stablize your graph once, then save the positions in a database so the next time you load the nodes, stabilization will be near instantaneous.
+        </td>
+    </tr>
 
   <tr>
     <td>on(event, callback)</td>
@@ -1826,7 +1840,7 @@ var options: {
   </tr>
 
     <tr>
-        <td>zoomExtent</td>
+        <td>zoomExtent()</td>
         <td>none</td>
         <td>Scales the graph so all the nodes are in center view.</td>
     </tr>
