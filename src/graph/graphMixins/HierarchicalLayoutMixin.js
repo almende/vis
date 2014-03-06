@@ -96,7 +96,7 @@ var HierarchicalLayoutMixin = {
     }
 
     // stabilize the system after positioning. This function calls zoomExtent.
-    this._doStabilize();
+    this._stabilize();
   },
 
 

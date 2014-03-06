@@ -30,6 +30,9 @@ var NavigationMixin = {
 
     this.navigationDivs['wrapper'] = document.createElement('div');
     this.navigationDivs['wrapper'].id = "graph-navigation_wrapper";
+    this.navigationDivs['wrapper'].style.position = "absolute";
+    this.navigationDivs['wrapper'].style.width = this.frame.canvas.clientWidth + "px";
+    this.navigationDivs['wrapper'].style.height = this.frame.canvas.clientHeight + "px";
     this.containerElement.insertBefore(this.navigationDivs['wrapper'],this.frame);
 
     for (var i = 0; i < navigationDivs.length; i++) {
@@ -81,7 +84,6 @@ var NavigationMixin = {
    * @private
    */
   _moveUp : function(event) {
-    console.log("here")
     this.yIncrement = this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);

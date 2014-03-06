@@ -145,7 +145,7 @@ function Graph (container, data, options) {
     smoothCurves: true,
     maxVelocity:  10,
     minVelocity:  0.1,   // px/s
-    maxIterations: 1000  // maximum number of iteration to stabilize
+    stabilizationIterations: 1000  // maximum number of iteration to stabilize
   };
   this.editMode = this.constants.dataManipulation.initiallyVisible;
 
@@ -451,7 +451,7 @@ Graph.prototype.setData = function(data, disableStart) {
   if (!disableStart) {
     // find a stable position or start animating to a stable position
     if (this.stabilize) {
-      this._doStabilize();
+      this._stabilize();
     }
     this.start();
   }
@@ -471,6 +471,7 @@ Graph.prototype.setOptions = function (options) {
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
     if (options.smoothCurves !== undefined)    {this.constants.smoothCurves = options.smoothCurves;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
+    if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
 
     if (options.onAdd) {
         this.triggerFunctions.add = options.onAdd;
@@ -1174,7 +1175,13 @@ Graph.prototype.setSize = function(width, height) {
   this.frame.canvas.height = this.frame.canvas.clientHeight;
 
   if (this.manipulationDiv !== undefined) {
-    this.manipulationDiv.style.width = this.frame.canvas.clientWidth;
+    this.manipulationDiv.style.width = this.frame.canvas.clientWidth + "px";
+  }
+  if (this.navigationDivs !== undefined) {
+    if (this.navigationDivs['wrapper'] !== undefined) {
+      this.navigationDivs['wrapper'].style.width = this.frame.canvas.clientWidth + "px";
+      this.navigationDivs['wrapper'].style.height = this.frame.canvas.clientHeight + "px";
+    }
   }
 
   this.emit('resize', {width:this.frame.canvas.width,height:this.frame.canvas.height});
@@ -1692,10 +1699,10 @@ Graph.prototype._drawEdges = function(ctx) {
  * Find a stable position for all nodes
  * @private
  */
-Graph.prototype._doStabilize = function() {
+Graph.prototype._stabilize = function() {
   // find stable position
   var count = 0;
-  while (this.moving && count < this.constants.maxIterations) {
+  while (this.moving && count < this.constants.stabilizationIterations) {
     this._physicsTick();
     count++;
   }
