@@ -7,8 +7,8 @@ http://visjs.org
 
 - changed navigation CSS. Icons are now always correctly positioned.
 - added stabilizationIterations option to graph.
-- added loadXYinDataset() method to save the XY positions of nodes in the dataset.
-- seperated allowedToMove into allowedToMoveX and allowedToMoveY. This is required for initializing nodes from hierarchical layouts after loadXYinDataset().
+- added storePosition() method to save the XY positions of nodes in the dataset.
+- seperated allowedToMove into allowedToMoveX and allowedToMoveY. This is required for initializing nodes from hierarchical layouts after storePosition().
 
 ## 2014-03-06, version 0.6.1
 
