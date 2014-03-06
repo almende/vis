@@ -140,6 +140,9 @@ ItemRange.prototype.hide = function hide() {
       box.parentNode.removeChild(box);
     }
 
+    this.top = null;
+    this.left = null;
+
     this.displayed = false;
   }
 };

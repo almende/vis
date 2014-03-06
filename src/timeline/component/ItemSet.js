@@ -45,19 +45,13 @@ function ItemSet(parent, depends, options) {
   // data change listeners
   this.listeners = {
     'add': function (event, params, senderId) {
-      if (senderId != me.id) {
-        me._onAdd(params.items);
-      }
+      if (senderId != me.id) me._onAdd(params.items);
     },
     'update': function (event, params, senderId) {
-      if (senderId != me.id) {
-        me._onUpdate(params.items);
-      }
+      if (senderId != me.id) me._onUpdate(params.items);
     },
     'remove': function (event, params, senderId) {
-      if (senderId != me.id) {
-        me._onRemove(params.items);
-      }
+      if (senderId != me.id) me._onRemove(params.items);
     }
   };
 
@@ -166,7 +160,7 @@ ItemSet.prototype.setRange = function setRange(range) {
  *                      unselected.
  */
 ItemSet.prototype.setSelection = function setSelection(ids) {
-  var i, ii, id, item, selection;
+  var i, ii, id, item;
 
   if (ids) {
     if (!Array.isArray(ids)) {
@@ -764,7 +758,7 @@ ItemSet.prototype._onDrag = function (event) {
 
     // TODO: implement dragging from one group to another
 
-    this.requestReflow();
+    this.repaint();
 
     event.stopPropagation();
   }
@@ -808,7 +802,7 @@ ItemSet.prototype._onDragEnd = function (event) {
             // restore original values
             if ('start' in props) props.item.data.start = props.start;
             if ('end' in props)   props.item.data.end   = props.end;
-            me.requestReflow();
+            me.repaint();
           }
         });
       }

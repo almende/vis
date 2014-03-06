@@ -47,9 +47,9 @@ ItemRangeOverflow.prototype.repositionX = function repositionX() {
 
   this.left = start;
   var boxWidth = Math.max(end - start, 1);
-  this.width = (this.props.content && boxWidth < this.props.content.width) ?
-      this.props.content.width :
-      boxWidth;
+  this.width = (this.props.content.width < boxWidth) ?
+      boxWidth :
+      start + contentLeft + this.props.content.width;
 
   this.dom.box.style.left = this.left + 'px';
   this.dom.box.style.width = boxWidth + 'px';

@@ -7,8 +7,8 @@
   display: inline-block;
   padding: 5px;
 
-  -webkit-transition: top .4s, height .4s, background-color .4s, -webkit-transform .4s ease-in-out;
-  transition: top .4s, height .4s, background-color .4s, transform .4s ease-in-out;
+  -webkit-transition: top .4s ease-in-out, height .4s ease-in-out;
+  transition:         top .4s ease-in-out, height .4s ease-in-out;
 }
 
 .vis.timeline .item.selected {
@@ -25,7 +25,8 @@
   background-color: #FFF785;
   z-index: 999;
 }
-.vis.timeline .item.point.selected .dot {
+.vis.timeline .item.point.selected .dot,
+.vis.timeline .item.dot.selected {
   border-color: #FFC200;
 }
 

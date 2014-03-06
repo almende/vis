@@ -29,9 +29,6 @@ function Stack (itemset, options) {
           return 1;
         }
         else {
-          if (!a.data) {
-            throw new Error('hu')
-          }
           return (a.data.start - b.data.start);
         }
       }
@@ -60,7 +57,7 @@ Stack.prototype.setOptions = function setOptions (options) {
 /**
  * Order a map with items
  * @param {Object<String, Item>} items
- * @return {Item[]} sorted items
+ * @return {{asc: Item[], desc: Item[]}} sorted items
  */
 Stack.prototype.order = function order(items) {
   var ordered = [];
@@ -70,13 +67,46 @@ Stack.prototype.order = function order(items) {
     if (items.hasOwnProperty(id)) ordered.push(items[id]);
   }
 
+  /* FIXME: fix option order
   //order the items
   var order = this.options.order || this.defaultOptions.order;
   if (!(typeof order === 'function')) {
     throw new Error('Option order must be a function');
   }
   ordered.sort(order);
+  */
 
+  // TODO: fix ordering, doesn't work correctly for ItemRange
+  ordered.sort(function (a, b) {
+    var aCenter = ('end' in a.data) ? (a.data.start + a.data.end) / 2 : a.data.start,
+        bCenter = ('end' in b.data) ? (b.data.start + b.data.end) / 2 : b.data.start;
+
+    return aCenter - bCenter;
+  });
+
+
+  /* TODO: cleanup
+  var asc = array.concat(),
+      desc= array.concat();
+
+  // sort ascending
+  asc.sort(function (a, b) {
+    return a.data.start - b.data.start;
+  });
+
+  // sort descending
+  desc.sort(function (a, b) {
+    var aTime = 'end' in a.data ? a.data.end : a.data.start,
+        bTime = 'end' in b.data ? b.data.end : b.data.start;
+
+    return bTime - aTime;
+  });
+
+  return {
+    asc: asc,
+    desc: desc
+  };
+  */
   return ordered;
 };
 

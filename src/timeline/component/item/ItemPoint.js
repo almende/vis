@@ -129,7 +129,7 @@ ItemPoint.prototype.repaint = function repaint() {
     this.dirty = false;
   }
 
-  this._repaintDeleteButton(dom.box);
+  this._repaintDeleteButton(dom.point);
 };
 
 /**
@@ -150,6 +150,9 @@ ItemPoint.prototype.hide = function hide() {
     if (this.dom.point.parentNode) {
       this.dom.point.parentNode.removeChild(this.dom.point);
     }
+
+    this.top = null;
+    this.left = null;
 
     this.displayed = false;
   }

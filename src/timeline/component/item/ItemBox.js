@@ -160,11 +160,11 @@ ItemBox.prototype.hide = function hide() {
     if (dom.line.parentNode)  dom.line.parentNode.removeChild(dom.line);
     if (dom.dot.parentNode)   dom.dot.parentNode.removeChild(dom.dot);
 
+    this.top = null;
+    this.left = null;
+
     this.displayed = false;
   }
-
-  this.top = null;
-  this.left = null;
 };
 
 /**
