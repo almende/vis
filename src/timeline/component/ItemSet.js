@@ -56,10 +56,13 @@ function ItemSet(parent, depends, options) {
   };
 
   this.items = {};        // object with an Item for every data item
-  this.orderedItems = []; // ordered items
+  this.orderedItems = {
+    byStart: [],
+    byEnd: []
+  };
   this.visibleItems = []; // visible, ordered items
-  this.visibleItemsStart = 0; // start index of visible items in this.orderedItems
-  this.visibleItemsEnd = 0;   // start index of visible items in this.orderedItems
+  this.visibleItemsStart = 0; // start index of visible items in this.orderedItems // TODO: cleanup
+  this.visibleItemsEnd = 0;   // start index of visible items in this.orderedItems // TODO: cleanup
   this.selection = [];  // list with the ids of all selected nodes
   this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
   this.stack = new Stack(this, Object.create(this.options));
@@ -292,59 +295,80 @@ ItemSet.prototype.repaint = function repaint() {
     changed += update(this.dom.axis.style, 'top', this.top + 'px');
   }
 
-  // find start of visible items
-  var start = Math.min(this.visibleItemsStart, Math.max(this.orderedItems.length - 1, 0));
-  var item = this.orderedItems[start];
-  while (item && item.isVisible(this.range) && start > 0) {
-    start--;
-    item = this.orderedItems[start];
-  }
-  while (item && !item.isVisible(this.range)) {
-    if (item.displayed) item.hide();
-
-    start++;
-    item = this.orderedItems[start];
-  }
-  this.visibleItemsStart = start;
-
-  // find end of visible items
-  var end = Math.max(Math.min(this.visibleItemsEnd, this.orderedItems.length), this.visibleItemsStart);
-  item = this.orderedItems[end];
-  while (item && item.isVisible(this.range)) {
-    end++;
-    item = this.orderedItems[end];
-  }
-  item = this.orderedItems[end - 1];
-  while (item && !item.isVisible(this.range) && end > 0) {
-    if (item.displayed) item.hide();
-
-    end--;
-    item = this.orderedItems[end - 1];
-  }
-  this.visibleItemsEnd = end;
-
-  console.log('visible items', start, end); // TODO: cleanup
-
-  this.visibleItems = this.orderedItems.slice(start, end);
-
   // check whether zoomed (in that case we need to re-stack everything)
   var visibleInterval = this.range.end - this.range.start;
   var zoomed = this.visibleInterval != visibleInterval;
   this.visibleInterval = visibleInterval;
 
+  /*
+  // find the first visible item
+  // TODO: use faster search, not linear
+  var byEnd = this.orderedItems.byEnd;
+  var start = 0;
+  var item = null;
+  while ((item = byEnd[start]) &&
+      (('end' in item.data) ? item.data.end : item.data.start) < this.range.start) {
+    start++;
+  }
+
+  // find the last visible item
+  // TODO: use faster search, not linear
+  var byStart = this.orderedItems.byStart;
+  var end = 0;
+  while ((item = byStart[end]) && item.data.start < this.range.end) {
+    end++;
+  }
+
+  console.log('visible items', start, end); // TODO: cleanup
+  console.log('visible item ids', byStart[start] && byStart[start].id, byEnd[end-1] && byEnd[end-1].id); // TODO: cleanup
+
+  this.visibleItems = [];
+  var i = start;
+  item = byStart[i];
+  var lastItem = byEnd[end];
+  while (item && item !== lastItem) {
+    this.visibleItems.push(item);
+    item = byStart[++i];
+  }
+  this.stack.order(this.visibleItems);
+
   // show visible items
   for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
-    var item = this.visibleItems[i];
+    item = this.visibleItems[i];
 
     if (!item.displayed) item.show();
-    if (zoomed) item.top = null; // reset stacking position
+    item.top = null; // reset stacking position
 
     // reposition item horizontally
     item.repositionX();
   }
+   */
+
+  // simple, brute force calculation of visible items
+  // TODO: replace with a faster, more sophisticated solution
+  this.visibleItems = [];
+  for (var id in this.items) {
+    if (this.items.hasOwnProperty(id)) {
+      var item = this.items[id];
+      if (item.isVisible(this.range)) {
+        if (!item.displayed) item.show();
+
+        // reset stacking position
+        if (zoomed) item.top = null;
+
+        // reposition item horizontally
+        item.repositionX();
+
+        this.visibleItems.push(item);
+      }
+      else {
+        if (item.displayed) item.hide();
+      }
+    }
+  }
 
   // reposition visible items vertically
-  // TODO: improve stacking, when moving the timeline to the right, update stacking in backward order
+  this.stack.order(this.visibleItems);
   this.stack.stack(this.visibleItems);
   for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
     this.visibleItems[i].repositionY();
@@ -630,8 +654,17 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
  * @private
  */
 ItemSet.prototype._order = function _order() {
+  var array = util.toArray(this.items);
+  this.orderedItems.byStart = array;
+  this.orderedItems.byEnd = [].concat(array);
+
   // reorder the items
-  this.orderedItems = this.stack.order(this.items);
+  this.stack.orderByStart(this.orderedItems.byStart);
+  this.stack.orderByEnd(this.orderedItems.byEnd);
+
+  // TODO: cleanup
+  //console.log('byStart', this.orderedItems.byStart.map(function (item) {return item.id}))
+  //console.log('byEnd', this.orderedItems.byEnd.map(function (item) {return item.id}))
 }
 
 /**

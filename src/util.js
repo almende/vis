@@ -441,6 +441,22 @@ util.forEach = function forEach (object, callback) {
 };
 
 /**
+ * Convert an object into an array: all objects properties are put into the
+ * array. The resulting array is unordered.
+ * @param {Object} object
+ * @param {Array} array
+ */
+util.toArray = function toArray(object) {
+  var array = [];
+
+  for (var prop in object) {
+    if (object.hasOwnProperty(prop)) array.push(object[prop]);
+  }
+
+  return array;
+}
+
+/**
  * Update a property in an object
  * @param {Object} object
  * @param {String} key

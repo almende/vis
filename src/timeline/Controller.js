@@ -22,10 +22,10 @@ function Controller () {
     }
     else {
       if (!reflowTimer) {
-        reflowTimer = setTimeout(function () {
+        reflowTimer = requestAnimationFrame(function () {
           reflowTimer = null;
           me.reflow();
-        }, 0);
+        });
       }
     }
   });
@@ -42,10 +42,10 @@ function Controller () {
     }
     else {
       if (!repaintTimer) {
-        repaintTimer = setTimeout(function () {
+        repaintTimer = requestAnimationFrame(function () {
           repaintTimer = null;
           me.repaint();
-        }, 0);
+        });
       }
     }
   });

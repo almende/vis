@@ -55,59 +55,40 @@ Stack.prototype.setOptions = function setOptions (options) {
 };
 
 /**
- * Order a map with items
- * @param {Object<String, Item>} items
- * @return {{asc: Item[], desc: Item[]}} sorted items
+ * Order an array with items using a predefined order function for items
+ * @param {Item[]} items
  */
 Stack.prototype.order = function order(items) {
-  var ordered = [];
-
-  // convert map to array
-  for (var id in items) {
-    if (items.hasOwnProperty(id)) ordered.push(items[id]);
-  }
-
-  /* FIXME: fix option order
   //order the items
   var order = this.options.order || this.defaultOptions.order;
   if (!(typeof order === 'function')) {
     throw new Error('Option order must be a function');
   }
-  ordered.sort(order);
-  */
+  items.sort(order);
+};
 
-  // TODO: fix ordering, doesn't work correctly for ItemRange
-  ordered.sort(function (a, b) {
-    var aCenter = ('end' in a.data) ? (a.data.start + a.data.end) / 2 : a.data.start,
-        bCenter = ('end' in b.data) ? (b.data.start + b.data.end) / 2 : b.data.start;
-
-    return aCenter - bCenter;
-  });
-
-
-  /* TODO: cleanup
-  var asc = array.concat(),
-      desc= array.concat();
-
-  // sort ascending
-  asc.sort(function (a, b) {
+/**
+ * Order items by their start data
+ * @param {Item[]} items
+ */
+Stack.prototype.orderByStart = function orderByStart(items) {
+  items.sort(function (a, b) {
     return a.data.start - b.data.start;
   });
+};
 
-  // sort descending
-  desc.sort(function (a, b) {
-    var aTime = 'end' in a.data ? a.data.end : a.data.start,
-        bTime = 'end' in b.data ? b.data.end : b.data.start;
+/**
+ * Order items by their end date. If they have no end date, their start date
+ * is used.
+ * @param {Item[]} items
+ */
+Stack.prototype.orderByEnd = function orderByEnd(items) {
+  items.sort(function (a, b) {
+    var aTime = ('end' in a.data) ? a.data.end : a.data.start,
+        bTime = ('end' in b.data) ? b.data.end : b.data.start;
 
-    return bTime - aTime;
+    return aTime - bTime;
   });
-
-  return {
-    asc: asc,
-    desc: desc
-  };
-  */
-  return ordered;
 };
 
 /**

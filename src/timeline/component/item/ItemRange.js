@@ -154,8 +154,8 @@ ItemRange.prototype.hide = function hide() {
 ItemRange.prototype.repositionX = function repositionX() {
   var props = this.props,
       parentWidth = this.parent.width,
-      start = this.parent.toScreen(this.data.start) + this.offset,
-      end = this.parent.toScreen(this.data.end) + this.offset,
+      start = this.parent.toScreen(this.data.start),
+      end = this.parent.toScreen(this.data.end),
       padding = 'padding' in this.options ? this.options.padding : this.defaultOptions.padding,
       contentLeft;
 

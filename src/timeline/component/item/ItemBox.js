@@ -172,7 +172,7 @@ ItemBox.prototype.hide = function hide() {
  * @Override
  */
 ItemBox.prototype.repositionX = function repositionX() {
-  var start = this.parent.toScreen(this.data.start) + this.offset,
+  var start = this.parent.toScreen(this.data.start),
       align = this.options.align || this.defaultOptions.align,
       left,
       box = this.dom.box,
