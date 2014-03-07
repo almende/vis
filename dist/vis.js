@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.6.1
- * @date    2014-03-06
+ * @version 0.7.0
+ * @date    2014-03-07
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -9588,8 +9588,8 @@ Node.prototype.setProperties = function(properties, constants) {
     }
   }
 
-  this.xFixed = this.xFixed || (properties.x !== undefined && !properties.allowedToMove);
-  this.yFixed = this.yFixed || (properties.y !== undefined && !properties.allowedToMove);
+  this.xFixed = this.xFixed || (properties.x !== undefined && !properties.allowedToMoveX);
+  this.yFixed = this.yFixed || (properties.y !== undefined && !properties.allowedToMoveY);
   this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
 
   if (this.shape == 'image') {
@@ -10465,7 +10465,8 @@ function Edge (properties, graph, constants) {
   // 2012-08-08
   this.dash = util.extend({}, constants.edges.dash); // contains properties length, gap, altLength
 
-  this.color       = constants.edges.color;
+  this.color       = {color:constants.edges.color.color,
+                      highlight:constants.edges.color.highlight};
   this.widthFixed  = false;
   this.lengthFixed = false;
 
@@ -10513,7 +10514,17 @@ Edge.prototype.setProperties = function(properties, constants) {
     if (properties.dash.altLength !== undefined) {this.dash.altLength = properties.dash.altLength;}
   }
 
-  if (properties.color !== undefined) {this.color = properties.color;}
+  if (properties.color !== undefined) {
+    if (util.isString(properties.color)) {
+      this.color.color = properties.color;
+      this.color.highlight = properties.color;
+    }
+    else {
+      if (properties.color.color !== undefined)     {this.color.color = properties.color.color;}
+      if (properties.color.highlight !== undefined) {this.color.highlight = properties.color.highlight;}
+      else if (properties.color.color !== undefined){this.color.highlight = properties.color.color;}
+    }
+  }
 
   // A node is connected when it has a from and to node.
   this.connect();
@@ -10642,7 +10653,8 @@ Edge.prototype.isOverlappingWith = function(obj) {
  */
 Edge.prototype._drawLine = function(ctx) {
   // set style
-  ctx.strokeStyle = this.color;
+  if (this.selected == true) {ctx.strokeStyle = this.color.highlight;}
+  else                       {ctx.strokeStyle = this.color.color;}
   ctx.lineWidth = this._getLineWidth();
 
   if (this.from != this.to) {
@@ -10772,7 +10784,9 @@ Edge.prototype._label = function (ctx, text, x, y) {
  */
 Edge.prototype._drawDashLine = function(ctx) {
   // set style
-  ctx.strokeStyle = this.color;
+  if (this.selected == true) {ctx.strokeStyle = this.color.highlight;}
+  else                       {ctx.strokeStyle = this.color.color;}
+
   ctx.lineWidth = this._getLineWidth();
 
   // only firefox and chrome support this method, else we use the legacy one.
@@ -10895,8 +10909,8 @@ Edge.prototype._pointOnCircle = function (x, y, radius, percentage) {
 Edge.prototype._drawArrowCenter = function(ctx) {
   var point;
   // set style
-  ctx.strokeStyle = this.color;
-  ctx.fillStyle = this.color;
+  if (this.selected == true) {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
+  else                       {ctx.strokeStyle = this.color.color; ctx.fillStyle = this.color.color;}
   ctx.lineWidth = this._getLineWidth();
 
   if (this.from != this.to) {
@@ -10969,8 +10983,9 @@ Edge.prototype._drawArrowCenter = function(ctx) {
  */
 Edge.prototype._drawArrow = function(ctx) {
   // set style
-  ctx.strokeStyle = this.color;
-  ctx.fillStyle = this.color;
+  if (this.selected == true) {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
+  else                       {ctx.strokeStyle = this.color.color; ctx.fillStyle = this.color.color;}
+
   ctx.lineWidth = this._getLineWidth();
 
   var angle, length;
@@ -11764,10 +11779,10 @@ var physicsMixin = {
         '<td width="150px">direction</td><td>1</td><td><input type="range" min="0" max="3" value="' + hierarchicalLayoutDirections.indexOf(this.constants.hierarchicalLayout.direction) + '" step="1" style="width:300px" id="graph_H_direction"></td><td>4</td><td><input value="' + this.constants.hierarchicalLayout.direction + '" id="graph_H_direction_value" style="width:60px"></td>'+
         '</tr>'+
         '<tr>'+
-        '<td width="150px">levelSeparation</td><td>1</td><td><input type="range" min="0" max="' + this.constants.hierarchicalLayout.levelSeparation + '" value="150" step="1" style="width:300px" id="graph_H_levsep"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.levelSeparation + '" id="graph_H_levsep_value" style="width:60px"></td>'+
+        '<td width="150px">levelSeparation</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.levelSeparation + '" step="1" style="width:300px" id="graph_H_levsep"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.levelSeparation + '" id="graph_H_levsep_value" style="width:60px"></td>'+
         '</tr>'+
         '<tr>'+
-        '<td width="150px">nodeSpacing</td><td>1</td><td><input type="range" min="0" max="' + this.constants.hierarchicalLayout.nodeSpacing + '" value="100" step="1" style="width:300px" id="graph_H_nspac"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.nodeSpacing + '" id="graph_H_nspac_value" style="width:60px"></td>'+
+        '<td width="150px">nodeSpacing</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.nodeSpacing + '" step="1" style="width:300px" id="graph_H_nspac"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.nodeSpacing + '" id="graph_H_nspac_value" style="width:60px"></td>'+
         '</tr>'+
         '</table>'
       this.containerElement.parentElement.insertBefore(this.physicsConfiguration,this.containerElement);
@@ -11887,19 +11902,20 @@ function switchConfigurations () {
 function showValueOfRange (id,map,constantsVariableName) {
   var valueId = id + "_value";
   var rangeValue = document.getElementById(id).value;
-  if (constantsVariableName == "hierarchicalLayout_direction" ||
-      constantsVariableName == "hierarchicalLayout_levelSeparation" ||
-      constantsVariableName == "hierarchicalLayout_nodeSpacing") {
-    this._setupHierarchicalLayout();
-  }
 
   if (map instanceof Array) {
     document.getElementById(valueId).value = map[parseInt(rangeValue)];
     this._overWriteGraphConstants(constantsVariableName,map[parseInt(rangeValue)]);
   }
   else {
-    document.getElementById(valueId).value = map * parseFloat(rangeValue);
-    this._overWriteGraphConstants(constantsVariableName,map * parseFloat(rangeValue));
+    document.getElementById(valueId).value = parseInt(map) * parseFloat(rangeValue);
+    this._overWriteGraphConstants(constantsVariableName, parseInt(map) * parseFloat(rangeValue));
+  }
+
+  if (constantsVariableName == "hierarchicalLayout_direction" ||
+    constantsVariableName == "hierarchicalLayout_levelSeparation" ||
+    constantsVariableName == "hierarchicalLayout_nodeSpacing") {
+    this._setupHierarchicalLayout();
   }
   this.moving = true;
   this.start();
@@ -12423,6 +12439,9 @@ var HierarchicalLayoutMixin = {
       if (this.constants.hierarchicalLayout.direction == "RL" || this.constants.hierarchicalLayout.direction == "DU") {
         this.constants.hierarchicalLayout.levelSeparation *= -1;
       }
+      else {
+        this.constants.hierarchicalLayout.levelSeparation = Math.abs(this.constants.hierarchicalLayout.levelSeparation);
+      }
       // get the size of the largest hubs and check if the user has defined a level for a node.
       var hubsize = 0;
       var node, nodeId;
@@ -12507,7 +12526,7 @@ var HierarchicalLayoutMixin = {
     }
 
     // stabilize the system after positioning. This function calls zoomExtent.
-    this._doStabilize();
+    this._stabilize();
   },
 
 
@@ -12995,7 +13014,7 @@ var manipulationMixin = {
   _addNode : function() {
     if (this._selectionIsEmpty() && this.editMode == true) {
       var positionObject = this._pointerToPositionObject(this.pointerPosition);
-      var defaultData = {id:util.randomUUID(),x:positionObject.left,y:positionObject.top,label:"new",allowedToMove:true};
+      var defaultData = {id:util.randomUUID(),x:positionObject.left,y:positionObject.top,label:"new",allowedToMoveX:true,allowedToMoveY:true};
       if (this.triggerFunctions.add) {
         if (this.triggerFunctions.add.length == 2) {
           var me = this;
@@ -13714,7 +13733,7 @@ var ClusterMixin = {
    // this is called here because if clusterin is disabled, the start and stabilize are called in
    // the setData function.
    if (this.stabilize) {
-     this._doStabilize();
+     this._stabilize();
    }
    this.start();
  },
@@ -15423,6 +15442,9 @@ var NavigationMixin = {
 
     this.navigationDivs['wrapper'] = document.createElement('div');
     this.navigationDivs['wrapper'].id = "graph-navigation_wrapper";
+    this.navigationDivs['wrapper'].style.position = "absolute";
+    this.navigationDivs['wrapper'].style.width = this.frame.canvas.clientWidth + "px";
+    this.navigationDivs['wrapper'].style.height = this.frame.canvas.clientHeight + "px";
     this.containerElement.insertBefore(this.navigationDivs['wrapper'],this.frame);
 
     for (var i = 0; i < navigationDivs.length; i++) {
@@ -15474,7 +15496,6 @@ var NavigationMixin = {
    * @private
    */
   _moveUp : function(event) {
-    console.log("here")
     this.yIncrement = this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
@@ -15832,7 +15853,10 @@ function Graph (container, data, options) {
       widthMax: 15,
       width: 1,
       style: 'line',
-      color: '#848484',
+      color: {
+        color:'#848484',
+        highlight:'#848484'
+      },
       fontColor: '#343434',
       fontSize: 14, // px
       fontFace: 'arial',
@@ -15849,8 +15873,8 @@ function Graph (container, data, options) {
         theta: 1 / 0.6, // inverted to save time during calculation
         gravitationalConstant: -2000,
         centralGravity: 0.3,
-        springLength: 100,
-        springConstant: 0.05,
+        springLength: 95,
+        springConstant: 0.04,
         damping: 0.09
       },
       repulsion: {
@@ -15914,7 +15938,7 @@ function Graph (container, data, options) {
     smoothCurves: true,
     maxVelocity:  10,
     minVelocity:  0.1,   // px/s
-    maxIterations: 1000  // maximum number of iteration to stabilize
+    stabilizationIterations: 1000  // maximum number of iteration to stabilize
   };
   this.editMode = this.constants.dataManipulation.initiallyVisible;
 
@@ -16220,7 +16244,7 @@ Graph.prototype.setData = function(data, disableStart) {
   if (!disableStart) {
     // find a stable position or start animating to a stable position
     if (this.stabilize) {
-      this._doStabilize();
+      this._stabilize();
     }
     this.start();
   }
@@ -16240,6 +16264,7 @@ Graph.prototype.setOptions = function (options) {
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
     if (options.smoothCurves !== undefined)    {this.constants.smoothCurves = options.smoothCurves;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
+    if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
 
     if (options.onAdd) {
         this.triggerFunctions.add = options.onAdd;
@@ -16943,7 +16968,13 @@ Graph.prototype.setSize = function(width, height) {
   this.frame.canvas.height = this.frame.canvas.clientHeight;
 
   if (this.manipulationDiv !== undefined) {
-    this.manipulationDiv.style.width = this.frame.canvas.clientWidth;
+    this.manipulationDiv.style.width = this.frame.canvas.clientWidth + "px";
+  }
+  if (this.navigationDivs !== undefined) {
+    if (this.navigationDivs['wrapper'] !== undefined) {
+      this.navigationDivs['wrapper'].style.width = this.frame.canvas.clientWidth + "px";
+      this.navigationDivs['wrapper'].style.height = this.frame.canvas.clientHeight + "px";
+    }
   }
 
   this.emit('resize', {width:this.frame.canvas.width,height:this.frame.canvas.height});
@@ -17461,10 +17492,10 @@ Graph.prototype._drawEdges = function(ctx) {
  * Find a stable position for all nodes
  * @private
  */
-Graph.prototype._doStabilize = function() {
+Graph.prototype._stabilize = function() {
   // find stable position
   var count = 0;
-  while (this.moving && count < this.constants.maxIterations) {
+  while (this.moving && count < this.constants.stabilizationIterations) {
     this._physicsTick();
     count++;
   }
@@ -17688,6 +17719,23 @@ Graph.prototype._initializeMixinLoaders = function () {
   }
 };
 
+/**
+ * Load the XY positions of the nodes into the dataset.
+ */
+Graph.prototype.storePosition = function() {
+  var dataArray = [];
+  for (var nodeId in this.nodes) {
+    if (this.nodes.hasOwnProperty(nodeId)) {
+      var node = this.nodes[nodeId];
+      var allowedToMoveX = !this.nodes.xFixed;
+      var allowedToMoveY = !this.nodes.yFixed;
+      if (this.nodesData.data[nodeId].x != Math.round(node.x) || this.nodesData.data[nodeId].y != Math.round(node.y)) {
+        dataArray.push({id:nodeId,x:Math.round(node.x),y:Math.round(node.y),allowedToMoveX:allowedToMoveX,allowedToMoveY:allowedToMoveY});
+      }
+    }
+  }
+  this.nodesData.update(dataArray);
+};
 
 
 
