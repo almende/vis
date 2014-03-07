@@ -63,7 +63,10 @@ function Graph (container, data, options) {
       widthMax: 15,
       width: 1,
       style: 'line',
-      color: '#848484',
+      color: {
+        color:'#848484',
+        highlight:'#848484'
+      },
       fontColor: '#343434',
       fontSize: 14, // px
       fontFace: 'arial',
@@ -80,8 +83,8 @@ function Graph (container, data, options) {
         theta: 1 / 0.6, // inverted to save time during calculation
         gravitationalConstant: -2000,
         centralGravity: 0.3,
-        springLength: 100,
-        springConstant: 0.05,
+        springLength: 95,
+        springConstant: 0.04,
         damping: 0.09
       },
       repulsion: {

@@ -482,12 +482,26 @@ var edges = [
     <th>Description</th>
   </tr>
 
-  <tr>
-    <td>color</td>
-    <td>string</td>
-    <td>no</td>
-    <td>A HTML color for the edge.</td>
-  </tr>
+    <tr>
+        <td>color</td>
+        <td>String | Object</td>
+        <td>no</td>
+        <td>Color for the edge.</td>
+    </tr>
+
+    <tr>
+        <td>color.color</td>
+        <td>String</td>
+        <td>no</td>
+        <td>Color of the edge when not selected.</td>
+    </tr>
+
+    <tr>
+        <td>color.highlight</td>
+        <td>String</td>
+        <td>no</td>
+        <td>Color of the edge when selected.</td>
+    </tr>
 
   <tr>
     <td>dash</td>
@@ -1009,12 +1023,26 @@ var options = {
     <th>Description</th>
   </tr>
 
-  <tr>
-    <td>color</td>
-    <td>String</td>
-    <td>"#2B7CE9"</td>
-    <td>The default color of a edge.</td>
-  </tr>
+    <tr>
+        <td>color</td>
+        <td>String | Object</td>
+        <td>Object</td>
+        <td>Colors of the edge. This object contains both colors for the selected and unselected state.</td>
+    </tr>
+
+    <tr>
+        <td>color.color</td>
+        <td>String</td>
+        <td>"#848484"</td>
+        <td>Color of the edge when not selected.</td>
+    </tr>
+
+    <tr>
+        <td>color.highlight</td>
+        <td>String</td>
+        <td>"#848484"</td>
+        <td>Color of the edge when selected.</td>
+    </tr>
 
   <tr>
     <td>dash</td>
@@ -1225,8 +1253,8 @@ var options = {
             enabled: true,
             gravitationalConstant: -2000,
             centralGravity: 0.1,
-            springLength: 100,
-            springConstant: 0.05,
+            springLength: 95,
+            springConstant: 0.04,
             damping: 0.09
         },
         repulsion: {
@@ -1267,14 +1295,14 @@ var options = {
     <tr>
         <td>springLength</td>
         <td>Number</td>
-        <td>100</td>
+        <td>95</td>
         <td>In the previous versions this was a property of the edges, called length. This is the length of the springs when they are at rest. During the simulation they will be streched by the gravitational fields.
             To greatly reduce the edge length, the gravitationalConstant has to be reduced as well.</td>
     </tr>
     <tr>
         <td>springConstant</td>
         <td>Number</td>
-        <td>0.05</td>
+        <td>0.04</td>
         <td>This is the spring constant used to calculate the spring forces based on Hooke&prime;s Law. More information is available <a href="http://en.wikipedia.org/wiki/Hooke's_law" target="_blank">here</a>.</td>
     </tr>
     <tr>
