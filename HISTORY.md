@@ -9,6 +9,7 @@ http://visjs.org
 - added stabilizationIterations option to graph.
 - added storePosition() method to save the XY positions of nodes in the dataset.
 - seperated allowedToMove into allowedToMoveX and allowedToMoveY. This is required for initializing nodes from hierarchical layouts after storePosition().
+- added color options for the edges.
 
 ## 2014-03-06, version 0.6.1
 
