@@ -25,17 +25,7 @@ function ItemSet(parent, depends, options) {
 
   // one options object is shared by this itemset and all its items
   this.options = options || {};
-  this.defaultOptions = {
-    type: 'box',
-    align: 'center',
-    orientation: 'bottom',
-    margin: {
-      axis: 20,
-      item: 10
-    },
-    padding: 5
-  };
-
+  this.itemOptions = Object.create(this.options);
   this.dom = {};
 
   var me = this;
@@ -65,7 +55,7 @@ function ItemSet(parent, depends, options) {
   this.visibleItemsEnd = 0;   // start index of visible items in this.orderedItems // TODO: cleanup
   this.selection = [];  // list with the ids of all selected nodes
   this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
-  this.stack = new Stack(this, Object.create(this.options));
+  this.stack = new Stack(Object.create(this.options));
   this.conversion = null;
 
   this.touchParams = {}; // stores properties while dragging
@@ -219,12 +209,10 @@ ItemSet.prototype._deselect = function _deselect(id) {
 
 /**
  * Repaint the component
- * @return {Boolean} changed
  */
 ItemSet.prototype.repaint = function repaint() {
-  var changed = 0,
-      update = util.updateProperty,
-      asSize = util.option.asSize,
+  var asSize = util.option.asSize,
+      asNumber = util.option.asNumber,
       options = this.options,
       orientation = this.getOption('orientation'),
       frame = this.frame;
@@ -260,7 +248,6 @@ ItemSet.prototype.repaint = function repaint() {
     this.dom.axis = axis;
 
     this.frame = frame;
-    changed += 1;
   }
 
   if (!this.parent) {
@@ -272,27 +259,9 @@ ItemSet.prototype.repaint = function repaint() {
   }
   if (!frame.parentNode) {
     parentContainer.appendChild(frame);
-    changed += 1;
   }
   if (!this.dom.axis.parentNode) {
     parentContainer.appendChild(this.dom.axis);
-    changed += 1;
-  }
-
-  // reposition frame
-  changed += update(frame.style, 'left',   asSize(options.left, '0px'));
-  changed += update(frame.style, 'top',    asSize(options.top, '0px'));
-  changed += update(frame.style, 'width',  asSize(options.width, '100%'));
-  changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
-
-  // reposition axis
-  changed += update(this.dom.axis.style, 'left', asSize(options.left, '0px'));
-  changed += update(this.dom.axis.style, 'width',  asSize(options.width, '100%'));
-  if (orientation == 'bottom') {
-    changed += update(this.dom.axis.style, 'top',  (this.height + this.top) + 'px');
-  }
-  else { // orientation == 'top'
-    changed += update(this.dom.axis.style, 'top', this.top + 'px');
   }
 
   // check whether zoomed (in that case we need to re-stack everything)
@@ -300,7 +269,7 @@ ItemSet.prototype.repaint = function repaint() {
   var zoomed = this.visibleInterval != visibleInterval;
   this.visibleInterval = visibleInterval;
 
-  /*
+  /* TODO: implement+fix smarter way to update visible items
   // find the first visible item
   // TODO: use faster search, not linear
   var byEnd = this.orderedItems.byEnd;
@@ -368,10 +337,63 @@ ItemSet.prototype.repaint = function repaint() {
   }
 
   // reposition visible items vertically
-  this.stack.order(this.visibleItems);
+  //this.stack.order(this.visibleItems); // TODO: solve ordering issue
   this.stack.stack(this.visibleItems);
   for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
     this.visibleItems[i].repositionY();
+  }
+
+  // recalculate the height of the itemset
+  var marginAxis = (options.margin && 'axis' in options.margin) ? options.margin.axis : this.itemOptions.margin.axis,
+      marginItem = (options.margin && 'item' in options.margin) ? options.margin.item : this.itemOptions.margin.item,
+      maxHeight = asNumber(options.maxHeight),
+      fixedHeight = (asSize(options.height) != null),
+      height;
+
+  // recalculate the frames size and position
+  // TODO: request frame's actual top, left, width only when size is changed (mark as dirty)
+  if (fixedHeight) {
+    height = frame.offsetHeight;
+  }
+  else {
+    // height is not specified, determine the height from the height and positioned items
+    var visibleItems = this.visibleItems;
+    if (visibleItems.length) {
+      var min = visibleItems[0].top;
+      var max = visibleItems[0].top + visibleItems[0].height;
+      util.forEach(visibleItems, function (item) {
+        min = Math.min(min, item.top);
+        max = Math.max(max, (item.top + item.height));
+      });
+      height = (max - min) + marginAxis + marginItem;
+    }
+    else {
+      height = marginAxis + marginItem;
+    }
+  }
+  if (maxHeight != null) {
+    height = Math.min(height, maxHeight);
+  }
+  this.top = frame.offsetTop;
+  this.left = frame.offsetLeft;
+  this.width = frame.offsetWidth;
+  this.height = height;
+
+  // reposition frame
+  frame.style.left    = asSize(options.left, '0px');
+  frame.style.top     = asSize(options.top, '');
+  frame.style.bottom  = asSize(options.bottom, '');
+  frame.style.width   = asSize(options.width, '100%');
+  frame.style.height  = asSize(options.height, this.height + 'px');
+
+  // reposition axis
+  this.dom.axis.style.left = asSize(options.left, '0px');
+  this.dom.axis.style.width = asSize(options.width, '100%');
+  if (orientation == 'bottom') {
+    this.dom.axis.style.top = (this.top + this.height) + 'px';
+  }
+  else { // orientation == 'top'
+    this.dom.axis.style.top = this.top + 'px';
   }
 
   return false;
@@ -406,86 +428,21 @@ ItemSet.prototype.getAxis = function getAxis() {
  * @return {Boolean} resized
  */
 ItemSet.prototype.reflow = function reflow () {
-  var changed = 0,
-      options = this.options,
-      marginAxis = (options.margin && 'axis' in options.margin) ? options.margin.axis : this.defaultOptions.margin.axis,
-      marginItem = (options.margin && 'item' in options.margin) ? options.margin.item : this.defaultOptions.margin.item,
-      update = util.updateProperty,
-      asNumber = util.option.asNumber,
-      asSize = util.option.asSize,
-      frame = this.frame;
-
-  if (frame) {
-    this._updateConversion();
-
-    /* TODO
-    util.forEach(this.items, function (item) {
-      changed += item.reflow();
-    });
-    */
-
-    // TODO: stack.update should be triggered via an event, in stack itself
-    // TODO: only update the stack when there are changed items
-    //this.stack.update();
-
-    var maxHeight = asNumber(options.maxHeight);
-    var fixedHeight = (asSize(options.height) != null);
-    var height;
-    if (fixedHeight) {
-      height = frame.offsetHeight;
-    }
-    else {
-      // height is not specified, determine the height from the height and positioned items
-      var visibleItems = this.visibleItems; // TODO: not so nice way to get the filtered items
-      if (visibleItems.length) { // TODO: calculate max height again
-        var min = visibleItems[0].top;
-        var max = visibleItems[0].top + visibleItems[0].height;
-        util.forEach(visibleItems, function (item) {
-          min = Math.min(min, item.top);
-          max = Math.max(max, (item.top + item.height));
-        });
-        height = (max - min) + marginAxis + marginItem;
-      }
-      else {
-        height = marginAxis + marginItem;
-      }
-    }
-    if (maxHeight != null) {
-      height = Math.min(height, maxHeight);
-    }
-    height = 200; // TODO: cleanup
-    changed += update(this, 'height', height);
-
-    // calculate height from items
-    changed += update(this, 'top', frame.offsetTop);
-    changed += update(this, 'left', frame.offsetLeft);
-    changed += update(this, 'width', frame.offsetWidth);
-  }
-  else {
-    changed += 1;
-  }
-
-  return false;
+  // TODO: remove this function
+  return true;
 };
 
 /**
  * Hide this component from the DOM
- * @return {Boolean} changed
  */
 ItemSet.prototype.hide = function hide() {
-  var changed = false;
-
   // remove the DOM
   if (this.frame && this.frame.parentNode) {
     this.frame.parentNode.removeChild(this.frame);
-    changed = true;
   }
   if (this.dom.axis && this.dom.axis.parentNode) {
     this.dom.axis.parentNode.removeChild(this.dom.axis);
-    changed = true;
   }
-
-  return changed;
 };
 
 /**
@@ -566,16 +523,7 @@ ItemSet.prototype.removeItem = function removeItem (id) {
 ItemSet.prototype._onUpdate = function _onUpdate(ids) {
   var me = this,
       items = this.items,
-      defaultOptions = {
-        type: 'box',
-        align: 'center',
-        orientation: 'bottom',
-        margin: {
-          axis: 20,
-          item: 10
-        },
-        padding: 5
-      };
+      itemOptions = this.itemOptions;
 
   ids.forEach(function (id) {
     var itemData = me.itemsData.get(id),
@@ -608,7 +556,7 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
     if (!item) {
       // create item
       if (constructor) {
-        item = new constructor(me, itemData, options, defaultOptions);
+        item = new constructor(me, itemData, options, itemOptions);
         item.id = id;
       }
       else {
@@ -807,8 +755,7 @@ ItemSet.prototype._onDragEnd = function (event) {
     // prepare a change set for the changed items
     var changes = [],
         me = this,
-        dataset = this._myDataSet(),
-        type;
+        dataset = this._myDataSet();
 
     this.touchParams.itemProps.forEach(function (props) {
       var id = props.item.id,

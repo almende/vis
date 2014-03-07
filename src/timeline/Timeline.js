@@ -27,6 +27,15 @@ function Timeline (container, items, options) {
     showCurrentTime: false,
     showCustomTime: false,
 
+    type: 'box',
+    align: 'center',
+    orientation: 'bottom',
+    margin: {
+      axis: 20,
+      item: 10
+    },
+    padding: 5,
+
     onAdd: function (item, callback) {
       callback(item);
     },

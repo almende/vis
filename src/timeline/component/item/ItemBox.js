@@ -211,21 +211,22 @@ ItemBox.prototype.repositionY = function repositionY () {
       line = this.dom.line,
       dot = this.dom.dot;
 
-  // reposition box
-  box.style.top = (this.top || 0) + 'px';
-
-  // reposition line
   if (orientation == 'top') {
-    line.style.top = 0 + 'px';
+    box.style.top = (this.top || 0) + 'px';
+    box.style.bottom = '';
+
+    line.style.top = '0px';
+    line.style.bottom = '';
     line.style.height = this.top + 'px';
   }
-  else {
-    // orientation 'bottom'
-    line.style.top = (this.top + this.height) + 'px';
-    line.style.height = Math.max(this.parent.height - this.top - this.height +
-        this.props.dot.height / 2, 0) + 'px';
+  else { // orientation 'bottom'
+    box.style.top = '';
+    box.style.bottom = (this.top || 0) + 'px';
+
+    line.style.top = '';
+    line.style.bottom = '0px';
+    line.style.height = this.top + 'px';
   }
 
-  // reposition dot
   dot.style.top = (-this.props.dot.height / 2) + 'px';
 }

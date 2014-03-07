@@ -176,5 +176,15 @@ ItemPoint.prototype.repositionX = function repositionX() {
  * @Override
  */
 ItemPoint.prototype.repositionY = function repositionY () {
-  this.dom.point.style.top = this.top + 'px';
+  var orientation = this.options.orientation || this.defaultOptions.orientation,
+      point = this.dom.point;
+
+  if (orientation == 'top') {
+    point.style.top = this.top + 'px';
+    point.style.bottom = '';
+  }
+  else {
+    point.style.top = '';
+    point.style.bottom = this.top + 'px';
+  }
 }

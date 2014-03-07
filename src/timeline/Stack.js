@@ -3,12 +3,9 @@
 /**
  * @constructor Stack
  * Stacks items on top of each other.
- * @param {ItemSet} itemset
  * @param {Object} [options]
  */
-function Stack (itemset, options) {
-  this.itemset = itemset;
-
+function Stack (options) {
   this.options = options || {};
   this.defaultOptions = {
     order: function (a, b) {
@@ -34,24 +31,21 @@ function Stack (itemset, options) {
       }
     },
     margin: {
-      item: 10
+      item: 10,
+      axis: 20
     }
   };
-
-  this.ordered = [];  // ordered items
 }
 
 /**
  * Set options for the stack
  * @param {Object} options  Available options:
- *                          {ItemSet} itemset
- *                          {Number} margin
- *                          {function} order  Stacking order
+ *                          {Number} [margin.item=10]
+ *                          {Number} [margin.axis=20]
+ *                          {function} [order]  Stacking order
  */
 Stack.prototype.setOptions = function setOptions (options) {
   util.extend(this.options, options);
-
-  // TODO: register on data changes at the connected itemset, and update the changed part only and immediately
 };
 
 /**
@@ -101,16 +95,20 @@ Stack.prototype.stack = function stack (items) {
   var i,
       iMax,
       options = this.options,
-      orientation = options.orientation || this.defaultOptions.orientation,
-      axisOnTop = (orientation == 'top'),
-      margin,
-      parentHeight = this.itemset.height;
+      marginItem,
+      marginAxis;
 
   if (options.margin && options.margin.item !== undefined) {
-    margin = options.margin.item;
+    marginItem = options.margin.item;
   }
   else {
-    margin = this.defaultOptions.margin.item
+    marginItem = this.defaultOptions.margin.item
+  }
+  if (options.margin && options.margin.axis !== undefined) {
+    marginAxis = options.margin.axis;
+  }
+  else {
+    marginAxis = this.defaultOptions.margin.axis
   }
 
   // calculate new, non-overlapping positions
@@ -118,13 +116,7 @@ Stack.prototype.stack = function stack (items) {
     var item = items[i];
     if (item.top === null) {
       // initialize top position
-      if (axisOnTop) {
-        item.top = margin;
-      }
-      else {
-        // default or 'bottom'
-        item.top = parentHeight - item.height - 2 * margin;
-      }
+      item.top = marginAxis;
 
       do {
         // TODO: optimize checking for overlap. when there is a gap without items,
@@ -132,7 +124,7 @@ Stack.prototype.stack = function stack (items) {
         var collidingItem = null;
         for (var j = 0, jj = items.length; j < jj; j++) {
           var other = items[j];
-          if (other.top !== null && other !== item && this.collision(item, other, margin)) {
+          if (other.top !== null && other !== item && this.collision(item, other, marginItem)) {
             collidingItem = other;
             break;
           }
@@ -140,12 +132,7 @@ Stack.prototype.stack = function stack (items) {
 
         if (collidingItem != null) {
           // There is a collision. Reposition the event above the colliding element
-          if (axisOnTop) {
-            item.top = collidingItem.top + collidingItem.height + margin;
-          }
-          else {
-            item.top = collidingItem.top - item.height - margin;
-          }
+          item.top = collidingItem.top + collidingItem.height + marginItem;
         }
       } while (collidingItem);
     }

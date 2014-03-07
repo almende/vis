@@ -190,7 +190,17 @@ ItemRange.prototype.repositionX = function repositionX() {
  * @Override
  */
 ItemRange.prototype.repositionY = function repositionY() {
-  this.dom.box.style.top = this.top + 'px';
+  var orientation = this.options.orientation || this.defaultOptions.orientation,
+      box = this.dom.box;
+
+  if (orientation == 'top') {
+    box.style.top = this.top + 'px';
+    box.style.bottom = '';
+  }
+  else {
+    box.style.top = '';
+    box.style.bottom = this.top + 'px';
+  }
 };
 
 /**
