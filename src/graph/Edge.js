@@ -583,10 +583,10 @@ Edge.prototype._drawArrow = function(ctx) {
     var dy = (this.to.y - this.from.y);
     var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
 
-    var fromBorderDist = this.from.distanceToBorder(ctx, angle + Math.PI);
-    var fromBorderPoint = (edgeSegmentLength - fromBorderDist) / edgeSegmentLength;
-    var xFrom = (fromBorderPoint) * this.from.x + (1 - fromBorderPoint) * this.to.x;
-    var yFrom = (fromBorderPoint) * this.from.y + (1 - fromBorderPoint) * this.to.y;
+//    var fromBorderDist = this.from.distanceToBorder(ctx, angle + Math.PI);
+//    var fromBorderPoint = (edgeSegmentLength - fromBorderDist) / edgeSegmentLength;
+//    var xFrom = (fromBorderPoint) * this.from.x + (1 - fromBorderPoint) * this.to.x;
+//    var yFrom = (fromBorderPoint) * this.from.y + (1 - fromBorderPoint) * this.to.y;
 
 
     if (this.smooth == true) {
@@ -609,7 +609,7 @@ Edge.prototype._drawArrow = function(ctx) {
     }
 
     ctx.beginPath();
-    ctx.moveTo(xFrom,yFrom);
+    ctx.moveTo(this.from.x,this.from.y);
     if (this.smooth == true) {
       ctx.quadraticCurveTo(this.via.x,this.via.y,xTo, yTo);
     }

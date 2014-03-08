@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.7.0-SNAPSHOT
- * @date    2014-03-07
+ * @date    2014-03-08
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -10996,10 +10996,10 @@ Edge.prototype._drawArrow = function(ctx) {
     var dy = (this.to.y - this.from.y);
     var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
 
-    var fromBorderDist = this.from.distanceToBorder(ctx, angle + Math.PI);
-    var fromBorderPoint = (edgeSegmentLength - fromBorderDist) / edgeSegmentLength;
-    var xFrom = (fromBorderPoint) * this.from.x + (1 - fromBorderPoint) * this.to.x;
-    var yFrom = (fromBorderPoint) * this.from.y + (1 - fromBorderPoint) * this.to.y;
+//    var fromBorderDist = this.from.distanceToBorder(ctx, angle + Math.PI);
+//    var fromBorderPoint = (edgeSegmentLength - fromBorderDist) / edgeSegmentLength;
+//    var xFrom = (fromBorderPoint) * this.from.x + (1 - fromBorderPoint) * this.to.x;
+//    var yFrom = (fromBorderPoint) * this.from.y + (1 - fromBorderPoint) * this.to.y;
 
 
     if (this.smooth == true) {
@@ -11022,7 +11022,7 @@ Edge.prototype._drawArrow = function(ctx) {
     }
 
     ctx.beginPath();
-    ctx.moveTo(xFrom,yFrom);
+    ctx.moveTo(this.from.x,this.from.y);
     if (this.smooth == true) {
       ctx.quadraticCurveTo(this.via.x,this.via.y,xTo, yTo);
     }
