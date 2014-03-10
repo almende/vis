@@ -299,9 +299,7 @@ var manipulationMixin = {
         if (this.triggerFunctions.add.length == 2) {
           var me = this;
           this.triggerFunctions.add(defaultData, function(finalizedData) {
-            me.createNodeOnClick = true;
             me.nodesData.add(finalizedData);
-            me.createNodeOnClick = false;
             me._createManipulatorBar();
             me.moving = true;
             me.start();
@@ -315,9 +313,7 @@ var manipulationMixin = {
         }
       }
       else {
-        this.createNodeOnClick = true;
         this.nodesData.add(defaultData);
-        this.createNodeOnClick = false;
         this._createManipulatorBar();
         this.moving = true;
         this.start();

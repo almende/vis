@@ -98,7 +98,6 @@ var physicsMixin = {
     this._calculateGravitationalForces();
     this._calculateNodeForces();
 
-
     if (this.constants.smoothCurves == true) {
       this._calculateSpringForcesWithSupport();
     }
@@ -170,8 +169,8 @@ var physicsMixin = {
         dx = -node.x;
         dy = -node.y;
         distance = Math.sqrt(dx*dx + dy*dy);
-        gravityForce = gravity / distance;
 
+        gravityForce = (distance == 0) ? 0 : (gravity / distance);
         node.fx = dx * gravityForce;
         node.fy = dy * gravityForce;
       }
@@ -280,11 +279,11 @@ var physicsMixin = {
     dy = (node1.y - node2.y);
     length =  Math.sqrt(dx * dx + dy * dy);
 
-    springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
-
     if (length == 0) {
       length = 0.01;
     }
+
+    springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
 
     fx = dx * springForce;
     fy = dy * springForce;

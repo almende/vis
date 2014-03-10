@@ -1044,7 +1044,7 @@ var ClusterMixin = {
   repositionNodes : function() {
     for (var i = 0; i < this.nodeIndices.length; i++) {
       var node = this.nodes[this.nodeIndices[i]];
-      if ((node.xFixed == false || node.yFixed == false) && this.createNodeOnClick != true) {
+      if ((node.xFixed == false || node.yFixed == false)) {
         var radius = this.constants.physics.springLength * Math.min(100,node.mass);
         var angle = 2 * Math.PI * Math.random();
         if (node.xFixed == false) {node.x = radius * Math.cos(angle);}

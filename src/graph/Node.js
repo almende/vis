@@ -42,8 +42,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.id = undefined;
   this.shape = constants.nodes.shape;
   this.image = constants.nodes.image;
-  this.x = 0;
-  this.y = 0;
+  this.x = null;
+  this.y = null;
   this.xFixed = false;
   this.yFixed = false;
   this.horizontalAlignLeft = true; // these are for the navigation controls

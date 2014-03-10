@@ -1266,16 +1266,13 @@ Graph.prototype._addNodes = function(ids) {
     var node = new Node(data, this.images, this.groups, this.constants);
     this.nodes[id] = node; // note: this may replace an existing node
 
-    if ((node.xFixed == false || node.yFixed == false) && this.createNodeOnClick != true) {
+    if ((node.xFixed == false || node.yFixed == false) && (node.x === null || node.y === null)) {
       var radius = 10 * 0.1*ids.length;
       var angle = 2 * Math.PI * Math.random();
       if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
       if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
-
-      // note: no not use node.isMoving() here, as that gives the current
-      // velocity of the node, which is zero after creation of the node.
-      this.moving = true;
     }
+    this.moving = true;
   }
   this._updateNodeIndexList();
   this._updateCalculationNodes();

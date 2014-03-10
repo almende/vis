@@ -9439,8 +9439,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.id = undefined;
   this.shape = constants.nodes.shape;
   this.image = constants.nodes.image;
-  this.x = 0;
-  this.y = 0;
+  this.x = null;
+  this.y = null;
   this.xFixed = false;
   this.yFixed = false;
   this.horizontalAlignLeft = true; // these are for the navigation controls
@@ -11507,7 +11507,6 @@ var physicsMixin = {
     this._calculateGravitationalForces();
     this._calculateNodeForces();
 
-
     if (this.constants.smoothCurves == true) {
       this._calculateSpringForcesWithSupport();
     }
@@ -11579,8 +11578,8 @@ var physicsMixin = {
         dx = -node.x;
         dy = -node.y;
         distance = Math.sqrt(dx*dx + dy*dy);
-        gravityForce = gravity / distance;
 
+        gravityForce = (distance == 0) ? 0 : (gravity / distance);
         node.fx = dx * gravityForce;
         node.fy = dy * gravityForce;
       }
@@ -11689,11 +11688,11 @@ var physicsMixin = {
     dy = (node1.y - node2.y);
     length =  Math.sqrt(dx * dx + dy * dy);
 
-    springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
-
     if (length == 0) {
       length = 0.01;
     }
+
+    springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
 
     fx = dx * springForce;
     fy = dy * springForce;
@@ -13025,9 +13024,7 @@ var manipulationMixin = {
         if (this.triggerFunctions.add.length == 2) {
           var me = this;
           this.triggerFunctions.add(defaultData, function(finalizedData) {
-            me.createNodeOnClick = true;
             me.nodesData.add(finalizedData);
-            me.createNodeOnClick = false;
             me._createManipulatorBar();
             me.moving = true;
             me.start();
@@ -13041,9 +13038,7 @@ var manipulationMixin = {
         }
       }
       else {
-        this.createNodeOnClick = true;
         this.nodesData.add(defaultData);
-        this.createNodeOnClick = false;
         this._createManipulatorBar();
         this.moving = true;
         this.start();
@@ -14761,7 +14756,7 @@ var ClusterMixin = {
   repositionNodes : function() {
     for (var i = 0; i < this.nodeIndices.length; i++) {
       var node = this.nodes[this.nodeIndices[i]];
-      if ((node.xFixed == false || node.yFixed == false) && this.createNodeOnClick != true) {
+      if ((node.xFixed == false || node.yFixed == false)) {
         var radius = this.constants.physics.springLength * Math.min(100,node.mass);
         var angle = 2 * Math.PI * Math.random();
         if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
@@ -15818,7 +15813,8 @@ function Graph (container, data, options) {
   this.renderRefreshRate = 60;                         // hz (fps)
   this.renderTimestep = 1000 / this.renderRefreshRate; // ms -- saves calculation later on
   this.renderTime = 0.5 * this.renderTimestep;         // measured time it takes to render a frame
-  this.maxRenderSteps = 3;                             // max amount of physics ticks per render step.
+  this.maxPhysicsTicksPerRender = 3;                   // max amount of physics ticks per render step.
+  this.physicsDiscreteStepsize = 0.65;                 // discrete stepsize of the simulation
 
   this.stabilize = true;  // stabilize before displaying the graph
   this.selectable = true;
@@ -17061,16 +17057,13 @@ Graph.prototype._addNodes = function(ids) {
     var node = new Node(data, this.images, this.groups, this.constants);
     this.nodes[id] = node; // note: this may replace an existing node
 
-    if ((node.xFixed == false || node.yFixed == false) && this.createNodeOnClick != true) {
+    if ((node.xFixed == false || node.yFixed == false) && (node.x === null || node.y === null)) {
       var radius = 10 * 0.1*ids.length;
       var angle = 2 * Math.PI * Math.random();
       if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
       if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
-
-      // note: no not use node.isMoving() here, as that gives the current
-      // velocity of the node, which is zero after creation of the node.
-      this.moving = true;
     }
+    this.moving = true;
   }
   this._updateNodeIndexList();
   this._updateCalculationNodes();
@@ -17552,7 +17545,7 @@ Graph.prototype._isMoving = function(vmin) {
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = 0.65;
+  var interval = this.physicsDiscreteStepsize;
   var nodes = this.nodes;
   var nodeId;
 
@@ -17614,7 +17607,7 @@ Graph.prototype._animationStep = function() {
   var maxSteps = 1;
   this._physicsTick();
   var timeRequired = Date.now() - calculationTime;
-  while (timeRequired < (this.renderTimestep - this.renderTime) && maxSteps < this.maxRenderSteps) {
+  while (timeRequired < (this.renderTimestep - this.renderTime) && maxSteps < this.maxPhysicsTicksPerRender) {
     this._physicsTick();
     timeRequired = Date.now() - calculationTime;
     maxSteps++;
