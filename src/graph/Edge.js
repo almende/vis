@@ -81,6 +81,7 @@ Edge.prototype.setProperties = function(properties, constants) {
     this.fontSize = constants.edges.fontSize;
     this.fontFace = constants.edges.fontFace;
     this.fontColor = constants.edges.fontColor;
+
     if (properties.fontColor !== undefined)  {this.fontColor = properties.fontColor;}
     if (properties.fontSize !== undefined)   {this.fontSize = properties.fontSize;}
     if (properties.fontFace !== undefined)   {this.fontFace = properties.fontFace;}

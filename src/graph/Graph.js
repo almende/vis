@@ -594,7 +594,10 @@ Graph.prototype.setOptions = function (options) {
       }
 
       if (!options.edges.fontColor) {
-        this.constants.edges.fontColor = options.edges.color;
+        if (options.edges.color !== undefined) {
+          if (util.isString(options.edges.color))           {this.constants.edges.fontColor = options.edges.color;}
+          else if (options.edges.color.color !== undefined) {this.constants.edges.fontColor = options.edges.color.color;}
+        }
       }
 
       // Added to support dashed lines
