@@ -1370,7 +1370,8 @@ var options = {
     By using the data manipulation feature of the graph you can dynamically create nodes, connect nodes with edges, edit nodes or delete nodes and edges.
     The toolbar is fully HTML and CSS so the user can style this to their preference. To control the behaviour of the data manipulation, users can insert custom functions
     into the data manipulation process. For example, an injected function can show an detailed pop-up when a user wants to add a node. In <a href="../examples/graph/21_data_manipulation.html">example 21</a>,
-    two functions have been injected into the add and edit functionality. This is described in more detail in the next subsection.
+    two functions have been injected into the add and edit functionality. This is described in more detail in the next subsection. To correctly display the manipulation icons, the <b>vis.css</b> file must be included.
+    The user is free to alter or overload the CSS classes but without them the navigation icons are not visible.
 </p>
 <pre class="prettyprint">
 // These variables must be defined in an options object named dataManipulation.
@@ -1664,7 +1665,8 @@ var options: {
 <h3 id="Navigation_controls">Navigation controls</h3>
 <p>
   Graph has a menu with navigation controls, which is disabled by default.
-  It can be configured with the following settings.
+  It can be configured with the following settings. To correctly display the navigation icons, the <b>vis.css</b> file must be included.
+    The user is free to alter or overload the CSS classes but without them the navigation icons are not visible.
 </p>
 
 <pre class="prettyprint">
