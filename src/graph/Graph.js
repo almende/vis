@@ -576,7 +576,20 @@ Graph.prototype.setOptions = function (options) {
     if (options.edges) {
       for (prop in options.edges) {
         if (options.edges.hasOwnProperty(prop)) {
-          this.constants.edges[prop] = options.edges[prop];
+          if (typeof options.edges[prop] != "object") {
+            this.constants.edges[prop] = options.edges[prop];
+          }
+        }
+      }
+
+      if (options.edges.color !== undefined) {
+        if (util.isString(options.edges.color)) {
+          this.constants.edges.color.color = options.edges.color;
+          this.constants.edges.color.highlight = options.edges.color;
+        }
+        else {
+          if (options.edges.color.color !== undefined)     {this.constants.edges.color.color = options.edges.color.color;}
+          if (options.edges.color.highlight !== undefined) {this.constants.edges.color.highlight = options.edges.color.highlight;}
         }
       }
 

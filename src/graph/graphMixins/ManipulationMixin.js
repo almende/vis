@@ -62,7 +62,9 @@ var manipulationMixin = {
    */
   _createManipulatorBar : function() {
     // remove bound functions
-    this.off('select', this.boundFunction);
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
 
     // restore overloaded functions
     this._restoreOverloadedFunctions();
@@ -137,7 +139,9 @@ var manipulationMixin = {
   _createAddNodeToolbar : function() {
     // clear the toolbar
     this._clearManipulatorBar();
-    this.off('select', this.boundFunction);
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
 
     // create the toolbar contents
     this.manipulationDiv.innerHTML = "" +
@@ -168,7 +172,9 @@ var manipulationMixin = {
     this._unselectAll(true);
     this.freezeSimulation = true;
 
-    this.off('select', this.boundFunction);
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
 
     this._unselectAll();
     this.forceAppendSelection = false;

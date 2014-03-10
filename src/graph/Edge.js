@@ -109,7 +109,6 @@ Edge.prototype.setProperties = function(properties, constants) {
     else {
       if (properties.color.color !== undefined)     {this.color.color = properties.color.color;}
       if (properties.color.highlight !== undefined) {this.color.highlight = properties.color.highlight;}
-      else if (properties.color.color !== undefined){this.color.highlight = properties.color.color;}
     }
   }
 
@@ -571,7 +570,7 @@ Edge.prototype._drawArrowCenter = function(ctx) {
 Edge.prototype._drawArrow = function(ctx) {
   // set style
   if (this.selected == true) {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
-  else                       {ctx.strokeStyle = this.color.color; ctx.fillStyle = this.color.color;}
+  else                       {ctx.strokeStyle = this.color.color;     ctx.fillStyle = this.color.color;}
 
   ctx.lineWidth = this._getLineWidth();
 

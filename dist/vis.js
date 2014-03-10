@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.7.0-SNAPSHOT
- * @date    2014-03-08
+ * @version @@version
+ * @date    @@date
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -10522,7 +10522,6 @@ Edge.prototype.setProperties = function(properties, constants) {
     else {
       if (properties.color.color !== undefined)     {this.color.color = properties.color.color;}
       if (properties.color.highlight !== undefined) {this.color.highlight = properties.color.highlight;}
-      else if (properties.color.color !== undefined){this.color.highlight = properties.color.color;}
     }
   }
 
@@ -10984,7 +10983,7 @@ Edge.prototype._drawArrowCenter = function(ctx) {
 Edge.prototype._drawArrow = function(ctx) {
   // set style
   if (this.selected == true) {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
-  else                       {ctx.strokeStyle = this.color.color; ctx.fillStyle = this.color.color;}
+  else                       {ctx.strokeStyle = this.color.color;     ctx.fillStyle = this.color.color;}
 
   ctx.lineWidth = this._getLineWidth();
 
@@ -12788,7 +12787,9 @@ var manipulationMixin = {
    */
   _createManipulatorBar : function() {
     // remove bound functions
-    this.off('select', this.boundFunction);
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
 
     // restore overloaded functions
     this._restoreOverloadedFunctions();
@@ -12863,7 +12864,9 @@ var manipulationMixin = {
   _createAddNodeToolbar : function() {
     // clear the toolbar
     this._clearManipulatorBar();
-    this.off('select', this.boundFunction);
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
 
     // create the toolbar contents
     this.manipulationDiv.innerHTML = "" +
@@ -12894,7 +12897,9 @@ var manipulationMixin = {
     this._unselectAll(true);
     this.freezeSimulation = true;
 
-    this.off('select', this.boundFunction);
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
 
     this._unselectAll();
     this.forceAppendSelection = false;
@@ -16366,7 +16371,20 @@ Graph.prototype.setOptions = function (options) {
     if (options.edges) {
       for (prop in options.edges) {
         if (options.edges.hasOwnProperty(prop)) {
-          this.constants.edges[prop] = options.edges[prop];
+          if (typeof options.edges[prop] != "object") {
+            this.constants.edges[prop] = options.edges[prop];
+          }
+        }
+      }
+
+      if (options.edges.color !== undefined) {
+        if (util.isString(options.edges.color)) {
+          this.constants.edges.color.color = options.edges.color;
+          this.constants.edges.color.highlight = options.edges.color;
+        }
+        else {
+          if (options.edges.color.color !== undefined)     {this.constants.edges.color.color = options.edges.color.color;}
+          if (options.edges.color.highlight !== undefined) {this.constants.edges.color.highlight = options.edges.color.highlight;}
         }
       }
 
