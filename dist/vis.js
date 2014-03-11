@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version @@version
- * @date    @@date
+ * @version 0.8.0-SNAPSHOT
+ * @date    2014-03-11
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -1119,6 +1119,20 @@ util.hexToHSV = function hexToHSV(hex) {
 util.isValidHex = function isValidHex(hex) {
   var isOk  = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
   return isOk;
+}
+
+util.copyObject = function copyObject(objectFrom,objectTo) {
+  for (var i in objectFrom) {
+    if (objectFrom.hasOwnProperty(i)) {
+      if (typeof objectFrom[i] == "object") {
+        objectTo[i] = {};
+        util.copyObject(objectFrom[i],objectTo[i]);
+      }
+      else {
+        objectTo[i] = objectFrom[i];
+      }
+    }
+  }
 }
 
 /**
@@ -11710,6 +11724,9 @@ var physicsMixin = {
    */
   _loadPhysicsConfiguration : function() {
     if (this.physicsConfiguration === undefined) {
+      this.backupConstants = {};
+      util.copyObject(this.constants,this.backupConstants);
+
       var hierarchicalLayoutDirections = ["LR","RL","UD","DU"];
       this.physicsConfiguration = document.createElement('div');
       this.physicsConfiguration.className = "PhysicsConfiguration";
@@ -11783,10 +11800,19 @@ var physicsMixin = {
         '<tr>'+
         '<td width="150px">nodeSpacing</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.nodeSpacing + '" step="1" style="width:300px" id="graph_H_nspac"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.nodeSpacing + '" id="graph_H_nspac_value" style="width:60px"></td>'+
         '</tr>'+
+        '</table>' +
+        '<table><tr><td><b>Options:</b></td></tr>' +
+        '<tr>' +
+        '<td width="180px"><input type="button" id="graph_toggleSmooth" value="Toggle smoothCurves" style="width:150px"></td>' +
+        '<td width="180px"><input type="button" id="graph_repositionNodes" value="Reinitialize" style="width:150px"></td>' +
+        '<td width="180px"><input type="button" id="graph_generateOptions" value="Generate Options" style="width:150px"></td>' +
+        '</tr>'+
         '</table>'
-      this.containerElement.parentElement.insertBefore(this.physicsConfiguration,this.containerElement);
-
-
+            this.containerElement.parentElement.insertBefore(this.physicsConfiguration,this.containerElement);
+      this.optionsDiv = document.createElement("div");
+      this.optionsDiv.style.fontSize = "14px";
+      this.optionsDiv.style.fontFamily = "verdana";
+      this.containerElement.parentElement.insertBefore(this.optionsDiv,this.containerElement);
 
       var rangeElement;
       rangeElement = document.getElementById('graph_BH_gc');
@@ -11799,7 +11825,6 @@ var physicsMixin = {
       rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_sl',1,"physics_springLength");
       rangeElement = document.getElementById('graph_BH_damp');
       rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_damp',1,"physics_damping");
-
 
       rangeElement = document.getElementById('graph_R_nd');
       rangeElement.onchange = showValueOfRange.bind(this,'graph_R_nd',1,"physics_repulsion_nodeDistance");
@@ -11832,7 +11857,6 @@ var physicsMixin = {
       var radioButton1 = document.getElementById("graph_physicsMethod1");
       var radioButton2 = document.getElementById("graph_physicsMethod2");
       var radioButton3 = document.getElementById("graph_physicsMethod3");
-
       radioButton2.checked = true;
       if (this.constants.physics.barnesHut.enabled) {
         radioButton1.checked = true;
@@ -11840,6 +11864,17 @@ var physicsMixin = {
       if (this.constants.hierarchicalLayout.enabled) {
         radioButton3.checked = true;
       }
+
+      var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+      var graph_repositionNodes = document.getElementById("graph_repositionNodes");
+      var graph_generateOptions = document.getElementById("graph_generateOptions");
+
+      graph_toggleSmooth.onclick = graphToggleSmoothCurves.bind(this);
+      graph_repositionNodes.onclick = graphRepositionNodes.bind(this);
+      graph_generateOptions.onclick = graphGenerateOptions.bind(this);
+      if (this.constants.smoothCurves == true) {graph_toggleSmooth.style.background = "#A4FF56";}
+      else                                     {graph_toggleSmooth.style.background = "#FF8532";}
+
 
       switchConfigurations.apply(this);
 
@@ -11863,6 +11898,129 @@ var physicsMixin = {
   }
 }
 
+function graphToggleSmoothCurves () {
+  this.constants.smoothCurves = !this.constants.smoothCurves;
+  var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+  if (this.constants.smoothCurves == true) {graph_toggleSmooth.style.background = "#A4FF56";}
+  else                                     {graph_toggleSmooth.style.background = "#FF8532";}
+
+  this._configureSmoothCurves(false);
+};
+
+function graphRepositionNodes () {
+  for (var nodeId in this.calculationNodes) {
+    if (this.calculationNodes.hasOwnProperty(nodeId)) {
+      this.calculationNodes[nodeId].vx = 0;  this.calculationNodes[nodeId].vy = 0;
+      this.calculationNodes[nodeId].fx = 0;  this.calculationNodes[nodeId].fy = 0;
+    }
+  }
+  if (this.constants.hierarchicalLayout.enabled == true) {
+    this._setupHierarchicalLayout();
+  }
+  else {
+    this.repositionNodes();
+  }
+  this.moving = true;
+  this.start();
+};
+
+function graphGenerateOptions () {
+  var options = "No options are required, default values used."
+  var optionsSpecific = [];
+  var radioButton1 = document.getElementById("graph_physicsMethod1");
+  var radioButton2 = document.getElementById("graph_physicsMethod2");
+  if (radioButton1.checked == true) {
+    if (this.constants.physics.barnesHut.gravitationalConstant != this.backupConstants.physics.barnesHut.gravitationalConstant) {optionsSpecific.push("gravitationalConstant: " + this.constants.physics.barnesHut.gravitationalConstant);}
+    if (this.constants.physics.centralGravity != this.backupConstants.physics.barnesHut.centralGravity)                         {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+    if (this.constants.physics.springLength != this.backupConstants.physics.barnesHut.springLength)                             {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+    if (this.constants.physics.springConstant != this.backupConstants.physics.barnesHut.springConstant)                         {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+    if (this.constants.physics.damping != this.backupConstants.physics.barnesHut.damping)                                       {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+    if (optionsSpecific.length != 0) {
+      options = "var options = {"
+      options += "physics: {barnesHut: {"
+      for (var i = 0; i < optionsSpecific.length; i++) {
+        options += optionsSpecific[i];
+        if (i < optionsSpecific.length - 1) {
+          options += ", "
+        }
+      }
+      options += '}}'
+    }
+    if (this.constants.smoothCurves != this.backupConstants.smoothCurves) {
+      if (optionsSpecific.length == 0) {options = "var options = {";}
+      else {options += ", "}
+      options += "smoothCurves: " + this.constants.smoothCurves;
+    }
+    if (options != "No options are required, default values used.") {
+      options += '};'
+    }
+  }
+  else if (radioButton2.checked == true) {
+    options = "var options = {"
+    options += "physics: {barnesHut: {enabled: false}";
+    if (this.constants.physics.repulsion.nodeDistance != this.backupConstants.physics.repulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.repulsion.nodeDistance);}
+    if (this.constants.physics.centralGravity != this.backupConstants.physics.repulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+    if (this.constants.physics.springLength != this.backupConstants.physics.repulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+    if (this.constants.physics.springConstant != this.backupConstants.physics.repulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+    if (this.constants.physics.damping != this.backupConstants.physics.repulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+    if (optionsSpecific.length != 0) {
+      options += ", repulsion: {"
+      for (var i = 0; i < optionsSpecific.length; i++) {
+        options += optionsSpecific[i];
+        if (i < optionsSpecific.length - 1) {
+          options += ", "
+        }
+      }
+      options += '}}'
+    }
+    if (optionsSpecific.length == 0) {options += "}"}
+    if (this.constants.smoothCurves != this.backupConstants.smoothCurves) {
+      options += ", smoothCurves: " + this.constants.smoothCurves;
+    }
+    options += '};'
+  }
+  else {
+    options = "var options = {"
+    if (this.constants.physics.hierarchicalRepulsion.nodeDistance != this.backupConstants.physics.hierarchicalRepulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.hierarchicalRepulsion.nodeDistance);}
+    if (this.constants.physics.centralGravity != this.backupConstants.physics.hierarchicalRepulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+    if (this.constants.physics.springLength != this.backupConstants.physics.hierarchicalRepulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+    if (this.constants.physics.springConstant != this.backupConstants.physics.hierarchicalRepulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+    if (this.constants.physics.damping != this.backupConstants.physics.hierarchicalRepulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+    if (optionsSpecific.length != 0) {
+      options += "physics: {hierarchicalRepulsion: {"
+      for (var i = 0; i < optionsSpecific.length; i++) {
+        options += optionsSpecific[i];
+        if (i < optionsSpecific.length - 1) {
+          options += ", ";
+        }
+      }
+      options += '}},';
+    }
+    options += 'hierarchicalLayout: {';
+    optionsSpecific = [];
+    if (this.constants.hierarchicalLayout.direction != this.backupConstants.hierarchicalLayout.direction)                       {optionsSpecific.push("direction: " + this.constants.hierarchicalLayout.direction);}
+    if (Math.abs(this.constants.hierarchicalLayout.levelSeparation) != this.backupConstants.hierarchicalLayout.levelSeparation) {optionsSpecific.push("levelSeparation: " + this.constants.hierarchicalLayout.levelSeparation);}
+    if (this.constants.hierarchicalLayout.nodeSpacing != this.backupConstants.hierarchicalLayout.nodeSpacing)                   {optionsSpecific.push("nodeSpacing: " + this.constants.hierarchicalLayout.nodeSpacing);}
+    if (optionsSpecific.length != 0) {
+      for (var i = 0; i < optionsSpecific.length; i++) {
+        options += optionsSpecific[i];
+        if (i < optionsSpecific.length - 1) {
+          options += ", "
+        }
+      }
+      options += '}'
+    }
+    else {
+      options += "enabled:true}";
+    }
+    options += '};'
+  }
+
+
+  this.optionsDiv.innerHTML = options;
+
+};
+
 
 function switchConfigurations () {
   var ids = ["graph_BH_table","graph_R_table","graph_H_table"]
@@ -11879,23 +12037,27 @@ function switchConfigurations () {
   this._restoreNodes();
   if (radioButton == "R") {
     this.constants.hierarchicalLayout.enabled = false;
-    this.constants.physics.hierarchicalRepulsion.enabeled = false;
+    this.constants.physics.hierarchicalRepulsion.enabled = false;
     this.constants.physics.barnesHut.enabled = false;
   }
   else if (radioButton == "H") {
     this.constants.hierarchicalLayout.enabled = true;
-    this.constants.physics.hierarchicalRepulsion.enabeled = true;
+    this.constants.physics.hierarchicalRepulsion.enabled = true;
     this.constants.physics.barnesHut.enabled = false;
     this._setupHierarchicalLayout();
   }
   else {
     this.constants.hierarchicalLayout.enabled = false;
-    this.constants.physics.hierarchicalRepulsion.enabeled = false;
+    this.constants.physics.hierarchicalRepulsion.enabled = false;
     this.constants.physics.barnesHut.enabled = true;
   }
   this._loadSelectedForceSolver();
+  var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+  if (this.constants.smoothCurves == true) {graph_toggleSmooth.style.background = "#A4FF56";}
+  else                                     {graph_toggleSmooth.style.background = "#FF8532";}
   this.moving = true;
   this.start();
+
 }
 
 function showValueOfRange (id,map,constantsVariableName) {
@@ -11919,6 +12081,7 @@ function showValueOfRange (id,map,constantsVariableName) {
   this.moving = true;
   this.start();
 };
+
 
 
 /**
@@ -14757,7 +14920,7 @@ var ClusterMixin = {
     for (var i = 0; i < this.nodeIndices.length; i++) {
       var node = this.nodes[this.nodeIndices[i]];
       if ((node.xFixed == false || node.yFixed == false)) {
-        var radius = this.constants.physics.springLength * Math.min(100,node.mass);
+        var radius = 10 * 0.1*this.nodeIndices.length * Math.min(100,node.mass);
         var angle = 2 * Math.PI * Math.random();
         if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
         if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
