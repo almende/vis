@@ -1,6 +1,15 @@
 vis.js history
 http://visjs.org
 
+## 2014-03-12, version 0.7.1
+
+### Graph
+
+- fixed edge color bug.
+- fixed select event bug.
+- clarified docs, stressing importance of css inclusion for correct display of navigation an manipulation icons.
+- improved and expanded playing with physics (configurePhysics option).
+- added highlights to navigation icons if the corresponding key is pressed.
 
 ## 2014-03-07, version 0.7.0
 
