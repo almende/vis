@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.8.0-SNAPSHOT
- * @date    2014-03-11
+ * @version @@version
+ * @date    @@date
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -15663,6 +15663,9 @@ var NavigationMixin = {
     this.yIncrement = this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['up'].className += " active";
+    }
   },
 
 
@@ -15674,6 +15677,9 @@ var NavigationMixin = {
     this.yIncrement = -this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['down'].className += " active";
+    }
   },
 
 
@@ -15685,6 +15691,9 @@ var NavigationMixin = {
     this.xIncrement = this.constants.keyboard.speed.x;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['left'].className += " active";
+    }
   },
 
 
@@ -15696,6 +15705,9 @@ var NavigationMixin = {
     this.xIncrement = -this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['right'].className += " active";
+    }
   },
 
 
@@ -15707,6 +15719,9 @@ var NavigationMixin = {
     this.zoomIncrement = this.constants.keyboard.speed.zoom;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['zoomIn'].className += " active";
+    }
   },
 
 
@@ -15718,6 +15733,9 @@ var NavigationMixin = {
     this.zoomIncrement = -this.constants.keyboard.speed.zoom;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['zoomOut'].className += " active";
+    }
   },
 
 
@@ -15727,6 +15745,10 @@ var NavigationMixin = {
    */
   _stopZoom : function() {
     this.zoomIncrement = 0;
+    if (this.navigationDivs) {
+      this.navigationDivs['zoomIn'].className = this.navigationDivs['zoomIn'].className.replace(" active","");
+      this.navigationDivs['zoomOut'].className = this.navigationDivs['zoomOut'].className.replace(" active","");
+    }
   },
 
 
@@ -15736,6 +15758,10 @@ var NavigationMixin = {
    */
   _yStopMoving : function() {
     this.yIncrement = 0;
+    if (this.navigationDivs) {
+      this.navigationDivs['up'].className = this.navigationDivs['up'].className.replace(" active","");
+      this.navigationDivs['down'].className = this.navigationDivs['down'].className.replace(" active","");
+    }
   },
 
 
@@ -15745,6 +15771,10 @@ var NavigationMixin = {
    */
   _xStopMoving : function() {
     this.xIncrement = 0;
+    if (this.navigationDivs) {
+      this.navigationDivs['left'].className = this.navigationDivs['left'].className.replace(" active","");
+      this.navigationDivs['right'].className = this.navigationDivs['right'].className.replace(" active","");
+    }
   }
 
 
