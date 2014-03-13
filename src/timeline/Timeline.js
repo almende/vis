@@ -27,6 +27,8 @@ function Timeline (container, items, options) {
     showCurrentTime: false,
     showCustomTime: false,
 
+    showGroupsLabels: true,
+
     onAdd: function (item, callback) {
       callback(item);
     },
@@ -75,10 +77,10 @@ function Timeline (container, items, options) {
   // item panel
   var itemOptions = Object.create(this.options);
   itemOptions.left = function () {
-    return me.labelPanel.width;
+    return me.options.showGroupsLabels ? me.labelPanel.width : 0;
   };
   itemOptions.width = function () {
-    return me.rootPanel.width - me.labelPanel.width;
+    return me.options.showGroupsLabels ? (me.rootPanel.width - me.labelPanel.width) : me.rootPanel.width;
   };
   itemOptions.top = null;
   itemOptions.height = null;
@@ -86,20 +88,22 @@ function Timeline (container, items, options) {
   this.controller.add(this.itemPanel);
 
   // label panel
-  var labelOptions = Object.create(this.options);
-  labelOptions.top = null;
-  labelOptions.left = null;
-  labelOptions.height = null;
-  labelOptions.width = function () {
-    if (me.content && typeof me.content.getLabelsWidth === 'function') {
-      return me.content.getLabelsWidth();
-    }
-    else {
-      return 0;
-    }
-  };
-  this.labelPanel = new Panel(this.rootPanel, [], labelOptions);
-  this.controller.add(this.labelPanel);
+  if (this.options.showGroupsLabels) {
+    var labelOptions = Object.create(this.options);
+    labelOptions.top = null;
+    labelOptions.left = null;
+    labelOptions.height = null;
+    labelOptions.width = function () {
+      if (me.content && typeof me.content.getLabelsWidth === 'function') {
+        return me.content.getLabelsWidth();
+      }
+      else {
+        return 0;
+      }
+    };
+    this.labelPanel = new Panel(this.rootPanel, [], labelOptions);
+    this.controller.add(this.labelPanel);
+  }
 
   // range
   var rangeOptions = Object.create(this.options);
@@ -356,7 +360,7 @@ Timeline.prototype.setGroups = function(groups) {
         }
       },
       labelContainer: function () {
-        return me.labelPanel.getContainer();
+        return me.options.showGroupsLabels ? me.labelPanel.getContainer() : undefined;
       }
     });
 

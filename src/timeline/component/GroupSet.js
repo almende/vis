@@ -233,25 +233,24 @@ GroupSet.prototype.repaint = function repaint() {
 
   // create labels
   var labelContainer = asElement(options.labelContainer);
-  if (!labelContainer) {
-    throw new Error('Cannot repaint groupset: option "labelContainer" not defined');
-  }
-  if (!labels) {
-    labels = document.createElement('div');
-    labels.className = 'labels';
-    this.dom.labels = labels;
-  }
-  if (!labelSet) {
-    labelSet = document.createElement('div');
-    labelSet.className = 'label-set';
-    labels.appendChild(labelSet);
-    this.dom.labelSet = labelSet;
-  }
-  if (!labels.parentNode || labels.parentNode != labelContainer) {
-    if (labels.parentNode) {
-      labels.parentNode.removeChild(labels.parentNode);
+  if (labelContainer) {
+    if (!labels) {
+      labels = document.createElement('div');
+      labels.className = 'labels';
+      this.dom.labels = labels;
     }
-    labelContainer.appendChild(labels);
+    if (!labelSet) {
+      labelSet = document.createElement('div');
+      labelSet.className = 'label-set';
+      labels.appendChild(labelSet);
+      this.dom.labelSet = labelSet;
+    }
+    if (!labels.parentNode || labels.parentNode != labelContainer) {
+      if (labels.parentNode) {
+        labels.parentNode.removeChild(labels.parentNode);
+      }
+      labelContainer.appendChild(labels);
+    }
   }
 
   // reposition frame
@@ -261,8 +260,10 @@ GroupSet.prototype.repaint = function repaint() {
   changed += update(frame.style, 'width',  asSize(options.width, '100%'));
 
   // reposition labels
-  changed += update(labelSet.style, 'top',    asSize(options.top, '0px'));
-  changed += update(labelSet.style, 'height', asSize(options.height, this.height + 'px'));
+  if (labelContainer) {
+    changed += update(labelSet.style, 'top',    asSize(options.top, '0px'));
+    changed += update(labelSet.style, 'height', asSize(options.height, this.height + 'px'));
+  }
 
   var me = this,
       queue = this.queue,
@@ -342,13 +343,15 @@ GroupSet.prototype.repaint = function repaint() {
     }
 
     // (re)create the labels
-    while (labelSet.firstChild) {
-      labelSet.removeChild(labelSet.firstChild);
-    }
-    for (i = 0; i < orderedGroups.length; i++) {
-      id = orderedGroups[i];
-      label = this._createLabel(id);
-      labelSet.appendChild(label);
+    if (labelContainer) {
+      while (labelSet.firstChild) {
+        labelSet.removeChild(labelSet.firstChild);
+      }
+      for (i = 0; i < orderedGroups.length; i++) {
+        id = orderedGroups[i];
+        label = this._createLabel(id);
+        labelSet.appendChild(label);
+      }
     }
 
     changed++;

@@ -111,7 +111,7 @@ Group.prototype.reflow = function reflow() {
       update = util.updateProperty;
 
   changed += update(this, 'top',    this.itemset ? this.itemset.top : 0);
-  changed += update(this, 'height', this.itemset ? this.itemset.height : 0);
+  changed += update(this, 'height', Math.max(this.itemset.height, this.props.label.height));
 
   // TODO: reckon with the height of the group label
 
