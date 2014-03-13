@@ -19,6 +19,7 @@ function Timeline (container, items, options) {
     max: null,
     zoomMin: 10,                                // milliseconds
     zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000, // milliseconds
+    zoomKey: 'shiftKey', // [altKey, ctrlKey, shiftKey]
     // moveable: true, // TODO: option moveable
     // zoomable: true, // TODO: option zoomable
 
