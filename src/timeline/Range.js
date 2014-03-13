@@ -362,47 +362,49 @@ Range.prototype._onDragEnd = function (event, component) {
  * @private
  */
 Range.prototype._onMouseWheel = function(event, component, direction) {
-  validateDirection(direction);
+  if (!this.options.zoomKey || event[this.options.zoomKey]) {
+    validateDirection(direction);
 
-  // TODO: reckon with option zoomable
+    // TODO: reckon with option zoomable
 
-  // retrieve delta
-  var delta = 0;
-  if (event.wheelDelta) { /* IE/Opera. */
-    delta = event.wheelDelta / 120;
-  } else if (event.detail) { /* Mozilla case. */
-    // In Mozilla, sign of delta is different than in IE.
-    // Also, delta is multiple of 3.
-    delta = -event.detail / 3;
-  }
-
-  // If delta is nonzero, handle it.
-  // Basically, delta is now positive if wheel was scrolled up,
-  // and negative, if wheel was scrolled down.
-  if (delta) {
-    // perform the zoom action. Delta is normally 1 or -1
-
-    // adjust a negative delta such that zooming in with delta 0.1
-    // equals zooming out with a delta -0.1
-    var scale;
-    if (delta < 0) {
-      scale = 1 - (delta / 5);
-    }
-    else {
-      scale = 1 / (1 + (delta / 5)) ;
+    // retrieve delta
+    var delta = 0;
+    if (event.wheelDelta) { /* IE/Opera. */
+      delta = event.wheelDelta / 120;
+    } else if (event.detail) { /* Mozilla case. */
+      // In Mozilla, sign of delta is different than in IE.
+      // Also, delta is multiple of 3.
+      delta = -event.detail / 3;
     }
 
-    // calculate center, the date to zoom around
-    var gesture = util.fakeGesture(this, event),
-        pointer = getPointer(gesture.center, component.frame),
-        pointerDate = this._pointerToDate(component, direction, pointer);
+    // If delta is nonzero, handle it.
+    // Basically, delta is now positive if wheel was scrolled up,
+    // and negative, if wheel was scrolled down.
+    if (delta) {
+      // perform the zoom action. Delta is normally 1 or -1
 
-    this.zoom(scale, pointerDate);
+      // adjust a negative delta such that zooming in with delta 0.1
+      // equals zooming out with a delta -0.1
+      var scale;
+      if (delta < 0) {
+        scale = 1 - (delta / 5);
+      }
+      else {
+        scale = 1 / (1 + (delta / 5)) ;
+      }
+
+      // calculate center, the date to zoom around
+      var gesture = util.fakeGesture(this, event),
+          pointer = getPointer(gesture.center, component.frame),
+          pointerDate = this._pointerToDate(component, direction, pointer);
+
+      this.zoom(scale, pointerDate);
+    }
+
+    // Prevent default actions caused by mouse wheel
+    // (else the page and timeline both zoom and scroll)
+    event.preventDefault();
   }
-
-  // Prevent default actions caused by mouse wheel
-  // (else the page and timeline both zoom and scroll)
-  event.preventDefault();
 };
 
 /**
