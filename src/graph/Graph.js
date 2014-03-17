@@ -63,7 +63,10 @@ function Graph (container, data, options) {
       widthMax: 15,
       width: 1,
       style: 'line',
-      color: '#848484',
+      color: {
+        color:'#848484',
+        highlight:'#848484'
+      },
       fontColor: '#343434',
       fontSize: 14, // px
       fontFace: 'arial',
@@ -80,8 +83,8 @@ function Graph (container, data, options) {
         theta: 1 / 0.6, // inverted to save time during calculation
         gravitationalConstant: -2000,
         centralGravity: 0.3,
-        springLength: 100,
-        springConstant: 0.05,
+        springLength: 95,
+        springConstant: 0.04,
         damping: 0.09
       },
       repulsion: {
@@ -145,7 +148,7 @@ function Graph (container, data, options) {
     smoothCurves: true,
     maxVelocity:  10,
     minVelocity:  0.1,   // px/s
-    maxIterations: 1000  // maximum number of iteration to stabilize
+    stabilizationIterations: 1000  // maximum number of iteration to stabilize
   };
   this.editMode = this.constants.dataManipulation.initiallyVisible;
 
@@ -451,7 +454,7 @@ Graph.prototype.setData = function(data, disableStart) {
   if (!disableStart) {
     // find a stable position or start animating to a stable position
     if (this.stabilize) {
-      this._doStabilize();
+      this._stabilize();
     }
     this.start();
   }
@@ -471,6 +474,7 @@ Graph.prototype.setOptions = function (options) {
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
     if (options.smoothCurves !== undefined)    {this.constants.smoothCurves = options.smoothCurves;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
+    if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
 
     if (options.onAdd) {
         this.triggerFunctions.add = options.onAdd;
@@ -1174,7 +1178,13 @@ Graph.prototype.setSize = function(width, height) {
   this.frame.canvas.height = this.frame.canvas.clientHeight;
 
   if (this.manipulationDiv !== undefined) {
-    this.manipulationDiv.style.width = this.frame.canvas.clientWidth;
+    this.manipulationDiv.style.width = this.frame.canvas.clientWidth + "px";
+  }
+  if (this.navigationDivs !== undefined) {
+    if (this.navigationDivs['wrapper'] !== undefined) {
+      this.navigationDivs['wrapper'].style.width = this.frame.canvas.clientWidth + "px";
+      this.navigationDivs['wrapper'].style.height = this.frame.canvas.clientHeight + "px";
+    }
   }
 
   this.emit('resize', {width:this.frame.canvas.width,height:this.frame.canvas.height});
@@ -1692,10 +1702,10 @@ Graph.prototype._drawEdges = function(ctx) {
  * Find a stable position for all nodes
  * @private
  */
-Graph.prototype._doStabilize = function() {
+Graph.prototype._stabilize = function() {
   // find stable position
   var count = 0;
-  while (this.moving && count < this.constants.maxIterations) {
+  while (this.moving && count < this.constants.stabilizationIterations) {
     this._physicsTick();
     count++;
   }
@@ -1919,6 +1929,23 @@ Graph.prototype._initializeMixinLoaders = function () {
   }
 };
 
+/**
+ * Load the XY positions of the nodes into the dataset.
+ */
+Graph.prototype.storePosition = function() {
+  var dataArray = [];
+  for (var nodeId in this.nodes) {
+    if (this.nodes.hasOwnProperty(nodeId)) {
+      var node = this.nodes[nodeId];
+      var allowedToMoveX = !this.nodes.xFixed;
+      var allowedToMoveY = !this.nodes.yFixed;
+      if (this.nodesData.data[nodeId].x != Math.round(node.x) || this.nodesData.data[nodeId].y != Math.round(node.y)) {
+        dataArray.push({id:nodeId,x:Math.round(node.x),y:Math.round(node.y),allowedToMoveX:allowedToMoveX,allowedToMoveY:allowedToMoveY});
+      }
+    }
+  }
+  this.nodesData.update(dataArray);
+};
 
 
 

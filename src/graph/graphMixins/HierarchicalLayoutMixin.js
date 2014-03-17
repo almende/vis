@@ -12,6 +12,9 @@ var HierarchicalLayoutMixin = {
       if (this.constants.hierarchicalLayout.direction == "RL" || this.constants.hierarchicalLayout.direction == "DU") {
         this.constants.hierarchicalLayout.levelSeparation *= -1;
       }
+      else {
+        this.constants.hierarchicalLayout.levelSeparation = Math.abs(this.constants.hierarchicalLayout.levelSeparation);
+      }
       // get the size of the largest hubs and check if the user has defined a level for a node.
       var hubsize = 0;
       var node, nodeId;
@@ -96,7 +99,7 @@ var HierarchicalLayoutMixin = {
     }
 
     // stabilize the system after positioning. This function calls zoomExtent.
-    this._doStabilize();
+    this._stabilize();
   },
 
 

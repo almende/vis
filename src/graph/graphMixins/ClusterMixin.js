@@ -22,7 +22,7 @@ var ClusterMixin = {
    // this is called here because if clusterin is disabled, the start and stabilize are called in
    // the setData function.
    if (this.stabilize) {
-     this._doStabilize();
+     this._stabilize();
    }
    this.start();
  },

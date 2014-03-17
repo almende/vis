@@ -191,8 +191,8 @@ Node.prototype.setProperties = function(properties, constants) {
     }
   }
 
-  this.xFixed = this.xFixed || (properties.x !== undefined && !properties.allowedToMove);
-  this.yFixed = this.yFixed || (properties.y !== undefined && !properties.allowedToMove);
+  this.xFixed = this.xFixed || (properties.x !== undefined && !properties.allowedToMoveX);
+  this.yFixed = this.yFixed || (properties.y !== undefined && !properties.allowedToMoveY);
   this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
 
   if (this.shape == 'image') {
