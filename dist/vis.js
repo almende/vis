@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version @@version
- * @date    @@date
+ * @version 0.8.0-SNAPSHOT
+ * @date    2014-03-19
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -15148,7 +15148,13 @@ var SelectionMixin = {
    * @private
    */
   _addToSelection : function(obj) {
-    this.selectionObj[obj.id] = obj;
+    if (obj instanceof Node) {
+      this.selectionObj.nodes[obj.id] = obj;
+    }
+    else {
+      this.selectionObj.edges[obj.id] = obj;
+    }
+
   },
 
 
@@ -15159,7 +15165,12 @@ var SelectionMixin = {
    * @private
    */
   _removeFromSelection : function(obj) {
-    delete this.selectionObj[obj.id];
+    if (obj instanceof Node) {
+      delete this.selectionObj.nodes[obj.id];
+    }
+    else {
+      delete this.selectionObj.edges[obj.id];
+    }
   },
 
 
@@ -15173,13 +15184,18 @@ var SelectionMixin = {
     if (doNotTrigger === undefined) {
       doNotTrigger = false;
     }
-
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        this.selectionObj[objectId].unselect();
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        this.selectionObj.nodes[nodeId].unselect();
       }
     }
-    this.selectionObj = {};
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        this.selectionObj.edges[edgeId].unselect();;
+      }
+    }
+
+    this.selectionObj = {nodes:{},edges:{}};
 
     if (doNotTrigger == false) {
       this.emit('select', this.getSelection());
@@ -15197,13 +15213,11 @@ var SelectionMixin = {
       doNotTrigger = false;
     }
 
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          if (this.selectionObj[objectId].clusterSize > 1) {
-            this.selectionObj[objectId].unselect();
-            this._removeFromSelection(this.selectionObj[objectId]);
-          }
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
+          this.selectionObj.nodes[nodeId].unselect();
+          this._removeFromSelection(this.selectionObj.nodes[nodeId]);
         }
       }
     }
@@ -15222,11 +15236,9 @@ var SelectionMixin = {
    */
   _getSelectedNodeCount : function() {
     var count = 0;
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          count += 1;
-        }
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        count += 1;
       }
     }
     return count;
@@ -15239,11 +15251,9 @@ var SelectionMixin = {
    * @private
    */
   _getSelectedNode : function() {
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          return this.selectionObj[objectId];
-        }
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        return this.selectionObj.nodes[nodeId];
       }
     }
     return null;
@@ -15258,11 +15268,9 @@ var SelectionMixin = {
    */
   _getSelectedEdgeCount : function() {
     var count = 0;
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Edge) {
-          count += 1;
-        }
+    for (var edgeId in this.selectionObj.edges) {
+      if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        count += 1;
       }
     }
     return count;
@@ -15277,8 +15285,13 @@ var SelectionMixin = {
    */
   _getSelectedObjectCount : function() {
     var count = 0;
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        count += 1;
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
         count += 1;
       }
     }
@@ -15292,8 +15305,13 @@ var SelectionMixin = {
    * @private
    */
   _selectionIsEmpty : function() {
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        return false;
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
         return false;
       }
     }
@@ -15308,12 +15326,10 @@ var SelectionMixin = {
    * @private
    */
   _clusterInSelection : function() {
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          if (this.selectionObj[objectId].clusterSize > 1) {
-            return true;
-          }
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
+          return true;
         }
       }
     }
@@ -15494,11 +15510,9 @@ var SelectionMixin = {
    */
   getSelectedNodes : function() {
     var idArray = [];
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          idArray.push(objectId);
-        }
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        idArray.push(nodeId);
       }
     }
     return idArray
@@ -15512,14 +15526,12 @@ var SelectionMixin = {
    */
   getSelectedEdges : function() {
     var idArray = [];
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Edge) {
-          idArray.push(objectId);
-        }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        idArray.push(edgeId);
       }
     }
-    return idArray
+    return idArray;
   },
 
 
@@ -15555,17 +15567,17 @@ var SelectionMixin = {
    * @private
    */
   _updateSelection : function () {
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          if (!this.nodes.hasOwnProperty(objectId)) {
-            delete this.selectionObj[objectId];
-          }
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (!this.nodes.hasOwnProperty(nodeId)) {
+          delete this.selectionObj.nodes[nodeId];
         }
-        else { // assuming only edges and nodes are selected
-          if (!this.edges.hasOwnProperty(objectId)) {
-            delete this.selectionObj[objectId];
-          }
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        if (!this.edges.hasOwnProperty(edgeId)) {
+          delete this.selectionObj.edges[edgeId];
         }
       }
     }
@@ -15878,7 +15890,7 @@ var graphMixinLoaders = {
    * @private
    */
   _loadSelectionSystem : function() {
-    this.selectionObj = { };
+    this.selectionObj = {nodes:{},edges:{}};
 
     this._loadMixin(SelectionMixin);
    },
@@ -16803,26 +16815,24 @@ Graph.prototype._handleDragStart = function() {
     }
 
     // create an array with the selected nodes and their original location and status
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        var object = this.selectionObj[objectId];
-        if (object instanceof Node) {
-          var s = {
-            id: object.id,
-            node: object,
+    for (var objectId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(objectId)) {
+        var object = this.selectionObj.nodes[objectId];
+        var s = {
+          id: object.id,
+          node: object,
 
-            // store original x, y, xFixed and yFixed, make the node temporarily Fixed
-            x: object.x,
-            y: object.y,
-            xFixed: object.xFixed,
-            yFixed: object.yFixed
-          };
+          // store original x, y, xFixed and yFixed, make the node temporarily Fixed
+          x: object.x,
+          y: object.y,
+          xFixed: object.xFixed,
+          yFixed: object.yFixed
+        };
 
-          object.xFixed = true;
-          object.yFixed = true;
+        object.xFixed = true;
+        object.yFixed = true;
 
-          drag.selection.push(s);
-        }
+        drag.selection.push(s);
       }
     }
   }
