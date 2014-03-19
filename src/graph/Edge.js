@@ -216,18 +216,22 @@ Edge.prototype.draw = function(ctx) {
  * @return {boolean}     True if location is located on the edge
  */
 Edge.prototype.isOverlappingWith = function(obj) {
-  var distMax = 10;
+  if (this.connected == true) {
+    var distMax = 10;
+    var xFrom = this.from.x;
+    var yFrom = this.from.y;
+    var xTo = this.to.x;
+    var yTo = this.to.y;
+    var xObj = obj.left;
+    var yObj = obj.top;
 
-  var xFrom = this.from.x;
-  var yFrom = this.from.y;
-  var xTo = this.to.x;
-  var yTo = this.to.y;
-  var xObj = obj.left;
-  var yObj = obj.top;
+    var dist = this._getDistanceToEdge(xFrom, yFrom, xTo, yTo, xObj, yObj);
 
-  var dist = this._getDistanceToEdge(xFrom, yFrom, xTo, yTo, xObj, yObj);
-
-  return (dist < distMax);
+    return (dist < distMax);
+  }
+  else {
+    return false
+  }
 };
 
 
