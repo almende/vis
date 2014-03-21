@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.8.0-SNAPSHOT
- * @date    2014-03-19
+ * @date    2014-03-21
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -9593,7 +9593,7 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.fontSize !== undefined)       {this.fontSize = properties.fontSize;}
   if (properties.fontFace !== undefined)       {this.fontFace = properties.fontFace;}
 
-  if (this.image !== undefined) {
+  if (this.image !== undefined && this.image != "") {
     if (this.imagelist) {
       this.imageObj = this.imagelist.load(this.image);
     }
@@ -17922,6 +17922,7 @@ Graph.prototype._createBezierNodes = function() {
                   {id:nodeId,
                     mass:1,
                     shape:'circle',
+                    image:"",
                     internalMultiplier:1
                   },{},{},this.constants);
           edge.via = this.sectors['support']['nodes'][nodeId];

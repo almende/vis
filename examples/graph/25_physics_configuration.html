@@ -77,11 +77,12 @@
       };
 
     var options = {
-    edges: {
-    },
-    stabilize: false,
-    configurePhysics:true
-    };
+            smoothCurves:true,
+            nodes: {
+                shape: 'image',
+                image: 'http://png-4.findicons.com/files/icons/1508/sketchcons_x/128/smiley.png'
+            },
+        };
       graph = new vis.Graph(container, data, options);
 
       // add event listeners
