@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.8.0-SNAPSHOT
- * @date    2014-03-21
+ * @date    2014-03-24
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -9477,6 +9477,7 @@ function Node(properties, imagelist, grouplist, constants) {
   this.minForce = constants.minForce;
   this.damping = constants.physics.damping;
   this.mass = 1;  // kg
+  this.fixedData = {x:null,y:null};
 
   this.setProperties(properties, constants);
 
@@ -9560,8 +9561,6 @@ Node.prototype.setProperties = function(properties, constants) {
 
 
   // physics
-  if (properties.internalMultiplier !== undefined)  {this.internalMultiplier = properties.internalMultiplier;}
-  if (properties.damping !== undefined)             {this.dampingBase = properties.damping;}
   if (properties.mass !== undefined)                {this.mass = properties.mass;}
 
   // navigation controls properties
@@ -9832,6 +9831,9 @@ Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
     this.vx = (Math.abs(this.vx) > maxVelocity) ? ((this.vx > 0) ? maxVelocity : -maxVelocity) : this.vx;
     this.x  += this.vx * interval;          // position
   }
+  else {
+    this.fx = 0;
+  }
 
   if (!this.yFixed) {
     var dy   = this.damping * this.vy;     // damping force
@@ -9839,6 +9841,9 @@ Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
     this.vy += ay * interval;               // velocity
     this.vy = (Math.abs(this.vy) > maxVelocity) ? ((this.vy > 0) ? maxVelocity : -maxVelocity) : this.vy;
     this.y  += this.vy * interval;          // position
+  }
+  else {
+    this.fy = 0;
   }
 };
 
@@ -17722,11 +17727,36 @@ Graph.prototype._stabilize = function() {
     this._physicsTick();
     count++;
   }
-
   this.zoomExtent(false,true);
+  this.emit("stabilized",{iterations:count});
 };
 
 
+Graph.prototype.freezeDefinedNodes = function() {
+  var nodes = this.nodes;
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      if (nodes[id].x != null && nodes[id].y != null) {
+        nodes[id].fixedData.x = nodes[id].xFixed;
+        nodes[id].fixedData.y = nodes[id].yFixed;
+        nodes[id].xFixed = true;
+        nodes[id].yFixed = true;
+      }
+    }
+  }
+};
+
+Graph.prototype.restoreFrozenNodes = function() {
+  var nodes = this.nodes;
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      if (nodes[id].fixedData.x != null) {
+        nodes[id].xFixed = nodes[id].fixedData.x;
+        nodes[id].yFixed = nodes[id].fixedData.y;
+      }
+    }
+  }
+};
 
 
 /**
@@ -17785,10 +17815,10 @@ Graph.prototype._physicsTick = function() {
   if (!this.freezeSimulation) {
     if (this.moving) {
       this._doInAllActiveSectors("_initializeForceCalculation");
+      this._doInAllActiveSectors("_discreteStepNodes");
       if (this.constants.smoothCurves) {
         this._doInSupportSector("_discreteStepNodes");
       }
-      this._doInAllActiveSectors("_discreteStepNodes");
       this._findCenter(this._getRange())
     }
   }

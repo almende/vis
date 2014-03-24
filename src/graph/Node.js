@@ -66,6 +66,7 @@ function Node(properties, imagelist, grouplist, constants) {
   this.minForce = constants.minForce;
   this.damping = constants.physics.damping;
   this.mass = 1;  // kg
+  this.fixedData = {x:null,y:null};
 
   this.setProperties(properties, constants);
 
@@ -149,8 +150,6 @@ Node.prototype.setProperties = function(properties, constants) {
 
 
   // physics
-  if (properties.internalMultiplier !== undefined)  {this.internalMultiplier = properties.internalMultiplier;}
-  if (properties.damping !== undefined)             {this.dampingBase = properties.damping;}
   if (properties.mass !== undefined)                {this.mass = properties.mass;}
 
   // navigation controls properties
@@ -421,6 +420,9 @@ Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
     this.vx = (Math.abs(this.vx) > maxVelocity) ? ((this.vx > 0) ? maxVelocity : -maxVelocity) : this.vx;
     this.x  += this.vx * interval;          // position
   }
+  else {
+    this.fx = 0;
+  }
 
   if (!this.yFixed) {
     var dy   = this.damping * this.vy;     // damping force
@@ -428,6 +430,9 @@ Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
     this.vy += ay * interval;               // velocity
     this.vy = (Math.abs(this.vy) > maxVelocity) ? ((this.vy > 0) ? maxVelocity : -maxVelocity) : this.vy;
     this.y  += this.vy * interval;          // position
+  }
+  else {
+    this.fy = 0;
   }
 };
 
