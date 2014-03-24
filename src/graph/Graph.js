@@ -1724,6 +1724,7 @@ Graph.prototype._stabilize = function() {
   }
 
   this.zoomExtent(false,true);
+  this.emit("stabilized",{iterations:count});
 };
 
 
