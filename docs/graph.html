@@ -352,7 +352,13 @@ var nodes = [
     <td>Url of an image. Only applicable when the shape of the node is
         <code>image</code>.</td>
 </tr>
-
+  <tr>
+      <td>mass</td>
+      <td>number</td>
+      <td>1</td>
+      <td>When using the Barnes Hut simulation method (which is selected by default),
+          the mass of a node determines the gravitational repulsion during the simulation. Higher mass will push other nodes further away.</td>
+  </tr>
     <tr>
         <td>level</td>
         <td>number</td>
@@ -592,7 +598,12 @@ var edges = [
     <td>no</td>
     <td>Text label to be displayed halfway the edge.</td>
   </tr>
-
+    <tr>
+        <td>length</td>
+        <td>number</td>
+        <td>physics.[method].springLength</td>
+        <td>The resting length of the edge when modeled as a spring. By default the springLength determined by the physics is used. By using this setting you can make certain edges have different resting lengths.</td>
+    </tr>
   <tr>
     <td>title</td>
     <td>string</td>
@@ -936,7 +947,13 @@ var options = {
     <td>none</td>
     <td>Default image url for the nodes. only applicable to shape <code>image</code>.</td>
   </tr>
-
+    <tr>
+        <td>mass</td>
+        <td>number</td>
+        <td>1</td>
+        <td>When using the Barnes Hut simulation method (which is selected by default),
+            the mass of a node determines the gravitational repulsion during the simulation. Higher mass will push other nodes further away.</td>
+    </tr>
     <tr>
         <td>level</td>
         <td>number</td>
@@ -1082,6 +1099,12 @@ var options = {
     <td>Default length of a gap in pixels on a dashed line.
       Only applicable when the line style is <code>dash-line</code>.</td>
   </tr>
+    <tr>
+        <td>length</td>
+        <td>number</td>
+        <td>physics.[method].springLength</td>
+        <td>The resting length of the edge when modeled as a spring. By default the springLength determined by the physics is used. By using this setting you can make certain edges have different resting lengths.</td>
+    </tr>
 
   <tr>
     <td>style</td>
