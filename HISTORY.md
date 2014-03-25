@@ -10,6 +10,7 @@ http://visjs.org
 - clarified docs, stressing importance of css inclusion for correct display of navigation an manipulation icons.
 - improved and expanded playing with physics (configurePhysics option).
 - added highlights to navigation icons if the corresponding key is pressed.
+- added freezeForStabilization option to improve stabilization with cached positions.
 
 ## 2014-03-07, version 0.7.0
 

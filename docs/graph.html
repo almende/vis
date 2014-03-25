@@ -744,6 +744,17 @@ var options = {
     </td>
   </tr>
 
+    <tr>
+        <td>freezeForStabilization</a></td>
+        <td>Boolean</td>
+        <td>false</td>
+        <td>
+            With the advent of the storePosition() function, the positions of the nodes can be saved after they are stabilized. The smoothCurves require support nodes and those positions are not stored. In order
+            to speed up the initialization of the graph by using storePosition() and loading the nodes with the stored positions, the freezeForStabilization option freezes all nodes that have been supplied with
+            an x and y position in place during the stabilization. That way only the support nodes for the smooth curves have to stabilize, greatly speeding up the stabilization process with cached positions.
+        </td>
+    </tr>
+
   <tr>
     <td><a href="#Groups_configuration">groups</a></td>
     <td>Object</td>
