@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.7.0
- * @date    2014-03-07
+ * @version 0.7.1
+ * @date    2014-03-27
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -1119,6 +1119,20 @@ util.hexToHSV = function hexToHSV(hex) {
 util.isValidHex = function isValidHex(hex) {
   var isOk  = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
   return isOk;
+}
+
+util.copyObject = function copyObject(objectFrom,objectTo) {
+  for (var i in objectFrom) {
+    if (objectFrom.hasOwnProperty(i)) {
+      if (typeof objectFrom[i] == "object") {
+        objectTo[i] = {};
+        util.copyObject(objectFrom[i],objectTo[i]);
+      }
+      else {
+        objectTo[i] = objectFrom[i];
+      }
+    }
+  }
 }
 
 /**
@@ -9439,8 +9453,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.id = undefined;
   this.shape = constants.nodes.shape;
   this.image = constants.nodes.image;
-  this.x = 0;
-  this.y = 0;
+  this.x = null;
+  this.y = null;
   this.xFixed = false;
   this.yFixed = false;
   this.horizontalAlignLeft = true; // these are for the navigation controls
@@ -9463,6 +9477,7 @@ function Node(properties, imagelist, grouplist, constants) {
   this.minForce = constants.minForce;
   this.damping = constants.physics.damping;
   this.mass = 1;  // kg
+  this.fixedData = {x:null,y:null};
 
   this.setProperties(properties, constants);
 
@@ -9546,8 +9561,6 @@ Node.prototype.setProperties = function(properties, constants) {
 
 
   // physics
-  if (properties.internalMultiplier !== undefined)  {this.internalMultiplier = properties.internalMultiplier;}
-  if (properties.damping !== undefined)             {this.dampingBase = properties.damping;}
   if (properties.mass !== undefined)                {this.mass = properties.mass;}
 
   // navigation controls properties
@@ -9579,7 +9592,7 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.fontSize !== undefined)       {this.fontSize = properties.fontSize;}
   if (properties.fontFace !== undefined)       {this.fontFace = properties.fontFace;}
 
-  if (this.image !== undefined) {
+  if (this.image !== undefined && this.image != "") {
     if (this.imagelist) {
       this.imageObj = this.imagelist.load(this.image);
     }
@@ -9818,6 +9831,9 @@ Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
     this.vx = (Math.abs(this.vx) > maxVelocity) ? ((this.vx > 0) ? maxVelocity : -maxVelocity) : this.vx;
     this.x  += this.vx * interval;          // position
   }
+  else {
+    this.fx = 0;
+  }
 
   if (!this.yFixed) {
     var dy   = this.damping * this.vy;     // damping force
@@ -9825,6 +9841,9 @@ Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
     this.vy += ay * interval;               // velocity
     this.vy = (Math.abs(this.vy) > maxVelocity) ? ((this.vy > 0) ? maxVelocity : -maxVelocity) : this.vy;
     this.y  += this.vy * interval;          // position
+  }
+  else {
+    this.fy = 0;
   }
 };
 
@@ -10494,6 +10513,7 @@ Edge.prototype.setProperties = function(properties, constants) {
     this.fontSize = constants.edges.fontSize;
     this.fontFace = constants.edges.fontFace;
     this.fontColor = constants.edges.fontColor;
+
     if (properties.fontColor !== undefined)  {this.fontColor = properties.fontColor;}
     if (properties.fontSize !== undefined)   {this.fontSize = properties.fontSize;}
     if (properties.fontFace !== undefined)   {this.fontFace = properties.fontFace;}
@@ -10522,7 +10542,6 @@ Edge.prototype.setProperties = function(properties, constants) {
     else {
       if (properties.color.color !== undefined)     {this.color.color = properties.color.color;}
       if (properties.color.highlight !== undefined) {this.color.highlight = properties.color.highlight;}
-      else if (properties.color.color !== undefined){this.color.highlight = properties.color.color;}
     }
   }
 
@@ -10629,18 +10648,22 @@ Edge.prototype.draw = function(ctx) {
  * @return {boolean}     True if location is located on the edge
  */
 Edge.prototype.isOverlappingWith = function(obj) {
-  var distMax = 10;
+  if (this.connected == true) {
+    var distMax = 10;
+    var xFrom = this.from.x;
+    var yFrom = this.from.y;
+    var xTo = this.to.x;
+    var yTo = this.to.y;
+    var xObj = obj.left;
+    var yObj = obj.top;
 
-  var xFrom = this.from.x;
-  var yFrom = this.from.y;
-  var xTo = this.to.x;
-  var yTo = this.to.y;
-  var xObj = obj.left;
-  var yObj = obj.top;
+    var dist = this._getDistanceToEdge(xFrom, yFrom, xTo, yTo, xObj, yObj);
 
-  var dist = this._getDistanceToEdge(xFrom, yFrom, xTo, yTo, xObj, yObj);
-
-  return (dist < distMax);
+    return (dist < distMax);
+  }
+  else {
+    return false
+  }
 };
 
 
@@ -10984,7 +11007,7 @@ Edge.prototype._drawArrowCenter = function(ctx) {
 Edge.prototype._drawArrow = function(ctx) {
   // set style
   if (this.selected == true) {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
-  else                       {ctx.strokeStyle = this.color.color; ctx.fillStyle = this.color.color;}
+  else                       {ctx.strokeStyle = this.color.color;     ctx.fillStyle = this.color.color;}
 
   ctx.lineWidth = this._getLineWidth();
 
@@ -11507,7 +11530,6 @@ var physicsMixin = {
     this._calculateGravitationalForces();
     this._calculateNodeForces();
 
-
     if (this.constants.smoothCurves == true) {
       this._calculateSpringForcesWithSupport();
     }
@@ -11579,8 +11601,8 @@ var physicsMixin = {
         dx = -node.x;
         dy = -node.y;
         distance = Math.sqrt(dx*dx + dy*dy);
-        gravityForce = gravity / distance;
 
+        gravityForce = (distance == 0) ? 0 : (gravity / distance);
         node.fx = dx * gravityForce;
         node.fy = dy * gravityForce;
       }
@@ -11689,11 +11711,11 @@ var physicsMixin = {
     dy = (node1.y - node2.y);
     length =  Math.sqrt(dx * dx + dy * dy);
 
-    springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
-
     if (length == 0) {
       length = 0.01;
     }
+
+    springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
 
     fx = dx * springForce;
     fy = dy * springForce;
@@ -11711,6 +11733,9 @@ var physicsMixin = {
    */
   _loadPhysicsConfiguration : function() {
     if (this.physicsConfiguration === undefined) {
+      this.backupConstants = {};
+      util.copyObject(this.constants,this.backupConstants);
+
       var hierarchicalLayoutDirections = ["LR","RL","UD","DU"];
       this.physicsConfiguration = document.createElement('div');
       this.physicsConfiguration.className = "PhysicsConfiguration";
@@ -11784,10 +11809,19 @@ var physicsMixin = {
         '<tr>'+
         '<td width="150px">nodeSpacing</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.nodeSpacing + '" step="1" style="width:300px" id="graph_H_nspac"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.nodeSpacing + '" id="graph_H_nspac_value" style="width:60px"></td>'+
         '</tr>'+
+        '</table>' +
+        '<table><tr><td><b>Options:</b></td></tr>' +
+        '<tr>' +
+        '<td width="180px"><input type="button" id="graph_toggleSmooth" value="Toggle smoothCurves" style="width:150px"></td>' +
+        '<td width="180px"><input type="button" id="graph_repositionNodes" value="Reinitialize" style="width:150px"></td>' +
+        '<td width="180px"><input type="button" id="graph_generateOptions" value="Generate Options" style="width:150px"></td>' +
+        '</tr>'+
         '</table>'
-      this.containerElement.parentElement.insertBefore(this.physicsConfiguration,this.containerElement);
-
-
+            this.containerElement.parentElement.insertBefore(this.physicsConfiguration,this.containerElement);
+      this.optionsDiv = document.createElement("div");
+      this.optionsDiv.style.fontSize = "14px";
+      this.optionsDiv.style.fontFamily = "verdana";
+      this.containerElement.parentElement.insertBefore(this.optionsDiv,this.containerElement);
 
       var rangeElement;
       rangeElement = document.getElementById('graph_BH_gc');
@@ -11800,7 +11834,6 @@ var physicsMixin = {
       rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_sl',1,"physics_springLength");
       rangeElement = document.getElementById('graph_BH_damp');
       rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_damp',1,"physics_damping");
-
 
       rangeElement = document.getElementById('graph_R_nd');
       rangeElement.onchange = showValueOfRange.bind(this,'graph_R_nd',1,"physics_repulsion_nodeDistance");
@@ -11833,7 +11866,6 @@ var physicsMixin = {
       var radioButton1 = document.getElementById("graph_physicsMethod1");
       var radioButton2 = document.getElementById("graph_physicsMethod2");
       var radioButton3 = document.getElementById("graph_physicsMethod3");
-
       radioButton2.checked = true;
       if (this.constants.physics.barnesHut.enabled) {
         radioButton1.checked = true;
@@ -11841,6 +11873,17 @@ var physicsMixin = {
       if (this.constants.hierarchicalLayout.enabled) {
         radioButton3.checked = true;
       }
+
+      var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+      var graph_repositionNodes = document.getElementById("graph_repositionNodes");
+      var graph_generateOptions = document.getElementById("graph_generateOptions");
+
+      graph_toggleSmooth.onclick = graphToggleSmoothCurves.bind(this);
+      graph_repositionNodes.onclick = graphRepositionNodes.bind(this);
+      graph_generateOptions.onclick = graphGenerateOptions.bind(this);
+      if (this.constants.smoothCurves == true) {graph_toggleSmooth.style.background = "#A4FF56";}
+      else                                     {graph_toggleSmooth.style.background = "#FF8532";}
+
 
       switchConfigurations.apply(this);
 
@@ -11864,6 +11907,129 @@ var physicsMixin = {
   }
 }
 
+function graphToggleSmoothCurves () {
+  this.constants.smoothCurves = !this.constants.smoothCurves;
+  var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+  if (this.constants.smoothCurves == true) {graph_toggleSmooth.style.background = "#A4FF56";}
+  else                                     {graph_toggleSmooth.style.background = "#FF8532";}
+
+  this._configureSmoothCurves(false);
+};
+
+function graphRepositionNodes () {
+  for (var nodeId in this.calculationNodes) {
+    if (this.calculationNodes.hasOwnProperty(nodeId)) {
+      this.calculationNodes[nodeId].vx = 0;  this.calculationNodes[nodeId].vy = 0;
+      this.calculationNodes[nodeId].fx = 0;  this.calculationNodes[nodeId].fy = 0;
+    }
+  }
+  if (this.constants.hierarchicalLayout.enabled == true) {
+    this._setupHierarchicalLayout();
+  }
+  else {
+    this.repositionNodes();
+  }
+  this.moving = true;
+  this.start();
+};
+
+function graphGenerateOptions () {
+  var options = "No options are required, default values used."
+  var optionsSpecific = [];
+  var radioButton1 = document.getElementById("graph_physicsMethod1");
+  var radioButton2 = document.getElementById("graph_physicsMethod2");
+  if (radioButton1.checked == true) {
+    if (this.constants.physics.barnesHut.gravitationalConstant != this.backupConstants.physics.barnesHut.gravitationalConstant) {optionsSpecific.push("gravitationalConstant: " + this.constants.physics.barnesHut.gravitationalConstant);}
+    if (this.constants.physics.centralGravity != this.backupConstants.physics.barnesHut.centralGravity)                         {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+    if (this.constants.physics.springLength != this.backupConstants.physics.barnesHut.springLength)                             {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+    if (this.constants.physics.springConstant != this.backupConstants.physics.barnesHut.springConstant)                         {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+    if (this.constants.physics.damping != this.backupConstants.physics.barnesHut.damping)                                       {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+    if (optionsSpecific.length != 0) {
+      options = "var options = {"
+      options += "physics: {barnesHut: {"
+      for (var i = 0; i < optionsSpecific.length; i++) {
+        options += optionsSpecific[i];
+        if (i < optionsSpecific.length - 1) {
+          options += ", "
+        }
+      }
+      options += '}}'
+    }
+    if (this.constants.smoothCurves != this.backupConstants.smoothCurves) {
+      if (optionsSpecific.length == 0) {options = "var options = {";}
+      else {options += ", "}
+      options += "smoothCurves: " + this.constants.smoothCurves;
+    }
+    if (options != "No options are required, default values used.") {
+      options += '};'
+    }
+  }
+  else if (radioButton2.checked == true) {
+    options = "var options = {"
+    options += "physics: {barnesHut: {enabled: false}";
+    if (this.constants.physics.repulsion.nodeDistance != this.backupConstants.physics.repulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.repulsion.nodeDistance);}
+    if (this.constants.physics.centralGravity != this.backupConstants.physics.repulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+    if (this.constants.physics.springLength != this.backupConstants.physics.repulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+    if (this.constants.physics.springConstant != this.backupConstants.physics.repulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+    if (this.constants.physics.damping != this.backupConstants.physics.repulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+    if (optionsSpecific.length != 0) {
+      options += ", repulsion: {"
+      for (var i = 0; i < optionsSpecific.length; i++) {
+        options += optionsSpecific[i];
+        if (i < optionsSpecific.length - 1) {
+          options += ", "
+        }
+      }
+      options += '}}'
+    }
+    if (optionsSpecific.length == 0) {options += "}"}
+    if (this.constants.smoothCurves != this.backupConstants.smoothCurves) {
+      options += ", smoothCurves: " + this.constants.smoothCurves;
+    }
+    options += '};'
+  }
+  else {
+    options = "var options = {"
+    if (this.constants.physics.hierarchicalRepulsion.nodeDistance != this.backupConstants.physics.hierarchicalRepulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.hierarchicalRepulsion.nodeDistance);}
+    if (this.constants.physics.centralGravity != this.backupConstants.physics.hierarchicalRepulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+    if (this.constants.physics.springLength != this.backupConstants.physics.hierarchicalRepulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+    if (this.constants.physics.springConstant != this.backupConstants.physics.hierarchicalRepulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+    if (this.constants.physics.damping != this.backupConstants.physics.hierarchicalRepulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+    if (optionsSpecific.length != 0) {
+      options += "physics: {hierarchicalRepulsion: {"
+      for (var i = 0; i < optionsSpecific.length; i++) {
+        options += optionsSpecific[i];
+        if (i < optionsSpecific.length - 1) {
+          options += ", ";
+        }
+      }
+      options += '}},';
+    }
+    options += 'hierarchicalLayout: {';
+    optionsSpecific = [];
+    if (this.constants.hierarchicalLayout.direction != this.backupConstants.hierarchicalLayout.direction)                       {optionsSpecific.push("direction: " + this.constants.hierarchicalLayout.direction);}
+    if (Math.abs(this.constants.hierarchicalLayout.levelSeparation) != this.backupConstants.hierarchicalLayout.levelSeparation) {optionsSpecific.push("levelSeparation: " + this.constants.hierarchicalLayout.levelSeparation);}
+    if (this.constants.hierarchicalLayout.nodeSpacing != this.backupConstants.hierarchicalLayout.nodeSpacing)                   {optionsSpecific.push("nodeSpacing: " + this.constants.hierarchicalLayout.nodeSpacing);}
+    if (optionsSpecific.length != 0) {
+      for (var i = 0; i < optionsSpecific.length; i++) {
+        options += optionsSpecific[i];
+        if (i < optionsSpecific.length - 1) {
+          options += ", "
+        }
+      }
+      options += '}'
+    }
+    else {
+      options += "enabled:true}";
+    }
+    options += '};'
+  }
+
+
+  this.optionsDiv.innerHTML = options;
+
+};
+
 
 function switchConfigurations () {
   var ids = ["graph_BH_table","graph_R_table","graph_H_table"]
@@ -11880,23 +12046,27 @@ function switchConfigurations () {
   this._restoreNodes();
   if (radioButton == "R") {
     this.constants.hierarchicalLayout.enabled = false;
-    this.constants.physics.hierarchicalRepulsion.enabeled = false;
+    this.constants.physics.hierarchicalRepulsion.enabled = false;
     this.constants.physics.barnesHut.enabled = false;
   }
   else if (radioButton == "H") {
     this.constants.hierarchicalLayout.enabled = true;
-    this.constants.physics.hierarchicalRepulsion.enabeled = true;
+    this.constants.physics.hierarchicalRepulsion.enabled = true;
     this.constants.physics.barnesHut.enabled = false;
     this._setupHierarchicalLayout();
   }
   else {
     this.constants.hierarchicalLayout.enabled = false;
-    this.constants.physics.hierarchicalRepulsion.enabeled = false;
+    this.constants.physics.hierarchicalRepulsion.enabled = false;
     this.constants.physics.barnesHut.enabled = true;
   }
   this._loadSelectedForceSolver();
+  var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+  if (this.constants.smoothCurves == true) {graph_toggleSmooth.style.background = "#A4FF56";}
+  else                                     {graph_toggleSmooth.style.background = "#FF8532";}
   this.moving = true;
   this.start();
+
 }
 
 function showValueOfRange (id,map,constantsVariableName) {
@@ -11920,6 +12090,7 @@ function showValueOfRange (id,map,constantsVariableName) {
   this.moving = true;
   this.start();
 };
+
 
 
 /**
@@ -12121,6 +12292,7 @@ var barnesHutMixin = {
       mass:0,
       range: {minX:centerX-halfRootSize,maxX:centerX+halfRootSize,
               minY:centerY-halfRootSize,maxY:centerY+halfRootSize},
+
       size: rootSize,
       calcSize: 1 / rootSize,
       children: {data:null},
@@ -12197,7 +12369,6 @@ var barnesHutMixin = {
             parentBranch.children[region].children.data.y == node.y) {
           node.x += Math.random();
           node.y += Math.random();
-          this._placeInTree(parentBranch,node, true);
         }
         else {
           this._splitBranch(parentBranch.children[region]);
@@ -12788,7 +12959,9 @@ var manipulationMixin = {
    */
   _createManipulatorBar : function() {
     // remove bound functions
-    this.off('select', this.boundFunction);
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
 
     // restore overloaded functions
     this._restoreOverloadedFunctions();
@@ -12863,7 +13036,9 @@ var manipulationMixin = {
   _createAddNodeToolbar : function() {
     // clear the toolbar
     this._clearManipulatorBar();
-    this.off('select', this.boundFunction);
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
 
     // create the toolbar contents
     this.manipulationDiv.innerHTML = "" +
@@ -12894,7 +13069,9 @@ var manipulationMixin = {
     this._unselectAll(true);
     this.freezeSimulation = true;
 
-    this.off('select', this.boundFunction);
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
 
     this._unselectAll();
     this.forceAppendSelection = false;
@@ -13019,9 +13196,7 @@ var manipulationMixin = {
         if (this.triggerFunctions.add.length == 2) {
           var me = this;
           this.triggerFunctions.add(defaultData, function(finalizedData) {
-            me.createNodeOnClick = true;
             me.nodesData.add(finalizedData);
-            me.createNodeOnClick = false;
             me._createManipulatorBar();
             me.moving = true;
             me.start();
@@ -13035,9 +13210,7 @@ var manipulationMixin = {
         }
       }
       else {
-        this.createNodeOnClick = true;
         this.nodesData.add(defaultData);
-        this.createNodeOnClick = false;
         this._createManipulatorBar();
         this.moving = true;
         this.start();
@@ -14755,8 +14928,8 @@ var ClusterMixin = {
   repositionNodes : function() {
     for (var i = 0; i < this.nodeIndices.length; i++) {
       var node = this.nodes[this.nodeIndices[i]];
-      if ((node.xFixed == false || node.yFixed == false) && this.createNodeOnClick != true) {
-        var radius = this.constants.physics.springLength * Math.min(100,node.mass);
+      if ((node.xFixed == false || node.yFixed == false)) {
+        var radius = 10 * 0.1*this.nodeIndices.length * Math.min(100,node.mass);
         var angle = 2 * Math.PI * Math.random();
         if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
         if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
@@ -14984,7 +15157,13 @@ var SelectionMixin = {
    * @private
    */
   _addToSelection : function(obj) {
-    this.selectionObj[obj.id] = obj;
+    if (obj instanceof Node) {
+      this.selectionObj.nodes[obj.id] = obj;
+    }
+    else {
+      this.selectionObj.edges[obj.id] = obj;
+    }
+
   },
 
 
@@ -14995,7 +15174,12 @@ var SelectionMixin = {
    * @private
    */
   _removeFromSelection : function(obj) {
-    delete this.selectionObj[obj.id];
+    if (obj instanceof Node) {
+      delete this.selectionObj.nodes[obj.id];
+    }
+    else {
+      delete this.selectionObj.edges[obj.id];
+    }
   },
 
 
@@ -15009,13 +15193,18 @@ var SelectionMixin = {
     if (doNotTrigger === undefined) {
       doNotTrigger = false;
     }
-
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        this.selectionObj[objectId].unselect();
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        this.selectionObj.nodes[nodeId].unselect();
       }
     }
-    this.selectionObj = {};
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        this.selectionObj.edges[edgeId].unselect();;
+      }
+    }
+
+    this.selectionObj = {nodes:{},edges:{}};
 
     if (doNotTrigger == false) {
       this.emit('select', this.getSelection());
@@ -15033,13 +15222,11 @@ var SelectionMixin = {
       doNotTrigger = false;
     }
 
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          if (this.selectionObj[objectId].clusterSize > 1) {
-            this.selectionObj[objectId].unselect();
-            this._removeFromSelection(this.selectionObj[objectId]);
-          }
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
+          this.selectionObj.nodes[nodeId].unselect();
+          this._removeFromSelection(this.selectionObj.nodes[nodeId]);
         }
       }
     }
@@ -15058,11 +15245,9 @@ var SelectionMixin = {
    */
   _getSelectedNodeCount : function() {
     var count = 0;
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          count += 1;
-        }
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        count += 1;
       }
     }
     return count;
@@ -15075,11 +15260,9 @@ var SelectionMixin = {
    * @private
    */
   _getSelectedNode : function() {
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          return this.selectionObj[objectId];
-        }
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        return this.selectionObj.nodes[nodeId];
       }
     }
     return null;
@@ -15094,11 +15277,9 @@ var SelectionMixin = {
    */
   _getSelectedEdgeCount : function() {
     var count = 0;
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Edge) {
-          count += 1;
-        }
+    for (var edgeId in this.selectionObj.edges) {
+      if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        count += 1;
       }
     }
     return count;
@@ -15113,8 +15294,13 @@ var SelectionMixin = {
    */
   _getSelectedObjectCount : function() {
     var count = 0;
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        count += 1;
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
         count += 1;
       }
     }
@@ -15128,8 +15314,13 @@ var SelectionMixin = {
    * @private
    */
   _selectionIsEmpty : function() {
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        return false;
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
         return false;
       }
     }
@@ -15144,12 +15335,10 @@ var SelectionMixin = {
    * @private
    */
   _clusterInSelection : function() {
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          if (this.selectionObj[objectId].clusterSize > 1) {
-            return true;
-          }
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
+          return true;
         }
       }
     }
@@ -15330,11 +15519,9 @@ var SelectionMixin = {
    */
   getSelectedNodes : function() {
     var idArray = [];
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          idArray.push(objectId);
-        }
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        idArray.push(nodeId);
       }
     }
     return idArray
@@ -15348,14 +15535,12 @@ var SelectionMixin = {
    */
   getSelectedEdges : function() {
     var idArray = [];
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Edge) {
-          idArray.push(objectId);
-        }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        idArray.push(edgeId);
       }
     }
-    return idArray
+    return idArray;
   },
 
 
@@ -15391,17 +15576,17 @@ var SelectionMixin = {
    * @private
    */
   _updateSelection : function () {
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          if (!this.nodes.hasOwnProperty(objectId)) {
-            delete this.selectionObj[objectId];
-          }
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (!this.nodes.hasOwnProperty(nodeId)) {
+          delete this.selectionObj.nodes[nodeId];
         }
-        else { // assuming only edges and nodes are selected
-          if (!this.edges.hasOwnProperty(objectId)) {
-            delete this.selectionObj[objectId];
-          }
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        if (!this.edges.hasOwnProperty(edgeId)) {
+          delete this.selectionObj.edges[edgeId];
         }
       }
     }
@@ -15499,6 +15684,9 @@ var NavigationMixin = {
     this.yIncrement = this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['up'].className += " active";
+    }
   },
 
 
@@ -15510,6 +15698,9 @@ var NavigationMixin = {
     this.yIncrement = -this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['down'].className += " active";
+    }
   },
 
 
@@ -15521,6 +15712,9 @@ var NavigationMixin = {
     this.xIncrement = this.constants.keyboard.speed.x;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['left'].className += " active";
+    }
   },
 
 
@@ -15532,6 +15726,9 @@ var NavigationMixin = {
     this.xIncrement = -this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['right'].className += " active";
+    }
   },
 
 
@@ -15543,6 +15740,9 @@ var NavigationMixin = {
     this.zoomIncrement = this.constants.keyboard.speed.zoom;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['zoomIn'].className += " active";
+    }
   },
 
 
@@ -15554,6 +15754,9 @@ var NavigationMixin = {
     this.zoomIncrement = -this.constants.keyboard.speed.zoom;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['zoomOut'].className += " active";
+    }
   },
 
 
@@ -15563,6 +15766,10 @@ var NavigationMixin = {
    */
   _stopZoom : function() {
     this.zoomIncrement = 0;
+    if (this.navigationDivs) {
+      this.navigationDivs['zoomIn'].className = this.navigationDivs['zoomIn'].className.replace(" active","");
+      this.navigationDivs['zoomOut'].className = this.navigationDivs['zoomOut'].className.replace(" active","");
+    }
   },
 
 
@@ -15572,6 +15779,10 @@ var NavigationMixin = {
    */
   _yStopMoving : function() {
     this.yIncrement = 0;
+    if (this.navigationDivs) {
+      this.navigationDivs['up'].className = this.navigationDivs['up'].className.replace(" active","");
+      this.navigationDivs['down'].className = this.navigationDivs['down'].className.replace(" active","");
+    }
   },
 
 
@@ -15581,6 +15792,10 @@ var NavigationMixin = {
    */
   _xStopMoving : function() {
     this.xIncrement = 0;
+    if (this.navigationDivs) {
+      this.navigationDivs['left'].className = this.navigationDivs['left'].className.replace(" active","");
+      this.navigationDivs['right'].className = this.navigationDivs['right'].className.replace(" active","");
+    }
   }
 
 
@@ -15684,7 +15899,7 @@ var graphMixinLoaders = {
    * @private
    */
   _loadSelectionSystem : function() {
-    this.selectionObj = { };
+    this.selectionObj = {nodes:{},edges:{}};
 
     this._loadMixin(SelectionMixin);
    },
@@ -15812,7 +16027,8 @@ function Graph (container, data, options) {
   this.renderRefreshRate = 60;                         // hz (fps)
   this.renderTimestep = 1000 / this.renderRefreshRate; // ms -- saves calculation later on
   this.renderTime = 0.5 * this.renderTimestep;         // measured time it takes to render a frame
-  this.maxRenderSteps = 3;                             // max amount of physics ticks per render step.
+  this.maxPhysicsTicksPerRender = 3;                   // max amount of physics ticks per render step.
+  this.physicsDiscreteStepsize = 0.65;                 // discrete stepsize of the simulation
 
   this.stabilize = true;  // stabilize before displaying the graph
   this.selectable = true;
@@ -15935,6 +16151,7 @@ function Graph (container, data, options) {
       nodeSpacing: 100,
       direction: "UD"   // UD, DU, LR, RL
     },
+    freezeForStabilization: false,
     smoothCurves: true,
     maxVelocity:  10,
     minVelocity:  0.1,   // px/s
@@ -16263,6 +16480,7 @@ Graph.prototype.setOptions = function (options) {
     if (options.stabilize !== undefined)       {this.stabilize = options.stabilize;}
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
     if (options.smoothCurves !== undefined)    {this.constants.smoothCurves = options.smoothCurves;}
+    if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
 
@@ -16366,12 +16584,28 @@ Graph.prototype.setOptions = function (options) {
     if (options.edges) {
       for (prop in options.edges) {
         if (options.edges.hasOwnProperty(prop)) {
-          this.constants.edges[prop] = options.edges[prop];
+          if (typeof options.edges[prop] != "object") {
+            this.constants.edges[prop] = options.edges[prop];
+          }
+        }
+      }
+
+      if (options.edges.color !== undefined) {
+        if (util.isString(options.edges.color)) {
+          this.constants.edges.color.color = options.edges.color;
+          this.constants.edges.color.highlight = options.edges.color;
+        }
+        else {
+          if (options.edges.color.color !== undefined)     {this.constants.edges.color.color = options.edges.color.color;}
+          if (options.edges.color.highlight !== undefined) {this.constants.edges.color.highlight = options.edges.color.highlight;}
         }
       }
 
       if (!options.edges.fontColor) {
-        this.constants.edges.fontColor = options.edges.color;
+        if (options.edges.color !== undefined) {
+          if (util.isString(options.edges.color))           {this.constants.edges.fontColor = options.edges.color;}
+          else if (options.edges.color.color !== undefined) {this.constants.edges.fontColor = options.edges.color.color;}
+        }
       }
 
       // Added to support dashed lines
@@ -16592,26 +16826,24 @@ Graph.prototype._handleDragStart = function() {
     }
 
     // create an array with the selected nodes and their original location and status
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        var object = this.selectionObj[objectId];
-        if (object instanceof Node) {
-          var s = {
-            id: object.id,
-            node: object,
+    for (var objectId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(objectId)) {
+        var object = this.selectionObj.nodes[objectId];
+        var s = {
+          id: object.id,
+          node: object,
 
-            // store original x, y, xFixed and yFixed, make the node temporarily Fixed
-            x: object.x,
-            y: object.y,
-            xFixed: object.xFixed,
-            yFixed: object.yFixed
-          };
+          // store original x, y, xFixed and yFixed, make the node temporarily Fixed
+          x: object.x,
+          y: object.y,
+          xFixed: object.xFixed,
+          yFixed: object.yFixed
+        };
 
-          object.xFixed = true;
-          object.yFixed = true;
+        object.xFixed = true;
+        object.yFixed = true;
 
-          drag.selection.push(s);
-        }
+        drag.selection.push(s);
       }
     }
   }
@@ -17039,16 +17271,13 @@ Graph.prototype._addNodes = function(ids) {
     var node = new Node(data, this.images, this.groups, this.constants);
     this.nodes[id] = node; // note: this may replace an existing node
 
-    if ((node.xFixed == false || node.yFixed == false) && this.createNodeOnClick != true) {
+    if ((node.xFixed == false || node.yFixed == false) && (node.x === null || node.y === null)) {
       var radius = 10 * 0.1*ids.length;
       var angle = 2 * Math.PI * Math.random();
       if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
       if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
-
-      // note: no not use node.isMoving() here, as that gives the current
-      // velocity of the node, which is zero after creation of the node.
-      this.moving = true;
     }
+    this.moving = true;
   }
   this._updateNodeIndexList();
   this._updateCalculationNodes();
@@ -17100,6 +17329,7 @@ Graph.prototype._removeNodes = function(ids) {
     delete nodes[id];
   }
   this._updateNodeIndexList();
+  this._updateCalculationNodes();
   this._reconnectEdges();
   this._updateSelection();
   this._updateValueRange(nodes);
@@ -17493,17 +17723,49 @@ Graph.prototype._drawEdges = function(ctx) {
  * @private
  */
 Graph.prototype._stabilize = function() {
+  if (this.constants.freezeForStabilization == true) {
+    this._freezeDefinedNodes();
+  }
+
   // find stable position
   var count = 0;
   while (this.moving && count < this.constants.stabilizationIterations) {
     this._physicsTick();
     count++;
   }
-
   this.zoomExtent(false,true);
+  if (this.constants.freezeForStabilization == true) {
+    this._restoreFrozenNodes();
+  }
+  this.emit("stabilized",{iterations:count});
 };
 
 
+Graph.prototype._freezeDefinedNodes = function() {
+  var nodes = this.nodes;
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      if (nodes[id].x != null && nodes[id].y != null) {
+        nodes[id].fixedData.x = nodes[id].xFixed;
+        nodes[id].fixedData.y = nodes[id].yFixed;
+        nodes[id].xFixed = true;
+        nodes[id].yFixed = true;
+      }
+    }
+  }
+};
+
+Graph.prototype._restoreFrozenNodes = function() {
+  var nodes = this.nodes;
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      if (nodes[id].fixedData.x != null) {
+        nodes[id].xFixed = nodes[id].fixedData.x;
+        nodes[id].yFixed = nodes[id].fixedData.y;
+      }
+    }
+  }
+};
 
 
 /**
@@ -17530,7 +17792,7 @@ Graph.prototype._isMoving = function(vmin) {
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = 0.65;
+  var interval = this.physicsDiscreteStepsize;
   var nodes = this.nodes;
   var nodeId;
 
@@ -17562,10 +17824,10 @@ Graph.prototype._physicsTick = function() {
   if (!this.freezeSimulation) {
     if (this.moving) {
       this._doInAllActiveSectors("_initializeForceCalculation");
+      this._doInAllActiveSectors("_discreteStepNodes");
       if (this.constants.smoothCurves) {
         this._doInSupportSector("_discreteStepNodes");
       }
-      this._doInAllActiveSectors("_discreteStepNodes");
       this._findCenter(this._getRange())
     }
   }
@@ -17592,7 +17854,7 @@ Graph.prototype._animationStep = function() {
   var maxSteps = 1;
   this._physicsTick();
   var timeRequired = Date.now() - calculationTime;
-  while (timeRequired < (this.renderTimestep - this.renderTime) && maxSteps < this.maxRenderSteps) {
+  while (timeRequired < (this.renderTimestep - this.renderTime) && maxSteps < this.maxPhysicsTicksPerRender) {
     this._physicsTick();
     timeRequired = Date.now() - calculationTime;
     maxSteps++;
@@ -17699,6 +17961,7 @@ Graph.prototype._createBezierNodes = function() {
                   {id:nodeId,
                     mass:1,
                     shape:'circle',
+                    image:"",
                     internalMultiplier:1
                   },{},{},this.constants);
           edge.via = this.sectors['support']['nodes'][nodeId];
