@@ -9477,6 +9477,7 @@ function Node(properties, imagelist, grouplist, constants) {
   this.minForce = constants.minForce;
   this.damping = constants.physics.damping;
   this.mass = 1;  // kg
+  this.fixedData = {x:null,y:null};
 
   this.setProperties(properties, constants);
 
@@ -9560,8 +9561,6 @@ Node.prototype.setProperties = function(properties, constants) {
 
 
   // physics
-  if (properties.internalMultiplier !== undefined)  {this.internalMultiplier = properties.internalMultiplier;}
-  if (properties.damping !== undefined)             {this.dampingBase = properties.damping;}
   if (properties.mass !== undefined)                {this.mass = properties.mass;}
 
   // navigation controls properties
@@ -9593,7 +9592,7 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.fontSize !== undefined)       {this.fontSize = properties.fontSize;}
   if (properties.fontFace !== undefined)       {this.fontFace = properties.fontFace;}
 
-  if (this.image !== undefined) {
+  if (this.image !== undefined && this.image != "") {
     if (this.imagelist) {
       this.imageObj = this.imagelist.load(this.image);
     }
@@ -9832,6 +9831,9 @@ Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
     this.vx = (Math.abs(this.vx) > maxVelocity) ? ((this.vx > 0) ? maxVelocity : -maxVelocity) : this.vx;
     this.x  += this.vx * interval;          // position
   }
+  else {
+    this.fx = 0;
+  }
 
   if (!this.yFixed) {
     var dy   = this.damping * this.vy;     // damping force
@@ -9839,6 +9841,9 @@ Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
     this.vy += ay * interval;               // velocity
     this.vy = (Math.abs(this.vy) > maxVelocity) ? ((this.vy > 0) ? maxVelocity : -maxVelocity) : this.vy;
     this.y  += this.vy * interval;          // position
+  }
+  else {
+    this.fy = 0;
   }
 };
 
@@ -10643,18 +10648,22 @@ Edge.prototype.draw = function(ctx) {
  * @return {boolean}     True if location is located on the edge
  */
 Edge.prototype.isOverlappingWith = function(obj) {
-  var distMax = 10;
+  if (this.connected == true) {
+    var distMax = 10;
+    var xFrom = this.from.x;
+    var yFrom = this.from.y;
+    var xTo = this.to.x;
+    var yTo = this.to.y;
+    var xObj = obj.left;
+    var yObj = obj.top;
 
-  var xFrom = this.from.x;
-  var yFrom = this.from.y;
-  var xTo = this.to.x;
-  var yTo = this.to.y;
-  var xObj = obj.left;
-  var yObj = obj.top;
+    var dist = this._getDistanceToEdge(xFrom, yFrom, xTo, yTo, xObj, yObj);
 
-  var dist = this._getDistanceToEdge(xFrom, yFrom, xTo, yTo, xObj, yObj);
-
-  return (dist < distMax);
+    return (dist < distMax);
+  }
+  else {
+    return false
+  }
 };
 
 
@@ -12283,6 +12292,7 @@ var barnesHutMixin = {
       mass:0,
       range: {minX:centerX-halfRootSize,maxX:centerX+halfRootSize,
               minY:centerY-halfRootSize,maxY:centerY+halfRootSize},
+
       size: rootSize,
       calcSize: 1 / rootSize,
       children: {data:null},
@@ -12359,7 +12369,6 @@ var barnesHutMixin = {
             parentBranch.children[region].children.data.y == node.y) {
           node.x += Math.random();
           node.y += Math.random();
-          this._placeInTree(parentBranch,node, true);
         }
         else {
           this._splitBranch(parentBranch.children[region]);
@@ -15148,7 +15157,13 @@ var SelectionMixin = {
    * @private
    */
   _addToSelection : function(obj) {
-    this.selectionObj[obj.id] = obj;
+    if (obj instanceof Node) {
+      this.selectionObj.nodes[obj.id] = obj;
+    }
+    else {
+      this.selectionObj.edges[obj.id] = obj;
+    }
+
   },
 
 
@@ -15159,7 +15174,12 @@ var SelectionMixin = {
    * @private
    */
   _removeFromSelection : function(obj) {
-    delete this.selectionObj[obj.id];
+    if (obj instanceof Node) {
+      delete this.selectionObj.nodes[obj.id];
+    }
+    else {
+      delete this.selectionObj.edges[obj.id];
+    }
   },
 
 
@@ -15173,13 +15193,18 @@ var SelectionMixin = {
     if (doNotTrigger === undefined) {
       doNotTrigger = false;
     }
-
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        this.selectionObj[objectId].unselect();
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        this.selectionObj.nodes[nodeId].unselect();
       }
     }
-    this.selectionObj = {};
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        this.selectionObj.edges[edgeId].unselect();;
+      }
+    }
+
+    this.selectionObj = {nodes:{},edges:{}};
 
     if (doNotTrigger == false) {
       this.emit('select', this.getSelection());
@@ -15197,13 +15222,11 @@ var SelectionMixin = {
       doNotTrigger = false;
     }
 
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          if (this.selectionObj[objectId].clusterSize > 1) {
-            this.selectionObj[objectId].unselect();
-            this._removeFromSelection(this.selectionObj[objectId]);
-          }
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
+          this.selectionObj.nodes[nodeId].unselect();
+          this._removeFromSelection(this.selectionObj.nodes[nodeId]);
         }
       }
     }
@@ -15222,11 +15245,9 @@ var SelectionMixin = {
    */
   _getSelectedNodeCount : function() {
     var count = 0;
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          count += 1;
-        }
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        count += 1;
       }
     }
     return count;
@@ -15239,11 +15260,9 @@ var SelectionMixin = {
    * @private
    */
   _getSelectedNode : function() {
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          return this.selectionObj[objectId];
-        }
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        return this.selectionObj.nodes[nodeId];
       }
     }
     return null;
@@ -15258,11 +15277,9 @@ var SelectionMixin = {
    */
   _getSelectedEdgeCount : function() {
     var count = 0;
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Edge) {
-          count += 1;
-        }
+    for (var edgeId in this.selectionObj.edges) {
+      if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        count += 1;
       }
     }
     return count;
@@ -15277,8 +15294,13 @@ var SelectionMixin = {
    */
   _getSelectedObjectCount : function() {
     var count = 0;
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        count += 1;
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
         count += 1;
       }
     }
@@ -15292,8 +15314,13 @@ var SelectionMixin = {
    * @private
    */
   _selectionIsEmpty : function() {
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        return false;
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
         return false;
       }
     }
@@ -15308,12 +15335,10 @@ var SelectionMixin = {
    * @private
    */
   _clusterInSelection : function() {
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          if (this.selectionObj[objectId].clusterSize > 1) {
-            return true;
-          }
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
+          return true;
         }
       }
     }
@@ -15494,11 +15519,9 @@ var SelectionMixin = {
    */
   getSelectedNodes : function() {
     var idArray = [];
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          idArray.push(objectId);
-        }
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        idArray.push(nodeId);
       }
     }
     return idArray
@@ -15512,14 +15535,12 @@ var SelectionMixin = {
    */
   getSelectedEdges : function() {
     var idArray = [];
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Edge) {
-          idArray.push(objectId);
-        }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        idArray.push(edgeId);
       }
     }
-    return idArray
+    return idArray;
   },
 
 
@@ -15555,17 +15576,17 @@ var SelectionMixin = {
    * @private
    */
   _updateSelection : function () {
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          if (!this.nodes.hasOwnProperty(objectId)) {
-            delete this.selectionObj[objectId];
-          }
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (!this.nodes.hasOwnProperty(nodeId)) {
+          delete this.selectionObj.nodes[nodeId];
         }
-        else { // assuming only edges and nodes are selected
-          if (!this.edges.hasOwnProperty(objectId)) {
-            delete this.selectionObj[objectId];
-          }
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        if (!this.edges.hasOwnProperty(edgeId)) {
+          delete this.selectionObj.edges[edgeId];
         }
       }
     }
@@ -15878,7 +15899,7 @@ var graphMixinLoaders = {
    * @private
    */
   _loadSelectionSystem : function() {
-    this.selectionObj = { };
+    this.selectionObj = {nodes:{},edges:{}};
 
     this._loadMixin(SelectionMixin);
    },
@@ -16130,6 +16151,7 @@ function Graph (container, data, options) {
       nodeSpacing: 100,
       direction: "UD"   // UD, DU, LR, RL
     },
+    freezeForStabilization: false,
     smoothCurves: true,
     maxVelocity:  10,
     minVelocity:  0.1,   // px/s
@@ -16458,6 +16480,7 @@ Graph.prototype.setOptions = function (options) {
     if (options.stabilize !== undefined)       {this.stabilize = options.stabilize;}
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
     if (options.smoothCurves !== undefined)    {this.constants.smoothCurves = options.smoothCurves;}
+    if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
 
@@ -16803,26 +16826,24 @@ Graph.prototype._handleDragStart = function() {
     }
 
     // create an array with the selected nodes and their original location and status
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        var object = this.selectionObj[objectId];
-        if (object instanceof Node) {
-          var s = {
-            id: object.id,
-            node: object,
+    for (var objectId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(objectId)) {
+        var object = this.selectionObj.nodes[objectId];
+        var s = {
+          id: object.id,
+          node: object,
 
-            // store original x, y, xFixed and yFixed, make the node temporarily Fixed
-            x: object.x,
-            y: object.y,
-            xFixed: object.xFixed,
-            yFixed: object.yFixed
-          };
+          // store original x, y, xFixed and yFixed, make the node temporarily Fixed
+          x: object.x,
+          y: object.y,
+          xFixed: object.xFixed,
+          yFixed: object.yFixed
+        };
 
-          object.xFixed = true;
-          object.yFixed = true;
+        object.xFixed = true;
+        object.yFixed = true;
 
-          drag.selection.push(s);
-        }
+        drag.selection.push(s);
       }
     }
   }
@@ -17308,6 +17329,7 @@ Graph.prototype._removeNodes = function(ids) {
     delete nodes[id];
   }
   this._updateNodeIndexList();
+  this._updateCalculationNodes();
   this._reconnectEdges();
   this._updateSelection();
   this._updateValueRange(nodes);
@@ -17701,17 +17723,49 @@ Graph.prototype._drawEdges = function(ctx) {
  * @private
  */
 Graph.prototype._stabilize = function() {
+  if (this.constants.freezeForStabilization == true) {
+    this._freezeDefinedNodes();
+  }
+
   // find stable position
   var count = 0;
   while (this.moving && count < this.constants.stabilizationIterations) {
     this._physicsTick();
     count++;
   }
-
   this.zoomExtent(false,true);
+  if (this.constants.freezeForStabilization == true) {
+    this._restoreFrozenNodes();
+  }
+  this.emit("stabilized",{iterations:count});
 };
 
 
+Graph.prototype._freezeDefinedNodes = function() {
+  var nodes = this.nodes;
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      if (nodes[id].x != null && nodes[id].y != null) {
+        nodes[id].fixedData.x = nodes[id].xFixed;
+        nodes[id].fixedData.y = nodes[id].yFixed;
+        nodes[id].xFixed = true;
+        nodes[id].yFixed = true;
+      }
+    }
+  }
+};
+
+Graph.prototype._restoreFrozenNodes = function() {
+  var nodes = this.nodes;
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      if (nodes[id].fixedData.x != null) {
+        nodes[id].xFixed = nodes[id].fixedData.x;
+        nodes[id].yFixed = nodes[id].fixedData.y;
+      }
+    }
+  }
+};
 
 
 /**
@@ -17770,10 +17824,10 @@ Graph.prototype._physicsTick = function() {
   if (!this.freezeSimulation) {
     if (this.moving) {
       this._doInAllActiveSectors("_initializeForceCalculation");
+      this._doInAllActiveSectors("_discreteStepNodes");
       if (this.constants.smoothCurves) {
         this._doInSupportSector("_discreteStepNodes");
       }
-      this._doInAllActiveSectors("_discreteStepNodes");
       this._findCenter(this._getRange())
     }
   }
@@ -17907,6 +17961,7 @@ Graph.prototype._createBezierNodes = function() {
                   {id:nodeId,
                     mass:1,
                     shape:'circle',
+                    image:"",
                     internalMultiplier:1
                   },{},{},this.constants);
           edge.via = this.sectors['support']['nodes'][nodeId];
