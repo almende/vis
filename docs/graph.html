@@ -352,7 +352,13 @@ var nodes = [
     <td>Url of an image. Only applicable when the shape of the node is
         <code>image</code>.</td>
 </tr>
-
+  <tr>
+      <td>mass</td>
+      <td>number</td>
+      <td>1</td>
+      <td>When using the Barnes Hut simulation method (which is selected by default),
+          the mass of a node determines the gravitational repulsion during the simulation. Higher mass will push other nodes further away.</td>
+  </tr>
     <tr>
         <td>level</td>
         <td>number</td>
@@ -592,7 +598,12 @@ var edges = [
     <td>no</td>
     <td>Text label to be displayed halfway the edge.</td>
   </tr>
-
+    <tr>
+        <td>length</td>
+        <td>number</td>
+        <td>physics.[method].springLength</td>
+        <td>The resting length of the edge when modeled as a spring. By default the springLength determined by the physics is used. By using this setting you can make certain edges have different resting lengths.</td>
+    </tr>
   <tr>
     <td>title</td>
     <td>string</td>
@@ -732,6 +743,17 @@ var options = {
       Configuration options applied to all edges. See section <a href="#Edges_configuration">Edges configuration</a> for an overview of the available options.
     </td>
   </tr>
+
+    <tr>
+        <td>freezeForStabilization</a></td>
+        <td>Boolean</td>
+        <td>false</td>
+        <td>
+            With the advent of the storePosition() function, the positions of the nodes can be saved after they are stabilized. The smoothCurves require support nodes and those positions are not stored. In order
+            to speed up the initialization of the graph by using storePosition() and loading the nodes with the stored positions, the freezeForStabilization option freezes all nodes that have been supplied with
+            an x and y position in place during the stabilization. That way only the support nodes for the smooth curves have to stabilize, greatly speeding up the stabilization process with cached positions.
+        </td>
+    </tr>
 
   <tr>
     <td><a href="#Groups_configuration">groups</a></td>
@@ -936,7 +958,13 @@ var options = {
     <td>none</td>
     <td>Default image url for the nodes. only applicable to shape <code>image</code>.</td>
   </tr>
-
+    <tr>
+        <td>mass</td>
+        <td>number</td>
+        <td>1</td>
+        <td>When using the Barnes Hut simulation method (which is selected by default),
+            the mass of a node determines the gravitational repulsion during the simulation. Higher mass will push other nodes further away.</td>
+    </tr>
     <tr>
         <td>level</td>
         <td>number</td>
@@ -1082,6 +1110,12 @@ var options = {
     <td>Default length of a gap in pixels on a dashed line.
       Only applicable when the line style is <code>dash-line</code>.</td>
   </tr>
+    <tr>
+        <td>length</td>
+        <td>number</td>
+        <td>physics.[method].springLength</td>
+        <td>The resting length of the edge when modeled as a spring. By default the springLength determined by the physics is used. By using this setting you can make certain edges have different resting lengths.</td>
+    </tr>
 
   <tr>
     <td>style</td>
@@ -1976,6 +2010,15 @@ graph.off('select', onSelect);
             <ul>
                 <li><code>width</code>: the new width of the canvas</li>
                 <li><code>height</code>: the new height of the canvas</li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <td>stabilized</td>
+        <td>Fired when the graph has been stabilized after initialization. This event can be used to trigger the .storePosition() function after stabilization.</td>
+        <td>
+            <ul>
+                <li><code>iterations</code>: number of iterations used to stabilize</li>
             </ul>
         </td>
     </tr>

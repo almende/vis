@@ -96,7 +96,7 @@ var graphMixinLoaders = {
    * @private
    */
   _loadSelectionSystem : function() {
-    this.selectionObj = { };
+    this.selectionObj = {nodes:{},edges:{}};
 
     this._loadMixin(SelectionMixin);
    },

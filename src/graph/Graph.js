@@ -146,6 +146,7 @@ function Graph (container, data, options) {
       nodeSpacing: 100,
       direction: "UD"   // UD, DU, LR, RL
     },
+    freezeForStabilization: false,
     smoothCurves: true,
     maxVelocity:  10,
     minVelocity:  0.1,   // px/s
@@ -474,6 +475,7 @@ Graph.prototype.setOptions = function (options) {
     if (options.stabilize !== undefined)       {this.stabilize = options.stabilize;}
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
     if (options.smoothCurves !== undefined)    {this.constants.smoothCurves = options.smoothCurves;}
+    if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
 
@@ -819,26 +821,24 @@ Graph.prototype._handleDragStart = function() {
     }
 
     // create an array with the selected nodes and their original location and status
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        var object = this.selectionObj[objectId];
-        if (object instanceof Node) {
-          var s = {
-            id: object.id,
-            node: object,
+    for (var objectId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(objectId)) {
+        var object = this.selectionObj.nodes[objectId];
+        var s = {
+          id: object.id,
+          node: object,
 
-            // store original x, y, xFixed and yFixed, make the node temporarily Fixed
-            x: object.x,
-            y: object.y,
-            xFixed: object.xFixed,
-            yFixed: object.yFixed
-          };
+          // store original x, y, xFixed and yFixed, make the node temporarily Fixed
+          x: object.x,
+          y: object.y,
+          xFixed: object.xFixed,
+          yFixed: object.yFixed
+        };
 
-          object.xFixed = true;
-          object.yFixed = true;
+        object.xFixed = true;
+        object.yFixed = true;
 
-          drag.selection.push(s);
-        }
+        drag.selection.push(s);
       }
     }
   }
@@ -1324,6 +1324,7 @@ Graph.prototype._removeNodes = function(ids) {
     delete nodes[id];
   }
   this._updateNodeIndexList();
+  this._updateCalculationNodes();
   this._reconnectEdges();
   this._updateSelection();
   this._updateValueRange(nodes);
@@ -1717,17 +1718,49 @@ Graph.prototype._drawEdges = function(ctx) {
  * @private
  */
 Graph.prototype._stabilize = function() {
+  if (this.constants.freezeForStabilization == true) {
+    this._freezeDefinedNodes();
+  }
+
   // find stable position
   var count = 0;
   while (this.moving && count < this.constants.stabilizationIterations) {
     this._physicsTick();
     count++;
   }
-
   this.zoomExtent(false,true);
+  if (this.constants.freezeForStabilization == true) {
+    this._restoreFrozenNodes();
+  }
+  this.emit("stabilized",{iterations:count});
 };
 
 
+Graph.prototype._freezeDefinedNodes = function() {
+  var nodes = this.nodes;
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      if (nodes[id].x != null && nodes[id].y != null) {
+        nodes[id].fixedData.x = nodes[id].xFixed;
+        nodes[id].fixedData.y = nodes[id].yFixed;
+        nodes[id].xFixed = true;
+        nodes[id].yFixed = true;
+      }
+    }
+  }
+};
+
+Graph.prototype._restoreFrozenNodes = function() {
+  var nodes = this.nodes;
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      if (nodes[id].fixedData.x != null) {
+        nodes[id].xFixed = nodes[id].fixedData.x;
+        nodes[id].yFixed = nodes[id].fixedData.y;
+      }
+    }
+  }
+};
 
 
 /**
@@ -1786,10 +1819,10 @@ Graph.prototype._physicsTick = function() {
   if (!this.freezeSimulation) {
     if (this.moving) {
       this._doInAllActiveSectors("_initializeForceCalculation");
+      this._doInAllActiveSectors("_discreteStepNodes");
       if (this.constants.smoothCurves) {
         this._doInSupportSector("_discreteStepNodes");
       }
-      this._doInAllActiveSectors("_discreteStepNodes");
       this._findCenter(this._getRange())
     }
   }
@@ -1923,6 +1956,7 @@ Graph.prototype._createBezierNodes = function() {
                   {id:nodeId,
                     mass:1,
                     shape:'circle',
+                    image:"",
                     internalMultiplier:1
                   },{},{},this.constants);
           edge.via = this.sectors['support']['nodes'][nodeId];
