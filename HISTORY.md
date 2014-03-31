@@ -1,6 +1,28 @@
 vis.js history
 http://visjs.org
 
+## 2014-03-27, version 0.7.1
+
+### Graph
+
+- fixed edge color bug.
+- fixed select event bug.
+- clarified docs, stressing importance of css inclusion for correct display of navigation an manipulation icons.
+- improved and expanded playing with physics (configurePhysics option).
+- added highlights to navigation icons if the corresponding key is pressed.
+- added freezeForStabilization option to improve stabilization with cached positions.
+
+
+## 2014-03-07, version 0.7.0
+
+### Graph
+
+- changed navigation CSS. Icons are now always correctly positioned.
+- added stabilizationIterations option to graph.
+- added storePosition() method to save the XY positions of nodes in the DataSet.
+- separated allowedToMove into allowedToMoveX and allowedToMoveY. This is required for initializing nodes from hierarchical layouts after storePosition().
+- added color options for the edges.
+
 
 ## 2014-03-06, version 0.6.1
 

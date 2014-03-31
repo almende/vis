@@ -133,6 +133,7 @@ var barnesHutMixin = {
       mass:0,
       range: {minX:centerX-halfRootSize,maxX:centerX+halfRootSize,
               minY:centerY-halfRootSize,maxY:centerY+halfRootSize},
+
       size: rootSize,
       calcSize: 1 / rootSize,
       children: {data:null},
@@ -209,7 +210,6 @@ var barnesHutMixin = {
             parentBranch.children[region].children.data.y == node.y) {
           node.x += Math.random();
           node.y += Math.random();
-          this._placeInTree(parentBranch,node, true);
         }
         else {
           this._splitBranch(parentBranch.children[region]);

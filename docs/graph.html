@@ -25,7 +25,13 @@
 <p>
   The graph visualization works smooth on any modern browser for up to a
   few thousand nodes and edges. To handle a larger amount of nodes, Graph
-  has clustering support.
+  has <a href="#Clustering">clustering</a> support.
+</p>
+
+<p>
+    Every dataset is different. Nodes can have different sizes based on content, interconnectivity can be high or low etc. Because of this, graph has a special option
+    that the user can use to explore which settings may be good for you. Use configurePhysics as described in the <u><a href="#PhysicsConfiguration">Physics</a></u> section or by
+    <u><a href="../examples/graph/25_physics_configuration.html">example 25</a></u>.
 </p>
 
 <p>
@@ -292,15 +298,22 @@ var nodes = [
       the same color schema.</td>
   </tr>
 
-    <tr>
-        <td>allowedToMove</td>
-        <td>Boolean</td>
-        <td>true</td>
-        <td>If allowedToMove is false, then the node will not move from its supplied position.
-            If only an x position has been supplied, it is only fixed in the x-direction.
-            The same holds for y. If both x and y have been defined, the node will not move.
-            If no x or y have been supplied, this argument will not do anything.</td>
-    </tr>
+  <tr>
+      <td>allowedToMoveX</td>
+      <td>Boolean</td>
+      <td>false</td>
+      <td>If allowedToMoveX is false, then the node will not move from its supplied position.
+          If an X position has been supplied, it is fixed in the X-direction.
+          If no X value has been supplied, this argument will not do anything.</td>
+  </tr>
+  <tr>
+      <td>allowedToMoveY</td>
+      <td>Boolean</td>
+      <td>false</td>
+      <td>If allowedToMoveY is false, then the node will not move from its supplied position.
+          If an Y position has been supplied, it is fixed in the Y-direction.
+          If no Y value has been supplied, this argument will not do anything.</td>
+  </tr>
   <tr>
     <td>fontColor</td>
     <td>String</td>
@@ -339,7 +352,13 @@ var nodes = [
     <td>Url of an image. Only applicable when the shape of the node is
         <code>image</code>.</td>
 </tr>
-
+  <tr>
+      <td>mass</td>
+      <td>number</td>
+      <td>1</td>
+      <td>When using the Barnes Hut simulation method (which is selected by default),
+          the mass of a node determines the gravitational repulsion during the simulation. Higher mass will push other nodes further away.</td>
+  </tr>
     <tr>
         <td>level</td>
         <td>number</td>
@@ -469,12 +488,26 @@ var edges = [
     <th>Description</th>
   </tr>
 
-  <tr>
-    <td>color</td>
-    <td>string</td>
-    <td>no</td>
-    <td>A HTML color for the edge.</td>
-  </tr>
+    <tr>
+        <td>color</td>
+        <td>String | Object</td>
+        <td>no</td>
+        <td>Color for the edge.</td>
+    </tr>
+
+    <tr>
+        <td>color.color</td>
+        <td>String</td>
+        <td>no</td>
+        <td>Color of the edge when not selected.</td>
+    </tr>
+
+    <tr>
+        <td>color.highlight</td>
+        <td>String</td>
+        <td>no</td>
+        <td>Color of the edge when selected.</td>
+    </tr>
 
   <tr>
     <td>dash</td>
@@ -565,7 +598,12 @@ var edges = [
     <td>no</td>
     <td>Text label to be displayed halfway the edge.</td>
   </tr>
-
+    <tr>
+        <td>length</td>
+        <td>number</td>
+        <td>physics.[method].springLength</td>
+        <td>The resting length of the edge when modeled as a spring. By default the springLength determined by the physics is used. By using this setting you can make certain edges have different resting lengths.</td>
+    </tr>
   <tr>
     <td>title</td>
     <td>string</td>
@@ -706,6 +744,17 @@ var options = {
     </td>
   </tr>
 
+    <tr>
+        <td>freezeForStabilization</a></td>
+        <td>Boolean</td>
+        <td>false</td>
+        <td>
+            With the advent of the storePosition() function, the positions of the nodes can be saved after they are stabilized. The smoothCurves require support nodes and those positions are not stored. In order
+            to speed up the initialization of the graph by using storePosition() and loading the nodes with the stored positions, the freezeForStabilization option freezes all nodes that have been supplied with
+            an x and y position in place during the stabilization. That way only the support nodes for the smooth curves have to stabilize, greatly speeding up the stabilization process with cached positions.
+        </td>
+    </tr>
+
   <tr>
     <td><a href="#Groups_configuration">groups</a></td>
     <td>Object</td>
@@ -773,6 +822,14 @@ var options = {
     <td>If true, the graph is stabilized before displaying it. If false,
       the nodes move to a stabe position visibly in an animated way.</td>
   </tr>
+
+<tr>
+    <td>stabilizationIterations</td>
+    <td>Number</td>
+    <td>1000</td>
+    <td>If stabilize is set to true, this number is the (maximum) amount of physics steps the stabilization process takes
+        before showing the result. If your simulation takes too long to stabilize, this number can be reduced. On the other hand, if your graph is not stabilized after loading, this number can be increased.</td>
+</tr>
 
   <tr>
     <td>width</td>
@@ -855,13 +912,20 @@ var options = {
     <td>Default border color of the node when selected.</td>
   </tr>
     <tr>
-        <td>allowedToMove</td>
+        <td>allowedToMoveX</td>
         <td>Boolean</td>
         <td>false</td>
-        <td>If allowedToMove is false, then the node will not move from its supplied position.
-            If only an x position has been supplied, it is only fixed in the x-direction.
-            The same holds for y. If both x and y have been defined, the node will not move.
-            If no x or y have been supplied, this argument will not do anything.</td>
+        <td>If allowedToMoveX is false, then the node will not move from its supplied position.
+            If an X position has been supplied, it is fixed in the X-direction.
+            If no X value has been supplied, this argument will not do anything.</td>
+    </tr>
+    <tr>
+        <td>allowedToMoveY</td>
+        <td>Boolean</td>
+        <td>false</td>
+        <td>If allowedToMoveY is false, then the node will not move from its supplied position.
+            If an Y position has been supplied, it is fixed in the Y-direction.
+            If no Y value has been supplied, this argument will not do anything.</td>
     </tr>
 
   <tr>
@@ -894,7 +958,13 @@ var options = {
     <td>none</td>
     <td>Default image url for the nodes. only applicable to shape <code>image</code>.</td>
   </tr>
-
+    <tr>
+        <td>mass</td>
+        <td>number</td>
+        <td>1</td>
+        <td>When using the Barnes Hut simulation method (which is selected by default),
+            the mass of a node determines the gravitational repulsion during the simulation. Higher mass will push other nodes further away.</td>
+    </tr>
     <tr>
         <td>level</td>
         <td>number</td>
@@ -981,12 +1051,26 @@ var options = {
     <th>Description</th>
   </tr>
 
-  <tr>
-    <td>color</td>
-    <td>String</td>
-    <td>"#2B7CE9"</td>
-    <td>The default color of a edge.</td>
-  </tr>
+    <tr>
+        <td>color</td>
+        <td>String | Object</td>
+        <td>Object</td>
+        <td>Colors of the edge. This object contains both colors for the selected and unselected state.</td>
+    </tr>
+
+    <tr>
+        <td>color.color</td>
+        <td>String</td>
+        <td>"#848484"</td>
+        <td>Color of the edge when not selected.</td>
+    </tr>
+
+    <tr>
+        <td>color.highlight</td>
+        <td>String</td>
+        <td>"#848484"</td>
+        <td>Color of the edge when selected.</td>
+    </tr>
 
   <tr>
     <td>dash</td>
@@ -1026,6 +1110,12 @@ var options = {
     <td>Default length of a gap in pixels on a dashed line.
       Only applicable when the line style is <code>dash-line</code>.</td>
   </tr>
+    <tr>
+        <td>length</td>
+        <td>number</td>
+        <td>physics.[method].springLength</td>
+        <td>The resting length of the edge when modeled as a spring. By default the springLength determined by the physics is used. By using this setting you can make certain edges have different resting lengths.</td>
+    </tr>
 
   <tr>
     <td>style</td>
@@ -1197,8 +1287,8 @@ var options = {
             enabled: true,
             gravitationalConstant: -2000,
             centralGravity: 0.1,
-            springLength: 100,
-            springConstant: 0.05,
+            springLength: 95,
+            springConstant: 0.04,
             damping: 0.09
         },
         repulsion: {
@@ -1239,14 +1329,14 @@ var options = {
     <tr>
         <td>springLength</td>
         <td>Number</td>
-        <td>100</td>
+        <td>95</td>
         <td>In the previous versions this was a property of the edges, called length. This is the length of the springs when they are at rest. During the simulation they will be streched by the gravitational fields.
             To greatly reduce the edge length, the gravitationalConstant has to be reduced as well.</td>
     </tr>
     <tr>
         <td>springConstant</td>
         <td>Number</td>
-        <td>0.05</td>
+        <td>0.04</td>
         <td>This is the spring constant used to calculate the spring forces based on Hooke&prime;s Law. More information is available <a href="http://en.wikipedia.org/wiki/Hooke's_law" target="_blank">here</a>.</td>
     </tr>
     <tr>
@@ -1314,7 +1404,8 @@ var options = {
     By using the data manipulation feature of the graph you can dynamically create nodes, connect nodes with edges, edit nodes or delete nodes and edges.
     The toolbar is fully HTML and CSS so the user can style this to their preference. To control the behaviour of the data manipulation, users can insert custom functions
     into the data manipulation process. For example, an injected function can show an detailed pop-up when a user wants to add a node. In <a href="../examples/graph/21_data_manipulation.html">example 21</a>,
-    two functions have been injected into the add and edit functionality. This is described in more detail in the next subsection.
+    two functions have been injected into the add and edit functionality. This is described in more detail in the next subsection. To correctly display the manipulation icons, the <b>vis.css</b> file must be included.
+    The user is free to alter or overload the CSS classes but without them the navigation icons are not visible.
 </p>
 <pre class="prettyprint">
 // These variables must be defined in an options object named dataManipulation.
@@ -1371,7 +1462,8 @@ var options: {
         *           label: new,
         *           x: x position of click (canvas space),
         *           y: y position of click (canvas space),
-        *           allowedToMove: true
+        *           allowedToMoveX: true,
+        *           allowedToMoveY: true
         *          };
         */
         var newData = {..}; // alter the data as you want.
@@ -1607,7 +1699,8 @@ var options: {
 <h3 id="Navigation_controls">Navigation controls</h3>
 <p>
   Graph has a menu with navigation controls, which is disabled by default.
-  It can be configured with the following settings.
+  It can be configured with the following settings. To correctly display the navigation icons, the <b>vis.css</b> file must be included.
+    The user is free to alter or overload the CSS classes but without them the navigation icons are not visible.
 </p>
 
 <pre class="prettyprint">
@@ -1760,6 +1853,13 @@ var options: {
       The selections are not ordered.
     </td>
   </tr>
+    <tr>
+        <td>storePosition()</td>
+        <td>none</td>
+        <td>This will put the X and Y positions of all nodes in the dataset. It will also include allowedToMoveX and allowedToMoveY with the correct values.
+            You can use this to stablize your graph once, then save the positions in a database so the next time you load the nodes, stabilization will be near instantaneous.
+        </td>
+    </tr>
 
   <tr>
     <td>on(event, callback)</td>
@@ -1818,7 +1918,7 @@ var options: {
   </tr>
 
     <tr>
-        <td>zoomExtent</td>
+        <td>zoomExtent()</td>
         <td>none</td>
         <td>Scales the graph so all the nodes are in center view.</td>
     </tr>
@@ -1910,6 +2010,15 @@ graph.off('select', onSelect);
             <ul>
                 <li><code>width</code>: the new width of the canvas</li>
                 <li><code>height</code>: the new height of the canvas</li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <td>stabilized</td>
+        <td>Fired when the graph has been stabilized after initialization. This event can be used to trigger the .storePosition() function after stabilization.</td>
+        <td>
+            <ul>
+                <li><code>iterations</code>: number of iterations used to stabilize</li>
             </ul>
         </td>
     </tr>

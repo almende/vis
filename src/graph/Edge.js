@@ -52,7 +52,8 @@ function Edge (properties, graph, constants) {
   // 2012-08-08
   this.dash = util.extend({}, constants.edges.dash); // contains properties length, gap, altLength
 
-  this.color       = constants.edges.color;
+  this.color       = {color:constants.edges.color.color,
+                      highlight:constants.edges.color.highlight};
   this.widthFixed  = false;
   this.lengthFixed = false;
 
@@ -80,6 +81,7 @@ Edge.prototype.setProperties = function(properties, constants) {
     this.fontSize = constants.edges.fontSize;
     this.fontFace = constants.edges.fontFace;
     this.fontColor = constants.edges.fontColor;
+
     if (properties.fontColor !== undefined)  {this.fontColor = properties.fontColor;}
     if (properties.fontSize !== undefined)   {this.fontSize = properties.fontSize;}
     if (properties.fontFace !== undefined)   {this.fontFace = properties.fontFace;}
@@ -100,7 +102,16 @@ Edge.prototype.setProperties = function(properties, constants) {
     if (properties.dash.altLength !== undefined) {this.dash.altLength = properties.dash.altLength;}
   }
 
-  if (properties.color !== undefined) {this.color = properties.color;}
+  if (properties.color !== undefined) {
+    if (util.isString(properties.color)) {
+      this.color.color = properties.color;
+      this.color.highlight = properties.color;
+    }
+    else {
+      if (properties.color.color !== undefined)     {this.color.color = properties.color.color;}
+      if (properties.color.highlight !== undefined) {this.color.highlight = properties.color.highlight;}
+    }
+  }
 
   // A node is connected when it has a from and to node.
   this.connect();
@@ -205,18 +216,22 @@ Edge.prototype.draw = function(ctx) {
  * @return {boolean}     True if location is located on the edge
  */
 Edge.prototype.isOverlappingWith = function(obj) {
-  var distMax = 10;
+  if (this.connected == true) {
+    var distMax = 10;
+    var xFrom = this.from.x;
+    var yFrom = this.from.y;
+    var xTo = this.to.x;
+    var yTo = this.to.y;
+    var xObj = obj.left;
+    var yObj = obj.top;
 
-  var xFrom = this.from.x;
-  var yFrom = this.from.y;
-  var xTo = this.to.x;
-  var yTo = this.to.y;
-  var xObj = obj.left;
-  var yObj = obj.top;
+    var dist = this._getDistanceToEdge(xFrom, yFrom, xTo, yTo, xObj, yObj);
 
-  var dist = this._getDistanceToEdge(xFrom, yFrom, xTo, yTo, xObj, yObj);
-
-  return (dist < distMax);
+    return (dist < distMax);
+  }
+  else {
+    return false
+  }
 };
 
 
@@ -229,7 +244,8 @@ Edge.prototype.isOverlappingWith = function(obj) {
  */
 Edge.prototype._drawLine = function(ctx) {
   // set style
-  ctx.strokeStyle = this.color;
+  if (this.selected == true) {ctx.strokeStyle = this.color.highlight;}
+  else                       {ctx.strokeStyle = this.color.color;}
   ctx.lineWidth = this._getLineWidth();
 
   if (this.from != this.to) {
@@ -359,7 +375,9 @@ Edge.prototype._label = function (ctx, text, x, y) {
  */
 Edge.prototype._drawDashLine = function(ctx) {
   // set style
-  ctx.strokeStyle = this.color;
+  if (this.selected == true) {ctx.strokeStyle = this.color.highlight;}
+  else                       {ctx.strokeStyle = this.color.color;}
+
   ctx.lineWidth = this._getLineWidth();
 
   // only firefox and chrome support this method, else we use the legacy one.
@@ -482,8 +500,8 @@ Edge.prototype._pointOnCircle = function (x, y, radius, percentage) {
 Edge.prototype._drawArrowCenter = function(ctx) {
   var point;
   // set style
-  ctx.strokeStyle = this.color;
-  ctx.fillStyle = this.color;
+  if (this.selected == true) {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
+  else                       {ctx.strokeStyle = this.color.color; ctx.fillStyle = this.color.color;}
   ctx.lineWidth = this._getLineWidth();
 
   if (this.from != this.to) {
@@ -556,8 +574,9 @@ Edge.prototype._drawArrowCenter = function(ctx) {
  */
 Edge.prototype._drawArrow = function(ctx) {
   // set style
-  ctx.strokeStyle = this.color;
-  ctx.fillStyle = this.color;
+  if (this.selected == true) {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
+  else                       {ctx.strokeStyle = this.color.color;     ctx.fillStyle = this.color.color;}
+
   ctx.lineWidth = this._getLineWidth();
 
   var angle, length;

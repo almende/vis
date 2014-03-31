@@ -42,8 +42,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.id = undefined;
   this.shape = constants.nodes.shape;
   this.image = constants.nodes.image;
-  this.x = 0;
-  this.y = 0;
+  this.x = null;
+  this.y = null;
   this.xFixed = false;
   this.yFixed = false;
   this.horizontalAlignLeft = true; // these are for the navigation controls
@@ -66,6 +66,7 @@ function Node(properties, imagelist, grouplist, constants) {
   this.minForce = constants.minForce;
   this.damping = constants.physics.damping;
   this.mass = 1;  // kg
+  this.fixedData = {x:null,y:null};
 
   this.setProperties(properties, constants);
 
@@ -149,8 +150,6 @@ Node.prototype.setProperties = function(properties, constants) {
 
 
   // physics
-  if (properties.internalMultiplier !== undefined)  {this.internalMultiplier = properties.internalMultiplier;}
-  if (properties.damping !== undefined)             {this.dampingBase = properties.damping;}
   if (properties.mass !== undefined)                {this.mass = properties.mass;}
 
   // navigation controls properties
@@ -182,7 +181,7 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.fontSize !== undefined)       {this.fontSize = properties.fontSize;}
   if (properties.fontFace !== undefined)       {this.fontFace = properties.fontFace;}
 
-  if (this.image !== undefined) {
+  if (this.image !== undefined && this.image != "") {
     if (this.imagelist) {
       this.imageObj = this.imagelist.load(this.image);
     }
@@ -191,8 +190,8 @@ Node.prototype.setProperties = function(properties, constants) {
     }
   }
 
-  this.xFixed = this.xFixed || (properties.x !== undefined && !properties.allowedToMove);
-  this.yFixed = this.yFixed || (properties.y !== undefined && !properties.allowedToMove);
+  this.xFixed = this.xFixed || (properties.x !== undefined && !properties.allowedToMoveX);
+  this.yFixed = this.yFixed || (properties.y !== undefined && !properties.allowedToMoveY);
   this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
 
   if (this.shape == 'image') {
@@ -421,6 +420,9 @@ Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
     this.vx = (Math.abs(this.vx) > maxVelocity) ? ((this.vx > 0) ? maxVelocity : -maxVelocity) : this.vx;
     this.x  += this.vx * interval;          // position
   }
+  else {
+    this.fx = 0;
+  }
 
   if (!this.yFixed) {
     var dy   = this.damping * this.vy;     // damping force
@@ -428,6 +430,9 @@ Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
     this.vy += ay * interval;               // velocity
     this.vy = (Math.abs(this.vy) > maxVelocity) ? ((this.vy > 0) ? maxVelocity : -maxVelocity) : this.vy;
     this.y  += this.vy * interval;          // position
+  }
+  else {
+    this.fy = 0;
   }
 };
 

@@ -22,7 +22,8 @@ function Graph (container, data, options) {
   this.renderRefreshRate = 60;                         // hz (fps)
   this.renderTimestep = 1000 / this.renderRefreshRate; // ms -- saves calculation later on
   this.renderTime = 0.5 * this.renderTimestep;         // measured time it takes to render a frame
-  this.maxRenderSteps = 3;                             // max amount of physics ticks per render step.
+  this.maxPhysicsTicksPerRender = 3;                   // max amount of physics ticks per render step.
+  this.physicsDiscreteStepsize = 0.65;                 // discrete stepsize of the simulation
 
   this.stabilize = true;  // stabilize before displaying the graph
   this.selectable = true;
@@ -63,7 +64,10 @@ function Graph (container, data, options) {
       widthMax: 15,
       width: 1,
       style: 'line',
-      color: '#848484',
+      color: {
+        color:'#848484',
+        highlight:'#848484'
+      },
       fontColor: '#343434',
       fontSize: 14, // px
       fontFace: 'arial',
@@ -80,8 +84,8 @@ function Graph (container, data, options) {
         theta: 1 / 0.6, // inverted to save time during calculation
         gravitationalConstant: -2000,
         centralGravity: 0.3,
-        springLength: 100,
-        springConstant: 0.05,
+        springLength: 95,
+        springConstant: 0.04,
         damping: 0.09
       },
       repulsion: {
@@ -142,10 +146,11 @@ function Graph (container, data, options) {
       nodeSpacing: 100,
       direction: "UD"   // UD, DU, LR, RL
     },
+    freezeForStabilization: false,
     smoothCurves: true,
     maxVelocity:  10,
     minVelocity:  0.1,   // px/s
-    maxIterations: 1000  // maximum number of iteration to stabilize
+    stabilizationIterations: 1000  // maximum number of iteration to stabilize
   };
   this.editMode = this.constants.dataManipulation.initiallyVisible;
 
@@ -297,6 +302,9 @@ Graph.prototype._getRange = function() {
       if (minY > (node.y)) {minY = node.y;}
       if (maxY < (node.y)) {maxY = node.y;}
     }
+  }
+  if (minX == 1e9 && maxX == -1e9 && minY == 1e9 && maxY == -1e9) {
+    minY = 0, maxY = 0, minX = 0, maxX = 0;
   }
   return {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
 };
@@ -451,7 +459,7 @@ Graph.prototype.setData = function(data, disableStart) {
   if (!disableStart) {
     // find a stable position or start animating to a stable position
     if (this.stabilize) {
-      this._doStabilize();
+      this._stabilize();
     }
     this.start();
   }
@@ -470,7 +478,9 @@ Graph.prototype.setOptions = function (options) {
     if (options.stabilize !== undefined)       {this.stabilize = options.stabilize;}
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
     if (options.smoothCurves !== undefined)    {this.constants.smoothCurves = options.smoothCurves;}
+    if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
+    if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
 
     if (options.onAdd) {
         this.triggerFunctions.add = options.onAdd;
@@ -572,12 +582,28 @@ Graph.prototype.setOptions = function (options) {
     if (options.edges) {
       for (prop in options.edges) {
         if (options.edges.hasOwnProperty(prop)) {
-          this.constants.edges[prop] = options.edges[prop];
+          if (typeof options.edges[prop] != "object") {
+            this.constants.edges[prop] = options.edges[prop];
+          }
+        }
+      }
+
+      if (options.edges.color !== undefined) {
+        if (util.isString(options.edges.color)) {
+          this.constants.edges.color.color = options.edges.color;
+          this.constants.edges.color.highlight = options.edges.color;
+        }
+        else {
+          if (options.edges.color.color !== undefined)     {this.constants.edges.color.color = options.edges.color.color;}
+          if (options.edges.color.highlight !== undefined) {this.constants.edges.color.highlight = options.edges.color.highlight;}
         }
       }
 
       if (!options.edges.fontColor) {
-        this.constants.edges.fontColor = options.edges.color;
+        if (options.edges.color !== undefined) {
+          if (util.isString(options.edges.color))           {this.constants.edges.fontColor = options.edges.color;}
+          else if (options.edges.color.color !== undefined) {this.constants.edges.fontColor = options.edges.color.color;}
+        }
       }
 
       // Added to support dashed lines
@@ -798,26 +824,24 @@ Graph.prototype._handleDragStart = function() {
     }
 
     // create an array with the selected nodes and their original location and status
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        var object = this.selectionObj[objectId];
-        if (object instanceof Node) {
-          var s = {
-            id: object.id,
-            node: object,
+    for (var objectId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(objectId)) {
+        var object = this.selectionObj.nodes[objectId];
+        var s = {
+          id: object.id,
+          node: object,
 
-            // store original x, y, xFixed and yFixed, make the node temporarily Fixed
-            x: object.x,
-            y: object.y,
-            xFixed: object.xFixed,
-            yFixed: object.yFixed
-          };
+          // store original x, y, xFixed and yFixed, make the node temporarily Fixed
+          x: object.x,
+          y: object.y,
+          xFixed: object.xFixed,
+          yFixed: object.yFixed
+        };
 
-          object.xFixed = true;
-          object.yFixed = true;
+        object.xFixed = true;
+        object.yFixed = true;
 
-          drag.selection.push(s);
-        }
+        drag.selection.push(s);
       }
     }
   }
@@ -991,6 +1015,7 @@ Graph.prototype._zoom = function(scale, pointer) {
   this._setTranslation(tx, ty);
   this.updateClustersDefault();
   this._redraw();
+
 
   return scale;
 };
@@ -1174,7 +1199,13 @@ Graph.prototype.setSize = function(width, height) {
   this.frame.canvas.height = this.frame.canvas.clientHeight;
 
   if (this.manipulationDiv !== undefined) {
-    this.manipulationDiv.style.width = this.frame.canvas.clientWidth;
+    this.manipulationDiv.style.width = this.frame.canvas.clientWidth + "px";
+  }
+  if (this.navigationDivs !== undefined) {
+    if (this.navigationDivs['wrapper'] !== undefined) {
+      this.navigationDivs['wrapper'].style.width = this.frame.canvas.clientWidth + "px";
+      this.navigationDivs['wrapper'].style.height = this.frame.canvas.clientHeight + "px";
+    }
   }
 
   this.emit('resize', {width:this.frame.canvas.width,height:this.frame.canvas.height});
@@ -1239,16 +1270,13 @@ Graph.prototype._addNodes = function(ids) {
     var node = new Node(data, this.images, this.groups, this.constants);
     this.nodes[id] = node; // note: this may replace an existing node
 
-    if ((node.xFixed == false || node.yFixed == false) && this.createNodeOnClick != true) {
+    if ((node.xFixed == false || node.yFixed == false) && (node.x === null || node.y === null)) {
       var radius = 10 * 0.1*ids.length;
       var angle = 2 * Math.PI * Math.random();
       if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
       if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
-
-      // note: no not use node.isMoving() here, as that gives the current
-      // velocity of the node, which is zero after creation of the node.
-      this.moving = true;
     }
+    this.moving = true;
   }
   this._updateNodeIndexList();
   this._updateCalculationNodes();
@@ -1300,6 +1328,7 @@ Graph.prototype._removeNodes = function(ids) {
     delete nodes[id];
   }
   this._updateNodeIndexList();
+  this._updateCalculationNodes();
   this._reconnectEdges();
   this._updateSelection();
   this._updateValueRange(nodes);
@@ -1692,18 +1721,50 @@ Graph.prototype._drawEdges = function(ctx) {
  * Find a stable position for all nodes
  * @private
  */
-Graph.prototype._doStabilize = function() {
+Graph.prototype._stabilize = function() {
+  if (this.constants.freezeForStabilization == true) {
+    this._freezeDefinedNodes();
+  }
+
   // find stable position
   var count = 0;
-  while (this.moving && count < this.constants.maxIterations) {
+  while (this.moving && count < this.constants.stabilizationIterations) {
     this._physicsTick();
     count++;
   }
-
   this.zoomExtent(false,true);
+  if (this.constants.freezeForStabilization == true) {
+    this._restoreFrozenNodes();
+  }
+  this.emit("stabilized",{iterations:count});
 };
 
 
+Graph.prototype._freezeDefinedNodes = function() {
+  var nodes = this.nodes;
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      if (nodes[id].x != null && nodes[id].y != null) {
+        nodes[id].fixedData.x = nodes[id].xFixed;
+        nodes[id].fixedData.y = nodes[id].yFixed;
+        nodes[id].xFixed = true;
+        nodes[id].yFixed = true;
+      }
+    }
+  }
+};
+
+Graph.prototype._restoreFrozenNodes = function() {
+  var nodes = this.nodes;
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      if (nodes[id].fixedData.x != null) {
+        nodes[id].xFixed = nodes[id].fixedData.x;
+        nodes[id].yFixed = nodes[id].fixedData.y;
+      }
+    }
+  }
+};
 
 
 /**
@@ -1730,14 +1791,16 @@ Graph.prototype._isMoving = function(vmin) {
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = 0.65;
+  var interval = this.physicsDiscreteStepsize;
   var nodes = this.nodes;
   var nodeId;
+  var nodesPresent = false;
 
   if (this.constants.maxVelocity > 0) {
     for (nodeId in nodes) {
       if (nodes.hasOwnProperty(nodeId)) {
         nodes[nodeId].discreteStepLimited(interval, this.constants.maxVelocity);
+        nodesPresent = true;
       }
     }
   }
@@ -1745,15 +1808,19 @@ Graph.prototype._discreteStepNodes = function() {
     for (nodeId in nodes) {
       if (nodes.hasOwnProperty(nodeId)) {
         nodes[nodeId].discreteStep(interval);
+        nodesPresent = true;
       }
     }
   }
-  var vminCorrected = this.constants.minVelocity / Math.max(this.scale,0.05);
-  if (vminCorrected > 0.5*this.constants.maxVelocity) {
-    this.moving = true;
-  }
-  else {
-    this.moving = this._isMoving(vminCorrected);
+
+  if (nodesPresent == true) {
+    var vminCorrected = this.constants.minVelocity / Math.max(this.scale,0.05);
+    if (vminCorrected > 0.5*this.constants.maxVelocity) {
+      this.moving = true;
+    }
+    else {
+      this.moving = this._isMoving(vminCorrected);
+    }
   }
 };
 
@@ -1762,10 +1829,10 @@ Graph.prototype._physicsTick = function() {
   if (!this.freezeSimulation) {
     if (this.moving) {
       this._doInAllActiveSectors("_initializeForceCalculation");
+      this._doInAllActiveSectors("_discreteStepNodes");
       if (this.constants.smoothCurves) {
         this._doInSupportSector("_discreteStepNodes");
       }
-      this._doInAllActiveSectors("_discreteStepNodes");
       this._findCenter(this._getRange())
     }
   }
@@ -1792,7 +1859,7 @@ Graph.prototype._animationStep = function() {
   var maxSteps = 1;
   this._physicsTick();
   var timeRequired = Date.now() - calculationTime;
-  while (timeRequired < (this.renderTimestep - this.renderTime) && maxSteps < this.maxRenderSteps) {
+  while (timeRequired < (this.renderTimestep - this.renderTime) && maxSteps < this.maxPhysicsTicksPerRender) {
     this._physicsTick();
     timeRequired = Date.now() - calculationTime;
     maxSteps++;
@@ -1899,6 +1966,7 @@ Graph.prototype._createBezierNodes = function() {
                   {id:nodeId,
                     mass:1,
                     shape:'circle',
+                    image:"",
                     internalMultiplier:1
                   },{},{},this.constants);
           edge.via = this.sectors['support']['nodes'][nodeId];
@@ -1919,6 +1987,23 @@ Graph.prototype._initializeMixinLoaders = function () {
   }
 };
 
+/**
+ * Load the XY positions of the nodes into the dataset.
+ */
+Graph.prototype.storePosition = function() {
+  var dataArray = [];
+  for (var nodeId in this.nodes) {
+    if (this.nodes.hasOwnProperty(nodeId)) {
+      var node = this.nodes[nodeId];
+      var allowedToMoveX = !this.nodes.xFixed;
+      var allowedToMoveY = !this.nodes.yFixed;
+      if (this.nodesData.data[nodeId].x != Math.round(node.x) || this.nodesData.data[nodeId].y != Math.round(node.y)) {
+        dataArray.push({id:nodeId,x:Math.round(node.x),y:Math.round(node.y),allowedToMoveX:allowedToMoveX,allowedToMoveY:allowedToMoveY});
+      }
+    }
+  }
+  this.nodesData.update(dataArray);
+};
 
 
 

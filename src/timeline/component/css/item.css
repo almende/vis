@@ -66,6 +66,7 @@
   border-width: 1px;
   border-radius: 2px;
   -moz-border-radius: 2px;  /* For Firefox 3.6 and older */
+  -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
 

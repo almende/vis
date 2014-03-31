@@ -826,3 +826,17 @@ util.isValidHex = function isValidHex(hex) {
   var isOk  = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
   return isOk;
 }
+
+util.copyObject = function copyObject(objectFrom,objectTo) {
+  for (var i in objectFrom) {
+    if (objectFrom.hasOwnProperty(i)) {
+      if (typeof objectFrom[i] == "object") {
+        objectTo[i] = {};
+        util.copyObject(objectFrom[i],objectTo[i]);
+      }
+      else {
+        objectTo[i] = objectFrom[i];
+      }
+    }
+  }
+}

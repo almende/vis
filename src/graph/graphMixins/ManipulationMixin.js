@@ -62,7 +62,9 @@ var manipulationMixin = {
    */
   _createManipulatorBar : function() {
     // remove bound functions
-    this.off('select', this.boundFunction);
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
 
     // restore overloaded functions
     this._restoreOverloadedFunctions();
@@ -137,7 +139,9 @@ var manipulationMixin = {
   _createAddNodeToolbar : function() {
     // clear the toolbar
     this._clearManipulatorBar();
-    this.off('select', this.boundFunction);
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
 
     // create the toolbar contents
     this.manipulationDiv.innerHTML = "" +
@@ -168,7 +172,9 @@ var manipulationMixin = {
     this._unselectAll(true);
     this.freezeSimulation = true;
 
-    this.off('select', this.boundFunction);
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
 
     this._unselectAll();
     this.forceAppendSelection = false;
@@ -288,14 +294,12 @@ var manipulationMixin = {
   _addNode : function() {
     if (this._selectionIsEmpty() && this.editMode == true) {
       var positionObject = this._pointerToPositionObject(this.pointerPosition);
-      var defaultData = {id:util.randomUUID(),x:positionObject.left,y:positionObject.top,label:"new",allowedToMove:true};
+      var defaultData = {id:util.randomUUID(),x:positionObject.left,y:positionObject.top,label:"new",allowedToMoveX:true,allowedToMoveY:true};
       if (this.triggerFunctions.add) {
         if (this.triggerFunctions.add.length == 2) {
           var me = this;
           this.triggerFunctions.add(defaultData, function(finalizedData) {
-            me.createNodeOnClick = true;
             me.nodesData.add(finalizedData);
-            me.createNodeOnClick = false;
             me._createManipulatorBar();
             me.moving = true;
             me.start();
@@ -309,9 +313,7 @@ var manipulationMixin = {
         }
       }
       else {
-        this.createNodeOnClick = true;
         this.nodesData.add(defaultData);
-        this.createNodeOnClick = false;
         this._createManipulatorBar();
         this.moving = true;
         this.start();
