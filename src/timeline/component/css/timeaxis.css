@@ -1,5 +1,5 @@
 .vis.timeline .axis {
-  position: relative;
+  position: absolute;
 }
 
 .vis.timeline .axis .text {

@@ -43,7 +43,7 @@ ItemBox.prototype.isVisible = function isVisible (range) {
   var interval = (range.end - range.start) / 4;
   interval = 0; // TODO: remove
   return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
-}
+};
 
 /**
  * Repaint the item

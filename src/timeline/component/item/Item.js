@@ -66,16 +66,6 @@ Item.prototype.repaint = function repaint() {
 };
 
 /**
- * Reflow the item
- * @return {Boolean} resized
- */
-// TODO: cleanup redundant function
-Item.prototype.reflow = function reflow() {
-  // should be implemented by the item
-  return false;
-};
-
-/**
  * Reposition the Item horizontally
  */
 Item.prototype.repositionX = function repositionX() {

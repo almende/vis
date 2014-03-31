@@ -176,7 +176,8 @@ Controller.prototype.reflow = function reflow() {
   this.emit('reflow');
 
   // immediately repaint when needed
-  if (resized) {
+  //if (resized) {
+  if (true) { // TODO: fix this loop
     this.repaint();
   }
   // TODO: limit the number of nested reflows/repaints, prevent loop

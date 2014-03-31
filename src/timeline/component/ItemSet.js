@@ -424,15 +424,6 @@ ItemSet.prototype.getAxis = function getAxis() {
 };
 
 /**
- * Reflow the component
- * @return {Boolean} resized
- */
-ItemSet.prototype.reflow = function reflow () {
-  // TODO: remove this function
-  return true;
-};
-
-/**
  * Hide this component from the DOM
  */
 ItemSet.prototype.hide = function hide() {

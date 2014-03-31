@@ -99,31 +99,20 @@ Group.prototype.getSelection = function getSelection() {
  * @return {Boolean} changed
  */
 Group.prototype.repaint = function repaint() {
-  return false;
-};
+  var update = util.updateProperty;
 
-/**
- * Reflow the item
- * @return {Boolean} resized
- */
-Group.prototype.reflow = function reflow() {
-  var changed = 0,
-      update = util.updateProperty;
-
-  changed += update(this, 'top',    this.itemset ? this.itemset.top : 0);
-  changed += update(this, 'height', this.itemset ? this.itemset.height : 0);
+  this.top = this.itemset ? this.itemset.top : 0;
+  this.height = this.itemset ? this.itemset.height : 0;
 
   // TODO: reckon with the height of the group label
 
   if (this.label) {
     var inner = this.label.firstChild;
-    changed += update(this.props.label, 'width', inner.clientWidth);
-    changed += update(this.props.label, 'height', inner.clientHeight);
+    this.props.label.width = inner.clientWidth;
+    this.props.label.height = inner.clientHeight;
   }
   else {
-    changed += update(this.props.label, 'width', 0);
-    changed += update(this.props.label, 'height', 0);
+    this.props.label.width = 0;
+    this.props.label.height = 0;
   }
-
-  return (changed > 0);
 };
