@@ -303,6 +303,9 @@ Graph.prototype._getRange = function() {
       if (maxY < (node.y)) {maxY = node.y;}
     }
   }
+  if (minX == 1e9 && maxX == -1e9 && minY == 1e9 && maxY == -1e9) {
+    minY = 0, maxY = 0, minX = 0, maxX = 0;
+  }
   return {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
 };
 
@@ -1012,6 +1015,7 @@ Graph.prototype._zoom = function(scale, pointer) {
   this._setTranslation(tx, ty);
   this.updateClustersDefault();
   this._redraw();
+
 
   return scale;
 };
@@ -1790,11 +1794,13 @@ Graph.prototype._discreteStepNodes = function() {
   var interval = this.physicsDiscreteStepsize;
   var nodes = this.nodes;
   var nodeId;
+  var nodesPresent = false;
 
   if (this.constants.maxVelocity > 0) {
     for (nodeId in nodes) {
       if (nodes.hasOwnProperty(nodeId)) {
         nodes[nodeId].discreteStepLimited(interval, this.constants.maxVelocity);
+        nodesPresent = true;
       }
     }
   }
@@ -1802,15 +1808,19 @@ Graph.prototype._discreteStepNodes = function() {
     for (nodeId in nodes) {
       if (nodes.hasOwnProperty(nodeId)) {
         nodes[nodeId].discreteStep(interval);
+        nodesPresent = true;
       }
     }
   }
-  var vminCorrected = this.constants.minVelocity / Math.max(this.scale,0.05);
-  if (vminCorrected > 0.5*this.constants.maxVelocity) {
-    this.moving = true;
-  }
-  else {
-    this.moving = this._isMoving(vminCorrected);
+
+  if (nodesPresent == true) {
+    var vminCorrected = this.constants.minVelocity / Math.max(this.scale,0.05);
+    if (vminCorrected > 0.5*this.constants.maxVelocity) {
+      this.moving = true;
+    }
+    else {
+      this.moving = this._isMoving(vminCorrected);
+    }
   }
 };
 
