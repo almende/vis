@@ -93,11 +93,9 @@ Component.prototype.getFrame = function getFrame() {
 
 /**
  * Repaint the component
- * @return {Boolean} changed
  */
 Component.prototype.repaint = function repaint() {
   // should be implemented by the component
-  return false;
 };
 
 /**

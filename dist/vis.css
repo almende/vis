@@ -34,8 +34,8 @@
   margin: 0;
 
   border-right: 1px solid #bfbfbf;
-  box-sizing: border-box;
   -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 .vis.timeline .labels .label-set {
@@ -102,6 +102,9 @@
   background-color: #D5DDF6;
   display: inline-block;
   padding: 5px;
+
+  -webkit-transition: top .4s ease-in-out, bottom .4s ease-in-out, height .4s ease-in-out;
+  transition:         top .4s ease-in-out, bottom .4s ease-in-out, height .4s ease-in-out;
 }
 
 .vis.timeline .item.selected {
@@ -118,7 +121,8 @@
   background-color: #FFF785;
   z-index: 999;
 }
-.vis.timeline .item.point.selected .dot {
+.vis.timeline .item.point.selected .dot,
+.vis.timeline .item.dot.selected {
   border-color: #FFC200;
 }
 
@@ -158,6 +162,7 @@
   border-width: 1px;
   border-radius: 2px;
   -moz-border-radius: 2px;  /* For Firefox 3.6 and older */
+  -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
 
@@ -220,7 +225,7 @@
 }
 
 .vis.timeline .axis {
-  position: relative;
+  position: absolute;
 }
 
 .vis.timeline .axis .text {

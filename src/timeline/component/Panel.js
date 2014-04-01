@@ -44,69 +44,52 @@ Panel.prototype.getContainer = function () {
 
 /**
  * Repaint the component
- * @return {Boolean} changed
  */
 Panel.prototype.repaint = function () {
-  var changed = 0,
-      update = util.updateProperty,
-      asSize = util.option.asSize,
+  var asSize = util.option.asSize,
       options = this.options,
       frame = this.frame;
+
+  // create frame
   if (!frame) {
     frame = document.createElement('div');
-    frame.className = 'vpanel';
 
-    var className = options.className;
-    if (className) {
-      if (typeof className == 'function') {
-        util.addClassName(frame, String(className()));
-      }
-      else {
-        util.addClassName(frame, String(className));
-      }
-    }
+    if (!this.parent) throw new Error('Cannot repaint panel: no parent attached');
+
+    var parentContainer = this.parent.getContainer();
+    if (!parentContainer) throw new Error('Cannot repaint panel: parent has no container element');
+
+    parentContainer.appendChild(frame);
 
     this.frame = frame;
-    changed += 1;
-  }
-  if (!frame.parentNode) {
-    if (!this.parent) {
-      throw new Error('Cannot repaint panel: no parent attached');
-    }
-    var parentContainer = this.parent.getContainer();
-    if (!parentContainer) {
-      throw new Error('Cannot repaint panel: parent has no container element');
-    }
-    parentContainer.appendChild(frame);
-    changed += 1;
   }
 
-  changed += update(frame.style, 'top',    asSize(options.top, '0px'));
-  changed += update(frame.style, 'left',   asSize(options.left, '0px'));
-  changed += update(frame.style, 'width',  asSize(options.width, '100%'));
-  changed += update(frame.style, 'height', asSize(options.height, '100%'));
+  // update className
+  frame.className = 'vpanel' + (options.className ? (' ' + asSize(options.className)) : '');
 
-  return (changed > 0);
+  // update class name
+  var className = 'vis timeline rootpanel ' + options.orientation + (options.editable ? ' editable' : '');
+  if (options.className) className += ' ' + util.option.asString(className);
+  frame.className = className;
+
+  // update frame size
+  this._updateSize();
 };
 
 /**
- * Reflow the component
- * @return {Boolean} resized
+ * Apply the size from options to the panel, and recalculate it's actual size.
+ * @private
  */
-Panel.prototype.reflow = function () {
-  var changed = 0,
-      update = util.updateProperty,
-      frame = this.frame;
+Panel.prototype._updateSize = function () {
+  // apply size
+  this.frame.style.top    = util.option.asSize(this.options.top, '0px');
+  this.frame.style.left   = util.option.asSize(this.options.left, '0px');
+  this.frame.style.width  = util.option.asSize(this.options.width, '100%');
+  this.frame.style.height = util.option.asSize(this.options.height, '100%');
 
-  if (frame) {
-    changed += update(this, 'top', frame.offsetTop);
-    changed += update(this, 'left', frame.offsetLeft);
-    changed += update(this, 'width', frame.offsetWidth);
-    changed += update(this, 'height', frame.offsetHeight);
-  }
-  else {
-    changed += 1;
-  }
-
-  return (changed > 0);
+  // get actual size
+  this.top    = this.frame.offsetTop;
+  this.left   = this.frame.offsetLeft;
+  this.width  = this.frame.offsetWidth;
+  this.height = this.frame.offsetHeight;
 };

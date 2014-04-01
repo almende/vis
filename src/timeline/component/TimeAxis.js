@@ -87,7 +87,6 @@ TimeAxis.prototype.toScreen = function(time) {
 
 /**
  * Repaint the component
- * @return {Boolean} changed
  */
 TimeAxis.prototype.repaint = function () {
   var asSize = util.option.asSize,

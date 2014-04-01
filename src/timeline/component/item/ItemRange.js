@@ -40,7 +40,7 @@ ItemRange.prototype.baseClassName = 'item range';
 ItemRange.prototype.isVisible = function isVisible (range) {
   // determine visibility
   return (this.data.start < range.end) && (this.data.end > range.start);
-}
+};
 
 /**
  * Repaint the item

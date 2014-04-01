@@ -51,69 +51,32 @@ RootPanel.prototype.setOptions = Component.prototype.setOptions;
 
 /**
  * Repaint the component
- * @return {Boolean} changed
  */
 RootPanel.prototype.repaint = function () {
-  var changed = 0,
-      update = util.updateProperty,
-      asSize = util.option.asSize,
+  var asSize = util.option.asSize,
       options = this.options,
       frame = this.frame;
 
+  // create frame
   if (!frame) {
     frame = document.createElement('div');
-
     this.frame = frame;
 
-    this._registerListeners();
-
-    changed += 1;
-  }
-  if (!frame.parentNode) {
-    if (!this.container) {
-      throw new Error('Cannot repaint root panel: no container attached');
-    }
+    if (!this.container) throw new Error('Cannot repaint root panel: no container attached');
     this.container.appendChild(frame);
-    changed += 1;
+
+    this._registerListeners();
   }
 
-  frame.className = 'vis timeline rootpanel ' + options.orientation +
-      (options.editable ? ' editable' : '');
-  var className = options.className;
-  if (className) {
-    util.addClassName(frame, util.option.asString(className));
-  }
+  // update class name
+  var className = 'vis timeline rootpanel ' + options.orientation + (options.editable ? ' editable' : '');
+  if (options.className) className += ' ' + util.option.asString(className);
+  frame.className = className;
 
-  changed += update(frame.style, 'top',    asSize(options.top, '0px'));
-  changed += update(frame.style, 'left',   asSize(options.left, '0px'));
-  changed += update(frame.style, 'width',  asSize(options.width, '100%'));
-  changed += update(frame.style, 'height', asSize(options.height, '100%'));
+  // update frame size
+  this._updateSize();
 
   this._updateWatch();
-
-  return (changed > 0);
-};
-
-/**
- * Reflow the component
- * @return {Boolean} resized
- */
-RootPanel.prototype.reflow = function () {
-  var changed = 0,
-      update = util.updateProperty,
-      frame = this.frame;
-
-  if (frame) {
-    changed += update(this, 'top', frame.offsetTop);
-    changed += update(this, 'left', frame.offsetLeft);
-    changed += update(this, 'width', frame.offsetWidth);
-    changed += update(this, 'height', frame.offsetHeight);
-  }
-  else {
-    changed += 1;
-  }
-
-  return (changed > 0);
 };
 
 /**
@@ -154,7 +117,7 @@ RootPanel.prototype._watch = function () {
           (me.frame.clientHeight != me.lastHeight)) {
         me.lastWidth = me.frame.clientWidth;
         me.lastHeight = me.frame.clientHeight;
-        me.requestReflow();
+        me.requestRepaint();
       }
     }
   };
