@@ -53,24 +53,17 @@ Panel.prototype.repaint = function () {
   // create frame
   if (!frame) {
     frame = document.createElement('div');
+    this.frame = frame;
 
     if (!this.parent) throw new Error('Cannot repaint panel: no parent attached');
 
     var parentContainer = this.parent.getContainer();
     if (!parentContainer) throw new Error('Cannot repaint panel: parent has no container element');
-
     parentContainer.appendChild(frame);
-
-    this.frame = frame;
   }
 
   // update className
   frame.className = 'vpanel' + (options.className ? (' ' + asSize(options.className)) : '');
-
-  // update class name
-  var className = 'vis timeline rootpanel ' + options.orientation + (options.editable ? ' editable' : '');
-  if (options.className) className += ' ' + util.option.asString(className);
-  frame.className = className;
 
   // update frame size
   this._updateSize();

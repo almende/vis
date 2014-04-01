@@ -346,17 +346,11 @@ ItemSet.prototype.repaint = function repaint() {
   // recalculate the height of the itemset
   var marginAxis = (options.margin && 'axis' in options.margin) ? options.margin.axis : this.itemOptions.margin.axis,
       marginItem = (options.margin && 'item' in options.margin) ? options.margin.item : this.itemOptions.margin.item,
-      maxHeight = asNumber(options.maxHeight),
       fixedHeight = (asSize(options.height) != null),
       height;
 
-  // recalculate the frames size and position
-  // TODO: request frame's actual top, left, width only when size is changed (mark as dirty)
-  if (fixedHeight) {
-    height = frame.offsetHeight;
-  }
-  else {
-    // height is not specified, determine the height from the height and positioned items
+  // height is not specified, determine the height from the height and positioned items
+  if (!fixedHeight) {
     var visibleItems = this.visibleItems;
     if (visibleItems.length) {
       var min = visibleItems[0].top;
@@ -371,30 +365,31 @@ ItemSet.prototype.repaint = function repaint() {
       height = marginAxis + marginItem;
     }
   }
+
+  // FIXME: right now maxHeight is only usable when fixedHeight == false
+  var maxHeight = asNumber(options.maxHeight);
   if (maxHeight != null) {
     height = Math.min(height, maxHeight);
   }
-  this.top = frame.offsetTop;
-  this.left = frame.offsetLeft;
-  this.width = frame.offsetWidth;
-  this.height = height;
 
   // reposition frame
-  frame.style.left    = asSize(options.left, '0px');
+  frame.style.left    = asSize(options.left, '0');
   frame.style.top     = asSize(options.top, '');
   frame.style.bottom  = asSize(options.bottom, '');
   frame.style.width   = asSize(options.width, '100%');
-  frame.style.height  = asSize(options.height, this.height + 'px');
+  frame.style.height  = fixedHeight ? asSize(options.height) : height + 'px';
+
+  // calculate actual size and position
+  this.top = frame.offsetTop;
+  this.left = frame.offsetLeft;
+  this.width = frame.offsetWidth;
+  this.height = fixedHeight ? frame.offsetHeight : height;
 
   // reposition axis
-  this.dom.axis.style.left = asSize(options.left, '0px');
-  this.dom.axis.style.width = asSize(options.width, '100%');
-  if (orientation == 'bottom') {
-    this.dom.axis.style.top = (this.top + this.height) + 'px';
-  }
-  else { // orientation == 'top'
-    this.dom.axis.style.top = this.top + 'px';
-  }
+  this.dom.axis.style.left   = asSize(options.left, '0');
+  this.dom.axis.style.width  = asSize(options.width, '100%');
+  this.dom.axis.style.top    = (orientation == 'top' ? this.top : this.top + this.height) + 'px';
+  this.dom.axis.style.bottom = asSize(options.bottom, '');
 
   return false;
 };

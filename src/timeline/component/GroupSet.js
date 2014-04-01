@@ -192,44 +192,34 @@ GroupSet.prototype.getSelection = function getSelection() {
 
 /**
  * Repaint the component
- * @return {Boolean} changed
  */
 GroupSet.prototype.repaint = function repaint() {
-  var changed = 0,
-      i, id, group, label,
+  var i, id, group, label,
       update = util.updateProperty,
       asSize = util.option.asSize,
+      asString = util.option.asString,
       asElement = util.option.asElement,
       options = this.options,
+      orientation = this.getOption('orientation'),
       frame = this.dom.frame,
       labels = this.dom.labels,
       labelSet = this.dom.labelSet;
 
   // create frame
-  if (!this.parent) {
-    throw new Error('Cannot repaint groupset: no parent attached');
-  }
-  var parentContainer = this.parent.getContainer();
-  if (!parentContainer) {
-    throw new Error('Cannot repaint groupset: parent has no container element');
-  }
   if (!frame) {
     frame = document.createElement('div');
     frame.className = 'groupset';
     frame['timeline-groupset'] = this;
     this.dom.frame = frame;
 
-    var className = options.className;
-    if (className) {
-      util.addClassName(frame, util.option.asString(className));
-    }
-
-    changed += 1;
-  }
-  if (!frame.parentNode) {
+    if (!this.parent) throw new Error('Cannot repaint groupset: no parent attached');
+    var parentContainer = this.parent.getContainer();
+    if (!parentContainer) throw new Error('Cannot repaint groupset: parent has no container element');
     parentContainer.appendChild(frame);
-    changed += 1;
   }
+
+  // update classname
+  frame.className = 'groupset' + (options.className ? (' ' + asString(options.className)) : '');
 
   // create labels
   var labelContainer = asElement(options.labelContainer);
@@ -253,16 +243,6 @@ GroupSet.prototype.repaint = function repaint() {
     }
     labelContainer.appendChild(labels);
   }
-
-  // reposition frame
-  changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
-  changed += update(frame.style, 'top',    asSize(options.top, '0px'));
-  changed += update(frame.style, 'left',   asSize(options.left, '0px'));
-  changed += update(frame.style, 'width',  asSize(options.width, '100%'));
-
-  // reposition labels
-  changed += update(labelSet.style, 'top',    asSize(options.top, '0px'));
-  changed += update(labelSet.style, 'height', asSize(options.height, this.height + 'px'));
 
   var me = this,
       queue = this.queue,
@@ -320,8 +300,6 @@ GroupSet.prototype.repaint = function repaint() {
     // the groupset depends on each of the groups
     //this.depends = this.groups; // TODO: gives a circular reference through the parent
 
-    // TODO: apply dependencies of the groupset
-
     // update the top positions of the groups in the correct order
     var orderedGroups = this.groupsData.getIds({
       order: this.options.groupOrder
@@ -350,13 +328,12 @@ GroupSet.prototype.repaint = function repaint() {
       label = this._createLabel(id);
       labelSet.appendChild(label);
     }
-
-    changed++;
   }
 
-  // reposition the labels
+  // reposition the labels and calculate the maximum label width
   // TODO: labels are not displayed correctly when orientation=='top'
   // TODO: width of labelPanel is not immediately updated on a change in groups
+  var maxWidth = 0;
   for (id in groups) {
     if (groups.hasOwnProperty(id)) {
       group = groups[id];
@@ -364,11 +341,50 @@ GroupSet.prototype.repaint = function repaint() {
       if (label) {
         label.style.top = group.top + 'px';
         label.style.height = group.height + 'px';
+
+        var width = label.firstChild && label.firstChild.clientWidth || 0;
+        maxWidth = Math.max(maxWidth, width);
+      }
+    }
+  }
+  this.props.labels.width = maxWidth; // TODO: force redraw when width is changed?
+
+  // recalculate the height of the groupset
+  var fixedHeight = (asSize(options.height) != null);
+  var height;
+  if (!fixedHeight) {
+    // height is not specified, calculate the sum of the height of all groups
+    height = 0;
+
+    for (id in this.groups) {
+      if (this.groups.hasOwnProperty(id)) {
+        group = this.groups[id];
+        height += group.height;
       }
     }
   }
 
-  return (changed > 0);
+  // FIXME: right now maxHeight is only usable when fixedHeight == false
+  var maxHeight = util.option.asNumber(options.maxHeight);
+  if (maxHeight != null) {
+    height = Math.min(height, maxHeight);
+  }
+
+  // reposition frame
+  frame.style.height = fixedHeight ? asSize(options.height) : this.height + 'px';
+  frame.style.top = asSize(options.top, '0');
+  frame.style.left = asSize(options.left, '0');
+  frame.style.width = asSize(options.width, '100%');
+
+  // calculate actual size and position
+  this.top = frame.offsetTop;
+  this.left = frame.offsetLeft;
+  this.width = frame.offsetWidth;
+  this.height = fixedHeight ? frame.offsetHeight : height;
+
+  // reposition labels
+  labelSet.style.top = asSize(options.top, '0');
+  labelSet.style.height = fixedHeight ? asSize(options.height) : this.height + 'px';
 };
 
 /**
@@ -417,61 +433,6 @@ GroupSet.prototype.getContainer = function getContainer() {
  */
 GroupSet.prototype.getLabelsWidth = function getContainer() {
   return this.props.labels.width;
-};
-
-/**
- * Reflow the component
- * @return {Boolean} resized
- */
-GroupSet.prototype.reflow = function reflow() {
-  var changed = 0,
-      id, group,
-      options = this.options,
-      update = util.updateProperty,
-      asNumber = util.option.asNumber,
-      asSize = util.option.asSize,
-      frame = this.dom.frame;
-
-  if (frame) {
-    var maxHeight = asNumber(options.maxHeight);
-    var fixedHeight = (asSize(options.height) != null);
-    var height;
-    if (fixedHeight) {
-      height = frame.offsetHeight;
-    }
-    else {
-      // height is not specified, calculate the sum of the height of all groups
-      height = 0;
-
-      for (id in this.groups) {
-        if (this.groups.hasOwnProperty(id)) {
-          group = this.groups[id];
-          height += group.height;
-        }
-      }
-    }
-    if (maxHeight != null) {
-      height = Math.min(height, maxHeight);
-    }
-    changed += update(this, 'height', height);
-
-    changed += update(this, 'top', frame.offsetTop);
-    changed += update(this, 'left', frame.offsetLeft);
-    changed += update(this, 'width', frame.offsetWidth);
-  }
-
-  // calculate the maximum width of the labels
-  var width = 0;
-  for (id in this.groups) {
-    if (this.groups.hasOwnProperty(id)) {
-      group = this.groups[id];
-      var labelWidth = group.props && group.props.label && group.props.label.width || 0;
-      width = Math.max(width, labelWidth);
-    }
-  }
-  changed += update(this.props.labels, 'width', width);
-
-  return (changed > 0);
 };
 
 /**

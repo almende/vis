@@ -31,6 +31,9 @@
 
   border-top: none;
   border-bottom: 1px solid #bfbfbf;
+
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 .vis.timeline .labels .label-set .vlabel {
@@ -39,6 +42,9 @@
   top: 0;
   width: 100%;
   color: #4d4d4d;
+
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 .vis.timeline.top .labels .label-set .vlabel,

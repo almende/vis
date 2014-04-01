@@ -95,18 +95,17 @@ Group.prototype.getSelection = function getSelection() {
 };
 
 /**
- * Repaint the item
+ * Repaint the group
  * @return {Boolean} changed
  */
 Group.prototype.repaint = function repaint() {
-  var update = util.updateProperty;
-
-  this.top = this.itemset ? this.itemset.top : 0;
+  this.top    = this.itemset ? this.itemset.top : 0;
   this.height = this.itemset ? this.itemset.height : 0;
 
   // TODO: reckon with the height of the group label
 
   if (this.label) {
+    // TODO: only update the labels width/height when the label is changed
     var inner = this.label.firstChild;
     this.props.label.width = inner.clientWidth;
     this.props.label.height = inner.clientHeight;

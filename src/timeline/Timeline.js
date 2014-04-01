@@ -333,12 +333,10 @@ Timeline.prototype.setGroups = function(groups) {
     var options = Object.create(this.options);
     util.extend(options, {
       top: function () {
-        if (me.options.orientation == 'top') {
-          return me.timeaxis.height;
-        }
-        else {
-          return me.itemPanel.height - me.timeaxis.height - me.content.height;
-        }
+        return (me.options.orientation == 'top') ? (me.timeaxis.height + 'px') : '';
+      },
+      bottom: function () {
+        return (me.options.orientation == 'top') ? '' : (me.timeaxis.height + 'px');
       },
       left: null,
       width: '100%',

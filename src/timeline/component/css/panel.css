@@ -11,4 +11,7 @@
 .vis.timeline .vpanel {
   position: absolute;
   overflow: hidden;
+
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
