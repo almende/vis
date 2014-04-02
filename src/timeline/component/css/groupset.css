@@ -16,8 +16,8 @@
   margin: 0;
 
   border-right: 1px solid #bfbfbf;
-  box-sizing: border-box;
   -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 .vis.timeline .labels .label-set {
