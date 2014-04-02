@@ -63,11 +63,12 @@
 
   var container = document.getElementById('visualization');
   var options = {
+    editable: true,
     //orientation: 'top',
     start: now.clone().add('days', -7),
     end: now.clone().add('days', 7),
     //maxHeight: 200,
-    height: 200,
+    //height: 200,
     showCurrentTime: true,
     showCustomTime: true,
     //start: moment('2013-01-01'),

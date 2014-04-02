@@ -1,18 +1,15 @@
 /**
  * An GroupSet holds a set of groups
- * @param {Component} parent
- * @param {Component[]} [depends]   Components on which this components depends
- *                                  (except for the parent)
+ * @param {Panel} labelPanel
  * @param {Object} [options]        See GroupSet.setOptions for the available
  *                                  options.
  * @constructor GroupSet
  * @extends Panel
  */
-function GroupSet(parent, depends, options) {
+function GroupSet(labelPanel, options) {
   this.id = util.randomUUID();
-  this.parent = parent;
-  this.depends = depends;
 
+  this.labelPanel = labelPanel;
   this.options = options || {};
 
   this.range = null;      // Range or Object {start: number, end: number}
@@ -57,8 +54,18 @@ GroupSet.prototype = new Panel();
  */
 GroupSet.prototype.setOptions = Component.prototype.setOptions;
 
+/**
+ * Set range (start and end).
+ * @param {Range | Object} range  A Range or an object containing start and end.
+ */
 GroupSet.prototype.setRange = function (range) {
-  // TODO: implement setRange
+  this.range = range;
+
+  for (var id in this.groups) {
+    if (this.groups.hasOwnProperty(id)) {
+      this.groups[id].setRange(range);
+    }
+  }
 };
 
 /**
@@ -212,15 +219,16 @@ GroupSet.prototype.repaint = function repaint() {
     frame['timeline-groupset'] = this;
     this.dom.frame = frame;
 
-    if (!this.parent) throw new Error('Cannot repaint groupset: no parent attached');
+    if (!this.parent) throw new Error('Cannot repaint GroupSet: no parent attached');
     var parentContainer = this.parent.getContainer();
-    if (!parentContainer) throw new Error('Cannot repaint groupset: parent has no container element');
+    if (!parentContainer) throw new Error('Cannot repaint GroupSet: parent has no container element');
     parentContainer.appendChild(frame);
   }
 
   // update classname
   frame.className = 'groupset' + (options.className ? (' ' + asString(options.className)) : '');
 
+  /* TODO: labels
   // create labels
   var labelContainer = asElement(options.labelContainer);
   if (!labelContainer) {
@@ -243,6 +251,7 @@ GroupSet.prototype.repaint = function repaint() {
     }
     labelContainer.appendChild(labels);
   }
+  */
 
   var me = this,
       queue = this.queue,
@@ -266,11 +275,10 @@ GroupSet.prototype.repaint = function repaint() {
               height: null
             });
 
-            group = new Group(me, id, groupOptions);
+            group = new Group(me, me.labelPanel, id, groupOptions);
+            group.setRange(me.range);
             group.setItems(me.itemsData); // attach items data
             groups[id] = group;
-
-            me.controller.add(group);
           }
 
           // TODO: update group data
@@ -283,8 +291,6 @@ GroupSet.prototype.repaint = function repaint() {
           if (group) {
             group.setItems(); // detach items data
             delete groups[id];
-
-            me.controller.remove(group);
           }
 
           // update lists
@@ -308,7 +314,6 @@ GroupSet.prototype.repaint = function repaint() {
         var top = 0;
         if (prevGroup) {
           top = function () {
-            // TODO: top must reckon with options.maxHeight
             return prevGroup.top + prevGroup.height;
           }
         }
@@ -318,6 +323,7 @@ GroupSet.prototype.repaint = function repaint() {
       })(groups[orderedGroups[i]], groups[orderedGroups[i - 1]]);
     }
 
+    /* TODO
     // (re)create the labels
     while (labelSet.firstChild) {
       labelSet.removeChild(labelSet.firstChild);
@@ -326,6 +332,14 @@ GroupSet.prototype.repaint = function repaint() {
       id = orderedGroups[i];
       label = this._createLabel(id);
       labelSet.appendChild(label);
+    }
+    */
+  }
+
+  // repaint all groups
+  for (id in groups) {
+    if (groups.hasOwnProperty(id)) {
+      group = groups[id].repaint();
     }
   }
 
@@ -346,7 +360,7 @@ GroupSet.prototype.repaint = function repaint() {
       }
     }
   }
-  this.props.labels.width = maxWidth; // TODO: force redraw when width is changed?
+  this.props.labels.width = maxWidth;
 
   // recalculate the height of the groupset
   var fixedHeight = (asSize(options.height) != null);
@@ -364,7 +378,7 @@ GroupSet.prototype.repaint = function repaint() {
   }
 
   // reposition frame
-  frame.style.height = fixedHeight ? asSize(options.height) : this.height + 'px';
+  frame.style.height = asSize((options.height != null) ? options.height : height);
   frame.style.top = asSize(options.top, '0');
   frame.style.left = asSize(options.left, '0');
   frame.style.width = asSize(options.width, '100%');
@@ -373,11 +387,13 @@ GroupSet.prototype.repaint = function repaint() {
   this.top = frame.offsetTop;
   this.left = frame.offsetLeft;
   this.width = frame.offsetWidth;
-  this.height = fixedHeight ? frame.offsetHeight : height;
+  this.height = frame.offsetHeight;
 
+  /* TODO
   // reposition labels
   labelSet.style.top = asSize(options.top, '0');
   labelSet.style.height = fixedHeight ? asSize(options.height) : this.height + 'px';
+  */
 };
 
 /**

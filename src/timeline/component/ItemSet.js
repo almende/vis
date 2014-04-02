@@ -350,7 +350,7 @@ ItemSet.prototype.repaint = function repaint() {
   // reposition frame
   frame.style.left    = asSize(options.left, '0');
   frame.style.top     = asSize(options.top, '');
-  frame.style.bottom  = asSize(options.bottom, '');
+  //frame.style.bottom  = asSize(options.bottom, '');
   frame.style.width   = asSize(options.width, '100%');
   frame.style.height  = fixedHeight ? asSize(options.height) : height + 'px';
 
@@ -364,7 +364,8 @@ ItemSet.prototype.repaint = function repaint() {
   this.dom.axis.style.left   = asSize(options.left, '0');
   this.dom.axis.style.width  = asSize(options.width, '100%');
   this.dom.axis.style.top    = (orientation == 'top' ? this.top : this.top + this.height) + 'px';
-  this.dom.axis.style.bottom = asSize(options.bottom, '');
+  //this.dom.axis.style.top    = asSize(options.top, '');
+  //this.dom.axis.style.bottom = asSize(options.bottom, '');
 
   return false;
 };

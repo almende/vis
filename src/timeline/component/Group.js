@@ -1,17 +1,19 @@
 /**
  * @constructor Group
- * @param {GroupSet} parent
+ * @param {Panel} contentPanel
+ * @param {Panel} labelPanel
  * @param {Number | String} groupId
  * @param {Object} [options]  Options to set initial property values
  *                            // TODO: describe available options
  * @extends Component
  */
-function Group (parent, groupId, options) {
+function Group (contentPanel, labelPanel, groupId, options) {
   this.id = util.randomUUID();
-  this.parent = parent;
+  this.contentPanel = contentPanel;
+  this.labelPanel = labelPanel;
 
   this.groupId = groupId;
-  this.itemset = null;    // ItemSet
+  this.itemSet = null;    // ItemSet
   this.options = options || {};
   this.options.top = 0;
 
@@ -39,40 +41,48 @@ Group.prototype.setOptions = Component.prototype.setOptions;
  * @returns {HTMLElement} container
  */
 Group.prototype.getContainer = function () {
-  return this.parent.getContainer();
+  return null;
 };
 
 /**
- * Set item set for the group. The group will create a view on the itemset,
+ * Set item set for the group. The group will create a view on the itemSet,
  * filtered by the groups id.
  * @param {DataSet | DataView} items
  */
 Group.prototype.setItems = function setItems(items) {
-  if (this.itemset) {
+  if (this.itemSet) {
     // remove current item set
-    this.itemset.hide();
-    this.itemset.setItems();
-
-    this.parent.controller.remove(this.itemset);
-    this.itemset = null;
+    this.itemSet.hide();
+    this.itemSet.setItems();
+    this.contentPanel.removeChild(this.itemSet);
+    this.itemSet = null;
   }
 
   if (items) {
     var groupId = this.groupId;
 
-    var itemsetOptions = Object.create(this.options);
-    this.itemset = new ItemSet(this, null, itemsetOptions);
-    this.itemset.setRange(this.parent.range);
+    var itemSetOptions = Object.create(this.options);
+    this.itemSet = new ItemSet(itemSetOptions);
+    if (this.range) this.itemSet.setRange(this.range);
+    this.contentPanel.appendChild(this.itemSet);
 
     this.view = new DataView(items, {
       filter: function (item) {
         return item.group == groupId;
       }
     });
-    this.itemset.setItems(this.view);
-
-    this.parent.controller.add(this.itemset);
+    this.itemSet.setItems(this.view);
   }
+};
+
+/**
+ * Set range (start and end).
+ * @param {Range | Object} range  A Range or an object containing start and end.
+ */
+Group.prototype.setRange = function (range) {
+  this.range = range;
+
+  if (this.itemSet) this.itemSet.setRange(range);
 };
 
 /**
@@ -83,7 +93,7 @@ Group.prototype.setItems = function setItems(items) {
  *                      unselected.
  */
 Group.prototype.setSelection = function setSelection(ids) {
-  if (this.itemset) this.itemset.setSelection(ids);
+  if (this.itemSet) this.itemSet.setSelection(ids);
 };
 
 /**
@@ -91,7 +101,7 @@ Group.prototype.setSelection = function setSelection(ids) {
  * @return {Array} ids  The ids of the selected items
  */
 Group.prototype.getSelection = function getSelection() {
-  return this.itemset ? this.itemset.getSelection() : [];
+  return this.itemSet ? this.itemSet.getSelection() : [];
 };
 
 /**
@@ -99,8 +109,10 @@ Group.prototype.getSelection = function getSelection() {
  * @return {Boolean} changed
  */
 Group.prototype.repaint = function repaint() {
-  this.top    = this.itemset ? this.itemset.top : 0;
-  this.height = this.itemset ? this.itemset.height : 0;
+  this.itemSet.repaint();
+
+  this.top    = this.itemSet ? this.itemSet.top : 0;
+  this.height = this.itemSet ? this.itemSet.height : 0;
 
   // TODO: reckon with the height of the group label
 
