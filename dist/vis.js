@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.7.2-SNAPSHOT
- * @date    2014-03-31
+ * @date    2014-04-02
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -10648,7 +10648,7 @@ Edge.prototype.draw = function(ctx) {
  * @return {boolean}     True if location is located on the edge
  */
 Edge.prototype.isOverlappingWith = function(obj) {
-  if (this.connected == true) {
+  if (this.connected) {
     var distMax = 10;
     var xFrom = this.from.x;
     var yFrom = this.from.y;

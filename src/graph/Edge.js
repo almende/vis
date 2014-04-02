@@ -216,7 +216,7 @@ Edge.prototype.draw = function(ctx) {
  * @return {boolean}     True if location is located on the edge
  */
 Edge.prototype.isOverlappingWith = function(obj) {
-  if (this.connected == true) {
+  if (this.connected) {
     var distMax = 10;
     var xFrom = this.from.x;
     var yFrom = this.from.y;
