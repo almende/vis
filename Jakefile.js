@@ -67,7 +67,6 @@ task('build', {async: true}, function () {
       './src/timeline/TimeStep.js',
       './src/timeline/Stack.js',
       './src/timeline/Range.js',
-      './src/timeline/Controller.js',
       './src/timeline/component/Component.js',
       './src/timeline/component/Panel.js',
       './src/timeline/component/RootPanel.js',

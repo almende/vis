@@ -500,11 +500,6 @@ GroupSet.prototype._toQueue = function _toQueue(ids, action) {
   ids.forEach(function (id) {
     queue[id] = action;
   });
-
-  if (this.controller) {
-    //this.requestReflow();
-    this.requestRepaint();
-  }
 };
 
 /**

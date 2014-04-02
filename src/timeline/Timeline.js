@@ -6,10 +6,14 @@
  * @constructor
  */
 function Timeline (container, items, options) {
+  // validate arguments
+  if (!container) throw new Error('No container element provided');
+
   var me = this;
   var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
   this.options = {
     orientation: 'bottom',
+    direction: 'horizontal', // 'horizontal' or 'vertical'
     autoResize: true,
     editable: false,
     selectable: true,
@@ -29,7 +33,6 @@ function Timeline (container, items, options) {
 
     type: 'box',
     align: 'center',
-    orientation: 'bottom',
     margin: {
       axis: 20,
       item: 10
@@ -50,106 +53,110 @@ function Timeline (container, items, options) {
     }
   };
 
-  // controller
-  this.controller = new Controller();
+  // event bus
+  this.emitter = new Emitter();
 
   // root panel
-  if (!container) {
-    throw new Error('No container element provided');
-  }
   var rootOptions = Object.create(this.options);
   rootOptions.height = function () {
-    // TODO: change to height
     if (me.options.height) {
       // fixed height
       return me.options.height;
     }
     else {
       // auto height
-      return (me.timeaxis.height + me.content.height) + 'px';
+      // return (me.timeaxis.height + me.content.height) + 'px';
+      // TODO: return the sum of the height of the childs
     }
   };
-  this.rootPanel = new RootPanel(container, rootOptions);
-  this.controller.add(this.rootPanel);
+  this.rootPanel = new RootPanel(container, this.emitter, rootOptions);
 
   // single select (or unselect) when tapping an item
-  this.controller.on('tap',  this._onSelectItem.bind(this));
+  this.emitter.on('tap',  this._onSelectItem.bind(this));
 
   // multi select when holding mouse/touch, or on ctrl+click
-  this.controller.on('hold', this._onMultiSelectItem.bind(this));
+  this.emitter.on('hold', this._onMultiSelectItem.bind(this));
 
   // add item on doubletap
-  this.controller.on('doubletap', this._onAddItem.bind(this));
+  this.emitter.on('doubletap', this._onAddItem.bind(this));
 
-  // item panel
-  var itemOptions = Object.create(this.options);
-  itemOptions.left = function () {
-    return me.labelPanel.width;
-  };
-  itemOptions.width = function () {
-    return me.rootPanel.width - me.labelPanel.width;
-  };
-  itemOptions.top = null;
-  itemOptions.height = null;
-  this.itemPanel = new Panel(this.rootPanel, [], itemOptions);
-  this.controller.add(this.itemPanel);
+  // range
+  // TODO: move range inside rootPanel?
+  var rangeOptions = Object.create(this.options);
+  this.range = new Range(this.rootPanel, this.emitter, rangeOptions);
+  this.range.setRange(
+      now.clone().add('days', -3).valueOf(),
+      now.clone().add('days', 4).valueOf()
+  );
 
   // label panel
   var labelOptions = Object.create(this.options);
-  labelOptions.top = null;
-  labelOptions.left = null;
-  labelOptions.height = null;
+  labelOptions.top = '0';
+  labelOptions.bottom = null;
+  labelOptions.left = '0';
+  labelOptions.right = null;
+  labelOptions.height = '100%';
   labelOptions.width = function () {
+    /* TODO: dynamically determine the width of the label panel
     if (me.content && typeof me.content.getLabelsWidth === 'function') {
       return me.content.getLabelsWidth();
     }
     else {
       return 0;
     }
+    */
+    return 200;
   };
-  this.labelPanel = new Panel(this.rootPanel, [], labelOptions);
-  this.controller.add(this.labelPanel);
+  this.labelPanel = new Panel(labelOptions);
+  this.rootPanel.appendChild(this.labelPanel);
 
-  // range
-  var rangeOptions = Object.create(this.options);
-  this.range = new Range(rangeOptions);
-  this.range.setRange(
-      now.clone().add('days', -3).valueOf(),
-      now.clone().add('days', 4).valueOf()
-  );
+  // main panel (contains time axis and itemsets)
+  var mainOptions = Object.create(this.options);
+  mainOptions.top = '0';
+  mainOptions.bottom = null;
+  mainOptions.left = null;
+  mainOptions.right = '0';
+  mainOptions.height = '100%';
+  mainOptions.width = function () {
+    return me.rootPanel.width - me.labelPanel.width;
+  };
+  this.mainPanel = new Panel(mainOptions);
+  this.rootPanel.appendChild(this.mainPanel);
 
-  this.range.subscribe(this.controller, this.rootPanel, 'move', 'horizontal');
-  this.range.subscribe(this.controller, this.rootPanel, 'zoom', 'horizontal');
-  this.range.on('rangechange', function (properties) {
-    var force = true;
-    me.controller.emit('rangechange', properties);
-    me.controller.emit('request-reflow', force);
-  });
-  this.range.on('rangechanged', function (properties) {
-    var force = true;
-    me.controller.emit('rangechanged', properties);
-    me.controller.emit('request-reflow', force);
-  });
+  // content panel (contains itemset(s))
+  var contentOptions = Object.create(this.options);
+  contentOptions.top = '0';
+  contentOptions.bottom = null;
+  contentOptions.left = '0';
+  contentOptions.right = null;
+  contentOptions.height = function () {
+    return me.mainPanel.height - me.timeAxis.height;
+  };
+  contentOptions.width = null;
+  this.contentPanel = new Panel(contentOptions);
+  this.mainPanel.appendChild(this.contentPanel);
 
-  // time axis
-  var timeaxisOptions = Object.create(rootOptions);
-  timeaxisOptions.range = this.range;
-  timeaxisOptions.left = null;
-  timeaxisOptions.top = null;
-  timeaxisOptions.width = '100%';
-  timeaxisOptions.height = null;
-  this.timeaxis = new TimeAxis(this.itemPanel, [], timeaxisOptions);
-  this.timeaxis.setRange(this.range);
-  this.controller.add(this.timeaxis);
-  this.options.snap = this.timeaxis.snap.bind(this.timeaxis);
+  // panel with time axis
+  var timeAxisOptions = Object.create(rootOptions);
+  timeAxisOptions.range = this.range;
+  timeAxisOptions.left = null;
+  timeAxisOptions.top = null;
+  timeAxisOptions.width = null;
+  timeAxisOptions.height = null;  // height is determined by the
+  this.timeAxis = new TimeAxis(timeAxisOptions);
+  this.timeAxis.setRange(this.range);
+  this.options.snap = this.timeAxis.snap.bind(this.timeAxis);
+  this.mainPanel.appendChild(this.timeAxis);
 
+  /* TODO
   // current time bar
-  this.currenttime = new CurrentTime(this.timeaxis, [], rootOptions);
-  this.controller.add(this.currenttime);
+  this.currenttime = new CurrentTime(rootOptions);
+  this.mainPanel.appendChild(this.currenttime);
 
   // custom time bar
-  this.customtime = new CustomTime(this.timeaxis, [], rootOptions);
-  this.controller.add(this.customtime);
+  this.customtime = new CustomTime(rootOptions);
+  this.mainPanel.appendChild(this.customtime);
+  */
 
   // create groupset
   this.setGroups(null);
@@ -175,7 +182,7 @@ function Timeline (container, items, options) {
  * @param {function} callback
  */
 Timeline.prototype.on = function on (event, callback) {
-  this.controller.on(event, callback);
+  this.emitter.on(event, callback);
 };
 
 /**
@@ -184,7 +191,7 @@ Timeline.prototype.on = function on (event, callback) {
  * @param {function} callback
  */
 Timeline.prototype.off = function off (event, callback) {
-  this.controller.off(event, callback);
+  this.emitter.off(event, callback);
 };
 
 /**
@@ -217,8 +224,8 @@ Timeline.prototype.setOptions = function (options) {
   }).bind(this);
   ['onAdd', 'onUpdate', 'onRemove', 'onMove'].forEach(validateCallback);
 
-  this.controller.reflow();
-  this.controller.repaint();
+  //this.controller.reflow(); // TODO: remove
+  this.rootPanel.repaint();
 };
 
 /**
@@ -272,7 +279,9 @@ Timeline.prototype.setItems = function(items) {
 
   // set items
   this.itemsData = newDataSet;
+  /* TODO
   this.content.setItems(newDataSet);
+  */
 
   if (initialLoad && (this.options.start == undefined || this.options.end == undefined)) {
     // apply the data range as range
@@ -326,7 +335,7 @@ Timeline.prototype.setGroups = function(groups) {
       if (this.content.setGroups) {
         this.content.setGroups(); // disconnect from groups
       }
-      this.controller.remove(this.content);
+      //this.controller.remove(this.content); // TODO: cleanup
     }
 
     // create new content set
@@ -367,6 +376,7 @@ Timeline.prototype.setGroups = function(groups) {
       }
     });
 
+    /* TODO
     this.content = new Type(this.itemPanel, [this.timeaxis], options);
     if (this.content.setRange) {
       this.content.setRange(this.range);
@@ -377,7 +387,7 @@ Timeline.prototype.setGroups = function(groups) {
     if (this.content.setGroups) {
       this.content.setGroups(this.groupsData);
     }
-    this.controller.add(this.content);
+    */
   }
 };
 
@@ -482,7 +492,7 @@ Timeline.prototype._onSelectItem = function (event) {
   var selection = item ? [item.id] : [];
   this.setSelection(selection);
 
-  this.controller.emit('select', {
+  this.emitter.emit('select', {
     items: this.getSelection()
   });
 
@@ -535,10 +545,11 @@ Timeline.prototype._onAddItem = function (event) {
         me.itemsData.add(newItem);
 
         // select the created item after it is repainted
-        me.controller.once('repaint', function () {
+        // FIXME: just repaint the whole thing, not via an emitted event
+        me.emitter.once('repaint', function () {
           me.setSelection([id]);
 
-          me.controller.emit('select', {
+          me.emitter.emit('select', {
             items: me.getSelection()
           });
         }.bind(me));
@@ -573,7 +584,7 @@ Timeline.prototype._onMultiSelectItem = function (event) {
     }
     this.setSelection(selection);
 
-    this.controller.emit('select', {
+    this.emitter.emit('select', {
       items: this.getSelection()
     });
 

@@ -3,21 +3,57 @@
  * A Range controls a numeric range with a start and end value.
  * The Range adjusts the range based on mouse events or programmatic changes,
  * and triggers events when the range is changing or has been changed.
+ * @param {Component} parent
+ * @param {Emitter} emitter
  * @param {Object} [options]   See description at Range.setOptions
- * @extends Controller
  */
-function Range(options) {
+function Range(parent, emitter, options) {
   this.id = util.randomUUID();
   this.start = null; // Number
   this.end = null;   // Number
 
+  this.parent = parent;
+  this.emitter = emitter;
   this.options = options || {};
+
+  // drag start listener
+  var me = this;
+  emitter.on('dragstart', function (event) {
+    me._onDragStart(event, parent);
+  });
+
+  // drag listener
+  emitter.on('drag', function (event) {
+    me._onDrag(event, parent);
+  });
+
+  // drag end listener
+  emitter.on('dragend', function (event) {
+    me._onDragEnd(event, parent);
+  });
+
+  // ignore dragging when holding
+  emitter.on('hold', function (event) {
+    me._onHold();
+  });
+
+  // mouse wheel
+  function mousewheel (event) {
+    me._onMouseWheel(event, parent);
+  }
+  emitter.on('mousewheel', mousewheel);
+  emitter.on('DOMMouseScroll', mousewheel); // For FF
+
+  // pinch
+  emitter.on('touch', function (event) {
+    me._onTouch(event);
+  });
+  emitter.on('pinch', function (event) {
+    me._onPinch(event, parent);
+  });
 
   this.setOptions(options);
 }
-
-// extend the Range prototype with an event emitter mixin
-Emitter(Range.prototype);
 
 /**
  * Set options for the range controller
@@ -50,59 +86,6 @@ function validateDirection (direction) {
 }
 
 /**
- * Add listeners for mouse and touch events to the component
- * @param {Controller} controller
- * @param {Component} component  Should be a rootpanel
- * @param {String} event        Available events: 'move', 'zoom'
- * @param {String} direction    Available directions: 'horizontal', 'vertical'
- */
-Range.prototype.subscribe = function (controller, component, event, direction) {
-  var me = this;
-
-  if (event == 'move') {
-    // drag start listener
-    controller.on('dragstart', function (event) {
-      me._onDragStart(event, component);
-    });
-
-    // drag listener
-    controller.on('drag', function (event) {
-      me._onDrag(event, component, direction);
-    });
-
-    // drag end listener
-    controller.on('dragend', function (event) {
-      me._onDragEnd(event, component);
-    });
-
-    // ignore dragging when holding
-    controller.on('hold', function (event) {
-      me._onHold();
-    });
-  }
-  else if (event == 'zoom') {
-    // mouse wheel
-    function mousewheel (event) {
-      me._onMouseWheel(event, component, direction);
-    }
-    controller.on('mousewheel', mousewheel);
-    controller.on('DOMMouseScroll', mousewheel); // For FF
-
-    // pinch
-    controller.on('touch', function (event) {
-      me._onTouch(event);
-    });
-    controller.on('pinch', function (event) {
-      me._onPinch(event, component, direction);
-    });
-  }
-  else {
-    throw new TypeError('Unknown event "' + event + '". ' +
-        'Choose "move" or "zoom".');
-  }
-};
-
-/**
  * Set a new start and end range
  * @param {Number} [start]
  * @param {Number} [end]
@@ -114,8 +97,8 @@ Range.prototype.setRange = function(start, end) {
           start: this.start,
           end: this.end
     };
-    this.emit('rangechange', params);
-    this.emit('rangechanged', params);
+    this.emitter.emit('rangechange', params);
+    this.emitter.emit('rangechanged', params);
   }
 };
 
@@ -280,10 +263,9 @@ var touchParams = {};
 /**
  * Start dragging horizontally or vertically
  * @param {Event} event
- * @param {Object} component
  * @private
  */
-Range.prototype._onDragStart = function(event, component) {
+Range.prototype._onDragStart = function(event) {
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
   if (touchParams.ignore) return;
@@ -293,7 +275,7 @@ Range.prototype._onDragStart = function(event, component) {
   touchParams.start = this.start;
   touchParams.end = this.end;
 
-  var frame = component.frame;
+  var frame = this.parent.frame;
   if (frame) {
     frame.style.cursor = 'move';
   }
@@ -302,11 +284,10 @@ Range.prototype._onDragStart = function(event, component) {
 /**
  * Perform dragging operating.
  * @param {Event} event
- * @param {Component} component
- * @param {String} direction    'horizontal' or 'vertical'
  * @private
  */
-Range.prototype._onDrag = function (event, component, direction) {
+Range.prototype._onDrag = function (event) {
+  var direction = this.options.direction;
   validateDirection(direction);
 
   // TODO: reckon with option movable
@@ -318,12 +299,12 @@ Range.prototype._onDrag = function (event, component, direction) {
 
   var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
       interval = (touchParams.end - touchParams.start),
-      width = (direction == 'horizontal') ? component.width : component.height,
+      width = (direction == 'horizontal') ? this.parent.width : this.parent.height,
       diffRange = -delta / width * interval;
 
   this._applyRange(touchParams.start + diffRange, touchParams.end + diffRange);
 
-  this.emit('rangechange', {
+  this.emitter.emit('rangechange', {
     start: this.start,
     end: this.end
   });
@@ -332,22 +313,21 @@ Range.prototype._onDrag = function (event, component, direction) {
 /**
  * Stop dragging operating.
  * @param {event} event
- * @param {Component} component
  * @private
  */
-Range.prototype._onDragEnd = function (event, component) {
+Range.prototype._onDragEnd = function (event) {
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
   if (touchParams.ignore) return;
 
   // TODO: reckon with option movable
 
-  if (component.frame) {
-    component.frame.style.cursor = 'auto';
+  if (this.parent.frame) {
+    this.parent.frame.style.cursor = 'auto';
   }
 
   // fire a rangechanged event
-  this.emit('rangechanged', {
+  this.emitter.emit('rangechanged', {
     start: this.start,
     end: this.end
   });
@@ -357,13 +337,9 @@ Range.prototype._onDragEnd = function (event, component) {
  * Event handler for mouse wheel event, used to zoom
  * Code from http://adomas.org/javascript-mouse-wheel/
  * @param {Event} event
- * @param {Component} component
- * @param {String} direction    'horizontal' or 'vertical'
  * @private
  */
-Range.prototype._onMouseWheel = function(event, component, direction) {
-  validateDirection(direction);
-
+Range.prototype._onMouseWheel = function(event) {
   // TODO: reckon with option zoomable
 
   // retrieve delta
@@ -394,8 +370,8 @@ Range.prototype._onMouseWheel = function(event, component, direction) {
 
     // calculate center, the date to zoom around
     var gesture = util.fakeGesture(this, event),
-        pointer = getPointer(gesture.center, component.frame),
-        pointerDate = this._pointerToDate(component, direction, pointer);
+        pointer = getPointer(gesture.center, this.parent.frame),
+        pointerDate = this._pointerToDate(pointer);
 
     this.zoom(scale, pointerDate);
   }
@@ -434,24 +410,23 @@ Range.prototype._onHold = function () {
 /**
  * Handle pinch event
  * @param {Event} event
- * @param {Component} component
- * @param {String} direction    'horizontal' or 'vertical'
  * @private
  */
-Range.prototype._onPinch = function (event, component, direction) {
+Range.prototype._onPinch = function (event) {
+  var direction = this.options.direction;
   touchParams.ignore = true;
 
   // TODO: reckon with option zoomable
 
   if (event.gesture.touches.length > 1) {
     if (!touchParams.center) {
-      touchParams.center = getPointer(event.gesture.center, component.frame);
+      touchParams.center = getPointer(event.gesture.center, this.parent.frame);
     }
 
     var scale = 1 / event.gesture.scale,
-        initDate = this._pointerToDate(component, direction, touchParams.center),
-        center = getPointer(event.gesture.center, component.frame),
-        date = this._pointerToDate(component, direction, center),
+        initDate = this._pointerToDate(touchParams.center),
+        center = getPointer(event.gesture.center, this.parent.frame),
+        date = this._pointerToDate(this.parent, center),
         delta = date - initDate; // TODO: utilize delta
 
     // calculate new start and end
@@ -465,21 +440,23 @@ Range.prototype._onPinch = function (event, component, direction) {
 
 /**
  * Helper function to calculate the center date for zooming
- * @param {Component} component
  * @param {{x: Number, y: Number}} pointer
- * @param {String} direction    'horizontal' or 'vertical'
  * @return {number} date
  * @private
  */
-Range.prototype._pointerToDate = function (component, direction, pointer) {
+Range.prototype._pointerToDate = function (pointer) {
   var conversion;
+  var direction = this.options.direction;
+
+  validateDirection(direction);
+
   if (direction == 'horizontal') {
-    var width = component.width;
+    var width = this.parent.width;
     conversion = this.conversion(width);
     return pointer.x / conversion.scale + conversion.offset;
   }
   else {
-    var height = component.height;
+    var height = this.parent.height;
     conversion = this.conversion(height);
     return pointer.y / conversion.scale + conversion.offset;
   }

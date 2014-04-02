@@ -177,10 +177,6 @@ ItemSet.prototype.setSelection = function setSelection(ids) {
         item.select();
       }
     }
-
-    if (this.controller) {
-      this.requestRepaint();
-    }
   }
 };
 

@@ -4,7 +4,6 @@
 var vis = {
   util: util,
 
-  Controller: Controller,
   DataSet: DataSet,
   DataView: DataView,
   Range: Range,

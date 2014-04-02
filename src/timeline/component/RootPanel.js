@@ -2,32 +2,15 @@
  * A root panel can hold components. The root panel must be initialized with
  * a DOM element as container.
  * @param {HTMLElement} container
+ * @param {Emitter} emitter
  * @param {Object} [options]    Available parameters: see RootPanel.setOptions.
  * @constructor RootPanel
  * @extends Panel
  */
-function RootPanel(container, options) {
+function RootPanel(container, emitter, options) {
   this.id = util.randomUUID();
   this.container = container;
-
-  // create functions to be used as DOM event listeners
-  var me = this;
-  this.hammer = null;
-
-  // create listeners for all interesting events, these events will be emitted
-  // via the controller
-  var events = [
-    'touch', 'pinch', 'tap', 'doubletap', 'hold',
-    'dragstart', 'drag', 'dragend',
-    'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is for Firefox
-  ];
-  this.listeners = {};
-  events.forEach(function (event) {
-    me.listeners[event] = function () {
-      var args = [event].concat(Array.prototype.slice.call(arguments, 0));
-      me.controller.emit.apply(me.controller, args);
-    };
-  });
+  this.emitter = emitter;
 
   this.options = options || {};
   this.defaultOptions = {
@@ -47,50 +30,66 @@ RootPanel.prototype = new Panel();
  *                              {String | Number | function} [height]
  *                              {Boolean | function} [autoResize]
  */
-RootPanel.prototype.setOptions = Component.prototype.setOptions;
+RootPanel.prototype.setOptions = function (options) {
+  if (options) {
+    util.extend(this.options, options);
+
+    this.repaint();
+
+    var autoResize = this.getOption('autoResize');
+    if (autoResize) {
+      this._watch();
+    }
+    else {
+      this._unwatch();
+    }
+  }
+};
 
 /**
  * Repaint the component
  */
 RootPanel.prototype.repaint = function () {
-  var asSize = util.option.asSize,
-      options = this.options,
-      frame = this.frame;
-
   // create frame
-  if (!frame) {
-    frame = document.createElement('div');
-    this.frame = frame;
-
+  if (!this.frame) {
     if (!this.container) throw new Error('Cannot repaint root panel: no container attached');
-    this.container.appendChild(frame);
+    this.frame = document.createElement('div');
+    this.container.appendChild(this.frame);
 
-    this._registerListeners();
+    // create event listeners for all interesting events, these events will be
+    // emitted via emitter
+    this.hammer = Hammer(this.frame, {
+      prevent_default: true
+    });
+    this.listeners = {};
+
+    var me = this;
+    var events = [
+      'touch', 'pinch', 'tap', 'doubletap', 'hold',
+      'dragstart', 'drag', 'dragend',
+      'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is for Firefox
+    ];
+    events.forEach(function (event) {
+      var listener = function () {
+        var args = [event].concat(Array.prototype.slice.call(arguments, 0));
+        me.emitter.emit.apply(me.emitter, args);
+      };
+      me.hammer.on(event, listener);
+      me.listeners[event] = listener;
+    });
   }
 
   // update class name
+  var options = this.options;
   var className = 'vis timeline rootpanel ' + options.orientation + (options.editable ? ' editable' : '');
   if (options.className) className += ' ' + util.option.asString(className);
-  frame.className = className;
+  this.frame.className = className;
+
+  // repaint the child components
+  this._repaintChilds();
 
   // update frame size
   this._updateSize();
-
-  this._updateWatch();
-};
-
-/**
- * Update watching for resize, depending on the current option
- * @private
- */
-RootPanel.prototype._updateWatch = function () {
-  var autoResize = this.getOption('autoResize');
-  if (autoResize) {
-    this._watch();
-  }
-  else {
-    this._unwatch();
-  }
 };
 
 /**
@@ -117,7 +116,8 @@ RootPanel.prototype._watch = function () {
           (me.frame.clientHeight != me.lastHeight)) {
         me.lastWidth = me.frame.clientWidth;
         me.lastHeight = me.frame.clientHeight;
-        me.requestRepaint();
+        me.repaint();
+        // TODO: emit a resize event
       }
     }
   };
@@ -139,54 +139,4 @@ RootPanel.prototype._unwatch = function () {
   }
 
   // TODO: remove event listener on window.resize
-};
-
-/**
- * Set controller for this component, or remove current controller by passing
- * null as parameter value.
- * @param {Controller | null} controller
- */
-RootPanel.prototype.setController = function setController (controller) {
-  this.controller = controller || null;
-
-  if (this.controller) {
-    this._registerListeners();
-  }
-  else {
-    this._unregisterListeners();
-  }
-};
-
-/**
- * Register event emitters emitted by the rootpanel
- * @private
- */
-RootPanel.prototype._registerListeners = function () {
-  if (this.frame && this.controller && !this.hammer) {
-    this.hammer = Hammer(this.frame, {
-      prevent_default: true
-    });
-
-    for (var event in this.listeners) {
-      if (this.listeners.hasOwnProperty(event)) {
-        this.hammer.on(event, this.listeners[event]);
-      }
-    }
-  }
-};
-
-/**
- * Unregister event emitters from the rootpanel
- * @private
- */
-RootPanel.prototype._unregisterListeners = function () {
-  if (this.hammer) {
-    for (var event in this.listeners) {
-      if (this.listeners.hasOwnProperty(event)) {
-        this.hammer.off(event, this.listeners[event]);
-      }
-    }
-
-    this.hammer = null;
-  }
 };

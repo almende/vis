@@ -1,17 +1,12 @@
 /**
  * A horizontal time axis
- * @param {Component} parent
- * @param {Component[]} [depends]   Components on which this components depends
- *                                  (except for the parent)
  * @param {Object} [options]        See TimeAxis.setOptions for the available
  *                                  options.
  * @constructor TimeAxis
  * @extends Component
  */
-function TimeAxis (parent, depends, options) {
+function TimeAxis (options) {
   this.id = util.randomUUID();
-  this.parent = parent;
-  this.depends = depends;
 
   this.dom = {
     majorLines: [],

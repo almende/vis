@@ -1,8 +1,5 @@
 /**
  * A panel can contain components
- * @param {Component} [parent]
- * @param {Component[]} [depends]   Components on which this components depends
- *                                  (except for the parent)
  * @param {Object} [options]    Available parameters:
  *                              {String | Number | function} [left]
  *                              {String | Number | function} [top]
@@ -12,10 +9,10 @@
  * @constructor Panel
  * @extends Component
  */
-function Panel(parent, depends, options) {
+function Panel(options) {
   this.id = util.randomUUID();
-  this.parent = parent;
-  this.depends = depends;
+  this.parent = null;
+  this.childs = [];
 
   this.options = options || {};
 }
@@ -43,6 +40,40 @@ Panel.prototype.getContainer = function () {
 };
 
 /**
+ * Append a child to the panel
+ * @param {Component} child
+ */
+Panel.prototype.appendChild = function (child) {
+  this.childs.push(child);
+  child.parent = this;
+};
+
+/**
+ * Insert a child to the panel
+ * @param {Component} child
+ * @param {Component} beforeChild
+ */
+Panel.prototype.insertBefore = function (child, beforeChild) {
+  var index = this.childs.indexOf(beforeChild);
+  if (index != -1) {
+    this.childs.splice(index, 0, child);
+    child.parent = this;
+  }
+};
+
+/**
+ * Remove a child from the panel
+ * @param {Component} child
+ */
+Panel.prototype.removeChild = function (child) {
+  var index = this.childs.indexOf(child);
+  if (index != -1) {
+    this.childs.splice(index, 1);
+    child.parent = null;
+  }
+};
+
+/**
  * Repaint the component
  */
 Panel.prototype.repaint = function () {
@@ -65,8 +96,21 @@ Panel.prototype.repaint = function () {
   // update className
   frame.className = 'vpanel' + (options.className ? (' ' + asSize(options.className)) : '');
 
+  // repaint the child components
+  this._repaintChilds();
+
   // update frame size
   this._updateSize();
+};
+
+/**
+ * Repaint all childs of the panel
+ * @private
+ */
+Panel.prototype._repaintChilds = function () {
+  for (var i = 0, ii = this.childs.length; i < ii; i++) {
+    this.childs[i].repaint();
+  }
 };
 
 /**
@@ -75,8 +119,10 @@ Panel.prototype.repaint = function () {
  */
 Panel.prototype._updateSize = function () {
   // apply size
-  this.frame.style.top    = util.option.asSize(this.options.top, '0px');
-  this.frame.style.left   = util.option.asSize(this.options.left, '0px');
+  this.frame.style.top    = util.option.asSize(this.options.top, null);
+  this.frame.style.bottom = util.option.asSize(this.options.bottom, null);
+  this.frame.style.left   = util.option.asSize(this.options.left, null);
+  this.frame.style.right  = util.option.asSize(this.options.right, null);
   this.frame.style.width  = util.option.asSize(this.options.width, '100%');
   this.frame.style.height = util.option.asSize(this.options.height, '100%');
 

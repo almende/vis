@@ -4,8 +4,7 @@
 function Component () {
   this.id = null;
   this.parent = null;
-  this.depends = null;
-  this.controller = null;
+  this.childs = null;
   this.options = null;
 
   this.frame = null; // main DOM element
@@ -29,10 +28,7 @@ Component.prototype.setOptions = function setOptions(options) {
   if (options) {
     util.extend(this.options, options);
 
-    if (this.controller) {
-      this.requestRepaint();
-      this.requestReflow();
-    }
+    this.repaint();
   }
 };
 
@@ -52,23 +48,6 @@ Component.prototype.getOption = function getOption(name) {
     value = this.defaultOptions[name];
   }
   return value;
-};
-
-/**
- * Set controller for this component, or remove current controller by passing
- * null as parameter value.
- * @param {Controller | null} controller
- */
-Component.prototype.setController = function setController (controller) {
-  this.controller = controller || null;
-};
-
-/**
- * Get controller of this component
- * @return {Controller} controller
- */
-Component.prototype.getController = function getController () {
-  return this.controller;
 };
 
 /**
@@ -99,15 +78,6 @@ Component.prototype.repaint = function repaint() {
 };
 
 /**
- * Reflow the component
- * @return {Boolean} resized
- */
-Component.prototype.reflow = function reflow() {
-  // should be implemented by the component
-  return false;
-};
-
-/**
  * Hide the component from the DOM
  * @return {Boolean} changed
  */
@@ -132,31 +102,5 @@ Component.prototype.show = function show() {
   }
   else {
     return false;
-  }
-};
-
-/**
- * Request a repaint. The controller will schedule a repaint
- */
-Component.prototype.requestRepaint = function requestRepaint() {
-  if (this.controller) {
-    this.controller.emit('request-repaint');
-  }
-  else {
-    throw new Error('Cannot request a repaint: no controller configured');
-    // TODO: just do a repaint when no parent is configured?
-  }
-};
-
-/**
- * Request a reflow. The controller will schedule a reflow
- */
-Component.prototype.requestReflow = function requestReflow() {
-  if (this.controller) {
-    this.controller.emit('request-reflow');
-  }
-  else {
-    throw new Error('Cannot request a reflow: no controller configured');
-    // TODO: just do a reflow when no parent is configured?
   }
 };

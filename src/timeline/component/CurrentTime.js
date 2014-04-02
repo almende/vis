@@ -1,18 +1,13 @@
 /**
  * A current time bar
- * @param {Component} parent
- * @param {Component[]} [depends]   Components on which this components depends
- *                                  (except for the parent)
  * @param {Object} [options]        Available parameters:
  *                                  {Boolean} [showCurrentTime]
  * @constructor CurrentTime
  * @extends Component
  */
 
-function CurrentTime (parent, depends, options) {
+function CurrentTime (options) {
   this.id = util.randomUUID();
-  this.parent = parent;
-  this.depends = depends;
 
   this.options = options || {};
   this.defaultOptions = {
@@ -39,13 +34,13 @@ CurrentTime.prototype.getContainer = function () {
  */
 CurrentTime.prototype.repaint = function () {
   var bar = this.frame,
-      parent = this.parent,
-      parentContainer = parent.parent.getContainer();
+      parent = this.parent;
 
   if (!parent) {
     throw new Error('Cannot repaint bar: no parent attached');
   }
 
+  var parentContainer = parent.parent.getContainer(); // FIXME: this is weird
   if (!parentContainer) {
     throw new Error('Cannot repaint bar: parent has no container element');
   }
@@ -68,10 +63,6 @@ CurrentTime.prototype.repaint = function () {
 
     parentContainer.appendChild(bar);
     this.frame = bar;
-  }
-
-  if (!parent.conversion) {
-    parent._updateConversion();
   }
 
   var now = new Date();

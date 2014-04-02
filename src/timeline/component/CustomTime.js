@@ -1,18 +1,13 @@
 /**
  * A custom time bar
- * @param {Component} parent
- * @param {Component[]} [depends]   Components on which this components depends
- *                                  (except for the parent)
  * @param {Object} [options]        Available parameters:
  *                                  {Boolean} [showCustomTime]
  * @constructor CustomTime
  * @extends Component
  */
 
-function CustomTime (parent, depends, options) {
+function CustomTime (options) {
   this.id = util.randomUUID();
-  this.parent = parent;
-  this.depends = depends;
 
   this.options = options || {};
   this.defaultOptions = {
@@ -50,7 +45,7 @@ CustomTime.prototype.repaint = function () {
     throw new Error('Cannot repaint bar: no parent attached');
   }
 
-  var parentContainer = parent.parent.getContainer();
+  var parentContainer = parent.parent.getContainer(); // FIXME: this is weird
   if (!parentContainer) {
     throw new Error('Cannot repaint bar: parent has no container element');
   }
@@ -90,10 +85,6 @@ CustomTime.prototype.repaint = function () {
     this.hammer.on('dragstart', this._onDragStart.bind(this));
     this.hammer.on('drag',      this._onDrag.bind(this));
     this.hammer.on('dragend',   this._onDragEnd.bind(this));
-  }
-
-  if (!parent.conversion) {
-    parent._updateConversion();
   }
 
   var x = parent.toScreen(this.customTime);
