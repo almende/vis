@@ -45,7 +45,7 @@ CustomTime.prototype.repaint = function () {
     throw new Error('Cannot repaint bar: no parent attached');
   }
 
-  var parentContainer = parent.parent.getContainer(); // FIXME: this is weird
+  var parentContainer = parent.getContainer();
   if (!parentContainer) {
     throw new Error('Cannot repaint bar: parent has no container element');
   }
@@ -87,7 +87,7 @@ CustomTime.prototype.repaint = function () {
     this.hammer.on('dragend',   this._onDragEnd.bind(this));
   }
 
-  var x = parent.toScreen(this.customTime);
+  var x = this.options.toScreen(this.customTime);
 
   bar.style.left = x + 'px';
   bar.title = 'Time: ' + this.customTime;
@@ -131,17 +131,15 @@ CustomTime.prototype._onDragStart = function(event) {
  */
 CustomTime.prototype._onDrag = function (event) {
   var deltaX = event.gesture.deltaX,
-      x = this.parent.toScreen(this.eventParams.customTime) + deltaX,
-      time = this.parent.toTime(x);
+      x = this.options.toScreen(this.eventParams.customTime) + deltaX,
+      time = this.options.toTime(x);
 
   this.setCustomTime(time);
 
   // fire a timechange event
-  if (this.controller) {
-    this.controller.emit('timechange', {
-      time: this.customTime
-    })
-  }
+  this.emit('timechange', {
+    time: new Date(this.customTime.valueOf())
+  });
 
   event.stopPropagation();
   event.preventDefault();
@@ -154,11 +152,9 @@ CustomTime.prototype._onDrag = function (event) {
  */
 CustomTime.prototype._onDragEnd = function (event) {
   // fire a timechanged event
-  if (this.controller) {
-    this.controller.emit('timechanged', {
-      time: this.customTime
-    })
-  }
+  this.emit('timechanged', {
+    time: new Date(this.customTime.valueOf())
+  });
 
   event.stopPropagation();
   event.preventDefault();

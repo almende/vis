@@ -1,14 +1,16 @@
 /**
  * A current time bar
+ * @param {Range} range
  * @param {Object} [options]        Available parameters:
  *                                  {Boolean} [showCurrentTime]
  * @constructor CurrentTime
  * @extends Component
  */
 
-function CurrentTime (options) {
+function CurrentTime (range, options) {
   this.id = util.randomUUID();
 
+  this.range = range;
   this.options = options || {};
   this.defaultOptions = {
     showCurrentTime: false
@@ -40,7 +42,7 @@ CurrentTime.prototype.repaint = function () {
     throw new Error('Cannot repaint bar: no parent attached');
   }
 
-  var parentContainer = parent.parent.getContainer(); // FIXME: this is weird
+  var parentContainer = parent.getContainer();
   if (!parentContainer) {
     throw new Error('Cannot repaint bar: parent has no container element');
   }
@@ -66,7 +68,7 @@ CurrentTime.prototype.repaint = function () {
   }
 
   var now = new Date();
-  var x = parent.toScreen(now);
+  var x = this.options.toScreen(now);
 
   bar.style.left = x + 'px';
   bar.title = 'Current time: ' + now;
@@ -77,12 +79,12 @@ CurrentTime.prototype.repaint = function () {
     delete this.currentTimeTimer;
   }
 
+  // determine interval to refresh
   var timeline = this;
-  var interval = 1 / parent.conversion.scale / 2;
-
-  if (interval < 30) {
-    interval = 30;
-  }
+  var scale = this.range.conversion(parent.width).scale;
+  var interval = 1 / scale / 2;
+  if (interval < 30)   interval = 30;
+  if (interval > 1000) interval = 1000;
 
   this.currentTimeTimer = setTimeout(function() {
     timeline.repaint();

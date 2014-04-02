@@ -57,6 +57,7 @@ function Timeline (container, items, options) {
   };
 
   // event bus
+  // TODO: make the Timeline itself an emitter
   this.emitter = new Emitter();
 
   // root panel
@@ -129,6 +130,14 @@ function Timeline (container, items, options) {
       now.clone().add('days', -3).valueOf(),
       now.clone().add('days', 4).valueOf()
   );
+  /* TODO
+  this.range.on('rangechange', function (properties) {
+    me.controller.emit('rangechange', properties);
+  });
+  this.range.on('rangechanged', function (properties) {
+    me.controller.emit('rangechanged', properties);
+  });
+  */
 
   // panel with time axis
   var timeAxisOptions = Object.create(rootOptions);
@@ -155,15 +164,19 @@ function Timeline (container, items, options) {
   this.contentPanel = new Panel(contentOptions);
   this.mainPanel.appendChild(this.contentPanel);
 
-  /* TODO
   // current time bar
-  this.currenttime = new CurrentTime(rootOptions);
-  this.mainPanel.appendChild(this.currenttime);
+  this.currentTime = new CurrentTime(this.range, rootOptions);
+  this.mainPanel.appendChild(this.currentTime);
 
   // custom time bar
-  this.customtime = new CustomTime(rootOptions);
-  this.mainPanel.appendChild(this.customtime);
-  */
+  this.customTime = new CustomTime(rootOptions);
+  this.mainPanel.appendChild(this.customTime);
+  this.customTime.on('timechange', function (time) {
+    me.emitter.emit('timechange', time);
+  });
+  this.customTime.on('timechanged', function (time) {
+    me.emitter.emit('timechanged', time);
+  });
 
   // create groupset
   this.setGroups(null);
@@ -240,11 +253,11 @@ Timeline.prototype.setOptions = function (options) {
  * @param {Date} time
  */
 Timeline.prototype.setCustomTime = function (time) {
-  if (!this.customtime) {
+  if (!this.customTime) {
     throw new Error('Cannot get custom time: Custom time bar is not enabled');
   }
 
-  this.customtime.setCustomTime(time);
+  this.customTime.setCustomTime(time);
 };
 
 /**
@@ -252,11 +265,11 @@ Timeline.prototype.setCustomTime = function (time) {
  * @return {Date} customTime
  */
 Timeline.prototype.getCustomTime = function() {
-  if (!this.customtime) {
+  if (!this.customTime) {
     throw new Error('Cannot get custom time: Custom time bar is not enabled');
   }
 
-  return this.customtime.getCustomTime();
+  return this.customTime.getCustomTime();
 };
 
 /**
