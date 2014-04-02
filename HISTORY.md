@@ -1,6 +1,14 @@
 vis.js history
 http://visjs.org
 
+
+## 2014-03-27, version 0.7.2
+
+### Graph
+
+- fixed edge select bug.
+- fixed zoom bug on empty initialization.
+
 ## 2014-03-27, version 0.7.1
 
 ### Graph
