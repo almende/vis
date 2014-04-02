@@ -56,10 +56,6 @@ function Timeline (container, items, options) {
     toTime: me._toTime.bind(me)
   };
 
-  // event bus
-  // TODO: make the Timeline itself an emitter
-  this.emitter = new Emitter();
-
   // root panel
   var rootOptions = Object.create(this.options);
   rootOptions.height = function () {
@@ -73,20 +69,16 @@ function Timeline (container, items, options) {
       // TODO: return the sum of the height of the childs
     }
   };
-  this.rootPanel = new RootPanel(container, this.emitter, rootOptions);
+  this.rootPanel = new RootPanel(container, rootOptions);
 
   // single select (or unselect) when tapping an item
-  this.emitter.on('tap',  this._onSelectItem.bind(this));
+  this.rootPanel.on('tap',  this._onSelectItem.bind(this));
 
   // multi select when holding mouse/touch, or on ctrl+click
-  this.emitter.on('hold', this._onMultiSelectItem.bind(this));
+  this.rootPanel.on('hold', this._onMultiSelectItem.bind(this));
 
   // add item on doubletap
-  this.emitter.on('doubletap', this._onAddItem.bind(this));
-
-  // repaint on range change
-  this.emitter.on('rangechange', this.rootPanel.repaint.bind(this.rootPanel));
-  this.emitter.on('rangechanged', this.rootPanel.repaint.bind(this.rootPanel));
+  this.rootPanel.on('doubletap', this._onAddItem.bind(this));
 
   // label panel
   var labelOptions = Object.create(this.options);
@@ -125,16 +117,18 @@ function Timeline (container, items, options) {
   // range
   // TODO: move range inside rootPanel?
   var rangeOptions = Object.create(this.options);
-  this.range = new Range(this.mainPanel, this.emitter, rangeOptions);
+  this.range = new Range(this.rootPanel, this.mainPanel, rangeOptions);
   this.range.setRange(
       now.clone().add('days', -3).valueOf(),
       now.clone().add('days', 4).valueOf()
   );
   this.range.on('rangechange', function (properties) {
-    me.emitter.emit('rangechange', properties);
+    me.rootPanel.repaint();
+    me.emit('rangechange', properties);
   });
   this.range.on('rangechanged', function (properties) {
-    me.emitter.emit('rangechanged', properties);
+    me.rootPanel.repaint();
+    me.emit('rangechanged', properties);
   });
 
   // panel with time axis
@@ -170,10 +164,10 @@ function Timeline (container, items, options) {
   this.customTime = new CustomTime(rootOptions);
   this.mainPanel.appendChild(this.customTime);
   this.customTime.on('timechange', function (time) {
-    me.emitter.emit('timechange', time);
+    me.emit('timechange', time);
   });
   this.customTime.on('timechanged', function (time) {
-    me.emitter.emit('timechanged', time);
+    me.emit('timechanged', time);
   });
 
   // create groupset
@@ -193,24 +187,8 @@ function Timeline (container, items, options) {
   }
 }
 
-/**
- * Add an event listener to the timeline
- * @param {String} event    Available events: select, rangechange, rangechanged,
- *                          timechange, timechanged
- * @param {function} callback
- */
-Timeline.prototype.on = function on (event, callback) {
-  this.emitter.on(event, callback);
-};
-
-/**
- * Add an event listener from the timeline
- * @param {String} event
- * @param {function} callback
- */
-Timeline.prototype.off = function off (event, callback) {
-  this.emitter.off(event, callback);
-};
+// turn Timeline into an event emitter
+Emitter(Timeline.prototype);
 
 /**
  * Set options
@@ -510,7 +488,7 @@ Timeline.prototype._onSelectItem = function (event) {
   var selection = item ? [item.id] : [];
   this.setSelection(selection);
 
-  this.emitter.emit('select', {
+  this.emit('select', {
     items: this.getSelection()
   });
 
@@ -561,16 +539,7 @@ Timeline.prototype._onAddItem = function (event) {
     this.options.onAdd(newItem, function (item) {
       if (item) {
         me.itemsData.add(newItem);
-
-        // select the created item after it is repainted
-        // FIXME: just repaint the whole thing, not via an emitted event
-        me.emitter.once('repaint', function () {
-          me.setSelection([id]);
-
-          me.emitter.emit('select', {
-            items: me.getSelection()
-          });
-        }.bind(me));
+        // TODO: need to trigger a repaint?
       }
     });
   }

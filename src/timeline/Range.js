@@ -3,39 +3,37 @@
  * A Range controls a numeric range with a start and end value.
  * The Range adjusts the range based on mouse events or programmatic changes,
  * and triggers events when the range is changing or has been changed.
- * @param {Component} parent
- * @param {Emitter} emitter
- * @param {Object} [options]   See description at Range.setOptions
+ * @param {RootPanel} root      Root panel, used to subscribe to events
+ * @param {Panel} parent        Parent panel, used to attach to the DOM
+ * @param {Object} [options]    See description at Range.setOptions
  */
-function Range(parent, emitter, options) {
+function Range(root, parent, options) {
   this.id = util.randomUUID();
   this.start = null; // Number
   this.end = null;   // Number
 
+  this.root = root;
   this.parent = parent;
-  this.emitter = emitter;
   this.options = options || {};
-
-  // TODO: not so nice having to specify an emitter (different from parent) where to subscribe for events
 
   // drag start listener
   var me = this;
-  emitter.on('dragstart', function (event) {
+  this.root.on('dragstart', function (event) {
     me._onDragStart(event, parent);
   });
 
   // drag listener
-  emitter.on('drag', function (event) {
+  this.root.on('drag', function (event) {
     me._onDrag(event, parent);
   });
 
   // drag end listener
-  emitter.on('dragend', function (event) {
-    me._onDragEnd(event, parent);
+  this.root.on('dragend', function (event) {
+    me._onDragEnd(event);
   });
 
   // ignore dragging when holding
-  emitter.on('hold', function (event) {
+  this.root.on('hold', function (event) {
     me._onHold();
   });
 
@@ -43,21 +41,21 @@ function Range(parent, emitter, options) {
   function mousewheel (event) {
     me._onMouseWheel(event, parent);
   }
-  emitter.on('mousewheel', mousewheel);
-  emitter.on('DOMMouseScroll', mousewheel); // For FF
+  this.root.on('mousewheel', mousewheel);
+  this.root.on('DOMMouseScroll', mousewheel); // For FF
 
   // pinch
-  emitter.on('touch', function (event) {
+  this.root.on('touch', function (event) {
     me._onTouch(event);
   });
-  emitter.on('pinch', function (event) {
-    me._onPinch(event, parent);
+  this.root.on('pinch', function (event) {
+    me._onPinch(event);
   });
 
   this.setOptions(options);
 }
 
-
+// turn Range into an event emitter
 Emitter(Range.prototype);
 
 /**

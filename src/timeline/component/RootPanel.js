@@ -2,15 +2,13 @@
  * A root panel can hold components. The root panel must be initialized with
  * a DOM element as container.
  * @param {HTMLElement} container
- * @param {Emitter} emitter
  * @param {Object} [options]    Available parameters: see RootPanel.setOptions.
  * @constructor RootPanel
  * @extends Panel
  */
-function RootPanel(container, emitter, options) {
+function RootPanel(container, options) {
   this.id = util.randomUUID();
   this.container = container;
-  this.emitter = emitter;
 
   this.options = options || {};
   this.defaultOptions = {
@@ -19,6 +17,9 @@ function RootPanel(container, emitter, options) {
 }
 
 RootPanel.prototype = new Panel();
+
+// turn RootPanel into an event emitter
+Emitter(RootPanel.prototype);
 
 /**
  * Set options. Will extend the current options.
@@ -72,7 +73,7 @@ RootPanel.prototype.repaint = function () {
     events.forEach(function (event) {
       var listener = function () {
         var args = [event].concat(Array.prototype.slice.call(arguments, 0));
-        me.emitter.emit.apply(me.emitter, args);
+        me.emit.apply(me, args);
       };
       me.hammer.on(event, listener);
       me.listeners[event] = listener;
