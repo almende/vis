@@ -37,7 +37,6 @@ function TimeAxis (options) {
     showMajorLabels: true
   };
 
-  this.conversion = null;
   this.range = null;
 }
 
@@ -56,28 +55,6 @@ TimeAxis.prototype.setRange = function (range) {
         'or an object containing start and end.');
   }
   this.range = range;
-};
-
-/**
- * Convert a position on screen (pixels) to a datetime
- * @param {int}     x    Position on the screen in pixels
- * @return {Date}   time The datetime the corresponds with given position x
- */
-TimeAxis.prototype.toTime = function(x) {
-  var conversion = this.conversion;
-  return new Date(x / conversion.scale + conversion.offset);
-};
-
-/**
- * Convert a datetime (Date object) into a position on the screen
- * @param {Date}   time A date
- * @return {int}   x    The position on the screen in pixels which corresponds
- *                      with the given date.
- * @private
- */
-TimeAxis.prototype.toScreen = function(time) {
-  var conversion = this.conversion;
-  return (time.valueOf() - conversion.offset) * conversion.scale;
 };
 
 /**
@@ -171,14 +148,12 @@ TimeAxis.prototype._repaintLabels = function () {
   var orientation = this.getOption('orientation');
 
   // calculate range and step
-  this._updateConversion();
   var start = util.convert(this.range.start, 'Number'),
       end = util.convert(this.range.end, 'Number'),
-      minimumStep = this.toTime((this.props.minorCharWidth || 10) * 5).valueOf()
-          -this.toTime(0).valueOf();
+      minimumStep = this.options.toTime((this.props.minorCharWidth || 10) * 5).valueOf()
+          -this.options.toTime(0).valueOf();
   var step = new TimeStep(new Date(start), new Date(end), minimumStep);
   this.step = step;
-
 
   // Move all DOM elements to a "redundant" list, where they
   // can be picked for re-use, and clear the lists with lines and texts.
@@ -199,7 +174,7 @@ TimeAxis.prototype._repaintLabels = function () {
   while (step.hasNext() && max < 1000) {
     max++;
     var cur = step.getCurrent(),
-        x = this.toScreen(cur),
+        x = this.options.toScreen(cur),
         isMajor = step.isMajor();
 
     // TODO: lines must have a width, such that we can create css backgrounds
@@ -226,7 +201,7 @@ TimeAxis.prototype._repaintLabels = function () {
 
   // create a major label on the left when needed
   if (this.getOption('showMajorLabels')) {
-    var leftTime = this.toTime(0),
+    var leftTime = this.options.toTime(0),
         leftText = step.getLabelMajor(leftTime),
         widthText = leftText.length * (this.props.majorCharWidth || 10) + 10; // upper bound estimation
 
@@ -451,27 +426,6 @@ TimeAxis.prototype._calculateCharSize = function () {
     this.props.majorCharWidth = measureCharMajor.clientWidth;
 
     this.frame.removeChild(measureCharMajor);
-  }
-};
-
-/**
- * Calculate the scale and offset to convert a position on screen to the
- * corresponding date and vice versa.
- * After the method _updateConversion is executed once, the methods toTime
- * and toScreen can be used.
- * @private
- */
-TimeAxis.prototype._updateConversion = function() {
-  var range = this.range;
-  if (!range) {
-    throw new Error('No range configured');
-  }
-
-  if (range.conversion) {
-    this.conversion = range.conversion(this.width);
-  }
-  else {
-    this.conversion = Range.conversion(range.start, range.end, this.width);
   }
 };
 

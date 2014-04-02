@@ -50,7 +50,10 @@ function Timeline (container, items, options) {
     },
     onRemove: function (item, callback) {
       callback(item);
-    }
+    },
+
+    toScreen: me._toScreen.bind(me),
+    toTime: me._toTime.bind(me)
   };
 
   // event bus
@@ -80,14 +83,9 @@ function Timeline (container, items, options) {
   // add item on doubletap
   this.emitter.on('doubletap', this._onAddItem.bind(this));
 
-  // range
-  // TODO: move range inside rootPanel?
-  var rangeOptions = Object.create(this.options);
-  this.range = new Range(this.rootPanel, this.emitter, rangeOptions);
-  this.range.setRange(
-      now.clone().add('days', -3).valueOf(),
-      now.clone().add('days', 4).valueOf()
-  );
+  // repaint on range change
+  this.emitter.on('rangechange', this.rootPanel.repaint.bind(this.rootPanel));
+  this.emitter.on('rangechanged', this.rootPanel.repaint.bind(this.rootPanel));
 
   // label panel
   var labelOptions = Object.create(this.options);
@@ -123,18 +121,14 @@ function Timeline (container, items, options) {
   this.mainPanel = new Panel(mainOptions);
   this.rootPanel.appendChild(this.mainPanel);
 
-  // content panel (contains itemset(s))
-  var contentOptions = Object.create(this.options);
-  contentOptions.top = '0';
-  contentOptions.bottom = null;
-  contentOptions.left = '0';
-  contentOptions.right = null;
-  contentOptions.height = function () {
-    return me.mainPanel.height - me.timeAxis.height;
-  };
-  contentOptions.width = null;
-  this.contentPanel = new Panel(contentOptions);
-  this.mainPanel.appendChild(this.contentPanel);
+  // range
+  // TODO: move range inside rootPanel?
+  var rangeOptions = Object.create(this.options);
+  this.range = new Range(this.mainPanel, this.emitter, rangeOptions);
+  this.range.setRange(
+      now.clone().add('days', -3).valueOf(),
+      now.clone().add('days', 4).valueOf()
+  );
 
   // panel with time axis
   var timeAxisOptions = Object.create(rootOptions);
@@ -147,6 +141,19 @@ function Timeline (container, items, options) {
   this.timeAxis.setRange(this.range);
   this.options.snap = this.timeAxis.snap.bind(this.timeAxis);
   this.mainPanel.appendChild(this.timeAxis);
+
+  // content panel (contains itemset(s))
+  var contentOptions = Object.create(this.options);
+  contentOptions.top = '0';
+  contentOptions.bottom = null;
+  contentOptions.left = '0';
+  contentOptions.right = null;
+  contentOptions.height = function () {
+    return me.mainPanel.height - me.timeAxis.height;
+  };
+  contentOptions.width = null;
+  this.contentPanel = new Panel(contentOptions);
+  this.mainPanel.appendChild(this.contentPanel);
 
   /* TODO
   // current time bar
@@ -599,7 +606,7 @@ Timeline.prototype._onMultiSelectItem = function (event) {
  * @private
  */
 Timeline.prototype._toTime = function _toTime(x) {
-  var conversion = this.range.conversion(this.content.width);
+  var conversion = this.range.conversion(this.mainPanel.width);
   return new Date(x / conversion.scale + conversion.offset);
 };
 
@@ -611,6 +618,6 @@ Timeline.prototype._toTime = function _toTime(x) {
  * @private
  */
 Timeline.prototype._toScreen = function _toScreen(time) {
-  var conversion = this.range.conversion(this.content.width);
+  var conversion = this.range.conversion(this.mainPanel.width);
   return (time.valueOf() - conversion.offset) * conversion.scale;
 };
