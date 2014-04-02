@@ -65,8 +65,7 @@ function Timeline (container, items, options) {
     }
     else {
       // auto height
-      // return (me.timeaxis.height + me.content.height) + 'px';
-      // TODO: return the sum of the height of the childs
+      return (me.timeAxis.height + me.contentPanel.height) + 'px';
     }
   };
   this.rootPanel = new RootPanel(container, rootOptions);
@@ -81,36 +80,38 @@ function Timeline (container, items, options) {
   this.rootPanel.on('doubletap', this._onAddItem.bind(this));
 
   // label panel
-  var labelOptions = Object.create(this.options);
-  labelOptions.top = '0';
-  labelOptions.bottom = null;
-  labelOptions.left = '0';
-  labelOptions.right = null;
-  labelOptions.height = '100%';
-  labelOptions.width = function () {
-    /* TODO: dynamically determine the width of the label panel
-    if (me.content && typeof me.content.getLabelsWidth === 'function') {
-      return me.content.getLabelsWidth();
+  var labelOptions = util.extend(Object.create(this.options), {
+    top: '0',
+    bottom: null,
+    left: '0',
+    rigth: null,
+    height: null,
+    width: function () {
+      /* TODO: dynamically determine the width of the label panel
+       if (me.content && typeof me.content.getLabelsWidth === 'function') {
+       return me.content.getLabelsWidth();
+       }
+       else {
+       return 0;
+       }
+       */
+      return 200;
     }
-    else {
-      return 0;
-    }
-    */
-    return 200;
-  };
+  });
   this.labelPanel = new Panel(labelOptions);
   this.rootPanel.appendChild(this.labelPanel);
 
   // main panel (contains time axis and itemsets)
-  var mainOptions = Object.create(this.options);
-  mainOptions.top = '0';
-  mainOptions.bottom = null;
-  mainOptions.left = null;
-  mainOptions.right = '0';
-  mainOptions.height = '100%';
-  mainOptions.width = function () {
-    return me.rootPanel.width - me.labelPanel.width;
-  };
+  var mainOptions = util.extend(Object.create(this.options), {
+    top: '0',
+    bottom: null,
+    left: null,
+    right: '0',
+    height: '100%',
+    width: function () {
+      return me.rootPanel.width - me.labelPanel.width;
+    }
+  });
   this.mainPanel = new Panel(mainOptions);
   this.rootPanel.appendChild(this.mainPanel);
 
@@ -132,27 +133,31 @@ function Timeline (container, items, options) {
   });
 
   // panel with time axis
-  var timeAxisOptions = Object.create(rootOptions);
-  timeAxisOptions.range = this.range;
-  timeAxisOptions.left = null;
-  timeAxisOptions.top = null;
-  timeAxisOptions.width = null;
-  timeAxisOptions.height = null;  // height is determined by the
+  var timeAxisOptions = util.extend(Object.create(rootOptions), {
+    range: this.range,
+    left: null,
+    top: null,
+    width: null,
+    height: null
+  });
   this.timeAxis = new TimeAxis(timeAxisOptions);
   this.timeAxis.setRange(this.range);
   this.options.snap = this.timeAxis.snap.bind(this.timeAxis);
   this.mainPanel.appendChild(this.timeAxis);
 
   // content panel (contains itemset(s))
-  var contentOptions = Object.create(this.options);
-  contentOptions.top = '0';
-  contentOptions.bottom = null;
-  contentOptions.left = '0';
-  contentOptions.right = null;
-  contentOptions.height = function () {
-    return me.mainPanel.height - me.timeAxis.height;
-  };
-  contentOptions.width = null;
+  var contentOptions = util.extend(Object.create(this.options), {
+    top: function () {
+      return (me.options.orientation == 'top') ? (me.timeAxis.height + 'px') : '';
+    },
+    bottom: function () {
+      return (me.options.orientation == 'top') ? '' : (me.timeAxis.height + 'px');
+    },
+    left: null,
+    right: null,
+    height: null,
+    width: null
+  });
   this.contentPanel = new Panel(contentOptions);
   this.mainPanel.appendChild(this.contentPanel);
 
@@ -169,6 +174,9 @@ function Timeline (container, items, options) {
   this.customTime.on('timechanged', function (time) {
     me.emit('timechanged', time);
   });
+
+  this.itemSet = null;
+  this.groupSet = null;
 
   // create groupset
   this.setGroups(null);
@@ -220,7 +228,6 @@ Timeline.prototype.setOptions = function (options) {
   }).bind(this);
   ['onAdd', 'onUpdate', 'onRemove', 'onMove'].forEach(validateCallback);
 
-  //this.controller.reflow(); // TODO: remove
   this.rootPanel.repaint();
 };
 
@@ -275,9 +282,7 @@ Timeline.prototype.setItems = function(items) {
 
   // set items
   this.itemsData = newDataSet;
-  /* TODO
-  this.content.setItems(newDataSet);
-  */
+  (this.itemSet || this.groupSet).setItems(newDataSet);
 
   if (initialLoad && (this.options.start == undefined || this.options.end == undefined)) {
     // apply the data range as range
@@ -319,71 +324,48 @@ Timeline.prototype.setGroups = function(groups) {
   var me = this;
   this.groupsData = groups;
 
-  // switch content type between ItemSet or GroupSet when needed
-  var Type = this.groupsData ? GroupSet : ItemSet;
-  if (!(this.content instanceof Type)) {
-    // remove old content set
-    if (this.content) {
-      this.content.hide();
-      if (this.content.setItems) {
-        this.content.setItems(); // disconnect from items
-      }
-      if (this.content.setGroups) {
-        this.content.setGroups(); // disconnect from groups
-      }
-      //this.controller.remove(this.content); // TODO: cleanup
+  // create options for the itemset or groupset
+  var options = util.extend(Object.create(this.options), {
+    top: function () {
+      return (me.options.orientation == 'top') ? '0' : '';
+    },
+    bottom: function () {
+      return (me.options.orientation == 'top') ? '' : '0px';
+    },
+    right: null,
+    left: null,
+    width: null,
+    height: null
+  });
+
+  if (this.groupsData) {
+    // GroupSet
+    if (this.itemSet) {
+      this.itemSet.hide(); // TODO: not so nice having to hide here
+      this.contentPanel.removeChild(this.itemSet);
+      this.itemSet.setItems(); // disconnect from items
     }
 
-    // create new content set
-    var options = Object.create(this.options);
-    util.extend(options, {
-      top: function () {
-        return (me.options.orientation == 'top') ? (me.timeaxis.height + 'px') : '';
-      },
-      bottom: function () {
-        return (me.options.orientation == 'top') ? '' : (me.timeaxis.height + 'px');
-      },
-      left: null,
-      width: '100%',
-      height: function () {
-        if (me.options.height) {
-          // fixed height
-          return me.itemPanel.height - me.timeaxis.height;
-        }
-        else {
-          // auto height
-          return null;
-        }
-      },
-      maxHeight: function () {
-        // TODO: change maxHeight to be a css string like '100%' or '300px'
-        if (me.options.maxHeight) {
-          if (!util.isNumber(me.options.maxHeight)) {
-            throw new TypeError('Number expected for property maxHeight');
-          }
-          return me.options.maxHeight - me.timeaxis.height;
-        }
-        else {
-          return null;
-        }
-      },
-      labelContainer: function () {
-        return me.labelPanel.getContainer();
-      }
-    });
+    // create new GroupSet
+    this.groupSet = new GroupSet(this.labelPanel, options);
+    this.groupSet.setRange(this.range);
+    this.groupSet.setItems(this.itemsData);
+    this.groupSet.setGroups(this.groupsData);
+    this.contentPanel.appendChild(this.groupSet);
+  }
+  else {
+    // ItemSet
+    if (this.groupSet) {
+      this.groupSet.hide(); // TODO: not so nice having to hide here
+      this.contentPanel.removeChild(this.groupSet);
+      this.groupSet.setItems(); // disconnect from items
+    }
 
-    /* TODO
-    this.content = new Type(this.itemPanel, [this.timeaxis], options);
-    if (this.content.setRange) {
-      this.content.setRange(this.range);
-    }
-    if (this.content.setItems) {
-      this.content.setItems(this.itemsData);
-    }
-    if (this.content.setGroups) {
-      this.content.setGroups(this.groupsData);
-    }
-    */
+    // create new items
+    this.itemSet = new ItemSet(options);
+    this.itemSet.setRange(this.range);
+    this.itemSet.setItems(this.itemsData);
+    this.contentPanel.appendChild(this.itemSet);
   }
 };
 
@@ -434,7 +416,9 @@ Timeline.prototype.getItemRange = function getItemRange() {
  *                      unselected.
  */
 Timeline.prototype.setSelection = function setSelection (ids) {
-  if (this.content) this.content.setSelection(ids);
+  var itemOrGroupSet = (this.itemSet || this.groupSet);
+
+  if (itemOrGroupSet) itemOrGroupSet.setSelection(ids);
 };
 
 /**
@@ -442,7 +426,9 @@ Timeline.prototype.setSelection = function setSelection (ids) {
  * @return {Array} ids  The ids of the selected items
  */
 Timeline.prototype.getSelection = function getSelection() {
-  return this.content ? this.content.getSelection() : [];
+  var itemOrGroupSet = (this.itemSet || this.groupSet);
+
+  if (itemOrGroupSet) itemOrGroupSet.getSelection() || [];
 };
 
 /**
@@ -523,7 +509,7 @@ Timeline.prototype._onAddItem = function (event) {
     var xAbs = vis.util.getAbsoluteLeft(this.rootPanel.frame);
     var x = event.gesture.center.pageX - xAbs;
     var newItem = {
-      start: this.timeaxis.snap(this._toTime(x)),
+      start: this.timeAxis.snap(this._toTime(x)),
       content: 'new item'
     };
 

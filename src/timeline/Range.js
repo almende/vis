@@ -16,41 +16,21 @@ function Range(root, parent, options) {
   this.parent = parent;
   this.options = options || {};
 
-  // drag start listener
-  var me = this;
-  this.root.on('dragstart', function (event) {
-    me._onDragStart(event, parent);
-  });
-
-  // drag listener
-  this.root.on('drag', function (event) {
-    me._onDrag(event, parent);
-  });
-
-  // drag end listener
-  this.root.on('dragend', function (event) {
-    me._onDragEnd(event);
-  });
+  // drag listeners for draggign
+  this.root.on('dragstart', this._onDragStart.bind(this));
+  this.root.on('drag',      this._onDrag.bind(this));
+  this.root.on('dragend',   this._onDragEnd.bind(this));
 
   // ignore dragging when holding
-  this.root.on('hold', function (event) {
-    me._onHold();
-  });
+  this.root.on('hold', this._onHold.bind(this));
 
-  // mouse wheel
-  function mousewheel (event) {
-    me._onMouseWheel(event, parent);
-  }
-  this.root.on('mousewheel', mousewheel);
-  this.root.on('DOMMouseScroll', mousewheel); // For FF
+  // mouse wheel for zooming
+  this.root.on('mousewheel',      this._onMouseWheel.bind(this));
+  this.root.on('DOMMouseScroll',  this._onMouseWheel.bind(this)); // For FF
 
-  // pinch
-  this.root.on('touch', function (event) {
-    me._onTouch(event);
-  });
-  this.root.on('pinch', function (event) {
-    me._onPinch(event);
-  });
+  // pinch to zoom
+  this.root.on('touch', this._onTouch.bind(this));
+  this.root.on('pinch', this._onPinch.bind(this));
 
   this.setOptions(options);
 }

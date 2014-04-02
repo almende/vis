@@ -2,19 +2,14 @@
  * An ItemSet holds a set of items and ranges which can be displayed in a
  * range. The width is determined by the parent of the ItemSet, and the height
  * is determined by the size of the items.
- * @param {Component} parent
- * @param {Component[]} [depends]   Components on which this components depends
- *                                  (except for the parent)
  * @param {Object} [options]        See ItemSet.setOptions for the available
  *                                  options.
  * @constructor ItemSet
  * @extends Panel
  */
 // TODO: improve performance by replacing all Array.forEach with a for loop
-function ItemSet(parent, depends, options) {
+function ItemSet(options) {
   this.id = util.randomUUID();
-  this.parent = parent;
-  this.depends = depends;
 
   // event listeners
   this.eventListeners = {
@@ -208,6 +203,7 @@ ItemSet.prototype._deselect = function _deselect(id) {
  */
 ItemSet.prototype.repaint = function repaint() {
   var asSize = util.option.asSize,
+      asString = util.option.asString,
       asNumber = util.option.asNumber,
       options = this.options,
       orientation = this.getOption('orientation'),
@@ -217,13 +213,12 @@ ItemSet.prototype.repaint = function repaint() {
 
   if (!frame) {
     frame = document.createElement('div');
-    frame.className = 'itemset';
     frame['timeline-itemset'] = this;
+    this.frame = frame;
 
-    var className = options.className;
-    if (className) {
-      util.addClassName(frame, util.option.asString(className));
-    }
+    if (!this.parent) throw new Error('Cannot repaint itemset: no parent attached');
+    var parentContainer = this.parent.getContainer();
+    if (!parentContainer) throw new Error('Cannot repaint itemset: parent has no container element');
 
     // create background panel
     var background = document.createElement('div');
@@ -243,22 +238,12 @@ ItemSet.prototype.repaint = function repaint() {
     //frame.appendChild(axis);
     this.dom.axis = axis;
 
-    this.frame = frame;
-  }
-
-  if (!this.parent) {
-    throw new Error('Cannot repaint itemset: no parent attached');
-  }
-  var parentContainer = this.parent.getContainer();
-  if (!parentContainer) {
-    throw new Error('Cannot repaint itemset: parent has no container element');
-  }
-  if (!frame.parentNode) {
     parentContainer.appendChild(frame);
-  }
-  if (!this.dom.axis.parentNode) {
     parentContainer.appendChild(this.dom.axis);
   }
+
+  // update className
+  frame.className = 'itemset' + (options.className ? (' ' + asString(options.className)) : '');
 
   // check whether zoomed (in that case we need to re-stack everything)
   var visibleInterval = this.range.end - this.range.start;
@@ -360,12 +345,6 @@ ItemSet.prototype.repaint = function repaint() {
     else {
       height = marginAxis + marginItem;
     }
-  }
-
-  // FIXME: right now maxHeight is only usable when fixedHeight == false
-  var maxHeight = asNumber(options.maxHeight);
-  if (maxHeight != null) {
-    height = Math.min(height, maxHeight);
   }
 
   // reposition frame

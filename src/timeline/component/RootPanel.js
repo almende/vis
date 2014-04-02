@@ -90,6 +90,7 @@ RootPanel.prototype.repaint = function () {
   this._repaintChilds();
 
   // update frame size
+  this.frame.style.maxHeight = util.option.asSize(this.options.maxHeight, '');
   this._updateSize();
 };
 

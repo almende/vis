@@ -47,7 +47,7 @@ ContentPanel.prototype.getContainer = function () {
  * Repaint the component
  */
 ContentPanel.prototype.repaint = function () {
-  var asSize = util.option.asSize,
+  var asString = util.option.asString,
       options = this.options,
       frame = this.frame;
 
@@ -63,7 +63,7 @@ ContentPanel.prototype.repaint = function () {
   }
 
   // update className
-  frame.className = 'content-panel' + (options.className ? (' ' + asSize(options.className)) : '');
+  frame.className = 'content-panel' + (options.className ? (' ' + asString(options.className)) : '');
 
   // update frame size
   this._updateSize();

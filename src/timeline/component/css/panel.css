@@ -6,6 +6,9 @@
   border: 1px solid #bfbfbf;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
+
+  -webkit-transition: height .4s ease-in-out;
+  transition:         height .4s ease-in-out;
 }
 
 .vis.timeline .vpanel {

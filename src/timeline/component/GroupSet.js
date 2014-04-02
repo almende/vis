@@ -263,8 +263,7 @@ GroupSet.prototype.repaint = function repaint() {
           if (!group) {
             var groupOptions = Object.create(me.options);
             util.extend(groupOptions, {
-              height: null,
-              maxHeight: null
+              height: null
             });
 
             group = new Group(me, id, groupOptions);
@@ -362,12 +361,6 @@ GroupSet.prototype.repaint = function repaint() {
         height += group.height;
       }
     }
-  }
-
-  // FIXME: right now maxHeight is only usable when fixedHeight == false
-  var maxHeight = util.option.asNumber(options.maxHeight);
-  if (maxHeight != null) {
-    height = Math.min(height, maxHeight);
   }
 
   // reposition frame
