@@ -34,6 +34,9 @@
 
   -moz-box-sizing: border-box;
   box-sizing: border-box;
+
+  -webkit-transition: height .4s ease-in-out;
+  transition:         height .4s ease-in-out;
 }
 
 .vis.timeline .labels .label-set .vlabel {
@@ -45,6 +48,9 @@
 
   -moz-box-sizing: border-box;
   box-sizing: border-box;
+
+  -webkit-transition: top .4s ease-in-out, height .4s ease-in-out;
+  transition:         top .4s ease-in-out, height .4s ease-in-out;
 }
 
 .vis.timeline.top .labels .label-set .vlabel,

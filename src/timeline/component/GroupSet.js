@@ -223,35 +223,24 @@ GroupSet.prototype.repaint = function repaint() {
     var parentContainer = this.parent.getContainer();
     if (!parentContainer) throw new Error('Cannot repaint GroupSet: parent has no container element');
     parentContainer.appendChild(frame);
-  }
 
-  // update classname
-  frame.className = 'groupset' + (options.className ? (' ' + asString(options.className)) : '');
+    // create labels
+    var labelContainer = this.labelPanel.getContainer();
+    if (!labelContainer) throw new Error('Cannot repaint groupset: option "labelContainer" not defined');
 
-  /* TODO: labels
-  // create labels
-  var labelContainer = asElement(options.labelContainer);
-  if (!labelContainer) {
-    throw new Error('Cannot repaint groupset: option "labelContainer" not defined');
-  }
-  if (!labels) {
     labels = document.createElement('div');
     labels.className = 'labels';
+    labelContainer.appendChild(labels);
     this.dom.labels = labels;
-  }
-  if (!labelSet) {
+
     labelSet = document.createElement('div');
     labelSet.className = 'label-set';
     labels.appendChild(labelSet);
     this.dom.labelSet = labelSet;
   }
-  if (!labels.parentNode || labels.parentNode != labelContainer) {
-    if (labels.parentNode) {
-      labels.parentNode.removeChild(labels.parentNode);
-    }
-    labelContainer.appendChild(labels);
-  }
-  */
+
+  // update classname
+  frame.className = 'groupset' + (options.className ? (' ' + asString(options.className)) : '');
 
   var me = this,
       queue = this.queue,
@@ -302,9 +291,6 @@ GroupSet.prototype.repaint = function repaint() {
       }
     });
 
-    // the groupset depends on each of the groups
-    //this.depends = this.groups; // TODO: gives a circular reference through the parent
-
     // update the top positions of the groups in the correct order
     var orderedGroups = this.groupsData.getIds({
       order: this.options.groupOrder
@@ -323,7 +309,6 @@ GroupSet.prototype.repaint = function repaint() {
       })(groups[orderedGroups[i]], groups[orderedGroups[i - 1]]);
     }
 
-    /* TODO
     // (re)create the labels
     while (labelSet.firstChild) {
       labelSet.removeChild(labelSet.firstChild);
@@ -333,7 +318,6 @@ GroupSet.prototype.repaint = function repaint() {
       label = this._createLabel(id);
       labelSet.appendChild(label);
     }
-    */
   }
 
   // repaint all groups
@@ -389,11 +373,9 @@ GroupSet.prototype.repaint = function repaint() {
   this.width = frame.offsetWidth;
   this.height = frame.offsetHeight;
 
-  /* TODO
   // reposition labels
   labelSet.style.top = asSize(options.top, '0');
   labelSet.style.height = fixedHeight ? asSize(options.height) : this.height + 'px';
-  */
 };
 
 /**
@@ -446,15 +428,16 @@ GroupSet.prototype.getLabelsWidth = function getContainer() {
 
 /**
  * Hide the component from the DOM
- * @return {Boolean} changed
  */
 GroupSet.prototype.hide = function hide() {
-  if (this.dom.frame && this.dom.frame.parentNode) {
-    this.dom.frame.parentNode.removeChild(this.dom.frame);
-    return true;
+  var frame = this.dom.frame;
+  if (frame && frame.parentNode) {
+    frame.parentNode.removeChild(frame);
   }
-  else {
-    return false;
+
+  var labels = this.dom.labels;
+  if (labels && labels.parentNode) {
+    labels.parentNode.removeChild(labels.parentNode);
   }
 };
 

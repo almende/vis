@@ -85,17 +85,14 @@ function Timeline (container, items, options) {
     bottom: null,
     left: '0',
     rigth: null,
-    height: null,
+    height: '100%',
     width: function () {
-      /* TODO: dynamically determine the width of the label panel
-       if (me.content && typeof me.content.getLabelsWidth === 'function') {
-       return me.content.getLabelsWidth();
-       }
-       else {
-       return 0;
-       }
-       */
-      return 200;
+      if (me.groupSet) {
+        return me.groupSet.getLabelsWidth();
+      }
+      else {
+        return 0;
+      }
     }
   });
   this.labelPanel = new Panel(labelOptions);

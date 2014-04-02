@@ -119,7 +119,7 @@ RootPanel.prototype._watch = function () {
         me.lastWidth = me.frame.clientWidth;
         me.lastHeight = me.frame.clientHeight;
         me.repaint();
-        // TODO: emit a resize event
+        // TODO: emit a resize event instead?
       }
     }
   };
