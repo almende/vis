@@ -34,8 +34,8 @@
   margin: 0;
 
   border-right: 1px solid #bfbfbf;
-  box-sizing: border-box;
   -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 .vis.timeline .labels .label-set {
@@ -158,6 +158,7 @@
   border-width: 1px;
   border-radius: 2px;
   -moz-border-radius: 2px;  /* For Firefox 3.6 and older */
+  -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
 
