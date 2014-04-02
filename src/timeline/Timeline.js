@@ -130,14 +130,12 @@ function Timeline (container, items, options) {
       now.clone().add('days', -3).valueOf(),
       now.clone().add('days', 4).valueOf()
   );
-  /* TODO
   this.range.on('rangechange', function (properties) {
-    me.controller.emit('rangechange', properties);
+    me.emitter.emit('rangechange', properties);
   });
   this.range.on('rangechanged', function (properties) {
-    me.controller.emit('rangechanged', properties);
+    me.emitter.emit('rangechanged', properties);
   });
-  */
 
   // panel with time axis
   var timeAxisOptions = Object.create(rootOptions);

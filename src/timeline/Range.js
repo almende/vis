@@ -16,6 +16,8 @@ function Range(parent, emitter, options) {
   this.emitter = emitter;
   this.options = options || {};
 
+  // TODO: not so nice having to specify an emitter (different from parent) where to subscribe for events
+
   // drag start listener
   var me = this;
   emitter.on('dragstart', function (event) {
@@ -54,6 +56,9 @@ function Range(parent, emitter, options) {
 
   this.setOptions(options);
 }
+
+
+Emitter(Range.prototype);
 
 /**
  * Set options for the range controller
@@ -94,11 +99,11 @@ Range.prototype.setRange = function(start, end) {
   var changed = this._applyRange(start, end);
   if (changed) {
     var params = {
-          start: this.start,
-          end: this.end
+      start: new Date(this.start),
+      end: new Date(this.end)
     };
-    this.emitter.emit('rangechange', params);
-    this.emitter.emit('rangechanged', params);
+    this.emit('rangechange', params);
+    this.emit('rangechanged', params);
   }
 };
 
@@ -304,9 +309,9 @@ Range.prototype._onDrag = function (event) {
 
   this._applyRange(touchParams.start + diffRange, touchParams.end + diffRange);
 
-  this.emitter.emit('rangechange', {
-    start: this.start,
-    end: this.end
+  this.emit('rangechange', {
+    start: new Date(this.start),
+    end:   new Date(this.end)
   });
 };
 
@@ -327,9 +332,9 @@ Range.prototype._onDragEnd = function (event) {
   }
 
   // fire a rangechanged event
-  this.emitter.emit('rangechanged', {
-    start: this.start,
-    end: this.end
+  this.emit('rangechanged', {
+    start: new Date(this.start),
+    end:   new Date(this.end)
   });
 };
 
