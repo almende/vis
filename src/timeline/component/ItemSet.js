@@ -45,6 +45,7 @@ function ItemSet(options) {
   this.selection = [];  // list with the ids of all selected nodes
   this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
   this.stack = new Stack(Object.create(this.options));
+  this.stackDirty = true; // If true, on the next repaint the cached stacking is cleared and stacking is redone
   this.conversion = null;
 
   this.touchParams = {}; // stores properties while dragging
@@ -220,8 +221,9 @@ ItemSet.prototype.repaint = function repaint() {
 
   // check whether zoomed (in that case we need to re-stack everything)
   var visibleInterval = this.range.end - this.range.start;
-  var zoomed = this.visibleInterval != visibleInterval;
+  var zoomed = (this.visibleInterval != visibleInterval);
   this.visibleInterval = visibleInterval;
+  this.stackDirty = this.stackDirty || zoomed;
 
   /* TODO: implement+fix smarter way to update visible items
   // find the first visible item
@@ -277,7 +279,7 @@ ItemSet.prototype.repaint = function repaint() {
         if (!item.displayed) item.show();
 
         // reset stacking position
-        if (zoomed) item.top = null;
+        if (this.stackDirty) item.top = null;
 
         // reposition item horizontally
         item.repositionX();
@@ -675,7 +677,8 @@ ItemSet.prototype._onDrag = function (event) {
 
     // TODO: implement dragging from one group to another
 
-    this.repaint();
+    this.stackDirty = true;
+    this.repaint(); // TODO: must repaint the rootPanel instead
 
     event.stopPropagation();
   }
@@ -718,6 +721,7 @@ ItemSet.prototype._onDragEnd = function (event) {
             // restore original values
             if ('start' in props) props.item.data.start = props.start;
             if ('end' in props)   props.item.data.end   = props.end;
+            me.stackDirty = true;
             me.repaint();
           }
         });

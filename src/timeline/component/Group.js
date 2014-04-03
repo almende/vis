@@ -116,7 +116,6 @@ Group.prototype.getSelection = function getSelection() {
  * @return {Boolean} changed
  */
 Group.prototype.repaint = function repaint() {
-  console.log('repaint group', this.groupId);
   this.itemSet.repaint();
 
   this.top    = this.itemSet ? this.itemSet.top : 0;
