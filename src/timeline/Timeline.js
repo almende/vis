@@ -83,8 +83,12 @@ function Timeline (container, items, options) {
 
   // label panel
   var labelOptions = util.extend(Object.create(this.options), {
-    top: null,
-    bottom: null,
+    top: function () {
+      return (labelOptions.orientation == 'top') ? '0' : '';
+    },
+    bottom: function () {
+      return (labelOptions.orientation == 'top') ? '' : '0';
+    },
     left: '0',
     right: null,
     height: '100%',
@@ -103,8 +107,12 @@ function Timeline (container, items, options) {
 
   // main panel (contains time axis and itemsets)
   var mainOptions = util.extend(Object.create(this.options), {
-    top: null,
-    bottom: null,
+    top: function () {
+      return (mainOptions.orientation == 'top') ? '0' : '';
+    },
+    bottom: function () {
+      return (mainOptions.orientation == 'top') ? '' : '0';
+    },
     left: null,
     right: '0',
     height: '100%',
