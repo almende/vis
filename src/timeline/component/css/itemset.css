@@ -5,9 +5,9 @@
   margin: 0;
 
   /* FIXME: get transoition working for rootpanel and itemset
-  -webkit-transition: height .4s ease-in-out;
-  transition:         height .4s ease-in-out;
-  */
+  -webkit-transition: height 4s ease-in-out;
+  transition:         height 4s ease-in-out;
+  /**/
 }
 
 .vis.timeline .background {

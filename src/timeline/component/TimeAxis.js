@@ -244,12 +244,12 @@ TimeAxis.prototype._repaintMinorText = function (x, text, orientation) {
   label.childNodes[0].nodeValue = text;
 
   if (orientation == 'top') {
-    label.style.top = this.props.minorLabelHeight + 'px';
+    label.style.top = this.props.majorLabelHeight + 'px';
     label.style.bottom = '';
   }
   else {
     label.style.top = '';
-    label.style.bottom = this.props.minorLabelHeight + 'px';
+    label.style.bottom = this.props.majorLabelHeight + 'px';
   }
   label.style.left = x + 'px';
   //label.title = title;  // TODO: this is a heavy operation
@@ -310,12 +310,12 @@ TimeAxis.prototype._repaintMinorLine = function (x, orientation) {
 
   var props = this.props;
   if (orientation == 'top') {
-    line.style.top = this.props.minorLabelHeight + 'px';
+    line.style.top = this.props.majorLabelHeight + 'px';
     line.style.bottom = '';
   }
   else {
     line.style.top = '';
-    line.style.bottom = this.props.minorLabelHeight + 'px';
+    line.style.bottom = this.props.majorLabelHeight + 'px';
   }
   line.style.height = props.minorLineHeight + 'px';
   line.style.left = (x - props.minorLineWidth / 2) + 'px';
@@ -387,8 +387,8 @@ TimeAxis.prototype._repaintLine = function() {
     }
   }
   else {
-    if (line && line.parentElement) {
-      frame.removeChild(line.line);
+    if (line && line.parentNode) {
+      line.parentNode.removeChild(line);
       delete this.dom.line;
     }
   }

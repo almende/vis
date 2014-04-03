@@ -8,9 +8,9 @@
   box-sizing: border-box;
 
   /* FIXME: there is an issue with the height of the items when panel height is animated
-  -webkit-transition: height .4s ease-in-out;
-  transition:         height .4s ease-in-out;
-  */
+  -webkit-transition: height 4s ease-in-out;
+  transition:         height 4s ease-in-out;
+  /**/
 }
 
 .vis.timeline .vpanel {
@@ -18,4 +18,8 @@
 
   -moz-box-sizing: border-box;
   box-sizing: border-box;
+}
+
+.vis.timeline .vpanel {
+  overflow: hidden;
 }
