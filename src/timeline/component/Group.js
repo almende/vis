@@ -76,6 +76,13 @@ Group.prototype.setItems = function setItems(items) {
 };
 
 /**
+ * hide the group, detach from DOM if needed
+ */
+Group.prototype.hide = function hide() {
+  if (this.itemSet) this.itemSet.hide();
+};
+
+/**
  * Set range (start and end).
  * @param {Range | Object} range  A Range or an object containing start and end.
  */
@@ -109,6 +116,7 @@ Group.prototype.getSelection = function getSelection() {
  * @return {Boolean} changed
  */
 Group.prototype.repaint = function repaint() {
+  console.log('repaint group', this.groupId);
   this.itemSet.repaint();
 
   this.top    = this.itemSet ? this.itemSet.top : 0;

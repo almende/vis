@@ -17,6 +17,7 @@ function GroupSet(labelPanel, options) {
   this.groupsData = null; // DataSet with groups
 
   this.groups = {};       // map with groups
+  this.groupIds = [];     // list with ordered group ids
 
   this.dom = {};
   this.props = {
@@ -288,28 +289,25 @@ GroupSet.prototype.repaint = function repaint() {
     });
 
     // reorder the groups
-    var orderedGroups = this.groupsData.getIds({
+    this.groupIds = this.groupsData.getIds({
       order: this.options.groupOrder
     });
-    // TODO: apply order to the DOM
 
     // (re)create the labels
     while (labelSet.firstChild) {
       labelSet.removeChild(labelSet.firstChild);
     }
-    for (i = 0; i < orderedGroups.length; i++) {
-      id = orderedGroups[i];
+    for (i = 0; i < this.groupIds.length; i++) {
+      id = this.groupIds[i];
       label = this._createLabel(id);
       labelSet.appendChild(label);
     }
   }
 
-  // repaint all groups
-  for (id in groups) {
-    if (groups.hasOwnProperty(id)) {
-      group = groups[id].repaint();
-    }
-  }
+  // repaint all groups in order
+  this.groupIds.forEach(function (id) {
+    group = groups[id].repaint();
+  });
 
   // reposition the labels and calculate the maximum label width
   // TODO: labels are not displayed correctly when orientation=='top'

@@ -175,13 +175,8 @@ ItemSet.prototype.repaint = function repaint() {
   this._updateConversion();
 
   if (!frame) {
-    if (!this.parent) throw new Error('Cannot repaint itemset: no parent attached');
-    var parentContainer = this.parent.getContainer();
-    if (!parentContainer) throw new Error('Cannot repaint itemset: parent has no container element');
-
     frame = document.createElement('div');
     frame['timeline-itemset'] = this;
-    parentContainer.appendChild(frame);
     this.frame = frame;
 
     // create background panel
@@ -210,6 +205,14 @@ ItemSet.prototype.repaint = function repaint() {
     this.hammer.on('dragstart', this._onDragStart.bind(this));
     this.hammer.on('drag',      this._onDrag.bind(this));
     this.hammer.on('dragend',   this._onDragEnd.bind(this));
+  }
+
+  if (!frame.parentNode) {
+    if (!this.parent) throw new Error('Cannot repaint itemset: no parent attached');
+    var parentContainer = this.parent.getContainer();
+    if (!parentContainer) throw new Error('Cannot repaint itemset: parent has no container element');
+
+    parentContainer.appendChild(frame);
   }
 
   // update className
@@ -371,9 +374,11 @@ ItemSet.prototype.hide = function hide() {
   if (this.frame && this.frame.parentNode) {
     this.frame.parentNode.removeChild(this.frame);
   }
+  /* TODO: cleanup
   if (this.dom.axis && this.dom.axis.parentNode) {
     this.dom.axis.parentNode.removeChild(this.dom.axis);
   }
+  */
 };
 
 /**
