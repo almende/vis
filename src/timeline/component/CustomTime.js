@@ -118,6 +118,7 @@ CustomTime.prototype.getCustomTime = function() {
  * @private
  */
 CustomTime.prototype._onDragStart = function(event) {
+  this.eventParams.dragging = true;
   this.eventParams.customTime = this.customTime;
 
   event.stopPropagation();
@@ -130,6 +131,8 @@ CustomTime.prototype._onDragStart = function(event) {
  * @private
  */
 CustomTime.prototype._onDrag = function (event) {
+  if (!this.eventParams.dragging) return;
+
   var deltaX = event.gesture.deltaX,
       x = this.options.toScreen(this.eventParams.customTime) + deltaX,
       time = this.options.toTime(x);
@@ -151,6 +154,8 @@ CustomTime.prototype._onDrag = function (event) {
  * @private
  */
 CustomTime.prototype._onDragEnd = function (event) {
+  if (!this.eventParams.dragging) return;
+
   // fire a timechanged event
   this.emit('timechanged', {
     time: new Date(this.customTime.valueOf())

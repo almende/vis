@@ -427,7 +427,7 @@ Timeline.prototype.setSelection = function setSelection (ids) {
 Timeline.prototype.getSelection = function getSelection() {
   var itemOrGroupSet = (this.itemSet || this.groupSet);
 
-  if (itemOrGroupSet) itemOrGroupSet.getSelection() || [];
+  return itemOrGroupSet ? itemOrGroupSet.getSelection() : [];
 };
 
 /**
@@ -556,7 +556,7 @@ Timeline.prototype._onMultiSelectItem = function (event) {
     }
     this.setSelection(selection);
 
-    this.emitter.emit('select', {
+    this.emit('select', {
       items: this.getSelection()
     });
 

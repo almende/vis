@@ -16,7 +16,7 @@ function Range(root, parent, options) {
   this.parent = parent;
   this.options = options || {};
 
-  // drag listeners for draggign
+  // drag listeners for dragging
   this.root.on('dragstart', this._onDragStart.bind(this));
   this.root.on('drag',      this._onDrag.bind(this));
   this.root.on('dragend',   this._onDragEnd.bind(this));

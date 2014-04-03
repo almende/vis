@@ -11,17 +11,11 @@
 function ItemSet(options) {
   this.id = util.randomUUID();
 
-  // event listeners
-  this.eventListeners = {
-    dragstart: this._onDragStart.bind(this),
-    drag: this._onDrag.bind(this),
-    dragend: this._onDragEnd.bind(this)
-  };
-
   // one options object is shared by this itemset and all its items
   this.options = options || {};
   this.itemOptions = Object.create(this.options);
   this.dom = {};
+  this.hammer = null;
 
   var me = this;
   this.itemsData = null;  // DataSet
@@ -97,36 +91,6 @@ ItemSet.types = {
  *                              dragging items.
  */
 ItemSet.prototype.setOptions = Component.prototype.setOptions;
-
-
-
-/**
- * Set controller for this component
- * @param {Controller | null} controller
- */
-ItemSet.prototype.setController = function setController (controller) {
-  var event;
-
-  // unregister old event listeners
-  if (this.controller) {
-    for (event in this.eventListeners) {
-      if (this.eventListeners.hasOwnProperty(event)) {
-        this.controller.off(event, this.eventListeners[event]);
-      }
-    }
-  }
-
-  this.controller = controller || null;
-
-  // register new event listeners
-  if (this.controller) {
-    for (event in this.eventListeners) {
-      if (this.eventListeners.hasOwnProperty(event)) {
-        this.controller.on(event, this.eventListeners[event]);
-      }
-    }
-  }
-};
 
 /**
  * Set range (start and end).
@@ -204,7 +168,6 @@ ItemSet.prototype._deselect = function _deselect(id) {
 ItemSet.prototype.repaint = function repaint() {
   var asSize = util.option.asSize,
       asString = util.option.asString,
-      asNumber = util.option.asNumber,
       options = this.options,
       orientation = this.getOption('orientation'),
       frame = this.frame;
@@ -240,6 +203,15 @@ ItemSet.prototype.repaint = function repaint() {
 
     parentContainer.appendChild(frame);
     parentContainer.appendChild(this.dom.axis);
+
+    // attach event listeners
+    // TODO: use event listeners from the rootpanel to improve performance
+    this.hammer = Hammer(frame, {
+      prevent_default: true
+    });
+    this.hammer.on('dragstart', this._onDragStart.bind(this));
+    this.hammer.on('drag',      this._onDrag.bind(this));
+    this.hammer.on('dragend',   this._onDragEnd.bind(this));
   }
 
   // update className
