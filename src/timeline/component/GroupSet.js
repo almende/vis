@@ -205,7 +205,6 @@ GroupSet.prototype.repaint = function repaint() {
       update = util.updateProperty,
       asSize = util.option.asSize,
       asString = util.option.asString,
-      asElement = util.option.asElement,
       options = this.options,
       orientation = this.getOption('orientation'),
       frame = this.dom.frame,
@@ -238,9 +237,6 @@ GroupSet.prototype.repaint = function repaint() {
     labels.appendChild(labelSet);
     this.dom.labelSet = labelSet;
   }
-
-  // update classname
-  frame.className = 'groupset' + (options.className ? (' ' + asString(options.className)) : '');
 
   var me = this,
       queue = this.queue,
@@ -291,23 +287,11 @@ GroupSet.prototype.repaint = function repaint() {
       }
     });
 
-    // update the top positions of the groups in the correct order
+    // reorder the groups
     var orderedGroups = this.groupsData.getIds({
       order: this.options.groupOrder
     });
-    for (i = 0; i < orderedGroups.length; i++) {
-      (function (group, prevGroup) {
-        var top = 0;
-        if (prevGroup) {
-          top = function () {
-            return prevGroup.top + prevGroup.height;
-          }
-        }
-        group.setOptions({
-          top: top
-        });
-      })(groups[orderedGroups[i]], groups[orderedGroups[i - 1]]);
-    }
+    // TODO: apply order to the DOM
 
     // (re)create the labels
     while (labelSet.firstChild) {
@@ -361,17 +345,22 @@ GroupSet.prototype.repaint = function repaint() {
     }
   }
 
+  // update classname
+  frame.className = 'groupset' + (options.className ? (' ' + asString(options.className)) : '');
+
   // reposition frame
-  frame.style.height = asSize((options.height != null) ? options.height : height);
-  frame.style.top = asSize(options.top, '0');
-  frame.style.left = asSize(options.left, '0');
-  frame.style.width = asSize(options.width, '100%');
+  frame.style.top     = asSize((orientation == 'top') ? '0' : '');
+  frame.style.bottom  = asSize((orientation == 'top') ? '' : '0');
+  frame.style.left    = asSize(options.left, '');
+  frame.style.right   = asSize(options.right, '');
+  frame.style.width   = asSize(options.width, '100%');
+  frame.style.height  = asSize(height);
 
   // calculate actual size and position
   this.top = frame.offsetTop;
   this.left = frame.offsetLeft;
   this.width = frame.offsetWidth;
-  this.height = frame.offsetHeight;
+  this.height = height;
 
   // reposition labels
   labelSet.style.top = asSize(options.top, '0');

@@ -73,9 +73,6 @@ TimeAxis.prototype.repaint = function () {
   frame.className = 'axis';
   // TODO: custom className?
 
-  // update its size
-  this.width = frame.offsetWidth; // TODO: only update the width when the frame is resized
-
   if (!frame.parentNode) {
     if (!this.parent) {
       throw new Error('Cannot repaint time axis: no parent attached');
@@ -102,6 +99,8 @@ TimeAxis.prototype.repaint = function () {
     props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
     props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
     this.height = props.minorLabelHeight + props.majorLabelHeight;
+    this.width = frame.offsetWidth; // TODO: only update the width when the frame is resized?
+
     props.minorLineHeight = parentHeight + props.minorLabelHeight;
     props.minorLineWidth = 1; // TODO: really calculate width
     props.majorLineHeight = parentHeight + this.height;

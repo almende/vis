@@ -57,17 +57,19 @@ function Timeline (container, items, options) {
   };
 
   // root panel
-  var rootOptions = Object.create(this.options);
-  rootOptions.height = function () {
-    if (me.options.height) {
-      // fixed height
-      return me.options.height;
+  var rootOptions = util.extend(Object.create(this.options), {
+    height: function () {
+      if (me.options.height) {
+        // fixed height
+        return me.options.height;
+      }
+      else {
+        // auto height
+        // TODO: implement a css based solution to automatically have the right hight
+        return (me.timeAxis.height + me.contentPanel.height) + 'px';
+      }
     }
-    else {
-      // auto height
-      return (me.timeAxis.height + me.contentPanel.height) + 'px';
-    }
-  };
+  });
   this.rootPanel = new RootPanel(container, rootOptions);
 
   // single select (or unselect) when tapping an item
@@ -81,10 +83,10 @@ function Timeline (container, items, options) {
 
   // label panel
   var labelOptions = util.extend(Object.create(this.options), {
-    top: '0',
+    top: null,
     bottom: null,
     left: '0',
-    rigth: null,
+    right: null,
     height: '100%',
     width: function () {
       if (me.groupSet) {
@@ -93,21 +95,23 @@ function Timeline (container, items, options) {
       else {
         return 0;
       }
-    }
+    },
+    className: 'labels'
   });
   this.labelPanel = new Panel(labelOptions);
   this.rootPanel.appendChild(this.labelPanel);
 
   // main panel (contains time axis and itemsets)
   var mainOptions = util.extend(Object.create(this.options), {
-    top: '0',
+    top: null,
     bottom: null,
     left: null,
     right: '0',
     height: '100%',
     width: function () {
       return me.rootPanel.width - me.labelPanel.width;
-    }
+    },
+    className: 'main'
   });
   this.mainPanel = new Panel(mainOptions);
   this.rootPanel.appendChild(this.mainPanel);
@@ -153,7 +157,8 @@ function Timeline (container, items, options) {
     left: null,
     right: null,
     height: null,
-    width: null
+    width: null,
+    className: 'content'
   });
   this.contentPanel = new Panel(contentOptions);
   this.mainPanel.appendChild(this.contentPanel);
@@ -323,12 +328,8 @@ Timeline.prototype.setGroups = function(groups) {
 
   // create options for the itemset or groupset
   var options = util.extend(Object.create(this.options), {
-    top: function () {
-      return (me.options.orientation == 'top') ? '0' : '';
-    },
-    bottom: function () {
-      return (me.options.orientation == 'top') ? '' : '0px';
-    },
+    top: null,
+    bottom: null,
     right: null,
     left: null,
     width: null,

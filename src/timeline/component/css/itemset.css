@@ -1,9 +1,11 @@
 
 .vis.timeline .itemset {
-  position: absolute;
+  position: relative;
   padding: 0;
   margin: 0;
-  overflow: hidden;
+
+  -webkit-transition: height .4s ease-in-out;
+  transition:         height .4s ease-in-out;
 }
 
 .vis.timeline .background {
@@ -12,6 +14,6 @@
 .vis.timeline .foreground {
 }
 
-.vis.timeline .itemset-axis {
+.vis.timeline .axis {
   position: absolute;
 }

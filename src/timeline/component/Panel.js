@@ -118,18 +118,13 @@ Panel.prototype._repaintChilds = function () {
  * @private
  */
 Panel.prototype._updateSize = function () {
-  var height = 0;
-  for (var i = 0, ii = this.childs.length; i < ii; i++) {
-    height += this.childs[i].height;
-  }
-
   // apply size
   this.frame.style.top    = util.option.asSize(this.options.top);
   this.frame.style.bottom = util.option.asSize(this.options.bottom);
   this.frame.style.left   = util.option.asSize(this.options.left);
   this.frame.style.right  = util.option.asSize(this.options.right);
   this.frame.style.width  = util.option.asSize(this.options.width, '100%');
-  this.frame.style.height = util.option.asSize(this.options.height, height + 'px');
+  this.frame.style.height = util.option.asSize(this.options.height, '');
 
   // get actual size
   this.top    = this.frame.offsetTop;

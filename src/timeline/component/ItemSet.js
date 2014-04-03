@@ -175,13 +175,14 @@ ItemSet.prototype.repaint = function repaint() {
   this._updateConversion();
 
   if (!frame) {
-    frame = document.createElement('div');
-    frame['timeline-itemset'] = this;
-    this.frame = frame;
-
     if (!this.parent) throw new Error('Cannot repaint itemset: no parent attached');
     var parentContainer = this.parent.getContainer();
     if (!parentContainer) throw new Error('Cannot repaint itemset: parent has no container element');
+
+    frame = document.createElement('div');
+    frame['timeline-itemset'] = this;
+    parentContainer.appendChild(frame);
+    this.frame = frame;
 
     // create background panel
     var background = document.createElement('div');
@@ -197,12 +198,9 @@ ItemSet.prototype.repaint = function repaint() {
 
     // create axis panel
     var axis = document.createElement('div');
-    axis.className = 'itemset-axis';
-    //frame.appendChild(axis);
+    axis.className = 'axis';
     this.dom.axis = axis;
-
-    parentContainer.appendChild(frame);
-    parentContainer.appendChild(this.dom.axis);
+    frame.appendChild(axis);
 
     // attach event listeners
     // TODO: use event listeners from the rootpanel to improve performance
@@ -299,45 +297,44 @@ ItemSet.prototype.repaint = function repaint() {
   // recalculate the height of the itemset
   var marginAxis = (options.margin && 'axis' in options.margin) ? options.margin.axis : this.itemOptions.margin.axis,
       marginItem = (options.margin && 'item' in options.margin) ? options.margin.item : this.itemOptions.margin.item,
-      fixedHeight = (asSize(options.height) != null),
       height;
 
-  // height is not specified, determine the height from the height and positioned items
-  if (!fixedHeight) {
-    var visibleItems = this.visibleItems;
-    if (visibleItems.length) {
-      var min = visibleItems[0].top;
-      var max = visibleItems[0].top + visibleItems[0].height;
-      util.forEach(visibleItems, function (item) {
-        min = Math.min(min, item.top);
-        max = Math.max(max, (item.top + item.height));
-      });
-      height = (max - min) + marginAxis + marginItem;
-    }
-    else {
-      height = marginAxis + marginItem;
-    }
+  // determine the height from the stacked items
+  var visibleItems = this.visibleItems;
+  if (visibleItems.length) {
+    var min = visibleItems[0].top;
+    var max = visibleItems[0].top + visibleItems[0].height;
+    util.forEach(visibleItems, function (item) {
+      min = Math.min(min, item.top);
+      max = Math.max(max, (item.top + item.height));
+    });
+    height = (max - min) + marginAxis + marginItem;
+  }
+  else {
+    height = marginAxis + marginItem;
   }
 
   // reposition frame
-  frame.style.left    = asSize(options.left, '0');
-  frame.style.top     = asSize(options.top, '');
-  //frame.style.bottom  = asSize(options.bottom, '');
+  frame.style.left    = asSize(options.left, '');
+  frame.style.right   = asSize(options.right, '');
+  frame.style.top     = asSize((orientation == 'top') ? '0' : '');
+  frame.style.bottom  = asSize((orientation == 'top') ? '' : '0');
   frame.style.width   = asSize(options.width, '100%');
-  frame.style.height  = fixedHeight ? asSize(options.height) : height + 'px';
+  frame.style.height  = asSize(height);
 
   // calculate actual size and position
   this.top = frame.offsetTop;
   this.left = frame.offsetLeft;
   this.width = frame.offsetWidth;
-  this.height = fixedHeight ? frame.offsetHeight : height;
+  this.height = height;
 
   // reposition axis
   this.dom.axis.style.left   = asSize(options.left, '0');
+  this.dom.axis.style.right  = asSize(options.right, '');
   this.dom.axis.style.width  = asSize(options.width, '100%');
-  this.dom.axis.style.top    = (orientation == 'top' ? this.top : this.top + this.height) + 'px';
-  //this.dom.axis.style.top    = asSize(options.top, '');
-  //this.dom.axis.style.bottom = asSize(options.bottom, '');
+  this.dom.axis.style.height = asSize(0);
+  this.dom.axis.style.top    = (orientation == 'top') ? '0' : '';
+  this.dom.axis.style.bottom = (orientation == 'top') ? '' : '0';
 
   return false;
 };
