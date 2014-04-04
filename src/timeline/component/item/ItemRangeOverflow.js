@@ -29,8 +29,8 @@ ItemRangeOverflow.prototype.baseClassName = 'item rangeoverflow';
  */
 ItemRangeOverflow.prototype.repositionX = function repositionX() {
   var parentWidth = this.parent.width,
-      start = this.parent.toScreen(this.data.start),
-      end = this.parent.toScreen(this.data.end),
+      start = this.defaultOptions.toScreen(this.data.start),
+      end = this.defaultOptions.toScreen(this.data.end),
       padding = 'padding' in this.options ? this.options.padding : this.defaultOptions.padding,
       contentLeft;
 

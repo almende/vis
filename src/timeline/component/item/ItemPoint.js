@@ -163,7 +163,7 @@ ItemPoint.prototype.hide = function hide() {
  * @Override
  */
 ItemPoint.prototype.repositionX = function repositionX() {
-  var start = this.parent.toScreen(this.data.start);
+  var start = this.defaultOptions.toScreen(this.data.start);
 
   this.left = start - this.props.dot.width / 2;
 

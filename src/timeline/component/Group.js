@@ -64,8 +64,9 @@ Group.prototype.setItems = function setItems(items) {
     var itemSetOptions = Object.create(this.options);
     this.itemSet = new ItemSet(itemSetOptions);
     this.itemSet.on('change', this.emit.bind(this, 'change')); // propagate change event
-    if (this.range) this.itemSet.setRange(this.range);
     this.contentPanel.appendChild(this.itemSet);
+
+    if (this.range) this.itemSet.setRange(this.range);
 
     this.view = new DataView(items, {
       filter: function (item) {

@@ -46,7 +46,6 @@ function ItemSet(options) {
   this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
   this.stack = new Stack(Object.create(this.options));
   this.stackDirty = true; // if true, all items will be restacked on next repaint
-  this.conversion = null;
 
   this.touchParams = {}; // stores properties while dragging
 
@@ -173,8 +172,6 @@ ItemSet.prototype.repaint = function repaint() {
       options = this.options,
       orientation = this.getOption('orientation'),
       frame = this.frame;
-
-  this._updateConversion();
 
   if (!frame) {
     frame = document.createElement('div');
@@ -477,11 +474,6 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
       // update item
       if (!constructor || !(item instanceof constructor)) {
         // item type has changed, hide and delete the item
-        if (!('hide' in item)) {
-          console.log('item has no hide?!', item, Object.keys(items))
-          console.trace()
-        }
-
         item.hide();
         item = null;
       }
@@ -561,52 +553,6 @@ ItemSet.prototype._order = function _order() {
 };
 
 /**
- * Calculate the scale and offset to convert a position on screen to the
- * corresponding date and vice versa.
- * After the method _updateConversion is executed once, the methods toTime
- * and toScreen can be used.
- * @private
- */
-ItemSet.prototype._updateConversion = function _updateConversion() {
-  var range = this.range;
-  if (!range) {
-    throw new Error('No range configured');
-  }
-
-  if (range.conversion) {
-    this.conversion = range.conversion(this.width);
-  }
-  else {
-    this.conversion = Range.conversion(range.start, range.end, this.width);
-  }
-};
-
-/**
- * Convert a position on screen (pixels) to a datetime
- * Before this method can be used, the method _updateConversion must be
- * executed once.
- * @param {int}     x    Position on the screen in pixels
- * @return {Date}   time The datetime the corresponds with given position x
- */
-ItemSet.prototype.toTime = function toTime(x) {
-  var conversion = this.conversion;
-  return new Date(x / conversion.scale + conversion.offset);
-};
-
-/**
- * Convert a datetime (Date object) into a position on the screen
- * Before this method can be used, the method _updateConversion must be
- * executed once.
- * @param {Date}   time A date
- * @return {int}   x    The position on the screen in pixels which corresponds
- *                      with the given date.
- */
-ItemSet.prototype.toScreen = function toScreen(time) {
-  var conversion = this.conversion;
-  return (time.valueOf() - conversion.offset) * conversion.scale;
-};
-
-/**
  * Start dragging the selected events
  * @param {Event} event
  * @private
@@ -666,7 +612,8 @@ ItemSet.prototype._onDrag = function (event) {
   if (this.touchParams.itemProps) {
     var snap = this.options.snap || null,
         deltaX = event.gesture.deltaX,
-        offset = deltaX / this.conversion.scale;
+        scale = (this.width / (this.range.end - this.range.start)),
+        offset = deltaX / scale;
 
     // move
     this.touchParams.itemProps.forEach(function (props) {
