@@ -45,7 +45,6 @@ function ItemSet(options) {
   this.selection = [];  // list with the ids of all selected nodes
   this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
   this.stack = new Stack(Object.create(this.options));
-  this.stackDirty = true; // If true, on the next repaint the cached stacking is cleared and stacking is redone
   this.conversion = null;
 
   this.touchParams = {}; // stores properties while dragging
@@ -165,8 +164,11 @@ ItemSet.prototype._deselect = function _deselect(id) {
 
 /**
  * Repaint the component
+ * @param {boolean} [force=false] If true, all items will be re-stacked.
+ *                                If false (default), only items having a
+ *                                top===null will be re-stacked
  */
-ItemSet.prototype.repaint = function repaint() {
+ItemSet.prototype.repaint = function repaint(force) {
   var asSize = util.option.asSize,
       asString = util.option.asString,
       options = this.options,
@@ -223,7 +225,7 @@ ItemSet.prototype.repaint = function repaint() {
   var visibleInterval = this.range.end - this.range.start;
   var zoomed = (this.visibleInterval != visibleInterval);
   this.visibleInterval = visibleInterval;
-  this.stackDirty = this.stackDirty || zoomed;
+  force = force || zoomed;
 
   /* TODO: implement+fix smarter way to update visible items
   // find the first visible item
@@ -278,9 +280,6 @@ ItemSet.prototype.repaint = function repaint() {
       if (item.isVisible(this.range)) {
         if (!item.displayed) item.show();
 
-        // reset stacking position
-        if (this.stackDirty) item.top = null;
-
         // reposition item horizontally
         item.repositionX();
 
@@ -294,7 +293,7 @@ ItemSet.prototype.repaint = function repaint() {
 
   // reposition visible items vertically
   //this.stack.order(this.visibleItems); // TODO: solve ordering issue
-  this.stack.stack(this.visibleItems);
+  this.stack.stack(this.visibleItems, force);
   for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
     this.visibleItems[i].repositionY();
   }
@@ -522,17 +521,23 @@ ItemSet.prototype._onAdd = ItemSet.prototype._onUpdate;
  * @private
  */
 ItemSet.prototype._onRemove = function _onRemove(ids) {
+  var count = 0;
   var me = this;
   ids.forEach(function (id) {
     var item = me.items[id];
     if (item) {
+      count++;
       item.hide(); // TODO: only hide when displayed
       delete me.items[id];
       delete me.visibleItems[id];
     }
   });
 
-  this._order();
+  if (count) {
+    var force = true; // force restacking of all items
+    this._order();
+    this.repaint(force);
+  }
 };
 
 /**
@@ -551,7 +556,7 @@ ItemSet.prototype._order = function _order() {
   // TODO: cleanup
   //console.log('byStart', this.orderedItems.byStart.map(function (item) {return item.id}))
   //console.log('byEnd', this.orderedItems.byEnd.map(function (item) {return item.id}))
-}
+};
 
 /**
  * Calculate the scale and offset to convert a position on screen to the
@@ -677,8 +682,8 @@ ItemSet.prototype._onDrag = function (event) {
 
     // TODO: implement dragging from one group to another
 
-    this.stackDirty = true;
-    this.repaint(); // TODO: must repaint the rootPanel instead
+    var force = true; // force restacking of all items
+    this.repaint(force); // TODO: must repaint the rootPanel instead
 
     event.stopPropagation();
   }
@@ -721,8 +726,8 @@ ItemSet.prototype._onDragEnd = function (event) {
             // restore original values
             if ('start' in props) props.item.data.start = props.start;
             if ('end' in props)   props.item.data.end   = props.end;
-            me.stackDirty = true;
-            me.repaint();
+            var force = true; // force restacking of all items
+            me.repaint(force);
           }
         });
       }

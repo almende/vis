@@ -88,10 +88,13 @@ Stack.prototype.orderByEnd = function orderByEnd(items) {
 /**
  * Adjust vertical positions of the events such that they don't overlap each
  * other.
- * @param {Item[]} items           All visible items
+ * @param {Item[]} items          All visible items
+ * @param {boolean} [force=false] If true, all items will be re-stacked.
+ *                                If false (default), only items having a
+ *                                top===null will be re-stacked
  * @private
  */
-Stack.prototype.stack = function stack (items) {
+Stack.prototype.stack = function stack (items, force) {
   var i,
       iMax,
       options = this.options,
@@ -109,6 +112,13 @@ Stack.prototype.stack = function stack (items) {
   }
   else {
     marginAxis = this.defaultOptions.margin.axis
+  }
+
+  if (force) {
+    // reset top position of all items
+    for (i = 0, iMax = items.length; i < iMax; i++) {
+      items[i].top = null;
+    }
   }
 
   // calculate new, non-overlapping positions
