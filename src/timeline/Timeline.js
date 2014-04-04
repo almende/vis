@@ -113,8 +113,11 @@ function Timeline (container, items, options) {
     bottom: function () {
       return (mainOptions.orientation == 'top') ? '' : '0';
     },
-    left: null,
-    right: '0',
+    left: function () {
+      // we align left to enable a smooth resizing of the window
+      return me.labelPanel.width;
+    },
+    right: null,
     height: '100%',
     width: function () {
       return me.rootPanel.width - me.labelPanel.width;
