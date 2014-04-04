@@ -63,6 +63,7 @@ Group.prototype.setItems = function setItems(items) {
 
     var itemSetOptions = Object.create(this.options);
     this.itemSet = new ItemSet(itemSetOptions);
+    this.itemSet.on('change', this.emit.bind(this, 'change')); // propagate change event
     if (this.range) this.itemSet.setRange(this.range);
     this.contentPanel.appendChild(this.itemSet);
 
@@ -113,10 +114,10 @@ Group.prototype.getSelection = function getSelection() {
 
 /**
  * Repaint the group
- * @return {Boolean} changed
+ * @return {boolean} Returns true if the component is resized
  */
 Group.prototype.repaint = function repaint() {
-  this.itemSet.repaint();
+  var resized = this.itemSet.repaint();
 
   this.top    = this.itemSet ? this.itemSet.top : 0;
   this.height = this.itemSet ? this.itemSet.height : 0;
@@ -133,4 +134,6 @@ Group.prototype.repaint = function repaint() {
     this.props.label.width = 0;
     this.props.label.height = 0;
   }
+
+  return resized;
 };

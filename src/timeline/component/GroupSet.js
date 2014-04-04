@@ -79,6 +79,7 @@ GroupSet.prototype.setItems = function setItems(items) {
   for (var id in this.groups) {
     if (this.groups.hasOwnProperty(id)) {
       var group = this.groups[id];
+      // TODO: every group will emit a change event, causing a lot of unnecessary repaints. improve this.
       group.setItems(items);
     }
   }
@@ -147,6 +148,8 @@ GroupSet.prototype.setGroups = function setGroups(groups) {
     ids = this.groupsData.getIds();
     this._onAdd(ids);
   }
+
+  this.emit('change');
 };
 
 /**
@@ -244,6 +247,8 @@ GroupSet.prototype.repaint = function repaint() {
       groups = this.groups,
       groupsData = this.groupsData;
 
+  this.queue = {}; // clear old queue, we have a copy here
+
   // show/hide added/changed/removed groups
   var ids = Object.keys(queue);
   if (ids.length) {
@@ -262,15 +267,18 @@ GroupSet.prototype.repaint = function repaint() {
             });
 
             group = new Group(me, me.labelPanel, id, groupOptions);
+            group.on('change', me.emit.bind(me, 'change')); // propagate change event
             group.setRange(me.range);
             group.setItems(me.itemsData); // attach items data
             groups[id] = group;
+
+            // Note: it is important to add the binding after group.setItems
+            // is executed, because that will start an infinite loop
+            // as this call will already triger a
           }
 
           // TODO: update group data
           group.data = groupsData.get(id);
-
-          delete queue[id];
           break;
 
         case 'remove':
@@ -279,8 +287,6 @@ GroupSet.prototype.repaint = function repaint() {
             delete groups[id];
           }
 
-          // update lists
-          delete queue[id];
           break;
 
         default:
@@ -306,7 +312,7 @@ GroupSet.prototype.repaint = function repaint() {
 
   // repaint all groups in order
   this.groupIds.forEach(function (id) {
-    group = groups[id].repaint();
+    groups[id].repaint();
   });
 
   // reposition the labels and calculate the maximum label width
@@ -479,6 +485,8 @@ GroupSet.prototype._toQueue = function _toQueue(ids, action) {
   ids.forEach(function (id) {
     queue[id] = action;
   });
+
+  this.emit('change');
 };
 
 /**

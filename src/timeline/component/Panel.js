@@ -75,6 +75,7 @@ Panel.prototype.removeChild = function (child) {
 
 /**
  * Repaint the component
+ * @return {boolean} Returns true if the component was resized since previous repaint
  */
 Panel.prototype.repaint = function () {
   var asString = util.option.asString,
@@ -97,20 +98,25 @@ Panel.prototype.repaint = function () {
   frame.className = 'vpanel' + (options.className ? (' ' + asString(options.className)) : '');
 
   // repaint the child components
-  this._repaintChilds();
+  var childsResized = this._repaintChilds();
 
   // update frame size
   this._updateSize();
+
+  return this._isResized() || childsResized;
 };
 
 /**
  * Repaint all childs of the panel
+ * @return {boolean} Returns true if the component is resized
  * @private
  */
 Panel.prototype._repaintChilds = function () {
+  var resized = false;
   for (var i = 0, ii = this.childs.length; i < ii; i++) {
-    this.childs[i].repaint();
+    resized = this.childs[i].repaint() || resized;
   }
+  return resized;
 };
 
 /**

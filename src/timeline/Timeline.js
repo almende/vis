@@ -355,6 +355,7 @@ Timeline.prototype.setGroups = function(groups) {
 
     // create new GroupSet
     this.groupSet = new GroupSet(this.labelPanel, options);
+    this.groupSet.on('change', this.rootPanel.repaint.bind(this.rootPanel, 'changes'));
     this.groupSet.setRange(this.range);
     this.groupSet.setItems(this.itemsData);
     this.groupSet.setGroups(this.groupsData);
@@ -373,6 +374,7 @@ Timeline.prototype.setGroups = function(groups) {
     this.itemSet = new ItemSet(options);
     this.itemSet.setRange(this.range);
     this.itemSet.setItems(this.itemsData);
+    this.itemSet.on('change', me.rootPanel.repaint.bind(me.rootPanel));
     this.contentPanel.appendChild(this.itemSet);
   }
 };

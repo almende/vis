@@ -14,6 +14,9 @@ function Component () {
   this.height = 0;
 }
 
+// Turn the Component into an event emitter
+Emitter(Component.prototype);
+
 /**
  * Set parameters for the frame. Parameters will be merged in current parameter
  * set.
@@ -72,9 +75,11 @@ Component.prototype.getFrame = function getFrame() {
 
 /**
  * Repaint the component
+ * @return {boolean} Returns true if the component is resized
  */
 Component.prototype.repaint = function repaint() {
   // should be implemented by the component
+  return false;
 };
 
 /**
@@ -103,4 +108,19 @@ Component.prototype.show = function show() {
   else {
     return false;
   }
+};
+
+/**
+ * Test whether the component is resized since the last time _isResized() was
+ * called.
+ * @return {Boolean} Returns true if the component is resized
+ * @private
+ */
+Component.prototype._isResized = function _isResized() {
+  var resized = (this._previousWidth !== this.width || this._previousHeight !== this.height);
+
+  this._previousWidth = this.width;
+  this._previousHeight = this.height;
+
+  return resized;
 };

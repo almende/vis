@@ -20,8 +20,6 @@ function CustomTime (options) {
 
 CustomTime.prototype = new Component();
 
-Emitter(CustomTime.prototype);
-
 CustomTime.prototype.setOptions = Component.prototype.setOptions;
 
 /**
@@ -35,7 +33,7 @@ CustomTime.prototype.getContainer = function () {
 
 /**
  * Repaint the component
- * @return {Boolean} changed
+ * @return {boolean} Returns true if the component is resized
  */
 CustomTime.prototype.repaint = function () {
   var bar = this.frame,

@@ -59,6 +59,7 @@ TimeAxis.prototype.setRange = function (range) {
 
 /**
  * Repaint the component
+ * @return {boolean} Returns true if the component is resized
  */
 TimeAxis.prototype.repaint = function () {
   var asSize = util.option.asSize,
@@ -137,6 +138,8 @@ TimeAxis.prototype.repaint = function () {
       parent.appendChild(frame)
     }
   }
+
+  return this._isResized();
 };
 
 /**

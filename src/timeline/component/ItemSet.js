@@ -45,6 +45,7 @@ function ItemSet(options) {
   this.selection = [];  // list with the ids of all selected nodes
   this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
   this.stack = new Stack(Object.create(this.options));
+  this.stackDirty = true; // if true, all items will be restacked on next repaint
   this.conversion = null;
 
   this.touchParams = {}; // stores properties while dragging
@@ -164,11 +165,9 @@ ItemSet.prototype._deselect = function _deselect(id) {
 
 /**
  * Repaint the component
- * @param {boolean} [force=false] If true, all items will be re-stacked.
- *                                If false (default), only items having a
- *                                top===null will be re-stacked
+ * @return {boolean} Returns true if the component is resized
  */
-ItemSet.prototype.repaint = function repaint(force) {
+ItemSet.prototype.repaint = function repaint() {
   var asSize = util.option.asSize,
       asString = util.option.asString,
       options = this.options,
@@ -225,7 +224,6 @@ ItemSet.prototype.repaint = function repaint(force) {
   var visibleInterval = this.range.end - this.range.start;
   var zoomed = (this.visibleInterval != visibleInterval);
   this.visibleInterval = visibleInterval;
-  force = force || zoomed;
 
   /* TODO: implement+fix smarter way to update visible items
   // find the first visible item
@@ -293,7 +291,9 @@ ItemSet.prototype.repaint = function repaint(force) {
 
   // reposition visible items vertically
   //this.stack.order(this.visibleItems); // TODO: solve ordering issue
+  var force = this.stackDirty || zoomed; // force re-stacking of all items if true
   this.stack.stack(this.visibleItems, force);
+  this.stackDirty = false;
   for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
     this.visibleItems[i].repositionY();
   }
@@ -340,7 +340,7 @@ ItemSet.prototype.repaint = function repaint(force) {
   this.dom.axis.style.top    = (orientation == 'top') ? '0' : '';
   this.dom.axis.style.bottom = (orientation == 'top') ? '' : '0';
 
-  return false;
+  return this._isResized();
 };
 
 /**
@@ -505,7 +505,9 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
   });
 
   this._order();
-  this.repaint();
+
+  this.stackDirty = true; // force re-stacking of all items next repaint
+  this.emit('change');
 };
 
 /**
@@ -534,9 +536,9 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
   });
 
   if (count) {
-    var force = true; // force restacking of all items
     this._order();
-    this.repaint(force);
+    this.stackDirty = true; // force re-stacking of all items next repaint
+    this.emit('change');
   }
 };
 
@@ -682,8 +684,8 @@ ItemSet.prototype._onDrag = function (event) {
 
     // TODO: implement dragging from one group to another
 
-    var force = true; // force restacking of all items
-    this.repaint(force); // TODO: must repaint the rootPanel instead
+    this.stackDirty = true; // force re-stacking of all items next repaint
+    this.emit('change');
 
     event.stopPropagation();
   }
@@ -726,8 +728,9 @@ ItemSet.prototype._onDragEnd = function (event) {
             // restore original values
             if ('start' in props) props.item.data.start = props.start;
             if ('end' in props)   props.item.data.end   = props.end;
-            var force = true; // force restacking of all items
-            me.repaint(force);
+
+            this.stackDirty = true; // force re-stacking of all items next repaint
+            this.emit('change');
           }
         });
       }

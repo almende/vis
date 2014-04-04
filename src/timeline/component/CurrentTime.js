@@ -32,7 +32,7 @@ CurrentTime.prototype.getContainer = function () {
 
 /**
  * Repaint the component
- * @return {Boolean} changed
+ * @return {boolean} Returns true if the component is resized
  */
 CurrentTime.prototype.repaint = function () {
   var bar = this.frame,

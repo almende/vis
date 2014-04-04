@@ -18,9 +18,6 @@ function RootPanel(container, options) {
 
 RootPanel.prototype = new Panel();
 
-// turn RootPanel into an event emitter
-Emitter(RootPanel.prototype);
-
 /**
  * Set options. Will extend the current options.
  * @param {Object} [options]    Available parameters:
@@ -48,7 +45,7 @@ RootPanel.prototype.setOptions = function (options) {
 };
 
 /**
- * Repaint the component
+ * Repaint the root panel
  */
 RootPanel.prototype.repaint = function () {
   // create frame
@@ -87,11 +84,18 @@ RootPanel.prototype.repaint = function () {
   this.frame.className = className;
 
   // repaint the child components
-  this._repaintChilds();
+  var childsResized = this._repaintChilds();
 
   // update frame size
   this.frame.style.maxHeight = util.option.asSize(this.options.maxHeight, '');
   this._updateSize();
+
+  // if the root panel or any of its childs is resized, repaint again,
+  // as other components may need to be resized accordingly
+  var resized = this._isResized() || childsResized;
+  if (resized) {
+    setTimeout(this.repaint.bind(this), 0);
+  }
 };
 
 /**
