@@ -14,6 +14,8 @@ function RootPanel(container, options) {
   this.defaultOptions = {
     autoResize: true
   };
+
+  this._initWatch();
 }
 
 RootPanel.prototype = new Panel();
@@ -28,26 +30,20 @@ RootPanel.prototype = new Panel();
  *                              {String | Number | function} [height]
  *                              {Boolean | function} [autoResize]
  */
-RootPanel.prototype.setOptions = function (options) {
+RootPanel.prototype.setOptions = function setOptions(options) {
   if (options) {
     util.extend(this.options, options);
 
     this.repaint();
 
-    var autoResize = this.getOption('autoResize');
-    if (autoResize) {
-      this._watch();
-    }
-    else {
-      this._unwatch();
-    }
+    this._initWatch();
   }
 };
 
 /**
  * Repaint the root panel
  */
-RootPanel.prototype.repaint = function () {
+RootPanel.prototype.repaint = function repaint() {
   // create frame
   if (!this.frame) {
     if (!this.container) throw new Error('Cannot repaint root panel: no container attached');
@@ -99,16 +95,30 @@ RootPanel.prototype.repaint = function () {
 };
 
 /**
+ * Initialize watching when option autoResize is true
+ * @private
+ */
+RootPanel.prototype._initWatch = function _initWatch() {
+  var autoResize = this.getOption('autoResize');
+  if (autoResize) {
+    this._watch();
+  }
+  else {
+    this._unwatch();
+  }
+};
+
+/**
  * Watch for changes in the size of the frame. On resize, the Panel will
  * automatically redraw itself.
  * @private
  */
-RootPanel.prototype._watch = function () {
+RootPanel.prototype._watch = function _watch() {
   var me = this;
 
   this._unwatch();
 
-  var checkSize = function () {
+  var checkSize = function checkSize() {
     var autoResize = me.getOption('autoResize');
     if (!autoResize) {
       // stop watching when the option autoResize is changed to false
@@ -138,7 +148,7 @@ RootPanel.prototype._watch = function () {
  * Stop watching for a resize of the frame.
  * @private
  */
-RootPanel.prototype._unwatch = function () {
+RootPanel.prototype._unwatch = function _unwatch() {
   if (this.watchTimer) {
     clearInterval(this.watchTimer);
     this.watchTimer = undefined;

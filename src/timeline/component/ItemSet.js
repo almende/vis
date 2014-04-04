@@ -219,8 +219,9 @@ ItemSet.prototype.repaint = function repaint() {
 
   // check whether zoomed (in that case we need to re-stack everything)
   var visibleInterval = this.range.end - this.range.start;
-  var zoomed = (this.visibleInterval != visibleInterval);
-  this.visibleInterval = visibleInterval;
+  var zoomed = (visibleInterval != this.lastVisibleInterval) || (this.width != this.lastWidth);
+  this.lastVisibleInterval = visibleInterval;
+  this.lastWidth = this.width;
 
   /* TODO: implement+fix smarter way to update visible items
   // find the first visible item
