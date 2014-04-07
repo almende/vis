@@ -1,6 +1,18 @@
 var HierarchicalLayoutMixin = {
 
 
+
+  _resetLevels : function() {
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        var node = this.nodes[nodeId];
+        if (node.preassignedLevel == false) {
+          node.level = -1;
+        }
+      }
+    }
+  },
+
   /**
    * This is the main function to layout the nodes in a hierarchical way.
    * It checks if the node details are supplied correctly
