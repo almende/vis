@@ -317,7 +317,7 @@ Node.prototype._reset = function() {
  *                           has been set.
  */
 Node.prototype.getTitle = function() {
-  return this.title;
+  return typeof this.title === "function" ? this.title() : this.title;
 };
 
 /**
