@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.7.1
- * @date    2014-03-27
+ * @version 0.7.2
+ * @date    2014-04-09
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -9465,6 +9465,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.radiusMin = constants.nodes.radiusMin;
   this.radiusMax = constants.nodes.radiusMax;
   this.level = -1;
+  this.preassignedLevel = false;
+
 
   this.imagelist = imagelist;
   this.grouplist = grouplist;
@@ -9557,7 +9559,7 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.x !== undefined)         {this.x = properties.x;}
   if (properties.y !== undefined)         {this.y = properties.y;}
   if (properties.value !== undefined)     {this.value = properties.value;}
-  if (properties.level !== undefined)     {this.level = properties.level;}
+  if (properties.level !== undefined)     {this.level = properties.level; this.preassignedLevel = true;}
 
 
   // physics
@@ -10648,7 +10650,7 @@ Edge.prototype.draw = function(ctx) {
  * @return {boolean}     True if location is located on the edge
  */
 Edge.prototype.isOverlappingWith = function(obj) {
-  if (this.connected == true) {
+  if (this.connected) {
     var distMax = 10;
     var xFrom = this.from.x;
     var yFrom = this.from.y;
@@ -12598,6 +12600,18 @@ var repulsionMixin = {
 }
 var HierarchicalLayoutMixin = {
 
+
+
+  _resetLevels : function() {
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        var node = this.nodes[nodeId];
+        if (node.preassignedLevel == false) {
+          node.level = -1;
+        }
+      }
+    }
+  },
 
   /**
    * This is the main function to layout the nodes in a hierarchical way.
@@ -16032,6 +16046,7 @@ function Graph (container, data, options) {
 
   this.stabilize = true;  // stabilize before displaying the graph
   this.selectable = true;
+  this.initializing = true;
 
   // these functions are triggered when the dataset is edited
   this.triggerFunctions = {add:null,edit:null,connect:null,delete:null};
@@ -16250,6 +16265,7 @@ function Graph (container, data, options) {
   this.setData(data,this.constants.clustering.enabled || this.constants.hierarchicalLayout.enabled);
 
   // hierarchical layout
+  this.initializing = false;
   if (this.constants.hierarchicalLayout.enabled == true) {
     this._setupHierarchicalLayout();
   }
@@ -16307,6 +16323,9 @@ Graph.prototype._getRange = function() {
       if (minY > (node.y)) {minY = node.y;}
       if (maxY < (node.y)) {maxY = node.y;}
     }
+  }
+  if (minX == 1e9 && maxX == -1e9 && minY == 1e9 && maxY == -1e9) {
+    minY = 0, maxY = 0, minX = 0, maxX = 0;
   }
   return {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
 };
@@ -17018,6 +17037,7 @@ Graph.prototype._zoom = function(scale, pointer) {
   this.updateClustersDefault();
   this._redraw();
 
+
   return scale;
 };
 
@@ -17280,6 +17300,10 @@ Graph.prototype._addNodes = function(ids) {
     this.moving = true;
   }
   this._updateNodeIndexList();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this._updateCalculationNodes();
   this._reconnectEdges();
   this._updateValueRange(this.nodes);
@@ -17329,6 +17353,10 @@ Graph.prototype._removeNodes = function(ids) {
     delete nodes[id];
   }
   this._updateNodeIndexList();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this._updateCalculationNodes();
   this._reconnectEdges();
   this._updateSelection();
@@ -17407,6 +17435,10 @@ Graph.prototype._addEdges = function (ids) {
   this.moving = true;
   this._updateValueRange(edges);
   this._createBezierNodes();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this._updateCalculationNodes();
 };
 
@@ -17437,6 +17469,10 @@ Graph.prototype._updateEdges = function (ids) {
   }
 
   this._createBezierNodes();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this.moving = true;
   this._updateValueRange(edges);
 };
@@ -17462,6 +17498,10 @@ Graph.prototype._removeEdges = function (ids) {
 
   this.moving = true;
   this._updateValueRange(edges);
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this._updateCalculationNodes();
 };
 
@@ -17795,11 +17835,13 @@ Graph.prototype._discreteStepNodes = function() {
   var interval = this.physicsDiscreteStepsize;
   var nodes = this.nodes;
   var nodeId;
+  var nodesPresent = false;
 
   if (this.constants.maxVelocity > 0) {
     for (nodeId in nodes) {
       if (nodes.hasOwnProperty(nodeId)) {
         nodes[nodeId].discreteStepLimited(interval, this.constants.maxVelocity);
+        nodesPresent = true;
       }
     }
   }
@@ -17807,15 +17849,19 @@ Graph.prototype._discreteStepNodes = function() {
     for (nodeId in nodes) {
       if (nodes.hasOwnProperty(nodeId)) {
         nodes[nodeId].discreteStep(interval);
+        nodesPresent = true;
       }
     }
   }
-  var vminCorrected = this.constants.minVelocity / Math.max(this.scale,0.05);
-  if (vminCorrected > 0.5*this.constants.maxVelocity) {
-    this.moving = true;
-  }
-  else {
-    this.moving = this._isMoving(vminCorrected);
+
+  if (nodesPresent == true) {
+    var vminCorrected = this.constants.minVelocity / Math.max(this.scale,0.05);
+    if (vminCorrected > 0.5*this.constants.maxVelocity) {
+      this.moving = true;
+    }
+    else {
+      this.moving = this._isMoving(vminCorrected);
+    }
   }
 };
 
