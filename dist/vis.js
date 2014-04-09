@@ -1013,6 +1013,63 @@ util.GiveHex = function GiveHex(Dec)
 }
 
 /**
+ * Parse a color property into an object with border, background, and
+ * highlight colors
+ * @param {Object | String} color
+ * @return {Object} colorObject
+ */
+util.parseColor = function(color) {
+  var c;
+  if (util.isString(color)) {
+    if (util.isValidHex(color)) {
+      var hsv = util.hexToHSV(color);
+      var lighterColorHSV = {h:hsv.h,s:hsv.s * 0.45,v:Math.min(1,hsv.v * 1.05)};
+      var darkerColorHSV  = {h:hsv.h,s:Math.min(1,hsv.v * 1.25),v:hsv.v*0.6};
+      var darkerColorHex  = util.HSVToHex(darkerColorHSV.h ,darkerColorHSV.h ,darkerColorHSV.v);
+      var lighterColorHex = util.HSVToHex(lighterColorHSV.h,lighterColorHSV.s,lighterColorHSV.v);
+
+      c = {
+        background: color,
+        border:darkerColorHex,
+        highlight: {
+          background:lighterColorHex,
+          border:darkerColorHex
+        }
+      };
+    }
+    else {
+      c = {
+        background:color,
+        border:color,
+        highlight: {
+          background:color,
+          border:color
+        }
+      };
+    }
+  }
+  else {
+    c = {};
+    c.background = color.background || 'white';
+    c.border = color.border || c.background;
+
+    if (util.isString(color.highlight)) {
+      c.highlight = {
+        border: color.highlight,
+        background: color.highlight
+      }
+    }
+    else {
+      c.highlight = {};
+      c.highlight.background = color.highlight && color.highlight.background || c.background;
+      c.highlight.border = color.highlight && color.highlight.border || c.border;
+    }
+  }
+
+  return c;
+};
+
+/**
  * http://www.yellowpipe.com/yis/tools/hex-to-rgb/color-converter.php
  *
  * @param {String} hex
@@ -9588,7 +9645,7 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.shape !== undefined)          {this.shape = properties.shape;}
   if (properties.image !== undefined)          {this.image = properties.image;}
   if (properties.radius !== undefined)         {this.radius = properties.radius;}
-  if (properties.color !== undefined)          {this.color = Node.parseColor(properties.color);}
+  if (properties.color !== undefined)          {this.color = util.parseColor(properties.color);}
 
   if (properties.fontColor !== undefined)      {this.fontColor = properties.fontColor;}
   if (properties.fontSize !== undefined)       {this.fontSize = properties.fontSize;}
@@ -9630,63 +9687,6 @@ Node.prototype.setProperties = function(properties, constants) {
   }
   // reset the size of the node, this can be changed
   this._reset();
-};
-
-/**
- * Parse a color property into an object with border, background, and
- * hightlight colors
- * @param {Object | String} color
- * @return {Object} colorObject
- */
-Node.parseColor = function(color) {
-  var c;
-  if (util.isString(color)) {
-    if (util.isValidHex(color)) {
-      var hsv = util.hexToHSV(color);
-      var lighterColorHSV = {h:hsv.h,s:hsv.s * 0.45,v:Math.min(1,hsv.v * 1.05)};
-      var darkerColorHSV  = {h:hsv.h,s:Math.min(1,hsv.v * 1.25),v:hsv.v*0.6};
-      var darkerColorHex  = util.HSVToHex(darkerColorHSV.h ,darkerColorHSV.h ,darkerColorHSV.v);
-      var lighterColorHex = util.HSVToHex(lighterColorHSV.h,lighterColorHSV.s,lighterColorHSV.v);
-
-      c = {
-        background: color,
-        border:darkerColorHex,
-        highlight: {
-          background:lighterColorHex,
-          border:darkerColorHex
-        }
-      };
-    }
-    else {
-      c = {
-        background:color,
-        border:color,
-        highlight: {
-          background:color,
-          border:color
-        }
-      };
-    }
-  }
-  else {
-    c = {};
-    c.background = color.background || 'white';
-    c.border = color.border || c.background;
-
-    if (util.isString(color.highlight)) {
-      c.highlight = {
-        border: color.highlight,
-        background: color.highlight
-      }
-    }
-    else {
-      c.highlight = {};
-      c.highlight.background = color.highlight && color.highlight.background || c.background;
-      c.highlight.border = color.highlight && color.highlight.border || c.border;
-    }
-  }
-
-  return c;
 };
 
 /**
@@ -11209,14 +11209,39 @@ Edge.prototype.positionBezierNode = function() {
  * @param {Number} [x]
  * @param {Number} [y]
  * @param {String} [text]
+ * @param {Object} [style]     An object containing borderColor,
+ *                             backgroundColor, etc.
  */
-function Popup(container, x, y, text) {
+function Popup(container, x, y, text, style) {
   if (container) {
     this.container = container;
   }
   else {
     this.container = document.body;
   }
+
+  // x, y and text are optional, see if a style object was passed in their place
+  if (style === undefined) {
+    if (typeof x === "object") {
+      style = x;
+      x = undefined;
+    } else if (typeof text === "object") {
+      style = text;
+      text = undefined;
+    } else {
+      // for backwards compatibility, in case clients other than Graph are creating Popup directly
+      style = {
+        fontColor: 'black',
+        fontSize: 14, // px
+        fontFace: 'verdana',
+        color: {
+          border: '#666',
+          background: '#FFFFC6'
+        }
+      }
+    }
+  }
+
   this.x = 0;
   this.y = 0;
   this.padding = 5;
@@ -11230,18 +11255,20 @@ function Popup(container, x, y, text) {
 
   // create the frame
   this.frame = document.createElement("div");
-  var style = this.frame.style;
-  style.position = "absolute";
-  style.visibility = "hidden";
-  style.border = "1px solid #666";
-  style.color = "black";
-  style.padding = this.padding + "px";
-  style.backgroundColor = "#FFFFC6";
-  style.borderRadius = "3px";
-  style.MozBorderRadius = "3px";
-  style.WebkitBorderRadius = "3px";
-  style.boxShadow = "3px 3px 10px rgba(128, 128, 128, 0.5)";
-  style.whiteSpace = "nowrap";
+  var styleAttr = this.frame.style;
+  styleAttr.position = "absolute";
+  styleAttr.visibility = "hidden";
+  styleAttr.border = "1px solid " + style.color.border;
+  styleAttr.color = style.fontColor;
+  styleAttr.fontSize = style.fontSize;
+  styleAttr.fontFamily = style.fontFace;
+  styleAttr.padding = this.padding + "px";
+  styleAttr.backgroundColor = style.color.background;
+  styleAttr.borderRadius = "3px";
+  styleAttr.MozBorderRadius = "3px";
+  styleAttr.WebkitBorderRadius = "3px";
+  styleAttr.boxShadow = "3px 3px 10px rgba(128, 128, 128, 0.5)";
+  styleAttr.whiteSpace = "nowrap";
   this.container.appendChild(this.frame);
 }
 
@@ -11385,7 +11412,7 @@ Groups.prototype.get = function (groupname) {
 Groups.prototype.add = function (groupname, style) {
   this.groups[groupname] = style;
   if (style.color) {
-    style.color = Node.parseColor(style.color);
+    style.color = util.parseColor(style.color);
   }
   return style;
 };
@@ -16172,7 +16199,14 @@ function Graph (container, data, options) {
     minVelocity:  0.1,   // px/s
     stabilizationIterations: 1000,  // maximum number of iteration to stabilize
     tooltip: {
-      delay: 300
+      delay: 300,
+      fontColor: 'black',
+      fontSize: 14, // px
+      fontFace: 'verdana',
+      color: {
+        border: '#666',
+        background: '#FFFFC6'
+      }
     }
   };
   this.editMode = this.constants.dataManipulation.initiallyVisible;
@@ -16654,7 +16688,7 @@ Graph.prototype.setOptions = function (options) {
       }
 
       if (options.nodes.color) {
-        this.constants.nodes.color = Node.parseColor(options.nodes.color);
+        this.constants.nodes.color = util.parseColor(options.nodes.color);
       }
 
       /*
@@ -16676,6 +16710,9 @@ Graph.prototype.setOptions = function (options) {
         if (options.tooltip.hasOwnProperty(prop)) {
           this.constants.tooltip[prop] = options.tooltip[prop];
         }
+      }
+      if (options.tooltip.color) {
+        this.constants.tooltip.color = util.parseColor(options.tooltip.color);
       }
     }
   }
@@ -17178,7 +17215,7 @@ Graph.prototype._checkShowPopup = function (pointer) {
     if (this.popupNode != lastPopupNode) {
       var me = this;
       if (!me.popup) {
-        me.popup = new Popup(me.frame);
+        me.popup = new Popup(me.frame, me.constants.tooltip);
       }
 
       // adjust a small offset such that the mouse cursor is located in the
