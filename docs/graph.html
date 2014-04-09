@@ -60,12 +60,13 @@
       <li><a href="#Nodes_configuration">Nodes</a></li>
       <li><a href="#Edges_configuration">Edges</a></li>
       <li><a href="#Groups_configuration">Groups</a></li>
-        <li><a href="#Physics">Physics</a></li>
-        <li><a href="#Data_manipulation">Data manipulation</a></li>
-        <li><a href="#Clustering">Clustering</a></li>
+      <li><a href="#Physics">Physics</a></li>
+      <li><a href="#Data_manipulation">Data manipulation</a></li>
+      <li><a href="#Clustering">Clustering</a></li>
       <li><a href="#Navigation_controls">Navigation controls</a></li>
       <li><a href="#Keyboard_navigation">Keyboard navigation</a></li>
-        <li><a href="#Hierarchical_layout">Hierarchical layout</a></li>
+      <li><a href="#Hierarchical_layout">Hierarchical layout</a></li>
+      <li><a href="#Tooltips">Tooltips</a></li>
     </ul>
   </li>
   <li><a href="#Methods">Methods</a></li>
@@ -1833,6 +1834,75 @@ var options: {
         These need to be supplied by the acronyms in parentheses.</td>
     </tr>
 </table>
+
+<h3 id="Tooltips">Tooltips</h3>
+<p>
+  The behaviour and style of the tooltips used to display node and edge title attributes can be customized.
+</p>
+
+<pre class="prettyprint">
+// tooltip behaviour and style options
+var options: {
+  tooltip: {
+    delay: 300,
+    fontColor: "black",
+    fontSize: 14, // px
+    fontFace: "verdana",
+    color: {
+      border: "#666",
+      background: "#FFFFC6"
+    }
+  }
+}
+</pre>
+
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+  </tr>
+
+  <tr>
+    <td>delay</td>
+    <td>Number</td>
+    <td>300</td>
+    <td>Time in milliseconds a user must hover over a node or edge before a tooltip appears.</td>
+  </tr>
+  <tr>
+    <td>fontColor</td>
+    <td>String</td>
+    <td>"black"</td>
+    <td>Default color for tooltip text.</td>
+  </tr>
+  <tr>
+    <td>fontSize</td>
+    <td>Number</td>
+    <td>14</td>
+    <td>Size in pixels of tooltip text.</td>
+  </tr>
+  <tr>
+    <td>fontFace</td>
+    <td>String</td>
+    <td>"verdana"</td>
+    <td>Font family to used for tooltip text.</td>
+  </tr>
+  <tr>
+    <td>color.background</td>
+    <td>String</td>
+    <td>"#FFFFC6"</td>
+    <td>Background color for the node.</td>
+  </tr>
+  <tr>
+    <td>color.border</td>
+    <td>String</td>
+    <td>"#666"</td>
+    <td>Border color for the node.</td>
+  </tr>
+
+</table>
+
 <h2 id="Methods">Methods</h2>
 <p>
   Graph supports the following methods.

@@ -4,14 +4,39 @@
  * @param {Number} [x]
  * @param {Number} [y]
  * @param {String} [text]
+ * @param {Object} [style]     An object containing borderColor,
+ *                             backgroundColor, etc.
  */
-function Popup(container, x, y, text) {
+function Popup(container, x, y, text, style) {
   if (container) {
     this.container = container;
   }
   else {
     this.container = document.body;
   }
+
+  // x, y and text are optional, see if a style object was passed in their place
+  if (style === undefined) {
+    if (typeof x === "object") {
+      style = x;
+      x = undefined;
+    } else if (typeof text === "object") {
+      style = text;
+      text = undefined;
+    } else {
+      // for backwards compatibility, in case clients other than Graph are creating Popup directly
+      style = {
+        fontColor: 'black',
+        fontSize: 14, // px
+        fontFace: 'verdana',
+        color: {
+          border: '#666',
+          background: '#FFFFC6'
+        }
+      }
+    }
+  }
+
   this.x = 0;
   this.y = 0;
   this.padding = 5;
@@ -25,18 +50,20 @@ function Popup(container, x, y, text) {
 
   // create the frame
   this.frame = document.createElement("div");
-  var style = this.frame.style;
-  style.position = "absolute";
-  style.visibility = "hidden";
-  style.border = "1px solid #666";
-  style.color = "black";
-  style.padding = this.padding + "px";
-  style.backgroundColor = "#FFFFC6";
-  style.borderRadius = "3px";
-  style.MozBorderRadius = "3px";
-  style.WebkitBorderRadius = "3px";
-  style.boxShadow = "3px 3px 10px rgba(128, 128, 128, 0.5)";
-  style.whiteSpace = "nowrap";
+  var styleAttr = this.frame.style;
+  styleAttr.position = "absolute";
+  styleAttr.visibility = "hidden";
+  styleAttr.border = "1px solid " + style.color.border;
+  styleAttr.color = style.fontColor;
+  styleAttr.fontSize = style.fontSize;
+  styleAttr.fontFamily = style.fontFace;
+  styleAttr.padding = this.padding + "px";
+  styleAttr.backgroundColor = style.color.background;
+  styleAttr.borderRadius = "3px";
+  styleAttr.MozBorderRadius = "3px";
+  styleAttr.WebkitBorderRadius = "3px";
+  styleAttr.boxShadow = "3px 3px 10px rgba(128, 128, 128, 0.5)";
+  styleAttr.whiteSpace = "nowrap";
   this.container.appendChild(this.frame);
 }
 

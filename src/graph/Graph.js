@@ -151,7 +151,17 @@ function Graph (container, data, options) {
     smoothCurves: true,
     maxVelocity:  10,
     minVelocity:  0.1,   // px/s
-    stabilizationIterations: 1000  // maximum number of iteration to stabilize
+    stabilizationIterations: 1000,  // maximum number of iteration to stabilize
+    tooltip: {
+      delay: 300,
+      fontColor: 'black',
+      fontSize: 14, // px
+      fontFace: 'verdana',
+      color: {
+        border: '#666',
+        background: '#FFFFC6'
+      }
+    }
   };
   this.editMode = this.constants.dataManipulation.initiallyVisible;
 
@@ -632,7 +642,7 @@ Graph.prototype.setOptions = function (options) {
       }
 
       if (options.nodes.color) {
-        this.constants.nodes.color = Node.parseColor(options.nodes.color);
+        this.constants.nodes.color = util.parseColor(options.nodes.color);
       }
 
       /*
@@ -646,6 +656,17 @@ Graph.prototype.setOptions = function (options) {
           var group = options.groups[groupname];
           this.groups.add(groupname, group);
         }
+      }
+    }
+
+    if (options.tooltip) {
+      for (prop in options.tooltip) {
+        if (options.tooltip.hasOwnProperty(prop)) {
+          this.constants.tooltip[prop] = options.tooltip[prop];
+        }
+      }
+      if (options.tooltip.color) {
+        this.constants.tooltip.color = util.parseColor(options.tooltip.color);
       }
     }
   }
@@ -1091,7 +1112,7 @@ Graph.prototype._onMouseMoveTitle = function (event) {
     clearInterval(this.popupTimer); // stop any running calculationTimer
   }
   if (!this.drag.dragging) {
-    this.popupTimer = setTimeout(checkShow, 300);
+    this.popupTimer = setTimeout(checkShow, this.constants.tooltip.delay);
   }
 };
 
@@ -1148,7 +1169,7 @@ Graph.prototype._checkShowPopup = function (pointer) {
     if (this.popupNode != lastPopupNode) {
       var me = this;
       if (!me.popup) {
-        me.popup = new Popup(me.frame);
+        me.popup = new Popup(me.frame, me.constants.tooltip);
       }
 
       // adjust a small offset such that the mouse cursor is located in the
