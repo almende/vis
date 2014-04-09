@@ -1,14 +1,16 @@
 /**
  * An GroupSet holds a set of groups
- * @param {Panel} labelPanel
+ * @param {Panel} contentPanel      Panel where the ItemSets will be created
+ * @param {Panel} labelPanel        Panel where the labels will be created
  * @param {Object} [options]        See GroupSet.setOptions for the available
  *                                  options.
  * @constructor GroupSet
  * @extends Panel
  */
-function GroupSet(labelPanel, options) {
+function GroupSet(contentPanel, labelPanel, options) {
   this.id = util.randomUUID();
 
+  this.contentPanel = contentPanel;
   this.labelPanel = labelPanel;
   this.options = options || {};
 
@@ -43,9 +45,36 @@ function GroupSet(labelPanel, options) {
       me._onRemove(params.items);
     }
   };
+
+  // create HTML DOM
+  this._create();
 }
 
 GroupSet.prototype = new Panel();
+
+/**
+ * Create the HTML DOM elements for the GroupSet
+ * @private
+ */
+GroupSet.prototype._create = function _create () {
+  // TODO: delete _create, GroupSet must not have DOM elements itself
+  var groupSet = document.createElement('div');
+  groupSet.className = 'groupset';
+  groupSet['timeline-groupset'] = this;
+  this.dom.groupSet = groupSet;
+
+  var labelSet = document.createElement('div');
+  labelSet.className = 'labelset';
+  this.dom.labelSet = labelSet;
+};
+
+/**
+ * Get the frame element of component
+ * @returns {null} Get frame is not supported by GroupSet
+ */
+GroupSet.prototype.getFrame = function getFrame() {
+  throw new Error('GroupSet is a virtual Component and doesn\'t have a frame.');
+};
 
 /**
  * Set options for the GroupSet. Existing options will be extended/overwritten.
@@ -211,38 +240,9 @@ GroupSet.prototype.repaint = function repaint() {
       asString = util.option.asString,
       options = this.options,
       orientation = this.getOption('orientation'),
-      frame = this.dom.frame,
-      labels = this.dom.labels,
-      labelSet = this.dom.labelSet;
-
-  // create frame
-  if (!frame) {
-    frame = document.createElement('div');
-    frame.className = 'groupset';
-    frame['timeline-groupset'] = this;
-    this.dom.frame = frame;
-
-    if (!this.parent) throw new Error('Cannot repaint GroupSet: no parent attached');
-    var parentContainer = this.parent.getContainer();
-    if (!parentContainer) throw new Error('Cannot repaint GroupSet: parent has no container element');
-    parentContainer.appendChild(frame);
-
-    // create labels
-    var labelContainer = this.labelPanel.getContainer();
-    if (!labelContainer) throw new Error('Cannot repaint groupset: option "labelContainer" not defined');
-
-    labels = document.createElement('div');
-    labels.className = 'labels';
-    labelContainer.appendChild(labels);
-    this.dom.labels = labels;
-
-    labelSet = document.createElement('div');
-    labelSet.className = 'label-set';
-    labels.appendChild(labelSet);
-    this.dom.labelSet = labelSet;
-  }
-
-  var me = this,
+      groupSet = this.dom.groupSet,
+      labelSet = this.dom.labelSet,
+      me = this,
       queue = this.queue,
       groups = this.groups,
       groupsData = this.groupsData;
@@ -266,7 +266,7 @@ GroupSet.prototype.repaint = function repaint() {
               height: null
             });
 
-            group = new Group(me, me.labelPanel, id, groupOptions);
+            group = new Group(me.contentPanel, me.labelPanel, id, groupOptions);
             group.on('change', me.emit.bind(me, 'change')); // propagate change event
             group.setRange(me.range);
             group.setItems(me.itemsData); // attach items data
@@ -299,6 +299,7 @@ GroupSet.prototype.repaint = function repaint() {
       order: this.options.groupOrder
     });
 
+    /* TODO
     // (re)create the labels
     while (labelSet.firstChild) {
       labelSet.removeChild(labelSet.firstChild);
@@ -308,6 +309,7 @@ GroupSet.prototype.repaint = function repaint() {
       label = this._createLabel(id);
       labelSet.appendChild(label);
     }
+    */
   }
 
   // repaint all groups in order
@@ -350,25 +352,27 @@ GroupSet.prototype.repaint = function repaint() {
   }
 
   // update classname
-  frame.className = 'groupset' + (options.className ? (' ' + asString(options.className)) : '');
+  groupSet.className = 'groupset' + (options.className ? (' ' + asString(options.className)) : '');
 
-  // reposition frame
-  frame.style.top     = asSize((orientation == 'top') ? '0' : '');
-  frame.style.bottom  = asSize((orientation == 'top') ? '' : '0');
-  frame.style.left    = asSize(options.left, '');
-  frame.style.right   = asSize(options.right, '');
-  frame.style.width   = asSize(options.width, '100%');
-  frame.style.height  = asSize(height);
+  // reposition groupSet frame
+  groupSet.style.top     = asSize((orientation == 'top') ? '0' : '');
+  groupSet.style.bottom  = asSize((orientation == 'top') ? '' : '0');
+  groupSet.style.left    = asSize(options.left, '');
+  groupSet.style.right   = asSize(options.right, '');
+  groupSet.style.width   = asSize(options.width, '100%');
+  groupSet.style.height  = asSize(height);
 
   // calculate actual size and position
-  this.top = frame.offsetTop;
-  this.left = frame.offsetLeft;
-  this.width = frame.offsetWidth;
+  this.top = groupSet.offsetTop;
+  this.left = groupSet.offsetLeft;
+  this.width = groupSet.offsetWidth;
   this.height = height;
 
+  /* TODO
   // reposition labels
   labelSet.style.top = asSize(options.top, '0');
   labelSet.style.height = fixedHeight ? asSize(options.height) : this.height + 'px';
+  */
 };
 
 /**
@@ -404,18 +408,10 @@ GroupSet.prototype._createLabel = function(id) {
 };
 
 /**
- * Get container element
- * @return {HTMLElement} container
- */
-GroupSet.prototype.getContainer = function getContainer() {
-  return this.dom.frame;
-};
-
-/**
  * Get the width of the group labels
  * @return {Number} width
  */
-GroupSet.prototype.getLabelsWidth = function getContainer() {
+GroupSet.prototype.getLabelsWidth = function getLabelsWidth() {
   return this.props.labels.width;
 };
 

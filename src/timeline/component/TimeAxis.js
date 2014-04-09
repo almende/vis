@@ -38,12 +38,22 @@ function TimeAxis (options) {
   };
 
   this.range = null;
+
+  // create the HTML DOM
+  this._create();
 }
 
 TimeAxis.prototype = new Component();
 
 // TODO: comment options
 TimeAxis.prototype.setOptions = Component.prototype.setOptions;
+
+/**
+ * Create the HTML DOM for the TimeAxis
+ */
+TimeAxis.prototype._create = function _create() {
+  this.frame = document.createElement('div');
+};
 
 /**
  * Set a range (start and end)
@@ -58,32 +68,25 @@ TimeAxis.prototype.setRange = function (range) {
 };
 
 /**
+ * Get the outer frame of the time axis
+ * @return {HTMLElement} frame
+ */
+TimeAxis.prototype.getFrame = function getFrame() {
+  return this.frame;
+};
+
+/**
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
 TimeAxis.prototype.repaint = function () {
   var asSize = util.option.asSize,
       options = this.options,
-      props = this.props;
+      props = this.props,
+      frame = this.frame;
 
-  var frame = this.frame;
-  if (!frame) {
-    frame = document.createElement('div');
-    this.frame = frame;
-  }
-  frame.className = 'axis';
-  // TODO: custom className?
-
-  if (!frame.parentNode) {
-    if (!this.parent) {
-      throw new Error('Cannot repaint time axis: no parent attached');
-    }
-    var parentContainer = this.parent.getContainer();
-    if (!parentContainer) {
-      throw new Error('Cannot repaint time axis: parent has no container element');
-    }
-    parentContainer.appendChild(frame);
-  }
+  // update classname
+  frame.className = 'axis'; // TODO: add className from options if defined
 
   var parent = frame.parentNode;
   if (parent) {

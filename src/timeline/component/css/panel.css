@@ -15,11 +15,12 @@
 
 .vis.timeline .vpanel {
   position: absolute;
+  overflow: hidden;
 
   -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
 
-.vis.timeline .vpanel {
-  overflow: hidden;
+.vis.timeline .vpanel.side {
+  border-right: 1px solid #bfbfbf;
 }

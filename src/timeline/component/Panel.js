@@ -11,7 +11,7 @@
  */
 function Panel(options) {
   this.id = util.randomUUID();
-  this.parent = null;
+  this.parent = null; // TODO: remove parent?
   this.childs = [];
 
   this.options = options || {};
@@ -31,12 +31,19 @@ Panel.prototype = new Component();
 Panel.prototype.setOptions = Component.prototype.setOptions;
 
 /**
- * Get the container element of the panel, which can be used by a child to
- * add its own widgets.
- * @returns {HTMLElement} container
+ * Get the outer frame of the panel
+ * @returns {HTMLElement} frame
  */
-Panel.prototype.getContainer = function () {
-  return this.frame;
+Panel.prototype.getFrame = function () {
+  var frame = this.frame;
+
+  // create frame
+  if (!frame) {
+    frame = document.createElement('div');
+    this.frame = frame;
+  }
+
+  return frame;
 };
 
 /**
@@ -46,6 +53,9 @@ Panel.prototype.getContainer = function () {
 Panel.prototype.appendChild = function (child) {
   this.childs.push(child);
   child.parent = this;
+
+  // attach to the DOM
+  this.frame.appendChild(child.getFrame());
 };
 
 /**
@@ -69,8 +79,25 @@ Panel.prototype.removeChild = function (child) {
   var index = this.childs.indexOf(child);
   if (index != -1) {
     this.childs.splice(index, 1);
+
+    if (!child.getFrame() || child.getFrame().parentNode != this.frame) {
+      console.log('oops')
+    }
+
+    // remove from the DOM
+    this.frame.removeChild(child.getFrame());
+
     child.parent = null;
   }
+};
+
+/**
+ * Test whether the panel contains given child
+ * @param {Component} child
+ */
+Panel.prototype.hasChild = function (child) {
+  var index = this.childs.indexOf(child);
+  return (index != -1);
 };
 
 /**
@@ -80,19 +107,7 @@ Panel.prototype.removeChild = function (child) {
 Panel.prototype.repaint = function () {
   var asString = util.option.asString,
       options = this.options,
-      frame = this.frame;
-
-  // create frame
-  if (!frame) {
-    frame = document.createElement('div');
-    this.frame = frame;
-
-    if (!this.parent) throw new Error('Cannot repaint panel: no parent attached');
-
-    var parentContainer = this.parent.getContainer();
-    if (!parentContainer) throw new Error('Cannot repaint panel: parent has no container element');
-    parentContainer.appendChild(frame);
-  }
+      frame = this.getFrame();
 
   // update className
   frame.className = 'vpanel' + (options.className ? (' ' + asString(options.className)) : '');

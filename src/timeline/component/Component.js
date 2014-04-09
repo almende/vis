@@ -7,7 +7,6 @@ function Component () {
   this.childs = null;
   this.options = null;
 
-  this.frame = null; // main DOM element
   this.top = 0;
   this.left = 0;
   this.width = 0;
@@ -54,23 +53,12 @@ Component.prototype.getOption = function getOption(name) {
 };
 
 /**
- * Get the container element of the component, which can be used by a child to
- * add its own widgets. Not all components do have a container for childs, in
- * that case null is returned.
- * @returns {HTMLElement | null} container
- */
-// TODO: get rid of the getContainer and getFrame methods, provide these via the options
-Component.prototype.getContainer = function getContainer() {
-  // should be implemented by the component
-  return null;
-};
-
-/**
  * Get the frame element of the component, the outer HTML DOM element.
  * @returns {HTMLElement | null} frame
  */
 Component.prototype.getFrame = function getFrame() {
-  return this.frame;
+  // should be implemented by the component
+  return null;
 };
 
 /**
@@ -86,6 +74,7 @@ Component.prototype.repaint = function repaint() {
  * Hide the component from the DOM
  * @return {Boolean} changed
  */
+// TODO: remove hide and show
 Component.prototype.hide = function hide() {
   if (this.frame && this.frame.parentNode) {
     this.frame.parentNode.removeChild(this.frame);
@@ -101,6 +90,7 @@ Component.prototype.hide = function hide() {
  * A repaint will be executed when the component is not visible
  * @return {Boolean} changed
  */
+// TODO: remove hide and show
 Component.prototype.show = function show() {
   if (!this.frame || !this.frame.parentNode) {
     return this.repaint();

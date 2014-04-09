@@ -50,6 +50,9 @@ function ItemSet(options) {
   this.touchParams = {}; // stores properties while dragging
 
   // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
+
+  // create the HTML DOM
+  this._create();
 }
 
 ItemSet.prototype = new Panel();
@@ -60,6 +63,42 @@ ItemSet.types = {
   range: ItemRange,
   rangeoverflow: ItemRangeOverflow,
   point: ItemPoint
+};
+
+/**
+ * Create the HTML DOM for the ItemSet
+ */
+ItemSet.prototype._create = function _create(){
+  var frame = document.createElement('div');
+  frame['timeline-itemset'] = this;
+  this.frame = frame;
+
+  // create background panel
+  var background = document.createElement('div');
+  background.className = 'background';
+  frame.appendChild(background);
+  this.dom.background = background;
+
+  // create foreground panel
+  var foreground = document.createElement('div');
+  foreground.className = 'foreground';
+  frame.appendChild(foreground);
+  this.dom.foreground = foreground;
+
+  // create axis panel
+  var axis = document.createElement('div');
+  axis.className = 'axis';
+  this.dom.axis = axis;
+  frame.appendChild(axis);
+
+  // attach event listeners
+  // TODO: use event listeners from the rootpanel to improve performance
+  this.hammer = Hammer(frame, {
+    prevent_default: true
+  });
+  this.hammer.on('dragstart', this._onDragStart.bind(this));
+  this.hammer.on('drag',      this._onDrag.bind(this));
+  this.hammer.on('dragend',   this._onDragEnd.bind(this));
 };
 
 /**
@@ -163,6 +202,14 @@ ItemSet.prototype._deselect = function _deselect(id) {
 };
 
 /**
+ * Return the item sets frame
+ * @returns {HTMLElement} frame
+ */
+ItemSet.prototype.getFrame = function getFrame() {
+  return this.frame;
+};
+
+/**
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
@@ -172,47 +219,6 @@ ItemSet.prototype.repaint = function repaint() {
       options = this.options,
       orientation = this.getOption('orientation'),
       frame = this.frame;
-
-  if (!frame) {
-    frame = document.createElement('div');
-    frame['timeline-itemset'] = this;
-    this.frame = frame;
-
-    // create background panel
-    var background = document.createElement('div');
-    background.className = 'background';
-    frame.appendChild(background);
-    this.dom.background = background;
-
-    // create foreground panel
-    var foreground = document.createElement('div');
-    foreground.className = 'foreground';
-    frame.appendChild(foreground);
-    this.dom.foreground = foreground;
-
-    // create axis panel
-    var axis = document.createElement('div');
-    axis.className = 'axis';
-    this.dom.axis = axis;
-    frame.appendChild(axis);
-
-    // attach event listeners
-    // TODO: use event listeners from the rootpanel to improve performance
-    this.hammer = Hammer(frame, {
-      prevent_default: true
-    });
-    this.hammer.on('dragstart', this._onDragStart.bind(this));
-    this.hammer.on('drag',      this._onDrag.bind(this));
-    this.hammer.on('dragend',   this._onDragEnd.bind(this));
-  }
-
-  if (!frame.parentNode) {
-    if (!this.parent) throw new Error('Cannot repaint itemset: no parent attached');
-    var parentContainer = this.parent.getContainer();
-    if (!parentContainer) throw new Error('Cannot repaint itemset: parent has no container element');
-
-    parentContainer.appendChild(frame);
-  }
 
   // update className
   frame.className = 'itemset' + (options.className ? (' ' + asString(options.className)) : '');

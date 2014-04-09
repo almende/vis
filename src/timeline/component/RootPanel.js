@@ -15,10 +15,48 @@ function RootPanel(container, options) {
     autoResize: true
   };
 
+  // create the HTML DOM
+  this._create();
+
+  // attach the root panel to the provided container
+  if (!this.container) throw new Error('Cannot repaint root panel: no container attached');
+  this.container.appendChild(this.getFrame());
+
+
   this._initWatch();
 }
 
 RootPanel.prototype = new Panel();
+
+/**
+ * Create the HTML DOM for the root panel
+ */
+RootPanel.prototype._create = function _create() {
+  // create frame
+  this.frame = document.createElement('div');
+
+  // create event listeners for all interesting events, these events will be
+  // emitted via emitter
+  this.hammer = Hammer(this.frame, {
+    prevent_default: true
+  });
+  this.listeners = {};
+
+  var me = this;
+  var events = [
+    'touch', 'pinch', 'tap', 'doubletap', 'hold',
+    'dragstart', 'drag', 'dragend',
+    'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is for Firefox
+  ];
+  events.forEach(function (event) {
+    var listener = function () {
+      var args = [event].concat(Array.prototype.slice.call(arguments, 0));
+      me.emit.apply(me, args);
+    };
+    me.hammer.on(event, listener);
+    me.listeners[event] = listener;
+  });
+};
 
 /**
  * Set options. Will extend the current options.
@@ -41,38 +79,16 @@ RootPanel.prototype.setOptions = function setOptions(options) {
 };
 
 /**
+ * Get the frame of the root panel
+ */
+RootPanel.prototype.getFrame = function getFrame() {
+  return this.frame;
+};
+
+/**
  * Repaint the root panel
  */
 RootPanel.prototype.repaint = function repaint() {
-  // create frame
-  if (!this.frame) {
-    if (!this.container) throw new Error('Cannot repaint root panel: no container attached');
-    this.frame = document.createElement('div');
-    this.container.appendChild(this.frame);
-
-    // create event listeners for all interesting events, these events will be
-    // emitted via emitter
-    this.hammer = Hammer(this.frame, {
-      prevent_default: true
-    });
-    this.listeners = {};
-
-    var me = this;
-    var events = [
-      'touch', 'pinch', 'tap', 'doubletap', 'hold',
-      'dragstart', 'drag', 'dragend',
-      'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is for Firefox
-    ];
-    events.forEach(function (event) {
-      var listener = function () {
-        var args = [event].concat(Array.prototype.slice.call(arguments, 0));
-        me.emit.apply(me, args);
-      };
-      me.hammer.on(event, listener);
-      me.listeners[event] = listener;
-    });
-  }
-
   // update class name
   var options = this.options;
   var className = 'vis timeline rootpanel ' + options.orientation + (options.editable ? ' editable' : '');

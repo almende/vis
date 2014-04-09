@@ -14,11 +14,9 @@
 
   padding: 0;
   margin: 0;
-
-  border-right: 1px solid #bfbfbf;
 }
 
-.vis.timeline .labels .label-set {
+.vis.timeline .labels .labelset {
   position: relative;
   top: 0;
   left: 0;
@@ -33,7 +31,7 @@
   box-sizing: border-box;
 }
 
-.vis.timeline .labels .label-set .vlabel {
+.vis.timeline .labels .labelset .vlabel {
   position: absolute;
   left: 0;
   top: 0;
@@ -44,19 +42,19 @@
   box-sizing: border-box;
 }
 
-.vis.timeline.top .labels .label-set .vlabel,
+.vis.timeline.top .labels .labelset .vlabel,
 .vis.timeline.top .groupset .itemset .axis {
   border-top: 1px solid #bfbfbf;
   border-bottom: none;
 }
 
-.vis.timeline.bottom .labels .label-set .vlabel,
+.vis.timeline.bottom .labels .labelset .vlabel,
 .vis.timeline.bottom .groupset .itemset .axis {
   border-top: none;
   border-bottom: 1px solid #bfbfbf;
 }
 
-.vis.timeline .labels .label-set .vlabel .inner {
+.vis.timeline .labels .labelset .vlabel .inner {
   display: inline-block;
   padding: 5px;
 }

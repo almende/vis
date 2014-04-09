@@ -36,15 +36,6 @@ Group.prototype = new Component();
 Group.prototype.setOptions = Component.prototype.setOptions;
 
 /**
- * Get the container element of the panel, which can be used by a child to
- * add its own widgets.
- * @returns {HTMLElement} container
- */
-Group.prototype.getContainer = function () {
-  return null;
-};
-
-/**
  * Set item set for the group. The group will create a view on the itemSet,
  * filtered by the groups id.
  * @param {DataSet | DataView} items
