@@ -72,6 +72,7 @@ function Graph (container, data, options) {
       fontColor: '#343434',
       fontSize: 14, // px
       fontFace: 'arial',
+      fontFill: 'white',
       dash: {
         length: 10,
         gap: 5,
