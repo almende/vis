@@ -81,10 +81,12 @@ Edge.prototype.setProperties = function(properties, constants) {
     this.fontSize = constants.edges.fontSize;
     this.fontFace = constants.edges.fontFace;
     this.fontColor = constants.edges.fontColor;
+    this.fontFill = constants.edges.fontFill;
 
     if (properties.fontColor !== undefined)  {this.fontColor = properties.fontColor;}
     if (properties.fontSize !== undefined)   {this.fontSize = properties.fontSize;}
     if (properties.fontFace !== undefined)   {this.fontFace = properties.fontFace;}
+    if (properties.fontFill !== undefined)   {this.fontFill = properties.fontFill;}
   }
 
   if (properties.title !== undefined)        {this.title = properties.title;}
@@ -348,7 +350,7 @@ Edge.prototype._label = function (ctx, text, x, y) {
     // TODO: cache the calculated size
     ctx.font = ((this.from.selected || this.to.selected) ? "bold " : "") +
         this.fontSize + "px " + this.fontFace;
-    ctx.fillStyle = 'white';
+    ctx.fillStyle = this.fontFill;
     var width = ctx.measureText(text).width;
     var height = this.fontSize;
     var left = x - width / 2;

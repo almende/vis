@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.7.3-SNAPSHOT
- * @date    2014-04-14
+ * @version @@version
+ * @date    @@date
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -10515,10 +10515,12 @@ Edge.prototype.setProperties = function(properties, constants) {
     this.fontSize = constants.edges.fontSize;
     this.fontFace = constants.edges.fontFace;
     this.fontColor = constants.edges.fontColor;
+    this.fontFill = constants.edges.fontFill;
 
     if (properties.fontColor !== undefined)  {this.fontColor = properties.fontColor;}
     if (properties.fontSize !== undefined)   {this.fontSize = properties.fontSize;}
     if (properties.fontFace !== undefined)   {this.fontFace = properties.fontFace;}
+    if (properties.fontFill !== undefined)   {this.fontFill = properties.fontFill;}
   }
 
   if (properties.title !== undefined)        {this.title = properties.title;}
@@ -10782,7 +10784,7 @@ Edge.prototype._label = function (ctx, text, x, y) {
     // TODO: cache the calculated size
     ctx.font = ((this.from.selected || this.to.selected) ? "bold " : "") +
         this.fontSize + "px " + this.fontFace;
-    ctx.fillStyle = 'white';
+    ctx.fillStyle = this.fontFill;
     var width = ctx.measureText(text).width;
     var height = this.fontSize;
     var left = x - width / 2;
@@ -16091,6 +16093,7 @@ function Graph (container, data, options) {
       fontColor: '#343434',
       fontSize: 14, // px
       fontFace: 'arial',
+      fontFill: 'white',
       dash: {
         length: 10,
         gap: 5,
