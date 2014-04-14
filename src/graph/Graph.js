@@ -151,7 +151,23 @@ function Graph (container, data, options) {
     smoothCurves: true,
     maxVelocity:  10,
     minVelocity:  0.1,   // px/s
-    stabilizationIterations: 1000  // maximum number of iteration to stabilize
+    stabilizationIterations: 1000,  // maximum number of iteration to stabilize
+    labels:{
+      add:"Add Node",
+      edit:"Edit",
+      link:"Add Link",
+      delete:"Delete selected",
+      editNode:"Edit Node",
+      back:"Back",
+      addDescription:"Click in an empty space to place a new node.",
+      linkDescription:"Click on a node and drag the edge to another node to connect them.",
+      addError:"The function for add does not support two arguments (data,callback).",
+      linkError:"The function for connect does not support two arguments (data,callback).",
+      editError:"The function for edit does not support two arguments (data, callback).",
+      editBoundError:"No edit function has been bound to this button.",
+      deleteError:"The function for delete does not support two arguments (data, callback).",
+      deleteClusterError:"Clusters cannot be deleted."
+    }
   };
   this.editMode = this.constants.dataManipulation.initiallyVisible;
 
@@ -483,6 +499,16 @@ Graph.prototype.setOptions = function (options) {
     if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
+
+
+
+    if (options.labels !== undefined)  {
+      for (prop in options.labels) {
+        if (options.labels.hasOwnProperty(prop)) {
+          this.constants.labels[prop] = options.labels[prop];
+        }
+      }
+    }
 
     if (options.onAdd) {
         this.triggerFunctions.add = options.onAdd;

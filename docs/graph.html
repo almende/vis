@@ -66,6 +66,7 @@
       <li><a href="#Navigation_controls">Navigation controls</a></li>
       <li><a href="#Keyboard_navigation">Keyboard navigation</a></li>
         <li><a href="#Hierarchical_layout">Hierarchical layout</a></li>
+        <li><a href="#Localization">Localization</a></li>
     </ul>
   </li>
   <li><a href="#Methods">Methods</a></li>
@@ -1830,7 +1831,55 @@ var options: {
         <td>String</td>
         <td>UD</td>
         <td>This defines the direction the graph is drawn in. The supported directions are: Up-Down (UD), Down-Up (DU), Left-Right (LR) and Right-Left (RL).
-        These need to be supplied by the acronyms in parentheses.</td>
+            These need to be supplied by the acronyms in parentheses.</td>
+    </tr>
+</table>
+
+<h3 id="Localization">Localization</h3>
+<p>
+    When using vis.js in other languages, one can use the localization option to overwrite the labels used in the data manipulation interface.
+</p>
+
+<pre class="prettyprint">
+var options: {
+    labels:{
+      add:"Add Node",
+      edit:"Edit",
+      link:"Add Link",
+      delete:"Delete selected",
+      editNode:"Edit Node",
+      back:"Back",
+      addDescription:"Click in an empty space to place a new node.",
+      linkDescription:"Click on a node and drag the edge to another
+                       node to connect them.",
+      addError:"The function for add does not support two arguments
+                                                        (data,callback).",
+      linkError:"The function for connect does not support two arguments
+                                                        (data,callback).",
+      editError:"The function for edit does not support two arguments
+                                                        (data, callback).",
+      editBoundError:"No edit function has been bound to this button.",
+      deleteError:"The function for delete does not support two arguments
+                                                        (data, callback).",
+      deleteClusterError:"Clusters cannot be deleted."
+    }
+}
+</pre>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>labels</td>
+        <td>object</td>
+        <td>(shown above)</td>
+        <td>Overwrite one or all labels used in the datamanipulation interface with localized strings.
+        </td>
     </tr>
 </table>
 <h2 id="Methods">Methods</h2>

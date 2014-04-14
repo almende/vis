@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.7.3-SNAPSHOT
- * @date    2014-04-09
+ * @date    2014-04-14
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -12994,21 +12994,21 @@ var manipulationMixin = {
       // add the icons to the manipulator div
       this.manipulationDiv.innerHTML = "" +
         "<span class='graph-manipulationUI add' id='graph-manipulate-addNode'>" +
-          "<span class='graph-manipulationLabel'>Add Node</span></span>" +
+          "<span class='graph-manipulationLabel'>"+this.constants.labels['add'] +"</span></span>" +
         "<div class='graph-seperatorLine'></div>" +
         "<span class='graph-manipulationUI connect' id='graph-manipulate-connectNode'>" +
-          "<span class='graph-manipulationLabel'>Add Link</span></span>";
+          "<span class='graph-manipulationLabel'>"+this.constants.labels['link'] +"</span></span>";
       if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
         this.manipulationDiv.innerHTML += "" +
           "<div class='graph-seperatorLine'></div>" +
           "<span class='graph-manipulationUI edit' id='graph-manipulate-editNode'>" +
-            "<span class='graph-manipulationLabel'>Edit Node</span></span>";
+            "<span class='graph-manipulationLabel'>"+this.constants.labels['editNode'] +"</span></span>";
       }
       if (this._selectionIsEmpty() == false) {
         this.manipulationDiv.innerHTML += "" +
           "<div class='graph-seperatorLine'></div>" +
           "<span class='graph-manipulationUI delete' id='graph-manipulate-delete'>" +
-            "<span class='graph-manipulationLabel'>Delete selected</span></span>";
+            "<span class='graph-manipulationLabel'>"+this.constants.labels['delete'] +"</span></span>";
       }
 
 
@@ -13034,7 +13034,7 @@ var manipulationMixin = {
     else {
       this.editModeDiv.innerHTML = "" +
         "<span class='graph-manipulationUI edit editmode' id='graph-manipulate-editModeButton'>" +
-        "<span class='graph-manipulationLabel'>Edit</span></span>"
+        "<span class='graph-manipulationLabel'>"+this.constants.labels['edit'] +"</span></span>"
       var editModeButton = document.getElementById("graph-manipulate-editModeButton");
       editModeButton.onclick = this._toggleEditMode.bind(this);
     }
@@ -13057,10 +13057,10 @@ var manipulationMixin = {
     // create the toolbar contents
     this.manipulationDiv.innerHTML = "" +
       "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>Back</span></span>" +
+      "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
       "<div class='graph-seperatorLine'></div>" +
       "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>Click in an empty space to place a new node</span></span>";
+      "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['addDescription'] + "</span></span>";
 
     // bind the icon
     var backButton = document.getElementById("graph-manipulate-back");
@@ -13093,10 +13093,10 @@ var manipulationMixin = {
 
     this.manipulationDiv.innerHTML = "" +
       "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>Back</span></span>" +
+        "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
       "<div class='graph-seperatorLine'></div>" +
       "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
-        "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>Click on a node and drag the edge to another node to connect them.</span></span>";
+        "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['linkDescription'] + "</span></span>";
 
     // bind the icon
     var backButton = document.getElementById("graph-manipulate-back");
@@ -13217,7 +13217,7 @@ var manipulationMixin = {
           });
         }
         else {
-          alert("The function for add does not support two arguments (data,callback).");
+          alert(this.constants.labels['addError']);
           this._createManipulatorBar();
           this.moving = true;
           this.start();
@@ -13251,7 +13251,7 @@ var manipulationMixin = {
           });
         }
         else {
-          alert("The function for connect does not support two arguments (data,callback).");
+          alert(this.constants.labels["linkError"]);
           this.moving = true;
           this.start();
         }
@@ -13295,11 +13295,11 @@ var manipulationMixin = {
         });
       }
       else {
-        alert("The function for edit does not support two arguments (data, callback).")
+        alert(this.constants.labels["editError"]);
       }
     }
     else {
-      alert("No edit function has been bound to this button.")
+      alert(this.constants.labels["editBoundError"]);
     }
   },
 
@@ -13327,7 +13327,7 @@ var manipulationMixin = {
             });
           }
           else {
-            alert("The function for edit does not support two arguments (data, callback).")
+            alert(this.constants.labels["deleteError"])
           }
         }
         else {
@@ -13339,7 +13339,7 @@ var manipulationMixin = {
         }
       }
       else {
-        alert("Clusters cannot be deleted.");
+        alert(this.constants.labels["deleteClusterError"]);
       }
     }
   }
@@ -16170,7 +16170,23 @@ function Graph (container, data, options) {
     smoothCurves: true,
     maxVelocity:  10,
     minVelocity:  0.1,   // px/s
-    stabilizationIterations: 1000  // maximum number of iteration to stabilize
+    stabilizationIterations: 1000,  // maximum number of iteration to stabilize
+    labels:{
+      add:"Add Node",
+      edit:"Edit",
+      link:"Add Link",
+      delete:"Delete selected",
+      editNode:"Edit Node",
+      back:"Back",
+      addDescription:"Click in an empty space to place a new node.",
+      linkDescription:"Click on a node and drag the edge to another node to connect them.",
+      addError:"The function for add does not support two arguments (data,callback).",
+      linkError:"The function for connect does not support two arguments (data,callback).",
+      editError:"The function for edit does not support two arguments (data, callback).",
+      editBoundError:"No edit function has been bound to this button.",
+      deleteError:"The function for delete does not support two arguments (data, callback).",
+      deleteClusterError:"Clusters cannot be deleted."
+    }
   };
   this.editMode = this.constants.dataManipulation.initiallyVisible;
 
@@ -16502,6 +16518,16 @@ Graph.prototype.setOptions = function (options) {
     if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
+
+
+
+    if (options.labels !== undefined)  {
+      for (prop in options.labels) {
+        if (options.labels.hasOwnProperty(prop)) {
+          this.constants.labels[prop] = options.labels[prop];
+        }
+      }
+    }
 
     if (options.onAdd) {
         this.triggerFunctions.add = options.onAdd;
@@ -17920,13 +17946,23 @@ if (typeof window !== 'undefined') {
 
 /**
  * Schedule a animation step with the refreshrate interval.
- *
- * @poram {Boolean} runCalculationStep
  */
 Graph.prototype.start = function() {
   if (this.moving || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0) {
-    if (!this.timer) { 
-      this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+    if (!this.timer) {
+      var ua = navigator.userAgent.toLowerCase();
+      if (ua.indexOf('safari') != -1) {
+        if (ua.indexOf('chrome') <= -1) {
+          // safari
+          this.timer = window.setTimeout(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+        }
+        else {
+          this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+        }
+      }
+      else{
+        this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+      }
     }
   }
   else {
