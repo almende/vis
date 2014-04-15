@@ -55,7 +55,7 @@ function Popup(container, x, y, text, style) {
   styleAttr.visibility = "hidden";
   styleAttr.border = "1px solid " + style.color.border;
   styleAttr.color = style.fontColor;
-  styleAttr.fontSize = style.fontSize;
+  styleAttr.fontSize = style.fontSize + "px";
   styleAttr.fontFamily = style.fontFace;
   styleAttr.padding = this.padding + "px";
   styleAttr.backgroundColor = style.color.background;

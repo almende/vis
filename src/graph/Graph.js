@@ -629,6 +629,7 @@ Graph.prototype.setOptions = function (options) {
 
       if (options.edges.color !== undefined) {
         if (util.isString(options.edges.color)) {
+          this.constants.edges.color = {};
           this.constants.edges.color.color = options.edges.color;
           this.constants.edges.color.highlight = options.edges.color;
         }
