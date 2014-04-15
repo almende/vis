@@ -57,15 +57,18 @@ GroupSet.prototype = new Panel();
  * @private
  */
 GroupSet.prototype._create = function _create () {
-  // TODO: delete _create, GroupSet must not have DOM elements itself
+  // TODO: reimplement groupSet DOM elements
   var groupSet = document.createElement('div');
   groupSet.className = 'groupset';
   groupSet['timeline-groupset'] = this;
   this.dom.groupSet = groupSet;
 
-  var labelSet = document.createElement('div');
-  labelSet.className = 'labelset';
-  this.dom.labelSet = labelSet;
+  this.labelSet = new Panel({
+    className: 'labelSet',
+    width: '100%',
+    height: '100%'
+  });
+  this.labelPanel.appendChild(this.labelSet);
 };
 
 /**
@@ -232,6 +235,7 @@ GroupSet.prototype.getSelection = function getSelection() {
 
 /**
  * Repaint the component
+ * @return {boolean} Returns true if the component was resized since previous repaint
  */
 GroupSet.prototype.repaint = function repaint() {
   var i, id, group, label,
@@ -241,7 +245,8 @@ GroupSet.prototype.repaint = function repaint() {
       options = this.options,
       orientation = this.getOption('orientation'),
       groupSet = this.dom.groupSet,
-      labelSet = this.dom.labelSet,
+      labelSet = this.labelSet,
+      resized = false,
       me = this,
       queue = this.queue,
       groups = this.groups,
@@ -274,7 +279,7 @@ GroupSet.prototype.repaint = function repaint() {
 
             // Note: it is important to add the binding after group.setItems
             // is executed, because that will start an infinite loop
-            // as this call will already triger a
+            // as this call will already trigger a repaint
           }
 
           // TODO: update group data
@@ -299,22 +304,31 @@ GroupSet.prototype.repaint = function repaint() {
       order: this.options.groupOrder
     });
 
-    /* TODO
     // (re)create the labels
-    while (labelSet.firstChild) {
-      labelSet.removeChild(labelSet.firstChild);
+    // TODO: move label creation to Group
+    while (labelSet.frame.firstChild) {
+      labelSet.frame.removeChild(labelSet.firstChild);
     }
     for (i = 0; i < this.groupIds.length; i++) {
       id = this.groupIds[i];
       label = this._createLabel(id);
-      labelSet.appendChild(label);
+      labelSet.frame.appendChild(label);
     }
-    */
+
+    // hide the groups now, they will be repainted later in this function
+    // in correct order
+    this.groupIds.forEach(function (id) {
+      // TODO: hide group here
+      //groups[id].hide();
+    });
+
+    resized = true;
   }
 
   // repaint all groups in order
   this.groupIds.forEach(function (id) {
-    groups[id].repaint();
+    var groupResized = groups[id].repaint();
+    resized = resized || groupResized;
   });
 
   // reposition the labels and calculate the maximum label width
@@ -326,14 +340,16 @@ GroupSet.prototype.repaint = function repaint() {
       group = groups[id];
       label = group.label;
       if (label) {
-        label.style.top = group.top + 'px';
         label.style.height = group.height + 'px';
+
+        console.log('label height groupId=', id, ' height', group.height)
 
         var width = label.firstChild && label.firstChild.clientWidth || 0;
         maxWidth = Math.max(maxWidth, width);
       }
     }
   }
+  if (this.props.labels.width != maxWidth) resized = true;
   this.props.labels.width = maxWidth;
 
   // recalculate the height of the groupset
@@ -368,11 +384,9 @@ GroupSet.prototype.repaint = function repaint() {
   this.width = groupSet.offsetWidth;
   this.height = height;
 
-  /* TODO
-  // reposition labels
-  labelSet.style.top = asSize(options.top, '0');
-  labelSet.style.height = fixedHeight ? asSize(options.height) : this.height + 'px';
-  */
+  console.log('groupset.repaint resized=', resized)
+
+  return resized;
 };
 
 /**
@@ -419,6 +433,17 @@ GroupSet.prototype.getLabelsWidth = function getLabelsWidth() {
  * Hide the component from the DOM
  */
 GroupSet.prototype.hide = function hide() {
+  this.labelPanel.appendChild(this.labelSet);
+
+  for (var groupId in this.groups) {
+    if (this.groups.hasOwnProperty(groupId)) {
+      this.groups.hide();
+    }
+  }
+
+  // TODO: hide labelSet as well
+
+  /* TODO: cleanup
   var frame = this.dom.frame;
   if (frame && frame.parentNode) {
     frame.parentNode.removeChild(frame);
@@ -428,6 +453,7 @@ GroupSet.prototype.hide = function hide() {
   if (labels && labels.parentNode) {
     labels.parentNode.removeChild(labels.parentNode);
   }
+  */
 };
 
 /**

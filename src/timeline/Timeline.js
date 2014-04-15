@@ -176,6 +176,22 @@ function Timeline (container, items, options) {
   this.contentPanel = new Panel(contentOptions);
   this.mainPanel.appendChild(this.contentPanel);
 
+  // content panel (contains itemset(s))
+  var sideContentOptions = util.extend(Object.create(this.options), {
+    top: function () {
+      return (me.options.orientation == 'top') ? (me.timeAxis.height + 'px') : '';
+    },
+    bottom: function () {
+      return (me.options.orientation == 'top') ? '' : (me.timeAxis.height + 'px');
+    },
+    left: null,
+    right: null,
+    height: null,
+    width: null,
+    className: 'side-content'
+  });
+  this.sideContentPanel = new Panel(sideContentOptions);
+  this.sidePanel.appendChild(this.sideContentPanel);
 
   // current time bar
   // Note: time bar will be attached in this.setOptions when selected
@@ -388,22 +404,25 @@ Timeline.prototype.setGroups = function(groupSet) {
       this.itemSet = null;
     }
 
-    // TODO: only create a new groupset when there is no groupset
-
-    // create new GroupSet
-    // TODO: replace this.sidePanel with a this.labelPanel
-    this.groupSet = new GroupSet(this.contentPanel, this.sidePanel, options);
-    this.groupSet.on('change', this.rootPanel.repaint.bind(this.rootPanel, 'changes'));
-    this.groupSet.setRange(this.range);
-    this.groupSet.setItems(this.itemsData);
-    this.groupSet.setGroups(this.groupsData);
-    this.contentPanel.appendChild(this.groupSet);
+    // create new GroupSet when needed
+    if (!this.groupSet) {
+      this.groupSet = new GroupSet(this.contentPanel, this.sideContentPanel, options);
+      this.groupSet.on('change', this.rootPanel.repaint.bind(this.rootPanel, 'changes'));
+      this.groupSet.setRange(this.range);
+      this.groupSet.setItems(this.itemsData);
+      this.groupSet.setGroups(this.groupsData);
+      this.contentPanel.appendChild(this.groupSet);
+    }
+    else {
+      this.groupSet.setGroups(this.groupsData);
+    }
   }
   else {
     // ItemSet
     if (this.groupSet) {
       this.groupSet.hide(); // TODO: not so nice having to hide here
-      this.groupSet.setItems(); // disconnect from itemset
+      //this.groupSet.setGroups();  // disconnect from groupset
+      this.groupSet.setItems();   // disconnect from itemset
       this.contentPanel.removeChild(this.groupSet);
       this.groupSet = null;
     }

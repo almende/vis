@@ -5,6 +5,7 @@
   margin: 0;
 }
 
+/* TODO: cleanup
 .vis.timeline .labels {
   position: absolute;
   top: 0;
@@ -15,24 +16,20 @@
   padding: 0;
   margin: 0;
 }
+*/
 
-.vis.timeline .labels .labelset {
+.vis.timeline .labelSet {
   position: relative;
-  top: 0;
-  left: 0;
   width: 100%;
 
   overflow: hidden;
-
-  border-top: none;
-  border-bottom: 1px solid #bfbfbf;
 
   -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
 
-.vis.timeline .labels .labelset .vlabel {
-  position: absolute;
+.vis.timeline .labelSet .vlabel {
+  position: relative;
   left: 0;
   top: 0;
   width: 100%;
@@ -42,19 +39,21 @@
   box-sizing: border-box;
 }
 
-.vis.timeline.top .labels .labelset .vlabel,
+.vis.timeline.bottom .labelSet .vlabel,
+.vis.timeline.top .vpanel.side-content,
 .vis.timeline.top .itemset .axis {
   border-top: 1px solid #bfbfbf;
   border-bottom: none;
 }
 
-.vis.timeline.bottom .labels .labelset .vlabel,
+.vis.timeline.top .labelSet .vlabel,
+.vis.timeline.bottom .vpanel.side-content,
 .vis.timeline.bottom .itemset .axis {
   border-top: none;
   border-bottom: 1px solid #bfbfbf;
 }
 
-.vis.timeline .labels .labelset .vlabel .inner {
+.vis.timeline .labelSet .vlabel .inner {
   display: inline-block;
   padding: 5px;
 }
