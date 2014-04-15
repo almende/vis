@@ -417,10 +417,11 @@ var nodes = [
 
   <tr>
     <td>title</td>
-    <td>string</td>
+    <td>string | function</td>
     <td>no</td>
     <td>Title to be displayed when the user hovers over the node.
-      The title can contain HTML code.</td>
+      The title can contain HTML code. If using a function, returning <code>undefined</code>
+      will prevent the tooltip from being displayed.</td>
   </tr>
 
   <tr>
@@ -615,10 +616,11 @@ var edges = [
     </tr>
   <tr>
     <td>title</td>
-    <td>string</td>
+    <td>string | function</td>
     <td>no</td>
     <td>Title to be displayed when the user hovers over the edge.
-      The title can contain HTML code.</td>
+      The title can contain HTML code. If using a function, returning <code>undefined</code>
+      will prevent the tooltip from being displayed.</td>
   </tr>
 
   <tr>
@@ -1397,7 +1399,7 @@ var options = {
         <td>This is the damping constant. It is used to dissipate energy from the system to have it settle in an equilibrium. More information is available <a href="http://en.wikipedia.org/wiki/Damping" target="_blank">here</a>.</td>
     </tr>
 </table>
-<h4 id="PhysicsConfiguration">Configuration:</h5>
+<h4 id="PhysicsConfiguration">Configuration:</h4>
 Every dataset is different. Nodes can have different sizes based on content, interconnectivity can be high or low etc. Because of this, graph has a special option
 that the user can use to explore which settings may be good for him or her. This is ment to be used during the development phase when you are implementing vis.js. Once you have found
 settings you are happy with, you can supply them to graph using the physics options as described above.
