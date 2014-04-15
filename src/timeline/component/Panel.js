@@ -54,8 +54,12 @@ Panel.prototype.appendChild = function (child) {
   this.childs.push(child);
   child.parent = this;
 
+  var frame = child.getFrame();
+
   // attach to the DOM
-  this.frame.appendChild(child.getFrame());
+  if (frame) {
+    this.frame.appendChild(frame);
+  }
 };
 
 /**
@@ -80,12 +84,12 @@ Panel.prototype.removeChild = function (child) {
   if (index != -1) {
     this.childs.splice(index, 1);
 
-    if (!child.getFrame() || child.getFrame().parentNode != this.frame) {
-      console.log('oops')
-    }
+    var frame = child.getFrame();
 
     // remove from the DOM
-    this.frame.removeChild(child.getFrame());
+    if (frame && frame.parentNode) {
+      this.frame.removeChild(frame);
+    }
 
     child.parent = null;
   }

@@ -38,9 +38,9 @@ Group.prototype.setOptions = Component.prototype.setOptions;
 /**
  * Set item set for the group. The group will create a view on the itemSet,
  * filtered by the groups id.
- * @param {DataSet | DataView} items
+ * @param {DataSet | DataView} itemSet
  */
-Group.prototype.setItems = function setItems(items) {
+Group.prototype.setItems = function setItems(itemSet) {
   if (this.itemSet) {
     // remove current item set
     this.itemSet.hide();
@@ -49,7 +49,7 @@ Group.prototype.setItems = function setItems(items) {
     this.itemSet = null;
   }
 
-  if (items) {
+  if (itemSet) {
     var groupId = this.groupId;
 
     var itemSetOptions = Object.create(this.options);
@@ -59,7 +59,7 @@ Group.prototype.setItems = function setItems(items) {
 
     if (this.range) this.itemSet.setRange(this.range);
 
-    this.view = new DataView(items, {
+    this.view = new DataView(itemSet, {
       filter: function (item) {
         return item.group == groupId;
       }

@@ -24,3 +24,7 @@
 .vis.timeline .vpanel.side {
   border-right: 1px solid #bfbfbf;
 }
+
+.vis.timeline .vpanel.side.hidden {
+  display: none;
+}

@@ -670,8 +670,9 @@ util.option.asElement = function (value, defaultValue) {
 
 
 
-util.GiveDec = function GiveDec(Hex)
-{
+util.GiveDec = function GiveDec(Hex) {
+  var Value;
+
   if(Hex == "A")
     Value = 10;
   else
@@ -690,12 +691,14 @@ util.GiveDec = function GiveDec(Hex)
   if(Hex == "F")
     Value = 15;
   else
-    Value = eval(Hex)
-  return Value;
-}
+    Value = eval(Hex);
 
-util.GiveHex = function GiveHex(Dec)
-{
+  return Value;
+};
+
+util.GiveHex = function GiveHex(Dec) {
+  var Value;
+
   if(Dec == 10)
     Value = "A";
   else
@@ -715,8 +718,9 @@ util.GiveHex = function GiveHex(Dec)
     Value = "F";
   else
     Value = "" + Dec;
+
   return Value;
-}
+};
 
 /**
  * http://www.yellowpipe.com/yis/tools/hex-to-rgb/color-converter.php

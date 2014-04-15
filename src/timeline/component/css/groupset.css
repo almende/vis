@@ -43,13 +43,13 @@
 }
 
 .vis.timeline.top .labels .labelset .vlabel,
-.vis.timeline.top .groupset .itemset .axis {
+.vis.timeline.top .itemset .axis {
   border-top: 1px solid #bfbfbf;
   border-bottom: none;
 }
 
 .vis.timeline.bottom .labels .labelset .vlabel,
-.vis.timeline.bottom .groupset .itemset .axis {
+.vis.timeline.bottom .itemset .axis {
   border-top: none;
   border-bottom: 1px solid #bfbfbf;
 }

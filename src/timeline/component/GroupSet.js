@@ -28,7 +28,7 @@ function GroupSet(contentPanel, labelPanel, options) {
     }
   };
 
-  // TODO: implement right orientation of the labels
+  // TODO: implement right orientation of the labels (left/right)
 
   // changes in groups are queued  key/value map containing id/action
   this.queue = {};
@@ -73,7 +73,7 @@ GroupSet.prototype._create = function _create () {
  * @returns {null} Get frame is not supported by GroupSet
  */
 GroupSet.prototype.getFrame = function getFrame() {
-  throw new Error('GroupSet is a virtual Component and doesn\'t have a frame.');
+  return null;
 };
 
 /**
@@ -477,6 +477,8 @@ GroupSet.prototype._onRemove = function _onRemove(ids) {
  * @param {String} action     can be 'add', 'update', 'remove'
  */
 GroupSet.prototype._toQueue = function _toQueue(ids, action) {
+  // TODO: remove this queuing thing, immediately apply it
+
   var queue = this.queue;
   ids.forEach(function (id) {
     queue[id] = action;

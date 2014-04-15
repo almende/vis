@@ -100,7 +100,9 @@ function Timeline (container, items, options) {
         return 0;
       }
     },
-    className: 'side'
+    className: function () {
+      return 'side' + (me.groupsData ? '' : ' hidden');
+    }
   });
   this.sidePanel = new Panel(sideOptions);
   this.rootPanel.appendChild(this.sidePanel);
@@ -359,11 +361,11 @@ Timeline.prototype.setItems = function(items) {
 
 /**
  * Set groups
- * @param {vis.DataSet | Array | google.visualization.DataTable} groups
+ * @param {vis.DataSet | Array | google.visualization.DataTable} groupSet
  */
-Timeline.prototype.setGroups = function(groups) {
+Timeline.prototype.setGroups = function(groupSet) {
   var me = this;
-  this.groupsData = groups;
+  this.groupsData = groupSet;
 
   // create options for the itemset or groupset
   var options = util.extend(Object.create(this.options), {
@@ -376,13 +378,17 @@ Timeline.prototype.setGroups = function(groups) {
   });
 
   if (this.groupsData) {
-    // GroupSet
+    // Create a GroupSet
+
+    // remove itemset if existing
     if (this.itemSet) {
       this.itemSet.hide(); // TODO: not so nice having to hide here
       this.contentPanel.removeChild(this.itemSet);
       this.itemSet.setItems(); // disconnect from itemset
       this.itemSet = null;
     }
+
+    // TODO: only create a new groupset when there is no groupset
 
     // create new GroupSet
     // TODO: replace this.sidePanel with a this.labelPanel
@@ -391,12 +397,14 @@ Timeline.prototype.setGroups = function(groups) {
     this.groupSet.setRange(this.range);
     this.groupSet.setItems(this.itemsData);
     this.groupSet.setGroups(this.groupsData);
+    this.contentPanel.appendChild(this.groupSet);
   }
   else {
     // ItemSet
     if (this.groupSet) {
       this.groupSet.hide(); // TODO: not so nice having to hide here
       this.groupSet.setItems(); // disconnect from itemset
+      this.contentPanel.removeChild(this.groupSet);
       this.groupSet = null;
     }
 
