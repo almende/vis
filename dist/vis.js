@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.7.2
- * @date    2014-04-09
+ * @version 0.7.3
+ * @date    2014-04-16
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -1011,6 +1011,63 @@ util.GiveHex = function GiveHex(Dec)
     Value = "" + Dec;
   return Value;
 }
+
+/**
+ * Parse a color property into an object with border, background, and
+ * highlight colors
+ * @param {Object | String} color
+ * @return {Object} colorObject
+ */
+util.parseColor = function(color) {
+  var c;
+  if (util.isString(color)) {
+    if (util.isValidHex(color)) {
+      var hsv = util.hexToHSV(color);
+      var lighterColorHSV = {h:hsv.h,s:hsv.s * 0.45,v:Math.min(1,hsv.v * 1.05)};
+      var darkerColorHSV  = {h:hsv.h,s:Math.min(1,hsv.v * 1.25),v:hsv.v*0.6};
+      var darkerColorHex  = util.HSVToHex(darkerColorHSV.h ,darkerColorHSV.h ,darkerColorHSV.v);
+      var lighterColorHex = util.HSVToHex(lighterColorHSV.h,lighterColorHSV.s,lighterColorHSV.v);
+
+      c = {
+        background: color,
+        border:darkerColorHex,
+        highlight: {
+          background:lighterColorHex,
+          border:darkerColorHex
+        }
+      };
+    }
+    else {
+      c = {
+        background:color,
+        border:color,
+        highlight: {
+          background:color,
+          border:color
+        }
+      };
+    }
+  }
+  else {
+    c = {};
+    c.background = color.background || 'white';
+    c.border = color.border || c.background;
+
+    if (util.isString(color.highlight)) {
+      c.highlight = {
+        border: color.highlight,
+        background: color.highlight
+      }
+    }
+    else {
+      c.highlight = {};
+      c.highlight.background = color.highlight && color.highlight.background || c.background;
+      c.highlight.border = color.highlight && color.highlight.border || c.border;
+    }
+  }
+
+  return c;
+};
 
 /**
  * http://www.yellowpipe.com/yis/tools/hex-to-rgb/color-converter.php
@@ -9588,7 +9645,7 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.shape !== undefined)          {this.shape = properties.shape;}
   if (properties.image !== undefined)          {this.image = properties.image;}
   if (properties.radius !== undefined)         {this.radius = properties.radius;}
-  if (properties.color !== undefined)          {this.color = Node.parseColor(properties.color);}
+  if (properties.color !== undefined)          {this.color = util.parseColor(properties.color);}
 
   if (properties.fontColor !== undefined)      {this.fontColor = properties.fontColor;}
   if (properties.fontSize !== undefined)       {this.fontSize = properties.fontSize;}
@@ -9633,63 +9690,6 @@ Node.prototype.setProperties = function(properties, constants) {
 };
 
 /**
- * Parse a color property into an object with border, background, and
- * hightlight colors
- * @param {Object | String} color
- * @return {Object} colorObject
- */
-Node.parseColor = function(color) {
-  var c;
-  if (util.isString(color)) {
-    if (util.isValidHex(color)) {
-      var hsv = util.hexToHSV(color);
-      var lighterColorHSV = {h:hsv.h,s:hsv.s * 0.45,v:Math.min(1,hsv.v * 1.05)};
-      var darkerColorHSV  = {h:hsv.h,s:Math.min(1,hsv.v * 1.25),v:hsv.v*0.6};
-      var darkerColorHex  = util.HSVToHex(darkerColorHSV.h ,darkerColorHSV.h ,darkerColorHSV.v);
-      var lighterColorHex = util.HSVToHex(lighterColorHSV.h,lighterColorHSV.s,lighterColorHSV.v);
-
-      c = {
-        background: color,
-        border:darkerColorHex,
-        highlight: {
-          background:lighterColorHex,
-          border:darkerColorHex
-        }
-      };
-    }
-    else {
-      c = {
-        background:color,
-        border:color,
-        highlight: {
-          background:color,
-          border:color
-        }
-      };
-    }
-  }
-  else {
-    c = {};
-    c.background = color.background || 'white';
-    c.border = color.border || c.background;
-
-    if (util.isString(color.highlight)) {
-      c.highlight = {
-        border: color.highlight,
-        background: color.highlight
-      }
-    }
-    else {
-      c.highlight = {};
-      c.highlight.background = color.highlight && color.highlight.background || c.background;
-      c.highlight.border = color.highlight && color.highlight.border || c.border;
-    }
-  }
-
-  return c;
-};
-
-/**
  * select this node
  */
 Node.prototype.select = function() {
@@ -9728,7 +9728,7 @@ Node.prototype._reset = function() {
  *                           has been set.
  */
 Node.prototype.getTitle = function() {
-  return this.title;
+  return typeof this.title === "function" ? this.title() : this.title;
 };
 
 /**
@@ -10515,10 +10515,12 @@ Edge.prototype.setProperties = function(properties, constants) {
     this.fontSize = constants.edges.fontSize;
     this.fontFace = constants.edges.fontFace;
     this.fontColor = constants.edges.fontColor;
+    this.fontFill = constants.edges.fontFill;
 
     if (properties.fontColor !== undefined)  {this.fontColor = properties.fontColor;}
     if (properties.fontSize !== undefined)   {this.fontSize = properties.fontSize;}
     if (properties.fontFace !== undefined)   {this.fontFace = properties.fontFace;}
+    if (properties.fontFill !== undefined)   {this.fontFill = properties.fontFill;}
   }
 
   if (properties.title !== undefined)        {this.title = properties.title;}
@@ -10609,7 +10611,7 @@ Edge.prototype.disconnect = function () {
  *                           has been set.
  */
 Edge.prototype.getTitle = function() {
-  return this.title;
+  return typeof this.title === "function" ? this.title() : this.title;
 };
 
 
@@ -10782,7 +10784,7 @@ Edge.prototype._label = function (ctx, text, x, y) {
     // TODO: cache the calculated size
     ctx.font = ((this.from.selected || this.to.selected) ? "bold " : "") +
         this.fontSize + "px " + this.fontFace;
-    ctx.fillStyle = 'white';
+    ctx.fillStyle = this.fontFill;
     var width = ctx.measureText(text).width;
     var height = this.fontSize;
     var left = x - width / 2;
@@ -11209,14 +11211,39 @@ Edge.prototype.positionBezierNode = function() {
  * @param {Number} [x]
  * @param {Number} [y]
  * @param {String} [text]
+ * @param {Object} [style]     An object containing borderColor,
+ *                             backgroundColor, etc.
  */
-function Popup(container, x, y, text) {
+function Popup(container, x, y, text, style) {
   if (container) {
     this.container = container;
   }
   else {
     this.container = document.body;
   }
+
+  // x, y and text are optional, see if a style object was passed in their place
+  if (style === undefined) {
+    if (typeof x === "object") {
+      style = x;
+      x = undefined;
+    } else if (typeof text === "object") {
+      style = text;
+      text = undefined;
+    } else {
+      // for backwards compatibility, in case clients other than Graph are creating Popup directly
+      style = {
+        fontColor: 'black',
+        fontSize: 14, // px
+        fontFace: 'verdana',
+        color: {
+          border: '#666',
+          background: '#FFFFC6'
+        }
+      }
+    }
+  }
+
   this.x = 0;
   this.y = 0;
   this.padding = 5;
@@ -11230,18 +11257,20 @@ function Popup(container, x, y, text) {
 
   // create the frame
   this.frame = document.createElement("div");
-  var style = this.frame.style;
-  style.position = "absolute";
-  style.visibility = "hidden";
-  style.border = "1px solid #666";
-  style.color = "black";
-  style.padding = this.padding + "px";
-  style.backgroundColor = "#FFFFC6";
-  style.borderRadius = "3px";
-  style.MozBorderRadius = "3px";
-  style.WebkitBorderRadius = "3px";
-  style.boxShadow = "3px 3px 10px rgba(128, 128, 128, 0.5)";
-  style.whiteSpace = "nowrap";
+  var styleAttr = this.frame.style;
+  styleAttr.position = "absolute";
+  styleAttr.visibility = "hidden";
+  styleAttr.border = "1px solid " + style.color.border;
+  styleAttr.color = style.fontColor;
+  styleAttr.fontSize = style.fontSize + "px";
+  styleAttr.fontFamily = style.fontFace;
+  styleAttr.padding = this.padding + "px";
+  styleAttr.backgroundColor = style.color.background;
+  styleAttr.borderRadius = "3px";
+  styleAttr.MozBorderRadius = "3px";
+  styleAttr.WebkitBorderRadius = "3px";
+  styleAttr.boxShadow = "3px 3px 10px rgba(128, 128, 128, 0.5)";
+  styleAttr.whiteSpace = "nowrap";
   this.container.appendChild(this.frame);
 }
 
@@ -11385,7 +11414,7 @@ Groups.prototype.get = function (groupname) {
 Groups.prototype.add = function (groupname, style) {
   this.groups[groupname] = style;
   if (style.color) {
-    style.color = Node.parseColor(style.color);
+    style.color = util.parseColor(style.color);
   }
   return style;
 };
@@ -12994,21 +13023,21 @@ var manipulationMixin = {
       // add the icons to the manipulator div
       this.manipulationDiv.innerHTML = "" +
         "<span class='graph-manipulationUI add' id='graph-manipulate-addNode'>" +
-          "<span class='graph-manipulationLabel'>Add Node</span></span>" +
+          "<span class='graph-manipulationLabel'>"+this.constants.labels['add'] +"</span></span>" +
         "<div class='graph-seperatorLine'></div>" +
         "<span class='graph-manipulationUI connect' id='graph-manipulate-connectNode'>" +
-          "<span class='graph-manipulationLabel'>Add Link</span></span>";
+          "<span class='graph-manipulationLabel'>"+this.constants.labels['link'] +"</span></span>";
       if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
         this.manipulationDiv.innerHTML += "" +
           "<div class='graph-seperatorLine'></div>" +
           "<span class='graph-manipulationUI edit' id='graph-manipulate-editNode'>" +
-            "<span class='graph-manipulationLabel'>Edit Node</span></span>";
+            "<span class='graph-manipulationLabel'>"+this.constants.labels['editNode'] +"</span></span>";
       }
       if (this._selectionIsEmpty() == false) {
         this.manipulationDiv.innerHTML += "" +
           "<div class='graph-seperatorLine'></div>" +
           "<span class='graph-manipulationUI delete' id='graph-manipulate-delete'>" +
-            "<span class='graph-manipulationLabel'>Delete selected</span></span>";
+            "<span class='graph-manipulationLabel'>"+this.constants.labels['delete'] +"</span></span>";
       }
 
 
@@ -13034,7 +13063,7 @@ var manipulationMixin = {
     else {
       this.editModeDiv.innerHTML = "" +
         "<span class='graph-manipulationUI edit editmode' id='graph-manipulate-editModeButton'>" +
-        "<span class='graph-manipulationLabel'>Edit</span></span>"
+        "<span class='graph-manipulationLabel'>"+this.constants.labels['edit'] +"</span></span>"
       var editModeButton = document.getElementById("graph-manipulate-editModeButton");
       editModeButton.onclick = this._toggleEditMode.bind(this);
     }
@@ -13057,10 +13086,10 @@ var manipulationMixin = {
     // create the toolbar contents
     this.manipulationDiv.innerHTML = "" +
       "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>Back</span></span>" +
+      "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
       "<div class='graph-seperatorLine'></div>" +
       "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>Click in an empty space to place a new node</span></span>";
+      "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['addDescription'] + "</span></span>";
 
     // bind the icon
     var backButton = document.getElementById("graph-manipulate-back");
@@ -13093,10 +13122,10 @@ var manipulationMixin = {
 
     this.manipulationDiv.innerHTML = "" +
       "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>Back</span></span>" +
+        "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
       "<div class='graph-seperatorLine'></div>" +
       "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
-        "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>Click on a node and drag the edge to another node to connect them.</span></span>";
+        "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['linkDescription'] + "</span></span>";
 
     // bind the icon
     var backButton = document.getElementById("graph-manipulate-back");
@@ -13217,7 +13246,7 @@ var manipulationMixin = {
           });
         }
         else {
-          alert("The function for add does not support two arguments (data,callback).");
+          alert(this.constants.labels['addError']);
           this._createManipulatorBar();
           this.moving = true;
           this.start();
@@ -13251,7 +13280,7 @@ var manipulationMixin = {
           });
         }
         else {
-          alert("The function for connect does not support two arguments (data,callback).");
+          alert(this.constants.labels["linkError"]);
           this.moving = true;
           this.start();
         }
@@ -13295,11 +13324,11 @@ var manipulationMixin = {
         });
       }
       else {
-        alert("The function for edit does not support two arguments (data, callback).")
+        alert(this.constants.labels["editError"]);
       }
     }
     else {
-      alert("No edit function has been bound to this button.")
+      alert(this.constants.labels["editBoundError"]);
     }
   },
 
@@ -13327,7 +13356,7 @@ var manipulationMixin = {
             });
           }
           else {
-            alert("The function for edit does not support two arguments (data, callback).")
+            alert(this.constants.labels["deleteError"])
           }
         }
         else {
@@ -13339,7 +13368,7 @@ var manipulationMixin = {
         }
       }
       else {
-        alert("Clusters cannot be deleted.");
+        alert(this.constants.labels["deleteClusterError"]);
       }
     }
   }
@@ -16091,6 +16120,7 @@ function Graph (container, data, options) {
       fontColor: '#343434',
       fontSize: 14, // px
       fontFace: 'arial',
+      fontFill: 'white',
       dash: {
         length: 10,
         gap: 5,
@@ -16170,7 +16200,33 @@ function Graph (container, data, options) {
     smoothCurves: true,
     maxVelocity:  10,
     minVelocity:  0.1,   // px/s
-    stabilizationIterations: 1000  // maximum number of iteration to stabilize
+    stabilizationIterations: 1000,  // maximum number of iteration to stabilize
+    labels:{
+      add:"Add Node",
+      edit:"Edit",
+      link:"Add Link",
+      delete:"Delete selected",
+      editNode:"Edit Node",
+      back:"Back",
+      addDescription:"Click in an empty space to place a new node.",
+      linkDescription:"Click on a node and drag the edge to another node to connect them.",
+      addError:"The function for add does not support two arguments (data,callback).",
+      linkError:"The function for connect does not support two arguments (data,callback).",
+      editError:"The function for edit does not support two arguments (data, callback).",
+      editBoundError:"No edit function has been bound to this button.",
+      deleteError:"The function for delete does not support two arguments (data, callback).",
+      deleteClusterError:"Clusters cannot be deleted."
+    },
+    tooltip: {
+      delay: 300,
+      fontColor: 'black',
+      fontSize: 14, // px
+      fontFace: 'verdana',
+      color: {
+        border: '#666',
+        background: '#FFFFC6'
+      }
+    }
   };
   this.editMode = this.constants.dataManipulation.initiallyVisible;
 
@@ -16503,6 +16559,16 @@ Graph.prototype.setOptions = function (options) {
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
 
+
+
+    if (options.labels !== undefined)  {
+      for (prop in options.labels) {
+        if (options.labels.hasOwnProperty(prop)) {
+          this.constants.labels[prop] = options.labels[prop];
+        }
+      }
+    }
+
     if (options.onAdd) {
         this.triggerFunctions.add = options.onAdd;
       }
@@ -16611,6 +16677,7 @@ Graph.prototype.setOptions = function (options) {
 
       if (options.edges.color !== undefined) {
         if (util.isString(options.edges.color)) {
+          this.constants.edges.color = {};
           this.constants.edges.color.color = options.edges.color;
           this.constants.edges.color.highlight = options.edges.color;
         }
@@ -16651,7 +16718,7 @@ Graph.prototype.setOptions = function (options) {
       }
 
       if (options.nodes.color) {
-        this.constants.nodes.color = Node.parseColor(options.nodes.color);
+        this.constants.nodes.color = util.parseColor(options.nodes.color);
       }
 
       /*
@@ -16665,6 +16732,17 @@ Graph.prototype.setOptions = function (options) {
           var group = options.groups[groupname];
           this.groups.add(groupname, group);
         }
+      }
+    }
+
+    if (options.tooltip) {
+      for (prop in options.tooltip) {
+        if (options.tooltip.hasOwnProperty(prop)) {
+          this.constants.tooltip[prop] = options.tooltip[prop];
+        }
+      }
+      if (options.tooltip.color) {
+        this.constants.tooltip.color = util.parseColor(options.tooltip.color);
       }
     }
   }
@@ -17110,7 +17188,7 @@ Graph.prototype._onMouseMoveTitle = function (event) {
     clearInterval(this.popupTimer); // stop any running calculationTimer
   }
   if (!this.drag.dragging) {
-    this.popupTimer = setTimeout(checkShow, 300);
+    this.popupTimer = setTimeout(checkShow, this.constants.tooltip.delay);
   }
 };
 
@@ -17167,7 +17245,7 @@ Graph.prototype._checkShowPopup = function (pointer) {
     if (this.popupNode != lastPopupNode) {
       var me = this;
       if (!me.popup) {
-        me.popup = new Popup(me.frame);
+        me.popup = new Popup(me.frame, me.constants.tooltip);
       }
 
       // adjust a small offset such that the mouse cursor is located in the
@@ -17920,13 +17998,23 @@ if (typeof window !== 'undefined') {
 
 /**
  * Schedule a animation step with the refreshrate interval.
- *
- * @poram {Boolean} runCalculationStep
  */
 Graph.prototype.start = function() {
   if (this.moving || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0) {
-    if (!this.timer) { 
-      this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+    if (!this.timer) {
+      var ua = navigator.userAgent.toLowerCase();
+      if (ua.indexOf('safari') != -1) {
+        if (ua.indexOf('chrome') <= -1) {
+          // safari
+          this.timer = window.setTimeout(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+        }
+        else {
+          this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+        }
+      }
+      else{
+        this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+      }
     }
   }
   else {
@@ -19715,8 +19803,8 @@ else {
 }
 })(this);
 },{}],4:[function(require,module,exports){
-//! moment.js
-//! version : 2.5.1
+var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};//! moment.js
+//! version : 2.6.0
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
@@ -19728,8 +19816,10 @@ else {
     ************************************/
 
     var moment,
-        VERSION = "2.5.1",
-        global = this,
+        VERSION = "2.6.0",
+        // the global-scope this is NOT the global object in Node.js
+        globalScope = typeof global !== 'undefined' ? global : this,
+        oldGlobalMoment,
         round = Math.round,
         i,
 
@@ -19758,7 +19848,7 @@ else {
         },
 
         // check for nodeJS
-        hasModule = (typeof module !== 'undefined' && module.exports && typeof require !== 'undefined'),
+        hasModule = (typeof module !== 'undefined' && module.exports),
 
         // ASP.NET json date format regex
         aspNetJsonRegex = /^\/?Date\((\-?\d+)/i,
@@ -19769,7 +19859,7 @@ else {
         isoDurationRegex = /^(-)?P(?:(?:([0-9,.]*)Y)?(?:([0-9,.]*)M)?(?:([0-9,.]*)D)?(?:T(?:([0-9,.]*)H)?(?:([0-9,.]*)M)?(?:([0-9,.]*)S)?)?|([0-9,.]*)W)$/,
 
         // format tokens
-        formattingTokens = /(\[[^\[]*\])|(\\)?(Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|S{1,4}|X|zz?|ZZ?|.)/g,
+        formattingTokens = /(\[[^\[]*\])|(\\)?(Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Q|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|S{1,4}|X|zz?|ZZ?|.)/g,
         localFormattingTokens = /(\[[^\[]*\])|(\\)?(LT|LL?L?L?|l{1,4})/g,
 
         // parsing token regexes
@@ -19782,6 +19872,7 @@ else {
         parseTokenTimezone = /Z|[\+\-]\d\d:?\d\d/gi, // +00:00 -00:00 +0000 -0000 or Z
         parseTokenT = /T/i, // T (ISO separator)
         parseTokenTimestampMs = /[\+\-]?\d+(\.\d{1,3})?/, // 123456789 123456789.123
+        parseTokenOrdinal = /\d{1,2}/,
 
         //strict parsing regexes
         parseTokenOneDigit = /\d/, // 0 - 9
@@ -19807,7 +19898,7 @@ else {
 
         // iso time formats and regexes
         isoTimes = [
-            ['HH:mm:ss.SSSS', /(T| )\d\d:\d\d:\d\d\.\d{1,3}/],
+            ['HH:mm:ss.SSSS', /(T| )\d\d:\d\d:\d\d\.\d+/],
             ['HH:mm:ss', /(T| )\d\d:\d\d:\d\d/],
             ['HH:mm', /(T| )\d\d:\d\d/],
             ['HH', /(T| )\d\d/]
@@ -19838,6 +19929,7 @@ else {
             w : 'week',
             W : 'isoWeek',
             M : 'month',
+            Q : 'quarter',
             y : 'year',
             DDD : 'dayOfYear',
             e : 'weekday',
@@ -20013,6 +20105,23 @@ else {
         };
     }
 
+    function deprecate(msg, fn) {
+        var firstTime = true;
+        function printMsg() {
+            if (moment.suppressDeprecationWarnings === false &&
+                    typeof console !== 'undefined' && console.warn) {
+                console.warn("Deprecation warning: " + msg);
+            }
+        }
+        return extend(function () {
+            if (firstTime) {
+                printMsg();
+                firstTime = false;
+            }
+            return fn.apply(this, arguments);
+        }, fn);
+    }
+
     function padToken(func, count) {
         return function (a) {
             return leftZeroFill(func.call(this, a), count);
@@ -20053,6 +20162,7 @@ else {
     function Duration(duration) {
         var normalizedInput = normalizeObjectUnits(duration),
             years = normalizedInput.year || 0,
+            quarters = normalizedInput.quarter || 0,
             months = normalizedInput.month || 0,
             weeks = normalizedInput.week || 0,
             days = normalizedInput.day || 0,
@@ -20074,6 +20184,7 @@ else {
         // which months you are are talking about, so we have to store
         // it separately.
         this._months = +months +
+            quarters * 3 +
             years * 12;
 
         this._data = {};
@@ -20136,34 +20247,23 @@ else {
     }
 
     // helper function for _.addTime and _.subtractTime
-    function addOrSubtractDurationFromMoment(mom, duration, isAdding, ignoreUpdateOffset) {
+    function addOrSubtractDurationFromMoment(mom, duration, isAdding, updateOffset) {
         var milliseconds = duration._milliseconds,
             days = duration._days,
-            months = duration._months,
-            minutes,
-            hours;
+            months = duration._months;
+        updateOffset = updateOffset == null ? true : updateOffset;
 
         if (milliseconds) {
             mom._d.setTime(+mom._d + milliseconds * isAdding);
         }
-        // store the minutes and hours so we can restore them
-        if (days || months) {
-            minutes = mom.minute();
-            hours = mom.hour();
-        }
         if (days) {
-            mom.date(mom.date() + days * isAdding);
+            rawSetter(mom, 'Date', rawGetter(mom, 'Date') + days * isAdding);
         }
         if (months) {
-            mom.month(mom.month() + months * isAdding);
+            rawMonthSetter(mom, rawGetter(mom, 'Month') + months * isAdding);
         }
-        if (milliseconds && !ignoreUpdateOffset) {
-            moment.updateOffset(mom);
-        }
-        // restore the minutes and hours after possibly changing dst
-        if (days || months) {
-            mom.minute(minutes);
-            mom.hour(hours);
+        if (updateOffset) {
+            moment.updateOffset(mom, days || months);
         }
     }
 
@@ -20276,6 +20376,10 @@ else {
 
     function daysInMonth(year, month) {
         return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    }
+
+    function weeksInYear(year, dow, doy) {
+        return weekOfYear(moment([year, 11, 31 + dow - doy]), dow, doy).week;
     }
 
     function daysInYear(year) {
@@ -20668,6 +20772,8 @@ else {
     function getParseRegexForToken(token, config) {
         var a, strict = config._strict;
         switch (token) {
+        case 'Q':
+            return parseTokenOneDigit;
         case 'DDDD':
             return parseTokenThreeDigits;
         case 'YYYY':
@@ -20736,6 +20842,8 @@ else {
         case 'e':
         case 'E':
             return parseTokenOneOrTwoDigits;
+        case 'Do':
+            return parseTokenOrdinal;
         default :
             a = new RegExp(regexpEscape(unescapeFormat(token.replace('\\', '')), "i"));
             return a;
@@ -20757,6 +20865,12 @@ else {
         var a, datePartArray = config._a;
 
         switch (token) {
+        // QUARTER
+        case 'Q':
+            if (input != null) {
+                datePartArray[MONTH] = (toInt(input) - 1) * 3;
+            }
+            break;
         // MONTH
         case 'M' : // fall through to MM
         case 'MM' :
@@ -20781,6 +20895,11 @@ else {
                 datePartArray[DATE] = toInt(input);
             }
             break;
+        case 'Do' :
+            if (input != null) {
+                datePartArray[DATE] = toInt(parseInt(input, 10));
+            }
+            break;
         // DAY OF YEAR
         case 'DDD' : // fall through to DDDD
         case 'DDDD' :
@@ -20791,7 +20910,7 @@ else {
             break;
         // YEAR
         case 'YY' :
-            datePartArray[YEAR] = toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
+            datePartArray[YEAR] = moment.parseTwoDigitYear(input);
             break;
         case 'YYYY' :
         case 'YYYYY' :
@@ -20880,9 +20999,9 @@ else {
         //compute day of the year from weeks and weekdays
         if (config._w && config._a[DATE] == null && config._a[MONTH] == null) {
             fixYear = function (val) {
-                var int_val = parseInt(val, 10);
+                var intVal = parseInt(val, 10);
                 return val ?
-                  (val.length < 3 ? (int_val > 68 ? 1900 + int_val : 2000 + int_val) : int_val) :
+                  (val.length < 3 ? (intVal > 68 ? 1900 + intVal : 2000 + intVal) : intVal) :
                   (config._a[YEAR] == null ? moment().weekYear() : config._a[YEAR]);
             };
 
@@ -21118,7 +21237,7 @@ else {
             makeDateFromStringAndFormat(config);
         }
         else {
-            config._d = new Date(string);
+            moment.createFromInputFallback(config);
         }
     }
 
@@ -21139,8 +21258,11 @@ else {
             config._d = new Date(+input);
         } else if (typeof(input) === 'object') {
             dateFromObject(config);
-        } else {
+        } else if (typeof(input) === 'number') {
+            // from milliseconds
             config._d = new Date(input);
+        } else {
+            moment.createFromInputFallback(config);
         }
     }
 
@@ -21267,7 +21389,7 @@ else {
         var input = config._i,
             format = config._f;
 
-        if (input === null) {
+        if (input === null || (format === undefined && input === '')) {
             return moment.invalid({nullInput: true});
         }
 
@@ -21312,6 +21434,17 @@ else {
 
         return makeMoment(c);
     };
+
+    moment.suppressDeprecationWarnings = false;
+
+    moment.createFromInputFallback = deprecate(
+            "moment construction falls back to js Date. This is " +
+            "discouraged and will be removed in upcoming major " +
+            "release. Please refer to " +
+            "https://github.com/moment/moment/issues/1407 for more info.",
+            function (config) {
+        config._d = new Date(config._i);
+    });
 
     // creating with utc
     moment.utc = function (input, format, lang, strict) {
@@ -21409,6 +21542,10 @@ else {
     // default format
     moment.defaultFormat = isoFormat;
 
+    // Plugins that add properties should also add the key here (null value),
+    // so we can properly clone ourselves.
+    moment.momentProperties = momentProperties;
+
     // This function will be called whenever a moment is mutated.
     // It is intended to keep the offset in sync with the timezone.
     moment.updateOffset = function () {};
@@ -21472,8 +21609,12 @@ else {
         return m;
     };
 
-    moment.parseZone = function (input) {
-        return moment(input).parseZone();
+    moment.parseZone = function () {
+        return moment.apply(null, arguments).parseZone();
+    };
+
+    moment.parseTwoDigitYear = function (input) {
+        return toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
     };
 
     /************************************
@@ -21660,29 +21801,7 @@ else {
             }
         },
 
-        month : function (input) {
-            var utc = this._isUTC ? 'UTC' : '',
-                dayOfMonth;
-
-            if (input != null) {
-                if (typeof input === 'string') {
-                    input = this.lang().monthsParse(input);
-                    if (typeof input !== 'number') {
-                        return this;
-                    }
-                }
-
-                dayOfMonth = this.date();
-                this.date(1);
-                this._d['set' + utc + 'Month'](input);
-                this.date(Math.min(dayOfMonth, this.daysInMonth()));
-
-                moment.updateOffset(this);
-                return this;
-            } else {
-                return this._d['get' + utc + 'Month']();
-            }
-        },
+        month : makeAccessor('Month', true),
 
         startOf: function (units) {
             units = normalizeUnits(units);
@@ -21692,6 +21811,7 @@ else {
             case 'year':
                 this.month(0);
                 /* falls through */
+            case 'quarter':
             case 'month':
                 this.date(1);
                 /* falls through */
@@ -21716,6 +21836,11 @@ else {
                 this.weekday(0);
             } else if (units === 'isoWeek') {
                 this.isoWeekday(1);
+            }
+
+            // quarters are also special
+            if (units === 'quarter') {
+                this.month(Math.floor(this.month() / 3) * 3);
             }
 
             return this;
@@ -21751,7 +21876,17 @@ else {
             return other > this ? this : other;
         },
 
-        zone : function (input) {
+        // keepTime = true means only change the timezone, without affecting
+        // the local hour. So 5:31:26 +0300 --[zone(2, true)]--> 5:31:26 +0200
+        // It is possible that 5:31:26 doesn't exist int zone +0200, so we
+        // adjust the time as needed, to be valid.
+        //
+        // Keeping the time actually adds/subtracts (one hour)
+        // from the actual represented time. That is why we call updateOffset
+        // a second time. In case it wants us to change the offset again
+        // _changeInProgress == true case, then we have to adjust, because
+        // there is no such time in the given timezone.
+        zone : function (input, keepTime) {
             var offset = this._offset || 0;
             if (input != null) {
                 if (typeof input === "string") {
@@ -21763,7 +21898,14 @@ else {
                 this._offset = input;
                 this._isUTC = true;
                 if (offset !== input) {
-                    addOrSubtractDurationFromMoment(this, moment.duration(offset - input, 'm'), 1, true);
+                    if (!keepTime || this._changeInProgress) {
+                        addOrSubtractDurationFromMoment(this,
+                                moment.duration(offset - input, 'm'), 1, false);
+                    } else if (!this._changeInProgress) {
+                        this._changeInProgress = true;
+                        moment.updateOffset(this, true);
+                        this._changeInProgress = null;
+                    }
                 }
             } else {
                 return this._isUTC ? offset : this._d.getTimezoneOffset();
@@ -21808,8 +21950,8 @@ else {
             return input == null ? dayOfYear : this.add("d", (input - dayOfYear));
         },
 
-        quarter : function () {
-            return Math.ceil((this.month() + 1.0) / 3.0);
+        quarter : function (input) {
+            return input == null ? Math.ceil((this.month() + 1) / 3) : this.month((input - 1) * 3 + this.month() % 3);
         },
 
         weekYear : function (input) {
@@ -21844,6 +21986,15 @@ else {
             return input == null ? this.day() || 7 : this.day(this.day() % 7 ? input : input - 7);
         },
 
+        isoWeeksInYear : function () {
+            return weeksInYear(this.year(), 1, 4);
+        },
+
+        weeksInYear : function () {
+            var weekInfo = this._lang._week;
+            return weeksInYear(this.year(), weekInfo.dow, weekInfo.doy);
+        },
+
         get : function (units) {
             units = normalizeUnits(units);
             return this[units]();
@@ -21870,33 +22021,68 @@ else {
         }
     });
 
-    // helper for adding shortcuts
-    function makeGetterAndSetter(name, key) {
-        moment.fn[name] = moment.fn[name + 's'] = function (input) {
-            var utc = this._isUTC ? 'UTC' : '';
-            if (input != null) {
-                this._d['set' + utc + key](input);
-                moment.updateOffset(this);
+    function rawMonthSetter(mom, value) {
+        var dayOfMonth;
+
+        // TODO: Move this out of here!
+        if (typeof value === 'string') {
+            value = mom.lang().monthsParse(value);
+            // TODO: Another silent failure?
+            if (typeof value !== 'number') {
+                return mom;
+            }
+        }
+
+        dayOfMonth = Math.min(mom.date(),
+                daysInMonth(mom.year(), value));
+        mom._d['set' + (mom._isUTC ? 'UTC' : '') + 'Month'](value, dayOfMonth);
+        return mom;
+    }
+
+    function rawGetter(mom, unit) {
+        return mom._d['get' + (mom._isUTC ? 'UTC' : '') + unit]();
+    }
+
+    function rawSetter(mom, unit, value) {
+        if (unit === 'Month') {
+            return rawMonthSetter(mom, value);
+        } else {
+            return mom._d['set' + (mom._isUTC ? 'UTC' : '') + unit](value);
+        }
+    }
+
+    function makeAccessor(unit, keepTime) {
+        return function (value) {
+            if (value != null) {
+                rawSetter(this, unit, value);
+                moment.updateOffset(this, keepTime);
                 return this;
             } else {
-                return this._d['get' + utc + key]();
+                return rawGetter(this, unit);
             }
         };
     }
 
-    // loop through and add shortcuts (Month, Date, Hours, Minutes, Seconds, Milliseconds)
-    for (i = 0; i < proxyGettersAndSetters.length; i ++) {
-        makeGetterAndSetter(proxyGettersAndSetters[i].toLowerCase().replace(/s$/, ''), proxyGettersAndSetters[i]);
-    }
-
-    // add shortcut for year (uses different syntax than the getter/setter 'year' == 'FullYear')
-    makeGetterAndSetter('year', 'FullYear');
+    moment.fn.millisecond = moment.fn.milliseconds = makeAccessor('Milliseconds', false);
+    moment.fn.second = moment.fn.seconds = makeAccessor('Seconds', false);
+    moment.fn.minute = moment.fn.minutes = makeAccessor('Minutes', false);
+    // Setting the hour should keep the time, because the user explicitly
+    // specified which hour he wants. So trying to maintain the same hour (in
+    // a new timezone) makes sense. Adding/subtracting hours does not follow
+    // this rule.
+    moment.fn.hour = moment.fn.hours = makeAccessor('Hours', true);
+    // moment.fn.month is defined separately
+    moment.fn.date = makeAccessor('Date', true);
+    moment.fn.dates = deprecate("dates accessor is deprecated. Use date instead.", makeAccessor('Date', true));
+    moment.fn.year = makeAccessor('FullYear', true);
+    moment.fn.years = deprecate("years accessor is deprecated. Use year instead.", makeAccessor('FullYear', true));
 
     // add plural methods
     moment.fn.days = moment.fn.day;
     moment.fn.months = moment.fn.month;
     moment.fn.weeks = moment.fn.week;
     moment.fn.isoWeeks = moment.fn.isoWeek;
+    moment.fn.quarters = moment.fn.quarter;
 
     // add aliased format methods
     moment.fn.toJSON = moment.fn.toISOString;
@@ -22072,45 +22258,36 @@ else {
         Exposing Moment
     ************************************/
 
-    function makeGlobal(deprecate) {
-        var warned = false, local_moment = moment;
+    function makeGlobal(shouldDeprecate) {
         /*global ender:false */
         if (typeof ender !== 'undefined') {
             return;
         }
-        // here, `this` means `window` in the browser, or `global` on the server
-        // add `moment` as a global object via a string identifier,
-        // for Closure Compiler "advanced" mode
-        if (deprecate) {
-            global.moment = function () {
-                if (!warned && console && console.warn) {
-                    warned = true;
-                    console.warn(
-                            "Accessing Moment through the global scope is " +
-                            "deprecated, and will be removed in an upcoming " +
-                            "release.");
-                }
-                return local_moment.apply(null, arguments);
-            };
-            extend(global.moment, local_moment);
+        oldGlobalMoment = globalScope.moment;
+        if (shouldDeprecate) {
+            globalScope.moment = deprecate(
+                    "Accessing Moment through the global scope is " +
+                    "deprecated, and will be removed in an upcoming " +
+                    "release.",
+                    moment);
         } else {
-            global['moment'] = moment;
+            globalScope.moment = moment;
         }
     }
 
     // CommonJS module is defined
     if (hasModule) {
         module.exports = moment;
-        makeGlobal(true);
     } else if (typeof define === "function" && define.amd) {
         define("moment", function (require, exports, module) {
-            if (module.config && module.config() && module.config().noGlobal !== true) {
-                // If user provided noGlobal, he is aware of global
-                makeGlobal(module.config().noGlobal === undefined);
+            if (module.config && module.config() && module.config().noGlobal === true) {
+                // release the global variable
+                globalScope.moment = oldGlobalMoment;
             }
 
             return moment;
         });
+        makeGlobal(true);
     } else {
         makeGlobal();
     }
