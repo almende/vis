@@ -27,6 +27,7 @@ function Graph (container, data, options) {
 
   this.stabilize = true;  // stabilize before displaying the graph
   this.selectable = true;
+  this.initializing = true;
 
   // these functions are triggered when the dataset is edited
   this.triggerFunctions = {add:null,edit:null,connect:null,delete:null};
@@ -71,6 +72,7 @@ function Graph (container, data, options) {
       fontColor: '#343434',
       fontSize: 14, // px
       fontFace: 'arial',
+      fontFill: 'white',
       dash: {
         length: 10,
         gap: 5,
@@ -150,7 +152,33 @@ function Graph (container, data, options) {
     smoothCurves: true,
     maxVelocity:  10,
     minVelocity:  0.1,   // px/s
-    stabilizationIterations: 1000  // maximum number of iteration to stabilize
+    stabilizationIterations: 1000,  // maximum number of iteration to stabilize
+    labels:{
+      add:"Add Node",
+      edit:"Edit",
+      link:"Add Link",
+      delete:"Delete selected",
+      editNode:"Edit Node",
+      back:"Back",
+      addDescription:"Click in an empty space to place a new node.",
+      linkDescription:"Click on a node and drag the edge to another node to connect them.",
+      addError:"The function for add does not support two arguments (data,callback).",
+      linkError:"The function for connect does not support two arguments (data,callback).",
+      editError:"The function for edit does not support two arguments (data, callback).",
+      editBoundError:"No edit function has been bound to this button.",
+      deleteError:"The function for delete does not support two arguments (data, callback).",
+      deleteClusterError:"Clusters cannot be deleted."
+    },
+    tooltip: {
+      delay: 300,
+      fontColor: 'black',
+      fontSize: 14, // px
+      fontFace: 'verdana',
+      color: {
+        border: '#666',
+        background: '#FFFFC6'
+      }
+    }
   };
   this.editMode = this.constants.dataManipulation.initiallyVisible;
 
@@ -245,6 +273,7 @@ function Graph (container, data, options) {
   this.setData(data,this.constants.clustering.enabled || this.constants.hierarchicalLayout.enabled);
 
   // hierarchical layout
+  this.initializing = false;
   if (this.constants.hierarchicalLayout.enabled == true) {
     this._setupHierarchicalLayout();
   }
@@ -482,6 +511,16 @@ Graph.prototype.setOptions = function (options) {
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
 
+
+
+    if (options.labels !== undefined)  {
+      for (prop in options.labels) {
+        if (options.labels.hasOwnProperty(prop)) {
+          this.constants.labels[prop] = options.labels[prop];
+        }
+      }
+    }
+
     if (options.onAdd) {
         this.triggerFunctions.add = options.onAdd;
       }
@@ -590,6 +629,7 @@ Graph.prototype.setOptions = function (options) {
 
       if (options.edges.color !== undefined) {
         if (util.isString(options.edges.color)) {
+          this.constants.edges.color = {};
           this.constants.edges.color.color = options.edges.color;
           this.constants.edges.color.highlight = options.edges.color;
         }
@@ -630,7 +670,7 @@ Graph.prototype.setOptions = function (options) {
       }
 
       if (options.nodes.color) {
-        this.constants.nodes.color = Node.parseColor(options.nodes.color);
+        this.constants.nodes.color = util.parseColor(options.nodes.color);
       }
 
       /*
@@ -644,6 +684,17 @@ Graph.prototype.setOptions = function (options) {
           var group = options.groups[groupname];
           this.groups.add(groupname, group);
         }
+      }
+    }
+
+    if (options.tooltip) {
+      for (prop in options.tooltip) {
+        if (options.tooltip.hasOwnProperty(prop)) {
+          this.constants.tooltip[prop] = options.tooltip[prop];
+        }
+      }
+      if (options.tooltip.color) {
+        this.constants.tooltip.color = util.parseColor(options.tooltip.color);
       }
     }
   }
@@ -1089,7 +1140,7 @@ Graph.prototype._onMouseMoveTitle = function (event) {
     clearInterval(this.popupTimer); // stop any running calculationTimer
   }
   if (!this.drag.dragging) {
-    this.popupTimer = setTimeout(checkShow, 300);
+    this.popupTimer = setTimeout(checkShow, this.constants.tooltip.delay);
   }
 };
 
@@ -1146,7 +1197,7 @@ Graph.prototype._checkShowPopup = function (pointer) {
     if (this.popupNode != lastPopupNode) {
       var me = this;
       if (!me.popup) {
-        me.popup = new Popup(me.frame);
+        me.popup = new Popup(me.frame, me.constants.tooltip);
       }
 
       // adjust a small offset such that the mouse cursor is located in the
@@ -1279,6 +1330,10 @@ Graph.prototype._addNodes = function(ids) {
     this.moving = true;
   }
   this._updateNodeIndexList();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this._updateCalculationNodes();
   this._reconnectEdges();
   this._updateValueRange(this.nodes);
@@ -1328,6 +1383,10 @@ Graph.prototype._removeNodes = function(ids) {
     delete nodes[id];
   }
   this._updateNodeIndexList();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this._updateCalculationNodes();
   this._reconnectEdges();
   this._updateSelection();
@@ -1406,6 +1465,10 @@ Graph.prototype._addEdges = function (ids) {
   this.moving = true;
   this._updateValueRange(edges);
   this._createBezierNodes();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this._updateCalculationNodes();
 };
 
@@ -1436,6 +1499,10 @@ Graph.prototype._updateEdges = function (ids) {
   }
 
   this._createBezierNodes();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this.moving = true;
   this._updateValueRange(edges);
 };
@@ -1461,6 +1528,10 @@ Graph.prototype._removeEdges = function (ids) {
 
   this.moving = true;
   this._updateValueRange(edges);
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this._updateCalculationNodes();
 };
 
@@ -1879,13 +1950,23 @@ if (typeof window !== 'undefined') {
 
 /**
  * Schedule a animation step with the refreshrate interval.
- *
- * @poram {Boolean} runCalculationStep
  */
 Graph.prototype.start = function() {
   if (this.moving || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0) {
-    if (!this.timer) { 
-      this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+    if (!this.timer) {
+      var ua = navigator.userAgent.toLowerCase();
+      if (ua.indexOf('safari') != -1) {
+        if (ua.indexOf('chrome') <= -1) {
+          // safari
+          this.timer = window.setTimeout(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+        }
+        else {
+          this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+        }
+      }
+      else{
+        this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+      }
     }
   }
   else {

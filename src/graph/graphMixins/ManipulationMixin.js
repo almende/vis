@@ -83,21 +83,21 @@ var manipulationMixin = {
       // add the icons to the manipulator div
       this.manipulationDiv.innerHTML = "" +
         "<span class='graph-manipulationUI add' id='graph-manipulate-addNode'>" +
-          "<span class='graph-manipulationLabel'>Add Node</span></span>" +
+          "<span class='graph-manipulationLabel'>"+this.constants.labels['add'] +"</span></span>" +
         "<div class='graph-seperatorLine'></div>" +
         "<span class='graph-manipulationUI connect' id='graph-manipulate-connectNode'>" +
-          "<span class='graph-manipulationLabel'>Add Link</span></span>";
+          "<span class='graph-manipulationLabel'>"+this.constants.labels['link'] +"</span></span>";
       if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
         this.manipulationDiv.innerHTML += "" +
           "<div class='graph-seperatorLine'></div>" +
           "<span class='graph-manipulationUI edit' id='graph-manipulate-editNode'>" +
-            "<span class='graph-manipulationLabel'>Edit Node</span></span>";
+            "<span class='graph-manipulationLabel'>"+this.constants.labels['editNode'] +"</span></span>";
       }
       if (this._selectionIsEmpty() == false) {
         this.manipulationDiv.innerHTML += "" +
           "<div class='graph-seperatorLine'></div>" +
           "<span class='graph-manipulationUI delete' id='graph-manipulate-delete'>" +
-            "<span class='graph-manipulationLabel'>Delete selected</span></span>";
+            "<span class='graph-manipulationLabel'>"+this.constants.labels['delete'] +"</span></span>";
       }
 
 
@@ -123,7 +123,7 @@ var manipulationMixin = {
     else {
       this.editModeDiv.innerHTML = "" +
         "<span class='graph-manipulationUI edit editmode' id='graph-manipulate-editModeButton'>" +
-        "<span class='graph-manipulationLabel'>Edit</span></span>"
+        "<span class='graph-manipulationLabel'>"+this.constants.labels['edit'] +"</span></span>"
       var editModeButton = document.getElementById("graph-manipulate-editModeButton");
       editModeButton.onclick = this._toggleEditMode.bind(this);
     }
@@ -146,10 +146,10 @@ var manipulationMixin = {
     // create the toolbar contents
     this.manipulationDiv.innerHTML = "" +
       "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>Back</span></span>" +
+      "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
       "<div class='graph-seperatorLine'></div>" +
       "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>Click in an empty space to place a new node</span></span>";
+      "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['addDescription'] + "</span></span>";
 
     // bind the icon
     var backButton = document.getElementById("graph-manipulate-back");
@@ -182,10 +182,10 @@ var manipulationMixin = {
 
     this.manipulationDiv.innerHTML = "" +
       "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>Back</span></span>" +
+        "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
       "<div class='graph-seperatorLine'></div>" +
       "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
-        "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>Click on a node and drag the edge to another node to connect them.</span></span>";
+        "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['linkDescription'] + "</span></span>";
 
     // bind the icon
     var backButton = document.getElementById("graph-manipulate-back");
@@ -306,7 +306,7 @@ var manipulationMixin = {
           });
         }
         else {
-          alert("The function for add does not support two arguments (data,callback).");
+          alert(this.constants.labels['addError']);
           this._createManipulatorBar();
           this.moving = true;
           this.start();
@@ -340,7 +340,7 @@ var manipulationMixin = {
           });
         }
         else {
-          alert("The function for connect does not support two arguments (data,callback).");
+          alert(this.constants.labels["linkError"]);
           this.moving = true;
           this.start();
         }
@@ -384,11 +384,11 @@ var manipulationMixin = {
         });
       }
       else {
-        alert("The function for edit does not support two arguments (data, callback).")
+        alert(this.constants.labels["editError"]);
       }
     }
     else {
-      alert("No edit function has been bound to this button.")
+      alert(this.constants.labels["editBoundError"]);
     }
   },
 
@@ -416,7 +416,7 @@ var manipulationMixin = {
             });
           }
           else {
-            alert("The function for edit does not support two arguments (data, callback).")
+            alert(this.constants.labels["deleteError"])
           }
         }
         else {
@@ -428,7 +428,7 @@ var manipulationMixin = {
         }
       }
       else {
-        alert("Clusters cannot be deleted.");
+        alert(this.constants.labels["deleteClusterError"]);
       }
     }
   }

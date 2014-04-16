@@ -1,6 +1,22 @@
 vis.js history
 http://visjs.org
 
+## 2014-04-16, version 0.7.3
+
+### Graph
+
+- fixed color bug.
+- added pull requests from kannonboy and vierja: tooltip styling, label fill color
+
+
+## 2014-04-09, version 0.7.2
+
+### Graph
+
+- fixed edge select bug.
+- fixed zoom bug on empty initialization.
+
+
 ## 2014-03-27, version 0.7.1
 
 ### Graph

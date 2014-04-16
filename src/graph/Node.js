@@ -54,6 +54,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.radiusMin = constants.nodes.radiusMin;
   this.radiusMax = constants.nodes.radiusMax;
   this.level = -1;
+  this.preassignedLevel = false;
+
 
   this.imagelist = imagelist;
   this.grouplist = grouplist;
@@ -146,7 +148,7 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.x !== undefined)         {this.x = properties.x;}
   if (properties.y !== undefined)         {this.y = properties.y;}
   if (properties.value !== undefined)     {this.value = properties.value;}
-  if (properties.level !== undefined)     {this.level = properties.level;}
+  if (properties.level !== undefined)     {this.level = properties.level; this.preassignedLevel = true;}
 
 
   // physics
@@ -175,7 +177,7 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.shape !== undefined)          {this.shape = properties.shape;}
   if (properties.image !== undefined)          {this.image = properties.image;}
   if (properties.radius !== undefined)         {this.radius = properties.radius;}
-  if (properties.color !== undefined)          {this.color = Node.parseColor(properties.color);}
+  if (properties.color !== undefined)          {this.color = util.parseColor(properties.color);}
 
   if (properties.fontColor !== undefined)      {this.fontColor = properties.fontColor;}
   if (properties.fontSize !== undefined)       {this.fontSize = properties.fontSize;}
@@ -220,63 +222,6 @@ Node.prototype.setProperties = function(properties, constants) {
 };
 
 /**
- * Parse a color property into an object with border, background, and
- * hightlight colors
- * @param {Object | String} color
- * @return {Object} colorObject
- */
-Node.parseColor = function(color) {
-  var c;
-  if (util.isString(color)) {
-    if (util.isValidHex(color)) {
-      var hsv = util.hexToHSV(color);
-      var lighterColorHSV = {h:hsv.h,s:hsv.s * 0.45,v:Math.min(1,hsv.v * 1.05)};
-      var darkerColorHSV  = {h:hsv.h,s:Math.min(1,hsv.v * 1.25),v:hsv.v*0.6};
-      var darkerColorHex  = util.HSVToHex(darkerColorHSV.h ,darkerColorHSV.h ,darkerColorHSV.v);
-      var lighterColorHex = util.HSVToHex(lighterColorHSV.h,lighterColorHSV.s,lighterColorHSV.v);
-
-      c = {
-        background: color,
-        border:darkerColorHex,
-        highlight: {
-          background:lighterColorHex,
-          border:darkerColorHex
-        }
-      };
-    }
-    else {
-      c = {
-        background:color,
-        border:color,
-        highlight: {
-          background:color,
-          border:color
-        }
-      };
-    }
-  }
-  else {
-    c = {};
-    c.background = color.background || 'white';
-    c.border = color.border || c.background;
-
-    if (util.isString(color.highlight)) {
-      c.highlight = {
-        border: color.highlight,
-        background: color.highlight
-      }
-    }
-    else {
-      c.highlight = {};
-      c.highlight.background = color.highlight && color.highlight.background || c.background;
-      c.highlight.border = color.highlight && color.highlight.border || c.border;
-    }
-  }
-
-  return c;
-};
-
-/**
  * select this node
  */
 Node.prototype.select = function() {
@@ -315,7 +260,7 @@ Node.prototype._reset = function() {
  *                           has been set.
  */
 Node.prototype.getTitle = function() {
-  return this.title;
+  return typeof this.title === "function" ? this.title() : this.title;
 };
 
 /**

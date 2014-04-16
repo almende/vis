@@ -143,7 +143,7 @@ Then, the project can be build running:
 
 ## Test
 
-To test teh library, install the project dependencies once:
+To test the library, install the project dependencies once:
 
     npm install
 

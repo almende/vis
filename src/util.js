@@ -723,6 +723,63 @@ util.GiveHex = function GiveHex(Dec) {
 };
 
 /**
+ * Parse a color property into an object with border, background, and
+ * highlight colors
+ * @param {Object | String} color
+ * @return {Object} colorObject
+ */
+util.parseColor = function(color) {
+  var c;
+  if (util.isString(color)) {
+    if (util.isValidHex(color)) {
+      var hsv = util.hexToHSV(color);
+      var lighterColorHSV = {h:hsv.h,s:hsv.s * 0.45,v:Math.min(1,hsv.v * 1.05)};
+      var darkerColorHSV  = {h:hsv.h,s:Math.min(1,hsv.v * 1.25),v:hsv.v*0.6};
+      var darkerColorHex  = util.HSVToHex(darkerColorHSV.h ,darkerColorHSV.h ,darkerColorHSV.v);
+      var lighterColorHex = util.HSVToHex(lighterColorHSV.h,lighterColorHSV.s,lighterColorHSV.v);
+
+      c = {
+        background: color,
+        border:darkerColorHex,
+        highlight: {
+          background:lighterColorHex,
+          border:darkerColorHex
+        }
+      };
+    }
+    else {
+      c = {
+        background:color,
+        border:color,
+        highlight: {
+          background:color,
+          border:color
+        }
+      };
+    }
+  }
+  else {
+    c = {};
+    c.background = color.background || 'white';
+    c.border = color.border || c.background;
+
+    if (util.isString(color.highlight)) {
+      c.highlight = {
+        border: color.highlight,
+        background: color.highlight
+      }
+    }
+    else {
+      c.highlight = {};
+      c.highlight.background = color.highlight && color.highlight.background || c.background;
+      c.highlight.border = color.highlight && color.highlight.border || c.border;
+    }
+  }
+
+  return c;
+};
+
+/**
  * http://www.yellowpipe.com/yis/tools/hex-to-rgb/color-converter.php
  *
  * @param {String} hex

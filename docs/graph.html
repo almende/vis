@@ -60,12 +60,14 @@
       <li><a href="#Nodes_configuration">Nodes</a></li>
       <li><a href="#Edges_configuration">Edges</a></li>
       <li><a href="#Groups_configuration">Groups</a></li>
-        <li><a href="#Physics">Physics</a></li>
-        <li><a href="#Data_manipulation">Data manipulation</a></li>
-        <li><a href="#Clustering">Clustering</a></li>
+      <li><a href="#Physics">Physics</a></li>
+      <li><a href="#Data_manipulation">Data manipulation</a></li>
+      <li><a href="#Clustering">Clustering</a></li>
       <li><a href="#Navigation_controls">Navigation controls</a></li>
       <li><a href="#Keyboard_navigation">Keyboard navigation</a></li>
         <li><a href="#Hierarchical_layout">Hierarchical layout</a></li>
+        <li><a href="#Localization">Localization</a></li>
+      <li><a href="#Tooltips">Tooltips</a></li>
     </ul>
   </li>
   <li><a href="#Methods">Methods</a></li>
@@ -416,10 +418,11 @@ var nodes = [
 
   <tr>
     <td>title</td>
-    <td>string</td>
+    <td>string | function</td>
     <td>no</td>
     <td>Title to be displayed when the user hovers over the node.
-      The title can contain HTML code.</td>
+      The title can contain HTML code. If using a function, returning <code>undefined</code>
+      will prevent the tooltip from being displayed.</td>
   </tr>
 
   <tr>
@@ -574,6 +577,14 @@ var edges = [
   </tr>
 
   <tr>
+    <td>fontFill</td>
+    <td>string</td>
+    <td>no</td>
+    <td>Font fill for the background color of the text label of the edge.
+      Only applicable when property <code>label</code> is defined.</td>
+  </tr>
+
+  <tr>
     <td>from</td>
     <td>Number | String</td>
     <td>yes</td>
@@ -606,10 +617,11 @@ var edges = [
     </tr>
   <tr>
     <td>title</td>
-    <td>string</td>
+    <td>string | function</td>
     <td>no</td>
     <td>Title to be displayed when the user hovers over the edge.
-      The title can contain HTML code.</td>
+      The title can contain HTML code. If using a function, returning <code>undefined</code>
+      will prevent the tooltip from being displayed.</td>
   </tr>
 
   <tr>
@@ -1388,7 +1400,7 @@ var options = {
         <td>This is the damping constant. It is used to dissipate energy from the system to have it settle in an equilibrium. More information is available <a href="http://en.wikipedia.org/wiki/Damping" target="_blank">here</a>.</td>
     </tr>
 </table>
-<h4 id="PhysicsConfiguration">Configuration:</h5>
+<h4 id="PhysicsConfiguration">Configuration:</h4>
 Every dataset is different. Nodes can have different sizes based on content, interconnectivity can be high or low etc. Because of this, graph has a special option
 that the user can use to explore which settings may be good for him or her. This is ment to be used during the development phase when you are implementing vis.js. Once you have found
 settings you are happy with, you can supply them to graph using the physics options as described above.
@@ -1830,9 +1842,126 @@ var options: {
         <td>String</td>
         <td>UD</td>
         <td>This defines the direction the graph is drawn in. The supported directions are: Up-Down (UD), Down-Up (DU), Left-Right (LR) and Right-Left (RL).
-        These need to be supplied by the acronyms in parentheses.</td>
+            These need to be supplied by the acronyms in parentheses.</td>
     </tr>
 </table>
+
+<h3 id="Localization">Localization</h3>
+<p>
+    When using vis.js in other languages, one can use the localization option to overwrite the labels used in the data manipulation interface.
+</p>
+
+<pre class="prettyprint">
+var options: {
+    labels:{
+      add:"Add Node",
+      edit:"Edit",
+      link:"Add Link",
+      delete:"Delete selected",
+      editNode:"Edit Node",
+      back:"Back",
+      addDescription:"Click in an empty space to place a new node.",
+      linkDescription:"Click on a node and drag the edge to another
+                       node to connect them.",
+      addError:"The function for add does not support two arguments
+                                                        (data,callback).",
+      linkError:"The function for connect does not support two arguments
+                                                        (data,callback).",
+      editError:"The function for edit does not support two arguments
+                                                        (data, callback).",
+      editBoundError:"No edit function has been bound to this button.",
+      deleteError:"The function for delete does not support two arguments
+                                                        (data, callback).",
+      deleteClusterError:"Clusters cannot be deleted."
+    }
+}
+</pre>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>labels</td>
+        <td>object</td>
+        <td>(shown above)</td>
+        <td>Overwrite one or all labels used in the datamanipulation interface with localized strings.
+        </td>
+    </tr>
+</table>
+
+<h3 id="Tooltips">Tooltips</h3>
+<p>
+  The behaviour and style of the tooltips used to display node and edge title attributes can be customized.
+</p>
+
+<pre class="prettyprint">
+// tooltip behaviour and style options
+var options: {
+  tooltip: {
+    delay: 300,
+    fontColor: "black",
+    fontSize: 14, // px
+    fontFace: "verdana",
+    color: {
+      border: "#666",
+      background: "#FFFFC6"
+    }
+  }
+}
+</pre>
+
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+  </tr>
+
+  <tr>
+    <td>delay</td>
+    <td>Number</td>
+    <td>300</td>
+    <td>Time in milliseconds a user must hover over a node or edge before a tooltip appears.</td>
+  </tr>
+  <tr>
+    <td>fontColor</td>
+    <td>String</td>
+    <td>"black"</td>
+    <td>Default color for tooltip text.</td>
+  </tr>
+  <tr>
+    <td>fontSize</td>
+    <td>Number</td>
+    <td>14</td>
+    <td>Size in pixels of tooltip text.</td>
+  </tr>
+  <tr>
+    <td>fontFace</td>
+    <td>String</td>
+    <td>"verdana"</td>
+    <td>Font family to used for tooltip text.</td>
+  </tr>
+  <tr>
+    <td>color.background</td>
+    <td>String</td>
+    <td>"#FFFFC6"</td>
+    <td>Background color for the node.</td>
+  </tr>
+  <tr>
+    <td>color.border</td>
+    <td>String</td>
+    <td>"#666"</td>
+    <td>Border color for the node.</td>
+  </tr>
+
+</table>
+
 <h2 id="Methods">Methods</h2>
 <p>
   Graph supports the following methods.

@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.7.2-SNAPSHOT
- * @date    2014-04-01
+ * @version 0.7.4-SNAPSHOT
+ * @date    2014-04-16
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -751,22 +751,6 @@ util.forEach = function forEach (object, callback) {
 };
 
 /**
- * Convert an object into an array: all objects properties are put into the
- * array. The resulting array is unordered.
- * @param {Object} object
- * @param {Array} array
- */
-util.toArray = function toArray(object) {
-  var array = [];
-
-  for (var prop in object) {
-    if (object.hasOwnProperty(prop)) array.push(object[prop]);
-  }
-
-  return array;
-}
-
-/**
  * Update a property in an object
  * @param {Object} object
  * @param {String} key
@@ -1027,6 +1011,63 @@ util.GiveHex = function GiveHex(Dec)
     Value = "" + Dec;
   return Value;
 }
+
+/**
+ * Parse a color property into an object with border, background, and
+ * highlight colors
+ * @param {Object | String} color
+ * @return {Object} colorObject
+ */
+util.parseColor = function(color) {
+  var c;
+  if (util.isString(color)) {
+    if (util.isValidHex(color)) {
+      var hsv = util.hexToHSV(color);
+      var lighterColorHSV = {h:hsv.h,s:hsv.s * 0.45,v:Math.min(1,hsv.v * 1.05)};
+      var darkerColorHSV  = {h:hsv.h,s:Math.min(1,hsv.v * 1.25),v:hsv.v*0.6};
+      var darkerColorHex  = util.HSVToHex(darkerColorHSV.h ,darkerColorHSV.h ,darkerColorHSV.v);
+      var lighterColorHex = util.HSVToHex(lighterColorHSV.h,lighterColorHSV.s,lighterColorHSV.v);
+
+      c = {
+        background: color,
+        border:darkerColorHex,
+        highlight: {
+          background:lighterColorHex,
+          border:darkerColorHex
+        }
+      };
+    }
+    else {
+      c = {
+        background:color,
+        border:color,
+        highlight: {
+          background:color,
+          border:color
+        }
+      };
+    }
+  }
+  else {
+    c = {};
+    c.background = color.background || 'white';
+    c.border = color.border || c.background;
+
+    if (util.isString(color.highlight)) {
+      c.highlight = {
+        border: color.highlight,
+        background: color.highlight
+      }
+    }
+    else {
+      c.highlight = {};
+      c.highlight.background = color.highlight && color.highlight.background || c.background;
+      c.highlight.border = color.highlight && color.highlight.border || c.border;
+    }
+  }
+
+  return c;
+};
 
 /**
  * http://www.yellowpipe.com/yis/tools/hex-to-rgb/color-converter.php
@@ -2835,19 +2876,21 @@ TimeStep.prototype.getLabelMajor = function(date) {
   }
 };
 
-// TODO: turn Stack into a Mixin?
-
 /**
  * @constructor Stack
  * Stacks items on top of each other.
+ * @param {ItemSet} itemset
  * @param {Object} [options]
  */
-function Stack (options) {
+function Stack (itemset, options) {
+  this.itemset = itemset;
+
   this.options = options || {};
   this.defaultOptions = {
     order: function (a, b) {
-      // Order: ranges over non-ranges, ranged ordered by width,
-      //        and non-ranges ordered by start.
+      //return (b.width - a.width) || (a.left - b.left);  // TODO: cleanup
+      // Order: ranges over non-ranges, ranged ordered by width, and
+      // lastly ordered by start.
       if (a instanceof ItemRange) {
         if (b instanceof ItemRange) {
           var aInt = (a.data.end - a.data.start);
@@ -2868,112 +2911,141 @@ function Stack (options) {
       }
     },
     margin: {
-      item: 10,
-      axis: 20
+      item: 10
     }
   };
+
+  this.ordered = [];  // ordered items
 }
 
 /**
  * Set options for the stack
  * @param {Object} options  Available options:
- *                          {Number} [margin.item=10]
- *                          {Number} [margin.axis=20]
- *                          {function} [order]  Stacking order
+ *                          {ItemSet} itemset
+ *                          {Number} margin
+ *                          {function} order  Stacking order
  */
 Stack.prototype.setOptions = function setOptions (options) {
   util.extend(this.options, options);
+
+  // TODO: register on data changes at the connected itemset, and update the changed part only and immediately
 };
 
 /**
- * Order an array with items using a predefined order function for items
- * @param {Item[]} items
+ * Stack the items such that they don't overlap. The items will have a minimal
+ * distance equal to options.margin.item.
  */
-Stack.prototype.order = function order(items) {
-  //order the items
+Stack.prototype.update = function update() {
+  this._order();
+  this._stack();
+};
+
+/**
+ * Order the items. If a custom order function has been provided via the options,
+ * then this will be used.
+ * @private
+ */
+Stack.prototype._order = function _order () {
+  var items = this.itemset.items;
+  if (!items) {
+    throw new Error('Cannot stack items: ItemSet does not contain items');
+  }
+
+  // TODO: store the sorted items, to have less work later on
+  var ordered = [];
+  var index = 0;
+  // items is a map (no array)
+  util.forEach(items, function (item) {
+    if (item.visible) {
+      ordered[index] = item;
+      index++;
+    }
+  });
+
+  //if a customer stack order function exists, use it.
   var order = this.options.order || this.defaultOptions.order;
   if (!(typeof order === 'function')) {
     throw new Error('Option order must be a function');
   }
-  items.sort(order);
-};
 
-/**
- * Order items by their start data
- * @param {Item[]} items
- */
-Stack.prototype.orderByStart = function orderByStart(items) {
-  items.sort(function (a, b) {
-    return a.data.start - b.data.start;
-  });
-};
+  ordered.sort(order);
 
-/**
- * Order items by their end date. If they have no end date, their start date
- * is used.
- * @param {Item[]} items
- */
-Stack.prototype.orderByEnd = function orderByEnd(items) {
-  items.sort(function (a, b) {
-    var aTime = ('end' in a.data) ? a.data.end : a.data.start,
-        bTime = ('end' in b.data) ? b.data.end : b.data.start;
-
-    return aTime - bTime;
-  });
+  this.ordered = ordered;
 };
 
 /**
  * Adjust vertical positions of the events such that they don't overlap each
  * other.
- * @param {Item[]} items           All visible items
  * @private
  */
-Stack.prototype.stack = function stack (items) {
+Stack.prototype._stack = function _stack () {
   var i,
       iMax,
+      ordered = this.ordered,
       options = this.options,
-      marginItem,
-      marginAxis;
+      orientation = options.orientation || this.defaultOptions.orientation,
+      axisOnTop = (orientation == 'top'),
+      margin;
 
   if (options.margin && options.margin.item !== undefined) {
-    marginItem = options.margin.item;
+    margin = options.margin.item;
   }
   else {
-    marginItem = this.defaultOptions.margin.item
-  }
-  if (options.margin && options.margin.axis !== undefined) {
-    marginAxis = options.margin.axis;
-  }
-  else {
-    marginAxis = this.defaultOptions.margin.axis
+    margin = this.defaultOptions.margin.item
   }
 
   // calculate new, non-overlapping positions
-  for (i = 0, iMax = items.length; i < iMax; i++) {
-    var item = items[i];
-    if (item.top === null) {
-      // initialize top position
-      item.top = marginAxis;
-
-      do {
-        // TODO: optimize checking for overlap. when there is a gap without items,
-        //       you only need to check for items from the next item on, not from zero
-        var collidingItem = null;
-        for (var j = 0, jj = items.length; j < jj; j++) {
-          var other = items[j];
-          if (other.top !== null && other !== item && this.collision(item, other, marginItem)) {
-            collidingItem = other;
-            break;
-          }
+  for (i = 0, iMax = ordered.length; i < iMax; i++) {
+    var item = ordered[i];
+    var collidingItem = null;
+    do {
+      // TODO: optimize checking for overlap. when there is a gap without items,
+      //  you only need to check for items from the next item on, not from zero
+      collidingItem = this.checkOverlap(ordered, i, 0, i - 1, margin);
+      if (collidingItem != null) {
+        // There is a collision. Reposition the event above the colliding element
+        if (axisOnTop) {
+          item.top = collidingItem.top + collidingItem.height + margin;
         }
-
-        if (collidingItem != null) {
-          // There is a collision. Reposition the event above the colliding element
-          item.top = collidingItem.top + collidingItem.height + marginItem;
+        else {
+          item.top = collidingItem.top - item.height - margin;
         }
-      } while (collidingItem);
+      }
+    } while (collidingItem);
+  }
+};
+
+/**
+ * Check if the destiny position of given item overlaps with any
+ * of the other items from index itemStart to itemEnd.
+ * @param {Array} items     Array with items
+ * @param {int}  itemIndex  Number of the item to be checked for overlap
+ * @param {int}  itemStart  First item to be checked.
+ * @param {int}  itemEnd    Last item to be checked.
+ * @return {Object | null}  colliding item, or undefined when no collisions
+ * @param {Number} margin   A minimum required margin.
+ *                          If margin is provided, the two items will be
+ *                          marked colliding when they overlap or
+ *                          when the margin between the two is smaller than
+ *                          the requested margin.
+ */
+Stack.prototype.checkOverlap = function checkOverlap (items, itemIndex,
+                                                      itemStart, itemEnd, margin) {
+  var collision = this.collision;
+
+  // we loop from end to start, as we suppose that the chance of a
+  // collision is larger for items at the end, so check these first.
+  var a = items[itemIndex];
+  for (var i = itemEnd; i >= itemStart; i--) {
+    var b = items[i];
+    if (collision(a, b, margin)) {
+      if (i != itemIndex) {
+        return b;
+      }
     }
   }
+
+  return null;
 };
 
 /**
@@ -3579,10 +3651,10 @@ function Controller () {
     }
     else {
       if (!reflowTimer) {
-        reflowTimer = requestAnimationFrame(function () {
+        reflowTimer = setTimeout(function () {
           reflowTimer = null;
           me.reflow();
-        });
+        }, 0);
       }
     }
   });
@@ -3599,10 +3671,10 @@ function Controller () {
     }
     else {
       if (!repaintTimer) {
-        repaintTimer = requestAnimationFrame(function () {
+        repaintTimer = setTimeout(function () {
           repaintTimer = null;
           me.repaint();
-        });
+        }, 0);
       }
     }
   });
@@ -3733,8 +3805,7 @@ Controller.prototype.reflow = function reflow() {
   this.emit('reflow');
 
   // immediately repaint when needed
-  //if (resized) {
-  if (true) { // TODO: fix this loop
+  if (resized) {
     this.repaint();
   }
   // TODO: limit the number of nested reflows/repaints, prevent loop
@@ -3835,9 +3906,11 @@ Component.prototype.getFrame = function getFrame() {
 
 /**
  * Repaint the component
+ * @return {Boolean} changed
  */
 Component.prototype.repaint = function repaint() {
   // should be implemented by the component
+  return false;
 };
 
 /**
@@ -3949,54 +4022,71 @@ Panel.prototype.getContainer = function () {
 
 /**
  * Repaint the component
+ * @return {Boolean} changed
  */
 Panel.prototype.repaint = function () {
-  var asSize = util.option.asSize,
+  var changed = 0,
+      update = util.updateProperty,
+      asSize = util.option.asSize,
       options = this.options,
       frame = this.frame;
-
-  // create frame
   if (!frame) {
     frame = document.createElement('div');
+    frame.className = 'vpanel';
 
-    if (!this.parent) throw new Error('Cannot repaint panel: no parent attached');
-
-    var parentContainer = this.parent.getContainer();
-    if (!parentContainer) throw new Error('Cannot repaint panel: parent has no container element');
-
-    parentContainer.appendChild(frame);
+    var className = options.className;
+    if (className) {
+      if (typeof className == 'function') {
+        util.addClassName(frame, String(className()));
+      }
+      else {
+        util.addClassName(frame, String(className));
+      }
+    }
 
     this.frame = frame;
+    changed += 1;
+  }
+  if (!frame.parentNode) {
+    if (!this.parent) {
+      throw new Error('Cannot repaint panel: no parent attached');
+    }
+    var parentContainer = this.parent.getContainer();
+    if (!parentContainer) {
+      throw new Error('Cannot repaint panel: parent has no container element');
+    }
+    parentContainer.appendChild(frame);
+    changed += 1;
   }
 
-  // update className
-  frame.className = 'vpanel' + (options.className ? (' ' + asSize(options.className)) : '');
+  changed += update(frame.style, 'top',    asSize(options.top, '0px'));
+  changed += update(frame.style, 'left',   asSize(options.left, '0px'));
+  changed += update(frame.style, 'width',  asSize(options.width, '100%'));
+  changed += update(frame.style, 'height', asSize(options.height, '100%'));
 
-  // update class name
-  var className = 'vis timeline rootpanel ' + options.orientation + (options.editable ? ' editable' : '');
-  if (options.className) className += ' ' + util.option.asString(className);
-  frame.className = className;
-
-  // update frame size
-  this._updateSize();
+  return (changed > 0);
 };
 
 /**
- * Apply the size from options to the panel, and recalculate it's actual size.
- * @private
+ * Reflow the component
+ * @return {Boolean} resized
  */
-Panel.prototype._updateSize = function () {
-  // apply size
-  this.frame.style.top    = util.option.asSize(this.options.top, '0px');
-  this.frame.style.left   = util.option.asSize(this.options.left, '0px');
-  this.frame.style.width  = util.option.asSize(this.options.width, '100%');
-  this.frame.style.height = util.option.asSize(this.options.height, '100%');
+Panel.prototype.reflow = function () {
+  var changed = 0,
+      update = util.updateProperty,
+      frame = this.frame;
 
-  // get actual size
-  this.top    = this.frame.offsetTop;
-  this.left   = this.frame.offsetLeft;
-  this.width  = this.frame.offsetWidth;
-  this.height = this.frame.offsetHeight;
+  if (frame) {
+    changed += update(this, 'top', frame.offsetTop);
+    changed += update(this, 'left', frame.offsetLeft);
+    changed += update(this, 'width', frame.offsetWidth);
+    changed += update(this, 'height', frame.offsetHeight);
+  }
+  else {
+    changed += 1;
+  }
+
+  return (changed > 0);
 };
 
 /**
@@ -4052,32 +4142,69 @@ RootPanel.prototype.setOptions = Component.prototype.setOptions;
 
 /**
  * Repaint the component
+ * @return {Boolean} changed
  */
 RootPanel.prototype.repaint = function () {
-  var asSize = util.option.asSize,
+  var changed = 0,
+      update = util.updateProperty,
+      asSize = util.option.asSize,
       options = this.options,
       frame = this.frame;
 
-  // create frame
   if (!frame) {
     frame = document.createElement('div');
+
     this.frame = frame;
 
-    if (!this.container) throw new Error('Cannot repaint root panel: no container attached');
-    this.container.appendChild(frame);
-
     this._registerListeners();
+
+    changed += 1;
+  }
+  if (!frame.parentNode) {
+    if (!this.container) {
+      throw new Error('Cannot repaint root panel: no container attached');
+    }
+    this.container.appendChild(frame);
+    changed += 1;
   }
 
-  // update class name
-  var className = 'vis timeline rootpanel ' + options.orientation + (options.editable ? ' editable' : '');
-  if (options.className) className += ' ' + util.option.asString(className);
-  frame.className = className;
+  frame.className = 'vis timeline rootpanel ' + options.orientation +
+      (options.editable ? ' editable' : '');
+  var className = options.className;
+  if (className) {
+    util.addClassName(frame, util.option.asString(className));
+  }
 
-  // update frame size
-  this._updateSize();
+  changed += update(frame.style, 'top',    asSize(options.top, '0px'));
+  changed += update(frame.style, 'left',   asSize(options.left, '0px'));
+  changed += update(frame.style, 'width',  asSize(options.width, '100%'));
+  changed += update(frame.style, 'height', asSize(options.height, '100%'));
 
   this._updateWatch();
+
+  return (changed > 0);
+};
+
+/**
+ * Reflow the component
+ * @return {Boolean} resized
+ */
+RootPanel.prototype.reflow = function () {
+  var changed = 0,
+      update = util.updateProperty,
+      frame = this.frame;
+
+  if (frame) {
+    changed += update(this, 'top', frame.offsetTop);
+    changed += update(this, 'left', frame.offsetLeft);
+    changed += update(this, 'width', frame.offsetWidth);
+    changed += update(this, 'height', frame.offsetHeight);
+  }
+  else {
+    changed += 1;
+  }
+
+  return (changed > 0);
 };
 
 /**
@@ -4114,11 +4241,9 @@ RootPanel.prototype._watch = function () {
 
     if (me.frame) {
       // check whether the frame is resized
-      if ((me.frame.clientWidth != me.lastWidth) ||
-          (me.frame.clientHeight != me.lastHeight)) {
-        me.lastWidth = me.frame.clientWidth;
-        me.lastHeight = me.frame.clientHeight;
-        me.requestRepaint();
+      if ((me.frame.clientWidth != me.width) ||
+          (me.frame.clientHeight != me.height)) {
+        me.requestReflow();
       }
     }
   };
@@ -4281,22 +4406,25 @@ TimeAxis.prototype.toScreen = function(time) {
 
 /**
  * Repaint the component
+ * @return {Boolean} changed
  */
 TimeAxis.prototype.repaint = function () {
-  var asSize = util.option.asSize,
+  var changed = 0,
+      update = util.updateProperty,
+      asSize = util.option.asSize,
       options = this.options,
-      props = this.props;
+      orientation = this.getOption('orientation'),
+      props = this.props,
+      step = this.step;
 
   var frame = this.frame;
   if (!frame) {
     frame = document.createElement('div');
     this.frame = frame;
+    changed += 1;
   }
   frame.className = 'axis';
   // TODO: custom className?
-
-  // update its size
-  this.width = frame.offsetWidth; // TODO: only update the width when the frame is resized
 
   if (!frame.parentNode) {
     if (!this.parent) {
@@ -4307,48 +4435,73 @@ TimeAxis.prototype.repaint = function () {
       throw new Error('Cannot repaint time axis: parent has no container element');
     }
     parentContainer.appendChild(frame);
+
+    changed += 1;
   }
 
   var parent = frame.parentNode;
   if (parent) {
-    // calculate character width and height
-    this._calculateCharSize();
-
-    // TODO: recalculate sizes only needed when parent is resized or options is changed
-    var orientation = this.getOption('orientation'),
-        showMinorLabels = this.getOption('showMinorLabels'),
-        showMajorLabels = this.getOption('showMajorLabels');
-
-    // determine the width and height of the elemens for the axis
-    var parentHeight = this.parent.height;
-    props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
-    props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
-    this.height = props.minorLabelHeight + props.majorLabelHeight;
-    props.minorLineHeight = parentHeight + props.minorLabelHeight;
-    props.minorLineWidth = 1; // TODO: really calculate width
-    props.majorLineHeight = parentHeight + this.height;
-    props.majorLineWidth = 1; // TODO: really calculate width
-
-    //  take frame offline while updating (is almost twice as fast)
     var beforeChild = frame.nextSibling;
-    parent.removeChild(frame);
+    parent.removeChild(frame); //  take frame offline while updating (is almost twice as fast)
 
-    if (orientation == 'top') {
-      frame.style.top = '0';
-      frame.style.left = '0';
-      frame.style.bottom = '';
-      frame.style.width = asSize(options.width, '100%');
-      frame.style.height = this.height + 'px';
-    }
-    else { // bottom
-      frame.style.top = '';
-      frame.style.bottom = '0';
-      frame.style.left = '0';
-      frame.style.width = asSize(options.width, '100%');
-      frame.style.height = this.height + 'px';
-    }
+    var defaultTop = (orientation == 'bottom' && this.props.parentHeight && this.height) ?
+        (this.props.parentHeight - this.height) + 'px' :
+        '0px';
+    changed += update(frame.style, 'top', asSize(options.top, defaultTop));
+    changed += update(frame.style, 'left', asSize(options.left, '0px'));
+    changed += update(frame.style, 'width', asSize(options.width, '100%'));
+    changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
 
-    this._repaintLabels();
+    // get characters width and height
+    this._repaintMeasureChars();
+
+    if (this.step) {
+      this._repaintStart();
+
+      step.first();
+      var xFirstMajorLabel = undefined;
+      var max = 0;
+      while (step.hasNext() && max < 1000) {
+        max++;
+        var cur = step.getCurrent(),
+            x = this.toScreen(cur),
+            isMajor = step.isMajor();
+
+        // TODO: lines must have a width, such that we can create css backgrounds
+
+        if (this.getOption('showMinorLabels')) {
+          this._repaintMinorText(x, step.getLabelMinor());
+        }
+
+        if (isMajor && this.getOption('showMajorLabels')) {
+          if (x > 0) {
+            if (xFirstMajorLabel == undefined) {
+              xFirstMajorLabel = x;
+            }
+            this._repaintMajorText(x, step.getLabelMajor());
+          }
+          this._repaintMajorLine(x);
+        }
+        else {
+          this._repaintMinorLine(x);
+        }
+
+        step.next();
+      }
+
+      // create a major label on the left when needed
+      if (this.getOption('showMajorLabels')) {
+        var leftTime = this.toTime(0),
+            leftText = step.getLabelMajor(leftTime),
+            widthText = leftText.length * (props.majorCharWidth || 10) + 10; // upper bound estimation
+
+        if (xFirstMajorLabel == undefined || widthText < xFirstMajorLabel) {
+          this._repaintMajorText(0, leftText);
+        }
+      }
+
+      this._repaintEnd();
+    }
 
     this._repaintLine();
 
@@ -4360,81 +4513,35 @@ TimeAxis.prototype.repaint = function () {
       parent.appendChild(frame)
     }
   }
+
+  return (changed > 0);
 };
 
 /**
- * Repaint major and minor text labels and vertical grid lines
+ * Start a repaint. Move all DOM elements to a redundant list, where they
+ * can be picked for re-use, or can be cleaned up in the end
  * @private
  */
-TimeAxis.prototype._repaintLabels = function () {
-  var orientation = this.getOption('orientation');
+TimeAxis.prototype._repaintStart = function () {
+  var dom = this.dom,
+      redundant = dom.redundant;
 
-  // calculate range and step
-  this._updateConversion();
-  var start = util.convert(this.range.start, 'Number'),
-      end = util.convert(this.range.end, 'Number'),
-      minimumStep = this.toTime((this.props.minorCharWidth || 10) * 5).valueOf()
-          -this.toTime(0).valueOf();
-  var step = new TimeStep(new Date(start), new Date(end), minimumStep);
-  this.step = step;
+  redundant.majorLines = dom.majorLines;
+  redundant.majorTexts = dom.majorTexts;
+  redundant.minorLines = dom.minorLines;
+  redundant.minorTexts = dom.minorTexts;
 
-
-  // Move all DOM elements to a "redundant" list, where they
-  // can be picked for re-use, and clear the lists with lines and texts.
-  // At the end of the function _repaintLabels, left over elements will be cleaned up
-  var dom = this.dom;
-  dom.redundant.majorLines = dom.majorLines;
-  dom.redundant.majorTexts = dom.majorTexts;
-  dom.redundant.minorLines = dom.minorLines;
-  dom.redundant.minorTexts = dom.minorTexts;
   dom.majorLines = [];
   dom.majorTexts = [];
   dom.minorLines = [];
   dom.minorTexts = [];
+};
 
-  step.first();
-  var xFirstMajorLabel = undefined;
-  var max = 0;
-  while (step.hasNext() && max < 1000) {
-    max++;
-    var cur = step.getCurrent(),
-        x = this.toScreen(cur),
-        isMajor = step.isMajor();
-
-    // TODO: lines must have a width, such that we can create css backgrounds
-
-    if (this.getOption('showMinorLabels')) {
-      this._repaintMinorText(x, step.getLabelMinor(), orientation);
-    }
-
-    if (isMajor && this.getOption('showMajorLabels')) {
-      if (x > 0) {
-        if (xFirstMajorLabel == undefined) {
-          xFirstMajorLabel = x;
-        }
-        this._repaintMajorText(x, step.getLabelMajor(), orientation);
-      }
-      this._repaintMajorLine(x, orientation);
-    }
-    else {
-      this._repaintMinorLine(x, orientation);
-    }
-
-    step.next();
-  }
-
-  // create a major label on the left when needed
-  if (this.getOption('showMajorLabels')) {
-    var leftTime = this.toTime(0),
-        leftText = step.getLabelMajor(leftTime),
-        widthText = leftText.length * (this.props.majorCharWidth || 10) + 10; // upper bound estimation
-
-    if (xFirstMajorLabel == undefined || widthText < xFirstMajorLabel) {
-      this._repaintMajorText(0, leftText, orientation);
-    }
-  }
-
-  // Cleanup leftover DOM elements from the redundant list
+/**
+ * End a repaint. Cleanup leftover DOM elements in the redundant list
+ * @private
+ */
+TimeAxis.prototype._repaintEnd = function () {
   util.forEach(this.dom.redundant, function (arr) {
     while (arr.length) {
       var elem = arr.pop();
@@ -4445,14 +4552,14 @@ TimeAxis.prototype._repaintLabels = function () {
   });
 };
 
+
 /**
  * Create a minor label for the axis at position x
  * @param {Number} x
  * @param {String} text
- * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-TimeAxis.prototype._repaintMinorText = function (x, text, orientation) {
+TimeAxis.prototype._repaintMinorText = function (x, text) {
   // reuse redundant label
   var label = this.dom.redundant.minorTexts.shift();
 
@@ -4467,16 +4574,8 @@ TimeAxis.prototype._repaintMinorText = function (x, text, orientation) {
   this.dom.minorTexts.push(label);
 
   label.childNodes[0].nodeValue = text;
-
-  if (orientation == 'top') {
-    label.style.top = this.props.minorLabelHeight + 'px';
-    label.style.bottom = '';
-  }
-  else {
-    label.style.top = '';
-    label.style.bottom = this.props.minorLabelHeight + 'px';
-  }
   label.style.left = x + 'px';
+  label.style.top  = this.props.minorLabelTop + 'px';
   //label.title = title;  // TODO: this is a heavy operation
 };
 
@@ -4484,10 +4583,9 @@ TimeAxis.prototype._repaintMinorText = function (x, text, orientation) {
  * Create a Major label for the axis at position x
  * @param {Number} x
  * @param {String} text
- * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-TimeAxis.prototype._repaintMajorText = function (x, text, orientation) {
+TimeAxis.prototype._repaintMajorText = function (x, text) {
   // reuse redundant label
   var label = this.dom.redundant.majorTexts.shift();
 
@@ -4502,26 +4600,17 @@ TimeAxis.prototype._repaintMajorText = function (x, text, orientation) {
   this.dom.majorTexts.push(label);
 
   label.childNodes[0].nodeValue = text;
-  //label.title = title; // TODO: this is a heavy operation
-
-  if (orientation == 'top') {
-    label.style.top = '0px';
-    label.style.bottom = '';
-  }
-  else {
-    label.style.top = '';
-    label.style.bottom = '0px';
-  }
+  label.style.top = this.props.majorLabelTop + 'px';
   label.style.left = x + 'px';
+  //label.title = title; // TODO: this is a heavy operation
 };
 
 /**
  * Create a minor line for the axis at position x
  * @param {Number} x
- * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-TimeAxis.prototype._repaintMinorLine = function (x, orientation) {
+TimeAxis.prototype._repaintMinorLine = function (x) {
   // reuse redundant line
   var line = this.dom.redundant.minorLines.shift();
 
@@ -4534,14 +4623,7 @@ TimeAxis.prototype._repaintMinorLine = function (x, orientation) {
   this.dom.minorLines.push(line);
 
   var props = this.props;
-  if (orientation == 'top') {
-    line.style.top = this.props.minorLabelHeight + 'px';
-    line.style.bottom = '';
-  }
-  else {
-    line.style.top = '';
-    line.style.bottom = this.props.minorLabelHeight + 'px';
-  }
+  line.style.top = props.minorLineTop + 'px';
   line.style.height = props.minorLineHeight + 'px';
   line.style.left = (x - props.minorLineWidth / 2) + 'px';
 };
@@ -4549,10 +4631,9 @@ TimeAxis.prototype._repaintMinorLine = function (x, orientation) {
 /**
  * Create a Major line for the axis at position x
  * @param {Number} x
- * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-TimeAxis.prototype._repaintMajorLine = function (x, orientation) {
+TimeAxis.prototype._repaintMajorLine = function (x) {
   // reuse redundant line
   var line = this.dom.redundant.majorLines.shift();
 
@@ -4565,14 +4646,7 @@ TimeAxis.prototype._repaintMajorLine = function (x, orientation) {
   this.dom.majorLines.push(line);
 
   var props = this.props;
-  if (orientation == 'top') {
-    line.style.top = '0px';
-    line.style.bottom = '';
-  }
-  else {
-    line.style.top = '';
-    line.style.bottom = '0px';
-  }
+  line.style.top = props.majorLineTop + 'px';
   line.style.left = (x - props.majorLineWidth / 2) + 'px';
   line.style.height = props.majorLineHeight + 'px';
 };
@@ -4585,7 +4659,7 @@ TimeAxis.prototype._repaintMajorLine = function (x, orientation) {
 TimeAxis.prototype._repaintLine = function() {
   var line = this.dom.line,
       frame = this.frame,
-      orientation = this.getOption('orientation');
+      options = this.options;
 
   // line before all axis elements
   if (this.getOption('showMinorLabels') || this.getOption('showMajorLabels')) {
@@ -4602,14 +4676,7 @@ TimeAxis.prototype._repaintLine = function() {
       this.dom.line = line;
     }
 
-    if (orientation == 'top') {
-      line.style.top = this.height + 'px';
-      line.style.bottom = '';
-    }
-    else {
-      line.style.top = '';
-      line.style.bottom = this.height + 'px';
-    }
+    line.style.top = this.props.lineTop + 'px';
   }
   else {
     if (line && line.parentElement) {
@@ -4620,37 +4687,136 @@ TimeAxis.prototype._repaintLine = function() {
 };
 
 /**
- * Determine the size of text on the axis (both major and minor axis).
- * The size is calculated only once and then cached in this.props.
+ * Create characters used to determine the size of text on the axis
  * @private
  */
-TimeAxis.prototype._calculateCharSize = function () {
-  // determine the char width and height on the minor axis
-  if (!('minorCharHeight' in this.props)) {
-    var textMinor = document.createTextNode('0');
+TimeAxis.prototype._repaintMeasureChars = function () {
+  // calculate the width and height of a single character
+  // this is used to calculate the step size, and also the positioning of the
+  // axis
+  var dom = this.dom,
+      text;
+
+  if (!dom.measureCharMinor) {
+    text = document.createTextNode('0');
     var measureCharMinor = document.createElement('DIV');
     measureCharMinor.className = 'text minor measure';
-    measureCharMinor.appendChild(textMinor);
+    measureCharMinor.appendChild(text);
     this.frame.appendChild(measureCharMinor);
 
-    this.props.minorCharHeight = measureCharMinor.clientHeight;
-    this.props.minorCharWidth = measureCharMinor.clientWidth;
-
-    this.frame.removeChild(measureCharMinor);
+    dom.measureCharMinor = measureCharMinor;
   }
 
-  if (!('majorCharHeight' in this.props)) {
-    var textMajor = document.createTextNode('0');
+  if (!dom.measureCharMajor) {
+    text = document.createTextNode('0');
     var measureCharMajor = document.createElement('DIV');
     measureCharMajor.className = 'text major measure';
-    measureCharMajor.appendChild(textMajor);
+    measureCharMajor.appendChild(text);
     this.frame.appendChild(measureCharMajor);
 
-    this.props.majorCharHeight = measureCharMajor.clientHeight;
-    this.props.majorCharWidth = measureCharMajor.clientWidth;
-
-    this.frame.removeChild(measureCharMajor);
+    dom.measureCharMajor = measureCharMajor;
   }
+};
+
+/**
+ * Reflow the component
+ * @return {Boolean} resized
+ */
+TimeAxis.prototype.reflow = function () {
+  var changed = 0,
+      update = util.updateProperty,
+      frame = this.frame,
+      range = this.range;
+
+  if (!range) {
+    throw new Error('Cannot repaint time axis: no range configured');
+  }
+
+  if (frame) {
+    changed += update(this, 'top', frame.offsetTop);
+    changed += update(this, 'left', frame.offsetLeft);
+
+    // calculate size of a character
+    var props = this.props,
+        showMinorLabels = this.getOption('showMinorLabels'),
+        showMajorLabels = this.getOption('showMajorLabels'),
+        measureCharMinor = this.dom.measureCharMinor,
+        measureCharMajor = this.dom.measureCharMajor;
+    if (measureCharMinor) {
+      props.minorCharHeight = measureCharMinor.clientHeight;
+      props.minorCharWidth = measureCharMinor.clientWidth;
+    }
+    if (measureCharMajor) {
+      props.majorCharHeight = measureCharMajor.clientHeight;
+      props.majorCharWidth = measureCharMajor.clientWidth;
+    }
+
+    var parentHeight = frame.parentNode ? frame.parentNode.offsetHeight : 0;
+    if (parentHeight != props.parentHeight) {
+      props.parentHeight = parentHeight;
+      changed += 1;
+    }
+    switch (this.getOption('orientation')) {
+      case 'bottom':
+        props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
+        props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
+
+        props.minorLabelTop = 0;
+        props.majorLabelTop = props.minorLabelTop + props.minorLabelHeight;
+
+        props.minorLineTop = -this.top;
+        props.minorLineHeight = Math.max(this.top + props.majorLabelHeight, 0);
+        props.minorLineWidth = 1; // TODO: really calculate width
+
+        props.majorLineTop = -this.top;
+        props.majorLineHeight = Math.max(this.top + props.minorLabelHeight + props.majorLabelHeight, 0);
+        props.majorLineWidth = 1; // TODO: really calculate width
+
+        props.lineTop = 0;
+
+        break;
+
+      case 'top':
+        props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
+        props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
+
+        props.majorLabelTop = 0;
+        props.minorLabelTop = props.majorLabelTop + props.majorLabelHeight;
+
+        props.minorLineTop = props.minorLabelTop;
+        props.minorLineHeight = Math.max(parentHeight - props.majorLabelHeight - this.top);
+        props.minorLineWidth = 1; // TODO: really calculate width
+
+        props.majorLineTop = 0;
+        props.majorLineHeight = Math.max(parentHeight - this.top);
+        props.majorLineWidth = 1; // TODO: really calculate width
+
+        props.lineTop = props.majorLabelHeight +  props.minorLabelHeight;
+
+        break;
+
+      default:
+        throw new Error('Unkown orientation "' + this.getOption('orientation') + '"');
+    }
+
+    var height = props.minorLabelHeight + props.majorLabelHeight;
+    changed += update(this, 'width', frame.offsetWidth);
+    changed += update(this, 'height', height);
+
+    // calculate range and step
+    this._updateConversion();
+
+    var start = util.convert(range.start, 'Number'),
+        end = util.convert(range.end, 'Number'),
+        minimumStep = this.toTime((props.minorCharWidth || 10) * 5).valueOf()
+            -this.toTime(0).valueOf();
+    this.step = new TimeStep(new Date(start), new Date(end), minimumStep);
+    changed += update(props.range, 'start', start);
+    changed += update(props.range, 'end', end);
+    changed += update(props.range, 'minimumStep', minimumStep.valueOf());
+  }
+
+  return (changed > 0);
 };
 
 /**
@@ -4988,7 +5154,17 @@ function ItemSet(parent, depends, options) {
 
   // one options object is shared by this itemset and all its items
   this.options = options || {};
-  this.itemOptions = Object.create(this.options);
+  this.defaultOptions = {
+    type: 'box',
+    align: 'center',
+    orientation: 'bottom',
+    margin: {
+      axis: 20,
+      item: 10
+    },
+    padding: 5
+  };
+
   this.dom = {};
 
   var me = this;
@@ -4998,27 +5174,26 @@ function ItemSet(parent, depends, options) {
   // data change listeners
   this.listeners = {
     'add': function (event, params, senderId) {
-      if (senderId != me.id) me._onAdd(params.items);
+      if (senderId != me.id) {
+        me._onAdd(params.items);
+      }
     },
     'update': function (event, params, senderId) {
-      if (senderId != me.id) me._onUpdate(params.items);
+      if (senderId != me.id) {
+        me._onUpdate(params.items);
+      }
     },
     'remove': function (event, params, senderId) {
-      if (senderId != me.id) me._onRemove(params.items);
+      if (senderId != me.id) {
+        me._onRemove(params.items);
+      }
     }
   };
 
-  this.items = {};        // object with an Item for every data item
-  this.orderedItems = {
-    byStart: [],
-    byEnd: []
-  };
-  this.visibleItems = []; // visible, ordered items
-  this.visibleItemsStart = 0; // start index of visible items in this.orderedItems // TODO: cleanup
-  this.visibleItemsEnd = 0;   // start index of visible items in this.orderedItems // TODO: cleanup
+  this.items = {};      // object with an Item for every data item
   this.selection = [];  // list with the ids of all selected nodes
   this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
-  this.stack = new Stack(Object.create(this.options));
+  this.stack = new Stack(this, Object.create(this.options));
   this.conversion = null;
 
   this.touchParams = {}; // stores properties while dragging
@@ -5096,6 +5271,25 @@ ItemSet.prototype.setController = function setController (controller) {
   }
 };
 
+// attach event listeners for dragging items to the controller
+(function (me) {
+  var _controller = null;
+  var _onDragStart = null;
+  var _onDrag = null;
+  var _onDragEnd = null;
+
+  Object.defineProperty(me, 'controller', {
+    get: function () {
+      return _controller;
+    },
+
+    set: function (controller) {
+
+    }
+  });
+}) (this);
+
+
 /**
  * Set range (start and end).
  * @param {Range | Object} range  A Range or an object containing start and end.
@@ -5116,7 +5310,7 @@ ItemSet.prototype.setRange = function setRange(range) {
  *                      unselected.
  */
 ItemSet.prototype.setSelection = function setSelection(ids) {
-  var i, ii, id, item;
+  var i, ii, id, item, selection;
 
   if (ids) {
     if (!Array.isArray(ids)) {
@@ -5172,15 +5366,16 @@ ItemSet.prototype._deselect = function _deselect(id) {
 
 /**
  * Repaint the component
+ * @return {Boolean} changed
  */
 ItemSet.prototype.repaint = function repaint() {
-  var asSize = util.option.asSize,
-      asNumber = util.option.asNumber,
+  var changed = 0,
+      update = util.updateProperty,
+      asSize = util.option.asSize,
       options = this.options,
       orientation = this.getOption('orientation'),
+      defaultOptions = this.defaultOptions,
       frame = this.frame;
-
-  this._updateConversion();
 
   if (!frame) {
     frame = document.createElement('div');
@@ -5211,6 +5406,7 @@ ItemSet.prototype.repaint = function repaint() {
     this.dom.axis = axis;
 
     this.frame = frame;
+    changed += 1;
   }
 
   if (!this.parent) {
@@ -5222,144 +5418,130 @@ ItemSet.prototype.repaint = function repaint() {
   }
   if (!frame.parentNode) {
     parentContainer.appendChild(frame);
+    changed += 1;
   }
   if (!this.dom.axis.parentNode) {
     parentContainer.appendChild(this.dom.axis);
+    changed += 1;
   }
-
-  // check whether zoomed (in that case we need to re-stack everything)
-  var visibleInterval = this.range.end - this.range.start;
-  var zoomed = this.visibleInterval != visibleInterval;
-  this.visibleInterval = visibleInterval;
-
-  /* TODO: implement+fix smarter way to update visible items
-  // find the first visible item
-  // TODO: use faster search, not linear
-  var byEnd = this.orderedItems.byEnd;
-  var start = 0;
-  var item = null;
-  while ((item = byEnd[start]) &&
-      (('end' in item.data) ? item.data.end : item.data.start) < this.range.start) {
-    start++;
-  }
-
-  // find the last visible item
-  // TODO: use faster search, not linear
-  var byStart = this.orderedItems.byStart;
-  var end = 0;
-  while ((item = byStart[end]) && item.data.start < this.range.end) {
-    end++;
-  }
-
-  console.log('visible items', start, end); // TODO: cleanup
-  console.log('visible item ids', byStart[start] && byStart[start].id, byEnd[end-1] && byEnd[end-1].id); // TODO: cleanup
-
-  this.visibleItems = [];
-  var i = start;
-  item = byStart[i];
-  var lastItem = byEnd[end];
-  while (item && item !== lastItem) {
-    this.visibleItems.push(item);
-    item = byStart[++i];
-  }
-  this.stack.order(this.visibleItems);
-
-  // show visible items
-  for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
-    item = this.visibleItems[i];
-
-    if (!item.displayed) item.show();
-    item.top = null; // reset stacking position
-
-    // reposition item horizontally
-    item.repositionX();
-  }
-   */
-
-  // simple, brute force calculation of visible items
-  // TODO: replace with a faster, more sophisticated solution
-  this.visibleItems = [];
-  for (var id in this.items) {
-    if (this.items.hasOwnProperty(id)) {
-      var item = this.items[id];
-      if (item.isVisible(this.range)) {
-        if (!item.displayed) item.show();
-
-        // reset stacking position
-        if (zoomed) item.top = null;
-
-        // reposition item horizontally
-        item.repositionX();
-
-        this.visibleItems.push(item);
-      }
-      else {
-        if (item.displayed) item.hide();
-      }
-    }
-  }
-
-  // reposition visible items vertically
-  //this.stack.order(this.visibleItems); // TODO: solve ordering issue
-  this.stack.stack(this.visibleItems);
-  for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
-    this.visibleItems[i].repositionY();
-  }
-
-  // recalculate the height of the itemset
-  var marginAxis = (options.margin && 'axis' in options.margin) ? options.margin.axis : this.itemOptions.margin.axis,
-      marginItem = (options.margin && 'item' in options.margin) ? options.margin.item : this.itemOptions.margin.item,
-      maxHeight = asNumber(options.maxHeight),
-      fixedHeight = (asSize(options.height) != null),
-      height;
-
-  // recalculate the frames size and position
-  // TODO: request frame's actual top, left, width only when size is changed (mark as dirty)
-  if (fixedHeight) {
-    height = frame.offsetHeight;
-  }
-  else {
-    // height is not specified, determine the height from the height and positioned items
-    var visibleItems = this.visibleItems;
-    if (visibleItems.length) {
-      var min = visibleItems[0].top;
-      var max = visibleItems[0].top + visibleItems[0].height;
-      util.forEach(visibleItems, function (item) {
-        min = Math.min(min, item.top);
-        max = Math.max(max, (item.top + item.height));
-      });
-      height = (max - min) + marginAxis + marginItem;
-    }
-    else {
-      height = marginAxis + marginItem;
-    }
-  }
-  if (maxHeight != null) {
-    height = Math.min(height, maxHeight);
-  }
-  this.top = frame.offsetTop;
-  this.left = frame.offsetLeft;
-  this.width = frame.offsetWidth;
-  this.height = height;
 
   // reposition frame
-  frame.style.left    = asSize(options.left, '0px');
-  frame.style.top     = asSize(options.top, '');
-  frame.style.bottom  = asSize(options.bottom, '');
-  frame.style.width   = asSize(options.width, '100%');
-  frame.style.height  = asSize(options.height, this.height + 'px');
+  changed += update(frame.style, 'left',   asSize(options.left, '0px'));
+  changed += update(frame.style, 'top',    asSize(options.top, '0px'));
+  changed += update(frame.style, 'width',  asSize(options.width, '100%'));
+  changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
 
   // reposition axis
-  this.dom.axis.style.left = asSize(options.left, '0px');
-  this.dom.axis.style.width = asSize(options.width, '100%');
+  changed += update(this.dom.axis.style, 'left', asSize(options.left, '0px'));
+  changed += update(this.dom.axis.style, 'width',  asSize(options.width, '100%'));
   if (orientation == 'bottom') {
-    this.dom.axis.style.top = (this.top + this.height) + 'px';
+    changed += update(this.dom.axis.style, 'top',  (this.height + this.top) + 'px');
   }
   else { // orientation == 'top'
-    this.dom.axis.style.top = this.top + 'px';
+    changed += update(this.dom.axis.style, 'top', this.top + 'px');
   }
 
-  return false;
+  this._updateConversion();
+
+  var me = this,
+      queue = this.queue,
+      itemsData = this.itemsData,
+      items = this.items,
+      dataOptions = {
+        // TODO: cleanup
+        // fields: [(itemsData && itemsData.fieldId || 'id'), 'start', 'end', 'content', 'type', 'className']
+      };
+
+  // show/hide added/changed/removed items
+  for (var id in queue) {
+    if (queue.hasOwnProperty(id)) {
+      var entry = queue[id],
+          item = items[id],
+          action = entry.action;
+
+      //noinspection FallthroughInSwitchStatementJS
+      switch (action) {
+        case 'add':
+        case 'update':
+          var itemData = itemsData && itemsData.get(id, dataOptions);
+
+          if (itemData) {
+            var type = itemData.type ||
+                (itemData.start && itemData.end && 'range') ||
+                options.type ||
+                'box';
+            var constructor = ItemSet.types[type];
+
+            // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
+            if (item) {
+              // update item
+              if (!constructor || !(item instanceof constructor)) {
+                // item type has changed, hide and delete the item
+                changed += item.hide();
+                item = null;
+              }
+              else {
+                item.data = itemData; // TODO: create a method item.setData ?
+                changed++;
+              }
+            }
+
+            if (!item) {
+              // create item
+              if (constructor) {
+                item = new constructor(me, itemData, options, defaultOptions);
+                item.id = entry.id; // we take entry.id, as id itself is stringified
+                changed++;
+              }
+              else {
+                throw new TypeError('Unknown item type "' + type + '"');
+              }
+            }
+
+            // force a repaint (not only a reposition)
+            item.repaint();
+
+            items[id] = item;
+          }
+
+          // update queue
+          delete queue[id];
+          break;
+
+        case 'remove':
+          if (item) {
+            // remove the item from the set selected items
+            if (item.selected) {
+              me._deselect(id);
+            }
+
+            // remove DOM of the item
+            changed += item.hide();
+          }
+
+          // update lists
+          delete items[id];
+          delete queue[id];
+          break;
+
+        default:
+          console.log('Error: unknown action "' + action + '"');
+      }
+    }
+  }
+
+  // reposition all items. Show items only when in the visible area
+  util.forEach(this.items, function (item) {
+    if (item.visible) {
+      changed += item.show();
+      item.reposition();
+    }
+    else {
+      changed += item.hide();
+    }
+  });
+
+  return (changed > 0);
 };
 
 /**
@@ -5387,16 +5569,87 @@ ItemSet.prototype.getAxis = function getAxis() {
 };
 
 /**
+ * Reflow the component
+ * @return {Boolean} resized
+ */
+ItemSet.prototype.reflow = function reflow () {
+  var changed = 0,
+      options = this.options,
+      marginAxis = (options.margin && 'axis' in options.margin) ? options.margin.axis : this.defaultOptions.margin.axis,
+      marginItem = (options.margin && 'item' in options.margin) ? options.margin.item : this.defaultOptions.margin.item,
+      update = util.updateProperty,
+      asNumber = util.option.asNumber,
+      asSize = util.option.asSize,
+      frame = this.frame;
+
+  if (frame) {
+    this._updateConversion();
+
+    util.forEach(this.items, function (item) {
+      changed += item.reflow();
+    });
+
+    // TODO: stack.update should be triggered via an event, in stack itself
+    // TODO: only update the stack when there are changed items
+    this.stack.update();
+
+    var maxHeight = asNumber(options.maxHeight);
+    var fixedHeight = (asSize(options.height) != null);
+    var height;
+    if (fixedHeight) {
+      height = frame.offsetHeight;
+    }
+    else {
+      // height is not specified, determine the height from the height and positioned items
+      var visibleItems = this.stack.ordered; // TODO: not so nice way to get the filtered items
+      if (visibleItems.length) {
+        var min = visibleItems[0].top;
+        var max = visibleItems[0].top + visibleItems[0].height;
+        util.forEach(visibleItems, function (item) {
+          min = Math.min(min, item.top);
+          max = Math.max(max, (item.top + item.height));
+        });
+        height = (max - min) + marginAxis + marginItem;
+      }
+      else {
+        height = marginAxis + marginItem;
+      }
+    }
+    if (maxHeight != null) {
+      height = Math.min(height, maxHeight);
+    }
+    changed += update(this, 'height', height);
+
+    // calculate height from items
+    changed += update(this, 'top', frame.offsetTop);
+    changed += update(this, 'left', frame.offsetLeft);
+    changed += update(this, 'width', frame.offsetWidth);
+  }
+  else {
+    changed += 1;
+  }
+
+  return (changed > 0);
+};
+
+/**
  * Hide this component from the DOM
+ * @return {Boolean} changed
  */
 ItemSet.prototype.hide = function hide() {
+  var changed = false;
+
   // remove the DOM
   if (this.frame && this.frame.parentNode) {
     this.frame.parentNode.removeChild(this.frame);
+    changed = true;
   }
   if (this.dom.axis && this.dom.axis.parentNode) {
     this.dom.axis.parentNode.removeChild(this.dom.axis);
+    changed = true;
   }
+
+  return changed;
 };
 
 /**
@@ -5475,62 +5728,17 @@ ItemSet.prototype.removeItem = function removeItem (id) {
  * @private
  */
 ItemSet.prototype._onUpdate = function _onUpdate(ids) {
-  var me = this,
-      items = this.items,
-      itemOptions = this.itemOptions;
-
-  ids.forEach(function (id) {
-    var itemData = me.itemsData.get(id),
-        item = items[id],
-        type = itemData.type ||
-            (itemData.start && itemData.end && 'range') ||
-            options.type ||
-            'box';
-
-    var constructor = ItemSet.types[type];
-
-    // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
-    if (item) {
-      // update item
-      if (!constructor || !(item instanceof constructor)) {
-        // item type has changed, hide and delete the item
-        if (!('hide' in item)) {
-          console.log('item has no hide?!', item, Object.keys(items))
-          console.trace()
-        }
-
-        item.hide();
-        item = null;
-      }
-      else {
-        item.data = itemData; // TODO: create a method item.setData ?
-      }
-    }
-
-    if (!item) {
-      // create item
-      if (constructor) {
-        item = new constructor(me, itemData, options, itemOptions);
-        item.id = id;
-      }
-      else {
-        throw new TypeError('Unknown item type "' + type + '"');
-      }
-    }
-
-    me.items[id] = item;
-  });
-
-  this._order();
-  this.repaint();
+  this._toQueue('update', ids);
 };
 
 /**
- * Handle added items
+ * Handle changed items
  * @param {Number[]} ids
  * @private
  */
-ItemSet.prototype._onAdd = ItemSet.prototype._onUpdate;
+ItemSet.prototype._onAdd = function _onAdd(ids) {
+  this._toQueue('add', ids);
+};
 
 /**
  * Handle removed items
@@ -5538,36 +5746,28 @@ ItemSet.prototype._onAdd = ItemSet.prototype._onUpdate;
  * @private
  */
 ItemSet.prototype._onRemove = function _onRemove(ids) {
-  var me = this;
-  ids.forEach(function (id) {
-    var item = me.items[id];
-    if (item) {
-      item.hide(); // TODO: only hide when displayed
-      delete me.items[id];
-      delete me.visibleItems[id];
-    }
-  });
-
-  this._order();
+  this._toQueue('remove', ids);
 };
 
 /**
- * Order the items
- * @private
+ * Put items in the queue to be added/updated/remove
+ * @param {String} action     can be 'add', 'update', 'remove'
+ * @param {Number[]} ids
  */
-ItemSet.prototype._order = function _order() {
-  var array = util.toArray(this.items);
-  this.orderedItems.byStart = array;
-  this.orderedItems.byEnd = [].concat(array);
+ItemSet.prototype._toQueue = function _toQueue(action, ids) {
+  var queue = this.queue;
+  ids.forEach(function (id) {
+    queue[id] = {
+      id: id,
+      action: action
+    };
+  });
 
-  // reorder the items
-  this.stack.orderByStart(this.orderedItems.byStart);
-  this.stack.orderByEnd(this.orderedItems.byEnd);
-
-  // TODO: cleanup
-  //console.log('byStart', this.orderedItems.byStart.map(function (item) {return item.id}))
-  //console.log('byEnd', this.orderedItems.byEnd.map(function (item) {return item.id}))
-}
+  if (this.controller) {
+    //this.requestReflow();
+    this.requestRepaint();
+  }
+};
 
 /**
  * Calculate the scale and offset to convert a position on screen to the
@@ -5693,7 +5893,7 @@ ItemSet.prototype._onDrag = function (event) {
 
     // TODO: implement dragging from one group to another
 
-    this.repaint();
+    this.requestReflow();
 
     event.stopPropagation();
   }
@@ -5709,7 +5909,8 @@ ItemSet.prototype._onDragEnd = function (event) {
     // prepare a change set for the changed items
     var changes = [],
         me = this,
-        dataset = this._myDataSet();
+        dataset = this._myDataSet(),
+        type;
 
     this.touchParams.itemProps.forEach(function (props) {
       var id = props.item.id,
@@ -5736,7 +5937,7 @@ ItemSet.prototype._onDragEnd = function (event) {
             // restore original values
             if ('start' in props) props.item.data.start = props.start;
             if ('end' in props)   props.item.data.end   = props.end;
-            me.repaint();
+            me.requestReflow();
           }
         });
       }
@@ -5818,13 +6019,12 @@ function Item (parent, data, options, defaultOptions) {
   this.defaultOptions = defaultOptions || {};
 
   this.selected = false;
-  this.displayed = false;
-  this.dirty = true;
-
-  this.top = null;
-  this.left = null;
-  this.width = null;
-  this.height = null;
+  this.visible = false;
+  this.top = 0;
+  this.left = 0;
+  this.width = 0;
+  this.height = 0;
+  this.offset = 0;
 }
 
 /**
@@ -5832,7 +6032,7 @@ function Item (parent, data, options, defaultOptions) {
  */
 Item.prototype.select = function select() {
   this.selected = true;
-  if (this.displayed) this.repaint();
+  if (this.visible) this.repaint();
 };
 
 /**
@@ -5840,7 +6040,7 @@ Item.prototype.select = function select() {
  */
 Item.prototype.unselect = function unselect() {
   this.selected = false;
-  if (this.displayed) this.repaint();
+  if (this.visible) this.repaint();
 };
 
 /**
@@ -5861,23 +6061,28 @@ Item.prototype.hide = function hide() {
 
 /**
  * Repaint the item
+ * @return {Boolean} changed
  */
 Item.prototype.repaint = function repaint() {
   // should be implemented by the item
+  return false;
 };
 
 /**
- * Reposition the Item horizontally
+ * Reflow the item
+ * @return {Boolean} resized
  */
-Item.prototype.repositionX = function repositionX() {
+Item.prototype.reflow = function reflow() {
   // should be implemented by the item
+  return false;
 };
 
 /**
- * Reposition the Item vertically
+ * Give the item a display offset in pixels
+ * @param {Number} offset    Offset on screen in pixels
  */
-Item.prototype.repositionY = function repositionY() {
-  // should be implemented by the item
+Item.prototype.setOffset = function setOffset(offset) {
+  this.offset = offset;
 };
 
 /**
@@ -5927,21 +6132,18 @@ Item.prototype._repaintDeleteButton = function (anchor) {
 function ItemBox (parent, data, options, defaultOptions) {
   this.props = {
     dot: {
+      left: 0,
+      top: 0,
       width: 0,
       height: 0
     },
     line: {
+      top: 0,
+      left: 0,
       width: 0,
       height: 0
     }
   };
-
-  // validate data
-  if (data) {
-    if (data.start == undefined) {
-      throw new Error('Property "start" missing in item ' + data);
-    }
-  }
 
   Item.call(this, parent, data, options, defaultOptions);
 }
@@ -5949,30 +6151,225 @@ function ItemBox (parent, data, options, defaultOptions) {
 ItemBox.prototype = new Item (null, null);
 
 /**
- * Check whether this item is visible inside given range
- * @returns {{start: Number, end: Number}} range with a timestamp for start and end
- * @returns {boolean} True if visible
+ * Repaint the item
+ * @return {Boolean} changed
  */
-ItemBox.prototype.isVisible = function isVisible (range) {
-  // determine visibility
-  // TODO: account for the width of the item. Right now we add 1/4 to the window
-  var interval = (range.end - range.start) / 4;
-  interval = 0; // TODO: remove
-  return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
+ItemBox.prototype.repaint = function repaint() {
+  // TODO: make an efficient repaint
+  var changed = false;
+  var dom = this.dom;
+
+  if (!dom) {
+    this._create();
+    dom = this.dom;
+    changed = true;
+  }
+
+  if (dom) {
+    if (!this.parent) {
+      throw new Error('Cannot repaint item: no parent attached');
+    }
+
+    if (!dom.box.parentNode) {
+      var foreground = this.parent.getForeground();
+      if (!foreground) {
+        throw new Error('Cannot repaint time axis: ' +
+            'parent has no foreground container element');
+      }
+      foreground.appendChild(dom.box);
+      changed = true;
+    }
+
+    if (!dom.line.parentNode) {
+      var background = this.parent.getBackground();
+      if (!background) {
+        throw new Error('Cannot repaint time axis: ' +
+            'parent has no background container element');
+      }
+      background.appendChild(dom.line);
+      changed = true;
+    }
+
+    if (!dom.dot.parentNode) {
+      var axis = this.parent.getAxis();
+      if (!background) {
+        throw new Error('Cannot repaint time axis: ' +
+            'parent has no axis container element');
+      }
+      axis.appendChild(dom.dot);
+      changed = true;
+    }
+
+    this._repaintDeleteButton(dom.box);
+
+    // update contents
+    if (this.data.content != this.content) {
+      this.content = this.data.content;
+      if (this.content instanceof Element) {
+        dom.content.innerHTML = '';
+        dom.content.appendChild(this.content);
+      }
+      else if (this.data.content != undefined) {
+        dom.content.innerHTML = this.content;
+      }
+      else {
+        throw new Error('Property "content" missing in item ' + this.data.id);
+      }
+      changed = true;
+    }
+
+    // update class
+    var className = (this.data.className? ' ' + this.data.className : '') +
+        (this.selected ? ' selected' : '');
+    if (this.className != className) {
+      this.className = className;
+      dom.box.className = 'item box' + className;
+      dom.line.className = 'item line' + className;
+      dom.dot.className  = 'item dot' + className;
+      changed = true;
+    }
+  }
+
+  return changed;
 };
 
 /**
- * Repaint the item
+ * Show the item in the DOM (when not already visible). The items DOM will
+ * be created when needed.
+ * @return {Boolean} changed
  */
-ItemBox.prototype.repaint = function repaint() {
+ItemBox.prototype.show = function show() {
+  if (!this.dom || !this.dom.box.parentNode) {
+    return this.repaint();
+  }
+  else {
+    return false;
+  }
+};
+
+/**
+ * Hide the item from the DOM (when visible)
+ * @return {Boolean} changed
+ */
+ItemBox.prototype.hide = function hide() {
+  var changed = false,
+      dom = this.dom;
+  if (dom) {
+    if (dom.box.parentNode) {
+      dom.box.parentNode.removeChild(dom.box);
+      changed = true;
+    }
+    if (dom.line.parentNode) {
+      dom.line.parentNode.removeChild(dom.line);
+    }
+    if (dom.dot.parentNode) {
+      dom.dot.parentNode.removeChild(dom.dot);
+    }
+  }
+  return changed;
+};
+
+/**
+ * Reflow the item: calculate its actual size and position from the DOM
+ * @return {boolean} resized    returns true if the axis is resized
+ * @override
+ */
+ItemBox.prototype.reflow = function reflow() {
+  var changed = 0,
+      update,
+      dom,
+      props,
+      options,
+      margin,
+      start,
+      align,
+      orientation,
+      top,
+      left,
+      data,
+      range;
+
+  if (this.data.start == undefined) {
+    throw new Error('Property "start" missing in item ' + this.data.id);
+  }
+
+  data = this.data;
+  range = this.parent && this.parent.range;
+  if (data && range) {
+    // TODO: account for the width of the item
+    var interval = (range.end - range.start);
+    this.visible = (data.start > range.start - interval) && (data.start < range.end + interval);
+  }
+  else {
+    this.visible = false;
+  }
+
+  if (this.visible) {
+    dom = this.dom;
+    if (dom) {
+      update = util.updateProperty;
+      props = this.props;
+      options = this.options;
+      start = this.parent.toScreen(this.data.start) + this.offset;
+      align = options.align || this.defaultOptions.align;
+      margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
+      orientation = options.orientation || this.defaultOptions.orientation;
+
+      changed += update(props.dot, 'height', dom.dot.offsetHeight);
+      changed += update(props.dot, 'width', dom.dot.offsetWidth);
+      changed += update(props.line, 'width', dom.line.offsetWidth);
+      changed += update(props.line, 'height', dom.line.offsetHeight);
+      changed += update(props.line, 'top', dom.line.offsetTop);
+      changed += update(this, 'width', dom.box.offsetWidth);
+      changed += update(this, 'height', dom.box.offsetHeight);
+      if (align == 'right') {
+        left = start - this.width;
+      }
+      else if (align == 'left') {
+        left = start;
+      }
+      else {
+        // default or 'center'
+        left = start - this.width / 2;
+      }
+      changed += update(this, 'left', left);
+
+      changed += update(props.line, 'left', start - props.line.width / 2);
+      changed += update(props.dot, 'left', start - props.dot.width / 2);
+      changed += update(props.dot, 'top', -props.dot.height / 2);
+      if (orientation == 'top') {
+        top = margin;
+
+        changed += update(this, 'top', top);
+      }
+      else {
+        // default or 'bottom'
+        var parentHeight = this.parent.height;
+        top = parentHeight - this.height - margin;
+
+        changed += update(this, 'top', top);
+      }
+    }
+    else {
+      changed += 1;
+    }
+  }
+
+  return (changed > 0);
+};
+
+/**
+ * Create an items DOM
+ * @private
+ */
+ItemBox.prototype._create = function _create() {
   var dom = this.dom;
   if (!dom) {
-    // create DOM
-    this.dom = {};
-    dom = this.dom;
+    this.dom = dom = {};
 
-    // create main box
+    // create the box
     dom.box = document.createElement('DIV');
+    // className is updated in repaint()
 
     // contents box (inside the background box). used for making margins
     dom.content = document.createElement('DIV');
@@ -5990,162 +6387,42 @@ ItemBox.prototype.repaint = function repaint() {
     // attach this item as attribute
     dom.box['timeline-item'] = this;
   }
+};
 
-  // append DOM to parent DOM
-  if (!this.parent) {
-    throw new Error('Cannot repaint item: no parent attached');
-  }
-  if (!dom.box.parentNode) {
-    var foreground = this.parent.getForeground();
-    if (!foreground) throw new Error('Cannot repaint time axis: parent has no foreground container element');
-    foreground.appendChild(dom.box);
-  }
-  if (!dom.line.parentNode) {
-    var background = this.parent.getBackground();
-    if (!background) throw new Error('Cannot repaint time axis: parent has no background container element');
-    background.appendChild(dom.line);
-  }
-  if (!dom.dot.parentNode) {
-    var axis = this.parent.getAxis();
-    if (!background) throw new Error('Cannot repaint time axis: parent has no axis container element');
-    axis.appendChild(dom.dot);
-  }
-  this.displayed = true;
+/**
+ * Reposition the item, recalculate its left, top, and width, using the current
+ * range and size of the items itemset
+ * @override
+ */
+ItemBox.prototype.reposition = function reposition() {
+  var dom = this.dom,
+      props = this.props,
+      orientation = this.options.orientation || this.defaultOptions.orientation;
 
-  // update contents
-  if (this.data.content != this.content) {
-    this.content = this.data.content;
-    if (this.content instanceof Element) {
-      dom.content.innerHTML = '';
-      dom.content.appendChild(this.content);
-    }
-    else if (this.data.content != undefined) {
-      dom.content.innerHTML = this.content;
+  if (dom) {
+    var box = dom.box,
+        line = dom.line,
+        dot = dom.dot;
+
+    box.style.left = this.left + 'px';
+    box.style.top = this.top + 'px';
+
+    line.style.left = props.line.left + 'px';
+    if (orientation == 'top') {
+      line.style.top = 0 + 'px';
+      line.style.height = this.top + 'px';
     }
     else {
-      throw new Error('Property "content" missing in item ' + this.data.id);
+      // orientation 'bottom'
+      line.style.top = (this.top + this.height) + 'px';
+      line.style.height = Math.max(this.parent.height - this.top - this.height +
+          this.props.dot.height / 2, 0) + 'px';
     }
 
-    this.dirty = true;
-  }
-
-  // update class
-  var className = (this.data.className? ' ' + this.data.className : '') +
-      (this.selected ? ' selected' : '');
-  if (this.className != className) {
-    this.className = className;
-    dom.box.className = 'item box' + className;
-    dom.line.className = 'item line' + className;
-    dom.dot.className  = 'item dot' + className;
-
-    this.dirty = true;
-  }
-
-  // recalculate size
-  if (this.dirty) {
-    this.props.dot.height = dom.dot.offsetHeight;
-    this.props.dot.width = dom.dot.offsetWidth;
-    this.props.line.width = dom.line.offsetWidth;
-    this.width = dom.box.offsetWidth;
-    this.height = dom.box.offsetHeight;
-
-    this.dirty = false;
-  }
-
-  this._repaintDeleteButton(dom.box);
-};
-
-/**
- * Show the item in the DOM (when not already displayed). The items DOM will
- * be created when needed.
- */
-ItemBox.prototype.show = function show() {
-  if (!this.displayed) {
-    this.repaint();
+    dot.style.left = props.dot.left + 'px';
+    dot.style.top = props.dot.top + 'px';
   }
 };
-
-/**
- * Hide the item from the DOM (when visible)
- */
-ItemBox.prototype.hide = function hide() {
-  if (this.displayed) {
-    var dom = this.dom;
-
-    if (dom.box.parentNode)   dom.box.parentNode.removeChild(dom.box);
-    if (dom.line.parentNode)  dom.line.parentNode.removeChild(dom.line);
-    if (dom.dot.parentNode)   dom.dot.parentNode.removeChild(dom.dot);
-
-    this.top = null;
-    this.left = null;
-
-    this.displayed = false;
-  }
-};
-
-/**
- * Reposition the item horizontally
- * @Override
- */
-ItemBox.prototype.repositionX = function repositionX() {
-  var start = this.parent.toScreen(this.data.start),
-      align = this.options.align || this.defaultOptions.align,
-      left,
-      box = this.dom.box,
-      line = this.dom.line,
-      dot = this.dom.dot;
-
-  // calculate left position of the box
-  if (align == 'right') {
-    this.left = start - this.width;
-  }
-  else if (align == 'left') {
-    this.left = start;
-  }
-  else {
-    // default or 'center'
-    this.left = start - this.width / 2;
-  }
-
-  // reposition box
-  box.style.left = this.left + 'px';
-
-  // reposition line
-  line.style.left = (start - this.props.line.width / 2) + 'px';
-
-  // reposition dot
-  dot.style.left = (start - this.props.dot.width / 2) + 'px';
-};
-
-/**
- * Reposition the item vertically
- * @Override
- */
-ItemBox.prototype.repositionY = function repositionY () {
-  var orientation = this.options.orientation || this.defaultOptions.orientation,
-      box = this.dom.box,
-      line = this.dom.line,
-      dot = this.dom.dot;
-
-  if (orientation == 'top') {
-    box.style.top = (this.top || 0) + 'px';
-    box.style.bottom = '';
-
-    line.style.top = '0px';
-    line.style.bottom = '';
-    line.style.height = this.top + 'px';
-  }
-  else { // orientation 'bottom'
-    box.style.top = '';
-    box.style.bottom = (this.top || 0) + 'px';
-
-    line.style.top = '';
-    line.style.bottom = '0px';
-    line.style.height = this.top + 'px';
-  }
-
-  dot.style.top = (-this.props.dot.height / 2) + 'px';
-}
 
 /**
  * @constructor ItemPoint
@@ -6170,38 +6447,183 @@ function ItemPoint (parent, data, options, defaultOptions) {
     }
   };
 
-  // validate data
-  if (data) {
-    if (data.start == undefined) {
-      throw new Error('Property "start" missing in item ' + data);
-    }
-  }
-
   Item.call(this, parent, data, options, defaultOptions);
 }
 
 ItemPoint.prototype = new Item (null, null);
 
 /**
- * Check whether this item is visible inside given range
- * @returns {{start: Number, end: Number}} range with a timestamp for start and end
- * @returns {boolean} True if visible
- */
-ItemPoint.prototype.isVisible = function isVisible (range) {
-  // determine visibility
-  var interval = (range.end - range.start);
-  return (this.data.start > range.start - interval) && (this.data.start < range.end);
-}
-
-/**
  * Repaint the item
+ * @return {Boolean} changed
  */
 ItemPoint.prototype.repaint = function repaint() {
+  // TODO: make an efficient repaint
+  var changed = false;
+  var dom = this.dom;
+
+  if (!dom) {
+    this._create();
+    dom = this.dom;
+    changed = true;
+  }
+
+  if (dom) {
+    if (!this.parent) {
+      throw new Error('Cannot repaint item: no parent attached');
+    }
+    var foreground = this.parent.getForeground();
+    if (!foreground) {
+      throw new Error('Cannot repaint time axis: ' +
+          'parent has no foreground container element');
+    }
+
+    if (!dom.point.parentNode) {
+      foreground.appendChild(dom.point);
+      foreground.appendChild(dom.point);
+      changed = true;
+    }
+
+    // update contents
+    if (this.data.content != this.content) {
+      this.content = this.data.content;
+      if (this.content instanceof Element) {
+        dom.content.innerHTML = '';
+        dom.content.appendChild(this.content);
+      }
+      else if (this.data.content != undefined) {
+        dom.content.innerHTML = this.content;
+      }
+      else {
+        throw new Error('Property "content" missing in item ' + this.data.id);
+      }
+      changed = true;
+    }
+
+    this._repaintDeleteButton(dom.point);
+
+    // update class
+    var className = (this.data.className? ' ' + this.data.className : '') +
+        (this.selected ? ' selected' : '');
+    if (this.className != className) {
+      this.className = className;
+      dom.point.className  = 'item point' + className;
+      changed = true;
+    }
+  }
+
+  return changed;
+};
+
+/**
+ * Show the item in the DOM (when not already visible). The items DOM will
+ * be created when needed.
+ * @return {Boolean} changed
+ */
+ItemPoint.prototype.show = function show() {
+  if (!this.dom || !this.dom.point.parentNode) {
+    return this.repaint();
+  }
+  else {
+    return false;
+  }
+};
+
+/**
+ * Hide the item from the DOM (when visible)
+ * @return {Boolean} changed
+ */
+ItemPoint.prototype.hide = function hide() {
+  var changed = false,
+      dom = this.dom;
+  if (dom) {
+    if (dom.point.parentNode) {
+      dom.point.parentNode.removeChild(dom.point);
+      changed = true;
+    }
+  }
+  return changed;
+};
+
+/**
+ * Reflow the item: calculate its actual size from the DOM
+ * @return {boolean} resized    returns true if the axis is resized
+ * @override
+ */
+ItemPoint.prototype.reflow = function reflow() {
+  var changed = 0,
+      update,
+      dom,
+      props,
+      options,
+      margin,
+      orientation,
+      start,
+      top,
+      data,
+      range;
+
+  if (this.data.start == undefined) {
+    throw new Error('Property "start" missing in item ' + this.data.id);
+  }
+
+  data = this.data;
+  range = this.parent && this.parent.range;
+  if (data && range) {
+    // TODO: account for the width of the item
+    var interval = (range.end - range.start);
+    this.visible = (data.start > range.start - interval) && (data.start < range.end);
+  }
+  else {
+    this.visible = false;
+  }
+
+  if (this.visible) {
+    dom = this.dom;
+    if (dom) {
+      update = util.updateProperty;
+      props = this.props;
+      options = this.options;
+      orientation = options.orientation || this.defaultOptions.orientation;
+      margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
+      start = this.parent.toScreen(this.data.start) + this.offset;
+
+      changed += update(this, 'width', dom.point.offsetWidth);
+      changed += update(this, 'height', dom.point.offsetHeight);
+      changed += update(props.dot, 'width', dom.dot.offsetWidth);
+      changed += update(props.dot, 'height', dom.dot.offsetHeight);
+      changed += update(props.content, 'height', dom.content.offsetHeight);
+
+      if (orientation == 'top') {
+        top = margin;
+      }
+      else {
+        // default or 'bottom'
+        var parentHeight = this.parent.height;
+        top = Math.max(parentHeight - this.height - margin, 0);
+      }
+      changed += update(this, 'top', top);
+      changed += update(this, 'left', start - props.dot.width / 2);
+      changed += update(props.content, 'marginLeft', 1.5 * props.dot.width);
+      //changed += update(props.content, 'marginRight', 0.5 * props.dot.width); // TODO
+
+      changed += update(props.dot, 'top', (this.height - props.dot.height) / 2);
+    }
+    else {
+      changed += 1;
+    }
+  }
+
+  return (changed > 0);
+};
+
+/**
+ * Create an items DOM
+ * @private
+ */
+ItemPoint.prototype._create = function _create() {
   var dom = this.dom;
   if (!dom) {
-    // create DOM
-    this.dom = {};
-    dom = this.dom;
+    this.dom = dom = {};
 
     // background box
     dom.point = document.createElement('div');
@@ -6220,123 +6642,27 @@ ItemPoint.prototype.repaint = function repaint() {
     // attach this item as attribute
     dom.point['timeline-item'] = this;
   }
-
-  // append DOM to parent DOM
-  if (!this.parent) {
-    throw new Error('Cannot repaint item: no parent attached');
-  }
-  if (!dom.point.parentNode) {
-    var foreground = this.parent.getForeground();
-    if (!foreground) {
-      throw new Error('Cannot repaint time axis: parent has no foreground container element');
-    }
-    foreground.appendChild(dom.point);
-  }
-  this.displayed = true;
-
-  // update contents
-  if (this.data.content != this.content) {
-    this.content = this.data.content;
-    if (this.content instanceof Element) {
-      dom.content.innerHTML = '';
-      dom.content.appendChild(this.content);
-    }
-    else if (this.data.content != undefined) {
-      dom.content.innerHTML = this.content;
-    }
-    else {
-      throw new Error('Property "content" missing in item ' + this.data.id);
-    }
-
-    this.dirty = true;
-  }
-
-  // update class
-  var className = (this.data.className? ' ' + this.data.className : '') +
-      (this.selected ? ' selected' : '');
-  if (this.className != className) {
-    this.className = className;
-    dom.point.className  = 'item point' + className;
-
-    this.dirty = true;
-  }
-
-  // recalculate size
-  if (this.dirty) {
-    this.width = dom.point.offsetWidth;
-    this.height = dom.point.offsetHeight;
-    this.props.dot.width = dom.dot.offsetWidth;
-    this.props.dot.height = dom.dot.offsetHeight;
-    this.props.content.height = dom.content.offsetHeight;
-
-    // resize contents
-    dom.content.style.marginLeft = 1.5 * this.props.dot.width + 'px';
-    //dom.content.style.marginRight = ... + 'px'; // TODO: margin right
-
-    dom.dot.style.top = ((this.height - this.props.dot.height) / 2) + 'px';
-
-    this.dirty = false;
-  }
-
-  this._repaintDeleteButton(dom.point);
 };
 
 /**
- * Show the item in the DOM (when not already visible). The items DOM will
- * be created when needed.
+ * Reposition the item, recalculate its left, top, and width, using the current
+ * range and size of the items itemset
+ * @override
  */
-ItemPoint.prototype.show = function show() {
-  if (!this.displayed) {
-    this.repaint();
+ItemPoint.prototype.reposition = function reposition() {
+  var dom = this.dom,
+      props = this.props;
+
+  if (dom) {
+    dom.point.style.top = this.top + 'px';
+    dom.point.style.left = this.left + 'px';
+
+    dom.content.style.marginLeft = props.content.marginLeft + 'px';
+    //dom.content.style.marginRight = props.content.marginRight + 'px'; // TODO
+
+    dom.dot.style.top = props.dot.top + 'px';
   }
 };
-
-/**
- * Hide the item from the DOM (when visible)
- */
-ItemPoint.prototype.hide = function hide() {
-  if (this.displayed) {
-    if (this.dom.point.parentNode) {
-      this.dom.point.parentNode.removeChild(this.dom.point);
-    }
-
-    this.top = null;
-    this.left = null;
-
-    this.displayed = false;
-  }
-};
-
-/**
- * Reposition the item horizontally
- * @Override
- */
-ItemPoint.prototype.repositionX = function repositionX() {
-  var start = this.parent.toScreen(this.data.start);
-
-  this.left = start - this.props.dot.width / 2;
-
-  // reposition point
-  this.dom.point.style.left = this.left + 'px';
-};
-
-/**
- * Reposition the item vertically
- * @Override
- */
-ItemPoint.prototype.repositionY = function repositionY () {
-  var orientation = this.options.orientation || this.defaultOptions.orientation,
-      point = this.dom.point;
-
-  if (orientation == 'top') {
-    point.style.top = this.top + 'px';
-    point.style.bottom = '';
-  }
-  else {
-    point.style.top = '';
-    point.style.bottom = this.top + 'px';
-  }
-}
 
 /**
  * @constructor ItemRange
@@ -6351,48 +6677,218 @@ ItemPoint.prototype.repositionY = function repositionY () {
 function ItemRange (parent, data, options, defaultOptions) {
   this.props = {
     content: {
+      left: 0,
       width: 0
     }
   };
-
-  // validate data
-  if (data) {
-    if (data.start == undefined) {
-      throw new Error('Property "start" missing in item ' + data.id);
-    }
-    if (data.end == undefined) {
-      throw new Error('Property "end" missing in item ' + data.id);
-    }
-  }
 
   Item.call(this, parent, data, options, defaultOptions);
 }
 
 ItemRange.prototype = new Item (null, null);
 
-ItemRange.prototype.baseClassName = 'item range';
-
 /**
- * Check whether this item is visible inside given range
- * @returns {{start: Number, end: Number}} range with a timestamp for start and end
- * @returns {boolean} True if visible
+ * Repaint the item
+ * @return {Boolean} changed
  */
-ItemRange.prototype.isVisible = function isVisible (range) {
-  // determine visibility
-  return (this.data.start < range.end) && (this.data.end > range.start);
+ItemRange.prototype.repaint = function repaint() {
+  // TODO: make an efficient repaint
+  var changed = false;
+  var dom = this.dom;
+
+  if (!dom) {
+    this._create();
+    dom = this.dom;
+    changed = true;
+  }
+
+  if (dom) {
+    if (!this.parent) {
+      throw new Error('Cannot repaint item: no parent attached');
+    }
+    var foreground = this.parent.getForeground();
+    if (!foreground) {
+      throw new Error('Cannot repaint time axis: ' +
+          'parent has no foreground container element');
+    }
+
+    if (!dom.box.parentNode) {
+      foreground.appendChild(dom.box);
+      changed = true;
+    }
+
+    // update content
+    if (this.data.content != this.content) {
+      this.content = this.data.content;
+      if (this.content instanceof Element) {
+        dom.content.innerHTML = '';
+        dom.content.appendChild(this.content);
+      }
+      else if (this.data.content != undefined) {
+        dom.content.innerHTML = this.content;
+      }
+      else {
+        throw new Error('Property "content" missing in item ' + this.data.id);
+      }
+      changed = true;
+    }
+
+    this._repaintDeleteButton(dom.box);
+    this._repaintDragLeft();
+    this._repaintDragRight();
+
+    // update class
+    var className = (this.data.className ? (' ' + this.data.className) : '') +
+        (this.selected ? ' selected' : '');
+    if (this.className != className) {
+      this.className = className;
+      dom.box.className = 'item range' + className;
+      changed = true;
+    }
+  }
+
+  return changed;
 };
 
 /**
- * Repaint the item
+ * Show the item in the DOM (when not already visible). The items DOM will
+ * be created when needed.
+ * @return {Boolean} changed
  */
-ItemRange.prototype.repaint = function repaint() {
+ItemRange.prototype.show = function show() {
+  if (!this.dom || !this.dom.box.parentNode) {
+    return this.repaint();
+  }
+  else {
+    return false;
+  }
+};
+
+/**
+ * Hide the item from the DOM (when visible)
+ * @return {Boolean} changed
+ */
+ItemRange.prototype.hide = function hide() {
+  var changed = false,
+      dom = this.dom;
+  if (dom) {
+    if (dom.box.parentNode) {
+      dom.box.parentNode.removeChild(dom.box);
+      changed = true;
+    }
+  }
+  return changed;
+};
+
+/**
+ * Reflow the item: calculate its actual size from the DOM
+ * @return {boolean} resized    returns true if the axis is resized
+ * @override
+ */
+ItemRange.prototype.reflow = function reflow() {
+  var changed = 0,
+      dom,
+      props,
+      options,
+      margin,
+      padding,
+      parent,
+      start,
+      end,
+      data,
+      range,
+      update,
+      box,
+      parentWidth,
+      contentLeft,
+      orientation,
+      top;
+
+  if (this.data.start == undefined) {
+    throw new Error('Property "start" missing in item ' + this.data.id);
+  }
+  if (this.data.end == undefined) {
+    throw new Error('Property "end" missing in item ' + this.data.id);
+  }
+
+  data = this.data;
+  range = this.parent && this.parent.range;
+  if (data && range) {
+    // TODO: account for the width of the item. Take some margin
+    this.visible = (data.start < range.end) && (data.end > range.start);
+  }
+  else {
+    this.visible = false;
+  }
+
+  if (this.visible) {
+    dom = this.dom;
+    if (dom) {
+      props = this.props;
+      options = this.options;
+      parent = this.parent;
+      start = parent.toScreen(this.data.start) + this.offset;
+      end = parent.toScreen(this.data.end) + this.offset;
+      update = util.updateProperty;
+      box = dom.box;
+      parentWidth = parent.width;
+      orientation = options.orientation || this.defaultOptions.orientation;
+      margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
+      padding = options.padding || this.defaultOptions.padding;
+
+      changed += update(props.content, 'width', dom.content.offsetWidth);
+
+      changed += update(this, 'height', box.offsetHeight);
+
+      // limit the width of the this, as browsers cannot draw very wide divs
+      if (start < -parentWidth) {
+        start = -parentWidth;
+      }
+      if (end > 2 * parentWidth) {
+        end = 2 * parentWidth;
+      }
+
+      // when range exceeds left of the window, position the contents at the left of the visible area
+      if (start < 0) {
+        contentLeft = Math.min(-start,
+            (end - start - props.content.width - 2 * padding));
+        // TODO: remove the need for options.padding. it's terrible.
+      }
+      else {
+        contentLeft = 0;
+      }
+      changed += update(props.content, 'left', contentLeft);
+
+      if (orientation == 'top') {
+        top = margin;
+        changed += update(this, 'top', top);
+      }
+      else {
+        // default or 'bottom'
+        top = parent.height - this.height - margin;
+        changed += update(this, 'top', top);
+      }
+
+      changed += update(this, 'left', start);
+      changed += update(this, 'width', Math.max(end - start, 1)); // TODO: reckon with border width;
+    }
+    else {
+      changed += 1;
+    }
+  }
+
+  return (changed > 0);
+};
+
+/**
+ * Create an items DOM
+ * @private
+ */
+ItemRange.prototype._create = function _create() {
   var dom = this.dom;
   if (!dom) {
-    // create DOM
-    this.dom = {};
-    dom = this.dom;
-
-      // background box
+    this.dom = dom = {};
+    // background box
     dom.box = document.createElement('div');
     // className is updated in repaint()
 
@@ -6404,142 +6900,23 @@ ItemRange.prototype.repaint = function repaint() {
     // attach this item as attribute
     dom.box['timeline-item'] = this;
   }
-
-  // append DOM to parent DOM
-  if (!this.parent) {
-    throw new Error('Cannot repaint item: no parent attached');
-  }
-  if (!dom.box.parentNode) {
-    var foreground = this.parent.getForeground();
-    if (!foreground) {
-      throw new Error('Cannot repaint time axis: parent has no foreground container element');
-    }
-    foreground.appendChild(dom.box);
-  }
-  this.displayed = true;
-
-  // update contents
-  if (this.data.content != this.content) {
-    this.content = this.data.content;
-    if (this.content instanceof Element) {
-      dom.content.innerHTML = '';
-      dom.content.appendChild(this.content);
-    }
-    else if (this.data.content != undefined) {
-      dom.content.innerHTML = this.content;
-    }
-    else {
-      throw new Error('Property "content" missing in item ' + this.data.id);
-    }
-
-    this.dirty = true;
-  }
-
-  // update class
-  var className = (this.data.className ? (' ' + this.data.className) : '') +
-      (this.selected ? ' selected' : '');
-  if (this.className != className) {
-    this.className = className;
-    dom.box.className = this.baseClassName + className;
-
-    this.dirty = true;
-  }
-
-  // recalculate size
-  if (this.dirty) {
-    this.props.content.width = this.dom.content.offsetWidth;
-    this.height = this.dom.box.offsetHeight;
-
-    this.dirty = false;
-  }
-
-  this._repaintDeleteButton(dom.box);
-  this._repaintDragLeft();
-  this._repaintDragRight();
 };
 
 /**
- * Show the item in the DOM (when not already visible). The items DOM will
- * be created when needed.
+ * Reposition the item, recalculate its left, top, and width, using the current
+ * range and size of the items itemset
+ * @override
  */
-ItemRange.prototype.show = function show() {
-  if (!this.displayed) {
-    this.repaint();
-  }
-};
+ItemRange.prototype.reposition = function reposition() {
+  var dom = this.dom,
+      props = this.props;
 
-/**
- * Hide the item from the DOM (when visible)
- * @return {Boolean} changed
- */
-ItemRange.prototype.hide = function hide() {
-  if (this.displayed) {
-    var box = this.dom.box;
+  if (dom) {
+    dom.box.style.top = this.top + 'px';
+    dom.box.style.left = this.left + 'px';
+    dom.box.style.width = this.width + 'px';
 
-    if (box.parentNode) {
-      box.parentNode.removeChild(box);
-    }
-
-    this.top = null;
-    this.left = null;
-
-    this.displayed = false;
-  }
-};
-
-/**
- * Reposition the item horizontally
- * @Override
- */
-ItemRange.prototype.repositionX = function repositionX() {
-  var props = this.props,
-      parentWidth = this.parent.width,
-      start = this.parent.toScreen(this.data.start),
-      end = this.parent.toScreen(this.data.end),
-      padding = 'padding' in this.options ? this.options.padding : this.defaultOptions.padding,
-      contentLeft;
-
-  // limit the width of the this, as browsers cannot draw very wide divs
-  if (start < -parentWidth) {
-    start = -parentWidth;
-  }
-  if (end > 2 * parentWidth) {
-    end = 2 * parentWidth;
-  }
-
-  // when range exceeds left of the window, position the contents at the left of the visible area
-  if (start < 0) {
-    contentLeft = Math.min(-start,
-        (end - start - props.content.width - 2 * padding));
-    // TODO: remove the need for options.padding. it's terrible.
-  }
-  else {
-    contentLeft = 0;
-  }
-
-  this.left = start;
-  this.width = Math.max(end - start, 1);
-
-  this.dom.box.style.left = this.left + 'px';
-  this.dom.box.style.width = this.width + 'px';
-  this.dom.content.style.left = contentLeft + 'px';
-};
-
-/**
- * Reposition the item vertically
- * @Override
- */
-ItemRange.prototype.repositionY = function repositionY() {
-  var orientation = this.options.orientation || this.defaultOptions.orientation,
-      box = this.dom.box;
-
-  if (orientation == 'top') {
-    box.style.top = this.top + 'px';
-    box.style.bottom = '';
-  }
-  else {
-    box.style.top = '';
-    box.style.bottom = this.top + 'px';
+    dom.content.style.left = props.content.left + 'px';
   }
 };
 
@@ -6621,44 +6998,106 @@ function ItemRangeOverflow (parent, data, options, defaultOptions) {
     }
   };
 
+  // define a private property _width, which is the with of the range box
+  // adhering to the ranges start and end date. The property width has a
+  // getter which returns the max of border width and content width
+  this._width = 0;
+  Object.defineProperty(this, 'width', {
+    get: function () {
+      return (this.props.content && this._width < this.props.content.width) ?
+          this.props.content.width :
+          this._width;
+    },
+
+    set: function (width) {
+      this._width = width;
+    }
+  });
+
   ItemRange.call(this, parent, data, options, defaultOptions);
 }
 
 ItemRangeOverflow.prototype = new ItemRange (null, null);
 
-ItemRangeOverflow.prototype.baseClassName = 'item rangeoverflow';
+/**
+ * Repaint the item
+ * @return {Boolean} changed
+ */
+ItemRangeOverflow.prototype.repaint = function repaint() {
+  // TODO: make an efficient repaint
+  var changed = false;
+  var dom = this.dom;
+
+  if (!dom) {
+    this._create();
+    dom = this.dom;
+    changed = true;
+  }
+
+  if (dom) {
+    if (!this.parent) {
+      throw new Error('Cannot repaint item: no parent attached');
+    }
+    var foreground = this.parent.getForeground();
+    if (!foreground) {
+      throw new Error('Cannot repaint time axis: ' +
+          'parent has no foreground container element');
+    }
+
+    if (!dom.box.parentNode) {
+      foreground.appendChild(dom.box);
+      changed = true;
+    }
+
+    // update content
+    if (this.data.content != this.content) {
+      this.content = this.data.content;
+      if (this.content instanceof Element) {
+        dom.content.innerHTML = '';
+        dom.content.appendChild(this.content);
+      }
+      else if (this.data.content != undefined) {
+        dom.content.innerHTML = this.content;
+      }
+      else {
+        throw new Error('Property "content" missing in item ' + this.id);
+      }
+      changed = true;
+    }
+
+    this._repaintDeleteButton(dom.box);
+    this._repaintDragLeft();
+    this._repaintDragRight();
+
+    // update class
+    var className = (this.data.className? ' ' + this.data.className : '') +
+        (this.selected ? ' selected' : '');
+    if (this.className != className) {
+      this.className = className;
+      dom.box.className = 'item rangeoverflow' + className;
+      changed = true;
+    }
+  }
+
+  return changed;
+};
 
 /**
- * Reposition the item horizontally
- * @Override
+ * Reposition the item, recalculate its left, top, and width, using the current
+ * range and size of the items itemset
+ * @override
  */
-ItemRangeOverflow.prototype.repositionX = function repositionX() {
-  var parentWidth = this.parent.width,
-      start = this.parent.toScreen(this.data.start),
-      end = this.parent.toScreen(this.data.end),
-      padding = 'padding' in this.options ? this.options.padding : this.defaultOptions.padding,
-      contentLeft;
+ItemRangeOverflow.prototype.reposition = function reposition() {
+  var dom = this.dom,
+      props = this.props;
 
-  // limit the width of the this, as browsers cannot draw very wide divs
-  if (start < -parentWidth) {
-    start = -parentWidth;
+  if (dom) {
+    dom.box.style.top = this.top + 'px';
+    dom.box.style.left = this.left + 'px';
+    dom.box.style.width = this._width + 'px';
+
+    dom.content.style.left = props.content.left + 'px';
   }
-  if (end > 2 * parentWidth) {
-    end = 2 * parentWidth;
-  }
-
-  // when range exceeds left of the window, position the contents at the left of the visible area
-  contentLeft = Math.max(-start, 0);
-
-  this.left = start;
-  var boxWidth = Math.max(end - start, 1);
-  this.width = (this.props.content.width < boxWidth) ?
-      boxWidth :
-      start + contentLeft + this.props.content.width;
-
-  this.dom.box.style.left = this.left + 'px';
-  this.dom.box.style.width = boxWidth + 'px';
-  this.dom.content.style.left = contentLeft + 'px';
 };
 
 /**
@@ -6762,22 +7201,33 @@ Group.prototype.getSelection = function getSelection() {
  * @return {Boolean} changed
  */
 Group.prototype.repaint = function repaint() {
-  var update = util.updateProperty;
+  return false;
+};
 
-  this.top = this.itemset ? this.itemset.top : 0;
-  this.height = this.itemset ? this.itemset.height : 0;
+/**
+ * Reflow the item
+ * @return {Boolean} resized
+ */
+Group.prototype.reflow = function reflow() {
+  var changed = 0,
+      update = util.updateProperty;
+
+  changed += update(this, 'top',    this.itemset ? this.itemset.top : 0);
+  changed += update(this, 'height', this.itemset ? this.itemset.height : 0);
 
   // TODO: reckon with the height of the group label
 
   if (this.label) {
     var inner = this.label.firstChild;
-    this.props.label.width = inner.clientWidth;
-    this.props.label.height = inner.clientHeight;
+    changed += update(this.props.label, 'width', inner.clientWidth);
+    changed += update(this.props.label, 'height', inner.clientHeight);
   }
   else {
-    this.props.label.width = 0;
-    this.props.label.height = 0;
+    changed += update(this.props.label, 'width', 0);
+    changed += update(this.props.label, 'height', 0);
   }
+
+  return (changed > 0);
 };
 
 /**
@@ -7389,15 +7839,6 @@ function Timeline (container, items, options) {
     showMajorLabels: true,
     showCurrentTime: false,
     showCustomTime: false,
-
-    type: 'box',
-    align: 'center',
-    orientation: 'bottom',
-    margin: {
-      axis: 20,
-      item: 10
-    },
-    padding: 5,
 
     onAdd: function (item, callback) {
       callback(item);
@@ -9081,6 +9522,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.radiusMin = constants.nodes.radiusMin;
   this.radiusMax = constants.nodes.radiusMax;
   this.level = -1;
+  this.preassignedLevel = false;
+
 
   this.imagelist = imagelist;
   this.grouplist = grouplist;
@@ -9173,7 +9616,7 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.x !== undefined)         {this.x = properties.x;}
   if (properties.y !== undefined)         {this.y = properties.y;}
   if (properties.value !== undefined)     {this.value = properties.value;}
-  if (properties.level !== undefined)     {this.level = properties.level;}
+  if (properties.level !== undefined)     {this.level = properties.level; this.preassignedLevel = true;}
 
 
   // physics
@@ -9202,7 +9645,7 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.shape !== undefined)          {this.shape = properties.shape;}
   if (properties.image !== undefined)          {this.image = properties.image;}
   if (properties.radius !== undefined)         {this.radius = properties.radius;}
-  if (properties.color !== undefined)          {this.color = Node.parseColor(properties.color);}
+  if (properties.color !== undefined)          {this.color = util.parseColor(properties.color);}
 
   if (properties.fontColor !== undefined)      {this.fontColor = properties.fontColor;}
   if (properties.fontSize !== undefined)       {this.fontSize = properties.fontSize;}
@@ -9247,63 +9690,6 @@ Node.prototype.setProperties = function(properties, constants) {
 };
 
 /**
- * Parse a color property into an object with border, background, and
- * hightlight colors
- * @param {Object | String} color
- * @return {Object} colorObject
- */
-Node.parseColor = function(color) {
-  var c;
-  if (util.isString(color)) {
-    if (util.isValidHex(color)) {
-      var hsv = util.hexToHSV(color);
-      var lighterColorHSV = {h:hsv.h,s:hsv.s * 0.45,v:Math.min(1,hsv.v * 1.05)};
-      var darkerColorHSV  = {h:hsv.h,s:Math.min(1,hsv.v * 1.25),v:hsv.v*0.6};
-      var darkerColorHex  = util.HSVToHex(darkerColorHSV.h ,darkerColorHSV.h ,darkerColorHSV.v);
-      var lighterColorHex = util.HSVToHex(lighterColorHSV.h,lighterColorHSV.s,lighterColorHSV.v);
-
-      c = {
-        background: color,
-        border:darkerColorHex,
-        highlight: {
-          background:lighterColorHex,
-          border:darkerColorHex
-        }
-      };
-    }
-    else {
-      c = {
-        background:color,
-        border:color,
-        highlight: {
-          background:color,
-          border:color
-        }
-      };
-    }
-  }
-  else {
-    c = {};
-    c.background = color.background || 'white';
-    c.border = color.border || c.background;
-
-    if (util.isString(color.highlight)) {
-      c.highlight = {
-        border: color.highlight,
-        background: color.highlight
-      }
-    }
-    else {
-      c.highlight = {};
-      c.highlight.background = color.highlight && color.highlight.background || c.background;
-      c.highlight.border = color.highlight && color.highlight.border || c.border;
-    }
-  }
-
-  return c;
-};
-
-/**
  * select this node
  */
 Node.prototype.select = function() {
@@ -9342,7 +9728,7 @@ Node.prototype._reset = function() {
  *                           has been set.
  */
 Node.prototype.getTitle = function() {
-  return this.title;
+  return typeof this.title === "function" ? this.title() : this.title;
 };
 
 /**
@@ -10129,10 +10515,12 @@ Edge.prototype.setProperties = function(properties, constants) {
     this.fontSize = constants.edges.fontSize;
     this.fontFace = constants.edges.fontFace;
     this.fontColor = constants.edges.fontColor;
+    this.fontFill = constants.edges.fontFill;
 
     if (properties.fontColor !== undefined)  {this.fontColor = properties.fontColor;}
     if (properties.fontSize !== undefined)   {this.fontSize = properties.fontSize;}
     if (properties.fontFace !== undefined)   {this.fontFace = properties.fontFace;}
+    if (properties.fontFill !== undefined)   {this.fontFill = properties.fontFill;}
   }
 
   if (properties.title !== undefined)        {this.title = properties.title;}
@@ -10223,7 +10611,7 @@ Edge.prototype.disconnect = function () {
  *                           has been set.
  */
 Edge.prototype.getTitle = function() {
-  return this.title;
+  return typeof this.title === "function" ? this.title() : this.title;
 };
 
 
@@ -10264,7 +10652,7 @@ Edge.prototype.draw = function(ctx) {
  * @return {boolean}     True if location is located on the edge
  */
 Edge.prototype.isOverlappingWith = function(obj) {
-  if (this.connected == true) {
+  if (this.connected) {
     var distMax = 10;
     var xFrom = this.from.x;
     var yFrom = this.from.y;
@@ -10396,7 +10784,7 @@ Edge.prototype._label = function (ctx, text, x, y) {
     // TODO: cache the calculated size
     ctx.font = ((this.from.selected || this.to.selected) ? "bold " : "") +
         this.fontSize + "px " + this.fontFace;
-    ctx.fillStyle = 'white';
+    ctx.fillStyle = this.fontFill;
     var width = ctx.measureText(text).width;
     var height = this.fontSize;
     var left = x - width / 2;
@@ -10823,14 +11211,39 @@ Edge.prototype.positionBezierNode = function() {
  * @param {Number} [x]
  * @param {Number} [y]
  * @param {String} [text]
+ * @param {Object} [style]     An object containing borderColor,
+ *                             backgroundColor, etc.
  */
-function Popup(container, x, y, text) {
+function Popup(container, x, y, text, style) {
   if (container) {
     this.container = container;
   }
   else {
     this.container = document.body;
   }
+
+  // x, y and text are optional, see if a style object was passed in their place
+  if (style === undefined) {
+    if (typeof x === "object") {
+      style = x;
+      x = undefined;
+    } else if (typeof text === "object") {
+      style = text;
+      text = undefined;
+    } else {
+      // for backwards compatibility, in case clients other than Graph are creating Popup directly
+      style = {
+        fontColor: 'black',
+        fontSize: 14, // px
+        fontFace: 'verdana',
+        color: {
+          border: '#666',
+          background: '#FFFFC6'
+        }
+      }
+    }
+  }
+
   this.x = 0;
   this.y = 0;
   this.padding = 5;
@@ -10844,18 +11257,20 @@ function Popup(container, x, y, text) {
 
   // create the frame
   this.frame = document.createElement("div");
-  var style = this.frame.style;
-  style.position = "absolute";
-  style.visibility = "hidden";
-  style.border = "1px solid #666";
-  style.color = "black";
-  style.padding = this.padding + "px";
-  style.backgroundColor = "#FFFFC6";
-  style.borderRadius = "3px";
-  style.MozBorderRadius = "3px";
-  style.WebkitBorderRadius = "3px";
-  style.boxShadow = "3px 3px 10px rgba(128, 128, 128, 0.5)";
-  style.whiteSpace = "nowrap";
+  var styleAttr = this.frame.style;
+  styleAttr.position = "absolute";
+  styleAttr.visibility = "hidden";
+  styleAttr.border = "1px solid " + style.color.border;
+  styleAttr.color = style.fontColor;
+  styleAttr.fontSize = style.fontSize + "px";
+  styleAttr.fontFamily = style.fontFace;
+  styleAttr.padding = this.padding + "px";
+  styleAttr.backgroundColor = style.color.background;
+  styleAttr.borderRadius = "3px";
+  styleAttr.MozBorderRadius = "3px";
+  styleAttr.WebkitBorderRadius = "3px";
+  styleAttr.boxShadow = "3px 3px 10px rgba(128, 128, 128, 0.5)";
+  styleAttr.whiteSpace = "nowrap";
   this.container.appendChild(this.frame);
 }
 
@@ -10999,7 +11414,7 @@ Groups.prototype.get = function (groupname) {
 Groups.prototype.add = function (groupname, style) {
   this.groups[groupname] = style;
   if (style.color) {
-    style.color = Node.parseColor(style.color);
+    style.color = util.parseColor(style.color);
   }
   return style;
 };
@@ -12215,6 +12630,18 @@ var repulsionMixin = {
 var HierarchicalLayoutMixin = {
 
 
+
+  _resetLevels : function() {
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        var node = this.nodes[nodeId];
+        if (node.preassignedLevel == false) {
+          node.level = -1;
+        }
+      }
+    }
+  },
+
   /**
    * This is the main function to layout the nodes in a hierarchical way.
    * It checks if the node details are supplied correctly
@@ -12596,21 +13023,21 @@ var manipulationMixin = {
       // add the icons to the manipulator div
       this.manipulationDiv.innerHTML = "" +
         "<span class='graph-manipulationUI add' id='graph-manipulate-addNode'>" +
-          "<span class='graph-manipulationLabel'>Add Node</span></span>" +
+          "<span class='graph-manipulationLabel'>"+this.constants.labels['add'] +"</span></span>" +
         "<div class='graph-seperatorLine'></div>" +
         "<span class='graph-manipulationUI connect' id='graph-manipulate-connectNode'>" +
-          "<span class='graph-manipulationLabel'>Add Link</span></span>";
+          "<span class='graph-manipulationLabel'>"+this.constants.labels['link'] +"</span></span>";
       if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
         this.manipulationDiv.innerHTML += "" +
           "<div class='graph-seperatorLine'></div>" +
           "<span class='graph-manipulationUI edit' id='graph-manipulate-editNode'>" +
-            "<span class='graph-manipulationLabel'>Edit Node</span></span>";
+            "<span class='graph-manipulationLabel'>"+this.constants.labels['editNode'] +"</span></span>";
       }
       if (this._selectionIsEmpty() == false) {
         this.manipulationDiv.innerHTML += "" +
           "<div class='graph-seperatorLine'></div>" +
           "<span class='graph-manipulationUI delete' id='graph-manipulate-delete'>" +
-            "<span class='graph-manipulationLabel'>Delete selected</span></span>";
+            "<span class='graph-manipulationLabel'>"+this.constants.labels['delete'] +"</span></span>";
       }
 
 
@@ -12636,7 +13063,7 @@ var manipulationMixin = {
     else {
       this.editModeDiv.innerHTML = "" +
         "<span class='graph-manipulationUI edit editmode' id='graph-manipulate-editModeButton'>" +
-        "<span class='graph-manipulationLabel'>Edit</span></span>"
+        "<span class='graph-manipulationLabel'>"+this.constants.labels['edit'] +"</span></span>"
       var editModeButton = document.getElementById("graph-manipulate-editModeButton");
       editModeButton.onclick = this._toggleEditMode.bind(this);
     }
@@ -12659,10 +13086,10 @@ var manipulationMixin = {
     // create the toolbar contents
     this.manipulationDiv.innerHTML = "" +
       "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>Back</span></span>" +
+      "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
       "<div class='graph-seperatorLine'></div>" +
       "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>Click in an empty space to place a new node</span></span>";
+      "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['addDescription'] + "</span></span>";
 
     // bind the icon
     var backButton = document.getElementById("graph-manipulate-back");
@@ -12695,10 +13122,10 @@ var manipulationMixin = {
 
     this.manipulationDiv.innerHTML = "" +
       "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>Back</span></span>" +
+        "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
       "<div class='graph-seperatorLine'></div>" +
       "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
-        "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>Click on a node and drag the edge to another node to connect them.</span></span>";
+        "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['linkDescription'] + "</span></span>";
 
     // bind the icon
     var backButton = document.getElementById("graph-manipulate-back");
@@ -12819,7 +13246,7 @@ var manipulationMixin = {
           });
         }
         else {
-          alert("The function for add does not support two arguments (data,callback).");
+          alert(this.constants.labels['addError']);
           this._createManipulatorBar();
           this.moving = true;
           this.start();
@@ -12853,7 +13280,7 @@ var manipulationMixin = {
           });
         }
         else {
-          alert("The function for connect does not support two arguments (data,callback).");
+          alert(this.constants.labels["linkError"]);
           this.moving = true;
           this.start();
         }
@@ -12897,11 +13324,11 @@ var manipulationMixin = {
         });
       }
       else {
-        alert("The function for edit does not support two arguments (data, callback).")
+        alert(this.constants.labels["editError"]);
       }
     }
     else {
-      alert("No edit function has been bound to this button.")
+      alert(this.constants.labels["editBoundError"]);
     }
   },
 
@@ -12929,7 +13356,7 @@ var manipulationMixin = {
             });
           }
           else {
-            alert("The function for edit does not support two arguments (data, callback).")
+            alert(this.constants.labels["deleteError"])
           }
         }
         else {
@@ -12941,7 +13368,7 @@ var manipulationMixin = {
         }
       }
       else {
-        alert("Clusters cannot be deleted.");
+        alert(this.constants.labels["deleteClusterError"]);
       }
     }
   }
@@ -15648,6 +16075,7 @@ function Graph (container, data, options) {
 
   this.stabilize = true;  // stabilize before displaying the graph
   this.selectable = true;
+  this.initializing = true;
 
   // these functions are triggered when the dataset is edited
   this.triggerFunctions = {add:null,edit:null,connect:null,delete:null};
@@ -15692,6 +16120,7 @@ function Graph (container, data, options) {
       fontColor: '#343434',
       fontSize: 14, // px
       fontFace: 'arial',
+      fontFill: 'white',
       dash: {
         length: 10,
         gap: 5,
@@ -15771,7 +16200,33 @@ function Graph (container, data, options) {
     smoothCurves: true,
     maxVelocity:  10,
     minVelocity:  0.1,   // px/s
-    stabilizationIterations: 1000  // maximum number of iteration to stabilize
+    stabilizationIterations: 1000,  // maximum number of iteration to stabilize
+    labels:{
+      add:"Add Node",
+      edit:"Edit",
+      link:"Add Link",
+      delete:"Delete selected",
+      editNode:"Edit Node",
+      back:"Back",
+      addDescription:"Click in an empty space to place a new node.",
+      linkDescription:"Click on a node and drag the edge to another node to connect them.",
+      addError:"The function for add does not support two arguments (data,callback).",
+      linkError:"The function for connect does not support two arguments (data,callback).",
+      editError:"The function for edit does not support two arguments (data, callback).",
+      editBoundError:"No edit function has been bound to this button.",
+      deleteError:"The function for delete does not support two arguments (data, callback).",
+      deleteClusterError:"Clusters cannot be deleted."
+    },
+    tooltip: {
+      delay: 300,
+      fontColor: 'black',
+      fontSize: 14, // px
+      fontFace: 'verdana',
+      color: {
+        border: '#666',
+        background: '#FFFFC6'
+      }
+    }
   };
   this.editMode = this.constants.dataManipulation.initiallyVisible;
 
@@ -15866,6 +16321,7 @@ function Graph (container, data, options) {
   this.setData(data,this.constants.clustering.enabled || this.constants.hierarchicalLayout.enabled);
 
   // hierarchical layout
+  this.initializing = false;
   if (this.constants.hierarchicalLayout.enabled == true) {
     this._setupHierarchicalLayout();
   }
@@ -16103,6 +16559,16 @@ Graph.prototype.setOptions = function (options) {
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
 
+
+
+    if (options.labels !== undefined)  {
+      for (prop in options.labels) {
+        if (options.labels.hasOwnProperty(prop)) {
+          this.constants.labels[prop] = options.labels[prop];
+        }
+      }
+    }
+
     if (options.onAdd) {
         this.triggerFunctions.add = options.onAdd;
       }
@@ -16211,6 +16677,7 @@ Graph.prototype.setOptions = function (options) {
 
       if (options.edges.color !== undefined) {
         if (util.isString(options.edges.color)) {
+          this.constants.edges.color = {};
           this.constants.edges.color.color = options.edges.color;
           this.constants.edges.color.highlight = options.edges.color;
         }
@@ -16251,7 +16718,7 @@ Graph.prototype.setOptions = function (options) {
       }
 
       if (options.nodes.color) {
-        this.constants.nodes.color = Node.parseColor(options.nodes.color);
+        this.constants.nodes.color = util.parseColor(options.nodes.color);
       }
 
       /*
@@ -16265,6 +16732,17 @@ Graph.prototype.setOptions = function (options) {
           var group = options.groups[groupname];
           this.groups.add(groupname, group);
         }
+      }
+    }
+
+    if (options.tooltip) {
+      for (prop in options.tooltip) {
+        if (options.tooltip.hasOwnProperty(prop)) {
+          this.constants.tooltip[prop] = options.tooltip[prop];
+        }
+      }
+      if (options.tooltip.color) {
+        this.constants.tooltip.color = util.parseColor(options.tooltip.color);
       }
     }
   }
@@ -16710,7 +17188,7 @@ Graph.prototype._onMouseMoveTitle = function (event) {
     clearInterval(this.popupTimer); // stop any running calculationTimer
   }
   if (!this.drag.dragging) {
-    this.popupTimer = setTimeout(checkShow, 300);
+    this.popupTimer = setTimeout(checkShow, this.constants.tooltip.delay);
   }
 };
 
@@ -16767,7 +17245,7 @@ Graph.prototype._checkShowPopup = function (pointer) {
     if (this.popupNode != lastPopupNode) {
       var me = this;
       if (!me.popup) {
-        me.popup = new Popup(me.frame);
+        me.popup = new Popup(me.frame, me.constants.tooltip);
       }
 
       // adjust a small offset such that the mouse cursor is located in the
@@ -16900,6 +17378,10 @@ Graph.prototype._addNodes = function(ids) {
     this.moving = true;
   }
   this._updateNodeIndexList();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this._updateCalculationNodes();
   this._reconnectEdges();
   this._updateValueRange(this.nodes);
@@ -16949,6 +17431,10 @@ Graph.prototype._removeNodes = function(ids) {
     delete nodes[id];
   }
   this._updateNodeIndexList();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this._updateCalculationNodes();
   this._reconnectEdges();
   this._updateSelection();
@@ -17027,6 +17513,10 @@ Graph.prototype._addEdges = function (ids) {
   this.moving = true;
   this._updateValueRange(edges);
   this._createBezierNodes();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this._updateCalculationNodes();
 };
 
@@ -17057,6 +17547,10 @@ Graph.prototype._updateEdges = function (ids) {
   }
 
   this._createBezierNodes();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this.moving = true;
   this._updateValueRange(edges);
 };
@@ -17082,6 +17576,10 @@ Graph.prototype._removeEdges = function (ids) {
 
   this.moving = true;
   this._updateValueRange(edges);
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this._updateCalculationNodes();
 };
 
@@ -17500,13 +17998,23 @@ if (typeof window !== 'undefined') {
 
 /**
  * Schedule a animation step with the refreshrate interval.
- *
- * @poram {Boolean} runCalculationStep
  */
 Graph.prototype.start = function() {
   if (this.moving || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0) {
-    if (!this.timer) { 
-      this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+    if (!this.timer) {
+      var ua = navigator.userAgent.toLowerCase();
+      if (ua.indexOf('safari') != -1) {
+        if (ua.indexOf('chrome') <= -1) {
+          // safari
+          this.timer = window.setTimeout(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+        }
+        else {
+          this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+        }
+      }
+      else{
+        this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+      }
     }
   }
   else {
@@ -19295,8 +19803,8 @@ else {
 }
 })(this);
 },{}],4:[function(require,module,exports){
-//! moment.js
-//! version : 2.5.1
+var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};//! moment.js
+//! version : 2.6.0
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
@@ -19308,8 +19816,10 @@ else {
     ************************************/
 
     var moment,
-        VERSION = "2.5.1",
-        global = this,
+        VERSION = "2.6.0",
+        // the global-scope this is NOT the global object in Node.js
+        globalScope = typeof global !== 'undefined' ? global : this,
+        oldGlobalMoment,
         round = Math.round,
         i,
 
@@ -19338,7 +19848,7 @@ else {
         },
 
         // check for nodeJS
-        hasModule = (typeof module !== 'undefined' && module.exports && typeof require !== 'undefined'),
+        hasModule = (typeof module !== 'undefined' && module.exports),
 
         // ASP.NET json date format regex
         aspNetJsonRegex = /^\/?Date\((\-?\d+)/i,
@@ -19349,7 +19859,7 @@ else {
         isoDurationRegex = /^(-)?P(?:(?:([0-9,.]*)Y)?(?:([0-9,.]*)M)?(?:([0-9,.]*)D)?(?:T(?:([0-9,.]*)H)?(?:([0-9,.]*)M)?(?:([0-9,.]*)S)?)?|([0-9,.]*)W)$/,
 
         // format tokens
-        formattingTokens = /(\[[^\[]*\])|(\\)?(Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|S{1,4}|X|zz?|ZZ?|.)/g,
+        formattingTokens = /(\[[^\[]*\])|(\\)?(Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Q|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|S{1,4}|X|zz?|ZZ?|.)/g,
         localFormattingTokens = /(\[[^\[]*\])|(\\)?(LT|LL?L?L?|l{1,4})/g,
 
         // parsing token regexes
@@ -19362,6 +19872,7 @@ else {
         parseTokenTimezone = /Z|[\+\-]\d\d:?\d\d/gi, // +00:00 -00:00 +0000 -0000 or Z
         parseTokenT = /T/i, // T (ISO separator)
         parseTokenTimestampMs = /[\+\-]?\d+(\.\d{1,3})?/, // 123456789 123456789.123
+        parseTokenOrdinal = /\d{1,2}/,
 
         //strict parsing regexes
         parseTokenOneDigit = /\d/, // 0 - 9
@@ -19387,7 +19898,7 @@ else {
 
         // iso time formats and regexes
         isoTimes = [
-            ['HH:mm:ss.SSSS', /(T| )\d\d:\d\d:\d\d\.\d{1,3}/],
+            ['HH:mm:ss.SSSS', /(T| )\d\d:\d\d:\d\d\.\d+/],
             ['HH:mm:ss', /(T| )\d\d:\d\d:\d\d/],
             ['HH:mm', /(T| )\d\d:\d\d/],
             ['HH', /(T| )\d\d/]
@@ -19418,6 +19929,7 @@ else {
             w : 'week',
             W : 'isoWeek',
             M : 'month',
+            Q : 'quarter',
             y : 'year',
             DDD : 'dayOfYear',
             e : 'weekday',
@@ -19593,6 +20105,23 @@ else {
         };
     }
 
+    function deprecate(msg, fn) {
+        var firstTime = true;
+        function printMsg() {
+            if (moment.suppressDeprecationWarnings === false &&
+                    typeof console !== 'undefined' && console.warn) {
+                console.warn("Deprecation warning: " + msg);
+            }
+        }
+        return extend(function () {
+            if (firstTime) {
+                printMsg();
+                firstTime = false;
+            }
+            return fn.apply(this, arguments);
+        }, fn);
+    }
+
     function padToken(func, count) {
         return function (a) {
             return leftZeroFill(func.call(this, a), count);
@@ -19633,6 +20162,7 @@ else {
     function Duration(duration) {
         var normalizedInput = normalizeObjectUnits(duration),
             years = normalizedInput.year || 0,
+            quarters = normalizedInput.quarter || 0,
             months = normalizedInput.month || 0,
             weeks = normalizedInput.week || 0,
             days = normalizedInput.day || 0,
@@ -19654,6 +20184,7 @@ else {
         // which months you are are talking about, so we have to store
         // it separately.
         this._months = +months +
+            quarters * 3 +
             years * 12;
 
         this._data = {};
@@ -19716,34 +20247,23 @@ else {
     }
 
     // helper function for _.addTime and _.subtractTime
-    function addOrSubtractDurationFromMoment(mom, duration, isAdding, ignoreUpdateOffset) {
+    function addOrSubtractDurationFromMoment(mom, duration, isAdding, updateOffset) {
         var milliseconds = duration._milliseconds,
             days = duration._days,
-            months = duration._months,
-            minutes,
-            hours;
+            months = duration._months;
+        updateOffset = updateOffset == null ? true : updateOffset;
 
         if (milliseconds) {
             mom._d.setTime(+mom._d + milliseconds * isAdding);
         }
-        // store the minutes and hours so we can restore them
-        if (days || months) {
-            minutes = mom.minute();
-            hours = mom.hour();
-        }
         if (days) {
-            mom.date(mom.date() + days * isAdding);
+            rawSetter(mom, 'Date', rawGetter(mom, 'Date') + days * isAdding);
         }
         if (months) {
-            mom.month(mom.month() + months * isAdding);
+            rawMonthSetter(mom, rawGetter(mom, 'Month') + months * isAdding);
         }
-        if (milliseconds && !ignoreUpdateOffset) {
-            moment.updateOffset(mom);
-        }
-        // restore the minutes and hours after possibly changing dst
-        if (days || months) {
-            mom.minute(minutes);
-            mom.hour(hours);
+        if (updateOffset) {
+            moment.updateOffset(mom, days || months);
         }
     }
 
@@ -19856,6 +20376,10 @@ else {
 
     function daysInMonth(year, month) {
         return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    }
+
+    function weeksInYear(year, dow, doy) {
+        return weekOfYear(moment([year, 11, 31 + dow - doy]), dow, doy).week;
     }
 
     function daysInYear(year) {
@@ -20248,6 +20772,8 @@ else {
     function getParseRegexForToken(token, config) {
         var a, strict = config._strict;
         switch (token) {
+        case 'Q':
+            return parseTokenOneDigit;
         case 'DDDD':
             return parseTokenThreeDigits;
         case 'YYYY':
@@ -20316,6 +20842,8 @@ else {
         case 'e':
         case 'E':
             return parseTokenOneOrTwoDigits;
+        case 'Do':
+            return parseTokenOrdinal;
         default :
             a = new RegExp(regexpEscape(unescapeFormat(token.replace('\\', '')), "i"));
             return a;
@@ -20337,6 +20865,12 @@ else {
         var a, datePartArray = config._a;
 
         switch (token) {
+        // QUARTER
+        case 'Q':
+            if (input != null) {
+                datePartArray[MONTH] = (toInt(input) - 1) * 3;
+            }
+            break;
         // MONTH
         case 'M' : // fall through to MM
         case 'MM' :
@@ -20361,6 +20895,11 @@ else {
                 datePartArray[DATE] = toInt(input);
             }
             break;
+        case 'Do' :
+            if (input != null) {
+                datePartArray[DATE] = toInt(parseInt(input, 10));
+            }
+            break;
         // DAY OF YEAR
         case 'DDD' : // fall through to DDDD
         case 'DDDD' :
@@ -20371,7 +20910,7 @@ else {
             break;
         // YEAR
         case 'YY' :
-            datePartArray[YEAR] = toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
+            datePartArray[YEAR] = moment.parseTwoDigitYear(input);
             break;
         case 'YYYY' :
         case 'YYYYY' :
@@ -20460,9 +20999,9 @@ else {
         //compute day of the year from weeks and weekdays
         if (config._w && config._a[DATE] == null && config._a[MONTH] == null) {
             fixYear = function (val) {
-                var int_val = parseInt(val, 10);
+                var intVal = parseInt(val, 10);
                 return val ?
-                  (val.length < 3 ? (int_val > 68 ? 1900 + int_val : 2000 + int_val) : int_val) :
+                  (val.length < 3 ? (intVal > 68 ? 1900 + intVal : 2000 + intVal) : intVal) :
                   (config._a[YEAR] == null ? moment().weekYear() : config._a[YEAR]);
             };
 
@@ -20698,7 +21237,7 @@ else {
             makeDateFromStringAndFormat(config);
         }
         else {
-            config._d = new Date(string);
+            moment.createFromInputFallback(config);
         }
     }
 
@@ -20719,8 +21258,11 @@ else {
             config._d = new Date(+input);
         } else if (typeof(input) === 'object') {
             dateFromObject(config);
-        } else {
+        } else if (typeof(input) === 'number') {
+            // from milliseconds
             config._d = new Date(input);
+        } else {
+            moment.createFromInputFallback(config);
         }
     }
 
@@ -20847,7 +21389,7 @@ else {
         var input = config._i,
             format = config._f;
 
-        if (input === null) {
+        if (input === null || (format === undefined && input === '')) {
             return moment.invalid({nullInput: true});
         }
 
@@ -20892,6 +21434,17 @@ else {
 
         return makeMoment(c);
     };
+
+    moment.suppressDeprecationWarnings = false;
+
+    moment.createFromInputFallback = deprecate(
+            "moment construction falls back to js Date. This is " +
+            "discouraged and will be removed in upcoming major " +
+            "release. Please refer to " +
+            "https://github.com/moment/moment/issues/1407 for more info.",
+            function (config) {
+        config._d = new Date(config._i);
+    });
 
     // creating with utc
     moment.utc = function (input, format, lang, strict) {
@@ -20989,6 +21542,10 @@ else {
     // default format
     moment.defaultFormat = isoFormat;
 
+    // Plugins that add properties should also add the key here (null value),
+    // so we can properly clone ourselves.
+    moment.momentProperties = momentProperties;
+
     // This function will be called whenever a moment is mutated.
     // It is intended to keep the offset in sync with the timezone.
     moment.updateOffset = function () {};
@@ -21052,8 +21609,12 @@ else {
         return m;
     };
 
-    moment.parseZone = function (input) {
-        return moment(input).parseZone();
+    moment.parseZone = function () {
+        return moment.apply(null, arguments).parseZone();
+    };
+
+    moment.parseTwoDigitYear = function (input) {
+        return toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
     };
 
     /************************************
@@ -21240,29 +21801,7 @@ else {
             }
         },
 
-        month : function (input) {
-            var utc = this._isUTC ? 'UTC' : '',
-                dayOfMonth;
-
-            if (input != null) {
-                if (typeof input === 'string') {
-                    input = this.lang().monthsParse(input);
-                    if (typeof input !== 'number') {
-                        return this;
-                    }
-                }
-
-                dayOfMonth = this.date();
-                this.date(1);
-                this._d['set' + utc + 'Month'](input);
-                this.date(Math.min(dayOfMonth, this.daysInMonth()));
-
-                moment.updateOffset(this);
-                return this;
-            } else {
-                return this._d['get' + utc + 'Month']();
-            }
-        },
+        month : makeAccessor('Month', true),
 
         startOf: function (units) {
             units = normalizeUnits(units);
@@ -21272,6 +21811,7 @@ else {
             case 'year':
                 this.month(0);
                 /* falls through */
+            case 'quarter':
             case 'month':
                 this.date(1);
                 /* falls through */
@@ -21296,6 +21836,11 @@ else {
                 this.weekday(0);
             } else if (units === 'isoWeek') {
                 this.isoWeekday(1);
+            }
+
+            // quarters are also special
+            if (units === 'quarter') {
+                this.month(Math.floor(this.month() / 3) * 3);
             }
 
             return this;
@@ -21331,7 +21876,17 @@ else {
             return other > this ? this : other;
         },
 
-        zone : function (input) {
+        // keepTime = true means only change the timezone, without affecting
+        // the local hour. So 5:31:26 +0300 --[zone(2, true)]--> 5:31:26 +0200
+        // It is possible that 5:31:26 doesn't exist int zone +0200, so we
+        // adjust the time as needed, to be valid.
+        //
+        // Keeping the time actually adds/subtracts (one hour)
+        // from the actual represented time. That is why we call updateOffset
+        // a second time. In case it wants us to change the offset again
+        // _changeInProgress == true case, then we have to adjust, because
+        // there is no such time in the given timezone.
+        zone : function (input, keepTime) {
             var offset = this._offset || 0;
             if (input != null) {
                 if (typeof input === "string") {
@@ -21343,7 +21898,14 @@ else {
                 this._offset = input;
                 this._isUTC = true;
                 if (offset !== input) {
-                    addOrSubtractDurationFromMoment(this, moment.duration(offset - input, 'm'), 1, true);
+                    if (!keepTime || this._changeInProgress) {
+                        addOrSubtractDurationFromMoment(this,
+                                moment.duration(offset - input, 'm'), 1, false);
+                    } else if (!this._changeInProgress) {
+                        this._changeInProgress = true;
+                        moment.updateOffset(this, true);
+                        this._changeInProgress = null;
+                    }
                 }
             } else {
                 return this._isUTC ? offset : this._d.getTimezoneOffset();
@@ -21388,8 +21950,8 @@ else {
             return input == null ? dayOfYear : this.add("d", (input - dayOfYear));
         },
 
-        quarter : function () {
-            return Math.ceil((this.month() + 1.0) / 3.0);
+        quarter : function (input) {
+            return input == null ? Math.ceil((this.month() + 1) / 3) : this.month((input - 1) * 3 + this.month() % 3);
         },
 
         weekYear : function (input) {
@@ -21424,6 +21986,15 @@ else {
             return input == null ? this.day() || 7 : this.day(this.day() % 7 ? input : input - 7);
         },
 
+        isoWeeksInYear : function () {
+            return weeksInYear(this.year(), 1, 4);
+        },
+
+        weeksInYear : function () {
+            var weekInfo = this._lang._week;
+            return weeksInYear(this.year(), weekInfo.dow, weekInfo.doy);
+        },
+
         get : function (units) {
             units = normalizeUnits(units);
             return this[units]();
@@ -21450,33 +22021,68 @@ else {
         }
     });
 
-    // helper for adding shortcuts
-    function makeGetterAndSetter(name, key) {
-        moment.fn[name] = moment.fn[name + 's'] = function (input) {
-            var utc = this._isUTC ? 'UTC' : '';
-            if (input != null) {
-                this._d['set' + utc + key](input);
-                moment.updateOffset(this);
+    function rawMonthSetter(mom, value) {
+        var dayOfMonth;
+
+        // TODO: Move this out of here!
+        if (typeof value === 'string') {
+            value = mom.lang().monthsParse(value);
+            // TODO: Another silent failure?
+            if (typeof value !== 'number') {
+                return mom;
+            }
+        }
+
+        dayOfMonth = Math.min(mom.date(),
+                daysInMonth(mom.year(), value));
+        mom._d['set' + (mom._isUTC ? 'UTC' : '') + 'Month'](value, dayOfMonth);
+        return mom;
+    }
+
+    function rawGetter(mom, unit) {
+        return mom._d['get' + (mom._isUTC ? 'UTC' : '') + unit]();
+    }
+
+    function rawSetter(mom, unit, value) {
+        if (unit === 'Month') {
+            return rawMonthSetter(mom, value);
+        } else {
+            return mom._d['set' + (mom._isUTC ? 'UTC' : '') + unit](value);
+        }
+    }
+
+    function makeAccessor(unit, keepTime) {
+        return function (value) {
+            if (value != null) {
+                rawSetter(this, unit, value);
+                moment.updateOffset(this, keepTime);
                 return this;
             } else {
-                return this._d['get' + utc + key]();
+                return rawGetter(this, unit);
             }
         };
     }
 
-    // loop through and add shortcuts (Month, Date, Hours, Minutes, Seconds, Milliseconds)
-    for (i = 0; i < proxyGettersAndSetters.length; i ++) {
-        makeGetterAndSetter(proxyGettersAndSetters[i].toLowerCase().replace(/s$/, ''), proxyGettersAndSetters[i]);
-    }
-
-    // add shortcut for year (uses different syntax than the getter/setter 'year' == 'FullYear')
-    makeGetterAndSetter('year', 'FullYear');
+    moment.fn.millisecond = moment.fn.milliseconds = makeAccessor('Milliseconds', false);
+    moment.fn.second = moment.fn.seconds = makeAccessor('Seconds', false);
+    moment.fn.minute = moment.fn.minutes = makeAccessor('Minutes', false);
+    // Setting the hour should keep the time, because the user explicitly
+    // specified which hour he wants. So trying to maintain the same hour (in
+    // a new timezone) makes sense. Adding/subtracting hours does not follow
+    // this rule.
+    moment.fn.hour = moment.fn.hours = makeAccessor('Hours', true);
+    // moment.fn.month is defined separately
+    moment.fn.date = makeAccessor('Date', true);
+    moment.fn.dates = deprecate("dates accessor is deprecated. Use date instead.", makeAccessor('Date', true));
+    moment.fn.year = makeAccessor('FullYear', true);
+    moment.fn.years = deprecate("years accessor is deprecated. Use year instead.", makeAccessor('FullYear', true));
 
     // add plural methods
     moment.fn.days = moment.fn.day;
     moment.fn.months = moment.fn.month;
     moment.fn.weeks = moment.fn.week;
     moment.fn.isoWeeks = moment.fn.isoWeek;
+    moment.fn.quarters = moment.fn.quarter;
 
     // add aliased format methods
     moment.fn.toJSON = moment.fn.toISOString;
@@ -21652,45 +22258,36 @@ else {
         Exposing Moment
     ************************************/
 
-    function makeGlobal(deprecate) {
-        var warned = false, local_moment = moment;
+    function makeGlobal(shouldDeprecate) {
         /*global ender:false */
         if (typeof ender !== 'undefined') {
             return;
         }
-        // here, `this` means `window` in the browser, or `global` on the server
-        // add `moment` as a global object via a string identifier,
-        // for Closure Compiler "advanced" mode
-        if (deprecate) {
-            global.moment = function () {
-                if (!warned && console && console.warn) {
-                    warned = true;
-                    console.warn(
-                            "Accessing Moment through the global scope is " +
-                            "deprecated, and will be removed in an upcoming " +
-                            "release.");
-                }
-                return local_moment.apply(null, arguments);
-            };
-            extend(global.moment, local_moment);
+        oldGlobalMoment = globalScope.moment;
+        if (shouldDeprecate) {
+            globalScope.moment = deprecate(
+                    "Accessing Moment through the global scope is " +
+                    "deprecated, and will be removed in an upcoming " +
+                    "release.",
+                    moment);
         } else {
-            global['moment'] = moment;
+            globalScope.moment = moment;
         }
     }
 
     // CommonJS module is defined
     if (hasModule) {
         module.exports = moment;
-        makeGlobal(true);
     } else if (typeof define === "function" && define.amd) {
         define("moment", function (require, exports, module) {
-            if (module.config && module.config() && module.config().noGlobal !== true) {
-                // If user provided noGlobal, he is aware of global
-                makeGlobal(module.config().noGlobal === undefined);
+            if (module.config && module.config() && module.config().noGlobal === true) {
+                // release the global variable
+                globalScope.moment = oldGlobalMoment;
             }
 
             return moment;
         });
+        makeGlobal(true);
     } else {
         makeGlobal();
     }
