@@ -4,7 +4,7 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.7.3
+ * @version 0.7.4-SNAPSHOT
  * @date    2014-04-16
  *
  * @license

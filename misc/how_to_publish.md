@@ -55,17 +55,7 @@ This generates the vis.js library in the folder `./dist`.
 
     Verify if it installs the just released version, and verify if it works.
 
-
-- Publish the library at cdnjs.org
-  - clone the cdnjs project
-  - pull changes: `git pull upstream`
-  - add the new version of the library under /ajax/libs/vis/
-    - add new folder /x.y.z/ with the new library
-    - update the version number in package.json
-  - test the library by running `npm test`
-  - then do a pull request with as title "[author] Update vis.js to x.y.z"
-    (with correct version).
-
+  - Verify within an hour whether vis.js is updated on http://cdnjs.com/
 
 
 ## Update website
