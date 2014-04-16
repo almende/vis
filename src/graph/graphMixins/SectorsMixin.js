@@ -286,7 +286,7 @@ var SectorMixin = {
 //      console.log("the node is part of the active sector");
 //    }
 //    else {
-//      console.log("I dont know what the fuck happened!!");
+//      console.log("I dont know what happened!!");
 //    }
 
     // when we switch to a new sector, we remove the node that will be expanded from the current nodes list.
