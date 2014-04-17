@@ -329,6 +329,7 @@ ItemSet.prototype.repaint = function repaint() {
   frame.style.bottom  = asSize((orientation == 'top') ? '' : '0');
   frame.style.width   = asSize(options.width, '100%');
   frame.style.height  = asSize(height);
+  //frame.style.height  = asSize('height' in options ? options.height : height); // TODO: reckon with height
 
   // calculate actual size and position
   this.top = frame.offsetTop;

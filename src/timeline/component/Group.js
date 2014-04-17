@@ -81,9 +81,9 @@ Group.prototype.setData = function setData(data) {
 /**
  * Set item set for the group. The group will create a view on the itemSet,
  * filtered by the groups id.
- * @param {DataSet | DataView} itemSet
+ * @param {DataSet | DataView} itemsData
  */
-Group.prototype.setItems = function setItems(itemSet) {
+Group.prototype.setItems = function setItems(itemsData) {
   if (this.itemSet) {
     // remove current item set
     this.itemSet.setItems();
@@ -91,17 +91,23 @@ Group.prototype.setItems = function setItems(itemSet) {
     this.itemSet = null;
   }
 
-  if (itemSet) {
+  if (itemsData) {
     var groupId = this.groupId;
 
-    var itemSetOptions = Object.create(this.options);
+    var me = this;
+    var itemSetOptions = util.extend(this.options, {
+      height: function () {
+        // FIXME: setting height doesn't yet work
+        return Math.max(me.props.label.height, me.itemSet.height);
+      }
+    });
     this.itemSet = new ItemSet(itemSetOptions);
     this.itemSet.on('change', this.emit.bind(this, 'change')); // propagate change event
     this.groupFrame.appendChild(this.itemSet.getFrame());
 
     if (this.range) this.itemSet.setRange(this.range);
 
-    this.view = new DataView(itemSet, {
+    this.view = new DataView(itemsData, {
       filter: function (item) {
         return item.group == groupId;
       }
@@ -175,17 +181,21 @@ Group.prototype.getSelection = function getSelection() {
  * @return {boolean} Returns true if the component is resized
  */
 Group.prototype.repaint = function repaint() {
+  var resized = false;
+
   this.show();
 
-  var resized = this.itemSet.repaint();
-
-  this.height = this.itemSet ? this.itemSet.height : 0;
-
-  this.dom.label.style.height = this.height + 'px';
+  if (this.itemSet) {
+    resized = this.itemSet.repaint() || resized;
+  }
 
   // calculate inner size of the label
   resized = util.updateProperty(this.props.label, 'width', this.dom.inner.clientWidth) || resized;
   resized = util.updateProperty(this.props.label, 'height', this.dom.inner.clientHeight) || resized;
+
+  this.height = this.itemSet ? this.itemSet.height : 0;
+
+  this.dom.label.style.height = this.height + 'px';
 
   return resized;
 };
