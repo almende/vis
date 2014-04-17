@@ -1,15 +1,15 @@
 /**
  * @constructor Group
- * @param {Panel} contentPanel  // TODO: replace with a HTML Element
+ * @param {Element} groupFrame
  * @param {Element} labelFrame
  * @param {Number | String} groupId
  * @param {Object} [options]  Options to set initial property values
  *                            // TODO: describe available options
  * @extends Component
  */
-function Group (contentPanel, labelFrame, groupId, options) {
+function Group (groupFrame, labelFrame, groupId, options) {
   this.id = util.randomUUID();
-  this.contentPanel = contentPanel;
+  this.groupFrame = groupFrame;
   this.labelFrame = labelFrame;
 
   this.groupId = groupId;
@@ -87,7 +87,7 @@ Group.prototype.setItems = function setItems(itemSet) {
   if (this.itemSet) {
     // remove current item set
     this.itemSet.setItems();
-    this.contentPanel.removeChild(this.itemSet);
+    this.groupFrame.removeChild(this.itemSet.getFrame());
     this.itemSet = null;
   }
 
@@ -97,7 +97,7 @@ Group.prototype.setItems = function setItems(itemSet) {
     var itemSetOptions = Object.create(this.options);
     this.itemSet = new ItemSet(itemSetOptions);
     this.itemSet.on('change', this.emit.bind(this, 'change')); // propagate change event
-    this.contentPanel.appendChild(this.itemSet);
+    this.groupFrame.appendChild(this.itemSet.getFrame());
 
     if (this.range) this.itemSet.setRange(this.range);
 
@@ -118,8 +118,12 @@ Group.prototype.show = function show() {
     this.labelFrame.appendChild(this.dom.label);
   }
 
-  if (!this.contentPanel.hasChild(this.itemSet)) {
-    this.contentPanel.appendChild(this.itemSet);
+  var itemSetFrame = this.itemSet && this.itemSet.getFrame();
+  if (itemSetFrame) {
+    if (itemSetFrame.parentNode) {
+      itemSetFrame.parentNode.removeChild(itemSetFrame);
+    }
+    this.groupFrame.appendChild(itemSetFrame);
   }
 };
 
@@ -131,7 +135,10 @@ Group.prototype.hide = function hide() {
     this.dom.label.parentNode.removeChild(this.dom.label);
   }
 
-  this.contentPanel.removeChild(this.itemSet);
+  var itemSetFrame = this.itemset && this.itemSet.getFrame();
+  if (itemSetFrame && itemSetFrame.parentNode) {
+    itemSetFrame.parentNode.removeChild(itemSetFrame);
+  }
 };
 
 /**
@@ -172,8 +179,6 @@ Group.prototype.repaint = function repaint() {
 
   var resized = this.itemSet.repaint();
 
-  // TODO: top is redundant, cleanup
-  this.top    = this.itemSet ? this.itemSet.top : 0;
   this.height = this.itemSet ? this.itemSet.height : 0;
 
   this.dom.label.style.height = this.height + 'px';

@@ -40,7 +40,7 @@
 <div id="visualization"></div>
 
 <script>
-  console.time('create dataset')
+  console.time('create dataset');
 
   // create a dataset with items
   var now = moment().minutes(0).seconds(0).milliseconds(0);
@@ -81,11 +81,11 @@
     zoomMax: 1000 * 60 * 60 * 24 * 30 * 6    // 6 months
   };
 
-  console.timeEnd('create dataset')
+  console.timeEnd('create dataset');
 
-  console.time('create timeline')
+  console.time('create timeline');
   var timeline = new vis.Timeline(container, items, options);
-  console.timeEnd('create timeline')
+  console.timeEnd('create timeline');
 
 </script>
 </body>

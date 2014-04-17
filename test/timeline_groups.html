@@ -78,10 +78,21 @@
     groupOrder: 'content'
   };
 
+  console.time('create timeline');
   var timeline = new vis.Timeline(container);
+  console.timeEnd('create timeline');
+
+  console.time('set options');
   timeline.setOptions(options);
+  console.timeEnd('set options');
+
+  console.time('set groups');
   timeline.setGroups(groups);
+  console.timeEnd('set groups');
+
+  console.time('set items');
   timeline.setItems(items);
+  console.timeEnd('set items');
 
 </script>
 </body>

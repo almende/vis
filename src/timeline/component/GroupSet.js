@@ -272,7 +272,7 @@ GroupSet.prototype.repaint = function repaint() {
 
             // TODO: do not recreate the group with every update
 
-            group = new Group(me, me.labelSet.frame, id, groupOptions);
+            group = new Group(me.frame, me.labelSet.frame, id, groupOptions);
             group.on('change', me.emit.bind(me, 'change')); // propagate change event
             group.setRange(me.range);
             group.setItems(me.itemsData); // attach items data
@@ -289,8 +289,8 @@ GroupSet.prototype.repaint = function repaint() {
 
         case 'remove':
           if (group) {
-            group.hide();
             group.setItems(); // detach items data
+            group.hide(); // FIXME: for some reason when doing setItems after hide, setItems again makes the label visible
             delete groups[id];
           }
 
