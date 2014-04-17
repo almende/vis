@@ -71,36 +71,6 @@ Component.prototype.repaint = function repaint() {
 };
 
 /**
- * Hide the component from the DOM
- * @return {Boolean} changed
- */
-// TODO: remove hide and show
-Component.prototype.hide = function hide() {
-  if (this.frame && this.frame.parentNode) {
-    this.frame.parentNode.removeChild(this.frame);
-    return true;
-  }
-  else {
-    return false;
-  }
-};
-
-/**
- * Show the component in the DOM (when not already visible).
- * A repaint will be executed when the component is not visible
- * @return {Boolean} changed
- */
-// TODO: remove hide and show
-Component.prototype.show = function show() {
-  if (!this.frame || !this.frame.parentNode) {
-    return this.repaint();
-  }
-  else {
-    return false;
-  }
-};
-
-/**
  * Test whether the component is resized since the last time _isResized() was
  * called.
  * @return {Boolean} Returns true if the component is resized

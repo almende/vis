@@ -372,21 +372,6 @@ ItemSet.prototype.getAxis = function getAxis() {
 };
 
 /**
- * Hide this component from the DOM
- */
-ItemSet.prototype.hide = function hide() {
-  // remove the DOM
-  if (this.frame && this.frame.parentNode) {
-    this.frame.parentNode.removeChild(this.frame);
-  }
-  /* TODO: cleanup
-  if (this.dom.axis && this.dom.axis.parentNode) {
-    this.dom.axis.parentNode.removeChild(this.dom.axis);
-  }
-  */
-};
-
-/**
  * Set items
  * @param {vis.DataSet | null} items
  */

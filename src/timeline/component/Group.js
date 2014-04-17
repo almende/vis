@@ -1,16 +1,16 @@
 /**
  * @constructor Group
- * @param {Panel} contentPanel
- * @param {Panel} labelPanel
+ * @param {Panel} contentPanel  // TODO: replace with a HTML Element
+ * @param {Element} labelFrame
  * @param {Number | String} groupId
  * @param {Object} [options]  Options to set initial property values
  *                            // TODO: describe available options
  * @extends Component
  */
-function Group (contentPanel, labelPanel, groupId, options) {
+function Group (contentPanel, labelFrame, groupId, options) {
   this.id = util.randomUUID();
   this.contentPanel = contentPanel;
-  this.labelPanel = labelPanel;
+  this.labelFrame = labelFrame;
 
   this.groupId = groupId;
   this.itemSet = null;    // ItemSet
@@ -55,14 +55,6 @@ Group.prototype._create = function() {
 };
 
 /**
- * Get the HTML DOM label of this group
- * @returns {Element} label
- */
-Group.prototype.getLabel = function getLabel() {
-  return this.dom.label;
-};
-
-/**
  * Set the group data for this group
  * @param {Object} data   Group data, can contain properties content and className
  */
@@ -94,7 +86,6 @@ Group.prototype.setData = function setData(data) {
 Group.prototype.setItems = function setItems(itemSet) {
   if (this.itemSet) {
     // remove current item set
-    this.itemSet.hide();
     this.itemSet.setItems();
     this.contentPanel.removeChild(this.itemSet);
     this.itemSet = null;
@@ -122,8 +113,25 @@ Group.prototype.setItems = function setItems(itemSet) {
 /**
  * hide the group, detach from DOM if needed
  */
+Group.prototype.show = function show() {
+  if (!this.dom.label.parentNode) {
+    this.labelFrame.appendChild(this.dom.label);
+  }
+
+  if (!this.contentPanel.hasChild(this.itemSet)) {
+    this.contentPanel.appendChild(this.itemSet);
+  }
+};
+
+/**
+ * hide the group, detach from DOM if needed
+ */
 Group.prototype.hide = function hide() {
-  if (this.itemSet) this.itemSet.hide();
+  if (this.dom.label.parentNode) {
+    this.dom.label.parentNode.removeChild(this.dom.label);
+  }
+
+  this.contentPanel.removeChild(this.itemSet);
 };
 
 /**
@@ -160,6 +168,8 @@ Group.prototype.getSelection = function getSelection() {
  * @return {boolean} Returns true if the component is resized
  */
 Group.prototype.repaint = function repaint() {
+  this.show();
+
   var resized = this.itemSet.repaint();
 
   // TODO: top is redundant, cleanup

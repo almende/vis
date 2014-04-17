@@ -245,7 +245,6 @@ GroupSet.prototype.repaint = function repaint() {
       options = this.options,
       orientation = this.getOption('orientation'),
       groupSet = this.dom.groupSet,
-      labelSet = this.labelSet,
       resized = false,
       me = this,
       queue = this.queue,
@@ -273,7 +272,7 @@ GroupSet.prototype.repaint = function repaint() {
 
             // TODO: do not recreate the group with every update
 
-            group = new Group(me.contentPanel, me.labelPanel, id, groupOptions);
+            group = new Group(me.contentPanel, me.labelSet.frame, id, groupOptions);
             group.on('change', me.emit.bind(me, 'change')); // propagate change event
             group.setRange(me.range);
             group.setItems(me.itemsData); // attach items data
@@ -290,6 +289,7 @@ GroupSet.prototype.repaint = function repaint() {
 
         case 'remove':
           if (group) {
+            group.hide();
             group.setItems(); // detach items data
             delete groups[id];
           }
@@ -306,22 +306,10 @@ GroupSet.prototype.repaint = function repaint() {
       order: this.options.groupOrder
     });
 
-    // (re)create the labels
-    // TODO: move label creation to Group
-    while (labelSet.frame.firstChild) {
-      labelSet.frame.removeChild(labelSet.firstChild);
-    }
-    for (i = 0; i < this.groupIds.length; i++) {
-      id = this.groupIds[i];
-      label = this.groups[id].getLabel();
-      labelSet.frame.appendChild(label);
-    }
-
     // hide the groups now, they will be repainted later in this function
     // in correct order
     this.groupIds.forEach(function (id) {
-      // TODO: hide group here
-      //groups[id].hide();
+      groups[id].hide();
     });
 
     resized = true;
@@ -392,27 +380,15 @@ GroupSet.prototype.getLabelsWidth = function getLabelsWidth() {
  * Hide the component from the DOM
  */
 GroupSet.prototype.hide = function hide() {
-  this.labelPanel.appendChild(this.labelSet);
+  // hide labelset
+  this.labelPanel.removeChild(this.labelSet);
 
+  // TODO: replace the following with a panel holding all itemsets, do not hide groups individually
   for (var groupId in this.groups) {
     if (this.groups.hasOwnProperty(groupId)) {
-      this.groups.hide();
+      this.groups[groupId].hide();
     }
   }
-
-  // TODO: hide labelSet as well
-
-  /* TODO: cleanup
-  var frame = this.dom.frame;
-  if (frame && frame.parentNode) {
-    frame.parentNode.removeChild(frame);
-  }
-
-  var labels = this.dom.labels;
-  if (labels && labels.parentNode) {
-    labels.parentNode.removeChild(labels.parentNode);
-  }
-  */
 };
 
 /**
@@ -421,11 +397,16 @@ GroupSet.prototype.hide = function hide() {
  * @return {Boolean} changed
  */
 GroupSet.prototype.show = function show() {
-  if (!this.dom.frame || !this.dom.frame.parentNode) {
-    return this.repaint();
+  // show label set
+  if (!this.labelPanel.hasChild(this.labelSet)) {
+    this.labelPanel.removeChild(this.labelSet);
   }
-  else {
-    return false;
+
+  // TODO: replace the following with a panel holding all itemsets, do not show groups individually
+  for (var groupId in this.groups) {
+    if (this.groups.hasOwnProperty(groupId)) {
+      this.groups[groupId].show();
+    }
   }
 };
 

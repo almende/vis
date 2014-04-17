@@ -398,7 +398,7 @@ Timeline.prototype.setGroups = function(groupSet) {
 
     // remove itemset if existing
     if (this.itemSet) {
-      this.itemSet.hide(); // TODO: not so nice having to hide here
+      //this.itemSet.hide(); // TODO: not so nice having to hide here
       this.contentPanel.removeChild(this.itemSet);
       this.itemSet.setItems(); // disconnect from itemset
       this.itemSet = null;
