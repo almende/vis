@@ -58,10 +58,10 @@ GroupSet.prototype = new Panel();
  */
 GroupSet.prototype._create = function _create () {
   // TODO: reimplement groupSet DOM elements
-  var groupSet = document.createElement('div');
-  groupSet.className = 'groupset';
-  groupSet['timeline-groupset'] = this;
-  this.dom.groupSet = groupSet;
+  var frame = document.createElement('div');
+  frame.className = 'groupset';
+  frame['timeline-groupset'] = this;
+  this.frame = frame;
 
   this.labelSet = new Panel({
     className: 'labelSet',
@@ -76,7 +76,7 @@ GroupSet.prototype._create = function _create () {
  * @returns {null} Get frame is not supported by GroupSet
  */
 GroupSet.prototype.getFrame = function getFrame() {
-  return null;
+  return this.frame;
 };
 
 /**
@@ -244,7 +244,7 @@ GroupSet.prototype.repaint = function repaint() {
       asString = util.option.asString,
       options = this.options,
       orientation = this.getOption('orientation'),
-      groupSet = this.dom.groupSet,
+      frame = this.frame,
       resized = false,
       me = this,
       queue = this.queue,
@@ -272,7 +272,7 @@ GroupSet.prototype.repaint = function repaint() {
 
             // TODO: do not recreate the group with every update
 
-            group = new Group(me.contentPanel, me.labelSet.frame, id, groupOptions);
+            group = new Group(me, me.labelSet.frame, id, groupOptions);
             group.on('change', me.emit.bind(me, 'change')); // propagate change event
             group.setRange(me.range);
             group.setItems(me.itemsData); // attach items data
@@ -349,20 +349,12 @@ GroupSet.prototype.repaint = function repaint() {
   }
 
   // update classname
-  groupSet.className = 'groupset' + (options.className ? (' ' + asString(options.className)) : '');
-
-  // reposition groupSet frame
-  groupSet.style.top     = asSize((orientation == 'top') ? '0' : '');
-  groupSet.style.bottom  = asSize((orientation == 'top') ? '' : '0');
-  groupSet.style.left    = asSize(options.left, '');
-  groupSet.style.right   = asSize(options.right, '');
-  groupSet.style.width   = asSize(options.width, '100%');
-  groupSet.style.height  = asSize(height);
+  frame.className = 'groupset' + (options.className ? (' ' + asString(options.className)) : '');
 
   // calculate actual size and position
-  this.top = groupSet.offsetTop;
-  this.left = groupSet.offsetLeft;
-  this.width = groupSet.offsetWidth;
+  this.top = frame.offsetTop;
+  this.left = frame.offsetLeft;
+  this.width = frame.offsetWidth;
   this.height = height;
 
   return resized;
@@ -443,7 +435,7 @@ GroupSet.prototype._onRemove = function _onRemove(ids) {
  * @param {String} action     can be 'add', 'update', 'remove'
  */
 GroupSet.prototype._toQueue = function _toQueue(ids, action) {
-  // TODO: remove this queuing thing, immediately apply it
+  // TODO: remove this queuing thing, immediately apply changes
 
   var queue = this.queue;
   ids.forEach(function (id) {

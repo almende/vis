@@ -1,11 +1,11 @@
 
-.vis.timeline .groupset {
+/* TODO: cleanup
+.vis.timeline .groupSet {
   position: relative;
   padding: 0;
   margin: 0;
 }
 
-/* TODO: cleanup
 .vis.timeline .labels {
   position: absolute;
   top: 0;

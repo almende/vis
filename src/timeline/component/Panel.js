@@ -15,6 +15,9 @@ function Panel(options) {
   this.childs = [];
 
   this.options = options || {};
+
+  // create frame
+  this.frame = document.createElement('div');
 }
 
 Panel.prototype = new Component();
@@ -35,15 +38,7 @@ Panel.prototype.setOptions = Component.prototype.setOptions;
  * @returns {HTMLElement} frame
  */
 Panel.prototype.getFrame = function () {
-  var frame = this.frame;
-
-  // create frame
-  if (!frame) {
-    frame = document.createElement('div');
-    this.frame = frame;
-  }
-
-  return frame;
+  return this.frame;
 };
 
 /**
@@ -53,11 +48,6 @@ Panel.prototype.getFrame = function () {
 Panel.prototype.appendChild = function (child) {
   this.childs.push(child);
   child.parent = this;
-
-  if (!child.getFrame) {
-    console.log(child);
-
-  }
 
   // attach to the DOM
   var frame = child.getFrame();
