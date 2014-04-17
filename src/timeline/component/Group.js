@@ -24,16 +24,67 @@ function Group (contentPanel, labelPanel, groupId, options) {
     }
   };
 
+  this.dom = {};
+
   this.top = 0;
   this.left = 0;
   this.width = 0;
   this.height = 0;
+
+  this._create();
 }
 
 Group.prototype = new Component();
 
 // TODO: comment
 Group.prototype.setOptions = Component.prototype.setOptions;
+
+/**
+ * Create DOM elements for the group
+ * @private
+ */
+Group.prototype._create = function() {
+  var label = document.createElement('div');
+  label.className = 'vlabel';
+  this.dom.label = label;
+
+  var inner = document.createElement('div');
+  inner.className = 'inner';
+  label.appendChild(inner);
+  this.dom.inner = inner;
+};
+
+/**
+ * Get the HTML DOM label of this group
+ * @returns {Element} label
+ */
+Group.prototype.getLabel = function getLabel() {
+  return this.dom.label;
+};
+
+/**
+ * Set the group data for this group
+ * @param {Object} data   Group data, can contain properties content and className
+ */
+Group.prototype.setData = function setData(data) {
+  // update contents
+  var content = data && data.content;
+  if (content instanceof Element) {
+    this.dom.inner.appendChild(content);
+  }
+  else if (content != undefined) {
+    this.dom.inner.innerHTML = content;
+  }
+  else {
+    this.dom.inner.innerHTML = this.groupId;
+  }
+
+  // update className
+  var className = data && data.className;
+  if (className) {
+    util.addClassName(this.dom.label, className);
+  }
+};
 
 /**
  * Set item set for the group. The group will create a view on the itemSet,
@@ -111,21 +162,15 @@ Group.prototype.getSelection = function getSelection() {
 Group.prototype.repaint = function repaint() {
   var resized = this.itemSet.repaint();
 
+  // TODO: top is redundant, cleanup
   this.top    = this.itemSet ? this.itemSet.top : 0;
   this.height = this.itemSet ? this.itemSet.height : 0;
 
-  // TODO: reckon with the height of the group label
+  this.dom.label.style.height = this.height + 'px';
 
-  if (this.label) {
-    // TODO: only update the labels width/height when the label is changed
-    var inner = this.label.firstChild;
-    this.props.label.width = inner.clientWidth;
-    this.props.label.height = inner.clientHeight;
-  }
-  else {
-    this.props.label.width = 0;
-    this.props.label.height = 0;
-  }
+  // calculate inner size of the label
+  resized = util.updateProperty(this.props.label, 'width', this.dom.inner.clientWidth) || resized;
+  resized = util.updateProperty(this.props.label, 'height', this.dom.inner.clientHeight) || resized;
 
   return resized;
 };

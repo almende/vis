@@ -271,6 +271,8 @@ GroupSet.prototype.repaint = function repaint() {
               height: null
             });
 
+            // TODO: do not recreate the group with every update
+
             group = new Group(me.contentPanel, me.labelPanel, id, groupOptions);
             group.on('change', me.emit.bind(me, 'change')); // propagate change event
             group.setRange(me.range);
@@ -282,8 +284,8 @@ GroupSet.prototype.repaint = function repaint() {
             // as this call will already trigger a repaint
           }
 
-          // TODO: update group data
-          group.data = groupsData.get(id);
+          // update group data
+          group.setData(groupsData.get(id));
           break;
 
         case 'remove':
@@ -311,7 +313,7 @@ GroupSet.prototype.repaint = function repaint() {
     }
     for (i = 0; i < this.groupIds.length; i++) {
       id = this.groupIds[i];
-      label = this._createLabel(id);
+      label = this.groups[id].getLabel();
       labelSet.frame.appendChild(label);
     }
 
@@ -338,19 +340,10 @@ GroupSet.prototype.repaint = function repaint() {
   for (id in groups) {
     if (groups.hasOwnProperty(id)) {
       group = groups[id];
-      label = group.label;
-      if (label) {
-        label.style.height = group.height + 'px';
-
-        console.log('label height groupId=', id, ' height', group.height)
-
-        var width = label.firstChild && label.firstChild.clientWidth || 0;
-        maxWidth = Math.max(maxWidth, width);
-      }
+      maxWidth = Math.max(maxWidth, group.props.label.width);
     }
   }
-  if (this.props.labels.width != maxWidth) resized = true;
-  this.props.labels.width = maxWidth;
+  resized = util.updateProperty(this.props.labels, 'width', maxWidth) || resized;
 
   // recalculate the height of the groupset
   var fixedHeight = (asSize(options.height) != null);
@@ -384,41 +377,7 @@ GroupSet.prototype.repaint = function repaint() {
   this.width = groupSet.offsetWidth;
   this.height = height;
 
-  console.log('groupset.repaint resized=', resized)
-
   return resized;
-};
-
-/**
- * Create a label for group with given id
- * @param {Number} id
- * @return {Element} label
- * @private
- */
-GroupSet.prototype._createLabel = function(id) {
-  var group = this.groups[id];
-  var label = document.createElement('div');
-  label.className = 'vlabel';
-  var inner = document.createElement('div');
-  inner.className = 'inner';
-  label.appendChild(inner);
-
-  var content = group.data && group.data.content;
-  if (content instanceof Element) {
-    inner.appendChild(content);
-  }
-  else if (content != undefined) {
-    inner.innerHTML = content;
-  }
-
-  var className = group.data && group.data.className;
-  if (className) {
-    util.addClassName(label, className);
-  }
-
-  group.label = label; // TODO: not so nice, parking labels in the group this way!!!
-
-  return label;
 };
 
 /**
