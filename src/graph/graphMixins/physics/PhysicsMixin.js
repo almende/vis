@@ -10,7 +10,7 @@ var physicsMixin = {
    *
    * @private
    */
-  _toggleBarnesHut : function() {
+  _toggleBarnesHut: function () {
     this.constants.physics.barnesHut.enabled = !this.constants.physics.barnesHut.enabled;
     this._loadSelectedForceSolver();
     this.moving = true;
@@ -18,22 +18,21 @@ var physicsMixin = {
   },
 
 
-
   /**
    * This loads the node force solver based on the barnes hut or repulsion algorithm
    *
    * @private
    */
-  _loadSelectedForceSolver : function() {
+  _loadSelectedForceSolver: function () {
     // this overloads the this._calculateNodeForces
     if (this.constants.physics.barnesHut.enabled == true) {
       this._clearMixin(repulsionMixin);
       this._clearMixin(hierarchalRepulsionMixin);
 
       this.constants.physics.centralGravity = this.constants.physics.barnesHut.centralGravity;
-      this.constants.physics.springLength   = this.constants.physics.barnesHut.springLength;
+      this.constants.physics.springLength = this.constants.physics.barnesHut.springLength;
       this.constants.physics.springConstant = this.constants.physics.barnesHut.springConstant;
-      this.constants.physics.damping        = this.constants.physics.barnesHut.damping;
+      this.constants.physics.damping = this.constants.physics.barnesHut.damping;
 
       this._loadMixin(barnesHutMixin);
     }
@@ -42,9 +41,9 @@ var physicsMixin = {
       this._clearMixin(repulsionMixin);
 
       this.constants.physics.centralGravity = this.constants.physics.hierarchicalRepulsion.centralGravity;
-      this.constants.physics.springLength   = this.constants.physics.hierarchicalRepulsion.springLength;
+      this.constants.physics.springLength = this.constants.physics.hierarchicalRepulsion.springLength;
       this.constants.physics.springConstant = this.constants.physics.hierarchicalRepulsion.springConstant;
-      this.constants.physics.damping        = this.constants.physics.hierarchicalRepulsion.damping;
+      this.constants.physics.damping = this.constants.physics.hierarchicalRepulsion.damping;
 
       this._loadMixin(hierarchalRepulsionMixin);
     }
@@ -54,9 +53,9 @@ var physicsMixin = {
       this.barnesHutTree = undefined;
 
       this.constants.physics.centralGravity = this.constants.physics.repulsion.centralGravity;
-      this.constants.physics.springLength   = this.constants.physics.repulsion.springLength;
+      this.constants.physics.springLength = this.constants.physics.repulsion.springLength;
       this.constants.physics.springConstant = this.constants.physics.repulsion.springConstant;
-      this.constants.physics.damping        = this.constants.physics.repulsion.damping;
+      this.constants.physics.damping = this.constants.physics.repulsion.damping;
 
       this._loadMixin(repulsionMixin);
     }
@@ -68,10 +67,10 @@ var physicsMixin = {
    *
    * @private
    */
-  _initializeForceCalculation : function() {
+  _initializeForceCalculation: function () {
     // stop calculation if there is only one node
     if (this.nodeIndices.length == 1) {
-      this.nodes[this.nodeIndices[0]]._setForce(0,0);
+      this.nodes[this.nodeIndices[0]]._setForce(0, 0);
     }
     else {
       // if there are too many nodes on screen, we cluster without repositioning
@@ -90,7 +89,7 @@ var physicsMixin = {
    * Forces are caused by: edges, repulsing forces between nodes, gravity
    * @private
    */
-  _calculateForces : function() {
+  _calculateForces: function () {
     // Gravity is required to keep separated groups from floating off
     // the forces are reset to zero in this loop by using _setForce instead
     // of _addForce
@@ -115,7 +114,7 @@ var physicsMixin = {
    *
    * @private
    */
-  _updateCalculationNodes : function() {
+  _updateCalculationNodes: function () {
     if (this.constants.smoothCurves == true) {
       this.calculationNodes = {};
       this.calculationNodeIndices = [];
@@ -132,7 +131,7 @@ var physicsMixin = {
             this.calculationNodes[supportNodeId] = supportNodes[supportNodeId];
           }
           else {
-            supportNodes[supportNodeId]._setForce(0,0);
+            supportNodes[supportNodeId]._setForce(0, 0);
           }
         }
       }
@@ -155,7 +154,7 @@ var physicsMixin = {
    *
    * @private
    */
-  _calculateGravitationalForces : function() {
+  _calculateGravitationalForces: function () {
     var dx, dy, distance, node, i;
     var nodes = this.calculationNodes;
     var gravity = this.constants.physics.centralGravity;
@@ -168,7 +167,7 @@ var physicsMixin = {
       if (this._sector() == "default" && gravity != 0) {
         dx = -node.x;
         dy = -node.y;
-        distance = Math.sqrt(dx*dx + dy*dy);
+        distance = Math.sqrt(dx * dx + dy * dy);
 
         gravityForce = (distance == 0) ? 0 : (gravity / distance);
         node.fx = dx * gravityForce;
@@ -187,7 +186,7 @@ var physicsMixin = {
    *
    * @private
    */
-  _calculateSpringForces : function() {
+  _calculateSpringForces: function () {
     var edgeLength, edge, edgeId;
     var dx, dy, fx, fy, springForce, length;
     var edges = this.edges;
@@ -205,7 +204,7 @@ var physicsMixin = {
 
             dx = (edge.from.x - edge.to.x);
             dy = (edge.from.y - edge.to.y);
-            length =  Math.sqrt(dx * dx + dy * dy);
+            length = Math.sqrt(dx * dx + dy * dy);
 
             if (length == 0) {
               length = 0.01;
@@ -232,7 +231,7 @@ var physicsMixin = {
    *
    * @private
    */
-  _calculateSpringForcesWithSupport : function() {
+  _calculateSpringForcesWithSupport: function () {
     var edgeLength, edge, edgeId, combinedClusterSize;
     var edges = this.edges;
 
@@ -254,8 +253,8 @@ var physicsMixin = {
 
               // this implies that the edges between big clusters are longer
               edgeLength += combinedClusterSize * this.constants.clustering.edgeGrowth;
-              this._calculateSpringForce(node1,node2,0.5*edgeLength);
-              this._calculateSpringForce(node2,node3,0.5*edgeLength);
+              this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
+              this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
             }
           }
         }
@@ -272,12 +271,12 @@ var physicsMixin = {
    * @param edgeLength
    * @private
    */
-  _calculateSpringForce : function(node1,node2,edgeLength) {
+  _calculateSpringForce: function (node1, node2, edgeLength) {
     var dx, dy, fx, fy, springForce, length;
 
     dx = (node1.x - node2.x);
     dy = (node1.y - node2.y);
-    length =  Math.sqrt(dx * dx + dy * dy);
+    length = Math.sqrt(dx * dx + dy * dy);
 
     if (length == 0) {
       length = 0.01;
@@ -299,137 +298,137 @@ var physicsMixin = {
    * Load the HTML for the physics config and bind it
    * @private
    */
-  _loadPhysicsConfiguration : function() {
+  _loadPhysicsConfiguration: function () {
     if (this.physicsConfiguration === undefined) {
       this.backupConstants = {};
-      util.copyObject(this.constants,this.backupConstants);
+      util.copyObject(this.constants, this.backupConstants);
 
-      var hierarchicalLayoutDirections = ["LR","RL","UD","DU"];
+      var hierarchicalLayoutDirections = ["LR", "RL", "UD", "DU"];
       this.physicsConfiguration = document.createElement('div');
       this.physicsConfiguration.className = "PhysicsConfiguration";
       this.physicsConfiguration.innerHTML = '' +
         '<table><tr><td><b>Simulation Mode:</b></td></tr>' +
         '<tr>' +
         '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod1" value="BH" checked="checked">Barnes Hut</td>' +
-        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod2" value="R">Repulsion</td>'+
+        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod2" value="R">Repulsion</td>' +
         '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod3" value="H">Hierarchical</td>' +
-        '</tr>'+
+        '</tr>' +
         '</table>' +
-        '<table id="graph_BH_table" style="display:none">'+
-        '<tr><td><b>Barnes Hut</b></td></tr>'+
-        '<tr>'+
-        '<td width="150px">gravitationalConstant</td><td>0</td><td><input type="range" min="500" max="20000" value="' + (-1* this.constants.physics.barnesHut.gravitationalConstant) + '" step="25" style="width:300px" id="graph_BH_gc"></td><td  width="50px">-20000</td><td><input value="' + (-1* this.constants.physics.barnesHut.gravitationalConstant) + '" id="graph_BH_gc_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.barnesHut.centralGravity + '" step="0.05"  style="width:300px" id="graph_BH_cg"></td><td>3</td><td><input value="' + this.constants.physics.barnesHut.centralGravity + '" id="graph_BH_cg_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.barnesHut.springLength + '" step="1" style="width:300px" id="graph_BH_sl"></td><td>500</td><td><input value="' + this.constants.physics.barnesHut.springLength + '" id="graph_BH_sl_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.barnesHut.springConstant + '" step="0.001" style="width:300px" id="graph_BH_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.barnesHut.springConstant + '" id="graph_BH_sc_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.barnesHut.damping + '" step="0.005" style="width:300px" id="graph_BH_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.barnesHut.damping + '" id="graph_BH_damp_value" style="width:60px"></td>'+
-        '</tr>'+
-        '</table>'+
-        '<table id="graph_R_table" style="display:none">'+
-        '<tr><td><b>Repulsion</b></td></tr>'+
-        '<tr>'+
-        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.repulsion.nodeDistance + '" step="1" style="width:300px" id="graph_R_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.repulsion.nodeDistance + '" id="graph_R_nd_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.repulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_R_cg"></td><td>3</td><td><input value="' + this.constants.physics.repulsion.centralGravity + '" id="graph_R_cg_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.repulsion.springLength + '" step="1" style="width:300px" id="graph_R_sl"></td><td>500</td><td><input value="' + this.constants.physics.repulsion.springLength + '" id="graph_R_sl_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.repulsion.springConstant + '" step="0.001" style="width:300px" id="graph_R_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.repulsion.springConstant + '" id="graph_R_sc_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.repulsion.damping + '" step="0.005" style="width:300px" id="graph_R_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.repulsion.damping + '" id="graph_R_damp_value" style="width:60px"></td>'+
-        '</tr>'+
-        '</table>'+
-        '<table id="graph_H_table" style="display:none">'+
-        '<tr><td width="150"><b>Hierarchical</b></td></tr>'+
-        '<tr>'+
-        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" step="1" style="width:300px" id="graph_H_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" id="graph_H_nd_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_H_cg"></td><td>3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" id="graph_H_cg_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" step="1" style="width:300px" id="graph_H_sl"></td><td>500</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" id="graph_H_sl_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" step="0.001" style="width:300px" id="graph_H_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" id="graph_H_sc_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.hierarchicalRepulsion.damping + '" step="0.005" style="width:300px" id="graph_H_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.damping + '" id="graph_H_damp_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">direction</td><td>1</td><td><input type="range" min="0" max="3" value="' + hierarchicalLayoutDirections.indexOf(this.constants.hierarchicalLayout.direction) + '" step="1" style="width:300px" id="graph_H_direction"></td><td>4</td><td><input value="' + this.constants.hierarchicalLayout.direction + '" id="graph_H_direction_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">levelSeparation</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.levelSeparation + '" step="1" style="width:300px" id="graph_H_levsep"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.levelSeparation + '" id="graph_H_levsep_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">nodeSpacing</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.nodeSpacing + '" step="1" style="width:300px" id="graph_H_nspac"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.nodeSpacing + '" id="graph_H_nspac_value" style="width:60px"></td>'+
-        '</tr>'+
+        '<table id="graph_BH_table" style="display:none">' +
+        '<tr><td><b>Barnes Hut</b></td></tr>' +
+        '<tr>' +
+        '<td width="150px">gravitationalConstant</td><td>0</td><td><input type="range" min="500" max="20000" value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" step="25" style="width:300px" id="graph_BH_gc"></td><td  width="50px">-20000</td><td><input value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" id="graph_BH_gc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.barnesHut.centralGravity + '" step="0.05"  style="width:300px" id="graph_BH_cg"></td><td>3</td><td><input value="' + this.constants.physics.barnesHut.centralGravity + '" id="graph_BH_cg_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.barnesHut.springLength + '" step="1" style="width:300px" id="graph_BH_sl"></td><td>500</td><td><input value="' + this.constants.physics.barnesHut.springLength + '" id="graph_BH_sl_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.barnesHut.springConstant + '" step="0.001" style="width:300px" id="graph_BH_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.barnesHut.springConstant + '" id="graph_BH_sc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.barnesHut.damping + '" step="0.005" style="width:300px" id="graph_BH_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.barnesHut.damping + '" id="graph_BH_damp_value" style="width:60px"></td>' +
+        '</tr>' +
+        '</table>' +
+        '<table id="graph_R_table" style="display:none">' +
+        '<tr><td><b>Repulsion</b></td></tr>' +
+        '<tr>' +
+        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.repulsion.nodeDistance + '" step="1" style="width:300px" id="graph_R_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.repulsion.nodeDistance + '" id="graph_R_nd_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.repulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_R_cg"></td><td>3</td><td><input value="' + this.constants.physics.repulsion.centralGravity + '" id="graph_R_cg_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.repulsion.springLength + '" step="1" style="width:300px" id="graph_R_sl"></td><td>500</td><td><input value="' + this.constants.physics.repulsion.springLength + '" id="graph_R_sl_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.repulsion.springConstant + '" step="0.001" style="width:300px" id="graph_R_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.repulsion.springConstant + '" id="graph_R_sc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.repulsion.damping + '" step="0.005" style="width:300px" id="graph_R_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.repulsion.damping + '" id="graph_R_damp_value" style="width:60px"></td>' +
+        '</tr>' +
+        '</table>' +
+        '<table id="graph_H_table" style="display:none">' +
+        '<tr><td width="150"><b>Hierarchical</b></td></tr>' +
+        '<tr>' +
+        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" step="1" style="width:300px" id="graph_H_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" id="graph_H_nd_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_H_cg"></td><td>3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" id="graph_H_cg_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" step="1" style="width:300px" id="graph_H_sl"></td><td>500</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" id="graph_H_sl_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" step="0.001" style="width:300px" id="graph_H_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" id="graph_H_sc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.hierarchicalRepulsion.damping + '" step="0.005" style="width:300px" id="graph_H_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.damping + '" id="graph_H_damp_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">direction</td><td>1</td><td><input type="range" min="0" max="3" value="' + hierarchicalLayoutDirections.indexOf(this.constants.hierarchicalLayout.direction) + '" step="1" style="width:300px" id="graph_H_direction"></td><td>4</td><td><input value="' + this.constants.hierarchicalLayout.direction + '" id="graph_H_direction_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">levelSeparation</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.levelSeparation + '" step="1" style="width:300px" id="graph_H_levsep"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.levelSeparation + '" id="graph_H_levsep_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">nodeSpacing</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.nodeSpacing + '" step="1" style="width:300px" id="graph_H_nspac"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.nodeSpacing + '" id="graph_H_nspac_value" style="width:60px"></td>' +
+        '</tr>' +
         '</table>' +
         '<table><tr><td><b>Options:</b></td></tr>' +
         '<tr>' +
         '<td width="180px"><input type="button" id="graph_toggleSmooth" value="Toggle smoothCurves" style="width:150px"></td>' +
         '<td width="180px"><input type="button" id="graph_repositionNodes" value="Reinitialize" style="width:150px"></td>' +
         '<td width="180px"><input type="button" id="graph_generateOptions" value="Generate Options" style="width:150px"></td>' +
-        '</tr>'+
+        '</tr>' +
         '</table>'
-            this.containerElement.parentElement.insertBefore(this.physicsConfiguration,this.containerElement);
+      this.containerElement.parentElement.insertBefore(this.physicsConfiguration, this.containerElement);
       this.optionsDiv = document.createElement("div");
       this.optionsDiv.style.fontSize = "14px";
       this.optionsDiv.style.fontFamily = "verdana";
-      this.containerElement.parentElement.insertBefore(this.optionsDiv,this.containerElement);
+      this.containerElement.parentElement.insertBefore(this.optionsDiv, this.containerElement);
 
       var rangeElement;
       rangeElement = document.getElementById('graph_BH_gc');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_gc',-1,"physics_barnesHut_gravitationalConstant");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_gc', -1, "physics_barnesHut_gravitationalConstant");
       rangeElement = document.getElementById('graph_BH_cg');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_cg',1,"physics_centralGravity");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_cg', 1, "physics_centralGravity");
       rangeElement = document.getElementById('graph_BH_sc');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_sc',1,"physics_springConstant");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_sc', 1, "physics_springConstant");
       rangeElement = document.getElementById('graph_BH_sl');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_sl',1,"physics_springLength");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_sl', 1, "physics_springLength");
       rangeElement = document.getElementById('graph_BH_damp');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_damp',1,"physics_damping");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_damp', 1, "physics_damping");
 
       rangeElement = document.getElementById('graph_R_nd');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_R_nd',1,"physics_repulsion_nodeDistance");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_nd', 1, "physics_repulsion_nodeDistance");
       rangeElement = document.getElementById('graph_R_cg');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_R_cg',1,"physics_centralGravity");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_cg', 1, "physics_centralGravity");
       rangeElement = document.getElementById('graph_R_sc');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_R_sc',1,"physics_springConstant");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_sc', 1, "physics_springConstant");
       rangeElement = document.getElementById('graph_R_sl');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_R_sl',1,"physics_springLength");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_sl', 1, "physics_springLength");
       rangeElement = document.getElementById('graph_R_damp');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_R_damp',1,"physics_damping");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_damp', 1, "physics_damping");
 
       rangeElement = document.getElementById('graph_H_nd');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_nd',1,"physics_hierarchicalRepulsion_nodeDistance");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_nd', 1, "physics_hierarchicalRepulsion_nodeDistance");
       rangeElement = document.getElementById('graph_H_cg');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_cg',1,"physics_centralGravity");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_cg', 1, "physics_centralGravity");
       rangeElement = document.getElementById('graph_H_sc');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_sc',1,"physics_springConstant");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_sc', 1, "physics_springConstant");
       rangeElement = document.getElementById('graph_H_sl');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_sl',1,"physics_springLength");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_sl', 1, "physics_springLength");
       rangeElement = document.getElementById('graph_H_damp');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_damp',1,"physics_damping");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_damp', 1, "physics_damping");
       rangeElement = document.getElementById('graph_H_direction');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_direction',hierarchicalLayoutDirections,"hierarchicalLayout_direction");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_direction', hierarchicalLayoutDirections, "hierarchicalLayout_direction");
       rangeElement = document.getElementById('graph_H_levsep');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_levsep',1,"hierarchicalLayout_levelSeparation");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_levsep', 1, "hierarchicalLayout_levelSeparation");
       rangeElement = document.getElementById('graph_H_nspac');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_nspac',1,"hierarchicalLayout_nodeSpacing");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_nspac', 1, "hierarchicalLayout_nodeSpacing");
 
       var radioButton1 = document.getElementById("graph_physicsMethod1");
       var radioButton2 = document.getElementById("graph_physicsMethod2");
@@ -449,8 +448,12 @@ var physicsMixin = {
       graph_toggleSmooth.onclick = graphToggleSmoothCurves.bind(this);
       graph_repositionNodes.onclick = graphRepositionNodes.bind(this);
       graph_generateOptions.onclick = graphGenerateOptions.bind(this);
-      if (this.constants.smoothCurves == true) {graph_toggleSmooth.style.background = "#A4FF56";}
-      else                                     {graph_toggleSmooth.style.background = "#FF8532";}
+      if (this.constants.smoothCurves == true) {
+        graph_toggleSmooth.style.background = "#A4FF56";
+      }
+      else {
+        graph_toggleSmooth.style.background = "#FF8532";
+      }
 
 
       switchConfigurations.apply(this);
@@ -461,7 +464,7 @@ var physicsMixin = {
     }
   },
 
-  _overWriteGraphConstants : function(constantsVariableName, value) {
+  _overWriteGraphConstants: function (constantsVariableName, value) {
     var nameArray = constantsVariableName.split("_");
     if (nameArray.length == 1) {
       this.constants[nameArray[0]] = value;
@@ -473,7 +476,7 @@ var physicsMixin = {
       this.constants[nameArray[0]][nameArray[1]][nameArray[2]] = value;
     }
   }
-}
+};
 
 function graphToggleSmoothCurves () {
   this.constants.smoothCurves = !this.constants.smoothCurves;
@@ -502,7 +505,7 @@ function graphRepositionNodes () {
 };
 
 function graphGenerateOptions () {
-  var options = "No options are required, default values used."
+  var options = "No options are required, default values used.";
   var optionsSpecific = [];
   var radioButton1 = document.getElementById("graph_physicsMethod1");
   var radioButton2 = document.getElementById("graph_physicsMethod2");
@@ -513,8 +516,8 @@ function graphGenerateOptions () {
     if (this.constants.physics.springConstant != this.backupConstants.physics.barnesHut.springConstant)                         {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
     if (this.constants.physics.damping != this.backupConstants.physics.barnesHut.damping)                                       {optionsSpecific.push("damping: " + this.constants.physics.damping);}
     if (optionsSpecific.length != 0) {
-      options = "var options = {"
-      options += "physics: {barnesHut: {"
+      options = "var options = {";
+      options += "physics: {barnesHut: {";
       for (var i = 0; i < optionsSpecific.length; i++) {
         options += optionsSpecific[i];
         if (i < optionsSpecific.length - 1) {
@@ -533,7 +536,7 @@ function graphGenerateOptions () {
     }
   }
   else if (radioButton2.checked == true) {
-    options = "var options = {"
+    options = "var options = {";
     options += "physics: {barnesHut: {enabled: false}";
     if (this.constants.physics.repulsion.nodeDistance != this.backupConstants.physics.repulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.repulsion.nodeDistance);}
     if (this.constants.physics.centralGravity != this.backupConstants.physics.repulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
@@ -541,7 +544,7 @@ function graphGenerateOptions () {
     if (this.constants.physics.springConstant != this.backupConstants.physics.repulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
     if (this.constants.physics.damping != this.backupConstants.physics.repulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
     if (optionsSpecific.length != 0) {
-      options += ", repulsion: {"
+      options += ", repulsion: {";
       for (var i = 0; i < optionsSpecific.length; i++) {
         options += optionsSpecific[i];
         if (i < optionsSpecific.length - 1) {
@@ -557,14 +560,14 @@ function graphGenerateOptions () {
     options += '};'
   }
   else {
-    options = "var options = {"
+    options = "var options = {";
     if (this.constants.physics.hierarchicalRepulsion.nodeDistance != this.backupConstants.physics.hierarchicalRepulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.hierarchicalRepulsion.nodeDistance);}
     if (this.constants.physics.centralGravity != this.backupConstants.physics.hierarchicalRepulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
     if (this.constants.physics.springLength != this.backupConstants.physics.hierarchicalRepulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
     if (this.constants.physics.springConstant != this.backupConstants.physics.hierarchicalRepulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
     if (this.constants.physics.damping != this.backupConstants.physics.hierarchicalRepulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
     if (optionsSpecific.length != 0) {
-      options += "physics: {hierarchicalRepulsion: {"
+      options += "physics: {hierarchicalRepulsion: {";
       for (var i = 0; i < optionsSpecific.length; i++) {
         options += optionsSpecific[i];
         if (i < optionsSpecific.length - 1) {
@@ -600,7 +603,7 @@ function graphGenerateOptions () {
 
 
 function switchConfigurations () {
-  var ids = ["graph_BH_table","graph_R_table","graph_H_table"]
+  var ids = ["graph_BH_table", "graph_R_table", "graph_H_table"];
   var radioButton = document.querySelector('input[name="graph_physicsMethod"]:checked').value;
   var tableId = "graph_" + radioButton + "_table";
   var table = document.getElementById(tableId);

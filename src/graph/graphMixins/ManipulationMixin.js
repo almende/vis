@@ -74,7 +74,7 @@ var manipulationMixin = {
 
     // reset global variables
     this.blockConnectingEdgeSelection = false;
-    this.forceAppendSelection = false
+    this.forceAppendSelection = false;
 
     if (this.editMode == true) {
       while (this.manipulationDiv.hasChildNodes()) {
@@ -97,7 +97,7 @@ var manipulationMixin = {
         this.manipulationDiv.innerHTML += "" +
           "<div class='graph-seperatorLine'></div>" +
           "<span class='graph-manipulationUI delete' id='graph-manipulate-delete'>" +
-            "<span class='graph-manipulationLabel'>"+this.constants.labels['delete'] +"</span></span>";
+            "<span class='graph-manipulationLabel'>"+this.constants.labels['del'] +"</span></span>";
       }
 
 
@@ -123,7 +123,7 @@ var manipulationMixin = {
     else {
       this.editModeDiv.innerHTML = "" +
         "<span class='graph-manipulationUI edit editmode' id='graph-manipulate-editModeButton'>" +
-        "<span class='graph-manipulationLabel'>"+this.constants.labels['edit'] +"</span></span>"
+        "<span class='graph-manipulationLabel'>" + this.constants.labels['edit'] + "</span></span>";
       var editModeButton = document.getElementById("graph-manipulate-editModeButton");
       editModeButton.onclick = this._toggleEditMode.bind(this);
     }
@@ -267,7 +267,7 @@ var manipulationMixin = {
       var connectFromId = this.edges['connectionEdge'].fromId;
 
       // remove the temporary nodes and edge
-      delete this.edges['connectionEdge']
+      delete this.edges['connectionEdge'];
       delete this.sectors['support']['nodes']['targetNode'];
       delete this.sectors['support']['nodes']['targetViaNode'];
 
@@ -334,7 +334,7 @@ var manipulationMixin = {
         if (this.triggerFunctions.connect.length == 2) {
           var me = this;
           this.triggerFunctions.connect(defaultData, function(finalizedData) {
-            me.edgesData.add(finalizedData)
+            me.edgesData.add(finalizedData);
             me.moving = true;
             me.start();
           });
@@ -346,7 +346,7 @@ var manipulationMixin = {
         }
       }
       else {
-        this.edgesData.add(defaultData)
+        this.edgesData.add(defaultData);
         this.moving = true;
         this.start();
       }
@@ -403,14 +403,14 @@ var manipulationMixin = {
       if (!this._clusterInSelection()) {
         var selectedNodes = this.getSelectedNodes();
         var selectedEdges = this.getSelectedEdges();
-        if (this.triggerFunctions.delete) {
+        if (this.triggerFunctions.del) {
           var me = this;
           var data = {nodes: selectedNodes, edges: selectedEdges};
-          if (this.triggerFunctions.delete.length = 2) {
-            this.triggerFunctions.delete(data, function (finalizedData) {
+          if (this.triggerFunctions.del.length = 2) {
+            this.triggerFunctions.del(data, function (finalizedData) {
               me.edgesData.remove(finalizedData.edges);
               me.nodesData.remove(finalizedData.nodes);
-              this._unselectAll();
+              me._unselectAll();
               me.moving = true;
               me.start();
             });

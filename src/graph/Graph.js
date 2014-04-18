@@ -30,7 +30,7 @@ function Graph (container, data, options) {
   this.initializing = true;
 
   // these functions are triggered when the dataset is edited
-  this.triggerFunctions = {add:null,edit:null,connect:null,delete:null};
+  this.triggerFunctions = {add:null,edit:null,connect:null,del:null};
 
   // set constant values
   this.constants = {
@@ -157,7 +157,7 @@ function Graph (container, data, options) {
       add:"Add Node",
       edit:"Edit",
       link:"Add Link",
-      delete:"Delete selected",
+      del:"Delete selected",
       editNode:"Edit Node",
       back:"Back",
       addDescription:"Click in an empty space to place a new node.",
@@ -534,7 +534,7 @@ Graph.prototype.setOptions = function (options) {
     }
 
     if (options.onDelete) {
-      this.triggerFunctions.delete = options.onDelete;
+      this.triggerFunctions.del = options.onDelete;
     }
 
     if (options.physics) {
@@ -1955,14 +1955,19 @@ Graph.prototype.start = function() {
   if (this.moving || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0) {
     if (!this.timer) {
       var ua = navigator.userAgent.toLowerCase();
-      if (ua.indexOf('safari') != -1) {
+
+      var requiresTimeout = false;
+      if (ua.indexOf('msie 9.0') != -1) { // IE 9
+        requiresTimeout = true;
+      }
+      else if (ua.indexOf('safari') != -1) {  // safari
         if (ua.indexOf('chrome') <= -1) {
-          // safari
-          this.timer = window.setTimeout(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+          requiresTimeout = true;
         }
-        else {
-          this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
-        }
+      }
+
+      if (requiresTimeout == true) {
+        this.timer = window.setTimeout(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
       }
       else{
         this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
