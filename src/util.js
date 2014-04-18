@@ -690,22 +690,17 @@ util.option.asElement = function (value, defaultValue) {
 util.GiveDec = function GiveDec(Hex) {
   var Value;
 
-  if(Hex == "A")
+  if (Hex == "A")
     Value = 10;
-  else
-  if(Hex == "B")
+  else if (Hex == "B")
     Value = 11;
-  else
-  if(Hex == "C")
+  else if (Hex == "C")
     Value = 12;
-  else
-  if(Hex == "D")
+  else if (Hex == "D")
     Value = 13;
-  else
-  if(Hex == "E")
+  else if (Hex == "E")
     Value = 14;
-  else
-  if(Hex == "F")
+  else if (Hex == "F")
     Value = 15;
   else
     Value = eval(Hex);
@@ -718,20 +713,15 @@ util.GiveHex = function GiveHex(Dec) {
 
   if(Dec == 10)
     Value = "A";
-  else
-  if(Dec == 11)
+  else if (Dec == 11)
     Value = "B";
-  else
-  if(Dec == 12)
+  else if (Dec == 12)
     Value = "C";
-  else
-  if(Dec == 13)
+  else if (Dec == 13)
     Value = "D";
-  else
-  if(Dec == 14)
+  else if (Dec == 14)
     Value = "E";
-  else
-  if(Dec == 15)
+  else if (Dec == 15)
     Value = "F";
   else
     Value = "" + Dec;
@@ -890,31 +880,31 @@ util.HSVToRGB = function HSVToRGB(h, s, v) {
   return {r:Math.floor(r * 255), g:Math.floor(g * 255), b:Math.floor(b * 255) };
 };
 
-util.HSVToHex = function HSVToHex(h,s,v) {
-  var rgb = util.HSVToRGB(h,s,v);
-  return util.RGBToHex(rgb.r,rgb.g,rgb.b);
-}
+util.HSVToHex = function HSVToHex(h, s, v) {
+  var rgb = util.HSVToRGB(h, s, v);
+  return util.RGBToHex(rgb.r, rgb.g, rgb.b);
+};
 
 util.hexToHSV = function hexToHSV(hex) {
   var rgb = util.hexToRGB(hex);
-  return util.RGBToHSV(rgb.r,rgb.g,rgb.b);
-}
+  return util.RGBToHSV(rgb.r, rgb.g, rgb.b);
+};
 
 util.isValidHex = function isValidHex(hex) {
-  var isOk  = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
+  var isOk = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
   return isOk;
-}
+};
 
-util.copyObject = function copyObject(objectFrom,objectTo) {
+util.copyObject = function copyObject(objectFrom, objectTo) {
   for (var i in objectFrom) {
     if (objectFrom.hasOwnProperty(i)) {
       if (typeof objectFrom[i] == "object") {
         objectTo[i] = {};
-        util.copyObject(objectFrom[i],objectTo[i]);
+        util.copyObject(objectFrom[i], objectTo[i]);
       }
       else {
         objectTo[i] = objectFrom[i];
       }
     }
   }
-}
+};

@@ -195,8 +195,8 @@ var items = [
     <td>type</td>
     <td>String</td>
     <td>'box'</td>
-    <td>The type of the item. Can be 'box' (default), 'range', or 'point'.
-      <!-- TODO: describe rangeoverflow -->
+    <td>The type of the item. Can be 'box' (default), 'point', 'range', or 'rangeoverflow'.
+      Types 'box' and 'point' need a start date, and types 'range' and 'rangeoverflow' need both a start and end date. Types 'range' and rangeoverflow are equal, except that overflowing text in 'range' is hidden, while visible in 'rangeoverflow'.
     </td>
   </tr>
   <tr>
@@ -545,8 +545,7 @@ var options = {
   <td>type</td>
   <td>String</td>
   <td>'box'</td>
-  <td>Specifies the type for the timeline items. Choose from 'dot' or 'point'.
-    Note that individual items can override this global type.
+  <td>Specifies the type for the timeline items. Choose from 'box', 'point', 'range', and 'rangeoverflow'. Note that individual items can override this global type.
   </td>
 </tr>
 

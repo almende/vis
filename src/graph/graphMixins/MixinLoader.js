@@ -11,7 +11,7 @@ var graphMixinLoaders = {
    * @param {Object} sourceVariable | this object has to contain functions.
    * @private
    */
-  _loadMixin : function(sourceVariable) {
+  _loadMixin: function (sourceVariable) {
     for (var mixinFunction in sourceVariable) {
       if (sourceVariable.hasOwnProperty(mixinFunction)) {
         Graph.prototype[mixinFunction] = sourceVariable[mixinFunction];
@@ -26,7 +26,7 @@ var graphMixinLoaders = {
    * @param {Object} sourceVariable | this object has to contain functions.
    * @private
    */
-  _clearMixin : function(sourceVariable) {
+  _clearMixin: function (sourceVariable) {
     for (var mixinFunction in sourceVariable) {
       if (sourceVariable.hasOwnProperty(mixinFunction)) {
         Graph.prototype[mixinFunction] = undefined;
@@ -40,15 +40,13 @@ var graphMixinLoaders = {
    *
    * @private
    */
-  _loadPhysicsSystem : function() {
+  _loadPhysicsSystem: function () {
     this._loadMixin(physicsMixin);
     this._loadSelectedForceSolver();
     if (this.constants.configurePhysics == true) {
       this._loadPhysicsConfiguration();
     }
-   },
-
-
+  },
 
 
   /**
@@ -56,7 +54,7 @@ var graphMixinLoaders = {
    *
    * @private
    */
-  _loadClusterSystem : function() {
+  _loadClusterSystem: function () {
     this.clusterSession = 0;
     this.hubThreshold = 5;
     this._loadMixin(ClusterMixin);
@@ -68,26 +66,26 @@ var graphMixinLoaders = {
    *
    * @private
    */
-  _loadSectorSystem : function() {
+  _loadSectorSystem: function () {
     this.sectors = { },
-    this.activeSector = ["default"];
+      this.activeSector = ["default"];
     this.sectors["active"] = { },
-    this.sectors["active"]["default"] = {"nodes":{},
-      "edges":{},
-      "nodeIndices":[],
-      "formationScale": 1.0,
-      "drawingNode": undefined };
+      this.sectors["active"]["default"] = {"nodes": {},
+        "edges": {},
+        "nodeIndices": [],
+        "formationScale": 1.0,
+        "drawingNode": undefined };
     this.sectors["frozen"] = {},
-    this.sectors["support"] = {"nodes":{},
-      "edges":{},
-      "nodeIndices":[],
-      "formationScale": 1.0,
-      "drawingNode": undefined };
+      this.sectors["support"] = {"nodes": {},
+        "edges": {},
+        "nodeIndices": [],
+        "formationScale": 1.0,
+        "drawingNode": undefined };
 
     this.nodeIndices = this.sectors["active"]["default"]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
 
     this._loadMixin(SectorMixin);
-   },
+  },
 
 
   /**
@@ -95,11 +93,11 @@ var graphMixinLoaders = {
    *
    * @private
    */
-  _loadSelectionSystem : function() {
-    this.selectionObj = {nodes:{},edges:{}};
+  _loadSelectionSystem: function () {
+    this.selectionObj = {nodes: {}, edges: {}};
 
     this._loadMixin(SelectionMixin);
-   },
+  },
 
 
   /**
@@ -107,7 +105,7 @@ var graphMixinLoaders = {
    *
    * @private
    */
-  _loadManipulationSystem : function() {
+  _loadManipulationSystem: function () {
     // reset global variables -- these are used by the selection of nodes and edges.
     this.blockConnectingEdgeSelection = false;
     this.forceAppendSelection = false
@@ -170,7 +168,7 @@ var graphMixinLoaders = {
         this._clearMixin(manipulationMixin);
       }
     }
-   },
+  },
 
 
   /**
@@ -178,7 +176,7 @@ var graphMixinLoaders = {
    *
    * @private
    */
-  _loadNavigationControls : function() {
+  _loadNavigationControls: function () {
     this._loadMixin(NavigationMixin);
 
     // the clean function removes the button divs, this is done to remove the bindings.
@@ -186,7 +184,7 @@ var graphMixinLoaders = {
     if (this.constants.navigation.enabled == true) {
       this._loadNavigationElements();
     }
-   },
+  },
 
 
   /**
@@ -194,8 +192,8 @@ var graphMixinLoaders = {
    *
    * @private
    */
-  _loadHierarchySystem : function() {
+  _loadHierarchySystem: function () {
     this._loadMixin(HierarchicalLayoutMixin);
   }
 
-}
+};
