@@ -2,14 +2,13 @@ vis.js history
 http://visjs.org
 
 
-## 2014-04-16, version 0.7.4
+## 2014-04-18, version 0.7.4
 
 ### Graph
 
 - fixed IE9 bug.
 - style fixes.
 - minor bug fixes.
-
 
 
 ## 2014-04-16, version 0.7.3
