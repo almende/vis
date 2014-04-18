@@ -11,23 +11,25 @@ var barnesHutMixin = {
    * @private
    */
   _calculateNodeForces : function() {
-    var node;
-    var nodes = this.calculationNodes;
-    var nodeIndices = this.calculationNodeIndices;
-    var nodeCount = nodeIndices.length;
+    if (this.constants.physics.barnesHut.gravitationalConstant != 0) {
+      var node;
+      var nodes = this.calculationNodes;
+      var nodeIndices = this.calculationNodeIndices;
+      var nodeCount = nodeIndices.length;
 
-    this._formBarnesHutTree(nodes,nodeIndices);
+      this._formBarnesHutTree(nodes,nodeIndices);
 
-    var barnesHutTree = this.barnesHutTree;
+      var barnesHutTree = this.barnesHutTree;
 
-    // place the nodes one by one recursively
-    for (var i = 0; i < nodeCount; i++) {
-      node = nodes[nodeIndices[i]];
-      // starting with root is irrelevant, it never passes the BarnesHut condition
-      this._getForceContribution(barnesHutTree.root.children.NW,node);
-      this._getForceContribution(barnesHutTree.root.children.NE,node);
-      this._getForceContribution(barnesHutTree.root.children.SW,node);
-      this._getForceContribution(barnesHutTree.root.children.SE,node);
+      // place the nodes one by one recursively
+      for (var i = 0; i < nodeCount; i++) {
+        node = nodes[nodeIndices[i]];
+        // starting with root is irrelevant, it never passes the BarnesHut condition
+        this._getForceContribution(barnesHutTree.root.children.NW,node);
+        this._getForceContribution(barnesHutTree.root.children.NE,node);
+        this._getForceContribution(barnesHutTree.root.children.SW,node);
+        this._getForceContribution(barnesHutTree.root.children.SE,node);
+      }
     }
   },
 

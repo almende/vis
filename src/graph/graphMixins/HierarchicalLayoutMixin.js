@@ -50,7 +50,7 @@ var HierarchicalLayoutMixin = {
 
       // if the user defined some levels but not all, alert and run without hierarchical layout
       if (undefinedLevel == true && definedLevel == true) {
-        alert("To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.")
+        alert("To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.");
         this.zoomExtent(true,this.constants.clustering.enabled);
         if (!this.constants.clustering.enabled) {
           this.start();
