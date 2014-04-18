@@ -94,6 +94,39 @@
   timeline.setItems(items);
   console.timeEnd('set items');
 
+  timeline.on('select', function (selection) {
+    console.log('select', selection);
+  });
+
+  /*
+  timeline.on('rangechange', function (range) {
+    console.log('rangechange', range);
+  });
+  timeline.on('rangechanged', function (range) {
+    console.log('rangechanged', range);
+  });
+  */
+
+  items.on('add', function (nodes) {
+    console.log('items add', nodes);
+  });
+  items.on('update', function (nodes) {
+    console.log('items update', nodes);
+  });
+  items.on('remove', function (nodes) {
+    console.log('items remove', nodes);
+  });
+
+  groups.on('add', function (nodes) {
+    console.log('groups add', nodes);
+  });
+  groups.on('update', function (nodes) {
+    console.log('groups update', nodes);
+  });
+  groups.on('remove', function (nodes) {
+    console.log('groups remove', nodes);
+  });
+
 </script>
 </body>
 </html>

@@ -87,6 +87,29 @@
   var timeline = new vis.Timeline(container, items, options);
   console.timeEnd('create timeline');
 
+  timeline.on('select', function (selection) {
+    console.log('select', selection);
+  });
+
+  /*
+  timeline.on('rangechange', function (range) {
+    console.log('rangechange', range);
+  });
+  timeline.on('rangechanged', function (range) {
+    console.log('rangechanged', range);
+  });
+  */
+
+  items.on('add', function (nodes) {
+    console.log('add', nodes);
+  });
+  items.on('update', function (nodes) {
+    console.log('update', nodes);
+  });
+  items.on('remove', function (nodes) {
+    console.log('remove', nodes);
+  });
+
 </script>
 </body>
 </html>

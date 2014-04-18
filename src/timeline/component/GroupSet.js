@@ -446,16 +446,59 @@ GroupSet.prototype._toQueue = function _toQueue(ids, action) {
 };
 
 /**
- * Find the Group from an event target:
+ * Find the GroupSet from an event target:
  * searches for the attribute 'timeline-groupset' in the event target's element
  * tree, then finds the right group in this groupset
  * @param {Event} event
  * @return {Group | null} group
  */
-GroupSet.groupFromTarget = function groupFromTarget (event) {
-  var groupset,
-      target = event.target;
+GroupSet.groupSetFromTarget = function groupSetFromTarget (event) {
+  var target = event.target;
+  while (target) {
+    if (target.hasOwnProperty('timeline-groupset')) {
+      return target['timeline-groupset'];
+    }
+    target = target.parentNode;
+  }
 
+  return null;
+};
+
+/**
+ * Find the Group from an event target:
+ * searches for the two elements having attributes 'timeline-groupset' and
+ * 'timeline-itemset' in the event target's element, then finds the right group.
+ * @param {Event} event
+ * @return {Group | null} group
+ */
+GroupSet.groupFromTarget = function groupFromTarget (event) {
+  // find the groupSet
+  var groupSet = null;
+  var target = event.target;
+  while (target && !groupSet) {
+    if (target.hasOwnProperty('timeline-groupset')) {
+      groupSet = target['timeline-groupset'];
+    }
+    target = target.parentNode;
+  }
+
+  // find the itemset
+  var itemSet = ItemSet.itemSetFromTarget(event);
+
+  // find the right group
+  if (groupSet && itemSet) {
+    for (var groupId in groupSet.groups) {
+      if (groupSet.groups.hasOwnProperty(groupId)) {
+        var group = groupSet.groups[groupId];
+        if (group.itemSet == itemSet) {
+          return group;
+        }
+      }
+    }
+  }
+
+
+  /* TODO: cleanup
   while (target) {
     if (target.hasOwnProperty('timeline-groupset')) {
       groupset = target['timeline-groupset'];
@@ -474,6 +517,7 @@ GroupSet.groupFromTarget = function groupFromTarget (event) {
       }
     }
   }
+  */
 
   return null;
 };

@@ -436,7 +436,9 @@ ItemSet.prototype.removeItem = function removeItem (id) {
     // confirm deletion
     this.options.onRemove(item, function (item) {
       if (item) {
-        dataset.remove(item);
+        // remove by id here, it is possible that an item has no id defined
+        // itself, so better not delete by the item itself
+        dataset.remove(id);
       }
     });
   }
@@ -514,13 +516,18 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
     var item = me.items[id];
     if (item) {
       count++;
-      item.hide(); // TODO: only hide when displayed
+      item.hide();
       delete me.items[id];
       delete me.visibleItems[id];
+
+      // remove from selection
+      var index = me.selection.indexOf(id);
+      if (index != -1) me.selection.splice(index, 1);
     }
   });
 
   if (count) {
+    // update order
     this._order();
     this.stackDirty = true; // force re-stacking of all items next repaint
     this.emit('change');
@@ -662,6 +669,7 @@ ItemSet.prototype._onDragEnd = function (event) {
         me.options.onMove(item, function (item) {
           if (item) {
             // apply changes
+            item[dataset.fieldId] = id; // ensure the item contains its id (can be undefined)
             changes.push(item);
           }
           else {

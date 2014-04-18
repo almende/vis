@@ -407,7 +407,7 @@ Timeline.prototype.setGroups = function(groupSet) {
     // create new GroupSet when needed
     if (!this.groupSet) {
       this.groupSet = new GroupSet(this.contentPanel, this.sideContentPanel, options);
-      this.groupSet.on('change', this.rootPanel.repaint.bind(this.rootPanel, 'changes'));
+      this.groupSet.on('change', this.rootPanel.repaint.bind(this.rootPanel));
       this.groupSet.setRange(this.range);
       this.groupSet.setItems(this.itemsData);
       this.groupSet.setGroups(this.groupsData);
