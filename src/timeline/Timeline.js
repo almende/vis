@@ -536,14 +536,20 @@ Timeline.prototype._onSelectItem = function (event) {
     return;
   }
 
-  var item = ItemSet.itemFromTarget(event);
+  var oldSelection = this.getSelection();
 
+  var item = ItemSet.itemFromTarget(event);
   var selection = item ? [item.id] : [];
   this.setSelection(selection);
 
-  this.emit('select', {
-    items: this.getSelection()
-  });
+  var newSelection = this.getSelection();
+
+  // if selection is changed, emit a select event
+  if (!util.equalArray(oldSelection, newSelection)) {
+    this.emit('select', {
+      items: this.getSelection()
+    });
+  }
 
   event.stopPropagation();
 };

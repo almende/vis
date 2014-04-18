@@ -473,16 +473,9 @@ GroupSet.groupSetFromTarget = function groupSetFromTarget (event) {
  */
 GroupSet.groupFromTarget = function groupFromTarget (event) {
   // find the groupSet
-  var groupSet = null;
-  var target = event.target;
-  while (target && !groupSet) {
-    if (target.hasOwnProperty('timeline-groupset')) {
-      groupSet = target['timeline-groupset'];
-    }
-    target = target.parentNode;
-  }
+  var groupSet = GroupSet.groupSetFromTarget(event);
 
-  // find the itemset
+  // find the ItemSet
   var itemSet = ItemSet.itemSetFromTarget(event);
 
   // find the right group
@@ -496,28 +489,6 @@ GroupSet.groupFromTarget = function groupFromTarget (event) {
       }
     }
   }
-
-
-  /* TODO: cleanup
-  while (target) {
-    if (target.hasOwnProperty('timeline-groupset')) {
-      groupset = target['timeline-groupset'];
-      break;
-    }
-    target = target.parentNode;
-  }
-
-  if (groupset) {
-    for (var groupId in groupset.groups) {
-      if (groupset.groups.hasOwnProperty(groupId)) {
-        var group = groupset.groups[groupId];
-        if (group.itemset && ItemSet.itemSetFromTarget(event) == group.itemset) {
-          return group;
-        }
-      }
-    }
-  }
-  */
 
   return null;
 };

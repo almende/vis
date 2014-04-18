@@ -98,6 +98,23 @@ util.extend = function (a, b) {
 };
 
 /**
+ * Test whether all elements in two arrays are equal.
+ * @param {Array} a
+ * @param {Array} b
+ * @return {boolean} Returns true if both arrays have the same length and same
+ *                   elements.
+ */
+util.equalArray = function (a, b) {
+  if (a.length != b.length) return false;
+
+  for (var i = 1, len = a.length; i < len; i++) {
+    if (a[i] != b[i]) return false;
+  }
+
+  return true;
+};
+
+/**
  * Convert an object to another type
  * @param {Boolean | Number | String | Date | Moment | Null | undefined} object
  * @param {String | undefined} type   Name of the type. Available types:
