@@ -9,9 +9,11 @@ http://visjs.org
 - Large refactoring of the Timeline code:
   - Simplifications in the code.
   - Performance improvements.
+  - Improved layout of box-items inside groups.
 - Fixed option `autoResize` forcing a repaint of the Timeline with every check
   rather than when the Timeline is actually resized.
 - Minor bug fixes.
+- More examples added.
 
 
 ## 2014-04-18, version 0.7.4
