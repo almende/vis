@@ -534,21 +534,31 @@ Timeline.prototype.getSelection = function getSelection() {
 
 /**
  * Set the visible window. Both parameters are optional, you can change only
- * start or only end.
+ * start or only end. Syntax:
+ *
+ *     TimeLine.setWindow(start, end)
+ *     TimeLine.setWindow(range)
+ *
+ * Where start and end can be a Date, number, or string, and range is an
+ * object with properties start and end.
+ *
  * @param {Date | Number | String} [start] Start date of visible window
  * @param {Date | Number | String} [end]   End date of visible window
  */
-// TODO: implement support for setWindow({start: ..., end: ...})
-// TODO: rename setWindow to setRange?
 Timeline.prototype.setWindow = function setWindow(start, end) {
-  this.range.setRange(start, end);
+  if (arguments.length == 1) {
+    var range = arguments[0];
+    this.range.setRange(range.start, range.end);
+  }
+  else {
+    this.range.setRange(start, end);
+  }
 };
 
 /**
  * Get the visible window
  * @return {{start: Date, end: Date}}   Visible range
  */
-// TODO: rename getWindow to getRange?
 Timeline.prototype.getWindow = function setWindow() {
   var range = this.range.getRange();
   return {
