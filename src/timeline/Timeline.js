@@ -315,6 +315,11 @@ Timeline.prototype.setOptions = function (options) {
     }
   }
 
+  // TODO: remove deprecation error one day (deprecated since version 0.8.0)
+  if (options && options.order) {
+    throw new Error('Option order is deprecated. There is no replacement for this feature.');
+  }
+
   // repaint everything
   this.rootPanel.repaint();
 };

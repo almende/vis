@@ -14,6 +14,7 @@ http://visjs.org
   rather than when the Timeline is actually resized.
 - Fixed `select` event fired repeatedly when clicking an empty place on the
   Timeline, deselecting selected items).
+- Option `order` is now deprecated. This was needed for performance improvements.
 - Minor bug fixes.
 - More examples added.
 
