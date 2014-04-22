@@ -39,9 +39,8 @@ ItemBox.prototype = new Item (null, null);
  */
 ItemBox.prototype.isVisible = function isVisible (range) {
   // determine visibility
-  // TODO: account for the width of the item. Right now we add 1/4 to the window
+  // TODO: account for the real width of the item. Right now we just add 1/4 to the window
   var interval = (range.end - range.start) / 4;
-  interval = 0; // TODO: remove
   return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
 };
 
@@ -215,17 +214,17 @@ ItemBox.prototype.repositionY = function repositionY () {
     box.style.top = (this.top || 0) + 'px';
     box.style.bottom = '';
 
-    line.style.top = '0px';
+    line.style.top = '0';
     line.style.bottom = '';
-    line.style.height = this.top + 'px';
+    line.style.height = (this.parent.top + this.top + 1) + 'px';
   }
   else { // orientation 'bottom'
     box.style.top = '';
     box.style.bottom = (this.top || 0) + 'px';
 
-    line.style.top = '';
-    line.style.bottom = '0px';
-    line.style.height = this.top + 'px';
+    line.style.top = (this.parent.top + this.parent.height - this.top - 1) + 'px';
+    line.style.bottom = '0';
+    line.style.height = '';
   }
 
   dot.style.top = (-this.props.dot.height / 2) + 'px';

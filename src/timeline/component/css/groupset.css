@@ -1,6 +1,6 @@
 
 /* TODO: cleanup
-.vis.timeline .groupSet {
+.vis.timeline .groupset {
   position: relative;
   padding: 0;
   margin: 0;
@@ -18,7 +18,7 @@
 }
 */
 
-.vis.timeline .labelSet {
+.vis.timeline .labelset {
   position: relative;
   width: 100%;
 
@@ -28,7 +28,7 @@
   box-sizing: border-box;
 }
 
-.vis.timeline .labelSet .vlabel {
+.vis.timeline .labelset .vlabel {
   position: relative;
   left: 0;
   top: 0;
@@ -39,21 +39,21 @@
   box-sizing: border-box;
 }
 
-.vis.timeline.bottom .labelSet .vlabel,
+.vis.timeline.bottom .labelset .vlabel,
 .vis.timeline.top .vpanel.side-content,
-.vis.timeline.top .itemset .axis {
+.vis.timeline.top .groupset .itemset {
   border-top: 1px solid #bfbfbf;
   border-bottom: none;
 }
 
-.vis.timeline.top .labelSet .vlabel,
+.vis.timeline.top .labelset .vlabel,
 .vis.timeline.bottom .vpanel.side-content,
-.vis.timeline.bottom .itemset .axis {
+.vis.timeline.bottom .groupset .itemset {
   border-top: none;
   border-bottom: 1px solid #bfbfbf;
 }
 
-.vis.timeline .labelSet .vlabel .inner {
+.vis.timeline .labelset .vlabel .inner {
   display: inline-block;
   padding: 5px;
 }

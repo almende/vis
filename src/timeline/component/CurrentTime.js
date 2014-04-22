@@ -71,8 +71,8 @@ CurrentTime.prototype.start = function start() {
     me.stop();
 
     // determine interval to refresh
-    var scale = me.range.conversion(parent.width).scale;
-    var interval = 1 / scale / 2;
+    var scale = me.range.conversion(me.parent.width).scale;
+    var interval = 1 / scale / 10;
     if (interval < 30)   interval = 30;
     if (interval > 1000) interval = 1000;
 

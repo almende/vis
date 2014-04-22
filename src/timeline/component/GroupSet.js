@@ -2,16 +2,22 @@
  * An GroupSet holds a set of groups
  * @param {Panel} contentPanel      Panel where the ItemSets will be created
  * @param {Panel} labelPanel        Panel where the labels will be created
+ * @param {Panel} backgroundPanel   Panel where the vertical lines of box
+ *                                  items are created
+ * @param {Panel} axisPanel         Panel on the axis where the dots of box
+ *                                  items will be created
  * @param {Object} [options]        See GroupSet.setOptions for the available
  *                                  options.
  * @constructor GroupSet
  * @extends Panel
  */
-function GroupSet(contentPanel, labelPanel, options) {
+function GroupSet(contentPanel, labelPanel, backgroundPanel, axisPanel, options) {
   this.id = util.randomUUID();
 
   this.contentPanel = contentPanel;
   this.labelPanel = labelPanel;
+  this.backgroundPanel = backgroundPanel;
+  this.axisPanel = axisPanel;
   this.options = options || {};
 
   this.range = null;      // Range or Object {start: number, end: number}
@@ -64,7 +70,7 @@ GroupSet.prototype._create = function _create () {
   this.frame = frame;
 
   this.labelSet = new Panel({
-    className: 'labelSet',
+    className: 'labelset',
     width: '100%',
     height: '100%'
   });
@@ -272,11 +278,12 @@ GroupSet.prototype.repaint = function repaint() {
 
             // TODO: do not recreate the group with every update
 
-            group = new Group(me.frame, me.labelSet.frame, id, groupOptions);
+            group = new Group(me, me.labelSet, me.backgroundPanel, me.axisPanel, id, groupOptions);
             group.on('change', me.emit.bind(me, 'change')); // propagate change event
             group.setRange(me.range);
             group.setItems(me.itemsData); // attach items data
             groups[id] = group;
+            group.parent = me;
 
             // Note: it is important to add the binding after group.setItems
             // is executed, because that will start an infinite loop
@@ -323,7 +330,6 @@ GroupSet.prototype.repaint = function repaint() {
 
   // reposition the labels and calculate the maximum label width
   // TODO: labels are not displayed correctly when orientation=='top'
-  // TODO: width of labelPanel is not immediately updated on a change in groups
   var maxWidth = 0;
   for (id in groups) {
     if (groups.hasOwnProperty(id)) {
@@ -333,19 +339,19 @@ GroupSet.prototype.repaint = function repaint() {
   }
   resized = util.updateProperty(this.props.labels, 'width', maxWidth) || resized;
 
-  // recalculate the height of the groupset
+  // recalculate the height of the groupset, and recalculate top positions of the groups
   var fixedHeight = (asSize(options.height) != null);
   var height;
   if (!fixedHeight) {
     // height is not specified, calculate the sum of the height of all groups
     height = 0;
 
-    for (id in this.groups) {
-      if (this.groups.hasOwnProperty(id)) {
-        group = this.groups[id];
-        height += group.height;
-      }
-    }
+    this.groupIds.forEach(function (id) {
+      var group = groups[id];
+      group.top = height;
+      if (group.itemSet) group.itemSet.top = group.top; // TODO: this is an ugly hack
+      height += group.height;
+    });
   }
 
   // update classname
@@ -385,7 +391,6 @@ GroupSet.prototype.hide = function hide() {
 
 /**
  * Show the component in the DOM (when not already visible).
- * A repaint will be executed when the component is not visible
  * @return {Boolean} changed
  */
 GroupSet.prototype.show = function show() {

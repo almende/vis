@@ -35,6 +35,19 @@
     });
   };
 </script>
+
+<div>
+  <label for="currenttime"><input id="currenttime" type="checkbox" checked="true"> Show current time</label>
+</div>
+<script>
+  var currenttime = document.getElementById('currenttime');
+  currenttime.onchange = function () {
+    timeline.setOptions({
+      showCurrentTime: currenttime.checked
+    });
+  };
+</script>
+
 <br>
 
 <div id="visualization"></div>

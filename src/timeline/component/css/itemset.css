@@ -4,6 +4,9 @@
   padding: 0;
   margin: 0;
 
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+
   /* FIXME: get transoition working for rootpanel and itemset
   -webkit-transition: height 4s ease-in-out;
   transition:         height 4s ease-in-out;
@@ -17,5 +20,5 @@
 }
 
 .vis.timeline .axis {
-  position: absolute;
+  overflow: visible;
 }

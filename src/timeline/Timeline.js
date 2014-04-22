@@ -176,6 +176,41 @@ function Timeline (container, items, options) {
   this.contentPanel = new Panel(contentOptions);
   this.mainPanel.appendChild(this.contentPanel);
 
+  // content panel (contains the vertical lines of box items)
+  var backgroundOptions = util.extend(Object.create(this.options), {
+    top: function () {
+      return (me.options.orientation == 'top') ? (me.timeAxis.height + 'px') : '';
+    },
+    bottom: function () {
+      return (me.options.orientation == 'top') ? '' : (me.timeAxis.height + 'px');
+    },
+    left: null,
+    right: null,
+    height: function () {
+      return me.contentPanel.height;
+    },
+    width: null,
+    className: 'background'
+  });
+  this.backgroundPanel = new Panel(backgroundOptions);
+  this.mainPanel.insertBefore(this.backgroundPanel, this.contentPanel);
+
+  // panel with axis holding the dots of item boxes
+  var axisPanelOptions = util.extend(Object.create(rootOptions), {
+    left: 0,
+    top: function () {
+      return (me.options.orientation == 'top') ? (me.timeAxis.height + 'px') : '';
+    },
+    bottom: function () {
+      return (me.options.orientation == 'top') ? '' : (me.timeAxis.height + 'px');
+    },
+    width: '100%',
+    height: 0,
+    className: 'axis'
+  });
+  this.axisPanel = new Panel(axisPanelOptions);
+  this.mainPanel.appendChild(this.axisPanel);
+
   // content panel (contains itemset(s))
   var sideContentOptions = util.extend(Object.create(this.options), {
     top: function () {
@@ -398,7 +433,7 @@ Timeline.prototype.setGroups = function(groupSet) {
 
     // remove itemset if existing
     if (this.itemSet) {
-      //this.itemSet.hide(); // TODO: not so nice having to hide here
+      this.itemSet.hide(); // TODO: not so nice having to hide here
       this.contentPanel.removeChild(this.itemSet);
       this.itemSet.setItems(); // disconnect from itemset
       this.itemSet = null;
@@ -406,7 +441,7 @@ Timeline.prototype.setGroups = function(groupSet) {
 
     // create new GroupSet when needed
     if (!this.groupSet) {
-      this.groupSet = new GroupSet(this.contentPanel, this.sideContentPanel, options);
+      this.groupSet = new GroupSet(this.contentPanel, this.sideContentPanel, this.backgroundPanel, this.axisPanel, options);
       this.groupSet.on('change', this.rootPanel.repaint.bind(this.rootPanel));
       this.groupSet.setRange(this.range);
       this.groupSet.setItems(this.itemsData);
@@ -428,7 +463,7 @@ Timeline.prototype.setGroups = function(groupSet) {
     }
 
     // create new items
-    this.itemSet = new ItemSet(options);
+    this.itemSet = new ItemSet(this.backgroundPanel, this.axisPanel, options);
     this.itemSet.setRange(this.range);
     this.itemSet.setItems(this.itemsData);
     this.itemSet.on('change', me.rootPanel.repaint.bind(me.rootPanel));
@@ -504,6 +539,8 @@ Timeline.prototype.getSelection = function getSelection() {
  * @param {Date | Number | String} [start] Start date of visible window
  * @param {Date | Number | String} [end]   End date of visible window
  */
+// TODO: implement support for setWindow({start: ..., end: ...})
+// TODO: rename setWindow to setRange?
 Timeline.prototype.setWindow = function setWindow(start, end) {
   this.range.setRange(start, end);
 };
@@ -512,6 +549,7 @@ Timeline.prototype.setWindow = function setWindow(start, end) {
  * Get the visible window
  * @return {{start: Date, end: Date}}   Visible range
  */
+// TODO: rename getWindow to getRange?
 Timeline.prototype.getWindow = function setWindow() {
   var range = this.range.getRange();
   return {

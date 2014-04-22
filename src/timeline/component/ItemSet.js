@@ -2,17 +2,22 @@
  * An ItemSet holds a set of items and ranges which can be displayed in a
  * range. The width is determined by the parent of the ItemSet, and the height
  * is determined by the size of the items.
- * @param {Object} [options]        See ItemSet.setOptions for the available
- *                                  options.
+ * @param {Panel} backgroundPanel Panel which can be used to display the
+ *                                vertical lines of box items.
+ * @param {Panel} axisPanel       Panel on the axis where the dots of box-items
+ *                                can be displayed.
+ * @param {Object} [options]      See ItemSet.setOptions for the available options.
  * @constructor ItemSet
  * @extends Panel
  */
 // TODO: improve performance by replacing all Array.forEach with a for loop
-function ItemSet(options) {
+function ItemSet(backgroundPanel, axisPanel, options) {
   this.id = util.randomUUID();
 
   // one options object is shared by this itemset and all its items
   this.options = options || {};
+  this.backgroundPanel = backgroundPanel;
+  this.axisPanel = axisPanel;
   this.itemOptions = Object.create(this.options);
   this.dom = {};
   this.hammer = null;
@@ -76,7 +81,7 @@ ItemSet.prototype._create = function _create(){
   // create background panel
   var background = document.createElement('div');
   background.className = 'background';
-  frame.appendChild(background);
+  this.backgroundPanel.frame.appendChild(background);
   this.dom.background = background;
 
   // create foreground panel
@@ -89,7 +94,7 @@ ItemSet.prototype._create = function _create(){
   var axis = document.createElement('div');
   axis.className = 'axis';
   this.dom.axis = axis;
-  frame.appendChild(axis);
+  this.axisPanel.frame.appendChild(axis);
 
   // attach event listeners
   // TODO: use event listeners from the rootpanel to improve performance
@@ -130,6 +135,37 @@ ItemSet.prototype._create = function _create(){
  *                              dragging items.
  */
 ItemSet.prototype.setOptions = Component.prototype.setOptions;
+
+/**
+ * Hide the component from the DOM
+ */
+ItemSet.prototype.hide = function hide() {
+  // remove the axis with dots
+  if (this.dom.axis.parentNode) {
+    this.dom.axis.parentNode.removeChild(this.dom.axis);
+  }
+
+  // remove the background with vertical lines
+  if (this.dom.background.parentNode) {
+    this.dom.background.parentNode.removeChild(this.dom.background);
+  }
+};
+
+/**
+ * Show the component in the DOM (when not already visible).
+ * @return {Boolean} changed
+ */
+ItemSet.prototype.show = function show() {
+  // show axis with dots
+  if (!this.dom.axis.parentNode) {
+    this.axisPanel.frame.appendChild(this.dom.axis);
+  }
+
+  // show background with vertical lines
+  if (!this.dom.background.parentNode) {
+    this.backgroundPanel.frame.appendChild(this.dom.background);
+  }
+};
 
 /**
  * Set range (start and end).

@@ -1,16 +1,20 @@
 /**
  * @constructor Group
- * @param {Element} groupFrame
- * @param {Element} labelFrame
+ * @param {Panel} groupPanel
+ * @param {Panel} labelPanel
+ * @param {Panel} backgroundPanel
+ * @param {Panel} axisPanel
  * @param {Number | String} groupId
  * @param {Object} [options]  Options to set initial property values
  *                            // TODO: describe available options
  * @extends Component
  */
-function Group (groupFrame, labelFrame, groupId, options) {
+function Group (groupPanel, labelPanel, backgroundPanel, axisPanel, groupId, options) {
   this.id = util.randomUUID();
-  this.groupFrame = groupFrame;
-  this.labelFrame = labelFrame;
+  this.groupPanel = groupPanel;
+  this.labelPanel = labelPanel;
+  this.backgroundPanel = backgroundPanel;
+  this.axisPanel = axisPanel;
 
   this.groupId = groupId;
   this.itemSet = null;    // ItemSet
@@ -87,7 +91,7 @@ Group.prototype.setItems = function setItems(itemsData) {
   if (this.itemSet) {
     // remove current item set
     this.itemSet.setItems();
-    this.groupFrame.removeChild(this.itemSet.getFrame());
+    this.groupPanel.frame.removeChild(this.itemSet.getFrame());
     this.itemSet = null;
   }
 
@@ -101,9 +105,10 @@ Group.prototype.setItems = function setItems(itemsData) {
         return Math.max(me.props.label.height, me.itemSet.height);
       }
     });
-    this.itemSet = new ItemSet(itemSetOptions);
+    this.itemSet = new ItemSet(this.backgroundPanel, this.axisPanel, itemSetOptions);
     this.itemSet.on('change', this.emit.bind(this, 'change')); // propagate change event
-    this.groupFrame.appendChild(this.itemSet.getFrame());
+    this.itemSet.parent = this;
+    this.groupPanel.frame.appendChild(this.itemSet.getFrame());
 
     if (this.range) this.itemSet.setRange(this.range);
 
@@ -121,7 +126,11 @@ Group.prototype.setItems = function setItems(itemsData) {
  */
 Group.prototype.show = function show() {
   if (!this.dom.label.parentNode) {
-    this.labelFrame.appendChild(this.dom.label);
+    this.labelPanel.frame.appendChild(this.dom.label);
+  }
+
+  if (this.itemSet) {
+    this.itemSet.show();
   }
 
   var itemSetFrame = this.itemSet && this.itemSet.getFrame();
@@ -129,7 +138,7 @@ Group.prototype.show = function show() {
     if (itemSetFrame.parentNode) {
       itemSetFrame.parentNode.removeChild(itemSetFrame);
     }
-    this.groupFrame.appendChild(itemSetFrame);
+    this.groupPanel.frame.appendChild(itemSetFrame);
   }
 };
 
@@ -139,6 +148,10 @@ Group.prototype.show = function show() {
 Group.prototype.hide = function hide() {
   if (this.dom.label.parentNode) {
     this.dom.label.parentNode.removeChild(this.dom.label);
+  }
+
+  if (this.itemSet) {
+    this.itemSet.hide();
   }
 
   var itemSetFrame = this.itemset && this.itemSet.getFrame();

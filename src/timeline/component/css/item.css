@@ -90,6 +90,8 @@
 
   -webkit-transition: height .4s ease-in-out;
   transition:         height .4s ease-in-out;
+
+  color: red;
 }
 
 .vis.timeline .item .content {

@@ -76,7 +76,14 @@ Panel.prototype.insertBefore = function (child, beforeChild) {
       if (frame.parentNode) {
         frame.parentNode.removeChild(frame);
       }
-      this.frame.appendChild(frame);
+
+      var beforeFrame = beforeChild.getFrame();
+      if (beforeFrame) {
+        this.frame.insertBefore(frame, beforeFrame);
+      }
+      else {
+        this.frame.appendChild(frame);
+      }
     }
   }
 };

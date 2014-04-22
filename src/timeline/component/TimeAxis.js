@@ -86,7 +86,7 @@ TimeAxis.prototype.repaint = function () {
       frame = this.frame;
 
   // update classname
-  frame.className = 'axis'; // TODO: add className from options if defined
+  frame.className = 'timeaxis'; // TODO: add className from options if defined
 
   var parent = frame.parentNode;
   if (parent) {
@@ -114,6 +114,7 @@ TimeAxis.prototype.repaint = function () {
     var beforeChild = frame.nextSibling;
     parent.removeChild(frame);
 
+    // TODO: top/bottom positioning should be determined by options set in the Timeline, not here
     if (orientation == 'top') {
       frame.style.top = '0';
       frame.style.left = '0';
