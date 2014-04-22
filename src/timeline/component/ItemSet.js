@@ -705,8 +705,8 @@ ItemSet.prototype._onDragEnd = function (event) {
             if ('start' in props) props.item.data.start = props.start;
             if ('end' in props)   props.item.data.end   = props.end;
 
-            this.stackDirty = true; // force re-stacking of all items next repaint
-            this.emit('change');
+            me.stackDirty = true; // force re-stacking of all items next repaint
+            me.emit('change');
           }
         });
       }

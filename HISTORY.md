@@ -12,6 +12,8 @@ http://visjs.org
   - Improved layout of box-items inside groups.
 - Fixed option `autoResize` forcing a repaint of the Timeline with every check
   rather than when the Timeline is actually resized.
+- Fixed `select` event fired repeatedly when clicking an empty place on the
+  Timeline, deselecting selected items).
 - Minor bug fixes.
 - More examples added.
 
