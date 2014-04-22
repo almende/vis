@@ -10,7 +10,6 @@
  * @constructor ItemSet
  * @extends Panel
  */
-// TODO: improve performance by replacing all Array.forEach with a for loop
 function ItemSet(backgroundPanel, axisPanel, options) {
   this.id = util.randomUUID();
 
@@ -54,8 +53,6 @@ function ItemSet(backgroundPanel, axisPanel, options) {
 
   this.touchParams = {}; // stores properties while dragging
 
-  // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
-
   // create the HTML DOM
   this._create();
 }
@@ -97,7 +94,7 @@ ItemSet.prototype._create = function _create(){
   this.axisPanel.frame.appendChild(axis);
 
   // attach event listeners
-  // TODO: use event listeners from the rootpanel to improve performance
+  // TODO: use event listeners from the rootpanel to improve performance?
   this.hammer = Hammer(frame, {
     prevent_default: true
   });
@@ -330,7 +327,7 @@ ItemSet.prototype.repaint = function repaint() {
   }
 
   // reposition visible items vertically
-  //this.stack.order(this.visibleItems); // TODO: solve ordering issue
+  //this.stack.order(this.visibleItems); // TODO: improve ordering
   var force = this.stackDirty || zoomed; // force re-stacking of all items if true
   this.stack.stack(this.visibleItems, force);
   this.stackDirty = false;
@@ -500,7 +497,6 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
 
     var constructor = ItemSet.types[type];
 
-    // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
     if (item) {
       // update item
       if (!constructor || !(item instanceof constructor)) {
@@ -582,10 +578,6 @@ ItemSet.prototype._order = function _order() {
   // reorder the items
   this.stack.orderByStart(this.orderedItems.byStart);
   this.stack.orderByEnd(this.orderedItems.byEnd);
-
-  // TODO: cleanup
-  //console.log('byStart', this.orderedItems.byStart.map(function (item) {return item.id}))
-  //console.log('byEnd', this.orderedItems.byEnd.map(function (item) {return item.id}))
 };
 
 /**

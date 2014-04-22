@@ -257,7 +257,6 @@ GroupSet.prototype.repaint = function repaint() {
   });
 
   // reposition the labels and calculate the maximum label width
-  // TODO: labels are not displayed correctly when orientation=='top'
   var maxWidth = 0;
   for (id in groups) {
     if (groups.hasOwnProperty(id)) {
@@ -327,7 +326,7 @@ GroupSet.prototype.hide = function hide() {
   // hide labelset
   this.labelPanel.removeChild(this.labelSet);
 
-  // TODO: replace the following with a panel holding all itemsets, do not hide groups individually
+  // hide each of the groups
   for (var groupId in this.groups) {
     if (this.groups.hasOwnProperty(groupId)) {
       this.groups[groupId].hide();
@@ -345,7 +344,7 @@ GroupSet.prototype.show = function show() {
     this.labelPanel.removeChild(this.labelSet);
   }
 
-  // TODO: replace the following with a panel holding all itemsets, do not show groups individually
+  // show each of the groups
   for (var groupId in this.groups) {
     if (this.groups.hasOwnProperty(groupId)) {
       this.groups[groupId].show();
@@ -378,18 +377,12 @@ GroupSet.prototype._onAdd = function _onAdd(ids) {
         height: null
       });
 
-      // TODO: do not recreate the group with every update
-
       group = new Group(me, me.labelSet, me.backgroundPanel, me.axisPanel, id, groupOptions);
       group.on('change', me.emit.bind(me, 'change')); // propagate change event
       group.setRange(me.range);
       group.setItems(me.itemsData); // attach items data
       me.groups[id] = group;
       group.parent = me;
-
-      // Note: it is important to add the binding after group.setItems
-      // is executed, because that will start an infinite loop
-      // as this call will already trigger a repaint
     }
 
     // update group data

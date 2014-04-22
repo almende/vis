@@ -11,7 +11,7 @@
  */
 function Panel(options) {
   this.id = util.randomUUID();
-  this.parent = null; // TODO: remove parent?
+  this.parent = null;
   this.childs = [];
 
   this.options = options || {};
