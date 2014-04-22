@@ -495,7 +495,7 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
         item = items[id],
         type = itemData.type ||
             (itemData.start && itemData.end && 'range') ||
-            options.type ||
+            me.options.type ||
             'box';
 
     var constructor = ItemSet.types[type];
@@ -516,7 +516,7 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
     if (!item) {
       // create item
       if (constructor) {
-        item = new constructor(me, itemData, options, itemOptions);
+        item = new constructor(me, itemData, me.options, itemOptions);
         item.id = id;
       }
       else {

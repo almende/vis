@@ -2,6 +2,18 @@ vis.js history
 http://visjs.org
 
 
+## not yet released, version 0.8.0
+
+### Timeline
+
+- Large refactoring of the Timeline code:
+  - Simplifications in the code.
+  - Performance improvements.
+- Fixed option `autoResize` forcing a repaint of the Timeline with every check
+  rather than when the Timeline is actually resized.
+- Minor bug fixes.
+
+
 ## 2014-04-18, version 0.7.4
 
 ### Graph
