@@ -7,10 +7,10 @@
   display: inline-block;
   padding: 5px;
 
-  /* TODO: enable animations
+  /* TODO: enable css transitions
   -webkit-transition: top .4s ease-in-out, bottom .4s ease-in-out;
   transition:         top .4s ease-in-out, bottom .4s ease-in-out;
-  */
+  /**/
 }
 
 .vis.timeline .item.selected {
@@ -90,12 +90,10 @@
   border-left-width: 1px;
   border-left-style: solid;
 
-  /* TODO: enable animations
+  /* TODO: enable css transitions
   -webkit-transition: height .4s ease-in-out, top .4s ease-in-out;
   transition:         height .4s ease-in-out, top .4s ease-in-out;
- */
-
-  color: red;
+  /**/
 }
 
 .vis.timeline .item .content {

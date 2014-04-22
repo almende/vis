@@ -36,9 +36,6 @@ function GroupSet(contentPanel, labelPanel, backgroundPanel, axisPanel, options)
 
   // TODO: implement right orientation of the labels (left/right)
 
-  // changes in groups are queued  key/value map containing id/action
-  this.queue = {};
-
   var me = this;
   this.listeners = {
     'add': function (event, params) {
@@ -244,83 +241,14 @@ GroupSet.prototype.getSelection = function getSelection() {
  * @return {boolean} Returns true if the component was resized since previous repaint
  */
 GroupSet.prototype.repaint = function repaint() {
-  var i, id, group, label,
-      update = util.updateProperty,
+  var i, id, group,
       asSize = util.option.asSize,
       asString = util.option.asString,
       options = this.options,
       orientation = this.getOption('orientation'),
       frame = this.frame,
       resized = false,
-      me = this,
-      queue = this.queue,
-      groups = this.groups,
-      groupsData = this.groupsData;
-
-  this.queue = {}; // clear old queue, we have a copy here
-
-  // show/hide added/changed/removed groups
-  var ids = Object.keys(queue);
-  if (ids.length) {
-    ids.forEach(function (id) {
-      var action = queue[id];
-      var group = groups[id];
-
-      //noinspection FallthroughInSwitchStatementJS
-      switch (action) {
-        case 'add':
-        case 'update':
-          if (!group) {
-            var groupOptions = Object.create(me.options);
-            util.extend(groupOptions, {
-              height: null
-            });
-
-            // TODO: do not recreate the group with every update
-
-            group = new Group(me, me.labelSet, me.backgroundPanel, me.axisPanel, id, groupOptions);
-            group.on('change', me.emit.bind(me, 'change')); // propagate change event
-            group.setRange(me.range);
-            group.setItems(me.itemsData); // attach items data
-            groups[id] = group;
-            group.parent = me;
-
-            // Note: it is important to add the binding after group.setItems
-            // is executed, because that will start an infinite loop
-            // as this call will already trigger a repaint
-          }
-
-          // update group data
-          group.setData(groupsData.get(id));
-          break;
-
-        case 'remove':
-          if (group) {
-            group.setItems(); // detach items data
-            group.hide(); // FIXME: for some reason when doing setItems after hide, setItems again makes the label visible
-            delete groups[id];
-          }
-
-          break;
-
-        default:
-          console.log('Error: unknown action "' + action + '"');
-      }
-    });
-
-    // reorder the groups
-    this.groupIds = this.groupsData.getIds({
-      order: this.options.groupOrder
-    });
-
-    // hide the groups now, they will be repainted later in this function
-    // in correct order
-    this.groupIds.forEach(function (id) {
-      groups[id].hide();
-    });
-
-    resized = true;
-  }
+      groups = this.groups;
 
   // repaint all groups in order
   this.groupIds.forEach(function (id) {
@@ -364,6 +292,24 @@ GroupSet.prototype.repaint = function repaint() {
   this.height = height;
 
   return resized;
+};
+
+/**
+ * Update the groupIds. Requires a repaint afterwards
+ * @private
+ */
+GroupSet.prototype._updateGroupIds = function () {
+  // reorder the groups
+  this.groupIds = this.groupsData.getIds({
+    order: this.options.groupOrder
+  });
+
+  // hide the groups now, they will be shown again in the next repaint
+  // in correct order
+  var groups = this.groups;
+  this.groupIds.forEach(function (id) {
+    groups[id].hide();
+  });
 };
 
 /**
@@ -413,7 +359,7 @@ GroupSet.prototype.show = function show() {
  * @private
  */
 GroupSet.prototype._onUpdate = function _onUpdate(ids) {
-  this._toQueue(ids, 'update');
+  this._onAdd(ids);
 };
 
 /**
@@ -422,7 +368,37 @@ GroupSet.prototype._onUpdate = function _onUpdate(ids) {
  * @private
  */
 GroupSet.prototype._onAdd = function _onAdd(ids) {
-  this._toQueue(ids, 'add');
+  var me = this;
+
+  ids.forEach(function (id) {
+    var group = me.groups[id];
+    if (!group) {
+      var groupOptions = Object.create(me.options);
+      util.extend(groupOptions, {
+        height: null
+      });
+
+      // TODO: do not recreate the group with every update
+
+      group = new Group(me, me.labelSet, me.backgroundPanel, me.axisPanel, id, groupOptions);
+      group.on('change', me.emit.bind(me, 'change')); // propagate change event
+      group.setRange(me.range);
+      group.setItems(me.itemsData); // attach items data
+      me.groups[id] = group;
+      group.parent = me;
+
+      // Note: it is important to add the binding after group.setItems
+      // is executed, because that will start an infinite loop
+      // as this call will already trigger a repaint
+    }
+
+    // update group data
+    group.setData(me.groupsData.get(id));
+  });
+
+  this._updateGroupIds();
+
+  this.emit('change');
 };
 
 /**
@@ -431,21 +407,18 @@ GroupSet.prototype._onAdd = function _onAdd(ids) {
  * @private
  */
 GroupSet.prototype._onRemove = function _onRemove(ids) {
-  this._toQueue(ids, 'remove');
-};
-
-/**
- * Put groups in the queue to be added/updated/remove
- * @param {Number[]} ids
- * @param {String} action     can be 'add', 'update', 'remove'
- */
-GroupSet.prototype._toQueue = function _toQueue(ids, action) {
-  // TODO: remove this queuing thing, immediately apply changes
-
-  var queue = this.queue;
+  var groups = this.groups;
   ids.forEach(function (id) {
-    queue[id] = action;
+    var group = groups[id];
+
+    if (group) {
+      group.setItems(); // detach items data
+      group.hide(); // FIXME: for some reason when doing setItems after hide, setItems again makes the label visible
+      delete groups[id];
+    }
   });
+
+  this._updateGroupIds();
 
   this.emit('change');
 };

@@ -1,3 +1,6 @@
+.vis.timeline .groupset {
+  position: relative;
+}
 
 .vis.timeline .labelset {
   position: relative;
