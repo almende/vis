@@ -91,6 +91,7 @@ Group.prototype.setItems = function setItems(itemsData) {
   if (this.itemSet) {
     // remove current item set
     this.itemSet.setItems();
+    this.itemSet.hide();
     this.groupPanel.frame.removeChild(this.itemSet.getFrame());
     this.itemSet = null;
   }
@@ -129,16 +130,14 @@ Group.prototype.show = function show() {
     this.labelPanel.frame.appendChild(this.dom.label);
   }
 
-  if (this.itemSet) {
-    this.itemSet.show();
-  }
-
   var itemSetFrame = this.itemSet && this.itemSet.getFrame();
   if (itemSetFrame) {
     if (itemSetFrame.parentNode) {
       itemSetFrame.parentNode.removeChild(itemSetFrame);
     }
     this.groupPanel.frame.appendChild(itemSetFrame);
+
+    this.itemSet.show();
   }
 };
 

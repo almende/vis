@@ -113,15 +113,9 @@
   });
   */
 
-  items.on('add', function (nodes) {
-    console.log('add', nodes);
-  });
-  items.on('update', function (nodes) {
-    console.log('update', nodes);
-  });
-  items.on('remove', function (nodes) {
-    console.log('remove', nodes);
-  });
+  items.on('add',    console.log.bind(console));
+  items.on('update', console.log.bind(console));
+  items.on('remove', console.log.bind(console));
 
 </script>
 </body>

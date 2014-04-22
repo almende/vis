@@ -107,25 +107,13 @@
   });
   */
 
-  items.on('add', function (nodes) {
-    console.log('items add', nodes);
-  });
-  items.on('update', function (nodes) {
-    console.log('items update', nodes);
-  });
-  items.on('remove', function (nodes) {
-    console.log('items remove', nodes);
-  });
+  items.on('add',    console.log.bind(console));
+  items.on('update', console.log.bind(console));
+  items.on('remove', console.log.bind(console));
 
-  groups.on('add', function (nodes) {
-    console.log('groups add', nodes);
-  });
-  groups.on('update', function (nodes) {
-    console.log('groups update', nodes);
-  });
-  groups.on('remove', function (nodes) {
-    console.log('groups remove', nodes);
-  });
+  groups.on('add',    console.log.bind(console));
+  groups.on('update', console.log.bind(console));
+  groups.on('remove', console.log.bind(console));
 
 </script>
 </body>
