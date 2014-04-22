@@ -5,6 +5,12 @@
   border-color: #97B0F8;
   background-color: #D5DDF6;
   display: inline-block;
+  padding: 5px;
+
+  /* TODO: enable css transitions
+  -webkit-transition: top .4s ease-in-out, bottom .4s ease-in-out;
+  transition:         top .4s ease-in-out, bottom .4s ease-in-out;
+  /**/
 }
 
 .vis.timeline .item.selected {
@@ -13,11 +19,16 @@
   z-index: 999;
 }
 
+.vis.timeline.editable .item.selected {
+  cursor: move;
+}
+
 .vis.timeline .item.point.selected {
   background-color: #FFF785;
   z-index: 999;
 }
-.vis.timeline .item.point.selected .dot {
+.vis.timeline .item.point.selected .dot,
+.vis.timeline .item.dot.selected {
   border-color: #FFC200;
 }
 
@@ -42,52 +53,84 @@
   background: none;
 }
 
-.vis.timeline .dot {
+.vis.timeline .dot,
+.vis.timeline .item.dot {
+  padding: 0;
   border: 5px solid #97B0F8;
   position: absolute;
   border-radius: 5px;
   -moz-border-radius: 5px;  /* For Firefox 3.6 and older */
 }
 
-.vis.timeline .item.range {
-  overflow: hidden;
+.vis.timeline .item.range,
+.vis.timeline .item.rangeoverflow{
   border-style: solid;
   border-width: 1px;
   border-radius: 2px;
   -moz-border-radius: 2px;  /* For Firefox 3.6 and older */
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
-.vis.timeline .item.rangeoverflow {
-  border-style: solid;
-  border-width: 1px;
-  border-radius: 2px;
-  -moz-border-radius: 2px;  /* For Firefox 3.6 and older */
-}
-
-.vis.timeline .item.range .drag-left, .vis.timeline .item.rangeoverflow .drag-left {
-  cursor: w-resize;
-  z-index: 1000;
-}
-
-.vis.timeline .item.range .drag-right, .vis.timeline .item.rangeoverflow .drag-right {
-  cursor: e-resize;
-  z-index: 1000;
-}
-
-.vis.timeline .item.range .content, .vis.timeline .item.rangeoverflow .content {
+.vis.timeline .item.range .content,
+.vis.timeline .item.rangeoverflow .content {
   position: relative;
   display: inline-block;
 }
 
+.vis.timeline .item.range .content {
+  overflow: hidden;
+  max-width: 100%;
+}
+
 .vis.timeline .item.line {
+  padding: 0;
   position: absolute;
   width: 0;
   border-left-width: 1px;
   border-left-style: solid;
+
+  /* TODO: enable css transitions
+  -webkit-transition: height .4s ease-in-out, top .4s ease-in-out;
+  transition:         height .4s ease-in-out, top .4s ease-in-out;
+  /**/
 }
 
 .vis.timeline .item .content {
-  margin: 5px;
   white-space: nowrap;
   overflow: hidden;
+}
+
+.vis.timeline .item .delete {
+  background: url('img/timeline/delete.png') no-repeat top center;
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  top: 0;
+  right: -24px;
+  cursor: pointer;
+}
+
+.vis.timeline .item.range .drag-left,
+.vis.timeline .item.rangeoverflow .drag-left {
+  position: absolute;
+  width: 24px;
+  height: 100%;
+  top: 0;
+  left: -4px;
+
+  cursor: w-resize;
+  z-index: 10000;
+}
+
+.vis.timeline .item.range .drag-right,
+.vis.timeline .item.rangeoverflow .drag-right {
+  position: absolute;
+  width: 24px;
+  height: 100%;
+  top: 0;
+  right: -4px;
+
+  cursor: e-resize;
+  z-index: 10001; /* a little higher z-index than .drag-left */
 }

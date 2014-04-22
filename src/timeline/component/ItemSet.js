@@ -2,64 +2,59 @@
  * An ItemSet holds a set of items and ranges which can be displayed in a
  * range. The width is determined by the parent of the ItemSet, and the height
  * is determined by the size of the items.
- * @param {Component} parent
- * @param {Component[]} [depends]   Components on which this components depends
- *                                  (except for the parent)
- * @param {Object} [options]        See ItemSet.setOptions for the available
- *                                  options.
+ * @param {Panel} backgroundPanel Panel which can be used to display the
+ *                                vertical lines of box items.
+ * @param {Panel} axisPanel       Panel on the axis where the dots of box-items
+ *                                can be displayed.
+ * @param {Object} [options]      See ItemSet.setOptions for the available options.
  * @constructor ItemSet
  * @extends Panel
  */
-// TODO: improve performance by replacing all Array.forEach with a for loop
-function ItemSet(parent, depends, options) {
+function ItemSet(backgroundPanel, axisPanel, options) {
   this.id = util.randomUUID();
-  this.parent = parent;
-  this.depends = depends;
 
   // one options object is shared by this itemset and all its items
   this.options = options || {};
-  this.defaultOptions = {
-    type: 'box',
-    align: 'center',
-    orientation: 'bottom',
-    margin: {
-      axis: 20,
-      item: 10
-    },
-    padding: 5
-  };
-
+  this.backgroundPanel = backgroundPanel;
+  this.axisPanel = axisPanel;
+  this.itemOptions = Object.create(this.options);
   this.dom = {};
+  this.hammer = null;
 
   var me = this;
   this.itemsData = null;  // DataSet
   this.range = null;      // Range or Object {start: number, end: number}
 
+  // data change listeners
   this.listeners = {
     'add': function (event, params, senderId) {
-      if (senderId != me.id) {
-        me._onAdd(params.items);
-      }
+      if (senderId != me.id) me._onAdd(params.items);
     },
     'update': function (event, params, senderId) {
-      if (senderId != me.id) {
-        me._onUpdate(params.items);
-      }
+      if (senderId != me.id) me._onUpdate(params.items);
     },
     'remove': function (event, params, senderId) {
-      if (senderId != me.id) {
-        me._onRemove(params.items);
-      }
+      if (senderId != me.id) me._onRemove(params.items);
     }
   };
 
-  this.items = {};      // object with an Item for every data item
+  this.items = {};        // object with an Item for every data item
+  this.orderedItems = {
+    byStart: [],
+    byEnd: []
+  };
+  this.visibleItems = []; // visible, ordered items
+  this.visibleItemsStart = 0; // start index of visible items in this.orderedItems // TODO: cleanup
+  this.visibleItemsEnd = 0;   // start index of visible items in this.orderedItems // TODO: cleanup
   this.selection = [];  // list with the ids of all selected nodes
   this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
-  this.stack = new Stack(this, Object.create(this.options));
-  this.conversion = null;
+  this.stack = new Stack(Object.create(this.options));
+  this.stackDirty = true; // if true, all items will be restacked on next repaint
 
-  // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
+  this.touchParams = {}; // stores properties while dragging
+
+  // create the HTML DOM
+  this._create();
 }
 
 ItemSet.prototype = new Panel();
@@ -70,6 +65,42 @@ ItemSet.types = {
   range: ItemRange,
   rangeoverflow: ItemRangeOverflow,
   point: ItemPoint
+};
+
+/**
+ * Create the HTML DOM for the ItemSet
+ */
+ItemSet.prototype._create = function _create(){
+  var frame = document.createElement('div');
+  frame['timeline-itemset'] = this;
+  this.frame = frame;
+
+  // create background panel
+  var background = document.createElement('div');
+  background.className = 'background';
+  this.backgroundPanel.frame.appendChild(background);
+  this.dom.background = background;
+
+  // create foreground panel
+  var foreground = document.createElement('div');
+  foreground.className = 'foreground';
+  frame.appendChild(foreground);
+  this.dom.foreground = foreground;
+
+  // create axis panel
+  var axis = document.createElement('div');
+  axis.className = 'axis';
+  this.dom.axis = axis;
+  this.axisPanel.frame.appendChild(axis);
+
+  // attach event listeners
+  // TODO: use event listeners from the rootpanel to improve performance?
+  this.hammer = Hammer(frame, {
+    prevent_default: true
+  });
+  this.hammer.on('dragstart', this._onDragStart.bind(this));
+  this.hammer.on('drag',      this._onDrag.bind(this));
+  this.hammer.on('dragend',   this._onDragEnd.bind(this));
 };
 
 /**
@@ -96,8 +127,42 @@ ItemSet.types = {
  *                           {Number} padding
  *                              Padding of the contents of an item in pixels.
  *                              Must correspond with the items css. Default is 5.
+ *                           {Function} snap
+ *                              Function to let items snap to nice dates when
+ *                              dragging items.
  */
 ItemSet.prototype.setOptions = Component.prototype.setOptions;
+
+/**
+ * Hide the component from the DOM
+ */
+ItemSet.prototype.hide = function hide() {
+  // remove the axis with dots
+  if (this.dom.axis.parentNode) {
+    this.dom.axis.parentNode.removeChild(this.dom.axis);
+  }
+
+  // remove the background with vertical lines
+  if (this.dom.background.parentNode) {
+    this.dom.background.parentNode.removeChild(this.dom.background);
+  }
+};
+
+/**
+ * Show the component in the DOM (when not already visible).
+ * @return {Boolean} changed
+ */
+ItemSet.prototype.show = function show() {
+  // show axis with dots
+  if (!this.dom.axis.parentNode) {
+    this.axisPanel.frame.appendChild(this.dom.axis);
+  }
+
+  // show background with vertical lines
+  if (!this.dom.background.parentNode) {
+    this.backgroundPanel.frame.appendChild(this.dom.background);
+  }
+};
 
 /**
  * Set range (start and end).
@@ -119,7 +184,7 @@ ItemSet.prototype.setRange = function setRange(range) {
  *                      unselected.
  */
 ItemSet.prototype.setSelection = function setSelection(ids) {
-  var i, ii, id, item, selection;
+  var i, ii, id, item;
 
   if (ids) {
     if (!Array.isArray(ids)) {
@@ -142,16 +207,6 @@ ItemSet.prototype.setSelection = function setSelection(ids) {
         this.selection.push(id);
         item.select();
       }
-    }
-
-    // trigger a select event
-    selection = this.selection.concat([]);
-    events.trigger(this, 'select', {
-      ids: selection
-    });
-
-    if (this.controller) {
-      this.requestRepaint();
     }
   }
 };
@@ -180,182 +235,150 @@ ItemSet.prototype._deselect = function _deselect(id) {
 };
 
 /**
+ * Return the item sets frame
+ * @returns {HTMLElement} frame
+ */
+ItemSet.prototype.getFrame = function getFrame() {
+  return this.frame;
+};
+
+/**
  * Repaint the component
- * @return {Boolean} changed
+ * @return {boolean} Returns true if the component is resized
  */
 ItemSet.prototype.repaint = function repaint() {
-  var changed = 0,
-      update = util.updateProperty,
-      asSize = util.option.asSize,
+  var asSize = util.option.asSize,
+      asString = util.option.asString,
       options = this.options,
       orientation = this.getOption('orientation'),
-      defaultOptions = this.defaultOptions,
       frame = this.frame;
 
-  if (!frame) {
-    frame = document.createElement('div');
-    frame.className = 'itemset';
+  // update className
+  frame.className = 'itemset' + (options.className ? (' ' + asString(options.className)) : '');
 
-    var className = options.className;
-    if (className) {
-      util.addClassName(frame, util.option.asString(className));
-    }
+  // check whether zoomed (in that case we need to re-stack everything)
+  var visibleInterval = this.range.end - this.range.start;
+  var zoomed = (visibleInterval != this.lastVisibleInterval) || (this.width != this.lastWidth);
+  this.lastVisibleInterval = visibleInterval;
+  this.lastWidth = this.width;
 
-    // create background panel
-    var background = document.createElement('div');
-    background.className = 'background';
-    frame.appendChild(background);
-    this.dom.background = background;
-
-    // create foreground panel
-    var foreground = document.createElement('div');
-    foreground.className = 'foreground';
-    frame.appendChild(foreground);
-    this.dom.foreground = foreground;
-
-    // create axis panel
-    var axis = document.createElement('div');
-    axis.className = 'itemset-axis';
-    //frame.appendChild(axis);
-    this.dom.axis = axis;
-
-    this.frame = frame;
-    changed += 1;
+  /* TODO: implement+fix smarter way to update visible items
+  // find the first visible item
+  // TODO: use faster search, not linear
+  var byEnd = this.orderedItems.byEnd;
+  var start = 0;
+  var item = null;
+  while ((item = byEnd[start]) &&
+      (('end' in item.data) ? item.data.end : item.data.start) < this.range.start) {
+    start++;
   }
 
-  if (!this.parent) {
-    throw new Error('Cannot repaint itemset: no parent attached');
-  }
-  var parentContainer = this.parent.getContainer();
-  if (!parentContainer) {
-    throw new Error('Cannot repaint itemset: parent has no container element');
-  }
-  if (!frame.parentNode) {
-    parentContainer.appendChild(frame);
-    changed += 1;
-  }
-  if (!this.dom.axis.parentNode) {
-    parentContainer.appendChild(this.dom.axis);
-    changed += 1;
+  // find the last visible item
+  // TODO: use faster search, not linear
+  var byStart = this.orderedItems.byStart;
+  var end = 0;
+  while ((item = byStart[end]) && item.data.start < this.range.end) {
+    end++;
   }
 
-  // reposition frame
-  changed += update(frame.style, 'left',   asSize(options.left, '0px'));
-  changed += update(frame.style, 'top',    asSize(options.top, '0px'));
-  changed += update(frame.style, 'width',  asSize(options.width, '100%'));
-  changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
+  console.log('visible items', start, end); // TODO: cleanup
+  console.log('visible item ids', byStart[start] && byStart[start].id, byEnd[end-1] && byEnd[end-1].id); // TODO: cleanup
 
-  // reposition axis
-  changed += update(this.dom.axis.style, 'left', asSize(options.left, '0px'));
-  changed += update(this.dom.axis.style, 'width',  asSize(options.width, '100%'));
-  if (orientation == 'bottom') {
-    changed += update(this.dom.axis.style, 'top',  (this.height + this.top) + 'px');
+  this.visibleItems = [];
+  var i = start;
+  item = byStart[i];
+  var lastItem = byEnd[end];
+  while (item && item !== lastItem) {
+    this.visibleItems.push(item);
+    item = byStart[++i];
   }
-  else { // orientation == 'top'
-    changed += update(this.dom.axis.style, 'top', this.top + 'px');
+  this.stack.order(this.visibleItems);
+
+  // show visible items
+  for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
+    item = this.visibleItems[i];
+
+    if (!item.displayed) item.show();
+    item.top = null; // reset stacking position
+
+    // reposition item horizontally
+    item.repositionX();
   }
+   */
 
-  this._updateConversion();
+  // simple, brute force calculation of visible items
+  // TODO: replace with a faster, more sophisticated solution
+  this.visibleItems = [];
+  for (var id in this.items) {
+    if (this.items.hasOwnProperty(id)) {
+      var item = this.items[id];
+      if (item.isVisible(this.range)) {
+        if (!item.displayed) item.show();
 
-  var me = this,
-      queue = this.queue,
-      itemsData = this.itemsData,
-      items = this.items,
-      dataOptions = {
-        // TODO: cleanup
-        // fields: [(itemsData && itemsData.fieldId || 'id'), 'start', 'end', 'content', 'type', 'className']
-      };
+        // reposition item horizontally
+        item.repositionX();
 
-  // show/hide added/changed/removed items
-  for (var id in queue) {
-    if (queue.hasOwnProperty(id)) {
-      var entry = queue[id],
-          item = items[id],
-          action = entry.action;
-
-      //noinspection FallthroughInSwitchStatementJS
-      switch (action) {
-        case 'add':
-        case 'update':
-          var itemData = itemsData && itemsData.get(id, dataOptions);
-
-          if (itemData) {
-            var type = itemData.type ||
-                (itemData.start && itemData.end && 'range') ||
-                options.type ||
-                'box';
-            var constructor = ItemSet.types[type];
-
-            // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
-            if (item) {
-              // update item
-              if (!constructor || !(item instanceof constructor)) {
-                // item type has changed, hide and delete the item
-                changed += item.hide();
-                item = null;
-              }
-              else {
-                item.data = itemData; // TODO: create a method item.setData ?
-                changed++;
-              }
-            }
-
-            if (!item) {
-              // create item
-              if (constructor) {
-                item = new constructor(me, itemData, options, defaultOptions);
-                item.id = entry.id; // we take entry.id, as id itself is stringified
-                changed++;
-              }
-              else {
-                throw new TypeError('Unknown item type "' + type + '"');
-              }
-            }
-
-            // force a repaint (not only a reposition)
-            item.repaint();
-
-            items[id] = item;
-          }
-
-          // update queue
-          delete queue[id];
-          break;
-
-        case 'remove':
-          if (item) {
-            // remove the item from the set selected items
-            if (item.selected) {
-              me._deselect(id);
-            }
-
-            // remove DOM of the item
-            changed += item.hide();
-          }
-
-          // update lists
-          delete items[id];
-          delete queue[id];
-          break;
-
-        default:
-          console.log('Error: unknown action "' + action + '"');
+        this.visibleItems.push(item);
+      }
+      else {
+        if (item.displayed) item.hide();
       }
     }
   }
 
-  // reposition all items. Show items only when in the visible area
-  util.forEach(this.items, function (item) {
-    if (item.visible) {
-      changed += item.show();
-      item.reposition();
-    }
-    else {
-      changed += item.hide();
-    }
-  });
+  // reposition visible items vertically
+  //this.stack.order(this.visibleItems); // TODO: improve ordering
+  var force = this.stackDirty || zoomed; // force re-stacking of all items if true
+  this.stack.stack(this.visibleItems, force);
+  this.stackDirty = false;
+  for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
+    this.visibleItems[i].repositionY();
+  }
 
-  return (changed > 0);
+  // recalculate the height of the itemset
+  var marginAxis = (options.margin && 'axis' in options.margin) ? options.margin.axis : this.itemOptions.margin.axis,
+      marginItem = (options.margin && 'item' in options.margin) ? options.margin.item : this.itemOptions.margin.item,
+      height;
+
+  // determine the height from the stacked items
+  var visibleItems = this.visibleItems;
+  if (visibleItems.length) {
+    var min = visibleItems[0].top;
+    var max = visibleItems[0].top + visibleItems[0].height;
+    util.forEach(visibleItems, function (item) {
+      min = Math.min(min, item.top);
+      max = Math.max(max, (item.top + item.height));
+    });
+    height = (max - min) + marginAxis + marginItem;
+  }
+  else {
+    height = marginAxis + marginItem;
+  }
+
+  // reposition frame
+  frame.style.left    = asSize(options.left, '');
+  frame.style.right   = asSize(options.right, '');
+  frame.style.top     = asSize((orientation == 'top') ? '0' : '');
+  frame.style.bottom  = asSize((orientation == 'top') ? '' : '0');
+  frame.style.width   = asSize(options.width, '100%');
+  frame.style.height  = asSize(height);
+  //frame.style.height  = asSize('height' in options ? options.height : height); // TODO: reckon with height
+
+  // calculate actual size and position
+  this.top = frame.offsetTop;
+  this.left = frame.offsetLeft;
+  this.width = frame.offsetWidth;
+  this.height = height;
+
+  // reposition axis
+  this.dom.axis.style.left   = asSize(options.left, '0');
+  this.dom.axis.style.right  = asSize(options.right, '');
+  this.dom.axis.style.width  = asSize(options.width, '100%');
+  this.dom.axis.style.height = asSize(0);
+  this.dom.axis.style.top    = asSize((orientation == 'top') ? '0' : '');
+  this.dom.axis.style.bottom = asSize((orientation == 'top') ? '' : '0');
+
+  return this._isResized();
 };
 
 /**
@@ -380,90 +403,6 @@ ItemSet.prototype.getBackground = function getBackground() {
  */
 ItemSet.prototype.getAxis = function getAxis() {
   return this.dom.axis;
-};
-
-/**
- * Reflow the component
- * @return {Boolean} resized
- */
-ItemSet.prototype.reflow = function reflow () {
-  var changed = 0,
-      options = this.options,
-      marginAxis = options.margin && options.margin.axis || this.defaultOptions.margin.axis,
-      marginItem = options.margin && options.margin.item || this.defaultOptions.margin.item,
-      update = util.updateProperty,
-      asNumber = util.option.asNumber,
-      asSize = util.option.asSize,
-      frame = this.frame;
-
-  if (frame) {
-    this._updateConversion();
-
-    util.forEach(this.items, function (item) {
-      changed += item.reflow();
-    });
-
-    // TODO: stack.update should be triggered via an event, in stack itself
-    // TODO: only update the stack when there are changed items
-    this.stack.update();
-
-    var maxHeight = asNumber(options.maxHeight);
-    var fixedHeight = (asSize(options.height) != null);
-    var height;
-    if (fixedHeight) {
-      height = frame.offsetHeight;
-    }
-    else {
-      // height is not specified, determine the height from the height and positioned items
-      var visibleItems = this.stack.ordered; // TODO: not so nice way to get the filtered items
-      if (visibleItems.length) {
-        var min = visibleItems[0].top;
-        var max = visibleItems[0].top + visibleItems[0].height;
-        util.forEach(visibleItems, function (item) {
-          min = Math.min(min, item.top);
-          max = Math.max(max, (item.top + item.height));
-        });
-        height = (max - min) + marginAxis + marginItem;
-      }
-      else {
-        height = marginAxis + marginItem;
-      }
-    }
-    if (maxHeight != null) {
-      height = Math.min(height, maxHeight);
-    }
-    changed += update(this, 'height', height);
-
-    // calculate height from items
-    changed += update(this, 'top', frame.offsetTop);
-    changed += update(this, 'left', frame.offsetLeft);
-    changed += update(this, 'width', frame.offsetWidth);
-  }
-  else {
-    changed += 1;
-  }
-
-  return (changed > 0);
-};
-
-/**
- * Hide this component from the DOM
- * @return {Boolean} changed
- */
-ItemSet.prototype.hide = function hide() {
-  var changed = false;
-
-  // remove the DOM
-  if (this.frame && this.frame.parentNode) {
-    this.frame.parentNode.removeChild(this.frame);
-    changed = true;
-  }
-  if (this.dom.axis && this.dom.axis.parentNode) {
-    this.dom.axis.parentNode.removeChild(this.dom.axis);
-    changed = true;
-  }
-
-  return changed;
 };
 
 /**
@@ -501,7 +440,7 @@ ItemSet.prototype.setItems = function setItems(items) {
     // subscribe to new dataset
     var id = this.id;
     util.forEach(this.listeners, function (callback, event) {
-      me.itemsData.subscribe(event, callback, id);
+      me.itemsData.on(event, callback, id);
     });
 
     // draw all new items
@@ -519,22 +458,83 @@ ItemSet.prototype.getItems = function getItems() {
 };
 
 /**
+ * Remove an item by its id
+ * @param {String | Number} id
+ */
+ItemSet.prototype.removeItem = function removeItem (id) {
+  var item = this.itemsData.get(id),
+      dataset = this._myDataSet();
+
+  if (item) {
+    // confirm deletion
+    this.options.onRemove(item, function (item) {
+      if (item) {
+        // remove by id here, it is possible that an item has no id defined
+        // itself, so better not delete by the item itself
+        dataset.remove(id);
+      }
+    });
+  }
+};
+
+/**
  * Handle updated items
  * @param {Number[]} ids
  * @private
  */
 ItemSet.prototype._onUpdate = function _onUpdate(ids) {
-  this._toQueue('update', ids);
+  var me = this,
+      items = this.items,
+      itemOptions = this.itemOptions;
+
+  ids.forEach(function (id) {
+    var itemData = me.itemsData.get(id),
+        item = items[id],
+        type = itemData.type ||
+            (itemData.start && itemData.end && 'range') ||
+            me.options.type ||
+            'box';
+
+    var constructor = ItemSet.types[type];
+
+    if (item) {
+      // update item
+      if (!constructor || !(item instanceof constructor)) {
+        // item type has changed, hide and delete the item
+        item.hide();
+        item = null;
+      }
+      else {
+        item.data = itemData; // TODO: create a method item.setData ?
+      }
+    }
+
+    if (!item) {
+      // create item
+      if (constructor) {
+        item = new constructor(me, itemData, me.options, itemOptions);
+        item.id = id;
+      }
+      else {
+        throw new TypeError('Unknown item type "' + type + '"');
+      }
+    }
+
+    me.items[id] = item;
+  });
+
+  this._order();
+
+  this.stackDirty = true; // force re-stacking of all items next repaint
+  this.emit('change');
 };
 
 /**
- * Handle changed items
+ * Handle added items
  * @param {Number[]} ids
  * @private
  */
-ItemSet.prototype._onAdd = function _onAdd(ids) {
-  this._toQueue('add', ids);
-};
+ItemSet.prototype._onAdd = ItemSet.prototype._onUpdate;
 
 /**
  * Handle removed items
@@ -542,71 +542,232 @@ ItemSet.prototype._onAdd = function _onAdd(ids) {
  * @private
  */
 ItemSet.prototype._onRemove = function _onRemove(ids) {
-  this._toQueue('remove', ids);
-};
-
-/**
- * Put items in the queue to be added/updated/remove
- * @param {String} action     can be 'add', 'update', 'remove'
- * @param {Number[]} ids
- */
-ItemSet.prototype._toQueue = function _toQueue(action, ids) {
-  var queue = this.queue;
+  var count = 0;
+  var me = this;
   ids.forEach(function (id) {
-    queue[id] = {
-      id: id,
-      action: action
-    };
+    var item = me.items[id];
+    if (item) {
+      count++;
+      item.hide();
+      delete me.items[id];
+      delete me.visibleItems[id];
+
+      // remove from selection
+      var index = me.selection.indexOf(id);
+      if (index != -1) me.selection.splice(index, 1);
+    }
   });
 
-  if (this.controller) {
-    //this.requestReflow();
-    this.requestRepaint();
+  if (count) {
+    // update order
+    this._order();
+    this.stackDirty = true; // force re-stacking of all items next repaint
+    this.emit('change');
   }
 };
 
 /**
- * Calculate the scale and offset to convert a position on screen to the
- * corresponding date and vice versa.
- * After the method _updateConversion is executed once, the methods toTime
- * and toScreen can be used.
+ * Order the items
  * @private
  */
-ItemSet.prototype._updateConversion = function _updateConversion() {
-  var range = this.range;
-  if (!range) {
-    throw new Error('No range configured');
+ItemSet.prototype._order = function _order() {
+  var array = util.toArray(this.items);
+  this.orderedItems.byStart = array;
+  this.orderedItems.byEnd = [].concat(array);
+
+  // reorder the items
+  this.stack.orderByStart(this.orderedItems.byStart);
+  this.stack.orderByEnd(this.orderedItems.byEnd);
+};
+
+/**
+ * Start dragging the selected events
+ * @param {Event} event
+ * @private
+ */
+ItemSet.prototype._onDragStart = function (event) {
+  if (!this.options.editable) {
+    return;
   }
 
-  if (range.conversion) {
-    this.conversion = range.conversion(this.width);
-  }
-  else {
-    this.conversion = Range.conversion(range.start, range.end, this.width);
+  var item = ItemSet.itemFromTarget(event),
+      me = this;
+
+  if (item && item.selected) {
+    var dragLeftItem = event.target.dragLeftItem;
+    var dragRightItem = event.target.dragRightItem;
+
+    if (dragLeftItem) {
+      this.touchParams.itemProps = [{
+        item: dragLeftItem,
+        start: item.data.start.valueOf()
+      }];
+    }
+    else if (dragRightItem) {
+      this.touchParams.itemProps = [{
+        item: dragRightItem,
+        end: item.data.end.valueOf()
+      }];
+    }
+    else {
+      this.touchParams.itemProps = this.getSelection().map(function (id) {
+        var item = me.items[id];
+        var props = {
+          item: item
+        };
+
+        if ('start' in item.data) {
+          props.start = item.data.start.valueOf()
+        }
+        if ('end' in item.data)   {
+          props.end = item.data.end.valueOf()
+        }
+
+        return props;
+      });
+    }
+
+    event.stopPropagation();
   }
 };
 
 /**
- * Convert a position on screen (pixels) to a datetime
- * Before this method can be used, the method _updateConversion must be
- * executed once.
- * @param {int}     x    Position on the screen in pixels
- * @return {Date}   time The datetime the corresponds with given position x
+ * Drag selected items
+ * @param {Event} event
+ * @private
  */
-ItemSet.prototype.toTime = function toTime(x) {
-  var conversion = this.conversion;
-  return new Date(x / conversion.scale + conversion.offset);
+ItemSet.prototype._onDrag = function (event) {
+  if (this.touchParams.itemProps) {
+    var snap = this.options.snap || null,
+        deltaX = event.gesture.deltaX,
+        scale = (this.width / (this.range.end - this.range.start)),
+        offset = deltaX / scale;
+
+    // move
+    this.touchParams.itemProps.forEach(function (props) {
+      if ('start' in props) {
+        var start = new Date(props.start + offset);
+        props.item.data.start = snap ? snap(start) : start;
+      }
+      if ('end' in props) {
+        var end = new Date(props.end + offset);
+        props.item.data.end = snap ? snap(end) : end;
+      }
+    });
+
+    // TODO: implement onMoving handler
+
+    // TODO: implement dragging from one group to another
+
+    this.stackDirty = true; // force re-stacking of all items next repaint
+    this.emit('change');
+
+    event.stopPropagation();
+  }
 };
 
 /**
- * Convert a datetime (Date object) into a position on the screen
- * Before this method can be used, the method _updateConversion must be
- * executed once.
- * @param {Date}   time A date
- * @return {int}   x    The position on the screen in pixels which corresponds
- *                      with the given date.
+ * End of dragging selected items
+ * @param {Event} event
+ * @private
  */
-ItemSet.prototype.toScreen = function toScreen(time) {
-  var conversion = this.conversion;
-  return (time.valueOf() - conversion.offset) * conversion.scale;
+ItemSet.prototype._onDragEnd = function (event) {
+  if (this.touchParams.itemProps) {
+    // prepare a change set for the changed items
+    var changes = [],
+        me = this,
+        dataset = this._myDataSet();
+
+    this.touchParams.itemProps.forEach(function (props) {
+      var id = props.item.id,
+          item = me.itemsData.get(id);
+
+      var changed = false;
+      if ('start' in props.item.data) {
+        changed = (props.start != props.item.data.start.valueOf());
+        item.start = util.convert(props.item.data.start, dataset.convert['start']);
+      }
+      if ('end' in props.item.data) {
+        changed = changed  || (props.end != props.item.data.end.valueOf());
+        item.end = util.convert(props.item.data.end, dataset.convert['end']);
+      }
+
+      // only apply changes when start or end is actually changed
+      if (changed) {
+        me.options.onMove(item, function (item) {
+          if (item) {
+            // apply changes
+            item[dataset.fieldId] = id; // ensure the item contains its id (can be undefined)
+            changes.push(item);
+          }
+          else {
+            // restore original values
+            if ('start' in props) props.item.data.start = props.start;
+            if ('end' in props)   props.item.data.end   = props.end;
+
+            me.stackDirty = true; // force re-stacking of all items next repaint
+            me.emit('change');
+          }
+        });
+      }
+    });
+    this.touchParams.itemProps = null;
+
+    // apply the changes to the data (if there are changes)
+    if (changes.length) {
+      dataset.update(changes);
+    }
+
+    event.stopPropagation();
+  }
+};
+
+/**
+ * Find an item from an event target:
+ * searches for the attribute 'timeline-item' in the event target's element tree
+ * @param {Event} event
+ * @return {Item | null} item
+ */
+ItemSet.itemFromTarget = function itemFromTarget (event) {
+  var target = event.target;
+  while (target) {
+    if (target.hasOwnProperty('timeline-item')) {
+      return target['timeline-item'];
+    }
+    target = target.parentNode;
+  }
+
+  return null;
+};
+
+/**
+ * Find the ItemSet from an event target:
+ * searches for the attribute 'timeline-itemset' in the event target's element tree
+ * @param {Event} event
+ * @return {ItemSet | null} item
+ */
+ItemSet.itemSetFromTarget = function itemSetFromTarget (event) {
+  var target = event.target;
+  while (target) {
+    if (target.hasOwnProperty('timeline-itemset')) {
+      return target['timeline-itemset'];
+    }
+    target = target.parentNode;
+  }
+
+  return null;
+};
+
+/**
+ * Find the DataSet to which this ItemSet is connected
+ * @returns {null | DataSet} dataset
+ * @private
+ */
+ItemSet.prototype._myDataSet = function _myDataSet() {
+  // find the root DataSet
+  var dataset = this.itemsData;
+  while (dataset instanceof DataView) {
+    dataset = dataset.data;
+  }
+  return dataset;
 };

@@ -62,8 +62,8 @@ data.add([
 ]);
 
 // subscribe to any change in the DataSet
-data.subscribe('*', function (event, params, senderId) {
-  console.log('event', event, params);
+data.on('*', function (event, properties, senderId) {
+  console.log('event', event, properties);
 });
 
 // update an existing item
@@ -107,13 +107,18 @@ console.log('formatted items', items);
 </p>
 
 <pre class="prettyprint lang-js">
-var data = new vis.DataSet(options)
+var data = new vis.DataSet([data] [, options])
 </pre>
 
 <p>
   After construction, data can be added to the DataSet using the methods
   <code>add</code> and <code>update</code>, as described in section
   <a href="#Data_Manipulation">Data Manipulation</a>.
+</p>
+
+<p>
+  The parameter <code>data</code>code> is optional and can be an Array or
+  Google DataTable with items.
 </p>
 
 <p>
@@ -545,8 +550,8 @@ var items = data.get({
 
 <p>
   One can subscribe on changes in a DataSet.
-  A subscription can be created using the method <code>subscribe</code>,
-  and removed with <code>unsubscribe</code>.
+  A subscription can be created using the method <code>on</code>,
+  and removed with <code>off</code>.
 </p>
 
 <pre class="prettyprint lang-js">
@@ -554,8 +559,8 @@ var items = data.get({
 var data = new vis.DataSet();
 
 // subscribe to any change in the DataSet
-data.subscribe('*', function (event, params, senderId) {
-  console.log('event:', event, 'params:', params, 'senderId:', senderId);
+data.on('*', function (event, properties, senderId) {
+  console.log('event:', event, 'properties:', properties, 'senderId:', senderId);
 });
 
 // add an item
@@ -565,14 +570,14 @@ data.remove(1);                                 // triggers an 'remove' event
 </pre>
 
 
-<h3 id="Subscribe">Subscribe</h3>
+<h3 id="On">On</h3>
 
 <p>
   Subscribe to an event.
 </p>
 
 Syntax:
-<pre class="prettyprint lang-js">DataSet.subscribe(event, callback)</pre>
+<pre class="prettyprint lang-js">DataSet.on(event, callback)</pre>
 
 Where:
 <ul>
@@ -587,17 +592,17 @@ Where:
   </li>
 </ul>
 
-<h3 id="Unsubscribe">Unsubscribe</h3>
+<h3 id="Off">Off</h3>
 
 <p>
   Unsubscribe from an event.
 </p>
 
 Syntax:
-<pre class="prettyprint lang-js">DataSet.unsubscribe(event, callback)</pre>
+<pre class="prettyprint lang-js">DataSet.off(event, callback)</pre>
 
 Where <code>event</code> and <code>callback</code> correspond with the
-parameters used to <a href="#Subscribe">subscribe</a> to the event.
+parameters used to <a href="#On">subscribe</a> to the event.
 
 <h3 id="Events">Events</h3>
 
@@ -650,7 +655,7 @@ parameters used to <a href="#Subscribe">subscribe</a> to the event.
 </p>
 
     <pre class="prettyprint lang-js">
-function (event, params, senderId) {
+function (event, properties, senderId) {
   // handle the event
 });
 </pre>
@@ -674,13 +679,13 @@ function (event, params, senderId) {
     </td>
   </tr>
   <tr>
-    <td>params</td>
+    <td>properties</td>
     <td>Object&nbsp;|&nbsp;null</td>
     <td>
-      Optional parameters providing more information on the event.
+      Optional properties providing more information on the event.
       In case of the events <code>add</code>,
       <code>update</code>, and <code>remove</code>,
-      <code>params</code> is always an object containing a property
+      <code>properties</code> is always an object containing a property
       items, which contains an array with the ids of the affected
       items.
     </td>

@@ -98,6 +98,23 @@ util.extend = function (a, b) {
 };
 
 /**
+ * Test whether all elements in two arrays are equal.
+ * @param {Array} a
+ * @param {Array} b
+ * @return {boolean} Returns true if both arrays have the same length and same
+ *                   elements.
+ */
+util.equalArray = function (a, b) {
+  if (a.length != b.length) return false;
+
+  for (var i = 1, len = a.length; i < len; i++) {
+    if (a[i] != b[i]) return false;
+  }
+
+  return true;
+};
+
+/**
  * Convert an object to another type
  * @param {Boolean | Number | String | Date | Moment | Null | undefined} object
  * @param {String | undefined} type   Name of the type. Available types:
@@ -441,13 +458,29 @@ util.forEach = function forEach (object, callback) {
 };
 
 /**
+ * Convert an object into an array: all objects properties are put into the
+ * array. The resulting array is unordered.
+ * @param {Object} object
+ * @param {Array} array
+ */
+util.toArray = function toArray(object) {
+  var array = [];
+
+  for (var prop in object) {
+    if (object.hasOwnProperty(prop)) array.push(object[prop]);
+  }
+
+  return array;
+}
+
+/**
  * Update a property in an object
  * @param {Object} object
  * @param {String} key
  * @param {*} value
  * @return {Boolean} changed
  */
-util.updateProperty = function updateProp (object, key, value) {
+util.updateProperty = function updateProperty (object, key, value) {
   if (object[key] !== value) {
     object[key] = value;
     return true;
@@ -534,21 +567,6 @@ util.getTarget = function getTarget(event) {
 };
 
 /**
- * Stop event propagation
- */
-util.stopPropagation = function stopPropagation(event) {
-  if (!event)
-    event = window.event;
-
-  if (event.stopPropagation) {
-    event.stopPropagation();  // non-IE browsers
-  }
-  else {
-    event.cancelBubble = true;  // IE browsers
-  }
-};
-
-/**
  * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
  * @param {Element} element
  * @param {Event} event
@@ -557,28 +575,23 @@ util.fakeGesture = function fakeGesture (element, event) {
   var eventType = null;
 
   // for hammer.js 1.0.5
-  return Hammer.event.collectEventData(this, eventType, event);
+  var gesture = Hammer.event.collectEventData(this, eventType, event);
 
   // for hammer.js 1.0.6
   //var touches = Hammer.event.getTouchList(event, eventType);
-  //return Hammer.event.collectEventData(this, eventType, touches, event);
-};
+  // var gesture = Hammer.event.collectEventData(this, eventType, touches, event);
 
-/**
- * Cancels the event if it is cancelable, without stopping further propagation of the event.
- */
-util.preventDefault = function preventDefault (event) {
-  if (!event)
-    event = window.event;
-
-  if (event.preventDefault) {
-    event.preventDefault();  // non-IE browsers
+  // on IE in standards mode, no touches are recognized by hammer.js,
+  // resulting in NaN values for center.pageX and center.pageY
+  if (isNaN(gesture.center.pageX)) {
+    gesture.center.pageX = event.pageX;
   }
-  else {
-    event.returnValue = false;  // IE browsers
+  if (isNaN(gesture.center.pageY)) {
+    gesture.center.pageY = event.pageY;
   }
-};
 
+  return gesture;
+};
 
 util.option = {};
 
@@ -670,4 +683,228 @@ util.option.asElement = function (value, defaultValue) {
   }
 
   return value || defaultValue || null;
+};
+
+
+
+util.GiveDec = function GiveDec(Hex) {
+  var Value;
+
+  if (Hex == "A")
+    Value = 10;
+  else if (Hex == "B")
+    Value = 11;
+  else if (Hex == "C")
+    Value = 12;
+  else if (Hex == "D")
+    Value = 13;
+  else if (Hex == "E")
+    Value = 14;
+  else if (Hex == "F")
+    Value = 15;
+  else
+    Value = eval(Hex);
+
+  return Value;
+};
+
+util.GiveHex = function GiveHex(Dec) {
+  var Value;
+
+  if(Dec == 10)
+    Value = "A";
+  else if (Dec == 11)
+    Value = "B";
+  else if (Dec == 12)
+    Value = "C";
+  else if (Dec == 13)
+    Value = "D";
+  else if (Dec == 14)
+    Value = "E";
+  else if (Dec == 15)
+    Value = "F";
+  else
+    Value = "" + Dec;
+
+  return Value;
+};
+
+/**
+ * Parse a color property into an object with border, background, and
+ * highlight colors
+ * @param {Object | String} color
+ * @return {Object} colorObject
+ */
+util.parseColor = function(color) {
+  var c;
+  if (util.isString(color)) {
+    if (util.isValidHex(color)) {
+      var hsv = util.hexToHSV(color);
+      var lighterColorHSV = {h:hsv.h,s:hsv.s * 0.45,v:Math.min(1,hsv.v * 1.05)};
+      var darkerColorHSV  = {h:hsv.h,s:Math.min(1,hsv.v * 1.25),v:hsv.v*0.6};
+      var darkerColorHex  = util.HSVToHex(darkerColorHSV.h ,darkerColorHSV.h ,darkerColorHSV.v);
+      var lighterColorHex = util.HSVToHex(lighterColorHSV.h,lighterColorHSV.s,lighterColorHSV.v);
+
+      c = {
+        background: color,
+        border:darkerColorHex,
+        highlight: {
+          background:lighterColorHex,
+          border:darkerColorHex
+        }
+      };
+    }
+    else {
+      c = {
+        background:color,
+        border:color,
+        highlight: {
+          background:color,
+          border:color
+        }
+      };
+    }
+  }
+  else {
+    c = {};
+    c.background = color.background || 'white';
+    c.border = color.border || c.background;
+
+    if (util.isString(color.highlight)) {
+      c.highlight = {
+        border: color.highlight,
+        background: color.highlight
+      }
+    }
+    else {
+      c.highlight = {};
+      c.highlight.background = color.highlight && color.highlight.background || c.background;
+      c.highlight.border = color.highlight && color.highlight.border || c.border;
+    }
+  }
+
+  return c;
+};
+
+/**
+ * http://www.yellowpipe.com/yis/tools/hex-to-rgb/color-converter.php
+ *
+ * @param {String} hex
+ * @returns {{r: *, g: *, b: *}}
+ */
+util.hexToRGB = function hexToRGB(hex) {
+  hex = hex.replace("#","").toUpperCase();
+
+  var a = util.GiveDec(hex.substring(0, 1));
+  var b = util.GiveDec(hex.substring(1, 2));
+  var c = util.GiveDec(hex.substring(2, 3));
+  var d = util.GiveDec(hex.substring(3, 4));
+  var e = util.GiveDec(hex.substring(4, 5));
+  var f = util.GiveDec(hex.substring(5, 6));
+
+  var r = (a * 16) + b;
+  var g = (c * 16) + d;
+  var b = (e * 16) + f;
+
+  return {r:r,g:g,b:b};
+};
+
+util.RGBToHex = function RGBToHex(red,green,blue) {
+  var a = util.GiveHex(Math.floor(red / 16));
+  var b = util.GiveHex(red % 16);
+  var c = util.GiveHex(Math.floor(green / 16));
+  var d = util.GiveHex(green % 16);
+  var e = util.GiveHex(Math.floor(blue / 16));
+  var f = util.GiveHex(blue % 16);
+
+  var hex = a + b + c + d + e + f;
+  return "#" + hex;
+};
+
+
+/**
+ * http://www.javascripter.net/faq/rgb2hsv.htm
+ *
+ * @param red
+ * @param green
+ * @param blue
+ * @returns {*}
+ * @constructor
+ */
+util.RGBToHSV = function  RGBToHSV (red,green,blue) {
+  red=red/255; green=green/255; blue=blue/255;
+  var minRGB = Math.min(red,Math.min(green,blue));
+  var maxRGB = Math.max(red,Math.max(green,blue));
+
+  // Black-gray-white
+  if (minRGB == maxRGB) {
+    return {h:0,s:0,v:minRGB};
+  }
+
+  // Colors other than black-gray-white:
+  var d = (red==minRGB) ? green-blue : ((blue==minRGB) ? red-green : blue-red);
+  var h = (red==minRGB) ? 3 : ((blue==minRGB) ? 1 : 5);
+  var hue = 60*(h - d/(maxRGB - minRGB))/360;
+  var saturation = (maxRGB - minRGB)/maxRGB;
+  var value = maxRGB;
+  return {h:hue,s:saturation,v:value};
+};
+
+
+/**
+ * https://gist.github.com/mjijackson/5311256
+ * @param hue
+ * @param saturation
+ * @param value
+ * @returns {{r: number, g: number, b: number}}
+ * @constructor
+ */
+util.HSVToRGB = function HSVToRGB(h, s, v) {
+  var r, g, b;
+
+  var i = Math.floor(h * 6);
+  var f = h * 6 - i;
+  var p = v * (1 - s);
+  var q = v * (1 - f * s);
+  var t = v * (1 - (1 - f) * s);
+
+  switch (i % 6) {
+    case 0: r = v, g = t, b = p; break;
+    case 1: r = q, g = v, b = p; break;
+    case 2: r = p, g = v, b = t; break;
+    case 3: r = p, g = q, b = v; break;
+    case 4: r = t, g = p, b = v; break;
+    case 5: r = v, g = p, b = q; break;
+  }
+
+  return {r:Math.floor(r * 255), g:Math.floor(g * 255), b:Math.floor(b * 255) };
+};
+
+util.HSVToHex = function HSVToHex(h, s, v) {
+  var rgb = util.HSVToRGB(h, s, v);
+  return util.RGBToHex(rgb.r, rgb.g, rgb.b);
+};
+
+util.hexToHSV = function hexToHSV(hex) {
+  var rgb = util.hexToRGB(hex);
+  return util.RGBToHSV(rgb.r, rgb.g, rgb.b);
+};
+
+util.isValidHex = function isValidHex(hex) {
+  var isOk = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
+  return isOk;
+};
+
+util.copyObject = function copyObject(objectFrom, objectTo) {
+  for (var i in objectFrom) {
+    if (objectFrom.hasOwnProperty(i)) {
+      if (typeof objectFrom[i] == "object") {
+        objectTo[i] = {};
+        util.copyObject(objectFrom[i], objectTo[i]);
+      }
+      else {
+        objectTo[i] = objectFrom[i];
+      }
+    }
+  }
 };

@@ -1,5 +1,134 @@
-vis.js history
+# vis.js history
 http://visjs.org
+
+
+## not yet released, version 0.8.0
+
+### Timeline
+
+- Large refactoring of the Timeline, simplifying the code.
+- Performance improvements.
+- Improved layout of box-items inside groups.
+- Function `setWindow` now accepts an object with properties `start` and `end`.
+- Fixed option `autoResize` forcing a repaint of the Timeline with every check
+  rather than when the Timeline is actually resized.
+- Fixed `select` event fired repeatedly when clicking an empty place on the
+  Timeline, deselecting selected items).
+- Fixed initial visible window in case items exceed `zoomMax`. Thanks @Remper.
+- Option `order` is now deprecated. This was needed for performance improvements.
+- Minor bug fixes.
+- More examples added.
+
+### DataSet
+
+- A DataSet can now be constructed with initial data, like
+  `new DataSet(data, options)`.
+
+
+## 2014-04-18, version 0.7.4
+
+### Graph
+
+- fixed IE9 bug.
+- style fixes.
+- minor bug fixes.
+
+
+## 2014-04-16, version 0.7.3
+
+### Graph
+
+- fixed color bug.
+- added pull requests from kannonboy and vierja: tooltip styling, label fill color
+
+
+## 2014-04-09, version 0.7.2
+
+### Graph
+
+- fixed edge select bug.
+- fixed zoom bug on empty initialization.
+
+
+## 2014-03-27, version 0.7.1
+
+### Graph
+
+- fixed edge color bug.
+- fixed select event bug.
+- clarified docs, stressing importance of css inclusion for correct display of navigation an manipulation icons.
+- improved and expanded playing with physics (configurePhysics option).
+- added highlights to navigation icons if the corresponding key is pressed.
+- added freezeForStabilization option to improve stabilization with cached positions.
+
+
+## 2014-03-07, version 0.7.0
+
+### Graph
+
+- changed navigation CSS. Icons are now always correctly positioned.
+- added stabilizationIterations option to graph.
+- added storePosition() method to save the XY positions of nodes in the DataSet.
+- separated allowedToMove into allowedToMoveX and allowedToMoveY. This is required for initializing nodes from hierarchical layouts after storePosition().
+- added color options for the edges.
+
+
+## 2014-03-06, version 0.6.1
+
+### Graph
+
+- Bugfix graphviz examples.
+- Bugfix labels position for smooth curves.
+- Tweaked graphviz example physics.
+- Updated physics documentation to stress importance of configurePhysics.
+
+### Timeline
+
+- Fixed a bug with options `margin.axis` and `margin.item` being ignored when setting them to zero.
+- Some clarifications in the documentation.
+
+
+## 2014-03-05, version 0.6.0
+
+### Graph
+
+- Added Physics Configuration option. This makes tweaking the physics system to suit your needs easier.
+- Click and doubleClick events.
+- Initial zoom bugfix.
+- Directions for Hierarchical layout.
+- Refactoring and bugfixes.
+
+
+## 2014-02-20, version 0.5.1
+
+- Fixed broken bower module.
+
+
+## 2014-02-20, version 0.5.0
+
+### Timeline
+
+- Editable Items: drag items, add new items, update items, and remove items.
+- Implemented options `selectable`, `editable`.
+- Added events `timechange` and `timechanged` when dragging the custom time bar.
+- Multiple items can be selected using ctrl+click or shift+click.
+- Implemented functions `setWindow(start, end)` and `getWindow()`.
+- Fixed scroll to zoom not working on IE in standards mode.
+
+### Graph
+
+- Editable nodes and edges: create, update, and remove them.
+- Support for smooth, curved edges (on by default).
+- Performance improvements.
+- Fixed scroll to zoom not working on IE in standards mode.
+- Added hierarchical layout option.
+- Overhauled physics system, now using Barnes-Hut simulation by default. Great performance gains.
+- Modified clustering system to give better results.
+- Adaptive performance system to increase visual performance (60fps target).
+
+### DataSet
+
+- Renamed functions `subscribe` and `unsubscribe` to `on` and `off` respectively.
 
 
 ## 2014-01-31, version 0.4.0
@@ -8,7 +137,7 @@ http://visjs.org
 
 - Implemented functions `on` and `off` to create event listeners for events
   `rangechange`, `rangechanged`, and `select`.
-- Impelmented function `select` to get and set the selected items.
+- Implemented function `select` to get and set the selected items.
 - Items can be selected by clicking them, muti-select by holding them.
 - Fixed non working `start` and `end` options.
 
@@ -20,7 +149,7 @@ http://visjs.org
   datasets (up to 10x!).
 - Support for automatic clustering in Graph to handle large (>50000) datasets
   without losing performance.
-- Added automatic intial zooming to Graph, to more easily view large amounts
+- Added automatic initial zooming to Graph, to more easily view large amounts
   of data.
 - Added local declustering to Graph, freezing the simulation of nodes outside
   of the cluster.
@@ -35,7 +164,7 @@ http://visjs.org
 
 - Moved the generated library to folder `./dist`
 - Css stylesheet must be loaded explicitly now.
-- Implemented options `showCurrentTime` and `showCustomTime`. Thanks fi0dor.
+- Implemented options `showCurrentTime` and `showCustomTime`. Thanks @fi0dor.
 - Implemented touch support for Timeline.
 - Fixed broken Timeline options `min` and `max`.
 - Fixed not being able to load vis.js in node.js.

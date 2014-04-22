@@ -31,10 +31,10 @@
     div.table_description {
       width:100px;
     }
-
   </style>
 
   <script type="text/javascript" src="../../dist/vis.js"></script>
+  <link type="text/css" rel="stylesheet" href="../../dist/vis.css">
 
   <script type="text/javascript">
     var nodes = null;
@@ -126,17 +126,17 @@
 <body onload="draw();">
 <h2>Navigation controls and keyboad navigation</h2>
 <div style="width: 700px; font-size:14px;">
-  This example is the same as example 2, except for the navigation controls that has been activated. The navigation controls are described below. <br /><br />
+  This example is the same as example 2, except for the navigation controls that have been activated. The navigation controls are described below. <br /><br />
   <table class="legend_table">
     <tr>
       <td>Icons: </td>
-      <td><div class="table_content"><img src="../../dist/img/uparrow.png" />     </div></td>
-      <td><div class="table_content"><img src="../../dist/img/downarrow.png" />   </div></td>
-      <td><div class="table_content"><img src="../../dist/img/leftarrow.png" />   </div></td>
-      <td><div class="table_content"><img src="../../dist/img/rightarrow.png" />  </div></td>
-      <td><div class="table_content"><img src="../../dist/img/plus.png" />        </div></td>
-      <td><div class="table_content"><img src="../../dist/img/minus.png" />       </div></td>
-      <td><div class="table_content"><img src="../../dist/img/zoomExtends.png" /> </div></td>
+      <td><div class="table_content"><img src="../../dist/img/graph/upArrow.png" />     </div></td>
+      <td><div class="table_content"><img src="../../dist/img/graph/downArrow.png" />   </div></td>
+      <td><div class="table_content"><img src="../../dist/img/graph/leftArrow.png" />   </div></td>
+      <td><div class="table_content"><img src="../../dist/img/graph/rightArrow.png" />  </div></td>
+      <td><div class="table_content"><img src="../../dist/img/graph/plus.png" />        </div></td>
+      <td><div class="table_content"><img src="../../dist/img/graph/minus.png" />       </div></td>
+      <td><div class="table_content"><img src="../../dist/img/graph/zoomExtends.png" /> </div></td>
     </tr>
     <tr>
       <td><div class="table_description">Keyboard shortcuts:</div></td>
@@ -156,12 +156,13 @@
       <td><div class="table_content">Move right</div></td>
       <td><div class="table_content">Zoom in</div></td>
       <td><div class="table_content">Zoom out</div></td>
-      <td><div class="table_content">Zoom extends</div></td>
+      <td><div class="table_content">Zoom extent</div></td>
     </tr>
   </table>
   <br />
   Apart from clicking the icons, you can also navigate using the keyboard. The buttons are in table above.
-  Zoom Extends changes the zoom and position of the camera to encompass all visible nodes.
+  Zoom Extends changes the zoom and position of the camera to encompass all visible nodes. <u>To correctly display the navigation icons, the <b>vis.css</b> file must be included.</u>
+    The user is free to alter or overload the CSS classes but without them the navigation icons are not visible.
 
 
 </div>

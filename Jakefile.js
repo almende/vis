@@ -4,6 +4,7 @@
 var jake = require('jake'),
     browserify = require('browserify'),
     wrench = require('wrench'),
+    CleanCSS = require('clean-css'),
     fs = require('fs');
 
 require('jake-utils');
@@ -14,6 +15,7 @@ var VIS = DIST + '/vis.js';
 var VIS_CSS = DIST + '/vis.css';
 var VIS_TMP = DIST + '/vis.js.tmp';
 var VIS_MIN = DIST + '/vis.min.js';
+var VIS_MIN_CSS = DIST + '/vis.min.css';
 
 /**
  * default task
@@ -29,6 +31,8 @@ task('default', ['build', 'minify'], function () {
 desc('Build the visualization library vis.js');
 task('build', {async: true}, function () {
   jake.mkdirP(DIST);
+  jake.mkdirP(DIST + '/img');
+
   // concatenate and stringify the css files
   concat({
     src: [
@@ -39,7 +43,10 @@ task('build', {async: true}, function () {
       './src/timeline/component/css/item.css',
       './src/timeline/component/css/timeaxis.css',
       './src/timeline/component/css/currenttime.css',
-      './src/timeline/component/css/customtime.css'
+      './src/timeline/component/css/customtime.css',
+
+      './src/graph/css/graph-manipulation.css',
+      './src/graph/css/graph-navigation.css'
     ],
     dest: VIS_CSS,
     separator: '\n'
@@ -54,15 +61,12 @@ task('build', {async: true}, function () {
 
       './src/shim.js',
       './src/util.js',
-      './src/events.js',
-      './src/EventBus.js',
       './src/DataSet.js',
       './src/DataView.js',
 
       './src/timeline/TimeStep.js',
       './src/timeline/Stack.js',
       './src/timeline/Range.js',
-      './src/timeline/Controller.js',
       './src/timeline/component/Component.js',
       './src/timeline/component/Panel.js',
       './src/timeline/component/RootPanel.js',
@@ -82,10 +86,17 @@ task('build', {async: true}, function () {
       './src/graph/Popup.js',
       './src/graph/Groups.js',
       './src/graph/Images.js',
-      './src/graph/SectorsMixin.js',
-      './src/graph/ClusterMixin.js',
-      './src/graph/SelectionMixin.js',
-      './src/graph/NavigationMixin.js',
+      './src/graph/graphMixins/physics/PhysicsMixin.js',
+      './src/graph/graphMixins/physics/HierarchialRepulsion.js',
+      './src/graph/graphMixins/physics/BarnesHut.js',
+      './src/graph/graphMixins/physics/Repulsion.js',
+      './src/graph/graphMixins/HierarchicalLayoutMixin.js',
+      './src/graph/graphMixins/ManipulationMixin.js',
+      './src/graph/graphMixins/SectorsMixin.js',
+      './src/graph/graphMixins/ClusterMixin.js',
+      './src/graph/graphMixins/SelectionMixin.js',
+      './src/graph/graphMixins/NavigationMixin.js',
+      './src/graph/graphMixins/MixinLoader.js',
       './src/graph/Graph.js',
 
       './src/module/exports.js'
@@ -95,7 +106,10 @@ task('build', {async: true}, function () {
   });
 
   // copy images
-  wrench.copyDirSyncRecursive('./src/graph/img', DIST+ '/img', {
+  wrench.copyDirSyncRecursive('./src/graph/img', DIST + '/img/graph', {
+    forceDelete: true
+  });
+  wrench.copyDirSyncRecursive('./src/timeline/img', DIST + '/img/timeline', {
     forceDelete: true
   });
 
@@ -131,7 +145,7 @@ task('build', {async: true}, function () {
  * minify the visualization library vis.js
  */
 desc('Minify the visualization library vis.js');
-task('minify', function () {
+task('minify', {async: true}, function () {
   // minify javascript
   minify({
     src: VIS,
@@ -143,6 +157,10 @@ task('minify', function () {
   replacePlaceholders(VIS_MIN);
 
   console.log('created minified ' + VIS_MIN);
+
+  var minified = new CleanCSS().minify(read(VIS_CSS));
+  write(VIS_MIN_CSS, minified);
+  console.log('created minified ' + VIS_MIN_CSS);
 });
 
 /**

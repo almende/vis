@@ -21,71 +21,37 @@ function ItemRangeOverflow (parent, data, options, defaultOptions) {
 
 ItemRangeOverflow.prototype = new ItemRange (null, null);
 
-/**
- * Repaint the item
- * @return {Boolean} changed
- */
-ItemRangeOverflow.prototype.repaint = function repaint() {
-  // TODO: make an efficient repaint
-  var changed = false;
-  var dom = this.dom;
-
-  if (!dom) {
-    this._create();
-    dom = this.dom;
-    changed = true;
-  }
-
-  if (dom) {
-    if (!this.parent) {
-      throw new Error('Cannot repaint item: no parent attached');
-    }
-    var foreground = this.parent.getForeground();
-    if (!foreground) {
-      throw new Error('Cannot repaint time axis: ' +
-          'parent has no foreground container element');
-    }
-
-    if (!dom.box.parentNode) {
-      foreground.appendChild(dom.box);
-      changed = true;
-    }
-
-    // update content
-    if (this.data.content != this.content) {
-      this.content = this.data.content;
-      if (this.content instanceof Element) {
-        dom.content.innerHTML = '';
-        dom.content.appendChild(this.content);
-      }
-      else if (this.data.content != undefined) {
-        dom.content.innerHTML = this.content;
-      }
-      else {
-        throw new Error('Property "content" missing in item ' + this.data.id);
-      }
-      changed = true;
-    }
-
-    // update class
-    var className = this.data.className ? (' ' + this.data.className) : '';
-    if (this.className != className) {
-      this.className = className;
-      dom.box.className = 'item rangeoverflow' + className;
-      changed = true;
-    }
-  }
-
-  return changed;
-};
+ItemRangeOverflow.prototype.baseClassName = 'item rangeoverflow';
 
 /**
- * Return the items width
- * @return {Number} width
+ * Reposition the item horizontally
+ * @Override
  */
-ItemRangeOverflow.prototype.getWidth = function getWidth() {
-  if (this.props.content !== undefined && this.width < this.props.content.width)
-    return this.props.content.width;
-  else
-    return this.width;
+ItemRangeOverflow.prototype.repositionX = function repositionX() {
+  var parentWidth = this.parent.width,
+      start = this.defaultOptions.toScreen(this.data.start),
+      end = this.defaultOptions.toScreen(this.data.end),
+      padding = 'padding' in this.options ? this.options.padding : this.defaultOptions.padding,
+      contentLeft;
+
+  // limit the width of the this, as browsers cannot draw very wide divs
+  if (start < -parentWidth) {
+    start = -parentWidth;
+  }
+  if (end > 2 * parentWidth) {
+    end = 2 * parentWidth;
+  }
+
+  // when range exceeds left of the window, position the contents at the left of the visible area
+  contentLeft = Math.max(-start, 0);
+
+  this.left = start;
+  var boxWidth = Math.max(end - start, 1);
+  this.width = (this.props.content.width < boxWidth) ?
+      boxWidth :
+      start + contentLeft + this.props.content.width;
+
+  this.dom.box.style.left = this.left + 'px';
+  this.dom.box.style.width = boxWidth + 'px';
+  this.dom.content.style.left = contentLeft + 'px';
 };

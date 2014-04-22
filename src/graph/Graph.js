@@ -10,17 +10,27 @@
  * @param {Object} options      Options
  */
 function Graph (container, data, options) {
+
+  this._initializeMixinLoaders();
+
   // create variables and set default values
   this.containerElement = container;
   this.width = '100%';
   this.height = '100%';
-  // to give everything a nice fluidity, we seperate the rendering and calculating of the forces
-  this.renderRefreshRate = 60; // hz (fps)
-  this.renderTimestep = 1000 / this.renderRefreshRate; // ms -- saves calculation later on
-  this.stabilize = true; // stabilize before displaying the graph
-  this.selectable = true;
 
-  this.forceFactor = 50000;
+  // render and calculation settings
+  this.renderRefreshRate = 60;                         // hz (fps)
+  this.renderTimestep = 1000 / this.renderRefreshRate; // ms -- saves calculation later on
+  this.renderTime = 0.5 * this.renderTimestep;         // measured time it takes to render a frame
+  this.maxPhysicsTicksPerRender = 3;                   // max amount of physics ticks per render step.
+  this.physicsDiscreteStepsize = 0.65;                 // discrete stepsize of the simulation
+
+  this.stabilize = true;  // stabilize before displaying the graph
+  this.selectable = true;
+  this.initializing = true;
+
+  // these functions are triggered when the dataset is edited
+  this.triggerFunctions = {add:null,edit:null,connect:null,del:null};
 
   // set constant values
   this.constants = {
@@ -28,15 +38,15 @@ function Graph (container, data, options) {
       radiusMin: 5,
       radiusMax: 20,
       radius: 5,
-      distance: 100, // px
       shape: 'ellipse',
       image: undefined,
       widthMin: 16, // px
       widthMax: 64, // px
+      fixed: false,
       fontColor: 'black',
       fontSize: 14, // px
-      //fontFace: verdana,
-      fontFace: 'arial',
+      fontFace: 'verdana',
+      level: -1,
       color: {
           border: '#2B7CE9',
           background: '#97C2FC',
@@ -55,17 +65,50 @@ function Graph (container, data, options) {
       widthMax: 15,
       width: 1,
       style: 'line',
-      color: '#343434',
+      color: {
+        color:'#848484',
+        highlight:'#848484'
+      },
       fontColor: '#343434',
       fontSize: 14, // px
       fontFace: 'arial',
-      //distance: 100, //px
-      length: 100,   // px
+      fontFill: 'white',
       dash: {
         length: 10,
         gap: 5,
         altLength: undefined
       }
+    },
+    configurePhysics:false,
+    physics: {
+      barnesHut: {
+        enabled: true,
+        theta: 1 / 0.6, // inverted to save time during calculation
+        gravitationalConstant: -2000,
+        centralGravity: 0.3,
+        springLength: 95,
+        springConstant: 0.04,
+        damping: 0.09
+      },
+      repulsion: {
+        centralGravity: 0.1,
+        springLength: 200,
+        springConstant: 0.05,
+        nodeDistance: 100,
+        damping: 0.09
+      },
+      hierarchicalRepulsion: {
+        enabled: false,
+        centralGravity: 0.0,
+        springLength: 100,
+        springConstant: 0.01,
+        nodeDistance: 60,
+        damping: 0.09
+      },
+      damping: null,
+      centralGravity: null,
+      springLength: null,
+      springConstant: null
     },
     clustering: {                   // Per Node in Cluster = PNiC
       enabled: false,               // (Boolean)             | global on/off switch for clustering.
@@ -74,124 +117,181 @@ function Graph (container, data, options) {
       reduceToNodes:300,            // (# nodes)             | during calculate forces, we check if the total number of nodes is larger than clusterThreshold. If it is, cluster until reduced to this
       chainThreshold: 0.4,          // (% of all drawn nodes)| maximum percentage of allowed chainnodes (long strings of connected nodes) within all nodes. (lower means less chains).
       clusterEdgeThreshold: 20,     // (px)                  | edge length threshold. if smaller, this node is clustered.
-      sectorThreshold: 50,          // (# nodes in cluster)  | cluster size threshold. If larger, expanding in own sector.
+      sectorThreshold: 100,         // (# nodes in cluster)  | cluster size threshold. If larger, expanding in own sector.
       screenSizeThreshold: 0.2,     // (% of canvas)         | relative size threshold. If the width or height of a clusternode takes up this much of the screen, decluster node.
       fontSizeMultiplier: 4.0,      // (px PNiC)             | how much the cluster font size grows per node in cluster (in px).
-      forceAmplification: 0.6,      // (multiplier PNiC)     | factor of increase fo the repulsion force of a cluster (per node in cluster).
-      distanceAmplification: 0.2,   // (multiplier PNiC)     | factor how much the repulsion distance of a cluster increases (per node in cluster).
-      edgeGrowth: 11,               // (px PNiC)             | amount of clusterSize connected to the edge is multiplied with this and added to edgeLength.
-      nodeScaling: {width:  10,     // (px PNiC)             | growth of the width  per node in cluster.
-                    height: 10,     // (px PNiC)             | growth of the height per node in cluster.
-                    radius: 10},    // (px PNiC)             | growth of the radius per node in cluster.
-      activeAreaBoxSize: 100,       // (px)                  | box area around the curser where clusters are popped open.
-      massTransferCoefficient: 1    // (multiplier)          | parent.mass += massTransferCoefficient * child.mass
+      maxFontSize: 1000,
+      forceAmplification: 0.1,      // (multiplier PNiC)     | factor of increase fo the repulsion force of a cluster (per node in cluster).
+      distanceAmplification: 0.1,   // (multiplier PNiC)     | factor how much the repulsion distance of a cluster increases (per node in cluster).
+      edgeGrowth: 20,               // (px PNiC)             | amount of clusterSize connected to the edge is multiplied with this and added to edgeLength.
+      nodeScaling: {width:  1,      // (px PNiC)             | growth of the width  per node in cluster.
+                    height: 1,      // (px PNiC)             | growth of the height per node in cluster.
+                    radius: 1},     // (px PNiC)             | growth of the radius per node in cluster.
+      maxNodeSizeIncrements: 600,   // (# increments)        | max growth of the width  per node in cluster.
+      activeAreaBoxSize: 80,       // (px)                  | box area around the curser where clusters are popped open.
+      clusterLevelDifference: 2
     },
     navigation: {
-      enabled: false,
-      iconPath: this._getScriptPath() + '/img'
+      enabled: false
     },
     keyboard: {
       enabled: false,
       speed: {x: 10, y: 10, zoom: 0.02}
     },
-    minVelocity: 2,   // px/s
-    maxIterations: 1000  // maximum number of iteration to stabilize
+    dataManipulation: {
+      enabled: false,
+      initiallyVisible: false
+    },
+    hierarchicalLayout: {
+      enabled:false,
+      levelSeparation: 150,
+      nodeSpacing: 100,
+      direction: "UD"   // UD, DU, LR, RL
+    },
+    freezeForStabilization: false,
+    smoothCurves: true,
+    maxVelocity:  10,
+    minVelocity:  0.1,   // px/s
+    stabilizationIterations: 1000,  // maximum number of iteration to stabilize
+    labels:{
+      add:"Add Node",
+      edit:"Edit",
+      link:"Add Link",
+      del:"Delete selected",
+      editNode:"Edit Node",
+      back:"Back",
+      addDescription:"Click in an empty space to place a new node.",
+      linkDescription:"Click on a node and drag the edge to another node to connect them.",
+      addError:"The function for add does not support two arguments (data,callback).",
+      linkError:"The function for connect does not support two arguments (data,callback).",
+      editError:"The function for edit does not support two arguments (data, callback).",
+      editBoundError:"No edit function has been bound to this button.",
+      deleteError:"The function for delete does not support two arguments (data, callback).",
+      deleteClusterError:"Clusters cannot be deleted."
+    },
+    tooltip: {
+      delay: 300,
+      fontColor: 'black',
+      fontSize: 14, // px
+      fontFace: 'verdana',
+      color: {
+        border: '#666',
+        background: '#FFFFC6'
+      }
+    }
   };
+  this.editMode = this.constants.dataManipulation.initiallyVisible;
 
   // Node variables
+  var graph = this;
   this.groups = new Groups(); // object with groups
   this.images = new Images(); // object with images
   this.images.setOnloadCallback(function () {
     graph._redraw();
   });
 
-  // navigation variables
+  // keyboard navigation variables
   this.xIncrement = 0;
   this.yIncrement = 0;
   this.zoomIncrement = 0;
 
+  // loading all the mixins:
+  // load the force calculation functions, grouped under the physics system.
+  this._loadPhysicsSystem();
   // create a frame and canvas
   this._create();
-
   // load the sector system.    (mandatory, fully integrated with Graph)
   this._loadSectorSystem();
+  // load the cluster system.   (mandatory, even when not using the cluster system, there are function calls to it)
+  this._loadClusterSystem();
+  // load the selection system. (mandatory, required by Graph)
+  this._loadSelectionSystem();
+  // load the selection system. (mandatory, required by Graph)
+  this._loadHierarchySystem();
 
   // apply options
   this.setOptions(options);
 
-  // load the cluster system.   (mandatory, even when not using the cluster system, there are function calls to it)
-  this._loadClusterSystem();
-
-  // load the selection system. (mandatory, required by Graph)
-  this._loadSelectionSystem();
-
   // other vars
-  var graph = this;
   this.freezeSimulation = false;// freeze the simulation
+  this.cachedFunctions = {};
 
+  // containers for nodes and edges
+  this.calculationNodes = {};
+  this.calculationNodeIndices = [];
   this.nodeIndices = [];        // array with all the indices of the nodes. Used to speed up forces calculation
   this.nodes = {};              // object with Node objects
   this.edges = {};              // object with Edge objects
 
+  // position and scale variables and objects
   this.canvasTopLeft     = {"x": 0,"y": 0};   // coordinates of the top left of the canvas.     they will be set during _redraw.
   this.canvasBottomRight = {"x": 0,"y": 0};   // coordinates of the bottom right of the canvas. they will be set during _redraw
-
+  this.pointerPosition = {"x": 0,"y": 0};   // coordinates of the bottom right of the canvas. they will be set during _redraw
   this.areaCenter = {};               // object with x and y elements used for determining the center of the zoom action
   this.scale = 1;                     // defining the global scale variable in the constructor
   this.previousScale = this.scale;    // this is used to check if the zoom operation is zooming in or out
-  // TODO: create a counter to keep track on the number of nodes having values
-  // TODO: create a counter to keep track on the number of nodes currently moving
-  // TODO: create a counter to keep track on the number of edges having values
 
+  // datasets or dataviews
   this.nodesData = null;      // A DataSet or DataView
   this.edgesData = null;      // A DataSet or DataView
 
   // create event listeners used to subscribe on the DataSets of the nodes and edges
-  var me = this;
   this.nodesListeners = {
     'add': function (event, params) {
-      me._addNodes(params.items);
-      me.start();
+      graph._addNodes(params.items);
+      graph.start();
     },
     'update': function (event, params) {
-      me._updateNodes(params.items);
-      me.start();
+      graph._updateNodes(params.items);
+      graph.start();
     },
     'remove': function (event, params) {
-      me._removeNodes(params.items);
-      me.start();
+      graph._removeNodes(params.items);
+      graph.start();
     }
   };
   this.edgesListeners = {
     'add': function (event, params) {
-      me._addEdges(params.items);
-      me.start();
+      graph._addEdges(params.items);
+      graph.start();
     },
     'update': function (event, params) {
-      me._updateEdges(params.items);
-      me.start();
+      graph._updateEdges(params.items);
+      graph.start();
     },
     'remove': function (event, params) {
-      me._removeEdges(params.items);
-      me.start();
+      graph._removeEdges(params.items);
+      graph.start();
     }
   };
 
-  // properties of the data
-  this.moving = false;    // True if any of the nodes have an undefined position
-  this.timer = undefined;
+  // properties for the animation
+  this.moving = true;
+  this.timer = undefined; // Scheduling function. Is definded in this.start();
 
   // load data (the disable start variable will be the same as the enabled clustering)
-  this.setData(data,this.constants.clustering.enabled);
+  this.setData(data,this.constants.clustering.enabled || this.constants.hierarchicalLayout.enabled);
 
-  // zoom so all data will fit on the screen
-  this.zoomToFit(true);
+  // hierarchical layout
+  this.initializing = false;
+  if (this.constants.hierarchicalLayout.enabled == true) {
+    this._setupHierarchicalLayout();
+  }
+  else {
+    // zoom so all data will fit on the screen, if clustering is enabled, we do not want start to be called here.
+    if (this.stabilize == false) {
+      this.zoomExtent(true,this.constants.clustering.enabled);
+    }
+  }
 
   // if clustering is disabled, the simulation will have started in the setData function
   if (this.constants.clustering.enabled) {
     this.startWithClustering();
   }
 }
+
+// Extend Graph with an Emitter mixin
+Emitter(Graph.prototype);
 
 /**
  * Get the script path where the vis.js library is located
@@ -223,12 +323,17 @@ Graph.prototype._getScriptPath = function() {
  */
 Graph.prototype._getRange = function() {
   var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
-  for (var i = 0; i < this.nodeIndices.length; i++) {
-    node = this.nodes[this.nodeIndices[i]];
-    if (minX > (node.x - node.width)) {minX = node.x - node.width;}
-    if (maxX < (node.x + node.width)) {maxX = node.x + node.width;}
-    if (minY > (node.y - node.height)) {minY = node.y - node.height;}
-    if (maxY < (node.y + node.height)) {maxY = node.y + node.height;}
+  for (var nodeId in this.nodes) {
+    if (this.nodes.hasOwnProperty(nodeId)) {
+      node = this.nodes[nodeId];
+      if (minX > (node.x)) {minX = node.x;}
+      if (maxX < (node.x)) {maxX = node.x;}
+      if (minY > (node.y)) {minY = node.y;}
+      if (maxY < (node.y)) {maxY = node.y;}
+    }
+  }
+  if (minX == 1e9 && maxX == -1e9 && minY == 1e9 && maxY == -1e9) {
+    minY = 0, maxY = 0, minX = 0, maxX = 0;
   }
   return {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
 };
@@ -240,9 +345,8 @@ Graph.prototype._getRange = function() {
  * @private
  */
 Graph.prototype._findCenter = function(range) {
-  var center = {x: (0.5 * (range.maxX + range.minX)),
-                y: (0.5 * (range.maxY + range.minY))};
-  return center;
+  return {x: (0.5 * (range.maxX + range.minX)),
+          y: (0.5 * (range.maxY + range.minY))};
 };
 
 
@@ -268,22 +372,41 @@ Graph.prototype._centerGraph = function(range) {
  *
  * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
  */
-Graph.prototype.zoomToFit = function(initialZoom) {
+Graph.prototype.zoomExtent = function(initialZoom, disableStart) {
   if (initialZoom === undefined) {
     initialZoom = false;
   }
+  if (disableStart === undefined) {
+    disableStart = false;
+  }
 
-  var numberOfNodes = this.nodeIndices.length;
   var range = this._getRange();
+  var zoomLevel;
 
   if (initialZoom == true) {
-    if (this.constants.clustering.enabled == true &&
+    var numberOfNodes = this.nodeIndices.length;
+    if (this.constants.smoothCurves == true) {
+      if (this.constants.clustering.enabled == true &&
         numberOfNodes >= this.constants.clustering.initialMaxNodes) {
-      var zoomLevel = 38.8467 / (numberOfNodes - 14.50184) + 0.0116; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+        zoomLevel = 49.07548 / (numberOfNodes + 142.05338) + 9.1444e-04; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+      }
+      else {
+        zoomLevel = 12.662 / (numberOfNodes + 7.4147) + 0.0964822; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+      }
     }
     else {
-      var zoomLevel = 42.54117319 / (numberOfNodes + 39.31966387) + 0.1944405; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+      if (this.constants.clustering.enabled == true &&
+          numberOfNodes >= this.constants.clustering.initialMaxNodes) {
+        zoomLevel = 77.5271985 / (numberOfNodes + 187.266146) + 4.76710517e-05; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+      }
+      else {
+        zoomLevel = 30.5062972 / (numberOfNodes + 19.93597763) + 0.08413486; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+      }
     }
+
+    // correct for larger canvasses.
+    var factor = Math.min(this.frame.canvas.clientWidth / 600, this.frame.canvas.clientHeight / 600);
+    zoomLevel *= factor;
   }
   else {
     var xDistance = (Math.abs(range.minX) + Math.abs(range.maxX)) * 1.1;
@@ -299,10 +422,13 @@ Graph.prototype.zoomToFit = function(initialZoom) {
     zoomLevel = 1.0;
   }
 
-  this.pinch.mousewheelScale = zoomLevel;
+
   this._setScale(zoomLevel);
   this._centerGraph(range);
-  this.start();
+  if (disableStart == false) {
+    this.moving = true;
+    this.start();
+  }
 };
 
 
@@ -362,9 +488,8 @@ Graph.prototype.setData = function(data, disableStart) {
   if (!disableStart) {
     // find a stable position or start animating to a stable position
     if (this.stabilize) {
-      this._doStabilize();
+      this._stabilize();
     }
-    this.moving = true;
     this.start();
   }
 };
@@ -375,15 +500,78 @@ Graph.prototype.setData = function(data, disableStart) {
  */
 Graph.prototype.setOptions = function (options) {
   if (options) {
+    var prop;
     // retrieve parameter values
     if (options.width !== undefined)           {this.width = options.width;}
     if (options.height !== undefined)          {this.height = options.height;}
     if (options.stabilize !== undefined)       {this.stabilize = options.stabilize;}
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
+    if (options.smoothCurves !== undefined)    {this.constants.smoothCurves = options.smoothCurves;}
+    if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
+    if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
+    if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
+
+
+
+    if (options.labels !== undefined)  {
+      for (prop in options.labels) {
+        if (options.labels.hasOwnProperty(prop)) {
+          this.constants.labels[prop] = options.labels[prop];
+        }
+      }
+    }
+
+    if (options.onAdd) {
+        this.triggerFunctions.add = options.onAdd;
+      }
+
+    if (options.onEdit) {
+      this.triggerFunctions.edit = options.onEdit;
+    }
+
+    if (options.onConnect) {
+      this.triggerFunctions.connect = options.onConnect;
+    }
+
+    if (options.onDelete) {
+      this.triggerFunctions.del = options.onDelete;
+    }
+
+    if (options.physics) {
+      if (options.physics.barnesHut) {
+        this.constants.physics.barnesHut.enabled = true;
+        for (prop in options.physics.barnesHut) {
+          if (options.physics.barnesHut.hasOwnProperty(prop)) {
+            this.constants.physics.barnesHut[prop] = options.physics.barnesHut[prop];
+          }
+        }
+      }
+
+      if (options.physics.repulsion) {
+        this.constants.physics.barnesHut.enabled = false;
+        for (prop in options.physics.repulsion) {
+          if (options.physics.repulsion.hasOwnProperty(prop)) {
+            this.constants.physics.repulsion[prop] = options.physics.repulsion[prop];
+          }
+        }
+      }
+    }
+
+    if (options.hierarchicalLayout) {
+      this.constants.hierarchicalLayout.enabled = true;
+      for (prop in options.hierarchicalLayout) {
+        if (options.hierarchicalLayout.hasOwnProperty(prop)) {
+          this.constants.hierarchicalLayout[prop] = options.hierarchicalLayout[prop];
+        }
+      }
+    }
+    else if (options.hierarchicalLayout !== undefined)  {
+      this.constants.hierarchicalLayout.enabled = false;
+    }
 
     if (options.clustering) {
       this.constants.clustering.enabled = true;
-      for (var prop in options.clustering) {
+      for (prop in options.clustering) {
         if (options.clustering.hasOwnProperty(prop)) {
           this.constants.clustering[prop] = options.clustering[prop];
         }
@@ -395,7 +583,7 @@ Graph.prototype.setOptions = function (options) {
 
     if (options.navigation) {
       this.constants.navigation.enabled = true;
-      for (var prop in options.navigation) {
+      for (prop in options.navigation) {
         if (options.navigation.hasOwnProperty(prop)) {
           this.constants.navigation[prop] = options.navigation[prop];
         }
@@ -407,7 +595,7 @@ Graph.prototype.setOptions = function (options) {
 
     if (options.keyboard) {
       this.constants.keyboard.enabled = true;
-      for (var prop in options.keyboard) {
+      for (prop in options.keyboard) {
         if (options.keyboard.hasOwnProperty(prop)) {
           this.constants.keyboard[prop] = options.keyboard[prop];
         }
@@ -417,23 +605,45 @@ Graph.prototype.setOptions = function (options) {
       this.constants.keyboard.enabled = false;
     }
 
+    if (options.dataManipulation) {
+      this.constants.dataManipulation.enabled = true;
+      for (prop in options.dataManipulation) {
+        if (options.dataManipulation.hasOwnProperty(prop)) {
+          this.constants.dataManipulation[prop] = options.dataManipulation[prop];
+        }
+      }
+    }
+    else if (options.dataManipulation !== undefined)  {
+      this.constants.dataManipulation.enabled = false;
+    }
 
     // TODO: work out these options and document them
     if (options.edges) {
       for (prop in options.edges) {
         if (options.edges.hasOwnProperty(prop)) {
-          this.constants.edges[prop] = options.edges[prop];
+          if (typeof options.edges[prop] != "object") {
+            this.constants.edges[prop] = options.edges[prop];
+          }
         }
       }
 
-      if (options.edges.length !== undefined &&
-          options.nodes && options.nodes.distance === undefined) {
-        this.constants.edges.length   = options.edges.length;
-        this.constants.nodes.distance = options.edges.length * 1.25;
+      if (options.edges.color !== undefined) {
+        if (util.isString(options.edges.color)) {
+          this.constants.edges.color = {};
+          this.constants.edges.color.color = options.edges.color;
+          this.constants.edges.color.highlight = options.edges.color;
+        }
+        else {
+          if (options.edges.color.color !== undefined)     {this.constants.edges.color.color = options.edges.color.color;}
+          if (options.edges.color.highlight !== undefined) {this.constants.edges.color.highlight = options.edges.color.highlight;}
+        }
       }
 
       if (!options.edges.fontColor) {
-        this.constants.edges.fontColor = options.edges.color;
+        if (options.edges.color !== undefined) {
+          if (util.isString(options.edges.color))           {this.constants.edges.fontColor = options.edges.color;}
+          else if (options.edges.color.color !== undefined) {this.constants.edges.fontColor = options.edges.color.color;}
+        }
       }
 
       // Added to support dashed lines
@@ -460,7 +670,7 @@ Graph.prototype.setOptions = function (options) {
       }
 
       if (options.nodes.color) {
-        this.constants.nodes.color = Node.parseColor(options.nodes.color);
+        this.constants.nodes.color = util.parseColor(options.nodes.color);
       }
 
       /*
@@ -476,58 +686,39 @@ Graph.prototype.setOptions = function (options) {
         }
       }
     }
+
+    if (options.tooltip) {
+      for (prop in options.tooltip) {
+        if (options.tooltip.hasOwnProperty(prop)) {
+          this.constants.tooltip[prop] = options.tooltip[prop];
+        }
+      }
+      if (options.tooltip.color) {
+        this.constants.tooltip.color = util.parseColor(options.tooltip.color);
+      }
+    }
   }
 
-  this.setSize(this.width, this.height);
-  this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
-  this._setScale(1);
 
+  // (Re)loading the mixins that can be enabled or disabled in the options.
+  // load the force calculation functions, grouped under the physics system.
+  this._loadPhysicsSystem();
   // load the navigation system.
   this._loadNavigationControls();
+  // load the data manipulation system
+  this._loadManipulationSystem();
+  // configure the smooth curves
+  this._configureSmoothCurves();
+
 
   // bind keys. If disabled, this will not do anything;
   this._createKeyBinds();
 
+  this.setSize(this.width, this.height);
+  this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
+  this._setScale(1);
   this._redraw();
 };
-
-/**
- * Add event listener
- * @param {String} event       Event name. Available events:
- *                             'select'
- * @param {function} callback  Callback function, invoked as callback(properties)
- *                             where properties is an optional object containing
- *                             event specific properties.
- */
-Graph.prototype.on = function on (event, callback) {
-  var available = ['select'];
-
-  if (available.indexOf(event) == -1) {
-    throw new Error('Unknown event "' + event + '". Choose from ' + available.join());
-  }
-
-  events.addListener(this, event, callback);
-};
-
-/**
- * Remove an event listener
- * @param {String} event       Event name
- * @param {function} callback  Callback function
- */
-Graph.prototype.off = function off (event, callback) {
-  events.removeListener(this, event, callback);
-};
-
-/**
- * fire an event
- * @param {String} event   The name of an event, for example 'select'
- * @param {Object} params  Optional object with event parameters
- * @private
- */
-Graph.prototype._trigger = function (event, params) {
-  events.trigger(this, event, params);
-};
-
 
 /**
  * Create the main frame for the Graph.
@@ -581,6 +772,7 @@ Graph.prototype._create = function () {
 
   // add the frame to the container element
   this.containerElement.appendChild(this.frame);
+
 };
 
 
@@ -616,15 +808,12 @@ Graph.prototype._createKeyBinds = function() {
     this.mousetrap.bind("pagedown",this._zoomOut.bind(me),"keydown");
     this.mousetrap.bind("pagedown",this._stopZoom.bind(me), "keyup");
   }
-  /*
-   this.mousetrap.bind("=",this.decreaseClusterLevel.bind(me));
-   this.mousetrap.bind("-",this.increaseClusterLevel.bind(me));
-   this.mousetrap.bind("s",this.singleStep.bind(me));
-   this.mousetrap.bind("h",this.updateClustersDefault.bind(me));
-   this.mousetrap.bind("c",this._collapseSector.bind(me));
-   this.mousetrap.bind("f",this.toggleFreeze.bind(me));
-   */
-}
+
+  if (this.constants.dataManipulation.enabled == true) {
+    this.mousetrap.bind("escape",this._createManipulatorBar.bind(me));
+    this.mousetrap.bind("del",this._deleteSelected.bind(me));
+  }
+};
 
 /**
  * Get the pointer location from a touch location
@@ -645,7 +834,7 @@ Graph.prototype._getPointer = function (touch) {
  * @private
  */
 Graph.prototype._onTouch = function (event) {
-  this.drag.pointer = this._getPointer(event.gesture.touches[0]);
+  this.drag.pointer = this._getPointer(event.gesture.center);
   this.drag.pinched = false;
   this.pinch.scale = this._getScale();
 
@@ -657,6 +846,17 @@ Graph.prototype._onTouch = function (event) {
  * @private
  */
 Graph.prototype._onDragStart = function () {
+  this._handleDragStart();
+};
+
+
+/**
+ * This function is called by _onDragStart.
+ * It is separated out because we can then overload it for the datamanipulation system.
+ *
+ * @private
+ */
+Graph.prototype._handleDragStart = function() {
   var drag = this.drag;
   var node = this._getNodeAt(drag.pointer);
   // note: drag.pointer is set in _onTouch to get the initial touch location
@@ -670,52 +870,63 @@ Graph.prototype._onDragStart = function () {
     drag.nodeId = node.id;
     // select the clicked node if not yet selected
     if (!node.isSelected()) {
-      this._selectNode(node,false);
+      this._selectObject(node,false);
     }
 
     // create an array with the selected nodes and their original location and status
-    var me = this;
-    this.selection.forEach(function (id) {
-      var node = me.nodes[id];
-      if (node) {
+    for (var objectId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(objectId)) {
+        var object = this.selectionObj.nodes[objectId];
         var s = {
-          id: id,
-          node: node,
+          id: object.id,
+          node: object,
 
           // store original x, y, xFixed and yFixed, make the node temporarily Fixed
-          x: node.x,
-          y: node.y,
-          xFixed: node.xFixed,
-          yFixed: node.yFixed
+          x: object.x,
+          y: object.y,
+          xFixed: object.xFixed,
+          yFixed: object.yFixed
         };
 
-        node.xFixed = true;
-        node.yFixed = true;
+        object.xFixed = true;
+        object.yFixed = true;
 
         drag.selection.push(s);
       }
-    });
+    }
   }
 };
+
 
 /**
  * handle drag event
  * @private
  */
 Graph.prototype._onDrag = function (event) {
+  this._handleOnDrag(event)
+};
+
+
+/**
+ * This function is called by _onDrag.
+ * It is separated out because we can then overload it for the datamanipulation system.
+ *
+ * @private
+ */
+Graph.prototype._handleOnDrag = function(event) {
   if (this.drag.pinched) {
     return;
   }
 
-  var pointer = this._getPointer(event.gesture.touches[0]);
+  var pointer = this._getPointer(event.gesture.center);
 
   var me = this,
-      drag = this.drag,
-      selection = drag.selection;
+    drag = this.drag,
+    selection = drag.selection;
   if (selection && selection.length) {
     // calculate delta's and new location
     var deltaX = pointer.x - drag.pointer.x,
-        deltaY = pointer.y - drag.pointer.y;
+      deltaY = pointer.y - drag.pointer.y;
 
     // update position of all selected nodes
     selection.forEach(function (s) {
@@ -730,7 +941,7 @@ Graph.prototype._onDrag = function (event) {
       }
     });
 
-    // start animation if not yet running
+    // start _animationStep if not yet running
     if (!this.moving) {
       this.moving = true;
       this.start();
@@ -742,8 +953,8 @@ Graph.prototype._onDrag = function (event) {
     var diffY = pointer.y - this.drag.pointer.y;
 
     this._setTranslation(
-        this.drag.translation.x + diffX,
-        this.drag.translation.y + diffY);
+      this.drag.translation.x + diffX,
+      this.drag.translation.y + diffY);
     this._redraw();
     this.moved = true;
   }
@@ -770,8 +981,10 @@ Graph.prototype._onDragEnd = function () {
  * @private
  */
 Graph.prototype._onTap = function (event) {
-  var pointer = this._getPointer(event.gesture.touches[0]);
+  var pointer = this._getPointer(event.gesture.center);
+  this.pointerPosition = pointer;
   this._handleTap(pointer);
+
 };
 
 
@@ -780,9 +993,8 @@ Graph.prototype._onTap = function (event) {
  * @private
  */
 Graph.prototype._onDoubleTap = function (event) {
-  var pointer = this._getPointer(event.gesture.touches[0]);
+  var pointer = this._getPointer(event.gesture.center);
   this._handleDoubleTap(pointer);
-
 };
 
 
@@ -791,18 +1003,19 @@ Graph.prototype._onDoubleTap = function (event) {
  * @private
  */
 Graph.prototype._onHold = function (event) {
-  var pointer = this._getPointer(event.gesture.touches[0]);
+  var pointer = this._getPointer(event.gesture.center);
+  this.pointerPosition = pointer;
   this._handleOnHold(pointer);
 };
 
 /**
  * handle the release of the screen
  *
- * @param event
  * @private
  */
 Graph.prototype._onRelease = function (event) {
-  this._handleOnRelease();
+  var pointer = this._getPointer(event.gesture.center);
+  this._handleOnRelease(pointer);
 };
 
 /**
@@ -848,16 +1061,15 @@ Graph.prototype._zoom = function(scale, pointer) {
   this.areaCenter = {"x" : this._canvasToX(pointer.x),
                      "y" : this._canvasToY(pointer.y)};
 
- // this.areaCenter = {"x" : pointer.x,"y" : pointer.y };
-//  console.log(translation.x,translation.y,pointer.x,pointer.y,scale);
-  this.pinch.mousewheelScale = scale;
   this._setScale(scale);
   this._setTranslation(tx, ty);
   this.updateClustersDefault();
   this._redraw();
 
+
   return scale;
 };
+
 
 /**
  * Event handler for mouse wheel event, used to zoom the timeline
@@ -881,12 +1093,9 @@ Graph.prototype._onMouseWheel = function(event) {
   // Basically, delta is now positive if wheel was scrolled up,
   // and negative, if wheel was scrolled down.
   if (delta) {
-    if (!('mousewheelScale' in this.pinch)) {
-      this.pinch.mousewheelScale = 1;
-    }
 
     // calculate the new scale
-    var scale = this.pinch.mousewheelScale;
+    var scale = this._getScale();
     var zoom = delta / 10;
     if (delta < 0) {
       zoom = zoom / (1 - zoom);
@@ -898,10 +1107,7 @@ Graph.prototype._onMouseWheel = function(event) {
     var pointer = this._getPointer(gesture.center);
 
     // apply the new scale
-    scale = this._zoom(scale, pointer);
-
-    // store the new, applied scale -- this is now done in _zoom
-//    this.pinch.mousewheelScale = scale;
+    this._zoom(scale, pointer);
   }
 
   // Prevent default actions caused by mouse wheel.
@@ -933,7 +1139,7 @@ Graph.prototype._onMouseMoveTitle = function (event) {
     clearInterval(this.popupTimer); // stop any running calculationTimer
   }
   if (!this.drag.dragging) {
-    this.popupTimer = setTimeout(checkShow, 300);
+    this.popupTimer = setTimeout(checkShow, this.constants.tooltip.delay);
   }
 };
 
@@ -990,7 +1196,7 @@ Graph.prototype._checkShowPopup = function (pointer) {
     if (this.popupNode != lastPopupNode) {
       var me = this;
       if (!me.popup) {
-        me.popup = new Popup(me.frame);
+        me.popup = new Popup(me.frame, me.constants.tooltip);
       }
 
       // adjust a small offset such that the mouse cursor is located in the
@@ -1007,6 +1213,7 @@ Graph.prototype._checkShowPopup = function (pointer) {
     }
   }
 };
+
 
 /**
  * Check if the popup must be hided, which is the case when the mouse is no
@@ -1025,85 +1232,6 @@ Graph.prototype._checkHidePopup = function (pointer) {
 
 
 /**
- * Temporary method to test calculating a hub value for the nodes
- * @param {number} level        Maximum number edges between two nodes in order
- *                              to call them connected. Optional, 1 by default
- * @return {Number[]} connectioncount array with the connection count
- *                                    for each node
- * @private
- */
-Graph.prototype._getConnectionCount = function(level) {
-  if (level == undefined) {
-    level = 1;
-  }
-
-  // get the nodes connected to given nodes
-  function getConnectedNodes(nodes) {
-    var connectedNodes = [];
-
-    for (var j = 0, jMax = nodes.length; j < jMax; j++) {
-      var node = nodes[j];
-
-      // find all nodes connected to this node
-      var edges = node.edges;
-      for (var i = 0, iMax = edges.length; i < iMax; i++) {
-        var edge = edges[i];
-        var other = null;
-
-        // check if connected
-        if (edge.from == node)
-          other = edge.to;
-        else if (edge.to == node)
-          other = edge.from;
-
-        // check if the other node is not already in the list with nodes
-        var k, kMax;
-        if (other) {
-          for (k = 0, kMax = nodes.length; k < kMax; k++) {
-            if (nodes[k] == other) {
-              other = null;
-              break;
-            }
-          }
-        }
-        if (other) {
-          for (k = 0, kMax = connectedNodes.length; k < kMax; k++) {
-            if (connectedNodes[k] == other) {
-              other = null;
-              break;
-            }
-          }
-        }
-
-        if (other)
-          connectedNodes.push(other);
-      }
-    }
-
-    return connectedNodes;
-  }
-
-  var connections = [];
-  var nodes = this.nodes;
-  for (var id in nodes) {
-    if (nodes.hasOwnProperty(id)) {
-      var c = [nodes[id]];
-      for (var l = 0; l < level; l++) {
-        c = c.concat(getConnectedNodes(c));
-      }
-      connections.push(c);
-    }
-  }
-
-  var hubs = [];
-  for (var i = 0, len = connections.length; i < len; i++) {
-    hubs.push(connections[i].length);
-  }
-
-  return hubs;
-};
-
-/**
  * Set a new size for the graph
  * @param {string} width   Width in pixels or percentage (for example '800px'
  *                         or '50%')
@@ -1120,9 +1248,17 @@ Graph.prototype.setSize = function(width, height) {
   this.frame.canvas.width = this.frame.canvas.clientWidth;
   this.frame.canvas.height = this.frame.canvas.clientHeight;
 
-  if (this.constants.navigation.enabled == true) {
-    this._relocateNavigation();
+  if (this.manipulationDiv !== undefined) {
+    this.manipulationDiv.style.width = this.frame.canvas.clientWidth + "px";
   }
+  if (this.navigationDivs !== undefined) {
+    if (this.navigationDivs['wrapper'] !== undefined) {
+      this.navigationDivs['wrapper'].style.width = this.frame.canvas.clientWidth + "px";
+      this.navigationDivs['wrapper'].style.height = this.frame.canvas.clientHeight + "px";
+    }
+  }
+
+  this.emit('resize', {width:this.frame.canvas.width,height:this.frame.canvas.height});
 };
 
 /**
@@ -1150,7 +1286,7 @@ Graph.prototype._setNodes = function(nodes) {
   if (oldNodesData) {
     // unsubscribe from old dataset
     util.forEach(this.nodesListeners, function (callback, event) {
-      oldNodesData.unsubscribe(event, callback);
+      oldNodesData.off(event, callback);
     });
   }
 
@@ -1161,7 +1297,7 @@ Graph.prototype._setNodes = function(nodes) {
     // subscribe to new dataset
     var me = this;
     util.forEach(this.nodesListeners, function (callback, event) {
-      me.nodesData.subscribe(event, callback);
+      me.nodesData.on(event, callback);
     });
 
     // draw all new nodes
@@ -1184,22 +1320,23 @@ Graph.prototype._addNodes = function(ids) {
     var node = new Node(data, this.images, this.groups, this.constants);
     this.nodes[id] = node; // note: this may replace an existing node
 
-    if (!node.isFixed()) {
-      // TODO: position new nodes in a smarter way!
-      var radius = this.constants.edges.length * 2;
-      var count = ids.length;
-      var angle = 2 * Math.PI * (i / count);
-      node.x = radius * Math.cos(angle);
-      node.y = radius * Math.sin(angle);
-
-      // note: no not use node.isMoving() here, as that gives the current
-      // velocity of the node, which is zero after creation of the node.
-      this.moving = true;
+    if ((node.xFixed == false || node.yFixed == false) && (node.x === null || node.y === null)) {
+      var radius = 10 * 0.1*ids.length;
+      var angle = 2 * Math.PI * Math.random();
+      if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
+      if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
     }
+    this.moving = true;
   }
   this._updateNodeIndexList();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
+  this._updateCalculationNodes();
   this._reconnectEdges();
   this._updateValueRange(this.nodes);
+  this.updateLabels();
 };
 
 /**
@@ -1245,6 +1382,11 @@ Graph.prototype._removeNodes = function(ids) {
     delete nodes[id];
   }
   this._updateNodeIndexList();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
+  this._updateCalculationNodes();
   this._reconnectEdges();
   this._updateSelection();
   this._updateValueRange(nodes);
@@ -1276,7 +1418,7 @@ Graph.prototype._setEdges = function(edges) {
   if (oldEdgesData) {
     // unsubscribe from old dataset
     util.forEach(this.edgesListeners, function (callback, event) {
-      oldEdgesData.unsubscribe(event, callback);
+      oldEdgesData.off(event, callback);
     });
   }
 
@@ -1287,7 +1429,7 @@ Graph.prototype._setEdges = function(edges) {
     // subscribe to new dataset
     var me = this;
     util.forEach(this.edgesListeners, function (callback, event) {
-      me.edgesData.subscribe(event, callback);
+      me.edgesData.on(event, callback);
     });
 
     // draw all new nodes
@@ -1321,6 +1463,12 @@ Graph.prototype._addEdges = function (ids) {
 
   this.moving = true;
   this._updateValueRange(edges);
+  this._createBezierNodes();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
+  this._updateCalculationNodes();
 };
 
 /**
@@ -1349,6 +1497,11 @@ Graph.prototype._updateEdges = function (ids) {
     }
   }
 
+  this._createBezierNodes();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this.moving = true;
   this._updateValueRange(edges);
 };
@@ -1364,6 +1517,9 @@ Graph.prototype._removeEdges = function (ids) {
     var id = ids[i];
     var edge = edges[id];
     if (edge) {
+      if (edge.via != null) {
+        delete this.sectors['support']['nodes'][edge.via.id];
+      }
       edge.disconnect();
       delete edges[id];
     }
@@ -1371,6 +1527,11 @@ Graph.prototype._removeEdges = function (ids) {
 
   this.moving = true;
   this._updateValueRange(edges);
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
+  this._updateCalculationNodes();
 };
 
 /**
@@ -1468,14 +1629,13 @@ Graph.prototype._redraw = function() {
 
   this._doInAllSectors("_drawAllSectorNodes",ctx);
   this._doInAllSectors("_drawEdges",ctx);
-  this._doInAllSectors("_drawNodes",ctx);
+  this._doInAllSectors("_drawNodes",ctx,false);
+
+//  this._doInSupportSector("_drawNodes",ctx,true);
+//  this._drawTree(ctx,"#F00F0F");
 
   // restore original scaling and translation
   ctx.restore();
-
-  if (this.constants.navigation.enabled == true) {
-    this._doInNavigationSector("_drawNodes",ctx,true);
-  }
 };
 
 /**
@@ -1631,244 +1791,49 @@ Graph.prototype._drawEdges = function(ctx) {
  * Find a stable position for all nodes
  * @private
  */
-Graph.prototype._doStabilize = function() {
-  //var start = new Date();
+Graph.prototype._stabilize = function() {
+  if (this.constants.freezeForStabilization == true) {
+    this._freezeDefinedNodes();
+  }
 
   // find stable position
   var count = 0;
-  var vmin = this.constants.minVelocity;
-  var stable = false;
-  while (!stable && count < this.constants.maxIterations) {
-    this._initializeForceCalculation();
-    this._discreteStepNodes();
-    stable = !this._isMoving(vmin);
+  while (this.moving && count < this.constants.stabilizationIterations) {
+    this._physicsTick();
     count++;
   }
-  this.zoomToFit();
-
- // var end = new Date();
-
-  // console.log('Stabilized in ' + (end-start) + ' ms, ' + count + ' iterations' ); // TODO: cleanup
+  this.zoomExtent(false,true);
+  if (this.constants.freezeForStabilization == true) {
+    this._restoreFrozenNodes();
+  }
+  this.emit("stabilized",{iterations:count});
 };
 
 
-/**
- * Before calculating the forces, we check if we need to cluster to keep up performance and we check
- * if there is more than one node. If it is just one node, we dont calculate anything.
- *
- * @private
- */
-Graph.prototype._initializeForceCalculation = function() {
-  // stop calculation if there is only one node
-  if (this.nodeIndices.length == 1) {
-    this.nodes[this.nodeIndices[0]]._setForce(0,0);
-  }
-  else {
-    // if there are too many nodes on screen, we cluster without repositioning
-    if (this.nodeIndices.length > this.constants.clustering.clusterThreshold && this.constants.clustering.enabled == true) {
-      this.clusterToFit(this.constants.clustering.reduceToNodes, false);
-    }
-
-    // we now start the force calculation
-    this._calculateForces();
-  }
-};
-
-
-/**
- * Calculate the external forces acting on the nodes
- * Forces are caused by: edges, repulsing forces between nodes, gravity
- * @private
- */
-Graph.prototype._calculateForces = function() {
-//  var screenCenterPos = {"x":(0.5*(this.canvasTopLeft.x + this.canvasBottomRight.x)),
-//                         "y":(0.5*(this.canvasTopLeft.y + this.canvasBottomRight.y))}
-  // create a local edge to the nodes and edges, that is faster
-  var dx, dy, angle, distance, fx, fy,
-    repulsingForce, springForce, length, edgeLength,
-    node, node1, node2, edge, edgeId, i, j, nodeId, xCenter, yCenter;
-  var clusterSize;
+Graph.prototype._freezeDefinedNodes = function() {
   var nodes = this.nodes;
-  var edges = this.edges;
-
-  // Gravity is required to keep separated groups from floating off
-  // the forces are reset to zero in this loop by using _setForce instead
-  // of _addForce
-  var gravity = 0.08 * this.forceFactor;
-  for (i = 0; i < this.nodeIndices.length; i++) {
-      node = nodes[this.nodeIndices[i]];
-      // gravity does not apply when we are in a pocket sector
-      if (this._sector() == "default") {
-        dx = -node.x;// + screenCenterPos.x;
-        dy = -node.y;// + screenCenterPos.y;
-
-        angle = Math.atan2(dy, dx);
-        fx = Math.cos(angle) * gravity;
-        fy = Math.sin(angle) * gravity;
-      }
-      else {
-        fx = 0;
-        fy = 0;
-      }
-      node._setForce(fx, fy);
-
-      node.updateDamping(this.nodeIndices.length);
-  }
-
-  // repulsing forces between nodes
-  var minimumDistance = this.constants.nodes.distance,
-      steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
-
-
-  // we loop from i over all but the last entree in the array
-  // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
-  for (i = 0; i < this.nodeIndices.length-1; i++) {
-    node1 = nodes[this.nodeIndices[i]];
-    for (j = i+1; j < this.nodeIndices.length; j++) {
-      node2 = nodes[this.nodeIndices[j]];
-      clusterSize = (node1.clusterSize + node2.clusterSize - 2);
-      dx = node2.x - node1.x;
-      dy = node2.y - node1.y;
-      distance = Math.sqrt(dx * dx + dy * dy);
-
-
-      // clusters have a larger region of influence
-      minimumDistance = (clusterSize == 0) ? this.constants.nodes.distance : (this.constants.nodes.distance * (1 + clusterSize * this.constants.clustering.distanceAmplification));
-      if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
-        angle = Math.atan2(dy, dx);
-
-        if (distance < 0.5*minimumDistance) { // at 0.5 * the minimum distance, the force is 0.993307
-          repulsingForce = 1.0;
-        }
-        else {
-          // TODO: correct factor for repulsing force
-          //repulsingForce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-          //repulsingForce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-          repulsingForce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)); // TODO: customize the repulsing force
-        }
-        // amplify the repulsion for clusters.
-        repulsingForce *= (clusterSize == 0) ? 1 : 1 + clusterSize * this.constants.clustering.forceAmplification;
-        repulsingForce *= this.forceFactor;
-
-
-        fx = Math.cos(angle) * repulsingForce;
-        fy = Math.sin(angle) * repulsingForce ;
-
-        node1._addForce(-fx, -fy);
-        node2._addForce(fx, fy);
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      if (nodes[id].x != null && nodes[id].y != null) {
+        nodes[id].fixedData.x = nodes[id].xFixed;
+        nodes[id].fixedData.y = nodes[id].yFixed;
+        nodes[id].xFixed = true;
+        nodes[id].yFixed = true;
       }
     }
   }
+};
 
-/*
-  // repulsion of the edges on the nodes and
-  for (var nodeId in nodes) {
-    if (nodes.hasOwnProperty(nodeId)) {
-      node = nodes[nodeId];
-      for(var edgeId in edges) {
-        if (edges.hasOwnProperty(edgeId)) {
-          edge = edges[edgeId];
-
-          // get the center of the edge
-          xCenter = edge.from.x+(edge.to.x - edge.from.x)/2;
-          yCenter = edge.from.y+(edge.to.y - edge.from.y)/2;
-
-          // calculate normally distributed force
-          dx = node.x - xCenter;
-          dy = node.y - yCenter;
-          distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < 2*minimumDistance) { // at 2.0 * the minimum distance, the force is 0.000045
-            angle = Math.atan2(dy, dx);
-
-            if (distance < 0.5*minimumDistance) { // at 0.5 * the minimum distance, the force is 0.993307
-              repulsingForce = 1.0;
-            }
-            else {
-              // TODO: correct factor for repulsing force
-              //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-              //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
-              repulsingForce = 1 / (1 + Math.exp((distance / (minimumDistance / 2) - 1) * steepness)); // TODO: customize the repulsing force
-            }
-            fx = Math.cos(angle) * repulsingForce;
-            fy = Math.sin(angle) * repulsingForce;
-            node._addForce(fx, fy);
-            edge.from._addForce(-fx/2,-fy/2);
-            edge.to._addForce(-fx/2,-fy/2);
-          }
-        }
+Graph.prototype._restoreFrozenNodes = function() {
+  var nodes = this.nodes;
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      if (nodes[id].fixedData.x != null) {
+        nodes[id].xFixed = nodes[id].fixedData.x;
+        nodes[id].yFixed = nodes[id].fixedData.y;
       }
     }
   }
-*/
-
-  // forces caused by the edges, modelled as springs
-  for (edgeId in edges) {
-    if (edges.hasOwnProperty(edgeId)) {
-      edge = edges[edgeId];
-      if (edge.connected) {
-        // only calculate forces if nodes are in the same sector
-        if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
-          clusterSize = (edge.to.clusterSize + edge.from.clusterSize - 2);
-          dx = (edge.to.x - edge.from.x);
-          dy = (edge.to.y - edge.from.y);
-          //edgeLength = (edge.from.width + edge.from.height + edge.to.width + edge.to.height)/2 || edge.length; // TODO: dmin
-          //edgeLength = (edge.from.width + edge.to.width)/2 || edge.length; // TODO: dmin
-          //edgeLength = 20 + ((edge.from.width + edge.to.width) || 0) / 2;
-          edgeLength = edge.length;
-          // this implies that the edges between big clusters are longer
-          edgeLength += clusterSize * this.constants.clustering.edgeGrowth;
-          length =  Math.sqrt(dx * dx + dy * dy);
-          angle = Math.atan2(dy, dx);
-
-          springForce = edge.stiffness * (edgeLength - length) * this.forceFactor;
-
-          fx = Math.cos(angle) * springForce;
-          fy = Math.sin(angle) * springForce;
-
-          edge.from._addForce(-fx, -fy);
-          edge.to._addForce(fx, fy);
-        }
-      }
-    }
-  }
-/*
-  // TODO: re-implement repulsion of edges
-
-   // repulsing forces between edges
-   var minimumDistance = this.constants.edges.distance,
-   steepness = 10; // higher value gives steeper slope of the force around the given minimumDistance
-   for (var l = 0; l < edges.length; l++) {
-   //Keep distance from other edge centers
-   for (var l2 = l + 1; l2 < this.edges.length; l2++) {
-   //var dmin = (nodes[n].width + nodes[n].height + nodes[n2].width + nodes[n2].height) / 1 || minimumDistance, // TODO: dmin
-   //var dmin = (nodes[n].width + nodes[n2].width)/2  || minimumDistance, // TODO: dmin
-   //dmin = 40 + ((nodes[n].width/2 + nodes[n2].width/2) || 0),
-   var lx = edges[l].from.x+(edges[l].to.x - edges[l].from.x)/2,
-   ly = edges[l].from.y+(edges[l].to.y - edges[l].from.y)/2,
-   l2x = edges[l2].from.x+(edges[l2].to.x - edges[l2].from.x)/2,
-   l2y = edges[l2].from.y+(edges[l2].to.y - edges[l2].from.y)/2,
-
-   // calculate normally distributed force
-   dx = l2x - lx,
-   dy = l2y - ly,
-   distance = Math.sqrt(dx * dx + dy * dy),
-   angle = Math.atan2(dy, dx),
-
-
-   // TODO: correct factor for repulsing force
-   //var repulsingforce = 2 * Math.exp(-5 * (distance * distance) / (dmin * dmin) ); // TODO: customize the repulsing force
-   //repulsingforce = Math.exp(-1 * (distance * distance) / (dmin * dmin) ), // TODO: customize the repulsing force
-   repulsingforce = 1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness)), // TODO: customize the repulsing force
-   fx = Math.cos(angle) * repulsingforce,
-   fy = Math.sin(angle) * repulsingforce;
-
-   edges[l].from._addForce(-fx, -fy);
-   edges[l].to._addForce(-fx, -fy);
-   edges[l2].from._addForce(fx, fy);
-   edges[l2].to._addForce(fx, fy);
-   }
-   }
-*/
 };
 
 
@@ -1879,10 +1844,9 @@ Graph.prototype._calculateForces = function() {
  * @private
  */
 Graph.prototype._isMoving = function(vmin) {
-  var vminCorrected = vmin / this.scale;
   var nodes = this.nodes;
   for (var id in nodes) {
-    if (nodes.hasOwnProperty(id) && nodes[id].isMoving(vminCorrected)) {
+    if (nodes.hasOwnProperty(id) && nodes[id].isMoving(vmin)) {
       return true;
     }
   }
@@ -1894,93 +1858,149 @@ Graph.prototype._isMoving = function(vmin) {
  * /**
  * Perform one discrete step for all nodes
  *
- * @param interval
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = 0.01;
+  var interval = this.physicsDiscreteStepsize;
   var nodes = this.nodes;
-  for (var id in nodes) {
-    if (nodes.hasOwnProperty(id)) {
-      nodes[id].discreteStep(interval);
+  var nodeId;
+  var nodesPresent = false;
+
+  if (this.constants.maxVelocity > 0) {
+    for (nodeId in nodes) {
+      if (nodes.hasOwnProperty(nodeId)) {
+        nodes[nodeId].discreteStepLimited(interval, this.constants.maxVelocity);
+        nodesPresent = true;
+      }
+    }
+  }
+  else {
+    for (nodeId in nodes) {
+      if (nodes.hasOwnProperty(nodeId)) {
+        nodes[nodeId].discreteStep(interval);
+        nodesPresent = true;
+      }
     }
   }
 
-  var vmin = this.constants.minVelocity;
-  this.moving = this._isMoving(vmin);
+  if (nodesPresent == true) {
+    var vminCorrected = this.constants.minVelocity / Math.max(this.scale,0.05);
+    if (vminCorrected > 0.5*this.constants.maxVelocity) {
+      this.moving = true;
+    }
+    else {
+      this.moving = this._isMoving(vminCorrected);
+    }
+  }
 };
 
 
-
-/**
- * Start animating nodes and edges
- *
- * @poram {Boolean} runCalculationStep
- */
-Graph.prototype.start = function() {
+Graph.prototype._physicsTick = function() {
   if (!this.freezeSimulation) {
-
     if (this.moving) {
       this._doInAllActiveSectors("_initializeForceCalculation");
       this._doInAllActiveSectors("_discreteStepNodes");
-      this._findCenter(this._getRange())
-    }
-
-    if (this.moving || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0) {
-      // start animation. only start calculationTimer if it is not already running
-      if (!this.timer) {
-        var graph = this;
-        this.timer = window.setTimeout(function () {
-          graph.timer = undefined;
-
-          // keyboad movement
-          if (graph.xIncrement != 0 || graph.yIncrement != 0) {
-            var translation = graph._getTranslation();
-            graph._setTranslation(translation.x+graph.xIncrement, translation.y+graph.yIncrement);
-          }
-          if (graph.zoomIncrement != 0) {
-            var center = {
-              x: graph.frame.canvas.clientWidth / 2,
-              y: graph.frame.canvas.clientHeight / 2
-            };
-            graph._zoom(graph.scale*(1 + graph.zoomIncrement), center);
-          }
-
-          graph.start();
-          graph._redraw();
-
-          //this.end = window.performance.now();
-          //this.time = this.end - this.startTime;
-          //console.log('refresh time: ' + this.time);
-          //this.startTime = window.performance.now();
-
-        }, this.renderTimestep);
+      if (this.constants.smoothCurves) {
+        this._doInSupportSector("_discreteStepNodes");
       }
-    }
-    else {
-      this._redraw();
+      this._findCenter(this._getRange())
     }
   }
 };
 
 
+/**
+ * This function runs one step of the animation. It calls an x amount of physics ticks and one render tick.
+ * It reschedules itself at the beginning of the function
+ *
+ * @private
+ */
+Graph.prototype._animationStep = function() {
+  // reset the timer so a new scheduled animation step can be set
+  this.timer = undefined;
+  // handle the keyboad movement
+  this._handleNavigation();
 
+  // this schedules a new animation step
+  this.start();
 
-Graph.prototype.singleStep = function() {
-  if (this.moving) {
-    this._initializeForceCalculation();
-    this._discreteStepNodes();
+  // start the physics simulation
+  var calculationTime = Date.now();
+  var maxSteps = 1;
+  this._physicsTick();
+  var timeRequired = Date.now() - calculationTime;
+  while (timeRequired < (this.renderTimestep - this.renderTime) && maxSteps < this.maxPhysicsTicksPerRender) {
+    this._physicsTick();
+    timeRequired = Date.now() - calculationTime;
+    maxSteps++;
 
-    var vmin = this.constants.minVelocity;
-    this.moving = this._isMoving(vmin);
+  }
+
+  // start the rendering process
+  var renderTime = Date.now();
+  this._redraw();
+  this.renderTime = Date.now() - renderTime;
+};
+
+if (typeof window !== 'undefined') {
+  window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+                                 window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+}
+
+/**
+ * Schedule a animation step with the refreshrate interval.
+ */
+Graph.prototype.start = function() {
+  if (this.moving || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0) {
+    if (!this.timer) {
+      var ua = navigator.userAgent.toLowerCase();
+
+      var requiresTimeout = false;
+      if (ua.indexOf('msie 9.0') != -1) { // IE 9
+        requiresTimeout = true;
+      }
+      else if (ua.indexOf('safari') != -1) {  // safari
+        if (ua.indexOf('chrome') <= -1) {
+          requiresTimeout = true;
+        }
+      }
+
+      if (requiresTimeout == true) {
+        this.timer = window.setTimeout(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+      }
+      else{
+        this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+      }
+    }
+  }
+  else {
     this._redraw();
   }
 };
 
 
+/**
+ * Move the graph according to the keyboard presses.
+ *
+ * @private
+ */
+Graph.prototype._handleNavigation = function() {
+  if (this.xIncrement != 0 || this.yIncrement != 0) {
+    var translation = this._getTranslation();
+    this._setTranslation(translation.x+this.xIncrement, translation.y+this.yIncrement);
+  }
+  if (this.zoomIncrement != 0) {
+    var center = {
+      x: this.frame.canvas.clientWidth / 2,
+      y: this.frame.canvas.clientHeight / 2
+    };
+    this._zoom(this.scale*(1 + this.zoomIncrement), center);
+  }
+};
+
 
 /**
- *  Freeze the animation
+ *  Freeze the _animationStep
  */
 Graph.prototype.toggleFreeze = function() {
   if (this.freezeSimulation == false) {
@@ -1992,111 +2012,83 @@ Graph.prototype.toggleFreeze = function() {
   }
 };
 
-/**
- * Mixin the cluster system and initialize the parameters required.
- *
- * @private
- */
-Graph.prototype._loadClusterSystem = function() {
-  this.clusterSession = 0;
-  this.hubThreshold = 5;
 
-  for (var mixinFunction in ClusterMixin) {
-    if (ClusterMixin.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = ClusterMixin[mixinFunction];
+
+Graph.prototype._configureSmoothCurves = function(disableStart) {
+  if (disableStart === undefined) {
+    disableStart = true;
+  }
+
+  if (this.constants.smoothCurves == true) {
+    this._createBezierNodes();
+  }
+  else {
+    // delete the support nodes
+    this.sectors['support']['nodes'] = {};
+    for (var edgeId in this.edges) {
+      if (this.edges.hasOwnProperty(edgeId)) {
+        this.edges[edgeId].smooth = false;
+        this.edges[edgeId].via = null;
+      }
     }
   }
-}
+  this._updateCalculationNodes();
+  if (!disableStart) {
+    this.moving = true;
+    this.start();
+  }
+};
 
-/**
- * Mixin the sector system and initialize the parameters required
- *
- * @private
- */
-Graph.prototype._loadSectorSystem = function() {
-  this.sectors = {};
-  this.activeSector = ["default"];
-  this.sectors["active"] = {};
-  this.sectors["active"]["default"] = {"nodes":{},
-                                       "edges":{},
-                                       "nodeIndices":[],
-                                       "formationScale": 1.0,
-                                       "drawingNode": undefined};
-  this.sectors["frozen"] = {};
-  this.sectors["navigation"] = {"nodes":{},
-                        "edges":{},
-                        "nodeIndices":[],
-                        "formationScale": 1.0,
-                        "drawingNode": undefined};
-
-  this.nodeIndices = this.sectors["active"]["default"]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
-  for (var mixinFunction in SectorMixin) {
-    if (SectorMixin.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = SectorMixin[mixinFunction];
+Graph.prototype._createBezierNodes = function() {
+  if (this.constants.smoothCurves == true) {
+    for (var edgeId in this.edges) {
+      if (this.edges.hasOwnProperty(edgeId)) {
+        var edge = this.edges[edgeId];
+        if (edge.via == null) {
+          edge.smooth = true;
+          var nodeId = "edgeId:".concat(edge.id);
+          this.sectors['support']['nodes'][nodeId] = new Node(
+                  {id:nodeId,
+                    mass:1,
+                    shape:'circle',
+                    image:"",
+                    internalMultiplier:1
+                  },{},{},this.constants);
+          edge.via = this.sectors['support']['nodes'][nodeId];
+          edge.via.parentEdgeId = edge.id;
+          edge.positionBezierNode();
+        }
+      }
     }
   }
 };
 
 
-/**
- * Mixin the selection system and initialize the parameters required
- *
- * @private
- */
-Graph.prototype._loadSelectionSystem = function() {
-  this.selection = [];
-  this.selectionObj = {};
-
-  for (var mixinFunction in SelectionMixin) {
-    if (SelectionMixin.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = SelectionMixin[mixinFunction];
+Graph.prototype._initializeMixinLoaders = function () {
+  for (var mixinFunction in graphMixinLoaders) {
+    if (graphMixinLoaders.hasOwnProperty(mixinFunction)) {
+      Graph.prototype[mixinFunction] = graphMixinLoaders[mixinFunction];
     }
   }
-}
-
+};
 
 /**
- * Mixin the navigation (User Interface) system and initialize the parameters required
- *
- * @private
+ * Load the XY positions of the nodes into the dataset.
  */
-Graph.prototype._loadNavigationControls = function() {
-  for (var mixinFunction in NavigationMixin) {
-    if (NavigationMixin.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = NavigationMixin[mixinFunction];
+Graph.prototype.storePosition = function() {
+  var dataArray = [];
+  for (var nodeId in this.nodes) {
+    if (this.nodes.hasOwnProperty(nodeId)) {
+      var node = this.nodes[nodeId];
+      var allowedToMoveX = !this.nodes.xFixed;
+      var allowedToMoveY = !this.nodes.yFixed;
+      if (this.nodesData.data[nodeId].x != Math.round(node.x) || this.nodesData.data[nodeId].y != Math.round(node.y)) {
+        dataArray.push({id:nodeId,x:Math.round(node.x),y:Math.round(node.y),allowedToMoveX:allowedToMoveX,allowedToMoveY:allowedToMoveY});
+      }
     }
   }
-
-  if (this.constants.navigation.enabled == true) {
-    this._loadNavigationElements();
-  }
-}
-
-/**
- * this function exists to avoid errors when not loading the navigation system
- */
-Graph.prototype._relocateNavigation = function() {
-  // empty, is overloaded by navigation system
-}
-
-/**
- * * this function exists to avoid errors when not loading the navigation system
- */
-Graph.prototype._unHighlightAll = function() {
-  // empty, is overloaded by the navigation system
-}
-
-
-
-
-
-
-
-
-
-
-
-
+  this.nodesData.update(dataArray);
+};
 
 
 

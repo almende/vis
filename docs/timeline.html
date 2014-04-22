@@ -39,6 +39,7 @@
   <li><a href="#Configuration_Options">Configuration Options</a></li>
   <li><a href="#Methods">Methods</a></li>
   <li><a href="#Events">Events</a></li>
+  <li><a href="#Editing_Items">Editing Items</a></li>
   <li><a href="#Styles">Styles</a></li>
   <li><a href="#Data_Policy">Data Policy</a></li>
 </ul>
@@ -194,8 +195,8 @@ var items = [
     <td>type</td>
     <td>String</td>
     <td>'box'</td>
-    <td>The type of the item. Can be 'box' (default), 'range', or 'point'.
-      <!-- TODO: describe rangeoverflow -->
+    <td>The type of the item. Can be 'box' (default), 'point', 'range', or 'rangeoverflow'.
+      Types 'box' and 'point' need a start date, and types 'range' and 'rangeoverflow' need both a start and end date. Types 'range' and rangeoverflow are equal, except that overflowing text in 'range' is hidden, while visible in 'rangeoverflow'.
     </td>
   </tr>
   <tr>
@@ -215,13 +216,13 @@ var items = [
     <td>no</td>
     <td>This field is optional. A className can be used to give items
       an individual css style. For example, when an item has className
-      'red', one can define a css style
-      <code>
-        .red {
-        background-color: red;
-        border-color: dark-red;
-        }
-      </code>.
+      'red', one can define a css style like:
+      <pre class="prettyprint lang-css">
+.vis.timeline .red {
+  color: white;
+  background-color: red;
+  border-color: darkred;
+}</pre>
       More details on how to style items can be found in the section
       <a href="#Styles">Styles</a>.
     </td>
@@ -309,7 +310,10 @@ var groups = [
 <pre class="prettyprint lang-js">
 var options = {
   width: '100%',
-  height: '30px'
+  height: '30px',
+  margin: {
+    item: 20
+  }
 };
 </pre>
 
@@ -336,9 +340,17 @@ var options = {
 <tr>
   <td>autoResize</td>
   <td>boolean</td>
-  <td>false</td>
+  <td>true</td>
   <td>If true, the Timeline will automatically detect when its
     container is resized, and redraw itself accordingly.</td>
+</tr>
+
+<tr>
+  <td>editable</td>
+  <td>Boolean</td>
+  <td>false</td>
+  <td>If true, the items on the timeline can be dragged. Only applicable when option <code>selectable</code> is <code>true</code>. See also the callbacks <code>onAdd</code>, <code>onUpdate</code>, <code>onMove</code>, and <code>onRemove</code>, described in detail in section <a href="#Editing_Items">Editing Items</a>.
+  </td>
 </tr>
 
 <tr>
@@ -413,6 +425,39 @@ var options = {
 </tr>
 
 <tr>
+  <td>onAdd</td>
+  <td>Function</td>
+  <td>none</td>
+  <td>Callback function triggered when an item is about to be added: when the user double taps an empty space in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable</code> are set <code>true</code>.
+  </td>
+</tr>
+
+<tr>
+  <td>onUpdate</td>
+  <td>Function</td>
+  <td>none</td>
+  <td>Callback function triggered when an item is about to be updated, when the user double taps an item in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable</code> are set <code>true</code>.
+  </td>
+</tr>
+
+<tr>
+  <td>onMove</td>
+  <td>Function</td>
+  <td>none</td>
+  <td>Callback function triggered when an item has been moved: after the user has dragged the item to an other position. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable</code> are set <code>true</code>.
+  </td>
+</tr>
+
+<tr>
+  <td>onRemove</td>
+  <td>Function</td>
+  <td>none</td>
+  <td>Callback function triggered when an item is about to be removed: when the user tapped the delete button on the top right of a selected item. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable</code> are set <code>true</code>.
+  </td>
+</tr>
+
+<!-- TODO: cleanup option order
+<tr>
   <td>order</td>
   <td>Function</td>
   <td>none</td>
@@ -422,14 +467,13 @@ var options = {
     `vis.components.items.Item`.
   </td>
 </tr>
+-->
 
 <tr>
   <td>orientation</td>
   <td>String</td>
   <td>'bottom'</td>
-  <td>Orientation of the timeline: 'top' or 'bottom' (default).
-    If orientation is 'bottom', the time axis is drawn at the bottom,
-    and if 'top', the axis is drawn on top.</td>
+  <td>Orientation of the timeline: 'top' or 'bottom' (default). If orientation is 'bottom', the time axis is drawn at the bottom, and if 'top', the axis is drawn on top.</td>
 </tr>
 
 <tr>
@@ -437,7 +481,19 @@ var options = {
   <td>Number</td>
   <td>5</td>
   <td>The padding of items, needed to correctly calculate the size
-    of item ranges. Must correspond with the css of item ranges.</td>
+    of item ranges. Must correspond with the css of items, for example when setting <code>options.padding=10</code>, corresponding css is:
+  <pre class="prettyprint lang-css">
+.vis.timeline .item {
+  padding: 10px;
+}</pre>
+  </td>
+</tr>
+
+<tr>
+  <td>selectable</td>
+  <td>Boolean</td>
+  <td>true</td>
+  <td>If true, the items on the timeline can be selected. Multiple items can be selected by long pressing them, or by using ctrl+click or shift+click. The event <code>select</code> is fired each time the selection has changed (see section <a href="#Events">Events</a>).</td>
 </tr>
 
 <tr>
@@ -451,9 +507,7 @@ var options = {
   <td>showCustomTime</td>
   <td>boolean</td>
   <td>false</td>
-  <td>Show a vertical bar displaying a custom time. This line can be dragged by the user. The custom time can be utilized to show a state in the past or in the future.
-    <!-- TODO: more docs on showCustomTime
-    When the custom time bar is dragged by the user, an event is triggered, on which the contents of the timeline can be changed in to the state at that moment in time.--></td>
+  <td>Show a vertical bar displaying a custom time. This line can be dragged by the user. The custom time can be utilized to show a state in the past or in the future. When the custom time bar is dragged by the user, the event <code>timechange</code> is fired repeatedly. After the bar is dragged, the event <code>timechanged</code> is fired once.</td>
 </tr>
 
 <tr>
@@ -493,8 +547,7 @@ var options = {
   <td>type</td>
   <td>String</td>
   <td>'box'</td>
-  <td>Specifies the type for the timeline items. Choose from 'dot' or 'point'.
-    Note that individual items can override this global type.
+  <td>Specifies the type for the timeline items. Choose from 'box', 'point', 'range', and 'rangeoverflow'. Note that individual items can override this global type.
   </td>
 </tr>
 
@@ -555,8 +608,14 @@ var options = {
 
   <tr>
     <td>getSelection()</td>
-    <td>ids</td>
+    <td>Number[]</td>
     <td>Get an array with the ids of the currently selected items.</td>
+  </tr>
+
+  <tr>
+    <td>getWindow()</td>
+    <td>Object</td>
+    <td>Get the current visible window. Returns an object with properties <code>start: Date</code> and <code>end: Date</code>.</td>
   </tr>
 
   <tr>
@@ -605,13 +664,19 @@ var options = {
     </td>
   </tr>
 
+  <tr>
+    <td>setWindow(start, end)</td>
+    <td>none</td>
+    <td>Set the current visible window. The parameters <code>start</code> and <code>end</code> can be a <code>Date</code>, <code>Number</code>, or <code>String</code>. If the parameter value of <code>start</code> or <code>end</code> is null, the parameter will be left unchanged.</td>
+  </tr>
+
 </table>
 
 
 <h2 id="Events">Events</h2>
 <p>
-  Timeline fires events when changing the visible window by dragging, or when
-  selecting items.
+  Timeline fires events when changing the visible window by dragging, when
+  selecting items, and when dragging the custom time bar.
 </p>
 
 <p>
@@ -674,7 +739,7 @@ timeline.off('select', onSelect);
 
   <tr>
     <td>rangechanged</td>
-    <td>Fired once after the user has dragging the timeline window.
+    <td>Fired once after the user has dragged the timeline window.
     </td>
     <td>
       <ul>
@@ -696,7 +761,74 @@ timeline.off('select', onSelect);
     </td>
   </tr>
 
+  <tr>
+    <td>timechange</td>
+    <td>Fired repeatedly when the user is dragging the custom time bar.
+      Only available when the custom time bar is enabled.
+    </td>
+    <td>
+      <ul>
+        <li><code>time</code> (Date): the current time.</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
+    <td>timechanged</td>
+    <td>Fired once after the user has dragged the custom time bar.
+      Only available when the custom time bar is enabled.
+    </td>
+    <td>
+      <ul>
+        <li><code>time</code> (Date): the current time.</li>
+      </ul>
+    </td>
+  </tr>
+
 </table>
+
+<h2 id="Editing_Items">Editing Items</h2>
+<p>
+  When the Timeline is configured to be editable (both options <code>selectable</code> and <code>editable</code> are <code>true</code>), the user can move items by dragging them, can create a new item by double tapping on an empty space, can update an item by double tapping it, and can delete a selected item by clicking the delete button on the top right.
+</p>
+
+<p>
+  One can specify callback functions to validate changes made by the user. There are a number of callback functions for this purpose:
+</p>
+
+<ul>
+  <li><code>onAdd(item, callback)</code> Fired when a new item is about to be added. If not implemented, the item will be added with default text contents.</li>
+  <li><code>onUpdate(item, callback)</code> Fired when an item is about to be updated. This function typically has to show a dialog where the user change the item. If not implemented, nothing happens.</li>
+  <li><code>onMove(item, callback)</code> Fired when an item has been moved. If not implemented, the move action will be accepted.</li>
+  <li><code>onRemove(item, callback)</code> Fired when an item is about to be deleted. If not implemented, the item will be always removed.</li>
+</ul>
+
+<p>
+  Each of the callbacks is invoked with two arguments:
+</p>
+<ul>
+  <li><code>item</code>: the item being manipulated</li>
+  <li><code>callback</code>: a callback function which must be invoked to report back. The callback must be invoked as <code>callback(item | null)</code>. Here, <code>item</code> can contain changes to the passed item. When invoked as <code>callback(null)</code>, the action will be cancelled.</li>
+</ul>
+
+<p>
+  Example code:
+</p>
+
+<pre class="prettyprint lang-js">var options = {
+  onUpdate: function (item, callback) {
+    item.content = prompt('Edit items text:', item.content);
+    if (item.content != null) {
+      callback(item); // send back adjusted item
+    }
+    else {
+      callback(null); // cancel updating the item
+    }
+  }
+}
+</pre>
+
+A full example is available here: <a href="../examples/timeline/08_edit_items.html">08_edit_items.html</a>.
 
 
 <h2 id="Styles">Styles</h2>
@@ -709,7 +841,7 @@ timeline.off('select', onSelect);
 <p>For example, to change the border and background color of all items, include the
   following code inside the head of your html code or in a separate stylesheet.</p>
 <pre class="prettyprint lang-html">&lt;style&gt;
-  .graph .item {
+  .vis.timeline .item {
     border-color: orange;
     background-color: yellow;
   }

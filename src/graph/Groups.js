@@ -74,7 +74,7 @@ Groups.prototype.get = function (groupname) {
 Groups.prototype.add = function (groupname, style) {
   this.groups[groupname] = style;
   if (style.color) {
-    style.color = Node.parseColor(style.color);
+    style.color = util.parseColor(style.color);
   }
   return style;
 };

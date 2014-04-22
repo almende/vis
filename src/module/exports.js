@@ -3,15 +3,12 @@
  */
 var vis = {
   util: util,
-  events: events,
 
-  Controller: Controller,
   DataSet: DataSet,
   DataView: DataView,
   Range: Range,
   Stack: Stack,
   TimeStep: TimeStep,
-  EventBus: EventBus,
 
   components: {
     items: {

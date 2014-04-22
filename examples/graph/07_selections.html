@@ -51,8 +51,8 @@
   graph = new vis.Graph(container, data, options);
 
   // add event listener
-  graph.on('select', function(params) {
-    document.getElementById('info').innerHTML += 'selection: ' + params.nodes + '<br>';
+  graph.on('select', function(properties) {
+    document.getElementById('info').innerHTML += 'selection: ' + JSON.stringify(properties) + '<br>';
   });
 
   // set initial selection (id's of some nodes)

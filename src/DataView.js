@@ -69,8 +69,8 @@ DataView.prototype.setData = function (data) {
     this._trigger('add', {items: ids});
 
     // subscribe to new dataset
-    if (this.data.subscribe) {
-      this.data.subscribe('*', this.listener);
+    if (this.data.on) {
+      this.data.on('*', this.listener);
     }
   }
 };
@@ -276,6 +276,10 @@ DataView.prototype._onEvent = function (event, params, senderId) {
 };
 
 // copy subscription functionality from DataSet
-DataView.prototype.subscribe = DataSet.prototype.subscribe;
-DataView.prototype.unsubscribe = DataSet.prototype.unsubscribe;
+DataView.prototype.on = DataSet.prototype.on;
+DataView.prototype.off = DataSet.prototype.off;
 DataView.prototype._trigger = DataSet.prototype._trigger;
+
+// TODO: make these functions deprecated (replaced with `on` and `off` since version 0.5)
+DataView.prototype.subscribe = DataView.prototype.on;
+DataView.prototype.unsubscribe = DataView.prototype.off;

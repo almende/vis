@@ -15,11 +15,13 @@ function Item (parent, data, options, defaultOptions) {
   this.defaultOptions = defaultOptions || {};
 
   this.selected = false;
-  this.visible = false;
-  this.top = 0;
-  this.left = 0;
-  this.width = 0;
-  this.height = 0;
+  this.displayed = false;
+  this.dirty = true;
+
+  this.top = null;
+  this.left = null;
+  this.width = null;
+  this.height = null;
 }
 
 /**
@@ -27,7 +29,7 @@ function Item (parent, data, options, defaultOptions) {
  */
 Item.prototype.select = function select() {
   this.selected = true;
-  if (this.visible) this.repaint();
+  if (this.displayed) this.repaint();
 };
 
 /**
@@ -35,7 +37,7 @@ Item.prototype.select = function select() {
  */
 Item.prototype.unselect = function unselect() {
   this.selected = false;
-  if (this.visible) this.repaint();
+  if (this.displayed) this.repaint();
 };
 
 /**
@@ -56,26 +58,55 @@ Item.prototype.hide = function hide() {
 
 /**
  * Repaint the item
- * @return {Boolean} changed
  */
 Item.prototype.repaint = function repaint() {
   // should be implemented by the item
-  return false;
 };
 
 /**
- * Reflow the item
- * @return {Boolean} resized
+ * Reposition the Item horizontally
  */
-Item.prototype.reflow = function reflow() {
+Item.prototype.repositionX = function repositionX() {
   // should be implemented by the item
-  return false;
 };
 
 /**
- * Return the items width
- * @return {Integer} width
+ * Reposition the Item vertically
  */
-Item.prototype.getWidth = function getWidth() {
-  return this.width;
-}
+Item.prototype.repositionY = function repositionY() {
+  // should be implemented by the item
+};
+
+/**
+ * Repaint a delete button on the top right of the item when the item is selected
+ * @param {HTMLElement} anchor
+ * @private
+ */
+Item.prototype._repaintDeleteButton = function (anchor) {
+  if (this.selected && this.options.editable && !this.dom.deleteButton) {
+    // create and show button
+    var parent = this.parent;
+    var id = this.id;
+
+    var deleteButton = document.createElement('div');
+    deleteButton.className = 'delete';
+    deleteButton.title = 'Delete this item';
+
+    Hammer(deleteButton, {
+      preventDefault: true
+    }).on('tap', function (event) {
+      parent.removeItem(id);
+      event.stopPropagation();
+    });
+
+    anchor.appendChild(deleteButton);
+    this.dom.deleteButton = deleteButton;
+  }
+  else if (!this.selected && this.dom.deleteButton) {
+    // remove button
+    if (this.dom.deleteButton.parentNode) {
+      this.dom.deleteButton.parentNode.removeChild(this.dom.deleteButton);
+    }
+    this.dom.deleteButton = null;
+  }
+};

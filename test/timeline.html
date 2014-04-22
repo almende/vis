@@ -35,11 +35,26 @@
     });
   };
 </script>
+
+<div>
+  <label for="currenttime"><input id="currenttime" type="checkbox" checked="true"> Show current time</label>
+</div>
+<script>
+  var currenttime = document.getElementById('currenttime');
+  currenttime.onchange = function () {
+    timeline.setOptions({
+      showCurrentTime: currenttime.checked
+    });
+  };
+</script>
+
 <br>
 
 <div id="visualization"></div>
 
 <script>
+  console.time('create dataset');
+
   // create a dataset with items
   var now = moment().minutes(0).seconds(0).milliseconds(0);
   var items = new vis.DataSet({
@@ -63,20 +78,44 @@
 
   var container = document.getElementById('visualization');
   var options = {
+    editable: true,
     //orientation: 'top',
     start: now.clone().add('days', -7),
     end: now.clone().add('days', 7),
     //maxHeight: 200,
-    height: 200,
+    //height: 200,
+    showCurrentTime: true,
+    showCustomTime: true,
     //start: moment('2013-01-01'),
     //end: moment('2013-12-31'),
     //min: moment('2013-01-01'),
     //max: moment('2013-12-31'),
-    zoomMin: 1000 * 60 * 60 * 24,            // 1 day
+    //zoomMin: 1000 * 60 * 60 * 24,            // 1 day
     zoomMax: 1000 * 60 * 60 * 24 * 30 * 6    // 6 months
   };
 
+  console.timeEnd('create dataset');
+
+  console.time('create timeline');
   var timeline = new vis.Timeline(container, items, options);
+  console.timeEnd('create timeline');
+
+  timeline.on('select', function (selection) {
+    console.log('select', selection);
+  });
+
+  /*
+  timeline.on('rangechange', function (range) {
+    console.log('rangechange', range);
+  });
+  timeline.on('rangechanged', function (range) {
+    console.log('rangechanged', range);
+  });
+  */
+
+  items.on('add',    console.log.bind(console));
+  items.on('update', console.log.bind(console));
+  items.on('remove', console.log.bind(console));
 
 </script>
 </body>

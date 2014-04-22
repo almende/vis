@@ -15,10 +15,48 @@ function RootPanel(container, options) {
     autoResize: true
   };
 
-  this.listeners = {}; // event listeners
+  // create the HTML DOM
+  this._create();
+
+  // attach the root panel to the provided container
+  if (!this.container) throw new Error('Cannot repaint root panel: no container attached');
+  this.container.appendChild(this.getFrame());
+
+
+  this._initWatch();
 }
 
 RootPanel.prototype = new Panel();
+
+/**
+ * Create the HTML DOM for the root panel
+ */
+RootPanel.prototype._create = function _create() {
+  // create frame
+  this.frame = document.createElement('div');
+
+  // create event listeners for all interesting events, these events will be
+  // emitted via emitter
+  this.hammer = Hammer(this.frame, {
+    prevent_default: true
+  });
+  this.listeners = {};
+
+  var me = this;
+  var events = [
+    'touch', 'pinch', 'tap', 'doubletap', 'hold',
+    'dragstart', 'drag', 'dragend',
+    'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is for Firefox
+  ];
+  events.forEach(function (event) {
+    var listener = function () {
+      var args = [event].concat(Array.prototype.slice.call(arguments, 0));
+      me.emit.apply(me, args);
+    };
+    me.hammer.on(event, listener);
+    me.listeners[event] = listener;
+  });
+};
 
 /**
  * Set options. Will extend the current options.
@@ -30,78 +68,53 @@ RootPanel.prototype = new Panel();
  *                              {String | Number | function} [height]
  *                              {Boolean | function} [autoResize]
  */
-RootPanel.prototype.setOptions = Component.prototype.setOptions;
+RootPanel.prototype.setOptions = function setOptions(options) {
+  if (options) {
+    util.extend(this.options, options);
 
-/**
- * Repaint the component
- * @return {Boolean} changed
- */
-RootPanel.prototype.repaint = function () {
-  var changed = 0,
-      update = util.updateProperty,
-      asSize = util.option.asSize,
-      options = this.options,
-      frame = this.frame;
+    this.repaint();
 
-  if (!frame) {
-    frame = document.createElement('div');
-
-    this.frame = frame;
-
-    changed += 1;
+    this._initWatch();
   }
-  if (!frame.parentNode) {
-    if (!this.container) {
-      throw new Error('Cannot repaint root panel: no container attached');
-    }
-    this.container.appendChild(frame);
-    changed += 1;
-  }
-
-  frame.className = 'vis timeline rootpanel ' + options.orientation;
-  var className = options.className;
-  if (className) {
-    util.addClassName(frame, util.option.asString(className));
-  }
-
-  changed += update(frame.style, 'top',    asSize(options.top, '0px'));
-  changed += update(frame.style, 'left',   asSize(options.left, '0px'));
-  changed += update(frame.style, 'width',  asSize(options.width, '100%'));
-  changed += update(frame.style, 'height', asSize(options.height, '100%'));
-
-  this._updateEventEmitters();
-  this._updateWatch();
-
-  return (changed > 0);
 };
 
 /**
- * Reflow the component
- * @return {Boolean} resized
+ * Get the frame of the root panel
  */
-RootPanel.prototype.reflow = function () {
-  var changed = 0,
-      update = util.updateProperty,
-      frame = this.frame;
-
-  if (frame) {
-    changed += update(this, 'top', frame.offsetTop);
-    changed += update(this, 'left', frame.offsetLeft);
-    changed += update(this, 'width', frame.offsetWidth);
-    changed += update(this, 'height', frame.offsetHeight);
-  }
-  else {
-    changed += 1;
-  }
-
-  return (changed > 0);
+RootPanel.prototype.getFrame = function getFrame() {
+  return this.frame;
 };
 
 /**
- * Update watching for resize, depending on the current option
+ * Repaint the root panel
+ */
+RootPanel.prototype.repaint = function repaint() {
+  // update class name
+  var options = this.options;
+  var className = 'vis timeline rootpanel ' + options.orientation + (options.editable ? ' editable' : '');
+  if (options.className) className += ' ' + util.option.asString(className);
+  this.frame.className = className;
+
+  // repaint the child components
+  var childsResized = this._repaintChilds();
+
+  // update frame size
+  this.frame.style.maxHeight = util.option.asSize(this.options.maxHeight, '');
+  this._updateSize();
+
+  // if the root panel or any of its childs is resized, repaint again,
+  // as other components may need to be resized accordingly
+  var resized = this._isResized() || childsResized;
+  if (resized) {
+    setTimeout(this.repaint.bind(this), 0);
+  }
+};
+
+/**
+ * Initialize watching when option autoResize is true
  * @private
  */
-RootPanel.prototype._updateWatch = function () {
+RootPanel.prototype._initWatch = function _initWatch() {
   var autoResize = this.getOption('autoResize');
   if (autoResize) {
     this._watch();
@@ -116,12 +129,12 @@ RootPanel.prototype._updateWatch = function () {
  * automatically redraw itself.
  * @private
  */
-RootPanel.prototype._watch = function () {
+RootPanel.prototype._watch = function _watch() {
   var me = this;
 
   this._unwatch();
 
-  var checkSize = function () {
+  var checkSize = function checkSize() {
     var autoResize = me.getOption('autoResize');
     if (!autoResize) {
       // stop watching when the option autoResize is changed to false
@@ -131,9 +144,12 @@ RootPanel.prototype._watch = function () {
 
     if (me.frame) {
       // check whether the frame is resized
-      if ((me.frame.clientWidth != me.width) ||
-          (me.frame.clientHeight != me.height)) {
-        me.requestReflow();
+      if ((me.frame.clientWidth != me.lastWidth) ||
+          (me.frame.clientHeight != me.lastHeight)) {
+        me.lastWidth = me.frame.clientWidth;
+        me.lastHeight = me.frame.clientHeight;
+        me.repaint();
+        // TODO: emit a resize event instead?
       }
     }
   };
@@ -148,68 +164,11 @@ RootPanel.prototype._watch = function () {
  * Stop watching for a resize of the frame.
  * @private
  */
-RootPanel.prototype._unwatch = function () {
+RootPanel.prototype._unwatch = function _unwatch() {
   if (this.watchTimer) {
     clearInterval(this.watchTimer);
     this.watchTimer = undefined;
   }
 
   // TODO: remove event listener on window.resize
-};
-
-/**
- * Event handler
- * @param {String} event       name of the event, for example 'click', 'mousemove'
- * @param {function} callback  callback handler, invoked with the raw HTML Event
- *                             as parameter.
- */
-RootPanel.prototype.on = function (event, callback) {
-  // register the listener at this component
-  var arr = this.listeners[event];
-  if (!arr) {
-    arr = [];
-    this.listeners[event] = arr;
-  }
-  arr.push(callback);
-
-  this._updateEventEmitters();
-};
-
-/**
- * Update the event listeners for all event emitters
- * @private
- */
-RootPanel.prototype._updateEventEmitters = function () {
-  if (this.listeners) {
-    var me = this;
-    util.forEach(this.listeners, function (listeners, event) {
-      if (!me.emitters) {
-        me.emitters = {};
-      }
-      if (!(event in me.emitters)) {
-        // create event
-        var frame = me.frame;
-        if (frame) {
-          //console.log('Created a listener for event ' + event + ' on component ' + me.id); // TODO: cleanup logging
-          var callback = function(event) {
-            listeners.forEach(function (listener) {
-              // TODO: filter on event target!
-              listener(event);
-            });
-          };
-          me.emitters[event] = callback;
-
-          if (!me.hammer) {
-            me.hammer = Hammer(frame, {
-              prevent_default: true
-            });
-          }
-          me.hammer.on(event, callback);
-        }
-      }
-    });
-
-    // TODO: be able to delete event listeners
-    // TODO: be able to move event listeners to a parent when available
-  }
 };

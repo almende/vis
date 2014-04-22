@@ -11,18 +11,21 @@
 function ItemBox (parent, data, options, defaultOptions) {
   this.props = {
     dot: {
-      left: 0,
-      top: 0,
       width: 0,
       height: 0
     },
     line: {
-      top: 0,
-      left: 0,
       width: 0,
       height: 0
     }
   };
+
+  // validate data
+  if (data) {
+    if (data.start == undefined) {
+      throw new Error('Property "start" missing in item ' + data);
+    }
+  }
 
   Item.call(this, parent, data, options, defaultOptions);
 }
@@ -30,223 +33,29 @@ function ItemBox (parent, data, options, defaultOptions) {
 ItemBox.prototype = new Item (null, null);
 
 /**
+ * Check whether this item is visible inside given range
+ * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+ * @returns {boolean} True if visible
+ */
+ItemBox.prototype.isVisible = function isVisible (range) {
+  // determine visibility
+  // TODO: account for the real width of the item. Right now we just add 1/4 to the window
+  var interval = (range.end - range.start) / 4;
+  return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
+};
+
+/**
  * Repaint the item
- * @return {Boolean} changed
  */
 ItemBox.prototype.repaint = function repaint() {
-  // TODO: make an efficient repaint
-  var changed = false;
-  var dom = this.dom;
-
-  if (!dom) {
-    this._create();
-    dom = this.dom;
-    changed = true;
-  }
-
-  if (dom) {
-    if (!this.parent) {
-      throw new Error('Cannot repaint item: no parent attached');
-    }
-
-    if (!dom.box.parentNode) {
-      var foreground = this.parent.getForeground();
-      if (!foreground) {
-        throw new Error('Cannot repaint time axis: ' +
-            'parent has no foreground container element');
-      }
-      foreground.appendChild(dom.box);
-      changed = true;
-    }
-
-    if (!dom.line.parentNode) {
-      var background = this.parent.getBackground();
-      if (!background) {
-        throw new Error('Cannot repaint time axis: ' +
-            'parent has no background container element');
-      }
-      background.appendChild(dom.line);
-      changed = true;
-    }
-
-    if (!dom.dot.parentNode) {
-      var axis = this.parent.getAxis();
-      if (!background) {
-        throw new Error('Cannot repaint time axis: ' +
-            'parent has no axis container element');
-      }
-      axis.appendChild(dom.dot);
-      changed = true;
-    }
-
-    // update contents
-    if (this.data.content != this.content) {
-      this.content = this.data.content;
-      if (this.content instanceof Element) {
-        dom.content.innerHTML = '';
-        dom.content.appendChild(this.content);
-      }
-      else if (this.data.content != undefined) {
-        dom.content.innerHTML = this.content;
-      }
-      else {
-        throw new Error('Property "content" missing in item ' + this.data.id);
-      }
-      changed = true;
-    }
-
-    // update class
-    var className = (this.data.className? ' ' + this.data.className : '') +
-        (this.selected ? ' selected' : '');
-    if (this.className != className) {
-      this.className = className;
-      dom.box.className = 'item box' + className;
-      dom.line.className = 'item line' + className;
-      dom.dot.className  = 'item dot' + className;
-      changed = true;
-    }
-  }
-
-  return changed;
-};
-
-/**
- * Show the item in the DOM (when not already visible). The items DOM will
- * be created when needed.
- * @return {Boolean} changed
- */
-ItemBox.prototype.show = function show() {
-  if (!this.dom || !this.dom.box.parentNode) {
-    return this.repaint();
-  }
-  else {
-    return false;
-  }
-};
-
-/**
- * Hide the item from the DOM (when visible)
- * @return {Boolean} changed
- */
-ItemBox.prototype.hide = function hide() {
-  var changed = false,
-      dom = this.dom;
-  if (dom) {
-    if (dom.box.parentNode) {
-      dom.box.parentNode.removeChild(dom.box);
-      changed = true;
-    }
-    if (dom.line.parentNode) {
-      dom.line.parentNode.removeChild(dom.line);
-    }
-    if (dom.dot.parentNode) {
-      dom.dot.parentNode.removeChild(dom.dot);
-    }
-  }
-  return changed;
-};
-
-/**
- * Reflow the item: calculate its actual size and position from the DOM
- * @return {boolean} resized    returns true if the axis is resized
- * @override
- */
-ItemBox.prototype.reflow = function reflow() {
-  var changed = 0,
-      update,
-      dom,
-      props,
-      options,
-      margin,
-      start,
-      align,
-      orientation,
-      top,
-      left,
-      data,
-      range;
-
-  if (this.data.start == undefined) {
-    throw new Error('Property "start" missing in item ' + this.data.id);
-  }
-
-  data = this.data;
-  range = this.parent && this.parent.range;
-  if (data && range) {
-    // TODO: account for the width of the item
-    var interval = (range.end - range.start);
-    this.visible = (data.start > range.start - interval) && (data.start < range.end + interval);
-  }
-  else {
-    this.visible = false;
-  }
-
-  if (this.visible) {
-    dom = this.dom;
-    if (dom) {
-      update = util.updateProperty;
-      props = this.props;
-      options = this.options;
-      start = this.parent.toScreen(this.data.start);
-      align = options.align || this.defaultOptions.align;
-      margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
-      orientation = options.orientation || this.defaultOptions.orientation;
-
-      changed += update(props.dot, 'height', dom.dot.offsetHeight);
-      changed += update(props.dot, 'width', dom.dot.offsetWidth);
-      changed += update(props.line, 'width', dom.line.offsetWidth);
-      changed += update(props.line, 'height', dom.line.offsetHeight);
-      changed += update(props.line, 'top', dom.line.offsetTop);
-      changed += update(this, 'width', dom.box.offsetWidth);
-      changed += update(this, 'height', dom.box.offsetHeight);
-      if (align == 'right') {
-        left = start - this.width;
-      }
-      else if (align == 'left') {
-        left = start;
-      }
-      else {
-        // default or 'center'
-        left = start - this.width / 2;
-      }
-      changed += update(this, 'left', left);
-
-      changed += update(props.line, 'left', start - props.line.width / 2);
-      changed += update(props.dot, 'left', start - props.dot.width / 2);
-      changed += update(props.dot, 'top', -props.dot.height / 2);
-      if (orientation == 'top') {
-        top = margin;
-
-        changed += update(this, 'top', top);
-      }
-      else {
-        // default or 'bottom'
-        var parentHeight = this.parent.height;
-        top = parentHeight - this.height - margin;
-
-        changed += update(this, 'top', top);
-      }
-    }
-    else {
-      changed += 1;
-    }
-  }
-
-  return (changed > 0);
-};
-
-/**
- * Create an items DOM
- * @private
- */
-ItemBox.prototype._create = function _create() {
   var dom = this.dom;
   if (!dom) {
-    this.dom = dom = {};
+    // create DOM
+    this.dom = {};
+    dom = this.dom;
 
-    // create the box
+    // create main box
     dom.box = document.createElement('DIV');
-    // className is updated in repaint()
 
     // contents box (inside the background box). used for making margins
     dom.content = document.createElement('DIV');
@@ -264,39 +73,159 @@ ItemBox.prototype._create = function _create() {
     // attach this item as attribute
     dom.box['timeline-item'] = this;
   }
+
+  // append DOM to parent DOM
+  if (!this.parent) {
+    throw new Error('Cannot repaint item: no parent attached');
+  }
+  if (!dom.box.parentNode) {
+    var foreground = this.parent.getForeground();
+    if (!foreground) throw new Error('Cannot repaint time axis: parent has no foreground container element');
+    foreground.appendChild(dom.box);
+  }
+  if (!dom.line.parentNode) {
+    var background = this.parent.getBackground();
+    if (!background) throw new Error('Cannot repaint time axis: parent has no background container element');
+    background.appendChild(dom.line);
+  }
+  if (!dom.dot.parentNode) {
+    var axis = this.parent.getAxis();
+    if (!background) throw new Error('Cannot repaint time axis: parent has no axis container element');
+    axis.appendChild(dom.dot);
+  }
+  this.displayed = true;
+
+  // update contents
+  if (this.data.content != this.content) {
+    this.content = this.data.content;
+    if (this.content instanceof Element) {
+      dom.content.innerHTML = '';
+      dom.content.appendChild(this.content);
+    }
+    else if (this.data.content != undefined) {
+      dom.content.innerHTML = this.content;
+    }
+    else {
+      throw new Error('Property "content" missing in item ' + this.data.id);
+    }
+
+    this.dirty = true;
+  }
+
+  // update class
+  var className = (this.data.className? ' ' + this.data.className : '') +
+      (this.selected ? ' selected' : '');
+  if (this.className != className) {
+    this.className = className;
+    dom.box.className = 'item box' + className;
+    dom.line.className = 'item line' + className;
+    dom.dot.className  = 'item dot' + className;
+
+    this.dirty = true;
+  }
+
+  // recalculate size
+  if (this.dirty) {
+    this.props.dot.height = dom.dot.offsetHeight;
+    this.props.dot.width = dom.dot.offsetWidth;
+    this.props.line.width = dom.line.offsetWidth;
+    this.width = dom.box.offsetWidth;
+    this.height = dom.box.offsetHeight;
+
+    this.dirty = false;
+  }
+
+  this._repaintDeleteButton(dom.box);
 };
 
 /**
- * Reposition the item, recalculate its left, top, and width, using the current
- * range and size of the items itemset
- * @override
+ * Show the item in the DOM (when not already displayed). The items DOM will
+ * be created when needed.
  */
-ItemBox.prototype.reposition = function reposition() {
-  var dom = this.dom,
-      props = this.props,
-      orientation = this.options.orientation || this.defaultOptions.orientation;
-
-  if (dom) {
-    var box = dom.box,
-        line = dom.line,
-        dot = dom.dot;
-
-    box.style.left = this.left + 'px';
-    box.style.top = this.top + 'px';
-
-    line.style.left = props.line.left + 'px';
-    if (orientation == 'top') {
-      line.style.top = 0 + 'px';
-      line.style.height = this.top + 'px';
-    }
-    else {
-      // orientation 'bottom'
-      line.style.top = (this.top + this.height) + 'px';
-      line.style.height = Math.max(this.parent.height - this.top - this.height +
-          this.props.dot.height / 2, 0) + 'px';
-    }
-
-    dot.style.left = props.dot.left + 'px';
-    dot.style.top = props.dot.top + 'px';
+ItemBox.prototype.show = function show() {
+  if (!this.displayed) {
+    this.repaint();
   }
+};
+
+/**
+ * Hide the item from the DOM (when visible)
+ */
+ItemBox.prototype.hide = function hide() {
+  if (this.displayed) {
+    var dom = this.dom;
+
+    if (dom.box.parentNode)   dom.box.parentNode.removeChild(dom.box);
+    if (dom.line.parentNode)  dom.line.parentNode.removeChild(dom.line);
+    if (dom.dot.parentNode)   dom.dot.parentNode.removeChild(dom.dot);
+
+    this.top = null;
+    this.left = null;
+
+    this.displayed = false;
+  }
+};
+
+/**
+ * Reposition the item horizontally
+ * @Override
+ */
+ItemBox.prototype.repositionX = function repositionX() {
+  var start = this.defaultOptions.toScreen(this.data.start),
+      align = this.options.align || this.defaultOptions.align,
+      left,
+      box = this.dom.box,
+      line = this.dom.line,
+      dot = this.dom.dot;
+
+  // calculate left position of the box
+  if (align == 'right') {
+    this.left = start - this.width;
+  }
+  else if (align == 'left') {
+    this.left = start;
+  }
+  else {
+    // default or 'center'
+    this.left = start - this.width / 2;
+  }
+
+  // reposition box
+  box.style.left = this.left + 'px';
+
+  // reposition line
+  line.style.left = (start - this.props.line.width / 2) + 'px';
+
+  // reposition dot
+  dot.style.left = (start - this.props.dot.width / 2) + 'px';
+};
+
+/**
+ * Reposition the item vertically
+ * @Override
+ */
+ItemBox.prototype.repositionY = function repositionY () {
+  var orientation = this.options.orientation || this.defaultOptions.orientation,
+      box = this.dom.box,
+      line = this.dom.line,
+      dot = this.dom.dot;
+
+  if (orientation == 'top') {
+    box.style.top = (this.top || 0) + 'px';
+    box.style.bottom = '';
+
+    line.style.top = '0';
+    line.style.bottom = '';
+    line.style.height = (this.parent.top + this.top + 1) + 'px';
+  }
+  else { // orientation 'bottom'
+    box.style.top = '';
+    box.style.bottom = (this.top || 0) + 'px';
+
+    line.style.top = (this.parent.top + this.parent.height - this.top - 1) + 'px';
+    line.style.bottom = '0';
+    line.style.height = '';
+  }
+
+  dot.style.top = (-this.props.dot.height / 2) + 'px';
 };
