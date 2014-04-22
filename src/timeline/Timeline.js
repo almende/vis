@@ -402,10 +402,23 @@ Timeline.prototype.setItems = function(items) {
       end = util.convert(this.options.end, 'Date');
     }
 
-    // apply range if there is a min or max available
-    if (start != null || end != null) {
-      this.range.setRange(start, end);
+    // skip range set if there is no start and end date
+    if (start === null && end === null) {
+      return;
     }
+
+    // if start and end dates are set but cannot be satisfyed due to zoom restrictions — correct end date
+    if (start != null && end != null) {
+      var diff = end.valueOf() - start.valueOf();
+      if (this.options.zoomMax != undefined && this.options.zoomMax < diff) {
+        end = new Date(start.valueOf() + this.options.zoomMax);
+      }
+      if (this.options.zoomMin != undefined && this.options.zoomMin > diff) {
+        end = new Date(start.valueOf() + this.options.zoomMin);
+      }
+    }
+
+    this.range.setRange(start, end);
   }
 };
 
