@@ -162,5 +162,20 @@ assert.deepEqual((data.get()[0].id == undefined), false);
 assert.deepEqual(data.isInternalId(data.get()[0].id), true);
 assert.deepEqual((data.get({"showInternalIds": false})[0].id == undefined),true);
 
+// create a dataset with initial data
+var data = new DataSet([
+  {id: 1, content: 'Item 1', start: new Date(now.valueOf())},
+  {id: 2, content: 'Item 2', start: now.toISOString()}
+]);
+assert.deepEqual(data.getIds(), [1, 2]);
+
+// create a dataset with initial data and options
+var data = new DataSet([
+  {_id: 1, content: 'Item 1', start: new Date(now.valueOf())},
+  {_id: 2, content: 'Item 2', start: now.toISOString()}
+], {fieldId: '_id'});
+assert.deepEqual(data.getIds(), [1, 2]);
+
+
 // TODO: extensively test DataSet
 // TODO: test subscribing to events

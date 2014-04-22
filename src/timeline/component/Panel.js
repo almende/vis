@@ -17,7 +17,7 @@ function Panel(options) {
   this.options = options || {};
 
   // create frame
-  this.frame = document.createElement('div');
+  this.frame = (typeof document !== 'undefined') ? document.createElement('div') : null;
 }
 
 Panel.prototype = new Component();

@@ -1,4 +1,4 @@
-vis.js history
+# vis.js history
 http://visjs.org
 
 
@@ -14,6 +14,11 @@ http://visjs.org
   rather than when the Timeline is actually resized.
 - Minor bug fixes.
 - More examples added.
+
+### DataSet
+
+- A DataSet can now be constructed with initial data, like
+  `new DataSet(data, options)`.
 
 
 ## 2014-04-18, version 0.7.4

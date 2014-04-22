@@ -26,16 +26,14 @@
 <div id="visualization"></div>
 
 <script>
-  var groups = new vis.DataSet();
-  groups.add([
+  var groups = new vis.DataSet([
     {id: 0, content: 'First', value: 1},
     {id: 1, content: 'Third', value: 3},
     {id: 2, content: 'Second', value: 2}
   ]);
 
   // create a dataset with items
-  var items = new vis.DataSet();
-  items.add([
+  var items = new vis.DataSet([
     {id: 0, group: 0, content: 'item 0', start: new Date(2014, 3, 17)},
     {id: 1, group: 0, content: 'item 1', start: new Date(2014, 3, 19)},
     {id: 2, group: 1, content: 'item 2', start: new Date(2014, 3, 16)},
