@@ -14,6 +14,7 @@ http://visjs.org
   rather than when the Timeline is actually resized.
 - Fixed `select` event fired repeatedly when clicking an empty place on the
   Timeline, deselecting selected items).
+- Fixed initial visible window in case items exceed `zoomMax`. Thanks @Remper.
 - Option `order` is now deprecated. This was needed for performance improvements.
 - Minor bug fixes.
 - More examples added.
@@ -163,7 +164,7 @@ http://visjs.org
 
 - Moved the generated library to folder `./dist`
 - Css stylesheet must be loaded explicitly now.
-- Implemented options `showCurrentTime` and `showCustomTime`. Thanks fi0dor.
+- Implemented options `showCurrentTime` and `showCustomTime`. Thanks @fi0dor.
 - Implemented touch support for Timeline.
 - Fixed broken Timeline options `min` and `max`.
 - Fixed not being able to load vis.js in node.js.
