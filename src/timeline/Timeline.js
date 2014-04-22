@@ -109,12 +109,6 @@ function Timeline (container, items, options) {
 
   // main panel (contains time axis and itemsets)
   var mainOptions = util.extend(Object.create(this.options), {
-    top: function () {
-      return (mainOptions.orientation == 'top') ? '0' : '';
-    },
-    bottom: function () {
-      return (mainOptions.orientation == 'top') ? '' : '0';
-    },
     left: function () {
       // we align left to enable a smooth resizing of the window
       return me.sidePanel.width;

@@ -378,8 +378,8 @@ ItemSet.prototype.repaint = function repaint() {
   this.dom.axis.style.right  = asSize(options.right, '');
   this.dom.axis.style.width  = asSize(options.width, '100%');
   this.dom.axis.style.height = asSize(0);
-  this.dom.axis.style.top    = (orientation == 'top') ? '0' : '';
-  this.dom.axis.style.bottom = (orientation == 'top') ? '' : '0';
+  this.dom.axis.style.top    = asSize((orientation == 'top') ? '0' : '');
+  this.dom.axis.style.bottom = asSize((orientation == 'top') ? '' : '0');
 
   return this._isResized();
 };
