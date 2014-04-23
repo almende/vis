@@ -73,6 +73,7 @@ function Graph (container, data, options) {
       fontSize: 14, // px
       fontFace: 'arial',
       fontFill: 'white',
+      arrowScaleFactor: 1,
       dash: {
         length: 10,
         gap: 5,
@@ -626,6 +627,7 @@ Graph.prototype.setOptions = function (options) {
           }
         }
       }
+
 
       if (options.edges.color !== undefined) {
         if (util.isString(options.edges.color)) {

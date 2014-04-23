@@ -9821,6 +9821,7 @@ function Edge (properties, graph, constants) {
   this.customLength = false;
   this.selected = false;
   this.smooth = constants.smoothCurves;
+  this.arrowScaleFactor = constants.edges.arrowScaleFactor;
 
   this.from = null;   // a node
   this.to = null;     // a node
@@ -9880,6 +9881,9 @@ Edge.prototype.setProperties = function(properties, constants) {
   if (properties.value !== undefined)        {this.value = properties.value;}
   if (properties.length !== undefined)       {this.length = properties.length;
                                               this.customLength = true;}
+
+  // scale the arrow
+  if (properties.arrowScaleFactor !== undefined)       {this.arrowScaleFactor = properties.arrowScaleFactor};
 
   // Added to support dashed lines
   // David Jordan
@@ -10297,7 +10301,7 @@ Edge.prototype._drawArrowCenter = function(ctx) {
     this._line(ctx);
 
     var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
-    var length = 10 + 5 * this.width; // TODO: make customizable?
+    var length = (10 + 5 * this.width) * this.arrowScaleFactor;
     // draw an arrow halfway the line
     if (this.smooth == true) {
       var midpointX = 0.5*(0.5*(this.from.x + this.via.x) + 0.5*(this.to.x + this.via.x));
@@ -10337,7 +10341,7 @@ Edge.prototype._drawArrowCenter = function(ctx) {
 
     // draw all arrows
     var angle = 0.2 * Math.PI;
-    var length = 10 + 5 * this.width; // TODO: make customizable?
+    var length = (10 + 5 * this.width) * this.arrowScaleFactor;
     point = this._pointOnCircle(x, y, radius, 0.5);
     ctx.arrow(point.x, point.y, angle, length);
     ctx.fill();
@@ -10411,7 +10415,7 @@ Edge.prototype._drawArrow = function(ctx) {
     ctx.stroke();
 
     // draw arrow at the end of the line
-    length = 10 + 5 * this.width;
+    length = (10 + 5 * this.width) * this.arrowScaleFactor;
     ctx.arrow(xTo, yTo, angle, length);
     ctx.fill();
     ctx.stroke();
@@ -10462,7 +10466,7 @@ Edge.prototype._drawArrow = function(ctx) {
     ctx.stroke();
 
     // draw all arrows
-    length = 10 + 5 * this.width; // TODO: make customizable?
+    var length = (10 + 5 * this.width) * this.arrowScaleFactor;
     ctx.arrow(arrow.x, arrow.y, arrow.angle, length);
     ctx.fill();
     ctx.stroke();
@@ -15476,6 +15480,7 @@ function Graph (container, data, options) {
       fontSize: 14, // px
       fontFace: 'arial',
       fontFill: 'white',
+      arrowScaleFactor: 1,
       dash: {
         length: 10,
         gap: 5,
@@ -16029,6 +16034,7 @@ Graph.prototype.setOptions = function (options) {
           }
         }
       }
+
 
       if (options.edges.color !== undefined) {
         if (util.isString(options.edges.color)) {
