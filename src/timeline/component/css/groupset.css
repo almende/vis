@@ -1,59 +1,43 @@
-
 .vis.timeline .groupset {
-  position: absolute;
-  padding: 0;
-  margin: 0;
+  position: relative;
 }
 
-.vis.timeline .labels {
-  position: absolute;
-  top: 0;
-  left: 0;
+.vis.timeline .labelset {
+  position: relative;
   width: 100%;
-  height: 100%;
 
-  padding: 0;
-  margin: 0;
+  overflow: hidden;
 
-  border-right: 1px solid #bfbfbf;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
 
-.vis.timeline .labels .label-set {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-
-  overflow: hidden;
-
-  border-top: none;
-  border-bottom: 1px solid #bfbfbf;
-}
-
-.vis.timeline .labels .label-set .vlabel {
-  position: absolute;
+.vis.timeline .labelset .vlabel {
+  position: relative;
   left: 0;
   top: 0;
   width: 100%;
   color: #4d4d4d;
+
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
-.vis.timeline.top .labels .label-set .vlabel,
-.vis.timeline.top .groupset .itemset-axis {
+.vis.timeline.bottom .labelset .vlabel,
+.vis.timeline.top .vpanel.side-content,
+.vis.timeline.top .groupset .itemset {
   border-top: 1px solid #bfbfbf;
   border-bottom: none;
 }
 
-.vis.timeline.bottom .labels .label-set .vlabel,
-.vis.timeline.bottom .groupset .itemset-axis {
+.vis.timeline.top .labelset .vlabel,
+.vis.timeline.bottom .vpanel.side-content,
+.vis.timeline.bottom .groupset .itemset {
   border-top: none;
   border-bottom: 1px solid #bfbfbf;
 }
 
-.vis.timeline .labels .label-set .vlabel .inner {
+.vis.timeline .labelset .vlabel .inner {
   display: inline-block;
   padding: 5px;
 }

@@ -1,18 +1,16 @@
+// TODO: turn Stack into a Mixin?
+
 /**
  * @constructor Stack
  * Stacks items on top of each other.
- * @param {ItemSet} itemset
  * @param {Object} [options]
  */
-function Stack (itemset, options) {
-  this.itemset = itemset;
-
+function Stack (options) {
   this.options = options || {};
   this.defaultOptions = {
     order: function (a, b) {
-      //return (b.width - a.width) || (a.left - b.left);  // TODO: cleanup
-      // Order: ranges over non-ranges, ranged ordered by width, and
-      // lastly ordered by start.
+      // Order: ranges over non-ranges, ranged ordered by width,
+      //        and non-ranges ordered by start.
       if (a instanceof ItemRange) {
         if (b instanceof ItemRange) {
           var aInt = (a.data.end - a.data.start);
@@ -33,141 +31,122 @@ function Stack (itemset, options) {
       }
     },
     margin: {
-      item: 10
+      item: 10,
+      axis: 20
     }
   };
-
-  this.ordered = [];  // ordered items
 }
 
 /**
  * Set options for the stack
  * @param {Object} options  Available options:
- *                          {ItemSet} itemset
- *                          {Number} margin
- *                          {function} order  Stacking order
+ *                          {Number} [margin.item=10]
+ *                          {Number} [margin.axis=20]
+ *                          {function} [order]  Stacking order
  */
 Stack.prototype.setOptions = function setOptions (options) {
   util.extend(this.options, options);
-
-  // TODO: register on data changes at the connected itemset, and update the changed part only and immediately
 };
 
 /**
- * Stack the items such that they don't overlap. The items will have a minimal
- * distance equal to options.margin.item.
+ * Order an array with items using a predefined order function for items
+ * @param {Item[]} items
  */
-Stack.prototype.update = function update() {
-  this._order();
-  this._stack();
-};
-
-/**
- * Order the items. If a custom order function has been provided via the options,
- * then this will be used.
- * @private
- */
-Stack.prototype._order = function _order () {
-  var items = this.itemset.items;
-  if (!items) {
-    throw new Error('Cannot stack items: ItemSet does not contain items');
-  }
-
-  // TODO: store the sorted items, to have less work later on
-  var ordered = [];
-  var index = 0;
-  // items is a map (no array)
-  util.forEach(items, function (item) {
-    if (item.visible) {
-      ordered[index] = item;
-      index++;
-    }
-  });
-
-  //if a customer stack order function exists, use it.
+Stack.prototype.order = function order(items) {
+  //order the items
   var order = this.options.order || this.defaultOptions.order;
   if (!(typeof order === 'function')) {
     throw new Error('Option order must be a function');
   }
+  items.sort(order);
+};
 
-  ordered.sort(order);
+/**
+ * Order items by their start data
+ * @param {Item[]} items
+ */
+Stack.prototype.orderByStart = function orderByStart(items) {
+  items.sort(function (a, b) {
+    return a.data.start - b.data.start;
+  });
+};
 
-  this.ordered = ordered;
+/**
+ * Order items by their end date. If they have no end date, their start date
+ * is used.
+ * @param {Item[]} items
+ */
+Stack.prototype.orderByEnd = function orderByEnd(items) {
+  items.sort(function (a, b) {
+    var aTime = ('end' in a.data) ? a.data.end : a.data.start,
+        bTime = ('end' in b.data) ? b.data.end : b.data.start;
+
+    return aTime - bTime;
+  });
 };
 
 /**
  * Adjust vertical positions of the events such that they don't overlap each
  * other.
+ * @param {Item[]} items          All visible items
+ * @param {boolean} [force=false] If true, all items will be re-stacked.
+ *                                If false (default), only items having a
+ *                                top===null will be re-stacked
  * @private
  */
-Stack.prototype._stack = function _stack () {
+Stack.prototype.stack = function stack (items, force) {
   var i,
       iMax,
-      ordered = this.ordered,
       options = this.options,
-      orientation = options.orientation || this.defaultOptions.orientation,
-      axisOnTop = (orientation == 'top'),
-      margin;
+      marginItem,
+      marginAxis;
 
   if (options.margin && options.margin.item !== undefined) {
-    margin = options.margin.item;
+    marginItem = options.margin.item;
   }
   else {
-    margin = this.defaultOptions.margin.item
+    marginItem = this.defaultOptions.margin.item
+  }
+  if (options.margin && options.margin.axis !== undefined) {
+    marginAxis = options.margin.axis;
+  }
+  else {
+    marginAxis = this.defaultOptions.margin.axis
   }
 
-  // calculate new, non-overlapping positions
-  for (i = 0, iMax = ordered.length; i < iMax; i++) {
-    var item = ordered[i];
-    var collidingItem = null;
-    do {
-      // TODO: optimize checking for overlap. when there is a gap without items,
-      //  you only need to check for items from the next item on, not from zero
-      collidingItem = this.checkOverlap(ordered, i, 0, i - 1, margin);
-      if (collidingItem != null) {
-        // There is a collision. Reposition the event above the colliding element
-        if (axisOnTop) {
-          item.top = collidingItem.top + collidingItem.height + margin;
-        }
-        else {
-          item.top = collidingItem.top - item.height - margin;
-        }
-      }
-    } while (collidingItem);
-  }
-};
-
-/**
- * Check if the destiny position of given item overlaps with any
- * of the other items from index itemStart to itemEnd.
- * @param {Array} items     Array with items
- * @param {int}  itemIndex  Number of the item to be checked for overlap
- * @param {int}  itemStart  First item to be checked.
- * @param {int}  itemEnd    Last item to be checked.
- * @return {Object | null}  colliding item, or undefined when no collisions
- * @param {Number} margin   A minimum required margin.
- *                          If margin is provided, the two items will be
- *                          marked colliding when they overlap or
- *                          when the margin between the two is smaller than
- *                          the requested margin.
- */
-Stack.prototype.checkOverlap = function checkOverlap (items, itemIndex,
-                                                      itemStart, itemEnd, margin) {
-  var collision = this.collision;
-
-  // we loop from end to start, as we suppose that the chance of a
-  // collision is larger for items at the end, so check these first.
-  var a = items[itemIndex];
-  for (var i = itemEnd; i >= itemStart; i--) {
-    var b = items[i];
-    if (collision(a, b, margin)) {
-      if (i != itemIndex) {
-        return b;
-      }
+  if (force) {
+    // reset top position of all items
+    for (i = 0, iMax = items.length; i < iMax; i++) {
+      items[i].top = null;
     }
   }
 
-  return null;
+  // calculate new, non-overlapping positions
+  for (i = 0, iMax = items.length; i < iMax; i++) {
+    var item = items[i];
+    if (item.top === null) {
+      // initialize top position
+      item.top = marginAxis;
+
+      do {
+        // TODO: optimize checking for overlap. when there is a gap without items,
+        //       you only need to check for items from the next item on, not from zero
+        var collidingItem = null;
+        for (var j = 0, jj = items.length; j < jj; j++) {
+          var other = items[j];
+          if (other.top !== null && other !== item && this.collision(item, other, marginItem)) {
+            collidingItem = other;
+            break;
+          }
+        }
+
+        if (collidingItem != null) {
+          // There is a collision. Reposition the event above the colliding element
+          item.top = collidingItem.top + collidingItem.height + marginItem;
+        }
+      } while (collidingItem);
+    }
+  }
 };
 
 /**

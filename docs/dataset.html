@@ -107,13 +107,18 @@ console.log('formatted items', items);
 </p>
 
 <pre class="prettyprint lang-js">
-var data = new vis.DataSet(options)
+var data = new vis.DataSet([data] [, options])
 </pre>
 
 <p>
   After construction, data can be added to the DataSet using the methods
   <code>add</code> and <code>update</code>, as described in section
   <a href="#Data_Manipulation">Data Manipulation</a>.
+</p>
+
+<p>
+  The parameter <code>data</code>code> is optional and can be an Array or
+  Google DataTable with items.
 </p>
 
 <p>

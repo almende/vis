@@ -1,9 +1,16 @@
 
 .vis.timeline .itemset {
-  position: absolute;
+  position: relative;
   padding: 0;
   margin: 0;
-  overflow: hidden;
+
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+
+  /* FIXME: get transition working for rootpanel and itemset
+  -webkit-transition: height 4s ease-in-out;
+  transition:         height 4s ease-in-out;
+  /**/
 }
 
 .vis.timeline .background {
@@ -12,6 +19,6 @@
 .vis.timeline .foreground {
 }
 
-.vis.timeline .itemset-axis {
-  position: absolute;
+.vis.timeline .axis {
+  overflow: visible;
 }

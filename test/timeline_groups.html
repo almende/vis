@@ -73,14 +73,47 @@
   // create visualization
   var container = document.getElementById('visualization');
   var options = {
+    editable: true,
     //height: 200,
     groupOrder: 'content'
   };
 
+  console.time('create timeline');
   var timeline = new vis.Timeline(container);
+  console.timeEnd('create timeline');
+
+  console.time('set options');
   timeline.setOptions(options);
+  console.timeEnd('set options');
+
+  console.time('set groups');
   timeline.setGroups(groups);
+  console.timeEnd('set groups');
+
+  console.time('set items');
   timeline.setItems(items);
+  console.timeEnd('set items');
+
+  timeline.on('select', function (selection) {
+    console.log('select', selection);
+  });
+
+  /*
+  timeline.on('rangechange', function (range) {
+    console.log('rangechange', range);
+  });
+  timeline.on('rangechanged', function (range) {
+    console.log('rangechanged', range);
+  });
+  */
+
+  items.on('add',    console.log.bind(console));
+  items.on('update', console.log.bind(console));
+  items.on('remove', console.log.bind(console));
+
+  groups.on('add',    console.log.bind(console));
+  groups.on('update', console.log.bind(console));
+  groups.on('remove', console.log.bind(console));
 
 </script>
 </body>

@@ -1,15 +1,37 @@
-vis.js history
+# vis.js history
 http://visjs.org
 
 
-## 2014-04-16, version 0.7.4
+## not yet released, version 0.8.0
+
+### Timeline
+
+- Large refactoring of the Timeline, simplifying the code.
+- Performance improvements.
+- Improved layout of box-items inside groups.
+- Function `setWindow` now accepts an object with properties `start` and `end`.
+- Fixed option `autoResize` forcing a repaint of the Timeline with every check
+  rather than when the Timeline is actually resized.
+- Fixed `select` event fired repeatedly when clicking an empty place on the
+  Timeline, deselecting selected items).
+- Fixed initial visible window in case items exceed `zoomMax`. Thanks @Remper.
+- Option `order` is now deprecated. This was needed for performance improvements.
+- Minor bug fixes.
+- More examples added.
+
+### DataSet
+
+- A DataSet can now be constructed with initial data, like
+  `new DataSet(data, options)`.
+
+
+## 2014-04-18, version 0.7.4
 
 ### Graph
 
 - fixed IE9 bug.
 - style fixes.
 - minor bug fixes.
-
 
 
 ## 2014-04-16, version 0.7.3
@@ -142,7 +164,7 @@ http://visjs.org
 
 - Moved the generated library to folder `./dist`
 - Css stylesheet must be loaded explicitly now.
-- Implemented options `showCurrentTime` and `showCustomTime`. Thanks fi0dor.
+- Implemented options `showCurrentTime` and `showCustomTime`. Thanks @fi0dor.
 - Implemented touch support for Timeline.
 - Fixed broken Timeline options `min` and `max`.
 - Fixed not being able to load vis.js in node.js.

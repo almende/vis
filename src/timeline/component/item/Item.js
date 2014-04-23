@@ -15,12 +15,13 @@ function Item (parent, data, options, defaultOptions) {
   this.defaultOptions = defaultOptions || {};
 
   this.selected = false;
-  this.visible = false;
-  this.top = 0;
-  this.left = 0;
-  this.width = 0;
-  this.height = 0;
-  this.offset = 0;
+  this.displayed = false;
+  this.dirty = true;
+
+  this.top = null;
+  this.left = null;
+  this.width = null;
+  this.height = null;
 }
 
 /**
@@ -28,7 +29,7 @@ function Item (parent, data, options, defaultOptions) {
  */
 Item.prototype.select = function select() {
   this.selected = true;
-  if (this.visible) this.repaint();
+  if (this.displayed) this.repaint();
 };
 
 /**
@@ -36,7 +37,7 @@ Item.prototype.select = function select() {
  */
 Item.prototype.unselect = function unselect() {
   this.selected = false;
-  if (this.visible) this.repaint();
+  if (this.displayed) this.repaint();
 };
 
 /**
@@ -57,28 +58,23 @@ Item.prototype.hide = function hide() {
 
 /**
  * Repaint the item
- * @return {Boolean} changed
  */
 Item.prototype.repaint = function repaint() {
   // should be implemented by the item
-  return false;
 };
 
 /**
- * Reflow the item
- * @return {Boolean} resized
+ * Reposition the Item horizontally
  */
-Item.prototype.reflow = function reflow() {
+Item.prototype.repositionX = function repositionX() {
   // should be implemented by the item
-  return false;
 };
 
 /**
- * Give the item a display offset in pixels
- * @param {Number} offset    Offset on screen in pixels
+ * Reposition the Item vertically
  */
-Item.prototype.setOffset = function setOffset(offset) {
-  this.offset = offset;
+Item.prototype.repositionY = function repositionY() {
+  // should be implemented by the item
 };
 
 /**

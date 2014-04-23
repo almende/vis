@@ -9,79 +9,86 @@
   border: 1px solid #bfbfbf;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
+
+  /* FIXME: there is an issue with the height of the items when panel height is animated
+  -webkit-transition: height 4s ease-in-out;
+  transition:         height 4s ease-in-out;
+  /**/
 }
 
 .vis.timeline .vpanel {
   position: absolute;
   overflow: hidden;
-}
 
-
-.vis.timeline .groupset {
-  position: absolute;
-  padding: 0;
-  margin: 0;
-}
-
-.vis.timeline .labels {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-
-  padding: 0;
-  margin: 0;
-
-  border-right: 1px solid #bfbfbf;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
 
-.vis.timeline .labels .label-set {
-  position: absolute;
-  top: 0;
-  left: 0;
+.vis.timeline .vpanel.side {
+  border-right: 1px solid #bfbfbf;
+}
+
+.vis.timeline .vpanel.side.hidden {
+  display: none;
+}
+
+.vis.timeline .groupset {
+  position: relative;
+}
+
+.vis.timeline .labelset {
+  position: relative;
   width: 100%;
-  height: 100%;
 
   overflow: hidden;
 
-  border-top: none;
-  border-bottom: 1px solid #bfbfbf;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
-.vis.timeline .labels .label-set .vlabel {
-  position: absolute;
+.vis.timeline .labelset .vlabel {
+  position: relative;
   left: 0;
   top: 0;
   width: 100%;
   color: #4d4d4d;
+
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
-.vis.timeline.top .labels .label-set .vlabel,
-.vis.timeline.top .groupset .itemset-axis {
+.vis.timeline.bottom .labelset .vlabel,
+.vis.timeline.top .vpanel.side-content,
+.vis.timeline.top .groupset .itemset {
   border-top: 1px solid #bfbfbf;
   border-bottom: none;
 }
 
-.vis.timeline.bottom .labels .label-set .vlabel,
-.vis.timeline.bottom .groupset .itemset-axis {
+.vis.timeline.top .labelset .vlabel,
+.vis.timeline.bottom .vpanel.side-content,
+.vis.timeline.bottom .groupset .itemset {
   border-top: none;
   border-bottom: 1px solid #bfbfbf;
 }
 
-.vis.timeline .labels .label-set .vlabel .inner {
+.vis.timeline .labelset .vlabel .inner {
   display: inline-block;
   padding: 5px;
 }
 
 
 .vis.timeline .itemset {
-  position: absolute;
+  position: relative;
   padding: 0;
   margin: 0;
-  overflow: hidden;
+
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+
+  /* FIXME: get transition working for rootpanel and itemset
+  -webkit-transition: height 4s ease-in-out;
+  transition:         height 4s ease-in-out;
+  /**/
 }
 
 .vis.timeline .background {
@@ -90,8 +97,8 @@
 .vis.timeline .foreground {
 }
 
-.vis.timeline .itemset-axis {
-  position: absolute;
+.vis.timeline .axis {
+  overflow: visible;
 }
 
 
@@ -102,6 +109,11 @@
   background-color: #D5DDF6;
   display: inline-block;
   padding: 5px;
+
+  /* TODO: enable css transitions
+  -webkit-transition: top .4s ease-in-out, bottom .4s ease-in-out;
+  transition:         top .4s ease-in-out, bottom .4s ease-in-out;
+  /**/
 }
 
 .vis.timeline .item.selected {
@@ -118,7 +130,8 @@
   background-color: #FFF785;
   z-index: 999;
 }
-.vis.timeline .item.point.selected .dot {
+.vis.timeline .item.point.selected .dot,
+.vis.timeline .item.dot.selected {
   border-color: #FFC200;
 }
 
@@ -179,6 +192,11 @@
   width: 0;
   border-left-width: 1px;
   border-left-style: solid;
+
+  /* TODO: enable css transitions
+  -webkit-transition: height .4s ease-in-out, top .4s ease-in-out;
+  transition:         height .4s ease-in-out, top .4s ease-in-out;
+  /**/
 }
 
 .vis.timeline .item .content {
@@ -220,18 +238,18 @@
   z-index: 10001; /* a little higher z-index than .drag-left */
 }
 
-.vis.timeline .axis {
-  position: relative;
+.vis.timeline .timeaxis {
+  position: absolute;
 }
 
-.vis.timeline .axis .text {
+.vis.timeline .timeaxis .text {
   position: absolute;
   color: #4d4d4d;
   padding: 3px;
   white-space: nowrap;
 }
 
-.vis.timeline .axis .text.measure {
+.vis.timeline .timeaxis .text.measure {
   position: absolute;
   padding-left: 0;
   padding-right: 0;
@@ -240,13 +258,13 @@
   visibility: hidden;
 }
 
-.vis.timeline .axis .grid.vertical {
+.vis.timeline .timeaxis .grid.vertical {
   position: absolute;
   width: 0;
   border-right: 1px solid;
 }
 
-.vis.timeline .axis .grid.horizontal {
+.vis.timeline .timeaxis .grid.horizontal {
   position: absolute;
   left: 0;
   width: 100%;
@@ -254,11 +272,11 @@
   border-bottom: 1px solid;
 }
 
-.vis.timeline .axis .grid.minor {
+.vis.timeline .timeaxis .grid.minor {
   border-color: #e5e5e5;
 }
 
-.vis.timeline .axis .grid.major {
+.vis.timeline .timeaxis .grid.major {
   border-color: #bfbfbf;
 }
 

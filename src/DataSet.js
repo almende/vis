@@ -26,6 +26,7 @@
  * - gives triggers upon changes in the data
  * - can  import/export data in various data formats
  *
+ * @param {Array | DataTable} [data]    Optional array with initial data
  * @param {Object} [options]   Available options:
  *                             {String} fieldId Field name of the id in the
  *                                              items, 'id' by default.
@@ -35,8 +36,14 @@
  * @constructor DataSet
  */
 // TODO: add a DataSet constructor DataSet(data, options)
-function DataSet (options) {
+function DataSet (data, options) {
   this.id = util.randomUUID();
+
+  // correctly read optional arguments
+  if (data && !Array.isArray(data) && !util.isDataTable(data)) {
+    options = data;
+    data = null;
+  }
 
   this.options = options || {};
   this.data = {};                                 // map with data indexed by id
@@ -58,10 +65,13 @@ function DataSet (options) {
     }
   }
 
-  // event subscribers
-  this.subscribers = {};
+  this.subscribers = {};  // event subscribers
+  this.internalIds = {};  // internally generated id's
 
-  this.internalIds = {};            // internally generated id's
+  // add initial data when provided
+  if (data) {
+    this.add(data);
+  }
 }
 
 /**

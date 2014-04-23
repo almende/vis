@@ -1,17 +1,23 @@
 /**
  * @constructor Group
- * @param {GroupSet} parent
+ * @param {Panel} groupPanel
+ * @param {Panel} labelPanel
+ * @param {Panel} backgroundPanel
+ * @param {Panel} axisPanel
  * @param {Number | String} groupId
  * @param {Object} [options]  Options to set initial property values
  *                            // TODO: describe available options
  * @extends Component
  */
-function Group (parent, groupId, options) {
+function Group (groupPanel, labelPanel, backgroundPanel, axisPanel, groupId, options) {
   this.id = util.randomUUID();
-  this.parent = parent;
+  this.groupPanel = groupPanel;
+  this.labelPanel = labelPanel;
+  this.backgroundPanel = backgroundPanel;
+  this.axisPanel = axisPanel;
 
   this.groupId = groupId;
-  this.itemset = null;    // ItemSet
+  this.itemSet = null;    // ItemSet
   this.options = options || {};
   this.options.top = 0;
 
@@ -22,10 +28,14 @@ function Group (parent, groupId, options) {
     }
   };
 
+  this.dom = {};
+
   this.top = 0;
   this.left = 0;
   this.width = 0;
   this.height = 0;
+
+  this._create();
 }
 
 Group.prototype = new Component();
@@ -34,45 +44,129 @@ Group.prototype = new Component();
 Group.prototype.setOptions = Component.prototype.setOptions;
 
 /**
- * Get the container element of the panel, which can be used by a child to
- * add its own widgets.
- * @returns {HTMLElement} container
+ * Create DOM elements for the group
+ * @private
  */
-Group.prototype.getContainer = function () {
-  return this.parent.getContainer();
+Group.prototype._create = function() {
+  var label = document.createElement('div');
+  label.className = 'vlabel';
+  this.dom.label = label;
+
+  var inner = document.createElement('div');
+  inner.className = 'inner';
+  label.appendChild(inner);
+  this.dom.inner = inner;
 };
 
 /**
- * Set item set for the group. The group will create a view on the itemset,
- * filtered by the groups id.
- * @param {DataSet | DataView} items
+ * Set the group data for this group
+ * @param {Object} data   Group data, can contain properties content and className
  */
-Group.prototype.setItems = function setItems(items) {
-  if (this.itemset) {
-    // remove current item set
-    this.itemset.hide();
-    this.itemset.setItems();
-
-    this.parent.controller.remove(this.itemset);
-    this.itemset = null;
+Group.prototype.setData = function setData(data) {
+  // update contents
+  var content = data && data.content;
+  if (content instanceof Element) {
+    this.dom.inner.appendChild(content);
+  }
+  else if (content != undefined) {
+    this.dom.inner.innerHTML = content;
+  }
+  else {
+    this.dom.inner.innerHTML = this.groupId;
   }
 
-  if (items) {
+  // update className
+  var className = data && data.className;
+  if (className) {
+    util.addClassName(this.dom.label, className);
+  }
+};
+
+/**
+ * Set item set for the group. The group will create a view on the itemSet,
+ * filtered by the groups id.
+ * @param {DataSet | DataView} itemsData
+ */
+Group.prototype.setItems = function setItems(itemsData) {
+  if (this.itemSet) {
+    // remove current item set
+    this.itemSet.setItems();
+    this.itemSet.hide();
+    this.groupPanel.frame.removeChild(this.itemSet.getFrame());
+    this.itemSet = null;
+  }
+
+  if (itemsData) {
     var groupId = this.groupId;
 
-    var itemsetOptions = Object.create(this.options);
-    this.itemset = new ItemSet(this, null, itemsetOptions);
-    this.itemset.setRange(this.parent.range);
+    var me = this;
+    var itemSetOptions = util.extend(this.options, {
+      height: function () {
+        // FIXME: setting height doesn't yet work
+        return Math.max(me.props.label.height, me.itemSet.height);
+      }
+    });
+    this.itemSet = new ItemSet(this.backgroundPanel, this.axisPanel, itemSetOptions);
+    this.itemSet.on('change', this.emit.bind(this, 'change')); // propagate change event
+    this.itemSet.parent = this;
+    this.groupPanel.frame.appendChild(this.itemSet.getFrame());
 
-    this.view = new DataView(items, {
+    if (this.range) this.itemSet.setRange(this.range);
+
+    this.view = new DataView(itemsData, {
       filter: function (item) {
         return item.group == groupId;
       }
     });
-    this.itemset.setItems(this.view);
-
-    this.parent.controller.add(this.itemset);
+    this.itemSet.setItems(this.view);
   }
+};
+
+/**
+ * hide the group, detach from DOM if needed
+ */
+Group.prototype.show = function show() {
+  if (!this.dom.label.parentNode) {
+    this.labelPanel.frame.appendChild(this.dom.label);
+  }
+
+  var itemSetFrame = this.itemSet && this.itemSet.getFrame();
+  if (itemSetFrame) {
+    if (itemSetFrame.parentNode) {
+      itemSetFrame.parentNode.removeChild(itemSetFrame);
+    }
+    this.groupPanel.frame.appendChild(itemSetFrame);
+
+    this.itemSet.show();
+  }
+};
+
+/**
+ * hide the group, detach from DOM if needed
+ */
+Group.prototype.hide = function hide() {
+  if (this.dom.label.parentNode) {
+    this.dom.label.parentNode.removeChild(this.dom.label);
+  }
+
+  if (this.itemSet) {
+    this.itemSet.hide();
+  }
+
+  var itemSetFrame = this.itemset && this.itemSet.getFrame();
+  if (itemSetFrame && itemSetFrame.parentNode) {
+    itemSetFrame.parentNode.removeChild(itemSetFrame);
+  }
+};
+
+/**
+ * Set range (start and end).
+ * @param {Range | Object} range  A Range or an object containing start and end.
+ */
+Group.prototype.setRange = function (range) {
+  this.range = range;
+
+  if (this.itemSet) this.itemSet.setRange(range);
 };
 
 /**
@@ -83,7 +177,7 @@ Group.prototype.setItems = function setItems(items) {
  *                      unselected.
  */
 Group.prototype.setSelection = function setSelection(ids) {
-  if (this.itemset) this.itemset.setSelection(ids);
+  if (this.itemSet) this.itemSet.setSelection(ids);
 };
 
 /**
@@ -91,39 +185,29 @@ Group.prototype.setSelection = function setSelection(ids) {
  * @return {Array} ids  The ids of the selected items
  */
 Group.prototype.getSelection = function getSelection() {
-  return this.itemset ? this.itemset.getSelection() : [];
+  return this.itemSet ? this.itemSet.getSelection() : [];
 };
 
 /**
- * Repaint the item
- * @return {Boolean} changed
+ * Repaint the group
+ * @return {boolean} Returns true if the component is resized
  */
 Group.prototype.repaint = function repaint() {
-  return false;
-};
+  var resized = false;
 
-/**
- * Reflow the item
- * @return {Boolean} resized
- */
-Group.prototype.reflow = function reflow() {
-  var changed = 0,
-      update = util.updateProperty;
+  this.show();
 
-  changed += update(this, 'top',    this.itemset ? this.itemset.top : 0);
-  changed += update(this, 'height', this.itemset ? this.itemset.height : 0);
-
-  // TODO: reckon with the height of the group label
-
-  if (this.label) {
-    var inner = this.label.firstChild;
-    changed += update(this.props.label, 'width', inner.clientWidth);
-    changed += update(this.props.label, 'height', inner.clientHeight);
-  }
-  else {
-    changed += update(this.props.label, 'width', 0);
-    changed += update(this.props.label, 'height', 0);
+  if (this.itemSet) {
+    resized = this.itemSet.repaint() || resized;
   }
 
-  return (changed > 0);
+  // calculate inner size of the label
+  resized = util.updateProperty(this.props.label, 'width', this.dom.inner.clientWidth) || resized;
+  resized = util.updateProperty(this.props.label, 'height', this.dom.inner.clientHeight) || resized;
+
+  this.height = this.itemSet ? this.itemSet.height : 0;
+
+  this.dom.label.style.height = this.height + 'px';
+
+  return resized;
 };
