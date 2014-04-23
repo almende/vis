@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version @@version
- * @date    @@date
+ * @version 0.7.4-SNAPSHOT
+ * @date    2014-04-23
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -16776,7 +16776,6 @@ Graph.prototype._create = function () {
   this.frame.className = 'graph-frame';
   this.frame.style.position = 'relative';
   this.frame.style.overflow = 'hidden';
-  this.frame.style.zIndex = "1";
 
   // create the graph canvas (HTML canvas element)
   this.frame.canvas = document.createElement( 'canvas' );
@@ -17399,11 +17398,12 @@ Graph.prototype._updateNodes = function(ids) {
       // create node
       node = new Node(properties, this.images, this.groups, this.constants);
       nodes[id] = node;
-
-      if (!node.isFixed()) {
-        this.moving = true;
-      }
     }
+  }
+  this.moving = true;
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
   }
   this._updateNodeIndexList();
   this._reconnectEdges();
