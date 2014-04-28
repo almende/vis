@@ -16,6 +16,7 @@ http://visjs.org
   Timeline, deselecting selected items).
 - Fixed initial visible window in case items exceed `zoomMax`. Thanks @Remper.
 - Option `order` is now deprecated. This was needed for performance improvements.
+- Fixed an offset in newly created items when using groups.
 - Minor bug fixes.
 - More examples added.
 
