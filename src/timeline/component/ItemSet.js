@@ -43,16 +43,14 @@ function ItemSet(backgroundPanel, axisPanel, options) {
     byStart: [],
     byEnd: []
   };
+  this.systemLoaded = false;
   this.visibleItems = []; // visible, ordered items
-  this.visibleItemsStart = 0; // start index of visible items in this.orderedItems // TODO: cleanup
-  this.visibleItemsEnd = 0;   // start index of visible items in this.orderedItems // TODO: cleanup
   this.selection = [];  // list with the ids of all selected nodes
   this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
   this.stack = new Stack(Object.create(this.options));
   this.stackDirty = true; // if true, all items will be restacked on next repaint
 
   this.touchParams = {}; // stores properties while dragging
-
   // create the HTML DOM
   this._create();
 }
@@ -243,6 +241,71 @@ ItemSet.prototype.getFrame = function getFrame() {
 };
 
 /**
+ * This function does a binary search for a visible item. The user can select either the this.orderedItems.byStart or .byEnd
+ * arrays. This is done by giving a boolean value true if you want to use the byEnd.
+ * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
+ * if the time we selected (start or end) is within the current range).
+ *
+ * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the ItemRange that is
+ * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
+ * either the start OR end time has to be in the range.
+ *
+ * @param {Boolean} byEnd
+ * @returns {number}
+ * @private
+ */
+ItemSet.prototype._binarySearch = function _binarySearch(byEnd) {
+  var array = []
+  var byTime = byEnd ? "end" : "start";
+  if (byEnd == true) {array = this.orderedItems.byEnd;  }
+  else               {array = this.orderedItems.byStart;}
+
+  var interval = this.range.end - this.range.start;
+
+  var found = false;
+  var low = 0;
+  var high = array.length;
+  var guess = Math.floor(0.5*(high+low));
+  var newGuess;
+
+  if (high == 0) {guess = -1;}
+  else if (high == 1) {
+    if ((array[guess].data[byTime] > this.range.start - interval) && (array[guess].data[byTime] < this.range.end + interval)) {
+      guess =  0;
+    }
+    else {
+      guess = -1;
+    }
+  }
+  else {
+    high -= 1;
+    while (found == false) {
+      if ((array[guess].data[byTime] > this.range.start - interval) && (array[guess].data[byTime] < this.range.end + interval)) {
+        found = true;
+      }
+      else {
+        if (array[guess].data[byTime] < this.range.start - interval) { // it is too small --> increase low
+          low = Math.floor(0.5*(high+low));
+        }
+        else {  // it is too big --> decrease high
+          high = Math.floor(0.5*(high+low));
+        }
+        newGuess = Math.floor(0.5*(high+low));
+        // not in list;
+        if (guess == newGuess) {
+          guess = -1;
+          found = true;
+        }
+        else {
+          guess = newGuess;
+        }
+      }
+    }
+  }
+  return guess;
+}
+
+/**
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
@@ -262,69 +325,128 @@ ItemSet.prototype.repaint = function repaint() {
   this.lastVisibleInterval = visibleInterval;
   this.lastWidth = this.width;
 
-  /* TODO: implement+fix smarter way to update visible items
-  // find the first visible item
-  // TODO: use faster search, not linear
-  var byEnd = this.orderedItems.byEnd;
-  var start = 0;
-  var item = null;
-  while ((item = byEnd[start]) &&
-      (('end' in item.data) ? item.data.end : item.data.start) < this.range.start) {
-    start++;
-  }
+  var newVisibleItems = [];
+  var item;
+  var range = this.range;
+  var orderedItems = this.orderedItems;
 
-  // find the last visible item
-  // TODO: use faster search, not linear
-  var byStart = this.orderedItems.byStart;
-  var end = 0;
-  while ((item = byStart[end]) && item.data.start < this.range.end) {
-    end++;
-  }
-
-  console.log('visible items', start, end); // TODO: cleanup
-  console.log('visible item ids', byStart[start] && byStart[start].id, byEnd[end-1] && byEnd[end-1].id); // TODO: cleanup
-
-  this.visibleItems = [];
-  var i = start;
-  item = byStart[i];
-  var lastItem = byEnd[end];
-  while (item && item !== lastItem) {
-    this.visibleItems.push(item);
-    item = byStart[++i];
-  }
-  this.stack.order(this.visibleItems);
-
-  // show visible items
-  for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
-    item = this.visibleItems[i];
-
-    if (!item.displayed) item.show();
-    item.top = null; // reset stacking position
-
-    // reposition item horizontally
-    item.repositionX();
-  }
-   */
-
-  // simple, brute force calculation of visible items
-  // TODO: replace with a faster, more sophisticated solution
-  this.visibleItems = [];
-  for (var id in this.items) {
-    if (this.items.hasOwnProperty(id)) {
-      var item = this.items[id];
-      if (item.isVisible(this.range)) {
+  // first check if the items that were in view previously are still in view.
+  // this handles the case for the ItemRange that is both before and after the current one.
+  if (this.visibleItems.length > 0) {
+    for (var i = 0; i < this.visibleItems.length; i++) {
+      item = this.visibleItems[i];
+      if (item.isVisible(range)) {
         if (!item.displayed) item.show();
-
         // reposition item horizontally
         item.repositionX();
 
-        this.visibleItems.push(item);
+        newVisibleItems.push(item);
       }
       else {
         if (item.displayed) item.hide();
       }
     }
   }
+
+  // If there were no visible items previously, use binarySearch to find a visible ItemPoint or ItemRange (based on startTime)
+  if (newVisibleItems.length == 0) {var initialPosByStart = this._binarySearch(false);}
+  else                             {var initialPosByStart = orderedItems.byStart.indexOf(newVisibleItems[0]);}
+
+  // use visible search to find a visible ItemRange (only based on endTime)
+  var initialPosByEnd = this._binarySearch(true);
+
+  // if we found a initial ID to use, trace it up and down until we meet an invisible item.
+  if (initialPosByStart != -1) {
+    for (var i = initialPosByStart; i >= 0; i--) {
+
+      item = orderedItems.byStart[i];
+      if (item.isVisible(range)) {
+        if (!item.displayed) item.show();
+
+        item.repositionX();
+        if (newVisibleItems.indexOf(item) == -1) {
+          newVisibleItems.push(item);
+        }
+      }
+      else {
+        break;
+      }
+    }
+
+    // and up
+    for (var i = initialPosByStart + 1; i < orderedItems.byStart.length; i++) {
+      item = orderedItems.byStart[i];
+      if (item.isVisible(range)) {
+        if (!item.displayed) item.show();
+
+        item.repositionX();
+        if (newVisibleItems.indexOf(item) == -1) {
+          newVisibleItems.push(item);
+        }
+      }
+      else {
+        break;
+      }
+    }
+  }
+
+  // if we found a initial ID to use, trace it up and down until we meet an invisible item.
+  if (initialPosByEnd != -1) {
+    for (var i = initialPosByEnd; i >= 0; i--) {
+      item = orderedItems.byEnd[i];
+      if (item.isVisible(range)) {
+        if (!item.displayed) item.show();
+
+        // reposition item horizontally
+        item.repositionX();
+        if (newVisibleItems.indexOf(item) == -1) {
+          newVisibleItems.push(item);
+        }
+      }
+      else {
+        break;
+      }
+    }
+
+    // and up
+    for (var i = initialPosByEnd + 1; i < orderedItems.byEnd.length; i++) {
+      item = orderedItems.byEnd[i];
+      if (item.isVisible(range)) {
+        if (!item.displayed) item.show();
+
+        // reposition item horizontally
+        item.repositionX();
+        if (newVisibleItems.indexOf(item) == -1) {
+          newVisibleItems.push(item);
+        }
+      }
+      else {
+        break;
+      }
+    }
+  }
+
+  if (!this.systemLoaded) {
+    // initial setup is brute force all the ranged items;
+    // TODO: implement this in the onUpdate function to only load the new items.
+    for (var i = 0; i < orderedItems.byEnd.length; i++) {
+      item = orderedItems.byEnd[i];
+      if (item.isVisible(range)) {
+        if (!item.displayed) item.show();
+
+        // reposition item horizontally
+        item.repositionX();
+
+        newVisibleItems.push(item);
+      }
+      else {
+        if (item.displayed) item.hide();
+      }
+    }
+    this.systemLoaded = true;
+  }
+
+  this.visibleItems = newVisibleItems;
 
   // reposition visible items vertically
   //this.stack.order(this.visibleItems); // TODO: improve ordering
@@ -524,7 +646,7 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
   });
 
   this._order();
-
+  this.systemLoaded = false;
   this.stackDirty = true; // force re-stacking of all items next repaint
   this.emit('change');
 };
@@ -550,10 +672,12 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
       count++;
       item.hide();
       delete me.items[id];
-      delete me.visibleItems[id];
+      // remove from visible items
+      var index = me.visibleItems.indexOf(me.item);
+      me.visibleItems.splice(index,1);
 
       // remove from selection
-      var index = me.selection.indexOf(id);
+      index = me.selection.indexOf(id);
       if (index != -1) me.selection.splice(index, 1);
     }
   });
@@ -573,11 +697,23 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
 ItemSet.prototype._order = function _order() {
   var array = util.toArray(this.items);
   this.orderedItems.byStart = array;
-  this.orderedItems.byEnd = [].concat(array);
+  this.orderedItems.byEnd = this._constructByEndArray(array);
+
+  //this.orderedItems.byEnd = [].concat(array); // this copies the array
 
   // reorder the items
   this.stack.orderByStart(this.orderedItems.byStart);
   this.stack.orderByEnd(this.orderedItems.byEnd);
+};
+
+ItemSet.prototype._constructByEndArray = function _constructByEndArray(array) {
+  var endArray = [];
+  for (var i = 0; i < array.length; i++) {
+    if (array[i] instanceof ItemRange) {
+      endArray.push(array[i]);
+    }
+  }
+  return endArray;
 };
 
 /**
