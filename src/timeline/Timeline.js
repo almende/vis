@@ -639,7 +639,7 @@ Timeline.prototype._onAddItem = function (event) {
   }
   else {
     // add item
-    var xAbs = vis.util.getAbsoluteLeft(this.rootPanel.frame);
+    var xAbs = vis.util.getAbsoluteLeft(this.contentPanel.frame);
     var x = event.gesture.center.pageX - xAbs;
     var newItem = {
       start: this.timeAxis.snap(this._toTime(x)),
