@@ -495,8 +495,6 @@ ItemSet.prototype.setItems = function setItems(items) {
       ids,
       oldItemsData = this.itemsData;
 
-  console.log('setItems', items)
-
   // replace the dataset
   if (!items) {
     this.itemsData = null;
@@ -525,8 +523,6 @@ ItemSet.prototype.setItems = function setItems(items) {
     util.forEach(this.listeners, function (callback, event) {
       me.itemsData.on(event, callback, id);
     });
-
-    console.log('subscribe to dataset', me.itemsData)
 
     // draw all new items
     ids = this.itemsData.getIds();
@@ -568,8 +564,6 @@ ItemSet.prototype.removeItem = function removeItem (id) {
  * @private
  */
 ItemSet.prototype._onUpdate = function _onUpdate(ids) {
-  console.log('_onUpdate', ids);
-
   var me = this,
       items = this.items,
       itemOptions = this.itemOptions;
