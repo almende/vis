@@ -368,17 +368,17 @@ Timeline.prototype.setItems = function(items) {
   if (!items) {
     newDataSet = null;
   }
-  else if (items instanceof DataSet) {
+  else if (items instanceof DataSet || items instanceof DataView) {
     newDataSet = items;
   }
-  if (!(items instanceof DataSet)) {
-    newDataSet = new DataSet({
+  else {
+    // turn an array into a dataset
+    newDataSet = new DataSet(items, {
       convert: {
         start: 'Date',
         end: 'Date'
       }
     });
-    newDataSet.add(items);
   }
 
   // set items
@@ -432,11 +432,24 @@ Timeline.prototype.setItems = function(items) {
 
 /**
  * Set groups
- * @param {vis.DataSet | Array | google.visualization.DataTable} groupSet
+ * @param {vis.DataSet | Array | google.visualization.DataTable} groups
  */
-Timeline.prototype.setGroups = function(groupSet) {
-  this.groupsData = groupSet;
-  this.itemSet.setGroups(groupSet);
+Timeline.prototype.setGroups = function(groups) {
+  // convert to type DataSet when needed
+  var newDataSet;
+  if (!groups) {
+    newDataSet = null;
+  }
+  else if (groups instanceof DataSet || groups instanceof DataView) {
+    newDataSet = groups;
+  }
+  else {
+    // turn an array into a dataset
+    newDataSet = new DataSet(groups);
+  }
+
+  this.groupsData = newDataSet;
+  this.itemSet.setGroups(newDataSet);
 };
 
 /**

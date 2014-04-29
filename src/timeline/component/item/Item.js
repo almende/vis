@@ -8,6 +8,7 @@
  *                                  // TODO: describe available options
  */
 function Item (parent, data, options, defaultOptions) {
+  this.id = null;
   this.parent = parent;
   this.data = data;
   this.dom = null;

@@ -27,11 +27,12 @@ function ItemSet(backgroundPanel, axisPanel, options) {
   this.hammer = null;
 
   var me = this;
-  this.itemsData = null;  // DataSet
-  this.range = null;      // Range or Object {start: number, end: number}
+  this.itemsData = null;    // DataSet
+  this.groupsData = null;   // DataSet
+  this.range = null;        // Range or Object {start: number, end: number}
 
-  // data change listeners
-  this.listeners = {
+  // listeners for the DataSet of the items
+  this.itemListeners = {
     'add': function (event, params, senderId) {
       if (senderId != me.id) me._onAdd(params.items);
     },
@@ -43,15 +44,30 @@ function ItemSet(backgroundPanel, axisPanel, options) {
     }
   };
 
+  // listeners for the DataSet of the groups
+  this.groupListeners = {
+    'add': function (event, params, senderId) {
+      if (senderId != me.id) me._onAddGroups(params.items);
+    },
+    'update': function (event, params, senderId) {
+      if (senderId != me.id) me._onUpdateGroups(params.items);
+    },
+    'remove': function (event, params, senderId) {
+      if (senderId != me.id) me._onRemoveGroups(params.items);
+    }
+  };
+
   this.items = {};        // object with an Item for every data item
   this.orderedItems = {
     byStart: [],
     byEnd: []
   };
-//  this.systemLoaded = false;
+
+  this.groups = {}; // Group object for every group
+  this.groupIds = [];
+
   this.visibleItems = []; // visible, ordered items
   this.selection = [];  // list with the ids of all selected nodes
-  this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
   this.stack = new Stack(Object.create(this.options));
   this.stackDirty = true; // if true, all items will be restacked on next repaint
 
@@ -508,12 +524,12 @@ ItemSet.prototype.setItems = function setItems(items) {
     this.itemsData = items;
   }
   else {
-    throw new TypeError('Data must be an instance of DataSet');
+    throw new TypeError('Data must be an instance of DataSet or DataView');
   }
 
   if (oldItemsData) {
     // unsubscribe from old dataset
-    util.forEach(this.listeners, function (callback, event) {
+    util.forEach(this.itemListeners, function (callback, event) {
       oldItemsData.unsubscribe(event, callback);
     });
 
@@ -525,7 +541,7 @@ ItemSet.prototype.setItems = function setItems(items) {
   if (this.itemsData) {
     // subscribe to new dataset
     var id = this.id;
-    util.forEach(this.listeners, function (callback, event) {
+    util.forEach(this.itemListeners, function (callback, event) {
       me.itemsData.on(event, callback, id);
     });
 
@@ -536,11 +552,64 @@ ItemSet.prototype.setItems = function setItems(items) {
 };
 
 /**
- * Get the current items items
+ * Get the current items
  * @returns {vis.DataSet | null}
  */
 ItemSet.prototype.getItems = function getItems() {
   return this.itemsData;
+};
+
+/**
+ * Set groups
+ * @param {vis.DataSet} groups
+ */
+ItemSet.prototype.setGroups = function setGroups(groups) {
+  var me = this,
+      ids;
+
+  // unsubscribe from current dataset
+  if (this.groupsData) {
+    util.forEach(this.groupListeners, function (callback, event) {
+      me.groupsData.unsubscribe(event, callback);
+    });
+
+    // remove all drawn groups
+    ids = this.groupsData.getIds();
+    this._onRemoveGroups(ids);
+  }
+
+  // replace the dataset
+  if (!groups) {
+    this.groupsData = null;
+  }
+  else if (groups instanceof DataSet || groups instanceof DataView) {
+    this.groupsData = groups;
+  }
+  else {
+    throw new TypeError('Data must be an instance of DataSet or DataView');
+  }
+
+  if (this.groupsData) {
+    // subscribe to new dataset
+    var id = this.id;
+    util.forEach(this.groupListeners, function (callback, event) {
+      me.groupsData.on(event, callback, id);
+    });
+
+    // draw all new groups
+    ids = this.groupsData.getIds();
+    this._onAddGroups(ids);
+  }
+
+  this.emit('change');
+};
+
+/**
+ * Get the current groups
+ * @returns {vis.DataSet | null} groups
+ */
+ItemSet.prototype.getGroups = function getGroups() {
+  return this.groupsData;
 };
 
 /**
@@ -587,12 +656,11 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
       // update item
       if (!constructor || !(item instanceof constructor)) {
         // item type has changed, delete the item and recreate it
-        me._deleteItem(item);
+        me._removeItem(item);
         item = null;
       }
       else {
-        item.data = itemData; // TODO: create a method item.setData ?
-        item.repaint();
+        me._updateItem(item, itemData);
       }
     }
 
@@ -600,14 +668,14 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
       // create item
       if (constructor) {
         item = new constructor(me, itemData, me.options, itemOptions);
-        item.id = id;
+        item.id = id; // TODO: not so nice setting id afterwards
+        me._addItem(item);
       }
       else {
         throw new TypeError('Unknown item type "' + type + '"');
       }
     }
 
-    me.items[id] = item;
     if (type == 'range' && me.visibleItems.indexOf(item) == -1) {
       me._checkIfVisible(item, me.visibleItems);
     }
@@ -637,7 +705,7 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
     var item = me.items[id];
     if (item) {
       count++;
-      me._deleteItem(item);
+      me._removeItem(item);
     }
   });
 
@@ -650,12 +718,139 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
 };
 
 /**
+ * Handle updated groups
+ * @param {Number[]} ids
+ * @private
+ */
+ItemSet.prototype._onUpdateGroups = function _onUpdateGroups(ids) {
+  this._onAddGroups(ids);
+};
+
+/**
+ * Handle changed groups
+ * @param {Number[]} ids
+ * @private
+ */
+ItemSet.prototype._onAddGroups = function _onAddGroups(ids) {
+  var me = this;
+
+  ids.forEach(function (id) {
+    var group = me.groups[id];
+    if (!group) {
+      var groupOptions = Object.create(me.options);
+      util.extend(groupOptions, {
+        height: null
+      });
+
+      group = new Group(id);
+      me.groups[id] = group;
+
+      // add items with this groupId to the new group
+      for (var itemId in me.items) {
+        if (me.items.hasOwnProperty(itemId)) {
+          var item = me.items[itemId];
+          if (item.data.group == id) {
+            group.add(item);
+          }
+        }
+      }
+    }
+  });
+
+  this._updateGroupIds();
+};
+
+/**
+ * Handle removed groups
+ * @param {Number[]} ids
+ * @private
+ */
+ItemSet.prototype._onRemoveGroups = function _onRemoveGroups(ids) {
+  var groups = this.groups;
+  ids.forEach(function (id) {
+    var group = groups[id];
+
+    if (group) {
+      /* TODO
+      group.setItems(); // detach items data
+      group.hide(); // FIXME: for some reason when doing setItems after hide, setItems again makes the label visible
+      */
+      delete groups[id];
+    }
+  });
+
+  this._updateGroupIds();
+};
+
+/**
+ * Update the groupIds. Requires a repaint afterwards
+ * @private
+ */
+ItemSet.prototype._updateGroupIds = function () {
+  // reorder the groups
+  this.groupIds = this.groupsData.getIds({
+    order: this.options.groupOrder
+  });
+
+  /* TODO
+  // hide the groups now, they will be shown again in the next repaint
+  // in correct order
+  var groups = this.groups;
+  this.groupIds.forEach(function (id) {
+    groups[id].hide();
+  });
+  */
+};
+
+/**
+ * Add a new item
+ * @param {Item} item
+ * @private
+ */
+ItemSet.prototype._addItem = function _addItem(item) {
+  this.items[item.id] = item;
+
+  // add to group (if any)
+  if ('group' in item.data) {
+    var group = this.groups[item.data.group];
+    if (group) group.add(item);
+  }
+};
+
+/**
+ * Update an existing item
+ * @param {Item} item
+ * @param {Object} itemData
+ * @private
+ */
+ItemSet.prototype._updateItem = function _updateItem(item, itemData) {
+  var oldGroup = item.data.group,
+      group;
+
+  item.data = itemData;
+  item.repaint();
+
+  // update group (if any)
+  if (oldGroup != item.data.group) {
+    if (oldGroup) {
+      group = this.groups[item.data.group];
+      if (group) group.remove(item);
+    }
+
+    if ('group' in item.data) {
+      group = this.groups[item.data.group];
+      if (group) group.add(item);
+    }
+  }
+};
+
+/**
  * Delete an item from the ItemSet: remove it from the DOM, from the map
  * with items, and from the map with visible items, and from the selection
  * @param {Item} item
  * @private
  */
-ItemSet.prototype._deleteItem = function _deleteItem(item) {
+ItemSet.prototype._removeItem = function _removeItem(item) {
   // remove from DOM
   item.hide();
 
@@ -669,6 +864,12 @@ ItemSet.prototype._deleteItem = function _deleteItem(item) {
   // remove from selection
   index = this.selection.indexOf(item.id);
   if (index != -1) this.selection.splice(index, 1);
+
+  // remove from group (if any)
+  if ('group' in item.data) {
+    var group = this.groups[item.data.group];
+    if (group) group.remove(item);
+  }
 };
 
 /**
@@ -861,6 +1062,18 @@ ItemSet.itemFromTarget = function itemFromTarget (event) {
     }
     target = target.parentNode;
   }
+
+  return null;
+};
+
+/**
+ * Find the Group from an event target:
+ * searches for the attribute 'timeline-group' in the event target's element tree
+ * @param {Event} event
+ * @return {Group | null} group
+ */
+ItemSet.groupFromTarget = function groupFromTarget (event) {
+  // TODO: implement groupFromTarget
 
   return null;
 };
