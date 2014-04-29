@@ -93,8 +93,8 @@ function Timeline (container, items, options) {
     right: null,
     height: '100%',
     width: function () {
-      if (me.groupSet) {
-        return me.groupSet.getLabelsWidth();
+      if (me.itemSet) {
+        return me.itemSet.getLabelsWidth();
       }
       else {
         return 0;
@@ -236,11 +236,19 @@ function Timeline (container, items, options) {
     me.emit('timechanged', time);
   });
 
-  this.itemSet = null;
-  this.groupSet = null;
-
-  // create groupset
-  this.setGroups(null);
+  // itemset containing items and groups
+  var itemOptions = util.extend(Object.create(this.options), {
+    left: null,
+    right: null,
+    top: null,
+    bottom: null,
+    width: null,
+    height: null
+  });
+  this.itemSet = new ItemSet(this.backgroundPanel, this.axisPanel, itemOptions);
+  this.itemSet.setRange(this.range);
+  this.itemSet.on('change', me.rootPanel.repaint.bind(me.rootPanel));
+  this.contentPanel.appendChild(this.itemSet);
 
   this.itemsData = null;      // DataSet
   this.groupsData = null;     // DataSet
@@ -250,7 +258,7 @@ function Timeline (container, items, options) {
     this.setOptions(options);
   }
 
-  // create itemset and groupset
+  // create itemset
   if (items) {
     this.setItems(items);
   }
@@ -375,7 +383,7 @@ Timeline.prototype.setItems = function(items) {
 
   // set items
   this.itemsData = newDataSet;
-  (this.itemSet || this.groupSet).setItems(newDataSet);
+  this.itemSet.setItems(newDataSet);
 
   if (initialLoad && (this.options.start == undefined || this.options.end == undefined)) {
     // apply the data range as range
@@ -427,60 +435,9 @@ Timeline.prototype.setItems = function(items) {
  * @param {vis.DataSet | Array | google.visualization.DataTable} groupSet
  */
 Timeline.prototype.setGroups = function(groupSet) {
-  var me = this;
   this.groupsData = groupSet;
 
-  // create options for the itemset or groupset
-  var options = util.extend(Object.create(this.options), {
-    top: null,
-    bottom: null,
-    right: null,
-    left: null,
-    width: null,
-    height: null
-  });
-
-  if (this.groupsData) {
-    // Create a GroupSet
-
-    // remove itemset if existing
-    if (this.itemSet) {
-      this.itemSet.hide(); // TODO: not so nice having to hide here
-      this.contentPanel.removeChild(this.itemSet);
-      this.itemSet.setItems(); // disconnect from itemset
-      this.itemSet = null;
-    }
-
-    // create new GroupSet when needed
-    if (!this.groupSet) {
-      this.groupSet = new GroupSet(this.contentPanel, this.sideContentPanel, this.backgroundPanel, this.axisPanel, options);
-      this.groupSet.on('change', this.rootPanel.repaint.bind(this.rootPanel));
-      this.groupSet.setRange(this.range);
-      this.groupSet.setItems(this.itemsData);
-      this.groupSet.setGroups(this.groupsData);
-      this.contentPanel.appendChild(this.groupSet);
-    }
-    else {
-      this.groupSet.setGroups(this.groupsData);
-    }
-  }
-  else {
-    // ItemSet
-    if (this.groupSet) {
-      this.groupSet.hide(); // TODO: not so nice having to hide here
-      //this.groupSet.setGroups();  // disconnect from groupset
-      this.groupSet.setItems();   // disconnect from itemset
-      this.contentPanel.removeChild(this.groupSet);
-      this.groupSet = null;
-    }
-
-    // create new items
-    this.itemSet = new ItemSet(this.backgroundPanel, this.axisPanel, options);
-    this.itemSet.setRange(this.range);
-    this.itemSet.setItems(this.itemsData);
-    this.itemSet.on('change', me.rootPanel.repaint.bind(me.rootPanel));
-    this.contentPanel.appendChild(this.itemSet);
-  }
+  this.itemSet.setGroups(groupSet);
 };
 
 /**
@@ -530,9 +487,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
  *                      unselected.
  */
 Timeline.prototype.setSelection = function setSelection (ids) {
-  var itemOrGroupSet = (this.itemSet || this.groupSet);
-
-  if (itemOrGroupSet) itemOrGroupSet.setSelection(ids);
+  this.itemSet.setSelection(ids);
 };
 
 /**
@@ -540,9 +495,7 @@ Timeline.prototype.setSelection = function setSelection (ids) {
  * @return {Array} ids  The ids of the selected items
  */
 Timeline.prototype.getSelection = function getSelection() {
-  var itemOrGroupSet = (this.itemSet || this.groupSet);
-
-  return itemOrGroupSet ? itemOrGroupSet.getSelection() : [];
+  return this.itemSet.getSelection();
 };
 
 /**
@@ -649,7 +602,7 @@ Timeline.prototype._onAddItem = function (event) {
     var id = util.randomUUID();
     newItem[this.itemsData.fieldId] = id;
 
-    var group = GroupSet.groupFromTarget(event);
+    var group = ItemSet.groupFromTarget(event);
     if (group) {
       newItem.group = group.groupId;
     }

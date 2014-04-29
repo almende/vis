@@ -19,6 +19,11 @@ function ItemSet(backgroundPanel, axisPanel, options) {
   this.axisPanel = axisPanel;
   this.itemOptions = Object.create(this.options);
   this.dom = {};
+  this.props = {
+    labels: {
+      width: 0
+    }
+  };
   this.hammer = null;
 
   var me = this;
@@ -46,7 +51,6 @@ function ItemSet(backgroundPanel, axisPanel, options) {
 //  this.systemLoaded = false;
   this.visibleItems = []; // visible, ordered items
   this.selection = [];  // list with the ids of all selected nodes
-  this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
   this.stack = new Stack(Object.create(this.options));
   this.stackDirty = true; // if true, all items will be restacked on next repaint
 
@@ -328,10 +332,11 @@ ItemSet.prototype._checkIfInvisible = function _checkIfInvisible(item) {
 
 
 /**
- * this function is very similar to the _checkIfInvisible() but it does not return booleans, hides the item if it should not be seen and always adds to the visibleItems.
- * this one is for brute forcing and hiding.
+ * this function is very similar to the _checkIfInvisible() but it does not
+ * return booleans, hides the item if it should not be seen and always adds to
+ * the visibleItems. this one is for brute forcing and hiding.
  *
- * @param {itemRange | itemPoint | itemBox} item
+ * @param {Item} item
  * @param {array} visibleItems
  * @private
  */
@@ -375,7 +380,7 @@ ItemSet.prototype.repaint = function repaint() {
   // this handles the case for the ItemRange that is both before and after the current one.
   if (this.visibleItems.length > 0) {
     for (var i = 0; i < this.visibleItems.length; i++) {
-      this._checkIfVisible(this.visibleItems[i],newVisibleItems);
+      this._checkIfVisible(this.visibleItems[i], newVisibleItems);
     }
   }
   this.visibleItems = newVisibleItems;
@@ -567,7 +572,7 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
   var me = this,
       items = this.items,
       itemOptions = this.itemOptions;
-
+console.log('onUpdate', ids)
   ids.forEach(function (id) {
     var itemData = me.itemsData.get(id),
         item = items[id],
@@ -603,7 +608,7 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
 
     me.items[id] = item;
     if (type == 'range') {
-      me._checkIfVisible(item,this.visibleItems);
+      me._checkIfVisible(item, me.visibleItems);
     }
   });
 
@@ -634,6 +639,7 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
       count++;
       item.hide();
       delete me.items[id];
+
       // remove from visible items
       var index = me.visibleItems.indexOf(me.item);
       me.visibleItems.splice(index,1);
@@ -818,6 +824,14 @@ ItemSet.prototype._onDragEnd = function (event) {
 
     event.stopPropagation();
   }
+};
+
+/**
+ * Get the width of the group labels
+ * @return {Number} width
+ */
+ItemSet.prototype.getLabelsWidth = function getLabelsWidth() {
+  return this.props.labels.width;
 };
 
 /**
