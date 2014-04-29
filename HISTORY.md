@@ -25,11 +25,11 @@ http://visjs.org
 - A DataSet can now be constructed with initial data, like
   `new DataSet(data, options)`.
 
-
 ### Graph
 
 - added recalculate hierarchical layout to update node event.
 - added arrowScaleFactor to scale the arrows on the edges.
+
 
 ## 2014-04-18, version 0.7.4
 
