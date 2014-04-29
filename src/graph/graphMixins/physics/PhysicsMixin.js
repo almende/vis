@@ -464,6 +464,13 @@ var physicsMixin = {
     }
   },
 
+  /**
+   * This overwrites the this.constants.
+   *
+   * @param constantsVariableName
+   * @param value
+   * @private
+   */
   _overWriteGraphConstants: function (constantsVariableName, value) {
     var nameArray = constantsVariableName.split("_");
     if (nameArray.length == 1) {
@@ -478,6 +485,9 @@ var physicsMixin = {
   }
 };
 
+/**
+ * this function is bound to the toggle smooth curves button. That is also why it is not in the prototype.
+ */
 function graphToggleSmoothCurves () {
   this.constants.smoothCurves = !this.constants.smoothCurves;
   var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
@@ -487,6 +497,10 @@ function graphToggleSmoothCurves () {
   this._configureSmoothCurves(false);
 };
 
+/**
+ * this function is used to scramble the nodes
+ *
+ */
 function graphRepositionNodes () {
   for (var nodeId in this.calculationNodes) {
     if (this.calculationNodes.hasOwnProperty(nodeId)) {
@@ -504,6 +518,9 @@ function graphRepositionNodes () {
   this.start();
 };
 
+/**
+ *  this is used to generate an options file from the playing with physics system.
+ */
 function graphGenerateOptions () {
   var options = "No options are required, default values used.";
   var optionsSpecific = [];
@@ -601,7 +618,10 @@ function graphGenerateOptions () {
 
 };
 
-
+/**
+ * this is used to switch between barnesHut, repulsion and hierarchical.
+ *
+ */
 function switchConfigurations () {
   var ids = ["graph_BH_table", "graph_R_table", "graph_H_table"];
   var radioButton = document.querySelector('input[name="graph_physicsMethod"]:checked').value;
@@ -640,6 +660,14 @@ function switchConfigurations () {
 
 }
 
+
+/**
+ * this generates the ranges depending on the iniital values.
+ *
+ * @param id
+ * @param map
+ * @param constantsVariableName
+ */
 function showValueOfRange (id,map,constantsVariableName) {
   var valueId = id + "_value";
   var rangeValue = document.getElementById(id).value;

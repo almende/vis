@@ -7,7 +7,7 @@ http://visjs.org
 ### Timeline
 
 - Large refactoring of the Timeline, simplifying the code.
-- Performance improvements.
+- Great performance improvements.
 - Improved layout of box-items inside groups.
 - Function `setWindow` now accepts an object with properties `start` and `end`.
 - Fixed option `autoResize` forcing a repaint of the Timeline with every check

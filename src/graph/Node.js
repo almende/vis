@@ -356,6 +356,7 @@ Node.prototype.discreteStep = function(interval) {
 /**
  * Perform one discrete step for the node
  * @param {number} interval    Time interval in seconds
+ * @param {number} maxVelocity The speed limit imposed on the velocity
  */
 Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
   if (!this.xFixed) {
