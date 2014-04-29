@@ -436,7 +436,6 @@ Timeline.prototype.setItems = function(items) {
  */
 Timeline.prototype.setGroups = function(groupSet) {
   this.groupsData = groupSet;
-
   this.itemSet.setGroups(groupSet);
 };
 

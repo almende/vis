@@ -19,6 +19,11 @@ function ItemSet(backgroundPanel, axisPanel, options) {
   this.axisPanel = axisPanel;
   this.itemOptions = Object.create(this.options);
   this.dom = {};
+  this.props = {
+    labels: {
+      width: 0
+    }
+  };
   this.hammer = null;
 
   var me = this;
@@ -696,6 +701,14 @@ ItemSet.prototype._constructByEndArray = function _constructByEndArray(array) {
     }
   }
   return endArray;
+};
+
+/**
+ * Get the width of the group labels
+ * @return {Number} width
+ */
+ItemSet.prototype.getLabelsWidth = function getLabelsWidth() {
+  return this.props.labels.width;
 };
 
 /**
