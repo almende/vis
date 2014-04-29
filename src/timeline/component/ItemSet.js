@@ -336,7 +336,7 @@ ItemSet.prototype._checkIfInvisible = function _checkIfInvisible(item) {
  * this function is very similar to the _checkIfInvisible() but it does not return booleans, hides the item if it should not be seen and always adds to the visibleItems.
  * this one is for brute forcing and hiding.
  *
- * @param {itemRange | itemPoint | itemBox} item
+ * @param {Item} item
  * @param {array} visibleItems
  * @private
  */
@@ -608,7 +608,7 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
     }
 
     me.items[id] = item;
-    if (type == 'range') {
+    if (type == 'range' && me.visibleItems.indexOf(item) == -1) {
       me._checkIfVisible(item, me.visibleItems);
     }
   });
