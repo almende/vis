@@ -137,6 +137,7 @@ var ClusterMixin = {
    * @param {Number} zoomDirection  | -1 / 0 / +1   for  zoomOut / determineByZoom / zoomIn
    * @param {Boolean} recursive     | enabled or disable recursive calling of the opening of clusters
    * @param {Boolean} force         | enabled or disable forcing
+   * @param {Boolean} doNotStart    | if true do not call start
    *
    */
   updateClusters : function(zoomDirection,recursive,force,doNotStart) {
@@ -987,9 +988,10 @@ var ClusterMixin = {
     var maxLevel = 0;
     var minLevel = 1e9;
     var clusterLevel = 0;
+    var nodeId;
 
     // we loop over all nodes in the list
-    for (var nodeId in this.nodes) {
+    for (nodeId in this.nodes) {
       if (this.nodes.hasOwnProperty(nodeId)) {
         clusterLevel = this.nodes[nodeId].clusterSessions.length;
         if (maxLevel < clusterLevel) {maxLevel = clusterLevel;}
@@ -1001,7 +1003,7 @@ var ClusterMixin = {
       var amountOfNodes = this.nodeIndices.length;
       var targetLevel = maxLevel - this.constants.clustering.clusterLevelDifference;
       // we loop over all nodes in the list
-      for (var nodeId in this.nodes) {
+      for (nodeId in this.nodes) {
         if (this.nodes.hasOwnProperty(nodeId)) {
           if (this.nodes[nodeId].clusterSessions.length < targetLevel) {
             this._clusterToSmallestNeighbour(this.nodes[nodeId]);

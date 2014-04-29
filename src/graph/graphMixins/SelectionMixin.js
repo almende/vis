@@ -174,7 +174,7 @@ var SelectionMixin = {
     }
     for(var edgeId in this.selectionObj.edges) {
       if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        this.selectionObj.edges[edgeId].unselect();;
+        this.selectionObj.edges[edgeId].unselect();
       }
     }
 

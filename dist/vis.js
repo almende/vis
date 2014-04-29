@@ -5034,7 +5034,13 @@ ItemSet.prototype._binarySearch = function _binarySearch(byEnd) {
   return guess;
 }
 
-
+/**
+ * this function checks if an item is invisible. If it is NOT we make it visible and add it to the global visible items. If it is, return true.
+ *
+ * @param {itemRange | itemPoint | itemBox} item
+ * @returns {boolean}
+ * @private
+ */
 ItemSet.prototype._checkIfInvisible = function _checkIfInvisible(item) {
   if (item.isVisible(this.range)) {
     if (!item.displayed) item.show();
@@ -5049,6 +5055,15 @@ ItemSet.prototype._checkIfInvisible = function _checkIfInvisible(item) {
   }
 };
 
+
+/**
+ * this function is very similar to the _checkIfInvisible() but it does not return booleans, hides the item if it should not be seen and always adds to the visibleItems.
+ * this one is for brute forcing and hiding.
+ *
+ * @param {itemRange | itemPoint | itemBox} item
+ * @param {array} visibleItems
+ * @private
+ */
 ItemSet.prototype._checkIfVisible = function _checkIfVisible(item, visibleItems) {
   if (item.isVisible(this.range)) {
     if (!item.displayed) item.show();
@@ -9259,6 +9274,7 @@ Node.prototype.discreteStep = function(interval) {
 /**
  * Perform one discrete step for the node
  * @param {number} interval    Time interval in seconds
+ * @param {number} maxVelocity The speed limit imposed on the velocity
  */
 Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
   if (!this.xFixed) {
@@ -9966,7 +9982,7 @@ Edge.prototype.setProperties = function(properties, constants) {
                                               this.customLength = true;}
 
   // scale the arrow
-  if (properties.arrowScaleFactor !== undefined)       {this.arrowScaleFactor = properties.arrowScaleFactor};
+  if (properties.arrowScaleFactor !== undefined)       {this.arrowScaleFactor = properties.arrowScaleFactor;}
 
   // Added to support dashed lines
   // David Jordan
@@ -11366,6 +11382,13 @@ var physicsMixin = {
     }
   },
 
+  /**
+   * This overwrites the this.constants.
+   *
+   * @param constantsVariableName
+   * @param value
+   * @private
+   */
   _overWriteGraphConstants: function (constantsVariableName, value) {
     var nameArray = constantsVariableName.split("_");
     if (nameArray.length == 1) {
@@ -11380,6 +11403,9 @@ var physicsMixin = {
   }
 };
 
+/**
+ * this function is bound to the toggle smooth curves button. That is also why it is not in the prototype.
+ */
 function graphToggleSmoothCurves () {
   this.constants.smoothCurves = !this.constants.smoothCurves;
   var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
@@ -11389,6 +11415,10 @@ function graphToggleSmoothCurves () {
   this._configureSmoothCurves(false);
 };
 
+/**
+ * this function is used to scramble the nodes
+ *
+ */
 function graphRepositionNodes () {
   for (var nodeId in this.calculationNodes) {
     if (this.calculationNodes.hasOwnProperty(nodeId)) {
@@ -11406,6 +11436,9 @@ function graphRepositionNodes () {
   this.start();
 };
 
+/**
+ *  this is used to generate an options file from the playing with physics system.
+ */
 function graphGenerateOptions () {
   var options = "No options are required, default values used.";
   var optionsSpecific = [];
@@ -11503,7 +11536,10 @@ function graphGenerateOptions () {
 
 };
 
-
+/**
+ * this is used to switch between barnesHut, repulsion and hierarchical.
+ *
+ */
 function switchConfigurations () {
   var ids = ["graph_BH_table", "graph_R_table", "graph_H_table"];
   var radioButton = document.querySelector('input[name="graph_physicsMethod"]:checked').value;
@@ -11542,6 +11578,14 @@ function switchConfigurations () {
 
 }
 
+
+/**
+ * this generates the ranges depending on the iniital values.
+ *
+ * @param id
+ * @param map
+ * @param constantsVariableName
+ */
 function showValueOfRange (id,map,constantsVariableName) {
   var valueId = id + "_value";
   var rangeValue = document.getElementById(id).value;
@@ -11788,6 +11832,13 @@ var barnesHutMixin = {
   },
 
 
+  /**
+   * this updates the mass of a branch. this is increased by adding a node.
+   *
+   * @param parentBranch
+   * @param node
+   * @private
+   */
   _updateBranchMass : function(parentBranch, node) {
     var totalMass = parentBranch.mass + node.mass;
     var totalMassInv = 1/totalMass;
@@ -11805,6 +11856,14 @@ var barnesHutMixin = {
   },
 
 
+  /**
+   * determine in which branch the node will be placed.
+   *
+   * @param parentBranch
+   * @param node
+   * @param skipMassUpdate
+   * @private
+   */
   _placeInTree : function(parentBranch,node,skipMassUpdate) {
     if (skipMassUpdate != true || skipMassUpdate === undefined) {
       // update the mass of the branch.
@@ -11830,6 +11889,14 @@ var barnesHutMixin = {
   },
 
 
+  /**
+   * actually place the node in a region (or branch)
+   *
+   * @param parentBranch
+   * @param node
+   * @param region
+   * @private
+   */
   _placeInRegion : function(parentBranch,node,region) {
     switch (parentBranch.children[region].childrenCount) {
       case 0: // place node here
@@ -12196,7 +12263,7 @@ var HierarchicalLayoutMixin = {
    */
   _getDistribution : function() {
     var distribution = {};
-    var nodeId, node;
+    var nodeId, node, level;
 
     // we fix Y because the hierarchy is vertical, we fix X so we do not give a node an x position for a second time.
     // the fix of X is removed after the x value has been set.
@@ -12221,7 +12288,7 @@ var HierarchicalLayoutMixin = {
 
     // determine the largest amount of nodes of all levels
     var maxCount = 0;
-    for (var level in distribution) {
+    for (level in distribution) {
       if (distribution.hasOwnProperty(level)) {
         if (maxCount < distribution[level].amount) {
           maxCount = distribution[level].amount;
@@ -12230,7 +12297,7 @@ var HierarchicalLayoutMixin = {
     }
 
     // set the initial position and spacing of each nodes accordingly
-    for (var level in distribution) {
+    for (level in distribution) {
       if (distribution.hasOwnProperty(level)) {
         distribution[level].nodeSpacing = (maxCount + 1) * this.constants.hierarchicalLayout.nodeSpacing;
         distribution[level].nodeSpacing /= (distribution[level].amount + 1);
@@ -12672,8 +12739,6 @@ var manipulationMixin = {
 
   /**
    * Adds a node on the specified location
-   *
-   * @param {Object} pointer
    */
   _addNode : function() {
     if (this._selectionIsEmpty() && this.editMode == true) {
@@ -13508,6 +13573,7 @@ var ClusterMixin = {
    * @param {Number} zoomDirection  | -1 / 0 / +1   for  zoomOut / determineByZoom / zoomIn
    * @param {Boolean} recursive     | enabled or disable recursive calling of the opening of clusters
    * @param {Boolean} force         | enabled or disable forcing
+   * @param {Boolean} doNotStart    | if true do not call start
    *
    */
   updateClusters : function(zoomDirection,recursive,force,doNotStart) {
@@ -14358,9 +14424,10 @@ var ClusterMixin = {
     var maxLevel = 0;
     var minLevel = 1e9;
     var clusterLevel = 0;
+    var nodeId;
 
     // we loop over all nodes in the list
-    for (var nodeId in this.nodes) {
+    for (nodeId in this.nodes) {
       if (this.nodes.hasOwnProperty(nodeId)) {
         clusterLevel = this.nodes[nodeId].clusterSessions.length;
         if (maxLevel < clusterLevel) {maxLevel = clusterLevel;}
@@ -14372,7 +14439,7 @@ var ClusterMixin = {
       var amountOfNodes = this.nodeIndices.length;
       var targetLevel = maxLevel - this.constants.clustering.clusterLevelDifference;
       // we loop over all nodes in the list
-      for (var nodeId in this.nodes) {
+      for (nodeId in this.nodes) {
         if (this.nodes.hasOwnProperty(nodeId)) {
           if (this.nodes[nodeId].clusterSessions.length < targetLevel) {
             this._clusterToSmallestNeighbour(this.nodes[nodeId]);
@@ -14687,7 +14754,7 @@ var SelectionMixin = {
     }
     for(var edgeId in this.selectionObj.edges) {
       if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        this.selectionObj.edges[edgeId].unselect();;
+        this.selectionObj.edges[edgeId].unselect();
       }
     }
 
@@ -15357,15 +15424,15 @@ var graphMixinLoaders = {
    * @private
    */
   _loadSectorSystem: function () {
-    this.sectors = { },
-      this.activeSector = ["default"];
-    this.sectors["active"] = { },
-      this.sectors["active"]["default"] = {"nodes": {},
+    this.sectors = {};
+    this.activeSector = ["default"];
+    this.sectors["active"] = {};
+    this.sectors["active"]["default"] = {"nodes": {},
         "edges": {},
         "nodeIndices": [],
         "formationScale": 1.0,
         "drawingNode": undefined };
-    this.sectors["frozen"] = {},
+    this.sectors["frozen"] = {};
       this.sectors["support"] = {"nodes": {},
         "edges": {},
         "nodeIndices": [],
@@ -15398,7 +15465,7 @@ var graphMixinLoaders = {
   _loadManipulationSystem: function () {
     // reset global variables -- these are used by the selection of nodes and edges.
     this.blockConnectingEdgeSelection = false;
-    this.forceAppendSelection = false
+    this.forceAppendSelection = false;
 
     if (this.constants.dataManipulation.enabled == true) {
       // load the manipulator HTML elements. All styling done in css.
@@ -15862,6 +15929,7 @@ Graph.prototype._centerGraph = function(range) {
  * This function zooms out to fit all data on screen based on amount of nodes
  *
  * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
+ * @param {Boolean} [disableStart] | If true, start is not called.
  */
 Graph.prototype.zoomExtent = function(initialZoom, disableStart) {
   if (initialZoom === undefined) {
@@ -16448,7 +16516,7 @@ Graph.prototype._handleOnDrag = function(event) {
       this.drag.translation.x + diffX,
       this.drag.translation.y + diffY);
     this._redraw();
-    this.moved = true;
+    this.moving = true;
   }
 };
 
@@ -17302,7 +17370,12 @@ Graph.prototype._stabilize = function() {
   this.emit("stabilized",{iterations:count});
 };
 
-
+/**
+ * When initializing and stabilizing, we can freeze nodes with a predefined position. This greatly speeds up stabilization
+ * because only the supportnodes for the smoothCurves have to settle.
+ *
+ * @private
+ */
 Graph.prototype._freezeDefinedNodes = function() {
   var nodes = this.nodes;
   for (var id in nodes) {
@@ -17317,6 +17390,11 @@ Graph.prototype._freezeDefinedNodes = function() {
   }
 };
 
+/**
+ * Unfreezes the nodes that have been frozen by _freezeDefinedNodes.
+ *
+ * @private
+ */
 Graph.prototype._restoreFrozenNodes = function() {
   var nodes = this.nodes;
   for (var id in nodes) {
@@ -17387,7 +17465,11 @@ Graph.prototype._discreteStepNodes = function() {
   }
 };
 
-
+/**
+ * A single simulation step (or "tick") in the physics simulation
+ *
+ * @private
+ */
 Graph.prototype._physicsTick = function() {
   if (!this.freezeSimulation) {
     if (this.moving) {
@@ -17506,7 +17588,12 @@ Graph.prototype.toggleFreeze = function() {
 };
 
 
-
+/**
+ * This function cleans the support nodes if they are not needed and adds them when they are.
+ *
+ * @param {boolean} [disableStart]
+ * @private
+ */
 Graph.prototype._configureSmoothCurves = function(disableStart) {
   if (disableStart === undefined) {
     disableStart = true;
@@ -17532,6 +17619,13 @@ Graph.prototype._configureSmoothCurves = function(disableStart) {
   }
 };
 
+
+/**
+ * Bezier curves require an anchor point to calculate the smooth flow. These points are nodes. These nodes are invisible but
+ * are used for the force calculation.
+ *
+ * @private
+ */
 Graph.prototype._createBezierNodes = function() {
   if (this.constants.smoothCurves == true) {
     for (var edgeId in this.edges) {
@@ -17556,7 +17650,11 @@ Graph.prototype._createBezierNodes = function() {
   }
 };
 
-
+/**
+ * load the functions that load the mixins into the prototype.
+ *
+ * @private
+ */
 Graph.prototype._initializeMixinLoaders = function () {
   for (var mixinFunction in graphMixinLoaders) {
     if (graphMixinLoaders.hasOwnProperty(mixinFunction)) {

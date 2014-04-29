@@ -97,7 +97,7 @@ Edge.prototype.setProperties = function(properties, constants) {
                                               this.customLength = true;}
 
   // scale the arrow
-  if (properties.arrowScaleFactor !== undefined)       {this.arrowScaleFactor = properties.arrowScaleFactor};
+  if (properties.arrowScaleFactor !== undefined)       {this.arrowScaleFactor = properties.arrowScaleFactor;}
 
   // Added to support dashed lines
   // David Jordan

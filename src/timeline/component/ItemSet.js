@@ -305,7 +305,13 @@ ItemSet.prototype._binarySearch = function _binarySearch(byEnd) {
   return guess;
 }
 
-
+/**
+ * this function checks if an item is invisible. If it is NOT we make it visible and add it to the global visible items. If it is, return true.
+ *
+ * @param {itemRange | itemPoint | itemBox} item
+ * @returns {boolean}
+ * @private
+ */
 ItemSet.prototype._checkIfInvisible = function _checkIfInvisible(item) {
   if (item.isVisible(this.range)) {
     if (!item.displayed) item.show();
@@ -320,6 +326,15 @@ ItemSet.prototype._checkIfInvisible = function _checkIfInvisible(item) {
   }
 };
 
+
+/**
+ * this function is very similar to the _checkIfInvisible() but it does not return booleans, hides the item if it should not be seen and always adds to the visibleItems.
+ * this one is for brute forcing and hiding.
+ *
+ * @param {itemRange | itemPoint | itemBox} item
+ * @param {array} visibleItems
+ * @private
+ */
 ItemSet.prototype._checkIfVisible = function _checkIfVisible(item, visibleItems) {
   if (item.isVisible(this.range)) {
     if (!item.displayed) item.show();
