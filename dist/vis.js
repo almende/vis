@@ -5104,7 +5104,7 @@ ItemSet.prototype.repaint = function repaint() {
   // this handles the case for the ItemRange that is both before and after the current one.
   if (this.visibleItems.length > 0) {
     for (var i = 0; i < this.visibleItems.length; i++) {
-      this._checkIfVisible(this.visibleItems[i],newVisibleItems);
+      this._checkIfVisible(this.visibleItems[i], newVisibleItems);
     }
   }
   this.visibleItems = newVisibleItems;
@@ -5224,6 +5224,8 @@ ItemSet.prototype.setItems = function setItems(items) {
       ids,
       oldItemsData = this.itemsData;
 
+  console.log('setItems', items)
+
   // replace the dataset
   if (!items) {
     this.itemsData = null;
@@ -5252,6 +5254,8 @@ ItemSet.prototype.setItems = function setItems(items) {
     util.forEach(this.listeners, function (callback, event) {
       me.itemsData.on(event, callback, id);
     });
+
+    console.log('subscribe to dataset', me.itemsData)
 
     // draw all new items
     ids = this.itemsData.getIds();
@@ -5293,6 +5297,8 @@ ItemSet.prototype.removeItem = function removeItem (id) {
  * @private
  */
 ItemSet.prototype._onUpdate = function _onUpdate(ids) {
+  console.log('_onUpdate', ids);
+
   var me = this,
       items = this.items,
       itemOptions = this.itemOptions;
@@ -5310,12 +5316,13 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
     if (item) {
       // update item
       if (!constructor || !(item instanceof constructor)) {
-        // item type has changed, hide and delete the item
-        item.hide();
+        // item type has changed, delete the item and recreate it
+        me._deleteItem(item);
         item = null;
       }
       else {
         item.data = itemData; // TODO: create a method item.setData ?
+        item.repaint();
       }
     }
 
@@ -5332,12 +5339,11 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
 
     me.items[id] = item;
     if (type == 'range') {
-      me._checkIfVisible(item,this.visibleItems);
+      me._checkIfVisible(item, me.visibleItems);
     }
   });
 
   this._order();
-//  this.systemLoaded = false;
   this.stackDirty = true; // force re-stacking of all items next repaint
   this.emit('change');
 };
@@ -5361,15 +5367,7 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
     var item = me.items[id];
     if (item) {
       count++;
-      item.hide();
-      delete me.items[id];
-      // remove from visible items
-      var index = me.visibleItems.indexOf(me.item);
-      me.visibleItems.splice(index,1);
-
-      // remove from selection
-      index = me.selection.indexOf(id);
-      if (index != -1) me.selection.splice(index, 1);
+      me._deleteItem(item);
     }
   });
 
@@ -5379,6 +5377,28 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
     this.stackDirty = true; // force re-stacking of all items next repaint
     this.emit('change');
   }
+};
+
+/**
+ * Delete an item from the ItemSet: remove it from the DOM, from the map
+ * with items, and from the map with visible items, and from the selection
+ * @param {Item} item
+ * @private
+ */
+ItemSet.prototype._deleteItem = function _deleteItem(item) {
+  // remove from DOM
+  item.hide();
+
+  // remove from items
+  delete this.items[item.id];
+
+  // remove from visible items
+  var index = this.visibleItems.indexOf(item);
+  if (index != -1) this.visibleItems.splice(index, 1);
+
+  // remove from selection
+  index = this.selection.indexOf(item.id);
+  if (index != -1) this.selection.splice(index, 1);
 };
 
 /**

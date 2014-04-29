@@ -19,11 +19,6 @@ function ItemSet(backgroundPanel, axisPanel, options) {
   this.axisPanel = axisPanel;
   this.itemOptions = Object.create(this.options);
   this.dom = {};
-  this.props = {
-    labels: {
-      width: 0
-    }
-  };
   this.hammer = null;
 
   var me = this;
@@ -51,6 +46,7 @@ function ItemSet(backgroundPanel, axisPanel, options) {
 //  this.systemLoaded = false;
   this.visibleItems = []; // visible, ordered items
   this.selection = [];  // list with the ids of all selected nodes
+  this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
   this.stack = new Stack(Object.create(this.options));
   this.stackDirty = true; // if true, all items will be restacked on next repaint
 
@@ -332,11 +328,10 @@ ItemSet.prototype._checkIfInvisible = function _checkIfInvisible(item) {
 
 
 /**
- * this function is very similar to the _checkIfInvisible() but it does not
- * return booleans, hides the item if it should not be seen and always adds to
- * the visibleItems. this one is for brute forcing and hiding.
+ * this function is very similar to the _checkIfInvisible() but it does not return booleans, hides the item if it should not be seen and always adds to the visibleItems.
+ * this one is for brute forcing and hiding.
  *
- * @param {Item} item
+ * @param {itemRange | itemPoint | itemBox} item
  * @param {array} visibleItems
  * @private
  */
@@ -500,6 +495,8 @@ ItemSet.prototype.setItems = function setItems(items) {
       ids,
       oldItemsData = this.itemsData;
 
+  console.log('setItems', items)
+
   // replace the dataset
   if (!items) {
     this.itemsData = null;
@@ -528,6 +525,8 @@ ItemSet.prototype.setItems = function setItems(items) {
     util.forEach(this.listeners, function (callback, event) {
       me.itemsData.on(event, callback, id);
     });
+
+    console.log('subscribe to dataset', me.itemsData)
 
     // draw all new items
     ids = this.itemsData.getIds();
@@ -569,10 +568,12 @@ ItemSet.prototype.removeItem = function removeItem (id) {
  * @private
  */
 ItemSet.prototype._onUpdate = function _onUpdate(ids) {
+  console.log('_onUpdate', ids);
+
   var me = this,
       items = this.items,
       itemOptions = this.itemOptions;
-console.log('onUpdate', ids)
+
   ids.forEach(function (id) {
     var itemData = me.itemsData.get(id),
         item = items[id],
@@ -586,12 +587,13 @@ console.log('onUpdate', ids)
     if (item) {
       // update item
       if (!constructor || !(item instanceof constructor)) {
-        // item type has changed, hide and delete the item
-        item.hide();
+        // item type has changed, delete the item and recreate it
+        me._deleteItem(item);
         item = null;
       }
       else {
         item.data = itemData; // TODO: create a method item.setData ?
+        item.repaint();
       }
     }
 
@@ -613,7 +615,6 @@ console.log('onUpdate', ids)
   });
 
   this._order();
-//  this.systemLoaded = false;
   this.stackDirty = true; // force re-stacking of all items next repaint
   this.emit('change');
 };
@@ -637,16 +638,7 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
     var item = me.items[id];
     if (item) {
       count++;
-      item.hide();
-      delete me.items[id];
-
-      // remove from visible items
-      var index = me.visibleItems.indexOf(me.item);
-      me.visibleItems.splice(index,1);
-
-      // remove from selection
-      index = me.selection.indexOf(id);
-      if (index != -1) me.selection.splice(index, 1);
+      me._deleteItem(item);
     }
   });
 
@@ -656,6 +648,28 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
     this.stackDirty = true; // force re-stacking of all items next repaint
     this.emit('change');
   }
+};
+
+/**
+ * Delete an item from the ItemSet: remove it from the DOM, from the map
+ * with items, and from the map with visible items, and from the selection
+ * @param {Item} item
+ * @private
+ */
+ItemSet.prototype._deleteItem = function _deleteItem(item) {
+  // remove from DOM
+  item.hide();
+
+  // remove from items
+  delete this.items[item.id];
+
+  // remove from visible items
+  var index = this.visibleItems.indexOf(item);
+  if (index != -1) this.visibleItems.splice(index, 1);
+
+  // remove from selection
+  index = this.selection.indexOf(item.id);
+  if (index != -1) this.selection.splice(index, 1);
 };
 
 /**
@@ -824,14 +838,6 @@ ItemSet.prototype._onDragEnd = function (event) {
 
     event.stopPropagation();
   }
-};
-
-/**
- * Get the width of the group labels
- * @return {Number} width
- */
-ItemSet.prototype.getLabelsWidth = function getLabelsWidth() {
-  return this.props.labels.width;
 };
 
 /**
