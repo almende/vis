@@ -1,3 +1,5 @@
+var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
+
 /**
  * An ItemSet holds a set of items and ranges which can be displayed in a
  * range. The width is determined by the parent of the ItemSet, and the height
@@ -67,7 +69,6 @@ function ItemSet(backgroundPanel, axisPanel, labelPanel, options) {
 
   this.groups = {}; // Group object for every group
   this.groupIds = [];
-  this.ungrouped = null; // Group holding all ungrouped items (yeah, funny right?), used when there are no groups
 
   this.visibleItems = []; // visible, ordered items
   this.selection = [];  // list with the ids of all selected nodes
@@ -517,26 +518,29 @@ ItemSet.prototype._updateVisibleItems = function _updateVisibleItems(orderedItem
  * @protected
  */
 ItemSet.prototype._updateUngrouped = function _updateUngrouped() {
+  var ungrouped = this.groups[UNGROUPED];
+
   if (this.groupsData) {
-    // remove the group holding all (unfiltered) items
-    if (this.ungrouped) {
-      this.ungrouped.hide();
-      this.ungrouped = null;
+    // remove the group holding all ungrouped items
+    if (ungrouped) {
+      ungrouped.hide();
+      delete this.groups[UNGROUPED];
     }
   }
   else {
     // create a group holding all (unfiltered) items
-    if (!this.ungrouped) {
+    if (!ungrouped) {
       var id = null;
-      this.ungrouped = new Group(id, this, this.dom.background, this.dom.axis, this.labelPanel.frame);
+      ungrouped = new Group(id, this, this.dom.background, this.dom.axis, this.labelPanel.frame);
+      this.groups[UNGROUPED] = ungrouped;
 
       for (var itemId in this.items) {
         if (this.items.hasOwnProperty(itemId)) {
-          this.ungrouped.add(this.items[itemId]);
+          ungrouped.add(this.items[itemId]);
         }
       }
 
-      this.ungrouped.show();
+      ungrouped.show();
     }
   }
 };
@@ -809,6 +813,11 @@ ItemSet.prototype._onAddGroups = function _onAddGroups(ids) {
   ids.forEach(function (id) {
     var group = me.groups[id];
     if (!group) {
+      // check for reserved ids
+      if (id == UNGROUPED) {
+        throw new Error('Illegal group id. ' + id + ' is a reserved id.');
+      }
+
       var groupOptions = Object.create(me.options);
       util.extend(groupOptions, {
         height: null
@@ -873,13 +882,9 @@ ItemSet.prototype._addItem = function _addItem(item) {
   this.items[item.id] = item;
 
   // add to group
-  if (this.ungrouped) {
-    this.ungrouped.add(item);
-  }
-  else {
-    var group = this.groups[item.data.group];
-    if (group) group.add(item);
-  }
+  var groupId = this.groupsData ? item.data.group : UNGROUPED;
+  var group = this.groups[groupId];
+  if (group) group.add(item);
 };
 
 /**
@@ -889,26 +894,19 @@ ItemSet.prototype._addItem = function _addItem(item) {
  * @private
  */
 ItemSet.prototype._updateItem = function _updateItem(item, itemData) {
-  var oldGroup = item.data.group,
-      group;
+  var oldGroupId = item.data.group;
 
   item.data = itemData;
   item.repaint();
 
-  // update group (if any)
-  if (oldGroup != item.data.group) {
-    if (oldGroup) {
-      group = this.groups[item.data.group];
-      if (group) group.remove(item);
-    }
+  // update group
+  if (oldGroupId != item.data.group) {
+    var oldGroup = this.groups[oldGroupId];
+    if (oldGroup) oldGroup.remove(item);
 
-    if (this.ungrouped) {
-      this.ungrouped.add(item);
-    }
-    else {
-      group = this.groups[item.data.group];
-      if (group) group.add(item);
-    }
+    var groupId = this.groupsData ? item.data.group : UNGROUPED;
+    var group = this.groups[groupId];
+    if (group) group.add(item);
   }
 };
 
@@ -934,13 +932,9 @@ ItemSet.prototype._removeItem = function _removeItem(item) {
   if (index != -1) this.selection.splice(index, 1);
 
   // remove from group
-  if (this.ungrouped) {
-    this.ungrouped.remove(item);
-  }
-  else {
-    var group = this.groups[item.data.group];
-    if (group) group.remove(item);
-  }
+  var groupId = this.groupsData ? item.data.group : UNGROUPED;
+  var group = this.groups[groupId];
+  if (group) group.remove(item);
 };
 
 /**

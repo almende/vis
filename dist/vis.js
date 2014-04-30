@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.7.5-SNAPSHOT
- * @date    2014-04-29
+ * @date    2014-04-30
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -3007,7 +3007,6 @@ Stack.prototype.orderByEnd = function orderByEnd(items) {
  * @param {boolean} [force=false] If true, all items will be re-stacked.
  *                                If false (default), only items having a
  *                                top===null will be re-stacked
- * @private
  */
 Stack.prototype.stack = function stack (items, force) {
   var i,
@@ -3067,8 +3066,8 @@ Stack.prototype.stack = function stack (items, force) {
 /**
  * Test if the two provided items collide
  * The items must have parameters left, width, top, and height.
- * @param {Component} a     The first item
- * @param {Component} b     The second item
+ * @param {Item} a          The first item
+ * @param {Item} b          The second item
  * @param {Number} margin   A minimum required margin.
  *                          If margin is provided, the two items will be
  *                          marked colliding when they overlap or
@@ -3679,7 +3678,7 @@ Component.prototype.repaint = function repaint() {
  * Test whether the component is resized since the last time _isResized() was
  * called.
  * @return {Boolean} Returns true if the component is resized
- * @private
+ * @protected
  */
 Component.prototype._isResized = function _isResized() {
   var resized = (this._previousWidth !== this.width || this._previousHeight !== this.height);
@@ -4727,6 +4726,8 @@ CustomTime.prototype._onDragEnd = function (event) {
   event.preventDefault();
 };
 
+var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
+
 /**
  * An ItemSet holds a set of items and ranges which can be displayed in a
  * range. The width is determined by the parent of the ItemSet, and the height
@@ -4735,27 +4736,35 @@ CustomTime.prototype._onDragEnd = function (event) {
  *                                vertical lines of box items.
  * @param {Panel} axisPanel       Panel on the axis where the dots of box-items
  *                                can be displayed.
+ * @param {Panel} labelPanel      Left side panel holding labels
  * @param {Object} [options]      See ItemSet.setOptions for the available options.
  * @constructor ItemSet
  * @extends Panel
  */
-function ItemSet(backgroundPanel, axisPanel, options) {
+function ItemSet(backgroundPanel, axisPanel, labelPanel, options) {
   this.id = util.randomUUID();
 
   // one options object is shared by this itemset and all its items
   this.options = options || {};
   this.backgroundPanel = backgroundPanel;
   this.axisPanel = axisPanel;
+  this.labelPanel = labelPanel;
   this.itemOptions = Object.create(this.options);
   this.dom = {};
+  this.props = {
+    labels: {
+      width: 0
+    }
+  };
   this.hammer = null;
 
   var me = this;
-  this.itemsData = null;  // DataSet
-  this.range = null;      // Range or Object {start: number, end: number}
+  this.itemsData = null;    // DataSet
+  this.groupsData = null;   // DataSet
+  this.range = null;        // Range or Object {start: number, end: number}
 
-  // data change listeners
-  this.listeners = {
+  // listeners for the DataSet of the items
+  this.itemListeners = {
     'add': function (event, params, senderId) {
       if (senderId != me.id) me._onAdd(params.items);
     },
@@ -4767,20 +4776,36 @@ function ItemSet(backgroundPanel, axisPanel, options) {
     }
   };
 
+  // listeners for the DataSet of the groups
+  this.groupListeners = {
+    'add': function (event, params, senderId) {
+      if (senderId != me.id) me._onAddGroups(params.items);
+    },
+    'update': function (event, params, senderId) {
+      if (senderId != me.id) me._onUpdateGroups(params.items);
+    },
+    'remove': function (event, params, senderId) {
+      if (senderId != me.id) me._onRemoveGroups(params.items);
+    }
+  };
+
   this.items = {};        // object with an Item for every data item
   this.orderedItems = {
     byStart: [],
     byEnd: []
   };
-//  this.systemLoaded = false;
+
+  this.groups = {}; // Group object for every group
+  this.groupIds = [];
+
   this.visibleItems = []; // visible, ordered items
   this.selection = [];  // list with the ids of all selected nodes
-  this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
   this.stack = new Stack(Object.create(this.options));
   this.stackDirty = true; // if true, all items will be restacked on next repaint
 
   this.touchParams = {}; // stores properties while dragging
   // create the HTML DOM
+
   this._create();
 }
 
@@ -4819,6 +4844,9 @@ ItemSet.prototype._create = function _create(){
   axis.className = 'axis';
   this.dom.axis = axis;
   this.axisPanel.frame.appendChild(axis);
+
+  // create ungrouped Group
+  this._updateUngrouped();
 
   // attach event listeners
   // TODO: use event listeners from the rootpanel to improve performance?
@@ -4979,17 +5007,19 @@ ItemSet.prototype.getFrame = function getFrame() {
  * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
  * either the start OR end time has to be in the range.
  *
+ * @param {{byStart: Item[], byEnd: Item[]}} orderedItems
+ * @param {{start: number, end: number}} range
  * @param {Boolean} byEnd
  * @returns {number}
  * @private
  */
-ItemSet.prototype._binarySearch = function _binarySearch(byEnd) {
-  var array = []
+ItemSet.prototype._binarySearch = function _binarySearch(orderedItems, range, byEnd) {
+  var array = [];
   var byTime = byEnd ? "end" : "start";
-  if (byEnd == true) {array = this.orderedItems.byEnd;  }
-  else               {array = this.orderedItems.byStart;}
+  if (byEnd == true) {array = orderedItems.byEnd;  }
+  else               {array = orderedItems.byStart;}
 
-  var interval = this.range.end - this.range.start;
+  var interval = range.end - range.start;
 
   var found = false;
   var low = 0;
@@ -4999,7 +5029,7 @@ ItemSet.prototype._binarySearch = function _binarySearch(byEnd) {
 
   if (high == 0) {guess = -1;}
   else if (high == 1) {
-    if ((array[guess].data[byTime] > this.range.start - interval) && (array[guess].data[byTime] < this.range.end)) {
+    if ((array[guess].data[byTime] > range.start - interval) && (array[guess].data[byTime] < range.end)) {
       guess =  0;
     }
     else {
@@ -5009,11 +5039,11 @@ ItemSet.prototype._binarySearch = function _binarySearch(byEnd) {
   else {
     high -= 1;
     while (found == false) {
-      if ((array[guess].data[byTime] > this.range.start - interval) && (array[guess].data[byTime] < this.range.end)) {
+      if ((array[guess].data[byTime] > range.start - interval) && (array[guess].data[byTime] < range.end)) {
         found = true;
       }
       else {
-        if (array[guess].data[byTime] < this.range.start - interval) { // it is too small --> increase low
+        if (array[guess].data[byTime] < range.start - interval) { // it is too small --> increase low
           low = Math.floor(0.5*(high+low));
         }
         else {  // it is too big --> decrease high
@@ -5032,21 +5062,22 @@ ItemSet.prototype._binarySearch = function _binarySearch(byEnd) {
     }
   }
   return guess;
-}
+};
 
 /**
  * this function checks if an item is invisible. If it is NOT we make it visible and add it to the global visible items. If it is, return true.
  *
- * @param {itemRange | itemPoint | itemBox} item
+ * @param {Item} item
+ * @param {Item[]} visibleItems
  * @returns {boolean}
  * @private
  */
-ItemSet.prototype._checkIfInvisible = function _checkIfInvisible(item) {
+ItemSet.prototype._checkIfInvisible = function _checkIfInvisible(item, visibleItems) {
   if (item.isVisible(this.range)) {
     if (!item.displayed) item.show();
     item.repositionX();
-    if (this.visibleItems.indexOf(item) == -1) {
-      this.visibleItems.push(item);
+    if (visibleItems.indexOf(item) == -1) {
+      visibleItems.push(item);
     }
     return false;
   }
@@ -5061,7 +5092,7 @@ ItemSet.prototype._checkIfInvisible = function _checkIfInvisible(item) {
  * this one is for brute forcing and hiding.
  *
  * @param {Item} item
- * @param {array} visibleItems
+ * @param {Array} visibleItems
  * @private
  */
 ItemSet.prototype._checkIfVisible = function _checkIfVisible(item, visibleItems) {
@@ -5085,7 +5116,8 @@ ItemSet.prototype.repaint = function repaint() {
       asString = util.option.asString,
       options = this.options,
       orientation = this.getOption('orientation'),
-      frame = this.frame;
+      frame = this.frame,
+      i, ii;
 
   // update className
   frame.className = 'itemset' + (options.className ? (' ' + asString(options.className)) : '');
@@ -5096,52 +5128,14 @@ ItemSet.prototype.repaint = function repaint() {
   this.lastVisibleInterval = visibleInterval;
   this.lastWidth = this.width;
 
-  var newVisibleItems = [];
-  var item;
-  var orderedItems = this.orderedItems;
+  this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, this.range);
 
-  // first check if the items that were in view previously are still in view.
-  // this handles the case for the ItemRange that is both before and after the current one.
-  if (this.visibleItems.length > 0) {
-    for (var i = 0; i < this.visibleItems.length; i++) {
-      this._checkIfVisible(this.visibleItems[i], newVisibleItems);
-    }
-  }
-  this.visibleItems = newVisibleItems;
-
-  // If there were no visible items previously, use binarySearch to find a visible ItemPoint or ItemRange (based on startTime)
-  if (this.visibleItems.length == 0) {var initialPosByStart = this._binarySearch(false);}
-  else                               {var initialPosByStart = orderedItems.byStart.indexOf(this.visibleItems[0]);}
-
-  // use visible search to find a visible ItemRange (only based on endTime)
-  var initialPosByEnd = this._binarySearch(true);
-
-  // if we found a initial ID to use, trace it up and down until we meet an invisible item.
-  if (initialPosByStart != -1) {
-    for (var i = initialPosByStart; i >= 0; i--) {
-      if (this._checkIfInvisible(orderedItems.byStart[i])) {break;}
-    }
-    for (var i = initialPosByStart + 1; i < orderedItems.byStart.length; i++) {
-      if (this._checkIfInvisible(orderedItems.byStart[i])) {break;}
-    }
-  }
-
-  // if we found a initial ID to use, trace it up and down until we meet an invisible item.
-  if (initialPosByEnd != -1) {
-    for (var i = initialPosByEnd; i >= 0; i--) {
-      if (this._checkIfInvisible(orderedItems.byEnd[i])) {break;}
-    }
-    for (var i = initialPosByEnd + 1; i < orderedItems.byEnd.length; i++) {
-      if (this._checkIfInvisible(orderedItems.byEnd[i])) {break;}
-    }
-  }
-
-  // reposition visible items vertically
+  // reposition visible items vertically.
   //this.stack.order(this.visibleItems); // TODO: improve ordering
   var force = this.stackDirty || zoomed; // force re-stacking of all items if true
   this.stack.stack(this.visibleItems, force);
   this.stackDirty = false;
-  for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
+  for (i = 0, ii = this.visibleItems.length; i < ii; i++) {
     this.visibleItems[i].repositionY();
   }
 
@@ -5192,6 +5186,94 @@ ItemSet.prototype.repaint = function repaint() {
 };
 
 /**
+ * Update the visible items
+ * @param {{byStart: Item[], byEnd: Item[]}} orderedItems   All items ordered by start date and by end date
+ * @param {Item[]} visibleItems                             The previously visible items.
+ * @param {{start: number, end: number}} range              Visible range
+ * @return {Item[]} visibleItems                            The new visible items.
+ * @private
+ */
+ItemSet.prototype._updateVisibleItems = function _updateVisibleItems(orderedItems, visibleItems, range) {
+  var initialPosByStart,
+      newVisibleItems = [],
+      i;
+
+  // first check if the items that were in view previously are still in view.
+  // this handles the case for the ItemRange that is both before and after the current one.
+  if (visibleItems.length > 0) {
+    for (i = 0; i < visibleItems.length; i++) {
+      this._checkIfVisible(visibleItems[i], newVisibleItems);
+    }
+  }
+
+  // If there were no visible items previously, use binarySearch to find a visible ItemPoint or ItemRange (based on startTime)
+  if (newVisibleItems.length == 0) {
+    initialPosByStart = this._binarySearch(orderedItems, range, false);
+  }
+  else {
+    initialPosByStart = orderedItems.byStart.indexOf(newVisibleItems[0]);
+  }
+
+  // use visible search to find a visible ItemRange (only based on endTime)
+  var initialPosByEnd = this._binarySearch(orderedItems, range, true);
+
+  // if we found a initial ID to use, trace it up and down until we meet an invisible item.
+  if (initialPosByStart != -1) {
+    for (i = initialPosByStart; i >= 0; i--) {
+      if (this._checkIfInvisible(orderedItems.byStart[i], newVisibleItems)) {break;}
+    }
+    for (i = initialPosByStart + 1; i < orderedItems.byStart.length; i++) {
+      if (this._checkIfInvisible(orderedItems.byStart[i], newVisibleItems)) {break;}
+    }
+  }
+
+  // if we found a initial ID to use, trace it up and down until we meet an invisible item.
+  if (initialPosByEnd != -1) {
+    for (i = initialPosByEnd; i >= 0; i--) {
+      if (this._checkIfInvisible(orderedItems.byEnd[i], newVisibleItems)) {break;}
+    }
+    for (i = initialPosByEnd + 1; i < orderedItems.byEnd.length; i++) {
+      if (this._checkIfInvisible(orderedItems.byEnd[i], newVisibleItems)) {break;}
+    }
+  }
+
+  return newVisibleItems;
+};
+
+/**
+ * Create or delete the group holding all ungrouped items. This group is used when
+ * there are no groups specified.
+ * @protected
+ */
+ItemSet.prototype._updateUngrouped = function _updateUngrouped() {
+  var ungrouped = this.groups[UNGROUPED];
+
+  if (this.groupsData) {
+    // remove the group holding all ungrouped items
+    if (ungrouped) {
+      ungrouped.hide();
+      delete this.groups[UNGROUPED];
+    }
+  }
+  else {
+    // create a group holding all (unfiltered) items
+    if (!ungrouped) {
+      var id = null;
+      ungrouped = new Group(id, this, this.dom.background, this.dom.axis, this.labelPanel.frame);
+      this.groups[UNGROUPED] = ungrouped;
+
+      for (var itemId in this.items) {
+        if (this.items.hasOwnProperty(itemId)) {
+          ungrouped.add(this.items[itemId]);
+        }
+      }
+
+      ungrouped.show();
+    }
+  }
+};
+
+/**
  * Get the foreground container element
  * @return {HTMLElement} foreground
  */
@@ -5216,6 +5298,14 @@ ItemSet.prototype.getAxis = function getAxis() {
 };
 
 /**
+ * Get the element for the labelset
+ * @return {HTMLElement} labelSet
+ */
+ItemSet.prototype.getLabelSet = function getLabelSet() {
+  return this.labelPanel.frame;
+};
+
+/**
  * Set items
  * @param {vis.DataSet | null} items
  */
@@ -5232,12 +5322,12 @@ ItemSet.prototype.setItems = function setItems(items) {
     this.itemsData = items;
   }
   else {
-    throw new TypeError('Data must be an instance of DataSet');
+    throw new TypeError('Data must be an instance of DataSet or DataView');
   }
 
   if (oldItemsData) {
     // unsubscribe from old dataset
-    util.forEach(this.listeners, function (callback, event) {
+    util.forEach(this.itemListeners, function (callback, event) {
       oldItemsData.unsubscribe(event, callback);
     });
 
@@ -5249,22 +5339,81 @@ ItemSet.prototype.setItems = function setItems(items) {
   if (this.itemsData) {
     // subscribe to new dataset
     var id = this.id;
-    util.forEach(this.listeners, function (callback, event) {
+    util.forEach(this.itemListeners, function (callback, event) {
       me.itemsData.on(event, callback, id);
     });
 
-    // draw all new items
+    // add all new items
     ids = this.itemsData.getIds();
     this._onAdd(ids);
+
+    // update the group holding all ungrouped items
+    this._updateUngrouped();
   }
 };
 
 /**
- * Get the current items items
+ * Get the current items
  * @returns {vis.DataSet | null}
  */
 ItemSet.prototype.getItems = function getItems() {
   return this.itemsData;
+};
+
+/**
+ * Set groups
+ * @param {vis.DataSet} groups
+ */
+ItemSet.prototype.setGroups = function setGroups(groups) {
+  var me = this,
+      ids;
+
+  // unsubscribe from current dataset
+  if (this.groupsData) {
+    util.forEach(this.groupListeners, function (callback, event) {
+      me.groupsData.unsubscribe(event, callback);
+    });
+
+    // remove all drawn groups
+    ids = this.groupsData.getIds();
+    this._onRemoveGroups(ids);
+  }
+
+  // replace the dataset
+  if (!groups) {
+    this.groupsData = null;
+  }
+  else if (groups instanceof DataSet || groups instanceof DataView) {
+    this.groupsData = groups;
+  }
+  else {
+    throw new TypeError('Data must be an instance of DataSet or DataView');
+  }
+
+  if (this.groupsData) {
+    // subscribe to new dataset
+    var id = this.id;
+    util.forEach(this.groupListeners, function (callback, event) {
+      me.groupsData.on(event, callback, id);
+    });
+
+    // draw all ms
+    ids = this.groupsData.getIds();
+    this._onAddGroups(ids);
+  }
+
+  // update the group holding all ungrouped items
+  this._updateUngrouped();
+
+  this.emit('change');
+};
+
+/**
+ * Get the current groups
+ * @returns {vis.DataSet | null} groups
+ */
+ItemSet.prototype.getGroups = function getGroups() {
+  return this.groupsData;
 };
 
 /**
@@ -5290,7 +5439,7 @@ ItemSet.prototype.removeItem = function removeItem (id) {
 /**
  * Handle updated items
  * @param {Number[]} ids
- * @private
+ * @protected
  */
 ItemSet.prototype._onUpdate = function _onUpdate(ids) {
   var me = this,
@@ -5311,27 +5460,26 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
       // update item
       if (!constructor || !(item instanceof constructor)) {
         // item type has changed, delete the item and recreate it
-        me._deleteItem(item);
+        me._removeItem(item);
         item = null;
       }
       else {
-        item.data = itemData; // TODO: create a method item.setData ?
-        item.repaint();
+        me._updateItem(item, itemData);
       }
     }
 
     if (!item) {
       // create item
       if (constructor) {
-        item = new constructor(me, itemData, me.options, itemOptions);
-        item.id = id;
+        item = new constructor(itemData, me.options, itemOptions);
+        item.id = id; // TODO: not so nice setting id afterwards
+        me._addItem(item);
       }
       else {
         throw new TypeError('Unknown item type "' + type + '"');
       }
     }
 
-    me.items[id] = item;
     if (type == 'range' && me.visibleItems.indexOf(item) == -1) {
       me._checkIfVisible(item, me.visibleItems);
     }
@@ -5345,14 +5493,14 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
 /**
  * Handle added items
  * @param {Number[]} ids
- * @private
+ * @protected
  */
 ItemSet.prototype._onAdd = ItemSet.prototype._onUpdate;
 
 /**
  * Handle removed items
  * @param {Number[]} ids
- * @private
+ * @protected
  */
 ItemSet.prototype._onRemove = function _onRemove(ids) {
   var count = 0;
@@ -5361,7 +5509,7 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
     var item = me.items[id];
     if (item) {
       count++;
-      me._deleteItem(item);
+      me._removeItem(item);
     }
   });
 
@@ -5374,12 +5522,129 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
 };
 
 /**
+ * Handle updated groups
+ * @param {Number[]} ids
+ * @private
+ */
+ItemSet.prototype._onUpdateGroups = function _onUpdateGroups(ids) {
+  this._onAddGroups(ids);
+};
+
+/**
+ * Handle changed groups
+ * @param {Number[]} ids
+ * @private
+ */
+ItemSet.prototype._onAddGroups = function _onAddGroups(ids) {
+  var me = this;
+
+  ids.forEach(function (id) {
+    var group = me.groups[id];
+    if (!group) {
+      // check for reserved ids
+      if (id == UNGROUPED) {
+        throw new Error('Illegal group id. ' + id + ' is a reserved id.');
+      }
+
+      var groupOptions = Object.create(me.options);
+      util.extend(groupOptions, {
+        height: null
+      });
+
+      group = new Group(id, me, me.dom.background, me.dom.axis, me.labelPanel.frame);
+      me.groups[id] = group;
+
+      // add items with this groupId to the new group
+      for (var itemId in me.items) {
+        if (me.items.hasOwnProperty(itemId)) {
+          var item = me.items[itemId];
+          if (item.data.group == id) {
+            group.add(item);
+          }
+        }
+      }
+
+      group.show();
+    }
+  });
+
+  this._updateGroupIds();
+};
+
+/**
+ * Handle removed groups
+ * @param {Number[]} ids
+ * @private
+ */
+ItemSet.prototype._onRemoveGroups = function _onRemoveGroups(ids) {
+  var groups = this.groups;
+  ids.forEach(function (id) {
+    var group = groups[id];
+
+    if (group) {
+      group.hide();
+      delete groups[id];
+    }
+  });
+
+  this._updateGroupIds();
+};
+
+/**
+ * Update the groupIds. Requires a repaint afterwards
+ * @private
+ */
+ItemSet.prototype._updateGroupIds = function () {
+  // reorder the groups
+  this.groupIds = this.groupsData.getIds({
+    order: this.options.groupOrder
+  });
+};
+
+/**
+ * Add a new item
+ * @param {Item} item
+ * @private
+ */
+ItemSet.prototype._addItem = function _addItem(item) {
+  this.items[item.id] = item;
+
+  // add to group
+  var groupId = this.groupsData ? item.data.group : UNGROUPED;
+  var group = this.groups[groupId];
+  if (group) group.add(item);
+};
+
+/**
+ * Update an existing item
+ * @param {Item} item
+ * @param {Object} itemData
+ * @private
+ */
+ItemSet.prototype._updateItem = function _updateItem(item, itemData) {
+  var oldGroupId = item.data.group;
+
+  item.data = itemData;
+  item.repaint();
+
+  // update group
+  if (oldGroupId != item.data.group) {
+    var oldGroup = this.groups[oldGroupId];
+    if (oldGroup) oldGroup.remove(item);
+
+    var groupId = this.groupsData ? item.data.group : UNGROUPED;
+    var group = this.groups[groupId];
+    if (group) group.add(item);
+  }
+};
+
+/**
  * Delete an item from the ItemSet: remove it from the DOM, from the map
  * with items, and from the map with visible items, and from the selection
  * @param {Item} item
  * @private
  */
-ItemSet.prototype._deleteItem = function _deleteItem(item) {
+ItemSet.prototype._removeItem = function _removeItem(item) {
   // remove from DOM
   item.hide();
 
@@ -5393,6 +5658,11 @@ ItemSet.prototype._deleteItem = function _deleteItem(item) {
   // remove from selection
   index = this.selection.indexOf(item.id);
   if (index != -1) this.selection.splice(index, 1);
+
+  // remove from group
+  var groupId = this.groupsData ? item.data.group : UNGROUPED;
+  var group = this.groups[groupId];
+  if (group) group.remove(item);
 };
 
 /**
@@ -5411,14 +5681,37 @@ ItemSet.prototype._order = function _order() {
   this.stack.orderByEnd(this.orderedItems.byEnd);
 };
 
+/**
+ * Create an array containing all items being a range (having an end date)
+ * @param array
+ * @returns {Array}
+ * @private
+ */
 ItemSet.prototype._constructByEndArray = function _constructByEndArray(array) {
   var endArray = [];
+
   for (var i = 0; i < array.length; i++) {
     if (array[i] instanceof ItemRange) {
       endArray.push(array[i]);
     }
   }
   return endArray;
+};
+
+/**
+ * Get the width of the group labels
+ * @return {Number} width
+ */
+ItemSet.prototype.getLabelsWidth = function getLabelsWidth() {
+  return this.props.labels.width;
+};
+
+/**
+ * Get the height of the itemsets background
+ * @return {Number} height
+ */
+ItemSet.prototype.getBackgroundHeight = function getBackgroundHeight() {
+  return this.height;
 };
 
 /**
@@ -5582,6 +5875,24 @@ ItemSet.itemFromTarget = function itemFromTarget (event) {
 };
 
 /**
+ * Find the Group from an event target:
+ * searches for the attribute 'timeline-group' in the event target's element tree
+ * @param {Event} event
+ * @return {Group | null} group
+ */
+ItemSet.groupFromTarget = function groupFromTarget (event) {
+  var target = event.target;
+  while (target) {
+    if (target.hasOwnProperty('timeline-group')) {
+      return target['timeline-group'];
+    }
+    target = target.parentNode;
+  }
+
+  return null;
+};
+
+/**
  * Find the ItemSet from an event target:
  * searches for the attribute 'timeline-itemset' in the event target's element tree
  * @param {Event} event
@@ -5614,15 +5925,15 @@ ItemSet.prototype._myDataSet = function _myDataSet() {
 };
 /**
  * @constructor Item
- * @param {ItemSet} parent
  * @param {Object} data             Object containing (optional) parameters type,
  *                                  start, end, content, group, className.
  * @param {Object} [options]        Options to set initial property values
  * @param {Object} [defaultOptions] default options
  *                                  // TODO: describe available options
  */
-function Item (parent, data, options, defaultOptions) {
-  this.parent = parent;
+function Item (data, options, defaultOptions) {
+  this.id = null;
+  this.parent = null;
   this.data = data;
   this.dom = null;
   this.options = options || {};
@@ -5652,6 +5963,33 @@ Item.prototype.select = function select() {
 Item.prototype.unselect = function unselect() {
   this.selected = false;
   if (this.displayed) this.repaint();
+};
+
+/**
+ * Set a parent for the item
+ * @param {ItemSet | Group} parent
+ */
+Item.prototype.setParent = function setParent(parent) {
+  if (this.displayed) {
+    this.hide();
+    this.parent = parent;
+    if (this.parent) {
+      this.show();
+    }
+  }
+  else {
+    this.parent = parent;
+  }
+};
+
+/**
+ * Check whether this item is visible inside given range
+ * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+ * @returns {boolean} True if visible
+ */
+Item.prototype.isVisible = function isVisible (range) {
+  // Should be implemented by Item implementations
+  return false;
 };
 
 /**
@@ -5694,7 +6032,7 @@ Item.prototype.repositionY = function repositionY() {
 /**
  * Repaint a delete button on the top right of the item when the item is selected
  * @param {HTMLElement} anchor
- * @private
+ * @protected
  */
 Item.prototype._repaintDeleteButton = function (anchor) {
   if (this.selected && this.options.editable && !this.dom.deleteButton) {
@@ -5728,14 +6066,13 @@ Item.prototype._repaintDeleteButton = function (anchor) {
 /**
  * @constructor ItemBox
  * @extends Item
- * @param {ItemSet} parent
  * @param {Object} data             Object containing parameters start
  *                                  content, className.
  * @param {Object} [options]        Options to set initial property values
  * @param {Object} [defaultOptions] default options
  *                                  // TODO: describe available options
  */
-function ItemBox (parent, data, options, defaultOptions) {
+function ItemBox (data, options, defaultOptions) {
   this.props = {
     dot: {
       width: 0,
@@ -5754,10 +6091,10 @@ function ItemBox (parent, data, options, defaultOptions) {
     }
   }
 
-  Item.call(this, parent, data, options, defaultOptions);
+  Item.call(this, data, options, defaultOptions);
 }
 
-ItemBox.prototype = new Item (null, null);
+ItemBox.prototype = new Item (null);
 
 /**
  * Check whether this item is visible inside given range
@@ -5943,13 +6280,13 @@ ItemBox.prototype.repositionY = function repositionY () {
 
     line.style.top = '0';
     line.style.bottom = '';
-    line.style.height = (this.parent.top + this.top + 1) + 'px';
+    line.style.height = (this.top + 1) + 'px';
   }
   else { // orientation 'bottom'
     box.style.top = '';
     box.style.bottom = (this.top || 0) + 'px';
 
-    line.style.top = (this.parent.top + this.parent.height - this.top - 1) + 'px';
+    line.style.top = (this.parent.getBackgroundHeight() - this.top - 1) + 'px';
     line.style.bottom = '0';
     line.style.height = '';
   }
@@ -5960,14 +6297,13 @@ ItemBox.prototype.repositionY = function repositionY () {
 /**
  * @constructor ItemPoint
  * @extends Item
- * @param {ItemSet} parent
  * @param {Object} data             Object containing parameters start
  *                                  content, className.
  * @param {Object} [options]        Options to set initial property values
  * @param {Object} [defaultOptions] default options
  *                                  // TODO: describe available options
  */
-function ItemPoint (parent, data, options, defaultOptions) {
+function ItemPoint (data, options, defaultOptions) {
   this.props = {
     dot: {
       top: 0,
@@ -5987,10 +6323,10 @@ function ItemPoint (parent, data, options, defaultOptions) {
     }
   }
 
-  Item.call(this, parent, data, options, defaultOptions);
+  Item.call(this, data, options, defaultOptions);
 }
 
-ItemPoint.prototype = new Item (null, null);
+ItemPoint.prototype = new Item (null);
 
 /**
  * Check whether this item is visible inside given range
@@ -5999,9 +6335,10 @@ ItemPoint.prototype = new Item (null, null);
  */
 ItemPoint.prototype.isVisible = function isVisible (range) {
   // determine visibility
-  var interval = (range.end - range.start);
-  return (this.data.start > range.start - interval) && (this.data.start < range.end);
-}
+  // TODO: account for the real width of the item. Right now we just add 1/4 to the window
+  var interval = (range.end - range.start) / 4;
+  return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
+};
 
 /**
  * Repaint the item
@@ -6151,14 +6488,13 @@ ItemPoint.prototype.repositionY = function repositionY () {
 /**
  * @constructor ItemRange
  * @extends Item
- * @param {ItemSet} parent
  * @param {Object} data             Object containing parameters start, end
  *                                  content, className.
  * @param {Object} [options]        Options to set initial property values
  * @param {Object} [defaultOptions] default options
  *                                  // TODO: describe available options
  */
-function ItemRange (parent, data, options, defaultOptions) {
+function ItemRange (data, options, defaultOptions) {
   this.props = {
     content: {
       width: 0
@@ -6175,10 +6511,10 @@ function ItemRange (parent, data, options, defaultOptions) {
     }
   }
 
-  Item.call(this, parent, data, options, defaultOptions);
+  Item.call(this, data, options, defaultOptions);
 }
 
-ItemRange.prototype = new Item (null, null);
+ItemRange.prototype = new Item (null);
 
 ItemRange.prototype.baseClassName = 'item range';
 
@@ -6355,7 +6691,7 @@ ItemRange.prototype.repositionY = function repositionY() {
 
 /**
  * Repaint a drag area on the left side of the range when the range is selected
- * @private
+ * @protected
  */
 ItemRange.prototype._repaintDragLeft = function () {
   if (this.selected && this.options.editable && !this.dom.dragLeft) {
@@ -6385,7 +6721,7 @@ ItemRange.prototype._repaintDragLeft = function () {
 
 /**
  * Repaint a drag area on the right side of the range when the range is selected
- * @private
+ * @protected
  */
 ItemRange.prototype._repaintDragRight = function () {
   if (this.selected && this.options.editable && !this.dom.dragRight) {
@@ -6416,14 +6752,13 @@ ItemRange.prototype._repaintDragRight = function () {
 /**
  * @constructor ItemRangeOverflow
  * @extends ItemRange
- * @param {ItemSet} parent
  * @param {Object} data             Object containing parameters start, end
  *                                  content, className.
  * @param {Object} [options]        Options to set initial property values
  * @param {Object} [defaultOptions] default options
  *                                  // TODO: describe available options
  */
-function ItemRangeOverflow (parent, data, options, defaultOptions) {
+function ItemRangeOverflow (data, options, defaultOptions) {
   this.props = {
     content: {
       left: 0,
@@ -6431,10 +6766,10 @@ function ItemRangeOverflow (parent, data, options, defaultOptions) {
     }
   };
 
-  ItemRange.call(this, parent, data, options, defaultOptions);
+  ItemRange.call(this, data, options, defaultOptions);
 }
 
-ItemRangeOverflow.prototype = new ItemRange (null, null);
+ItemRangeOverflow.prototype = new ItemRange (null);
 
 ItemRangeOverflow.prototype.baseClassName = 'item rangeoverflow';
 
@@ -6473,48 +6808,19 @@ ItemRangeOverflow.prototype.repositionX = function repositionX() {
 
 /**
  * @constructor Group
- * @param {Panel} groupPanel
- * @param {Panel} labelPanel
- * @param {Panel} backgroundPanel
- * @param {Panel} axisPanel
  * @param {Number | String} groupId
- * @param {Object} [options]  Options to set initial property values
- *                            // TODO: describe available options
- * @extends Component
+ * @param {ItemSet} itemSet
  */
-function Group (groupPanel, labelPanel, backgroundPanel, axisPanel, groupId, options) {
-  this.id = util.randomUUID();
-  this.groupPanel = groupPanel;
-  this.labelPanel = labelPanel;
-  this.backgroundPanel = backgroundPanel;
-  this.axisPanel = axisPanel;
-
+function Group (groupId, itemSet) {
   this.groupId = groupId;
-  this.itemSet = null;    // ItemSet
-  this.options = options || {};
-  this.options.top = 0;
 
-  this.props = {
-    label: {
-      width: 0,
-      height: 0
-    }
-  };
+  this.itemSet = itemSet;
 
   this.dom = {};
-
-  this.top = 0;
-  this.left = 0;
-  this.width = 0;
-  this.height = 0;
+  this.items = {}; // items filtered by groupId of this group
 
   this._create();
 }
-
-Group.prototype = new Component();
-
-// TODO: comment
-Group.prototype.setOptions = Component.prototype.setOptions;
 
 /**
  * Create DOM elements for the group
@@ -6529,161 +6835,120 @@ Group.prototype._create = function() {
   inner.className = 'inner';
   label.appendChild(inner);
   this.dom.inner = inner;
+
+  var foreground = document.createElement('div');
+  foreground.className = 'group';
+  foreground['timeline-group'] = this;
+  this.dom.foreground = foreground;
+
+  this.dom.background = document.createElement('div');
+
+  this.dom.axis = document.createElement('div');
 };
 
 /**
- * Set the group data for this group
- * @param {Object} data   Group data, can contain properties content and className
+ * Get the foreground container element
+ * @return {HTMLElement} foreground
  */
-Group.prototype.setData = function setData(data) {
-  // update contents
-  var content = data && data.content;
-  if (content instanceof Element) {
-    this.dom.inner.appendChild(content);
-  }
-  else if (content != undefined) {
-    this.dom.inner.innerHTML = content;
-  }
-  else {
-    this.dom.inner.innerHTML = this.groupId;
-  }
-
-  // update className
-  var className = data && data.className;
-  if (className) {
-    util.addClassName(this.dom.label, className);
-  }
+Group.prototype.getForeground = function getForeground() {
+  return this.dom.foreground;
 };
 
 /**
- * Set item set for the group. The group will create a view on the itemSet,
- * filtered by the groups id.
- * @param {DataSet | DataView} itemsData
+ * Get the background container element
+ * @return {HTMLElement} background
  */
-Group.prototype.setItems = function setItems(itemsData) {
-  if (this.itemSet) {
-    // remove current item set
-    this.itemSet.setItems();
-    this.itemSet.hide();
-    this.groupPanel.frame.removeChild(this.itemSet.getFrame());
-    this.itemSet = null;
-  }
-
-  if (itemsData) {
-    var groupId = this.groupId;
-
-    var me = this;
-    var itemSetOptions = util.extend(this.options, {
-      height: function () {
-        // FIXME: setting height doesn't yet work
-        return Math.max(me.props.label.height, me.itemSet.height);
-      }
-    });
-    this.itemSet = new ItemSet(this.backgroundPanel, this.axisPanel, itemSetOptions);
-    this.itemSet.on('change', this.emit.bind(this, 'change')); // propagate change event
-    this.itemSet.parent = this;
-    this.groupPanel.frame.appendChild(this.itemSet.getFrame());
-
-    if (this.range) this.itemSet.setRange(this.range);
-
-    this.view = new DataView(itemsData, {
-      filter: function (item) {
-        return item.group == groupId;
-      }
-    });
-    this.itemSet.setItems(this.view);
-  }
+Group.prototype.getBackground = function getBackground() {
+  return this.dom.background;
 };
 
 /**
- * hide the group, detach from DOM if needed
+ * Get the axis container element
+ * @return {HTMLElement} axis
+ */
+Group.prototype.getAxis = function getAxis() {
+  return this.dom.axis;
+};
+
+/**
+ * Get the height of the itemsets background
+ * @return {Number} height
+ */
+Group.prototype.getBackgroundHeight = function getBackgroundHeight() {
+  return this.itemSet.height;
+};
+
+/**
+ * Repaint this group
+ */
+Group.prototype.repaint = function repaint() {
+  // TODO: implement Group.repaint
+};
+
+/**
+ * Show this group: attach to the DOM
  */
 Group.prototype.show = function show() {
   if (!this.dom.label.parentNode) {
-    this.labelPanel.frame.appendChild(this.dom.label);
+    this.itemSet.getLabelSet().appendChild(this.dom.label);
   }
 
-  var itemSetFrame = this.itemSet && this.itemSet.getFrame();
-  if (itemSetFrame) {
-    if (itemSetFrame.parentNode) {
-      itemSetFrame.parentNode.removeChild(itemSetFrame);
-    }
-    this.groupPanel.frame.appendChild(itemSetFrame);
+  if (!this.dom.foreground.parentNode) {
+    this.itemSet.getForeground().appendChild(this.dom.foreground);
+  }
 
-    this.itemSet.show();
+  if (!this.dom.background.parentNode) {
+    this.itemSet.getBackground().appendChild(this.dom.background);
+  }
+
+  if (!this.dom.axis.parentNode) {
+    this.itemSet.getAxis().appendChild(this.dom.axis);
   }
 };
 
 /**
- * hide the group, detach from DOM if needed
+ * Hide this group: remove from the DOM
  */
 Group.prototype.hide = function hide() {
-  if (this.dom.label.parentNode) {
-    this.dom.label.parentNode.removeChild(this.dom.label);
+  var label = this.dom.label;
+  if (label.parentNode) {
+    label.parentNode.removeChild(label);
   }
 
-  if (this.itemSet) {
-    this.itemSet.hide();
+  var foreground = this.dom.foreground;
+  if (foreground.parentNode) {
+    foreground.parentNode.removeChild(foreground);
   }
 
-  var itemSetFrame = this.itemset && this.itemSet.getFrame();
-  if (itemSetFrame && itemSetFrame.parentNode) {
-    itemSetFrame.parentNode.removeChild(itemSetFrame);
+  var background = this.dom.background;
+  if (background.parentNode) {
+    background.parentNode.removeChild(background);
+  }
+
+  var axis = this.dom.axis;
+  if (axis.parentNode) {
+    axis.parentNode.removeChild(axis);
   }
 };
 
 /**
- * Set range (start and end).
- * @param {Range | Object} range  A Range or an object containing start and end.
+ * Add an item to the group
+ * @param {Item} item
  */
-Group.prototype.setRange = function (range) {
-  this.range = range;
-
-  if (this.itemSet) this.itemSet.setRange(range);
+Group.prototype.add = function add(item) {
+  this.items[item.id] = item;
+  item.setParent(this);
 };
 
 /**
- * Set selected items by their id. Replaces the current selection.
- * Unknown id's are silently ignored.
- * @param {Array} [ids] An array with zero or more id's of the items to be
- *                      selected. If ids is an empty array, all items will be
- *                      unselected.
+ * Remove an item from the group
+ * @param {Item} item
  */
-Group.prototype.setSelection = function setSelection(ids) {
-  if (this.itemSet) this.itemSet.setSelection(ids);
+Group.prototype.remove = function remove(item) {
+  delete this.items[item.id];
+  item.setParent(this.itemSet);
 };
 
-/**
- * Get the selected items by their id
- * @return {Array} ids  The ids of the selected items
- */
-Group.prototype.getSelection = function getSelection() {
-  return this.itemSet ? this.itemSet.getSelection() : [];
-};
-
-/**
- * Repaint the group
- * @return {boolean} Returns true if the component is resized
- */
-Group.prototype.repaint = function repaint() {
-  var resized = false;
-
-  this.show();
-
-  if (this.itemSet) {
-    resized = this.itemSet.repaint() || resized;
-  }
-
-  // calculate inner size of the label
-  resized = util.updateProperty(this.props.label, 'width', this.dom.inner.clientWidth) || resized;
-  resized = util.updateProperty(this.props.label, 'height', this.dom.inner.clientHeight) || resized;
-
-  this.height = this.itemSet ? this.itemSet.height : 0;
-
-  this.dom.label.style.height = this.height + 'px';
-
-  return resized;
-};
 
 /**
  * An GroupSet holds a set of groups
@@ -7246,8 +7511,8 @@ function Timeline (container, items, options) {
     right: null,
     height: '100%',
     width: function () {
-      if (me.groupSet) {
-        return me.groupSet.getLabelsWidth();
+      if (me.itemSet) {
+        return me.itemSet.getLabelsWidth();
       }
       else {
         return 0;
@@ -7389,11 +7654,19 @@ function Timeline (container, items, options) {
     me.emit('timechanged', time);
   });
 
-  this.itemSet = null;
-  this.groupSet = null;
-
-  // create groupset
-  this.setGroups(null);
+  // itemset containing items and groups
+  var itemOptions = util.extend(Object.create(this.options), {
+    left: null,
+    right: null,
+    top: null,
+    bottom: null,
+    width: null,
+    height: null
+  });
+  this.itemSet = new ItemSet(this.backgroundPanel, this.axisPanel, this.sideContentPanel, itemOptions);
+  this.itemSet.setRange(this.range);
+  this.itemSet.on('change', me.rootPanel.repaint.bind(me.rootPanel));
+  this.contentPanel.appendChild(this.itemSet);
 
   this.itemsData = null;      // DataSet
   this.groupsData = null;     // DataSet
@@ -7403,7 +7676,7 @@ function Timeline (container, items, options) {
     this.setOptions(options);
   }
 
-  // create itemset and groupset
+  // create itemset
   if (items) {
     this.setItems(items);
   }
@@ -7513,22 +7786,22 @@ Timeline.prototype.setItems = function(items) {
   if (!items) {
     newDataSet = null;
   }
-  else if (items instanceof DataSet) {
+  else if (items instanceof DataSet || items instanceof DataView) {
     newDataSet = items;
   }
-  if (!(items instanceof DataSet)) {
-    newDataSet = new DataSet({
+  else {
+    // turn an array into a dataset
+    newDataSet = new DataSet(items, {
       convert: {
         start: 'Date',
         end: 'Date'
       }
     });
-    newDataSet.add(items);
   }
 
   // set items
   this.itemsData = newDataSet;
-  (this.itemSet || this.groupSet).setItems(newDataSet);
+  this.itemSet.setItems(newDataSet);
 
   if (initialLoad && (this.options.start == undefined || this.options.end == undefined)) {
     // apply the data range as range
@@ -7577,63 +7850,24 @@ Timeline.prototype.setItems = function(items) {
 
 /**
  * Set groups
- * @param {vis.DataSet | Array | google.visualization.DataTable} groupSet
+ * @param {vis.DataSet | Array | google.visualization.DataTable} groups
  */
-Timeline.prototype.setGroups = function(groupSet) {
-  var me = this;
-  this.groupsData = groupSet;
-
-  // create options for the itemset or groupset
-  var options = util.extend(Object.create(this.options), {
-    top: null,
-    bottom: null,
-    right: null,
-    left: null,
-    width: null,
-    height: null
-  });
-
-  if (this.groupsData) {
-    // Create a GroupSet
-
-    // remove itemset if existing
-    if (this.itemSet) {
-      this.itemSet.hide(); // TODO: not so nice having to hide here
-      this.contentPanel.removeChild(this.itemSet);
-      this.itemSet.setItems(); // disconnect from itemset
-      this.itemSet = null;
-    }
-
-    // create new GroupSet when needed
-    if (!this.groupSet) {
-      this.groupSet = new GroupSet(this.contentPanel, this.sideContentPanel, this.backgroundPanel, this.axisPanel, options);
-      this.groupSet.on('change', this.rootPanel.repaint.bind(this.rootPanel));
-      this.groupSet.setRange(this.range);
-      this.groupSet.setItems(this.itemsData);
-      this.groupSet.setGroups(this.groupsData);
-      this.contentPanel.appendChild(this.groupSet);
-    }
-    else {
-      this.groupSet.setGroups(this.groupsData);
-    }
+Timeline.prototype.setGroups = function(groups) {
+  // convert to type DataSet when needed
+  var newDataSet;
+  if (!groups) {
+    newDataSet = null;
+  }
+  else if (groups instanceof DataSet || groups instanceof DataView) {
+    newDataSet = groups;
   }
   else {
-    // ItemSet
-    if (this.groupSet) {
-      this.groupSet.hide(); // TODO: not so nice having to hide here
-      //this.groupSet.setGroups();  // disconnect from groupset
-      this.groupSet.setItems();   // disconnect from itemset
-      this.contentPanel.removeChild(this.groupSet);
-      this.groupSet = null;
-    }
-
-    // create new items
-    this.itemSet = new ItemSet(this.backgroundPanel, this.axisPanel, options);
-    this.itemSet.setRange(this.range);
-    this.itemSet.setItems(this.itemsData);
-    this.itemSet.on('change', me.rootPanel.repaint.bind(me.rootPanel));
-    this.contentPanel.appendChild(this.itemSet);
+    // turn an array into a dataset
+    newDataSet = new DataSet(groups);
   }
+
+  this.groupsData = newDataSet;
+  this.itemSet.setGroups(newDataSet);
 };
 
 /**
@@ -7683,9 +7917,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
  *                      unselected.
  */
 Timeline.prototype.setSelection = function setSelection (ids) {
-  var itemOrGroupSet = (this.itemSet || this.groupSet);
-
-  if (itemOrGroupSet) itemOrGroupSet.setSelection(ids);
+  this.itemSet.setSelection(ids);
 };
 
 /**
@@ -7693,9 +7925,7 @@ Timeline.prototype.setSelection = function setSelection (ids) {
  * @return {Array} ids  The ids of the selected items
  */
 Timeline.prototype.getSelection = function getSelection() {
-  var itemOrGroupSet = (this.itemSet || this.groupSet);
-
-  return itemOrGroupSet ? itemOrGroupSet.getSelection() : [];
+  return this.itemSet.getSelection();
 };
 
 /**
@@ -7802,7 +8032,7 @@ Timeline.prototype._onAddItem = function (event) {
     var id = util.randomUUID();
     newItem[this.itemsData.fieldId] = id;
 
-    var group = GroupSet.groupFromTarget(event);
+    var group = ItemSet.groupFromTarget(event);
     if (group) {
       newItem.group = group.groupId;
     }

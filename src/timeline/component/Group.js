@@ -74,7 +74,7 @@ Group.prototype.getBackgroundHeight = function getBackgroundHeight() {
  * Repaint this group
  */
 Group.prototype.repaint = function repaint() {
-
+  // TODO: implement Group.repaint
 };
 
 /**
@@ -102,20 +102,24 @@ Group.prototype.show = function show() {
  * Hide this group: remove from the DOM
  */
 Group.prototype.hide = function hide() {
-  if (this.dom.label.parentNode) {
-    this.dom.label.parentNode.removeChild(this.dom.label);
+  var label = this.dom.label;
+  if (label.parentNode) {
+    label.parentNode.removeChild(label);
   }
 
-  if (this.dom.foreground.parentNode) {
-    this.dom.foreground.parentNode.removeChild(this.dom.foreground);
+  var foreground = this.dom.foreground;
+  if (foreground.parentNode) {
+    foreground.parentNode.removeChild(foreground);
   }
 
-  if (this.dom.background.parentNode) {
-    this.dom.background.parentNode.removeChild(this.dom.background);
+  var background = this.dom.background;
+  if (background.parentNode) {
+    background.parentNode.removeChild(background);
   }
 
-  if (this.dom.axis.parentNode) {
-    this.dom.axis.parentNode.removeChild(this.dom.axis);
+  var axis = this.dom.axis;
+  if (axis.parentNode) {
+    axis.parentNode.removeChild(axis);
   }
 };
 
