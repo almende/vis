@@ -6,17 +6,19 @@
  *                                vertical lines of box items.
  * @param {Panel} axisPanel       Panel on the axis where the dots of box-items
  *                                can be displayed.
+ * @param {Panel} labelPanel      Left side panel holding labels
  * @param {Object} [options]      See ItemSet.setOptions for the available options.
  * @constructor ItemSet
  * @extends Panel
  */
-function ItemSet(backgroundPanel, axisPanel, options) {
+function ItemSet(backgroundPanel, axisPanel, labelPanel, options) {
   this.id = util.randomUUID();
 
   // one options object is shared by this itemset and all its items
   this.options = options || {};
   this.backgroundPanel = backgroundPanel;
   this.axisPanel = axisPanel;
+  this.labelPanel = labelPanel;
   this.itemOptions = Object.create(this.options);
   this.dom = {};
   this.props = {
@@ -377,7 +379,9 @@ ItemSet.prototype.repaint = function repaint() {
       asString = util.option.asString,
       options = this.options,
       orientation = this.getOption('orientation'),
-      frame = this.frame;
+      frame = this.frame,
+      initialPosByStart,
+      i, ii;
 
   // update className
   frame.className = 'itemset' + (options.className ? (' ' + asString(options.className)) : '');
@@ -395,35 +399,39 @@ ItemSet.prototype.repaint = function repaint() {
   // first check if the items that were in view previously are still in view.
   // this handles the case for the ItemRange that is both before and after the current one.
   if (this.visibleItems.length > 0) {
-    for (var i = 0; i < this.visibleItems.length; i++) {
+    for (i = 0; i < this.visibleItems.length; i++) {
       this._checkIfVisible(this.visibleItems[i], newVisibleItems);
     }
   }
   this.visibleItems = newVisibleItems;
 
   // If there were no visible items previously, use binarySearch to find a visible ItemPoint or ItemRange (based on startTime)
-  if (this.visibleItems.length == 0) {var initialPosByStart = this._binarySearch(false);}
-  else                               {var initialPosByStart = orderedItems.byStart.indexOf(this.visibleItems[0]);}
+  if (this.visibleItems.length == 0) {
+    initialPosByStart = this._binarySearch(false);
+  }
+  else {
+    initialPosByStart = orderedItems.byStart.indexOf(this.visibleItems[0]);
+  }
 
   // use visible search to find a visible ItemRange (only based on endTime)
   var initialPosByEnd = this._binarySearch(true);
 
   // if we found a initial ID to use, trace it up and down until we meet an invisible item.
   if (initialPosByStart != -1) {
-    for (var i = initialPosByStart; i >= 0; i--) {
+    for (i = initialPosByStart; i >= 0; i--) {
       if (this._checkIfInvisible(orderedItems.byStart[i])) {break;}
     }
-    for (var i = initialPosByStart + 1; i < orderedItems.byStart.length; i++) {
+    for (i = initialPosByStart + 1; i < orderedItems.byStart.length; i++) {
       if (this._checkIfInvisible(orderedItems.byStart[i])) {break;}
     }
   }
 
   // if we found a initial ID to use, trace it up and down until we meet an invisible item.
   if (initialPosByEnd != -1) {
-    for (var i = initialPosByEnd; i >= 0; i--) {
+    for (i = initialPosByEnd; i >= 0; i--) {
       if (this._checkIfInvisible(orderedItems.byEnd[i])) {break;}
     }
-    for (var i = initialPosByEnd + 1; i < orderedItems.byEnd.length; i++) {
+    for (i = initialPosByEnd + 1; i < orderedItems.byEnd.length; i++) {
       if (this._checkIfInvisible(orderedItems.byEnd[i])) {break;}
     }
   }
@@ -433,7 +441,7 @@ ItemSet.prototype.repaint = function repaint() {
   var force = this.stackDirty || zoomed; // force re-stacking of all items if true
   this.stack.stack(this.visibleItems, force);
   this.stackDirty = false;
-  for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
+  for (i = 0, ii = this.visibleItems.length; i < ii; i++) {
     this.visibleItems[i].repositionY();
   }
 
@@ -505,6 +513,14 @@ ItemSet.prototype.getBackground = function getBackground() {
  */
 ItemSet.prototype.getAxis = function getAxis() {
   return this.dom.axis;
+};
+
+/**
+ * Get the element for the labelset
+ * @return {HTMLElement} labelSet
+ */
+ItemSet.prototype.getLabelSet = function getLabelSet() {
+  return this.labelPanel.frame;
 };
 
 /**
@@ -596,7 +612,7 @@ ItemSet.prototype.setGroups = function setGroups(groups) {
       me.groupsData.on(event, callback, id);
     });
 
-    // draw all new groups
+    // draw all ms
     ids = this.groupsData.getIds();
     this._onAddGroups(ids);
   }
@@ -742,7 +758,7 @@ ItemSet.prototype._onAddGroups = function _onAddGroups(ids) {
         height: null
       });
 
-      group = new Group(id);
+      group = new Group(id, me, me.dom.background, me.dom.axis, me.labelPanel.frame);
       me.groups[id] = group;
 
       // add items with this groupId to the new group
@@ -754,6 +770,8 @@ ItemSet.prototype._onAddGroups = function _onAddGroups(ids) {
           }
         }
       }
+
+      group.show();
     }
   });
 
@@ -771,10 +789,7 @@ ItemSet.prototype._onRemoveGroups = function _onRemoveGroups(ids) {
     var group = groups[id];
 
     if (group) {
-      /* TODO
-      group.setItems(); // detach items data
-      group.hide(); // FIXME: for some reason when doing setItems after hide, setItems again makes the label visible
-      */
+      group.hide();
       delete groups[id];
     }
   });
@@ -904,6 +919,14 @@ ItemSet.prototype._constructByEndArray = function _constructByEndArray(array) {
  */
 ItemSet.prototype.getLabelsWidth = function getLabelsWidth() {
   return this.props.labels.width;
+};
+
+/**
+ * Get the height of the itemsets background
+ * @return {Number} height
+ */
+ItemSet.prototype.getBackgroundHeight = function getBackgroundHeight() {
+  return this.height;
 };
 
 /**
@@ -1073,7 +1096,13 @@ ItemSet.itemFromTarget = function itemFromTarget (event) {
  * @return {Group | null} group
  */
 ItemSet.groupFromTarget = function groupFromTarget (event) {
-  // TODO: implement groupFromTarget
+  var target = event.target;
+  while (target) {
+    if (target.hasOwnProperty('timeline-group')) {
+      return target['timeline-group'];
+    }
+    target = target.parentNode;
+  }
 
   return null;
 };

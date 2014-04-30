@@ -216,13 +216,13 @@ ItemBox.prototype.repositionY = function repositionY () {
 
     line.style.top = '0';
     line.style.bottom = '';
-    line.style.height = (this.parent.top + this.top + 1) + 'px';
+    line.style.height = (this.top + 1) + 'px';
   }
   else { // orientation 'bottom'
     box.style.top = '';
     box.style.bottom = (this.top || 0) + 'px';
 
-    line.style.top = (this.parent.top + this.parent.height - this.top - 1) + 'px';
+    line.style.top = (this.parent.getBackgroundHeight() - this.top - 1) + 'px';
     line.style.bottom = '0';
     line.style.height = '';
   }

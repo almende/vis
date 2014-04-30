@@ -245,7 +245,7 @@ function Timeline (container, items, options) {
     width: null,
     height: null
   });
-  this.itemSet = new ItemSet(this.backgroundPanel, this.axisPanel, itemOptions);
+  this.itemSet = new ItemSet(this.backgroundPanel, this.axisPanel, this.sideContentPanel, itemOptions);
   this.itemSet.setRange(this.range);
   this.itemSet.on('change', me.rootPanel.repaint.bind(me.rootPanel));
   this.contentPanel.appendChild(this.itemSet);

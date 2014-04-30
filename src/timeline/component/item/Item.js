@@ -1,6 +1,6 @@
 /**
  * @constructor Item
- * @param {ItemSet} parent
+ * @param {ItemSet | Group} parent
  * @param {Object} data             Object containing (optional) parameters type,
  *                                  start, end, content, group, className.
  * @param {Object} [options]        Options to set initial property values
@@ -39,6 +39,23 @@ Item.prototype.select = function select() {
 Item.prototype.unselect = function unselect() {
   this.selected = false;
   if (this.displayed) this.repaint();
+};
+
+/**
+ * Set a parent for the item
+ * @param {ItemSet | Group} parent
+ */
+Item.prototype.setParent = function setParent(parent) {
+  if (this.displayed) {
+    this.hide();
+    this.parent = parent;
+    if (this.parent) {
+      this.show();
+    }
+  }
+  else {
+    this.parent = parent;
+  }
 };
 
 /**
