@@ -28,10 +28,14 @@ Group.prototype._create = function() {
   label.appendChild(inner);
   this.dom.inner = inner;
 
-  var group = document.createElement('div');
-  group.className = 'group';
-  group['timeline-group'] = this;
-  this.dom.group = group;
+  var foreground = document.createElement('div');
+  foreground.className = 'group';
+  foreground['timeline-group'] = this;
+  this.dom.foreground = foreground;
+
+  this.dom.background = document.createElement('div');
+
+  this.dom.axis = document.createElement('div');
 };
 
 /**
@@ -39,7 +43,7 @@ Group.prototype._create = function() {
  * @return {HTMLElement} foreground
  */
 Group.prototype.getForeground = function getForeground() {
-  return this.dom.group;
+  return this.dom.foreground;
 };
 
 /**
@@ -47,7 +51,7 @@ Group.prototype.getForeground = function getForeground() {
  * @return {HTMLElement} background
  */
 Group.prototype.getBackground = function getBackground() {
-  return this.itemSet.getBackground();
+  return this.dom.background;
 };
 
 /**
@@ -55,7 +59,7 @@ Group.prototype.getBackground = function getBackground() {
  * @return {HTMLElement} axis
  */
 Group.prototype.getAxis = function getAxis() {
-  return this.itemSet.getAxis();
+  return this.dom.axis;
 };
 
 /**
@@ -81,8 +85,16 @@ Group.prototype.show = function show() {
     this.itemSet.getLabelSet().appendChild(this.dom.label);
   }
 
-  if (!this.dom.group.parentNode) {
-    this.itemSet.getForeground().appendChild(this.dom.group);
+  if (!this.dom.foreground.parentNode) {
+    this.itemSet.getForeground().appendChild(this.dom.foreground);
+  }
+
+  if (!this.dom.background.parentNode) {
+    this.itemSet.getBackground().appendChild(this.dom.background);
+  }
+
+  if (!this.dom.axis.parentNode) {
+    this.itemSet.getAxis().appendChild(this.dom.axis);
   }
 };
 
@@ -94,8 +106,16 @@ Group.prototype.hide = function hide() {
     this.dom.label.parentNode.removeChild(this.dom.label);
   }
 
-  if (this.dom.group.parentNode) {
-    this.dom.group.parentNode.removeChild(this.dom.group);
+  if (this.dom.foreground.parentNode) {
+    this.dom.foreground.parentNode.removeChild(this.dom.foreground);
+  }
+
+  if (this.dom.background.parentNode) {
+    this.dom.background.parentNode.removeChild(this.dom.background);
+  }
+
+  if (this.dom.axis.parentNode) {
+    this.dom.axis.parentNode.removeChild(this.dom.axis);
   }
 };
 
