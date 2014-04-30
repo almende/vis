@@ -273,17 +273,19 @@ ItemSet.prototype.getFrame = function getFrame() {
  * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
  * either the start OR end time has to be in the range.
  *
+ * @param {{byStart: Item[], byEnd: Item[]}} orderedItems
+ * @param {{start: number, end: number}} range
  * @param {Boolean} byEnd
  * @returns {number}
  * @private
  */
-ItemSet.prototype._binarySearch = function _binarySearch(byEnd) {
-  var array = []
+ItemSet.prototype._binarySearch = function _binarySearch(orderedItems, range, byEnd) {
+  var array = [];
   var byTime = byEnd ? "end" : "start";
-  if (byEnd == true) {array = this.orderedItems.byEnd;  }
-  else               {array = this.orderedItems.byStart;}
+  if (byEnd == true) {array = orderedItems.byEnd;  }
+  else               {array = orderedItems.byStart;}
 
-  var interval = this.range.end - this.range.start;
+  var interval = range.end - range.start;
 
   var found = false;
   var low = 0;
@@ -293,7 +295,7 @@ ItemSet.prototype._binarySearch = function _binarySearch(byEnd) {
 
   if (high == 0) {guess = -1;}
   else if (high == 1) {
-    if ((array[guess].data[byTime] > this.range.start - interval) && (array[guess].data[byTime] < this.range.end)) {
+    if ((array[guess].data[byTime] > range.start - interval) && (array[guess].data[byTime] < range.end)) {
       guess =  0;
     }
     else {
@@ -303,11 +305,11 @@ ItemSet.prototype._binarySearch = function _binarySearch(byEnd) {
   else {
     high -= 1;
     while (found == false) {
-      if ((array[guess].data[byTime] > this.range.start - interval) && (array[guess].data[byTime] < this.range.end)) {
+      if ((array[guess].data[byTime] > range.start - interval) && (array[guess].data[byTime] < range.end)) {
         found = true;
       }
       else {
-        if (array[guess].data[byTime] < this.range.start - interval) { // it is too small --> increase low
+        if (array[guess].data[byTime] < range.start - interval) { // it is too small --> increase low
           low = Math.floor(0.5*(high+low));
         }
         else {  // it is too big --> decrease high
@@ -326,21 +328,22 @@ ItemSet.prototype._binarySearch = function _binarySearch(byEnd) {
     }
   }
   return guess;
-}
+};
 
 /**
  * this function checks if an item is invisible. If it is NOT we make it visible and add it to the global visible items. If it is, return true.
  *
- * @param {itemRange | itemPoint | itemBox} item
+ * @param {Item} item
+ * @param {Item[]} visibleItems
  * @returns {boolean}
  * @private
  */
-ItemSet.prototype._checkIfInvisible = function _checkIfInvisible(item) {
+ItemSet.prototype._checkIfInvisible = function _checkIfInvisible(item, visibleItems) {
   if (item.isVisible(this.range)) {
     if (!item.displayed) item.show();
     item.repositionX();
-    if (this.visibleItems.indexOf(item) == -1) {
-      this.visibleItems.push(item);
+    if (visibleItems.indexOf(item) == -1) {
+      visibleItems.push(item);
     }
     return false;
   }
@@ -355,7 +358,7 @@ ItemSet.prototype._checkIfInvisible = function _checkIfInvisible(item) {
  * this one is for brute forcing and hiding.
  *
  * @param {Item} item
- * @param {array} visibleItems
+ * @param {Array} visibleItems
  * @private
  */
 ItemSet.prototype._checkIfVisible = function _checkIfVisible(item, visibleItems) {
@@ -392,51 +395,9 @@ ItemSet.prototype.repaint = function repaint() {
   this.lastVisibleInterval = visibleInterval;
   this.lastWidth = this.width;
 
-  var newVisibleItems = [];
-  var item;
-  var orderedItems = this.orderedItems;
+  this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, this.range);
 
-  // first check if the items that were in view previously are still in view.
-  // this handles the case for the ItemRange that is both before and after the current one.
-  if (this.visibleItems.length > 0) {
-    for (i = 0; i < this.visibleItems.length; i++) {
-      this._checkIfVisible(this.visibleItems[i], newVisibleItems);
-    }
-  }
-  this.visibleItems = newVisibleItems;
-
-  // If there were no visible items previously, use binarySearch to find a visible ItemPoint or ItemRange (based on startTime)
-  if (this.visibleItems.length == 0) {
-    initialPosByStart = this._binarySearch(false);
-  }
-  else {
-    initialPosByStart = orderedItems.byStart.indexOf(this.visibleItems[0]);
-  }
-
-  // use visible search to find a visible ItemRange (only based on endTime)
-  var initialPosByEnd = this._binarySearch(true);
-
-  // if we found a initial ID to use, trace it up and down until we meet an invisible item.
-  if (initialPosByStart != -1) {
-    for (i = initialPosByStart; i >= 0; i--) {
-      if (this._checkIfInvisible(orderedItems.byStart[i])) {break;}
-    }
-    for (i = initialPosByStart + 1; i < orderedItems.byStart.length; i++) {
-      if (this._checkIfInvisible(orderedItems.byStart[i])) {break;}
-    }
-  }
-
-  // if we found a initial ID to use, trace it up and down until we meet an invisible item.
-  if (initialPosByEnd != -1) {
-    for (i = initialPosByEnd; i >= 0; i--) {
-      if (this._checkIfInvisible(orderedItems.byEnd[i])) {break;}
-    }
-    for (i = initialPosByEnd + 1; i < orderedItems.byEnd.length; i++) {
-      if (this._checkIfInvisible(orderedItems.byEnd[i])) {break;}
-    }
-  }
-
-  // reposition visible items vertically
+  // reposition visible items vertically.
   //this.stack.order(this.visibleItems); // TODO: improve ordering
   var force = this.stackDirty || zoomed; // force re-stacking of all items if true
   this.stack.stack(this.visibleItems, force);
@@ -489,6 +450,61 @@ ItemSet.prototype.repaint = function repaint() {
   this.dom.axis.style.bottom = asSize((orientation == 'top') ? '' : '0');
 
   return this._isResized();
+};
+
+/**
+ * Update the visible items
+ * @param {{byStart: Item[], byEnd: Item[]}} orderedItems   All items ordered by start date and by end date
+ * @param {Item[]} visibleItems                             The previously visible items.
+ * @param {{start: number, end: number}} range              Visible range
+ * @return {Item[]} visibleItems                            The new visible items.
+ * @private
+ */
+ItemSet.prototype._updateVisibleItems = function _updateVisibleItems(orderedItems, visibleItems, range) {
+  var initialPosByStart,
+      newVisibleItems = [],
+      i;
+
+  // first check if the items that were in view previously are still in view.
+  // this handles the case for the ItemRange that is both before and after the current one.
+  if (visibleItems.length > 0) {
+    for (i = 0; i < visibleItems.length; i++) {
+      this._checkIfVisible(visibleItems[i], newVisibleItems);
+    }
+  }
+
+  // If there were no visible items previously, use binarySearch to find a visible ItemPoint or ItemRange (based on startTime)
+  if (newVisibleItems.length == 0) {
+    initialPosByStart = this._binarySearch(orderedItems, range, false);
+  }
+  else {
+    initialPosByStart = orderedItems.byStart.indexOf(newVisibleItems[0]);
+  }
+
+  // use visible search to find a visible ItemRange (only based on endTime)
+  var initialPosByEnd = this._binarySearch(orderedItems, range, true);
+
+  // if we found a initial ID to use, trace it up and down until we meet an invisible item.
+  if (initialPosByStart != -1) {
+    for (i = initialPosByStart; i >= 0; i--) {
+      if (this._checkIfInvisible(orderedItems.byStart[i], newVisibleItems)) {break;}
+    }
+    for (i = initialPosByStart + 1; i < orderedItems.byStart.length; i++) {
+      if (this._checkIfInvisible(orderedItems.byStart[i], newVisibleItems)) {break;}
+    }
+  }
+
+  // if we found a initial ID to use, trace it up and down until we meet an invisible item.
+  if (initialPosByEnd != -1) {
+    for (i = initialPosByEnd; i >= 0; i--) {
+      if (this._checkIfInvisible(orderedItems.byEnd[i], newVisibleItems)) {break;}
+    }
+    for (i = initialPosByEnd + 1; i < orderedItems.byEnd.length; i++) {
+      if (this._checkIfInvisible(orderedItems.byEnd[i], newVisibleItems)) {break;}
+    }
+  }
+
+  return newVisibleItems;
 };
 
 /**

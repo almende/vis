@@ -40,9 +40,10 @@ ItemPoint.prototype = new Item (null, null);
  */
 ItemPoint.prototype.isVisible = function isVisible (range) {
   // determine visibility
-  var interval = (range.end - range.start);
-  return (this.data.start > range.start - interval) && (this.data.start < range.end);
-}
+  // TODO: account for the real width of the item. Right now we just add 1/4 to the window
+  var interval = (range.end - range.start) / 4;
+  return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
+};
 
 /**
  * Repaint the item

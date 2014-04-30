@@ -59,6 +59,16 @@ Item.prototype.setParent = function setParent(parent) {
 };
 
 /**
+ * Check whether this item is visible inside given range
+ * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+ * @returns {boolean} True if visible
+ */
+Item.prototype.isVisible = function isVisible (range) {
+  // Should be implemented by Item implementations
+  return false;
+};
+
+/**
  * Show the Item in the DOM (when not already visible)
  * @return {Boolean} changed
  */

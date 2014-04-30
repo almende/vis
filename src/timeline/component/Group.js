@@ -67,6 +67,13 @@ Group.prototype.getBackgroundHeight = function getBackgroundHeight() {
 };
 
 /**
+ * Repaint this group
+ */
+Group.prototype.repaint = function repaint() {
+
+};
+
+/**
  * Show this group: attach to the DOM
  */
 Group.prototype.show = function show() {
