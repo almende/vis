@@ -74,7 +74,7 @@ Component.prototype.repaint = function repaint() {
  * Test whether the component is resized since the last time _isResized() was
  * called.
  * @return {Boolean} Returns true if the component is resized
- * @private
+ * @protected
  */
 Component.prototype._isResized = function _isResized() {
   var resized = (this._previousWidth !== this.width || this._previousHeight !== this.height);

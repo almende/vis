@@ -92,7 +92,6 @@ Stack.prototype.orderByEnd = function orderByEnd(items) {
  * @param {boolean} [force=false] If true, all items will be re-stacked.
  *                                If false (default), only items having a
  *                                top===null will be re-stacked
- * @private
  */
 Stack.prototype.stack = function stack (items, force) {
   var i,
@@ -152,8 +151,8 @@ Stack.prototype.stack = function stack (items, force) {
 /**
  * Test if the two provided items collide
  * The items must have parameters left, width, top, and height.
- * @param {Component} a     The first item
- * @param {Component} b     The second item
+ * @param {Item} a          The first item
+ * @param {Item} b          The second item
  * @param {Number} margin   A minimum required margin.
  *                          If margin is provided, the two items will be
  *                          marked colliding when they overlap or

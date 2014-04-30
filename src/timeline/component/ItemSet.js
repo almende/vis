@@ -67,6 +67,7 @@ function ItemSet(backgroundPanel, axisPanel, labelPanel, options) {
 
   this.groups = {}; // Group object for every group
   this.groupIds = [];
+  this.ungrouped = null; // Group holding all ungrouped items (yeah, funny right?), used when there are no groups
 
   this.visibleItems = []; // visible, ordered items
   this.selection = [];  // list with the ids of all selected nodes
@@ -383,7 +384,6 @@ ItemSet.prototype.repaint = function repaint() {
       options = this.options,
       orientation = this.getOption('orientation'),
       frame = this.frame,
-      initialPosByStart,
       i, ii;
 
   // update className
@@ -508,6 +508,36 @@ ItemSet.prototype._updateVisibleItems = function _updateVisibleItems(orderedItem
 };
 
 /**
+ * Create or delete the group holding all ungrouped items. This group is used when
+ * there are no groups specified.
+ * @protected
+ */
+ItemSet.prototype._updateUngrouped = function _updateUngrouped() {
+  if (this.groupsData) {
+    // remove the group holding all (unfiltered) items
+    if (this.ungrouped) {
+      this.ungrouped.hide();
+      this.ungrouped = null;
+    }
+  }
+  else {
+    // create a group holding all (unfiltered) items
+    if (!this.ungrouped) {
+      var id = null;
+      this.ungrouped = new Group(id, this, this.dom.background, this.dom.axis, this.labelPanel.frame);
+
+      for (var itemId in this.items) {
+        if (this.items.hasOwnProperty(itemId)) {
+          this.ungrouped.add(this.items[itemId]);
+        }
+      }
+
+      this.ungrouped.show();
+    }
+  }
+};
+
+/**
  * Get the foreground container element
  * @return {HTMLElement} foreground
  */
@@ -577,9 +607,12 @@ ItemSet.prototype.setItems = function setItems(items) {
       me.itemsData.on(event, callback, id);
     });
 
-    // draw all new items
+    // add all new items
     ids = this.itemsData.getIds();
     this._onAdd(ids);
+
+    // update the group holding all ungrouped items
+    this._updateUngrouped();
   }
 };
 
@@ -633,6 +666,9 @@ ItemSet.prototype.setGroups = function setGroups(groups) {
     this._onAddGroups(ids);
   }
 
+  // update the group holding all ungrouped items
+  this._updateUngrouped();
+
   this.emit('change');
 };
 
@@ -667,7 +703,7 @@ ItemSet.prototype.removeItem = function removeItem (id) {
 /**
  * Handle updated items
  * @param {Number[]} ids
- * @private
+ * @protected
  */
 ItemSet.prototype._onUpdate = function _onUpdate(ids) {
   var me = this,
@@ -721,14 +757,14 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
 /**
  * Handle added items
  * @param {Number[]} ids
- * @private
+ * @protected
  */
 ItemSet.prototype._onAdd = ItemSet.prototype._onUpdate;
 
 /**
  * Handle removed items
  * @param {Number[]} ids
- * @private
+ * @protected
  */
 ItemSet.prototype._onRemove = function _onRemove(ids) {
   var count = 0;
@@ -822,15 +858,6 @@ ItemSet.prototype._updateGroupIds = function () {
   this.groupIds = this.groupsData.getIds({
     order: this.options.groupOrder
   });
-
-  /* TODO
-  // hide the groups now, they will be shown again in the next repaint
-  // in correct order
-  var groups = this.groups;
-  this.groupIds.forEach(function (id) {
-    groups[id].hide();
-  });
-  */
 };
 
 /**
@@ -841,8 +868,11 @@ ItemSet.prototype._updateGroupIds = function () {
 ItemSet.prototype._addItem = function _addItem(item) {
   this.items[item.id] = item;
 
-  // add to group (if any)
-  if ('group' in item.data) {
+  // add to group
+  if (this.ungrouped) {
+    this.ungrouped.add(item);
+  }
+  else {
     var group = this.groups[item.data.group];
     if (group) group.add(item);
   }
@@ -868,7 +898,10 @@ ItemSet.prototype._updateItem = function _updateItem(item, itemData) {
       if (group) group.remove(item);
     }
 
-    if ('group' in item.data) {
+    if (this.ungrouped) {
+      this.ungrouped.add(item);
+    }
+    else {
       group = this.groups[item.data.group];
       if (group) group.add(item);
     }
@@ -896,8 +929,11 @@ ItemSet.prototype._removeItem = function _removeItem(item) {
   index = this.selection.indexOf(item.id);
   if (index != -1) this.selection.splice(index, 1);
 
-  // remove from group (if any)
-  if ('group' in item.data) {
+  // remove from group
+  if (this.ungrouped) {
+    this.ungrouped.remove(item);
+  }
+  else {
     var group = this.groups[item.data.group];
     if (group) group.remove(item);
   }
@@ -919,8 +955,15 @@ ItemSet.prototype._order = function _order() {
   this.stack.orderByEnd(this.orderedItems.byEnd);
 };
 
+/**
+ * Create an array containing all items being a range (having an end date)
+ * @param array
+ * @returns {Array}
+ * @private
+ */
 ItemSet.prototype._constructByEndArray = function _constructByEndArray(array) {
   var endArray = [];
+
   for (var i = 0; i < array.length; i++) {
     if (array[i] instanceof ItemRange) {
       endArray.push(array[i]);

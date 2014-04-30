@@ -205,7 +205,7 @@ ItemRange.prototype.repositionY = function repositionY() {
 
 /**
  * Repaint a drag area on the left side of the range when the range is selected
- * @private
+ * @protected
  */
 ItemRange.prototype._repaintDragLeft = function () {
   if (this.selected && this.options.editable && !this.dom.dragLeft) {
@@ -235,7 +235,7 @@ ItemRange.prototype._repaintDragLeft = function () {
 
 /**
  * Repaint a drag area on the right side of the range when the range is selected
- * @private
+ * @protected
  */
 ItemRange.prototype._repaintDragRight = function () {
   if (this.selected && this.options.editable && !this.dom.dragRight) {

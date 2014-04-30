@@ -108,7 +108,7 @@ Item.prototype.repositionY = function repositionY() {
 /**
  * Repaint a delete button on the top right of the item when the item is selected
  * @param {HTMLElement} anchor
- * @private
+ * @protected
  */
 Item.prototype._repaintDeleteButton = function (anchor) {
   if (this.selected && this.options.editable && !this.dom.deleteButton) {
