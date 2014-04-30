@@ -1,14 +1,13 @@
 /**
  * @constructor ItemRange
  * @extends Item
- * @param {ItemSet} parent
  * @param {Object} data             Object containing parameters start, end
  *                                  content, className.
  * @param {Object} [options]        Options to set initial property values
  * @param {Object} [defaultOptions] default options
  *                                  // TODO: describe available options
  */
-function ItemRange (parent, data, options, defaultOptions) {
+function ItemRange (data, options, defaultOptions) {
   this.props = {
     content: {
       width: 0
@@ -25,10 +24,10 @@ function ItemRange (parent, data, options, defaultOptions) {
     }
   }
 
-  Item.call(this, parent, data, options, defaultOptions);
+  Item.call(this, data, options, defaultOptions);
 }
 
-ItemRange.prototype = new Item (null, null);
+ItemRange.prototype = new Item (null);
 
 ItemRange.prototype.baseClassName = 'item range';
 

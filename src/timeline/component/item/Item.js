@@ -1,15 +1,14 @@
 /**
  * @constructor Item
- * @param {ItemSet | Group} parent
  * @param {Object} data             Object containing (optional) parameters type,
  *                                  start, end, content, group, className.
  * @param {Object} [options]        Options to set initial property values
  * @param {Object} [defaultOptions] default options
  *                                  // TODO: describe available options
  */
-function Item (parent, data, options, defaultOptions) {
+function Item (data, options, defaultOptions) {
   this.id = null;
-  this.parent = parent;
+  this.parent = null;
   this.data = data;
   this.dom = null;
   this.options = options || {};

@@ -1,14 +1,13 @@
 /**
  * @constructor ItemBox
  * @extends Item
- * @param {ItemSet} parent
  * @param {Object} data             Object containing parameters start
  *                                  content, className.
  * @param {Object} [options]        Options to set initial property values
  * @param {Object} [defaultOptions] default options
  *                                  // TODO: describe available options
  */
-function ItemBox (parent, data, options, defaultOptions) {
+function ItemBox (data, options, defaultOptions) {
   this.props = {
     dot: {
       width: 0,
@@ -27,10 +26,10 @@ function ItemBox (parent, data, options, defaultOptions) {
     }
   }
 
-  Item.call(this, parent, data, options, defaultOptions);
+  Item.call(this, data, options, defaultOptions);
 }
 
-ItemBox.prototype = new Item (null, null);
+ItemBox.prototype = new Item (null);
 
 /**
  * Check whether this item is visible inside given range

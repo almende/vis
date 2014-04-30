@@ -76,6 +76,7 @@ function ItemSet(backgroundPanel, axisPanel, labelPanel, options) {
 
   this.touchParams = {}; // stores properties while dragging
   // create the HTML DOM
+
   this._create();
 }
 
@@ -114,6 +115,9 @@ ItemSet.prototype._create = function _create(){
   axis.className = 'axis';
   this.dom.axis = axis;
   this.axisPanel.frame.appendChild(axis);
+
+  // create ungrouped Group
+  this._updateUngrouped();
 
   // attach event listeners
   // TODO: use event listeners from the rootpanel to improve performance?
@@ -735,7 +739,7 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
     if (!item) {
       // create item
       if (constructor) {
-        item = new constructor(me, itemData, me.options, itemOptions);
+        item = new constructor(itemData, me.options, itemOptions);
         item.id = id; // TODO: not so nice setting id afterwards
         me._addItem(item);
       }
