@@ -3881,7 +3881,8 @@ RootPanel.prototype.getFrame = function getFrame() {
 RootPanel.prototype.repaint = function repaint() {
   // update class name
   var options = this.options;
-  var className = 'vis timeline rootpanel ' + options.orientation + (options.editable ? ' editable' : '');
+  var editable = options.editable.updateTime || options.editable.updateGroup;
+  var className = 'vis timeline rootpanel ' + options.orientation + (editable ? ' editable' : '');
   if (options.className) className += ' ' + util.option.asString(className);
   this.frame.className = className;
 
@@ -4808,7 +4809,17 @@ ItemSet.prototype._create = function _create(){
  *                              Function to let items snap to nice dates when
  *                              dragging items.
  */
-ItemSet.prototype.setOptions = Component.prototype.setOptions;
+ItemSet.prototype.setOptions = function setOptions(options) {
+  Component.prototype.setOptions.call(this, options);
+};
+
+/**
+ * Mark the ItemSet dirty so it will refresh everything with next repaint
+ */
+ItemSet.prototype.markDirty = function markDirty() {
+  this.groupIds = [];
+  this.stackDirty = true;
+};
 
 /**
  * Hide the component from the DOM
@@ -4943,26 +4954,48 @@ ItemSet.prototype.repaint = function repaint() {
       resized = false,
       frame = this.frame;
 
+  // TODO: document this feature to specify one margin for both item and axis distance
+  if (typeof margin === 'number') {
+    margin = {
+      item: margin,
+      axis: margin
+    };
+  }
+
   // update className
   frame.className = 'itemset' + (options.className ? (' ' + asString(options.className)) : '');
 
+  // reorder the groups (if needed)
+  resized = this._orderGroups() || resized;
+
   // check whether zoomed (in that case we need to re-stack everything)
+  // TODO: would be nicer to get this as a trigger from Range
   var visibleInterval = this.range.end - this.range.start;
   var zoomed = (visibleInterval != this.lastVisibleInterval) || (this.width != this.lastWidth);
+  if (zoomed) this.stackDirty = true;
   this.lastVisibleInterval = visibleInterval;
   this.lastWidth = this.width;
 
   // repaint all groups
-  var restack = zoomed || this.stackDirty;
-  var height = 0;
+  var restack = this.stackDirty,
+      firstGroup = this._firstGroup(),
+      firstMargin = {
+        item: margin.item,
+        axis: margin.axis
+      },
+      nonFirstMargin = {
+        item: margin.item,
+        axis: margin.item / 2
+      },
+      height = 0,
+      minHeight = margin.axis + margin.item;
   util.forEach(this.groups, function (group) {
-    resized = group.repaint(range, margin, restack) || resized;
+    var groupMargin = (group == firstGroup) ? firstMargin : nonFirstMargin;
+    resized = group.repaint(range, groupMargin, restack) || resized;
     height += group.height;
   });
+  height = Math.max(height, minHeight);
   this.stackDirty = false;
-
-  // reorder the groups (if needed)
-  resized = this._orderGroups() || resized;
 
   // reposition frame
   frame.style.left    = asSize(options.left, '');
@@ -4991,6 +5024,19 @@ ItemSet.prototype.repaint = function repaint() {
   resized = this._isResized() || resized;
 
   return resized;
+};
+
+/**
+ * Get the first group, aligned with the axis
+ * @return {Group | null} firstGroup
+ * @private
+ */
+ItemSet.prototype._firstGroup = function _firstGroup() {
+  var firstGroupIndex = (this.options.orientation == 'top') ? 0 : (this.groupIds.length - 1);
+  var firstGroupId = this.groupIds[firstGroupIndex];
+  var firstGroup = this.groups[firstGroupId] || this.groups[UNGROUPED];
+
+  return firstGroup || null;
 };
 
 /**
@@ -5379,7 +5425,8 @@ ItemSet.prototype._orderGroups = function () {
       // hide all groups, removes them from the DOM
       var groups = this.groups;
       groupIds.forEach(function (groupId) {
-        groups[groupId].hide();
+        var group = groups[groupId];
+        group.hide();
       });
 
       // show the groups again, attach them to the DOM in correct order
@@ -5502,28 +5549,45 @@ ItemSet.prototype.getBackgroundHeight = function getBackgroundHeight() {
  * @private
  */
 ItemSet.prototype._onDragStart = function (event) {
-  if (!this.options.editable) {
+  if (!this.options.editable.updateTime && !this.options.editable.updateGroup) {
     return;
   }
 
   var item = ItemSet.itemFromTarget(event),
-      me = this;
+      me = this,
+      props;
 
   if (item && item.selected) {
     var dragLeftItem = event.target.dragLeftItem;
     var dragRightItem = event.target.dragRightItem;
 
     if (dragLeftItem) {
-      this.touchParams.itemProps = [{
-        item: dragLeftItem,
-        start: item.data.start.valueOf()
-      }];
+      props = {
+        item: dragLeftItem
+      };
+
+      if (me.options.editable.updateTime) {
+        props.start = item.data.start.valueOf();
+      }
+      if (me.options.editable.updateGroup) {
+        if ('group' in item.data) props.group = item.data.group;
+      }
+
+      this.touchParams.itemProps = [props];
     }
     else if (dragRightItem) {
-      this.touchParams.itemProps = [{
-        item: dragRightItem,
-        end: item.data.end.valueOf()
-      }];
+      props = {
+        item: dragRightItem
+      };
+
+      if (me.options.editable.updateTime) {
+        props.end = item.data.end.valueOf();
+      }
+      if (me.options.editable.updateGroup) {
+        if ('group' in item.data) props.group = item.data.group;
+      }
+
+      this.touchParams.itemProps = [props];
     }
     else {
       this.touchParams.itemProps = this.getSelection().map(function (id) {
@@ -5532,11 +5596,12 @@ ItemSet.prototype._onDragStart = function (event) {
           item: item
         };
 
-        if ('start' in item.data) {
-          props.start = item.data.start.valueOf()
+        if (me.options.editable.updateTime) {
+          if ('start' in item.data) props.start = item.data.start.valueOf();
+          if ('end' in item.data)   props.end = item.data.end.valueOf();
         }
-        if ('end' in item.data)   {
-          props.end = item.data.end.valueOf()
+        if (me.options.editable.updateGroup) {
+          if ('group' in item.data) props.group = item.data.group;
         }
 
         return props;
@@ -5565,15 +5630,28 @@ ItemSet.prototype._onDrag = function (event) {
         var start = new Date(props.start + offset);
         props.item.data.start = snap ? snap(start) : start;
       }
+
       if ('end' in props) {
         var end = new Date(props.end + offset);
         props.item.data.end = snap ? snap(end) : end;
       }
+
+      if ('group' in props) {
+        // drag from one group to another
+        var group = ItemSet.groupFromTarget(event);
+        if (group && group.groupId != props.item.data.group) {
+          var oldGroup = props.item.parent;
+          oldGroup.remove(props.item);
+          oldGroup.order();
+          group.add(props.item);
+          group.order();
+
+          props.item.data.group = group.groupId;
+        }
+      }
     });
 
     // TODO: implement onMoving handler
-
-    // TODO: implement dragging from one group to another
 
     this.stackDirty = true; // force re-stacking of all items next repaint
     this.emit('change');
@@ -5596,25 +5674,29 @@ ItemSet.prototype._onDragEnd = function (event) {
 
     this.touchParams.itemProps.forEach(function (props) {
       var id = props.item.id,
-          item = me.itemsData.get(id);
+          itemData = me.itemsData.get(id);
 
       var changed = false;
       if ('start' in props.item.data) {
         changed = (props.start != props.item.data.start.valueOf());
-        item.start = util.convert(props.item.data.start, dataset.convert['start']);
+        itemData.start = util.convert(props.item.data.start, dataset.convert['start']);
       }
       if ('end' in props.item.data) {
         changed = changed  || (props.end != props.item.data.end.valueOf());
-        item.end = util.convert(props.item.data.end, dataset.convert['end']);
+        itemData.end = util.convert(props.item.data.end, dataset.convert['end']);
+      }
+      if ('group' in props.item.data) {
+        changed = changed  || (props.group != props.item.data.group);
+        itemData.group = props.item.data.group;
       }
 
       // only apply changes when start or end is actually changed
       if (changed) {
-        me.options.onMove(item, function (item) {
-          if (item) {
+        me.options.onMove(itemData, function (itemData) {
+          if (itemData) {
             // apply changes
-            item[dataset.fieldId] = id; // ensure the item contains its id (can be undefined)
-            changes.push(item);
+            itemData[dataset.fieldId] = id; // ensure the item contains its id (can be undefined)
+            changes.push(itemData);
           }
           else {
             // restore original values
@@ -5817,7 +5899,7 @@ Item.prototype.repositionY = function repositionY() {
  * @protected
  */
 Item.prototype._repaintDeleteButton = function (anchor) {
-  if (this.selected && this.options.editable && !this.dom.deleteButton) {
+  if (this.selected && this.options.editable.remove && !this.dom.deleteButton) {
     // create and show button
     var me = this;
 
@@ -6476,7 +6558,7 @@ ItemRange.prototype.repositionY = function repositionY() {
  * @protected
  */
 ItemRange.prototype._repaintDragLeft = function () {
-  if (this.selected && this.options.editable && !this.dom.dragLeft) {
+  if (this.selected && this.options.editable.updateTime && !this.dom.dragLeft) {
     // create and show drag area
     var dragLeft = document.createElement('div');
     dragLeft.className = 'drag-left';
@@ -6506,7 +6588,7 @@ ItemRange.prototype._repaintDragLeft = function () {
  * @protected
  */
 ItemRange.prototype._repaintDragRight = function () {
-  if (this.selected && this.options.editable && !this.dom.dragRight) {
+  if (this.selected && this.options.editable.updateTime && !this.dom.dragRight) {
     // create and show drag area
     var dragRight = document.createElement('div');
     dragRight.className = 'drag-right';
@@ -6703,28 +6785,21 @@ Group.prototype.getLabelWidth = function getLabelWidth() {
 /**
  * Repaint this group
  * @param {{start: number, end: number}} range
- * @param {number | {item: number, axis: number}} margin
+ * @param {{item: number, axis: number}} margin
  * @param {boolean} [restack=false]  Force restacking of all items
  * @return {boolean} Returns true if the group is resized
  */
 Group.prototype.repaint = function repaint(range, margin, restack) {
   var resized = false;
 
-  if (typeof margin === 'number') {
-    margin = {
-      item: margin,
-      axis: margin
-    };
-  }
-
-  // update visible items
   this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
 
   // reposition visible items vertically
   stack.stack(this.visibleItems, margin, restack);
   this.stackDirty = false;
   for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
-    this.visibleItems[i].repositionY();
+    var item = this.visibleItems[i];
+    item.repositionY();
   }
 
   // recalculate the height of the group
@@ -6742,6 +6817,7 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
   else {
     height = margin.axis + margin.item;
   }
+  height = Math.max(height, this.props.label.height);
 
   // calculate actual size and position
   var foreground = this.dom.foreground;
@@ -7059,7 +7135,14 @@ function Timeline (container, items, options) {
     orientation: 'bottom',
     direction: 'horizontal', // 'horizontal' or 'vertical'
     autoResize: true,
-    editable: false,
+
+    editable: {
+      updateTime: false,
+      updateGroup: false,
+      add: false,
+      remove: false
+    },
+
     selectable: true,
     snap: null, // will be specified after timeaxis is created
 
@@ -7318,6 +7401,17 @@ Emitter(Timeline.prototype);
 Timeline.prototype.setOptions = function (options) {
   util.extend(this.options, options);
 
+  if ('editable' in options) {
+    var isBoolean = typeof options.editable === 'boolean';
+
+    this.options.editable = {
+      updateTime:  isBoolean ? options.editable : (options.editable.updateTime || false),
+      updateGroup: isBoolean ? options.editable : (options.editable.updateGroup || false),
+      add:         isBoolean ? options.editable : (options.editable.add || false),
+      remove:      isBoolean ? options.editable : (options.editable.remove || false)
+    };
+  }
+
   // force update of range (apply new min/max etc.)
   // both start and end are optional
   this.range.setRange(options.start, options.end);
@@ -7332,6 +7426,9 @@ Timeline.prototype.setOptions = function (options) {
       this.setSelection([]);
     }
   }
+
+  // force the itemSet to refresh: options like orientation and margins may be changed
+  this.itemSet.markDirty();
 
   // validate the callback functions
   var validateCallback = (function (fn) {
@@ -7630,7 +7727,7 @@ Timeline.prototype._onSelectItem = function (event) {
  */
 Timeline.prototype._onAddItem = function (event) {
   if (!this.options.selectable) return;
-  if (!this.options.editable) return;
+  if (!this.options.editable.add) return;
 
   var me = this,
       item = ItemSet.itemFromTarget(event);

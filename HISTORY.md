@@ -9,6 +9,9 @@ http://visjs.org
 - Large refactoring of the Timeline, simplifying the code.
 - Great performance improvements.
 - Improved layout of box-items inside groups.
+- Items can now be dragged from one group to another.
+- Option `editable` can now be used to enable/disable individual manipulation
+  actions (`add`, `updateTime`, `updateGroup`, `remove`).
 - Function `setWindow` now accepts an object with properties `start` and `end`.
 - Fixed option `autoResize` forcing a repaint of the Timeline with every check
   rather than when the Timeline is actually resized.

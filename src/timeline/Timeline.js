@@ -15,7 +15,14 @@ function Timeline (container, items, options) {
     orientation: 'bottom',
     direction: 'horizontal', // 'horizontal' or 'vertical'
     autoResize: true,
-    editable: false,
+
+    editable: {
+      updateTime: false,
+      updateGroup: false,
+      add: false,
+      remove: false
+    },
+
     selectable: true,
     snap: null, // will be specified after timeaxis is created
 
@@ -273,6 +280,17 @@ Emitter(Timeline.prototype);
  */
 Timeline.prototype.setOptions = function (options) {
   util.extend(this.options, options);
+
+  if ('editable' in options) {
+    var isBoolean = typeof options.editable === 'boolean';
+
+    this.options.editable = {
+      updateTime:  isBoolean ? options.editable : (options.editable.updateTime || false),
+      updateGroup: isBoolean ? options.editable : (options.editable.updateGroup || false),
+      add:         isBoolean ? options.editable : (options.editable.add || false),
+      remove:      isBoolean ? options.editable : (options.editable.remove || false)
+    };
+  }
 
   // force update of range (apply new min/max etc.)
   // both start and end are optional
@@ -589,7 +607,7 @@ Timeline.prototype._onSelectItem = function (event) {
  */
 Timeline.prototype._onAddItem = function (event) {
   if (!this.options.selectable) return;
-  if (!this.options.editable) return;
+  if (!this.options.editable.add) return;
 
   var me = this,
       item = ItemSet.itemFromTarget(event);

@@ -207,7 +207,7 @@ ItemRange.prototype.repositionY = function repositionY() {
  * @protected
  */
 ItemRange.prototype._repaintDragLeft = function () {
-  if (this.selected && this.options.editable && !this.dom.dragLeft) {
+  if (this.selected && this.options.editable.updateTime && !this.dom.dragLeft) {
     // create and show drag area
     var dragLeft = document.createElement('div');
     dragLeft.className = 'drag-left';
@@ -237,7 +237,7 @@ ItemRange.prototype._repaintDragLeft = function () {
  * @protected
  */
 ItemRange.prototype._repaintDragRight = function () {
-  if (this.selected && this.options.editable && !this.dom.dragRight) {
+  if (this.selected && this.options.editable.updateTime && !this.dom.dragRight) {
     // create and show drag area
     var dragRight = document.createElement('div');
     dragRight.className = 'drag-right';

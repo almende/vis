@@ -892,28 +892,45 @@ ItemSet.prototype.getBackgroundHeight = function getBackgroundHeight() {
  * @private
  */
 ItemSet.prototype._onDragStart = function (event) {
-  if (!this.options.editable) {
+  if (!this.options.editable.updateTime && !this.options.editable.updateGroup) {
     return;
   }
 
   var item = ItemSet.itemFromTarget(event),
-      me = this;
+      me = this,
+      props;
 
   if (item && item.selected) {
     var dragLeftItem = event.target.dragLeftItem;
     var dragRightItem = event.target.dragRightItem;
 
     if (dragLeftItem) {
-      this.touchParams.itemProps = [{
-        item: dragLeftItem,
-        start: item.data.start.valueOf()
-      }];
+      props = {
+        item: dragLeftItem
+      };
+
+      if (me.options.editable.updateTime) {
+        props.start = item.data.start.valueOf();
+      }
+      if (me.options.editable.updateGroup) {
+        if ('group' in item.data) props.group = item.data.group;
+      }
+
+      this.touchParams.itemProps = [props];
     }
     else if (dragRightItem) {
-      this.touchParams.itemProps = [{
-        item: dragRightItem,
-        end: item.data.end.valueOf()
-      }];
+      props = {
+        item: dragRightItem
+      };
+
+      if (me.options.editable.updateTime) {
+        props.end = item.data.end.valueOf();
+      }
+      if (me.options.editable.updateGroup) {
+        if ('group' in item.data) props.group = item.data.group;
+      }
+
+      this.touchParams.itemProps = [props];
     }
     else {
       this.touchParams.itemProps = this.getSelection().map(function (id) {
@@ -922,11 +939,12 @@ ItemSet.prototype._onDragStart = function (event) {
           item: item
         };
 
-        if ('start' in item.data) {
-          props.start = item.data.start.valueOf()
+        if (me.options.editable.updateTime) {
+          if ('start' in item.data) props.start = item.data.start.valueOf();
+          if ('end' in item.data)   props.end = item.data.end.valueOf();
         }
-        if ('end' in item.data)   {
-          props.end = item.data.end.valueOf()
+        if (me.options.editable.updateGroup) {
+          if ('group' in item.data) props.group = item.data.group;
         }
 
         return props;
@@ -955,15 +973,28 @@ ItemSet.prototype._onDrag = function (event) {
         var start = new Date(props.start + offset);
         props.item.data.start = snap ? snap(start) : start;
       }
+
       if ('end' in props) {
         var end = new Date(props.end + offset);
         props.item.data.end = snap ? snap(end) : end;
       }
+
+      if ('group' in props) {
+        // drag from one group to another
+        var group = ItemSet.groupFromTarget(event);
+        if (group && group.groupId != props.item.data.group) {
+          var oldGroup = props.item.parent;
+          oldGroup.remove(props.item);
+          oldGroup.order();
+          group.add(props.item);
+          group.order();
+
+          props.item.data.group = group.groupId;
+        }
+      }
     });
 
     // TODO: implement onMoving handler
-
-    // TODO: implement dragging from one group to another
 
     this.stackDirty = true; // force re-stacking of all items next repaint
     this.emit('change');
@@ -986,25 +1017,29 @@ ItemSet.prototype._onDragEnd = function (event) {
 
     this.touchParams.itemProps.forEach(function (props) {
       var id = props.item.id,
-          item = me.itemsData.get(id);
+          itemData = me.itemsData.get(id);
 
       var changed = false;
       if ('start' in props.item.data) {
         changed = (props.start != props.item.data.start.valueOf());
-        item.start = util.convert(props.item.data.start, dataset.convert['start']);
+        itemData.start = util.convert(props.item.data.start, dataset.convert['start']);
       }
       if ('end' in props.item.data) {
         changed = changed  || (props.end != props.item.data.end.valueOf());
-        item.end = util.convert(props.item.data.end, dataset.convert['end']);
+        itemData.end = util.convert(props.item.data.end, dataset.convert['end']);
+      }
+      if ('group' in props.item.data) {
+        changed = changed  || (props.group != props.item.data.group);
+        itemData.group = props.item.data.group;
       }
 
       // only apply changes when start or end is actually changed
       if (changed) {
-        me.options.onMove(item, function (item) {
-          if (item) {
+        me.options.onMove(itemData, function (itemData) {
+          if (itemData) {
             // apply changes
-            item[dataset.fieldId] = id; // ensure the item contains its id (can be undefined)
-            changes.push(item);
+            itemData[dataset.fieldId] = id; // ensure the item contains its id (can be undefined)
+            changes.push(itemData);
           }
           else {
             // restore original values

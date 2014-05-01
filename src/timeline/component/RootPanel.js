@@ -91,7 +91,8 @@ RootPanel.prototype.getFrame = function getFrame() {
 RootPanel.prototype.repaint = function repaint() {
   // update class name
   var options = this.options;
-  var className = 'vis timeline rootpanel ' + options.orientation + (options.editable ? ' editable' : '');
+  var editable = options.editable.updateTime || options.editable.updateGroup;
+  var className = 'vis timeline rootpanel ' + options.orientation + (editable ? ' editable' : '');
   if (options.className) className += ' ' + util.option.asString(className);
   this.frame.className = className;
 

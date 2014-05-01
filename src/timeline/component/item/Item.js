@@ -110,7 +110,7 @@ Item.prototype.repositionY = function repositionY() {
  * @protected
  */
 Item.prototype._repaintDeleteButton = function (anchor) {
-  if (this.selected && this.options.editable && !this.dom.deleteButton) {
+  if (this.selected && this.options.editable.remove && !this.dom.deleteButton) {
     // create and show button
     var me = this;
 
