@@ -123,7 +123,12 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
   this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
 
   // reposition visible items vertically
-  stack.stack(this.visibleItems, margin, restack);
+  if (this.itemSet.options.stack) { // TODO: ugly way to access options...
+    stack.stack(this.visibleItems, margin, restack);
+  }
+  else { // no stacking
+    stack.nostack(this.visibleItems, margin);
+  }
   this.stackDirty = false;
   for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
     var item = this.visibleItems[i];

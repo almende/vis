@@ -2488,14 +2488,14 @@ stack.orderByEnd = function orderByEnd(items) {
 };
 
 /**
- * Adjust vertical positions of the events such that they don't overlap each
+ * Adjust vertical positions of the items such that they don't overlap each
  * other.
  * @param {Item[]} items
  *            All visible items
  * @param {{item: number, axis: number}} margin
  *            Margins between items and between items and the axis.
  * @param {boolean} [force=false]
- *            If true, all items will be re-stacked. If false (default), only
+ *            If true, all items will be repositioned. If false (default), only
  *            items having a top===null will be re-stacked
  */
 stack.stack = function _stack (items, margin, force) {
@@ -2528,11 +2528,27 @@ stack.stack = function _stack (items, margin, force) {
         }
 
         if (collidingItem != null) {
-          // There is a collision. Reposition the event above the colliding element
+          // There is a collision. Reposition the items above the colliding element
           item.top = collidingItem.top + collidingItem.height + margin.item;
         }
       } while (collidingItem);
     }
+  }
+};
+
+/**
+ * Adjust vertical positions of the items without stacking them
+ * @param {Item[]} items
+ *            All visible items
+ * @param {{item: number, axis: number}} margin
+ *            Margins between items and between items and the axis.
+ */
+stack.nostack = function nostack (items, margin) {
+  var i, iMax;
+
+  // reset top position of all items
+  for (i = 0, iMax = items.length; i < iMax; i++) {
+    items[i].top = margin.axis;
   }
 };
 
@@ -5405,6 +5421,8 @@ ItemSet.prototype._onRemoveGroups = function _onRemoveGroups(ids) {
     }
   });
 
+  this.markDirty();
+
   this.emit('change');
 };
 
@@ -6795,7 +6813,12 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
   this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
 
   // reposition visible items vertically
-  stack.stack(this.visibleItems, margin, restack);
+  if (this.itemSet.options.stack) { // TODO: ugly way to access options...
+    stack.stack(this.visibleItems, margin, restack);
+  }
+  else { // no stacking
+    stack.nostack(this.visibleItems, margin);
+  }
   this.stackDirty = false;
   for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
     var item = this.visibleItems[i];
@@ -7135,6 +7158,7 @@ function Timeline (container, items, options) {
     orientation: 'bottom',
     direction: 'horizontal', // 'horizontal' or 'vertical'
     autoResize: true,
+    stacking: true,
 
     editable: {
       updateTime: false,

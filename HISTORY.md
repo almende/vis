@@ -10,6 +10,7 @@ http://visjs.org
 - Great performance improvements.
 - Improved layout of box-items inside groups.
 - Items can now be dragged from one group to another.
+- Implemented option `stack` to enable/disable stacking of items.
 - Option `editable` can now be used to enable/disable individual manipulation
   actions (`add`, `updateTime`, `updateGroup`, `remove`).
 - Function `setWindow` now accepts an object with properties `start` and `end`.
