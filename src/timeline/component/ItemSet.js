@@ -61,18 +61,11 @@ function ItemSet(backgroundPanel, axisPanel, labelPanel, options) {
     }
   };
 
-  this.items = {};        // object with an Item for every data item
-  this.orderedItems = {
-    byStart: [],
-    byEnd: []
-  };
-
-  this.groups = {}; // Group object for every group
+  this.items = {};      // object with an Item for every data item
+  this.groups = {};     // Group object for every group
   this.groupIds = [];
 
-  this.visibleItems = []; // visible, ordered items
   this.selection = [];  // list with the ids of all selected nodes
-  this.stack = new Stack(Object.create(this.options));
   this.stackDirty = true; // if true, all items will be restacked on next repaint
 
   this.touchParams = {}; // stores properties while dragging
@@ -270,126 +263,17 @@ ItemSet.prototype.getFrame = function getFrame() {
 };
 
 /**
- * This function does a binary search for a visible item. The user can select either the this.orderedItems.byStart or .byEnd
- * arrays. This is done by giving a boolean value true if you want to use the byEnd.
- * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
- * if the time we selected (start or end) is within the current range).
- *
- * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the ItemRange that is
- * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
- * either the start OR end time has to be in the range.
- *
- * @param {{byStart: Item[], byEnd: Item[]}} orderedItems
- * @param {{start: number, end: number}} range
- * @param {Boolean} byEnd
- * @returns {number}
- * @private
- */
-ItemSet.prototype._binarySearch = function _binarySearch(orderedItems, range, byEnd) {
-  var array = [];
-  var byTime = byEnd ? "end" : "start";
-  if (byEnd == true) {array = orderedItems.byEnd;  }
-  else               {array = orderedItems.byStart;}
-
-  var interval = range.end - range.start;
-
-  var found = false;
-  var low = 0;
-  var high = array.length;
-  var guess = Math.floor(0.5*(high+low));
-  var newGuess;
-
-  if (high == 0) {guess = -1;}
-  else if (high == 1) {
-    if ((array[guess].data[byTime] > range.start - interval) && (array[guess].data[byTime] < range.end)) {
-      guess =  0;
-    }
-    else {
-      guess = -1;
-    }
-  }
-  else {
-    high -= 1;
-    while (found == false) {
-      if ((array[guess].data[byTime] > range.start - interval) && (array[guess].data[byTime] < range.end)) {
-        found = true;
-      }
-      else {
-        if (array[guess].data[byTime] < range.start - interval) { // it is too small --> increase low
-          low = Math.floor(0.5*(high+low));
-        }
-        else {  // it is too big --> decrease high
-          high = Math.floor(0.5*(high+low));
-        }
-        newGuess = Math.floor(0.5*(high+low));
-        // not in list;
-        if (guess == newGuess) {
-          guess = -1;
-          found = true;
-        }
-        else {
-          guess = newGuess;
-        }
-      }
-    }
-  }
-  return guess;
-};
-
-/**
- * this function checks if an item is invisible. If it is NOT we make it visible and add it to the global visible items. If it is, return true.
- *
- * @param {Item} item
- * @param {Item[]} visibleItems
- * @returns {boolean}
- * @private
- */
-ItemSet.prototype._checkIfInvisible = function _checkIfInvisible(item, visibleItems) {
-  if (item.isVisible(this.range)) {
-    if (!item.displayed) item.show();
-    item.repositionX();
-    if (visibleItems.indexOf(item) == -1) {
-      visibleItems.push(item);
-    }
-    return false;
-  }
-  else {
-    return true;
-  }
-};
-
-
-/**
- * this function is very similar to the _checkIfInvisible() but it does not return booleans, hides the item if it should not be seen and always adds to the visibleItems.
- * this one is for brute forcing and hiding.
- *
- * @param {Item} item
- * @param {Array} visibleItems
- * @private
- */
-ItemSet.prototype._checkIfVisible = function _checkIfVisible(item, visibleItems) {
-  if (item.isVisible(this.range)) {
-    if (!item.displayed) item.show();
-    // reposition item horizontally
-    item.repositionX();
-    visibleItems.push(item);
-  }
-  else {
-    if (item.displayed) item.hide();
-  }
-};
-
-/**
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
 ItemSet.prototype.repaint = function repaint() {
-  var asSize = util.option.asSize,
+  var margin = this.options.margin,
+      range = this.range,
+      asSize = util.option.asSize,
       asString = util.option.asString,
       options = this.options,
       orientation = this.getOption('orientation'),
-      frame = this.frame,
-      i, ii;
+      frame = this.frame;
 
   // update className
   frame.className = 'itemset' + (options.className ? (' ' + asString(options.className)) : '');
@@ -400,36 +284,14 @@ ItemSet.prototype.repaint = function repaint() {
   this.lastVisibleInterval = visibleInterval;
   this.lastWidth = this.width;
 
-  this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, this.range);
-
-  // reposition visible items vertically.
-  //this.stack.order(this.visibleItems); // TODO: improve ordering
-  var force = this.stackDirty || zoomed; // force re-stacking of all items if true
-  this.stack.stack(this.visibleItems, force);
+  // repaint all groups
+  var restack = zoomed || this.stackDirty;
+  var height = 0;
+  util.forEach(this.groups, function (group) {
+    group.repaint(range, margin, restack);
+    height += group.height;
+  });
   this.stackDirty = false;
-  for (i = 0, ii = this.visibleItems.length; i < ii; i++) {
-    this.visibleItems[i].repositionY();
-  }
-
-  // recalculate the height of the itemset
-  var marginAxis = (options.margin && 'axis' in options.margin) ? options.margin.axis : this.itemOptions.margin.axis,
-      marginItem = (options.margin && 'item' in options.margin) ? options.margin.item : this.itemOptions.margin.item,
-      height;
-
-  // determine the height from the stacked items
-  var visibleItems = this.visibleItems;
-  if (visibleItems.length) {
-    var min = visibleItems[0].top;
-    var max = visibleItems[0].top + visibleItems[0].height;
-    util.forEach(visibleItems, function (item) {
-      min = Math.min(min, item.top);
-      max = Math.max(max, (item.top + item.height));
-    });
-    height = (max - min) + marginAxis + marginItem;
-  }
-  else {
-    height = marginAxis + marginItem;
-  }
 
   // reposition frame
   frame.style.left    = asSize(options.left, '');
@@ -455,61 +317,6 @@ ItemSet.prototype.repaint = function repaint() {
   this.dom.axis.style.bottom = asSize((orientation == 'top') ? '' : '0');
 
   return this._isResized();
-};
-
-/**
- * Update the visible items
- * @param {{byStart: Item[], byEnd: Item[]}} orderedItems   All items ordered by start date and by end date
- * @param {Item[]} visibleItems                             The previously visible items.
- * @param {{start: number, end: number}} range              Visible range
- * @return {Item[]} visibleItems                            The new visible items.
- * @private
- */
-ItemSet.prototype._updateVisibleItems = function _updateVisibleItems(orderedItems, visibleItems, range) {
-  var initialPosByStart,
-      newVisibleItems = [],
-      i;
-
-  // first check if the items that were in view previously are still in view.
-  // this handles the case for the ItemRange that is both before and after the current one.
-  if (visibleItems.length > 0) {
-    for (i = 0; i < visibleItems.length; i++) {
-      this._checkIfVisible(visibleItems[i], newVisibleItems);
-    }
-  }
-
-  // If there were no visible items previously, use binarySearch to find a visible ItemPoint or ItemRange (based on startTime)
-  if (newVisibleItems.length == 0) {
-    initialPosByStart = this._binarySearch(orderedItems, range, false);
-  }
-  else {
-    initialPosByStart = orderedItems.byStart.indexOf(newVisibleItems[0]);
-  }
-
-  // use visible search to find a visible ItemRange (only based on endTime)
-  var initialPosByEnd = this._binarySearch(orderedItems, range, true);
-
-  // if we found a initial ID to use, trace it up and down until we meet an invisible item.
-  if (initialPosByStart != -1) {
-    for (i = initialPosByStart; i >= 0; i--) {
-      if (this._checkIfInvisible(orderedItems.byStart[i], newVisibleItems)) {break;}
-    }
-    for (i = initialPosByStart + 1; i < orderedItems.byStart.length; i++) {
-      if (this._checkIfInvisible(orderedItems.byStart[i], newVisibleItems)) {break;}
-    }
-  }
-
-  // if we found a initial ID to use, trace it up and down until we meet an invisible item.
-  if (initialPosByEnd != -1) {
-    for (i = initialPosByEnd; i >= 0; i--) {
-      if (this._checkIfInvisible(orderedItems.byEnd[i], newVisibleItems)) {break;}
-    }
-    for (i = initialPosByEnd + 1; i < orderedItems.byEnd.length; i++) {
-      if (this._checkIfInvisible(orderedItems.byEnd[i], newVisibleItems)) {break;}
-    }
-  }
-
-  return newVisibleItems;
 };
 
 /**
@@ -751,13 +558,14 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
         throw new TypeError('Unknown item type "' + type + '"');
       }
     }
-
-    if (type == 'range' && me.visibleItems.indexOf(item) == -1) {
-      me._checkIfVisible(item, me.visibleItems);
-    }
   });
 
-  this._order();
+  // reorder the items in all groups
+  // TODO: optimization: only reorder groups affected by the changed items
+  util.forEach(this.groups, function (group) {
+    group._order();
+  });
+
   this.stackDirty = true; // force re-stacking of all items next repaint
   this.emit('change');
 };
@@ -923,34 +731,14 @@ ItemSet.prototype._removeItem = function _removeItem(item) {
   // remove from items
   delete this.items[item.id];
 
-  // remove from visible items
-  var index = this.visibleItems.indexOf(item);
-  if (index != -1) this.visibleItems.splice(index, 1);
-
   // remove from selection
-  index = this.selection.indexOf(item.id);
+  var index = this.selection.indexOf(item.id);
   if (index != -1) this.selection.splice(index, 1);
 
   // remove from group
   var groupId = this.groupsData ? item.data.group : UNGROUPED;
   var group = this.groups[groupId];
   if (group) group.remove(item);
-};
-
-/**
- * Order the items
- * @private
- */
-ItemSet.prototype._order = function _order() {
-  var array = util.toArray(this.items);
-  this.orderedItems.byStart = array;
-  this.orderedItems.byEnd = this._constructByEndArray(array);
-
-  //this.orderedItems.byEnd = [].concat(array); // this copies the array
-
-  // reorder the items
-  this.stack.orderByStart(this.orderedItems.byStart);
-  this.stack.orderByEnd(this.orderedItems.byEnd);
 };
 
 /**

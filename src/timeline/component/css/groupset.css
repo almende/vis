@@ -1,6 +1,3 @@
-.vis.timeline .groupset {
-  position: relative;
-}
 
 .vis.timeline .labelset {
   position: relative;
@@ -24,15 +21,13 @@
 }
 
 .vis.timeline.bottom .labelset .vlabel,
-.vis.timeline.top .vpanel.side-content,
-.vis.timeline.top .groupset .itemset {
+.vis.timeline.top .vpanel.side-content {
   border-top: 1px solid #bfbfbf;
   border-bottom: none;
 }
 
 .vis.timeline.top .labelset .vlabel,
-.vis.timeline.bottom .vpanel.side-content,
-.vis.timeline.bottom .groupset .itemset {
+.vis.timeline.bottom .vpanel.side-content {
   border-top: none;
   border-bottom: 1px solid #bfbfbf;
 }

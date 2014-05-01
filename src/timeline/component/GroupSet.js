@@ -1,3 +1,5 @@
+// TODO: remove groupset
+
 /**
  * An GroupSet holds a set of groups
  * @param {Panel} contentPanel      Panel where the ItemSets will be created
