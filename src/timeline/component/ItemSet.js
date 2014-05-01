@@ -284,6 +284,7 @@ ItemSet.prototype.repaint = function repaint() {
       asString = util.option.asString,
       options = this.options,
       orientation = this.getOption('orientation'),
+      resized = false,
       frame = this.frame;
 
   // update className
@@ -299,10 +300,13 @@ ItemSet.prototype.repaint = function repaint() {
   var restack = zoomed || this.stackDirty;
   var height = 0;
   util.forEach(this.groups, function (group) {
-    group.repaint(range, margin, restack);
+    resized = group.repaint(range, margin, restack) || resized;
     height += group.height;
   });
   this.stackDirty = false;
+
+  // reorder the groups (if needed)
+  resized = this._orderGroups() || resized;
 
   // reposition frame
   frame.style.left    = asSize(options.left, '');
@@ -327,7 +331,10 @@ ItemSet.prototype.repaint = function repaint() {
   this.dom.axis.style.top    = asSize((orientation == 'top') ? '0' : '');
   this.dom.axis.style.bottom = asSize((orientation == 'top') ? '' : '0');
 
-  return this._isResized();
+  // check if this component is resized
+  resized = this._isResized() || resized;
+
+  return resized;
 };
 
 /**
@@ -496,6 +503,9 @@ ItemSet.prototype.setGroups = function setGroups(groups) {
   // update the group holding all ungrouped items
   this._updateUngrouped();
 
+  // update the order of all items in each group
+  this._order();
+
   this.emit('change');
 };
 
@@ -616,7 +626,7 @@ ItemSet.prototype._order = function _order() {
   // reorder the items in all groups
   // TODO: optimization: only reorder groups affected by the changed items
   util.forEach(this.groups, function (group) {
-    group._order();
+    group.order();
   });
 };
 
@@ -638,7 +648,9 @@ ItemSet.prototype._onAddGroups = function _onAddGroups(ids) {
   var me = this;
 
   ids.forEach(function (id) {
+    var groupData = me.groupsData.get(id);
     var group = me.groups[id];
+
     if (!group) {
       // check for reserved ids
       if (id == UNGROUPED) {
@@ -650,8 +662,7 @@ ItemSet.prototype._onAddGroups = function _onAddGroups(ids) {
         height: null
       });
 
-      var data = me.groupsData.get(id);
-      group = new Group(id, data, me);
+      group = new Group(id, groupData, me);
       me.groups[id] = group;
 
       // add items with this groupId to the new group
@@ -664,11 +675,16 @@ ItemSet.prototype._onAddGroups = function _onAddGroups(ids) {
         }
       }
 
+      group.order();
       group.show();
+    }
+    else {
+      // update group
+      group.setData(groupData);
     }
   });
 
-  this._updateGroupIds();
+  this.emit('change');
 };
 
 /**
@@ -687,18 +703,42 @@ ItemSet.prototype._onRemoveGroups = function _onRemoveGroups(ids) {
     }
   });
 
-  this._updateGroupIds();
+  this.emit('change');
 };
 
 /**
- * Update the groupIds. Requires a repaint afterwards
+ * Reorder the groups if needed
+ * @return {boolean} changed
  * @private
  */
-ItemSet.prototype._updateGroupIds = function () {
-  // reorder the groups
-  this.groupIds = this.groupsData.getIds({
-    order: this.options.groupOrder
-  });
+ItemSet.prototype._orderGroups = function () {
+  if (this.groupsData) {
+    // reorder the groups
+    var groupIds = this.groupsData.getIds({
+      order: this.options.groupOrder
+    });
+
+    var changed = !util.equalArray(groupIds, this.groupIds);
+    if (changed) {
+      // hide all groups, removes them from the DOM
+      var groups = this.groups;
+      groupIds.forEach(function (groupId) {
+        groups[groupId].hide();
+      });
+
+      // show the groups again, attach them to the DOM in correct order
+      groupIds.forEach(function (groupId) {
+        groups[groupId].show();
+      });
+
+      this.groupIds = groupIds;
+    }
+
+    return changed;
+  }
+  else {
+    return false;
+  }
 };
 
 /**

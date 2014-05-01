@@ -118,7 +118,7 @@ Group.prototype.getLabelWidth = function getLabelWidth() {
  * @return {boolean} Returns true if the group is resized
  */
 Group.prototype.repaint = function repaint(range, margin, restack) {
-  var resized;
+  var resized = false;
 
   if (typeof margin === 'number') {
     margin = {
@@ -152,19 +152,17 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
   else {
     height = margin.axis + margin.item;
   }
-  resized = (this.height != height);
 
   // calculate actual size and position
   var foreground = this.dom.foreground;
   this.top = foreground.offsetTop;
   this.left = foreground.offsetLeft;
   this.width = foreground.offsetWidth;
-  this.height = height;
+  resized = util.updateProperty(this, 'height', height) || resized;
 
   // recalculate size of label
-  // TODO: if changed, return resized=true
-  this.props.label.width = this.dom.inner.clientWidth;
-  this.props.label.height = this.dom.inner.clientHeight;
+  resized = util.updateProperty(this.props.label, 'width', this.dom.inner.clientWidth) || resized;
+  resized = util.updateProperty(this.props.label, 'height', this.dom.inner.clientHeight) || resized;
 
   // apply new height
   foreground.style.height  = height + 'px';
@@ -257,15 +255,13 @@ Group.prototype.removeFromDataSet = function removeFromDataSet(item) {
 };
 
 /**
- * Order the items
- * @private
+ * Reorder the items
  */
-Group.prototype._order = function _order() {
+Group.prototype.order = function order() {
   var array = util.toArray(this.items);
   this.orderedItems.byStart = array;
   this.orderedItems.byEnd = this._constructByEndArray(array);
 
-  // reorder the items
   stack.orderByStart(this.orderedItems.byStart);
   stack.orderByEnd(this.orderedItems.byEnd);
 };
