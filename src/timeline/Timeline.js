@@ -289,6 +289,9 @@ Timeline.prototype.setOptions = function (options) {
     }
   }
 
+  // force the itemSet to refresh: options like orientation and margins may be changed
+  this.itemSet.markDirty();
+
   // validate the callback functions
   var validateCallback = (function (fn) {
     if (!(this.options[fn] instanceof Function) || this.options[fn].length != 2) {

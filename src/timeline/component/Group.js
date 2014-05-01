@@ -126,7 +126,8 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
   stack.stack(this.visibleItems, margin, restack);
   this.stackDirty = false;
   for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
-    this.visibleItems[i].repositionY();
+    var item = this.visibleItems[i];
+    item.repositionY();
   }
 
   // recalculate the height of the group
@@ -144,6 +145,7 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
   else {
     height = margin.axis + margin.item;
   }
+  height = Math.max(height, this.props.label.height);
 
   // calculate actual size and position
   var foreground = this.dom.foreground;

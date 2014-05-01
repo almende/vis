@@ -152,7 +152,17 @@ ItemSet.prototype._create = function _create(){
  *                              Function to let items snap to nice dates when
  *                              dragging items.
  */
-ItemSet.prototype.setOptions = Component.prototype.setOptions;
+ItemSet.prototype.setOptions = function setOptions(options) {
+  Component.prototype.setOptions.call(this, options);
+};
+
+/**
+ * Mark the ItemSet dirty so it will refresh everything with next repaint
+ */
+ItemSet.prototype.markDirty = function markDirty() {
+  this.groupIds = [];
+  this.stackDirty = true;
+};
 
 /**
  * Hide the component from the DOM
@@ -298,25 +308,37 @@ ItemSet.prototype.repaint = function repaint() {
   // update className
   frame.className = 'itemset' + (options.className ? (' ' + asString(options.className)) : '');
 
+  // reorder the groups (if needed)
+  resized = this._orderGroups() || resized;
+
   // check whether zoomed (in that case we need to re-stack everything)
+  // TODO: would be nicer to get this as a trigger from Range
   var visibleInterval = this.range.end - this.range.start;
   var zoomed = (visibleInterval != this.lastVisibleInterval) || (this.width != this.lastWidth);
+  if (zoomed) this.stackDirty = true;
   this.lastVisibleInterval = visibleInterval;
   this.lastWidth = this.width;
 
   // repaint all groups
-  var restack = zoomed || this.stackDirty,
+  var restack = this.stackDirty,
+      firstGroup = this._firstGroup(),
+      firstMargin = {
+        item: margin.item,
+        axis: margin.axis
+      },
+      nonFirstMargin = {
+        item: margin.item,
+        axis: margin.item / 2
+      },
       height = 0,
       minHeight = margin.axis + margin.item;
   util.forEach(this.groups, function (group) {
-    resized = group.repaint(range, margin, restack) || resized;
+    var groupMargin = (group == firstGroup) ? firstMargin : nonFirstMargin;
+    resized = group.repaint(range, groupMargin, restack) || resized;
     height += group.height;
   });
   height = Math.max(height, minHeight);
   this.stackDirty = false;
-
-  // reorder the groups (if needed)
-  resized = this._orderGroups() || resized;
 
   // reposition frame
   frame.style.left    = asSize(options.left, '');
@@ -345,6 +367,19 @@ ItemSet.prototype.repaint = function repaint() {
   resized = this._isResized() || resized;
 
   return resized;
+};
+
+/**
+ * Get the first group, aligned with the axis
+ * @return {Group | null} firstGroup
+ * @private
+ */
+ItemSet.prototype._firstGroup = function _firstGroup() {
+  var firstGroupIndex = (this.options.orientation == 'top') ? 0 : (this.groupIds.length - 1);
+  var firstGroupId = this.groupIds[firstGroupIndex];
+  var firstGroup = this.groups[firstGroupId] || this.groups[UNGROUPED];
+
+  return firstGroup || null;
 };
 
 /**
@@ -733,7 +768,8 @@ ItemSet.prototype._orderGroups = function () {
       // hide all groups, removes them from the DOM
       var groups = this.groups;
       groupIds.forEach(function (groupId) {
-        groups[groupId].hide();
+        var group = groups[groupId];
+        group.hide();
       });
 
       // show the groups again, attach them to the DOM in correct order

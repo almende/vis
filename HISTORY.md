@@ -15,8 +15,9 @@ http://visjs.org
 - Fixed `select` event fired repeatedly when clicking an empty place on the
   Timeline, deselecting selected items).
 - Fixed initial visible window in case items exceed `zoomMax`. Thanks @Remper.
-- Option `order` is now deprecated. This was needed for performance improvements.
 - Fixed an offset in newly created items when using groups.
+- Fixed height of a group not reckoning with the height of the group label.
+- Option `order` is now deprecated. This was needed for performance improvements.
 - More examples added.
 - Minor bug fixes.
 
