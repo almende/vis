@@ -748,6 +748,8 @@ ItemSet.prototype._onRemoveGroups = function _onRemoveGroups(ids) {
     }
   });
 
+  this.markDirty();
+
   this.emit('change');
 };
 
