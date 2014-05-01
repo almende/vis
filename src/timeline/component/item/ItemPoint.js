@@ -121,10 +121,11 @@ ItemPoint.prototype.repaint = function repaint() {
     this.props.content.height = dom.content.offsetHeight;
 
     // resize contents
-    dom.content.style.marginLeft = 1.5 * this.props.dot.width + 'px';
+    dom.content.style.marginLeft = 2 * this.props.dot.width + 'px';
     //dom.content.style.marginRight = ... + 'px'; // TODO: margin right
 
     dom.dot.style.top = ((this.height - this.props.dot.height) / 2) + 'px';
+    dom.dot.style.left = (this.props.dot.width / 2) + 'px';
 
     this.dirty = false;
   }
@@ -165,7 +166,7 @@ ItemPoint.prototype.hide = function hide() {
 ItemPoint.prototype.repositionX = function repositionX() {
   var start = this.defaultOptions.toScreen(this.data.start);
 
-  this.left = start - this.props.dot.width / 2;
+  this.left = start - this.props.dot.width;
 
   // reposition point
   this.dom.point.style.left = this.left + 'px';
@@ -187,4 +188,4 @@ ItemPoint.prototype.repositionY = function repositionY () {
     point.style.top = '';
     point.style.bottom = this.top + 'px';
   }
-}
+};
