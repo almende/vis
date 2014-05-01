@@ -113,21 +113,13 @@ Group.prototype.getLabelWidth = function getLabelWidth() {
 /**
  * Repaint this group
  * @param {{start: number, end: number}} range
- * @param {number | {item: number, axis: number}} margin
+ * @param {{item: number, axis: number}} margin
  * @param {boolean} [restack=false]  Force restacking of all items
  * @return {boolean} Returns true if the group is resized
  */
 Group.prototype.repaint = function repaint(range, margin, restack) {
   var resized = false;
 
-  if (typeof margin === 'number') {
-    margin = {
-      item: margin,
-      axis: margin
-    };
-  }
-
-  // update visible items
   this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
 
   // reposition visible items vertically

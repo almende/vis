@@ -287,6 +287,14 @@ ItemSet.prototype.repaint = function repaint() {
       resized = false,
       frame = this.frame;
 
+  // TODO: document this feature to specify one margin for both item and axis distance
+  if (typeof margin === 'number') {
+    margin = {
+      item: margin,
+      axis: margin
+    };
+  }
+
   // update className
   frame.className = 'itemset' + (options.className ? (' ' + asString(options.className)) : '');
 
@@ -297,12 +305,14 @@ ItemSet.prototype.repaint = function repaint() {
   this.lastWidth = this.width;
 
   // repaint all groups
-  var restack = zoomed || this.stackDirty;
-  var height = 0;
+  var restack = zoomed || this.stackDirty,
+      height = 0,
+      minHeight = margin.axis + margin.item;
   util.forEach(this.groups, function (group) {
     resized = group.repaint(range, margin, restack) || resized;
     height += group.height;
   });
+  height = Math.max(height, minHeight);
   this.stackDirty = false;
 
   // reorder the groups (if needed)

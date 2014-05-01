@@ -17,18 +17,18 @@ http://visjs.org
 - Fixed initial visible window in case items exceed `zoomMax`. Thanks @Remper.
 - Option `order` is now deprecated. This was needed for performance improvements.
 - Fixed an offset in newly created items when using groups.
-- Minor bug fixes.
 - More examples added.
-
-### DataSet
-
-- A DataSet can now be constructed with initial data, like
-  `new DataSet(data, options)`.
+- Minor bug fixes.
 
 ### Graph
 
 - added recalculate hierarchical layout to update node event.
 - added arrowScaleFactor to scale the arrows on the edges.
+
+### DataSet
+
+- A DataSet can now be constructed with initial data, like
+  `new DataSet(data, options)`.
 
 
 ## 2014-04-18, version 0.7.4
