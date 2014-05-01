@@ -249,6 +249,14 @@ Group.prototype.remove = function remove(item) {
 };
 
 /**
+ * Remove an item from the corresponding DataSet
+ * @param {Item} item
+ */
+Group.prototype.removeFromDataSet = function removeFromDataSet(item) {
+  this.itemSet.removeItem(item.id);
+};
+
+/**
  * Order the items
  * @private
  */

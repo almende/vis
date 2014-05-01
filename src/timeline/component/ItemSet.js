@@ -572,12 +572,7 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
     }
   });
 
-  // reorder the items in all groups
-  // TODO: optimization: only reorder groups affected by the changed items
-  util.forEach(this.groups, function (group) {
-    group._order();
-  });
-
+  this._order();
   this.stackDirty = true; // force re-stacking of all items next repaint
   this.emit('change');
 };
@@ -611,6 +606,18 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
     this.stackDirty = true; // force re-stacking of all items next repaint
     this.emit('change');
   }
+};
+
+/**
+ * Update the order of item in all groups
+ * @private
+ */
+ItemSet.prototype._order = function _order() {
+  // reorder the items in all groups
+  // TODO: optimization: only reorder groups affected by the changed items
+  util.forEach(this.groups, function (group) {
+    group._order();
+  });
 };
 
 /**

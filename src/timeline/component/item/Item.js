@@ -112,8 +112,7 @@ Item.prototype.repositionY = function repositionY() {
 Item.prototype._repaintDeleteButton = function (anchor) {
   if (this.selected && this.options.editable && !this.dom.deleteButton) {
     // create and show button
-    var parent = this.parent;
-    var id = this.id;
+    var me = this;
 
     var deleteButton = document.createElement('div');
     deleteButton.className = 'delete';
@@ -122,7 +121,7 @@ Item.prototype._repaintDeleteButton = function (anchor) {
     Hammer(deleteButton, {
       preventDefault: true
     }).on('tap', function (event) {
-      parent.removeItem(id);
+      me.parent.removeFromDataSet(me);
       event.stopPropagation();
     });
 
