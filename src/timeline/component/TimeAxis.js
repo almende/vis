@@ -153,10 +153,10 @@ TimeAxis.prototype.repaint = function () {
 TimeAxis.prototype._repaintLabels = function () {
   var orientation = this.getOption('orientation');
 
-  // calculate range and step
+  // calculate range and step (step such that we have space for 7 characters per label)
   var start = util.convert(this.range.start, 'Number'),
       end = util.convert(this.range.end, 'Number'),
-      minimumStep = this.options.toTime((this.props.minorCharWidth || 10) * 5).valueOf()
+      minimumStep = this.options.toTime((this.props.minorCharWidth || 10) * 7).valueOf()
           -this.options.toTime(0).valueOf();
   var step = new TimeStep(new Date(start), new Date(end), minimumStep);
   this.step = step;

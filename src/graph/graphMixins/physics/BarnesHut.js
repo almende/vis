@@ -156,6 +156,13 @@ var barnesHutMixin = {
   },
 
 
+  /**
+   * this updates the mass of a branch. this is increased by adding a node.
+   *
+   * @param parentBranch
+   * @param node
+   * @private
+   */
   _updateBranchMass : function(parentBranch, node) {
     var totalMass = parentBranch.mass + node.mass;
     var totalMassInv = 1/totalMass;
@@ -173,6 +180,14 @@ var barnesHutMixin = {
   },
 
 
+  /**
+   * determine in which branch the node will be placed.
+   *
+   * @param parentBranch
+   * @param node
+   * @param skipMassUpdate
+   * @private
+   */
   _placeInTree : function(parentBranch,node,skipMassUpdate) {
     if (skipMassUpdate != true || skipMassUpdate === undefined) {
       // update the mass of the branch.
@@ -198,6 +213,14 @@ var barnesHutMixin = {
   },
 
 
+  /**
+   * actually place the node in a region (or branch)
+   *
+   * @param parentBranch
+   * @param node
+   * @param region
+   * @private
+   */
   _placeInRegion : function(parentBranch,node,region) {
     switch (parentBranch.children[region].childrenCount) {
       case 0: // place node here

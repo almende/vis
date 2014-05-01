@@ -73,6 +73,7 @@ function Graph (container, data, options) {
       fontSize: 14, // px
       fontFace: 'arial',
       fontFill: 'white',
+      arrowScaleFactor: 1,
       dash: {
         length: 10,
         gap: 5,
@@ -371,6 +372,7 @@ Graph.prototype._centerGraph = function(range) {
  * This function zooms out to fit all data on screen based on amount of nodes
  *
  * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
+ * @param {Boolean} [disableStart] | If true, start is not called.
  */
 Graph.prototype.zoomExtent = function(initialZoom, disableStart) {
   if (initialZoom === undefined) {
@@ -626,6 +628,7 @@ Graph.prototype.setOptions = function (options) {
           }
         }
       }
+
 
       if (options.edges.color !== undefined) {
         if (util.isString(options.edges.color)) {
@@ -956,7 +959,7 @@ Graph.prototype._handleOnDrag = function(event) {
       this.drag.translation.x + diffX,
       this.drag.translation.y + diffY);
     this._redraw();
-    this.moved = true;
+    this.moving = true;
   }
 };
 
@@ -1359,11 +1362,12 @@ Graph.prototype._updateNodes = function(ids) {
       // create node
       node = new Node(properties, this.images, this.groups, this.constants);
       nodes[id] = node;
-
-      if (!node.isFixed()) {
-        this.moving = true;
-      }
     }
+  }
+  this.moving = true;
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
   }
   this._updateNodeIndexList();
   this._reconnectEdges();
@@ -1809,7 +1813,12 @@ Graph.prototype._stabilize = function() {
   this.emit("stabilized",{iterations:count});
 };
 
-
+/**
+ * When initializing and stabilizing, we can freeze nodes with a predefined position. This greatly speeds up stabilization
+ * because only the supportnodes for the smoothCurves have to settle.
+ *
+ * @private
+ */
 Graph.prototype._freezeDefinedNodes = function() {
   var nodes = this.nodes;
   for (var id in nodes) {
@@ -1824,6 +1833,11 @@ Graph.prototype._freezeDefinedNodes = function() {
   }
 };
 
+/**
+ * Unfreezes the nodes that have been frozen by _freezeDefinedNodes.
+ *
+ * @private
+ */
 Graph.prototype._restoreFrozenNodes = function() {
   var nodes = this.nodes;
   for (var id in nodes) {
@@ -1894,7 +1908,11 @@ Graph.prototype._discreteStepNodes = function() {
   }
 };
 
-
+/**
+ * A single simulation step (or "tick") in the physics simulation
+ *
+ * @private
+ */
 Graph.prototype._physicsTick = function() {
   if (!this.freezeSimulation) {
     if (this.moving) {
@@ -2013,7 +2031,12 @@ Graph.prototype.toggleFreeze = function() {
 };
 
 
-
+/**
+ * This function cleans the support nodes if they are not needed and adds them when they are.
+ *
+ * @param {boolean} [disableStart]
+ * @private
+ */
 Graph.prototype._configureSmoothCurves = function(disableStart) {
   if (disableStart === undefined) {
     disableStart = true;
@@ -2039,6 +2062,13 @@ Graph.prototype._configureSmoothCurves = function(disableStart) {
   }
 };
 
+
+/**
+ * Bezier curves require an anchor point to calculate the smooth flow. These points are nodes. These nodes are invisible but
+ * are used for the force calculation.
+ *
+ * @private
+ */
 Graph.prototype._createBezierNodes = function() {
   if (this.constants.smoothCurves == true) {
     for (var edgeId in this.edges) {
@@ -2063,7 +2093,11 @@ Graph.prototype._createBezierNodes = function() {
   }
 };
 
-
+/**
+ * load the functions that load the mixins into the prototype.
+ *
+ * @private
+ */
 Graph.prototype._initializeMixinLoaders = function () {
   for (var mixinFunction in graphMixinLoaders) {
     if (graphMixinLoaders.hasOwnProperty(mixinFunction)) {

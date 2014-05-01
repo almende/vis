@@ -38,7 +38,7 @@ task('build', {async: true}, function () {
     src: [
       './src/timeline/component/css/timeline.css',
       './src/timeline/component/css/panel.css',
-      './src/timeline/component/css/groupset.css',
+      './src/timeline/component/css/labelset.css',
       './src/timeline/component/css/itemset.css',
       './src/timeline/component/css/item.css',
       './src/timeline/component/css/timeaxis.css',
@@ -64,8 +64,8 @@ task('build', {async: true}, function () {
       './src/DataSet.js',
       './src/DataView.js',
 
+      './src/timeline/stack.js',
       './src/timeline/TimeStep.js',
-      './src/timeline/Stack.js',
       './src/timeline/Range.js',
       './src/timeline/component/Component.js',
       './src/timeline/component/Panel.js',
@@ -76,7 +76,6 @@ task('build', {async: true}, function () {
       './src/timeline/component/ItemSet.js',
       './src/timeline/component/item/*.js',
       './src/timeline/component/Group.js',
-      './src/timeline/component/GroupSet.js',
       './src/timeline/Timeline.js',
 
       './src/graph/dotparser.js',

@@ -347,10 +347,39 @@ var options = {
 
 <tr>
   <td>editable</td>
+  <td>Boolean | Object</td>
+  <td>false</td>
+  <td>If true, the items in the timeline can be manipulated. Only applicable when option <code>selectable</code> is <code>true</code>. See also the callbacks <code>onAdd</code>, <code>onUpdate</code>, <code>onMove</code>, and <code>onRemove</code>. When <code>editable</code> is an object, one can enable or disable individual manipulation actions.
+    See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.
+  </td>
+</tr>
+
+<tr>
+  <td>editable.add</td>
   <td>Boolean</td>
   <td>false</td>
-  <td>If true, the items on the timeline can be dragged. Only applicable when option <code>selectable</code> is <code>true</code>. See also the callbacks <code>onAdd</code>, <code>onUpdate</code>, <code>onMove</code>, and <code>onRemove</code>, described in detail in section <a href="#Editing_Items">Editing Items</a>.
-  </td>
+  <td>If true, new items can be created by double tapping an empty space in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
+</tr>
+
+<tr>
+  <td>editable.remove</td>
+  <td>Boolean</td>
+  <td>false</td>
+  <td>If true, items can be deleted by first selecting them, and then clicking the delete button on the top right of the item. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
+</tr>
+
+<tr>
+  <td>editable.updateGroup</td>
+  <td>Boolean</td>
+  <td>false</td>
+  <td>If true, items can be dragged from one group to another. Only applicable when the Timeline has groups. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
+</tr>
+
+<tr>
+  <td>editable.updateTime</td>
+  <td>Boolean</td>
+  <td>false</td>
+  <td>If true, items can be dragged to another moment in time. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
 </tr>
 
 <tr>
@@ -428,7 +457,7 @@ var options = {
   <td>onAdd</td>
   <td>Function</td>
   <td>none</td>
-  <td>Callback function triggered when an item is about to be added: when the user double taps an empty space in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable</code> are set <code>true</code>.
+  <td>Callback function triggered when an item is about to be added: when the user double taps an empty space in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.add</code> are set <code>true</code>.
   </td>
 </tr>
 
@@ -436,7 +465,7 @@ var options = {
   <td>onUpdate</td>
   <td>Function</td>
   <td>none</td>
-  <td>Callback function triggered when an item is about to be updated, when the user double taps an item in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable</code> are set <code>true</code>.
+  <td>Callback function triggered when an item is about to be updated, when the user double taps an item in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.updateTime</code> or <code>editable.updateGroup</code> are set <code>true</code>.
   </td>
 </tr>
 
@@ -444,7 +473,7 @@ var options = {
   <td>onMove</td>
   <td>Function</td>
   <td>none</td>
-  <td>Callback function triggered when an item has been moved: after the user has dragged the item to an other position. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable</code> are set <code>true</code>.
+  <td>Callback function triggered when an item has been moved: after the user has dragged the item to an other position. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.updateTime</code> or <code>editable.updateGroup</code> are set <code>true</code>.
   </td>
 </tr>
 
@@ -452,7 +481,7 @@ var options = {
   <td>onRemove</td>
   <td>Function</td>
   <td>none</td>
-  <td>Callback function triggered when an item is about to be removed: when the user tapped the delete button on the top right of a selected item. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable</code> are set <code>true</code>.
+  <td>Callback function triggered when an item is about to be removed: when the user tapped the delete button on the top right of a selected item. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.remove</code> are set <code>true</code>.
   </td>
 </tr>
 
@@ -533,6 +562,13 @@ var options = {
     are shown. When both <code>showMajorLabels</code> and
     <code>showMinorLabels</code> are false, no horizontal axis will be
     visible.</td>
+</tr>
+
+<tr>
+  <td>stack</td>
+  <td>Boolean</td>
+  <td>true</td>
+  <td>If true (default), items will be stacked on top of each other such that they are not overlapping.</td>
 </tr>
 
 <tr>
@@ -791,6 +827,24 @@ timeline.off('select', onSelect);
 <p>
   When the Timeline is configured to be editable (both options <code>selectable</code> and <code>editable</code> are <code>true</code>), the user can move items by dragging them, can create a new item by double tapping on an empty space, can update an item by double tapping it, and can delete a selected item by clicking the delete button on the top right.
 </p>
+
+<p>Option <code>editable</code> accepts a boolean or an object. When <code>editable</code> is a boolean, all manipulation actions will be either enabled or disabled. When <code>editable</code> is an object, one can enable individual manipulation actions:</p>
+
+<pre class="prettyprint lang-js">// enable or disable all manipulation actions
+var options = {
+  editable: true       // true or false
+};
+
+// enable or disable individual manipulation actions
+var options = {
+  editable: {
+    add: true,         // add new items by double tapping
+    updateTime: true,  // drag items horizontally
+    updateGroup: true, // drag items from one group to another
+    remove: true       // delete an item by tapping the delete button top right
+  }
+};</pre>
+
 
 <p>
   One can specify callback functions to validate changes made by the user. There are a number of callback functions for this purpose:

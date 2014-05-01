@@ -7,17 +7,28 @@ http://visjs.org
 ### Timeline
 
 - Large refactoring of the Timeline, simplifying the code.
-- Performance improvements.
+- Great performance improvements.
 - Improved layout of box-items inside groups.
+- Items can now be dragged from one group to another.
+- Implemented option `stack` to enable/disable stacking of items.
+- Option `editable` can now be used to enable/disable individual manipulation
+  actions (`add`, `updateTime`, `updateGroup`, `remove`).
 - Function `setWindow` now accepts an object with properties `start` and `end`.
 - Fixed option `autoResize` forcing a repaint of the Timeline with every check
   rather than when the Timeline is actually resized.
 - Fixed `select` event fired repeatedly when clicking an empty place on the
   Timeline, deselecting selected items).
 - Fixed initial visible window in case items exceed `zoomMax`. Thanks @Remper.
+- Fixed an offset in newly created items when using groups.
+- Fixed height of a group not reckoning with the height of the group label.
 - Option `order` is now deprecated. This was needed for performance improvements.
-- Minor bug fixes.
 - More examples added.
+- Minor bug fixes.
+
+### Graph
+
+- added recalculate hierarchical layout to update node event.
+- added arrowScaleFactor to scale the arrows on the edges.
 
 ### DataSet
 

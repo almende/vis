@@ -1,14 +1,13 @@
 /**
  * @constructor ItemRangeOverflow
  * @extends ItemRange
- * @param {ItemSet} parent
  * @param {Object} data             Object containing parameters start, end
  *                                  content, className.
  * @param {Object} [options]        Options to set initial property values
  * @param {Object} [defaultOptions] default options
  *                                  // TODO: describe available options
  */
-function ItemRangeOverflow (parent, data, options, defaultOptions) {
+function ItemRangeOverflow (data, options, defaultOptions) {
   this.props = {
     content: {
       left: 0,
@@ -16,10 +15,10 @@ function ItemRangeOverflow (parent, data, options, defaultOptions) {
     }
   };
 
-  ItemRange.call(this, parent, data, options, defaultOptions);
+  ItemRange.call(this, data, options, defaultOptions);
 }
 
-ItemRangeOverflow.prototype = new ItemRange (null, null);
+ItemRangeOverflow.prototype = new ItemRange (null);
 
 ItemRangeOverflow.prototype.baseClassName = 'item rangeoverflow';
 

@@ -1,14 +1,13 @@
 /**
  * @constructor ItemPoint
  * @extends Item
- * @param {ItemSet} parent
  * @param {Object} data             Object containing parameters start
  *                                  content, className.
  * @param {Object} [options]        Options to set initial property values
  * @param {Object} [defaultOptions] default options
  *                                  // TODO: describe available options
  */
-function ItemPoint (parent, data, options, defaultOptions) {
+function ItemPoint (data, options, defaultOptions) {
   this.props = {
     dot: {
       top: 0,
@@ -28,10 +27,10 @@ function ItemPoint (parent, data, options, defaultOptions) {
     }
   }
 
-  Item.call(this, parent, data, options, defaultOptions);
+  Item.call(this, data, options, defaultOptions);
 }
 
-ItemPoint.prototype = new Item (null, null);
+ItemPoint.prototype = new Item (null);
 
 /**
  * Check whether this item is visible inside given range
@@ -40,9 +39,10 @@ ItemPoint.prototype = new Item (null, null);
  */
 ItemPoint.prototype.isVisible = function isVisible (range) {
   // determine visibility
-  var interval = (range.end - range.start);
-  return (this.data.start > range.start - interval) && (this.data.start < range.end);
-}
+  // TODO: account for the real width of the item. Right now we just add 1/4 to the window
+  var interval = (range.end - range.start) / 4;
+  return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
+};
 
 /**
  * Repaint the item
@@ -121,10 +121,11 @@ ItemPoint.prototype.repaint = function repaint() {
     this.props.content.height = dom.content.offsetHeight;
 
     // resize contents
-    dom.content.style.marginLeft = 1.5 * this.props.dot.width + 'px';
+    dom.content.style.marginLeft = 2 * this.props.dot.width + 'px';
     //dom.content.style.marginRight = ... + 'px'; // TODO: margin right
 
     dom.dot.style.top = ((this.height - this.props.dot.height) / 2) + 'px';
+    dom.dot.style.left = (this.props.dot.width / 2) + 'px';
 
     this.dirty = false;
   }
@@ -165,7 +166,7 @@ ItemPoint.prototype.hide = function hide() {
 ItemPoint.prototype.repositionX = function repositionX() {
   var start = this.defaultOptions.toScreen(this.data.start);
 
-  this.left = start - this.props.dot.width / 2;
+  this.left = start - this.props.dot.width;
 
   // reposition point
   this.dom.point.style.left = this.left + 'px';
@@ -187,4 +188,4 @@ ItemPoint.prototype.repositionY = function repositionY () {
     point.style.top = '';
     point.style.bottom = this.top + 'px';
   }
-}
+};

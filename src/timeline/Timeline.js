@@ -15,7 +15,15 @@ function Timeline (container, items, options) {
     orientation: 'bottom',
     direction: 'horizontal', // 'horizontal' or 'vertical'
     autoResize: true,
-    editable: false,
+    stacking: true,
+
+    editable: {
+      updateTime: false,
+      updateGroup: false,
+      add: false,
+      remove: false
+    },
+
     selectable: true,
     snap: null, // will be specified after timeaxis is created
 
@@ -93,8 +101,8 @@ function Timeline (container, items, options) {
     right: null,
     height: '100%',
     width: function () {
-      if (me.groupSet) {
-        return me.groupSet.getLabelsWidth();
+      if (me.itemSet) {
+        return me.itemSet.getLabelsWidth();
       }
       else {
         return 0;
@@ -236,11 +244,19 @@ function Timeline (container, items, options) {
     me.emit('timechanged', time);
   });
 
-  this.itemSet = null;
-  this.groupSet = null;
-
-  // create groupset
-  this.setGroups(null);
+  // itemset containing items and groups
+  var itemOptions = util.extend(Object.create(this.options), {
+    left: null,
+    right: null,
+    top: null,
+    bottom: null,
+    width: null,
+    height: null
+  });
+  this.itemSet = new ItemSet(this.backgroundPanel, this.axisPanel, this.sideContentPanel, itemOptions);
+  this.itemSet.setRange(this.range);
+  this.itemSet.on('change', me.rootPanel.repaint.bind(me.rootPanel));
+  this.contentPanel.appendChild(this.itemSet);
 
   this.itemsData = null;      // DataSet
   this.groupsData = null;     // DataSet
@@ -250,7 +266,7 @@ function Timeline (container, items, options) {
     this.setOptions(options);
   }
 
-  // create itemset and groupset
+  // create itemset
   if (items) {
     this.setItems(items);
   }
@@ -266,6 +282,17 @@ Emitter(Timeline.prototype);
 Timeline.prototype.setOptions = function (options) {
   util.extend(this.options, options);
 
+  if ('editable' in options) {
+    var isBoolean = typeof options.editable === 'boolean';
+
+    this.options.editable = {
+      updateTime:  isBoolean ? options.editable : (options.editable.updateTime || false),
+      updateGroup: isBoolean ? options.editable : (options.editable.updateGroup || false),
+      add:         isBoolean ? options.editable : (options.editable.add || false),
+      remove:      isBoolean ? options.editable : (options.editable.remove || false)
+    };
+  }
+
   // force update of range (apply new min/max etc.)
   // both start and end are optional
   this.range.setRange(options.start, options.end);
@@ -280,6 +307,9 @@ Timeline.prototype.setOptions = function (options) {
       this.setSelection([]);
     }
   }
+
+  // force the itemSet to refresh: options like orientation and margins may be changed
+  this.itemSet.markDirty();
 
   // validate the callback functions
   var validateCallback = (function (fn) {
@@ -360,22 +390,22 @@ Timeline.prototype.setItems = function(items) {
   if (!items) {
     newDataSet = null;
   }
-  else if (items instanceof DataSet) {
+  else if (items instanceof DataSet || items instanceof DataView) {
     newDataSet = items;
   }
-  if (!(items instanceof DataSet)) {
-    newDataSet = new DataSet({
+  else {
+    // turn an array into a dataset
+    newDataSet = new DataSet(items, {
       convert: {
         start: 'Date',
         end: 'Date'
       }
     });
-    newDataSet.add(items);
   }
 
   // set items
   this.itemsData = newDataSet;
-  (this.itemSet || this.groupSet).setItems(newDataSet);
+  this.itemSet.setItems(newDataSet);
 
   if (initialLoad && (this.options.start == undefined || this.options.end == undefined)) {
     // apply the data range as range
@@ -424,63 +454,24 @@ Timeline.prototype.setItems = function(items) {
 
 /**
  * Set groups
- * @param {vis.DataSet | Array | google.visualization.DataTable} groupSet
+ * @param {vis.DataSet | Array | google.visualization.DataTable} groups
  */
-Timeline.prototype.setGroups = function(groupSet) {
-  var me = this;
-  this.groupsData = groupSet;
-
-  // create options for the itemset or groupset
-  var options = util.extend(Object.create(this.options), {
-    top: null,
-    bottom: null,
-    right: null,
-    left: null,
-    width: null,
-    height: null
-  });
-
-  if (this.groupsData) {
-    // Create a GroupSet
-
-    // remove itemset if existing
-    if (this.itemSet) {
-      this.itemSet.hide(); // TODO: not so nice having to hide here
-      this.contentPanel.removeChild(this.itemSet);
-      this.itemSet.setItems(); // disconnect from itemset
-      this.itemSet = null;
-    }
-
-    // create new GroupSet when needed
-    if (!this.groupSet) {
-      this.groupSet = new GroupSet(this.contentPanel, this.sideContentPanel, this.backgroundPanel, this.axisPanel, options);
-      this.groupSet.on('change', this.rootPanel.repaint.bind(this.rootPanel));
-      this.groupSet.setRange(this.range);
-      this.groupSet.setItems(this.itemsData);
-      this.groupSet.setGroups(this.groupsData);
-      this.contentPanel.appendChild(this.groupSet);
-    }
-    else {
-      this.groupSet.setGroups(this.groupsData);
-    }
+Timeline.prototype.setGroups = function(groups) {
+  // convert to type DataSet when needed
+  var newDataSet;
+  if (!groups) {
+    newDataSet = null;
+  }
+  else if (groups instanceof DataSet || groups instanceof DataView) {
+    newDataSet = groups;
   }
   else {
-    // ItemSet
-    if (this.groupSet) {
-      this.groupSet.hide(); // TODO: not so nice having to hide here
-      //this.groupSet.setGroups();  // disconnect from groupset
-      this.groupSet.setItems();   // disconnect from itemset
-      this.contentPanel.removeChild(this.groupSet);
-      this.groupSet = null;
-    }
-
-    // create new items
-    this.itemSet = new ItemSet(this.backgroundPanel, this.axisPanel, options);
-    this.itemSet.setRange(this.range);
-    this.itemSet.setItems(this.itemsData);
-    this.itemSet.on('change', me.rootPanel.repaint.bind(me.rootPanel));
-    this.contentPanel.appendChild(this.itemSet);
+    // turn an array into a dataset
+    newDataSet = new DataSet(groups);
   }
+
+  this.groupsData = newDataSet;
+  this.itemSet.setGroups(newDataSet);
 };
 
 /**
@@ -530,9 +521,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
  *                      unselected.
  */
 Timeline.prototype.setSelection = function setSelection (ids) {
-  var itemOrGroupSet = (this.itemSet || this.groupSet);
-
-  if (itemOrGroupSet) itemOrGroupSet.setSelection(ids);
+  this.itemSet.setSelection(ids);
 };
 
 /**
@@ -540,9 +529,7 @@ Timeline.prototype.setSelection = function setSelection (ids) {
  * @return {Array} ids  The ids of the selected items
  */
 Timeline.prototype.getSelection = function getSelection() {
-  var itemOrGroupSet = (this.itemSet || this.groupSet);
-
-  return itemOrGroupSet ? itemOrGroupSet.getSelection() : [];
+  return this.itemSet.getSelection();
 };
 
 /**
@@ -621,7 +608,7 @@ Timeline.prototype._onSelectItem = function (event) {
  */
 Timeline.prototype._onAddItem = function (event) {
   if (!this.options.selectable) return;
-  if (!this.options.editable) return;
+  if (!this.options.editable.add) return;
 
   var me = this,
       item = ItemSet.itemFromTarget(event);
@@ -639,7 +626,7 @@ Timeline.prototype._onAddItem = function (event) {
   }
   else {
     // add item
-    var xAbs = vis.util.getAbsoluteLeft(this.rootPanel.frame);
+    var xAbs = vis.util.getAbsoluteLeft(this.contentPanel.frame);
     var x = event.gesture.center.pageX - xAbs;
     var newItem = {
       start: this.timeAxis.snap(this._toTime(x)),
@@ -649,7 +636,7 @@ Timeline.prototype._onAddItem = function (event) {
     var id = util.randomUUID();
     newItem[this.itemsData.fieldId] = id;
 
-    var group = GroupSet.groupFromTarget(event);
+    var group = ItemSet.groupFromTarget(event);
     if (group) {
       newItem.group = group.groupId;
     }

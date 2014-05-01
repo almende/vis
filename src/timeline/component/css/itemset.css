@@ -22,3 +22,18 @@
 .vis.timeline .axis {
   overflow: visible;
 }
+
+.vis.timeline  .group {
+  position: relative;
+  box-sizing: border-box;
+}
+
+.vis.timeline.top .group {
+  border-top: 1px solid #bfbfbf;
+  border-bottom: none;
+}
+
+.vis.timeline.bottom .group {
+  border-top: none;
+  border-bottom: 1px solid #bfbfbf;
+}

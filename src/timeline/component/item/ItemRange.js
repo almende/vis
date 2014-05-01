@@ -1,14 +1,13 @@
 /**
  * @constructor ItemRange
  * @extends Item
- * @param {ItemSet} parent
  * @param {Object} data             Object containing parameters start, end
  *                                  content, className.
  * @param {Object} [options]        Options to set initial property values
  * @param {Object} [defaultOptions] default options
  *                                  // TODO: describe available options
  */
-function ItemRange (parent, data, options, defaultOptions) {
+function ItemRange (data, options, defaultOptions) {
   this.props = {
     content: {
       width: 0
@@ -25,10 +24,10 @@ function ItemRange (parent, data, options, defaultOptions) {
     }
   }
 
-  Item.call(this, parent, data, options, defaultOptions);
+  Item.call(this, data, options, defaultOptions);
 }
 
-ItemRange.prototype = new Item (null, null);
+ItemRange.prototype = new Item (null);
 
 ItemRange.prototype.baseClassName = 'item range';
 
@@ -205,10 +204,10 @@ ItemRange.prototype.repositionY = function repositionY() {
 
 /**
  * Repaint a drag area on the left side of the range when the range is selected
- * @private
+ * @protected
  */
 ItemRange.prototype._repaintDragLeft = function () {
-  if (this.selected && this.options.editable && !this.dom.dragLeft) {
+  if (this.selected && this.options.editable.updateTime && !this.dom.dragLeft) {
     // create and show drag area
     var dragLeft = document.createElement('div');
     dragLeft.className = 'drag-left';
@@ -235,10 +234,10 @@ ItemRange.prototype._repaintDragLeft = function () {
 
 /**
  * Repaint a drag area on the right side of the range when the range is selected
- * @private
+ * @protected
  */
 ItemRange.prototype._repaintDragRight = function () {
-  if (this.selected && this.options.editable && !this.dom.dragRight) {
+  if (this.selected && this.options.editable.updateTime && !this.dom.dragRight) {
     // create and show drag area
     var dragRight = document.createElement('div');
     dragRight.className = 'drag-right';

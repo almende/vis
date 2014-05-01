@@ -288,8 +288,6 @@ var manipulationMixin = {
 
   /**
    * Adds a node on the specified location
-   *
-   * @param {Object} pointer
    */
   _addNode : function() {
     if (this._selectionIsEmpty() && this.editMode == true) {
