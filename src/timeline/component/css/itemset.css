@@ -25,6 +25,7 @@
 
 .vis.timeline  .group {
   position: relative;
+  box-sizing: border-box;
 }
 
 .vis.timeline.top .group {

@@ -1,14 +1,22 @@
 /**
  * @constructor Group
  * @param {Number | String} groupId
+ * @param {Object} data
  * @param {ItemSet} itemSet
  */
-function Group (groupId, itemSet) {
+function Group (groupId, data, itemSet) {
   this.groupId = groupId;
 
   this.itemSet = itemSet;
 
   this.dom = {};
+  this.props = {
+    label: {
+      width: 0,
+      height: 0
+    }
+  };
+
   this.items = {};        // items filtered by groupId of this group
   this.visibleItems = []; // items currently visible in window
   this.orderedItems = {   // items sorted by start and by end
@@ -17,6 +25,8 @@ function Group (groupId, itemSet) {
   };
 
   this._create();
+
+  this.setData(data);
 }
 
 /**
@@ -44,6 +54,30 @@ Group.prototype._create = function() {
 };
 
 /**
+ * Set the group data for this group
+ * @param {Object} data   Group data, can contain properties content and className
+ */
+Group.prototype.setData = function setData(data) {
+  // update contents
+  var content = data && data.content;
+  if (content instanceof Element) {
+    this.dom.inner.appendChild(content);
+  }
+  else if (content != undefined) {
+    this.dom.inner.innerHTML = content;
+  }
+  else {
+    this.dom.inner.innerHTML = this.groupId;
+  }
+
+  // update className
+  var className = data && data.className;
+  if (className) {
+    util.addClassName(this.dom.label, className);
+  }
+};
+
+/**
  * Get the foreground container element
  * @return {HTMLElement} foreground
  */
@@ -68,6 +102,15 @@ Group.prototype.getAxis = function getAxis() {
 };
 
 /**
+ * Get the width of the group label
+ * @return {number} width
+ */
+Group.prototype.getLabelWidth = function getLabelWidth() {
+  return this.props.label.width;
+};
+
+
+/**
  * Repaint this group
  * @param {{start: number, end: number}} range
  * @param {number | {item: number, axis: number}} margin
@@ -75,6 +118,8 @@ Group.prototype.getAxis = function getAxis() {
  * @return {boolean} Returns true if the group is resized
  */
 Group.prototype.repaint = function repaint(range, margin, restack) {
+  var resized;
+
   if (typeof margin === 'number') {
     margin = {
       item: margin,
@@ -94,8 +139,6 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
 
   // recalculate the height of the group
   var height;
-
-  // determine the height from the stacked items
   var visibleItems = this.visibleItems;
   if (visibleItems.length) {
     var min = visibleItems[0].top;
@@ -109,8 +152,7 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
   else {
     height = margin.axis + margin.item;
   }
-
-  var resized = (this.height != height);
+  resized = (this.height != height);
 
   // calculate actual size and position
   var foreground = this.dom.foreground;
@@ -119,8 +161,14 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
   this.width = foreground.offsetWidth;
   this.height = height;
 
+  // recalculate size of label
+  // TODO: if changed, return resized=true
+  this.props.label.width = this.dom.inner.clientWidth;
+  this.props.label.height = this.dom.inner.clientHeight;
+
   // apply new height
   foreground.style.height  = height + 'px';
+  this.dom.label.style.height = height + 'px';
 
   return resized;
 };

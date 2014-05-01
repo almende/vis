@@ -20,14 +20,12 @@
   box-sizing: border-box;
 }
 
-.vis.timeline.bottom .labelset .vlabel,
-.vis.timeline.top .vpanel.side-content {
+.vis.timeline.top .labelset .vlabel {
   border-top: 1px solid #bfbfbf;
   border-bottom: none;
 }
 
-.vis.timeline.top .labelset .vlabel,
-.vis.timeline.bottom .vpanel.side-content {
+.vis.timeline.bottom .labelset .vlabel {
   border-top: none;
   border-bottom: 1px solid #bfbfbf;
 }

@@ -38,7 +38,7 @@ task('build', {async: true}, function () {
     src: [
       './src/timeline/component/css/timeline.css',
       './src/timeline/component/css/panel.css',
-      './src/timeline/component/css/groupset.css',
+      './src/timeline/component/css/labelset.css',
       './src/timeline/component/css/itemset.css',
       './src/timeline/component/css/item.css',
       './src/timeline/component/css/timeaxis.css',

@@ -8,26 +8,21 @@ var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
  *                                vertical lines of box items.
  * @param {Panel} axisPanel       Panel on the axis where the dots of box-items
  *                                can be displayed.
- * @param {Panel} labelPanel      Left side panel holding labels
+ * @param {Panel} sidePanel      Left side panel holding labels
  * @param {Object} [options]      See ItemSet.setOptions for the available options.
  * @constructor ItemSet
  * @extends Panel
  */
-function ItemSet(backgroundPanel, axisPanel, labelPanel, options) {
+function ItemSet(backgroundPanel, axisPanel, sidePanel, options) {
   this.id = util.randomUUID();
 
   // one options object is shared by this itemset and all its items
   this.options = options || {};
   this.backgroundPanel = backgroundPanel;
   this.axisPanel = axisPanel;
-  this.labelPanel = labelPanel;
+  this.sidePanel = sidePanel;
   this.itemOptions = Object.create(this.options);
   this.dom = {};
-  this.props = {
-    labels: {
-      width: 0
-    }
-  };
   this.hammer = null;
 
   var me = this;
@@ -110,6 +105,12 @@ ItemSet.prototype._create = function _create(){
   this.dom.axis = axis;
   this.axisPanel.frame.appendChild(axis);
 
+  // create labelset
+  var labelSet = document.createElement('div');
+  labelSet.className = 'labelset';
+  this.dom.labelSet = labelSet;
+  this.sidePanel.frame.appendChild(labelSet);
+
   // create ungrouped Group
   this._updateUngrouped();
 
@@ -166,6 +167,11 @@ ItemSet.prototype.hide = function hide() {
   if (this.dom.background.parentNode) {
     this.dom.background.parentNode.removeChild(this.dom.background);
   }
+
+  // remove the labelset containing all group labels
+  if (this.dom.labelSet.parentNode) {
+    this.dom.labelSet.parentNode.removeChild(this.dom.labelSet);
+  }
 };
 
 /**
@@ -181,6 +187,11 @@ ItemSet.prototype.show = function show() {
   // show background with vertical lines
   if (!this.dom.background.parentNode) {
     this.backgroundPanel.frame.appendChild(this.dom.background);
+  }
+
+  // show labelset containing labels
+  if (!this.dom.labelSet.parentNode) {
+    this.sidePanel.frame.appendChild(this.dom.labelSet);
   }
 };
 
@@ -338,7 +349,8 @@ ItemSet.prototype._updateUngrouped = function _updateUngrouped() {
     // create a group holding all (unfiltered) items
     if (!ungrouped) {
       var id = null;
-      ungrouped = new Group(id, this, this.dom.background, this.dom.axis, this.labelPanel.frame);
+      var data = null;
+      ungrouped = new Group(id, data, this);
       this.groups[UNGROUPED] = ungrouped;
 
       for (var itemId in this.items) {
@@ -381,7 +393,7 @@ ItemSet.prototype.getAxis = function getAxis() {
  * @return {HTMLElement} labelSet
  */
 ItemSet.prototype.getLabelSet = function getLabelSet() {
-  return this.labelPanel.frame;
+  return this.dom.labelSet;
 };
 
 /**
@@ -631,7 +643,8 @@ ItemSet.prototype._onAddGroups = function _onAddGroups(ids) {
         height: null
       });
 
-      group = new Group(id, me, me.dom.background, me.dom.axis, me.labelPanel.frame);
+      var data = me.groupsData.get(id);
+      group = new Group(id, data, me);
       me.groups[id] = group;
 
       // add items with this groupId to the new group
@@ -763,7 +776,13 @@ ItemSet.prototype._constructByEndArray = function _constructByEndArray(array) {
  * @return {Number} width
  */
 ItemSet.prototype.getLabelsWidth = function getLabelsWidth() {
-  return this.props.labels.width;
+  var width = 0;
+
+  util.forEach(this.groups, function (group) {
+    width = Math.max(width, group.getLabelWidth());
+  });
+
+  return width;
 };
 
 /**
