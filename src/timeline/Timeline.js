@@ -15,7 +15,7 @@ function Timeline (container, items, options) {
     orientation: 'bottom',
     direction: 'horizontal', // 'horizontal' or 'vertical'
     autoResize: true,
-    stacking: true,
+    stack: true,
 
     editable: {
       updateTime: false,
