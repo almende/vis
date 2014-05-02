@@ -521,7 +521,6 @@ DataSet.prototype.getIds = function (options) {
 
 /**
  * Execute a callback function for every item in the dataset.
- * The order of the items is not determined.
  * @param {function} callback
  * @param {Object} [options]    Available options:
  *                              {Object.<String, String>} [convert]
@@ -767,9 +766,8 @@ DataSet.prototype.min = function (field) {
 /**
  * Find all distinct values of a specified field
  * @param {String} field
- * @return {Array} values  Array containing all distinct values. If the data
- *                         items do not contain the specified field, an array
- *                         containing a single value undefined is returned.
+ * @return {Array} values  Array containing all distinct values. If data items
+ *                         do not contain the specified field are ignored.
  *                         The returned array is unordered.
  */
 DataSet.prototype.distinct = function (field) {
@@ -789,7 +787,7 @@ DataSet.prototype.distinct = function (field) {
           break;
         }
       }
-      if (!exists) {
+      if (!exists && (value !== undefined)) {
         values[count] = value;
         count++;
       }

@@ -20,10 +20,10 @@
   <li><a href="#Overview">Overview</a></li>
   <li><a href="#Example">Example</a></li>
   <li><a href="#Construction">Construction</a></li>
-  <li><a href="#Data_Manipulation">Data Manipulation</a></li>
-  <li><a href="#Data_Filtering">Data Filtering</a></li>
-  <li><a href="#Data_Formatting">Data Formatting</a></li>
+  <li><a href="#Methods">Methods</a></li>
   <li><a href="#Subscriptions">Subscriptions</a></li>
+  <li><a href="#Data_Manipulation">Data Manipulation</a></li>
+  <li><a href="#Data_Selection">Data Selection</a></li>
   <li><a href="#Data_Policy">Data Policy</a></li>
 </ul>
 
@@ -160,6 +160,294 @@ var data = new vis.DataSet([data] [, options])
       stringified dates coming from a server into JavaScript Date
       objects. The available data types are listed in section
       <a href="#Data_Types">Data Types</a>.
+    </td>
+  </tr>
+</table>
+
+
+<h2 id="Methods">Methods</h2>
+
+<p>DataSet contains the following methods.</p>
+
+<table>
+  <colgroup>
+    <col width="200">
+  </colgroup>
+
+  <tr>
+    <th>Method</th>
+    <th>Return Type</th>
+    <th>Description</th>
+  </tr>
+
+  <tr>
+    <td>add(data [, senderId])</td>
+    <td>Number[]</td>
+    <td>Add data to the DataSet. Adding an item will fail when there already is an item with the same id. The function returns an array with the ids of the added items. See section <a href="#Data_Manipulation">Data Manipulation</a>.</td>
+  </tr>
+
+  <tr>
+    <td>clear([senderId])</td>
+    <td>Number[]</td>
+    <td>Clear all data from the DataSet. The function returns an array with the ids of the removed items.</td>
+  </tr>
+
+  <tr>
+    <td>distinct(field)</td>
+    <td>Array</td>
+    <td>Find all distinct values of a specified field. Returns an unordered array containing all distinct values. If data items do not contain the specified field are ignored.</td>
+  </tr>
+
+  <tr>
+    <td>forEach(callback [, options])</td>
+    <td>none</td>
+    <td>
+      Execute a callback function for every item in the dataset.
+      The available options are described in section <a href="#Data_Selection">Data Selection</a>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      get([options] [, data])<br>
+      get(id [,options] [, data])<br>
+      get(ids [, options] [, data])
+    </td>
+    <td>Object | Array | DataTable</td>
+    <td>
+      Get a single item, multiple items, or all items from the DataSet.
+      Usage examples can be found in section <a href="#Getting_Data">Getting Data</a>, and the available <code>options</code> are described in section <a href="#Data_Selection">Data Selection</a>. If parameter <code>data</code> isprovided, items will be appended to this array or table, which is required in case of Google DataTable.
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      getIds([options])
+    </td>
+    <td>Number[]</td>
+    <td>
+      Get ids of all items or of a filtered set of items.
+      Available <code>options</code> are described in section <a href="#Data_Selection">Data Selection</a>, except that options <code>fields</code> and <code>convert</code> are not applicable in case of <code>getIds</code>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>map(callback [, options])</td>
+    <td>Array</td>
+    <td>
+      Map every item in the DataSet.
+      The available options are described in section <a href="#Data_Selection">Data Selection</a>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>max(field)</td>
+    <td>Object | null</td>
+    <td>
+      Find the item with maximum value of specified field. Returns <code>null</code> if no item is found.
+    </td>
+  </tr>
+
+  <tr>
+    <td>min(field)</td>
+    <td>Object | null</td>
+    <td>
+      Find the item with minimum value of specified field. Returns <code>null</code> if no item is found.
+    </td>
+  </tr>
+
+  <tr>
+    <td>off(event, callback)</td>
+    <td>none</td>
+    <td>
+      Unsubscribe from an event, remove an event listener. See section <a href="#Subscriptions">Subscriptions</a>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>on(event, callback)</td>
+    <td>none</td>
+    <td>
+      Subscribe to an event, add an event listener. See section <a href="#Subscriptions">Subscriptions</a>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      remove(id [, senderId])<br>
+      remove(ids [, senderId])
+    </td>
+    <td>Number[]</td>
+    <td>
+      Remove on ore multiple items by id or by the items themselves. Returns an array with the ids of the removed items. See section <a href="#Data_Manipulation">Data Manipulation</a>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      update(id [, senderId])<br>
+      update(ids [, senderId])
+    </td>
+    <td>Number[]</td>
+    <td>
+      Update on ore existing items. When an item doesn't  exist, it will be created. Returns an array with the ids of the removed items. See section <a href="#Data_Manipulation">Data Manipulation</a>.
+    </td>
+  </tr>
+
+</table>
+
+
+<h2 id="Subscriptions">Subscriptions</h2>
+
+<p>
+  One can subscribe on changes in a DataSet.
+  A subscription can be created using the method <code>on</code>,
+  and removed with <code>off</code>.
+</p>
+
+<pre class="prettyprint lang-js">
+// create a DataSet
+var data = new vis.DataSet();
+
+// subscribe to any change in the DataSet
+data.on('*', function (event, properties, senderId) {
+  console.log('event:', event, 'properties:', properties, 'senderId:', senderId);
+});
+
+// add an item
+data.add({id: 1, text: 'item 1'});              // triggers an 'add' event
+data.update({id: 1, text: 'item 1 (updated)'}); // triggers an 'update' event
+data.remove(1);                                 // triggers an 'remove' event
+</pre>
+
+
+<h3 id="On">On</h3>
+
+<p>
+  Subscribe to an event.
+</p>
+
+Syntax:
+<pre class="prettyprint lang-js">DataSet.on(event, callback)</pre>
+
+Where:
+<ul>
+  <li>
+    <code>event</code> is a String containing any of the events listed
+    in section <a href="#Events">Events</a>.
+  </li>
+  <li>
+    <code>callback</code> is a callback function which will be called
+    each time the event occurs. The callback function is described in
+    section <a href="#Callback">Callback</a>.
+  </li>
+</ul>
+
+<h3 id="Off">Off</h3>
+
+<p>
+  Unsubscribe from an event.
+</p>
+
+Syntax:
+<pre class="prettyprint lang-js">DataSet.off(event, callback)</pre>
+
+Where <code>event</code> and <code>callback</code> correspond with the
+parameters used to <a href="#On">subscribe</a> to the event.
+
+<h3 id="Events">Events</h3>
+
+<p>
+  The following events are available for subscription:
+</p>
+
+<table>
+  <tr>
+    <th>Event</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>add</td>
+    <td>
+      The <code>add</code> event is triggered when an item
+      or a set of items is added, or when an item is updated while
+      not yet existing.
+    </td>
+  </tr>
+  <tr>
+    <td>update</td>
+    <td>
+      The <code>update</code> event is triggered when an existing item
+      or a set of existing items is updated.
+    </td>
+  </tr>
+  <tr>
+    <td>remove</td>
+    <td>
+      The <code>remove</code> event is triggered when an item
+      or a set of items is removed.
+    </td>
+  </tr>
+  <tr>
+    <td>*</td>
+    <td>
+      The <code>*</code> event is triggered when any of the events
+      <code>add</code>, <code>update</code>, and <code>remove</code>
+      occurs.
+    </td>
+  </tr>
+</table>
+
+<h3 id="Callback">Callback</h3>
+
+<p>
+  The callback functions of subscribers are called with the following
+  parameters:
+</p>
+
+    <pre class="prettyprint lang-js">
+function (event, properties, senderId) {
+  // handle the event
+});
+</pre>
+
+<p>
+  where the parameters are defined as
+</p>
+
+<table>
+  <tr>
+    <th>Parameter</th>
+    <th>Type</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>event</td>
+    <td>String</td>
+    <td>
+      Any of the available events: <code>add</code>,
+      <code>update</code>, or <code>remove</code>.
+    </td>
+  </tr>
+  <tr>
+    <td>properties</td>
+    <td>Object&nbsp;|&nbsp;null</td>
+    <td>
+      Optional properties providing more information on the event.
+      In case of the events <code>add</code>,
+      <code>update</code>, and <code>remove</code>,
+      <code>properties</code> is always an object containing a property
+      items, which contains an array with the ids of the affected
+      items.
+    </td>
+  </tr>
+  <tr>
+    <td>senderId</td>
+    <td>String&nbsp;|&nbsp;Number</td>
+    <td>
+      An senderId, optionally provided by the application code
+      which triggered the event. If senderId is not provided, the
+      argument will be <code>null</code>.
     </td>
   </tr>
 </table>
@@ -322,70 +610,18 @@ Syntax:
 </p>
 
 
-<h2 id="Data_Filtering">Data Filtering</h2>
+<h2 id="Data_Selection">Data Selection</h2>
 
 <p>
-  Data can be retrieved from the DataSet using the method <code>get</code>.
-  This method can return a single item or a list with items.
-</p>
-
-<p>A single item can be retrieved by its id:</p>
-
-<pre class="prettyprint lang-js">
-var item1 = dataset.get(1);
-</pre>
-
-<p>A selection of items can be retrieved by providing an array with ids:</p>
-
-<pre class="prettyprint lang-js">
-var items = dataset.get([1, 3, 4]); // retrieve items 1, 3, and 4
-</pre>
-
-<p>All items can be retrieved by simply calling <code>get</code> without
-  specifying an id:</p>
-
-<pre class="prettyprint lang-js">
-var items = dataset.get();          // retrieve all items
-</pre>
-
-<p>
-  Items can be filtered on specific properties by providing a filter
-  function. A filter function is executed for each of the items in the
-  DataSet, and is called with the item as parameter. The function must
-  return a boolean. All items for which the filter function returns
-  true will be emitted.
+  The DataSet contains functionality to format, filter, and sort data retrieved via the
+  methods <code>get</code>, <code>getIds</code>, <code>forEach</code>, and <code>map</code>. These methods have the following syntax:
 </p>
 
 <pre class="prettyprint lang-js">
-// retrieve all items having a property group with value 2
-var group2 = dataset.get({
-  filter: function (item) {
-    return (item.group == 2);
-  }
-});
-
-// retrieve all items having a property balance with a value above zero
-var positiveBalance = dataset.get({
-  filter: function (item) {
-    return (item.balance > 0);
-  }
-});
-
-</pre>
-
-
-<h2 id="Data_Formatting">Data Formatting</h2>
-
-<p>
-  The DataSet contains functionality to format data retrieved via the
-  method <code>get</code>. The method <code>get</code> has the following
-  syntax:
-</p>
-
-<pre class="prettyprint lang-js">
-var item  = DataSet.get(id, options);   // retrieve a single item
-var items = DataSet.get(ids, options);  // retrieve a selection of items
-var items = DataSet.get(options);       // retrieve all items or a filtered set
+DataSet.get([id] [, options] [, data]);
+DataSet.getIds([options]);
+DataSet.forEach(callback [, options]);
+DataSet.map(callback [, options]);
 </pre>
 
 <p>
@@ -471,6 +707,59 @@ var items = data.get({
 });
 </pre>
 
+<h3 id="Getting_Data">Getting Data</h3>
+
+<p>
+  Data can be retrieved from the DataSet using the method <code>get</code>.
+  This method can return a single item or a list with items.
+</p>
+
+<p>A single item can be retrieved by its id:</p>
+
+<pre class="prettyprint lang-js">
+var item1 = dataset.get(1);
+</pre>
+
+<p>A selection of items can be retrieved by providing an array with ids:</p>
+
+<pre class="prettyprint lang-js">
+var items = dataset.get([1, 3, 4]); // retrieve items 1, 3, and 4
+</pre>
+
+<p>All items can be retrieved by simply calling <code>get</code> without
+  specifying an id:</p>
+
+<pre class="prettyprint lang-js">
+var items = dataset.get();          // retrieve all items
+</pre>
+
+
+<h3 id="Data_Filtering">Data Filtering</h3>
+
+<p>
+  Items can be filtered on specific properties by providing a filter
+  function. A filter function is executed for each of the items in the
+  DataSet, and is called with the item as parameter. The function must
+  return a boolean. All items for which the filter function returns
+  true will be emitted.
+</p>
+
+<pre class="prettyprint lang-js">
+// retrieve all items having a property group with value 2
+var group2 = dataset.get({
+  filter: function (item) {
+    return (item.group == 2);
+  }
+});
+
+// retrieve all items having a property balance with a value above zero
+var positiveBalance = dataset.get({
+  filter: function (item) {
+    return (item.balance > 0);
+  }
+});
+
+</pre>
 
 
 <h3 id="Data_Types">Data Types</h3>
@@ -544,163 +833,6 @@ var items = data.get({
     </td>
   </tr>
 </table>
-
-
-<h2 id="Subscriptions">Subscriptions</h2>
-
-<p>
-  One can subscribe on changes in a DataSet.
-  A subscription can be created using the method <code>on</code>,
-  and removed with <code>off</code>.
-</p>
-
-<pre class="prettyprint lang-js">
-// create a DataSet
-var data = new vis.DataSet();
-
-// subscribe to any change in the DataSet
-data.on('*', function (event, properties, senderId) {
-  console.log('event:', event, 'properties:', properties, 'senderId:', senderId);
-});
-
-// add an item
-data.add({id: 1, text: 'item 1'});              // triggers an 'add' event
-data.update({id: 1, text: 'item 1 (updated)'}); // triggers an 'update' event
-data.remove(1);                                 // triggers an 'remove' event
-</pre>
-
-
-<h3 id="On">On</h3>
-
-<p>
-  Subscribe to an event.
-</p>
-
-Syntax:
-<pre class="prettyprint lang-js">DataSet.on(event, callback)</pre>
-
-Where:
-<ul>
-  <li>
-    <code>event</code> is a String containing any of the events listed
-    in section <a href="#Events">Events</a>.
-  </li>
-  <li>
-    <code>callback</code> is a callback function which will be called
-    each time the event occurs. The callback function is described in
-    section <a href="#Callback">Callback</a>.
-  </li>
-</ul>
-
-<h3 id="Off">Off</h3>
-
-<p>
-  Unsubscribe from an event.
-</p>
-
-Syntax:
-<pre class="prettyprint lang-js">DataSet.off(event, callback)</pre>
-
-Where <code>event</code> and <code>callback</code> correspond with the
-parameters used to <a href="#On">subscribe</a> to the event.
-
-<h3 id="Events">Events</h3>
-
-<p>
-  The following events are available for subscription:
-</p>
-
-<table>
-  <tr>
-    <th>Event</th>
-    <th>Description</th>
-  </tr>
-  <tr>
-    <td>add</td>
-    <td>
-      The <code>add</code> event is triggered when an item
-      or a set of items is added, or when an item is updated while
-      not yet existing.
-    </td>
-  </tr>
-  <tr>
-    <td>update</td>
-    <td>
-      The <code>update</code> event is triggered when an existing item
-      or a set of existing items is updated.
-    </td>
-  </tr>
-  <tr>
-    <td>remove</td>
-    <td>
-      The <code>remove</code> event is triggered when an item
-      or a set of items is removed.
-    </td>
-  </tr>
-  <tr>
-    <td>*</td>
-    <td>
-      The <code>*</code> event is triggered when any of the events
-      <code>add</code>, <code>update</code>, and <code>remove</code>
-      occurs.
-    </td>
-  </tr>
-</table>
-
-<h3 id="Callback">Callback</h3>
-
-<p>
-  The callback functions of subscribers are called with the following
-  parameters:
-</p>
-
-    <pre class="prettyprint lang-js">
-function (event, properties, senderId) {
-  // handle the event
-});
-</pre>
-
-<p>
-  where the parameters are defined as
-</p>
-
-<table>
-  <tr>
-    <th>Parameter</th>
-    <th>Type</th>
-    <th>Description</th>
-  </tr>
-  <tr>
-    <td>event</td>
-    <td>String</td>
-    <td>
-      Any of the available events: <code>add</code>,
-      <code>update</code>, or <code>remove</code>.
-    </td>
-  </tr>
-  <tr>
-    <td>properties</td>
-    <td>Object&nbsp;|&nbsp;null</td>
-    <td>
-      Optional properties providing more information on the event.
-      In case of the events <code>add</code>,
-      <code>update</code>, and <code>remove</code>,
-      <code>properties</code> is always an object containing a property
-      items, which contains an array with the ids of the affected
-      items.
-    </td>
-  </tr>
-  <tr>
-    <td>senderId</td>
-    <td>String&nbsp;|&nbsp;Number</td>
-    <td>
-      An senderId, optionally provided by the application code
-      which triggered the event. If senderId is not provided, the
-      argument will be <code>null</code>.
-    </td>
-  </tr>
-</table>
-
 
 
 <h2 id="Data_Policy">Data Policy</h2>
