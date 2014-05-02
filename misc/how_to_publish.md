@@ -70,6 +70,9 @@ This generates the vis.js library in the folder `./dist`.
 - Move the created zip file `vis.zip` to the `download` folder in the
   `github-pages` branch. TODO: this should be automated.
 
+- Check if there are new or updated examples, and update the gallery screenshots
+  accordingly.
+
 - Go to the `github-pages` branch and run the following script:
 
         node updateversion.js
