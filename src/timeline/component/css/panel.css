@@ -4,7 +4,6 @@
   overflow: hidden;
 
   border: 1px solid #bfbfbf;
-  -moz-box-sizing: border-box;
   box-sizing: border-box;
 
   /* FIXME: there is an issue with the height of the items when panel height is animated
@@ -17,7 +16,6 @@
   position: absolute;
   overflow: hidden;
 
-  -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
 

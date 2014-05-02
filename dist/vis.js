@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 0.7.5-SNAPSHOT
- * @date    2014-05-01
+ * @date    2014-05-02
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -6242,7 +6242,6 @@ ItemPoint.prototype.repaint = function repaint() {
 
     // dot at start
     dom.dot = document.createElement('div');
-    dom.dot.className  = 'dot';
     dom.point.appendChild(dom.dot);
 
     // attach this item as attribute
@@ -6285,6 +6284,7 @@ ItemPoint.prototype.repaint = function repaint() {
   if (this.className != className) {
     this.className = className;
     dom.point.className  = 'item point' + className;
+    dom.dot.className  = 'item dot' + className;
 
     this.dirty = true;
   }
@@ -7158,7 +7158,7 @@ function Timeline (container, items, options) {
     orientation: 'bottom',
     direction: 'horizontal', // 'horizontal' or 'vertical'
     autoResize: true,
-    stacking: true,
+    stack: true,
 
     editable: {
       updateTime: false,

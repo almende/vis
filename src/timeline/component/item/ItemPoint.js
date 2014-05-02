@@ -65,7 +65,6 @@ ItemPoint.prototype.repaint = function repaint() {
 
     // dot at start
     dom.dot = document.createElement('div');
-    dom.dot.className  = 'dot';
     dom.point.appendChild(dom.dot);
 
     // attach this item as attribute
@@ -108,6 +107,7 @@ ItemPoint.prototype.repaint = function repaint() {
   if (this.className != className) {
     this.className = className;
     dom.point.className  = 'item point' + className;
+    dom.dot.className  = 'item dot' + className;
 
     this.dirty = true;
   }
