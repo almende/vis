@@ -4,11 +4,10 @@
 var vis = {
   util: util,
 
-  Controller: Controller,
   DataSet: DataSet,
   DataView: DataView,
   Range: Range,
-  Stack: Stack,
+  stack: stack,
   TimeStep: TimeStep,
 
   components: {

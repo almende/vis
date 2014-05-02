@@ -1,8 +1,5 @@
 /**
  * A panel can contain components
- * @param {Component} [parent]
- * @param {Component[]} [depends]   Components on which this components depends
- *                                  (except for the parent)
  * @param {Object} [options]    Available parameters:
  *                              {String | Number | function} [left]
  *                              {String | Number | function} [top]
@@ -12,12 +9,15 @@
  * @constructor Panel
  * @extends Component
  */
-function Panel(parent, depends, options) {
+function Panel(options) {
   this.id = util.randomUUID();
-  this.parent = parent;
-  this.depends = depends;
+  this.parent = null;
+  this.childs = [];
 
   this.options = options || {};
+
+  // create frame
+  this.frame = (typeof document !== 'undefined') ? document.createElement('div') : null;
 }
 
 Panel.prototype = new Component();
@@ -34,79 +34,137 @@ Panel.prototype = new Component();
 Panel.prototype.setOptions = Component.prototype.setOptions;
 
 /**
- * Get the container element of the panel, which can be used by a child to
- * add its own widgets.
- * @returns {HTMLElement} container
+ * Get the outer frame of the panel
+ * @returns {HTMLElement} frame
  */
-Panel.prototype.getContainer = function () {
+Panel.prototype.getFrame = function () {
   return this.frame;
 };
 
 /**
- * Repaint the component
- * @return {Boolean} changed
+ * Append a child to the panel
+ * @param {Component} child
  */
-Panel.prototype.repaint = function () {
-  var changed = 0,
-      update = util.updateProperty,
-      asSize = util.option.asSize,
-      options = this.options,
-      frame = this.frame;
-  if (!frame) {
-    frame = document.createElement('div');
-    frame.className = 'vpanel';
+Panel.prototype.appendChild = function (child) {
+  this.childs.push(child);
+  child.parent = this;
 
-    var className = options.className;
-    if (className) {
-      if (typeof className == 'function') {
-        util.addClassName(frame, String(className()));
-      }
-      else {
-        util.addClassName(frame, String(className));
-      }
+  // attach to the DOM
+  var frame = child.getFrame();
+  if (frame) {
+    if (frame.parentNode) {
+      frame.parentNode.removeChild(frame);
     }
-
-    this.frame = frame;
-    changed += 1;
+    this.frame.appendChild(frame);
   }
-  if (!frame.parentNode) {
-    if (!this.parent) {
-      throw new Error('Cannot repaint panel: no parent attached');
-    }
-    var parentContainer = this.parent.getContainer();
-    if (!parentContainer) {
-      throw new Error('Cannot repaint panel: parent has no container element');
-    }
-    parentContainer.appendChild(frame);
-    changed += 1;
-  }
-
-  changed += update(frame.style, 'top',    asSize(options.top, '0px'));
-  changed += update(frame.style, 'left',   asSize(options.left, '0px'));
-  changed += update(frame.style, 'width',  asSize(options.width, '100%'));
-  changed += update(frame.style, 'height', asSize(options.height, '100%'));
-
-  return (changed > 0);
 };
 
 /**
- * Reflow the component
- * @return {Boolean} resized
+ * Insert a child to the panel
+ * @param {Component} child
+ * @param {Component} beforeChild
  */
-Panel.prototype.reflow = function () {
-  var changed = 0,
-      update = util.updateProperty,
-      frame = this.frame;
+Panel.prototype.insertBefore = function (child, beforeChild) {
+  var index = this.childs.indexOf(beforeChild);
+  if (index != -1) {
+    this.childs.splice(index, 0, child);
+    child.parent = this;
 
-  if (frame) {
-    changed += update(this, 'top', frame.offsetTop);
-    changed += update(this, 'left', frame.offsetLeft);
-    changed += update(this, 'width', frame.offsetWidth);
-    changed += update(this, 'height', frame.offsetHeight);
-  }
-  else {
-    changed += 1;
-  }
+    // attach to the DOM
+    var frame = child.getFrame();
+    if (frame) {
+      if (frame.parentNode) {
+        frame.parentNode.removeChild(frame);
+      }
 
-  return (changed > 0);
+      var beforeFrame = beforeChild.getFrame();
+      if (beforeFrame) {
+        this.frame.insertBefore(frame, beforeFrame);
+      }
+      else {
+        this.frame.appendChild(frame);
+      }
+    }
+  }
+};
+
+/**
+ * Remove a child from the panel
+ * @param {Component} child
+ */
+Panel.prototype.removeChild = function (child) {
+  var index = this.childs.indexOf(child);
+  if (index != -1) {
+    this.childs.splice(index, 1);
+    child.parent = null;
+
+    // remove from the DOM
+    var frame = child.getFrame();
+    if (frame && frame.parentNode) {
+      this.frame.removeChild(frame);
+    }
+  }
+};
+
+/**
+ * Test whether the panel contains given child
+ * @param {Component} child
+ */
+Panel.prototype.hasChild = function (child) {
+  var index = this.childs.indexOf(child);
+  return (index != -1);
+};
+
+/**
+ * Repaint the component
+ * @return {boolean} Returns true if the component was resized since previous repaint
+ */
+Panel.prototype.repaint = function () {
+  var asString = util.option.asString,
+      options = this.options,
+      frame = this.getFrame();
+
+  // update className
+  frame.className = 'vpanel' + (options.className ? (' ' + asString(options.className)) : '');
+
+  // repaint the child components
+  var childsResized = this._repaintChilds();
+
+  // update frame size
+  this._updateSize();
+
+  return this._isResized() || childsResized;
+};
+
+/**
+ * Repaint all childs of the panel
+ * @return {boolean} Returns true if the component is resized
+ * @private
+ */
+Panel.prototype._repaintChilds = function () {
+  var resized = false;
+  for (var i = 0, ii = this.childs.length; i < ii; i++) {
+    resized = this.childs[i].repaint() || resized;
+  }
+  return resized;
+};
+
+/**
+ * Apply the size from options to the panel, and recalculate it's actual size.
+ * @private
+ */
+Panel.prototype._updateSize = function () {
+  // apply size
+  this.frame.style.top    = util.option.asSize(this.options.top);
+  this.frame.style.bottom = util.option.asSize(this.options.bottom);
+  this.frame.style.left   = util.option.asSize(this.options.left);
+  this.frame.style.right  = util.option.asSize(this.options.right);
+  this.frame.style.width  = util.option.asSize(this.options.width, '100%');
+  this.frame.style.height = util.option.asSize(this.options.height, '');
+
+  // get actual size
+  this.top    = this.frame.offsetTop;
+  this.left   = this.frame.offsetLeft;
+  this.width  = this.frame.offsetWidth;
+  this.height = this.frame.offsetHeight;
 };

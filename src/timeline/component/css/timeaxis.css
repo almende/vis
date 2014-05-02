@@ -1,15 +1,15 @@
-.vis.timeline .axis {
-  position: relative;
+.vis.timeline .timeaxis {
+  position: absolute;
 }
 
-.vis.timeline .axis .text {
+.vis.timeline .timeaxis .text {
   position: absolute;
   color: #4d4d4d;
   padding: 3px;
   white-space: nowrap;
 }
 
-.vis.timeline .axis .text.measure {
+.vis.timeline .timeaxis .text.measure {
   position: absolute;
   padding-left: 0;
   padding-right: 0;
@@ -18,13 +18,13 @@
   visibility: hidden;
 }
 
-.vis.timeline .axis .grid.vertical {
+.vis.timeline .timeaxis .grid.vertical {
   position: absolute;
   width: 0;
   border-right: 1px solid;
 }
 
-.vis.timeline .axis .grid.horizontal {
+.vis.timeline .timeaxis .grid.horizontal {
   position: absolute;
   left: 0;
   width: 100%;
@@ -32,10 +32,10 @@
   border-bottom: 1px solid;
 }
 
-.vis.timeline .axis .grid.minor {
+.vis.timeline .timeaxis .grid.minor {
   border-color: #e5e5e5;
 }
 
-.vis.timeline .axis .grid.major {
+.vis.timeline .timeaxis .grid.major {
   border-color: #bfbfbf;
 }

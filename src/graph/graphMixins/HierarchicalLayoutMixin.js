@@ -123,7 +123,7 @@ var HierarchicalLayoutMixin = {
    */
   _getDistribution : function() {
     var distribution = {};
-    var nodeId, node;
+    var nodeId, node, level;
 
     // we fix Y because the hierarchy is vertical, we fix X so we do not give a node an x position for a second time.
     // the fix of X is removed after the x value has been set.
@@ -148,7 +148,7 @@ var HierarchicalLayoutMixin = {
 
     // determine the largest amount of nodes of all levels
     var maxCount = 0;
-    for (var level in distribution) {
+    for (level in distribution) {
       if (distribution.hasOwnProperty(level)) {
         if (maxCount < distribution[level].amount) {
           maxCount = distribution[level].amount;
@@ -157,7 +157,7 @@ var HierarchicalLayoutMixin = {
     }
 
     // set the initial position and spacing of each nodes accordingly
-    for (var level in distribution) {
+    for (level in distribution) {
       if (distribution.hasOwnProperty(level)) {
         distribution[level].nodeSpacing = (maxCount + 1) * this.constants.hierarchicalLayout.nodeSpacing;
         distribution[level].nodeSpacing /= (distribution[level].amount + 1);

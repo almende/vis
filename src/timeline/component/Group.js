@@ -1,20 +1,15 @@
 /**
  * @constructor Group
- * @param {GroupSet} parent
  * @param {Number | String} groupId
- * @param {Object} [options]  Options to set initial property values
- *                            // TODO: describe available options
- * @extends Component
+ * @param {Object} data
+ * @param {ItemSet} itemSet
  */
-function Group (parent, groupId, options) {
-  this.id = util.randomUUID();
-  this.parent = parent;
-
+function Group (groupId, data, itemSet) {
   this.groupId = groupId;
-  this.itemset = null;    // ItemSet
-  this.options = options || {};
-  this.options.top = 0;
 
+  this.itemSet = itemSet;
+
+  this.dom = {};
   this.props = {
     label: {
       width: 0,
@@ -22,108 +17,436 @@ function Group (parent, groupId, options) {
     }
   };
 
-  this.top = 0;
-  this.left = 0;
-  this.width = 0;
-  this.height = 0;
+  this.items = {};        // items filtered by groupId of this group
+  this.visibleItems = []; // items currently visible in window
+  this.orderedItems = {   // items sorted by start and by end
+    byStart: [],
+    byEnd: []
+  };
+
+  this._create();
+
+  this.setData(data);
 }
 
-Group.prototype = new Component();
-
-// TODO: comment
-Group.prototype.setOptions = Component.prototype.setOptions;
-
 /**
- * Get the container element of the panel, which can be used by a child to
- * add its own widgets.
- * @returns {HTMLElement} container
+ * Create DOM elements for the group
+ * @private
  */
-Group.prototype.getContainer = function () {
-  return this.parent.getContainer();
+Group.prototype._create = function() {
+  var label = document.createElement('div');
+  label.className = 'vlabel';
+  this.dom.label = label;
+
+  var inner = document.createElement('div');
+  inner.className = 'inner';
+  label.appendChild(inner);
+  this.dom.inner = inner;
+
+  var foreground = document.createElement('div');
+  foreground.className = 'group';
+  foreground['timeline-group'] = this;
+  this.dom.foreground = foreground;
+
+  this.dom.background = document.createElement('div');
+
+  this.dom.axis = document.createElement('div');
 };
 
 /**
- * Set item set for the group. The group will create a view on the itemset,
- * filtered by the groups id.
- * @param {DataSet | DataView} items
+ * Set the group data for this group
+ * @param {Object} data   Group data, can contain properties content and className
  */
-Group.prototype.setItems = function setItems(items) {
-  if (this.itemset) {
-    // remove current item set
-    this.itemset.hide();
-    this.itemset.setItems();
-
-    this.parent.controller.remove(this.itemset);
-    this.itemset = null;
+Group.prototype.setData = function setData(data) {
+  // update contents
+  var content = data && data.content;
+  if (content instanceof Element) {
+    this.dom.inner.appendChild(content);
   }
-
-  if (items) {
-    var groupId = this.groupId;
-
-    var itemsetOptions = Object.create(this.options);
-    this.itemset = new ItemSet(this, null, itemsetOptions);
-    this.itemset.setRange(this.parent.range);
-
-    this.view = new DataView(items, {
-      filter: function (item) {
-        return item.group == groupId;
-      }
-    });
-    this.itemset.setItems(this.view);
-
-    this.parent.controller.add(this.itemset);
-  }
-};
-
-/**
- * Set selected items by their id. Replaces the current selection.
- * Unknown id's are silently ignored.
- * @param {Array} [ids] An array with zero or more id's of the items to be
- *                      selected. If ids is an empty array, all items will be
- *                      unselected.
- */
-Group.prototype.setSelection = function setSelection(ids) {
-  if (this.itemset) this.itemset.setSelection(ids);
-};
-
-/**
- * Get the selected items by their id
- * @return {Array} ids  The ids of the selected items
- */
-Group.prototype.getSelection = function getSelection() {
-  return this.itemset ? this.itemset.getSelection() : [];
-};
-
-/**
- * Repaint the item
- * @return {Boolean} changed
- */
-Group.prototype.repaint = function repaint() {
-  return false;
-};
-
-/**
- * Reflow the item
- * @return {Boolean} resized
- */
-Group.prototype.reflow = function reflow() {
-  var changed = 0,
-      update = util.updateProperty;
-
-  changed += update(this, 'top',    this.itemset ? this.itemset.top : 0);
-  changed += update(this, 'height', this.itemset ? this.itemset.height : 0);
-
-  // TODO: reckon with the height of the group label
-
-  if (this.label) {
-    var inner = this.label.firstChild;
-    changed += update(this.props.label, 'width', inner.clientWidth);
-    changed += update(this.props.label, 'height', inner.clientHeight);
+  else if (content != undefined) {
+    this.dom.inner.innerHTML = content;
   }
   else {
-    changed += update(this.props.label, 'width', 0);
-    changed += update(this.props.label, 'height', 0);
+    this.dom.inner.innerHTML = this.groupId;
   }
 
-  return (changed > 0);
+  // update className
+  var className = data && data.className;
+  if (className) {
+    util.addClassName(this.dom.label, className);
+  }
+};
+
+/**
+ * Get the foreground container element
+ * @return {HTMLElement} foreground
+ */
+Group.prototype.getForeground = function getForeground() {
+  return this.dom.foreground;
+};
+
+/**
+ * Get the background container element
+ * @return {HTMLElement} background
+ */
+Group.prototype.getBackground = function getBackground() {
+  return this.dom.background;
+};
+
+/**
+ * Get the axis container element
+ * @return {HTMLElement} axis
+ */
+Group.prototype.getAxis = function getAxis() {
+  return this.dom.axis;
+};
+
+/**
+ * Get the width of the group label
+ * @return {number} width
+ */
+Group.prototype.getLabelWidth = function getLabelWidth() {
+  return this.props.label.width;
+};
+
+
+/**
+ * Repaint this group
+ * @param {{start: number, end: number}} range
+ * @param {{item: number, axis: number}} margin
+ * @param {boolean} [restack=false]  Force restacking of all items
+ * @return {boolean} Returns true if the group is resized
+ */
+Group.prototype.repaint = function repaint(range, margin, restack) {
+  var resized = false;
+
+  this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
+
+  // reposition visible items vertically
+  if (this.itemSet.options.stack) { // TODO: ugly way to access options...
+    stack.stack(this.visibleItems, margin, restack);
+  }
+  else { // no stacking
+    stack.nostack(this.visibleItems, margin);
+  }
+  this.stackDirty = false;
+  for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
+    var item = this.visibleItems[i];
+    item.repositionY();
+  }
+
+  // recalculate the height of the group
+  var height;
+  var visibleItems = this.visibleItems;
+  if (visibleItems.length) {
+    var min = visibleItems[0].top;
+    var max = visibleItems[0].top + visibleItems[0].height;
+    util.forEach(visibleItems, function (item) {
+      min = Math.min(min, item.top);
+      max = Math.max(max, (item.top + item.height));
+    });
+    height = (max - min) + margin.axis + margin.item;
+  }
+  else {
+    height = margin.axis + margin.item;
+  }
+  height = Math.max(height, this.props.label.height);
+
+  // calculate actual size and position
+  var foreground = this.dom.foreground;
+  this.top = foreground.offsetTop;
+  this.left = foreground.offsetLeft;
+  this.width = foreground.offsetWidth;
+  resized = util.updateProperty(this, 'height', height) || resized;
+
+  // recalculate size of label
+  resized = util.updateProperty(this.props.label, 'width', this.dom.inner.clientWidth) || resized;
+  resized = util.updateProperty(this.props.label, 'height', this.dom.inner.clientHeight) || resized;
+
+  // apply new height
+  foreground.style.height  = height + 'px';
+  this.dom.label.style.height = height + 'px';
+
+  return resized;
+};
+
+/**
+ * Show this group: attach to the DOM
+ */
+Group.prototype.show = function show() {
+  if (!this.dom.label.parentNode) {
+    this.itemSet.getLabelSet().appendChild(this.dom.label);
+  }
+
+  if (!this.dom.foreground.parentNode) {
+    this.itemSet.getForeground().appendChild(this.dom.foreground);
+  }
+
+  if (!this.dom.background.parentNode) {
+    this.itemSet.getBackground().appendChild(this.dom.background);
+  }
+
+  if (!this.dom.axis.parentNode) {
+    this.itemSet.getAxis().appendChild(this.dom.axis);
+  }
+};
+
+/**
+ * Hide this group: remove from the DOM
+ */
+Group.prototype.hide = function hide() {
+  var label = this.dom.label;
+  if (label.parentNode) {
+    label.parentNode.removeChild(label);
+  }
+
+  var foreground = this.dom.foreground;
+  if (foreground.parentNode) {
+    foreground.parentNode.removeChild(foreground);
+  }
+
+  var background = this.dom.background;
+  if (background.parentNode) {
+    background.parentNode.removeChild(background);
+  }
+
+  var axis = this.dom.axis;
+  if (axis.parentNode) {
+    axis.parentNode.removeChild(axis);
+  }
+};
+
+/**
+ * Add an item to the group
+ * @param {Item} item
+ */
+Group.prototype.add = function add(item) {
+  this.items[item.id] = item;
+  item.setParent(this);
+
+  if (item instanceof ItemRange && this.visibleItems.indexOf(item) == -1) {
+    var range = this.itemSet.range; // TODO: not nice accessing the range like this
+    this._checkIfVisible(item, this.visibleItems, range);
+  }
+};
+
+/**
+ * Remove an item from the group
+ * @param {Item} item
+ */
+Group.prototype.remove = function remove(item) {
+  delete this.items[item.id];
+  item.setParent(this.itemSet);
+
+  // remove from visible items
+  var index = this.visibleItems.indexOf(item);
+  if (index != -1) this.visibleItems.splice(index, 1);
+
+  // TODO: also remove from ordered items?
+};
+
+/**
+ * Remove an item from the corresponding DataSet
+ * @param {Item} item
+ */
+Group.prototype.removeFromDataSet = function removeFromDataSet(item) {
+  this.itemSet.removeItem(item.id);
+};
+
+/**
+ * Reorder the items
+ */
+Group.prototype.order = function order() {
+  var array = util.toArray(this.items);
+  this.orderedItems.byStart = array;
+  this.orderedItems.byEnd = this._constructByEndArray(array);
+
+  stack.orderByStart(this.orderedItems.byStart);
+  stack.orderByEnd(this.orderedItems.byEnd);
+};
+
+/**
+ * Create an array containing all items being a range (having an end date)
+ * @param {Item[]} array
+ * @returns {ItemRange[]}
+ * @private
+ */
+Group.prototype._constructByEndArray = function _constructByEndArray(array) {
+  var endArray = [];
+
+  for (var i = 0; i < array.length; i++) {
+    if (array[i] instanceof ItemRange) {
+      endArray.push(array[i]);
+    }
+  }
+  return endArray;
+};
+
+/**
+ * Update the visible items
+ * @param {{byStart: Item[], byEnd: Item[]}} orderedItems   All items ordered by start date and by end date
+ * @param {Item[]} visibleItems                             The previously visible items.
+ * @param {{start: number, end: number}} range              Visible range
+ * @return {Item[]} visibleItems                            The new visible items.
+ * @private
+ */
+Group.prototype._updateVisibleItems = function _updateVisibleItems(orderedItems, visibleItems, range) {
+  var initialPosByStart,
+      newVisibleItems = [],
+      i;
+
+  // first check if the items that were in view previously are still in view.
+  // this handles the case for the ItemRange that is both before and after the current one.
+  if (visibleItems.length > 0) {
+    for (i = 0; i < visibleItems.length; i++) {
+      this._checkIfVisible(visibleItems[i], newVisibleItems, range);
+    }
+  }
+
+  // If there were no visible items previously, use binarySearch to find a visible ItemPoint or ItemRange (based on startTime)
+  if (newVisibleItems.length == 0) {
+    initialPosByStart = this._binarySearch(orderedItems, range, false);
+  }
+  else {
+    initialPosByStart = orderedItems.byStart.indexOf(newVisibleItems[0]);
+  }
+
+  // use visible search to find a visible ItemRange (only based on endTime)
+  var initialPosByEnd = this._binarySearch(orderedItems, range, true);
+
+  // if we found a initial ID to use, trace it up and down until we meet an invisible item.
+  if (initialPosByStart != -1) {
+    for (i = initialPosByStart; i >= 0; i--) {
+      if (this._checkIfInvisible(orderedItems.byStart[i], newVisibleItems, range)) {break;}
+    }
+    for (i = initialPosByStart + 1; i < orderedItems.byStart.length; i++) {
+      if (this._checkIfInvisible(orderedItems.byStart[i], newVisibleItems, range)) {break;}
+    }
+  }
+
+  // if we found a initial ID to use, trace it up and down until we meet an invisible item.
+  if (initialPosByEnd != -1) {
+    for (i = initialPosByEnd; i >= 0; i--) {
+      if (this._checkIfInvisible(orderedItems.byEnd[i], newVisibleItems, range)) {break;}
+    }
+    for (i = initialPosByEnd + 1; i < orderedItems.byEnd.length; i++) {
+      if (this._checkIfInvisible(orderedItems.byEnd[i], newVisibleItems, range)) {break;}
+    }
+  }
+
+  return newVisibleItems;
+};
+
+/**
+ * This function does a binary search for a visible item. The user can select either the this.orderedItems.byStart or .byEnd
+ * arrays. This is done by giving a boolean value true if you want to use the byEnd.
+ * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
+ * if the time we selected (start or end) is within the current range).
+ *
+ * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the ItemRange that is
+ * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
+ * either the start OR end time has to be in the range.
+ *
+ * @param {{byStart: Item[], byEnd: Item[]}} orderedItems
+ * @param {{start: number, end: number}} range
+ * @param {Boolean} byEnd
+ * @returns {number}
+ * @private
+ */
+Group.prototype._binarySearch = function _binarySearch(orderedItems, range, byEnd) {
+  var array = [];
+  var byTime = byEnd ? 'end' : 'start';
+  if (byEnd == true) {array = orderedItems.byEnd;  }
+  else               {array = orderedItems.byStart;}
+
+  var interval = range.end - range.start;
+
+  var found = false;
+  var low = 0;
+  var high = array.length;
+  var guess = Math.floor(0.5*(high+low));
+  var newGuess;
+
+  if (high == 0) {guess = -1;}
+  else if (high == 1) {
+    if ((array[guess].data[byTime] > range.start - interval) && (array[guess].data[byTime] < range.end)) {
+      guess =  0;
+    }
+    else {
+      guess = -1;
+    }
+  }
+  else {
+    high -= 1;
+    while (found == false) {
+      if ((array[guess].data[byTime] > range.start - interval) && (array[guess].data[byTime] < range.end)) {
+        found = true;
+      }
+      else {
+        if (array[guess].data[byTime] < range.start - interval) { // it is too small --> increase low
+          low = Math.floor(0.5*(high+low));
+        }
+        else {  // it is too big --> decrease high
+          high = Math.floor(0.5*(high+low));
+        }
+        newGuess = Math.floor(0.5*(high+low));
+        // not in list;
+        if (guess == newGuess) {
+          guess = -1;
+          found = true;
+        }
+        else {
+          guess = newGuess;
+        }
+      }
+    }
+  }
+  return guess;
+};
+
+/**
+ * this function checks if an item is invisible. If it is NOT we make it visible
+ * and add it to the global visible items. If it is, return true.
+ *
+ * @param {Item} item
+ * @param {Item[]} visibleItems
+ * @param {{start:number, end:number}} range
+ * @returns {boolean}
+ * @private
+ */
+Group.prototype._checkIfInvisible = function _checkIfInvisible(item, visibleItems, range) {
+  if (item.isVisible(range)) {
+    if (!item.displayed) item.show();
+    item.repositionX();
+    if (visibleItems.indexOf(item) == -1) {
+      visibleItems.push(item);
+    }
+    return false;
+  }
+  else {
+    return true;
+  }
+};
+
+/**
+ * this function is very similar to the _checkIfInvisible() but it does not
+ * return booleans, hides the item if it should not be seen and always adds to
+ * the visibleItems.
+ * this one is for brute forcing and hiding.
+ *
+ * @param {Item} item
+ * @param {Array} visibleItems
+ * @param {{start:number, end:number}} range
+ * @private
+ */
+Group.prototype._checkIfVisible = function _checkIfVisible(item, visibleItems, range) {
+  if (item.isVisible(range)) {
+    if (!item.displayed) item.show();
+    // reposition item horizontally
+    item.repositionX();
+    visibleItems.push(item);
+  }
+  else {
+    if (item.displayed) item.hide();
+  }
 };

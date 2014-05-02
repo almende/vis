@@ -3,9 +3,15 @@
   position: absolute;
   color: #1A1A1A;
   border-color: #97B0F8;
+  border-width: 1px;
   background-color: #D5DDF6;
   display: inline-block;
   padding: 5px;
+
+  /* TODO: enable css transitions
+  -webkit-transition: top .4s ease-in-out, bottom .4s ease-in-out;
+  transition:         top .4s ease-in-out, bottom .4s ease-in-out;
+  /**/
 }
 
 .vis.timeline .item.selected {
@@ -20,49 +26,30 @@
 
 .vis.timeline .item.point.selected {
   background-color: #FFF785;
-  z-index: 999;
-}
-.vis.timeline .item.point.selected .dot {
-  border-color: #FFC200;
-}
-
-.vis.timeline .item.cluster {
-  /* TODO: use another color or pattern? */
-  background: #97B0F8 url('img/cluster_bg.png');
-  color: white;
-}
-.vis.timeline .item.cluster.point {
-  border-color: #D5DDF6;
 }
 
 .vis.timeline .item.box {
   text-align: center;
   border-style: solid;
-  border-width: 1px;
-  border-radius: 5px;
-  -moz-border-radius: 5px; /* For Firefox 3.6 and older */
+  border-radius: 2px;
 }
 
 .vis.timeline .item.point {
   background: none;
 }
 
-.vis.timeline .dot,
 .vis.timeline .item.dot {
-  padding: 0;
-  border: 5px solid #97B0F8;
   position: absolute;
-  border-radius: 5px;
-  -moz-border-radius: 5px;  /* For Firefox 3.6 and older */
+  padding: 0;
+  border-width: 4px;
+  border-style: solid;
+  border-radius: 4px;
 }
 
 .vis.timeline .item.range,
 .vis.timeline .item.rangeoverflow{
   border-style: solid;
-  border-width: 1px;
   border-radius: 2px;
-  -moz-border-radius: 2px;  /* For Firefox 3.6 and older */
-  -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
 
@@ -83,6 +70,11 @@
   width: 0;
   border-left-width: 1px;
   border-left-style: solid;
+
+  /* TODO: enable css transitions
+  -webkit-transition: height .4s ease-in-out, top .4s ease-in-out;
+  transition:         height .4s ease-in-out, top .4s ease-in-out;
+  /**/
 }
 
 .vis.timeline .item .content {

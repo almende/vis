@@ -67,15 +67,15 @@ var graphMixinLoaders = {
    * @private
    */
   _loadSectorSystem: function () {
-    this.sectors = { },
-      this.activeSector = ["default"];
-    this.sectors["active"] = { },
-      this.sectors["active"]["default"] = {"nodes": {},
+    this.sectors = {};
+    this.activeSector = ["default"];
+    this.sectors["active"] = {};
+    this.sectors["active"]["default"] = {"nodes": {},
         "edges": {},
         "nodeIndices": [],
         "formationScale": 1.0,
         "drawingNode": undefined };
-    this.sectors["frozen"] = {},
+    this.sectors["frozen"] = {};
       this.sectors["support"] = {"nodes": {},
         "edges": {},
         "nodeIndices": [],
@@ -108,7 +108,7 @@ var graphMixinLoaders = {
   _loadManipulationSystem: function () {
     // reset global variables -- these are used by the selection of nodes and edges.
     this.blockConnectingEdgeSelection = false;
-    this.forceAppendSelection = false
+    this.forceAppendSelection = false;
 
     if (this.constants.dataManipulation.enabled == true) {
       // load the manipulator HTML elements. All styling done in css.

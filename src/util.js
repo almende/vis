@@ -98,6 +98,23 @@ util.extend = function (a, b) {
 };
 
 /**
+ * Test whether all elements in two arrays are equal.
+ * @param {Array} a
+ * @param {Array} b
+ * @return {boolean} Returns true if both arrays have the same length and same
+ *                   elements.
+ */
+util.equalArray = function (a, b) {
+  if (a.length != b.length) return false;
+
+  for (var i = 1, len = a.length; i < len; i++) {
+    if (a[i] != b[i]) return false;
+  }
+
+  return true;
+};
+
+/**
  * Convert an object to another type
  * @param {Boolean | Number | String | Date | Moment | Null | undefined} object
  * @param {String | undefined} type   Name of the type. Available types:
@@ -441,13 +458,29 @@ util.forEach = function forEach (object, callback) {
 };
 
 /**
+ * Convert an object into an array: all objects properties are put into the
+ * array. The resulting array is unordered.
+ * @param {Object} object
+ * @param {Array} array
+ */
+util.toArray = function toArray(object) {
+  var array = [];
+
+  for (var prop in object) {
+    if (object.hasOwnProperty(prop)) array.push(object[prop]);
+  }
+
+  return array;
+}
+
+/**
  * Update a property in an object
  * @param {Object} object
  * @param {String} key
  * @param {*} value
  * @return {Boolean} changed
  */
-util.updateProperty = function updateProp (object, key, value) {
+util.updateProperty = function updateProperty (object, key, value) {
   if (object[key] !== value) {
     object[key] = value;
     return true;
@@ -655,6 +688,8 @@ util.option.asElement = function (value, defaultValue) {
 
 
 util.GiveDec = function GiveDec(Hex) {
+  var Value;
+
   if (Hex == "A")
     Value = 10;
   else if (Hex == "B")
@@ -668,12 +703,15 @@ util.GiveDec = function GiveDec(Hex) {
   else if (Hex == "F")
     Value = 15;
   else
-    Value = eval(Hex)
+    Value = eval(Hex);
+
   return Value;
 };
 
 util.GiveHex = function GiveHex(Dec) {
-  if (Dec == 10)
+  var Value;
+
+  if(Dec == 10)
     Value = "A";
   else if (Dec == 11)
     Value = "B";
@@ -687,6 +725,7 @@ util.GiveHex = function GiveHex(Dec) {
     Value = "F";
   else
     Value = "" + Dec;
+
   return Value;
 };
 

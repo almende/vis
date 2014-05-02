@@ -1,5 +1,41 @@
-vis.js history
+# vis.js history
 http://visjs.org
+
+
+## 2014-05-02, version 1.0.0
+
+### Timeline
+
+- Large refactoring of the Timeline, simplifying the code.
+- Great performance improvements.
+- Improved layout of box-items inside groups.
+- Items can now be dragged from one group to another.
+- Implemented option `stack` to enable/disable stacking of items.
+- Implemented function `fit`, which sets the Timeline window such that it fits
+  all items.
+- Option `editable` can now be used to enable/disable individual manipulation
+  actions (`add`, `updateTime`, `updateGroup`, `remove`).
+- Function `setWindow` now accepts an object with properties `start` and `end`.
+- Fixed option `autoResize` forcing a repaint of the Timeline with every check
+  rather than when the Timeline is actually resized.
+- Fixed `select` event fired repeatedly when clicking an empty place on the
+  Timeline, deselecting selected items).
+- Fixed initial visible window in case items exceed `zoomMax`. Thanks @Remper.
+- Fixed an offset in newly created items when using groups.
+- Fixed height of a group not reckoning with the height of the group label.
+- Option `order` is now deprecated. This was needed for performance improvements.
+- More examples added.
+- Minor bug fixes.
+
+### Graph
+
+- added recalculate hierarchical layout to update node event.
+- added arrowScaleFactor to scale the arrows on the edges.
+
+### DataSet
+
+- A DataSet can now be constructed with initial data, like
+  `new DataSet(data, options)`.
 
 
 ## 2014-04-18, version 0.7.4
@@ -141,7 +177,7 @@ http://visjs.org
 
 - Moved the generated library to folder `./dist`
 - Css stylesheet must be loaded explicitly now.
-- Implemented options `showCurrentTime` and `showCustomTime`. Thanks fi0dor.
+- Implemented options `showCurrentTime` and `showCustomTime`. Thanks @fi0dor.
 - Implemented touch support for Timeline.
 - Fixed broken Timeline options `min` and `max`.
 - Fixed not being able to load vis.js in node.js.

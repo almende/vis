@@ -1,17 +1,12 @@
 /**
  * A horizontal time axis
- * @param {Component} parent
- * @param {Component[]} [depends]   Components on which this components depends
- *                                  (except for the parent)
  * @param {Object} [options]        See TimeAxis.setOptions for the available
  *                                  options.
  * @constructor TimeAxis
  * @extends Component
  */
-function TimeAxis (parent, depends, options) {
+function TimeAxis (options) {
   this.id = util.randomUUID();
-  this.parent = parent;
-  this.depends = depends;
 
   this.dom = {
     majorLines: [],
@@ -42,14 +37,23 @@ function TimeAxis (parent, depends, options) {
     showMajorLabels: true
   };
 
-  this.conversion = null;
   this.range = null;
+
+  // create the HTML DOM
+  this._create();
 }
 
 TimeAxis.prototype = new Component();
 
 // TODO: comment options
 TimeAxis.prototype.setOptions = Component.prototype.setOptions;
+
+/**
+ * Create the HTML DOM for the TimeAxis
+ */
+TimeAxis.prototype._create = function _create() {
+  this.frame = document.createElement('div');
+};
 
 /**
  * Set a range (start and end)
@@ -64,125 +68,69 @@ TimeAxis.prototype.setRange = function (range) {
 };
 
 /**
- * Convert a position on screen (pixels) to a datetime
- * @param {int}     x    Position on the screen in pixels
- * @return {Date}   time The datetime the corresponds with given position x
+ * Get the outer frame of the time axis
+ * @return {HTMLElement} frame
  */
-TimeAxis.prototype.toTime = function(x) {
-  var conversion = this.conversion;
-  return new Date(x / conversion.scale + conversion.offset);
-};
-
-/**
- * Convert a datetime (Date object) into a position on the screen
- * @param {Date}   time A date
- * @return {int}   x    The position on the screen in pixels which corresponds
- *                      with the given date.
- * @private
- */
-TimeAxis.prototype.toScreen = function(time) {
-  var conversion = this.conversion;
-  return (time.valueOf() - conversion.offset) * conversion.scale;
+TimeAxis.prototype.getFrame = function getFrame() {
+  return this.frame;
 };
 
 /**
  * Repaint the component
- * @return {Boolean} changed
+ * @return {boolean} Returns true if the component is resized
  */
 TimeAxis.prototype.repaint = function () {
-  var changed = 0,
-      update = util.updateProperty,
-      asSize = util.option.asSize,
+  var asSize = util.option.asSize,
       options = this.options,
-      orientation = this.getOption('orientation'),
       props = this.props,
-      step = this.step;
+      frame = this.frame;
 
-  var frame = this.frame;
-  if (!frame) {
-    frame = document.createElement('div');
-    this.frame = frame;
-    changed += 1;
-  }
-  frame.className = 'axis';
-  // TODO: custom className?
-
-  if (!frame.parentNode) {
-    if (!this.parent) {
-      throw new Error('Cannot repaint time axis: no parent attached');
-    }
-    var parentContainer = this.parent.getContainer();
-    if (!parentContainer) {
-      throw new Error('Cannot repaint time axis: parent has no container element');
-    }
-    parentContainer.appendChild(frame);
-
-    changed += 1;
-  }
+  // update classname
+  frame.className = 'timeaxis'; // TODO: add className from options if defined
 
   var parent = frame.parentNode;
   if (parent) {
+    // calculate character width and height
+    this._calculateCharSize();
+
+    // TODO: recalculate sizes only needed when parent is resized or options is changed
+    var orientation = this.getOption('orientation'),
+        showMinorLabels = this.getOption('showMinorLabels'),
+        showMajorLabels = this.getOption('showMajorLabels');
+
+    // determine the width and height of the elemens for the axis
+    var parentHeight = this.parent.height;
+    props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
+    props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
+    this.height = props.minorLabelHeight + props.majorLabelHeight;
+    this.width = frame.offsetWidth; // TODO: only update the width when the frame is resized?
+
+    props.minorLineHeight = parentHeight + props.minorLabelHeight;
+    props.minorLineWidth = 1; // TODO: really calculate width
+    props.majorLineHeight = parentHeight + this.height;
+    props.majorLineWidth = 1; // TODO: really calculate width
+
+    //  take frame offline while updating (is almost twice as fast)
     var beforeChild = frame.nextSibling;
-    parent.removeChild(frame); //  take frame offline while updating (is almost twice as fast)
+    parent.removeChild(frame);
 
-    var defaultTop = (orientation == 'bottom' && this.props.parentHeight && this.height) ?
-        (this.props.parentHeight - this.height) + 'px' :
-        '0px';
-    changed += update(frame.style, 'top', asSize(options.top, defaultTop));
-    changed += update(frame.style, 'left', asSize(options.left, '0px'));
-    changed += update(frame.style, 'width', asSize(options.width, '100%'));
-    changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
-
-    // get characters width and height
-    this._repaintMeasureChars();
-
-    if (this.step) {
-      this._repaintStart();
-
-      step.first();
-      var xFirstMajorLabel = undefined;
-      var max = 0;
-      while (step.hasNext() && max < 1000) {
-        max++;
-        var cur = step.getCurrent(),
-            x = this.toScreen(cur),
-            isMajor = step.isMajor();
-
-        // TODO: lines must have a width, such that we can create css backgrounds
-
-        if (this.getOption('showMinorLabels')) {
-          this._repaintMinorText(x, step.getLabelMinor());
-        }
-
-        if (isMajor && this.getOption('showMajorLabels')) {
-          if (x > 0) {
-            if (xFirstMajorLabel == undefined) {
-              xFirstMajorLabel = x;
-            }
-            this._repaintMajorText(x, step.getLabelMajor());
-          }
-          this._repaintMajorLine(x);
-        }
-        else {
-          this._repaintMinorLine(x);
-        }
-
-        step.next();
-      }
-
-      // create a major label on the left when needed
-      if (this.getOption('showMajorLabels')) {
-        var leftTime = this.toTime(0),
-            leftText = step.getLabelMajor(leftTime),
-            widthText = leftText.length * (props.majorCharWidth || 10) + 10; // upper bound estimation
-
-        if (xFirstMajorLabel == undefined || widthText < xFirstMajorLabel) {
-          this._repaintMajorText(0, leftText);
-        }
-      }
-
-      this._repaintEnd();
+    // TODO: top/bottom positioning should be determined by options set in the Timeline, not here
+    if (orientation == 'top') {
+      frame.style.top = '0';
+      frame.style.left = '0';
+      frame.style.bottom = '';
+      frame.style.width = asSize(options.width, '100%');
+      frame.style.height = this.height + 'px';
     }
+    else { // bottom
+      frame.style.top = '';
+      frame.style.bottom = '0';
+      frame.style.left = '0';
+      frame.style.width = asSize(options.width, '100%');
+      frame.style.height = this.height + 'px';
+    }
+
+    this._repaintLabels();
 
     this._repaintLine();
 
@@ -195,34 +143,80 @@ TimeAxis.prototype.repaint = function () {
     }
   }
 
-  return (changed > 0);
+  return this._isResized();
 };
 
 /**
- * Start a repaint. Move all DOM elements to a redundant list, where they
- * can be picked for re-use, or can be cleaned up in the end
+ * Repaint major and minor text labels and vertical grid lines
  * @private
  */
-TimeAxis.prototype._repaintStart = function () {
-  var dom = this.dom,
-      redundant = dom.redundant;
+TimeAxis.prototype._repaintLabels = function () {
+  var orientation = this.getOption('orientation');
 
-  redundant.majorLines = dom.majorLines;
-  redundant.majorTexts = dom.majorTexts;
-  redundant.minorLines = dom.minorLines;
-  redundant.minorTexts = dom.minorTexts;
+  // calculate range and step (step such that we have space for 7 characters per label)
+  var start = util.convert(this.range.start, 'Number'),
+      end = util.convert(this.range.end, 'Number'),
+      minimumStep = this.options.toTime((this.props.minorCharWidth || 10) * 7).valueOf()
+          -this.options.toTime(0).valueOf();
+  var step = new TimeStep(new Date(start), new Date(end), minimumStep);
+  this.step = step;
 
+  // Move all DOM elements to a "redundant" list, where they
+  // can be picked for re-use, and clear the lists with lines and texts.
+  // At the end of the function _repaintLabels, left over elements will be cleaned up
+  var dom = this.dom;
+  dom.redundant.majorLines = dom.majorLines;
+  dom.redundant.majorTexts = dom.majorTexts;
+  dom.redundant.minorLines = dom.minorLines;
+  dom.redundant.minorTexts = dom.minorTexts;
   dom.majorLines = [];
   dom.majorTexts = [];
   dom.minorLines = [];
   dom.minorTexts = [];
-};
 
-/**
- * End a repaint. Cleanup leftover DOM elements in the redundant list
- * @private
- */
-TimeAxis.prototype._repaintEnd = function () {
+  step.first();
+  var xFirstMajorLabel = undefined;
+  var max = 0;
+  while (step.hasNext() && max < 1000) {
+    max++;
+    var cur = step.getCurrent(),
+        x = this.options.toScreen(cur),
+        isMajor = step.isMajor();
+
+    // TODO: lines must have a width, such that we can create css backgrounds
+
+    if (this.getOption('showMinorLabels')) {
+      this._repaintMinorText(x, step.getLabelMinor(), orientation);
+    }
+
+    if (isMajor && this.getOption('showMajorLabels')) {
+      if (x > 0) {
+        if (xFirstMajorLabel == undefined) {
+          xFirstMajorLabel = x;
+        }
+        this._repaintMajorText(x, step.getLabelMajor(), orientation);
+      }
+      this._repaintMajorLine(x, orientation);
+    }
+    else {
+      this._repaintMinorLine(x, orientation);
+    }
+
+    step.next();
+  }
+
+  // create a major label on the left when needed
+  if (this.getOption('showMajorLabels')) {
+    var leftTime = this.options.toTime(0),
+        leftText = step.getLabelMajor(leftTime),
+        widthText = leftText.length * (this.props.majorCharWidth || 10) + 10; // upper bound estimation
+
+    if (xFirstMajorLabel == undefined || widthText < xFirstMajorLabel) {
+      this._repaintMajorText(0, leftText, orientation);
+    }
+  }
+
+  // Cleanup leftover DOM elements from the redundant list
   util.forEach(this.dom.redundant, function (arr) {
     while (arr.length) {
       var elem = arr.pop();
@@ -233,14 +227,14 @@ TimeAxis.prototype._repaintEnd = function () {
   });
 };
 
-
 /**
  * Create a minor label for the axis at position x
  * @param {Number} x
  * @param {String} text
+ * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-TimeAxis.prototype._repaintMinorText = function (x, text) {
+TimeAxis.prototype._repaintMinorText = function (x, text, orientation) {
   // reuse redundant label
   var label = this.dom.redundant.minorTexts.shift();
 
@@ -255,8 +249,16 @@ TimeAxis.prototype._repaintMinorText = function (x, text) {
   this.dom.minorTexts.push(label);
 
   label.childNodes[0].nodeValue = text;
+
+  if (orientation == 'top') {
+    label.style.top = this.props.majorLabelHeight + 'px';
+    label.style.bottom = '';
+  }
+  else {
+    label.style.top = '';
+    label.style.bottom = this.props.majorLabelHeight + 'px';
+  }
   label.style.left = x + 'px';
-  label.style.top  = this.props.minorLabelTop + 'px';
   //label.title = title;  // TODO: this is a heavy operation
 };
 
@@ -264,9 +266,10 @@ TimeAxis.prototype._repaintMinorText = function (x, text) {
  * Create a Major label for the axis at position x
  * @param {Number} x
  * @param {String} text
+ * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-TimeAxis.prototype._repaintMajorText = function (x, text) {
+TimeAxis.prototype._repaintMajorText = function (x, text, orientation) {
   // reuse redundant label
   var label = this.dom.redundant.majorTexts.shift();
 
@@ -281,17 +284,26 @@ TimeAxis.prototype._repaintMajorText = function (x, text) {
   this.dom.majorTexts.push(label);
 
   label.childNodes[0].nodeValue = text;
-  label.style.top = this.props.majorLabelTop + 'px';
-  label.style.left = x + 'px';
   //label.title = title; // TODO: this is a heavy operation
+
+  if (orientation == 'top') {
+    label.style.top = '0px';
+    label.style.bottom = '';
+  }
+  else {
+    label.style.top = '';
+    label.style.bottom = '0px';
+  }
+  label.style.left = x + 'px';
 };
 
 /**
  * Create a minor line for the axis at position x
  * @param {Number} x
+ * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-TimeAxis.prototype._repaintMinorLine = function (x) {
+TimeAxis.prototype._repaintMinorLine = function (x, orientation) {
   // reuse redundant line
   var line = this.dom.redundant.minorLines.shift();
 
@@ -304,7 +316,14 @@ TimeAxis.prototype._repaintMinorLine = function (x) {
   this.dom.minorLines.push(line);
 
   var props = this.props;
-  line.style.top = props.minorLineTop + 'px';
+  if (orientation == 'top') {
+    line.style.top = this.props.majorLabelHeight + 'px';
+    line.style.bottom = '';
+  }
+  else {
+    line.style.top = '';
+    line.style.bottom = this.props.majorLabelHeight + 'px';
+  }
   line.style.height = props.minorLineHeight + 'px';
   line.style.left = (x - props.minorLineWidth / 2) + 'px';
 };
@@ -312,9 +331,10 @@ TimeAxis.prototype._repaintMinorLine = function (x) {
 /**
  * Create a Major line for the axis at position x
  * @param {Number} x
+ * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-TimeAxis.prototype._repaintMajorLine = function (x) {
+TimeAxis.prototype._repaintMajorLine = function (x, orientation) {
   // reuse redundant line
   var line = this.dom.redundant.majorLines.shift();
 
@@ -327,7 +347,14 @@ TimeAxis.prototype._repaintMajorLine = function (x) {
   this.dom.majorLines.push(line);
 
   var props = this.props;
-  line.style.top = props.majorLineTop + 'px';
+  if (orientation == 'top') {
+    line.style.top = '0px';
+    line.style.bottom = '';
+  }
+  else {
+    line.style.top = '';
+    line.style.bottom = '0px';
+  }
   line.style.left = (x - props.majorLineWidth / 2) + 'px';
   line.style.height = props.majorLineHeight + 'px';
 };
@@ -340,7 +367,7 @@ TimeAxis.prototype._repaintMajorLine = function (x) {
 TimeAxis.prototype._repaintLine = function() {
   var line = this.dom.line,
       frame = this.frame,
-      options = this.options;
+      orientation = this.getOption('orientation');
 
   // line before all axis elements
   if (this.getOption('showMinorLabels') || this.getOption('showMajorLabels')) {
@@ -357,167 +384,54 @@ TimeAxis.prototype._repaintLine = function() {
       this.dom.line = line;
     }
 
-    line.style.top = this.props.lineTop + 'px';
+    if (orientation == 'top') {
+      line.style.top = this.height + 'px';
+      line.style.bottom = '';
+    }
+    else {
+      line.style.top = '';
+      line.style.bottom = this.height + 'px';
+    }
   }
   else {
-    if (line && line.parentElement) {
-      frame.removeChild(line.line);
+    if (line && line.parentNode) {
+      line.parentNode.removeChild(line);
       delete this.dom.line;
     }
   }
 };
 
 /**
- * Create characters used to determine the size of text on the axis
+ * Determine the size of text on the axis (both major and minor axis).
+ * The size is calculated only once and then cached in this.props.
  * @private
  */
-TimeAxis.prototype._repaintMeasureChars = function () {
-  // calculate the width and height of a single character
-  // this is used to calculate the step size, and also the positioning of the
-  // axis
-  var dom = this.dom,
-      text;
-
-  if (!dom.measureCharMinor) {
-    text = document.createTextNode('0');
+TimeAxis.prototype._calculateCharSize = function () {
+  // determine the char width and height on the minor axis
+  if (!('minorCharHeight' in this.props)) {
+    var textMinor = document.createTextNode('0');
     var measureCharMinor = document.createElement('DIV');
     measureCharMinor.className = 'text minor measure';
-    measureCharMinor.appendChild(text);
+    measureCharMinor.appendChild(textMinor);
     this.frame.appendChild(measureCharMinor);
 
-    dom.measureCharMinor = measureCharMinor;
+    this.props.minorCharHeight = measureCharMinor.clientHeight;
+    this.props.minorCharWidth = measureCharMinor.clientWidth;
+
+    this.frame.removeChild(measureCharMinor);
   }
 
-  if (!dom.measureCharMajor) {
-    text = document.createTextNode('0');
+  if (!('majorCharHeight' in this.props)) {
+    var textMajor = document.createTextNode('0');
     var measureCharMajor = document.createElement('DIV');
     measureCharMajor.className = 'text major measure';
-    measureCharMajor.appendChild(text);
+    measureCharMajor.appendChild(textMajor);
     this.frame.appendChild(measureCharMajor);
 
-    dom.measureCharMajor = measureCharMajor;
-  }
-};
+    this.props.majorCharHeight = measureCharMajor.clientHeight;
+    this.props.majorCharWidth = measureCharMajor.clientWidth;
 
-/**
- * Reflow the component
- * @return {Boolean} resized
- */
-TimeAxis.prototype.reflow = function () {
-  var changed = 0,
-      update = util.updateProperty,
-      frame = this.frame,
-      range = this.range;
-
-  if (!range) {
-    throw new Error('Cannot repaint time axis: no range configured');
-  }
-
-  if (frame) {
-    changed += update(this, 'top', frame.offsetTop);
-    changed += update(this, 'left', frame.offsetLeft);
-
-    // calculate size of a character
-    var props = this.props,
-        showMinorLabels = this.getOption('showMinorLabels'),
-        showMajorLabels = this.getOption('showMajorLabels'),
-        measureCharMinor = this.dom.measureCharMinor,
-        measureCharMajor = this.dom.measureCharMajor;
-    if (measureCharMinor) {
-      props.minorCharHeight = measureCharMinor.clientHeight;
-      props.minorCharWidth = measureCharMinor.clientWidth;
-    }
-    if (measureCharMajor) {
-      props.majorCharHeight = measureCharMajor.clientHeight;
-      props.majorCharWidth = measureCharMajor.clientWidth;
-    }
-
-    var parentHeight = frame.parentNode ? frame.parentNode.offsetHeight : 0;
-    if (parentHeight != props.parentHeight) {
-      props.parentHeight = parentHeight;
-      changed += 1;
-    }
-    switch (this.getOption('orientation')) {
-      case 'bottom':
-        props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
-        props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
-
-        props.minorLabelTop = 0;
-        props.majorLabelTop = props.minorLabelTop + props.minorLabelHeight;
-
-        props.minorLineTop = -this.top;
-        props.minorLineHeight = Math.max(this.top + props.majorLabelHeight, 0);
-        props.minorLineWidth = 1; // TODO: really calculate width
-
-        props.majorLineTop = -this.top;
-        props.majorLineHeight = Math.max(this.top + props.minorLabelHeight + props.majorLabelHeight, 0);
-        props.majorLineWidth = 1; // TODO: really calculate width
-
-        props.lineTop = 0;
-
-        break;
-
-      case 'top':
-        props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
-        props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
-
-        props.majorLabelTop = 0;
-        props.minorLabelTop = props.majorLabelTop + props.majorLabelHeight;
-
-        props.minorLineTop = props.minorLabelTop;
-        props.minorLineHeight = Math.max(parentHeight - props.majorLabelHeight - this.top);
-        props.minorLineWidth = 1; // TODO: really calculate width
-
-        props.majorLineTop = 0;
-        props.majorLineHeight = Math.max(parentHeight - this.top);
-        props.majorLineWidth = 1; // TODO: really calculate width
-
-        props.lineTop = props.majorLabelHeight +  props.minorLabelHeight;
-
-        break;
-
-      default:
-        throw new Error('Unkown orientation "' + this.getOption('orientation') + '"');
-    }
-
-    var height = props.minorLabelHeight + props.majorLabelHeight;
-    changed += update(this, 'width', frame.offsetWidth);
-    changed += update(this, 'height', height);
-
-    // calculate range and step
-    this._updateConversion();
-
-    var start = util.convert(range.start, 'Number'),
-        end = util.convert(range.end, 'Number'),
-        minimumStep = this.toTime((props.minorCharWidth || 10) * 5).valueOf()
-            -this.toTime(0).valueOf();
-    this.step = new TimeStep(new Date(start), new Date(end), minimumStep);
-    changed += update(props.range, 'start', start);
-    changed += update(props.range, 'end', end);
-    changed += update(props.range, 'minimumStep', minimumStep.valueOf());
-  }
-
-  return (changed > 0);
-};
-
-/**
- * Calculate the scale and offset to convert a position on screen to the
- * corresponding date and vice versa.
- * After the method _updateConversion is executed once, the methods toTime
- * and toScreen can be used.
- * @private
- */
-TimeAxis.prototype._updateConversion = function() {
-  var range = this.range;
-  if (!range) {
-    throw new Error('No range configured');
-  }
-
-  if (range.conversion) {
-    this.conversion = range.conversion(this.width);
-  }
-  else {
-    this.conversion = Range.conversion(range.start, range.end, this.width);
+    this.frame.removeChild(measureCharMajor);
   }
 };
 

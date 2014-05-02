@@ -4,11 +4,25 @@
   overflow: hidden;
 
   border: 1px solid #bfbfbf;
-  -moz-box-sizing: border-box;
   box-sizing: border-box;
+
+  /* FIXME: there is an issue with the height of the items when panel height is animated
+  -webkit-transition: height 4s ease-in-out;
+  transition:         height 4s ease-in-out;
+  /**/
 }
 
 .vis.timeline .vpanel {
   position: absolute;
   overflow: hidden;
+
+  box-sizing: border-box;
+}
+
+.vis.timeline .vpanel.side {
+  border-right: 1px solid #bfbfbf;
+}
+
+.vis.timeline .vpanel.side.hidden {
+  display: none;
 }
