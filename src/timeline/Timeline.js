@@ -408,47 +408,12 @@ Timeline.prototype.setItems = function(items) {
   this.itemSet.setItems(newDataSet);
 
   if (initialLoad && (this.options.start == undefined || this.options.end == undefined)) {
-    // apply the data range as range
-    var dataRange = this.getItemRange();
+    this.fit();
 
-    // add 5% space on both sides
-    var start = dataRange.min;
-    var end = dataRange.max;
-    if (start != null && end != null) {
-      var interval = (end.valueOf() - start.valueOf());
-      if (interval <= 0) {
-        // prevent an empty interval
-        interval = 24 * 60 * 60 * 1000; // 1 day
-      }
-      start = new Date(start.valueOf() - interval * 0.05);
-      end = new Date(end.valueOf() + interval * 0.05);
-    }
+    var start = (this.options.start != undefined) ? util.convert(this.options.start, 'Date') : null;
+    var end   = (this.options.end != undefined) ? util.convert(this.options.end, 'Date') : null;
 
-    // override specified start and/or end date
-    if (this.options.start != undefined) {
-      start = util.convert(this.options.start, 'Date');
-    }
-    if (this.options.end != undefined) {
-      end = util.convert(this.options.end, 'Date');
-    }
-
-    // skip range set if there is no start and end date
-    if (start === null && end === null) {
-      return;
-    }
-
-    // if start and end dates are set but cannot be satisfyed due to zoom restrictions — correct end date
-    if (start != null && end != null) {
-      var diff = end.valueOf() - start.valueOf();
-      if (this.options.zoomMax != undefined && this.options.zoomMax < diff) {
-        end = new Date(start.valueOf() + this.options.zoomMax);
-      }
-      if (this.options.zoomMin != undefined && this.options.zoomMin > diff) {
-        end = new Date(start.valueOf() + this.options.zoomMin);
-      }
-    }
-
-    this.range.setRange(start, end);
+    this.setWindow(start, end);
   }
 };
 
@@ -456,7 +421,7 @@ Timeline.prototype.setItems = function(items) {
  * Set groups
  * @param {vis.DataSet | Array | google.visualization.DataTable} groups
  */
-Timeline.prototype.setGroups = function(groups) {
+Timeline.prototype.setGroups = function setGroups(groups) {
   // convert to type DataSet when needed
   var newDataSet;
   if (!groups) {
@@ -472,6 +437,34 @@ Timeline.prototype.setGroups = function(groups) {
 
   this.groupsData = newDataSet;
   this.itemSet.setGroups(newDataSet);
+};
+
+/**
+ * Set Timeline window such that it fits all items
+ */
+Timeline.prototype.fit = function fit() {
+  // apply the data range as range
+  var dataRange = this.getItemRange();
+
+  // add 5% space on both sides
+  var start = dataRange.min;
+  var end = dataRange.max;
+  if (start != null && end != null) {
+    var interval = (end.valueOf() - start.valueOf());
+    if (interval <= 0) {
+      // prevent an empty interval
+      interval = 24 * 60 * 60 * 1000; // 1 day
+    }
+    start = new Date(start.valueOf() - interval * 0.05);
+    end = new Date(end.valueOf() + interval * 0.05);
+  }
+
+  // skip range set if there is no start and end date
+  if (start === null && end === null) {
+    return;
+  }
+
+  this.range.setRange(start, end);
 };
 
 /**

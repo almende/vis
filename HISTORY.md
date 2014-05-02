@@ -11,6 +11,8 @@ http://visjs.org
 - Improved layout of box-items inside groups.
 - Items can now be dragged from one group to another.
 - Implemented option `stack` to enable/disable stacking of items.
+- Implemented function `fit`, which sets the Timeline window such that it fits
+  all items.
 - Option `editable` can now be used to enable/disable individual manipulation
   actions (`add`, `updateTime`, `updateGroup`, `remove`).
 - Function `setWindow` now accepts an object with properties `start` and `end`.
