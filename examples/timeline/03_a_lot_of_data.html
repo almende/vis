@@ -53,6 +53,7 @@
 
   var container = document.getElementById('visualization');
   var options = {
+    editable: true,
     start: now.clone().add('days', -3),
     end: now.clone().add('days', 11),
     zoomMin: 1000 * 60 * 60 * 24,          // a day
