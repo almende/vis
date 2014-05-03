@@ -107,7 +107,7 @@ util.extend = function (a, b) {
 util.equalArray = function (a, b) {
   if (a.length != b.length) return false;
 
-  for (var i = 1, len = a.length; i < len; i++) {
+  for (var i = 0, len = a.length; i < len; i++) {
     if (a[i] != b[i]) return false;
   }
 
