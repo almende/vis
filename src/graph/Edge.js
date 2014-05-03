@@ -35,6 +35,7 @@ function Edge (properties, graph, constants) {
   this.customLength = false;
   this.selected = false;
   this.smooth = constants.smoothCurves;
+  this.arrowScaleFactor = constants.edges.arrowScaleFactor;
 
   this.from = null;   // a node
   this.to = null;     // a node
@@ -81,9 +82,12 @@ Edge.prototype.setProperties = function(properties, constants) {
     this.fontSize = constants.edges.fontSize;
     this.fontFace = constants.edges.fontFace;
     this.fontColor = constants.edges.fontColor;
+    this.fontFill = constants.edges.fontFill;
+
     if (properties.fontColor !== undefined)  {this.fontColor = properties.fontColor;}
     if (properties.fontSize !== undefined)   {this.fontSize = properties.fontSize;}
     if (properties.fontFace !== undefined)   {this.fontFace = properties.fontFace;}
+    if (properties.fontFill !== undefined)   {this.fontFill = properties.fontFill;}
   }
 
   if (properties.title !== undefined)        {this.title = properties.title;}
@@ -91,6 +95,9 @@ Edge.prototype.setProperties = function(properties, constants) {
   if (properties.value !== undefined)        {this.value = properties.value;}
   if (properties.length !== undefined)       {this.length = properties.length;
                                               this.customLength = true;}
+
+  // scale the arrow
+  if (properties.arrowScaleFactor !== undefined)       {this.arrowScaleFactor = properties.arrowScaleFactor;}
 
   // Added to support dashed lines
   // David Jordan
@@ -109,7 +116,6 @@ Edge.prototype.setProperties = function(properties, constants) {
     else {
       if (properties.color.color !== undefined)     {this.color.color = properties.color.color;}
       if (properties.color.highlight !== undefined) {this.color.highlight = properties.color.highlight;}
-      else if (properties.color.color !== undefined){this.color.highlight = properties.color.color;}
     }
   }
 
@@ -175,7 +181,7 @@ Edge.prototype.disconnect = function () {
  *                           has been set.
  */
 Edge.prototype.getTitle = function() {
-  return this.title;
+  return typeof this.title === "function" ? this.title() : this.title;
 };
 
 
@@ -216,18 +222,22 @@ Edge.prototype.draw = function(ctx) {
  * @return {boolean}     True if location is located on the edge
  */
 Edge.prototype.isOverlappingWith = function(obj) {
-  var distMax = 10;
+  if (this.connected) {
+    var distMax = 10;
+    var xFrom = this.from.x;
+    var yFrom = this.from.y;
+    var xTo = this.to.x;
+    var yTo = this.to.y;
+    var xObj = obj.left;
+    var yObj = obj.top;
 
-  var xFrom = this.from.x;
-  var yFrom = this.from.y;
-  var xTo = this.to.x;
-  var yTo = this.to.y;
-  var xObj = obj.left;
-  var yObj = obj.top;
+    var dist = this._getDistanceToEdge(xFrom, yFrom, xTo, yTo, xObj, yObj);
 
-  var dist = this._getDistanceToEdge(xFrom, yFrom, xTo, yTo, xObj, yObj);
-
-  return (dist < distMax);
+    return (dist < distMax);
+  }
+  else {
+    return false
+  }
 };
 
 
@@ -344,7 +354,7 @@ Edge.prototype._label = function (ctx, text, x, y) {
     // TODO: cache the calculated size
     ctx.font = ((this.from.selected || this.to.selected) ? "bold " : "") +
         this.fontSize + "px " + this.fontFace;
-    ctx.fillStyle = 'white';
+    ctx.fillStyle = this.fontFill;
     var width = ctx.measureText(text).width;
     var height = this.fontSize;
     var left = x - width / 2;
@@ -505,7 +515,7 @@ Edge.prototype._drawArrowCenter = function(ctx) {
     this._line(ctx);
 
     var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
-    var length = 10 + 5 * this.width; // TODO: make customizable?
+    var length = (10 + 5 * this.width) * this.arrowScaleFactor;
     // draw an arrow halfway the line
     if (this.smooth == true) {
       var midpointX = 0.5*(0.5*(this.from.x + this.via.x) + 0.5*(this.to.x + this.via.x));
@@ -545,7 +555,7 @@ Edge.prototype._drawArrowCenter = function(ctx) {
 
     // draw all arrows
     var angle = 0.2 * Math.PI;
-    var length = 10 + 5 * this.width; // TODO: make customizable?
+    var length = (10 + 5 * this.width) * this.arrowScaleFactor;
     point = this._pointOnCircle(x, y, radius, 0.5);
     ctx.arrow(point.x, point.y, angle, length);
     ctx.fill();
@@ -571,7 +581,7 @@ Edge.prototype._drawArrowCenter = function(ctx) {
 Edge.prototype._drawArrow = function(ctx) {
   // set style
   if (this.selected == true) {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
-  else                       {ctx.strokeStyle = this.color.color; ctx.fillStyle = this.color.color;}
+  else                       {ctx.strokeStyle = this.color.color;     ctx.fillStyle = this.color.color;}
 
   ctx.lineWidth = this._getLineWidth();
 
@@ -619,7 +629,7 @@ Edge.prototype._drawArrow = function(ctx) {
     ctx.stroke();
 
     // draw arrow at the end of the line
-    length = 10 + 5 * this.width;
+    length = (10 + 5 * this.width) * this.arrowScaleFactor;
     ctx.arrow(xTo, yTo, angle, length);
     ctx.fill();
     ctx.stroke();
@@ -670,7 +680,7 @@ Edge.prototype._drawArrow = function(ctx) {
     ctx.stroke();
 
     // draw all arrows
-    length = 10 + 5 * this.width; // TODO: make customizable?
+    var length = (10 + 5 * this.width) * this.arrowScaleFactor;
     ctx.arrow(arrow.x, arrow.y, arrow.angle, length);
     ctx.fill();
     ctx.stroke();

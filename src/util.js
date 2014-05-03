@@ -98,6 +98,23 @@ util.extend = function (a, b) {
 };
 
 /**
+ * Test whether all elements in two arrays are equal.
+ * @param {Array} a
+ * @param {Array} b
+ * @return {boolean} Returns true if both arrays have the same length and same
+ *                   elements.
+ */
+util.equalArray = function (a, b) {
+  if (a.length != b.length) return false;
+
+  for (var i = 1, len = a.length; i < len; i++) {
+    if (a[i] != b[i]) return false;
+  }
+
+  return true;
+};
+
+/**
  * Convert an object to another type
  * @param {Boolean | Number | String | Date | Moment | Null | undefined} object
  * @param {String | undefined} type   Name of the type. Available types:
@@ -441,13 +458,29 @@ util.forEach = function forEach (object, callback) {
 };
 
 /**
+ * Convert an object into an array: all objects properties are put into the
+ * array. The resulting array is unordered.
+ * @param {Object} object
+ * @param {Array} array
+ */
+util.toArray = function toArray(object) {
+  var array = [];
+
+  for (var prop in object) {
+    if (object.hasOwnProperty(prop)) array.push(object[prop]);
+  }
+
+  return array;
+}
+
+/**
  * Update a property in an object
  * @param {Object} object
  * @param {String} key
  * @param {*} value
  * @return {Boolean} changed
  */
-util.updateProperty = function updateProp (object, key, value) {
+util.updateProperty = function updateProperty (object, key, value) {
   if (object[key] !== value) {
     object[key] = value;
     return true;
@@ -654,53 +687,104 @@ util.option.asElement = function (value, defaultValue) {
 
 
 
-util.GiveDec = function GiveDec(Hex)
-{
-  if(Hex == "A")
+util.GiveDec = function GiveDec(Hex) {
+  var Value;
+
+  if (Hex == "A")
     Value = 10;
-  else
-  if(Hex == "B")
+  else if (Hex == "B")
     Value = 11;
-  else
-  if(Hex == "C")
+  else if (Hex == "C")
     Value = 12;
-  else
-  if(Hex == "D")
+  else if (Hex == "D")
     Value = 13;
-  else
-  if(Hex == "E")
+  else if (Hex == "E")
     Value = 14;
-  else
-  if(Hex == "F")
+  else if (Hex == "F")
     Value = 15;
   else
-    Value = eval(Hex)
-  return Value;
-}
+    Value = eval(Hex);
 
-util.GiveHex = function GiveHex(Dec)
-{
+  return Value;
+};
+
+util.GiveHex = function GiveHex(Dec) {
+  var Value;
+
   if(Dec == 10)
     Value = "A";
-  else
-  if(Dec == 11)
+  else if (Dec == 11)
     Value = "B";
-  else
-  if(Dec == 12)
+  else if (Dec == 12)
     Value = "C";
-  else
-  if(Dec == 13)
+  else if (Dec == 13)
     Value = "D";
-  else
-  if(Dec == 14)
+  else if (Dec == 14)
     Value = "E";
-  else
-  if(Dec == 15)
+  else if (Dec == 15)
     Value = "F";
   else
     Value = "" + Dec;
+
   return Value;
-}
+};
+
+/**
+ * Parse a color property into an object with border, background, and
+ * highlight colors
+ * @param {Object | String} color
+ * @return {Object} colorObject
+ */
+util.parseColor = function(color) {
+  var c;
+  if (util.isString(color)) {
+    if (util.isValidHex(color)) {
+      var hsv = util.hexToHSV(color);
+      var lighterColorHSV = {h:hsv.h,s:hsv.s * 0.45,v:Math.min(1,hsv.v * 1.05)};
+      var darkerColorHSV  = {h:hsv.h,s:Math.min(1,hsv.v * 1.25),v:hsv.v*0.6};
+      var darkerColorHex  = util.HSVToHex(darkerColorHSV.h ,darkerColorHSV.h ,darkerColorHSV.v);
+      var lighterColorHex = util.HSVToHex(lighterColorHSV.h,lighterColorHSV.s,lighterColorHSV.v);
+
+      c = {
+        background: color,
+        border:darkerColorHex,
+        highlight: {
+          background:lighterColorHex,
+          border:darkerColorHex
+        }
+      };
+    }
+    else {
+      c = {
+        background:color,
+        border:color,
+        highlight: {
+          background:color,
+          border:color
+        }
+      };
+    }
+  }
+  else {
+    c = {};
+    c.background = color.background || 'white';
+    c.border = color.border || c.background;
+
+    if (util.isString(color.highlight)) {
+      c.highlight = {
+        border: color.highlight,
+        background: color.highlight
+      }
+    }
+    else {
+      c.highlight = {};
+      c.highlight.background = color.highlight && color.highlight.background || c.background;
+      c.highlight.border = color.highlight && color.highlight.border || c.border;
+    }
+  }
+
+  return c;
+};
 
 /**
  * http://www.yellowpipe.com/yis/tools/hex-to-rgb/color-converter.php
@@ -796,17 +880,31 @@ util.HSVToRGB = function HSVToRGB(h, s, v) {
   return {r:Math.floor(r * 255), g:Math.floor(g * 255), b:Math.floor(b * 255) };
 };
 
-util.HSVToHex = function HSVToHex(h,s,v) {
-  var rgb = util.HSVToRGB(h,s,v);
-  return util.RGBToHex(rgb.r,rgb.g,rgb.b);
-}
+util.HSVToHex = function HSVToHex(h, s, v) {
+  var rgb = util.HSVToRGB(h, s, v);
+  return util.RGBToHex(rgb.r, rgb.g, rgb.b);
+};
 
 util.hexToHSV = function hexToHSV(hex) {
   var rgb = util.hexToRGB(hex);
-  return util.RGBToHSV(rgb.r,rgb.g,rgb.b);
-}
+  return util.RGBToHSV(rgb.r, rgb.g, rgb.b);
+};
 
 util.isValidHex = function isValidHex(hex) {
-  var isOk  = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
+  var isOk = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
   return isOk;
-}
+};
+
+util.copyObject = function copyObject(objectFrom, objectTo) {
+  for (var i in objectFrom) {
+    if (objectFrom.hasOwnProperty(i)) {
+      if (typeof objectFrom[i] == "object") {
+        objectTo[i] = {};
+        util.copyObject(objectFrom[i], objectTo[i]);
+      }
+      else {
+        objectTo[i] = objectFrom[i];
+      }
+    }
+  }
+};

@@ -1,14 +1,13 @@
 /**
  * @constructor ItemPoint
  * @extends Item
- * @param {ItemSet} parent
  * @param {Object} data             Object containing parameters start
  *                                  content, className.
  * @param {Object} [options]        Options to set initial property values
  * @param {Object} [defaultOptions] default options
  *                                  // TODO: describe available options
  */
-function ItemPoint (parent, data, options, defaultOptions) {
+function ItemPoint (data, options, defaultOptions) {
   this.props = {
     dot: {
       top: 0,
@@ -21,183 +20,39 @@ function ItemPoint (parent, data, options, defaultOptions) {
     }
   };
 
-  Item.call(this, parent, data, options, defaultOptions);
+  // validate data
+  if (data) {
+    if (data.start == undefined) {
+      throw new Error('Property "start" missing in item ' + data);
+    }
+  }
+
+  Item.call(this, data, options, defaultOptions);
 }
 
-ItemPoint.prototype = new Item (null, null);
+ItemPoint.prototype = new Item (null);
+
+/**
+ * Check whether this item is visible inside given range
+ * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+ * @returns {boolean} True if visible
+ */
+ItemPoint.prototype.isVisible = function isVisible (range) {
+  // determine visibility
+  // TODO: account for the real width of the item. Right now we just add 1/4 to the window
+  var interval = (range.end - range.start) / 4;
+  return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
+};
 
 /**
  * Repaint the item
- * @return {Boolean} changed
  */
 ItemPoint.prototype.repaint = function repaint() {
-  // TODO: make an efficient repaint
-  var changed = false;
-  var dom = this.dom;
-
-  if (!dom) {
-    this._create();
-    dom = this.dom;
-    changed = true;
-  }
-
-  if (dom) {
-    if (!this.parent) {
-      throw new Error('Cannot repaint item: no parent attached');
-    }
-    var foreground = this.parent.getForeground();
-    if (!foreground) {
-      throw new Error('Cannot repaint time axis: ' +
-          'parent has no foreground container element');
-    }
-
-    if (!dom.point.parentNode) {
-      foreground.appendChild(dom.point);
-      foreground.appendChild(dom.point);
-      changed = true;
-    }
-
-    // update contents
-    if (this.data.content != this.content) {
-      this.content = this.data.content;
-      if (this.content instanceof Element) {
-        dom.content.innerHTML = '';
-        dom.content.appendChild(this.content);
-      }
-      else if (this.data.content != undefined) {
-        dom.content.innerHTML = this.content;
-      }
-      else {
-        throw new Error('Property "content" missing in item ' + this.data.id);
-      }
-      changed = true;
-    }
-
-    this._repaintDeleteButton(dom.point);
-
-    // update class
-    var className = (this.data.className? ' ' + this.data.className : '') +
-        (this.selected ? ' selected' : '');
-    if (this.className != className) {
-      this.className = className;
-      dom.point.className  = 'item point' + className;
-      changed = true;
-    }
-  }
-
-  return changed;
-};
-
-/**
- * Show the item in the DOM (when not already visible). The items DOM will
- * be created when needed.
- * @return {Boolean} changed
- */
-ItemPoint.prototype.show = function show() {
-  if (!this.dom || !this.dom.point.parentNode) {
-    return this.repaint();
-  }
-  else {
-    return false;
-  }
-};
-
-/**
- * Hide the item from the DOM (when visible)
- * @return {Boolean} changed
- */
-ItemPoint.prototype.hide = function hide() {
-  var changed = false,
-      dom = this.dom;
-  if (dom) {
-    if (dom.point.parentNode) {
-      dom.point.parentNode.removeChild(dom.point);
-      changed = true;
-    }
-  }
-  return changed;
-};
-
-/**
- * Reflow the item: calculate its actual size from the DOM
- * @return {boolean} resized    returns true if the axis is resized
- * @override
- */
-ItemPoint.prototype.reflow = function reflow() {
-  var changed = 0,
-      update,
-      dom,
-      props,
-      options,
-      margin,
-      orientation,
-      start,
-      top,
-      data,
-      range;
-
-  if (this.data.start == undefined) {
-    throw new Error('Property "start" missing in item ' + this.data.id);
-  }
-
-  data = this.data;
-  range = this.parent && this.parent.range;
-  if (data && range) {
-    // TODO: account for the width of the item
-    var interval = (range.end - range.start);
-    this.visible = (data.start > range.start - interval) && (data.start < range.end);
-  }
-  else {
-    this.visible = false;
-  }
-
-  if (this.visible) {
-    dom = this.dom;
-    if (dom) {
-      update = util.updateProperty;
-      props = this.props;
-      options = this.options;
-      orientation = options.orientation || this.defaultOptions.orientation;
-      margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
-      start = this.parent.toScreen(this.data.start) + this.offset;
-
-      changed += update(this, 'width', dom.point.offsetWidth);
-      changed += update(this, 'height', dom.point.offsetHeight);
-      changed += update(props.dot, 'width', dom.dot.offsetWidth);
-      changed += update(props.dot, 'height', dom.dot.offsetHeight);
-      changed += update(props.content, 'height', dom.content.offsetHeight);
-
-      if (orientation == 'top') {
-        top = margin;
-      }
-      else {
-        // default or 'bottom'
-        var parentHeight = this.parent.height;
-        top = Math.max(parentHeight - this.height - margin, 0);
-      }
-      changed += update(this, 'top', top);
-      changed += update(this, 'left', start - props.dot.width / 2);
-      changed += update(props.content, 'marginLeft', 1.5 * props.dot.width);
-      //changed += update(props.content, 'marginRight', 0.5 * props.dot.width); // TODO
-
-      changed += update(props.dot, 'top', (this.height - props.dot.height) / 2);
-    }
-    else {
-      changed += 1;
-    }
-  }
-
-  return (changed > 0);
-};
-
-/**
- * Create an items DOM
- * @private
- */
-ItemPoint.prototype._create = function _create() {
   var dom = this.dom;
   if (!dom) {
-    this.dom = dom = {};
+    // create DOM
+    this.dom = {};
+    dom = this.dom;
 
     // background box
     dom.point = document.createElement('div');
@@ -210,30 +65,127 @@ ItemPoint.prototype._create = function _create() {
 
     // dot at start
     dom.dot = document.createElement('div');
-    dom.dot.className  = 'dot';
     dom.point.appendChild(dom.dot);
 
     // attach this item as attribute
     dom.point['timeline-item'] = this;
   }
+
+  // append DOM to parent DOM
+  if (!this.parent) {
+    throw new Error('Cannot repaint item: no parent attached');
+  }
+  if (!dom.point.parentNode) {
+    var foreground = this.parent.getForeground();
+    if (!foreground) {
+      throw new Error('Cannot repaint time axis: parent has no foreground container element');
+    }
+    foreground.appendChild(dom.point);
+  }
+  this.displayed = true;
+
+  // update contents
+  if (this.data.content != this.content) {
+    this.content = this.data.content;
+    if (this.content instanceof Element) {
+      dom.content.innerHTML = '';
+      dom.content.appendChild(this.content);
+    }
+    else if (this.data.content != undefined) {
+      dom.content.innerHTML = this.content;
+    }
+    else {
+      throw new Error('Property "content" missing in item ' + this.data.id);
+    }
+
+    this.dirty = true;
+  }
+
+  // update class
+  var className = (this.data.className? ' ' + this.data.className : '') +
+      (this.selected ? ' selected' : '');
+  if (this.className != className) {
+    this.className = className;
+    dom.point.className  = 'item point' + className;
+    dom.dot.className  = 'item dot' + className;
+
+    this.dirty = true;
+  }
+
+  // recalculate size
+  if (this.dirty) {
+    this.width = dom.point.offsetWidth;
+    this.height = dom.point.offsetHeight;
+    this.props.dot.width = dom.dot.offsetWidth;
+    this.props.dot.height = dom.dot.offsetHeight;
+    this.props.content.height = dom.content.offsetHeight;
+
+    // resize contents
+    dom.content.style.marginLeft = 2 * this.props.dot.width + 'px';
+    //dom.content.style.marginRight = ... + 'px'; // TODO: margin right
+
+    dom.dot.style.top = ((this.height - this.props.dot.height) / 2) + 'px';
+    dom.dot.style.left = (this.props.dot.width / 2) + 'px';
+
+    this.dirty = false;
+  }
+
+  this._repaintDeleteButton(dom.point);
 };
 
 /**
- * Reposition the item, recalculate its left, top, and width, using the current
- * range and size of the items itemset
- * @override
+ * Show the item in the DOM (when not already visible). The items DOM will
+ * be created when needed.
  */
-ItemPoint.prototype.reposition = function reposition() {
-  var dom = this.dom,
-      props = this.props;
+ItemPoint.prototype.show = function show() {
+  if (!this.displayed) {
+    this.repaint();
+  }
+};
 
-  if (dom) {
-    dom.point.style.top = this.top + 'px';
-    dom.point.style.left = this.left + 'px';
+/**
+ * Hide the item from the DOM (when visible)
+ */
+ItemPoint.prototype.hide = function hide() {
+  if (this.displayed) {
+    if (this.dom.point.parentNode) {
+      this.dom.point.parentNode.removeChild(this.dom.point);
+    }
 
-    dom.content.style.marginLeft = props.content.marginLeft + 'px';
-    //dom.content.style.marginRight = props.content.marginRight + 'px'; // TODO
+    this.top = null;
+    this.left = null;
 
-    dom.dot.style.top = props.dot.top + 'px';
+    this.displayed = false;
+  }
+};
+
+/**
+ * Reposition the item horizontally
+ * @Override
+ */
+ItemPoint.prototype.repositionX = function repositionX() {
+  var start = this.defaultOptions.toScreen(this.data.start);
+
+  this.left = start - this.props.dot.width;
+
+  // reposition point
+  this.dom.point.style.left = this.left + 'px';
+};
+
+/**
+ * Reposition the item vertically
+ * @Override
+ */
+ItemPoint.prototype.repositionY = function repositionY () {
+  var orientation = this.options.orientation || this.defaultOptions.orientation,
+      point = this.dom.point;
+
+  if (orientation == 'top') {
+    point.style.top = this.top + 'px';
+    point.style.bottom = '';
+  }
+  else {
+    point.style.top = '';
+    point.style.bottom = this.top + 'px';
   }
 };

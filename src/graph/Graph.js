@@ -22,13 +22,15 @@ function Graph (container, data, options) {
   this.renderRefreshRate = 60;                         // hz (fps)
   this.renderTimestep = 1000 / this.renderRefreshRate; // ms -- saves calculation later on
   this.renderTime = 0.5 * this.renderTimestep;         // measured time it takes to render a frame
-  this.maxRenderSteps = 3;                             // max amount of physics ticks per render step.
+  this.maxPhysicsTicksPerRender = 3;                   // max amount of physics ticks per render step.
+  this.physicsDiscreteStepsize = 0.65;                 // discrete stepsize of the simulation
 
   this.stabilize = true;  // stabilize before displaying the graph
   this.selectable = true;
+  this.initializing = true;
 
   // these functions are triggered when the dataset is edited
-  this.triggerFunctions = {add:null,edit:null,connect:null,delete:null};
+  this.triggerFunctions = {add:null,edit:null,connect:null,del:null};
 
   // set constant values
   this.constants = {
@@ -70,6 +72,8 @@ function Graph (container, data, options) {
       fontColor: '#343434',
       fontSize: 14, // px
       fontFace: 'arial',
+      fontFill: 'white',
+      arrowScaleFactor: 1,
       dash: {
         length: 10,
         gap: 5,
@@ -145,10 +149,37 @@ function Graph (container, data, options) {
       nodeSpacing: 100,
       direction: "UD"   // UD, DU, LR, RL
     },
+    freezeForStabilization: false,
     smoothCurves: true,
     maxVelocity:  10,
     minVelocity:  0.1,   // px/s
-    stabilizationIterations: 1000  // maximum number of iteration to stabilize
+    stabilizationIterations: 1000,  // maximum number of iteration to stabilize
+    labels:{
+      add:"Add Node",
+      edit:"Edit",
+      link:"Add Link",
+      del:"Delete selected",
+      editNode:"Edit Node",
+      back:"Back",
+      addDescription:"Click in an empty space to place a new node.",
+      linkDescription:"Click on a node and drag the edge to another node to connect them.",
+      addError:"The function for add does not support two arguments (data,callback).",
+      linkError:"The function for connect does not support two arguments (data,callback).",
+      editError:"The function for edit does not support two arguments (data, callback).",
+      editBoundError:"No edit function has been bound to this button.",
+      deleteError:"The function for delete does not support two arguments (data, callback).",
+      deleteClusterError:"Clusters cannot be deleted."
+    },
+    tooltip: {
+      delay: 300,
+      fontColor: 'black',
+      fontSize: 14, // px
+      fontFace: 'verdana',
+      color: {
+        border: '#666',
+        background: '#FFFFC6'
+      }
+    }
   };
   this.editMode = this.constants.dataManipulation.initiallyVisible;
 
@@ -243,6 +274,7 @@ function Graph (container, data, options) {
   this.setData(data,this.constants.clustering.enabled || this.constants.hierarchicalLayout.enabled);
 
   // hierarchical layout
+  this.initializing = false;
   if (this.constants.hierarchicalLayout.enabled == true) {
     this._setupHierarchicalLayout();
   }
@@ -301,6 +333,9 @@ Graph.prototype._getRange = function() {
       if (maxY < (node.y)) {maxY = node.y;}
     }
   }
+  if (minX == 1e9 && maxX == -1e9 && minY == 1e9 && maxY == -1e9) {
+    minY = 0, maxY = 0, minX = 0, maxX = 0;
+  }
   return {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
 };
 
@@ -337,6 +372,7 @@ Graph.prototype._centerGraph = function(range) {
  * This function zooms out to fit all data on screen based on amount of nodes
  *
  * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
+ * @param {Boolean} [disableStart] | If true, start is not called.
  */
 Graph.prototype.zoomExtent = function(initialZoom, disableStart) {
   if (initialZoom === undefined) {
@@ -473,8 +509,19 @@ Graph.prototype.setOptions = function (options) {
     if (options.stabilize !== undefined)       {this.stabilize = options.stabilize;}
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
     if (options.smoothCurves !== undefined)    {this.constants.smoothCurves = options.smoothCurves;}
+    if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
+
+
+
+    if (options.labels !== undefined)  {
+      for (prop in options.labels) {
+        if (options.labels.hasOwnProperty(prop)) {
+          this.constants.labels[prop] = options.labels[prop];
+        }
+      }
+    }
 
     if (options.onAdd) {
         this.triggerFunctions.add = options.onAdd;
@@ -489,7 +536,7 @@ Graph.prototype.setOptions = function (options) {
     }
 
     if (options.onDelete) {
-      this.triggerFunctions.delete = options.onDelete;
+      this.triggerFunctions.del = options.onDelete;
     }
 
     if (options.physics) {
@@ -576,12 +623,30 @@ Graph.prototype.setOptions = function (options) {
     if (options.edges) {
       for (prop in options.edges) {
         if (options.edges.hasOwnProperty(prop)) {
-          this.constants.edges[prop] = options.edges[prop];
+          if (typeof options.edges[prop] != "object") {
+            this.constants.edges[prop] = options.edges[prop];
+          }
+        }
+      }
+
+
+      if (options.edges.color !== undefined) {
+        if (util.isString(options.edges.color)) {
+          this.constants.edges.color = {};
+          this.constants.edges.color.color = options.edges.color;
+          this.constants.edges.color.highlight = options.edges.color;
+        }
+        else {
+          if (options.edges.color.color !== undefined)     {this.constants.edges.color.color = options.edges.color.color;}
+          if (options.edges.color.highlight !== undefined) {this.constants.edges.color.highlight = options.edges.color.highlight;}
         }
       }
 
       if (!options.edges.fontColor) {
-        this.constants.edges.fontColor = options.edges.color;
+        if (options.edges.color !== undefined) {
+          if (util.isString(options.edges.color))           {this.constants.edges.fontColor = options.edges.color;}
+          else if (options.edges.color.color !== undefined) {this.constants.edges.fontColor = options.edges.color.color;}
+        }
       }
 
       // Added to support dashed lines
@@ -608,7 +673,7 @@ Graph.prototype.setOptions = function (options) {
       }
 
       if (options.nodes.color) {
-        this.constants.nodes.color = Node.parseColor(options.nodes.color);
+        this.constants.nodes.color = util.parseColor(options.nodes.color);
       }
 
       /*
@@ -622,6 +687,17 @@ Graph.prototype.setOptions = function (options) {
           var group = options.groups[groupname];
           this.groups.add(groupname, group);
         }
+      }
+    }
+
+    if (options.tooltip) {
+      for (prop in options.tooltip) {
+        if (options.tooltip.hasOwnProperty(prop)) {
+          this.constants.tooltip[prop] = options.tooltip[prop];
+        }
+      }
+      if (options.tooltip.color) {
+        this.constants.tooltip.color = util.parseColor(options.tooltip.color);
       }
     }
   }
@@ -664,7 +740,6 @@ Graph.prototype._create = function () {
   this.frame.className = 'graph-frame';
   this.frame.style.position = 'relative';
   this.frame.style.overflow = 'hidden';
-  this.frame.style.zIndex = "1";
 
   // create the graph canvas (HTML canvas element)
   this.frame.canvas = document.createElement( 'canvas' );
@@ -802,26 +877,24 @@ Graph.prototype._handleDragStart = function() {
     }
 
     // create an array with the selected nodes and their original location and status
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        var object = this.selectionObj[objectId];
-        if (object instanceof Node) {
-          var s = {
-            id: object.id,
-            node: object,
+    for (var objectId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(objectId)) {
+        var object = this.selectionObj.nodes[objectId];
+        var s = {
+          id: object.id,
+          node: object,
 
-            // store original x, y, xFixed and yFixed, make the node temporarily Fixed
-            x: object.x,
-            y: object.y,
-            xFixed: object.xFixed,
-            yFixed: object.yFixed
-          };
+          // store original x, y, xFixed and yFixed, make the node temporarily Fixed
+          x: object.x,
+          y: object.y,
+          xFixed: object.xFixed,
+          yFixed: object.yFixed
+        };
 
-          object.xFixed = true;
-          object.yFixed = true;
+        object.xFixed = true;
+        object.yFixed = true;
 
-          drag.selection.push(s);
-        }
+        drag.selection.push(s);
       }
     }
   }
@@ -886,7 +959,7 @@ Graph.prototype._handleOnDrag = function(event) {
       this.drag.translation.x + diffX,
       this.drag.translation.y + diffY);
     this._redraw();
-    this.moved = true;
+    this.moving = true;
   }
 };
 
@@ -996,6 +1069,7 @@ Graph.prototype._zoom = function(scale, pointer) {
   this.updateClustersDefault();
   this._redraw();
 
+
   return scale;
 };
 
@@ -1068,7 +1142,7 @@ Graph.prototype._onMouseMoveTitle = function (event) {
     clearInterval(this.popupTimer); // stop any running calculationTimer
   }
   if (!this.drag.dragging) {
-    this.popupTimer = setTimeout(checkShow, 300);
+    this.popupTimer = setTimeout(checkShow, this.constants.tooltip.delay);
   }
 };
 
@@ -1125,7 +1199,7 @@ Graph.prototype._checkShowPopup = function (pointer) {
     if (this.popupNode != lastPopupNode) {
       var me = this;
       if (!me.popup) {
-        me.popup = new Popup(me.frame);
+        me.popup = new Popup(me.frame, me.constants.tooltip);
       }
 
       // adjust a small offset such that the mouse cursor is located in the
@@ -1249,18 +1323,19 @@ Graph.prototype._addNodes = function(ids) {
     var node = new Node(data, this.images, this.groups, this.constants);
     this.nodes[id] = node; // note: this may replace an existing node
 
-    if ((node.xFixed == false || node.yFixed == false) && this.createNodeOnClick != true) {
+    if ((node.xFixed == false || node.yFixed == false) && (node.x === null || node.y === null)) {
       var radius = 10 * 0.1*ids.length;
       var angle = 2 * Math.PI * Math.random();
       if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
       if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
-
-      // note: no not use node.isMoving() here, as that gives the current
-      // velocity of the node, which is zero after creation of the node.
-      this.moving = true;
     }
+    this.moving = true;
   }
   this._updateNodeIndexList();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this._updateCalculationNodes();
   this._reconnectEdges();
   this._updateValueRange(this.nodes);
@@ -1287,11 +1362,12 @@ Graph.prototype._updateNodes = function(ids) {
       // create node
       node = new Node(properties, this.images, this.groups, this.constants);
       nodes[id] = node;
-
-      if (!node.isFixed()) {
-        this.moving = true;
-      }
     }
+  }
+  this.moving = true;
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
   }
   this._updateNodeIndexList();
   this._reconnectEdges();
@@ -1310,6 +1386,11 @@ Graph.prototype._removeNodes = function(ids) {
     delete nodes[id];
   }
   this._updateNodeIndexList();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
+  this._updateCalculationNodes();
   this._reconnectEdges();
   this._updateSelection();
   this._updateValueRange(nodes);
@@ -1387,6 +1468,10 @@ Graph.prototype._addEdges = function (ids) {
   this.moving = true;
   this._updateValueRange(edges);
   this._createBezierNodes();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this._updateCalculationNodes();
 };
 
@@ -1417,6 +1502,10 @@ Graph.prototype._updateEdges = function (ids) {
   }
 
   this._createBezierNodes();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this.moving = true;
   this._updateValueRange(edges);
 };
@@ -1442,6 +1531,10 @@ Graph.prototype._removeEdges = function (ids) {
 
   this.moving = true;
   this._updateValueRange(edges);
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this._updateCalculationNodes();
 };
 
@@ -1703,17 +1796,59 @@ Graph.prototype._drawEdges = function(ctx) {
  * @private
  */
 Graph.prototype._stabilize = function() {
+  if (this.constants.freezeForStabilization == true) {
+    this._freezeDefinedNodes();
+  }
+
   // find stable position
   var count = 0;
   while (this.moving && count < this.constants.stabilizationIterations) {
     this._physicsTick();
     count++;
   }
-
   this.zoomExtent(false,true);
+  if (this.constants.freezeForStabilization == true) {
+    this._restoreFrozenNodes();
+  }
+  this.emit("stabilized",{iterations:count});
 };
 
+/**
+ * When initializing and stabilizing, we can freeze nodes with a predefined position. This greatly speeds up stabilization
+ * because only the supportnodes for the smoothCurves have to settle.
+ *
+ * @private
+ */
+Graph.prototype._freezeDefinedNodes = function() {
+  var nodes = this.nodes;
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      if (nodes[id].x != null && nodes[id].y != null) {
+        nodes[id].fixedData.x = nodes[id].xFixed;
+        nodes[id].fixedData.y = nodes[id].yFixed;
+        nodes[id].xFixed = true;
+        nodes[id].yFixed = true;
+      }
+    }
+  }
+};
 
+/**
+ * Unfreezes the nodes that have been frozen by _freezeDefinedNodes.
+ *
+ * @private
+ */
+Graph.prototype._restoreFrozenNodes = function() {
+  var nodes = this.nodes;
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      if (nodes[id].fixedData.x != null) {
+        nodes[id].xFixed = nodes[id].fixedData.x;
+        nodes[id].yFixed = nodes[id].fixedData.y;
+      }
+    }
+  }
+};
 
 
 /**
@@ -1740,14 +1875,16 @@ Graph.prototype._isMoving = function(vmin) {
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = 0.65;
+  var interval = this.physicsDiscreteStepsize;
   var nodes = this.nodes;
   var nodeId;
+  var nodesPresent = false;
 
   if (this.constants.maxVelocity > 0) {
     for (nodeId in nodes) {
       if (nodes.hasOwnProperty(nodeId)) {
         nodes[nodeId].discreteStepLimited(interval, this.constants.maxVelocity);
+        nodesPresent = true;
       }
     }
   }
@@ -1755,27 +1892,35 @@ Graph.prototype._discreteStepNodes = function() {
     for (nodeId in nodes) {
       if (nodes.hasOwnProperty(nodeId)) {
         nodes[nodeId].discreteStep(interval);
+        nodesPresent = true;
       }
     }
   }
-  var vminCorrected = this.constants.minVelocity / Math.max(this.scale,0.05);
-  if (vminCorrected > 0.5*this.constants.maxVelocity) {
-    this.moving = true;
-  }
-  else {
-    this.moving = this._isMoving(vminCorrected);
+
+  if (nodesPresent == true) {
+    var vminCorrected = this.constants.minVelocity / Math.max(this.scale,0.05);
+    if (vminCorrected > 0.5*this.constants.maxVelocity) {
+      this.moving = true;
+    }
+    else {
+      this.moving = this._isMoving(vminCorrected);
+    }
   }
 };
 
-
+/**
+ * A single simulation step (or "tick") in the physics simulation
+ *
+ * @private
+ */
 Graph.prototype._physicsTick = function() {
   if (!this.freezeSimulation) {
     if (this.moving) {
       this._doInAllActiveSectors("_initializeForceCalculation");
+      this._doInAllActiveSectors("_discreteStepNodes");
       if (this.constants.smoothCurves) {
         this._doInSupportSector("_discreteStepNodes");
       }
-      this._doInAllActiveSectors("_discreteStepNodes");
       this._findCenter(this._getRange())
     }
   }
@@ -1802,7 +1947,7 @@ Graph.prototype._animationStep = function() {
   var maxSteps = 1;
   this._physicsTick();
   var timeRequired = Date.now() - calculationTime;
-  while (timeRequired < (this.renderTimestep - this.renderTime) && maxSteps < this.maxRenderSteps) {
+  while (timeRequired < (this.renderTimestep - this.renderTime) && maxSteps < this.maxPhysicsTicksPerRender) {
     this._physicsTick();
     timeRequired = Date.now() - calculationTime;
     maxSteps++;
@@ -1822,13 +1967,28 @@ if (typeof window !== 'undefined') {
 
 /**
  * Schedule a animation step with the refreshrate interval.
- *
- * @poram {Boolean} runCalculationStep
  */
 Graph.prototype.start = function() {
   if (this.moving || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0) {
-    if (!this.timer) { 
-      this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+    if (!this.timer) {
+      var ua = navigator.userAgent.toLowerCase();
+
+      var requiresTimeout = false;
+      if (ua.indexOf('msie 9.0') != -1) { // IE 9
+        requiresTimeout = true;
+      }
+      else if (ua.indexOf('safari') != -1) {  // safari
+        if (ua.indexOf('chrome') <= -1) {
+          requiresTimeout = true;
+        }
+      }
+
+      if (requiresTimeout == true) {
+        this.timer = window.setTimeout(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+      }
+      else{
+        this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+      }
     }
   }
   else {
@@ -1871,7 +2031,12 @@ Graph.prototype.toggleFreeze = function() {
 };
 
 
-
+/**
+ * This function cleans the support nodes if they are not needed and adds them when they are.
+ *
+ * @param {boolean} [disableStart]
+ * @private
+ */
 Graph.prototype._configureSmoothCurves = function(disableStart) {
   if (disableStart === undefined) {
     disableStart = true;
@@ -1897,6 +2062,13 @@ Graph.prototype._configureSmoothCurves = function(disableStart) {
   }
 };
 
+
+/**
+ * Bezier curves require an anchor point to calculate the smooth flow. These points are nodes. These nodes are invisible but
+ * are used for the force calculation.
+ *
+ * @private
+ */
 Graph.prototype._createBezierNodes = function() {
   if (this.constants.smoothCurves == true) {
     for (var edgeId in this.edges) {
@@ -1909,6 +2081,7 @@ Graph.prototype._createBezierNodes = function() {
                   {id:nodeId,
                     mass:1,
                     shape:'circle',
+                    image:"",
                     internalMultiplier:1
                   },{},{},this.constants);
           edge.via = this.sectors['support']['nodes'][nodeId];
@@ -1920,7 +2093,11 @@ Graph.prototype._createBezierNodes = function() {
   }
 };
 
-
+/**
+ * load the functions that load the mixins into the prototype.
+ *
+ * @private
+ */
 Graph.prototype._initializeMixinLoaders = function () {
   for (var mixinFunction in graphMixinLoaders) {
     if (graphMixinLoaders.hasOwnProperty(mixinFunction)) {

@@ -11,23 +11,25 @@ var barnesHutMixin = {
    * @private
    */
   _calculateNodeForces : function() {
-    var node;
-    var nodes = this.calculationNodes;
-    var nodeIndices = this.calculationNodeIndices;
-    var nodeCount = nodeIndices.length;
+    if (this.constants.physics.barnesHut.gravitationalConstant != 0) {
+      var node;
+      var nodes = this.calculationNodes;
+      var nodeIndices = this.calculationNodeIndices;
+      var nodeCount = nodeIndices.length;
 
-    this._formBarnesHutTree(nodes,nodeIndices);
+      this._formBarnesHutTree(nodes,nodeIndices);
 
-    var barnesHutTree = this.barnesHutTree;
+      var barnesHutTree = this.barnesHutTree;
 
-    // place the nodes one by one recursively
-    for (var i = 0; i < nodeCount; i++) {
-      node = nodes[nodeIndices[i]];
-      // starting with root is irrelevant, it never passes the BarnesHut condition
-      this._getForceContribution(barnesHutTree.root.children.NW,node);
-      this._getForceContribution(barnesHutTree.root.children.NE,node);
-      this._getForceContribution(barnesHutTree.root.children.SW,node);
-      this._getForceContribution(barnesHutTree.root.children.SE,node);
+      // place the nodes one by one recursively
+      for (var i = 0; i < nodeCount; i++) {
+        node = nodes[nodeIndices[i]];
+        // starting with root is irrelevant, it never passes the BarnesHut condition
+        this._getForceContribution(barnesHutTree.root.children.NW,node);
+        this._getForceContribution(barnesHutTree.root.children.NE,node);
+        this._getForceContribution(barnesHutTree.root.children.SW,node);
+        this._getForceContribution(barnesHutTree.root.children.SE,node);
+      }
     }
   },
 
@@ -133,6 +135,7 @@ var barnesHutMixin = {
       mass:0,
       range: {minX:centerX-halfRootSize,maxX:centerX+halfRootSize,
               minY:centerY-halfRootSize,maxY:centerY+halfRootSize},
+
       size: rootSize,
       calcSize: 1 / rootSize,
       children: {data:null},
@@ -153,6 +156,13 @@ var barnesHutMixin = {
   },
 
 
+  /**
+   * this updates the mass of a branch. this is increased by adding a node.
+   *
+   * @param parentBranch
+   * @param node
+   * @private
+   */
   _updateBranchMass : function(parentBranch, node) {
     var totalMass = parentBranch.mass + node.mass;
     var totalMassInv = 1/totalMass;
@@ -170,6 +180,14 @@ var barnesHutMixin = {
   },
 
 
+  /**
+   * determine in which branch the node will be placed.
+   *
+   * @param parentBranch
+   * @param node
+   * @param skipMassUpdate
+   * @private
+   */
   _placeInTree : function(parentBranch,node,skipMassUpdate) {
     if (skipMassUpdate != true || skipMassUpdate === undefined) {
       // update the mass of the branch.
@@ -195,6 +213,14 @@ var barnesHutMixin = {
   },
 
 
+  /**
+   * actually place the node in a region (or branch)
+   *
+   * @param parentBranch
+   * @param node
+   * @param region
+   * @private
+   */
   _placeInRegion : function(parentBranch,node,region) {
     switch (parentBranch.children[region].childrenCount) {
       case 0: // place node here
@@ -209,7 +235,6 @@ var barnesHutMixin = {
             parentBranch.children[region].children.data.y == node.y) {
           node.x += Math.random();
           node.y += Math.random();
-          this._placeInTree(parentBranch,node, true);
         }
         else {
           this._splitBranch(parentBranch.children[region]);

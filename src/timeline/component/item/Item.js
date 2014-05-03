@@ -1,26 +1,27 @@
 /**
  * @constructor Item
- * @param {ItemSet} parent
  * @param {Object} data             Object containing (optional) parameters type,
  *                                  start, end, content, group, className.
  * @param {Object} [options]        Options to set initial property values
  * @param {Object} [defaultOptions] default options
  *                                  // TODO: describe available options
  */
-function Item (parent, data, options, defaultOptions) {
-  this.parent = parent;
+function Item (data, options, defaultOptions) {
+  this.id = null;
+  this.parent = null;
   this.data = data;
   this.dom = null;
   this.options = options || {};
   this.defaultOptions = defaultOptions || {};
 
   this.selected = false;
-  this.visible = false;
-  this.top = 0;
-  this.left = 0;
-  this.width = 0;
-  this.height = 0;
-  this.offset = 0;
+  this.displayed = false;
+  this.dirty = true;
+
+  this.top = null;
+  this.left = null;
+  this.width = null;
+  this.height = null;
 }
 
 /**
@@ -28,7 +29,7 @@ function Item (parent, data, options, defaultOptions) {
  */
 Item.prototype.select = function select() {
   this.selected = true;
-  if (this.visible) this.repaint();
+  if (this.displayed) this.repaint();
 };
 
 /**
@@ -36,7 +37,34 @@ Item.prototype.select = function select() {
  */
 Item.prototype.unselect = function unselect() {
   this.selected = false;
-  if (this.visible) this.repaint();
+  if (this.displayed) this.repaint();
+};
+
+/**
+ * Set a parent for the item
+ * @param {ItemSet | Group} parent
+ */
+Item.prototype.setParent = function setParent(parent) {
+  if (this.displayed) {
+    this.hide();
+    this.parent = parent;
+    if (this.parent) {
+      this.show();
+    }
+  }
+  else {
+    this.parent = parent;
+  }
+};
+
+/**
+ * Check whether this item is visible inside given range
+ * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+ * @returns {boolean} True if visible
+ */
+Item.prototype.isVisible = function isVisible (range) {
+  // Should be implemented by Item implementations
+  return false;
 };
 
 /**
@@ -57,40 +85,34 @@ Item.prototype.hide = function hide() {
 
 /**
  * Repaint the item
- * @return {Boolean} changed
  */
 Item.prototype.repaint = function repaint() {
   // should be implemented by the item
-  return false;
 };
 
 /**
- * Reflow the item
- * @return {Boolean} resized
+ * Reposition the Item horizontally
  */
-Item.prototype.reflow = function reflow() {
+Item.prototype.repositionX = function repositionX() {
   // should be implemented by the item
-  return false;
 };
 
 /**
- * Give the item a display offset in pixels
- * @param {Number} offset    Offset on screen in pixels
+ * Reposition the Item vertically
  */
-Item.prototype.setOffset = function setOffset(offset) {
-  this.offset = offset;
+Item.prototype.repositionY = function repositionY() {
+  // should be implemented by the item
 };
 
 /**
  * Repaint a delete button on the top right of the item when the item is selected
  * @param {HTMLElement} anchor
- * @private
+ * @protected
  */
 Item.prototype._repaintDeleteButton = function (anchor) {
-  if (this.selected && this.options.editable && !this.dom.deleteButton) {
+  if (this.selected && this.options.editable.remove && !this.dom.deleteButton) {
     // create and show button
-    var parent = this.parent;
-    var id = this.id;
+    var me = this;
 
     var deleteButton = document.createElement('div');
     deleteButton.className = 'delete';
@@ -99,7 +121,7 @@ Item.prototype._repaintDeleteButton = function (anchor) {
     Hammer(deleteButton, {
       preventDefault: true
     }).on('tap', function (event) {
-      parent.removeItem(id);
+      me.parent.removeFromDataSet(me);
       event.stopPropagation();
     });
 

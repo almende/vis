@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 0.7.0
- * @date    2014-03-07
+ * @version 1.0.0
+ * @date    2014-05-02
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -408,6 +408,23 @@ util.extend = function (a, b) {
 };
 
 /**
+ * Test whether all elements in two arrays are equal.
+ * @param {Array} a
+ * @param {Array} b
+ * @return {boolean} Returns true if both arrays have the same length and same
+ *                   elements.
+ */
+util.equalArray = function (a, b) {
+  if (a.length != b.length) return false;
+
+  for (var i = 1, len = a.length; i < len; i++) {
+    if (a[i] != b[i]) return false;
+  }
+
+  return true;
+};
+
+/**
  * Convert an object to another type
  * @param {Boolean | Number | String | Date | Moment | Null | undefined} object
  * @param {String | undefined} type   Name of the type. Available types:
@@ -751,13 +768,29 @@ util.forEach = function forEach (object, callback) {
 };
 
 /**
+ * Convert an object into an array: all objects properties are put into the
+ * array. The resulting array is unordered.
+ * @param {Object} object
+ * @param {Array} array
+ */
+util.toArray = function toArray(object) {
+  var array = [];
+
+  for (var prop in object) {
+    if (object.hasOwnProperty(prop)) array.push(object[prop]);
+  }
+
+  return array;
+}
+
+/**
  * Update a property in an object
  * @param {Object} object
  * @param {String} key
  * @param {*} value
  * @return {Boolean} changed
  */
-util.updateProperty = function updateProp (object, key, value) {
+util.updateProperty = function updateProperty (object, key, value) {
   if (object[key] !== value) {
     object[key] = value;
     return true;
@@ -964,53 +997,104 @@ util.option.asElement = function (value, defaultValue) {
 
 
 
-util.GiveDec = function GiveDec(Hex)
-{
-  if(Hex == "A")
+util.GiveDec = function GiveDec(Hex) {
+  var Value;
+
+  if (Hex == "A")
     Value = 10;
-  else
-  if(Hex == "B")
+  else if (Hex == "B")
     Value = 11;
-  else
-  if(Hex == "C")
+  else if (Hex == "C")
     Value = 12;
-  else
-  if(Hex == "D")
+  else if (Hex == "D")
     Value = 13;
-  else
-  if(Hex == "E")
+  else if (Hex == "E")
     Value = 14;
-  else
-  if(Hex == "F")
+  else if (Hex == "F")
     Value = 15;
   else
-    Value = eval(Hex)
-  return Value;
-}
+    Value = eval(Hex);
 
-util.GiveHex = function GiveHex(Dec)
-{
+  return Value;
+};
+
+util.GiveHex = function GiveHex(Dec) {
+  var Value;
+
   if(Dec == 10)
     Value = "A";
-  else
-  if(Dec == 11)
+  else if (Dec == 11)
     Value = "B";
-  else
-  if(Dec == 12)
+  else if (Dec == 12)
     Value = "C";
-  else
-  if(Dec == 13)
+  else if (Dec == 13)
     Value = "D";
-  else
-  if(Dec == 14)
+  else if (Dec == 14)
     Value = "E";
-  else
-  if(Dec == 15)
+  else if (Dec == 15)
     Value = "F";
   else
     Value = "" + Dec;
+
   return Value;
-}
+};
+
+/**
+ * Parse a color property into an object with border, background, and
+ * highlight colors
+ * @param {Object | String} color
+ * @return {Object} colorObject
+ */
+util.parseColor = function(color) {
+  var c;
+  if (util.isString(color)) {
+    if (util.isValidHex(color)) {
+      var hsv = util.hexToHSV(color);
+      var lighterColorHSV = {h:hsv.h,s:hsv.s * 0.45,v:Math.min(1,hsv.v * 1.05)};
+      var darkerColorHSV  = {h:hsv.h,s:Math.min(1,hsv.v * 1.25),v:hsv.v*0.6};
+      var darkerColorHex  = util.HSVToHex(darkerColorHSV.h ,darkerColorHSV.h ,darkerColorHSV.v);
+      var lighterColorHex = util.HSVToHex(lighterColorHSV.h,lighterColorHSV.s,lighterColorHSV.v);
+
+      c = {
+        background: color,
+        border:darkerColorHex,
+        highlight: {
+          background:lighterColorHex,
+          border:darkerColorHex
+        }
+      };
+    }
+    else {
+      c = {
+        background:color,
+        border:color,
+        highlight: {
+          background:color,
+          border:color
+        }
+      };
+    }
+  }
+  else {
+    c = {};
+    c.background = color.background || 'white';
+    c.border = color.border || c.background;
+
+    if (util.isString(color.highlight)) {
+      c.highlight = {
+        border: color.highlight,
+        background: color.highlight
+      }
+    }
+    else {
+      c.highlight = {};
+      c.highlight.background = color.highlight && color.highlight.background || c.background;
+      c.highlight.border = color.highlight && color.highlight.border || c.border;
+    }
+  }
+
+  return c;
+};
 
 /**
  * http://www.yellowpipe.com/yis/tools/hex-to-rgb/color-converter.php
@@ -1106,20 +1190,34 @@ util.HSVToRGB = function HSVToRGB(h, s, v) {
   return {r:Math.floor(r * 255), g:Math.floor(g * 255), b:Math.floor(b * 255) };
 };
 
-util.HSVToHex = function HSVToHex(h,s,v) {
-  var rgb = util.HSVToRGB(h,s,v);
-  return util.RGBToHex(rgb.r,rgb.g,rgb.b);
-}
+util.HSVToHex = function HSVToHex(h, s, v) {
+  var rgb = util.HSVToRGB(h, s, v);
+  return util.RGBToHex(rgb.r, rgb.g, rgb.b);
+};
 
 util.hexToHSV = function hexToHSV(hex) {
   var rgb = util.hexToRGB(hex);
-  return util.RGBToHSV(rgb.r,rgb.g,rgb.b);
-}
+  return util.RGBToHSV(rgb.r, rgb.g, rgb.b);
+};
 
 util.isValidHex = function isValidHex(hex) {
-  var isOk  = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
+  var isOk = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
   return isOk;
-}
+};
+
+util.copyObject = function copyObject(objectFrom, objectTo) {
+  for (var i in objectFrom) {
+    if (objectFrom.hasOwnProperty(i)) {
+      if (typeof objectFrom[i] == "object") {
+        objectTo[i] = {};
+        util.copyObject(objectFrom[i], objectTo[i]);
+      }
+      else {
+        objectTo[i] = objectFrom[i];
+      }
+    }
+  }
+};
 
 /**
  * DataSet
@@ -1149,6 +1247,7 @@ util.isValidHex = function isValidHex(hex) {
  * - gives triggers upon changes in the data
  * - can  import/export data in various data formats
  *
+ * @param {Array | DataTable} [data]    Optional array with initial data
  * @param {Object} [options]   Available options:
  *                             {String} fieldId Field name of the id in the
  *                                              items, 'id' by default.
@@ -1158,8 +1257,14 @@ util.isValidHex = function isValidHex(hex) {
  * @constructor DataSet
  */
 // TODO: add a DataSet constructor DataSet(data, options)
-function DataSet (options) {
+function DataSet (data, options) {
   this.id = util.randomUUID();
+
+  // correctly read optional arguments
+  if (data && !Array.isArray(data) && !util.isDataTable(data)) {
+    options = data;
+    data = null;
+  }
 
   this.options = options || {};
   this.data = {};                                 // map with data indexed by id
@@ -1181,10 +1286,13 @@ function DataSet (options) {
     }
   }
 
-  // event subscribers
-  this.subscribers = {};
+  this.subscribers = {};  // event subscribers
+  this.internalIds = {};  // internally generated id's
 
-  this.internalIds = {};            // internally generated id's
+  // add initial data when provided
+  if (data) {
+    this.add(data);
+  }
 }
 
 /**
@@ -1634,7 +1742,6 @@ DataSet.prototype.getIds = function (options) {
 
 /**
  * Execute a callback function for every item in the dataset.
- * The order of the items is not determined.
  * @param {function} callback
  * @param {Object} [options]    Available options:
  *                              {Object.<String, String>} [convert]
@@ -1880,9 +1987,8 @@ DataSet.prototype.min = function (field) {
 /**
  * Find all distinct values of a specified field
  * @param {String} field
- * @return {Array} values  Array containing all distinct values. If the data
- *                         items do not contain the specified field, an array
- *                         containing a single value undefined is returned.
+ * @return {Array} values  Array containing all distinct values. If data items
+ *                         do not contain the specified field are ignored.
  *                         The returned array is unordered.
  */
 DataSet.prototype.distinct = function (field) {
@@ -1902,7 +2008,7 @@ DataSet.prototype.distinct = function (field) {
           break;
         }
       }
-      if (!exists) {
+      if (!exists && (value !== undefined)) {
         values[count] = value;
         count++;
       }
@@ -2349,6 +2455,119 @@ DataView.prototype._trigger = DataSet.prototype._trigger;
 // TODO: make these functions deprecated (replaced with `on` and `off` since version 0.5)
 DataView.prototype.subscribe = DataView.prototype.on;
 DataView.prototype.unsubscribe = DataView.prototype.off;
+
+/**
+ * Utility functions for ordering and stacking of items
+ */
+var stack = {};
+
+/**
+ * Order items by their start data
+ * @param {Item[]} items
+ */
+stack.orderByStart = function orderByStart(items) {
+  items.sort(function (a, b) {
+    return a.data.start - b.data.start;
+  });
+};
+
+/**
+ * Order items by their end date. If they have no end date, their start date
+ * is used.
+ * @param {Item[]} items
+ */
+stack.orderByEnd = function orderByEnd(items) {
+  items.sort(function (a, b) {
+    var aTime = ('end' in a.data) ? a.data.end : a.data.start,
+        bTime = ('end' in b.data) ? b.data.end : b.data.start;
+
+    return aTime - bTime;
+  });
+};
+
+/**
+ * Adjust vertical positions of the items such that they don't overlap each
+ * other.
+ * @param {Item[]} items
+ *            All visible items
+ * @param {{item: number, axis: number}} margin
+ *            Margins between items and between items and the axis.
+ * @param {boolean} [force=false]
+ *            If true, all items will be repositioned. If false (default), only
+ *            items having a top===null will be re-stacked
+ */
+stack.stack = function _stack (items, margin, force) {
+  var i, iMax;
+
+  if (force) {
+    // reset top position of all items
+    for (i = 0, iMax = items.length; i < iMax; i++) {
+      items[i].top = null;
+    }
+  }
+
+  // calculate new, non-overlapping positions
+  for (i = 0, iMax = items.length; i < iMax; i++) {
+    var item = items[i];
+    if (item.top === null) {
+      // initialize top position
+      item.top = margin.axis;
+
+      do {
+        // TODO: optimize checking for overlap. when there is a gap without items,
+        //       you only need to check for items from the next item on, not from zero
+        var collidingItem = null;
+        for (var j = 0, jj = items.length; j < jj; j++) {
+          var other = items[j];
+          if (other.top !== null && other !== item && stack.collision(item, other, margin.item)) {
+            collidingItem = other;
+            break;
+          }
+        }
+
+        if (collidingItem != null) {
+          // There is a collision. Reposition the items above the colliding element
+          item.top = collidingItem.top + collidingItem.height + margin.item;
+        }
+      } while (collidingItem);
+    }
+  }
+};
+
+/**
+ * Adjust vertical positions of the items without stacking them
+ * @param {Item[]} items
+ *            All visible items
+ * @param {{item: number, axis: number}} margin
+ *            Margins between items and between items and the axis.
+ */
+stack.nostack = function nostack (items, margin) {
+  var i, iMax;
+
+  // reset top position of all items
+  for (i = 0, iMax = items.length; i < iMax; i++) {
+    items[i].top = margin.axis;
+  }
+};
+
+/**
+ * Test if the two provided items collide
+ * The items must have parameters left, width, top, and height.
+ * @param {Item} a          The first item
+ * @param {Item} b          The second item
+ * @param {Number} margin   A minimum required margin.
+ *                          If margin is provided, the two items will be
+ *                          marked colliding when they overlap or
+ *                          when the margin between the two is smaller than
+ *                          the requested margin.
+ * @return {boolean}        true if a and b collide, else false
+ */
+stack.collision = function collision (a, b, margin) {
+  return ((a.left - margin) < (b.left + b.width) &&
+      (a.left + a.width + margin) > b.left &&
+      (a.top - margin) < (b.top + b.height) &&
+      (a.top + a.height + margin) > b.top);
+};
 
 /**
  * @constructor  TimeStep
@@ -2806,215 +3025,43 @@ TimeStep.prototype.getLabelMajor = function(date) {
 };
 
 /**
- * @constructor Stack
- * Stacks items on top of each other.
- * @param {ItemSet} itemset
- * @param {Object} [options]
- */
-function Stack (itemset, options) {
-  this.itemset = itemset;
-
-  this.options = options || {};
-  this.defaultOptions = {
-    order: function (a, b) {
-      //return (b.width - a.width) || (a.left - b.left);  // TODO: cleanup
-      // Order: ranges over non-ranges, ranged ordered by width, and
-      // lastly ordered by start.
-      if (a instanceof ItemRange) {
-        if (b instanceof ItemRange) {
-          var aInt = (a.data.end - a.data.start);
-          var bInt = (b.data.end - b.data.start);
-          return (aInt - bInt) || (a.data.start - b.data.start);
-        }
-        else {
-          return -1;
-        }
-      }
-      else {
-        if (b instanceof ItemRange) {
-          return 1;
-        }
-        else {
-          return (a.data.start - b.data.start);
-        }
-      }
-    },
-    margin: {
-      item: 10
-    }
-  };
-
-  this.ordered = [];  // ordered items
-}
-
-/**
- * Set options for the stack
- * @param {Object} options  Available options:
- *                          {ItemSet} itemset
- *                          {Number} margin
- *                          {function} order  Stacking order
- */
-Stack.prototype.setOptions = function setOptions (options) {
-  util.extend(this.options, options);
-
-  // TODO: register on data changes at the connected itemset, and update the changed part only and immediately
-};
-
-/**
- * Stack the items such that they don't overlap. The items will have a minimal
- * distance equal to options.margin.item.
- */
-Stack.prototype.update = function update() {
-  this._order();
-  this._stack();
-};
-
-/**
- * Order the items. If a custom order function has been provided via the options,
- * then this will be used.
- * @private
- */
-Stack.prototype._order = function _order () {
-  var items = this.itemset.items;
-  if (!items) {
-    throw new Error('Cannot stack items: ItemSet does not contain items');
-  }
-
-  // TODO: store the sorted items, to have less work later on
-  var ordered = [];
-  var index = 0;
-  // items is a map (no array)
-  util.forEach(items, function (item) {
-    if (item.visible) {
-      ordered[index] = item;
-      index++;
-    }
-  });
-
-  //if a customer stack order function exists, use it.
-  var order = this.options.order || this.defaultOptions.order;
-  if (!(typeof order === 'function')) {
-    throw new Error('Option order must be a function');
-  }
-
-  ordered.sort(order);
-
-  this.ordered = ordered;
-};
-
-/**
- * Adjust vertical positions of the events such that they don't overlap each
- * other.
- * @private
- */
-Stack.prototype._stack = function _stack () {
-  var i,
-      iMax,
-      ordered = this.ordered,
-      options = this.options,
-      orientation = options.orientation || this.defaultOptions.orientation,
-      axisOnTop = (orientation == 'top'),
-      margin;
-
-  if (options.margin && options.margin.item !== undefined) {
-    margin = options.margin.item;
-  }
-  else {
-    margin = this.defaultOptions.margin.item
-  }
-
-  // calculate new, non-overlapping positions
-  for (i = 0, iMax = ordered.length; i < iMax; i++) {
-    var item = ordered[i];
-    var collidingItem = null;
-    do {
-      // TODO: optimize checking for overlap. when there is a gap without items,
-      //  you only need to check for items from the next item on, not from zero
-      collidingItem = this.checkOverlap(ordered, i, 0, i - 1, margin);
-      if (collidingItem != null) {
-        // There is a collision. Reposition the event above the colliding element
-        if (axisOnTop) {
-          item.top = collidingItem.top + collidingItem.height + margin;
-        }
-        else {
-          item.top = collidingItem.top - item.height - margin;
-        }
-      }
-    } while (collidingItem);
-  }
-};
-
-/**
- * Check if the destiny position of given item overlaps with any
- * of the other items from index itemStart to itemEnd.
- * @param {Array} items     Array with items
- * @param {int}  itemIndex  Number of the item to be checked for overlap
- * @param {int}  itemStart  First item to be checked.
- * @param {int}  itemEnd    Last item to be checked.
- * @return {Object | null}  colliding item, or undefined when no collisions
- * @param {Number} margin   A minimum required margin.
- *                          If margin is provided, the two items will be
- *                          marked colliding when they overlap or
- *                          when the margin between the two is smaller than
- *                          the requested margin.
- */
-Stack.prototype.checkOverlap = function checkOverlap (items, itemIndex,
-                                                      itemStart, itemEnd, margin) {
-  var collision = this.collision;
-
-  // we loop from end to start, as we suppose that the chance of a
-  // collision is larger for items at the end, so check these first.
-  var a = items[itemIndex];
-  for (var i = itemEnd; i >= itemStart; i--) {
-    var b = items[i];
-    if (collision(a, b, margin)) {
-      if (i != itemIndex) {
-        return b;
-      }
-    }
-  }
-
-  return null;
-};
-
-/**
- * Test if the two provided items collide
- * The items must have parameters left, width, top, and height.
- * @param {Component} a     The first item
- * @param {Component} b     The second item
- * @param {Number} margin   A minimum required margin.
- *                          If margin is provided, the two items will be
- *                          marked colliding when they overlap or
- *                          when the margin between the two is smaller than
- *                          the requested margin.
- * @return {boolean}        true if a and b collide, else false
- */
-Stack.prototype.collision = function collision (a, b, margin) {
-  return ((a.left - margin) < (b.left + b.width) &&
-      (a.left + a.width + margin) > b.left &&
-      (a.top - margin) < (b.top + b.height) &&
-      (a.top + a.height + margin) > b.top);
-};
-
-/**
  * @constructor Range
  * A Range controls a numeric range with a start and end value.
  * The Range adjusts the range based on mouse events or programmatic changes,
  * and triggers events when the range is changing or has been changed.
- * @param {Object} [options]   See description at Range.setOptions
- * @extends Controller
+ * @param {RootPanel} root      Root panel, used to subscribe to events
+ * @param {Panel} parent        Parent panel, used to attach to the DOM
+ * @param {Object} [options]    See description at Range.setOptions
  */
-function Range(options) {
+function Range(root, parent, options) {
   this.id = util.randomUUID();
   this.start = null; // Number
   this.end = null;   // Number
 
+  this.root = root;
+  this.parent = parent;
   this.options = options || {};
+
+  // drag listeners for dragging
+  this.root.on('dragstart', this._onDragStart.bind(this));
+  this.root.on('drag',      this._onDrag.bind(this));
+  this.root.on('dragend',   this._onDragEnd.bind(this));
+
+  // ignore dragging when holding
+  this.root.on('hold', this._onHold.bind(this));
+
+  // mouse wheel for zooming
+  this.root.on('mousewheel',      this._onMouseWheel.bind(this));
+  this.root.on('DOMMouseScroll',  this._onMouseWheel.bind(this)); // For FF
+
+  // pinch to zoom
+  this.root.on('touch', this._onTouch.bind(this));
+  this.root.on('pinch', this._onPinch.bind(this));
 
   this.setOptions(options);
 }
 
-// extend the Range prototype with an event emitter mixin
+// turn Range into an event emitter
 Emitter(Range.prototype);
 
 /**
@@ -3048,59 +3095,6 @@ function validateDirection (direction) {
 }
 
 /**
- * Add listeners for mouse and touch events to the component
- * @param {Controller} controller
- * @param {Component} component  Should be a rootpanel
- * @param {String} event        Available events: 'move', 'zoom'
- * @param {String} direction    Available directions: 'horizontal', 'vertical'
- */
-Range.prototype.subscribe = function (controller, component, event, direction) {
-  var me = this;
-
-  if (event == 'move') {
-    // drag start listener
-    controller.on('dragstart', function (event) {
-      me._onDragStart(event, component);
-    });
-
-    // drag listener
-    controller.on('drag', function (event) {
-      me._onDrag(event, component, direction);
-    });
-
-    // drag end listener
-    controller.on('dragend', function (event) {
-      me._onDragEnd(event, component);
-    });
-
-    // ignore dragging when holding
-    controller.on('hold', function (event) {
-      me._onHold();
-    });
-  }
-  else if (event == 'zoom') {
-    // mouse wheel
-    function mousewheel (event) {
-      me._onMouseWheel(event, component, direction);
-    }
-    controller.on('mousewheel', mousewheel);
-    controller.on('DOMMouseScroll', mousewheel); // For FF
-
-    // pinch
-    controller.on('touch', function (event) {
-      me._onTouch(event);
-    });
-    controller.on('pinch', function (event) {
-      me._onPinch(event, component, direction);
-    });
-  }
-  else {
-    throw new TypeError('Unknown event "' + event + '". ' +
-        'Choose "move" or "zoom".');
-  }
-};
-
-/**
  * Set a new start and end range
  * @param {Number} [start]
  * @param {Number} [end]
@@ -3109,8 +3103,8 @@ Range.prototype.setRange = function(start, end) {
   var changed = this._applyRange(start, end);
   if (changed) {
     var params = {
-          start: this.start,
-          end: this.end
+      start: new Date(this.start),
+      end: new Date(this.end)
     };
     this.emit('rangechange', params);
     this.emit('rangechanged', params);
@@ -3278,10 +3272,9 @@ var touchParams = {};
 /**
  * Start dragging horizontally or vertically
  * @param {Event} event
- * @param {Object} component
  * @private
  */
-Range.prototype._onDragStart = function(event, component) {
+Range.prototype._onDragStart = function(event) {
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
   if (touchParams.ignore) return;
@@ -3291,7 +3284,7 @@ Range.prototype._onDragStart = function(event, component) {
   touchParams.start = this.start;
   touchParams.end = this.end;
 
-  var frame = component.frame;
+  var frame = this.parent.frame;
   if (frame) {
     frame.style.cursor = 'move';
   }
@@ -3300,11 +3293,10 @@ Range.prototype._onDragStart = function(event, component) {
 /**
  * Perform dragging operating.
  * @param {Event} event
- * @param {Component} component
- * @param {String} direction    'horizontal' or 'vertical'
  * @private
  */
-Range.prototype._onDrag = function (event, component, direction) {
+Range.prototype._onDrag = function (event) {
+  var direction = this.options.direction;
   validateDirection(direction);
 
   // TODO: reckon with option movable
@@ -3316,38 +3308,37 @@ Range.prototype._onDrag = function (event, component, direction) {
 
   var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
       interval = (touchParams.end - touchParams.start),
-      width = (direction == 'horizontal') ? component.width : component.height,
+      width = (direction == 'horizontal') ? this.parent.width : this.parent.height,
       diffRange = -delta / width * interval;
 
   this._applyRange(touchParams.start + diffRange, touchParams.end + diffRange);
 
   this.emit('rangechange', {
-    start: this.start,
-    end: this.end
+    start: new Date(this.start),
+    end:   new Date(this.end)
   });
 };
 
 /**
  * Stop dragging operating.
  * @param {event} event
- * @param {Component} component
  * @private
  */
-Range.prototype._onDragEnd = function (event, component) {
+Range.prototype._onDragEnd = function (event) {
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
   if (touchParams.ignore) return;
 
   // TODO: reckon with option movable
 
-  if (component.frame) {
-    component.frame.style.cursor = 'auto';
+  if (this.parent.frame) {
+    this.parent.frame.style.cursor = 'auto';
   }
 
   // fire a rangechanged event
   this.emit('rangechanged', {
-    start: this.start,
-    end: this.end
+    start: new Date(this.start),
+    end:   new Date(this.end)
   });
 };
 
@@ -3355,13 +3346,9 @@ Range.prototype._onDragEnd = function (event, component) {
  * Event handler for mouse wheel event, used to zoom
  * Code from http://adomas.org/javascript-mouse-wheel/
  * @param {Event} event
- * @param {Component} component
- * @param {String} direction    'horizontal' or 'vertical'
  * @private
  */
-Range.prototype._onMouseWheel = function(event, component, direction) {
-  validateDirection(direction);
-
+Range.prototype._onMouseWheel = function(event) {
   // TODO: reckon with option zoomable
 
   // retrieve delta
@@ -3392,8 +3379,8 @@ Range.prototype._onMouseWheel = function(event, component, direction) {
 
     // calculate center, the date to zoom around
     var gesture = util.fakeGesture(this, event),
-        pointer = getPointer(gesture.center, component.frame),
-        pointerDate = this._pointerToDate(component, direction, pointer);
+        pointer = getPointer(gesture.center, this.parent.frame),
+        pointerDate = this._pointerToDate(pointer);
 
     this.zoom(scale, pointerDate);
   }
@@ -3432,24 +3419,23 @@ Range.prototype._onHold = function () {
 /**
  * Handle pinch event
  * @param {Event} event
- * @param {Component} component
- * @param {String} direction    'horizontal' or 'vertical'
  * @private
  */
-Range.prototype._onPinch = function (event, component, direction) {
+Range.prototype._onPinch = function (event) {
+  var direction = this.options.direction;
   touchParams.ignore = true;
 
   // TODO: reckon with option zoomable
 
   if (event.gesture.touches.length > 1) {
     if (!touchParams.center) {
-      touchParams.center = getPointer(event.gesture.center, component.frame);
+      touchParams.center = getPointer(event.gesture.center, this.parent.frame);
     }
 
     var scale = 1 / event.gesture.scale,
-        initDate = this._pointerToDate(component, direction, touchParams.center),
-        center = getPointer(event.gesture.center, component.frame),
-        date = this._pointerToDate(component, direction, center),
+        initDate = this._pointerToDate(touchParams.center),
+        center = getPointer(event.gesture.center, this.parent.frame),
+        date = this._pointerToDate(this.parent, center),
         delta = date - initDate; // TODO: utilize delta
 
     // calculate new start and end
@@ -3463,21 +3449,23 @@ Range.prototype._onPinch = function (event, component, direction) {
 
 /**
  * Helper function to calculate the center date for zooming
- * @param {Component} component
  * @param {{x: Number, y: Number}} pointer
- * @param {String} direction    'horizontal' or 'vertical'
  * @return {number} date
  * @private
  */
-Range.prototype._pointerToDate = function (component, direction, pointer) {
+Range.prototype._pointerToDate = function (pointer) {
   var conversion;
+  var direction = this.options.direction;
+
+  validateDirection(direction);
+
   if (direction == 'horizontal') {
-    var width = component.width;
+    var width = this.parent.width;
     conversion = this.conversion(width);
     return pointer.x / conversion.scale + conversion.offset;
   }
   else {
-    var height = component.height;
+    var height = this.parent.height;
     conversion = this.conversion(height);
     return pointer.y / conversion.scale + conversion.offset;
   }
@@ -3557,205 +3545,22 @@ Range.prototype.moveTo = function(moveTo) {
 };
 
 /**
- * @constructor Controller
- *
- * A Controller controls the reflows and repaints of all components,
- * and is used as an event bus for all components.
- */
-function Controller () {
-  var me = this;
-
-  this.id = util.randomUUID();
-  this.components = {};
-
-  /**
-   * Listen for a 'request-reflow' event. The controller will schedule a reflow
-   * @param {Boolean} [force]     If true, an immediate reflow is forced. Default
-   *                              is false.
-   */
-  var reflowTimer = null;
-  this.on('request-reflow', function requestReflow(force) {
-    if (force) {
-      me.reflow();
-    }
-    else {
-      if (!reflowTimer) {
-        reflowTimer = setTimeout(function () {
-          reflowTimer = null;
-          me.reflow();
-        }, 0);
-      }
-    }
-  });
-
-  /**
-   * Request a repaint. The controller will schedule a repaint
-   * @param {Boolean} [force]    If true, an immediate repaint is forced. Default
-   *                             is false.
-   */
-  var repaintTimer = null;
-  this.on('request-repaint', function requestRepaint(force) {
-    if (force) {
-      me.repaint();
-    }
-    else {
-      if (!repaintTimer) {
-        repaintTimer = setTimeout(function () {
-          repaintTimer = null;
-          me.repaint();
-        }, 0);
-      }
-    }
-  });
-}
-
-// Extend controller with Emitter mixin
-Emitter(Controller.prototype);
-
-/**
- * Add a component to the controller
- * @param {Component} component
- */
-Controller.prototype.add = function add(component) {
-  // validate the component
-  if (component.id == undefined) {
-    throw new Error('Component has no field id');
-  }
-  if (!(component instanceof Component) && !(component instanceof Controller)) {
-    throw new TypeError('Component must be an instance of ' +
-        'prototype Component or Controller');
-  }
-
-  // add the component
-  component.setController(this);
-  this.components[component.id] = component;
-};
-
-/**
- * Remove a component from the controller
- * @param {Component | String} component
- */
-Controller.prototype.remove = function remove(component) {
-  var id;
-  for (id in this.components) {
-    if (this.components.hasOwnProperty(id)) {
-      if (id == component || this.components[id] === component) {
-        break;
-      }
-    }
-  }
-
-  if (id) {
-    // unregister the controller (gives the component the ability to unregister
-    // event listeners and clean up other stuff)
-    this.components[id].setController(null);
-
-    delete this.components[id];
-  }
-};
-
-/**
- * Repaint all components
- */
-Controller.prototype.repaint = function repaint() {
-  var changed = false;
-
-  // cancel any running repaint request
-  if (this.repaintTimer) {
-    clearTimeout(this.repaintTimer);
-    this.repaintTimer = undefined;
-  }
-
-  var done = {};
-
-  function repaint(component, id) {
-    if (!(id in done)) {
-      // first repaint the components on which this component is dependent
-      if (component.depends) {
-        component.depends.forEach(function (dep) {
-          repaint(dep, dep.id);
-        });
-      }
-      if (component.parent) {
-        repaint(component.parent, component.parent.id);
-      }
-
-      // repaint the component itself and mark as done
-      changed = component.repaint() || changed;
-      done[id] = true;
-    }
-  }
-
-  util.forEach(this.components, repaint);
-
-  this.emit('repaint');
-
-  // immediately reflow when needed
-  if (changed) {
-    this.reflow();
-  }
-  // TODO: limit the number of nested reflows/repaints, prevent loop
-};
-
-/**
- * Reflow all components
- */
-Controller.prototype.reflow = function reflow() {
-  var resized = false;
-
-  // cancel any running repaint request
-  if (this.reflowTimer) {
-    clearTimeout(this.reflowTimer);
-    this.reflowTimer = undefined;
-  }
-
-  var done = {};
-
-  function reflow(component, id) {
-    if (!(id in done)) {
-      // first reflow the components on which this component is dependent
-      if (component.depends) {
-        component.depends.forEach(function (dep) {
-          reflow(dep, dep.id);
-        });
-      }
-      if (component.parent) {
-        reflow(component.parent, component.parent.id);
-      }
-
-      // reflow the component itself and mark as done
-      resized = component.reflow() || resized;
-      done[id] = true;
-    }
-  }
-
-  util.forEach(this.components, reflow);
-
-  this.emit('reflow');
-
-  // immediately repaint when needed
-  if (resized) {
-    this.repaint();
-  }
-  // TODO: limit the number of nested reflows/repaints, prevent loop
-};
-
-/**
  * Prototype for visual components
  */
 function Component () {
   this.id = null;
   this.parent = null;
-  this.depends = null;
-  this.controller = null;
+  this.childs = null;
   this.options = null;
 
-  this.frame = null; // main DOM element
   this.top = 0;
   this.left = 0;
   this.width = 0;
   this.height = 0;
 }
+
+// Turn the Component into an event emitter
+Emitter(Component.prototype);
 
 /**
  * Set parameters for the frame. Parameters will be merged in current parameter
@@ -3771,10 +3576,7 @@ Component.prototype.setOptions = function setOptions(options) {
   if (options) {
     util.extend(this.options, options);
 
-    if (this.controller) {
-      this.requestRepaint();
-      this.requestReflow();
-    }
+    this.repaint();
   }
 };
 
@@ -3797,45 +3599,17 @@ Component.prototype.getOption = function getOption(name) {
 };
 
 /**
- * Set controller for this component, or remove current controller by passing
- * null as parameter value.
- * @param {Controller | null} controller
+ * Get the frame element of the component, the outer HTML DOM element.
+ * @returns {HTMLElement | null} frame
  */
-Component.prototype.setController = function setController (controller) {
-  this.controller = controller || null;
-};
-
-/**
- * Get controller of this component
- * @return {Controller} controller
- */
-Component.prototype.getController = function getController () {
-  return this.controller;
-};
-
-/**
- * Get the container element of the component, which can be used by a child to
- * add its own widgets. Not all components do have a container for childs, in
- * that case null is returned.
- * @returns {HTMLElement | null} container
- */
-// TODO: get rid of the getContainer and getFrame methods, provide these via the options
-Component.prototype.getContainer = function getContainer() {
+Component.prototype.getFrame = function getFrame() {
   // should be implemented by the component
   return null;
 };
 
 /**
- * Get the frame element of the component, the outer HTML DOM element.
- * @returns {HTMLElement | null} frame
- */
-Component.prototype.getFrame = function getFrame() {
-  return this.frame;
-};
-
-/**
  * Repaint the component
- * @return {Boolean} changed
+ * @return {boolean} Returns true if the component is resized
  */
 Component.prototype.repaint = function repaint() {
   // should be implemented by the component
@@ -3843,73 +3617,22 @@ Component.prototype.repaint = function repaint() {
 };
 
 /**
- * Reflow the component
- * @return {Boolean} resized
+ * Test whether the component is resized since the last time _isResized() was
+ * called.
+ * @return {Boolean} Returns true if the component is resized
+ * @protected
  */
-Component.prototype.reflow = function reflow() {
-  // should be implemented by the component
-  return false;
-};
+Component.prototype._isResized = function _isResized() {
+  var resized = (this._previousWidth !== this.width || this._previousHeight !== this.height);
 
-/**
- * Hide the component from the DOM
- * @return {Boolean} changed
- */
-Component.prototype.hide = function hide() {
-  if (this.frame && this.frame.parentNode) {
-    this.frame.parentNode.removeChild(this.frame);
-    return true;
-  }
-  else {
-    return false;
-  }
-};
+  this._previousWidth = this.width;
+  this._previousHeight = this.height;
 
-/**
- * Show the component in the DOM (when not already visible).
- * A repaint will be executed when the component is not visible
- * @return {Boolean} changed
- */
-Component.prototype.show = function show() {
-  if (!this.frame || !this.frame.parentNode) {
-    return this.repaint();
-  }
-  else {
-    return false;
-  }
-};
-
-/**
- * Request a repaint. The controller will schedule a repaint
- */
-Component.prototype.requestRepaint = function requestRepaint() {
-  if (this.controller) {
-    this.controller.emit('request-repaint');
-  }
-  else {
-    throw new Error('Cannot request a repaint: no controller configured');
-    // TODO: just do a repaint when no parent is configured?
-  }
-};
-
-/**
- * Request a reflow. The controller will schedule a reflow
- */
-Component.prototype.requestReflow = function requestReflow() {
-  if (this.controller) {
-    this.controller.emit('request-reflow');
-  }
-  else {
-    throw new Error('Cannot request a reflow: no controller configured');
-    // TODO: just do a reflow when no parent is configured?
-  }
+  return resized;
 };
 
 /**
  * A panel can contain components
- * @param {Component} [parent]
- * @param {Component[]} [depends]   Components on which this components depends
- *                                  (except for the parent)
  * @param {Object} [options]    Available parameters:
  *                              {String | Number | function} [left]
  *                              {String | Number | function} [top]
@@ -3919,12 +3642,15 @@ Component.prototype.requestReflow = function requestReflow() {
  * @constructor Panel
  * @extends Component
  */
-function Panel(parent, depends, options) {
+function Panel(options) {
   this.id = util.randomUUID();
-  this.parent = parent;
-  this.depends = depends;
+  this.parent = null;
+  this.childs = [];
 
   this.options = options || {};
+
+  // create frame
+  this.frame = (typeof document !== 'undefined') ? document.createElement('div') : null;
 }
 
 Panel.prototype = new Component();
@@ -3941,81 +3667,139 @@ Panel.prototype = new Component();
 Panel.prototype.setOptions = Component.prototype.setOptions;
 
 /**
- * Get the container element of the panel, which can be used by a child to
- * add its own widgets.
- * @returns {HTMLElement} container
+ * Get the outer frame of the panel
+ * @returns {HTMLElement} frame
  */
-Panel.prototype.getContainer = function () {
+Panel.prototype.getFrame = function () {
   return this.frame;
 };
 
 /**
- * Repaint the component
- * @return {Boolean} changed
+ * Append a child to the panel
+ * @param {Component} child
  */
-Panel.prototype.repaint = function () {
-  var changed = 0,
-      update = util.updateProperty,
-      asSize = util.option.asSize,
-      options = this.options,
-      frame = this.frame;
-  if (!frame) {
-    frame = document.createElement('div');
-    frame.className = 'vpanel';
+Panel.prototype.appendChild = function (child) {
+  this.childs.push(child);
+  child.parent = this;
 
-    var className = options.className;
-    if (className) {
-      if (typeof className == 'function') {
-        util.addClassName(frame, String(className()));
-      }
-      else {
-        util.addClassName(frame, String(className));
-      }
+  // attach to the DOM
+  var frame = child.getFrame();
+  if (frame) {
+    if (frame.parentNode) {
+      frame.parentNode.removeChild(frame);
     }
-
-    this.frame = frame;
-    changed += 1;
+    this.frame.appendChild(frame);
   }
-  if (!frame.parentNode) {
-    if (!this.parent) {
-      throw new Error('Cannot repaint panel: no parent attached');
-    }
-    var parentContainer = this.parent.getContainer();
-    if (!parentContainer) {
-      throw new Error('Cannot repaint panel: parent has no container element');
-    }
-    parentContainer.appendChild(frame);
-    changed += 1;
-  }
-
-  changed += update(frame.style, 'top',    asSize(options.top, '0px'));
-  changed += update(frame.style, 'left',   asSize(options.left, '0px'));
-  changed += update(frame.style, 'width',  asSize(options.width, '100%'));
-  changed += update(frame.style, 'height', asSize(options.height, '100%'));
-
-  return (changed > 0);
 };
 
 /**
- * Reflow the component
- * @return {Boolean} resized
+ * Insert a child to the panel
+ * @param {Component} child
+ * @param {Component} beforeChild
  */
-Panel.prototype.reflow = function () {
-  var changed = 0,
-      update = util.updateProperty,
-      frame = this.frame;
+Panel.prototype.insertBefore = function (child, beforeChild) {
+  var index = this.childs.indexOf(beforeChild);
+  if (index != -1) {
+    this.childs.splice(index, 0, child);
+    child.parent = this;
 
-  if (frame) {
-    changed += update(this, 'top', frame.offsetTop);
-    changed += update(this, 'left', frame.offsetLeft);
-    changed += update(this, 'width', frame.offsetWidth);
-    changed += update(this, 'height', frame.offsetHeight);
-  }
-  else {
-    changed += 1;
-  }
+    // attach to the DOM
+    var frame = child.getFrame();
+    if (frame) {
+      if (frame.parentNode) {
+        frame.parentNode.removeChild(frame);
+      }
 
-  return (changed > 0);
+      var beforeFrame = beforeChild.getFrame();
+      if (beforeFrame) {
+        this.frame.insertBefore(frame, beforeFrame);
+      }
+      else {
+        this.frame.appendChild(frame);
+      }
+    }
+  }
+};
+
+/**
+ * Remove a child from the panel
+ * @param {Component} child
+ */
+Panel.prototype.removeChild = function (child) {
+  var index = this.childs.indexOf(child);
+  if (index != -1) {
+    this.childs.splice(index, 1);
+    child.parent = null;
+
+    // remove from the DOM
+    var frame = child.getFrame();
+    if (frame && frame.parentNode) {
+      this.frame.removeChild(frame);
+    }
+  }
+};
+
+/**
+ * Test whether the panel contains given child
+ * @param {Component} child
+ */
+Panel.prototype.hasChild = function (child) {
+  var index = this.childs.indexOf(child);
+  return (index != -1);
+};
+
+/**
+ * Repaint the component
+ * @return {boolean} Returns true if the component was resized since previous repaint
+ */
+Panel.prototype.repaint = function () {
+  var asString = util.option.asString,
+      options = this.options,
+      frame = this.getFrame();
+
+  // update className
+  frame.className = 'vpanel' + (options.className ? (' ' + asString(options.className)) : '');
+
+  // repaint the child components
+  var childsResized = this._repaintChilds();
+
+  // update frame size
+  this._updateSize();
+
+  return this._isResized() || childsResized;
+};
+
+/**
+ * Repaint all childs of the panel
+ * @return {boolean} Returns true if the component is resized
+ * @private
+ */
+Panel.prototype._repaintChilds = function () {
+  var resized = false;
+  for (var i = 0, ii = this.childs.length; i < ii; i++) {
+    resized = this.childs[i].repaint() || resized;
+  }
+  return resized;
+};
+
+/**
+ * Apply the size from options to the panel, and recalculate it's actual size.
+ * @private
+ */
+Panel.prototype._updateSize = function () {
+  // apply size
+  this.frame.style.top    = util.option.asSize(this.options.top);
+  this.frame.style.bottom = util.option.asSize(this.options.bottom);
+  this.frame.style.left   = util.option.asSize(this.options.left);
+  this.frame.style.right  = util.option.asSize(this.options.right);
+  this.frame.style.width  = util.option.asSize(this.options.width, '100%');
+  this.frame.style.height = util.option.asSize(this.options.height, '');
+
+  // get actual size
+  this.top    = this.frame.offsetTop;
+  this.left   = this.frame.offsetLeft;
+  this.width  = this.frame.offsetWidth;
+  this.height = this.frame.offsetHeight;
 };
 
 /**
@@ -4030,32 +3814,53 @@ function RootPanel(container, options) {
   this.id = util.randomUUID();
   this.container = container;
 
-  // create functions to be used as DOM event listeners
-  var me = this;
-  this.hammer = null;
+  this.options = options || {};
+  this.defaultOptions = {
+    autoResize: true
+  };
 
-  // create listeners for all interesting events, these events will be emitted
-  // via the controller
+  // create the HTML DOM
+  this._create();
+
+  // attach the root panel to the provided container
+  if (!this.container) throw new Error('Cannot repaint root panel: no container attached');
+  this.container.appendChild(this.getFrame());
+
+
+  this._initWatch();
+}
+
+RootPanel.prototype = new Panel();
+
+/**
+ * Create the HTML DOM for the root panel
+ */
+RootPanel.prototype._create = function _create() {
+  // create frame
+  this.frame = document.createElement('div');
+
+  // create event listeners for all interesting events, these events will be
+  // emitted via emitter
+  this.hammer = Hammer(this.frame, {
+    prevent_default: true
+  });
+  this.listeners = {};
+
+  var me = this;
   var events = [
     'touch', 'pinch', 'tap', 'doubletap', 'hold',
     'dragstart', 'drag', 'dragend',
     'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is for Firefox
   ];
-  this.listeners = {};
   events.forEach(function (event) {
-    me.listeners[event] = function () {
+    var listener = function () {
       var args = [event].concat(Array.prototype.slice.call(arguments, 0));
-      me.controller.emit.apply(me.controller, args);
+      me.emit.apply(me, args);
     };
+    me.hammer.on(event, listener);
+    me.listeners[event] = listener;
   });
-
-  this.options = options || {};
-  this.defaultOptions = {
-    autoResize: true
-  };
-}
-
-RootPanel.prototype = new Panel();
+};
 
 /**
  * Set options. Will extend the current options.
@@ -4067,80 +3872,54 @@ RootPanel.prototype = new Panel();
  *                              {String | Number | function} [height]
  *                              {Boolean | function} [autoResize]
  */
-RootPanel.prototype.setOptions = Component.prototype.setOptions;
+RootPanel.prototype.setOptions = function setOptions(options) {
+  if (options) {
+    util.extend(this.options, options);
 
-/**
- * Repaint the component
- * @return {Boolean} changed
- */
-RootPanel.prototype.repaint = function () {
-  var changed = 0,
-      update = util.updateProperty,
-      asSize = util.option.asSize,
-      options = this.options,
-      frame = this.frame;
+    this.repaint();
 
-  if (!frame) {
-    frame = document.createElement('div');
-
-    this.frame = frame;
-
-    this._registerListeners();
-
-    changed += 1;
+    this._initWatch();
   }
-  if (!frame.parentNode) {
-    if (!this.container) {
-      throw new Error('Cannot repaint root panel: no container attached');
-    }
-    this.container.appendChild(frame);
-    changed += 1;
-  }
-
-  frame.className = 'vis timeline rootpanel ' + options.orientation +
-      (options.editable ? ' editable' : '');
-  var className = options.className;
-  if (className) {
-    util.addClassName(frame, util.option.asString(className));
-  }
-
-  changed += update(frame.style, 'top',    asSize(options.top, '0px'));
-  changed += update(frame.style, 'left',   asSize(options.left, '0px'));
-  changed += update(frame.style, 'width',  asSize(options.width, '100%'));
-  changed += update(frame.style, 'height', asSize(options.height, '100%'));
-
-  this._updateWatch();
-
-  return (changed > 0);
 };
 
 /**
- * Reflow the component
- * @return {Boolean} resized
+ * Get the frame of the root panel
  */
-RootPanel.prototype.reflow = function () {
-  var changed = 0,
-      update = util.updateProperty,
-      frame = this.frame;
-
-  if (frame) {
-    changed += update(this, 'top', frame.offsetTop);
-    changed += update(this, 'left', frame.offsetLeft);
-    changed += update(this, 'width', frame.offsetWidth);
-    changed += update(this, 'height', frame.offsetHeight);
-  }
-  else {
-    changed += 1;
-  }
-
-  return (changed > 0);
+RootPanel.prototype.getFrame = function getFrame() {
+  return this.frame;
 };
 
 /**
- * Update watching for resize, depending on the current option
+ * Repaint the root panel
+ */
+RootPanel.prototype.repaint = function repaint() {
+  // update class name
+  var options = this.options;
+  var editable = options.editable.updateTime || options.editable.updateGroup;
+  var className = 'vis timeline rootpanel ' + options.orientation + (editable ? ' editable' : '');
+  if (options.className) className += ' ' + util.option.asString(className);
+  this.frame.className = className;
+
+  // repaint the child components
+  var childsResized = this._repaintChilds();
+
+  // update frame size
+  this.frame.style.maxHeight = util.option.asSize(this.options.maxHeight, '');
+  this._updateSize();
+
+  // if the root panel or any of its childs is resized, repaint again,
+  // as other components may need to be resized accordingly
+  var resized = this._isResized() || childsResized;
+  if (resized) {
+    setTimeout(this.repaint.bind(this), 0);
+  }
+};
+
+/**
+ * Initialize watching when option autoResize is true
  * @private
  */
-RootPanel.prototype._updateWatch = function () {
+RootPanel.prototype._initWatch = function _initWatch() {
   var autoResize = this.getOption('autoResize');
   if (autoResize) {
     this._watch();
@@ -4155,12 +3934,12 @@ RootPanel.prototype._updateWatch = function () {
  * automatically redraw itself.
  * @private
  */
-RootPanel.prototype._watch = function () {
+RootPanel.prototype._watch = function _watch() {
   var me = this;
 
   this._unwatch();
 
-  var checkSize = function () {
+  var checkSize = function checkSize() {
     var autoResize = me.getOption('autoResize');
     if (!autoResize) {
       // stop watching when the option autoResize is changed to false
@@ -4170,9 +3949,12 @@ RootPanel.prototype._watch = function () {
 
     if (me.frame) {
       // check whether the frame is resized
-      if ((me.frame.clientWidth != me.width) ||
-          (me.frame.clientHeight != me.height)) {
-        me.requestReflow();
+      if ((me.frame.clientWidth != me.lastWidth) ||
+          (me.frame.clientHeight != me.lastHeight)) {
+        me.lastWidth = me.frame.clientWidth;
+        me.lastHeight = me.frame.clientHeight;
+        me.repaint();
+        // TODO: emit a resize event instead?
       }
     }
   };
@@ -4187,7 +3969,7 @@ RootPanel.prototype._watch = function () {
  * Stop watching for a resize of the frame.
  * @private
  */
-RootPanel.prototype._unwatch = function () {
+RootPanel.prototype._unwatch = function _unwatch() {
   if (this.watchTimer) {
     clearInterval(this.watchTimer);
     this.watchTimer = undefined;
@@ -4197,69 +3979,14 @@ RootPanel.prototype._unwatch = function () {
 };
 
 /**
- * Set controller for this component, or remove current controller by passing
- * null as parameter value.
- * @param {Controller | null} controller
- */
-RootPanel.prototype.setController = function setController (controller) {
-  this.controller = controller || null;
-
-  if (this.controller) {
-    this._registerListeners();
-  }
-  else {
-    this._unregisterListeners();
-  }
-};
-
-/**
- * Register event emitters emitted by the rootpanel
- * @private
- */
-RootPanel.prototype._registerListeners = function () {
-  if (this.frame && this.controller && !this.hammer) {
-    this.hammer = Hammer(this.frame, {
-      prevent_default: true
-    });
-
-    for (var event in this.listeners) {
-      if (this.listeners.hasOwnProperty(event)) {
-        this.hammer.on(event, this.listeners[event]);
-      }
-    }
-  }
-};
-
-/**
- * Unregister event emitters from the rootpanel
- * @private
- */
-RootPanel.prototype._unregisterListeners = function () {
-  if (this.hammer) {
-    for (var event in this.listeners) {
-      if (this.listeners.hasOwnProperty(event)) {
-        this.hammer.off(event, this.listeners[event]);
-      }
-    }
-
-    this.hammer = null;
-  }
-};
-
-/**
  * A horizontal time axis
- * @param {Component} parent
- * @param {Component[]} [depends]   Components on which this components depends
- *                                  (except for the parent)
  * @param {Object} [options]        See TimeAxis.setOptions for the available
  *                                  options.
  * @constructor TimeAxis
  * @extends Component
  */
-function TimeAxis (parent, depends, options) {
+function TimeAxis (options) {
   this.id = util.randomUUID();
-  this.parent = parent;
-  this.depends = depends;
 
   this.dom = {
     majorLines: [],
@@ -4290,14 +4017,23 @@ function TimeAxis (parent, depends, options) {
     showMajorLabels: true
   };
 
-  this.conversion = null;
   this.range = null;
+
+  // create the HTML DOM
+  this._create();
 }
 
 TimeAxis.prototype = new Component();
 
 // TODO: comment options
 TimeAxis.prototype.setOptions = Component.prototype.setOptions;
+
+/**
+ * Create the HTML DOM for the TimeAxis
+ */
+TimeAxis.prototype._create = function _create() {
+  this.frame = document.createElement('div');
+};
 
 /**
  * Set a range (start and end)
@@ -4312,125 +4048,69 @@ TimeAxis.prototype.setRange = function (range) {
 };
 
 /**
- * Convert a position on screen (pixels) to a datetime
- * @param {int}     x    Position on the screen in pixels
- * @return {Date}   time The datetime the corresponds with given position x
+ * Get the outer frame of the time axis
+ * @return {HTMLElement} frame
  */
-TimeAxis.prototype.toTime = function(x) {
-  var conversion = this.conversion;
-  return new Date(x / conversion.scale + conversion.offset);
-};
-
-/**
- * Convert a datetime (Date object) into a position on the screen
- * @param {Date}   time A date
- * @return {int}   x    The position on the screen in pixels which corresponds
- *                      with the given date.
- * @private
- */
-TimeAxis.prototype.toScreen = function(time) {
-  var conversion = this.conversion;
-  return (time.valueOf() - conversion.offset) * conversion.scale;
+TimeAxis.prototype.getFrame = function getFrame() {
+  return this.frame;
 };
 
 /**
  * Repaint the component
- * @return {Boolean} changed
+ * @return {boolean} Returns true if the component is resized
  */
 TimeAxis.prototype.repaint = function () {
-  var changed = 0,
-      update = util.updateProperty,
-      asSize = util.option.asSize,
+  var asSize = util.option.asSize,
       options = this.options,
-      orientation = this.getOption('orientation'),
       props = this.props,
-      step = this.step;
+      frame = this.frame;
 
-  var frame = this.frame;
-  if (!frame) {
-    frame = document.createElement('div');
-    this.frame = frame;
-    changed += 1;
-  }
-  frame.className = 'axis';
-  // TODO: custom className?
-
-  if (!frame.parentNode) {
-    if (!this.parent) {
-      throw new Error('Cannot repaint time axis: no parent attached');
-    }
-    var parentContainer = this.parent.getContainer();
-    if (!parentContainer) {
-      throw new Error('Cannot repaint time axis: parent has no container element');
-    }
-    parentContainer.appendChild(frame);
-
-    changed += 1;
-  }
+  // update classname
+  frame.className = 'timeaxis'; // TODO: add className from options if defined
 
   var parent = frame.parentNode;
   if (parent) {
+    // calculate character width and height
+    this._calculateCharSize();
+
+    // TODO: recalculate sizes only needed when parent is resized or options is changed
+    var orientation = this.getOption('orientation'),
+        showMinorLabels = this.getOption('showMinorLabels'),
+        showMajorLabels = this.getOption('showMajorLabels');
+
+    // determine the width and height of the elemens for the axis
+    var parentHeight = this.parent.height;
+    props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
+    props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
+    this.height = props.minorLabelHeight + props.majorLabelHeight;
+    this.width = frame.offsetWidth; // TODO: only update the width when the frame is resized?
+
+    props.minorLineHeight = parentHeight + props.minorLabelHeight;
+    props.minorLineWidth = 1; // TODO: really calculate width
+    props.majorLineHeight = parentHeight + this.height;
+    props.majorLineWidth = 1; // TODO: really calculate width
+
+    //  take frame offline while updating (is almost twice as fast)
     var beforeChild = frame.nextSibling;
-    parent.removeChild(frame); //  take frame offline while updating (is almost twice as fast)
+    parent.removeChild(frame);
 
-    var defaultTop = (orientation == 'bottom' && this.props.parentHeight && this.height) ?
-        (this.props.parentHeight - this.height) + 'px' :
-        '0px';
-    changed += update(frame.style, 'top', asSize(options.top, defaultTop));
-    changed += update(frame.style, 'left', asSize(options.left, '0px'));
-    changed += update(frame.style, 'width', asSize(options.width, '100%'));
-    changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
-
-    // get characters width and height
-    this._repaintMeasureChars();
-
-    if (this.step) {
-      this._repaintStart();
-
-      step.first();
-      var xFirstMajorLabel = undefined;
-      var max = 0;
-      while (step.hasNext() && max < 1000) {
-        max++;
-        var cur = step.getCurrent(),
-            x = this.toScreen(cur),
-            isMajor = step.isMajor();
-
-        // TODO: lines must have a width, such that we can create css backgrounds
-
-        if (this.getOption('showMinorLabels')) {
-          this._repaintMinorText(x, step.getLabelMinor());
-        }
-
-        if (isMajor && this.getOption('showMajorLabels')) {
-          if (x > 0) {
-            if (xFirstMajorLabel == undefined) {
-              xFirstMajorLabel = x;
-            }
-            this._repaintMajorText(x, step.getLabelMajor());
-          }
-          this._repaintMajorLine(x);
-        }
-        else {
-          this._repaintMinorLine(x);
-        }
-
-        step.next();
-      }
-
-      // create a major label on the left when needed
-      if (this.getOption('showMajorLabels')) {
-        var leftTime = this.toTime(0),
-            leftText = step.getLabelMajor(leftTime),
-            widthText = leftText.length * (props.majorCharWidth || 10) + 10; // upper bound estimation
-
-        if (xFirstMajorLabel == undefined || widthText < xFirstMajorLabel) {
-          this._repaintMajorText(0, leftText);
-        }
-      }
-
-      this._repaintEnd();
+    // TODO: top/bottom positioning should be determined by options set in the Timeline, not here
+    if (orientation == 'top') {
+      frame.style.top = '0';
+      frame.style.left = '0';
+      frame.style.bottom = '';
+      frame.style.width = asSize(options.width, '100%');
+      frame.style.height = this.height + 'px';
     }
+    else { // bottom
+      frame.style.top = '';
+      frame.style.bottom = '0';
+      frame.style.left = '0';
+      frame.style.width = asSize(options.width, '100%');
+      frame.style.height = this.height + 'px';
+    }
+
+    this._repaintLabels();
 
     this._repaintLine();
 
@@ -4443,34 +4123,80 @@ TimeAxis.prototype.repaint = function () {
     }
   }
 
-  return (changed > 0);
+  return this._isResized();
 };
 
 /**
- * Start a repaint. Move all DOM elements to a redundant list, where they
- * can be picked for re-use, or can be cleaned up in the end
+ * Repaint major and minor text labels and vertical grid lines
  * @private
  */
-TimeAxis.prototype._repaintStart = function () {
-  var dom = this.dom,
-      redundant = dom.redundant;
+TimeAxis.prototype._repaintLabels = function () {
+  var orientation = this.getOption('orientation');
 
-  redundant.majorLines = dom.majorLines;
-  redundant.majorTexts = dom.majorTexts;
-  redundant.minorLines = dom.minorLines;
-  redundant.minorTexts = dom.minorTexts;
+  // calculate range and step (step such that we have space for 7 characters per label)
+  var start = util.convert(this.range.start, 'Number'),
+      end = util.convert(this.range.end, 'Number'),
+      minimumStep = this.options.toTime((this.props.minorCharWidth || 10) * 7).valueOf()
+          -this.options.toTime(0).valueOf();
+  var step = new TimeStep(new Date(start), new Date(end), minimumStep);
+  this.step = step;
 
+  // Move all DOM elements to a "redundant" list, where they
+  // can be picked for re-use, and clear the lists with lines and texts.
+  // At the end of the function _repaintLabels, left over elements will be cleaned up
+  var dom = this.dom;
+  dom.redundant.majorLines = dom.majorLines;
+  dom.redundant.majorTexts = dom.majorTexts;
+  dom.redundant.minorLines = dom.minorLines;
+  dom.redundant.minorTexts = dom.minorTexts;
   dom.majorLines = [];
   dom.majorTexts = [];
   dom.minorLines = [];
   dom.minorTexts = [];
-};
 
-/**
- * End a repaint. Cleanup leftover DOM elements in the redundant list
- * @private
- */
-TimeAxis.prototype._repaintEnd = function () {
+  step.first();
+  var xFirstMajorLabel = undefined;
+  var max = 0;
+  while (step.hasNext() && max < 1000) {
+    max++;
+    var cur = step.getCurrent(),
+        x = this.options.toScreen(cur),
+        isMajor = step.isMajor();
+
+    // TODO: lines must have a width, such that we can create css backgrounds
+
+    if (this.getOption('showMinorLabels')) {
+      this._repaintMinorText(x, step.getLabelMinor(), orientation);
+    }
+
+    if (isMajor && this.getOption('showMajorLabels')) {
+      if (x > 0) {
+        if (xFirstMajorLabel == undefined) {
+          xFirstMajorLabel = x;
+        }
+        this._repaintMajorText(x, step.getLabelMajor(), orientation);
+      }
+      this._repaintMajorLine(x, orientation);
+    }
+    else {
+      this._repaintMinorLine(x, orientation);
+    }
+
+    step.next();
+  }
+
+  // create a major label on the left when needed
+  if (this.getOption('showMajorLabels')) {
+    var leftTime = this.options.toTime(0),
+        leftText = step.getLabelMajor(leftTime),
+        widthText = leftText.length * (this.props.majorCharWidth || 10) + 10; // upper bound estimation
+
+    if (xFirstMajorLabel == undefined || widthText < xFirstMajorLabel) {
+      this._repaintMajorText(0, leftText, orientation);
+    }
+  }
+
+  // Cleanup leftover DOM elements from the redundant list
   util.forEach(this.dom.redundant, function (arr) {
     while (arr.length) {
       var elem = arr.pop();
@@ -4481,14 +4207,14 @@ TimeAxis.prototype._repaintEnd = function () {
   });
 };
 
-
 /**
  * Create a minor label for the axis at position x
  * @param {Number} x
  * @param {String} text
+ * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-TimeAxis.prototype._repaintMinorText = function (x, text) {
+TimeAxis.prototype._repaintMinorText = function (x, text, orientation) {
   // reuse redundant label
   var label = this.dom.redundant.minorTexts.shift();
 
@@ -4503,8 +4229,16 @@ TimeAxis.prototype._repaintMinorText = function (x, text) {
   this.dom.minorTexts.push(label);
 
   label.childNodes[0].nodeValue = text;
+
+  if (orientation == 'top') {
+    label.style.top = this.props.majorLabelHeight + 'px';
+    label.style.bottom = '';
+  }
+  else {
+    label.style.top = '';
+    label.style.bottom = this.props.majorLabelHeight + 'px';
+  }
   label.style.left = x + 'px';
-  label.style.top  = this.props.minorLabelTop + 'px';
   //label.title = title;  // TODO: this is a heavy operation
 };
 
@@ -4512,9 +4246,10 @@ TimeAxis.prototype._repaintMinorText = function (x, text) {
  * Create a Major label for the axis at position x
  * @param {Number} x
  * @param {String} text
+ * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-TimeAxis.prototype._repaintMajorText = function (x, text) {
+TimeAxis.prototype._repaintMajorText = function (x, text, orientation) {
   // reuse redundant label
   var label = this.dom.redundant.majorTexts.shift();
 
@@ -4529,17 +4264,26 @@ TimeAxis.prototype._repaintMajorText = function (x, text) {
   this.dom.majorTexts.push(label);
 
   label.childNodes[0].nodeValue = text;
-  label.style.top = this.props.majorLabelTop + 'px';
-  label.style.left = x + 'px';
   //label.title = title; // TODO: this is a heavy operation
+
+  if (orientation == 'top') {
+    label.style.top = '0px';
+    label.style.bottom = '';
+  }
+  else {
+    label.style.top = '';
+    label.style.bottom = '0px';
+  }
+  label.style.left = x + 'px';
 };
 
 /**
  * Create a minor line for the axis at position x
  * @param {Number} x
+ * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-TimeAxis.prototype._repaintMinorLine = function (x) {
+TimeAxis.prototype._repaintMinorLine = function (x, orientation) {
   // reuse redundant line
   var line = this.dom.redundant.minorLines.shift();
 
@@ -4552,7 +4296,14 @@ TimeAxis.prototype._repaintMinorLine = function (x) {
   this.dom.minorLines.push(line);
 
   var props = this.props;
-  line.style.top = props.minorLineTop + 'px';
+  if (orientation == 'top') {
+    line.style.top = this.props.majorLabelHeight + 'px';
+    line.style.bottom = '';
+  }
+  else {
+    line.style.top = '';
+    line.style.bottom = this.props.majorLabelHeight + 'px';
+  }
   line.style.height = props.minorLineHeight + 'px';
   line.style.left = (x - props.minorLineWidth / 2) + 'px';
 };
@@ -4560,9 +4311,10 @@ TimeAxis.prototype._repaintMinorLine = function (x) {
 /**
  * Create a Major line for the axis at position x
  * @param {Number} x
+ * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-TimeAxis.prototype._repaintMajorLine = function (x) {
+TimeAxis.prototype._repaintMajorLine = function (x, orientation) {
   // reuse redundant line
   var line = this.dom.redundant.majorLines.shift();
 
@@ -4575,7 +4327,14 @@ TimeAxis.prototype._repaintMajorLine = function (x) {
   this.dom.majorLines.push(line);
 
   var props = this.props;
-  line.style.top = props.majorLineTop + 'px';
+  if (orientation == 'top') {
+    line.style.top = '0px';
+    line.style.bottom = '';
+  }
+  else {
+    line.style.top = '';
+    line.style.bottom = '0px';
+  }
   line.style.left = (x - props.majorLineWidth / 2) + 'px';
   line.style.height = props.majorLineHeight + 'px';
 };
@@ -4588,7 +4347,7 @@ TimeAxis.prototype._repaintMajorLine = function (x) {
 TimeAxis.prototype._repaintLine = function() {
   var line = this.dom.line,
       frame = this.frame,
-      options = this.options;
+      orientation = this.getOption('orientation');
 
   // line before all axis elements
   if (this.getOption('showMinorLabels') || this.getOption('showMajorLabels')) {
@@ -4605,167 +4364,54 @@ TimeAxis.prototype._repaintLine = function() {
       this.dom.line = line;
     }
 
-    line.style.top = this.props.lineTop + 'px';
+    if (orientation == 'top') {
+      line.style.top = this.height + 'px';
+      line.style.bottom = '';
+    }
+    else {
+      line.style.top = '';
+      line.style.bottom = this.height + 'px';
+    }
   }
   else {
-    if (line && line.parentElement) {
-      frame.removeChild(line.line);
+    if (line && line.parentNode) {
+      line.parentNode.removeChild(line);
       delete this.dom.line;
     }
   }
 };
 
 /**
- * Create characters used to determine the size of text on the axis
+ * Determine the size of text on the axis (both major and minor axis).
+ * The size is calculated only once and then cached in this.props.
  * @private
  */
-TimeAxis.prototype._repaintMeasureChars = function () {
-  // calculate the width and height of a single character
-  // this is used to calculate the step size, and also the positioning of the
-  // axis
-  var dom = this.dom,
-      text;
-
-  if (!dom.measureCharMinor) {
-    text = document.createTextNode('0');
+TimeAxis.prototype._calculateCharSize = function () {
+  // determine the char width and height on the minor axis
+  if (!('minorCharHeight' in this.props)) {
+    var textMinor = document.createTextNode('0');
     var measureCharMinor = document.createElement('DIV');
     measureCharMinor.className = 'text minor measure';
-    measureCharMinor.appendChild(text);
+    measureCharMinor.appendChild(textMinor);
     this.frame.appendChild(measureCharMinor);
 
-    dom.measureCharMinor = measureCharMinor;
+    this.props.minorCharHeight = measureCharMinor.clientHeight;
+    this.props.minorCharWidth = measureCharMinor.clientWidth;
+
+    this.frame.removeChild(measureCharMinor);
   }
 
-  if (!dom.measureCharMajor) {
-    text = document.createTextNode('0');
+  if (!('majorCharHeight' in this.props)) {
+    var textMajor = document.createTextNode('0');
     var measureCharMajor = document.createElement('DIV');
     measureCharMajor.className = 'text major measure';
-    measureCharMajor.appendChild(text);
+    measureCharMajor.appendChild(textMajor);
     this.frame.appendChild(measureCharMajor);
 
-    dom.measureCharMajor = measureCharMajor;
-  }
-};
+    this.props.majorCharHeight = measureCharMajor.clientHeight;
+    this.props.majorCharWidth = measureCharMajor.clientWidth;
 
-/**
- * Reflow the component
- * @return {Boolean} resized
- */
-TimeAxis.prototype.reflow = function () {
-  var changed = 0,
-      update = util.updateProperty,
-      frame = this.frame,
-      range = this.range;
-
-  if (!range) {
-    throw new Error('Cannot repaint time axis: no range configured');
-  }
-
-  if (frame) {
-    changed += update(this, 'top', frame.offsetTop);
-    changed += update(this, 'left', frame.offsetLeft);
-
-    // calculate size of a character
-    var props = this.props,
-        showMinorLabels = this.getOption('showMinorLabels'),
-        showMajorLabels = this.getOption('showMajorLabels'),
-        measureCharMinor = this.dom.measureCharMinor,
-        measureCharMajor = this.dom.measureCharMajor;
-    if (measureCharMinor) {
-      props.minorCharHeight = measureCharMinor.clientHeight;
-      props.minorCharWidth = measureCharMinor.clientWidth;
-    }
-    if (measureCharMajor) {
-      props.majorCharHeight = measureCharMajor.clientHeight;
-      props.majorCharWidth = measureCharMajor.clientWidth;
-    }
-
-    var parentHeight = frame.parentNode ? frame.parentNode.offsetHeight : 0;
-    if (parentHeight != props.parentHeight) {
-      props.parentHeight = parentHeight;
-      changed += 1;
-    }
-    switch (this.getOption('orientation')) {
-      case 'bottom':
-        props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
-        props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
-
-        props.minorLabelTop = 0;
-        props.majorLabelTop = props.minorLabelTop + props.minorLabelHeight;
-
-        props.minorLineTop = -this.top;
-        props.minorLineHeight = Math.max(this.top + props.majorLabelHeight, 0);
-        props.minorLineWidth = 1; // TODO: really calculate width
-
-        props.majorLineTop = -this.top;
-        props.majorLineHeight = Math.max(this.top + props.minorLabelHeight + props.majorLabelHeight, 0);
-        props.majorLineWidth = 1; // TODO: really calculate width
-
-        props.lineTop = 0;
-
-        break;
-
-      case 'top':
-        props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
-        props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
-
-        props.majorLabelTop = 0;
-        props.minorLabelTop = props.majorLabelTop + props.majorLabelHeight;
-
-        props.minorLineTop = props.minorLabelTop;
-        props.minorLineHeight = Math.max(parentHeight - props.majorLabelHeight - this.top);
-        props.minorLineWidth = 1; // TODO: really calculate width
-
-        props.majorLineTop = 0;
-        props.majorLineHeight = Math.max(parentHeight - this.top);
-        props.majorLineWidth = 1; // TODO: really calculate width
-
-        props.lineTop = props.majorLabelHeight +  props.minorLabelHeight;
-
-        break;
-
-      default:
-        throw new Error('Unkown orientation "' + this.getOption('orientation') + '"');
-    }
-
-    var height = props.minorLabelHeight + props.majorLabelHeight;
-    changed += update(this, 'width', frame.offsetWidth);
-    changed += update(this, 'height', height);
-
-    // calculate range and step
-    this._updateConversion();
-
-    var start = util.convert(range.start, 'Number'),
-        end = util.convert(range.end, 'Number'),
-        minimumStep = this.toTime((props.minorCharWidth || 10) * 5).valueOf()
-            -this.toTime(0).valueOf();
-    this.step = new TimeStep(new Date(start), new Date(end), minimumStep);
-    changed += update(props.range, 'start', start);
-    changed += update(props.range, 'end', end);
-    changed += update(props.range, 'minimumStep', minimumStep.valueOf());
-  }
-
-  return (changed > 0);
-};
-
-/**
- * Calculate the scale and offset to convert a position on screen to the
- * corresponding date and vice versa.
- * After the method _updateConversion is executed once, the methods toTime
- * and toScreen can be used.
- * @private
- */
-TimeAxis.prototype._updateConversion = function() {
-  var range = this.range;
-  if (!range) {
-    throw new Error('No range configured');
-  }
-
-  if (range.conversion) {
-    this.conversion = range.conversion(this.width);
-  }
-  else {
-    this.conversion = Range.conversion(range.start, range.end, this.width);
+    this.frame.removeChild(measureCharMajor);
   }
 };
 
@@ -4781,24 +4427,23 @@ TimeAxis.prototype.snap = function snap (date) {
 
 /**
  * A current time bar
- * @param {Component} parent
- * @param {Component[]} [depends]   Components on which this components depends
- *                                  (except for the parent)
+ * @param {Range} range
  * @param {Object} [options]        Available parameters:
  *                                  {Boolean} [showCurrentTime]
  * @constructor CurrentTime
  * @extends Component
  */
 
-function CurrentTime (parent, depends, options) {
+function CurrentTime (range, options) {
   this.id = util.randomUUID();
-  this.parent = parent;
-  this.depends = depends;
 
+  this.range = range;
   this.options = options || {};
   this.defaultOptions = {
     showCurrentTime: false
   };
+
+  this._create();
 }
 
 CurrentTime.prototype = new Component();
@@ -4806,96 +4451,87 @@ CurrentTime.prototype = new Component();
 CurrentTime.prototype.setOptions = Component.prototype.setOptions;
 
 /**
- * Get the container element of the bar, which can be used by a child to
- * add its own widgets.
- * @returns {HTMLElement} container
+ * Create the HTML DOM for the current time bar
+ * @private
  */
-CurrentTime.prototype.getContainer = function () {
-  return this.frame;
+CurrentTime.prototype._create = function _create () {
+  var bar = document.createElement('div');
+  bar.className = 'currenttime';
+  bar.style.position = 'absolute';
+  bar.style.top = '0px';
+  bar.style.height = '100%';
+
+  this.bar = bar;
+};
+
+/**
+ * Get the frame element of the current time bar
+ * @returns {HTMLElement} frame
+ */
+CurrentTime.prototype.getFrame = function getFrame() {
+  return this.bar;
 };
 
 /**
  * Repaint the component
- * @return {Boolean} changed
+ * @return {boolean} Returns true if the component is resized
  */
-CurrentTime.prototype.repaint = function () {
-  var bar = this.frame,
-      parent = this.parent,
-      parentContainer = parent.parent.getContainer();
-
-  if (!parent) {
-    throw new Error('Cannot repaint bar: no parent attached');
-  }
-
-  if (!parentContainer) {
-    throw new Error('Cannot repaint bar: parent has no container element');
-  }
-
-  if (!this.getOption('showCurrentTime')) {
-    if (bar) {
-      parentContainer.removeChild(bar);
-      delete this.frame;
-    }
-
-    return false;
-  }
-
-  if (!bar) {
-    bar = document.createElement('div');
-    bar.className = 'currenttime';
-    bar.style.position = 'absolute';
-    bar.style.top = '0px';
-    bar.style.height = '100%';
-
-    parentContainer.appendChild(bar);
-    this.frame = bar;
-  }
-
-  if (!parent.conversion) {
-    parent._updateConversion();
-  }
+CurrentTime.prototype.repaint = function repaint() {
+  var parent = this.parent;
 
   var now = new Date();
-  var x = parent.toScreen(now);
+  var x = this.options.toScreen(now);
 
-  bar.style.left = x + 'px';
-  bar.title = 'Current time: ' + now;
-
-  // start a timer to adjust for the new time
-  if (this.currentTimeTimer !== undefined) {
-    clearTimeout(this.currentTimeTimer);
-    delete this.currentTimeTimer;
-  }
-
-  var timeline = this;
-  var interval = 1 / parent.conversion.scale / 2;
-
-  if (interval < 30) {
-    interval = 30;
-  }
-
-  this.currentTimeTimer = setTimeout(function() {
-    timeline.repaint();
-  }, interval);
+  this.bar.style.left = x + 'px';
+  this.bar.title = 'Current time: ' + now;
 
   return false;
 };
 
 /**
+ * Start auto refreshing the current time bar
+ */
+CurrentTime.prototype.start = function start() {
+  var me = this;
+
+  function update () {
+    me.stop();
+
+    // determine interval to refresh
+    var scale = me.range.conversion(me.parent.width).scale;
+    var interval = 1 / scale / 10;
+    if (interval < 30)   interval = 30;
+    if (interval > 1000) interval = 1000;
+
+    me.repaint();
+
+    // start a timer to adjust for the new time
+    me.currentTimeTimer = setTimeout(update, interval);
+  }
+
+  update();
+};
+
+/**
+ * Stop auto refreshing the current time bar
+ */
+CurrentTime.prototype.stop = function stop() {
+  if (this.currentTimeTimer !== undefined) {
+    clearTimeout(this.currentTimeTimer);
+    delete this.currentTimeTimer;
+  }
+};
+
+/**
  * A custom time bar
- * @param {Component} parent
- * @param {Component[]} [depends]   Components on which this components depends
- *                                  (except for the parent)
  * @param {Object} [options]        Available parameters:
  *                                  {Boolean} [showCustomTime]
  * @constructor CustomTime
  * @extends Component
  */
 
-function CustomTime (parent, depends, options) {
+function CustomTime (options) {
   this.id = util.randomUUID();
-  this.parent = parent;
-  this.depends = depends;
 
   this.options = options || {};
   this.defaultOptions = {
@@ -4904,85 +4540,61 @@ function CustomTime (parent, depends, options) {
 
   this.customTime = new Date();
   this.eventParams = {}; // stores state parameters while dragging the bar
+
+  // create the DOM
+  this._create();
 }
 
 CustomTime.prototype = new Component();
 
-Emitter(CustomTime.prototype);
-
 CustomTime.prototype.setOptions = Component.prototype.setOptions;
 
 /**
- * Get the container element of the bar, which can be used by a child to
- * add its own widgets.
- * @returns {HTMLElement} container
+ * Create the DOM for the custom time
+ * @private
  */
-CustomTime.prototype.getContainer = function () {
-  return this.frame;
+CustomTime.prototype._create = function _create () {
+  var bar = document.createElement('div');
+  bar.className = 'customtime';
+  bar.style.position = 'absolute';
+  bar.style.top = '0px';
+  bar.style.height = '100%';
+  this.bar = bar;
+
+  var drag = document.createElement('div');
+  drag.style.position = 'relative';
+  drag.style.top = '0px';
+  drag.style.left = '-10px';
+  drag.style.height = '100%';
+  drag.style.width = '20px';
+  bar.appendChild(drag);
+
+  // attach event listeners
+  this.hammer = Hammer(bar, {
+    prevent_default: true
+  });
+  this.hammer.on('dragstart', this._onDragStart.bind(this));
+  this.hammer.on('drag',      this._onDrag.bind(this));
+  this.hammer.on('dragend',   this._onDragEnd.bind(this));
+};
+
+/**
+ * Get the frame element of the custom time bar
+ * @returns {HTMLElement} frame
+ */
+CustomTime.prototype.getFrame = function getFrame() {
+  return this.bar;
 };
 
 /**
  * Repaint the component
- * @return {Boolean} changed
+ * @return {boolean} Returns true if the component is resized
  */
 CustomTime.prototype.repaint = function () {
-  var bar = this.frame,
-      parent = this.parent;
+  var x = this.options.toScreen(this.customTime);
 
-  if (!parent) {
-    throw new Error('Cannot repaint bar: no parent attached');
-  }
-
-  var parentContainer = parent.parent.getContainer();
-  if (!parentContainer) {
-    throw new Error('Cannot repaint bar: parent has no container element');
-  }
-
-  if (!this.getOption('showCustomTime')) {
-    if (bar) {
-      parentContainer.removeChild(bar);
-      delete this.frame;
-    }
-
-    return false;
-  }
-
-  if (!bar) {
-    bar = document.createElement('div');
-    bar.className = 'customtime';
-    bar.style.position = 'absolute';
-    bar.style.top = '0px';
-    bar.style.height = '100%';
-
-    parentContainer.appendChild(bar);
-
-    var drag = document.createElement('div');
-    drag.style.position = 'relative';
-    drag.style.top = '0px';
-    drag.style.left = '-10px';
-    drag.style.height = '100%';
-    drag.style.width = '20px';
-    bar.appendChild(drag);
-
-    this.frame = bar;
-
-    // attach event listeners
-    this.hammer = Hammer(bar, {
-      prevent_default: true
-    });
-    this.hammer.on('dragstart', this._onDragStart.bind(this));
-    this.hammer.on('drag',      this._onDrag.bind(this));
-    this.hammer.on('dragend',   this._onDragEnd.bind(this));
-  }
-
-  if (!parent.conversion) {
-    parent._updateConversion();
-  }
-
-  var x = parent.toScreen(this.customTime);
-
-  bar.style.left = x + 'px';
-  bar.title = 'Time: ' + this.customTime;
+  this.bar.style.left = x + 'px';
+  this.bar.title = 'Time: ' + this.customTime;
 
   return false;
 };
@@ -5010,6 +4622,7 @@ CustomTime.prototype.getCustomTime = function() {
  * @private
  */
 CustomTime.prototype._onDragStart = function(event) {
+  this.eventParams.dragging = true;
   this.eventParams.customTime = this.customTime;
 
   event.stopPropagation();
@@ -5022,18 +4635,18 @@ CustomTime.prototype._onDragStart = function(event) {
  * @private
  */
 CustomTime.prototype._onDrag = function (event) {
+  if (!this.eventParams.dragging) return;
+
   var deltaX = event.gesture.deltaX,
-      x = this.parent.toScreen(this.eventParams.customTime) + deltaX,
-      time = this.parent.toTime(x);
+      x = this.options.toScreen(this.eventParams.customTime) + deltaX,
+      time = this.options.toTime(x);
 
   this.setCustomTime(time);
 
   // fire a timechange event
-  if (this.controller) {
-    this.controller.emit('timechange', {
-      time: this.customTime
-    })
-  }
+  this.emit('timechange', {
+    time: new Date(this.customTime.valueOf())
+  });
 
   event.stopPropagation();
   event.preventDefault();
@@ -5045,89 +4658,86 @@ CustomTime.prototype._onDrag = function (event) {
  * @private
  */
 CustomTime.prototype._onDragEnd = function (event) {
+  if (!this.eventParams.dragging) return;
+
   // fire a timechanged event
-  if (this.controller) {
-    this.controller.emit('timechanged', {
-      time: this.customTime
-    })
-  }
+  this.emit('timechanged', {
+    time: new Date(this.customTime.valueOf())
+  });
 
   event.stopPropagation();
   event.preventDefault();
 };
 
+var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
+
 /**
  * An ItemSet holds a set of items and ranges which can be displayed in a
  * range. The width is determined by the parent of the ItemSet, and the height
  * is determined by the size of the items.
- * @param {Component} parent
- * @param {Component[]} [depends]   Components on which this components depends
- *                                  (except for the parent)
- * @param {Object} [options]        See ItemSet.setOptions for the available
- *                                  options.
+ * @param {Panel} backgroundPanel Panel which can be used to display the
+ *                                vertical lines of box items.
+ * @param {Panel} axisPanel       Panel on the axis where the dots of box-items
+ *                                can be displayed.
+ * @param {Panel} sidePanel      Left side panel holding labels
+ * @param {Object} [options]      See ItemSet.setOptions for the available options.
  * @constructor ItemSet
  * @extends Panel
  */
-// TODO: improve performance by replacing all Array.forEach with a for loop
-function ItemSet(parent, depends, options) {
+function ItemSet(backgroundPanel, axisPanel, sidePanel, options) {
   this.id = util.randomUUID();
-  this.parent = parent;
-  this.depends = depends;
-
-  // event listeners
-  this.eventListeners = {
-    dragstart: this._onDragStart.bind(this),
-    drag: this._onDrag.bind(this),
-    dragend: this._onDragEnd.bind(this)
-  };
 
   // one options object is shared by this itemset and all its items
   this.options = options || {};
-  this.defaultOptions = {
-    type: 'box',
-    align: 'center',
-    orientation: 'bottom',
-    margin: {
-      axis: 20,
-      item: 10
-    },
-    padding: 5
-  };
-
+  this.backgroundPanel = backgroundPanel;
+  this.axisPanel = axisPanel;
+  this.sidePanel = sidePanel;
+  this.itemOptions = Object.create(this.options);
   this.dom = {};
+  this.hammer = null;
 
   var me = this;
-  this.itemsData = null;  // DataSet
-  this.range = null;      // Range or Object {start: number, end: number}
+  this.itemsData = null;    // DataSet
+  this.groupsData = null;   // DataSet
+  this.range = null;        // Range or Object {start: number, end: number}
 
-  // data change listeners
-  this.listeners = {
+  // listeners for the DataSet of the items
+  this.itemListeners = {
     'add': function (event, params, senderId) {
-      if (senderId != me.id) {
-        me._onAdd(params.items);
-      }
+      if (senderId != me.id) me._onAdd(params.items);
     },
     'update': function (event, params, senderId) {
-      if (senderId != me.id) {
-        me._onUpdate(params.items);
-      }
+      if (senderId != me.id) me._onUpdate(params.items);
     },
     'remove': function (event, params, senderId) {
-      if (senderId != me.id) {
-        me._onRemove(params.items);
-      }
+      if (senderId != me.id) me._onRemove(params.items);
+    }
+  };
+
+  // listeners for the DataSet of the groups
+  this.groupListeners = {
+    'add': function (event, params, senderId) {
+      if (senderId != me.id) me._onAddGroups(params.items);
+    },
+    'update': function (event, params, senderId) {
+      if (senderId != me.id) me._onUpdateGroups(params.items);
+    },
+    'remove': function (event, params, senderId) {
+      if (senderId != me.id) me._onRemoveGroups(params.items);
     }
   };
 
   this.items = {};      // object with an Item for every data item
+  this.groups = {};     // Group object for every group
+  this.groupIds = [];
+
   this.selection = [];  // list with the ids of all selected nodes
-  this.queue = {};      // queue with id/actions: 'add', 'update', 'delete'
-  this.stack = new Stack(this, Object.create(this.options));
-  this.conversion = null;
+  this.stackDirty = true; // if true, all items will be restacked on next repaint
 
   this.touchParams = {}; // stores properties while dragging
+  // create the HTML DOM
 
-  // TODO: ItemSet should also attach event listeners for rangechange and rangechanged, like timeaxis
+  this._create();
 }
 
 ItemSet.prototype = new Panel();
@@ -5138,6 +4748,51 @@ ItemSet.types = {
   range: ItemRange,
   rangeoverflow: ItemRangeOverflow,
   point: ItemPoint
+};
+
+/**
+ * Create the HTML DOM for the ItemSet
+ */
+ItemSet.prototype._create = function _create(){
+  var frame = document.createElement('div');
+  frame['timeline-itemset'] = this;
+  this.frame = frame;
+
+  // create background panel
+  var background = document.createElement('div');
+  background.className = 'background';
+  this.backgroundPanel.frame.appendChild(background);
+  this.dom.background = background;
+
+  // create foreground panel
+  var foreground = document.createElement('div');
+  foreground.className = 'foreground';
+  frame.appendChild(foreground);
+  this.dom.foreground = foreground;
+
+  // create axis panel
+  var axis = document.createElement('div');
+  axis.className = 'axis';
+  this.dom.axis = axis;
+  this.axisPanel.frame.appendChild(axis);
+
+  // create labelset
+  var labelSet = document.createElement('div');
+  labelSet.className = 'labelset';
+  this.dom.labelSet = labelSet;
+  this.sidePanel.frame.appendChild(labelSet);
+
+  // create ungrouped Group
+  this._updateUngrouped();
+
+  // attach event listeners
+  // TODO: use event listeners from the rootpanel to improve performance?
+  this.hammer = Hammer(frame, {
+    prevent_default: true
+  });
+  this.hammer.on('dragstart', this._onDragStart.bind(this));
+  this.hammer.on('drag',      this._onDrag.bind(this));
+  this.hammer.on('dragend',   this._onDragEnd.bind(this));
 };
 
 /**
@@ -5168,56 +4823,58 @@ ItemSet.types = {
  *                              Function to let items snap to nice dates when
  *                              dragging items.
  */
-ItemSet.prototype.setOptions = Component.prototype.setOptions;
-
-
+ItemSet.prototype.setOptions = function setOptions(options) {
+  Component.prototype.setOptions.call(this, options);
+};
 
 /**
- * Set controller for this component
- * @param {Controller | null} controller
+ * Mark the ItemSet dirty so it will refresh everything with next repaint
  */
-ItemSet.prototype.setController = function setController (controller) {
-  var event;
+ItemSet.prototype.markDirty = function markDirty() {
+  this.groupIds = [];
+  this.stackDirty = true;
+};
 
-  // unregister old event listeners
-  if (this.controller) {
-    for (event in this.eventListeners) {
-      if (this.eventListeners.hasOwnProperty(event)) {
-        this.controller.off(event, this.eventListeners[event]);
-      }
-    }
+/**
+ * Hide the component from the DOM
+ */
+ItemSet.prototype.hide = function hide() {
+  // remove the axis with dots
+  if (this.dom.axis.parentNode) {
+    this.dom.axis.parentNode.removeChild(this.dom.axis);
   }
 
-  this.controller = controller || null;
+  // remove the background with vertical lines
+  if (this.dom.background.parentNode) {
+    this.dom.background.parentNode.removeChild(this.dom.background);
+  }
 
-  // register new event listeners
-  if (this.controller) {
-    for (event in this.eventListeners) {
-      if (this.eventListeners.hasOwnProperty(event)) {
-        this.controller.on(event, this.eventListeners[event]);
-      }
-    }
+  // remove the labelset containing all group labels
+  if (this.dom.labelSet.parentNode) {
+    this.dom.labelSet.parentNode.removeChild(this.dom.labelSet);
   }
 };
 
-// attach event listeners for dragging items to the controller
-(function (me) {
-  var _controller = null;
-  var _onDragStart = null;
-  var _onDrag = null;
-  var _onDragEnd = null;
+/**
+ * Show the component in the DOM (when not already visible).
+ * @return {Boolean} changed
+ */
+ItemSet.prototype.show = function show() {
+  // show axis with dots
+  if (!this.dom.axis.parentNode) {
+    this.axisPanel.frame.appendChild(this.dom.axis);
+  }
 
-  Object.defineProperty(me, 'controller', {
-    get: function () {
-      return _controller;
-    },
+  // show background with vertical lines
+  if (!this.dom.background.parentNode) {
+    this.backgroundPanel.frame.appendChild(this.dom.background);
+  }
 
-    set: function (controller) {
-
-    }
-  });
-}) (this);
-
+  // show labelset containing labels
+  if (!this.dom.labelSet.parentNode) {
+    this.sidePanel.frame.appendChild(this.dom.labelSet);
+  }
+};
 
 /**
  * Set range (start and end).
@@ -5239,7 +4896,7 @@ ItemSet.prototype.setRange = function setRange(range) {
  *                      unselected.
  */
 ItemSet.prototype.setSelection = function setSelection(ids) {
-  var i, ii, id, item, selection;
+  var i, ii, id, item;
 
   if (ids) {
     if (!Array.isArray(ids)) {
@@ -5262,10 +4919,6 @@ ItemSet.prototype.setSelection = function setSelection(ids) {
         this.selection.push(id);
         item.select();
       }
-    }
-
-    if (this.controller) {
-      this.requestRepaint();
     }
   }
 };
@@ -5294,183 +4947,144 @@ ItemSet.prototype._deselect = function _deselect(id) {
 };
 
 /**
+ * Return the item sets frame
+ * @returns {HTMLElement} frame
+ */
+ItemSet.prototype.getFrame = function getFrame() {
+  return this.frame;
+};
+
+/**
  * Repaint the component
- * @return {Boolean} changed
+ * @return {boolean} Returns true if the component is resized
  */
 ItemSet.prototype.repaint = function repaint() {
-  var changed = 0,
-      update = util.updateProperty,
+  var margin = this.options.margin,
+      range = this.range,
       asSize = util.option.asSize,
+      asString = util.option.asString,
       options = this.options,
       orientation = this.getOption('orientation'),
-      defaultOptions = this.defaultOptions,
+      resized = false,
       frame = this.frame;
 
-  if (!frame) {
-    frame = document.createElement('div');
-    frame.className = 'itemset';
-    frame['timeline-itemset'] = this;
-
-    var className = options.className;
-    if (className) {
-      util.addClassName(frame, util.option.asString(className));
-    }
-
-    // create background panel
-    var background = document.createElement('div');
-    background.className = 'background';
-    frame.appendChild(background);
-    this.dom.background = background;
-
-    // create foreground panel
-    var foreground = document.createElement('div');
-    foreground.className = 'foreground';
-    frame.appendChild(foreground);
-    this.dom.foreground = foreground;
-
-    // create axis panel
-    var axis = document.createElement('div');
-    axis.className = 'itemset-axis';
-    //frame.appendChild(axis);
-    this.dom.axis = axis;
-
-    this.frame = frame;
-    changed += 1;
+  // TODO: document this feature to specify one margin for both item and axis distance
+  if (typeof margin === 'number') {
+    margin = {
+      item: margin,
+      axis: margin
+    };
   }
 
-  if (!this.parent) {
-    throw new Error('Cannot repaint itemset: no parent attached');
-  }
-  var parentContainer = this.parent.getContainer();
-  if (!parentContainer) {
-    throw new Error('Cannot repaint itemset: parent has no container element');
-  }
-  if (!frame.parentNode) {
-    parentContainer.appendChild(frame);
-    changed += 1;
-  }
-  if (!this.dom.axis.parentNode) {
-    parentContainer.appendChild(this.dom.axis);
-    changed += 1;
-  }
+  // update className
+  frame.className = 'itemset' + (options.className ? (' ' + asString(options.className)) : '');
+
+  // reorder the groups (if needed)
+  resized = this._orderGroups() || resized;
+
+  // check whether zoomed (in that case we need to re-stack everything)
+  // TODO: would be nicer to get this as a trigger from Range
+  var visibleInterval = this.range.end - this.range.start;
+  var zoomed = (visibleInterval != this.lastVisibleInterval) || (this.width != this.lastWidth);
+  if (zoomed) this.stackDirty = true;
+  this.lastVisibleInterval = visibleInterval;
+  this.lastWidth = this.width;
+
+  // repaint all groups
+  var restack = this.stackDirty,
+      firstGroup = this._firstGroup(),
+      firstMargin = {
+        item: margin.item,
+        axis: margin.axis
+      },
+      nonFirstMargin = {
+        item: margin.item,
+        axis: margin.item / 2
+      },
+      height = 0,
+      minHeight = margin.axis + margin.item;
+  util.forEach(this.groups, function (group) {
+    var groupMargin = (group == firstGroup) ? firstMargin : nonFirstMargin;
+    resized = group.repaint(range, groupMargin, restack) || resized;
+    height += group.height;
+  });
+  height = Math.max(height, minHeight);
+  this.stackDirty = false;
 
   // reposition frame
-  changed += update(frame.style, 'left',   asSize(options.left, '0px'));
-  changed += update(frame.style, 'top',    asSize(options.top, '0px'));
-  changed += update(frame.style, 'width',  asSize(options.width, '100%'));
-  changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
+  frame.style.left    = asSize(options.left, '');
+  frame.style.right   = asSize(options.right, '');
+  frame.style.top     = asSize((orientation == 'top') ? '0' : '');
+  frame.style.bottom  = asSize((orientation == 'top') ? '' : '0');
+  frame.style.width   = asSize(options.width, '100%');
+  frame.style.height  = asSize(height);
+  //frame.style.height  = asSize('height' in options ? options.height : height); // TODO: reckon with height
+
+  // calculate actual size and position
+  this.top = frame.offsetTop;
+  this.left = frame.offsetLeft;
+  this.width = frame.offsetWidth;
+  this.height = height;
 
   // reposition axis
-  changed += update(this.dom.axis.style, 'left', asSize(options.left, '0px'));
-  changed += update(this.dom.axis.style, 'width',  asSize(options.width, '100%'));
-  if (orientation == 'bottom') {
-    changed += update(this.dom.axis.style, 'top',  (this.height + this.top) + 'px');
+  this.dom.axis.style.left   = asSize(options.left, '0');
+  this.dom.axis.style.right  = asSize(options.right, '');
+  this.dom.axis.style.width  = asSize(options.width, '100%');
+  this.dom.axis.style.height = asSize(0);
+  this.dom.axis.style.top    = asSize((orientation == 'top') ? '0' : '');
+  this.dom.axis.style.bottom = asSize((orientation == 'top') ? '' : '0');
+
+  // check if this component is resized
+  resized = this._isResized() || resized;
+
+  return resized;
+};
+
+/**
+ * Get the first group, aligned with the axis
+ * @return {Group | null} firstGroup
+ * @private
+ */
+ItemSet.prototype._firstGroup = function _firstGroup() {
+  var firstGroupIndex = (this.options.orientation == 'top') ? 0 : (this.groupIds.length - 1);
+  var firstGroupId = this.groupIds[firstGroupIndex];
+  var firstGroup = this.groups[firstGroupId] || this.groups[UNGROUPED];
+
+  return firstGroup || null;
+};
+
+/**
+ * Create or delete the group holding all ungrouped items. This group is used when
+ * there are no groups specified.
+ * @protected
+ */
+ItemSet.prototype._updateUngrouped = function _updateUngrouped() {
+  var ungrouped = this.groups[UNGROUPED];
+
+  if (this.groupsData) {
+    // remove the group holding all ungrouped items
+    if (ungrouped) {
+      ungrouped.hide();
+      delete this.groups[UNGROUPED];
+    }
   }
-  else { // orientation == 'top'
-    changed += update(this.dom.axis.style, 'top', this.top + 'px');
-  }
+  else {
+    // create a group holding all (unfiltered) items
+    if (!ungrouped) {
+      var id = null;
+      var data = null;
+      ungrouped = new Group(id, data, this);
+      this.groups[UNGROUPED] = ungrouped;
 
-  this._updateConversion();
-
-  var me = this,
-      queue = this.queue,
-      itemsData = this.itemsData,
-      items = this.items,
-      dataOptions = {
-        // TODO: cleanup
-        // fields: [(itemsData && itemsData.fieldId || 'id'), 'start', 'end', 'content', 'type', 'className']
-      };
-
-  // show/hide added/changed/removed items
-  for (var id in queue) {
-    if (queue.hasOwnProperty(id)) {
-      var entry = queue[id],
-          item = items[id],
-          action = entry.action;
-
-      //noinspection FallthroughInSwitchStatementJS
-      switch (action) {
-        case 'add':
-        case 'update':
-          var itemData = itemsData && itemsData.get(id, dataOptions);
-
-          if (itemData) {
-            var type = itemData.type ||
-                (itemData.start && itemData.end && 'range') ||
-                options.type ||
-                'box';
-            var constructor = ItemSet.types[type];
-
-            // TODO: how to handle items with invalid data? hide them and give a warning? or throw an error?
-            if (item) {
-              // update item
-              if (!constructor || !(item instanceof constructor)) {
-                // item type has changed, hide and delete the item
-                changed += item.hide();
-                item = null;
-              }
-              else {
-                item.data = itemData; // TODO: create a method item.setData ?
-                changed++;
-              }
-            }
-
-            if (!item) {
-              // create item
-              if (constructor) {
-                item = new constructor(me, itemData, options, defaultOptions);
-                item.id = entry.id; // we take entry.id, as id itself is stringified
-                changed++;
-              }
-              else {
-                throw new TypeError('Unknown item type "' + type + '"');
-              }
-            }
-
-            // force a repaint (not only a reposition)
-            item.repaint();
-
-            items[id] = item;
-          }
-
-          // update queue
-          delete queue[id];
-          break;
-
-        case 'remove':
-          if (item) {
-            // remove the item from the set selected items
-            if (item.selected) {
-              me._deselect(id);
-            }
-
-            // remove DOM of the item
-            changed += item.hide();
-          }
-
-          // update lists
-          delete items[id];
-          delete queue[id];
-          break;
-
-        default:
-          console.log('Error: unknown action "' + action + '"');
+      for (var itemId in this.items) {
+        if (this.items.hasOwnProperty(itemId)) {
+          ungrouped.add(this.items[itemId]);
+        }
       }
+
+      ungrouped.show();
     }
   }
-
-  // reposition all items. Show items only when in the visible area
-  util.forEach(this.items, function (item) {
-    if (item.visible) {
-      changed += item.show();
-      item.reposition();
-    }
-    else {
-      changed += item.hide();
-    }
-  });
-
-  return (changed > 0);
 };
 
 /**
@@ -5498,87 +5112,11 @@ ItemSet.prototype.getAxis = function getAxis() {
 };
 
 /**
- * Reflow the component
- * @return {Boolean} resized
+ * Get the element for the labelset
+ * @return {HTMLElement} labelSet
  */
-ItemSet.prototype.reflow = function reflow () {
-  var changed = 0,
-      options = this.options,
-      marginAxis = (options.margin && 'axis' in options.margin) ? options.margin.axis : this.defaultOptions.margin.axis,
-      marginItem = (options.margin && 'item' in options.margin) ? options.margin.item : this.defaultOptions.margin.item,
-      update = util.updateProperty,
-      asNumber = util.option.asNumber,
-      asSize = util.option.asSize,
-      frame = this.frame;
-
-  if (frame) {
-    this._updateConversion();
-
-    util.forEach(this.items, function (item) {
-      changed += item.reflow();
-    });
-
-    // TODO: stack.update should be triggered via an event, in stack itself
-    // TODO: only update the stack when there are changed items
-    this.stack.update();
-
-    var maxHeight = asNumber(options.maxHeight);
-    var fixedHeight = (asSize(options.height) != null);
-    var height;
-    if (fixedHeight) {
-      height = frame.offsetHeight;
-    }
-    else {
-      // height is not specified, determine the height from the height and positioned items
-      var visibleItems = this.stack.ordered; // TODO: not so nice way to get the filtered items
-      if (visibleItems.length) {
-        var min = visibleItems[0].top;
-        var max = visibleItems[0].top + visibleItems[0].height;
-        util.forEach(visibleItems, function (item) {
-          min = Math.min(min, item.top);
-          max = Math.max(max, (item.top + item.height));
-        });
-        height = (max - min) + marginAxis + marginItem;
-      }
-      else {
-        height = marginAxis + marginItem;
-      }
-    }
-    if (maxHeight != null) {
-      height = Math.min(height, maxHeight);
-    }
-    changed += update(this, 'height', height);
-
-    // calculate height from items
-    changed += update(this, 'top', frame.offsetTop);
-    changed += update(this, 'left', frame.offsetLeft);
-    changed += update(this, 'width', frame.offsetWidth);
-  }
-  else {
-    changed += 1;
-  }
-
-  return (changed > 0);
-};
-
-/**
- * Hide this component from the DOM
- * @return {Boolean} changed
- */
-ItemSet.prototype.hide = function hide() {
-  var changed = false;
-
-  // remove the DOM
-  if (this.frame && this.frame.parentNode) {
-    this.frame.parentNode.removeChild(this.frame);
-    changed = true;
-  }
-  if (this.dom.axis && this.dom.axis.parentNode) {
-    this.dom.axis.parentNode.removeChild(this.dom.axis);
-    changed = true;
-  }
-
-  return changed;
+ItemSet.prototype.getLabelSet = function getLabelSet() {
+  return this.dom.labelSet;
 };
 
 /**
@@ -5598,12 +5136,12 @@ ItemSet.prototype.setItems = function setItems(items) {
     this.itemsData = items;
   }
   else {
-    throw new TypeError('Data must be an instance of DataSet');
+    throw new TypeError('Data must be an instance of DataSet or DataView');
   }
 
   if (oldItemsData) {
     // unsubscribe from old dataset
-    util.forEach(this.listeners, function (callback, event) {
+    util.forEach(this.itemListeners, function (callback, event) {
       oldItemsData.unsubscribe(event, callback);
     });
 
@@ -5615,22 +5153,84 @@ ItemSet.prototype.setItems = function setItems(items) {
   if (this.itemsData) {
     // subscribe to new dataset
     var id = this.id;
-    util.forEach(this.listeners, function (callback, event) {
+    util.forEach(this.itemListeners, function (callback, event) {
       me.itemsData.on(event, callback, id);
     });
 
-    // draw all new items
+    // add all new items
     ids = this.itemsData.getIds();
     this._onAdd(ids);
+
+    // update the group holding all ungrouped items
+    this._updateUngrouped();
   }
 };
 
 /**
- * Get the current items items
+ * Get the current items
  * @returns {vis.DataSet | null}
  */
 ItemSet.prototype.getItems = function getItems() {
   return this.itemsData;
+};
+
+/**
+ * Set groups
+ * @param {vis.DataSet} groups
+ */
+ItemSet.prototype.setGroups = function setGroups(groups) {
+  var me = this,
+      ids;
+
+  // unsubscribe from current dataset
+  if (this.groupsData) {
+    util.forEach(this.groupListeners, function (callback, event) {
+      me.groupsData.unsubscribe(event, callback);
+    });
+
+    // remove all drawn groups
+    ids = this.groupsData.getIds();
+    this._onRemoveGroups(ids);
+  }
+
+  // replace the dataset
+  if (!groups) {
+    this.groupsData = null;
+  }
+  else if (groups instanceof DataSet || groups instanceof DataView) {
+    this.groupsData = groups;
+  }
+  else {
+    throw new TypeError('Data must be an instance of DataSet or DataView');
+  }
+
+  if (this.groupsData) {
+    // subscribe to new dataset
+    var id = this.id;
+    util.forEach(this.groupListeners, function (callback, event) {
+      me.groupsData.on(event, callback, id);
+    });
+
+    // draw all ms
+    ids = this.groupsData.getIds();
+    this._onAddGroups(ids);
+  }
+
+  // update the group holding all ungrouped items
+  this._updateUngrouped();
+
+  // update the order of all items in each group
+  this._order();
+
+  this.emit('change');
+};
+
+/**
+ * Get the current groups
+ * @returns {vis.DataSet | null} groups
+ */
+ItemSet.prototype.getGroups = function getGroups() {
+  return this.groupsData;
 };
 
 /**
@@ -5645,7 +5245,9 @@ ItemSet.prototype.removeItem = function removeItem (id) {
     // confirm deletion
     this.options.onRemove(item, function (item) {
       if (item) {
-        dataset.remove(item);
+        // remove by id here, it is possible that an item has no id defined
+        // itself, so better not delete by the item itself
+        dataset.remove(id);
       }
     });
   }
@@ -5654,94 +5256,307 @@ ItemSet.prototype.removeItem = function removeItem (id) {
 /**
  * Handle updated items
  * @param {Number[]} ids
- * @private
+ * @protected
  */
 ItemSet.prototype._onUpdate = function _onUpdate(ids) {
-  this._toQueue('update', ids);
+  var me = this,
+      items = this.items,
+      itemOptions = this.itemOptions;
+
+  ids.forEach(function (id) {
+    var itemData = me.itemsData.get(id),
+        item = items[id],
+        type = itemData.type ||
+            (itemData.start && itemData.end && 'range') ||
+            me.options.type ||
+            'box';
+
+    var constructor = ItemSet.types[type];
+
+    if (item) {
+      // update item
+      if (!constructor || !(item instanceof constructor)) {
+        // item type has changed, delete the item and recreate it
+        me._removeItem(item);
+        item = null;
+      }
+      else {
+        me._updateItem(item, itemData);
+      }
+    }
+
+    if (!item) {
+      // create item
+      if (constructor) {
+        item = new constructor(itemData, me.options, itemOptions);
+        item.id = id; // TODO: not so nice setting id afterwards
+        me._addItem(item);
+      }
+      else {
+        throw new TypeError('Unknown item type "' + type + '"');
+      }
+    }
+  });
+
+  this._order();
+  this.stackDirty = true; // force re-stacking of all items next repaint
+  this.emit('change');
 };
 
 /**
- * Handle changed items
+ * Handle added items
  * @param {Number[]} ids
- * @private
+ * @protected
  */
-ItemSet.prototype._onAdd = function _onAdd(ids) {
-  this._toQueue('add', ids);
-};
+ItemSet.prototype._onAdd = ItemSet.prototype._onUpdate;
 
 /**
  * Handle removed items
  * @param {Number[]} ids
- * @private
+ * @protected
  */
 ItemSet.prototype._onRemove = function _onRemove(ids) {
-  this._toQueue('remove', ids);
-};
-
-/**
- * Put items in the queue to be added/updated/remove
- * @param {String} action     can be 'add', 'update', 'remove'
- * @param {Number[]} ids
- */
-ItemSet.prototype._toQueue = function _toQueue(action, ids) {
-  var queue = this.queue;
+  var count = 0;
+  var me = this;
   ids.forEach(function (id) {
-    queue[id] = {
-      id: id,
-      action: action
-    };
+    var item = me.items[id];
+    if (item) {
+      count++;
+      me._removeItem(item);
+    }
   });
 
-  if (this.controller) {
-    //this.requestReflow();
-    this.requestRepaint();
+  if (count) {
+    // update order
+    this._order();
+    this.stackDirty = true; // force re-stacking of all items next repaint
+    this.emit('change');
   }
 };
 
 /**
- * Calculate the scale and offset to convert a position on screen to the
- * corresponding date and vice versa.
- * After the method _updateConversion is executed once, the methods toTime
- * and toScreen can be used.
+ * Update the order of item in all groups
  * @private
  */
-ItemSet.prototype._updateConversion = function _updateConversion() {
-  var range = this.range;
-  if (!range) {
-    throw new Error('No range configured');
-  }
+ItemSet.prototype._order = function _order() {
+  // reorder the items in all groups
+  // TODO: optimization: only reorder groups affected by the changed items
+  util.forEach(this.groups, function (group) {
+    group.order();
+  });
+};
 
-  if (range.conversion) {
-    this.conversion = range.conversion(this.width);
+/**
+ * Handle updated groups
+ * @param {Number[]} ids
+ * @private
+ */
+ItemSet.prototype._onUpdateGroups = function _onUpdateGroups(ids) {
+  this._onAddGroups(ids);
+};
+
+/**
+ * Handle changed groups
+ * @param {Number[]} ids
+ * @private
+ */
+ItemSet.prototype._onAddGroups = function _onAddGroups(ids) {
+  var me = this;
+
+  ids.forEach(function (id) {
+    var groupData = me.groupsData.get(id);
+    var group = me.groups[id];
+
+    if (!group) {
+      // check for reserved ids
+      if (id == UNGROUPED) {
+        throw new Error('Illegal group id. ' + id + ' is a reserved id.');
+      }
+
+      var groupOptions = Object.create(me.options);
+      util.extend(groupOptions, {
+        height: null
+      });
+
+      group = new Group(id, groupData, me);
+      me.groups[id] = group;
+
+      // add items with this groupId to the new group
+      for (var itemId in me.items) {
+        if (me.items.hasOwnProperty(itemId)) {
+          var item = me.items[itemId];
+          if (item.data.group == id) {
+            group.add(item);
+          }
+        }
+      }
+
+      group.order();
+      group.show();
+    }
+    else {
+      // update group
+      group.setData(groupData);
+    }
+  });
+
+  this.emit('change');
+};
+
+/**
+ * Handle removed groups
+ * @param {Number[]} ids
+ * @private
+ */
+ItemSet.prototype._onRemoveGroups = function _onRemoveGroups(ids) {
+  var groups = this.groups;
+  ids.forEach(function (id) {
+    var group = groups[id];
+
+    if (group) {
+      group.hide();
+      delete groups[id];
+    }
+  });
+
+  this.markDirty();
+
+  this.emit('change');
+};
+
+/**
+ * Reorder the groups if needed
+ * @return {boolean} changed
+ * @private
+ */
+ItemSet.prototype._orderGroups = function () {
+  if (this.groupsData) {
+    // reorder the groups
+    var groupIds = this.groupsData.getIds({
+      order: this.options.groupOrder
+    });
+
+    var changed = !util.equalArray(groupIds, this.groupIds);
+    if (changed) {
+      // hide all groups, removes them from the DOM
+      var groups = this.groups;
+      groupIds.forEach(function (groupId) {
+        var group = groups[groupId];
+        group.hide();
+      });
+
+      // show the groups again, attach them to the DOM in correct order
+      groupIds.forEach(function (groupId) {
+        groups[groupId].show();
+      });
+
+      this.groupIds = groupIds;
+    }
+
+    return changed;
   }
   else {
-    this.conversion = Range.conversion(range.start, range.end, this.width);
+    return false;
   }
 };
 
 /**
- * Convert a position on screen (pixels) to a datetime
- * Before this method can be used, the method _updateConversion must be
- * executed once.
- * @param {int}     x    Position on the screen in pixels
- * @return {Date}   time The datetime the corresponds with given position x
+ * Add a new item
+ * @param {Item} item
+ * @private
  */
-ItemSet.prototype.toTime = function toTime(x) {
-  var conversion = this.conversion;
-  return new Date(x / conversion.scale + conversion.offset);
+ItemSet.prototype._addItem = function _addItem(item) {
+  this.items[item.id] = item;
+
+  // add to group
+  var groupId = this.groupsData ? item.data.group : UNGROUPED;
+  var group = this.groups[groupId];
+  if (group) group.add(item);
 };
 
 /**
- * Convert a datetime (Date object) into a position on the screen
- * Before this method can be used, the method _updateConversion must be
- * executed once.
- * @param {Date}   time A date
- * @return {int}   x    The position on the screen in pixels which corresponds
- *                      with the given date.
+ * Update an existing item
+ * @param {Item} item
+ * @param {Object} itemData
+ * @private
  */
-ItemSet.prototype.toScreen = function toScreen(time) {
-  var conversion = this.conversion;
-  return (time.valueOf() - conversion.offset) * conversion.scale;
+ItemSet.prototype._updateItem = function _updateItem(item, itemData) {
+  var oldGroupId = item.data.group;
+
+  item.data = itemData;
+  item.repaint();
+
+  // update group
+  if (oldGroupId != item.data.group) {
+    var oldGroup = this.groups[oldGroupId];
+    if (oldGroup) oldGroup.remove(item);
+
+    var groupId = this.groupsData ? item.data.group : UNGROUPED;
+    var group = this.groups[groupId];
+    if (group) group.add(item);
+  }
+};
+
+/**
+ * Delete an item from the ItemSet: remove it from the DOM, from the map
+ * with items, and from the map with visible items, and from the selection
+ * @param {Item} item
+ * @private
+ */
+ItemSet.prototype._removeItem = function _removeItem(item) {
+  // remove from DOM
+  item.hide();
+
+  // remove from items
+  delete this.items[item.id];
+
+  // remove from selection
+  var index = this.selection.indexOf(item.id);
+  if (index != -1) this.selection.splice(index, 1);
+
+  // remove from group
+  var groupId = this.groupsData ? item.data.group : UNGROUPED;
+  var group = this.groups[groupId];
+  if (group) group.remove(item);
+};
+
+/**
+ * Create an array containing all items being a range (having an end date)
+ * @param array
+ * @returns {Array}
+ * @private
+ */
+ItemSet.prototype._constructByEndArray = function _constructByEndArray(array) {
+  var endArray = [];
+
+  for (var i = 0; i < array.length; i++) {
+    if (array[i] instanceof ItemRange) {
+      endArray.push(array[i]);
+    }
+  }
+  return endArray;
+};
+
+/**
+ * Get the width of the group labels
+ * @return {Number} width
+ */
+ItemSet.prototype.getLabelsWidth = function getLabelsWidth() {
+  var width = 0;
+
+  util.forEach(this.groups, function (group) {
+    width = Math.max(width, group.getLabelWidth());
+  });
+
+  return width;
+};
+
+/**
+ * Get the height of the itemsets background
+ * @return {Number} height
+ */
+ItemSet.prototype.getBackgroundHeight = function getBackgroundHeight() {
+  return this.height;
 };
 
 /**
@@ -5750,28 +5565,45 @@ ItemSet.prototype.toScreen = function toScreen(time) {
  * @private
  */
 ItemSet.prototype._onDragStart = function (event) {
-  if (!this.options.editable) {
+  if (!this.options.editable.updateTime && !this.options.editable.updateGroup) {
     return;
   }
 
   var item = ItemSet.itemFromTarget(event),
-      me = this;
+      me = this,
+      props;
 
   if (item && item.selected) {
     var dragLeftItem = event.target.dragLeftItem;
     var dragRightItem = event.target.dragRightItem;
 
     if (dragLeftItem) {
-      this.touchParams.itemProps = [{
-        item: dragLeftItem,
-        start: item.data.start.valueOf()
-      }];
+      props = {
+        item: dragLeftItem
+      };
+
+      if (me.options.editable.updateTime) {
+        props.start = item.data.start.valueOf();
+      }
+      if (me.options.editable.updateGroup) {
+        if ('group' in item.data) props.group = item.data.group;
+      }
+
+      this.touchParams.itemProps = [props];
     }
     else if (dragRightItem) {
-      this.touchParams.itemProps = [{
-        item: dragRightItem,
-        end: item.data.end.valueOf()
-      }];
+      props = {
+        item: dragRightItem
+      };
+
+      if (me.options.editable.updateTime) {
+        props.end = item.data.end.valueOf();
+      }
+      if (me.options.editable.updateGroup) {
+        if ('group' in item.data) props.group = item.data.group;
+      }
+
+      this.touchParams.itemProps = [props];
     }
     else {
       this.touchParams.itemProps = this.getSelection().map(function (id) {
@@ -5780,11 +5612,12 @@ ItemSet.prototype._onDragStart = function (event) {
           item: item
         };
 
-        if ('start' in item.data) {
-          props.start = item.data.start.valueOf()
+        if (me.options.editable.updateTime) {
+          if ('start' in item.data) props.start = item.data.start.valueOf();
+          if ('end' in item.data)   props.end = item.data.end.valueOf();
         }
-        if ('end' in item.data)   {
-          props.end = item.data.end.valueOf()
+        if (me.options.editable.updateGroup) {
+          if ('group' in item.data) props.group = item.data.group;
         }
 
         return props;
@@ -5804,7 +5637,8 @@ ItemSet.prototype._onDrag = function (event) {
   if (this.touchParams.itemProps) {
     var snap = this.options.snap || null,
         deltaX = event.gesture.deltaX,
-        offset = deltaX / this.conversion.scale;
+        scale = (this.width / (this.range.end - this.range.start)),
+        offset = deltaX / scale;
 
     // move
     this.touchParams.itemProps.forEach(function (props) {
@@ -5812,17 +5646,31 @@ ItemSet.prototype._onDrag = function (event) {
         var start = new Date(props.start + offset);
         props.item.data.start = snap ? snap(start) : start;
       }
+
       if ('end' in props) {
         var end = new Date(props.end + offset);
         props.item.data.end = snap ? snap(end) : end;
+      }
+
+      if ('group' in props) {
+        // drag from one group to another
+        var group = ItemSet.groupFromTarget(event);
+        if (group && group.groupId != props.item.data.group) {
+          var oldGroup = props.item.parent;
+          oldGroup.remove(props.item);
+          oldGroup.order();
+          group.add(props.item);
+          group.order();
+
+          props.item.data.group = group.groupId;
+        }
       }
     });
 
     // TODO: implement onMoving handler
 
-    // TODO: implement dragging from one group to another
-
-    this.requestReflow();
+    this.stackDirty = true; // force re-stacking of all items next repaint
+    this.emit('change');
 
     event.stopPropagation();
   }
@@ -5838,35 +5686,41 @@ ItemSet.prototype._onDragEnd = function (event) {
     // prepare a change set for the changed items
     var changes = [],
         me = this,
-        dataset = this._myDataSet(),
-        type;
+        dataset = this._myDataSet();
 
     this.touchParams.itemProps.forEach(function (props) {
       var id = props.item.id,
-          item = me.itemsData.get(id);
+          itemData = me.itemsData.get(id);
 
       var changed = false;
       if ('start' in props.item.data) {
         changed = (props.start != props.item.data.start.valueOf());
-        item.start = util.convert(props.item.data.start, dataset.convert['start']);
+        itemData.start = util.convert(props.item.data.start, dataset.convert['start']);
       }
       if ('end' in props.item.data) {
         changed = changed  || (props.end != props.item.data.end.valueOf());
-        item.end = util.convert(props.item.data.end, dataset.convert['end']);
+        itemData.end = util.convert(props.item.data.end, dataset.convert['end']);
+      }
+      if ('group' in props.item.data) {
+        changed = changed  || (props.group != props.item.data.group);
+        itemData.group = props.item.data.group;
       }
 
       // only apply changes when start or end is actually changed
       if (changed) {
-        me.options.onMove(item, function (item) {
-          if (item) {
+        me.options.onMove(itemData, function (itemData) {
+          if (itemData) {
             // apply changes
-            changes.push(item);
+            itemData[dataset.fieldId] = id; // ensure the item contains its id (can be undefined)
+            changes.push(itemData);
           }
           else {
             // restore original values
             if ('start' in props) props.item.data.start = props.start;
             if ('end' in props)   props.item.data.end   = props.end;
-            me.requestReflow();
+
+            me.stackDirty = true; // force re-stacking of all items next repaint
+            me.emit('change');
           }
         });
       }
@@ -5893,6 +5747,24 @@ ItemSet.itemFromTarget = function itemFromTarget (event) {
   while (target) {
     if (target.hasOwnProperty('timeline-item')) {
       return target['timeline-item'];
+    }
+    target = target.parentNode;
+  }
+
+  return null;
+};
+
+/**
+ * Find the Group from an event target:
+ * searches for the attribute 'timeline-group' in the event target's element tree
+ * @param {Event} event
+ * @return {Group | null} group
+ */
+ItemSet.groupFromTarget = function groupFromTarget (event) {
+  var target = event.target;
+  while (target) {
+    if (target.hasOwnProperty('timeline-group')) {
+      return target['timeline-group'];
     }
     target = target.parentNode;
   }
@@ -5933,27 +5805,28 @@ ItemSet.prototype._myDataSet = function _myDataSet() {
 };
 /**
  * @constructor Item
- * @param {ItemSet} parent
  * @param {Object} data             Object containing (optional) parameters type,
  *                                  start, end, content, group, className.
  * @param {Object} [options]        Options to set initial property values
  * @param {Object} [defaultOptions] default options
  *                                  // TODO: describe available options
  */
-function Item (parent, data, options, defaultOptions) {
-  this.parent = parent;
+function Item (data, options, defaultOptions) {
+  this.id = null;
+  this.parent = null;
   this.data = data;
   this.dom = null;
   this.options = options || {};
   this.defaultOptions = defaultOptions || {};
 
   this.selected = false;
-  this.visible = false;
-  this.top = 0;
-  this.left = 0;
-  this.width = 0;
-  this.height = 0;
-  this.offset = 0;
+  this.displayed = false;
+  this.dirty = true;
+
+  this.top = null;
+  this.left = null;
+  this.width = null;
+  this.height = null;
 }
 
 /**
@@ -5961,7 +5834,7 @@ function Item (parent, data, options, defaultOptions) {
  */
 Item.prototype.select = function select() {
   this.selected = true;
-  if (this.visible) this.repaint();
+  if (this.displayed) this.repaint();
 };
 
 /**
@@ -5969,7 +5842,34 @@ Item.prototype.select = function select() {
  */
 Item.prototype.unselect = function unselect() {
   this.selected = false;
-  if (this.visible) this.repaint();
+  if (this.displayed) this.repaint();
+};
+
+/**
+ * Set a parent for the item
+ * @param {ItemSet | Group} parent
+ */
+Item.prototype.setParent = function setParent(parent) {
+  if (this.displayed) {
+    this.hide();
+    this.parent = parent;
+    if (this.parent) {
+      this.show();
+    }
+  }
+  else {
+    this.parent = parent;
+  }
+};
+
+/**
+ * Check whether this item is visible inside given range
+ * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+ * @returns {boolean} True if visible
+ */
+Item.prototype.isVisible = function isVisible (range) {
+  // Should be implemented by Item implementations
+  return false;
 };
 
 /**
@@ -5990,40 +5890,34 @@ Item.prototype.hide = function hide() {
 
 /**
  * Repaint the item
- * @return {Boolean} changed
  */
 Item.prototype.repaint = function repaint() {
   // should be implemented by the item
-  return false;
 };
 
 /**
- * Reflow the item
- * @return {Boolean} resized
+ * Reposition the Item horizontally
  */
-Item.prototype.reflow = function reflow() {
+Item.prototype.repositionX = function repositionX() {
   // should be implemented by the item
-  return false;
 };
 
 /**
- * Give the item a display offset in pixels
- * @param {Number} offset    Offset on screen in pixels
+ * Reposition the Item vertically
  */
-Item.prototype.setOffset = function setOffset(offset) {
-  this.offset = offset;
+Item.prototype.repositionY = function repositionY() {
+  // should be implemented by the item
 };
 
 /**
  * Repaint a delete button on the top right of the item when the item is selected
  * @param {HTMLElement} anchor
- * @private
+ * @protected
  */
 Item.prototype._repaintDeleteButton = function (anchor) {
-  if (this.selected && this.options.editable && !this.dom.deleteButton) {
+  if (this.selected && this.options.editable.remove && !this.dom.deleteButton) {
     // create and show button
-    var parent = this.parent;
-    var id = this.id;
+    var me = this;
 
     var deleteButton = document.createElement('div');
     deleteButton.className = 'delete';
@@ -6032,7 +5926,7 @@ Item.prototype._repaintDeleteButton = function (anchor) {
     Hammer(deleteButton, {
       preventDefault: true
     }).on('tap', function (event) {
-      parent.removeItem(id);
+      me.parent.removeFromDataSet(me);
       event.stopPropagation();
     });
 
@@ -6051,254 +5945,60 @@ Item.prototype._repaintDeleteButton = function (anchor) {
 /**
  * @constructor ItemBox
  * @extends Item
- * @param {ItemSet} parent
  * @param {Object} data             Object containing parameters start
  *                                  content, className.
  * @param {Object} [options]        Options to set initial property values
  * @param {Object} [defaultOptions] default options
  *                                  // TODO: describe available options
  */
-function ItemBox (parent, data, options, defaultOptions) {
+function ItemBox (data, options, defaultOptions) {
   this.props = {
     dot: {
-      left: 0,
-      top: 0,
       width: 0,
       height: 0
     },
     line: {
-      top: 0,
-      left: 0,
       width: 0,
       height: 0
     }
   };
 
-  Item.call(this, parent, data, options, defaultOptions);
+  // validate data
+  if (data) {
+    if (data.start == undefined) {
+      throw new Error('Property "start" missing in item ' + data);
+    }
+  }
+
+  Item.call(this, data, options, defaultOptions);
 }
 
-ItemBox.prototype = new Item (null, null);
+ItemBox.prototype = new Item (null);
+
+/**
+ * Check whether this item is visible inside given range
+ * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+ * @returns {boolean} True if visible
+ */
+ItemBox.prototype.isVisible = function isVisible (range) {
+  // determine visibility
+  // TODO: account for the real width of the item. Right now we just add 1/4 to the window
+  var interval = (range.end - range.start) / 4;
+  return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
+};
 
 /**
  * Repaint the item
- * @return {Boolean} changed
  */
 ItemBox.prototype.repaint = function repaint() {
-  // TODO: make an efficient repaint
-  var changed = false;
-  var dom = this.dom;
-
-  if (!dom) {
-    this._create();
-    dom = this.dom;
-    changed = true;
-  }
-
-  if (dom) {
-    if (!this.parent) {
-      throw new Error('Cannot repaint item: no parent attached');
-    }
-
-    if (!dom.box.parentNode) {
-      var foreground = this.parent.getForeground();
-      if (!foreground) {
-        throw new Error('Cannot repaint time axis: ' +
-            'parent has no foreground container element');
-      }
-      foreground.appendChild(dom.box);
-      changed = true;
-    }
-
-    if (!dom.line.parentNode) {
-      var background = this.parent.getBackground();
-      if (!background) {
-        throw new Error('Cannot repaint time axis: ' +
-            'parent has no background container element');
-      }
-      background.appendChild(dom.line);
-      changed = true;
-    }
-
-    if (!dom.dot.parentNode) {
-      var axis = this.parent.getAxis();
-      if (!background) {
-        throw new Error('Cannot repaint time axis: ' +
-            'parent has no axis container element');
-      }
-      axis.appendChild(dom.dot);
-      changed = true;
-    }
-
-    this._repaintDeleteButton(dom.box);
-
-    // update contents
-    if (this.data.content != this.content) {
-      this.content = this.data.content;
-      if (this.content instanceof Element) {
-        dom.content.innerHTML = '';
-        dom.content.appendChild(this.content);
-      }
-      else if (this.data.content != undefined) {
-        dom.content.innerHTML = this.content;
-      }
-      else {
-        throw new Error('Property "content" missing in item ' + this.data.id);
-      }
-      changed = true;
-    }
-
-    // update class
-    var className = (this.data.className? ' ' + this.data.className : '') +
-        (this.selected ? ' selected' : '');
-    if (this.className != className) {
-      this.className = className;
-      dom.box.className = 'item box' + className;
-      dom.line.className = 'item line' + className;
-      dom.dot.className  = 'item dot' + className;
-      changed = true;
-    }
-  }
-
-  return changed;
-};
-
-/**
- * Show the item in the DOM (when not already visible). The items DOM will
- * be created when needed.
- * @return {Boolean} changed
- */
-ItemBox.prototype.show = function show() {
-  if (!this.dom || !this.dom.box.parentNode) {
-    return this.repaint();
-  }
-  else {
-    return false;
-  }
-};
-
-/**
- * Hide the item from the DOM (when visible)
- * @return {Boolean} changed
- */
-ItemBox.prototype.hide = function hide() {
-  var changed = false,
-      dom = this.dom;
-  if (dom) {
-    if (dom.box.parentNode) {
-      dom.box.parentNode.removeChild(dom.box);
-      changed = true;
-    }
-    if (dom.line.parentNode) {
-      dom.line.parentNode.removeChild(dom.line);
-    }
-    if (dom.dot.parentNode) {
-      dom.dot.parentNode.removeChild(dom.dot);
-    }
-  }
-  return changed;
-};
-
-/**
- * Reflow the item: calculate its actual size and position from the DOM
- * @return {boolean} resized    returns true if the axis is resized
- * @override
- */
-ItemBox.prototype.reflow = function reflow() {
-  var changed = 0,
-      update,
-      dom,
-      props,
-      options,
-      margin,
-      start,
-      align,
-      orientation,
-      top,
-      left,
-      data,
-      range;
-
-  if (this.data.start == undefined) {
-    throw new Error('Property "start" missing in item ' + this.data.id);
-  }
-
-  data = this.data;
-  range = this.parent && this.parent.range;
-  if (data && range) {
-    // TODO: account for the width of the item
-    var interval = (range.end - range.start);
-    this.visible = (data.start > range.start - interval) && (data.start < range.end + interval);
-  }
-  else {
-    this.visible = false;
-  }
-
-  if (this.visible) {
-    dom = this.dom;
-    if (dom) {
-      update = util.updateProperty;
-      props = this.props;
-      options = this.options;
-      start = this.parent.toScreen(this.data.start) + this.offset;
-      align = options.align || this.defaultOptions.align;
-      margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
-      orientation = options.orientation || this.defaultOptions.orientation;
-
-      changed += update(props.dot, 'height', dom.dot.offsetHeight);
-      changed += update(props.dot, 'width', dom.dot.offsetWidth);
-      changed += update(props.line, 'width', dom.line.offsetWidth);
-      changed += update(props.line, 'height', dom.line.offsetHeight);
-      changed += update(props.line, 'top', dom.line.offsetTop);
-      changed += update(this, 'width', dom.box.offsetWidth);
-      changed += update(this, 'height', dom.box.offsetHeight);
-      if (align == 'right') {
-        left = start - this.width;
-      }
-      else if (align == 'left') {
-        left = start;
-      }
-      else {
-        // default or 'center'
-        left = start - this.width / 2;
-      }
-      changed += update(this, 'left', left);
-
-      changed += update(props.line, 'left', start - props.line.width / 2);
-      changed += update(props.dot, 'left', start - props.dot.width / 2);
-      changed += update(props.dot, 'top', -props.dot.height / 2);
-      if (orientation == 'top') {
-        top = margin;
-
-        changed += update(this, 'top', top);
-      }
-      else {
-        // default or 'bottom'
-        var parentHeight = this.parent.height;
-        top = parentHeight - this.height - margin;
-
-        changed += update(this, 'top', top);
-      }
-    }
-    else {
-      changed += 1;
-    }
-  }
-
-  return (changed > 0);
-};
-
-/**
- * Create an items DOM
- * @private
- */
-ItemBox.prototype._create = function _create() {
   var dom = this.dom;
   if (!dom) {
-    this.dom = dom = {};
+    // create DOM
+    this.dom = {};
+    dom = this.dom;
 
-    // create the box
+    // create main box
     dom.box = document.createElement('DIV');
-    // className is updated in repaint()
 
     // contents box (inside the background box). used for making margins
     dom.content = document.createElement('DIV');
@@ -6316,54 +6016,173 @@ ItemBox.prototype._create = function _create() {
     // attach this item as attribute
     dom.box['timeline-item'] = this;
   }
+
+  // append DOM to parent DOM
+  if (!this.parent) {
+    throw new Error('Cannot repaint item: no parent attached');
+  }
+  if (!dom.box.parentNode) {
+    var foreground = this.parent.getForeground();
+    if (!foreground) throw new Error('Cannot repaint time axis: parent has no foreground container element');
+    foreground.appendChild(dom.box);
+  }
+  if (!dom.line.parentNode) {
+    var background = this.parent.getBackground();
+    if (!background) throw new Error('Cannot repaint time axis: parent has no background container element');
+    background.appendChild(dom.line);
+  }
+  if (!dom.dot.parentNode) {
+    var axis = this.parent.getAxis();
+    if (!background) throw new Error('Cannot repaint time axis: parent has no axis container element');
+    axis.appendChild(dom.dot);
+  }
+  this.displayed = true;
+
+  // update contents
+  if (this.data.content != this.content) {
+    this.content = this.data.content;
+    if (this.content instanceof Element) {
+      dom.content.innerHTML = '';
+      dom.content.appendChild(this.content);
+    }
+    else if (this.data.content != undefined) {
+      dom.content.innerHTML = this.content;
+    }
+    else {
+      throw new Error('Property "content" missing in item ' + this.data.id);
+    }
+
+    this.dirty = true;
+  }
+
+  // update class
+  var className = (this.data.className? ' ' + this.data.className : '') +
+      (this.selected ? ' selected' : '');
+  if (this.className != className) {
+    this.className = className;
+    dom.box.className = 'item box' + className;
+    dom.line.className = 'item line' + className;
+    dom.dot.className  = 'item dot' + className;
+
+    this.dirty = true;
+  }
+
+  // recalculate size
+  if (this.dirty) {
+    this.props.dot.height = dom.dot.offsetHeight;
+    this.props.dot.width = dom.dot.offsetWidth;
+    this.props.line.width = dom.line.offsetWidth;
+    this.width = dom.box.offsetWidth;
+    this.height = dom.box.offsetHeight;
+
+    this.dirty = false;
+  }
+
+  this._repaintDeleteButton(dom.box);
 };
 
 /**
- * Reposition the item, recalculate its left, top, and width, using the current
- * range and size of the items itemset
- * @override
+ * Show the item in the DOM (when not already displayed). The items DOM will
+ * be created when needed.
  */
-ItemBox.prototype.reposition = function reposition() {
-  var dom = this.dom,
-      props = this.props,
-      orientation = this.options.orientation || this.defaultOptions.orientation;
-
-  if (dom) {
-    var box = dom.box,
-        line = dom.line,
-        dot = dom.dot;
-
-    box.style.left = this.left + 'px';
-    box.style.top = this.top + 'px';
-
-    line.style.left = props.line.left + 'px';
-    if (orientation == 'top') {
-      line.style.top = 0 + 'px';
-      line.style.height = this.top + 'px';
-    }
-    else {
-      // orientation 'bottom'
-      line.style.top = (this.top + this.height) + 'px';
-      line.style.height = Math.max(this.parent.height - this.top - this.height +
-          this.props.dot.height / 2, 0) + 'px';
-    }
-
-    dot.style.left = props.dot.left + 'px';
-    dot.style.top = props.dot.top + 'px';
+ItemBox.prototype.show = function show() {
+  if (!this.displayed) {
+    this.repaint();
   }
+};
+
+/**
+ * Hide the item from the DOM (when visible)
+ */
+ItemBox.prototype.hide = function hide() {
+  if (this.displayed) {
+    var dom = this.dom;
+
+    if (dom.box.parentNode)   dom.box.parentNode.removeChild(dom.box);
+    if (dom.line.parentNode)  dom.line.parentNode.removeChild(dom.line);
+    if (dom.dot.parentNode)   dom.dot.parentNode.removeChild(dom.dot);
+
+    this.top = null;
+    this.left = null;
+
+    this.displayed = false;
+  }
+};
+
+/**
+ * Reposition the item horizontally
+ * @Override
+ */
+ItemBox.prototype.repositionX = function repositionX() {
+  var start = this.defaultOptions.toScreen(this.data.start),
+      align = this.options.align || this.defaultOptions.align,
+      left,
+      box = this.dom.box,
+      line = this.dom.line,
+      dot = this.dom.dot;
+
+  // calculate left position of the box
+  if (align == 'right') {
+    this.left = start - this.width;
+  }
+  else if (align == 'left') {
+    this.left = start;
+  }
+  else {
+    // default or 'center'
+    this.left = start - this.width / 2;
+  }
+
+  // reposition box
+  box.style.left = this.left + 'px';
+
+  // reposition line
+  line.style.left = (start - this.props.line.width / 2) + 'px';
+
+  // reposition dot
+  dot.style.left = (start - this.props.dot.width / 2) + 'px';
+};
+
+/**
+ * Reposition the item vertically
+ * @Override
+ */
+ItemBox.prototype.repositionY = function repositionY () {
+  var orientation = this.options.orientation || this.defaultOptions.orientation,
+      box = this.dom.box,
+      line = this.dom.line,
+      dot = this.dom.dot;
+
+  if (orientation == 'top') {
+    box.style.top = (this.top || 0) + 'px';
+    box.style.bottom = '';
+
+    line.style.top = '0';
+    line.style.bottom = '';
+    line.style.height = (this.parent.top + this.top + 1) + 'px';
+  }
+  else { // orientation 'bottom'
+    box.style.top = '';
+    box.style.bottom = (this.top || 0) + 'px';
+
+    line.style.top = (this.parent.top + this.parent.height - this.top - 1) + 'px';
+    line.style.bottom = '0';
+    line.style.height = '';
+  }
+
+  dot.style.top = (-this.props.dot.height / 2) + 'px';
 };
 
 /**
  * @constructor ItemPoint
  * @extends Item
- * @param {ItemSet} parent
  * @param {Object} data             Object containing parameters start
  *                                  content, className.
  * @param {Object} [options]        Options to set initial property values
  * @param {Object} [defaultOptions] default options
  *                                  // TODO: describe available options
  */
-function ItemPoint (parent, data, options, defaultOptions) {
+function ItemPoint (data, options, defaultOptions) {
   this.props = {
     dot: {
       top: 0,
@@ -6376,183 +6195,39 @@ function ItemPoint (parent, data, options, defaultOptions) {
     }
   };
 
-  Item.call(this, parent, data, options, defaultOptions);
+  // validate data
+  if (data) {
+    if (data.start == undefined) {
+      throw new Error('Property "start" missing in item ' + data);
+    }
+  }
+
+  Item.call(this, data, options, defaultOptions);
 }
 
-ItemPoint.prototype = new Item (null, null);
+ItemPoint.prototype = new Item (null);
+
+/**
+ * Check whether this item is visible inside given range
+ * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+ * @returns {boolean} True if visible
+ */
+ItemPoint.prototype.isVisible = function isVisible (range) {
+  // determine visibility
+  // TODO: account for the real width of the item. Right now we just add 1/4 to the window
+  var interval = (range.end - range.start) / 4;
+  return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
+};
 
 /**
  * Repaint the item
- * @return {Boolean} changed
  */
 ItemPoint.prototype.repaint = function repaint() {
-  // TODO: make an efficient repaint
-  var changed = false;
-  var dom = this.dom;
-
-  if (!dom) {
-    this._create();
-    dom = this.dom;
-    changed = true;
-  }
-
-  if (dom) {
-    if (!this.parent) {
-      throw new Error('Cannot repaint item: no parent attached');
-    }
-    var foreground = this.parent.getForeground();
-    if (!foreground) {
-      throw new Error('Cannot repaint time axis: ' +
-          'parent has no foreground container element');
-    }
-
-    if (!dom.point.parentNode) {
-      foreground.appendChild(dom.point);
-      foreground.appendChild(dom.point);
-      changed = true;
-    }
-
-    // update contents
-    if (this.data.content != this.content) {
-      this.content = this.data.content;
-      if (this.content instanceof Element) {
-        dom.content.innerHTML = '';
-        dom.content.appendChild(this.content);
-      }
-      else if (this.data.content != undefined) {
-        dom.content.innerHTML = this.content;
-      }
-      else {
-        throw new Error('Property "content" missing in item ' + this.data.id);
-      }
-      changed = true;
-    }
-
-    this._repaintDeleteButton(dom.point);
-
-    // update class
-    var className = (this.data.className? ' ' + this.data.className : '') +
-        (this.selected ? ' selected' : '');
-    if (this.className != className) {
-      this.className = className;
-      dom.point.className  = 'item point' + className;
-      changed = true;
-    }
-  }
-
-  return changed;
-};
-
-/**
- * Show the item in the DOM (when not already visible). The items DOM will
- * be created when needed.
- * @return {Boolean} changed
- */
-ItemPoint.prototype.show = function show() {
-  if (!this.dom || !this.dom.point.parentNode) {
-    return this.repaint();
-  }
-  else {
-    return false;
-  }
-};
-
-/**
- * Hide the item from the DOM (when visible)
- * @return {Boolean} changed
- */
-ItemPoint.prototype.hide = function hide() {
-  var changed = false,
-      dom = this.dom;
-  if (dom) {
-    if (dom.point.parentNode) {
-      dom.point.parentNode.removeChild(dom.point);
-      changed = true;
-    }
-  }
-  return changed;
-};
-
-/**
- * Reflow the item: calculate its actual size from the DOM
- * @return {boolean} resized    returns true if the axis is resized
- * @override
- */
-ItemPoint.prototype.reflow = function reflow() {
-  var changed = 0,
-      update,
-      dom,
-      props,
-      options,
-      margin,
-      orientation,
-      start,
-      top,
-      data,
-      range;
-
-  if (this.data.start == undefined) {
-    throw new Error('Property "start" missing in item ' + this.data.id);
-  }
-
-  data = this.data;
-  range = this.parent && this.parent.range;
-  if (data && range) {
-    // TODO: account for the width of the item
-    var interval = (range.end - range.start);
-    this.visible = (data.start > range.start - interval) && (data.start < range.end);
-  }
-  else {
-    this.visible = false;
-  }
-
-  if (this.visible) {
-    dom = this.dom;
-    if (dom) {
-      update = util.updateProperty;
-      props = this.props;
-      options = this.options;
-      orientation = options.orientation || this.defaultOptions.orientation;
-      margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
-      start = this.parent.toScreen(this.data.start) + this.offset;
-
-      changed += update(this, 'width', dom.point.offsetWidth);
-      changed += update(this, 'height', dom.point.offsetHeight);
-      changed += update(props.dot, 'width', dom.dot.offsetWidth);
-      changed += update(props.dot, 'height', dom.dot.offsetHeight);
-      changed += update(props.content, 'height', dom.content.offsetHeight);
-
-      if (orientation == 'top') {
-        top = margin;
-      }
-      else {
-        // default or 'bottom'
-        var parentHeight = this.parent.height;
-        top = Math.max(parentHeight - this.height - margin, 0);
-      }
-      changed += update(this, 'top', top);
-      changed += update(this, 'left', start - props.dot.width / 2);
-      changed += update(props.content, 'marginLeft', 1.5 * props.dot.width);
-      //changed += update(props.content, 'marginRight', 0.5 * props.dot.width); // TODO
-
-      changed += update(props.dot, 'top', (this.height - props.dot.height) / 2);
-    }
-    else {
-      changed += 1;
-    }
-  }
-
-  return (changed > 0);
-};
-
-/**
- * Create an items DOM
- * @private
- */
-ItemPoint.prototype._create = function _create() {
   var dom = this.dom;
   if (!dom) {
-    this.dom = dom = {};
+    // create DOM
+    this.dom = {};
+    dom = this.dom;
 
     // background box
     dom.point = document.createElement('div');
@@ -6565,259 +6240,185 @@ ItemPoint.prototype._create = function _create() {
 
     // dot at start
     dom.dot = document.createElement('div');
-    dom.dot.className  = 'dot';
     dom.point.appendChild(dom.dot);
 
     // attach this item as attribute
     dom.point['timeline-item'] = this;
   }
+
+  // append DOM to parent DOM
+  if (!this.parent) {
+    throw new Error('Cannot repaint item: no parent attached');
+  }
+  if (!dom.point.parentNode) {
+    var foreground = this.parent.getForeground();
+    if (!foreground) {
+      throw new Error('Cannot repaint time axis: parent has no foreground container element');
+    }
+    foreground.appendChild(dom.point);
+  }
+  this.displayed = true;
+
+  // update contents
+  if (this.data.content != this.content) {
+    this.content = this.data.content;
+    if (this.content instanceof Element) {
+      dom.content.innerHTML = '';
+      dom.content.appendChild(this.content);
+    }
+    else if (this.data.content != undefined) {
+      dom.content.innerHTML = this.content;
+    }
+    else {
+      throw new Error('Property "content" missing in item ' + this.data.id);
+    }
+
+    this.dirty = true;
+  }
+
+  // update class
+  var className = (this.data.className? ' ' + this.data.className : '') +
+      (this.selected ? ' selected' : '');
+  if (this.className != className) {
+    this.className = className;
+    dom.point.className  = 'item point' + className;
+    dom.dot.className  = 'item dot' + className;
+
+    this.dirty = true;
+  }
+
+  // recalculate size
+  if (this.dirty) {
+    this.width = dom.point.offsetWidth;
+    this.height = dom.point.offsetHeight;
+    this.props.dot.width = dom.dot.offsetWidth;
+    this.props.dot.height = dom.dot.offsetHeight;
+    this.props.content.height = dom.content.offsetHeight;
+
+    // resize contents
+    dom.content.style.marginLeft = 2 * this.props.dot.width + 'px';
+    //dom.content.style.marginRight = ... + 'px'; // TODO: margin right
+
+    dom.dot.style.top = ((this.height - this.props.dot.height) / 2) + 'px';
+    dom.dot.style.left = (this.props.dot.width / 2) + 'px';
+
+    this.dirty = false;
+  }
+
+  this._repaintDeleteButton(dom.point);
 };
 
 /**
- * Reposition the item, recalculate its left, top, and width, using the current
- * range and size of the items itemset
- * @override
+ * Show the item in the DOM (when not already visible). The items DOM will
+ * be created when needed.
  */
-ItemPoint.prototype.reposition = function reposition() {
-  var dom = this.dom,
-      props = this.props;
+ItemPoint.prototype.show = function show() {
+  if (!this.displayed) {
+    this.repaint();
+  }
+};
 
-  if (dom) {
-    dom.point.style.top = this.top + 'px';
-    dom.point.style.left = this.left + 'px';
+/**
+ * Hide the item from the DOM (when visible)
+ */
+ItemPoint.prototype.hide = function hide() {
+  if (this.displayed) {
+    if (this.dom.point.parentNode) {
+      this.dom.point.parentNode.removeChild(this.dom.point);
+    }
 
-    dom.content.style.marginLeft = props.content.marginLeft + 'px';
-    //dom.content.style.marginRight = props.content.marginRight + 'px'; // TODO
+    this.top = null;
+    this.left = null;
 
-    dom.dot.style.top = props.dot.top + 'px';
+    this.displayed = false;
+  }
+};
+
+/**
+ * Reposition the item horizontally
+ * @Override
+ */
+ItemPoint.prototype.repositionX = function repositionX() {
+  var start = this.defaultOptions.toScreen(this.data.start);
+
+  this.left = start - this.props.dot.width;
+
+  // reposition point
+  this.dom.point.style.left = this.left + 'px';
+};
+
+/**
+ * Reposition the item vertically
+ * @Override
+ */
+ItemPoint.prototype.repositionY = function repositionY () {
+  var orientation = this.options.orientation || this.defaultOptions.orientation,
+      point = this.dom.point;
+
+  if (orientation == 'top') {
+    point.style.top = this.top + 'px';
+    point.style.bottom = '';
+  }
+  else {
+    point.style.top = '';
+    point.style.bottom = this.top + 'px';
   }
 };
 
 /**
  * @constructor ItemRange
  * @extends Item
- * @param {ItemSet} parent
  * @param {Object} data             Object containing parameters start, end
  *                                  content, className.
  * @param {Object} [options]        Options to set initial property values
  * @param {Object} [defaultOptions] default options
  *                                  // TODO: describe available options
  */
-function ItemRange (parent, data, options, defaultOptions) {
+function ItemRange (data, options, defaultOptions) {
   this.props = {
     content: {
-      left: 0,
       width: 0
     }
   };
 
-  Item.call(this, parent, data, options, defaultOptions);
+  // validate data
+  if (data) {
+    if (data.start == undefined) {
+      throw new Error('Property "start" missing in item ' + data.id);
+    }
+    if (data.end == undefined) {
+      throw new Error('Property "end" missing in item ' + data.id);
+    }
+  }
+
+  Item.call(this, data, options, defaultOptions);
 }
 
-ItemRange.prototype = new Item (null, null);
+ItemRange.prototype = new Item (null);
+
+ItemRange.prototype.baseClassName = 'item range';
+
+/**
+ * Check whether this item is visible inside given range
+ * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+ * @returns {boolean} True if visible
+ */
+ItemRange.prototype.isVisible = function isVisible (range) {
+  // determine visibility
+  return (this.data.start < range.end) && (this.data.end > range.start);
+};
 
 /**
  * Repaint the item
- * @return {Boolean} changed
  */
 ItemRange.prototype.repaint = function repaint() {
-  // TODO: make an efficient repaint
-  var changed = false;
-  var dom = this.dom;
-
-  if (!dom) {
-    this._create();
-    dom = this.dom;
-    changed = true;
-  }
-
-  if (dom) {
-    if (!this.parent) {
-      throw new Error('Cannot repaint item: no parent attached');
-    }
-    var foreground = this.parent.getForeground();
-    if (!foreground) {
-      throw new Error('Cannot repaint time axis: ' +
-          'parent has no foreground container element');
-    }
-
-    if (!dom.box.parentNode) {
-      foreground.appendChild(dom.box);
-      changed = true;
-    }
-
-    // update content
-    if (this.data.content != this.content) {
-      this.content = this.data.content;
-      if (this.content instanceof Element) {
-        dom.content.innerHTML = '';
-        dom.content.appendChild(this.content);
-      }
-      else if (this.data.content != undefined) {
-        dom.content.innerHTML = this.content;
-      }
-      else {
-        throw new Error('Property "content" missing in item ' + this.data.id);
-      }
-      changed = true;
-    }
-
-    this._repaintDeleteButton(dom.box);
-    this._repaintDragLeft();
-    this._repaintDragRight();
-
-    // update class
-    var className = (this.data.className ? (' ' + this.data.className) : '') +
-        (this.selected ? ' selected' : '');
-    if (this.className != className) {
-      this.className = className;
-      dom.box.className = 'item range' + className;
-      changed = true;
-    }
-  }
-
-  return changed;
-};
-
-/**
- * Show the item in the DOM (when not already visible). The items DOM will
- * be created when needed.
- * @return {Boolean} changed
- */
-ItemRange.prototype.show = function show() {
-  if (!this.dom || !this.dom.box.parentNode) {
-    return this.repaint();
-  }
-  else {
-    return false;
-  }
-};
-
-/**
- * Hide the item from the DOM (when visible)
- * @return {Boolean} changed
- */
-ItemRange.prototype.hide = function hide() {
-  var changed = false,
-      dom = this.dom;
-  if (dom) {
-    if (dom.box.parentNode) {
-      dom.box.parentNode.removeChild(dom.box);
-      changed = true;
-    }
-  }
-  return changed;
-};
-
-/**
- * Reflow the item: calculate its actual size from the DOM
- * @return {boolean} resized    returns true if the axis is resized
- * @override
- */
-ItemRange.prototype.reflow = function reflow() {
-  var changed = 0,
-      dom,
-      props,
-      options,
-      margin,
-      padding,
-      parent,
-      start,
-      end,
-      data,
-      range,
-      update,
-      box,
-      parentWidth,
-      contentLeft,
-      orientation,
-      top;
-
-  if (this.data.start == undefined) {
-    throw new Error('Property "start" missing in item ' + this.data.id);
-  }
-  if (this.data.end == undefined) {
-    throw new Error('Property "end" missing in item ' + this.data.id);
-  }
-
-  data = this.data;
-  range = this.parent && this.parent.range;
-  if (data && range) {
-    // TODO: account for the width of the item. Take some margin
-    this.visible = (data.start < range.end) && (data.end > range.start);
-  }
-  else {
-    this.visible = false;
-  }
-
-  if (this.visible) {
-    dom = this.dom;
-    if (dom) {
-      props = this.props;
-      options = this.options;
-      parent = this.parent;
-      start = parent.toScreen(this.data.start) + this.offset;
-      end = parent.toScreen(this.data.end) + this.offset;
-      update = util.updateProperty;
-      box = dom.box;
-      parentWidth = parent.width;
-      orientation = options.orientation || this.defaultOptions.orientation;
-      margin = options.margin && options.margin.axis || this.defaultOptions.margin.axis;
-      padding = options.padding || this.defaultOptions.padding;
-
-      changed += update(props.content, 'width', dom.content.offsetWidth);
-
-      changed += update(this, 'height', box.offsetHeight);
-
-      // limit the width of the this, as browsers cannot draw very wide divs
-      if (start < -parentWidth) {
-        start = -parentWidth;
-      }
-      if (end > 2 * parentWidth) {
-        end = 2 * parentWidth;
-      }
-
-      // when range exceeds left of the window, position the contents at the left of the visible area
-      if (start < 0) {
-        contentLeft = Math.min(-start,
-            (end - start - props.content.width - 2 * padding));
-        // TODO: remove the need for options.padding. it's terrible.
-      }
-      else {
-        contentLeft = 0;
-      }
-      changed += update(props.content, 'left', contentLeft);
-
-      if (orientation == 'top') {
-        top = margin;
-        changed += update(this, 'top', top);
-      }
-      else {
-        // default or 'bottom'
-        top = parent.height - this.height - margin;
-        changed += update(this, 'top', top);
-      }
-
-      changed += update(this, 'left', start);
-      changed += update(this, 'width', Math.max(end - start, 1)); // TODO: reckon with border width;
-    }
-    else {
-      changed += 1;
-    }
-  }
-
-  return (changed > 0);
-};
-
-/**
- * Create an items DOM
- * @private
- */
-ItemRange.prototype._create = function _create() {
   var dom = this.dom;
   if (!dom) {
-    this.dom = dom = {};
-    // background box
+    // create DOM
+    this.dom = {};
+    dom = this.dom;
+
+      // background box
     dom.box = document.createElement('div');
     // className is updated in repaint()
 
@@ -6829,32 +6430,151 @@ ItemRange.prototype._create = function _create() {
     // attach this item as attribute
     dom.box['timeline-item'] = this;
   }
+
+  // append DOM to parent DOM
+  if (!this.parent) {
+    throw new Error('Cannot repaint item: no parent attached');
+  }
+  if (!dom.box.parentNode) {
+    var foreground = this.parent.getForeground();
+    if (!foreground) {
+      throw new Error('Cannot repaint time axis: parent has no foreground container element');
+    }
+    foreground.appendChild(dom.box);
+  }
+  this.displayed = true;
+
+  // update contents
+  if (this.data.content != this.content) {
+    this.content = this.data.content;
+    if (this.content instanceof Element) {
+      dom.content.innerHTML = '';
+      dom.content.appendChild(this.content);
+    }
+    else if (this.data.content != undefined) {
+      dom.content.innerHTML = this.content;
+    }
+    else {
+      throw new Error('Property "content" missing in item ' + this.data.id);
+    }
+
+    this.dirty = true;
+  }
+
+  // update class
+  var className = (this.data.className ? (' ' + this.data.className) : '') +
+      (this.selected ? ' selected' : '');
+  if (this.className != className) {
+    this.className = className;
+    dom.box.className = this.baseClassName + className;
+
+    this.dirty = true;
+  }
+
+  // recalculate size
+  if (this.dirty) {
+    this.props.content.width = this.dom.content.offsetWidth;
+    this.height = this.dom.box.offsetHeight;
+
+    this.dirty = false;
+  }
+
+  this._repaintDeleteButton(dom.box);
+  this._repaintDragLeft();
+  this._repaintDragRight();
 };
 
 /**
- * Reposition the item, recalculate its left, top, and width, using the current
- * range and size of the items itemset
- * @override
+ * Show the item in the DOM (when not already visible). The items DOM will
+ * be created when needed.
  */
-ItemRange.prototype.reposition = function reposition() {
-  var dom = this.dom,
-      props = this.props;
+ItemRange.prototype.show = function show() {
+  if (!this.displayed) {
+    this.repaint();
+  }
+};
 
-  if (dom) {
-    dom.box.style.top = this.top + 'px';
-    dom.box.style.left = this.left + 'px';
-    dom.box.style.width = this.width + 'px';
+/**
+ * Hide the item from the DOM (when visible)
+ * @return {Boolean} changed
+ */
+ItemRange.prototype.hide = function hide() {
+  if (this.displayed) {
+    var box = this.dom.box;
 
-    dom.content.style.left = props.content.left + 'px';
+    if (box.parentNode) {
+      box.parentNode.removeChild(box);
+    }
+
+    this.top = null;
+    this.left = null;
+
+    this.displayed = false;
+  }
+};
+
+/**
+ * Reposition the item horizontally
+ * @Override
+ */
+ItemRange.prototype.repositionX = function repositionX() {
+  var props = this.props,
+      parentWidth = this.parent.width,
+      start = this.defaultOptions.toScreen(this.data.start),
+      end = this.defaultOptions.toScreen(this.data.end),
+      padding = 'padding' in this.options ? this.options.padding : this.defaultOptions.padding,
+      contentLeft;
+
+  // limit the width of the this, as browsers cannot draw very wide divs
+  if (start < -parentWidth) {
+    start = -parentWidth;
+  }
+  if (end > 2 * parentWidth) {
+    end = 2 * parentWidth;
+  }
+
+  // when range exceeds left of the window, position the contents at the left of the visible area
+  if (start < 0) {
+    contentLeft = Math.min(-start,
+        (end - start - props.content.width - 2 * padding));
+    // TODO: remove the need for options.padding. it's terrible.
+  }
+  else {
+    contentLeft = 0;
+  }
+
+  this.left = start;
+  this.width = Math.max(end - start, 1);
+
+  this.dom.box.style.left = this.left + 'px';
+  this.dom.box.style.width = this.width + 'px';
+  this.dom.content.style.left = contentLeft + 'px';
+};
+
+/**
+ * Reposition the item vertically
+ * @Override
+ */
+ItemRange.prototype.repositionY = function repositionY() {
+  var orientation = this.options.orientation || this.defaultOptions.orientation,
+      box = this.dom.box;
+
+  if (orientation == 'top') {
+    box.style.top = this.top + 'px';
+    box.style.bottom = '';
+  }
+  else {
+    box.style.top = '';
+    box.style.bottom = this.top + 'px';
   }
 };
 
 /**
  * Repaint a drag area on the left side of the range when the range is selected
- * @private
+ * @protected
  */
 ItemRange.prototype._repaintDragLeft = function () {
-  if (this.selected && this.options.editable && !this.dom.dragLeft) {
+  if (this.selected && this.options.editable.updateTime && !this.dom.dragLeft) {
     // create and show drag area
     var dragLeft = document.createElement('div');
     dragLeft.className = 'drag-left';
@@ -6881,10 +6601,10 @@ ItemRange.prototype._repaintDragLeft = function () {
 
 /**
  * Repaint a drag area on the right side of the range when the range is selected
- * @private
+ * @protected
  */
 ItemRange.prototype._repaintDragRight = function () {
-  if (this.selected && this.options.editable && !this.dom.dragRight) {
+  if (this.selected && this.options.editable.updateTime && !this.dom.dragRight) {
     // create and show drag area
     var dragRight = document.createElement('div');
     dragRight.className = 'drag-right';
@@ -6912,14 +6632,13 @@ ItemRange.prototype._repaintDragRight = function () {
 /**
  * @constructor ItemRangeOverflow
  * @extends ItemRange
- * @param {ItemSet} parent
  * @param {Object} data             Object containing parameters start, end
  *                                  content, className.
  * @param {Object} [options]        Options to set initial property values
  * @param {Object} [defaultOptions] default options
  *                                  // TODO: describe available options
  */
-function ItemRangeOverflow (parent, data, options, defaultOptions) {
+function ItemRangeOverflow (data, options, defaultOptions) {
   this.props = {
     content: {
       left: 0,
@@ -6927,125 +6646,58 @@ function ItemRangeOverflow (parent, data, options, defaultOptions) {
     }
   };
 
-  // define a private property _width, which is the with of the range box
-  // adhering to the ranges start and end date. The property width has a
-  // getter which returns the max of border width and content width
-  this._width = 0;
-  Object.defineProperty(this, 'width', {
-    get: function () {
-      return (this.props.content && this._width < this.props.content.width) ?
-          this.props.content.width :
-          this._width;
-    },
-
-    set: function (width) {
-      this._width = width;
-    }
-  });
-
-  ItemRange.call(this, parent, data, options, defaultOptions);
+  ItemRange.call(this, data, options, defaultOptions);
 }
 
-ItemRangeOverflow.prototype = new ItemRange (null, null);
+ItemRangeOverflow.prototype = new ItemRange (null);
+
+ItemRangeOverflow.prototype.baseClassName = 'item rangeoverflow';
 
 /**
- * Repaint the item
- * @return {Boolean} changed
+ * Reposition the item horizontally
+ * @Override
  */
-ItemRangeOverflow.prototype.repaint = function repaint() {
-  // TODO: make an efficient repaint
-  var changed = false;
-  var dom = this.dom;
+ItemRangeOverflow.prototype.repositionX = function repositionX() {
+  var parentWidth = this.parent.width,
+      start = this.defaultOptions.toScreen(this.data.start),
+      end = this.defaultOptions.toScreen(this.data.end),
+      padding = 'padding' in this.options ? this.options.padding : this.defaultOptions.padding,
+      contentLeft;
 
-  if (!dom) {
-    this._create();
-    dom = this.dom;
-    changed = true;
+  // limit the width of the this, as browsers cannot draw very wide divs
+  if (start < -parentWidth) {
+    start = -parentWidth;
+  }
+  if (end > 2 * parentWidth) {
+    end = 2 * parentWidth;
   }
 
-  if (dom) {
-    if (!this.parent) {
-      throw new Error('Cannot repaint item: no parent attached');
-    }
-    var foreground = this.parent.getForeground();
-    if (!foreground) {
-      throw new Error('Cannot repaint time axis: ' +
-          'parent has no foreground container element');
-    }
+  // when range exceeds left of the window, position the contents at the left of the visible area
+  contentLeft = Math.max(-start, 0);
 
-    if (!dom.box.parentNode) {
-      foreground.appendChild(dom.box);
-      changed = true;
-    }
+  this.left = start;
+  var boxWidth = Math.max(end - start, 1);
+  this.width = (this.props.content.width < boxWidth) ?
+      boxWidth :
+      start + contentLeft + this.props.content.width;
 
-    // update content
-    if (this.data.content != this.content) {
-      this.content = this.data.content;
-      if (this.content instanceof Element) {
-        dom.content.innerHTML = '';
-        dom.content.appendChild(this.content);
-      }
-      else if (this.data.content != undefined) {
-        dom.content.innerHTML = this.content;
-      }
-      else {
-        throw new Error('Property "content" missing in item ' + this.id);
-      }
-      changed = true;
-    }
-
-    this._repaintDeleteButton(dom.box);
-    this._repaintDragLeft();
-    this._repaintDragRight();
-
-    // update class
-    var className = (this.data.className? ' ' + this.data.className : '') +
-        (this.selected ? ' selected' : '');
-    if (this.className != className) {
-      this.className = className;
-      dom.box.className = 'item rangeoverflow' + className;
-      changed = true;
-    }
-  }
-
-  return changed;
-};
-
-/**
- * Reposition the item, recalculate its left, top, and width, using the current
- * range and size of the items itemset
- * @override
- */
-ItemRangeOverflow.prototype.reposition = function reposition() {
-  var dom = this.dom,
-      props = this.props;
-
-  if (dom) {
-    dom.box.style.top = this.top + 'px';
-    dom.box.style.left = this.left + 'px';
-    dom.box.style.width = this._width + 'px';
-
-    dom.content.style.left = props.content.left + 'px';
-  }
+  this.dom.box.style.left = this.left + 'px';
+  this.dom.box.style.width = boxWidth + 'px';
+  this.dom.content.style.left = contentLeft + 'px';
 };
 
 /**
  * @constructor Group
- * @param {GroupSet} parent
  * @param {Number | String} groupId
- * @param {Object} [options]  Options to set initial property values
- *                            // TODO: describe available options
- * @extends Component
+ * @param {Object} data
+ * @param {ItemSet} itemSet
  */
-function Group (parent, groupId, options) {
-  this.id = util.randomUUID();
-  this.parent = parent;
-
+function Group (groupId, data, itemSet) {
   this.groupId = groupId;
-  this.itemset = null;    // ItemSet
-  this.options = options || {};
-  this.options.top = 0;
 
+  this.itemSet = itemSet;
+
+  this.dom = {};
   this.props = {
     label: {
       width: 0,
@@ -7053,691 +6705,438 @@ function Group (parent, groupId, options) {
     }
   };
 
-  this.top = 0;
-  this.left = 0;
-  this.width = 0;
-  this.height = 0;
-}
-
-Group.prototype = new Component();
-
-// TODO: comment
-Group.prototype.setOptions = Component.prototype.setOptions;
-
-/**
- * Get the container element of the panel, which can be used by a child to
- * add its own widgets.
- * @returns {HTMLElement} container
- */
-Group.prototype.getContainer = function () {
-  return this.parent.getContainer();
-};
-
-/**
- * Set item set for the group. The group will create a view on the itemset,
- * filtered by the groups id.
- * @param {DataSet | DataView} items
- */
-Group.prototype.setItems = function setItems(items) {
-  if (this.itemset) {
-    // remove current item set
-    this.itemset.hide();
-    this.itemset.setItems();
-
-    this.parent.controller.remove(this.itemset);
-    this.itemset = null;
-  }
-
-  if (items) {
-    var groupId = this.groupId;
-
-    var itemsetOptions = Object.create(this.options);
-    this.itemset = new ItemSet(this, null, itemsetOptions);
-    this.itemset.setRange(this.parent.range);
-
-    this.view = new DataView(items, {
-      filter: function (item) {
-        return item.group == groupId;
-      }
-    });
-    this.itemset.setItems(this.view);
-
-    this.parent.controller.add(this.itemset);
-  }
-};
-
-/**
- * Set selected items by their id. Replaces the current selection.
- * Unknown id's are silently ignored.
- * @param {Array} [ids] An array with zero or more id's of the items to be
- *                      selected. If ids is an empty array, all items will be
- *                      unselected.
- */
-Group.prototype.setSelection = function setSelection(ids) {
-  if (this.itemset) this.itemset.setSelection(ids);
-};
-
-/**
- * Get the selected items by their id
- * @return {Array} ids  The ids of the selected items
- */
-Group.prototype.getSelection = function getSelection() {
-  return this.itemset ? this.itemset.getSelection() : [];
-};
-
-/**
- * Repaint the item
- * @return {Boolean} changed
- */
-Group.prototype.repaint = function repaint() {
-  return false;
-};
-
-/**
- * Reflow the item
- * @return {Boolean} resized
- */
-Group.prototype.reflow = function reflow() {
-  var changed = 0,
-      update = util.updateProperty;
-
-  changed += update(this, 'top',    this.itemset ? this.itemset.top : 0);
-  changed += update(this, 'height', this.itemset ? this.itemset.height : 0);
-
-  // TODO: reckon with the height of the group label
-
-  if (this.label) {
-    var inner = this.label.firstChild;
-    changed += update(this.props.label, 'width', inner.clientWidth);
-    changed += update(this.props.label, 'height', inner.clientHeight);
-  }
-  else {
-    changed += update(this.props.label, 'width', 0);
-    changed += update(this.props.label, 'height', 0);
-  }
-
-  return (changed > 0);
-};
-
-/**
- * An GroupSet holds a set of groups
- * @param {Component} parent
- * @param {Component[]} [depends]   Components on which this components depends
- *                                  (except for the parent)
- * @param {Object} [options]        See GroupSet.setOptions for the available
- *                                  options.
- * @constructor GroupSet
- * @extends Panel
- */
-function GroupSet(parent, depends, options) {
-  this.id = util.randomUUID();
-  this.parent = parent;
-  this.depends = depends;
-
-  this.options = options || {};
-
-  this.range = null;      // Range or Object {start: number, end: number}
-  this.itemsData = null;  // DataSet with items
-  this.groupsData = null; // DataSet with groups
-
-  this.groups = {};       // map with groups
-
-  this.dom = {};
-  this.props = {
-    labels: {
-      width: 0
-    }
+  this.items = {};        // items filtered by groupId of this group
+  this.visibleItems = []; // items currently visible in window
+  this.orderedItems = {   // items sorted by start and by end
+    byStart: [],
+    byEnd: []
   };
 
-  // TODO: implement right orientation of the labels
+  this._create();
 
-  // changes in groups are queued  key/value map containing id/action
-  this.queue = {};
-
-  var me = this;
-  this.listeners = {
-    'add': function (event, params) {
-      me._onAdd(params.items);
-    },
-    'update': function (event, params) {
-      me._onUpdate(params.items);
-    },
-    'remove': function (event, params) {
-      me._onRemove(params.items);
-    }
-  };
+  this.setData(data);
 }
 
-GroupSet.prototype = new Panel();
-
 /**
- * Set options for the GroupSet. Existing options will be extended/overwritten.
- * @param {Object} [options] The following options are available:
- *                           {String | function} groupsOrder
- *                           TODO: describe options
- */
-GroupSet.prototype.setOptions = Component.prototype.setOptions;
-
-GroupSet.prototype.setRange = function (range) {
-  // TODO: implement setRange
-};
-
-/**
- * Set items
- * @param {vis.DataSet | null} items
- */
-GroupSet.prototype.setItems = function setItems(items) {
-  this.itemsData = items;
-
-  for (var id in this.groups) {
-    if (this.groups.hasOwnProperty(id)) {
-      var group = this.groups[id];
-      group.setItems(items);
-    }
-  }
-};
-
-/**
- * Get items
- * @return {vis.DataSet | null} items
- */
-GroupSet.prototype.getItems = function getItems() {
-  return this.itemsData;
-};
-
-/**
- * Set range (start and end).
- * @param {Range | Object} range  A Range or an object containing start and end.
- */
-GroupSet.prototype.setRange = function setRange(range) {
-  this.range = range;
-};
-
-/**
- * Set groups
- * @param {vis.DataSet} groups
- */
-GroupSet.prototype.setGroups = function setGroups(groups) {
-  var me = this,
-      ids;
-
-  // unsubscribe from current dataset
-  if (this.groupsData) {
-    util.forEach(this.listeners, function (callback, event) {
-      me.groupsData.unsubscribe(event, callback);
-    });
-
-    // remove all drawn groups
-    ids = this.groupsData.getIds();
-    this._onRemove(ids);
-  }
-
-  // replace the dataset
-  if (!groups) {
-    this.groupsData = null;
-  }
-  else if (groups instanceof DataSet) {
-    this.groupsData = groups;
-  }
-  else {
-    this.groupsData = new DataSet({
-      convert: {
-        start: 'Date',
-        end: 'Date'
-      }
-    });
-    this.groupsData.add(groups);
-  }
-
-  if (this.groupsData) {
-    // subscribe to new dataset
-    var id = this.id;
-    util.forEach(this.listeners, function (callback, event) {
-      me.groupsData.on(event, callback, id);
-    });
-
-    // draw all new groups
-    ids = this.groupsData.getIds();
-    this._onAdd(ids);
-  }
-};
-
-/**
- * Get groups
- * @return {vis.DataSet | null} groups
- */
-GroupSet.prototype.getGroups = function getGroups() {
-  return this.groupsData;
-};
-
-/**
- * Set selected items by their id. Replaces the current selection.
- * Unknown id's are silently ignored.
- * @param {Array} [ids] An array with zero or more id's of the items to be
- *                      selected. If ids is an empty array, all items will be
- *                      unselected.
- */
-GroupSet.prototype.setSelection = function setSelection(ids) {
-  var selection = [],
-      groups = this.groups;
-
-  // iterate over each of the groups
-  for (var id in groups) {
-    if (groups.hasOwnProperty(id)) {
-      var group = groups[id];
-      group.setSelection(ids);
-    }
-  }
-
-  return selection;
-};
-
-/**
- * Get the selected items by their id
- * @return {Array} ids  The ids of the selected items
- */
-GroupSet.prototype.getSelection = function getSelection() {
-  var selection = [],
-      groups = this.groups;
-
-  // iterate over each of the groups
-  for (var id in groups) {
-    if (groups.hasOwnProperty(id)) {
-      var group = groups[id];
-      selection = selection.concat(group.getSelection());
-    }
-  }
-
-  return selection;
-};
-
-/**
- * Repaint the component
- * @return {Boolean} changed
- */
-GroupSet.prototype.repaint = function repaint() {
-  var changed = 0,
-      i, id, group, label,
-      update = util.updateProperty,
-      asSize = util.option.asSize,
-      asElement = util.option.asElement,
-      options = this.options,
-      frame = this.dom.frame,
-      labels = this.dom.labels,
-      labelSet = this.dom.labelSet;
-
-  // create frame
-  if (!this.parent) {
-    throw new Error('Cannot repaint groupset: no parent attached');
-  }
-  var parentContainer = this.parent.getContainer();
-  if (!parentContainer) {
-    throw new Error('Cannot repaint groupset: parent has no container element');
-  }
-  if (!frame) {
-    frame = document.createElement('div');
-    frame.className = 'groupset';
-    frame['timeline-groupset'] = this;
-    this.dom.frame = frame;
-
-    var className = options.className;
-    if (className) {
-      util.addClassName(frame, util.option.asString(className));
-    }
-
-    changed += 1;
-  }
-  if (!frame.parentNode) {
-    parentContainer.appendChild(frame);
-    changed += 1;
-  }
-
-  // create labels
-  var labelContainer = asElement(options.labelContainer);
-  if (!labelContainer) {
-    throw new Error('Cannot repaint groupset: option "labelContainer" not defined');
-  }
-  if (!labels) {
-    labels = document.createElement('div');
-    labels.className = 'labels';
-    this.dom.labels = labels;
-  }
-  if (!labelSet) {
-    labelSet = document.createElement('div');
-    labelSet.className = 'label-set';
-    labels.appendChild(labelSet);
-    this.dom.labelSet = labelSet;
-  }
-  if (!labels.parentNode || labels.parentNode != labelContainer) {
-    if (labels.parentNode) {
-      labels.parentNode.removeChild(labels.parentNode);
-    }
-    labelContainer.appendChild(labels);
-  }
-
-  // reposition frame
-  changed += update(frame.style, 'height', asSize(options.height, this.height + 'px'));
-  changed += update(frame.style, 'top',    asSize(options.top, '0px'));
-  changed += update(frame.style, 'left',   asSize(options.left, '0px'));
-  changed += update(frame.style, 'width',  asSize(options.width, '100%'));
-
-  // reposition labels
-  changed += update(labelSet.style, 'top',    asSize(options.top, '0px'));
-  changed += update(labelSet.style, 'height', asSize(options.height, this.height + 'px'));
-
-  var me = this,
-      queue = this.queue,
-      groups = this.groups,
-      groupsData = this.groupsData;
-
-  // show/hide added/changed/removed groups
-  var ids = Object.keys(queue);
-  if (ids.length) {
-    ids.forEach(function (id) {
-      var action = queue[id];
-      var group = groups[id];
-
-      //noinspection FallthroughInSwitchStatementJS
-      switch (action) {
-        case 'add':
-        case 'update':
-          if (!group) {
-            var groupOptions = Object.create(me.options);
-            util.extend(groupOptions, {
-              height: null,
-              maxHeight: null
-            });
-
-            group = new Group(me, id, groupOptions);
-            group.setItems(me.itemsData); // attach items data
-            groups[id] = group;
-
-            me.controller.add(group);
-          }
-
-          // TODO: update group data
-          group.data = groupsData.get(id);
-
-          delete queue[id];
-          break;
-
-        case 'remove':
-          if (group) {
-            group.setItems(); // detach items data
-            delete groups[id];
-
-            me.controller.remove(group);
-          }
-
-          // update lists
-          delete queue[id];
-          break;
-
-        default:
-          console.log('Error: unknown action "' + action + '"');
-      }
-    });
-
-    // the groupset depends on each of the groups
-    //this.depends = this.groups; // TODO: gives a circular reference through the parent
-
-    // TODO: apply dependencies of the groupset
-
-    // update the top positions of the groups in the correct order
-    var orderedGroups = this.groupsData.getIds({
-      order: this.options.groupOrder
-    });
-    for (i = 0; i < orderedGroups.length; i++) {
-      (function (group, prevGroup) {
-        var top = 0;
-        if (prevGroup) {
-          top = function () {
-            // TODO: top must reckon with options.maxHeight
-            return prevGroup.top + prevGroup.height;
-          }
-        }
-        group.setOptions({
-          top: top
-        });
-      })(groups[orderedGroups[i]], groups[orderedGroups[i - 1]]);
-    }
-
-    // (re)create the labels
-    while (labelSet.firstChild) {
-      labelSet.removeChild(labelSet.firstChild);
-    }
-    for (i = 0; i < orderedGroups.length; i++) {
-      id = orderedGroups[i];
-      label = this._createLabel(id);
-      labelSet.appendChild(label);
-    }
-
-    changed++;
-  }
-
-  // reposition the labels
-  // TODO: labels are not displayed correctly when orientation=='top'
-  // TODO: width of labelPanel is not immediately updated on a change in groups
-  for (id in groups) {
-    if (groups.hasOwnProperty(id)) {
-      group = groups[id];
-      label = group.label;
-      if (label) {
-        label.style.top = group.top + 'px';
-        label.style.height = group.height + 'px';
-      }
-    }
-  }
-
-  return (changed > 0);
-};
-
-/**
- * Create a label for group with given id
- * @param {Number} id
- * @return {Element} label
+ * Create DOM elements for the group
  * @private
  */
-GroupSet.prototype._createLabel = function(id) {
-  var group = this.groups[id];
+Group.prototype._create = function() {
   var label = document.createElement('div');
   label.className = 'vlabel';
+  this.dom.label = label;
+
   var inner = document.createElement('div');
   inner.className = 'inner';
   label.appendChild(inner);
+  this.dom.inner = inner;
 
-  var content = group.data && group.data.content;
+  var foreground = document.createElement('div');
+  foreground.className = 'group';
+  foreground['timeline-group'] = this;
+  this.dom.foreground = foreground;
+
+  this.dom.background = document.createElement('div');
+
+  this.dom.axis = document.createElement('div');
+};
+
+/**
+ * Set the group data for this group
+ * @param {Object} data   Group data, can contain properties content and className
+ */
+Group.prototype.setData = function setData(data) {
+  // update contents
+  var content = data && data.content;
   if (content instanceof Element) {
-    inner.appendChild(content);
+    this.dom.inner.appendChild(content);
   }
   else if (content != undefined) {
-    inner.innerHTML = content;
+    this.dom.inner.innerHTML = content;
+  }
+  else {
+    this.dom.inner.innerHTML = this.groupId;
   }
 
-  var className = group.data && group.data.className;
+  // update className
+  var className = data && data.className;
   if (className) {
-    util.addClassName(label, className);
+    util.addClassName(this.dom.label, className);
+  }
+};
+
+/**
+ * Get the foreground container element
+ * @return {HTMLElement} foreground
+ */
+Group.prototype.getForeground = function getForeground() {
+  return this.dom.foreground;
+};
+
+/**
+ * Get the background container element
+ * @return {HTMLElement} background
+ */
+Group.prototype.getBackground = function getBackground() {
+  return this.dom.background;
+};
+
+/**
+ * Get the axis container element
+ * @return {HTMLElement} axis
+ */
+Group.prototype.getAxis = function getAxis() {
+  return this.dom.axis;
+};
+
+/**
+ * Get the width of the group label
+ * @return {number} width
+ */
+Group.prototype.getLabelWidth = function getLabelWidth() {
+  return this.props.label.width;
+};
+
+
+/**
+ * Repaint this group
+ * @param {{start: number, end: number}} range
+ * @param {{item: number, axis: number}} margin
+ * @param {boolean} [restack=false]  Force restacking of all items
+ * @return {boolean} Returns true if the group is resized
+ */
+Group.prototype.repaint = function repaint(range, margin, restack) {
+  var resized = false;
+
+  this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
+
+  // reposition visible items vertically
+  if (this.itemSet.options.stack) { // TODO: ugly way to access options...
+    stack.stack(this.visibleItems, margin, restack);
+  }
+  else { // no stacking
+    stack.nostack(this.visibleItems, margin);
+  }
+  this.stackDirty = false;
+  for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
+    var item = this.visibleItems[i];
+    item.repositionY();
   }
 
-  group.label = label; // TODO: not so nice, parking labels in the group this way!!!
+  // recalculate the height of the group
+  var height;
+  var visibleItems = this.visibleItems;
+  if (visibleItems.length) {
+    var min = visibleItems[0].top;
+    var max = visibleItems[0].top + visibleItems[0].height;
+    util.forEach(visibleItems, function (item) {
+      min = Math.min(min, item.top);
+      max = Math.max(max, (item.top + item.height));
+    });
+    height = (max - min) + margin.axis + margin.item;
+  }
+  else {
+    height = margin.axis + margin.item;
+  }
+  height = Math.max(height, this.props.label.height);
 
-  return label;
+  // calculate actual size and position
+  var foreground = this.dom.foreground;
+  this.top = foreground.offsetTop;
+  this.left = foreground.offsetLeft;
+  this.width = foreground.offsetWidth;
+  resized = util.updateProperty(this, 'height', height) || resized;
+
+  // recalculate size of label
+  resized = util.updateProperty(this.props.label, 'width', this.dom.inner.clientWidth) || resized;
+  resized = util.updateProperty(this.props.label, 'height', this.dom.inner.clientHeight) || resized;
+
+  // apply new height
+  foreground.style.height  = height + 'px';
+  this.dom.label.style.height = height + 'px';
+
+  return resized;
 };
 
 /**
- * Get container element
- * @return {HTMLElement} container
+ * Show this group: attach to the DOM
  */
-GroupSet.prototype.getContainer = function getContainer() {
-  return this.dom.frame;
+Group.prototype.show = function show() {
+  if (!this.dom.label.parentNode) {
+    this.itemSet.getLabelSet().appendChild(this.dom.label);
+  }
+
+  if (!this.dom.foreground.parentNode) {
+    this.itemSet.getForeground().appendChild(this.dom.foreground);
+  }
+
+  if (!this.dom.background.parentNode) {
+    this.itemSet.getBackground().appendChild(this.dom.background);
+  }
+
+  if (!this.dom.axis.parentNode) {
+    this.itemSet.getAxis().appendChild(this.dom.axis);
+  }
 };
 
 /**
- * Get the width of the group labels
- * @return {Number} width
+ * Hide this group: remove from the DOM
  */
-GroupSet.prototype.getLabelsWidth = function getContainer() {
-  return this.props.labels.width;
+Group.prototype.hide = function hide() {
+  var label = this.dom.label;
+  if (label.parentNode) {
+    label.parentNode.removeChild(label);
+  }
+
+  var foreground = this.dom.foreground;
+  if (foreground.parentNode) {
+    foreground.parentNode.removeChild(foreground);
+  }
+
+  var background = this.dom.background;
+  if (background.parentNode) {
+    background.parentNode.removeChild(background);
+  }
+
+  var axis = this.dom.axis;
+  if (axis.parentNode) {
+    axis.parentNode.removeChild(axis);
+  }
 };
 
 /**
- * Reflow the component
- * @return {Boolean} resized
+ * Add an item to the group
+ * @param {Item} item
  */
-GroupSet.prototype.reflow = function reflow() {
-  var changed = 0,
-      id, group,
-      options = this.options,
-      update = util.updateProperty,
-      asNumber = util.option.asNumber,
-      asSize = util.option.asSize,
-      frame = this.dom.frame;
+Group.prototype.add = function add(item) {
+  this.items[item.id] = item;
+  item.setParent(this);
 
-  if (frame) {
-    var maxHeight = asNumber(options.maxHeight);
-    var fixedHeight = (asSize(options.height) != null);
-    var height;
-    if (fixedHeight) {
-      height = frame.offsetHeight;
+  if (item instanceof ItemRange && this.visibleItems.indexOf(item) == -1) {
+    var range = this.itemSet.range; // TODO: not nice accessing the range like this
+    this._checkIfVisible(item, this.visibleItems, range);
+  }
+};
+
+/**
+ * Remove an item from the group
+ * @param {Item} item
+ */
+Group.prototype.remove = function remove(item) {
+  delete this.items[item.id];
+  item.setParent(this.itemSet);
+
+  // remove from visible items
+  var index = this.visibleItems.indexOf(item);
+  if (index != -1) this.visibleItems.splice(index, 1);
+
+  // TODO: also remove from ordered items?
+};
+
+/**
+ * Remove an item from the corresponding DataSet
+ * @param {Item} item
+ */
+Group.prototype.removeFromDataSet = function removeFromDataSet(item) {
+  this.itemSet.removeItem(item.id);
+};
+
+/**
+ * Reorder the items
+ */
+Group.prototype.order = function order() {
+  var array = util.toArray(this.items);
+  this.orderedItems.byStart = array;
+  this.orderedItems.byEnd = this._constructByEndArray(array);
+
+  stack.orderByStart(this.orderedItems.byStart);
+  stack.orderByEnd(this.orderedItems.byEnd);
+};
+
+/**
+ * Create an array containing all items being a range (having an end date)
+ * @param {Item[]} array
+ * @returns {ItemRange[]}
+ * @private
+ */
+Group.prototype._constructByEndArray = function _constructByEndArray(array) {
+  var endArray = [];
+
+  for (var i = 0; i < array.length; i++) {
+    if (array[i] instanceof ItemRange) {
+      endArray.push(array[i]);
+    }
+  }
+  return endArray;
+};
+
+/**
+ * Update the visible items
+ * @param {{byStart: Item[], byEnd: Item[]}} orderedItems   All items ordered by start date and by end date
+ * @param {Item[]} visibleItems                             The previously visible items.
+ * @param {{start: number, end: number}} range              Visible range
+ * @return {Item[]} visibleItems                            The new visible items.
+ * @private
+ */
+Group.prototype._updateVisibleItems = function _updateVisibleItems(orderedItems, visibleItems, range) {
+  var initialPosByStart,
+      newVisibleItems = [],
+      i;
+
+  // first check if the items that were in view previously are still in view.
+  // this handles the case for the ItemRange that is both before and after the current one.
+  if (visibleItems.length > 0) {
+    for (i = 0; i < visibleItems.length; i++) {
+      this._checkIfVisible(visibleItems[i], newVisibleItems, range);
+    }
+  }
+
+  // If there were no visible items previously, use binarySearch to find a visible ItemPoint or ItemRange (based on startTime)
+  if (newVisibleItems.length == 0) {
+    initialPosByStart = this._binarySearch(orderedItems, range, false);
+  }
+  else {
+    initialPosByStart = orderedItems.byStart.indexOf(newVisibleItems[0]);
+  }
+
+  // use visible search to find a visible ItemRange (only based on endTime)
+  var initialPosByEnd = this._binarySearch(orderedItems, range, true);
+
+  // if we found a initial ID to use, trace it up and down until we meet an invisible item.
+  if (initialPosByStart != -1) {
+    for (i = initialPosByStart; i >= 0; i--) {
+      if (this._checkIfInvisible(orderedItems.byStart[i], newVisibleItems, range)) {break;}
+    }
+    for (i = initialPosByStart + 1; i < orderedItems.byStart.length; i++) {
+      if (this._checkIfInvisible(orderedItems.byStart[i], newVisibleItems, range)) {break;}
+    }
+  }
+
+  // if we found a initial ID to use, trace it up and down until we meet an invisible item.
+  if (initialPosByEnd != -1) {
+    for (i = initialPosByEnd; i >= 0; i--) {
+      if (this._checkIfInvisible(orderedItems.byEnd[i], newVisibleItems, range)) {break;}
+    }
+    for (i = initialPosByEnd + 1; i < orderedItems.byEnd.length; i++) {
+      if (this._checkIfInvisible(orderedItems.byEnd[i], newVisibleItems, range)) {break;}
+    }
+  }
+
+  return newVisibleItems;
+};
+
+/**
+ * This function does a binary search for a visible item. The user can select either the this.orderedItems.byStart or .byEnd
+ * arrays. This is done by giving a boolean value true if you want to use the byEnd.
+ * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
+ * if the time we selected (start or end) is within the current range).
+ *
+ * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the ItemRange that is
+ * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
+ * either the start OR end time has to be in the range.
+ *
+ * @param {{byStart: Item[], byEnd: Item[]}} orderedItems
+ * @param {{start: number, end: number}} range
+ * @param {Boolean} byEnd
+ * @returns {number}
+ * @private
+ */
+Group.prototype._binarySearch = function _binarySearch(orderedItems, range, byEnd) {
+  var array = [];
+  var byTime = byEnd ? 'end' : 'start';
+  if (byEnd == true) {array = orderedItems.byEnd;  }
+  else               {array = orderedItems.byStart;}
+
+  var interval = range.end - range.start;
+
+  var found = false;
+  var low = 0;
+  var high = array.length;
+  var guess = Math.floor(0.5*(high+low));
+  var newGuess;
+
+  if (high == 0) {guess = -1;}
+  else if (high == 1) {
+    if ((array[guess].data[byTime] > range.start - interval) && (array[guess].data[byTime] < range.end)) {
+      guess =  0;
     }
     else {
-      // height is not specified, calculate the sum of the height of all groups
-      height = 0;
-
-      for (id in this.groups) {
-        if (this.groups.hasOwnProperty(id)) {
-          group = this.groups[id];
-          height += group.height;
+      guess = -1;
+    }
+  }
+  else {
+    high -= 1;
+    while (found == false) {
+      if ((array[guess].data[byTime] > range.start - interval) && (array[guess].data[byTime] < range.end)) {
+        found = true;
+      }
+      else {
+        if (array[guess].data[byTime] < range.start - interval) { // it is too small --> increase low
+          low = Math.floor(0.5*(high+low));
+        }
+        else {  // it is too big --> decrease high
+          high = Math.floor(0.5*(high+low));
+        }
+        newGuess = Math.floor(0.5*(high+low));
+        // not in list;
+        if (guess == newGuess) {
+          guess = -1;
+          found = true;
+        }
+        else {
+          guess = newGuess;
         }
       }
     }
-    if (maxHeight != null) {
-      height = Math.min(height, maxHeight);
-    }
-    changed += update(this, 'height', height);
-
-    changed += update(this, 'top', frame.offsetTop);
-    changed += update(this, 'left', frame.offsetLeft);
-    changed += update(this, 'width', frame.offsetWidth);
   }
-
-  // calculate the maximum width of the labels
-  var width = 0;
-  for (id in this.groups) {
-    if (this.groups.hasOwnProperty(id)) {
-      group = this.groups[id];
-      var labelWidth = group.props && group.props.label && group.props.label.width || 0;
-      width = Math.max(width, labelWidth);
-    }
-  }
-  changed += update(this.props.labels, 'width', width);
-
-  return (changed > 0);
+  return guess;
 };
 
 /**
- * Hide the component from the DOM
- * @return {Boolean} changed
+ * this function checks if an item is invisible. If it is NOT we make it visible
+ * and add it to the global visible items. If it is, return true.
+ *
+ * @param {Item} item
+ * @param {Item[]} visibleItems
+ * @param {{start:number, end:number}} range
+ * @returns {boolean}
+ * @private
  */
-GroupSet.prototype.hide = function hide() {
-  if (this.dom.frame && this.dom.frame.parentNode) {
-    this.dom.frame.parentNode.removeChild(this.dom.frame);
+Group.prototype._checkIfInvisible = function _checkIfInvisible(item, visibleItems, range) {
+  if (item.isVisible(range)) {
+    if (!item.displayed) item.show();
+    item.repositionX();
+    if (visibleItems.indexOf(item) == -1) {
+      visibleItems.push(item);
+    }
+    return false;
+  }
+  else {
     return true;
   }
+};
+
+/**
+ * this function is very similar to the _checkIfInvisible() but it does not
+ * return booleans, hides the item if it should not be seen and always adds to
+ * the visibleItems.
+ * this one is for brute forcing and hiding.
+ *
+ * @param {Item} item
+ * @param {Array} visibleItems
+ * @param {{start:number, end:number}} range
+ * @private
+ */
+Group.prototype._checkIfVisible = function _checkIfVisible(item, visibleItems, range) {
+  if (item.isVisible(range)) {
+    if (!item.displayed) item.show();
+    // reposition item horizontally
+    item.repositionX();
+    visibleItems.push(item);
+  }
   else {
-    return false;
+    if (item.displayed) item.hide();
   }
-};
-
-/**
- * Show the component in the DOM (when not already visible).
- * A repaint will be executed when the component is not visible
- * @return {Boolean} changed
- */
-GroupSet.prototype.show = function show() {
-  if (!this.dom.frame || !this.dom.frame.parentNode) {
-    return this.repaint();
-  }
-  else {
-    return false;
-  }
-};
-
-/**
- * Handle updated groups
- * @param {Number[]} ids
- * @private
- */
-GroupSet.prototype._onUpdate = function _onUpdate(ids) {
-  this._toQueue(ids, 'update');
-};
-
-/**
- * Handle changed groups
- * @param {Number[]} ids
- * @private
- */
-GroupSet.prototype._onAdd = function _onAdd(ids) {
-  this._toQueue(ids, 'add');
-};
-
-/**
- * Handle removed groups
- * @param {Number[]} ids
- * @private
- */
-GroupSet.prototype._onRemove = function _onRemove(ids) {
-  this._toQueue(ids, 'remove');
-};
-
-/**
- * Put groups in the queue to be added/updated/remove
- * @param {Number[]} ids
- * @param {String} action     can be 'add', 'update', 'remove'
- */
-GroupSet.prototype._toQueue = function _toQueue(ids, action) {
-  var queue = this.queue;
-  ids.forEach(function (id) {
-    queue[id] = action;
-  });
-
-  if (this.controller) {
-    //this.requestReflow();
-    this.requestRepaint();
-  }
-};
-
-/**
- * Find the Group from an event target:
- * searches for the attribute 'timeline-groupset' in the event target's element
- * tree, then finds the right group in this groupset
- * @param {Event} event
- * @return {Group | null} group
- */
-GroupSet.groupFromTarget = function groupFromTarget (event) {
-  var groupset,
-      target = event.target;
-
-  while (target) {
-    if (target.hasOwnProperty('timeline-groupset')) {
-      groupset = target['timeline-groupset'];
-      break;
-    }
-    target = target.parentNode;
-  }
-
-  if (groupset) {
-    for (var groupId in groupset.groups) {
-      if (groupset.groups.hasOwnProperty(groupId)) {
-        var group = groupset.groups[groupId];
-        if (group.itemset && ItemSet.itemSetFromTarget(event) == group.itemset) {
-          return group;
-        }
-      }
-    }
-  }
-
-  return null;
 };
 
 /**
@@ -7748,12 +7147,24 @@ GroupSet.groupFromTarget = function groupFromTarget (event) {
  * @constructor
  */
 function Timeline (container, items, options) {
+  // validate arguments
+  if (!container) throw new Error('No container element provided');
+
   var me = this;
   var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
   this.options = {
     orientation: 'bottom',
+    direction: 'horizontal', // 'horizontal' or 'vertical'
     autoResize: true,
-    editable: false,
+    stack: true,
+
+    editable: {
+      updateTime: false,
+      updateGroup: false,
+      add: false,
+      remove: false
+    },
+
     selectable: true,
     snap: null, // will be specified after timeaxis is created
 
@@ -7769,6 +7180,14 @@ function Timeline (container, items, options) {
     showCurrentTime: false,
     showCustomTime: false,
 
+    type: 'box',
+    align: 'center',
+    margin: {
+      axis: 20,
+      item: 10
+    },
+    padding: 5,
+
     onAdd: function (item, callback) {
       callback(item);
     },
@@ -7780,112 +7199,205 @@ function Timeline (container, items, options) {
     },
     onRemove: function (item, callback) {
       callback(item);
-    }
-  };
+    },
 
-  // controller
-  this.controller = new Controller();
+    toScreen: me._toScreen.bind(me),
+    toTime: me._toTime.bind(me)
+  };
 
   // root panel
-  if (!container) {
-    throw new Error('No container element provided');
-  }
-  var rootOptions = Object.create(this.options);
-  rootOptions.height = function () {
-    // TODO: change to height
-    if (me.options.height) {
-      // fixed height
-      return me.options.height;
+  var rootOptions = util.extend(Object.create(this.options), {
+    height: function () {
+      if (me.options.height) {
+        // fixed height
+        return me.options.height;
+      }
+      else {
+        // auto height
+        // TODO: implement a css based solution to automatically have the right hight
+        return (me.timeAxis.height + me.contentPanel.height) + 'px';
+      }
     }
-    else {
-      // auto height
-      return (me.timeaxis.height + me.content.height) + 'px';
-    }
-  };
+  });
   this.rootPanel = new RootPanel(container, rootOptions);
-  this.controller.add(this.rootPanel);
 
   // single select (or unselect) when tapping an item
-  this.controller.on('tap',  this._onSelectItem.bind(this));
+  this.rootPanel.on('tap',  this._onSelectItem.bind(this));
 
   // multi select when holding mouse/touch, or on ctrl+click
-  this.controller.on('hold', this._onMultiSelectItem.bind(this));
+  this.rootPanel.on('hold', this._onMultiSelectItem.bind(this));
 
   // add item on doubletap
-  this.controller.on('doubletap', this._onAddItem.bind(this));
+  this.rootPanel.on('doubletap', this._onAddItem.bind(this));
 
-  // item panel
-  var itemOptions = Object.create(this.options);
-  itemOptions.left = function () {
-    return me.labelPanel.width;
-  };
-  itemOptions.width = function () {
-    return me.rootPanel.width - me.labelPanel.width;
-  };
-  itemOptions.top = null;
-  itemOptions.height = null;
-  this.itemPanel = new Panel(this.rootPanel, [], itemOptions);
-  this.controller.add(this.itemPanel);
+  // side panel
+  var sideOptions = util.extend(Object.create(this.options), {
+    top: function () {
+      return (sideOptions.orientation == 'top') ? '0' : '';
+    },
+    bottom: function () {
+      return (sideOptions.orientation == 'top') ? '' : '0';
+    },
+    left: '0',
+    right: null,
+    height: '100%',
+    width: function () {
+      if (me.itemSet) {
+        return me.itemSet.getLabelsWidth();
+      }
+      else {
+        return 0;
+      }
+    },
+    className: function () {
+      return 'side' + (me.groupsData ? '' : ' hidden');
+    }
+  });
+  this.sidePanel = new Panel(sideOptions);
+  this.rootPanel.appendChild(this.sidePanel);
 
-  // label panel
-  var labelOptions = Object.create(this.options);
-  labelOptions.top = null;
-  labelOptions.left = null;
-  labelOptions.height = null;
-  labelOptions.width = function () {
-    if (me.content && typeof me.content.getLabelsWidth === 'function') {
-      return me.content.getLabelsWidth();
-    }
-    else {
-      return 0;
-    }
-  };
-  this.labelPanel = new Panel(this.rootPanel, [], labelOptions);
-  this.controller.add(this.labelPanel);
+  // main panel (contains time axis and itemsets)
+  var mainOptions = util.extend(Object.create(this.options), {
+    left: function () {
+      // we align left to enable a smooth resizing of the window
+      return me.sidePanel.width;
+    },
+    right: null,
+    height: '100%',
+    width: function () {
+      return me.rootPanel.width - me.sidePanel.width;
+    },
+    className: 'main'
+  });
+  this.mainPanel = new Panel(mainOptions);
+  this.rootPanel.appendChild(this.mainPanel);
 
   // range
+  // TODO: move range inside rootPanel?
   var rangeOptions = Object.create(this.options);
-  this.range = new Range(rangeOptions);
+  this.range = new Range(this.rootPanel, this.mainPanel, rangeOptions);
   this.range.setRange(
       now.clone().add('days', -3).valueOf(),
       now.clone().add('days', 4).valueOf()
   );
-
-  this.range.subscribe(this.controller, this.rootPanel, 'move', 'horizontal');
-  this.range.subscribe(this.controller, this.rootPanel, 'zoom', 'horizontal');
   this.range.on('rangechange', function (properties) {
-    var force = true;
-    me.controller.emit('rangechange', properties);
-    me.controller.emit('request-reflow', force);
+    me.rootPanel.repaint();
+    me.emit('rangechange', properties);
   });
   this.range.on('rangechanged', function (properties) {
-    var force = true;
-    me.controller.emit('rangechanged', properties);
-    me.controller.emit('request-reflow', force);
+    me.rootPanel.repaint();
+    me.emit('rangechanged', properties);
   });
 
-  // time axis
-  var timeaxisOptions = Object.create(rootOptions);
-  timeaxisOptions.range = this.range;
-  timeaxisOptions.left = null;
-  timeaxisOptions.top = null;
-  timeaxisOptions.width = '100%';
-  timeaxisOptions.height = null;
-  this.timeaxis = new TimeAxis(this.itemPanel, [], timeaxisOptions);
-  this.timeaxis.setRange(this.range);
-  this.controller.add(this.timeaxis);
-  this.options.snap = this.timeaxis.snap.bind(this.timeaxis);
+  // panel with time axis
+  var timeAxisOptions = util.extend(Object.create(rootOptions), {
+    range: this.range,
+    left: null,
+    top: null,
+    width: null,
+    height: null
+  });
+  this.timeAxis = new TimeAxis(timeAxisOptions);
+  this.timeAxis.setRange(this.range);
+  this.options.snap = this.timeAxis.snap.bind(this.timeAxis);
+  this.mainPanel.appendChild(this.timeAxis);
+
+  // content panel (contains itemset(s))
+  var contentOptions = util.extend(Object.create(this.options), {
+    top: function () {
+      return (me.options.orientation == 'top') ? (me.timeAxis.height + 'px') : '';
+    },
+    bottom: function () {
+      return (me.options.orientation == 'top') ? '' : (me.timeAxis.height + 'px');
+    },
+    left: null,
+    right: null,
+    height: null,
+    width: null,
+    className: 'content'
+  });
+  this.contentPanel = new Panel(contentOptions);
+  this.mainPanel.appendChild(this.contentPanel);
+
+  // content panel (contains the vertical lines of box items)
+  var backgroundOptions = util.extend(Object.create(this.options), {
+    top: function () {
+      return (me.options.orientation == 'top') ? (me.timeAxis.height + 'px') : '';
+    },
+    bottom: function () {
+      return (me.options.orientation == 'top') ? '' : (me.timeAxis.height + 'px');
+    },
+    left: null,
+    right: null,
+    height: function () {
+      return me.contentPanel.height;
+    },
+    width: null,
+    className: 'background'
+  });
+  this.backgroundPanel = new Panel(backgroundOptions);
+  this.mainPanel.insertBefore(this.backgroundPanel, this.contentPanel);
+
+  // panel with axis holding the dots of item boxes
+  var axisPanelOptions = util.extend(Object.create(rootOptions), {
+    left: 0,
+    top: function () {
+      return (me.options.orientation == 'top') ? (me.timeAxis.height + 'px') : '';
+    },
+    bottom: function () {
+      return (me.options.orientation == 'top') ? '' : (me.timeAxis.height + 'px');
+    },
+    width: '100%',
+    height: 0,
+    className: 'axis'
+  });
+  this.axisPanel = new Panel(axisPanelOptions);
+  this.mainPanel.appendChild(this.axisPanel);
+
+  // content panel (contains itemset(s))
+  var sideContentOptions = util.extend(Object.create(this.options), {
+    top: function () {
+      return (me.options.orientation == 'top') ? (me.timeAxis.height + 'px') : '';
+    },
+    bottom: function () {
+      return (me.options.orientation == 'top') ? '' : (me.timeAxis.height + 'px');
+    },
+    left: null,
+    right: null,
+    height: null,
+    width: null,
+    className: 'side-content'
+  });
+  this.sideContentPanel = new Panel(sideContentOptions);
+  this.sidePanel.appendChild(this.sideContentPanel);
 
   // current time bar
-  this.currenttime = new CurrentTime(this.timeaxis, [], rootOptions);
-  this.controller.add(this.currenttime);
+  // Note: time bar will be attached in this.setOptions when selected
+  this.currentTime = new CurrentTime(this.range, rootOptions);
 
   // custom time bar
-  this.customtime = new CustomTime(this.timeaxis, [], rootOptions);
-  this.controller.add(this.customtime);
+  // Note: time bar will be attached in this.setOptions when selected
+  this.customTime = new CustomTime(rootOptions);
+  this.customTime.on('timechange', function (time) {
+    me.emit('timechange', time);
+  });
+  this.customTime.on('timechanged', function (time) {
+    me.emit('timechanged', time);
+  });
 
-  // create groupset
-  this.setGroups(null);
+  // itemset containing items and groups
+  var itemOptions = util.extend(Object.create(this.options), {
+    left: null,
+    right: null,
+    top: null,
+    bottom: null,
+    width: null,
+    height: null
+  });
+  this.itemSet = new ItemSet(this.backgroundPanel, this.axisPanel, this.sideContentPanel, itemOptions);
+  this.itemSet.setRange(this.range);
+  this.itemSet.on('change', me.rootPanel.repaint.bind(me.rootPanel));
+  this.contentPanel.appendChild(this.itemSet);
 
   this.itemsData = null;      // DataSet
   this.groupsData = null;     // DataSet
@@ -7895,30 +7407,14 @@ function Timeline (container, items, options) {
     this.setOptions(options);
   }
 
-  // create itemset and groupset
+  // create itemset
   if (items) {
     this.setItems(items);
   }
 }
 
-/**
- * Add an event listener to the timeline
- * @param {String} event    Available events: select, rangechange, rangechanged,
- *                          timechange, timechanged
- * @param {function} callback
- */
-Timeline.prototype.on = function on (event, callback) {
-  this.controller.on(event, callback);
-};
-
-/**
- * Add an event listener from the timeline
- * @param {String} event
- * @param {function} callback
- */
-Timeline.prototype.off = function off (event, callback) {
-  this.controller.off(event, callback);
-};
+// turn Timeline into an event emitter
+Emitter(Timeline.prototype);
 
 /**
  * Set options
@@ -7926,6 +7422,17 @@ Timeline.prototype.off = function off (event, callback) {
  */
 Timeline.prototype.setOptions = function (options) {
   util.extend(this.options, options);
+
+  if ('editable' in options) {
+    var isBoolean = typeof options.editable === 'boolean';
+
+    this.options.editable = {
+      updateTime:  isBoolean ? options.editable : (options.editable.updateTime || false),
+      updateGroup: isBoolean ? options.editable : (options.editable.updateGroup || false),
+      add:         isBoolean ? options.editable : (options.editable.add || false),
+      remove:      isBoolean ? options.editable : (options.editable.remove || false)
+    };
+  }
 
   // force update of range (apply new min/max etc.)
   // both start and end are optional
@@ -7942,6 +7449,9 @@ Timeline.prototype.setOptions = function (options) {
     }
   }
 
+  // force the itemSet to refresh: options like orientation and margins may be changed
+  this.itemSet.markDirty();
+
   // validate the callback functions
   var validateCallback = (function (fn) {
     if (!(this.options[fn] instanceof Function) || this.options[fn].length != 2) {
@@ -7950,8 +7460,39 @@ Timeline.prototype.setOptions = function (options) {
   }).bind(this);
   ['onAdd', 'onUpdate', 'onRemove', 'onMove'].forEach(validateCallback);
 
-  this.controller.reflow();
-  this.controller.repaint();
+  // add/remove the current time bar
+  if (this.options.showCurrentTime) {
+    if (!this.mainPanel.hasChild(this.currentTime)) {
+      this.mainPanel.appendChild(this.currentTime);
+      this.currentTime.start();
+    }
+  }
+  else {
+    if (this.mainPanel.hasChild(this.currentTime)) {
+      this.currentTime.stop();
+      this.mainPanel.removeChild(this.currentTime);
+    }
+  }
+
+  // add/remove the custom time bar
+  if (this.options.showCustomTime) {
+    if (!this.mainPanel.hasChild(this.customTime)) {
+      this.mainPanel.appendChild(this.customTime);
+    }
+  }
+  else {
+    if (this.mainPanel.hasChild(this.customTime)) {
+      this.mainPanel.removeChild(this.customTime);
+    }
+  }
+
+  // TODO: remove deprecation error one day (deprecated since version 0.8.0)
+  if (options && options.order) {
+    throw new Error('Option order is deprecated. There is no replacement for this feature.');
+  }
+
+  // repaint everything
+  this.rootPanel.repaint();
 };
 
 /**
@@ -7959,11 +7500,11 @@ Timeline.prototype.setOptions = function (options) {
  * @param {Date} time
  */
 Timeline.prototype.setCustomTime = function (time) {
-  if (!this.customtime) {
+  if (!this.customTime) {
     throw new Error('Cannot get custom time: Custom time bar is not enabled');
   }
 
-  this.customtime.setCustomTime(time);
+  this.customTime.setCustomTime(time);
 };
 
 /**
@@ -7971,11 +7512,11 @@ Timeline.prototype.setCustomTime = function (time) {
  * @return {Date} customTime
  */
 Timeline.prototype.getCustomTime = function() {
-  if (!this.customtime) {
+  if (!this.customTime) {
     throw new Error('Cannot get custom time: Custom time bar is not enabled');
   }
 
-  return this.customtime.getCustomTime();
+  return this.customTime.getCustomTime();
 };
 
 /**
@@ -7990,52 +7531,30 @@ Timeline.prototype.setItems = function(items) {
   if (!items) {
     newDataSet = null;
   }
-  else if (items instanceof DataSet) {
+  else if (items instanceof DataSet || items instanceof DataView) {
     newDataSet = items;
   }
-  if (!(items instanceof DataSet)) {
-    newDataSet = new DataSet({
+  else {
+    // turn an array into a dataset
+    newDataSet = new DataSet(items, {
       convert: {
         start: 'Date',
         end: 'Date'
       }
     });
-    newDataSet.add(items);
   }
 
   // set items
   this.itemsData = newDataSet;
-  this.content.setItems(newDataSet);
+  this.itemSet.setItems(newDataSet);
 
   if (initialLoad && (this.options.start == undefined || this.options.end == undefined)) {
-    // apply the data range as range
-    var dataRange = this.getItemRange();
+    this.fit();
 
-    // add 5% space on both sides
-    var start = dataRange.min;
-    var end = dataRange.max;
-    if (start != null && end != null) {
-      var interval = (end.valueOf() - start.valueOf());
-      if (interval <= 0) {
-        // prevent an empty interval
-        interval = 24 * 60 * 60 * 1000; // 1 day
-      }
-      start = new Date(start.valueOf() - interval * 0.05);
-      end = new Date(end.valueOf() + interval * 0.05);
-    }
+    var start = (this.options.start != undefined) ? util.convert(this.options.start, 'Date') : null;
+    var end   = (this.options.end != undefined) ? util.convert(this.options.end, 'Date') : null;
 
-    // override specified start and/or end date
-    if (this.options.start != undefined) {
-      start = util.convert(this.options.start, 'Date');
-    }
-    if (this.options.end != undefined) {
-      end = util.convert(this.options.end, 'Date');
-    }
-
-    // apply range if there is a min or max available
-    if (start != null || end != null) {
-      this.range.setRange(start, end);
-    }
+    this.setWindow(start, end);
   }
 };
 
@@ -8043,77 +7562,50 @@ Timeline.prototype.setItems = function(items) {
  * Set groups
  * @param {vis.DataSet | Array | google.visualization.DataTable} groups
  */
-Timeline.prototype.setGroups = function(groups) {
-  var me = this;
-  this.groupsData = groups;
-
-  // switch content type between ItemSet or GroupSet when needed
-  var Type = this.groupsData ? GroupSet : ItemSet;
-  if (!(this.content instanceof Type)) {
-    // remove old content set
-    if (this.content) {
-      this.content.hide();
-      if (this.content.setItems) {
-        this.content.setItems(); // disconnect from items
-      }
-      if (this.content.setGroups) {
-        this.content.setGroups(); // disconnect from groups
-      }
-      this.controller.remove(this.content);
-    }
-
-    // create new content set
-    var options = Object.create(this.options);
-    util.extend(options, {
-      top: function () {
-        if (me.options.orientation == 'top') {
-          return me.timeaxis.height;
-        }
-        else {
-          return me.itemPanel.height - me.timeaxis.height - me.content.height;
-        }
-      },
-      left: null,
-      width: '100%',
-      height: function () {
-        if (me.options.height) {
-          // fixed height
-          return me.itemPanel.height - me.timeaxis.height;
-        }
-        else {
-          // auto height
-          return null;
-        }
-      },
-      maxHeight: function () {
-        // TODO: change maxHeight to be a css string like '100%' or '300px'
-        if (me.options.maxHeight) {
-          if (!util.isNumber(me.options.maxHeight)) {
-            throw new TypeError('Number expected for property maxHeight');
-          }
-          return me.options.maxHeight - me.timeaxis.height;
-        }
-        else {
-          return null;
-        }
-      },
-      labelContainer: function () {
-        return me.labelPanel.getContainer();
-      }
-    });
-
-    this.content = new Type(this.itemPanel, [this.timeaxis], options);
-    if (this.content.setRange) {
-      this.content.setRange(this.range);
-    }
-    if (this.content.setItems) {
-      this.content.setItems(this.itemsData);
-    }
-    if (this.content.setGroups) {
-      this.content.setGroups(this.groupsData);
-    }
-    this.controller.add(this.content);
+Timeline.prototype.setGroups = function setGroups(groups) {
+  // convert to type DataSet when needed
+  var newDataSet;
+  if (!groups) {
+    newDataSet = null;
   }
+  else if (groups instanceof DataSet || groups instanceof DataView) {
+    newDataSet = groups;
+  }
+  else {
+    // turn an array into a dataset
+    newDataSet = new DataSet(groups);
+  }
+
+  this.groupsData = newDataSet;
+  this.itemSet.setGroups(newDataSet);
+};
+
+/**
+ * Set Timeline window such that it fits all items
+ */
+Timeline.prototype.fit = function fit() {
+  // apply the data range as range
+  var dataRange = this.getItemRange();
+
+  // add 5% space on both sides
+  var start = dataRange.min;
+  var end = dataRange.max;
+  if (start != null && end != null) {
+    var interval = (end.valueOf() - start.valueOf());
+    if (interval <= 0) {
+      // prevent an empty interval
+      interval = 24 * 60 * 60 * 1000; // 1 day
+    }
+    start = new Date(start.valueOf() - interval * 0.05);
+    end = new Date(end.valueOf() + interval * 0.05);
+  }
+
+  // skip range set if there is no start and end date
+  if (start === null && end === null) {
+    return;
+  }
+
+  this.range.setRange(start, end);
 };
 
 /**
@@ -8163,7 +7655,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
  *                      unselected.
  */
 Timeline.prototype.setSelection = function setSelection (ids) {
-  if (this.content) this.content.setSelection(ids);
+  this.itemSet.setSelection(ids);
 };
 
 /**
@@ -8171,17 +7663,30 @@ Timeline.prototype.setSelection = function setSelection (ids) {
  * @return {Array} ids  The ids of the selected items
  */
 Timeline.prototype.getSelection = function getSelection() {
-  return this.content ? this.content.getSelection() : [];
+  return this.itemSet.getSelection();
 };
 
 /**
  * Set the visible window. Both parameters are optional, you can change only
- * start or only end.
+ * start or only end. Syntax:
+ *
+ *     TimeLine.setWindow(start, end)
+ *     TimeLine.setWindow(range)
+ *
+ * Where start and end can be a Date, number, or string, and range is an
+ * object with properties start and end.
+ *
  * @param {Date | Number | String} [start] Start date of visible window
  * @param {Date | Number | String} [end]   End date of visible window
  */
 Timeline.prototype.setWindow = function setWindow(start, end) {
-  this.range.setRange(start, end);
+  if (arguments.length == 1) {
+    var range = arguments[0];
+    this.range.setRange(range.start, range.end);
+  }
+  else {
+    this.range.setRange(start, end);
+  }
 };
 
 /**
@@ -8212,14 +7717,20 @@ Timeline.prototype._onSelectItem = function (event) {
     return;
   }
 
-  var item = ItemSet.itemFromTarget(event);
+  var oldSelection = this.getSelection();
 
+  var item = ItemSet.itemFromTarget(event);
   var selection = item ? [item.id] : [];
   this.setSelection(selection);
 
-  this.controller.emit('select', {
-    items: this.getSelection()
-  });
+  var newSelection = this.getSelection();
+
+  // if selection is changed, emit a select event
+  if (!util.equalArray(oldSelection, newSelection)) {
+    this.emit('select', {
+      items: this.getSelection()
+    });
+  }
 
   event.stopPropagation();
 };
@@ -8231,7 +7742,7 @@ Timeline.prototype._onSelectItem = function (event) {
  */
 Timeline.prototype._onAddItem = function (event) {
   if (!this.options.selectable) return;
-  if (!this.options.editable) return;
+  if (!this.options.editable.add) return;
 
   var me = this,
       item = ItemSet.itemFromTarget(event);
@@ -8249,17 +7760,17 @@ Timeline.prototype._onAddItem = function (event) {
   }
   else {
     // add item
-    var xAbs = vis.util.getAbsoluteLeft(this.rootPanel.frame);
+    var xAbs = vis.util.getAbsoluteLeft(this.contentPanel.frame);
     var x = event.gesture.center.pageX - xAbs;
     var newItem = {
-      start: this.timeaxis.snap(this._toTime(x)),
+      start: this.timeAxis.snap(this._toTime(x)),
       content: 'new item'
     };
 
     var id = util.randomUUID();
     newItem[this.itemsData.fieldId] = id;
 
-    var group = GroupSet.groupFromTarget(event);
+    var group = ItemSet.groupFromTarget(event);
     if (group) {
       newItem.group = group.groupId;
     }
@@ -8268,15 +7779,7 @@ Timeline.prototype._onAddItem = function (event) {
     this.options.onAdd(newItem, function (item) {
       if (item) {
         me.itemsData.add(newItem);
-
-        // select the created item after it is repainted
-        me.controller.once('repaint', function () {
-          me.setSelection([id]);
-
-          me.controller.emit('select', {
-            items: me.getSelection()
-          });
-        }.bind(me));
+        // TODO: need to trigger a repaint?
       }
     });
   }
@@ -8308,7 +7811,7 @@ Timeline.prototype._onMultiSelectItem = function (event) {
     }
     this.setSelection(selection);
 
-    this.controller.emit('select', {
+    this.emit('select', {
       items: this.getSelection()
     });
 
@@ -8323,7 +7826,7 @@ Timeline.prototype._onMultiSelectItem = function (event) {
  * @private
  */
 Timeline.prototype._toTime = function _toTime(x) {
-  var conversion = this.range.conversion(this.content.width);
+  var conversion = this.range.conversion(this.mainPanel.width);
   return new Date(x / conversion.scale + conversion.offset);
 };
 
@@ -8335,7 +7838,7 @@ Timeline.prototype._toTime = function _toTime(x) {
  * @private
  */
 Timeline.prototype._toScreen = function _toScreen(time) {
-  var conversion = this.range.conversion(this.content.width);
+  var conversion = this.range.conversion(this.mainPanel.width);
   return (time.valueOf() - conversion.offset) * conversion.scale;
 };
 
@@ -9439,8 +8942,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.id = undefined;
   this.shape = constants.nodes.shape;
   this.image = constants.nodes.image;
-  this.x = 0;
-  this.y = 0;
+  this.x = null;
+  this.y = null;
   this.xFixed = false;
   this.yFixed = false;
   this.horizontalAlignLeft = true; // these are for the navigation controls
@@ -9451,6 +8954,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.radiusMin = constants.nodes.radiusMin;
   this.radiusMax = constants.nodes.radiusMax;
   this.level = -1;
+  this.preassignedLevel = false;
+
 
   this.imagelist = imagelist;
   this.grouplist = grouplist;
@@ -9463,6 +8968,7 @@ function Node(properties, imagelist, grouplist, constants) {
   this.minForce = constants.minForce;
   this.damping = constants.physics.damping;
   this.mass = 1;  // kg
+  this.fixedData = {x:null,y:null};
 
   this.setProperties(properties, constants);
 
@@ -9542,12 +9048,10 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.x !== undefined)         {this.x = properties.x;}
   if (properties.y !== undefined)         {this.y = properties.y;}
   if (properties.value !== undefined)     {this.value = properties.value;}
-  if (properties.level !== undefined)     {this.level = properties.level;}
+  if (properties.level !== undefined)     {this.level = properties.level; this.preassignedLevel = true;}
 
 
   // physics
-  if (properties.internalMultiplier !== undefined)  {this.internalMultiplier = properties.internalMultiplier;}
-  if (properties.damping !== undefined)             {this.dampingBase = properties.damping;}
   if (properties.mass !== undefined)                {this.mass = properties.mass;}
 
   // navigation controls properties
@@ -9573,13 +9077,13 @@ Node.prototype.setProperties = function(properties, constants) {
   if (properties.shape !== undefined)          {this.shape = properties.shape;}
   if (properties.image !== undefined)          {this.image = properties.image;}
   if (properties.radius !== undefined)         {this.radius = properties.radius;}
-  if (properties.color !== undefined)          {this.color = Node.parseColor(properties.color);}
+  if (properties.color !== undefined)          {this.color = util.parseColor(properties.color);}
 
   if (properties.fontColor !== undefined)      {this.fontColor = properties.fontColor;}
   if (properties.fontSize !== undefined)       {this.fontSize = properties.fontSize;}
   if (properties.fontFace !== undefined)       {this.fontFace = properties.fontFace;}
 
-  if (this.image !== undefined) {
+  if (this.image !== undefined && this.image != "") {
     if (this.imagelist) {
       this.imageObj = this.imagelist.load(this.image);
     }
@@ -9615,63 +9119,6 @@ Node.prototype.setProperties = function(properties, constants) {
   }
   // reset the size of the node, this can be changed
   this._reset();
-};
-
-/**
- * Parse a color property into an object with border, background, and
- * hightlight colors
- * @param {Object | String} color
- * @return {Object} colorObject
- */
-Node.parseColor = function(color) {
-  var c;
-  if (util.isString(color)) {
-    if (util.isValidHex(color)) {
-      var hsv = util.hexToHSV(color);
-      var lighterColorHSV = {h:hsv.h,s:hsv.s * 0.45,v:Math.min(1,hsv.v * 1.05)};
-      var darkerColorHSV  = {h:hsv.h,s:Math.min(1,hsv.v * 1.25),v:hsv.v*0.6};
-      var darkerColorHex  = util.HSVToHex(darkerColorHSV.h ,darkerColorHSV.h ,darkerColorHSV.v);
-      var lighterColorHex = util.HSVToHex(lighterColorHSV.h,lighterColorHSV.s,lighterColorHSV.v);
-
-      c = {
-        background: color,
-        border:darkerColorHex,
-        highlight: {
-          background:lighterColorHex,
-          border:darkerColorHex
-        }
-      };
-    }
-    else {
-      c = {
-        background:color,
-        border:color,
-        highlight: {
-          background:color,
-          border:color
-        }
-      };
-    }
-  }
-  else {
-    c = {};
-    c.background = color.background || 'white';
-    c.border = color.border || c.background;
-
-    if (util.isString(color.highlight)) {
-      c.highlight = {
-        border: color.highlight,
-        background: color.highlight
-      }
-    }
-    else {
-      c.highlight = {};
-      c.highlight.background = color.highlight && color.highlight.background || c.background;
-      c.highlight.border = color.highlight && color.highlight.border || c.border;
-    }
-  }
-
-  return c;
 };
 
 /**
@@ -9713,7 +9160,7 @@ Node.prototype._reset = function() {
  *                           has been set.
  */
 Node.prototype.getTitle = function() {
-  return this.title;
+  return typeof this.title === "function" ? this.title() : this.title;
 };
 
 /**
@@ -9809,6 +9256,7 @@ Node.prototype.discreteStep = function(interval) {
 /**
  * Perform one discrete step for the node
  * @param {number} interval    Time interval in seconds
+ * @param {number} maxVelocity The speed limit imposed on the velocity
  */
 Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
   if (!this.xFixed) {
@@ -9818,6 +9266,9 @@ Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
     this.vx = (Math.abs(this.vx) > maxVelocity) ? ((this.vx > 0) ? maxVelocity : -maxVelocity) : this.vx;
     this.x  += this.vx * interval;          // position
   }
+  else {
+    this.fx = 0;
+  }
 
   if (!this.yFixed) {
     var dy   = this.damping * this.vy;     // damping force
@@ -9825,6 +9276,9 @@ Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
     this.vy += ay * interval;               // velocity
     this.vy = (Math.abs(this.vy) > maxVelocity) ? ((this.vy > 0) ? maxVelocity : -maxVelocity) : this.vy;
     this.y  += this.vy * interval;          // position
+  }
+  else {
+    this.fy = 0;
   }
 };
 
@@ -10448,6 +9902,7 @@ function Edge (properties, graph, constants) {
   this.customLength = false;
   this.selected = false;
   this.smooth = constants.smoothCurves;
+  this.arrowScaleFactor = constants.edges.arrowScaleFactor;
 
   this.from = null;   // a node
   this.to = null;     // a node
@@ -10494,9 +9949,12 @@ Edge.prototype.setProperties = function(properties, constants) {
     this.fontSize = constants.edges.fontSize;
     this.fontFace = constants.edges.fontFace;
     this.fontColor = constants.edges.fontColor;
+    this.fontFill = constants.edges.fontFill;
+
     if (properties.fontColor !== undefined)  {this.fontColor = properties.fontColor;}
     if (properties.fontSize !== undefined)   {this.fontSize = properties.fontSize;}
     if (properties.fontFace !== undefined)   {this.fontFace = properties.fontFace;}
+    if (properties.fontFill !== undefined)   {this.fontFill = properties.fontFill;}
   }
 
   if (properties.title !== undefined)        {this.title = properties.title;}
@@ -10504,6 +9962,9 @@ Edge.prototype.setProperties = function(properties, constants) {
   if (properties.value !== undefined)        {this.value = properties.value;}
   if (properties.length !== undefined)       {this.length = properties.length;
                                               this.customLength = true;}
+
+  // scale the arrow
+  if (properties.arrowScaleFactor !== undefined)       {this.arrowScaleFactor = properties.arrowScaleFactor;}
 
   // Added to support dashed lines
   // David Jordan
@@ -10522,7 +9983,6 @@ Edge.prototype.setProperties = function(properties, constants) {
     else {
       if (properties.color.color !== undefined)     {this.color.color = properties.color.color;}
       if (properties.color.highlight !== undefined) {this.color.highlight = properties.color.highlight;}
-      else if (properties.color.color !== undefined){this.color.highlight = properties.color.color;}
     }
   }
 
@@ -10588,7 +10048,7 @@ Edge.prototype.disconnect = function () {
  *                           has been set.
  */
 Edge.prototype.getTitle = function() {
-  return this.title;
+  return typeof this.title === "function" ? this.title() : this.title;
 };
 
 
@@ -10629,18 +10089,22 @@ Edge.prototype.draw = function(ctx) {
  * @return {boolean}     True if location is located on the edge
  */
 Edge.prototype.isOverlappingWith = function(obj) {
-  var distMax = 10;
+  if (this.connected) {
+    var distMax = 10;
+    var xFrom = this.from.x;
+    var yFrom = this.from.y;
+    var xTo = this.to.x;
+    var yTo = this.to.y;
+    var xObj = obj.left;
+    var yObj = obj.top;
 
-  var xFrom = this.from.x;
-  var yFrom = this.from.y;
-  var xTo = this.to.x;
-  var yTo = this.to.y;
-  var xObj = obj.left;
-  var yObj = obj.top;
+    var dist = this._getDistanceToEdge(xFrom, yFrom, xTo, yTo, xObj, yObj);
 
-  var dist = this._getDistanceToEdge(xFrom, yFrom, xTo, yTo, xObj, yObj);
-
-  return (dist < distMax);
+    return (dist < distMax);
+  }
+  else {
+    return false
+  }
 };
 
 
@@ -10757,7 +10221,7 @@ Edge.prototype._label = function (ctx, text, x, y) {
     // TODO: cache the calculated size
     ctx.font = ((this.from.selected || this.to.selected) ? "bold " : "") +
         this.fontSize + "px " + this.fontFace;
-    ctx.fillStyle = 'white';
+    ctx.fillStyle = this.fontFill;
     var width = ctx.measureText(text).width;
     var height = this.fontSize;
     var left = x - width / 2;
@@ -10918,7 +10382,7 @@ Edge.prototype._drawArrowCenter = function(ctx) {
     this._line(ctx);
 
     var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
-    var length = 10 + 5 * this.width; // TODO: make customizable?
+    var length = (10 + 5 * this.width) * this.arrowScaleFactor;
     // draw an arrow halfway the line
     if (this.smooth == true) {
       var midpointX = 0.5*(0.5*(this.from.x + this.via.x) + 0.5*(this.to.x + this.via.x));
@@ -10958,7 +10422,7 @@ Edge.prototype._drawArrowCenter = function(ctx) {
 
     // draw all arrows
     var angle = 0.2 * Math.PI;
-    var length = 10 + 5 * this.width; // TODO: make customizable?
+    var length = (10 + 5 * this.width) * this.arrowScaleFactor;
     point = this._pointOnCircle(x, y, radius, 0.5);
     ctx.arrow(point.x, point.y, angle, length);
     ctx.fill();
@@ -10984,7 +10448,7 @@ Edge.prototype._drawArrowCenter = function(ctx) {
 Edge.prototype._drawArrow = function(ctx) {
   // set style
   if (this.selected == true) {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
-  else                       {ctx.strokeStyle = this.color.color; ctx.fillStyle = this.color.color;}
+  else                       {ctx.strokeStyle = this.color.color;     ctx.fillStyle = this.color.color;}
 
   ctx.lineWidth = this._getLineWidth();
 
@@ -11032,7 +10496,7 @@ Edge.prototype._drawArrow = function(ctx) {
     ctx.stroke();
 
     // draw arrow at the end of the line
-    length = 10 + 5 * this.width;
+    length = (10 + 5 * this.width) * this.arrowScaleFactor;
     ctx.arrow(xTo, yTo, angle, length);
     ctx.fill();
     ctx.stroke();
@@ -11083,7 +10547,7 @@ Edge.prototype._drawArrow = function(ctx) {
     ctx.stroke();
 
     // draw all arrows
-    length = 10 + 5 * this.width; // TODO: make customizable?
+    var length = (10 + 5 * this.width) * this.arrowScaleFactor;
     ctx.arrow(arrow.x, arrow.y, arrow.angle, length);
     ctx.fill();
     ctx.stroke();
@@ -11184,14 +10648,39 @@ Edge.prototype.positionBezierNode = function() {
  * @param {Number} [x]
  * @param {Number} [y]
  * @param {String} [text]
+ * @param {Object} [style]     An object containing borderColor,
+ *                             backgroundColor, etc.
  */
-function Popup(container, x, y, text) {
+function Popup(container, x, y, text, style) {
   if (container) {
     this.container = container;
   }
   else {
     this.container = document.body;
   }
+
+  // x, y and text are optional, see if a style object was passed in their place
+  if (style === undefined) {
+    if (typeof x === "object") {
+      style = x;
+      x = undefined;
+    } else if (typeof text === "object") {
+      style = text;
+      text = undefined;
+    } else {
+      // for backwards compatibility, in case clients other than Graph are creating Popup directly
+      style = {
+        fontColor: 'black',
+        fontSize: 14, // px
+        fontFace: 'verdana',
+        color: {
+          border: '#666',
+          background: '#FFFFC6'
+        }
+      }
+    }
+  }
+
   this.x = 0;
   this.y = 0;
   this.padding = 5;
@@ -11205,18 +10694,20 @@ function Popup(container, x, y, text) {
 
   // create the frame
   this.frame = document.createElement("div");
-  var style = this.frame.style;
-  style.position = "absolute";
-  style.visibility = "hidden";
-  style.border = "1px solid #666";
-  style.color = "black";
-  style.padding = this.padding + "px";
-  style.backgroundColor = "#FFFFC6";
-  style.borderRadius = "3px";
-  style.MozBorderRadius = "3px";
-  style.WebkitBorderRadius = "3px";
-  style.boxShadow = "3px 3px 10px rgba(128, 128, 128, 0.5)";
-  style.whiteSpace = "nowrap";
+  var styleAttr = this.frame.style;
+  styleAttr.position = "absolute";
+  styleAttr.visibility = "hidden";
+  styleAttr.border = "1px solid " + style.color.border;
+  styleAttr.color = style.fontColor;
+  styleAttr.fontSize = style.fontSize + "px";
+  styleAttr.fontFamily = style.fontFace;
+  styleAttr.padding = this.padding + "px";
+  styleAttr.backgroundColor = style.color.background;
+  styleAttr.borderRadius = "3px";
+  styleAttr.MozBorderRadius = "3px";
+  styleAttr.WebkitBorderRadius = "3px";
+  styleAttr.boxShadow = "3px 3px 10px rgba(128, 128, 128, 0.5)";
+  styleAttr.whiteSpace = "nowrap";
   this.container.appendChild(this.frame);
 }
 
@@ -11360,7 +10851,7 @@ Groups.prototype.get = function (groupname) {
 Groups.prototype.add = function (groupname, style) {
   this.groups[groupname] = style;
   if (style.color) {
-    style.color = Node.parseColor(style.color);
+    style.color = util.parseColor(style.color);
   }
   return style;
 };
@@ -11419,7 +10910,7 @@ var physicsMixin = {
    *
    * @private
    */
-  _toggleBarnesHut : function() {
+  _toggleBarnesHut: function () {
     this.constants.physics.barnesHut.enabled = !this.constants.physics.barnesHut.enabled;
     this._loadSelectedForceSolver();
     this.moving = true;
@@ -11427,22 +10918,21 @@ var physicsMixin = {
   },
 
 
-
   /**
    * This loads the node force solver based on the barnes hut or repulsion algorithm
    *
    * @private
    */
-  _loadSelectedForceSolver : function() {
+  _loadSelectedForceSolver: function () {
     // this overloads the this._calculateNodeForces
     if (this.constants.physics.barnesHut.enabled == true) {
       this._clearMixin(repulsionMixin);
       this._clearMixin(hierarchalRepulsionMixin);
 
       this.constants.physics.centralGravity = this.constants.physics.barnesHut.centralGravity;
-      this.constants.physics.springLength   = this.constants.physics.barnesHut.springLength;
+      this.constants.physics.springLength = this.constants.physics.barnesHut.springLength;
       this.constants.physics.springConstant = this.constants.physics.barnesHut.springConstant;
-      this.constants.physics.damping        = this.constants.physics.barnesHut.damping;
+      this.constants.physics.damping = this.constants.physics.barnesHut.damping;
 
       this._loadMixin(barnesHutMixin);
     }
@@ -11451,9 +10941,9 @@ var physicsMixin = {
       this._clearMixin(repulsionMixin);
 
       this.constants.physics.centralGravity = this.constants.physics.hierarchicalRepulsion.centralGravity;
-      this.constants.physics.springLength   = this.constants.physics.hierarchicalRepulsion.springLength;
+      this.constants.physics.springLength = this.constants.physics.hierarchicalRepulsion.springLength;
       this.constants.physics.springConstant = this.constants.physics.hierarchicalRepulsion.springConstant;
-      this.constants.physics.damping        = this.constants.physics.hierarchicalRepulsion.damping;
+      this.constants.physics.damping = this.constants.physics.hierarchicalRepulsion.damping;
 
       this._loadMixin(hierarchalRepulsionMixin);
     }
@@ -11463,9 +10953,9 @@ var physicsMixin = {
       this.barnesHutTree = undefined;
 
       this.constants.physics.centralGravity = this.constants.physics.repulsion.centralGravity;
-      this.constants.physics.springLength   = this.constants.physics.repulsion.springLength;
+      this.constants.physics.springLength = this.constants.physics.repulsion.springLength;
       this.constants.physics.springConstant = this.constants.physics.repulsion.springConstant;
-      this.constants.physics.damping        = this.constants.physics.repulsion.damping;
+      this.constants.physics.damping = this.constants.physics.repulsion.damping;
 
       this._loadMixin(repulsionMixin);
     }
@@ -11477,10 +10967,10 @@ var physicsMixin = {
    *
    * @private
    */
-  _initializeForceCalculation : function() {
+  _initializeForceCalculation: function () {
     // stop calculation if there is only one node
     if (this.nodeIndices.length == 1) {
-      this.nodes[this.nodeIndices[0]]._setForce(0,0);
+      this.nodes[this.nodeIndices[0]]._setForce(0, 0);
     }
     else {
       // if there are too many nodes on screen, we cluster without repositioning
@@ -11499,14 +10989,13 @@ var physicsMixin = {
    * Forces are caused by: edges, repulsing forces between nodes, gravity
    * @private
    */
-  _calculateForces : function() {
+  _calculateForces: function () {
     // Gravity is required to keep separated groups from floating off
     // the forces are reset to zero in this loop by using _setForce instead
     // of _addForce
 
     this._calculateGravitationalForces();
     this._calculateNodeForces();
-
 
     if (this.constants.smoothCurves == true) {
       this._calculateSpringForcesWithSupport();
@@ -11525,7 +11014,7 @@ var physicsMixin = {
    *
    * @private
    */
-  _updateCalculationNodes : function() {
+  _updateCalculationNodes: function () {
     if (this.constants.smoothCurves == true) {
       this.calculationNodes = {};
       this.calculationNodeIndices = [];
@@ -11542,7 +11031,7 @@ var physicsMixin = {
             this.calculationNodes[supportNodeId] = supportNodes[supportNodeId];
           }
           else {
-            supportNodes[supportNodeId]._setForce(0,0);
+            supportNodes[supportNodeId]._setForce(0, 0);
           }
         }
       }
@@ -11565,7 +11054,7 @@ var physicsMixin = {
    *
    * @private
    */
-  _calculateGravitationalForces : function() {
+  _calculateGravitationalForces: function () {
     var dx, dy, distance, node, i;
     var nodes = this.calculationNodes;
     var gravity = this.constants.physics.centralGravity;
@@ -11578,9 +11067,9 @@ var physicsMixin = {
       if (this._sector() == "default" && gravity != 0) {
         dx = -node.x;
         dy = -node.y;
-        distance = Math.sqrt(dx*dx + dy*dy);
-        gravityForce = gravity / distance;
+        distance = Math.sqrt(dx * dx + dy * dy);
 
+        gravityForce = (distance == 0) ? 0 : (gravity / distance);
         node.fx = dx * gravityForce;
         node.fy = dy * gravityForce;
       }
@@ -11597,7 +11086,7 @@ var physicsMixin = {
    *
    * @private
    */
-  _calculateSpringForces : function() {
+  _calculateSpringForces: function () {
     var edgeLength, edge, edgeId;
     var dx, dy, fx, fy, springForce, length;
     var edges = this.edges;
@@ -11615,7 +11104,7 @@ var physicsMixin = {
 
             dx = (edge.from.x - edge.to.x);
             dy = (edge.from.y - edge.to.y);
-            length =  Math.sqrt(dx * dx + dy * dy);
+            length = Math.sqrt(dx * dx + dy * dy);
 
             if (length == 0) {
               length = 0.01;
@@ -11642,7 +11131,7 @@ var physicsMixin = {
    *
    * @private
    */
-  _calculateSpringForcesWithSupport : function() {
+  _calculateSpringForcesWithSupport: function () {
     var edgeLength, edge, edgeId, combinedClusterSize;
     var edges = this.edges;
 
@@ -11664,8 +11153,8 @@ var physicsMixin = {
 
               // this implies that the edges between big clusters are longer
               edgeLength += combinedClusterSize * this.constants.clustering.edgeGrowth;
-              this._calculateSpringForce(node1,node2,0.5*edgeLength);
-              this._calculateSpringForce(node2,node3,0.5*edgeLength);
+              this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
+              this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
             }
           }
         }
@@ -11682,18 +11171,18 @@ var physicsMixin = {
    * @param edgeLength
    * @private
    */
-  _calculateSpringForce : function(node1,node2,edgeLength) {
+  _calculateSpringForce: function (node1, node2, edgeLength) {
     var dx, dy, fx, fy, springForce, length;
 
     dx = (node1.x - node2.x);
     dy = (node1.y - node2.y);
-    length =  Math.sqrt(dx * dx + dy * dy);
-
-    springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
+    length = Math.sqrt(dx * dx + dy * dy);
 
     if (length == 0) {
       length = 0.01;
     }
+
+    springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
 
     fx = dx * springForce;
     fy = dy * springForce;
@@ -11709,131 +11198,141 @@ var physicsMixin = {
    * Load the HTML for the physics config and bind it
    * @private
    */
-  _loadPhysicsConfiguration : function() {
+  _loadPhysicsConfiguration: function () {
     if (this.physicsConfiguration === undefined) {
-      var hierarchicalLayoutDirections = ["LR","RL","UD","DU"];
+      this.backupConstants = {};
+      util.copyObject(this.constants, this.backupConstants);
+
+      var hierarchicalLayoutDirections = ["LR", "RL", "UD", "DU"];
       this.physicsConfiguration = document.createElement('div');
       this.physicsConfiguration.className = "PhysicsConfiguration";
       this.physicsConfiguration.innerHTML = '' +
         '<table><tr><td><b>Simulation Mode:</b></td></tr>' +
         '<tr>' +
         '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod1" value="BH" checked="checked">Barnes Hut</td>' +
-        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod2" value="R">Repulsion</td>'+
+        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod2" value="R">Repulsion</td>' +
         '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod3" value="H">Hierarchical</td>' +
-        '</tr>'+
+        '</tr>' +
         '</table>' +
-        '<table id="graph_BH_table" style="display:none">'+
-        '<tr><td><b>Barnes Hut</b></td></tr>'+
-        '<tr>'+
-        '<td width="150px">gravitationalConstant</td><td>0</td><td><input type="range" min="500" max="20000" value="' + (-1* this.constants.physics.barnesHut.gravitationalConstant) + '" step="25" style="width:300px" id="graph_BH_gc"></td><td  width="50px">-20000</td><td><input value="' + (-1* this.constants.physics.barnesHut.gravitationalConstant) + '" id="graph_BH_gc_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.barnesHut.centralGravity + '" step="0.05"  style="width:300px" id="graph_BH_cg"></td><td>3</td><td><input value="' + this.constants.physics.barnesHut.centralGravity + '" id="graph_BH_cg_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.barnesHut.springLength + '" step="1" style="width:300px" id="graph_BH_sl"></td><td>500</td><td><input value="' + this.constants.physics.barnesHut.springLength + '" id="graph_BH_sl_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.barnesHut.springConstant + '" step="0.001" style="width:300px" id="graph_BH_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.barnesHut.springConstant + '" id="graph_BH_sc_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.barnesHut.damping + '" step="0.005" style="width:300px" id="graph_BH_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.barnesHut.damping + '" id="graph_BH_damp_value" style="width:60px"></td>'+
-        '</tr>'+
-        '</table>'+
-        '<table id="graph_R_table" style="display:none">'+
-        '<tr><td><b>Repulsion</b></td></tr>'+
-        '<tr>'+
-        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.repulsion.nodeDistance + '" step="1" style="width:300px" id="graph_R_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.repulsion.nodeDistance + '" id="graph_R_nd_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.repulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_R_cg"></td><td>3</td><td><input value="' + this.constants.physics.repulsion.centralGravity + '" id="graph_R_cg_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.repulsion.springLength + '" step="1" style="width:300px" id="graph_R_sl"></td><td>500</td><td><input value="' + this.constants.physics.repulsion.springLength + '" id="graph_R_sl_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.repulsion.springConstant + '" step="0.001" style="width:300px" id="graph_R_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.repulsion.springConstant + '" id="graph_R_sc_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.repulsion.damping + '" step="0.005" style="width:300px" id="graph_R_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.repulsion.damping + '" id="graph_R_damp_value" style="width:60px"></td>'+
-        '</tr>'+
-        '</table>'+
-        '<table id="graph_H_table" style="display:none">'+
-        '<tr><td width="150"><b>Hierarchical</b></td></tr>'+
-        '<tr>'+
-        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" step="1" style="width:300px" id="graph_H_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" id="graph_H_nd_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_H_cg"></td><td>3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" id="graph_H_cg_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" step="1" style="width:300px" id="graph_H_sl"></td><td>500</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" id="graph_H_sl_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" step="0.001" style="width:300px" id="graph_H_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" id="graph_H_sc_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.hierarchicalRepulsion.damping + '" step="0.005" style="width:300px" id="graph_H_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.damping + '" id="graph_H_damp_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">direction</td><td>1</td><td><input type="range" min="0" max="3" value="' + hierarchicalLayoutDirections.indexOf(this.constants.hierarchicalLayout.direction) + '" step="1" style="width:300px" id="graph_H_direction"></td><td>4</td><td><input value="' + this.constants.hierarchicalLayout.direction + '" id="graph_H_direction_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">levelSeparation</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.levelSeparation + '" step="1" style="width:300px" id="graph_H_levsep"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.levelSeparation + '" id="graph_H_levsep_value" style="width:60px"></td>'+
-        '</tr>'+
-        '<tr>'+
-        '<td width="150px">nodeSpacing</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.nodeSpacing + '" step="1" style="width:300px" id="graph_H_nspac"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.nodeSpacing + '" id="graph_H_nspac_value" style="width:60px"></td>'+
-        '</tr>'+
+        '<table id="graph_BH_table" style="display:none">' +
+        '<tr><td><b>Barnes Hut</b></td></tr>' +
+        '<tr>' +
+        '<td width="150px">gravitationalConstant</td><td>0</td><td><input type="range" min="500" max="20000" value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" step="25" style="width:300px" id="graph_BH_gc"></td><td  width="50px">-20000</td><td><input value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" id="graph_BH_gc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.barnesHut.centralGravity + '" step="0.05"  style="width:300px" id="graph_BH_cg"></td><td>3</td><td><input value="' + this.constants.physics.barnesHut.centralGravity + '" id="graph_BH_cg_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.barnesHut.springLength + '" step="1" style="width:300px" id="graph_BH_sl"></td><td>500</td><td><input value="' + this.constants.physics.barnesHut.springLength + '" id="graph_BH_sl_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.barnesHut.springConstant + '" step="0.001" style="width:300px" id="graph_BH_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.barnesHut.springConstant + '" id="graph_BH_sc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.barnesHut.damping + '" step="0.005" style="width:300px" id="graph_BH_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.barnesHut.damping + '" id="graph_BH_damp_value" style="width:60px"></td>' +
+        '</tr>' +
+        '</table>' +
+        '<table id="graph_R_table" style="display:none">' +
+        '<tr><td><b>Repulsion</b></td></tr>' +
+        '<tr>' +
+        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.repulsion.nodeDistance + '" step="1" style="width:300px" id="graph_R_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.repulsion.nodeDistance + '" id="graph_R_nd_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.repulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_R_cg"></td><td>3</td><td><input value="' + this.constants.physics.repulsion.centralGravity + '" id="graph_R_cg_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.repulsion.springLength + '" step="1" style="width:300px" id="graph_R_sl"></td><td>500</td><td><input value="' + this.constants.physics.repulsion.springLength + '" id="graph_R_sl_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.repulsion.springConstant + '" step="0.001" style="width:300px" id="graph_R_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.repulsion.springConstant + '" id="graph_R_sc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.repulsion.damping + '" step="0.005" style="width:300px" id="graph_R_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.repulsion.damping + '" id="graph_R_damp_value" style="width:60px"></td>' +
+        '</tr>' +
+        '</table>' +
+        '<table id="graph_H_table" style="display:none">' +
+        '<tr><td width="150"><b>Hierarchical</b></td></tr>' +
+        '<tr>' +
+        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" step="1" style="width:300px" id="graph_H_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" id="graph_H_nd_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_H_cg"></td><td>3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" id="graph_H_cg_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" step="1" style="width:300px" id="graph_H_sl"></td><td>500</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" id="graph_H_sl_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" step="0.001" style="width:300px" id="graph_H_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" id="graph_H_sc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.hierarchicalRepulsion.damping + '" step="0.005" style="width:300px" id="graph_H_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.damping + '" id="graph_H_damp_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">direction</td><td>1</td><td><input type="range" min="0" max="3" value="' + hierarchicalLayoutDirections.indexOf(this.constants.hierarchicalLayout.direction) + '" step="1" style="width:300px" id="graph_H_direction"></td><td>4</td><td><input value="' + this.constants.hierarchicalLayout.direction + '" id="graph_H_direction_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">levelSeparation</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.levelSeparation + '" step="1" style="width:300px" id="graph_H_levsep"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.levelSeparation + '" id="graph_H_levsep_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">nodeSpacing</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.nodeSpacing + '" step="1" style="width:300px" id="graph_H_nspac"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.nodeSpacing + '" id="graph_H_nspac_value" style="width:60px"></td>' +
+        '</tr>' +
+        '</table>' +
+        '<table><tr><td><b>Options:</b></td></tr>' +
+        '<tr>' +
+        '<td width="180px"><input type="button" id="graph_toggleSmooth" value="Toggle smoothCurves" style="width:150px"></td>' +
+        '<td width="180px"><input type="button" id="graph_repositionNodes" value="Reinitialize" style="width:150px"></td>' +
+        '<td width="180px"><input type="button" id="graph_generateOptions" value="Generate Options" style="width:150px"></td>' +
+        '</tr>' +
         '</table>'
-      this.containerElement.parentElement.insertBefore(this.physicsConfiguration,this.containerElement);
-
-
+      this.containerElement.parentElement.insertBefore(this.physicsConfiguration, this.containerElement);
+      this.optionsDiv = document.createElement("div");
+      this.optionsDiv.style.fontSize = "14px";
+      this.optionsDiv.style.fontFamily = "verdana";
+      this.containerElement.parentElement.insertBefore(this.optionsDiv, this.containerElement);
 
       var rangeElement;
       rangeElement = document.getElementById('graph_BH_gc');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_gc',-1,"physics_barnesHut_gravitationalConstant");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_gc', -1, "physics_barnesHut_gravitationalConstant");
       rangeElement = document.getElementById('graph_BH_cg');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_cg',1,"physics_centralGravity");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_cg', 1, "physics_centralGravity");
       rangeElement = document.getElementById('graph_BH_sc');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_sc',1,"physics_springConstant");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_sc', 1, "physics_springConstant");
       rangeElement = document.getElementById('graph_BH_sl');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_sl',1,"physics_springLength");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_sl', 1, "physics_springLength");
       rangeElement = document.getElementById('graph_BH_damp');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_BH_damp',1,"physics_damping");
-
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_damp', 1, "physics_damping");
 
       rangeElement = document.getElementById('graph_R_nd');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_R_nd',1,"physics_repulsion_nodeDistance");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_nd', 1, "physics_repulsion_nodeDistance");
       rangeElement = document.getElementById('graph_R_cg');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_R_cg',1,"physics_centralGravity");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_cg', 1, "physics_centralGravity");
       rangeElement = document.getElementById('graph_R_sc');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_R_sc',1,"physics_springConstant");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_sc', 1, "physics_springConstant");
       rangeElement = document.getElementById('graph_R_sl');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_R_sl',1,"physics_springLength");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_sl', 1, "physics_springLength");
       rangeElement = document.getElementById('graph_R_damp');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_R_damp',1,"physics_damping");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_damp', 1, "physics_damping");
 
       rangeElement = document.getElementById('graph_H_nd');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_nd',1,"physics_hierarchicalRepulsion_nodeDistance");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_nd', 1, "physics_hierarchicalRepulsion_nodeDistance");
       rangeElement = document.getElementById('graph_H_cg');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_cg',1,"physics_centralGravity");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_cg', 1, "physics_centralGravity");
       rangeElement = document.getElementById('graph_H_sc');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_sc',1,"physics_springConstant");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_sc', 1, "physics_springConstant");
       rangeElement = document.getElementById('graph_H_sl');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_sl',1,"physics_springLength");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_sl', 1, "physics_springLength");
       rangeElement = document.getElementById('graph_H_damp');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_damp',1,"physics_damping");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_damp', 1, "physics_damping");
       rangeElement = document.getElementById('graph_H_direction');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_direction',hierarchicalLayoutDirections,"hierarchicalLayout_direction");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_direction', hierarchicalLayoutDirections, "hierarchicalLayout_direction");
       rangeElement = document.getElementById('graph_H_levsep');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_levsep',1,"hierarchicalLayout_levelSeparation");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_levsep', 1, "hierarchicalLayout_levelSeparation");
       rangeElement = document.getElementById('graph_H_nspac');
-      rangeElement.onchange = showValueOfRange.bind(this,'graph_H_nspac',1,"hierarchicalLayout_nodeSpacing");
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_nspac', 1, "hierarchicalLayout_nodeSpacing");
 
       var radioButton1 = document.getElementById("graph_physicsMethod1");
       var radioButton2 = document.getElementById("graph_physicsMethod2");
       var radioButton3 = document.getElementById("graph_physicsMethod3");
-
       radioButton2.checked = true;
       if (this.constants.physics.barnesHut.enabled) {
         radioButton1.checked = true;
@@ -11841,6 +11340,21 @@ var physicsMixin = {
       if (this.constants.hierarchicalLayout.enabled) {
         radioButton3.checked = true;
       }
+
+      var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+      var graph_repositionNodes = document.getElementById("graph_repositionNodes");
+      var graph_generateOptions = document.getElementById("graph_generateOptions");
+
+      graph_toggleSmooth.onclick = graphToggleSmoothCurves.bind(this);
+      graph_repositionNodes.onclick = graphRepositionNodes.bind(this);
+      graph_generateOptions.onclick = graphGenerateOptions.bind(this);
+      if (this.constants.smoothCurves == true) {
+        graph_toggleSmooth.style.background = "#A4FF56";
+      }
+      else {
+        graph_toggleSmooth.style.background = "#FF8532";
+      }
+
 
       switchConfigurations.apply(this);
 
@@ -11850,7 +11364,14 @@ var physicsMixin = {
     }
   },
 
-  _overWriteGraphConstants : function(constantsVariableName, value) {
+  /**
+   * This overwrites the this.constants.
+   *
+   * @param constantsVariableName
+   * @param value
+   * @private
+   */
+  _overWriteGraphConstants: function (constantsVariableName, value) {
     var nameArray = constantsVariableName.split("_");
     if (nameArray.length == 1) {
       this.constants[nameArray[0]] = value;
@@ -11862,11 +11383,147 @@ var physicsMixin = {
       this.constants[nameArray[0]][nameArray[1]][nameArray[2]] = value;
     }
   }
-}
+};
+
+/**
+ * this function is bound to the toggle smooth curves button. That is also why it is not in the prototype.
+ */
+function graphToggleSmoothCurves () {
+  this.constants.smoothCurves = !this.constants.smoothCurves;
+  var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+  if (this.constants.smoothCurves == true) {graph_toggleSmooth.style.background = "#A4FF56";}
+  else                                     {graph_toggleSmooth.style.background = "#FF8532";}
+
+  this._configureSmoothCurves(false);
+};
+
+/**
+ * this function is used to scramble the nodes
+ *
+ */
+function graphRepositionNodes () {
+  for (var nodeId in this.calculationNodes) {
+    if (this.calculationNodes.hasOwnProperty(nodeId)) {
+      this.calculationNodes[nodeId].vx = 0;  this.calculationNodes[nodeId].vy = 0;
+      this.calculationNodes[nodeId].fx = 0;  this.calculationNodes[nodeId].fy = 0;
+    }
+  }
+  if (this.constants.hierarchicalLayout.enabled == true) {
+    this._setupHierarchicalLayout();
+  }
+  else {
+    this.repositionNodes();
+  }
+  this.moving = true;
+  this.start();
+};
+
+/**
+ *  this is used to generate an options file from the playing with physics system.
+ */
+function graphGenerateOptions () {
+  var options = "No options are required, default values used.";
+  var optionsSpecific = [];
+  var radioButton1 = document.getElementById("graph_physicsMethod1");
+  var radioButton2 = document.getElementById("graph_physicsMethod2");
+  if (radioButton1.checked == true) {
+    if (this.constants.physics.barnesHut.gravitationalConstant != this.backupConstants.physics.barnesHut.gravitationalConstant) {optionsSpecific.push("gravitationalConstant: " + this.constants.physics.barnesHut.gravitationalConstant);}
+    if (this.constants.physics.centralGravity != this.backupConstants.physics.barnesHut.centralGravity)                         {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+    if (this.constants.physics.springLength != this.backupConstants.physics.barnesHut.springLength)                             {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+    if (this.constants.physics.springConstant != this.backupConstants.physics.barnesHut.springConstant)                         {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+    if (this.constants.physics.damping != this.backupConstants.physics.barnesHut.damping)                                       {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+    if (optionsSpecific.length != 0) {
+      options = "var options = {";
+      options += "physics: {barnesHut: {";
+      for (var i = 0; i < optionsSpecific.length; i++) {
+        options += optionsSpecific[i];
+        if (i < optionsSpecific.length - 1) {
+          options += ", "
+        }
+      }
+      options += '}}'
+    }
+    if (this.constants.smoothCurves != this.backupConstants.smoothCurves) {
+      if (optionsSpecific.length == 0) {options = "var options = {";}
+      else {options += ", "}
+      options += "smoothCurves: " + this.constants.smoothCurves;
+    }
+    if (options != "No options are required, default values used.") {
+      options += '};'
+    }
+  }
+  else if (radioButton2.checked == true) {
+    options = "var options = {";
+    options += "physics: {barnesHut: {enabled: false}";
+    if (this.constants.physics.repulsion.nodeDistance != this.backupConstants.physics.repulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.repulsion.nodeDistance);}
+    if (this.constants.physics.centralGravity != this.backupConstants.physics.repulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+    if (this.constants.physics.springLength != this.backupConstants.physics.repulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+    if (this.constants.physics.springConstant != this.backupConstants.physics.repulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+    if (this.constants.physics.damping != this.backupConstants.physics.repulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+    if (optionsSpecific.length != 0) {
+      options += ", repulsion: {";
+      for (var i = 0; i < optionsSpecific.length; i++) {
+        options += optionsSpecific[i];
+        if (i < optionsSpecific.length - 1) {
+          options += ", "
+        }
+      }
+      options += '}}'
+    }
+    if (optionsSpecific.length == 0) {options += "}"}
+    if (this.constants.smoothCurves != this.backupConstants.smoothCurves) {
+      options += ", smoothCurves: " + this.constants.smoothCurves;
+    }
+    options += '};'
+  }
+  else {
+    options = "var options = {";
+    if (this.constants.physics.hierarchicalRepulsion.nodeDistance != this.backupConstants.physics.hierarchicalRepulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.hierarchicalRepulsion.nodeDistance);}
+    if (this.constants.physics.centralGravity != this.backupConstants.physics.hierarchicalRepulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+    if (this.constants.physics.springLength != this.backupConstants.physics.hierarchicalRepulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+    if (this.constants.physics.springConstant != this.backupConstants.physics.hierarchicalRepulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+    if (this.constants.physics.damping != this.backupConstants.physics.hierarchicalRepulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+    if (optionsSpecific.length != 0) {
+      options += "physics: {hierarchicalRepulsion: {";
+      for (var i = 0; i < optionsSpecific.length; i++) {
+        options += optionsSpecific[i];
+        if (i < optionsSpecific.length - 1) {
+          options += ", ";
+        }
+      }
+      options += '}},';
+    }
+    options += 'hierarchicalLayout: {';
+    optionsSpecific = [];
+    if (this.constants.hierarchicalLayout.direction != this.backupConstants.hierarchicalLayout.direction)                       {optionsSpecific.push("direction: " + this.constants.hierarchicalLayout.direction);}
+    if (Math.abs(this.constants.hierarchicalLayout.levelSeparation) != this.backupConstants.hierarchicalLayout.levelSeparation) {optionsSpecific.push("levelSeparation: " + this.constants.hierarchicalLayout.levelSeparation);}
+    if (this.constants.hierarchicalLayout.nodeSpacing != this.backupConstants.hierarchicalLayout.nodeSpacing)                   {optionsSpecific.push("nodeSpacing: " + this.constants.hierarchicalLayout.nodeSpacing);}
+    if (optionsSpecific.length != 0) {
+      for (var i = 0; i < optionsSpecific.length; i++) {
+        options += optionsSpecific[i];
+        if (i < optionsSpecific.length - 1) {
+          options += ", "
+        }
+      }
+      options += '}'
+    }
+    else {
+      options += "enabled:true}";
+    }
+    options += '};'
+  }
 
 
+  this.optionsDiv.innerHTML = options;
+
+};
+
+/**
+ * this is used to switch between barnesHut, repulsion and hierarchical.
+ *
+ */
 function switchConfigurations () {
-  var ids = ["graph_BH_table","graph_R_table","graph_H_table"]
+  var ids = ["graph_BH_table", "graph_R_table", "graph_H_table"];
   var radioButton = document.querySelector('input[name="graph_physicsMethod"]:checked').value;
   var tableId = "graph_" + radioButton + "_table";
   var table = document.getElementById(tableId);
@@ -11880,25 +11537,37 @@ function switchConfigurations () {
   this._restoreNodes();
   if (radioButton == "R") {
     this.constants.hierarchicalLayout.enabled = false;
-    this.constants.physics.hierarchicalRepulsion.enabeled = false;
+    this.constants.physics.hierarchicalRepulsion.enabled = false;
     this.constants.physics.barnesHut.enabled = false;
   }
   else if (radioButton == "H") {
     this.constants.hierarchicalLayout.enabled = true;
-    this.constants.physics.hierarchicalRepulsion.enabeled = true;
+    this.constants.physics.hierarchicalRepulsion.enabled = true;
     this.constants.physics.barnesHut.enabled = false;
     this._setupHierarchicalLayout();
   }
   else {
     this.constants.hierarchicalLayout.enabled = false;
-    this.constants.physics.hierarchicalRepulsion.enabeled = false;
+    this.constants.physics.hierarchicalRepulsion.enabled = false;
     this.constants.physics.barnesHut.enabled = true;
   }
   this._loadSelectedForceSolver();
+  var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+  if (this.constants.smoothCurves == true) {graph_toggleSmooth.style.background = "#A4FF56";}
+  else                                     {graph_toggleSmooth.style.background = "#FF8532";}
   this.moving = true;
   this.start();
+
 }
 
+
+/**
+ * this generates the ranges depending on the iniital values.
+ *
+ * @param id
+ * @param map
+ * @param constantsVariableName
+ */
 function showValueOfRange (id,map,constantsVariableName) {
   var valueId = id + "_value";
   var rangeValue = document.getElementById(id).value;
@@ -11922,6 +11591,7 @@ function showValueOfRange (id,map,constantsVariableName) {
 };
 
 
+
 /**
  * Created by Alex on 2/10/14.
  */
@@ -11934,8 +11604,8 @@ var hierarchalRepulsionMixin = {
    * This field is linearly approximated.
    *
    * @private
-  */
-  _calculateNodeForces : function() {
+   */
+  _calculateNodeForces: function () {
     var dx, dy, distance, fx, fy, combinedClusterSize,
       repulsingForce, node1, node2, i, j;
 
@@ -11944,7 +11614,7 @@ var hierarchalRepulsionMixin = {
 
     // approximation constants
     var b = 5;
-    var a_base = 0.5*-b;
+    var a_base = 0.5 * -b;
 
 
     // repulsing forces between nodes
@@ -11953,10 +11623,10 @@ var hierarchalRepulsionMixin = {
 
     // we loop from i over all but the last entree in the array
     // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
-    for (i = 0; i < nodeIndices.length-1; i++) {
+    for (i = 0; i < nodeIndices.length - 1; i++) {
 
       node1 = nodes[nodeIndices[i]];
-      for (j = i+1; j < nodeIndices.length; j++) {
+      for (j = i + 1; j < nodeIndices.length; j++) {
         node2 = nodes[nodeIndices[j]];
 
         dx = node2.x - node1.x;
@@ -11964,7 +11634,7 @@ var hierarchalRepulsionMixin = {
         distance = Math.sqrt(dx * dx + dy * dy);
 
         var a = a_base / minimumDistance;
-        if (distance < 2*minimumDistance) {
+        if (distance < 2 * minimumDistance) {
           repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness))
 
           // normalize force with
@@ -11972,7 +11642,7 @@ var hierarchalRepulsionMixin = {
             distance = 0.01;
           }
           else {
-            repulsingForce = repulsingForce/distance;
+            repulsingForce = repulsingForce / distance;
           }
           fx = dx * repulsingForce;
           fy = dy * repulsingForce;
@@ -11985,7 +11655,7 @@ var hierarchalRepulsionMixin = {
       }
     }
   }
-}
+};
 /**
  * Created by Alex on 2/10/14.
  */
@@ -11999,23 +11669,25 @@ var barnesHutMixin = {
    * @private
    */
   _calculateNodeForces : function() {
-    var node;
-    var nodes = this.calculationNodes;
-    var nodeIndices = this.calculationNodeIndices;
-    var nodeCount = nodeIndices.length;
+    if (this.constants.physics.barnesHut.gravitationalConstant != 0) {
+      var node;
+      var nodes = this.calculationNodes;
+      var nodeIndices = this.calculationNodeIndices;
+      var nodeCount = nodeIndices.length;
 
-    this._formBarnesHutTree(nodes,nodeIndices);
+      this._formBarnesHutTree(nodes,nodeIndices);
 
-    var barnesHutTree = this.barnesHutTree;
+      var barnesHutTree = this.barnesHutTree;
 
-    // place the nodes one by one recursively
-    for (var i = 0; i < nodeCount; i++) {
-      node = nodes[nodeIndices[i]];
-      // starting with root is irrelevant, it never passes the BarnesHut condition
-      this._getForceContribution(barnesHutTree.root.children.NW,node);
-      this._getForceContribution(barnesHutTree.root.children.NE,node);
-      this._getForceContribution(barnesHutTree.root.children.SW,node);
-      this._getForceContribution(barnesHutTree.root.children.SE,node);
+      // place the nodes one by one recursively
+      for (var i = 0; i < nodeCount; i++) {
+        node = nodes[nodeIndices[i]];
+        // starting with root is irrelevant, it never passes the BarnesHut condition
+        this._getForceContribution(barnesHutTree.root.children.NW,node);
+        this._getForceContribution(barnesHutTree.root.children.NE,node);
+        this._getForceContribution(barnesHutTree.root.children.SW,node);
+        this._getForceContribution(barnesHutTree.root.children.SE,node);
+      }
     }
   },
 
@@ -12121,6 +11793,7 @@ var barnesHutMixin = {
       mass:0,
       range: {minX:centerX-halfRootSize,maxX:centerX+halfRootSize,
               minY:centerY-halfRootSize,maxY:centerY+halfRootSize},
+
       size: rootSize,
       calcSize: 1 / rootSize,
       children: {data:null},
@@ -12141,6 +11814,13 @@ var barnesHutMixin = {
   },
 
 
+  /**
+   * this updates the mass of a branch. this is increased by adding a node.
+   *
+   * @param parentBranch
+   * @param node
+   * @private
+   */
   _updateBranchMass : function(parentBranch, node) {
     var totalMass = parentBranch.mass + node.mass;
     var totalMassInv = 1/totalMass;
@@ -12158,6 +11838,14 @@ var barnesHutMixin = {
   },
 
 
+  /**
+   * determine in which branch the node will be placed.
+   *
+   * @param parentBranch
+   * @param node
+   * @param skipMassUpdate
+   * @private
+   */
   _placeInTree : function(parentBranch,node,skipMassUpdate) {
     if (skipMassUpdate != true || skipMassUpdate === undefined) {
       // update the mass of the branch.
@@ -12183,6 +11871,14 @@ var barnesHutMixin = {
   },
 
 
+  /**
+   * actually place the node in a region (or branch)
+   *
+   * @param parentBranch
+   * @param node
+   * @param region
+   * @private
+   */
   _placeInRegion : function(parentBranch,node,region) {
     switch (parentBranch.children[region].childrenCount) {
       case 0: // place node here
@@ -12197,7 +11893,6 @@ var barnesHutMixin = {
             parentBranch.children[region].children.data.y == node.y) {
           node.x += Math.random();
           node.y += Math.random();
-          this._placeInTree(parentBranch,node, true);
         }
         else {
           this._splitBranch(parentBranch.children[region]);
@@ -12371,8 +12066,8 @@ var repulsionMixin = {
    * This field is linearly approximated.
    *
    * @private
-  */
-  _calculateNodeForces : function() {
+   */
+  _calculateNodeForces: function () {
     var dx, dy, angle, distance, fx, fy, combinedClusterSize,
       repulsingForce, node1, node2, i, j;
 
@@ -12380,8 +12075,8 @@ var repulsionMixin = {
     var nodeIndices = this.calculationNodeIndices;
 
     // approximation constants
-    var a_base = -2/3;
-    var b = 4/3;
+    var a_base = -2 / 3;
+    var b = 4 / 3;
 
     // repulsing forces between nodes
     var nodeDistance = this.constants.physics.repulsion.nodeDistance;
@@ -12389,9 +12084,9 @@ var repulsionMixin = {
 
     // we loop from i over all but the last entree in the array
     // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
-    for (i = 0; i < nodeIndices.length-1; i++) {
+    for (i = 0; i < nodeIndices.length - 1; i++) {
       node1 = nodes[nodeIndices[i]];
-      for (j = i+1; j < nodeIndices.length; j++) {
+      for (j = i + 1; j < nodeIndices.length; j++) {
         node2 = nodes[nodeIndices[j]];
         combinedClusterSize = node1.clusterSize + node2.clusterSize - 2;
 
@@ -12401,8 +12096,8 @@ var repulsionMixin = {
 
         minimumDistance = (combinedClusterSize == 0) ? nodeDistance : (nodeDistance * (1 + combinedClusterSize * this.constants.clustering.distanceAmplification));
         var a = a_base / minimumDistance;
-        if (distance < 2*minimumDistance) {
-          if (distance < 0.5*minimumDistance) {
+        if (distance < 2 * minimumDistance) {
+          if (distance < 0.5 * minimumDistance) {
             repulsingForce = 1.0;
           }
           else {
@@ -12411,7 +12106,7 @@ var repulsionMixin = {
 
           // amplify the repulsion for clusters.
           repulsingForce *= (combinedClusterSize == 0) ? 1 : 1 + combinedClusterSize * this.constants.clustering.forceAmplification;
-          repulsingForce = repulsingForce/distance;
+          repulsingForce = repulsingForce / distance;
 
           fx = dx * repulsingForce;
           fy = dy * repulsingForce;
@@ -12424,9 +12119,21 @@ var repulsionMixin = {
       }
     }
   }
-}
+};
 var HierarchicalLayoutMixin = {
 
+
+
+  _resetLevels : function() {
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        var node = this.nodes[nodeId];
+        if (node.preassignedLevel == false) {
+          node.level = -1;
+        }
+      }
+    }
+  },
 
   /**
    * This is the main function to layout the nodes in a hierarchical way.
@@ -12465,7 +12172,7 @@ var HierarchicalLayoutMixin = {
 
       // if the user defined some levels but not all, alert and run without hierarchical layout
       if (undefinedLevel == true && definedLevel == true) {
-        alert("To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.")
+        alert("To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.");
         this.zoomExtent(true,this.constants.clustering.enabled);
         if (!this.constants.clustering.enabled) {
           this.start();
@@ -12538,7 +12245,7 @@ var HierarchicalLayoutMixin = {
    */
   _getDistribution : function() {
     var distribution = {};
-    var nodeId, node;
+    var nodeId, node, level;
 
     // we fix Y because the hierarchy is vertical, we fix X so we do not give a node an x position for a second time.
     // the fix of X is removed after the x value has been set.
@@ -12563,7 +12270,7 @@ var HierarchicalLayoutMixin = {
 
     // determine the largest amount of nodes of all levels
     var maxCount = 0;
-    for (var level in distribution) {
+    for (level in distribution) {
       if (distribution.hasOwnProperty(level)) {
         if (maxCount < distribution[level].amount) {
           maxCount = distribution[level].amount;
@@ -12572,7 +12279,7 @@ var HierarchicalLayoutMixin = {
     }
 
     // set the initial position and spacing of each nodes accordingly
-    for (var level in distribution) {
+    for (level in distribution) {
       if (distribution.hasOwnProperty(level)) {
         distribution[level].nodeSpacing = (maxCount + 1) * this.constants.hierarchicalLayout.nodeSpacing;
         distribution[level].nodeSpacing /= (distribution[level].amount + 1);
@@ -12788,7 +12495,9 @@ var manipulationMixin = {
    */
   _createManipulatorBar : function() {
     // remove bound functions
-    this.off('select', this.boundFunction);
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
 
     // restore overloaded functions
     this._restoreOverloadedFunctions();
@@ -12798,7 +12507,7 @@ var manipulationMixin = {
 
     // reset global variables
     this.blockConnectingEdgeSelection = false;
-    this.forceAppendSelection = false
+    this.forceAppendSelection = false;
 
     if (this.editMode == true) {
       while (this.manipulationDiv.hasChildNodes()) {
@@ -12807,21 +12516,21 @@ var manipulationMixin = {
       // add the icons to the manipulator div
       this.manipulationDiv.innerHTML = "" +
         "<span class='graph-manipulationUI add' id='graph-manipulate-addNode'>" +
-          "<span class='graph-manipulationLabel'>Add Node</span></span>" +
+          "<span class='graph-manipulationLabel'>"+this.constants.labels['add'] +"</span></span>" +
         "<div class='graph-seperatorLine'></div>" +
         "<span class='graph-manipulationUI connect' id='graph-manipulate-connectNode'>" +
-          "<span class='graph-manipulationLabel'>Add Link</span></span>";
+          "<span class='graph-manipulationLabel'>"+this.constants.labels['link'] +"</span></span>";
       if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
         this.manipulationDiv.innerHTML += "" +
           "<div class='graph-seperatorLine'></div>" +
           "<span class='graph-manipulationUI edit' id='graph-manipulate-editNode'>" +
-            "<span class='graph-manipulationLabel'>Edit Node</span></span>";
+            "<span class='graph-manipulationLabel'>"+this.constants.labels['editNode'] +"</span></span>";
       }
       if (this._selectionIsEmpty() == false) {
         this.manipulationDiv.innerHTML += "" +
           "<div class='graph-seperatorLine'></div>" +
           "<span class='graph-manipulationUI delete' id='graph-manipulate-delete'>" +
-            "<span class='graph-manipulationLabel'>Delete selected</span></span>";
+            "<span class='graph-manipulationLabel'>"+this.constants.labels['del'] +"</span></span>";
       }
 
 
@@ -12847,7 +12556,7 @@ var manipulationMixin = {
     else {
       this.editModeDiv.innerHTML = "" +
         "<span class='graph-manipulationUI edit editmode' id='graph-manipulate-editModeButton'>" +
-        "<span class='graph-manipulationLabel'>Edit</span></span>"
+        "<span class='graph-manipulationLabel'>" + this.constants.labels['edit'] + "</span></span>";
       var editModeButton = document.getElementById("graph-manipulate-editModeButton");
       editModeButton.onclick = this._toggleEditMode.bind(this);
     }
@@ -12863,15 +12572,17 @@ var manipulationMixin = {
   _createAddNodeToolbar : function() {
     // clear the toolbar
     this._clearManipulatorBar();
-    this.off('select', this.boundFunction);
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
 
     // create the toolbar contents
     this.manipulationDiv.innerHTML = "" +
       "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>Back</span></span>" +
+      "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
       "<div class='graph-seperatorLine'></div>" +
       "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>Click in an empty space to place a new node</span></span>";
+      "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['addDescription'] + "</span></span>";
 
     // bind the icon
     var backButton = document.getElementById("graph-manipulate-back");
@@ -12894,7 +12605,9 @@ var manipulationMixin = {
     this._unselectAll(true);
     this.freezeSimulation = true;
 
-    this.off('select', this.boundFunction);
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
 
     this._unselectAll();
     this.forceAppendSelection = false;
@@ -12902,10 +12615,10 @@ var manipulationMixin = {
 
     this.manipulationDiv.innerHTML = "" +
       "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>Back</span></span>" +
+        "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
       "<div class='graph-seperatorLine'></div>" +
       "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
-        "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>Click on a node and drag the edge to another node to connect them.</span></span>";
+        "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['linkDescription'] + "</span></span>";
 
     // bind the icon
     var backButton = document.getElementById("graph-manipulate-back");
@@ -12987,7 +12700,7 @@ var manipulationMixin = {
       var connectFromId = this.edges['connectionEdge'].fromId;
 
       // remove the temporary nodes and edge
-      delete this.edges['connectionEdge']
+      delete this.edges['connectionEdge'];
       delete this.sectors['support']['nodes']['targetNode'];
       delete this.sectors['support']['nodes']['targetViaNode'];
 
@@ -13008,8 +12721,6 @@ var manipulationMixin = {
 
   /**
    * Adds a node on the specified location
-   *
-   * @param {Object} pointer
    */
   _addNode : function() {
     if (this._selectionIsEmpty() && this.editMode == true) {
@@ -13019,25 +12730,21 @@ var manipulationMixin = {
         if (this.triggerFunctions.add.length == 2) {
           var me = this;
           this.triggerFunctions.add(defaultData, function(finalizedData) {
-            me.createNodeOnClick = true;
             me.nodesData.add(finalizedData);
-            me.createNodeOnClick = false;
             me._createManipulatorBar();
             me.moving = true;
             me.start();
           });
         }
         else {
-          alert("The function for add does not support two arguments (data,callback).");
+          alert(this.constants.labels['addError']);
           this._createManipulatorBar();
           this.moving = true;
           this.start();
         }
       }
       else {
-        this.createNodeOnClick = true;
         this.nodesData.add(defaultData);
-        this.createNodeOnClick = false;
         this._createManipulatorBar();
         this.moving = true;
         this.start();
@@ -13058,19 +12765,19 @@ var manipulationMixin = {
         if (this.triggerFunctions.connect.length == 2) {
           var me = this;
           this.triggerFunctions.connect(defaultData, function(finalizedData) {
-            me.edgesData.add(finalizedData)
+            me.edgesData.add(finalizedData);
             me.moving = true;
             me.start();
           });
         }
         else {
-          alert("The function for connect does not support two arguments (data,callback).");
+          alert(this.constants.labels["linkError"]);
           this.moving = true;
           this.start();
         }
       }
       else {
-        this.edgesData.add(defaultData)
+        this.edgesData.add(defaultData);
         this.moving = true;
         this.start();
       }
@@ -13108,11 +12815,11 @@ var manipulationMixin = {
         });
       }
       else {
-        alert("The function for edit does not support two arguments (data, callback).")
+        alert(this.constants.labels["editError"]);
       }
     }
     else {
-      alert("No edit function has been bound to this button.")
+      alert(this.constants.labels["editBoundError"]);
     }
   },
 
@@ -13127,20 +12834,20 @@ var manipulationMixin = {
       if (!this._clusterInSelection()) {
         var selectedNodes = this.getSelectedNodes();
         var selectedEdges = this.getSelectedEdges();
-        if (this.triggerFunctions.delete) {
+        if (this.triggerFunctions.del) {
           var me = this;
           var data = {nodes: selectedNodes, edges: selectedEdges};
-          if (this.triggerFunctions.delete.length = 2) {
-            this.triggerFunctions.delete(data, function (finalizedData) {
+          if (this.triggerFunctions.del.length = 2) {
+            this.triggerFunctions.del(data, function (finalizedData) {
               me.edgesData.remove(finalizedData.edges);
               me.nodesData.remove(finalizedData.nodes);
-              this._unselectAll();
+              me._unselectAll();
               me.moving = true;
               me.start();
             });
           }
           else {
-            alert("The function for edit does not support two arguments (data, callback).")
+            alert(this.constants.labels["deleteError"])
           }
         }
         else {
@@ -13152,7 +12859,7 @@ var manipulationMixin = {
         }
       }
       else {
-        alert("Clusters cannot be deleted.");
+        alert(this.constants.labels["deleteClusterError"]);
       }
     }
   }
@@ -13445,7 +13152,7 @@ var SectorMixin = {
 //      console.log("the node is part of the active sector");
 //    }
 //    else {
-//      console.log("I dont know what the fuck happened!!");
+//      console.log("I dont know what happened!!");
 //    }
 
     // when we switch to a new sector, we remove the node that will be expanded from the current nodes list.
@@ -13848,6 +13555,7 @@ var ClusterMixin = {
    * @param {Number} zoomDirection  | -1 / 0 / +1   for  zoomOut / determineByZoom / zoomIn
    * @param {Boolean} recursive     | enabled or disable recursive calling of the opening of clusters
    * @param {Boolean} force         | enabled or disable forcing
+   * @param {Boolean} doNotStart    | if true do not call start
    *
    */
   updateClusters : function(zoomDirection,recursive,force,doNotStart) {
@@ -14698,9 +14406,10 @@ var ClusterMixin = {
     var maxLevel = 0;
     var minLevel = 1e9;
     var clusterLevel = 0;
+    var nodeId;
 
     // we loop over all nodes in the list
-    for (var nodeId in this.nodes) {
+    for (nodeId in this.nodes) {
       if (this.nodes.hasOwnProperty(nodeId)) {
         clusterLevel = this.nodes[nodeId].clusterSessions.length;
         if (maxLevel < clusterLevel) {maxLevel = clusterLevel;}
@@ -14712,7 +14421,7 @@ var ClusterMixin = {
       var amountOfNodes = this.nodeIndices.length;
       var targetLevel = maxLevel - this.constants.clustering.clusterLevelDifference;
       // we loop over all nodes in the list
-      for (var nodeId in this.nodes) {
+      for (nodeId in this.nodes) {
         if (this.nodes.hasOwnProperty(nodeId)) {
           if (this.nodes[nodeId].clusterSessions.length < targetLevel) {
             this._clusterToSmallestNeighbour(this.nodes[nodeId]);
@@ -14755,8 +14464,8 @@ var ClusterMixin = {
   repositionNodes : function() {
     for (var i = 0; i < this.nodeIndices.length; i++) {
       var node = this.nodes[this.nodeIndices[i]];
-      if ((node.xFixed == false || node.yFixed == false) && this.createNodeOnClick != true) {
-        var radius = this.constants.physics.springLength * Math.min(100,node.mass);
+      if ((node.xFixed == false || node.yFixed == false)) {
+        var radius = 10 * 0.1*this.nodeIndices.length * Math.min(100,node.mass);
         var angle = 2 * Math.PI * Math.random();
         if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
         if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
@@ -14984,7 +14693,13 @@ var SelectionMixin = {
    * @private
    */
   _addToSelection : function(obj) {
-    this.selectionObj[obj.id] = obj;
+    if (obj instanceof Node) {
+      this.selectionObj.nodes[obj.id] = obj;
+    }
+    else {
+      this.selectionObj.edges[obj.id] = obj;
+    }
+
   },
 
 
@@ -14995,7 +14710,12 @@ var SelectionMixin = {
    * @private
    */
   _removeFromSelection : function(obj) {
-    delete this.selectionObj[obj.id];
+    if (obj instanceof Node) {
+      delete this.selectionObj.nodes[obj.id];
+    }
+    else {
+      delete this.selectionObj.edges[obj.id];
+    }
   },
 
 
@@ -15009,13 +14729,18 @@ var SelectionMixin = {
     if (doNotTrigger === undefined) {
       doNotTrigger = false;
     }
-
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        this.selectionObj[objectId].unselect();
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        this.selectionObj.nodes[nodeId].unselect();
       }
     }
-    this.selectionObj = {};
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        this.selectionObj.edges[edgeId].unselect();
+      }
+    }
+
+    this.selectionObj = {nodes:{},edges:{}};
 
     if (doNotTrigger == false) {
       this.emit('select', this.getSelection());
@@ -15033,13 +14758,11 @@ var SelectionMixin = {
       doNotTrigger = false;
     }
 
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          if (this.selectionObj[objectId].clusterSize > 1) {
-            this.selectionObj[objectId].unselect();
-            this._removeFromSelection(this.selectionObj[objectId]);
-          }
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
+          this.selectionObj.nodes[nodeId].unselect();
+          this._removeFromSelection(this.selectionObj.nodes[nodeId]);
         }
       }
     }
@@ -15058,11 +14781,9 @@ var SelectionMixin = {
    */
   _getSelectedNodeCount : function() {
     var count = 0;
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          count += 1;
-        }
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        count += 1;
       }
     }
     return count;
@@ -15075,11 +14796,9 @@ var SelectionMixin = {
    * @private
    */
   _getSelectedNode : function() {
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          return this.selectionObj[objectId];
-        }
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        return this.selectionObj.nodes[nodeId];
       }
     }
     return null;
@@ -15094,11 +14813,9 @@ var SelectionMixin = {
    */
   _getSelectedEdgeCount : function() {
     var count = 0;
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Edge) {
-          count += 1;
-        }
+    for (var edgeId in this.selectionObj.edges) {
+      if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        count += 1;
       }
     }
     return count;
@@ -15113,8 +14830,13 @@ var SelectionMixin = {
    */
   _getSelectedObjectCount : function() {
     var count = 0;
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        count += 1;
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
         count += 1;
       }
     }
@@ -15128,8 +14850,13 @@ var SelectionMixin = {
    * @private
    */
   _selectionIsEmpty : function() {
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        return false;
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
         return false;
       }
     }
@@ -15144,12 +14871,10 @@ var SelectionMixin = {
    * @private
    */
   _clusterInSelection : function() {
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          if (this.selectionObj[objectId].clusterSize > 1) {
-            return true;
-          }
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
+          return true;
         }
       }
     }
@@ -15330,11 +15055,9 @@ var SelectionMixin = {
    */
   getSelectedNodes : function() {
     var idArray = [];
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          idArray.push(objectId);
-        }
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        idArray.push(nodeId);
       }
     }
     return idArray
@@ -15348,14 +15071,12 @@ var SelectionMixin = {
    */
   getSelectedEdges : function() {
     var idArray = [];
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Edge) {
-          idArray.push(objectId);
-        }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        idArray.push(edgeId);
       }
     }
-    return idArray
+    return idArray;
   },
 
 
@@ -15391,17 +15112,17 @@ var SelectionMixin = {
    * @private
    */
   _updateSelection : function () {
-    for(var objectId in this.selectionObj) {
-      if(this.selectionObj.hasOwnProperty(objectId)) {
-        if (this.selectionObj[objectId] instanceof Node) {
-          if (!this.nodes.hasOwnProperty(objectId)) {
-            delete this.selectionObj[objectId];
-          }
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (!this.nodes.hasOwnProperty(nodeId)) {
+          delete this.selectionObj.nodes[nodeId];
         }
-        else { // assuming only edges and nodes are selected
-          if (!this.edges.hasOwnProperty(objectId)) {
-            delete this.selectionObj[objectId];
-          }
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        if (!this.edges.hasOwnProperty(edgeId)) {
+          delete this.selectionObj.edges[edgeId];
         }
       }
     }
@@ -15499,6 +15220,9 @@ var NavigationMixin = {
     this.yIncrement = this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['up'].className += " active";
+    }
   },
 
 
@@ -15510,6 +15234,9 @@ var NavigationMixin = {
     this.yIncrement = -this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['down'].className += " active";
+    }
   },
 
 
@@ -15521,6 +15248,9 @@ var NavigationMixin = {
     this.xIncrement = this.constants.keyboard.speed.x;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['left'].className += " active";
+    }
   },
 
 
@@ -15532,6 +15262,9 @@ var NavigationMixin = {
     this.xIncrement = -this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['right'].className += " active";
+    }
   },
 
 
@@ -15543,6 +15276,9 @@ var NavigationMixin = {
     this.zoomIncrement = this.constants.keyboard.speed.zoom;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['zoomIn'].className += " active";
+    }
   },
 
 
@@ -15554,6 +15290,9 @@ var NavigationMixin = {
     this.zoomIncrement = -this.constants.keyboard.speed.zoom;
     this.start(); // if there is no node movement, the calculation wont be done
     this._preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['zoomOut'].className += " active";
+    }
   },
 
 
@@ -15563,6 +15302,10 @@ var NavigationMixin = {
    */
   _stopZoom : function() {
     this.zoomIncrement = 0;
+    if (this.navigationDivs) {
+      this.navigationDivs['zoomIn'].className = this.navigationDivs['zoomIn'].className.replace(" active","");
+      this.navigationDivs['zoomOut'].className = this.navigationDivs['zoomOut'].className.replace(" active","");
+    }
   },
 
 
@@ -15572,6 +15315,10 @@ var NavigationMixin = {
    */
   _yStopMoving : function() {
     this.yIncrement = 0;
+    if (this.navigationDivs) {
+      this.navigationDivs['up'].className = this.navigationDivs['up'].className.replace(" active","");
+      this.navigationDivs['down'].className = this.navigationDivs['down'].className.replace(" active","");
+    }
   },
 
 
@@ -15581,6 +15328,10 @@ var NavigationMixin = {
    */
   _xStopMoving : function() {
     this.xIncrement = 0;
+    if (this.navigationDivs) {
+      this.navigationDivs['left'].className = this.navigationDivs['left'].className.replace(" active","");
+      this.navigationDivs['right'].className = this.navigationDivs['right'].className.replace(" active","");
+    }
   }
 
 
@@ -15599,7 +15350,7 @@ var graphMixinLoaders = {
    * @param {Object} sourceVariable | this object has to contain functions.
    * @private
    */
-  _loadMixin : function(sourceVariable) {
+  _loadMixin: function (sourceVariable) {
     for (var mixinFunction in sourceVariable) {
       if (sourceVariable.hasOwnProperty(mixinFunction)) {
         Graph.prototype[mixinFunction] = sourceVariable[mixinFunction];
@@ -15614,7 +15365,7 @@ var graphMixinLoaders = {
    * @param {Object} sourceVariable | this object has to contain functions.
    * @private
    */
-  _clearMixin : function(sourceVariable) {
+  _clearMixin: function (sourceVariable) {
     for (var mixinFunction in sourceVariable) {
       if (sourceVariable.hasOwnProperty(mixinFunction)) {
         Graph.prototype[mixinFunction] = undefined;
@@ -15628,15 +15379,13 @@ var graphMixinLoaders = {
    *
    * @private
    */
-  _loadPhysicsSystem : function() {
+  _loadPhysicsSystem: function () {
     this._loadMixin(physicsMixin);
     this._loadSelectedForceSolver();
     if (this.constants.configurePhysics == true) {
       this._loadPhysicsConfiguration();
     }
-   },
-
-
+  },
 
 
   /**
@@ -15644,7 +15393,7 @@ var graphMixinLoaders = {
    *
    * @private
    */
-  _loadClusterSystem : function() {
+  _loadClusterSystem: function () {
     this.clusterSession = 0;
     this.hubThreshold = 5;
     this._loadMixin(ClusterMixin);
@@ -15656,26 +15405,26 @@ var graphMixinLoaders = {
    *
    * @private
    */
-  _loadSectorSystem : function() {
-    this.sectors = { },
+  _loadSectorSystem: function () {
+    this.sectors = {};
     this.activeSector = ["default"];
-    this.sectors["active"] = { },
-    this.sectors["active"]["default"] = {"nodes":{},
-      "edges":{},
-      "nodeIndices":[],
-      "formationScale": 1.0,
-      "drawingNode": undefined };
-    this.sectors["frozen"] = {},
-    this.sectors["support"] = {"nodes":{},
-      "edges":{},
-      "nodeIndices":[],
-      "formationScale": 1.0,
-      "drawingNode": undefined };
+    this.sectors["active"] = {};
+    this.sectors["active"]["default"] = {"nodes": {},
+        "edges": {},
+        "nodeIndices": [],
+        "formationScale": 1.0,
+        "drawingNode": undefined };
+    this.sectors["frozen"] = {};
+      this.sectors["support"] = {"nodes": {},
+        "edges": {},
+        "nodeIndices": [],
+        "formationScale": 1.0,
+        "drawingNode": undefined };
 
     this.nodeIndices = this.sectors["active"]["default"]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
 
     this._loadMixin(SectorMixin);
-   },
+  },
 
 
   /**
@@ -15683,11 +15432,11 @@ var graphMixinLoaders = {
    *
    * @private
    */
-  _loadSelectionSystem : function() {
-    this.selectionObj = { };
+  _loadSelectionSystem: function () {
+    this.selectionObj = {nodes: {}, edges: {}};
 
     this._loadMixin(SelectionMixin);
-   },
+  },
 
 
   /**
@@ -15695,10 +15444,10 @@ var graphMixinLoaders = {
    *
    * @private
    */
-  _loadManipulationSystem : function() {
+  _loadManipulationSystem: function () {
     // reset global variables -- these are used by the selection of nodes and edges.
     this.blockConnectingEdgeSelection = false;
-    this.forceAppendSelection = false
+    this.forceAppendSelection = false;
 
     if (this.constants.dataManipulation.enabled == true) {
       // load the manipulator HTML elements. All styling done in css.
@@ -15758,7 +15507,7 @@ var graphMixinLoaders = {
         this._clearMixin(manipulationMixin);
       }
     }
-   },
+  },
 
 
   /**
@@ -15766,7 +15515,7 @@ var graphMixinLoaders = {
    *
    * @private
    */
-  _loadNavigationControls : function() {
+  _loadNavigationControls: function () {
     this._loadMixin(NavigationMixin);
 
     // the clean function removes the button divs, this is done to remove the bindings.
@@ -15774,7 +15523,7 @@ var graphMixinLoaders = {
     if (this.constants.navigation.enabled == true) {
       this._loadNavigationElements();
     }
-   },
+  },
 
 
   /**
@@ -15782,11 +15531,11 @@ var graphMixinLoaders = {
    *
    * @private
    */
-  _loadHierarchySystem : function() {
+  _loadHierarchySystem: function () {
     this._loadMixin(HierarchicalLayoutMixin);
   }
 
-}
+};
 
 /**
  * @constructor Graph
@@ -15812,13 +15561,15 @@ function Graph (container, data, options) {
   this.renderRefreshRate = 60;                         // hz (fps)
   this.renderTimestep = 1000 / this.renderRefreshRate; // ms -- saves calculation later on
   this.renderTime = 0.5 * this.renderTimestep;         // measured time it takes to render a frame
-  this.maxRenderSteps = 3;                             // max amount of physics ticks per render step.
+  this.maxPhysicsTicksPerRender = 3;                   // max amount of physics ticks per render step.
+  this.physicsDiscreteStepsize = 0.65;                 // discrete stepsize of the simulation
 
   this.stabilize = true;  // stabilize before displaying the graph
   this.selectable = true;
+  this.initializing = true;
 
   // these functions are triggered when the dataset is edited
-  this.triggerFunctions = {add:null,edit:null,connect:null,delete:null};
+  this.triggerFunctions = {add:null,edit:null,connect:null,del:null};
 
   // set constant values
   this.constants = {
@@ -15860,6 +15611,8 @@ function Graph (container, data, options) {
       fontColor: '#343434',
       fontSize: 14, // px
       fontFace: 'arial',
+      fontFill: 'white',
+      arrowScaleFactor: 1,
       dash: {
         length: 10,
         gap: 5,
@@ -15935,10 +15688,37 @@ function Graph (container, data, options) {
       nodeSpacing: 100,
       direction: "UD"   // UD, DU, LR, RL
     },
+    freezeForStabilization: false,
     smoothCurves: true,
     maxVelocity:  10,
     minVelocity:  0.1,   // px/s
-    stabilizationIterations: 1000  // maximum number of iteration to stabilize
+    stabilizationIterations: 1000,  // maximum number of iteration to stabilize
+    labels:{
+      add:"Add Node",
+      edit:"Edit",
+      link:"Add Link",
+      del:"Delete selected",
+      editNode:"Edit Node",
+      back:"Back",
+      addDescription:"Click in an empty space to place a new node.",
+      linkDescription:"Click on a node and drag the edge to another node to connect them.",
+      addError:"The function for add does not support two arguments (data,callback).",
+      linkError:"The function for connect does not support two arguments (data,callback).",
+      editError:"The function for edit does not support two arguments (data, callback).",
+      editBoundError:"No edit function has been bound to this button.",
+      deleteError:"The function for delete does not support two arguments (data, callback).",
+      deleteClusterError:"Clusters cannot be deleted."
+    },
+    tooltip: {
+      delay: 300,
+      fontColor: 'black',
+      fontSize: 14, // px
+      fontFace: 'verdana',
+      color: {
+        border: '#666',
+        background: '#FFFFC6'
+      }
+    }
   };
   this.editMode = this.constants.dataManipulation.initiallyVisible;
 
@@ -16033,6 +15813,7 @@ function Graph (container, data, options) {
   this.setData(data,this.constants.clustering.enabled || this.constants.hierarchicalLayout.enabled);
 
   // hierarchical layout
+  this.initializing = false;
   if (this.constants.hierarchicalLayout.enabled == true) {
     this._setupHierarchicalLayout();
   }
@@ -16091,6 +15872,9 @@ Graph.prototype._getRange = function() {
       if (maxY < (node.y)) {maxY = node.y;}
     }
   }
+  if (minX == 1e9 && maxX == -1e9 && minY == 1e9 && maxY == -1e9) {
+    minY = 0, maxY = 0, minX = 0, maxX = 0;
+  }
   return {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
 };
 
@@ -16127,6 +15911,7 @@ Graph.prototype._centerGraph = function(range) {
  * This function zooms out to fit all data on screen based on amount of nodes
  *
  * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
+ * @param {Boolean} [disableStart] | If true, start is not called.
  */
 Graph.prototype.zoomExtent = function(initialZoom, disableStart) {
   if (initialZoom === undefined) {
@@ -16263,8 +16048,19 @@ Graph.prototype.setOptions = function (options) {
     if (options.stabilize !== undefined)       {this.stabilize = options.stabilize;}
     if (options.selectable !== undefined)      {this.selectable = options.selectable;}
     if (options.smoothCurves !== undefined)    {this.constants.smoothCurves = options.smoothCurves;}
+    if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
+
+
+
+    if (options.labels !== undefined)  {
+      for (prop in options.labels) {
+        if (options.labels.hasOwnProperty(prop)) {
+          this.constants.labels[prop] = options.labels[prop];
+        }
+      }
+    }
 
     if (options.onAdd) {
         this.triggerFunctions.add = options.onAdd;
@@ -16279,7 +16075,7 @@ Graph.prototype.setOptions = function (options) {
     }
 
     if (options.onDelete) {
-      this.triggerFunctions.delete = options.onDelete;
+      this.triggerFunctions.del = options.onDelete;
     }
 
     if (options.physics) {
@@ -16366,12 +16162,30 @@ Graph.prototype.setOptions = function (options) {
     if (options.edges) {
       for (prop in options.edges) {
         if (options.edges.hasOwnProperty(prop)) {
-          this.constants.edges[prop] = options.edges[prop];
+          if (typeof options.edges[prop] != "object") {
+            this.constants.edges[prop] = options.edges[prop];
+          }
+        }
+      }
+
+
+      if (options.edges.color !== undefined) {
+        if (util.isString(options.edges.color)) {
+          this.constants.edges.color = {};
+          this.constants.edges.color.color = options.edges.color;
+          this.constants.edges.color.highlight = options.edges.color;
+        }
+        else {
+          if (options.edges.color.color !== undefined)     {this.constants.edges.color.color = options.edges.color.color;}
+          if (options.edges.color.highlight !== undefined) {this.constants.edges.color.highlight = options.edges.color.highlight;}
         }
       }
 
       if (!options.edges.fontColor) {
-        this.constants.edges.fontColor = options.edges.color;
+        if (options.edges.color !== undefined) {
+          if (util.isString(options.edges.color))           {this.constants.edges.fontColor = options.edges.color;}
+          else if (options.edges.color.color !== undefined) {this.constants.edges.fontColor = options.edges.color.color;}
+        }
       }
 
       // Added to support dashed lines
@@ -16398,7 +16212,7 @@ Graph.prototype.setOptions = function (options) {
       }
 
       if (options.nodes.color) {
-        this.constants.nodes.color = Node.parseColor(options.nodes.color);
+        this.constants.nodes.color = util.parseColor(options.nodes.color);
       }
 
       /*
@@ -16412,6 +16226,17 @@ Graph.prototype.setOptions = function (options) {
           var group = options.groups[groupname];
           this.groups.add(groupname, group);
         }
+      }
+    }
+
+    if (options.tooltip) {
+      for (prop in options.tooltip) {
+        if (options.tooltip.hasOwnProperty(prop)) {
+          this.constants.tooltip[prop] = options.tooltip[prop];
+        }
+      }
+      if (options.tooltip.color) {
+        this.constants.tooltip.color = util.parseColor(options.tooltip.color);
       }
     }
   }
@@ -16454,7 +16279,6 @@ Graph.prototype._create = function () {
   this.frame.className = 'graph-frame';
   this.frame.style.position = 'relative';
   this.frame.style.overflow = 'hidden';
-  this.frame.style.zIndex = "1";
 
   // create the graph canvas (HTML canvas element)
   this.frame.canvas = document.createElement( 'canvas' );
@@ -16592,26 +16416,24 @@ Graph.prototype._handleDragStart = function() {
     }
 
     // create an array with the selected nodes and their original location and status
-    for (var objectId in this.selectionObj) {
-      if (this.selectionObj.hasOwnProperty(objectId)) {
-        var object = this.selectionObj[objectId];
-        if (object instanceof Node) {
-          var s = {
-            id: object.id,
-            node: object,
+    for (var objectId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(objectId)) {
+        var object = this.selectionObj.nodes[objectId];
+        var s = {
+          id: object.id,
+          node: object,
 
-            // store original x, y, xFixed and yFixed, make the node temporarily Fixed
-            x: object.x,
-            y: object.y,
-            xFixed: object.xFixed,
-            yFixed: object.yFixed
-          };
+          // store original x, y, xFixed and yFixed, make the node temporarily Fixed
+          x: object.x,
+          y: object.y,
+          xFixed: object.xFixed,
+          yFixed: object.yFixed
+        };
 
-          object.xFixed = true;
-          object.yFixed = true;
+        object.xFixed = true;
+        object.yFixed = true;
 
-          drag.selection.push(s);
-        }
+        drag.selection.push(s);
       }
     }
   }
@@ -16676,7 +16498,7 @@ Graph.prototype._handleOnDrag = function(event) {
       this.drag.translation.x + diffX,
       this.drag.translation.y + diffY);
     this._redraw();
-    this.moved = true;
+    this.moving = true;
   }
 };
 
@@ -16786,6 +16608,7 @@ Graph.prototype._zoom = function(scale, pointer) {
   this.updateClustersDefault();
   this._redraw();
 
+
   return scale;
 };
 
@@ -16858,7 +16681,7 @@ Graph.prototype._onMouseMoveTitle = function (event) {
     clearInterval(this.popupTimer); // stop any running calculationTimer
   }
   if (!this.drag.dragging) {
-    this.popupTimer = setTimeout(checkShow, 300);
+    this.popupTimer = setTimeout(checkShow, this.constants.tooltip.delay);
   }
 };
 
@@ -16915,7 +16738,7 @@ Graph.prototype._checkShowPopup = function (pointer) {
     if (this.popupNode != lastPopupNode) {
       var me = this;
       if (!me.popup) {
-        me.popup = new Popup(me.frame);
+        me.popup = new Popup(me.frame, me.constants.tooltip);
       }
 
       // adjust a small offset such that the mouse cursor is located in the
@@ -17039,18 +16862,19 @@ Graph.prototype._addNodes = function(ids) {
     var node = new Node(data, this.images, this.groups, this.constants);
     this.nodes[id] = node; // note: this may replace an existing node
 
-    if ((node.xFixed == false || node.yFixed == false) && this.createNodeOnClick != true) {
+    if ((node.xFixed == false || node.yFixed == false) && (node.x === null || node.y === null)) {
       var radius = 10 * 0.1*ids.length;
       var angle = 2 * Math.PI * Math.random();
       if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
       if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
-
-      // note: no not use node.isMoving() here, as that gives the current
-      // velocity of the node, which is zero after creation of the node.
-      this.moving = true;
     }
+    this.moving = true;
   }
   this._updateNodeIndexList();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this._updateCalculationNodes();
   this._reconnectEdges();
   this._updateValueRange(this.nodes);
@@ -17077,11 +16901,12 @@ Graph.prototype._updateNodes = function(ids) {
       // create node
       node = new Node(properties, this.images, this.groups, this.constants);
       nodes[id] = node;
-
-      if (!node.isFixed()) {
-        this.moving = true;
-      }
     }
+  }
+  this.moving = true;
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
   }
   this._updateNodeIndexList();
   this._reconnectEdges();
@@ -17100,6 +16925,11 @@ Graph.prototype._removeNodes = function(ids) {
     delete nodes[id];
   }
   this._updateNodeIndexList();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
+  this._updateCalculationNodes();
   this._reconnectEdges();
   this._updateSelection();
   this._updateValueRange(nodes);
@@ -17177,6 +17007,10 @@ Graph.prototype._addEdges = function (ids) {
   this.moving = true;
   this._updateValueRange(edges);
   this._createBezierNodes();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this._updateCalculationNodes();
 };
 
@@ -17207,6 +17041,10 @@ Graph.prototype._updateEdges = function (ids) {
   }
 
   this._createBezierNodes();
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this.moving = true;
   this._updateValueRange(edges);
 };
@@ -17232,6 +17070,10 @@ Graph.prototype._removeEdges = function (ids) {
 
   this.moving = true;
   this._updateValueRange(edges);
+  if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
+    this._resetLevels();
+    this._setupHierarchicalLayout();
+  }
   this._updateCalculationNodes();
 };
 
@@ -17493,17 +17335,59 @@ Graph.prototype._drawEdges = function(ctx) {
  * @private
  */
 Graph.prototype._stabilize = function() {
+  if (this.constants.freezeForStabilization == true) {
+    this._freezeDefinedNodes();
+  }
+
   // find stable position
   var count = 0;
   while (this.moving && count < this.constants.stabilizationIterations) {
     this._physicsTick();
     count++;
   }
-
   this.zoomExtent(false,true);
+  if (this.constants.freezeForStabilization == true) {
+    this._restoreFrozenNodes();
+  }
+  this.emit("stabilized",{iterations:count});
 };
 
+/**
+ * When initializing and stabilizing, we can freeze nodes with a predefined position. This greatly speeds up stabilization
+ * because only the supportnodes for the smoothCurves have to settle.
+ *
+ * @private
+ */
+Graph.prototype._freezeDefinedNodes = function() {
+  var nodes = this.nodes;
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      if (nodes[id].x != null && nodes[id].y != null) {
+        nodes[id].fixedData.x = nodes[id].xFixed;
+        nodes[id].fixedData.y = nodes[id].yFixed;
+        nodes[id].xFixed = true;
+        nodes[id].yFixed = true;
+      }
+    }
+  }
+};
 
+/**
+ * Unfreezes the nodes that have been frozen by _freezeDefinedNodes.
+ *
+ * @private
+ */
+Graph.prototype._restoreFrozenNodes = function() {
+  var nodes = this.nodes;
+  for (var id in nodes) {
+    if (nodes.hasOwnProperty(id)) {
+      if (nodes[id].fixedData.x != null) {
+        nodes[id].xFixed = nodes[id].fixedData.x;
+        nodes[id].yFixed = nodes[id].fixedData.y;
+      }
+    }
+  }
+};
 
 
 /**
@@ -17530,14 +17414,16 @@ Graph.prototype._isMoving = function(vmin) {
  * @private
  */
 Graph.prototype._discreteStepNodes = function() {
-  var interval = 0.65;
+  var interval = this.physicsDiscreteStepsize;
   var nodes = this.nodes;
   var nodeId;
+  var nodesPresent = false;
 
   if (this.constants.maxVelocity > 0) {
     for (nodeId in nodes) {
       if (nodes.hasOwnProperty(nodeId)) {
         nodes[nodeId].discreteStepLimited(interval, this.constants.maxVelocity);
+        nodesPresent = true;
       }
     }
   }
@@ -17545,27 +17431,35 @@ Graph.prototype._discreteStepNodes = function() {
     for (nodeId in nodes) {
       if (nodes.hasOwnProperty(nodeId)) {
         nodes[nodeId].discreteStep(interval);
+        nodesPresent = true;
       }
     }
   }
-  var vminCorrected = this.constants.minVelocity / Math.max(this.scale,0.05);
-  if (vminCorrected > 0.5*this.constants.maxVelocity) {
-    this.moving = true;
-  }
-  else {
-    this.moving = this._isMoving(vminCorrected);
+
+  if (nodesPresent == true) {
+    var vminCorrected = this.constants.minVelocity / Math.max(this.scale,0.05);
+    if (vminCorrected > 0.5*this.constants.maxVelocity) {
+      this.moving = true;
+    }
+    else {
+      this.moving = this._isMoving(vminCorrected);
+    }
   }
 };
 
-
+/**
+ * A single simulation step (or "tick") in the physics simulation
+ *
+ * @private
+ */
 Graph.prototype._physicsTick = function() {
   if (!this.freezeSimulation) {
     if (this.moving) {
       this._doInAllActiveSectors("_initializeForceCalculation");
+      this._doInAllActiveSectors("_discreteStepNodes");
       if (this.constants.smoothCurves) {
         this._doInSupportSector("_discreteStepNodes");
       }
-      this._doInAllActiveSectors("_discreteStepNodes");
       this._findCenter(this._getRange())
     }
   }
@@ -17592,7 +17486,7 @@ Graph.prototype._animationStep = function() {
   var maxSteps = 1;
   this._physicsTick();
   var timeRequired = Date.now() - calculationTime;
-  while (timeRequired < (this.renderTimestep - this.renderTime) && maxSteps < this.maxRenderSteps) {
+  while (timeRequired < (this.renderTimestep - this.renderTime) && maxSteps < this.maxPhysicsTicksPerRender) {
     this._physicsTick();
     timeRequired = Date.now() - calculationTime;
     maxSteps++;
@@ -17612,13 +17506,28 @@ if (typeof window !== 'undefined') {
 
 /**
  * Schedule a animation step with the refreshrate interval.
- *
- * @poram {Boolean} runCalculationStep
  */
 Graph.prototype.start = function() {
   if (this.moving || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0) {
-    if (!this.timer) { 
-      this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+    if (!this.timer) {
+      var ua = navigator.userAgent.toLowerCase();
+
+      var requiresTimeout = false;
+      if (ua.indexOf('msie 9.0') != -1) { // IE 9
+        requiresTimeout = true;
+      }
+      else if (ua.indexOf('safari') != -1) {  // safari
+        if (ua.indexOf('chrome') <= -1) {
+          requiresTimeout = true;
+        }
+      }
+
+      if (requiresTimeout == true) {
+        this.timer = window.setTimeout(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+      }
+      else{
+        this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+      }
     }
   }
   else {
@@ -17661,7 +17570,12 @@ Graph.prototype.toggleFreeze = function() {
 };
 
 
-
+/**
+ * This function cleans the support nodes if they are not needed and adds them when they are.
+ *
+ * @param {boolean} [disableStart]
+ * @private
+ */
 Graph.prototype._configureSmoothCurves = function(disableStart) {
   if (disableStart === undefined) {
     disableStart = true;
@@ -17687,6 +17601,13 @@ Graph.prototype._configureSmoothCurves = function(disableStart) {
   }
 };
 
+
+/**
+ * Bezier curves require an anchor point to calculate the smooth flow. These points are nodes. These nodes are invisible but
+ * are used for the force calculation.
+ *
+ * @private
+ */
 Graph.prototype._createBezierNodes = function() {
   if (this.constants.smoothCurves == true) {
     for (var edgeId in this.edges) {
@@ -17699,6 +17620,7 @@ Graph.prototype._createBezierNodes = function() {
                   {id:nodeId,
                     mass:1,
                     shape:'circle',
+                    image:"",
                     internalMultiplier:1
                   },{},{},this.constants);
           edge.via = this.sectors['support']['nodes'][nodeId];
@@ -17710,7 +17632,11 @@ Graph.prototype._createBezierNodes = function() {
   }
 };
 
-
+/**
+ * load the functions that load the mixins into the prototype.
+ *
+ * @private
+ */
 Graph.prototype._initializeMixinLoaders = function () {
   for (var mixinFunction in graphMixinLoaders) {
     if (graphMixinLoaders.hasOwnProperty(mixinFunction)) {
@@ -17755,11 +17681,10 @@ Graph.prototype.storePosition = function() {
 var vis = {
   util: util,
 
-  Controller: Controller,
   DataSet: DataSet,
   DataView: DataView,
   Range: Range,
-  Stack: Stack,
+  stack: stack,
   TimeStep: TimeStep,
 
   components: {
@@ -19406,8 +19331,8 @@ else {
 }
 })(this);
 },{}],4:[function(require,module,exports){
-//! moment.js
-//! version : 2.5.1
+var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};//! moment.js
+//! version : 2.6.0
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
@@ -19419,8 +19344,10 @@ else {
     ************************************/
 
     var moment,
-        VERSION = "2.5.1",
-        global = this,
+        VERSION = "2.6.0",
+        // the global-scope this is NOT the global object in Node.js
+        globalScope = typeof global !== 'undefined' ? global : this,
+        oldGlobalMoment,
         round = Math.round,
         i,
 
@@ -19449,7 +19376,7 @@ else {
         },
 
         // check for nodeJS
-        hasModule = (typeof module !== 'undefined' && module.exports && typeof require !== 'undefined'),
+        hasModule = (typeof module !== 'undefined' && module.exports),
 
         // ASP.NET json date format regex
         aspNetJsonRegex = /^\/?Date\((\-?\d+)/i,
@@ -19460,7 +19387,7 @@ else {
         isoDurationRegex = /^(-)?P(?:(?:([0-9,.]*)Y)?(?:([0-9,.]*)M)?(?:([0-9,.]*)D)?(?:T(?:([0-9,.]*)H)?(?:([0-9,.]*)M)?(?:([0-9,.]*)S)?)?|([0-9,.]*)W)$/,
 
         // format tokens
-        formattingTokens = /(\[[^\[]*\])|(\\)?(Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|S{1,4}|X|zz?|ZZ?|.)/g,
+        formattingTokens = /(\[[^\[]*\])|(\\)?(Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Q|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|S{1,4}|X|zz?|ZZ?|.)/g,
         localFormattingTokens = /(\[[^\[]*\])|(\\)?(LT|LL?L?L?|l{1,4})/g,
 
         // parsing token regexes
@@ -19473,6 +19400,7 @@ else {
         parseTokenTimezone = /Z|[\+\-]\d\d:?\d\d/gi, // +00:00 -00:00 +0000 -0000 or Z
         parseTokenT = /T/i, // T (ISO separator)
         parseTokenTimestampMs = /[\+\-]?\d+(\.\d{1,3})?/, // 123456789 123456789.123
+        parseTokenOrdinal = /\d{1,2}/,
 
         //strict parsing regexes
         parseTokenOneDigit = /\d/, // 0 - 9
@@ -19498,7 +19426,7 @@ else {
 
         // iso time formats and regexes
         isoTimes = [
-            ['HH:mm:ss.SSSS', /(T| )\d\d:\d\d:\d\d\.\d{1,3}/],
+            ['HH:mm:ss.SSSS', /(T| )\d\d:\d\d:\d\d\.\d+/],
             ['HH:mm:ss', /(T| )\d\d:\d\d:\d\d/],
             ['HH:mm', /(T| )\d\d:\d\d/],
             ['HH', /(T| )\d\d/]
@@ -19529,6 +19457,7 @@ else {
             w : 'week',
             W : 'isoWeek',
             M : 'month',
+            Q : 'quarter',
             y : 'year',
             DDD : 'dayOfYear',
             e : 'weekday',
@@ -19704,6 +19633,23 @@ else {
         };
     }
 
+    function deprecate(msg, fn) {
+        var firstTime = true;
+        function printMsg() {
+            if (moment.suppressDeprecationWarnings === false &&
+                    typeof console !== 'undefined' && console.warn) {
+                console.warn("Deprecation warning: " + msg);
+            }
+        }
+        return extend(function () {
+            if (firstTime) {
+                printMsg();
+                firstTime = false;
+            }
+            return fn.apply(this, arguments);
+        }, fn);
+    }
+
     function padToken(func, count) {
         return function (a) {
             return leftZeroFill(func.call(this, a), count);
@@ -19744,6 +19690,7 @@ else {
     function Duration(duration) {
         var normalizedInput = normalizeObjectUnits(duration),
             years = normalizedInput.year || 0,
+            quarters = normalizedInput.quarter || 0,
             months = normalizedInput.month || 0,
             weeks = normalizedInput.week || 0,
             days = normalizedInput.day || 0,
@@ -19765,6 +19712,7 @@ else {
         // which months you are are talking about, so we have to store
         // it separately.
         this._months = +months +
+            quarters * 3 +
             years * 12;
 
         this._data = {};
@@ -19827,34 +19775,23 @@ else {
     }
 
     // helper function for _.addTime and _.subtractTime
-    function addOrSubtractDurationFromMoment(mom, duration, isAdding, ignoreUpdateOffset) {
+    function addOrSubtractDurationFromMoment(mom, duration, isAdding, updateOffset) {
         var milliseconds = duration._milliseconds,
             days = duration._days,
-            months = duration._months,
-            minutes,
-            hours;
+            months = duration._months;
+        updateOffset = updateOffset == null ? true : updateOffset;
 
         if (milliseconds) {
             mom._d.setTime(+mom._d + milliseconds * isAdding);
         }
-        // store the minutes and hours so we can restore them
-        if (days || months) {
-            minutes = mom.minute();
-            hours = mom.hour();
-        }
         if (days) {
-            mom.date(mom.date() + days * isAdding);
+            rawSetter(mom, 'Date', rawGetter(mom, 'Date') + days * isAdding);
         }
         if (months) {
-            mom.month(mom.month() + months * isAdding);
+            rawMonthSetter(mom, rawGetter(mom, 'Month') + months * isAdding);
         }
-        if (milliseconds && !ignoreUpdateOffset) {
-            moment.updateOffset(mom);
-        }
-        // restore the minutes and hours after possibly changing dst
-        if (days || months) {
-            mom.minute(minutes);
-            mom.hour(hours);
+        if (updateOffset) {
+            moment.updateOffset(mom, days || months);
         }
     }
 
@@ -19967,6 +19904,10 @@ else {
 
     function daysInMonth(year, month) {
         return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    }
+
+    function weeksInYear(year, dow, doy) {
+        return weekOfYear(moment([year, 11, 31 + dow - doy]), dow, doy).week;
     }
 
     function daysInYear(year) {
@@ -20359,6 +20300,8 @@ else {
     function getParseRegexForToken(token, config) {
         var a, strict = config._strict;
         switch (token) {
+        case 'Q':
+            return parseTokenOneDigit;
         case 'DDDD':
             return parseTokenThreeDigits;
         case 'YYYY':
@@ -20427,6 +20370,8 @@ else {
         case 'e':
         case 'E':
             return parseTokenOneOrTwoDigits;
+        case 'Do':
+            return parseTokenOrdinal;
         default :
             a = new RegExp(regexpEscape(unescapeFormat(token.replace('\\', '')), "i"));
             return a;
@@ -20448,6 +20393,12 @@ else {
         var a, datePartArray = config._a;
 
         switch (token) {
+        // QUARTER
+        case 'Q':
+            if (input != null) {
+                datePartArray[MONTH] = (toInt(input) - 1) * 3;
+            }
+            break;
         // MONTH
         case 'M' : // fall through to MM
         case 'MM' :
@@ -20472,6 +20423,11 @@ else {
                 datePartArray[DATE] = toInt(input);
             }
             break;
+        case 'Do' :
+            if (input != null) {
+                datePartArray[DATE] = toInt(parseInt(input, 10));
+            }
+            break;
         // DAY OF YEAR
         case 'DDD' : // fall through to DDDD
         case 'DDDD' :
@@ -20482,7 +20438,7 @@ else {
             break;
         // YEAR
         case 'YY' :
-            datePartArray[YEAR] = toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
+            datePartArray[YEAR] = moment.parseTwoDigitYear(input);
             break;
         case 'YYYY' :
         case 'YYYYY' :
@@ -20571,9 +20527,9 @@ else {
         //compute day of the year from weeks and weekdays
         if (config._w && config._a[DATE] == null && config._a[MONTH] == null) {
             fixYear = function (val) {
-                var int_val = parseInt(val, 10);
+                var intVal = parseInt(val, 10);
                 return val ?
-                  (val.length < 3 ? (int_val > 68 ? 1900 + int_val : 2000 + int_val) : int_val) :
+                  (val.length < 3 ? (intVal > 68 ? 1900 + intVal : 2000 + intVal) : intVal) :
                   (config._a[YEAR] == null ? moment().weekYear() : config._a[YEAR]);
             };
 
@@ -20809,7 +20765,7 @@ else {
             makeDateFromStringAndFormat(config);
         }
         else {
-            config._d = new Date(string);
+            moment.createFromInputFallback(config);
         }
     }
 
@@ -20830,8 +20786,11 @@ else {
             config._d = new Date(+input);
         } else if (typeof(input) === 'object') {
             dateFromObject(config);
-        } else {
+        } else if (typeof(input) === 'number') {
+            // from milliseconds
             config._d = new Date(input);
+        } else {
+            moment.createFromInputFallback(config);
         }
     }
 
@@ -20958,7 +20917,7 @@ else {
         var input = config._i,
             format = config._f;
 
-        if (input === null) {
+        if (input === null || (format === undefined && input === '')) {
             return moment.invalid({nullInput: true});
         }
 
@@ -21003,6 +20962,17 @@ else {
 
         return makeMoment(c);
     };
+
+    moment.suppressDeprecationWarnings = false;
+
+    moment.createFromInputFallback = deprecate(
+            "moment construction falls back to js Date. This is " +
+            "discouraged and will be removed in upcoming major " +
+            "release. Please refer to " +
+            "https://github.com/moment/moment/issues/1407 for more info.",
+            function (config) {
+        config._d = new Date(config._i);
+    });
 
     // creating with utc
     moment.utc = function (input, format, lang, strict) {
@@ -21100,6 +21070,10 @@ else {
     // default format
     moment.defaultFormat = isoFormat;
 
+    // Plugins that add properties should also add the key here (null value),
+    // so we can properly clone ourselves.
+    moment.momentProperties = momentProperties;
+
     // This function will be called whenever a moment is mutated.
     // It is intended to keep the offset in sync with the timezone.
     moment.updateOffset = function () {};
@@ -21163,8 +21137,12 @@ else {
         return m;
     };
 
-    moment.parseZone = function (input) {
-        return moment(input).parseZone();
+    moment.parseZone = function () {
+        return moment.apply(null, arguments).parseZone();
+    };
+
+    moment.parseTwoDigitYear = function (input) {
+        return toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
     };
 
     /************************************
@@ -21351,29 +21329,7 @@ else {
             }
         },
 
-        month : function (input) {
-            var utc = this._isUTC ? 'UTC' : '',
-                dayOfMonth;
-
-            if (input != null) {
-                if (typeof input === 'string') {
-                    input = this.lang().monthsParse(input);
-                    if (typeof input !== 'number') {
-                        return this;
-                    }
-                }
-
-                dayOfMonth = this.date();
-                this.date(1);
-                this._d['set' + utc + 'Month'](input);
-                this.date(Math.min(dayOfMonth, this.daysInMonth()));
-
-                moment.updateOffset(this);
-                return this;
-            } else {
-                return this._d['get' + utc + 'Month']();
-            }
-        },
+        month : makeAccessor('Month', true),
 
         startOf: function (units) {
             units = normalizeUnits(units);
@@ -21383,6 +21339,7 @@ else {
             case 'year':
                 this.month(0);
                 /* falls through */
+            case 'quarter':
             case 'month':
                 this.date(1);
                 /* falls through */
@@ -21407,6 +21364,11 @@ else {
                 this.weekday(0);
             } else if (units === 'isoWeek') {
                 this.isoWeekday(1);
+            }
+
+            // quarters are also special
+            if (units === 'quarter') {
+                this.month(Math.floor(this.month() / 3) * 3);
             }
 
             return this;
@@ -21442,7 +21404,17 @@ else {
             return other > this ? this : other;
         },
 
-        zone : function (input) {
+        // keepTime = true means only change the timezone, without affecting
+        // the local hour. So 5:31:26 +0300 --[zone(2, true)]--> 5:31:26 +0200
+        // It is possible that 5:31:26 doesn't exist int zone +0200, so we
+        // adjust the time as needed, to be valid.
+        //
+        // Keeping the time actually adds/subtracts (one hour)
+        // from the actual represented time. That is why we call updateOffset
+        // a second time. In case it wants us to change the offset again
+        // _changeInProgress == true case, then we have to adjust, because
+        // there is no such time in the given timezone.
+        zone : function (input, keepTime) {
             var offset = this._offset || 0;
             if (input != null) {
                 if (typeof input === "string") {
@@ -21454,7 +21426,14 @@ else {
                 this._offset = input;
                 this._isUTC = true;
                 if (offset !== input) {
-                    addOrSubtractDurationFromMoment(this, moment.duration(offset - input, 'm'), 1, true);
+                    if (!keepTime || this._changeInProgress) {
+                        addOrSubtractDurationFromMoment(this,
+                                moment.duration(offset - input, 'm'), 1, false);
+                    } else if (!this._changeInProgress) {
+                        this._changeInProgress = true;
+                        moment.updateOffset(this, true);
+                        this._changeInProgress = null;
+                    }
                 }
             } else {
                 return this._isUTC ? offset : this._d.getTimezoneOffset();
@@ -21499,8 +21478,8 @@ else {
             return input == null ? dayOfYear : this.add("d", (input - dayOfYear));
         },
 
-        quarter : function () {
-            return Math.ceil((this.month() + 1.0) / 3.0);
+        quarter : function (input) {
+            return input == null ? Math.ceil((this.month() + 1) / 3) : this.month((input - 1) * 3 + this.month() % 3);
         },
 
         weekYear : function (input) {
@@ -21535,6 +21514,15 @@ else {
             return input == null ? this.day() || 7 : this.day(this.day() % 7 ? input : input - 7);
         },
 
+        isoWeeksInYear : function () {
+            return weeksInYear(this.year(), 1, 4);
+        },
+
+        weeksInYear : function () {
+            var weekInfo = this._lang._week;
+            return weeksInYear(this.year(), weekInfo.dow, weekInfo.doy);
+        },
+
         get : function (units) {
             units = normalizeUnits(units);
             return this[units]();
@@ -21561,33 +21549,68 @@ else {
         }
     });
 
-    // helper for adding shortcuts
-    function makeGetterAndSetter(name, key) {
-        moment.fn[name] = moment.fn[name + 's'] = function (input) {
-            var utc = this._isUTC ? 'UTC' : '';
-            if (input != null) {
-                this._d['set' + utc + key](input);
-                moment.updateOffset(this);
+    function rawMonthSetter(mom, value) {
+        var dayOfMonth;
+
+        // TODO: Move this out of here!
+        if (typeof value === 'string') {
+            value = mom.lang().monthsParse(value);
+            // TODO: Another silent failure?
+            if (typeof value !== 'number') {
+                return mom;
+            }
+        }
+
+        dayOfMonth = Math.min(mom.date(),
+                daysInMonth(mom.year(), value));
+        mom._d['set' + (mom._isUTC ? 'UTC' : '') + 'Month'](value, dayOfMonth);
+        return mom;
+    }
+
+    function rawGetter(mom, unit) {
+        return mom._d['get' + (mom._isUTC ? 'UTC' : '') + unit]();
+    }
+
+    function rawSetter(mom, unit, value) {
+        if (unit === 'Month') {
+            return rawMonthSetter(mom, value);
+        } else {
+            return mom._d['set' + (mom._isUTC ? 'UTC' : '') + unit](value);
+        }
+    }
+
+    function makeAccessor(unit, keepTime) {
+        return function (value) {
+            if (value != null) {
+                rawSetter(this, unit, value);
+                moment.updateOffset(this, keepTime);
                 return this;
             } else {
-                return this._d['get' + utc + key]();
+                return rawGetter(this, unit);
             }
         };
     }
 
-    // loop through and add shortcuts (Month, Date, Hours, Minutes, Seconds, Milliseconds)
-    for (i = 0; i < proxyGettersAndSetters.length; i ++) {
-        makeGetterAndSetter(proxyGettersAndSetters[i].toLowerCase().replace(/s$/, ''), proxyGettersAndSetters[i]);
-    }
-
-    // add shortcut for year (uses different syntax than the getter/setter 'year' == 'FullYear')
-    makeGetterAndSetter('year', 'FullYear');
+    moment.fn.millisecond = moment.fn.milliseconds = makeAccessor('Milliseconds', false);
+    moment.fn.second = moment.fn.seconds = makeAccessor('Seconds', false);
+    moment.fn.minute = moment.fn.minutes = makeAccessor('Minutes', false);
+    // Setting the hour should keep the time, because the user explicitly
+    // specified which hour he wants. So trying to maintain the same hour (in
+    // a new timezone) makes sense. Adding/subtracting hours does not follow
+    // this rule.
+    moment.fn.hour = moment.fn.hours = makeAccessor('Hours', true);
+    // moment.fn.month is defined separately
+    moment.fn.date = makeAccessor('Date', true);
+    moment.fn.dates = deprecate("dates accessor is deprecated. Use date instead.", makeAccessor('Date', true));
+    moment.fn.year = makeAccessor('FullYear', true);
+    moment.fn.years = deprecate("years accessor is deprecated. Use year instead.", makeAccessor('FullYear', true));
 
     // add plural methods
     moment.fn.days = moment.fn.day;
     moment.fn.months = moment.fn.month;
     moment.fn.weeks = moment.fn.week;
     moment.fn.isoWeeks = moment.fn.isoWeek;
+    moment.fn.quarters = moment.fn.quarter;
 
     // add aliased format methods
     moment.fn.toJSON = moment.fn.toISOString;
@@ -21763,45 +21786,36 @@ else {
         Exposing Moment
     ************************************/
 
-    function makeGlobal(deprecate) {
-        var warned = false, local_moment = moment;
+    function makeGlobal(shouldDeprecate) {
         /*global ender:false */
         if (typeof ender !== 'undefined') {
             return;
         }
-        // here, `this` means `window` in the browser, or `global` on the server
-        // add `moment` as a global object via a string identifier,
-        // for Closure Compiler "advanced" mode
-        if (deprecate) {
-            global.moment = function () {
-                if (!warned && console && console.warn) {
-                    warned = true;
-                    console.warn(
-                            "Accessing Moment through the global scope is " +
-                            "deprecated, and will be removed in an upcoming " +
-                            "release.");
-                }
-                return local_moment.apply(null, arguments);
-            };
-            extend(global.moment, local_moment);
+        oldGlobalMoment = globalScope.moment;
+        if (shouldDeprecate) {
+            globalScope.moment = deprecate(
+                    "Accessing Moment through the global scope is " +
+                    "deprecated, and will be removed in an upcoming " +
+                    "release.",
+                    moment);
         } else {
-            global['moment'] = moment;
+            globalScope.moment = moment;
         }
     }
 
     // CommonJS module is defined
     if (hasModule) {
         module.exports = moment;
-        makeGlobal(true);
     } else if (typeof define === "function" && define.amd) {
         define("moment", function (require, exports, module) {
-            if (module.config && module.config() && module.config().noGlobal !== true) {
-                // If user provided noGlobal, he is aware of global
-                makeGlobal(module.config().noGlobal === undefined);
+            if (module.config && module.config() && module.config().noGlobal === true) {
+                // release the global variable
+                globalScope.moment = oldGlobalMoment;
             }
 
             return moment;
         });
+        makeGlobal(true);
     } else {
         makeGlobal();
     }

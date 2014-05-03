@@ -62,7 +62,9 @@ var manipulationMixin = {
    */
   _createManipulatorBar : function() {
     // remove bound functions
-    this.off('select', this.boundFunction);
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
 
     // restore overloaded functions
     this._restoreOverloadedFunctions();
@@ -72,7 +74,7 @@ var manipulationMixin = {
 
     // reset global variables
     this.blockConnectingEdgeSelection = false;
-    this.forceAppendSelection = false
+    this.forceAppendSelection = false;
 
     if (this.editMode == true) {
       while (this.manipulationDiv.hasChildNodes()) {
@@ -81,21 +83,21 @@ var manipulationMixin = {
       // add the icons to the manipulator div
       this.manipulationDiv.innerHTML = "" +
         "<span class='graph-manipulationUI add' id='graph-manipulate-addNode'>" +
-          "<span class='graph-manipulationLabel'>Add Node</span></span>" +
+          "<span class='graph-manipulationLabel'>"+this.constants.labels['add'] +"</span></span>" +
         "<div class='graph-seperatorLine'></div>" +
         "<span class='graph-manipulationUI connect' id='graph-manipulate-connectNode'>" +
-          "<span class='graph-manipulationLabel'>Add Link</span></span>";
+          "<span class='graph-manipulationLabel'>"+this.constants.labels['link'] +"</span></span>";
       if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
         this.manipulationDiv.innerHTML += "" +
           "<div class='graph-seperatorLine'></div>" +
           "<span class='graph-manipulationUI edit' id='graph-manipulate-editNode'>" +
-            "<span class='graph-manipulationLabel'>Edit Node</span></span>";
+            "<span class='graph-manipulationLabel'>"+this.constants.labels['editNode'] +"</span></span>";
       }
       if (this._selectionIsEmpty() == false) {
         this.manipulationDiv.innerHTML += "" +
           "<div class='graph-seperatorLine'></div>" +
           "<span class='graph-manipulationUI delete' id='graph-manipulate-delete'>" +
-            "<span class='graph-manipulationLabel'>Delete selected</span></span>";
+            "<span class='graph-manipulationLabel'>"+this.constants.labels['del'] +"</span></span>";
       }
 
 
@@ -121,7 +123,7 @@ var manipulationMixin = {
     else {
       this.editModeDiv.innerHTML = "" +
         "<span class='graph-manipulationUI edit editmode' id='graph-manipulate-editModeButton'>" +
-        "<span class='graph-manipulationLabel'>Edit</span></span>"
+        "<span class='graph-manipulationLabel'>" + this.constants.labels['edit'] + "</span></span>";
       var editModeButton = document.getElementById("graph-manipulate-editModeButton");
       editModeButton.onclick = this._toggleEditMode.bind(this);
     }
@@ -137,15 +139,17 @@ var manipulationMixin = {
   _createAddNodeToolbar : function() {
     // clear the toolbar
     this._clearManipulatorBar();
-    this.off('select', this.boundFunction);
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
 
     // create the toolbar contents
     this.manipulationDiv.innerHTML = "" +
       "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>Back</span></span>" +
+      "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
       "<div class='graph-seperatorLine'></div>" +
       "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>Click in an empty space to place a new node</span></span>";
+      "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['addDescription'] + "</span></span>";
 
     // bind the icon
     var backButton = document.getElementById("graph-manipulate-back");
@@ -168,7 +172,9 @@ var manipulationMixin = {
     this._unselectAll(true);
     this.freezeSimulation = true;
 
-    this.off('select', this.boundFunction);
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
 
     this._unselectAll();
     this.forceAppendSelection = false;
@@ -176,10 +182,10 @@ var manipulationMixin = {
 
     this.manipulationDiv.innerHTML = "" +
       "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>Back</span></span>" +
+        "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
       "<div class='graph-seperatorLine'></div>" +
       "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
-        "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>Click on a node and drag the edge to another node to connect them.</span></span>";
+        "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['linkDescription'] + "</span></span>";
 
     // bind the icon
     var backButton = document.getElementById("graph-manipulate-back");
@@ -261,7 +267,7 @@ var manipulationMixin = {
       var connectFromId = this.edges['connectionEdge'].fromId;
 
       // remove the temporary nodes and edge
-      delete this.edges['connectionEdge']
+      delete this.edges['connectionEdge'];
       delete this.sectors['support']['nodes']['targetNode'];
       delete this.sectors['support']['nodes']['targetViaNode'];
 
@@ -282,8 +288,6 @@ var manipulationMixin = {
 
   /**
    * Adds a node on the specified location
-   *
-   * @param {Object} pointer
    */
   _addNode : function() {
     if (this._selectionIsEmpty() && this.editMode == true) {
@@ -293,25 +297,21 @@ var manipulationMixin = {
         if (this.triggerFunctions.add.length == 2) {
           var me = this;
           this.triggerFunctions.add(defaultData, function(finalizedData) {
-            me.createNodeOnClick = true;
             me.nodesData.add(finalizedData);
-            me.createNodeOnClick = false;
             me._createManipulatorBar();
             me.moving = true;
             me.start();
           });
         }
         else {
-          alert("The function for add does not support two arguments (data,callback).");
+          alert(this.constants.labels['addError']);
           this._createManipulatorBar();
           this.moving = true;
           this.start();
         }
       }
       else {
-        this.createNodeOnClick = true;
         this.nodesData.add(defaultData);
-        this.createNodeOnClick = false;
         this._createManipulatorBar();
         this.moving = true;
         this.start();
@@ -332,19 +332,19 @@ var manipulationMixin = {
         if (this.triggerFunctions.connect.length == 2) {
           var me = this;
           this.triggerFunctions.connect(defaultData, function(finalizedData) {
-            me.edgesData.add(finalizedData)
+            me.edgesData.add(finalizedData);
             me.moving = true;
             me.start();
           });
         }
         else {
-          alert("The function for connect does not support two arguments (data,callback).");
+          alert(this.constants.labels["linkError"]);
           this.moving = true;
           this.start();
         }
       }
       else {
-        this.edgesData.add(defaultData)
+        this.edgesData.add(defaultData);
         this.moving = true;
         this.start();
       }
@@ -382,11 +382,11 @@ var manipulationMixin = {
         });
       }
       else {
-        alert("The function for edit does not support two arguments (data, callback).")
+        alert(this.constants.labels["editError"]);
       }
     }
     else {
-      alert("No edit function has been bound to this button.")
+      alert(this.constants.labels["editBoundError"]);
     }
   },
 
@@ -401,20 +401,20 @@ var manipulationMixin = {
       if (!this._clusterInSelection()) {
         var selectedNodes = this.getSelectedNodes();
         var selectedEdges = this.getSelectedEdges();
-        if (this.triggerFunctions.delete) {
+        if (this.triggerFunctions.del) {
           var me = this;
           var data = {nodes: selectedNodes, edges: selectedEdges};
-          if (this.triggerFunctions.delete.length = 2) {
-            this.triggerFunctions.delete(data, function (finalizedData) {
+          if (this.triggerFunctions.del.length = 2) {
+            this.triggerFunctions.del(data, function (finalizedData) {
               me.edgesData.remove(finalizedData.edges);
               me.nodesData.remove(finalizedData.nodes);
-              this._unselectAll();
+              me._unselectAll();
               me.moving = true;
               me.start();
             });
           }
           else {
-            alert("The function for edit does not support two arguments (data, callback).")
+            alert(this.constants.labels["deleteError"])
           }
         }
         else {
@@ -426,7 +426,7 @@ var manipulationMixin = {
         }
       }
       else {
-        alert("Clusters cannot be deleted.");
+        alert(this.constants.labels["deleteClusterError"]);
       }
     }
   }

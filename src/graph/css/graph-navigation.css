@@ -25,6 +25,10 @@ div.graph-navigation:active {
     box-shadow: 0px 0px 1px 3px rgba(56, 207, 21, 0.95);
 }
 
+div.graph-navigation.active {
+    box-shadow: 0px 0px 1px 3px rgba(56, 207, 21, 0.95);
+}
+
 div.graph-navigation.up {
     background-image: url("img/graph/upArrow.png");
     bottom:50px;

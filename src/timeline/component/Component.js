@@ -4,16 +4,17 @@
 function Component () {
   this.id = null;
   this.parent = null;
-  this.depends = null;
-  this.controller = null;
+  this.childs = null;
   this.options = null;
 
-  this.frame = null; // main DOM element
   this.top = 0;
   this.left = 0;
   this.width = 0;
   this.height = 0;
 }
+
+// Turn the Component into an event emitter
+Emitter(Component.prototype);
 
 /**
  * Set parameters for the frame. Parameters will be merged in current parameter
@@ -29,10 +30,7 @@ Component.prototype.setOptions = function setOptions(options) {
   if (options) {
     util.extend(this.options, options);
 
-    if (this.controller) {
-      this.requestRepaint();
-      this.requestReflow();
-    }
+    this.repaint();
   }
 };
 
@@ -55,45 +53,17 @@ Component.prototype.getOption = function getOption(name) {
 };
 
 /**
- * Set controller for this component, or remove current controller by passing
- * null as parameter value.
- * @param {Controller | null} controller
+ * Get the frame element of the component, the outer HTML DOM element.
+ * @returns {HTMLElement | null} frame
  */
-Component.prototype.setController = function setController (controller) {
-  this.controller = controller || null;
-};
-
-/**
- * Get controller of this component
- * @return {Controller} controller
- */
-Component.prototype.getController = function getController () {
-  return this.controller;
-};
-
-/**
- * Get the container element of the component, which can be used by a child to
- * add its own widgets. Not all components do have a container for childs, in
- * that case null is returned.
- * @returns {HTMLElement | null} container
- */
-// TODO: get rid of the getContainer and getFrame methods, provide these via the options
-Component.prototype.getContainer = function getContainer() {
+Component.prototype.getFrame = function getFrame() {
   // should be implemented by the component
   return null;
 };
 
 /**
- * Get the frame element of the component, the outer HTML DOM element.
- * @returns {HTMLElement | null} frame
- */
-Component.prototype.getFrame = function getFrame() {
-  return this.frame;
-};
-
-/**
  * Repaint the component
- * @return {Boolean} changed
+ * @return {boolean} Returns true if the component is resized
  */
 Component.prototype.repaint = function repaint() {
   // should be implemented by the component
@@ -101,64 +71,16 @@ Component.prototype.repaint = function repaint() {
 };
 
 /**
- * Reflow the component
- * @return {Boolean} resized
+ * Test whether the component is resized since the last time _isResized() was
+ * called.
+ * @return {Boolean} Returns true if the component is resized
+ * @protected
  */
-Component.prototype.reflow = function reflow() {
-  // should be implemented by the component
-  return false;
-};
+Component.prototype._isResized = function _isResized() {
+  var resized = (this._previousWidth !== this.width || this._previousHeight !== this.height);
 
-/**
- * Hide the component from the DOM
- * @return {Boolean} changed
- */
-Component.prototype.hide = function hide() {
-  if (this.frame && this.frame.parentNode) {
-    this.frame.parentNode.removeChild(this.frame);
-    return true;
-  }
-  else {
-    return false;
-  }
-};
+  this._previousWidth = this.width;
+  this._previousHeight = this.height;
 
-/**
- * Show the component in the DOM (when not already visible).
- * A repaint will be executed when the component is not visible
- * @return {Boolean} changed
- */
-Component.prototype.show = function show() {
-  if (!this.frame || !this.frame.parentNode) {
-    return this.repaint();
-  }
-  else {
-    return false;
-  }
-};
-
-/**
- * Request a repaint. The controller will schedule a repaint
- */
-Component.prototype.requestRepaint = function requestRepaint() {
-  if (this.controller) {
-    this.controller.emit('request-repaint');
-  }
-  else {
-    throw new Error('Cannot request a repaint: no controller configured');
-    // TODO: just do a repaint when no parent is configured?
-  }
-};
-
-/**
- * Request a reflow. The controller will schedule a reflow
- */
-Component.prototype.requestReflow = function requestReflow() {
-  if (this.controller) {
-    this.controller.emit('request-reflow');
-  }
-  else {
-    throw new Error('Cannot request a reflow: no controller configured');
-    // TODO: just do a reflow when no parent is configured?
-  }
+  return resized;
 };

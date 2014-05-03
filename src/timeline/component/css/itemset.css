@@ -1,9 +1,15 @@
 
 .vis.timeline .itemset {
-  position: absolute;
+  position: relative;
   padding: 0;
   margin: 0;
-  overflow: hidden;
+
+  box-sizing: border-box;
+
+  /* FIXME: get transition working for rootpanel and itemset
+  -webkit-transition: height 4s ease-in-out;
+  transition:         height 4s ease-in-out;
+  /**/
 }
 
 .vis.timeline .background {
@@ -12,6 +18,21 @@
 .vis.timeline .foreground {
 }
 
-.vis.timeline .itemset-axis {
-  position: absolute;
+.vis.timeline .axis {
+  overflow: visible;
+}
+
+.vis.timeline  .group {
+  position: relative;
+  box-sizing: border-box;
+}
+
+.vis.timeline.top .group {
+  border-top: 1px solid #bfbfbf;
+  border-bottom: none;
+}
+
+.vis.timeline.bottom .group {
+  border-top: none;
+  border-bottom: 1px solid #bfbfbf;
 }

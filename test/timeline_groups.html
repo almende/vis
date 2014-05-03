@@ -12,7 +12,6 @@
     #visualization {
       box-sizing: border-box;
       width: 100%;
-      height: 300px;
     }
   </style>
 
@@ -49,7 +48,7 @@
   var itemCount = 20;
 
   // create a data set with groups
-  var names = ['John', 'Alston', 'Lee', 'Grant'];
+  var names = ['John (0)', 'Alston (1)', 'Lee (2)', 'Grant (3)'];
   var groups = new vis.DataSet();
   for (var g = 0; g < groupCount; g++) {
     groups.add({id: g, content: names[g]});
@@ -73,14 +72,53 @@
   // create visualization
   var container = document.getElementById('visualization');
   var options = {
+    editable: {
+      add: true,
+      remove: true,
+      updateTime: true,
+      updateGroup: true
+    },
+    //stack: false,
     //height: 200,
     groupOrder: 'content'
   };
 
+  console.time('create timeline');
   var timeline = new vis.Timeline(container);
+  console.timeEnd('create timeline');
+
+  console.time('set options');
   timeline.setOptions(options);
+  console.timeEnd('set options');
+
+  console.time('set groups');
   timeline.setGroups(groups);
+  console.timeEnd('set groups');
+
+  console.time('set items');
   timeline.setItems(items);
+  console.timeEnd('set items');
+
+  timeline.on('select', function (selection) {
+    console.log('select', selection);
+  });
+
+  /*
+  timeline.on('rangechange', function (range) {
+    console.log('rangechange', range);
+  });
+  timeline.on('rangechanged', function (range) {
+    console.log('rangechanged', range);
+  });
+  */
+
+  items.on('add',    console.log.bind(console));
+  items.on('update', console.log.bind(console));
+  items.on('remove', console.log.bind(console));
+
+  groups.on('add',    console.log.bind(console));
+  groups.on('update', console.log.bind(console));
+  groups.on('remove', console.log.bind(console));
 
 </script>
 </body>
