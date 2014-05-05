@@ -2,11 +2,11 @@
  * @class Images
  * This class loads images and keeps them stored.
  */
-Images = function () {
+function Images() {
   this.images = {};
 
   this.callback = undefined;
-};
+}
 
 /**
  * Set an onload callback function. This will be called each time an image
