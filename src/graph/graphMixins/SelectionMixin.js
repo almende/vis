@@ -517,6 +517,21 @@ var SelectionMixin = {
     return idArray;
   },
 
+  /**
+  *
+  * retrieve the pairs of ids representing the connections with the currently selected node
+  * @return {Array} selection    An array of pairs of ids
+  */
+  getSelectedConnections : function() {
+    var connections = [];
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        var edge = this.selectionObj.edges[edgeId];
+        connections.push([edge.from.id, edge.to.id]);
+      }
+    }
+    return connections;
+  },
 
   /**
    * select zero or more nodes
