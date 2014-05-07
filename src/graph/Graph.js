@@ -1734,6 +1734,27 @@ Graph.prototype._yToCanvas = function(y) {
   return y * this.scale + this.translation.y ;
 };
 
+
+/**
+ *
+ * @param {object} pos   = {x: number, y: number}
+ * @returns {{x: number, y: number}}
+ * @constructor
+ */
+Graph.prototype.DOMtoCanvas = function(pos) {
+  return {x:this._xToCanvas(pos.x),y:this._yToCanvas(pos.y)};
+}
+
+/**
+ *
+ * @param {object} pos   = {x: number, y: number}
+ * @returns {{x: number, y: number}}
+ * @constructor
+ */
+Graph.prototype.canvasToDOM = function(pos) {
+  return {x:this._canvasToX(pos.x),y:this._canvasToY(pos.y)};
+}
+
 /**
  * Redraw all nodes
  * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
