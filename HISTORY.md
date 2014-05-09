@@ -43,6 +43,8 @@ http://visjs.org
 
 - added recalculate hierarchical layout to update node event.
 - added arrowScaleFactor to scale the arrows on the edges.
+- fixed bug where the graph stopped animation after settling in playing with physics.
+- fixed bug where hierarchical physics properties were not handled.
 
 ### DataSet
 
