@@ -4,9 +4,14 @@ http://visjs.org
 
 ## not yet released, version 1.0.1
 
+### Timeline
+
+- Fixed width of items with type `rangeoverflow`.
+- Fixed a bug wrongly rendering invisible items after updating them.
+
 ### Graph
 
-- added coordinate conversion from DOM to Canvas.
+- Added coordinate conversion from DOM to Canvas.
 
 
 ## 2014-05-02, version 1.0.0

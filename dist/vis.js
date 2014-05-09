@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version @@version
- * @date    @@date
+ * @version 1.0.1-SNAPSHOT
+ * @date    2014-05-09
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -5271,7 +5271,6 @@ ItemSet.prototype.repaint = function repaint() {
     };
   }
 
-
   // update className
   frame.className = 'itemset' + (options.className ? (' ' + asString(options.className)) : '');
 
@@ -5780,7 +5779,9 @@ ItemSet.prototype._updateItem = function _updateItem(item, itemData) {
   var oldGroupId = item.data.group;
 
   item.data = itemData;
-  item.repaint();
+  if (item.displayed) {
+    item.repaint();
+  }
 
   // update group
   if (oldGroupId != item.data.group) {
@@ -6973,9 +6974,10 @@ ItemRangeOverflow.prototype.repositionX = function repositionX() {
 
   this.left = start;
   var boxWidth = Math.max(end - start, 1);
-  this.width = (this.props.content.width < boxWidth) ?
-      boxWidth :
-      start + contentLeft + this.props.content.width;
+  this.width = boxWidth + this.props.content.width;
+  // Note: The calculation of width is an optimistic calculation, giving
+  //       a width which will not change when moving the Timeline
+  //       So no restacking needed, which is nicer for the eye
 
   this.dom.box.style.left = this.left + 'px';
   this.dom.box.style.width = boxWidth + 'px';
