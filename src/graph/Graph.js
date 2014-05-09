@@ -960,6 +960,7 @@ Graph.prototype._handleOnDrag = function(event) {
       this.drag.translation.y + diffY);
     this._redraw();
     this.moving = true;
+    this.start();
   }
 };
 
