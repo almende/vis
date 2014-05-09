@@ -1999,7 +1999,18 @@ var options: {
             You can use this to stablize your graph once, then save the positions in a database so the next time you load the nodes, stabilization will be near instantaneous.
         </td>
     </tr>
-
+    <tr>
+        <td>DOMtoCanvas(pos)</td>
+        <td>object</td>
+        <td>This function converts DOM coordinates to coordinates on the canvas. Input and output are in the form of {x:xpos,y:ypos}. The DOM values are relative to the graph container.
+        </td>
+    </tr>
+    <tr>
+        <td>canvasToDOM(pos)</td>
+        <td>object</td>
+        <td>This function converts canvas coordinates to coordinates on the DOM. Input and output are in the form of {x:xpos,y:ypos}. The DOM values are relative to the graph container.
+        </td>
+    </tr>
   <tr>
     <td>on(event, callback)</td>
     <td>none</td>
@@ -2161,6 +2172,23 @@ graph.off('select', onSelect);
             </ul>
         </td>
     </tr>
+    <tr>
+        <td>viewChanged</td>
+        <td>Fired when the view has changed. This is when the graph has moved or zoomed.</td>
+        <td>
+            none
+        </td>
+    </tr>
+    <tr>
+        <td>zoom</td>
+        <td>Fired when the graph has zoomed.  This event can be used to trigger the .storePosition() function after stabilization.</td>
+        <td>
+            <ul>
+                <li><code>direction: </code> "+" or "-" </li>
+            </ul>
+        </td>
+    </tr>
+
 </table>
 
 

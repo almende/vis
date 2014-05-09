@@ -65,6 +65,8 @@
 
 <script type="text/javascript">
   var container = document.getElementById('visualization');
+
+  // note that months are zero-based in the JavaScript Date object
   var items = [
     {start: new Date(2010,7,23), content: '<div>Conversation</div><img src="img/community-users-icon.png" style="width:32px; height:32px;">'},
     {start: new Date(2010,7,23,23,0,0), content: '<div>Mail from boss</div><img src="img/mail-icon.png" style="width:32px; height:32px;">'},
@@ -75,6 +77,7 @@
     {start: new Date(2010,7,31), end: new Date(2010,8,3), content: 'Traject B'},
     {start: new Date(2010,8,4,12,0,0), content: '<div>Report</div><img src="img/attachment-icon.png" style="width:32px; height:32px;">'}
   ];
+
   var options = {
     editable: true,
     margin: {
@@ -82,6 +85,7 @@
       axis: 40
     }
   };
+
   var timeline = new vis.Timeline(container, items, options);
 </script>
 </body>
