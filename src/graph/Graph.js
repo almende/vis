@@ -1081,6 +1081,13 @@ Graph.prototype._zoom = function(scale, pointer) {
   this.updateClustersDefault();
   this._redraw();
 
+  if (scaleOld < scale) {
+    this.emit("zoom", {direction:"+"});
+  }
+  else {
+    this.emit("zoom", {direction:"-"});
+  }
+
 
   return scale;
 };
@@ -1674,6 +1681,8 @@ Graph.prototype._setTranslation = function(offsetX, offsetY) {
   if (offsetY !== undefined) {
     this.translation.y = offsetY;
   }
+
+  this.emit('viewChanged');
 };
 
 /**

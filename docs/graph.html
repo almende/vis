@@ -2172,6 +2172,23 @@ graph.off('select', onSelect);
             </ul>
         </td>
     </tr>
+    <tr>
+        <td>viewChanged</td>
+        <td>Fired when the view has changed. This is when the graph has moved or zoomed.</td>
+        <td>
+            none
+        </td>
+    </tr>
+    <tr>
+        <td>zoom</td>
+        <td>Fired when the graph has zoomed.  This event can be used to trigger the .storePosition() function after stabilization.</td>
+        <td>
+            <ul>
+                <li><code>direction: </code> "+" or "-" </li>
+            </ul>
+        </td>
+    </tr>
+
 </table>
 
 

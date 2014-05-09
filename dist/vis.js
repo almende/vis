@@ -3748,6 +3748,32 @@ Panel.prototype.hasChild = function (child) {
   return (index != -1);
 };
 
+
+
+/**
+ * Test whether the panel contains given child
+ * @param {Component} child
+ */
+Panel.prototype.hidePanel = function () {
+  var frame = this.getFrame();
+  if (frame.className.search(" hidden") == -1) {
+    frame.className += " hidden";
+  }
+};
+
+
+
+/**
+ * Test whether the panel contains given child
+ * @param {Component} child
+ */
+Panel.prototype.showPanel = function () {
+  var frame = this.getFrame();
+  frame.className = frame.className.replace(" hidden","");
+};
+
+
+
 /**
  * Repaint the component
  * @return {boolean} Returns true if the component was resized since previous repaint
@@ -4688,8 +4714,10 @@ var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
  * @constructor ItemSet
  * @extends Panel
  */
-function Linegraph(backgroundPanel, axisPanel, sidePanel, options) {
+function Linegraph(backgroundPanel, axisPanel, sidePanel, options, timeline) {
   this.id = util.randomUUID();
+
+  this.timeline = timeline;
 
   // one options object is shared by this itemset and all its items
   this.options = options || {};
@@ -4700,7 +4728,6 @@ function Linegraph(backgroundPanel, axisPanel, sidePanel, options) {
   this.dom = {};
   this.hammer = null;
 
-  var me = this;
   this.itemsData = null;    // DataSet
   this.groupsData = null;   // DataSet
   this.range = null;        // Range or Object {start: number, end: number}
@@ -4741,10 +4768,32 @@ function Linegraph(backgroundPanel, axisPanel, sidePanel, options) {
   this.touchParams = {}; // stores properties while dragging
   // create the HTML DOM
 
+  this.lastStart = 0;
+
   this._create();
+
+  var me = this;
+  this.timeline.on("rangechange", function() {
+    if (me.lastStart != 0) {
+      var offset = me.range.start - me.lastStart;
+      var range = me.range.end - me.range.start;
+      if (me.width != 0) {
+        var rangePerPixelInv = me.width/range;
+        var xOffset = offset * rangePerPixelInv;
+        me.svg.style.left = util.option.asSize(-me.width - xOffset);
+      }
+    }
+  })
+  this.timeline.on("rangechanged", function() {
+    me.lastStart = me.range.start;
+    me.svg.style.left = util.option.asSize(-me.width);
+    me.setData.apply(me);
+    console.log("her",this)
+  });
 }
 
 Linegraph.prototype = new Panel();
+
 
 /**
  * Create the HTML DOM for the ItemSet
@@ -4799,69 +4848,85 @@ Linegraph.prototype._create = function _create(){
   this.svg.appendChild(this.path2);
   this.svg.appendChild(this.path);
 
+  // create axis panel
+  var axis = document.createElement('div');
+  axis.style.backgroundColor = 'red';
+  this.dom.axis = axis;
+  this.axisPanel.frame.appendChild(axis);
+
+  // create labelset
+  var yAxis = document.createElement('div');
+  yAxis.style.backgroundColor = 'blue';
+  this.dom.yAxis = yAxis;
+  this.sidePanel.frame.appendChild(yAxis);
+  this.sidePanel.showPanel();
 
 };
 
 Linegraph.prototype.setData = function setData() {
-  console.log(this.frame,this.frame.offsetWidth);
   var data = [];
 
+
   this.startTime = this.range.start;
-  var min = 0;
-  var max = 1920;
-  var count = 10;
-  var scale = 30;
-  var offset = 0;
+  var min = Date.now() - 3600000 * 24 * 30;
+  var max = Date.now() + 3600000 * 24 * 10;
+  var count = 60;
   var step = (max-min) / count;
 
-  for (var i = 0; i < count; i++) {
-    data.push({x:Date.now() + i*step, y: 300*(i%2)})
+  var range = this.range.end - this.range.start;
+
+  if (this.width != 0) {
+    var rangePerPixel = range/this.width;
+    var rangePerPixelInv = this.width/range;
+    var xOffset = -this.range.start + this.width*rangePerPixel;
+
+    for (var i = 0; i < count; i++) {
+      data.push({x:(min + i*step + xOffset) * rangePerPixelInv, y: 250*(i%2) + 25})
+    }
+
+    // catmull rom
+    var p0, p1, p2, p3, bp1, bp2, bp3;
+    var d2 = "M" + data[0].x + "," + data[0].y + " ";
+    for (var i = 0; i < data.length - 2; i++) {
+      if (i == 0) {
+        p0 = data[0]
+      }
+      else {
+        p0 = data[i-1];
+      }
+      p1 = data[i];
+      p2 = data[i+1];
+      p3 = data[i+2];
+
+      // Catmull-Rom to Cubic Bezier conversion matrix
+      //    0       1       0       0
+      //  -1/6      1      1/6      0
+      //    0      1/6      1     -1/6
+      //    0       0       1       0
+
+  //    bp0 = { x: p1.x,                              y: p1.y };
+      bp1 = { x: ((-p0.x + 6*p1.x + p2.x) / 6), y: ((-p0.y + 6*p1.y + p2.y) / 6)};
+      bp2 = { x: ((p1.x + 6*p2.x - p3.x) / 6),  y: ((p1.y + 6*p2.y - p3.y)  / 6)};
+      bp3 = { x: p2.x,                              y: p2.y };
+
+      d2 += "C" + bp1.x + "," + bp1.y + " " + bp2.x + "," + bp2.y + " " + bp3.x + "," + bp3.y + " ";
+    }
+
+
+    // linear
+    var d = "";
+    for (var i = 0; i < data.length - 1; i++) {
+      if (i == 0) {
+        d += "M" + data[i].x + "," + data[i].y;
+      }
+      else {
+        d += " " + data[i].x + "," + data[i].y;
+      }
+    }
+
+    this.path.setAttributeNS(null, "d",d);
+    this.path2.setAttributeNS(null, "d",d2);
   }
-  console.log(data, this.width, this._previousWidth);
-
-  // catmull rom
-  var p0, p1, p2, p3, bp1, bp2, bp3;
-  var d2 = "M" + data[0].x + "," + data[0].y + " ";
-  for (var i = 0; i < data.length - 2; i++) {
-    if (i == 0) {
-      p0 = data[0]
-    }
-    else {
-      p0 = data[i-1];
-    }
-    p1 = data[i];
-    p2 = data[i+1];
-    p3 = data[i+2];
-
-    // Catmull-Rom to Cubic Bezier conversion matrix
-    //    0       1       0       0
-    //  -1/6      1      1/6      0
-    //    0      1/6      1     -1/6
-    //    0       0       1       0
-
-//    bp0 = { x: p1.x,                              y: p1.y };
-    bp1 = { x: ((-p0.x + 6*p1.x + p2.x) / 6), y: ((-p0.y + 6*p1.y + p2.y) / 6)};
-    bp2 = { x: ((p1.x + 6*p2.x - p3.x) / 6),  y: ((p1.y + 6*p2.y - p3.y)  / 6)};
-    bp3 = { x: p2.x,                              y: p2.y };
-
-    d2 += "C" + bp1.x + "," + bp1.y + " " + bp2.x + "," + bp2.y + " " + bp3.x + "," + bp3.y + " ";
-  }
-
-
-  // linear
-  var d = "";
-  for (var i = 0; i < data.length - 1; i++) {
-    if (i == 0) {
-      d += "M" + data[i].x + "," + data[i].y;
-    }
-    else {
-      d += " " + data[i].x + "," + data[i].y;
-    }
-  }
-
-  this.path.setAttributeNS(null, "d",d);
-  this.path2.setAttributeNS(null, "d",d2);
-//
 }
 
 /**
@@ -4958,10 +5023,16 @@ Linegraph.prototype.repaint = function repaint() {
   resized = this._isResized() || resized;
 
   if (resized) {
-    this.svg.style.width = asSize(3*this.width)
+    this.svg.style.width = asSize(3*this.width);
+    this.svg.style.left = asSize(-this.width);
+  }
+  if (zoomed) {
+    this.setData();
   }
 
-  this.setData();
+
+
+
 }
 
 var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
@@ -7692,15 +7763,18 @@ function Timeline (container, items, options) {
     width: null,
     height: null
   });
+
+
+  this.linegraph = new Linegraph(this.backgroundPanel, this.axisPanel, this.sideContentPanel, itemOptions, this);
+  this.linegraph.setRange(this.range);
+  this.linegraph.on('change', me.rootPanel.repaint.bind(me.rootPanel));
+  this.contentPanel.appendChild(this.linegraph);
+
   this.itemSet = new ItemSet(this.backgroundPanel, this.axisPanel, this.sideContentPanel, itemOptions);
   this.itemSet.setRange(this.range);
   this.itemSet.on('change', me.rootPanel.repaint.bind(me.rootPanel));
   this.contentPanel.appendChild(this.itemSet);
 
-  this.linegraph = new Linegraph(this.backgroundPanel, this.axisPanel, this.sideContentPanel, itemOptions);
-  this.linegraph.setRange(this.range);
-  this.linegraph.on('change', me.rootPanel.repaint.bind(me.rootPanel));
-  this.contentPanel.appendChild(this.linegraph);
 
   this.itemsData = null;      // DataSet
   this.groupsData = null;     // DataSet
@@ -11933,6 +12007,7 @@ var hierarchalRepulsionMixin = {
       node1 = nodes[nodeIndices[i]];
       for (j = i + 1; j < nodeIndices.length; j++) {
         node2 = nodes[nodeIndices[j]];
+
         dx = node2.x - node1.x;
         dy = node2.y - node1.y;
         distance = Math.sqrt(dx * dx + dy * dy);
@@ -12510,7 +12585,6 @@ var HierarchicalLayoutMixin = {
    * @private
    */
   _placeNodesByHierarchy : function(distribution) {
-
     var nodeId, node;
 
     // start placing all the level 0 nodes first. Then recursively position their branches.
@@ -16925,6 +16999,13 @@ Graph.prototype._zoom = function(scale, pointer) {
   this.updateClustersDefault();
   this._redraw();
 
+  if (scaleOld < scale) {
+    this.emit("zoom", {direction:"+"});
+  }
+  else {
+    this.emit("zoom", {direction:"-"});
+  }
+
 
   return scale;
 };
@@ -17518,6 +17599,8 @@ Graph.prototype._setTranslation = function(offsetX, offsetY) {
   if (offsetY !== undefined) {
     this.translation.y = offsetY;
   }
+
+  this.emit('viewChanged');
 };
 
 /**

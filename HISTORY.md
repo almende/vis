@@ -45,6 +45,7 @@ http://visjs.org
 - added arrowScaleFactor to scale the arrows on the edges.
 - fixed bug where the graph stopped animation after settling in playing with physics.
 - fixed bug where hierarchical physics properties were not handled.
+- added events for change of view and zooming.
 
 ### DataSet
 
