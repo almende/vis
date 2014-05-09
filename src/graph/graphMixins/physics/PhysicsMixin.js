@@ -641,10 +641,12 @@ function switchConfigurations () {
     this.constants.physics.barnesHut.enabled = false;
   }
   else if (radioButton == "H") {
-    this.constants.hierarchicalLayout.enabled = true;
-    this.constants.physics.hierarchicalRepulsion.enabled = true;
-    this.constants.physics.barnesHut.enabled = false;
-    this._setupHierarchicalLayout();
+    if (this.constants.hierarchicalLayout.enabled == false) {
+      this.constants.hierarchicalLayout.enabled = true;
+      this.constants.physics.hierarchicalRepulsion.enabled = true;
+      this.constants.physics.barnesHut.enabled = false;
+      this._setupHierarchicalLayout();
+    }
   }
   else {
     this.constants.hierarchicalLayout.enabled = false;

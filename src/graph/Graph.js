@@ -557,6 +557,17 @@ Graph.prototype.setOptions = function (options) {
           }
         }
       }
+
+      if (options.physics.hierarchicalRepulsion) {
+        this.constants.hierarchicalLayout.enabled = true;
+        this.constants.physics.hierarchicalRepulsion.enabled = true;
+        this.constants.physics.barnesHut.enabled = false;
+        for (prop in options.physics.hierarchicalRepulsion) {
+          if (options.physics.hierarchicalRepulsion.hasOwnProperty(prop)) {
+            this.constants.physics.hierarchicalRepulsion[prop] = options.physics.hierarchicalRepulsion[prop];
+          }
+        }
+      }
     }
 
     if (options.hierarchicalLayout) {
