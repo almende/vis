@@ -2,6 +2,21 @@
 http://visjs.org
 
 
+## 2014-05-09, version 1.0.1
+
+### Timeline
+
+- Fixed width of items with type `rangeoverflow`.
+- Fixed a bug wrongly rendering invisible items after updating them.
+
+### Graph
+
+- Added coordinate conversion from DOM to Canvas.
+- fixed bug where the graph stopped animation after settling in playing with physics.
+- fixed bug where hierarchical physics properties were not handled.
+- added events for change of view and zooming.
+
+
 ## 2014-05-02, version 1.0.0
 
 ### Timeline

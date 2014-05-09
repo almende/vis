@@ -24,7 +24,7 @@
  * @param {Date} [end]           The end date
  * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
  */
-TimeStep = function(start, end, minimumStep) {
+function TimeStep(start, end, minimumStep) {
   // variables
   this.current = new Date();
   this._start = new Date();
@@ -36,7 +36,7 @@ TimeStep = function(start, end, minimumStep) {
 
   // initialize the range
   this.setRange(start, end, minimumStep);
-};
+}
 
 /// enum scale
 TimeStep.SCALE = {

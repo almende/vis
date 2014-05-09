@@ -46,9 +46,10 @@ ItemRangeOverflow.prototype.repositionX = function repositionX() {
 
   this.left = start;
   var boxWidth = Math.max(end - start, 1);
-  this.width = (this.props.content.width < boxWidth) ?
-      boxWidth :
-      start + contentLeft + this.props.content.width;
+  this.width = boxWidth + this.props.content.width;
+  // Note: The calculation of width is an optimistic calculation, giving
+  //       a width which will not change when moving the Timeline
+  //       So no restacking needed, which is nicer for the eye
 
   this.dom.box.style.left = this.left + 'px';
   this.dom.box.style.width = boxWidth + 'px';

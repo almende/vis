@@ -557,6 +557,17 @@ Graph.prototype.setOptions = function (options) {
           }
         }
       }
+
+      if (options.physics.hierarchicalRepulsion) {
+        this.constants.hierarchicalLayout.enabled = true;
+        this.constants.physics.hierarchicalRepulsion.enabled = true;
+        this.constants.physics.barnesHut.enabled = false;
+        for (prop in options.physics.hierarchicalRepulsion) {
+          if (options.physics.hierarchicalRepulsion.hasOwnProperty(prop)) {
+            this.constants.physics.hierarchicalRepulsion[prop] = options.physics.hierarchicalRepulsion[prop];
+          }
+        }
+      }
     }
 
     if (options.hierarchicalLayout) {
@@ -960,6 +971,7 @@ Graph.prototype._handleOnDrag = function(event) {
       this.drag.translation.y + diffY);
     this._redraw();
     this.moving = true;
+    this.start();
   }
 };
 
@@ -1068,6 +1080,13 @@ Graph.prototype._zoom = function(scale, pointer) {
   this._setTranslation(tx, ty);
   this.updateClustersDefault();
   this._redraw();
+
+  if (scaleOld < scale) {
+    this.emit("zoom", {direction:"+"});
+  }
+  else {
+    this.emit("zoom", {direction:"-"});
+  }
 
 
   return scale;
@@ -1662,6 +1681,8 @@ Graph.prototype._setTranslation = function(offsetX, offsetY) {
   if (offsetY !== undefined) {
     this.translation.y = offsetY;
   }
+
+  this.emit('viewChanged');
 };
 
 /**
@@ -1733,6 +1754,27 @@ Graph.prototype._canvasToY = function(y) {
 Graph.prototype._yToCanvas = function(y) {
   return y * this.scale + this.translation.y ;
 };
+
+
+/**
+ *
+ * @param {object} pos   = {x: number, y: number}
+ * @returns {{x: number, y: number}}
+ * @constructor
+ */
+Graph.prototype.DOMtoCanvas = function(pos) {
+  return {x:this._xToCanvas(pos.x),y:this._yToCanvas(pos.y)};
+}
+
+/**
+ *
+ * @param {object} pos   = {x: number, y: number}
+ * @returns {{x: number, y: number}}
+ * @constructor
+ */
+Graph.prototype.canvasToDOM = function(pos) {
+  return {x:this._canvasToX(pos.x),y:this._canvasToY(pos.y)};
+}
 
 /**
  * Redraw all nodes

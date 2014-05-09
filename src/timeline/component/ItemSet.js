@@ -813,7 +813,9 @@ ItemSet.prototype._updateItem = function _updateItem(item, itemData) {
   var oldGroupId = item.data.group;
 
   item.data = itemData;
-  item.repaint();
+  if (item.displayed) {
+    item.repaint();
+  }
 
   // update group
   if (oldGroupId != item.data.group) {

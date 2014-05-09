@@ -2,10 +2,10 @@
  * @class Groups
  * This class can store groups and properties specific for groups.
  */
-Groups = function () {
+function Groups() {
   this.clear();
   this.defaultIndex = 0;
-};
+}
 
 
 /**
