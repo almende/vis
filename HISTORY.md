@@ -7,6 +7,7 @@ http://visjs.org
 ### Timeline
 
 - Fixed width of items with type `rangeoverflow`.
+- Fixed a bug wrongly rendering invisible items after updating them.
 
 ### Graph
 

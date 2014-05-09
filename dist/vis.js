@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 1.0.1-SNAPSHOT
- * @date    2014-05-02
+ * @date    2014-05-09
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -417,7 +417,7 @@ util.extend = function (a, b) {
 util.equalArray = function (a, b) {
   if (a.length != b.length) return false;
 
-  for (var i = 1, len = a.length; i < len; i++) {
+  for (var i = 0, len = a.length; i < len; i++) {
     if (a[i] != b[i]) return false;
   }
 
@@ -2595,7 +2595,7 @@ stack.collision = function collision (a, b, margin) {
  * @param {Date} [end]           The end date
  * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
  */
-TimeStep = function(start, end, minimumStep) {
+function TimeStep(start, end, minimumStep) {
   // variables
   this.current = new Date();
   this._start = new Date();
@@ -2607,7 +2607,7 @@ TimeStep = function(start, end, minimumStep) {
 
   // initialize the range
   this.setRange(start, end, minimumStep);
-};
+}
 
 /// enum scale
 TimeStep.SCALE = {
@@ -5484,7 +5484,9 @@ ItemSet.prototype._updateItem = function _updateItem(item, itemData) {
   var oldGroupId = item.data.group;
 
   item.data = itemData;
-  item.repaint();
+  if (item.displayed) {
+    item.repaint();
+  }
 
   // update group
   if (oldGroupId != item.data.group) {
@@ -6677,9 +6679,10 @@ ItemRangeOverflow.prototype.repositionX = function repositionX() {
 
   this.left = start;
   var boxWidth = Math.max(end - start, 1);
-  this.width = (this.props.content.width < boxWidth) ?
-      boxWidth :
-      start + contentLeft + this.props.content.width;
+  this.width = boxWidth + this.props.content.width;
+  // Note: The calculation of width is an optimistic calculation, giving
+  //       a width which will not change when moving the Timeline
+  //       So no restacking needed, which is nicer for the eye
 
   this.dom.box.style.left = this.left + 'px';
   this.dom.box.style.width = boxWidth + 'px';
@@ -10779,10 +10782,10 @@ Popup.prototype.hide = function () {
  * @class Groups
  * This class can store groups and properties specific for groups.
  */
-Groups = function () {
+function Groups() {
   this.clear();
   this.defaultIndex = 0;
-};
+}
 
 
 /**
@@ -10860,11 +10863,11 @@ Groups.prototype.add = function (groupname, style) {
  * @class Images
  * This class loads images and keeps them stored.
  */
-Images = function () {
+function Images() {
   this.images = {};
 
   this.callback = undefined;
-};
+}
 
 /**
  * Set an onload callback function. This will be called each time an image
@@ -17272,6 +17275,27 @@ Graph.prototype._canvasToY = function(y) {
 Graph.prototype._yToCanvas = function(y) {
   return y * this.scale + this.translation.y ;
 };
+
+
+/**
+ *
+ * @param {object} pos   = {x: number, y: number}
+ * @returns {{x: number, y: number}}
+ * @constructor
+ */
+Graph.prototype.DOMtoCanvas = function(pos) {
+  return {x:this._xToCanvas(pos.x),y:this._yToCanvas(pos.y)};
+}
+
+/**
+ *
+ * @param {object} pos   = {x: number, y: number}
+ * @returns {{x: number, y: number}}
+ * @constructor
+ */
+Graph.prototype.canvasToDOM = function(pos) {
+  return {x:this._canvasToX(pos.x),y:this._canvasToY(pos.y)};
+}
 
 /**
  * Redraw all nodes
