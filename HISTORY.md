@@ -2,7 +2,7 @@
 http://visjs.org
 
 
-## not yet released, version 1.0.1
+## 2014-05-09, version 1.0.1
 
 ### Timeline
 
@@ -12,6 +12,9 @@ http://visjs.org
 ### Graph
 
 - Added coordinate conversion from DOM to Canvas.
+- fixed bug where the graph stopped animation after settling in playing with physics.
+- fixed bug where hierarchical physics properties were not handled.
+- added events for change of view and zooming.
 
 
 ## 2014-05-02, version 1.0.0
@@ -43,9 +46,6 @@ http://visjs.org
 
 - added recalculate hierarchical layout to update node event.
 - added arrowScaleFactor to scale the arrows on the edges.
-- fixed bug where the graph stopped animation after settling in playing with physics.
-- fixed bug where hierarchical physics properties were not handled.
-- added events for change of view and zooming.
 
 ### DataSet
 
