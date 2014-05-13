@@ -13,7 +13,8 @@ function Panel(options) {
   this.id = util.randomUUID();
   this.parent = null;
   this.childs = [];
-
+  this.visibilityForced = false;
+  this.visibility = false;
   this.options = options || {};
 
   // create frame
@@ -115,6 +116,36 @@ Panel.prototype.hasChild = function (child) {
   return (index != -1);
 };
 
+
+
+/**
+ * Test whether the panel contains given child
+ * @param {Component} child
+ */
+Panel.prototype.hidePanel = function () {
+  this.visibilityForced = true;
+  this.visibility = false;
+  var frame = this.getFrame();
+  if (frame.className.search(" hidden") == -1) {
+    frame.className += " hidden";
+  }
+};
+
+
+
+/**
+ * Test whether the panel contains given child
+ * @param {Component} child
+ */
+Panel.prototype.showPanel = function () {
+  this.visibilityForced = true;
+  this.visibility = true;
+  var frame = this.getFrame();
+  frame.className = frame.className.replace(" hidden","");
+};
+
+
+
 /**
  * Repaint the component
  * @return {boolean} Returns true if the component was resized since previous repaint
@@ -126,6 +157,13 @@ Panel.prototype.repaint = function () {
 
   // update className
   frame.className = 'vpanel' + (options.className ? (' ' + asString(options.className)) : '');
+
+  if (this.visibilityForced == true && this.visibility == true) {
+    this.showPanel();
+  }
+  else if (this.visibilityForced == true) {
+    this.hidePanel();
+  }
 
   // repaint the child components
   var childsResized = this._repaintChilds();

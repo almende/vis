@@ -253,10 +253,18 @@ function Timeline (container, items, options) {
     width: null,
     height: null
   });
+
+
+  this.linegraph = new Linegraph(this.backgroundPanel, this.axisPanel, this.sideContentPanel, itemOptions, this, this.sidePanel);
+  this.linegraph.setRange(this.range);
+  this.linegraph.on('change', me.rootPanel.repaint.bind(me.rootPanel));
+  this.contentPanel.appendChild(this.linegraph);
+
   this.itemSet = new ItemSet(this.backgroundPanel, this.axisPanel, this.sideContentPanel, itemOptions);
   this.itemSet.setRange(this.range);
   this.itemSet.on('change', me.rootPanel.repaint.bind(me.rootPanel));
   this.contentPanel.appendChild(this.itemSet);
+
 
   this.itemsData = null;      // DataSet
   this.groupsData = null;     // DataSet

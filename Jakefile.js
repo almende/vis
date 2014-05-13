@@ -73,6 +73,7 @@ task('build', {async: true}, function () {
       './src/timeline/component/TimeAxis.js',
       './src/timeline/component/CurrentTime.js',
       './src/timeline/component/CustomTime.js',
+      './src/timeline/component/linegraph.js',
       './src/timeline/component/ItemSet.js',
       './src/timeline/component/item/*.js',
       './src/timeline/component/Group.js',
