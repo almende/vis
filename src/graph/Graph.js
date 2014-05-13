@@ -490,9 +490,12 @@ Graph.prototype.setData = function(data, disableStart) {
   if (!disableStart) {
     // find a stable position or start animating to a stable position
     if (this.stabilize) {
-      this._stabilize();
+      var me = this;
+      setTimeout(function() {me._stabilize(); me.start();},0)
     }
-    this.start();
+    else {
+      this.start();
+    }
   }
 };
 
