@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 1.0.2-SNAPSHOT
- * @date    2014-05-09
+ * @date    2014-05-13
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -11220,7 +11220,7 @@ var physicsMixin = {
         '<table id="graph_BH_table" style="display:none">' +
         '<tr><td><b>Barnes Hut</b></td></tr>' +
         '<tr>' +
-        '<td width="150px">gravitationalConstant</td><td>0</td><td><input type="range" min="500" max="20000" value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" step="25" style="width:300px" id="graph_BH_gc"></td><td  width="50px">-20000</td><td><input value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" id="graph_BH_gc_value" style="width:60px"></td>' +
+        '<td width="150px">gravitationalConstant</td><td>0</td><td><input type="range" min="0" max="20000" value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" step="25" style="width:300px" id="graph_BH_gc"></td><td  width="50px">-20000</td><td><input value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" id="graph_BH_gc_value" style="width:60px"></td>' +
         '</tr>' +
         '<tr>' +
         '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.barnesHut.centralGravity + '" step="0.05"  style="width:300px" id="graph_BH_cg"></td><td>3</td><td><input value="' + this.constants.physics.barnesHut.centralGravity + '" id="graph_BH_cg_value" style="width:60px"></td>' +
@@ -16034,9 +16034,12 @@ Graph.prototype.setData = function(data, disableStart) {
   if (!disableStart) {
     // find a stable position or start animating to a stable position
     if (this.stabilize) {
-      this._stabilize();
+      var me = this;
+      setTimeout(function() {me._stabilize(); me.start();},0)
     }
-    this.start();
+    else {
+      this.start();
+    }
   }
 };
 
