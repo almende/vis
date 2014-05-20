@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 1.0.2-SNAPSHOT
- * @date    2014-05-13
+ * @date    2014-05-20
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -16046,9 +16046,13 @@ Graph.prototype.setData = function(data, disableStart) {
 /**
  * Set options
  * @param {Object} options
+ * @param {Boolean} [initializeView] | set zoom and translation to default.
  */
-Graph.prototype.setOptions = function (options) {
+Graph.prototype.setOptions = function (options, initializeView) {
   if (options) {
+    if (initializeView === undefined) {
+      initializeView = true;
+    }
     var prop;
     // retrieve parameter values
     if (options.width !== undefined)           {this.width = options.width;}
@@ -16275,9 +16279,11 @@ Graph.prototype.setOptions = function (options) {
   // bind keys. If disabled, this will not do anything;
   this._createKeyBinds();
 
-  this.setSize(this.width, this.height);
-  this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
-  this._setScale(1);
+  if (initializeView == true) {
+    this.setSize(this.width, this.height);
+    this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
+    this._setScale(1);
+  }
   this._redraw();
 };
 
