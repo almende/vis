@@ -15755,7 +15755,10 @@ function Graph (container, data, options) {
   this._loadHierarchySystem();
 
   // apply options
+  this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
+  this._setScale(1);
   this.setOptions(options);
+
 
   // other vars
   this.freezeSimulation = false;// freeze the simulation
@@ -16048,11 +16051,8 @@ Graph.prototype.setData = function(data, disableStart) {
  * @param {Object} options
  * @param {Boolean} [initializeView] | set zoom and translation to default.
  */
-Graph.prototype.setOptions = function (options, initializeView) {
+Graph.prototype.setOptions = function (options) {
   if (options) {
-    if (initializeView === undefined) {
-      initializeView = true;
-    }
     var prop;
     // retrieve parameter values
     if (options.width !== undefined)           {this.width = options.width;}
@@ -16278,13 +16278,10 @@ Graph.prototype.setOptions = function (options, initializeView) {
 
   // bind keys. If disabled, this will not do anything;
   this._createKeyBinds();
+  this.setSize(this.width, this.height);
+  this.moving = true;
+  this.start();
 
-  if (initializeView == true) {
-    this.setSize(this.width, this.height);
-    this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
-    this._setScale(1);
-  }
-  this._redraw();
 };
 
 /**

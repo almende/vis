@@ -6,7 +6,7 @@ http://visjs.org
 
 ### Graph
 
-- added option to setOptions to avoid resetting view.
+- changes setOptions to avoid resetting view.
 
 
 ## 2014-05-09, version 1.0.1
