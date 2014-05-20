@@ -131,7 +131,6 @@ Linegraph.prototype._create = function _create(){
 //  this.dom.labelSet = labelSet;
 //  this.sidePanel.frame.appendChild(labelSet);
 
-  console.log(this.frame,this.frame.offsetWidth);
   this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
   this.svg.style.position = "relative"
   this.svg.style.height = "300px";
@@ -151,13 +150,6 @@ Linegraph.prototype._create = function _create(){
   this.svg.appendChild(this.path2);
   this.svg.appendChild(this.path);
 
-  // create axis panel
-  var axis = document.createElement('div');
-  axis.style.backgroundColor = 'red';
-  this.dom.axis = axis;
-  this.axisPanel.frame.appendChild(axis);
-
-  // create labelset
   var yAxis = document.createElement('div');
   yAxis.style.backgroundColor = 'blue';
   yAxis.style.width = '100px';
@@ -168,9 +160,6 @@ Linegraph.prototype._create = function _create(){
   this.sidePanel.showPanel.apply(this.sidePanel);
 
   this.sidePanelParent.showPanel();
-  this.sidePanelParent.frame.style.width = "50px";
-  console.log(this.sidePanelParent);
-
 };
 
 Linegraph.prototype.setData = function setData() {

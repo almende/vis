@@ -102,7 +102,8 @@ function Timeline (container, items, options) {
     height: '100%',
     width: function () {
       if (me.itemSet) {
-        return me.itemSet.getLabelsWidth();
+//        return me.itemSet.getLabelsWidth();
+        return "100px";
       }
       else {
         return 0;
