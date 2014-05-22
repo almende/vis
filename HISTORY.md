@@ -1,12 +1,16 @@
 # vis.js history
 http://visjs.org
 
-## 2014-05-22, version 1.0.2
+## not yet released, version 1.0.2
+
+### Timeline
+
+- Some tweaks in snapping dragged items to nice dates.
 
 ### Graph
+
 - added zoomable and moveable options.
 - changes setOptions to avoid resetting view.
-
 
 ## 2014-05-09, version 1.0.1
 
