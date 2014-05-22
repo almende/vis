@@ -1,11 +1,10 @@
 # vis.js history
 http://visjs.org
 
-
-## 2014-05-09, version 1.0.2
+## 2014-05-22, version 1.0.2
 
 ### Graph
-
+- added zoomable and moveable options.
 - changes setOptions to avoid resetting view.
 
 

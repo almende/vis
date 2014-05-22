@@ -179,7 +179,9 @@ function Graph (container, data, options) {
         border: '#666',
         background: '#FFFFC6'
       }
-    }
+    },
+    moveable: true,
+    zoomable: true
   };
   this.editMode = this.constants.dataManipulation.initiallyVisible;
 
@@ -519,7 +521,8 @@ Graph.prototype.setOptions = function (options) {
     if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
-
+    if (options.moveable !== undefined)           {this.constants.moveable = options.moveable;}
+    if (options.zoomable !== undefined)          {this.constants.zoomable = options.zoomable;}
 
 
     if (options.labels !== undefined)  {
@@ -968,16 +971,18 @@ Graph.prototype._handleOnDrag = function(event) {
     }
   }
   else {
-    // move the graph
-    var diffX = pointer.x - this.drag.pointer.x;
-    var diffY = pointer.y - this.drag.pointer.y;
+    if (this.constants.moveable == true) {
+      // move the graph
+      var diffX = pointer.x - this.drag.pointer.x;
+      var diffY = pointer.y - this.drag.pointer.y;
 
-    this._setTranslation(
-      this.drag.translation.x + diffX,
-      this.drag.translation.y + diffY);
-    this._redraw();
-    this.moving = true;
-    this.start();
+      this._setTranslation(
+        this.drag.translation.x + diffX,
+        this.drag.translation.y + diffY);
+      this._redraw();
+      this.moving = true;
+      this.start();
+    }
   }
 };
 
@@ -1065,37 +1070,38 @@ Graph.prototype._onPinch = function (event) {
  * @private
  */
 Graph.prototype._zoom = function(scale, pointer) {
-  var scaleOld = this._getScale();
-  if (scale < 0.00001) {
-    scale = 0.00001;
+  if (this.constants.zoomable == true) {
+    var scaleOld = this._getScale();
+    if (scale < 0.00001) {
+      scale = 0.00001;
+    }
+    if (scale > 10) {
+      scale = 10;
+    }
+  // + this.frame.canvas.clientHeight / 2
+    var translation = this._getTranslation();
+
+    var scaleFrac = scale / scaleOld;
+    var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
+    var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
+
+    this.areaCenter = {"x" : this._canvasToX(pointer.x),
+                       "y" : this._canvasToY(pointer.y)};
+
+    this._setScale(scale);
+    this._setTranslation(tx, ty);
+    this.updateClustersDefault();
+    this._redraw();
+
+    if (scaleOld < scale) {
+      this.emit("zoom", {direction:"+"});
+    }
+    else {
+      this.emit("zoom", {direction:"-"});
+    }
+
+    return scale;
   }
-  if (scale > 10) {
-    scale = 10;
-  }
-// + this.frame.canvas.clientHeight / 2
-  var translation = this._getTranslation();
-
-  var scaleFrac = scale / scaleOld;
-  var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
-  var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
-
-  this.areaCenter = {"x" : this._canvasToX(pointer.x),
-                     "y" : this._canvasToY(pointer.y)};
-
-  this._setScale(scale);
-  this._setTranslation(tx, ty);
-  this.updateClustersDefault();
-  this._redraw();
-
-  if (scaleOld < scale) {
-    this.emit("zoom", {direction:"+"});
-  }
-  else {
-    this.emit("zoom", {direction:"-"});
-  }
-
-
-  return scale;
 };
 
 
