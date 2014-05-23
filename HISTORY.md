@@ -7,6 +7,7 @@ http://visjs.org
 ### Timeline
 
 - Some tweaks in snapping dragged items to nice dates.
+- Fixed a bug in replacing the DataSet of groups via `Timeline.setGroups(groups)`.
 
 
 ### Graph
