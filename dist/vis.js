@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 1.0.2-SNAPSHOT
- * @date    2014-05-20
+ * @date    2014-05-23
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -2885,8 +2885,7 @@ TimeStep.prototype.snap = function(date) {
     clone.setSeconds(0);
     clone.setMilliseconds(0);
   }
-  else if (this.scale == TimeStep.SCALE.DAY ||
-      this.scale == TimeStep.SCALE.WEEKDAY) {
+  else if (this.scale == TimeStep.SCALE.DAY) {
     //noinspection FallthroughInSwitchStatementJS
     switch (this.step) {
       case 5:
@@ -2894,6 +2893,19 @@ TimeStep.prototype.snap = function(date) {
         clone.setHours(Math.round(clone.getHours() / 24) * 24); break;
       default:
         clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
+    }
+    clone.setMinutes(0);
+    clone.setSeconds(0);
+    clone.setMilliseconds(0);
+  }
+  else if (this.scale == TimeStep.SCALE.WEEKDAY) {
+    //noinspection FallthroughInSwitchStatementJS
+    switch (this.step) {
+      case 5:
+      case 2:
+        clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
+      default:
+        clone.setHours(Math.round(clone.getHours() / 6) * 6); break;
     }
     clone.setMinutes(0);
     clone.setSeconds(0);
@@ -5190,7 +5202,8 @@ ItemSet.prototype.setGroups = function setGroups(groups) {
 
     // remove all drawn groups
     ids = this.groupsData.getIds();
-    this._onRemoveGroups(ids);
+    this.groupsData = null;
+    this._onRemoveGroups(ids); // note: this will cause a repaint
   }
 
   // replace the dataset
@@ -5441,8 +5454,7 @@ ItemSet.prototype._orderGroups = function () {
       // hide all groups, removes them from the DOM
       var groups = this.groups;
       groupIds.forEach(function (groupId) {
-        var group = groups[groupId];
-        group.hide();
+        groups[groupId].hide();
       });
 
       // show the groups again, attach them to the DOM in correct order

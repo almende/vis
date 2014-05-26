@@ -519,7 +519,8 @@ ItemSet.prototype.setGroups = function setGroups(groups) {
 
     // remove all drawn groups
     ids = this.groupsData.getIds();
-    this._onRemoveGroups(ids);
+    this.groupsData = null;
+    this._onRemoveGroups(ids); // note: this will cause a repaint
   }
 
   // replace the dataset
@@ -770,8 +771,7 @@ ItemSet.prototype._orderGroups = function () {
       // hide all groups, removes them from the DOM
       var groups = this.groups;
       groupIds.forEach(function (groupId) {
-        var group = groups[groupId];
-        group.hide();
+        groups[groupId].hide();
       });
 
       // show the groups again, attach them to the DOM in correct order
