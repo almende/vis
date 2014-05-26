@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 1.0.2-SNAPSHOT
- * @date    2014-05-13
+ * @date    2014-05-26
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -2885,8 +2885,7 @@ TimeStep.prototype.snap = function(date) {
     clone.setSeconds(0);
     clone.setMilliseconds(0);
   }
-  else if (this.scale == TimeStep.SCALE.DAY ||
-      this.scale == TimeStep.SCALE.WEEKDAY) {
+  else if (this.scale == TimeStep.SCALE.DAY) {
     //noinspection FallthroughInSwitchStatementJS
     switch (this.step) {
       case 5:
@@ -2894,6 +2893,19 @@ TimeStep.prototype.snap = function(date) {
         clone.setHours(Math.round(clone.getHours() / 24) * 24); break;
       default:
         clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
+    }
+    clone.setMinutes(0);
+    clone.setSeconds(0);
+    clone.setMilliseconds(0);
+  }
+  else if (this.scale == TimeStep.SCALE.WEEKDAY) {
+    //noinspection FallthroughInSwitchStatementJS
+    switch (this.step) {
+      case 5:
+      case 2:
+        clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
+      default:
+        clone.setHours(Math.round(clone.getHours() / 6) * 6); break;
     }
     clone.setMinutes(0);
     clone.setSeconds(0);
@@ -5564,7 +5576,8 @@ ItemSet.prototype.setGroups = function setGroups(groups) {
 
     // remove all drawn groups
     ids = this.groupsData.getIds();
-    this._onRemoveGroups(ids);
+    this.groupsData = null;
+    this._onRemoveGroups(ids); // note: this will cause a repaint
   }
 
   // replace the dataset
@@ -5815,8 +5828,7 @@ ItemSet.prototype._orderGroups = function () {
       // hide all groups, removes them from the DOM
       var groups = this.groups;
       groupIds.forEach(function (groupId) {
-        var group = groups[groupId];
-        group.hide();
+        groups[groupId].hide();
       });
 
       // show the groups again, attach them to the DOM in correct order
@@ -11474,7 +11486,7 @@ var physicsMixin = {
    */
   _calculateSpringForces: function () {
     var edgeLength, edge, edgeId;
-    var dx, dy, fx, fy, springForce, length;
+    var dx, dy, fx, fy, springForce, distance;
     var edges = this.edges;
 
     // forces caused by the edges, modelled as springs
@@ -11490,13 +11502,14 @@ var physicsMixin = {
 
             dx = (edge.from.x - edge.to.x);
             dy = (edge.from.y - edge.to.y);
-            length = Math.sqrt(dx * dx + dy * dy);
+            distance = Math.sqrt(dx * dx + dy * dy);
 
-            if (length == 0) {
-              length = 0.01;
+            if (distance == 0) {
+              distance = 0.01;
             }
 
-            springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
+            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
 
             fx = dx * springForce;
             fy = dy * springForce;
@@ -11558,17 +11571,18 @@ var physicsMixin = {
    * @private
    */
   _calculateSpringForce: function (node1, node2, edgeLength) {
-    var dx, dy, fx, fy, springForce, length;
+    var dx, dy, fx, fy, springForce, distance;
 
     dx = (node1.x - node2.x);
     dy = (node1.y - node2.y);
-    length = Math.sqrt(dx * dx + dy * dy);
+    distance = Math.sqrt(dx * dx + dy * dy);
 
-    if (length == 0) {
-      length = 0.01;
+    if (distance == 0) {
+      distance = 0.01;
     }
 
-    springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
+    // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+    springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
 
     fx = dx * springForce;
     fy = dy * springForce;
@@ -16106,7 +16120,9 @@ function Graph (container, data, options) {
         border: '#666',
         background: '#FFFFC6'
       }
-    }
+    },
+    moveable: true,
+    zoomable: true
   };
   this.editMode = this.constants.dataManipulation.initiallyVisible;
 
@@ -16138,7 +16154,10 @@ function Graph (container, data, options) {
   this._loadHierarchySystem();
 
   // apply options
+  this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
+  this._setScale(1);
   this.setOptions(options);
+
 
   // other vars
   this.freezeSimulation = false;// freeze the simulation
@@ -16429,6 +16448,7 @@ Graph.prototype.setData = function(data, disableStart) {
 /**
  * Set options
  * @param {Object} options
+ * @param {Boolean} [initializeView] | set zoom and translation to default.
  */
 Graph.prototype.setOptions = function (options) {
   if (options) {
@@ -16442,7 +16462,8 @@ Graph.prototype.setOptions = function (options) {
     if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
-
+    if (options.moveable !== undefined)           {this.constants.moveable = options.moveable;}
+    if (options.zoomable !== undefined)          {this.constants.zoomable = options.zoomable;}
 
 
     if (options.labels !== undefined)  {
@@ -16657,11 +16678,10 @@ Graph.prototype.setOptions = function (options) {
 
   // bind keys. If disabled, this will not do anything;
   this._createKeyBinds();
-
   this.setSize(this.width, this.height);
-  this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
-  this._setScale(1);
-  this._redraw();
+  this.moving = true;
+  this.start();
+
 };
 
 /**
@@ -16892,16 +16912,18 @@ Graph.prototype._handleOnDrag = function(event) {
     }
   }
   else {
-    // move the graph
-    var diffX = pointer.x - this.drag.pointer.x;
-    var diffY = pointer.y - this.drag.pointer.y;
+    if (this.constants.moveable == true) {
+      // move the graph
+      var diffX = pointer.x - this.drag.pointer.x;
+      var diffY = pointer.y - this.drag.pointer.y;
 
-    this._setTranslation(
-      this.drag.translation.x + diffX,
-      this.drag.translation.y + diffY);
-    this._redraw();
-    this.moving = true;
-    this.start();
+      this._setTranslation(
+        this.drag.translation.x + diffX,
+        this.drag.translation.y + diffY);
+      this._redraw();
+      this.moving = true;
+      this.start();
+    }
   }
 };
 
@@ -16989,37 +17011,38 @@ Graph.prototype._onPinch = function (event) {
  * @private
  */
 Graph.prototype._zoom = function(scale, pointer) {
-  var scaleOld = this._getScale();
-  if (scale < 0.00001) {
-    scale = 0.00001;
+  if (this.constants.zoomable == true) {
+    var scaleOld = this._getScale();
+    if (scale < 0.00001) {
+      scale = 0.00001;
+    }
+    if (scale > 10) {
+      scale = 10;
+    }
+  // + this.frame.canvas.clientHeight / 2
+    var translation = this._getTranslation();
+
+    var scaleFrac = scale / scaleOld;
+    var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
+    var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
+
+    this.areaCenter = {"x" : this._canvasToX(pointer.x),
+                       "y" : this._canvasToY(pointer.y)};
+
+    this._setScale(scale);
+    this._setTranslation(tx, ty);
+    this.updateClustersDefault();
+    this._redraw();
+
+    if (scaleOld < scale) {
+      this.emit("zoom", {direction:"+"});
+    }
+    else {
+      this.emit("zoom", {direction:"-"});
+    }
+
+    return scale;
   }
-  if (scale > 10) {
-    scale = 10;
-  }
-// + this.frame.canvas.clientHeight / 2
-  var translation = this._getTranslation();
-
-  var scaleFrac = scale / scaleOld;
-  var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
-  var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
-
-  this.areaCenter = {"x" : this._canvasToX(pointer.x),
-                     "y" : this._canvasToY(pointer.y)};
-
-  this._setScale(scale);
-  this._setTranslation(tx, ty);
-  this.updateClustersDefault();
-  this._redraw();
-
-  if (scaleOld < scale) {
-    this.emit("zoom", {direction:"+"});
-  }
-  else {
-    this.emit("zoom", {direction:"-"});
-  }
-
-
-  return scale;
 };
 
 

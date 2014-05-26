@@ -314,8 +314,7 @@ TimeStep.prototype.snap = function(date) {
     clone.setSeconds(0);
     clone.setMilliseconds(0);
   }
-  else if (this.scale == TimeStep.SCALE.DAY ||
-      this.scale == TimeStep.SCALE.WEEKDAY) {
+  else if (this.scale == TimeStep.SCALE.DAY) {
     //noinspection FallthroughInSwitchStatementJS
     switch (this.step) {
       case 5:
@@ -323,6 +322,19 @@ TimeStep.prototype.snap = function(date) {
         clone.setHours(Math.round(clone.getHours() / 24) * 24); break;
       default:
         clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
+    }
+    clone.setMinutes(0);
+    clone.setSeconds(0);
+    clone.setMilliseconds(0);
+  }
+  else if (this.scale == TimeStep.SCALE.WEEKDAY) {
+    //noinspection FallthroughInSwitchStatementJS
+    switch (this.step) {
+      case 5:
+      case 2:
+        clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
+      default:
+        clone.setHours(Math.round(clone.getHours() / 6) * 6); break;
     }
     clone.setMinutes(0);
     clone.setSeconds(0);

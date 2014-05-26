@@ -1,6 +1,17 @@
 # vis.js history
 http://visjs.org
 
+## not yet released, version 1.0.2
+
+### Timeline
+
+- Some tweaks in snapping dragged items to nice dates.
+- Fixed a bug in replacing the DataSet of groups via `Timeline.setGroups(groups)`.
+
+### Graph
+
+- added zoomable and moveable options.
+- changes setOptions to avoid resetting view.
 
 ## 2014-05-09, version 1.0.1
 
