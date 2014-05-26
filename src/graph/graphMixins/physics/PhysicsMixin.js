@@ -188,7 +188,7 @@ var physicsMixin = {
    */
   _calculateSpringForces: function () {
     var edgeLength, edge, edgeId;
-    var dx, dy, fx, fy, springForce, length;
+    var dx, dy, fx, fy, springForce, distance;
     var edges = this.edges;
 
     // forces caused by the edges, modelled as springs
@@ -204,13 +204,14 @@ var physicsMixin = {
 
             dx = (edge.from.x - edge.to.x);
             dy = (edge.from.y - edge.to.y);
-            length = Math.sqrt(dx * dx + dy * dy);
+            distance = Math.sqrt(dx * dx + dy * dy);
 
-            if (length == 0) {
-              length = 0.01;
+            if (distance == 0) {
+              distance = 0.01;
             }
 
-            springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
+            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
 
             fx = dx * springForce;
             fy = dy * springForce;
@@ -272,17 +273,18 @@ var physicsMixin = {
    * @private
    */
   _calculateSpringForce: function (node1, node2, edgeLength) {
-    var dx, dy, fx, fy, springForce, length;
+    var dx, dy, fx, fy, springForce, distance;
 
     dx = (node1.x - node2.x);
     dy = (node1.y - node2.y);
-    length = Math.sqrt(dx * dx + dy * dy);
+    distance = Math.sqrt(dx * dx + dy * dy);
 
-    if (length == 0) {
-      length = 0.01;
+    if (distance == 0) {
+      distance = 0.01;
     }
 
-    springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
+    // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+    springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
 
     fx = dx * springForce;
     fy = dy * springForce;
