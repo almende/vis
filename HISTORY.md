@@ -1,10 +1,12 @@
 # vis.js history
 http://visjs.org
 
+
 ## not yet released, version 1.0.2
 
 ### Timeline
 
+- Implemented option `minHeight`, similar to option `maxHeight`.
 - Some tweaks in snapping dragged items to nice dates.
 - Made the instance of moment.js packaged with vis.js accessibly via `vis.moment`.
 - Fixed a bug in replacing the DataSet of groups via `Timeline.setGroups(groups)`.
@@ -13,6 +15,7 @@ http://visjs.org
 
 - added zoomable and moveable options.
 - changes setOptions to avoid resetting view.
+
 
 ## 2014-05-09, version 1.0.1
 
