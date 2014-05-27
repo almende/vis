@@ -634,6 +634,11 @@ Timeline.prototype._onAddItem = function (event) {
       content: 'new item'
     };
 
+    // when default type is a range, add a default end date to the new item
+    if (this.options.type === 'range' || this.options.type == 'rangeoverflow') {
+      newItem.end = this.timeAxis.snap(this._toTime(x + this.rootPanel.width / 5));
+    }
+
     var id = util.randomUUID();
     newItem[this.itemsData.fieldId] = id;
 

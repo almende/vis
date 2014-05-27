@@ -10,6 +10,8 @@ http://visjs.org
 - Added function `repaint()` to force a repaint of the Timeline.
 - Some tweaks in snapping dragged items to nice dates.
 - Made the instance of moment.js packaged with vis.js accessibly via `vis.moment`.
+- A newly created item is initialized with `end` property when option `type`
+  is `"range"` or `"rangeoverflow"`.
 - Fixed a bug in replacing the DataSet of groups via `Timeline.setGroups(groups)`.
 - Fixed a bug when rendering the Timeline inside a hidden container. 
 
