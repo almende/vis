@@ -6,6 +6,7 @@ http://visjs.org
 ### Timeline
 
 - Some tweaks in snapping dragged items to nice dates.
+- Made the instance of moment.js packaged with vis.js accessibly via `vis.moment`.
 - Fixed a bug in replacing the DataSet of groups via `Timeline.setGroups(groups)`.
 
 ### Graph
