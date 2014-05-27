@@ -561,6 +561,14 @@ Timeline.prototype.getWindow = function setWindow() {
 };
 
 /**
+ * Force a repaint of the Timeline. Can be useful to manually repaint when
+ * option autoResize=false
+ */
+Timeline.prototype.repaint = function repaint() {
+    this.rootPanel.repaint();
+};
+
+/**
  * Handle selecting/deselecting an item when tapping it
  * @param {Event} event
  * @private

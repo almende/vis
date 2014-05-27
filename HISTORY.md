@@ -7,6 +7,7 @@ http://visjs.org
 ### Timeline
 
 - Implemented option `minHeight`, similar to option `maxHeight`.
+- Added function `repaint()` to force a repaint of the Timeline.
 - Some tweaks in snapping dragged items to nice dates.
 - Made the instance of moment.js packaged with vis.js accessibly via `vis.moment`.
 - Fixed a bug in replacing the DataSet of groups via `Timeline.setGroups(groups)`.

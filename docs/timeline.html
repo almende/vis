@@ -341,8 +341,7 @@ var options = {
   <td>autoResize</td>
   <td>boolean</td>
   <td>true</td>
-  <td>If true, the Timeline will automatically detect when its
-    container is resized, and redraw itself accordingly.</td>
+  <td>If true, the Timeline will automatically detect when its container is resized, and redraw itself accordingly. If false, the Timeline can be forced to repaint after its container has been resized using the function <code>repaint()</code>.</td>
 </tr>
 
 <tr>
@@ -677,6 +676,13 @@ var options = {
     <td>off(event, callback)</td>
     <td>none</td>
     <td>Remove an event listener created before via function <code>on(event, callback)</code>. See section <a href="#Events">Events for more information</a>.</td>
+  </tr>
+
+  <tr>
+    <td>repaint()</td>
+    <td>none</td>
+    <td>Force a repaint of the Timeline. Can be useful to manually repaint when option autoResize=false.
+    </td>
   </tr>
 
   <tr>
