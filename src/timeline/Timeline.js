@@ -535,7 +535,7 @@ Timeline.prototype.getSelection = function getSelection() {
  * Where start and end can be a Date, number, or string, and range is an
  * object with properties start and end.
  *
- * @param {Date | Number | String} [start] Start date of visible window
+ * @param {Date | Number | String | Object} [start] Start date of visible window
  * @param {Date | Number | String} [end]   End date of visible window
  */
 Timeline.prototype.setWindow = function setWindow(start, end) {
