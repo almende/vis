@@ -14,8 +14,7 @@
 
 .vis.timeline .vpanel {
   position: absolute;
-  overflow: hidden;
-
+  overflow: visible;
   box-sizing: border-box;
 }
 
@@ -25,4 +24,11 @@
 
 .vis.timeline .vpanel.side.hidden {
   display: none;
+}
+
+
+.vis.timeline .vpanel.main {
+    position: absolute;
+    overflow: hidden;
+    box-sizing: border-box;
 }

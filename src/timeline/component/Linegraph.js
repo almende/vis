@@ -19,7 +19,6 @@ var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
  */
 function Linegraph(backgroundPanel, axisPanel, sidePanel, options, timeline, sidePanelParent) {
   this.id = util.randomUUID();
-
   this.timeline = timeline;
 
   // one options object is shared by this itemset and all its items
@@ -38,26 +37,26 @@ function Linegraph(backgroundPanel, axisPanel, sidePanel, options, timeline, sid
 
   // listeners for the DataSet of the items
 //  this.itemListeners = {
-//    'add': function (event, params, senderId) {
+//    'add': function(event, params, senderId) {
 //      if (senderId != me.id) me._onAdd(params.items);
 //    },
-//    'update': function (event, params, senderId) {
+//    'update': function(event, params, senderId) {
 //      if (senderId != me.id) me._onUpdate(params.items);
 //    },
-//    'remove': function (event, params, senderId) {
+//    'remove': function(event, params, senderId) {
 //      if (senderId != me.id) me._onRemove(params.items);
 //    }
 //  };
 //
 //  // listeners for the DataSet of the groups
 //  this.groupListeners = {
-//    'add': function (event, params, senderId) {
+//    'add': function(event, params, senderId) {
 //      if (senderId != me.id) me._onAddGroups(params.items);
 //    },
-//    'update': function (event, params, senderId) {
+//    'update': function(event, params, senderId) {
 //      if (senderId != me.id) me._onUpdateGroups(params.items);
 //    },
-//    'remove': function (event, params, senderId) {
+//    'remove': function(event, params, senderId) {
 //      if (senderId != me.id) me._onRemoveGroups(params.items);
 //    }
 //  };
@@ -101,7 +100,7 @@ Linegraph.prototype = new Panel();
 /**
  * Create the HTML DOM for the ItemSet
  */
-Linegraph.prototype._create = function _create(){
+Linegraph.prototype._create = function(){
   var frame = document.createElement('div');
   frame['timeline-linegraph'] = this;
   this.frame = frame;
@@ -150,21 +149,40 @@ Linegraph.prototype._create = function _create(){
   this.svg.appendChild(this.path2);
   this.svg.appendChild(this.path);
 
-  var yAxis = document.createElement('div');
-  yAxis.style.backgroundColor = 'blue';
-  yAxis.style.width = '100px';
-  yAxis.style.height = this.svg.style.height;
+//  this.yAxisDiv = document.createElement('div');
+//  this.yAxisDiv.style.backgroundColor = 'rgb(220,220,220)';
+//  this.yAxisDiv.style.width = '100px';
+//  this.yAxisDiv.style.height = this.svg.style.height;
 
-  this.dom.yAxis = yAxis;
-  this.sidePanel.frame.appendChild(yAxis);
+  this._createAxis();
+
+//  this.dom.yAxisDiv = this.yAxisDiv;
+//  this.sidePanel.frame.appendChild(this.yAxisDiv);
   this.sidePanel.showPanel.apply(this.sidePanel);
 
   this.sidePanelParent.showPanel();
 };
 
-Linegraph.prototype.setData = function setData() {
+Linegraph.prototype._createAxis = function() {
+  // panel with time axis
+  var dataAxisOptions = {
+    range: this.range,
+    left: null,
+    top: null,
+    width: null,
+    height: 300,
+    svg: this.svg
+  };
+  this.yAxis = new DataAxis(dataAxisOptions);
+  this.yAxis.setRange({start:-60,end:260});
+  this.sidePanel.frame.appendChild(this.yAxis.getFrame());
+
+}
+
+Linegraph.prototype.setData = function() {
   var data = [];
 
+  this.yAxis.repaint();
 
   this.startTime = this.range.start;
   var min = Date.now() - 3600000 * 24 * 30;
@@ -173,6 +191,7 @@ Linegraph.prototype.setData = function setData() {
   var step = (max-min) / count;
 
   var range = this.range.end - this.range.start;
+
 
   if (this.width != 0) {
     var rangePerPixel = range/this.width;
@@ -256,7 +275,7 @@ Linegraph.prototype.setData = function setData() {
  *                              Function to let items snap to nice dates when
  *                              dragging items.
  */
-Linegraph.prototype.setOptions = function setOptions(options) {
+Linegraph.prototype.setOptions = function(options) {
   Component.prototype.setOptions.call(this, options);
 };
 
@@ -265,7 +284,7 @@ Linegraph.prototype.setOptions = function setOptions(options) {
  * Set range (start and end).
  * @param {Range | Object} range  A Range or an object containing start and end.
  */
-Linegraph.prototype.setRange = function setRange(range) {
+Linegraph.prototype.setRange = function(range) {
   if (!(range instanceof Range) && (!range || !range.start || !range.end)) {
     throw new TypeError('Range must be an instance of Range, ' +
       'or an object containing start and end.');
@@ -273,7 +292,7 @@ Linegraph.prototype.setRange = function setRange(range) {
   this.range = range;
 };
 
-Linegraph.prototype.repaint = function repaint() {
+Linegraph.prototype.repaint = function() {
   var margin = this.options.margin,
     range = this.range,
     asSize = util.option.asSize,

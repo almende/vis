@@ -17,8 +17,7 @@
 
 .vis.timeline .vpanel {
   position: absolute;
-  overflow: hidden;
-
+  overflow: visible;
   box-sizing: border-box;
 }
 
@@ -30,6 +29,12 @@
   display: none;
 }
 
+
+.vis.timeline .vpanel.main {
+    position: absolute;
+    overflow: hidden;
+    box-sizing: border-box;
+}
 
 .vis.timeline .labelset {
   position: relative;
@@ -222,6 +227,40 @@
   z-index: 10001; /* a little higher z-index than .drag-left */
 }
 
+
+.vis.timeline .dataaxis .grid.horizontal {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 0;
+    border-bottom: 1px solid;
+}
+
+.vis.timeline .dataaxis .grid.minor {
+    border-color: #e5e5e5;
+}
+
+.vis.timeline .dataaxis .grid.major {
+    border-color: #bfbfbf;
+}
+
+
+.vis.timeline .dataaxis .yAxis.major {
+    font-size:12px;
+    width: 100%;
+    position: absolute;
+    color: #4d4d4d;
+    white-space: nowrap;
+}
+
+
+.vis.timeline .dataaxis .yAxis.minor{
+    font-size:9px;
+    position: absolute;
+    width: 100%;
+    color: #4d4d4d;
+    white-space: nowrap;
+}
 .vis.timeline .timeaxis {
   position: absolute;
 }

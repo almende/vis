@@ -1070,6 +1070,7 @@ Graph.prototype._onPinch = function (event) {
  * @private
  */
 Graph.prototype._zoom = function(scale, pointer) {
+  console.log(pointer);
   if (this.constants.zoomable == true) {
     var scaleOld = this._getScale();
     if (scale < 0.00001) {
@@ -1774,7 +1775,7 @@ Graph.prototype._yToCanvas = function(y) {
  * @returns {{x: number, y: number}}
  * @constructor
  */
-Graph.prototype.DOMtoCanvas = function(pos) {
+Graph.prototype.canvasToDOM = function(pos) {
   return {x:this._xToCanvas(pos.x),y:this._yToCanvas(pos.y)};
 }
 
@@ -1784,7 +1785,7 @@ Graph.prototype.DOMtoCanvas = function(pos) {
  * @returns {{x: number, y: number}}
  * @constructor
  */
-Graph.prototype.canvasToDOM = function(pos) {
+Graph.prototype.DOMtoCanvas = function(pos) {
   return {x:this._canvasToX(pos.x),y:this._canvasToY(pos.y)};
 }
 

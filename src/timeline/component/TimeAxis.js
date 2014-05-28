@@ -28,7 +28,6 @@ function TimeAxis (options) {
     },
     lineTop: 0
   };
-
   this.options = options || {};
   this.defaultOptions = {
     orientation: 'bottom',  // supported: 'top', 'bottom'

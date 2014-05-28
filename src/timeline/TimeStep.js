@@ -451,16 +451,5 @@ TimeStep.prototype.getLabelMajor = function(date) {
     date = this.current;
   }
 
-  //noinspection FallthroughInSwitchStatementJS
-  switch (this.scale) {
-    case TimeStep.SCALE.MILLISECOND:return moment(date).format('HH:mm:ss');
-    case TimeStep.SCALE.SECOND:     return moment(date).format('D MMMM HH:mm');
-    case TimeStep.SCALE.MINUTE:
-    case TimeStep.SCALE.HOUR:       return moment(date).format('ddd D MMMM');
-    case TimeStep.SCALE.WEEKDAY:
-    case TimeStep.SCALE.DAY:        return moment(date).format('MMMM YYYY');
-    case TimeStep.SCALE.MONTH:      return moment(date).format('YYYY');
-    case TimeStep.SCALE.YEAR:       return '';
-    default:                        return '';
-  }
+  return "";
 };

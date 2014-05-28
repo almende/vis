@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 1.0.2-SNAPSHOT
- * @date    2014-05-26
+ * @date    2014-05-28
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -3022,18 +3022,217 @@ TimeStep.prototype.getLabelMajor = function(date) {
     date = this.current;
   }
 
-  //noinspection FallthroughInSwitchStatementJS
-  switch (this.scale) {
-    case TimeStep.SCALE.MILLISECOND:return moment(date).format('HH:mm:ss');
-    case TimeStep.SCALE.SECOND:     return moment(date).format('D MMMM HH:mm');
-    case TimeStep.SCALE.MINUTE:
-    case TimeStep.SCALE.HOUR:       return moment(date).format('ddd D MMMM');
-    case TimeStep.SCALE.WEEKDAY:
-    case TimeStep.SCALE.DAY:        return moment(date).format('MMMM YYYY');
-    case TimeStep.SCALE.MONTH:      return moment(date).format('YYYY');
-    case TimeStep.SCALE.YEAR:       return '';
-    default:                        return '';
+  return "";
+};
+
+/**
+ * @constructor  DataStep
+ * The class DataStep is an iterator for data for the lineGraph. You provide a start data point and an
+ * end data point. The class itself determines the best scale (step size) based on the
+ * provided start Date, end Date, and minimumStep.
+ *
+ * If minimumStep is provided, the step size is chosen as close as possible
+ * to the minimumStep but larger than minimumStep. If minimumStep is not
+ * provided, the scale is set to 1 DAY.
+ * The minimumStep should correspond with the onscreen size of about 6 characters
+ *
+ * Alternatively, you can set a scale by hand.
+ * After creation, you can initialize the class by executing first(). Then you
+ * can iterate from the start date to the end date via next(). You can check if
+ * the end date is reached with the function hasNext(). After each step, you can
+ * retrieve the current date via getCurrent().
+ * The DataStep has scales ranging from milliseconds, seconds, minutes, hours,
+ * days, to years.
+ *
+ * Version: 1.2
+ *
+ * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
+ *                               or new Date(2010, 9, 21, 23, 45, 00)
+ * @param {Date} [end]           The end date
+ * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+ */
+function DataStep(start, end, minimumStep, containerHeight) {
+  // variables
+  this.current = 0;
+  this.containerHeight = containerHeight;
+
+  this.autoScale  = true;
+  this.stepIndex = 0;
+  this.step = 1;
+  this.scale = 1;
+
+  this.marginStart;
+  this.marginEnd;
+
+  this.majorSteps = [1,     2,    5,  10];
+  this.minorSteps = [0.25,  0.5,  1,  2];
+
+  this.setRange(start,end,minimumStep, containerHeight);
+}
+
+
+
+/**
+ * Set a new range
+ * If minimumStep is provided, the step size is chosen as close as possible
+ * to the minimumStep but larger than minimumStep. If minimumStep is not
+ * provided, the scale is set to 1 DAY.
+ * The minimumStep should correspond with the onscreen size of about 6 characters
+ * @param {Number} [start]      The start date and time.
+ * @param {Number} [end]        The end date and time.
+ * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+ */
+DataStep.prototype.setRange = function(start, end, minimumStep, containerHeight) {
+  this._start = start;
+  this._end = end;
+  this.setFirst();
+  if (this.autoScale) {
+    this.setMinimumStep(minimumStep, containerHeight);
   }
+};
+
+/**
+ * Set the range iterator to the start date.
+ */
+DataStep.prototype.first = function() {
+  this.setFirst();
+};
+
+/**
+ * Round the current date to the first minor date value
+ * This must be executed once when the current date is set to start Date
+ */
+DataStep.prototype.setFirst = function() {
+  var niceStart = this._start - (this.scale * this.minorSteps[this.stepIndex]);
+  var niceEnd = this._end + (this.scale * this.minorSteps[this.stepIndex]);
+
+  this.marginEnd = this.roundToMinor(niceEnd);
+  this.marginStart = this.roundToMinor(niceStart);
+  this.marginRange = this.current - this.marginStart;
+
+  this.current = this.marginEnd;
+
+};
+
+DataStep.prototype.roundToMinor = function(value) {
+  var rounded = value - (value % (this.scale * this.minorSteps[this.stepIndex]));
+  if (value % (this.scale * this.minorSteps[this.stepIndex]) > 0.5 * (this.scale * this.minorSteps[this.stepIndex])) {
+    return rounded + (this.scale * this.minorSteps[this.stepIndex]);
+  }
+  else {
+    return rounded;
+  }
+}
+
+
+/**
+ * Check if the there is a next step
+ * @return {boolean}  true if the current date has not passed the end date
+ */
+DataStep.prototype.hasNext = function () {
+  return (this.current >= this.marginStart);
+};
+
+/**
+ * Do the next step
+ */
+DataStep.prototype.next = function() {
+  var prev = this.current;
+  this.current -= this.step;
+
+  // safety mechanism: if current time is still unchanged, move to the end
+  if (this.current == prev) {
+    this.current = this._end;
+  }
+};
+
+
+/**
+ * Get the current datetime
+ * @return {Date}  current The current date
+ */
+DataStep.prototype.getCurrent = function() {
+  return this.current;
+};
+
+
+
+/**
+ * Automatically determine the scale that bests fits the provided minimum step
+ * @param {Number} [minimumStep]  The minimum step size in milliseconds
+ */
+DataStep.prototype.setMinimumStep = function(minimumStep, containerHeight) {
+  // round to floor
+  var size = this._end - this._start;
+  var safeSize = size * 1.1;
+  var minimumStepValue = minimumStep * (safeSize / containerHeight);
+  var orderOfMagnitude = Math.round(Math.log(safeSize)/Math.LN10);
+
+  var minorStepIdx = -1;
+  var magnitudefactor = Math.pow(10,orderOfMagnitude);
+
+  var solutionFound = false;
+  for (var i = 0; i <= orderOfMagnitude; i++) {
+    magnitudefactor = Math.pow(10,i);
+    for (var j = 0; j < this.minorSteps.length; j++) {
+      var stepSize = magnitudefactor * this.minorSteps[j];
+      if (stepSize >= minimumStepValue) {
+        solutionFound = true;
+        minorStepIdx = j;
+        break;
+      }
+    }
+    if (solutionFound == true) {
+      break;
+    }
+  }
+
+
+
+  this.stepIndex = minorStepIdx;
+  this.scale = magnitudefactor;
+  this.step = magnitudefactor * this.minorSteps[minorStepIdx];
+};
+
+/**
+ * Snap a date to a rounded value.
+ * The snap intervals are dependent on the current scale and step.
+ * @param {Date} date   the date to be snapped.
+ * @return {Date} snappedDate
+ */
+DataStep.prototype.snap = function(date) {
+
+};
+
+/**
+ * Check if the current value is a major value (for example when the step
+ * is DAY, a major value is each first day of the MONTH)
+ * @return {boolean} true if current date is major, else false.
+ */
+DataStep.prototype.isMajor = function() {
+  return (this.current % (this.scale * this.majorSteps[this.stepIndex]) == 0);
+};
+
+
+/**
+ * Returns formatted text for the minor axislabel, depending on the current
+ * date and the scale. For example when scale is MINUTE, the current time is
+ * formatted as "hh:mm".
+ * @param {Date} [date] custom date. if not provided, current date is taken
+ */
+DataStep.prototype.getLabelMinor = function() {
+  return this.current;
+};
+
+
+/**
+ * Returns formatted text for the major axis label, depending on the current
+ * date and the scale. For example when scale is MINUTE, the major scale is
+ * hours, and the hour will be formatted as "hh".
+ * @param {Date} [date] custom date. if not provided, current date is taken
+ */
+DataStep.prototype.getLabelMajor = function() {
+ return this.current;
 };
 
 /**
@@ -4001,6 +4200,7 @@ RootPanel.prototype._watch = function _watch() {
       // check whether the frame is resized
       if ((me.frame.clientWidth != me.lastWidth) ||
           (me.frame.clientHeight != me.lastHeight)) {
+
         me.lastWidth = me.frame.clientWidth;
         me.lastHeight = me.frame.clientHeight;
         me.repaint();
@@ -4026,6 +4226,404 @@ RootPanel.prototype._unwatch = function _unwatch() {
   }
 
   // TODO: remove event listener on window.resize
+};
+
+/**
+ * A horizontal time axis
+ * @param {Object} [options]        See DataAxis.setOptions for the available
+ *                                  options.
+ * @constructor DataAxis
+ * @extends Component
+ */
+function DataAxis (options) {
+  this.id = util.randomUUID();
+
+  this.dom = {
+    majorLines: [],
+    majorTexts: [],
+    minorLines: [],
+    minorTexts: [],
+    redundant: {
+      majorLines: [],
+      majorTexts: [],
+      minorLines: [],
+      minorTexts: []
+    }
+  };
+  this.props = {
+    range: {
+      start: 0,
+      end: 0,
+      minimumStep: 0
+    },
+    lineTop: 0
+  };
+
+  this.options = options || {};
+  this.defaultOptions = {
+    orientation: 'left',  // supported: 'left'
+    showMinorLabels: true,
+    showMajorLabels: true
+  };
+
+  this.range = null;
+  this.conversionFactor = 1;
+
+  // create the HTML DOM
+  this._create();
+}
+
+DataAxis.prototype = new Component();
+
+// TODO: comment options
+DataAxis.prototype.setOptions = Component.prototype.setOptions;
+
+/**
+ * Create the HTML DOM for the DataAxis
+ */
+DataAxis.prototype._create = function _create() {
+  this.frame = document.createElement('div');
+};
+
+/**
+ * Set a range (start and end)
+ * @param {Range | Object} range  A Range or an object containing start and end.
+ */
+DataAxis.prototype.setRange = function (range) {
+  console.log(range, range.start, range.end, !range, !range.start, !range.end);
+  if (!(range instanceof Range) && (!range || range.start === undefined || range.end === undefined)) {
+    throw new TypeError('Range must be an instance of Range, ' +
+      'or an object containing start and end.');
+  }
+  this.range = range;
+};
+
+/**
+ * Get the outer frame of the time axis
+ * @return {HTMLElement} frame
+ */
+DataAxis.prototype.getFrame = function getFrame() {
+  return this.frame;
+};
+
+/**
+ * Repaint the component
+ * @return {boolean} Returns true if the component is resized
+ */
+DataAxis.prototype.repaint = function () {
+  var asSize = util.option.asSize;
+  var options = this.options;
+  var props = this.props;
+  var frame = this.frame;
+
+  // update classname
+  frame.className = 'dataaxis'; // TODO: add className from options if defined
+
+  // calculate character width and height
+  this._calculateCharSize();
+
+  // TODO: recalculate sizes only needed when parent is resized or options is changed
+  var orientation = this.getOption('orientation');
+  var showMinorLabels = this.getOption('showMinorLabels');
+  var showMajorLabels = this.getOption('showMajorLabels');
+
+  // determine the width and height of the elemens for the axis
+  props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
+  props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
+  this.height = this.options.height;
+  this.width = frame.offsetWidth; // TODO: only update the width when the frame is resized?
+
+  props.minorLineWidth = this.options.svg.offsetWidth;
+  props.minorLineHeight = 1; // TODO: really calculate width
+  props.majorLineWidth = this.options.svg.offsetWidth;
+  props.majorLineHeight = 1; // TODO: really calculate width
+
+  //  take frame offline while updating (is almost twice as fast)
+  // TODO: top/bottom positioning should be determined by options set in the Timeline, not here
+  if (orientation == 'left') {
+    frame.style.top = '0';
+    frame.style.left = '0';
+    frame.style.bottom = '';
+    frame.style.width = this.width + 'px';
+    frame.style.height = this.height + "px";
+  }
+  else { // right
+    frame.style.top = '';
+    frame.style.bottom = '0';
+    frame.style.left = '0';
+    frame.style.width = this.width + 'px';
+    frame.style.height = this.height + "px";
+  }
+
+  this._repaintLabels();
+};
+
+/**
+ * Repaint major and minor text labels and vertical grid lines
+ * @private
+ */
+DataAxis.prototype._repaintLabels = function () {
+  var orientation = this.getOption('orientation');
+
+  // calculate range and step (step such that we have space for 7 characters per label)
+  var start = this.range.start;
+  var end = this.range.end;
+  var minimumStep = (this.props.minorCharHeight || 10); //in pixels
+  var step = new DataStep(start, end, minimumStep, this.options.svg.offsetHeight);
+  this.step = step;
+
+  // Move all DOM elements to a "redundant" list, where they
+  // can be picked for re-use, and clear the lists with lines and texts.
+  // At the end of the function _repaintLabels, left over elements will be cleaned up
+  var dom = this.dom;
+  dom.redundant.majorLines = dom.majorLines;
+  dom.redundant.majorTexts = dom.majorTexts;
+  dom.redundant.minorLines = dom.minorLines;
+  dom.redundant.minorTexts = dom.minorTexts;
+  dom.majorLines = [];
+  dom.majorTexts = [];
+  dom.minorLines = [];
+  dom.minorTexts = [];
+
+  step.first();
+  var stepPixels = this.options.svg.offsetHeight / ((step.marginRange / step.step) + 1);
+  var xFirstMajorLabel = undefined;
+
+  this.valueAtZero = step.marginEnd;
+  var marginStartPos = 0;
+  var max = 0;
+  while (step.hasNext() && max < 1000) {
+    var y = Math.round(max * stepPixels);
+    var isMajor = step.isMajor();
+
+    if (this.getOption('showMinorLabels') && isMajor == false) {
+      this._repaintMinorText(y, step.getLabelMinor(), orientation);
+    }
+
+    if (isMajor && this.getOption('showMajorLabels')) {
+      if (y > 0) {
+        if (xFirstMajorLabel == undefined) {
+          xFirstMajorLabel = y;
+        }
+        this._repaintMajorText(y, step.getLabelMajor(), orientation);
+      }
+      this._repaintMajorLine(y, orientation);
+    }
+    else {
+      this._repaintMinorLine(y, orientation);
+    }
+
+    step.next();
+    marginStartPos = y;
+    max++;
+  }
+
+  this.conversionFactor = marginStartPos/step.marginRange;
+
+
+
+  // create a major label on the left when needed
+  if (this.getOption('showMajorLabels')) {
+    var leftPoint = this._start;
+    var leftText = step.getLabelMajor(leftPoint);
+    var widthText = leftText.length * (this.props.majorCharWidth || 10) + 10; // upper bound estimation
+
+    if (xFirstMajorLabel == undefined || widthText < xFirstMajorLabel) {
+      this._repaintMajorText(0, leftText, orientation);
+    }
+  }
+
+  // Cleanup leftover DOM elements from the redundant list
+  util.forEach(this.dom.redundant, function (arr) {
+    while (arr.length) {
+      var elem = arr.pop();
+      if (elem && elem.parentNode) {
+        elem.parentNode.removeChild(elem);
+      }
+    }
+  });
+};
+
+
+DataAxis.prototype._getPos = function(value) {
+  var invertedValue = this.valueAtZero - value;
+  return invertedValue * this.conversionFactor;
+}
+
+/**
+ * Create a minor label for the axis at position x
+ * @param {Number} x
+ * @param {String} text
+ * @param {String} orientation   "top" or "bottom" (default)
+ * @private
+ */
+DataAxis.prototype._repaintMinorText = function (x, text, orientation) {
+  // reuse redundant label
+  var label = this.dom.redundant.minorTexts.shift();
+
+  if (!label) {
+    // create new label
+    var content = document.createTextNode('');
+    label = document.createElement('div');
+    label.appendChild(content);
+    label.className = 'yAxis minor';
+    this.frame.appendChild(label);
+  }
+  this.dom.minorTexts.push(label);
+
+  label.childNodes[0].nodeValue = text;
+
+  if (orientation == 'left') {
+    label.style.left = '-2px';
+    label.style.textAlign = "right";
+  }
+  else {
+    label.style.left = '2px';
+    label.style.textAlign = "left";
+  }
+
+  label.style.top = x + 'px';
+  //label.title = title;  // TODO: this is a heavy operation
+};
+
+/**
+ * Create a Major label for the axis at position x
+ * @param {Number} x
+ * @param {String} text
+ * @param {String} orientation   "top" or "bottom" (default)
+ * @private
+ */
+DataAxis.prototype._repaintMajorText = function (x, text, orientation) {
+  // reuse redundant label
+  var label = this.dom.redundant.majorTexts.shift();
+
+  if (!label) {
+    // create label
+    var content = document.createTextNode(text);
+    label = document.createElement('div');
+    label.className = 'yAxis major';
+    label.appendChild(content);
+    this.frame.appendChild(label);
+  }
+  this.dom.majorTexts.push(label);
+
+  label.childNodes[0].nodeValue = text;
+  //label.title = title; // TODO: this is a heavy operation
+
+  if (orientation == 'left') {
+    label.style.left = '-2px';
+    label.style.textAlign = "right";
+  }
+  else {
+    label.style.left = '2';
+    label.style.textAlign = "left";
+  }
+
+  label.style.top = x + 'px';
+};
+
+/**
+ * Create a minor line for the axis at position x
+ * @param {Number} x
+ * @param {String} orientation   "top" or "bottom" (default)
+ * @private
+ */
+DataAxis.prototype._repaintMinorLine = function (x, orientation) {
+  // reuse redundant line
+  var line = this.dom.redundant.minorLines.shift();
+
+  if (!line) {
+    // create vertical line
+    line = document.createElement('div');
+    line.className = 'grid horizontal minor';
+    this.frame.appendChild(line);
+  }
+  this.dom.minorLines.push(line);
+
+  var props = this.props;
+  if (orientation == 'left') {
+    line.style.left = (this.width - 15) + 'px';
+  }
+  else {
+    line.style.left = -1*(this.width - 15) + 'px';
+  }
+
+  line.style.width = props.minorLineWidth + 'px';
+  line.style.top = (x - props.minorLineHeight / 2) + 'px';
+};
+
+/**
+ * Create a Major line for the axis at position x
+ * @param {Number} x
+ * @param {String} orientation   "top" or "bottom" (default)
+ * @private
+ */
+DataAxis.prototype._repaintMajorLine = function (x, orientation) {
+  // reuse redundant line
+  var line = this.dom.redundant.majorLines.shift();
+
+  if (!line) {
+    // create vertical line
+    line = document.createElement('div');
+    line.className = 'grid horizontal major';
+    this.frame.appendChild(line);
+  }
+  this.dom.majorLines.push(line);
+
+  var props = this.props;
+  if (orientation == 'left') {
+    line.style.left = (this.width - 25) + 'px';
+  }
+  else {
+    line.style.left = -1*(this.width - 25) + 'px';
+  }
+  line.style.top = (x - props.majorLineHeight / 2) + 'px';
+  line.style.width = props.majorLineWidth + 'px';
+};
+
+
+/**
+ * Determine the size of text on the axis (both major and minor axis).
+ * The size is calculated only once and then cached in this.props.
+ * @private
+ */
+DataAxis.prototype._calculateCharSize = function () {
+  // determine the char width and height on the minor axis
+  if (!('minorCharHeight' in this.props)) {
+    var textMinor = document.createTextNode('0');
+    var measureCharMinor = document.createElement('DIV');
+    measureCharMinor.className = 'text minor measure';
+    measureCharMinor.appendChild(textMinor);
+    this.frame.appendChild(measureCharMinor);
+
+    this.props.minorCharHeight = measureCharMinor.clientHeight;
+    this.props.minorCharWidth = measureCharMinor.clientWidth;
+
+    this.frame.removeChild(measureCharMinor);
+  }
+
+  if (!('majorCharHeight' in this.props)) {
+    var textMajor = document.createTextNode('0');
+    var measureCharMajor = document.createElement('DIV');
+    measureCharMajor.className = 'text major measure';
+    measureCharMajor.appendChild(textMajor);
+    this.frame.appendChild(measureCharMajor);
+
+    this.props.majorCharHeight = measureCharMajor.clientHeight;
+    this.props.majorCharWidth = measureCharMajor.clientWidth;
+
+    this.frame.removeChild(measureCharMajor);
+  }
+};
+
+/**
+ * Snap a date to a rounded value.
+ * The snap intervals are dependent on the current scale and step.
+ * @param {Date} date   the date to be snapped.
+ * @return {Date} snappedDate
+ */
+DataAxis.prototype.snap = function snap (date) {
+  return this.step.snap(date);
 };
 
 /**
@@ -4058,7 +4656,6 @@ function TimeAxis (options) {
     },
     lineTop: 0
   };
-
   this.options = options || {};
   this.defaultOptions = {
     orientation: 'bottom',  // supported: 'top', 'bottom'
@@ -4740,7 +5337,6 @@ var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
  */
 function Linegraph(backgroundPanel, axisPanel, sidePanel, options, timeline, sidePanelParent) {
   this.id = util.randomUUID();
-
   this.timeline = timeline;
 
   // one options object is shared by this itemset and all its items
@@ -4759,26 +5355,26 @@ function Linegraph(backgroundPanel, axisPanel, sidePanel, options, timeline, sid
 
   // listeners for the DataSet of the items
 //  this.itemListeners = {
-//    'add': function (event, params, senderId) {
+//    'add': function(event, params, senderId) {
 //      if (senderId != me.id) me._onAdd(params.items);
 //    },
-//    'update': function (event, params, senderId) {
+//    'update': function(event, params, senderId) {
 //      if (senderId != me.id) me._onUpdate(params.items);
 //    },
-//    'remove': function (event, params, senderId) {
+//    'remove': function(event, params, senderId) {
 //      if (senderId != me.id) me._onRemove(params.items);
 //    }
 //  };
 //
 //  // listeners for the DataSet of the groups
 //  this.groupListeners = {
-//    'add': function (event, params, senderId) {
+//    'add': function(event, params, senderId) {
 //      if (senderId != me.id) me._onAddGroups(params.items);
 //    },
-//    'update': function (event, params, senderId) {
+//    'update': function(event, params, senderId) {
 //      if (senderId != me.id) me._onUpdateGroups(params.items);
 //    },
-//    'remove': function (event, params, senderId) {
+//    'remove': function(event, params, senderId) {
 //      if (senderId != me.id) me._onRemoveGroups(params.items);
 //    }
 //  };
@@ -4822,7 +5418,7 @@ Linegraph.prototype = new Panel();
 /**
  * Create the HTML DOM for the ItemSet
  */
-Linegraph.prototype._create = function _create(){
+Linegraph.prototype._create = function(){
   var frame = document.createElement('div');
   frame['timeline-linegraph'] = this;
   this.frame = frame;
@@ -4871,21 +5467,40 @@ Linegraph.prototype._create = function _create(){
   this.svg.appendChild(this.path2);
   this.svg.appendChild(this.path);
 
-  var yAxis = document.createElement('div');
-  yAxis.style.backgroundColor = 'blue';
-  yAxis.style.width = '100px';
-  yAxis.style.height = this.svg.style.height;
+//  this.yAxisDiv = document.createElement('div');
+//  this.yAxisDiv.style.backgroundColor = 'rgb(220,220,220)';
+//  this.yAxisDiv.style.width = '100px';
+//  this.yAxisDiv.style.height = this.svg.style.height;
 
-  this.dom.yAxis = yAxis;
-  this.sidePanel.frame.appendChild(yAxis);
+  this._createAxis();
+
+//  this.dom.yAxisDiv = this.yAxisDiv;
+//  this.sidePanel.frame.appendChild(this.yAxisDiv);
   this.sidePanel.showPanel.apply(this.sidePanel);
 
   this.sidePanelParent.showPanel();
 };
 
-Linegraph.prototype.setData = function setData() {
+Linegraph.prototype._createAxis = function() {
+  // panel with time axis
+  var dataAxisOptions = {
+    range: this.range,
+    left: null,
+    top: null,
+    width: null,
+    height: 300,
+    svg: this.svg
+  };
+  this.yAxis = new DataAxis(dataAxisOptions);
+  this.yAxis.setRange({start:-60,end:260});
+  this.sidePanel.frame.appendChild(this.yAxis.getFrame());
+
+}
+
+Linegraph.prototype.setData = function() {
   var data = [];
 
+  this.yAxis.repaint();
 
   this.startTime = this.range.start;
   var min = Date.now() - 3600000 * 24 * 30;
@@ -4894,6 +5509,7 @@ Linegraph.prototype.setData = function setData() {
   var step = (max-min) / count;
 
   var range = this.range.end - this.range.start;
+
 
   if (this.width != 0) {
     var rangePerPixel = range/this.width;
@@ -4977,7 +5593,7 @@ Linegraph.prototype.setData = function setData() {
  *                              Function to let items snap to nice dates when
  *                              dragging items.
  */
-Linegraph.prototype.setOptions = function setOptions(options) {
+Linegraph.prototype.setOptions = function(options) {
   Component.prototype.setOptions.call(this, options);
 };
 
@@ -4986,7 +5602,7 @@ Linegraph.prototype.setOptions = function setOptions(options) {
  * Set range (start and end).
  * @param {Range | Object} range  A Range or an object containing start and end.
  */
-Linegraph.prototype.setRange = function setRange(range) {
+Linegraph.prototype.setRange = function(range) {
   if (!(range instanceof Range) && (!range || !range.start || !range.end)) {
     throw new TypeError('Range must be an instance of Range, ' +
       'or an object containing start and end.');
@@ -4994,7 +5610,7 @@ Linegraph.prototype.setRange = function setRange(range) {
   this.range = range;
 };
 
-Linegraph.prototype.repaint = function repaint() {
+Linegraph.prototype.repaint = function() {
   var margin = this.options.margin,
     range = this.range,
     asSize = util.option.asSize,
@@ -17011,6 +17627,7 @@ Graph.prototype._onPinch = function (event) {
  * @private
  */
 Graph.prototype._zoom = function(scale, pointer) {
+  console.log(pointer);
   if (this.constants.zoomable == true) {
     var scaleOld = this._getScale();
     if (scale < 0.00001) {
@@ -17715,7 +18332,7 @@ Graph.prototype._yToCanvas = function(y) {
  * @returns {{x: number, y: number}}
  * @constructor
  */
-Graph.prototype.DOMtoCanvas = function(pos) {
+Graph.prototype.canvasToDOM = function(pos) {
   return {x:this._xToCanvas(pos.x),y:this._yToCanvas(pos.y)};
 }
 
@@ -17725,7 +18342,7 @@ Graph.prototype.DOMtoCanvas = function(pos) {
  * @returns {{x: number, y: number}}
  * @constructor
  */
-Graph.prototype.canvasToDOM = function(pos) {
+Graph.prototype.DOMtoCanvas = function(pos) {
   return {x:this._canvasToX(pos.x),y:this._canvasToY(pos.y)};
 }
 
