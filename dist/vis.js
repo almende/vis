@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 1.0.2-SNAPSHOT
- * @date    2014-05-28
+ * @version @@version
+ * @date    @@date
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -3917,6 +3917,7 @@ RootPanel.prototype.repaint = function repaint() {
 
   // update frame size
   this.frame.style.maxHeight = util.option.asSize(this.options.maxHeight, '');
+  this.frame.style.minHeight = util.option.asSize(this.options.minHeight, '');
   this._updateSize();
 
   // if the root panel or any of its childs is resized, repaint again,
@@ -4399,8 +4400,12 @@ TimeAxis.prototype._repaintLine = function() {
  * @private
  */
 TimeAxis.prototype._calculateCharSize = function () {
+  // Note: We only calculate char size once, but in case it is calculated as zero,
+  //       we will recalculate. This is the case if any of the timelines parents
+  //       has display:none for example.
+
   // determine the char width and height on the minor axis
-  if (!('minorCharHeight' in this.props)) {
+  if (!('minorCharHeight' in this.props) || this.props.minorCharHeight == 0) {
     var textMinor = document.createTextNode('0');
     var measureCharMinor = document.createElement('DIV');
     measureCharMinor.className = 'text minor measure';
@@ -4413,7 +4418,8 @@ TimeAxis.prototype._calculateCharSize = function () {
     this.frame.removeChild(measureCharMinor);
   }
 
-  if (!('majorCharHeight' in this.props)) {
+  // determine the char width and height on the major axis
+  if (!('majorCharHeight' in this.props) || this.props.majorCharHeight == 0) {
     var textMajor = document.createTextNode('0');
     var measureCharMajor = document.createElement('DIV');
     measureCharMajor.className = 'text major measure';
@@ -6754,6 +6760,14 @@ Group.prototype._create = function() {
   this.dom.background = document.createElement('div');
 
   this.dom.axis = document.createElement('div');
+
+  // create a hidden marker to detect when the Timelines container is attached
+  // to the DOM, or the style of a parent of the Timeline is changed from
+  // display:none is changed to visible.
+  this.dom.marker = document.createElement('div');
+  this.dom.marker.style.visibility = 'hidden';
+  this.dom.marker.innerHTML = '?';
+  this.dom.background.appendChild(this.dom.marker);
 };
 
 /**
@@ -6825,6 +6839,20 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
 
   this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
 
+  // force recalculation of the height of the items when the marker height changed
+  // (due to the Timeline being attached to the DOM or changed from display:none to visible)
+  var markerHeight = this.dom.marker.clientHeight;
+  if (markerHeight != this.lastMarkerHeight) {
+    this.lastMarkerHeight = markerHeight;
+
+    util.forEach(this.items, function (item) {
+      item.dirty = true;
+      if (item.displayed) item.repaint();
+    });
+
+    restack = true;
+  }
+
   // reposition visible items vertically
   if (this.itemSet.options.stack) { // TODO: ugly way to access options...
     stack.stack(this.visibleItems, margin, restack);
@@ -6832,7 +6860,6 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
   else { // no stacking
     stack.nostack(this.visibleItems, margin);
   }
-  this.stackDirty = false;
   for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
     var item = this.visibleItems[i];
     item.repositionY();
@@ -7691,7 +7718,7 @@ Timeline.prototype.getSelection = function getSelection() {
  * Where start and end can be a Date, number, or string, and range is an
  * object with properties start and end.
  *
- * @param {Date | Number | String} [start] Start date of visible window
+ * @param {Date | Number | String | Object} [start] Start date of visible window
  * @param {Date | Number | String} [end]   End date of visible window
  */
 Timeline.prototype.setWindow = function setWindow(start, end) {
@@ -7714,6 +7741,14 @@ Timeline.prototype.getWindow = function setWindow() {
     start: new Date(range.start),
     end: new Date(range.end)
   };
+};
+
+/**
+ * Force a repaint of the Timeline. Can be useful to manually repaint when
+ * option autoResize=false
+ */
+Timeline.prototype.repaint = function repaint() {
+    this.rootPanel.repaint();
 };
 
 /**
@@ -7781,6 +7816,11 @@ Timeline.prototype._onAddItem = function (event) {
       start: this.timeAxis.snap(this._toTime(x)),
       content: 'new item'
     };
+
+    // when default type is a range, add a default end date to the new item
+    if (this.options.type === 'range' || this.options.type == 'rangeoverflow') {
+      newItem.end = this.timeAxis.snap(this._toTime(x + this.rootPanel.width / 5));
+    }
 
     var id = util.randomUUID();
     newItem[this.itemsData.fieldId] = id;
@@ -17753,6 +17793,7 @@ Graph.prototype.storePosition = function() {
  */
 var vis = {
   util: util,
+  moment: moment,
 
   DataSet: DataSet,
   DataView: DataView,

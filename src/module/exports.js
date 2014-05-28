@@ -3,6 +3,7 @@
  */
 var vis = {
   util: util,
+  moment: moment,
 
   DataSet: DataSet,
   DataView: DataView,
