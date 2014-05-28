@@ -179,7 +179,9 @@ function Graph (container, data, options) {
         border: '#666',
         background: '#FFFFC6'
       }
-    }
+    },
+    moveable: true,
+    zoomable: true
   };
   this.editMode = this.constants.dataManipulation.initiallyVisible;
 
@@ -211,7 +213,10 @@ function Graph (container, data, options) {
   this._loadHierarchySystem();
 
   // apply options
+  this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
+  this._setScale(1);
   this.setOptions(options);
+
 
   // other vars
   this.freezeSimulation = false;// freeze the simulation
@@ -490,15 +495,19 @@ Graph.prototype.setData = function(data, disableStart) {
   if (!disableStart) {
     // find a stable position or start animating to a stable position
     if (this.stabilize) {
-      this._stabilize();
+      var me = this;
+      setTimeout(function() {me._stabilize(); me.start();},0)
     }
-    this.start();
+    else {
+      this.start();
+    }
   }
 };
 
 /**
  * Set options
  * @param {Object} options
+ * @param {Boolean} [initializeView] | set zoom and translation to default.
  */
 Graph.prototype.setOptions = function (options) {
   if (options) {
@@ -512,7 +521,8 @@ Graph.prototype.setOptions = function (options) {
     if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
-
+    if (options.moveable !== undefined)           {this.constants.moveable = options.moveable;}
+    if (options.zoomable !== undefined)          {this.constants.zoomable = options.zoomable;}
 
 
     if (options.labels !== undefined)  {
@@ -727,11 +737,10 @@ Graph.prototype.setOptions = function (options) {
 
   // bind keys. If disabled, this will not do anything;
   this._createKeyBinds();
-
   this.setSize(this.width, this.height);
-  this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
-  this._setScale(1);
-  this._redraw();
+  this.moving = true;
+  this.start();
+
 };
 
 /**
@@ -947,11 +956,11 @@ Graph.prototype._handleOnDrag = function(event) {
       var node = s.node;
 
       if (!s.xFixed) {
-        node.x = me._canvasToX(me._xToCanvas(s.x) + deltaX);
+        node.x = me._XconvertDOMtoCanvas(me._XconvertCanvasToDOM(s.x) + deltaX);
       }
 
       if (!s.yFixed) {
-        node.y = me._canvasToY(me._yToCanvas(s.y) + deltaY);
+        node.y = me._YconvertDOMtoCanvas(me._YconvertCanvasToDOM(s.y) + deltaY);
       }
     });
 
@@ -962,16 +971,18 @@ Graph.prototype._handleOnDrag = function(event) {
     }
   }
   else {
-    // move the graph
-    var diffX = pointer.x - this.drag.pointer.x;
-    var diffY = pointer.y - this.drag.pointer.y;
+    if (this.constants.moveable == true) {
+      // move the graph
+      var diffX = pointer.x - this.drag.pointer.x;
+      var diffY = pointer.y - this.drag.pointer.y;
 
-    this._setTranslation(
-      this.drag.translation.x + diffX,
-      this.drag.translation.y + diffY);
-    this._redraw();
-    this.moving = true;
-    this.start();
+      this._setTranslation(
+        this.drag.translation.x + diffX,
+        this.drag.translation.y + diffY);
+      this._redraw();
+      this.moving = true;
+      this.start();
+    }
   }
 };
 
@@ -1059,37 +1070,38 @@ Graph.prototype._onPinch = function (event) {
  * @private
  */
 Graph.prototype._zoom = function(scale, pointer) {
-  var scaleOld = this._getScale();
-  if (scale < 0.00001) {
-    scale = 0.00001;
+  if (this.constants.zoomable == true) {
+    var scaleOld = this._getScale();
+    if (scale < 0.00001) {
+      scale = 0.00001;
+    }
+    if (scale > 10) {
+      scale = 10;
+    }
+  // + this.frame.canvas.clientHeight / 2
+    var translation = this._getTranslation();
+
+    var scaleFrac = scale / scaleOld;
+    var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
+    var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
+
+    this.areaCenter = {"x" : this._XconvertDOMtoCanvas(pointer.x),
+                       "y" : this._YconvertDOMtoCanvas(pointer.y)};
+
+    this._setScale(scale);
+    this._setTranslation(tx, ty);
+    this.updateClustersDefault();
+    this._redraw();
+
+    if (scaleOld < scale) {
+      this.emit("zoom", {direction:"+"});
+    }
+    else {
+      this.emit("zoom", {direction:"-"});
+    }
+
+    return scale;
   }
-  if (scale > 10) {
-    scale = 10;
-  }
-// + this.frame.canvas.clientHeight / 2
-  var translation = this._getTranslation();
-
-  var scaleFrac = scale / scaleOld;
-  var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
-  var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
-
-  this.areaCenter = {"x" : this._canvasToX(pointer.x),
-                     "y" : this._canvasToY(pointer.y)};
-
-  this._setScale(scale);
-  this._setTranslation(tx, ty);
-  this.updateClustersDefault();
-  this._redraw();
-
-  if (scaleOld < scale) {
-    this.emit("zoom", {direction:"+"});
-  }
-  else {
-    this.emit("zoom", {direction:"-"});
-  }
-
-
-  return scale;
 };
 
 
@@ -1175,10 +1187,10 @@ Graph.prototype._onMouseMoveTitle = function (event) {
  */
 Graph.prototype._checkShowPopup = function (pointer) {
   var obj = {
-    left:   this._canvasToX(pointer.x),
-    top:    this._canvasToY(pointer.y),
-    right:  this._canvasToX(pointer.x),
-    bottom: this._canvasToY(pointer.y)
+    left:   this._XconvertDOMtoCanvas(pointer.x),
+    top:    this._YconvertDOMtoCanvas(pointer.y),
+    right:  this._XconvertDOMtoCanvas(pointer.x),
+    bottom: this._YconvertDOMtoCanvas(pointer.y)
   };
 
   var id;
@@ -1642,12 +1654,12 @@ Graph.prototype._redraw = function() {
   ctx.scale(this.scale, this.scale);
 
   this.canvasTopLeft = {
-    "x": this._canvasToX(0),
-    "y": this._canvasToY(0)
+    "x": this._XconvertDOMtoCanvas(0),
+    "y": this._YconvertDOMtoCanvas(0)
   };
   this.canvasBottomRight = {
-    "x": this._canvasToX(this.frame.canvas.clientWidth),
-    "y": this._canvasToY(this.frame.canvas.clientHeight)
+    "x": this._XconvertDOMtoCanvas(this.frame.canvas.clientWidth),
+    "y": this._YconvertDOMtoCanvas(this.frame.canvas.clientHeight)
   };
 
   this._doInAllSectors("_drawAllSectorNodes",ctx);
@@ -1716,42 +1728,46 @@ Graph.prototype._getScale = function() {
 };
 
 /**
- * Convert a horizontal point on the HTML canvas to the x-value of the model
+ * Convert the X coordinate in DOM-space (coordinate point in browser relative to the container div) to
+ * the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
  * @param {number} x
  * @returns {number}
  * @private
  */
-Graph.prototype._canvasToX = function(x) {
+Graph.prototype._XconvertDOMtoCanvas = function(x) {
   return (x - this.translation.x) / this.scale;
 };
 
 /**
- * Convert an x-value in the model to a horizontal point on the HTML canvas
+ * Convert the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
+ * the X coordinate in DOM-space (coordinate point in browser relative to the container div)
  * @param {number} x
  * @returns {number}
  * @private
  */
-Graph.prototype._xToCanvas = function(x) {
+Graph.prototype._XconvertCanvasToDOM = function(x) {
   return x * this.scale + this.translation.x;
 };
 
 /**
- * Convert a vertical point on the HTML canvas to the y-value of the model
+ * Convert the Y coordinate in DOM-space (coordinate point in browser relative to the container div) to
+ * the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
  * @param {number} y
  * @returns {number}
  * @private
  */
-Graph.prototype._canvasToY = function(y) {
+Graph.prototype._YconvertDOMtoCanvas = function(y) {
   return (y - this.translation.y) / this.scale;
 };
 
 /**
- * Convert an y-value in the model to a vertical point on the HTML canvas
+ * Convert the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
+ * the Y coordinate in DOM-space (coordinate point in browser relative to the container div)
  * @param {number} y
  * @returns {number}
  * @private
  */
-Graph.prototype._yToCanvas = function(y) {
+Graph.prototype._YconvertCanvasToDOM = function(y) {
   return y * this.scale + this.translation.y ;
 };
 
@@ -1762,8 +1778,8 @@ Graph.prototype._yToCanvas = function(y) {
  * @returns {{x: number, y: number}}
  * @constructor
  */
-Graph.prototype.DOMtoCanvas = function(pos) {
-  return {x:this._xToCanvas(pos.x),y:this._yToCanvas(pos.y)};
+Graph.prototype.canvasToDOM = function(pos) {
+  return {x:this._XconvertCanvasToDOM(pos.x),y:this._YconvertCanvasToDOM(pos.y)};
 }
 
 /**
@@ -1772,8 +1788,8 @@ Graph.prototype.DOMtoCanvas = function(pos) {
  * @returns {{x: number, y: number}}
  * @constructor
  */
-Graph.prototype.canvasToDOM = function(pos) {
-  return {x:this._canvasToX(pos.x),y:this._canvasToY(pos.y)};
+Graph.prototype.DOMtoCanvas = function(pos) {
+  return {x:this._XconvertDOMtoCanvas(pos.x),y:this._YconvertDOMtoCanvas(pos.y)};
 }
 
 /**

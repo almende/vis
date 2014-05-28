@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 1.0.1
- * @date    2014-05-09
+ * @version 1.0.2
+ * @date    2014-05-28
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -404,6 +404,40 @@ util.extend = function (a, b) {
     }
   }
 
+  return a;
+};
+
+/**
+ * Deep extend an object a with the properties of object b
+ * @param {Object} a
+ * @param {Object} b
+ * @returns {Object}
+ */
+util.deepExtend = function deepExtend (a, b) {
+  // TODO: add support for Arrays to deepExtend
+  if (Array.isArray(b)) {
+    throw new TypeError('Arrays are not supported by deepExtend');
+  }
+
+  for (var prop in b) {
+    if (b.hasOwnProperty(prop)) {
+      if (b[prop] && b[prop].constructor === Object) {
+        if (a[prop] === undefined) {
+          a[prop] = {};
+        }
+        if (a[prop].constructor === Object) {
+          deepExtend(a[prop], b[prop]);
+        }
+        else {
+          a[prop] = b[prop];
+        }
+      } else if (Array.isArray(b[prop])) {
+        throw new TypeError('Arrays are not supported by deepExtend');
+      } else {
+        a[prop] = b[prop];
+      }
+    }
+  }
   return a;
 };
 
@@ -2885,8 +2919,7 @@ TimeStep.prototype.snap = function(date) {
     clone.setSeconds(0);
     clone.setMilliseconds(0);
   }
-  else if (this.scale == TimeStep.SCALE.DAY ||
-      this.scale == TimeStep.SCALE.WEEKDAY) {
+  else if (this.scale == TimeStep.SCALE.DAY) {
     //noinspection FallthroughInSwitchStatementJS
     switch (this.step) {
       case 5:
@@ -2894,6 +2927,19 @@ TimeStep.prototype.snap = function(date) {
         clone.setHours(Math.round(clone.getHours() / 24) * 24); break;
       default:
         clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
+    }
+    clone.setMinutes(0);
+    clone.setSeconds(0);
+    clone.setMilliseconds(0);
+  }
+  else if (this.scale == TimeStep.SCALE.WEEKDAY) {
+    //noinspection FallthroughInSwitchStatementJS
+    switch (this.step) {
+      case 5:
+      case 2:
+        clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
+      default:
+        clone.setHours(Math.round(clone.getHours() / 6) * 6); break;
     }
     clone.setMinutes(0);
     clone.setSeconds(0);
@@ -3905,6 +3951,7 @@ RootPanel.prototype.repaint = function repaint() {
 
   // update frame size
   this.frame.style.maxHeight = util.option.asSize(this.options.maxHeight, '');
+  this.frame.style.minHeight = util.option.asSize(this.options.minHeight, '');
   this._updateSize();
 
   // if the root panel or any of its childs is resized, repaint again,
@@ -4387,32 +4434,32 @@ TimeAxis.prototype._repaintLine = function() {
  * @private
  */
 TimeAxis.prototype._calculateCharSize = function () {
+  // Note: We calculate char size with every repaint. Size may change, for
+  // example when any of the timelines parents had display:none for example.
+
   // determine the char width and height on the minor axis
-  if (!('minorCharHeight' in this.props)) {
-    var textMinor = document.createTextNode('0');
-    var measureCharMinor = document.createElement('DIV');
-    measureCharMinor.className = 'text minor measure';
-    measureCharMinor.appendChild(textMinor);
-    this.frame.appendChild(measureCharMinor);
+  if (!this.dom.measureCharMinor) {
+    this.dom.measureCharMinor = document.createElement('DIV');
+    this.dom.measureCharMinor.className = 'text minor measure';
+    this.dom.measureCharMinor.style.position = 'absolute';
 
-    this.props.minorCharHeight = measureCharMinor.clientHeight;
-    this.props.minorCharWidth = measureCharMinor.clientWidth;
-
-    this.frame.removeChild(measureCharMinor);
+    this.dom.measureCharMinor.appendChild(document.createTextNode('0'));
+    this.frame.appendChild(this.dom.measureCharMinor);
   }
+  this.props.minorCharHeight = this.dom.measureCharMinor.clientHeight;
+  this.props.minorCharWidth = this.dom.measureCharMinor.clientWidth;
 
-  if (!('majorCharHeight' in this.props)) {
-    var textMajor = document.createTextNode('0');
-    var measureCharMajor = document.createElement('DIV');
-    measureCharMajor.className = 'text major measure';
-    measureCharMajor.appendChild(textMajor);
-    this.frame.appendChild(measureCharMajor);
+  // determine the char width and height on the major axis
+  if (!this.dom.measureCharMajor) {
+    this.dom.measureCharMajor = document.createElement('DIV');
+    this.dom.measureCharMajor.className = 'text minor measure';
+    this.dom.measureCharMajor.style.position = 'absolute';
 
-    this.props.majorCharHeight = measureCharMajor.clientHeight;
-    this.props.majorCharWidth = measureCharMajor.clientWidth;
-
-    this.frame.removeChild(measureCharMajor);
+    this.dom.measureCharMajor.appendChild(document.createTextNode('0'));
+    this.frame.appendChild(this.dom.measureCharMajor);
   }
+  this.props.majorCharHeight = this.dom.measureCharMajor.clientHeight;
+  this.props.majorCharWidth = this.dom.measureCharMajor.clientWidth;
 };
 
 /**
@@ -5190,7 +5237,8 @@ ItemSet.prototype.setGroups = function setGroups(groups) {
 
     // remove all drawn groups
     ids = this.groupsData.getIds();
-    this._onRemoveGroups(ids);
+    this.groupsData = null;
+    this._onRemoveGroups(ids); // note: this will cause a repaint
   }
 
   // replace the dataset
@@ -5441,8 +5489,7 @@ ItemSet.prototype._orderGroups = function () {
       // hide all groups, removes them from the DOM
       var groups = this.groups;
       groupIds.forEach(function (groupId) {
-        var group = groups[groupId];
-        group.hide();
+        groups[groupId].hide();
       });
 
       // show the groups again, attach them to the DOM in correct order
@@ -6742,6 +6789,14 @@ Group.prototype._create = function() {
   this.dom.background = document.createElement('div');
 
   this.dom.axis = document.createElement('div');
+
+  // create a hidden marker to detect when the Timelines container is attached
+  // to the DOM, or the style of a parent of the Timeline is changed from
+  // display:none is changed to visible.
+  this.dom.marker = document.createElement('div');
+  this.dom.marker.style.visibility = 'hidden';
+  this.dom.marker.innerHTML = '?';
+  this.dom.background.appendChild(this.dom.marker);
 };
 
 /**
@@ -6813,6 +6868,20 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
 
   this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
 
+  // force recalculation of the height of the items when the marker height changed
+  // (due to the Timeline being attached to the DOM or changed from display:none to visible)
+  var markerHeight = this.dom.marker.clientHeight;
+  if (markerHeight != this.lastMarkerHeight) {
+    this.lastMarkerHeight = markerHeight;
+
+    util.forEach(this.items, function (item) {
+      item.dirty = true;
+      if (item.displayed) item.repaint();
+    });
+
+    restack = true;
+  }
+
   // reposition visible items vertically
   if (this.itemSet.options.stack) { // TODO: ugly way to access options...
     stack.stack(this.visibleItems, margin, restack);
@@ -6820,7 +6889,6 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
   else { // no stacking
     stack.nostack(this.visibleItems, margin);
   }
-  this.stackDirty = false;
   for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
     var item = this.visibleItems[i];
     item.repositionY();
@@ -7155,7 +7223,7 @@ function Timeline (container, items, options) {
 
   var me = this;
   var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
-  this.options = {
+  this.defaultOptions = {
     orientation: 'bottom',
     direction: 'horizontal', // 'horizontal' or 'vertical'
     autoResize: true,
@@ -7169,7 +7237,6 @@ function Timeline (container, items, options) {
     },
 
     selectable: true,
-    snap: null, // will be specified after timeaxis is created
 
     min: null,
     max: null,
@@ -7182,6 +7249,13 @@ function Timeline (container, items, options) {
     showMajorLabels: true,
     showCurrentTime: false,
     showCustomTime: false,
+
+    groupOrder: null,
+
+    width: null,
+    height: null,
+    maxHeight: null,
+    minHeight: null,
 
     type: 'box',
     align: 'center',
@@ -7202,11 +7276,17 @@ function Timeline (container, items, options) {
     },
     onRemove: function (item, callback) {
       callback(item);
-    },
+    }
+  };
+
+  this.options = {};
+  util.deepExtend(this.options, this.defaultOptions);
+  util.deepExtend(this.options, {
+    snap: null, // will be specified after timeaxis is created
 
     toScreen: me._toScreen.bind(me),
     toTime: me._toTime.bind(me)
-  };
+  });
 
   // root panel
   var rootOptions = util.extend(Object.create(this.options), {
@@ -7424,7 +7504,7 @@ Emitter(Timeline.prototype);
  * @param {Object} options  TODO: describe the available options
  */
 Timeline.prototype.setOptions = function (options) {
-  util.extend(this.options, options);
+  util.deepExtend(this.options, options);
 
   if ('editable' in options) {
     var isBoolean = typeof options.editable === 'boolean';
@@ -7584,6 +7664,33 @@ Timeline.prototype.setGroups = function setGroups(groups) {
 };
 
 /**
+ * Clear the Timeline. By Default, items, groups and options are cleared.
+ * Example usage:
+ *
+ *     timeline.clear();                // clear items, groups, and options
+ *     timeline.clear({options: true}); // clear options only
+ *
+ * @param {Object} [what]      Optionally specify what to clear. By default:
+ *                             {items: true, groups: true, options: true}
+ */
+Timeline.prototype.clear = function clear(what) {
+  // clear items
+  if (!what || what.items) {
+    this.setItems(null);
+  }
+
+  // clear groups
+  if (!what || what.groups) {
+    this.setGroups(null);
+  }
+
+  // clear options
+  if (!what || what.options) {
+    this.setOptions(this.defaultOptions);
+  }
+};
+
+/**
  * Set Timeline window such that it fits all items
  */
 Timeline.prototype.fit = function fit() {
@@ -7679,7 +7786,7 @@ Timeline.prototype.getSelection = function getSelection() {
  * Where start and end can be a Date, number, or string, and range is an
  * object with properties start and end.
  *
- * @param {Date | Number | String} [start] Start date of visible window
+ * @param {Date | Number | String | Object} [start] Start date of visible window
  * @param {Date | Number | String} [end]   End date of visible window
  */
 Timeline.prototype.setWindow = function setWindow(start, end) {
@@ -7702,6 +7809,14 @@ Timeline.prototype.getWindow = function setWindow() {
     start: new Date(range.start),
     end: new Date(range.end)
   };
+};
+
+/**
+ * Force a repaint of the Timeline. Can be useful to manually repaint when
+ * option autoResize=false
+ */
+Timeline.prototype.repaint = function repaint() {
+    this.rootPanel.repaint();
 };
 
 /**
@@ -7769,6 +7884,11 @@ Timeline.prototype._onAddItem = function (event) {
       start: this.timeAxis.snap(this._toTime(x)),
       content: 'new item'
     };
+
+    // when default type is a range, add a default end date to the new item
+    if (this.options.type === 'range' || this.options.type == 'rangeoverflow') {
+      newItem.end = this.timeAxis.snap(this._toTime(x + this.rootPanel.width / 5));
+    }
 
     var id = util.randomUUID();
     newItem[this.itemsData.fieldId] = id;
@@ -11091,7 +11211,7 @@ var physicsMixin = {
    */
   _calculateSpringForces: function () {
     var edgeLength, edge, edgeId;
-    var dx, dy, fx, fy, springForce, length;
+    var dx, dy, fx, fy, springForce, distance;
     var edges = this.edges;
 
     // forces caused by the edges, modelled as springs
@@ -11107,13 +11227,14 @@ var physicsMixin = {
 
             dx = (edge.from.x - edge.to.x);
             dy = (edge.from.y - edge.to.y);
-            length = Math.sqrt(dx * dx + dy * dy);
+            distance = Math.sqrt(dx * dx + dy * dy);
 
-            if (length == 0) {
-              length = 0.01;
+            if (distance == 0) {
+              distance = 0.01;
             }
 
-            springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
+            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
 
             fx = dx * springForce;
             fy = dy * springForce;
@@ -11175,17 +11296,18 @@ var physicsMixin = {
    * @private
    */
   _calculateSpringForce: function (node1, node2, edgeLength) {
-    var dx, dy, fx, fy, springForce, length;
+    var dx, dy, fx, fy, springForce, distance;
 
     dx = (node1.x - node2.x);
     dy = (node1.y - node2.y);
-    length = Math.sqrt(dx * dx + dy * dy);
+    distance = Math.sqrt(dx * dx + dy * dy);
 
-    if (length == 0) {
-      length = 0.01;
+    if (distance == 0) {
+      distance = 0.01;
     }
 
-    springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
+    // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+    springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
 
     fx = dx * springForce;
     fy = dy * springForce;
@@ -11220,7 +11342,7 @@ var physicsMixin = {
         '<table id="graph_BH_table" style="display:none">' +
         '<tr><td><b>Barnes Hut</b></td></tr>' +
         '<tr>' +
-        '<td width="150px">gravitationalConstant</td><td>0</td><td><input type="range" min="500" max="20000" value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" step="25" style="width:300px" id="graph_BH_gc"></td><td  width="50px">-20000</td><td><input value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" id="graph_BH_gc_value" style="width:60px"></td>' +
+        '<td width="150px">gravitationalConstant</td><td>0</td><td><input type="range" min="0" max="20000" value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" step="25" style="width:300px" id="graph_BH_gc"></td><td  width="50px">-20000</td><td><input value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" id="graph_BH_gc_value" style="width:60px"></td>' +
         '</tr>' +
         '<tr>' +
         '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.barnesHut.centralGravity + '" step="0.05"  style="width:300px" id="graph_BH_cg"></td><td>3</td><td><input value="' + this.constants.physics.barnesHut.centralGravity + '" id="graph_BH_cg_value" style="width:60px"></td>' +
@@ -12681,10 +12803,10 @@ var manipulationMixin = {
           this.cachedFunctions["_handleOnDrag"] = this._handleOnDrag;
           this._handleOnDrag = function(event) {
             var pointer = this._getPointer(event.gesture.center);
-            this.sectors['support']['nodes']['targetNode'].x = this._canvasToX(pointer.x);
-            this.sectors['support']['nodes']['targetNode'].y = this._canvasToY(pointer.y);
-            this.sectors['support']['nodes']['targetViaNode'].x = 0.5 * (this._canvasToX(pointer.x) + this.edges['connectionEdge'].from.x);
-            this.sectors['support']['nodes']['targetViaNode'].y = this._canvasToY(pointer.y);
+            this.sectors['support']['nodes']['targetNode'].x = this._XconvertDOMtoCanvas(pointer.x);
+            this.sectors['support']['nodes']['targetNode'].y = this._YconvertDOMtoCanvas(pointer.y);
+            this.sectors['support']['nodes']['targetViaNode'].x = 0.5 * (this._XconvertDOMtoCanvas(pointer.x) + this.edges['connectionEdge'].from.x);
+            this.sectors['support']['nodes']['targetViaNode'].y = this._YconvertDOMtoCanvas(pointer.y);
           };
 
           this.moving = true;
@@ -14607,8 +14729,8 @@ var SelectionMixin = {
    * @private
    */
   _pointerToPositionObject : function(pointer) {
-    var x = this._canvasToX(pointer.x);
-    var y = this._canvasToY(pointer.y);
+    var x = this._XconvertDOMtoCanvas(pointer.x);
+    var y = this._YconvertDOMtoCanvas(pointer.y);
 
     return {left:   x,
             top:    y,
@@ -15000,8 +15122,8 @@ var SelectionMixin = {
     var node = this._getNodeAt(pointer);
     if (node != null && node !== undefined) {
       // we reset the areaCenter here so the opening of the node will occur
-      this.areaCenter =  {"x" : this._canvasToX(pointer.x),
-                          "y" : this._canvasToY(pointer.y)};
+      this.areaCenter =  {"x" : this._XconvertDOMtoCanvas(pointer.x),
+                          "y" : this._YconvertDOMtoCanvas(pointer.y)};
       this.openCluster(node);
     }
     this.emit("doubleClick", this.getSelection());
@@ -15723,7 +15845,9 @@ function Graph (container, data, options) {
         border: '#666',
         background: '#FFFFC6'
       }
-    }
+    },
+    moveable: true,
+    zoomable: true
   };
   this.editMode = this.constants.dataManipulation.initiallyVisible;
 
@@ -15755,7 +15879,10 @@ function Graph (container, data, options) {
   this._loadHierarchySystem();
 
   // apply options
+  this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
+  this._setScale(1);
   this.setOptions(options);
+
 
   // other vars
   this.freezeSimulation = false;// freeze the simulation
@@ -16034,15 +16161,19 @@ Graph.prototype.setData = function(data, disableStart) {
   if (!disableStart) {
     // find a stable position or start animating to a stable position
     if (this.stabilize) {
-      this._stabilize();
+      var me = this;
+      setTimeout(function() {me._stabilize(); me.start();},0)
     }
-    this.start();
+    else {
+      this.start();
+    }
   }
 };
 
 /**
  * Set options
  * @param {Object} options
+ * @param {Boolean} [initializeView] | set zoom and translation to default.
  */
 Graph.prototype.setOptions = function (options) {
   if (options) {
@@ -16056,7 +16187,8 @@ Graph.prototype.setOptions = function (options) {
     if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
-
+    if (options.moveable !== undefined)           {this.constants.moveable = options.moveable;}
+    if (options.zoomable !== undefined)          {this.constants.zoomable = options.zoomable;}
 
 
     if (options.labels !== undefined)  {
@@ -16271,11 +16403,10 @@ Graph.prototype.setOptions = function (options) {
 
   // bind keys. If disabled, this will not do anything;
   this._createKeyBinds();
-
   this.setSize(this.width, this.height);
-  this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
-  this._setScale(1);
-  this._redraw();
+  this.moving = true;
+  this.start();
+
 };
 
 /**
@@ -16491,11 +16622,11 @@ Graph.prototype._handleOnDrag = function(event) {
       var node = s.node;
 
       if (!s.xFixed) {
-        node.x = me._canvasToX(me._xToCanvas(s.x) + deltaX);
+        node.x = me._XconvertDOMtoCanvas(me._XconvertCanvasToDOM(s.x) + deltaX);
       }
 
       if (!s.yFixed) {
-        node.y = me._canvasToY(me._yToCanvas(s.y) + deltaY);
+        node.y = me._YconvertDOMtoCanvas(me._YconvertCanvasToDOM(s.y) + deltaY);
       }
     });
 
@@ -16506,16 +16637,18 @@ Graph.prototype._handleOnDrag = function(event) {
     }
   }
   else {
-    // move the graph
-    var diffX = pointer.x - this.drag.pointer.x;
-    var diffY = pointer.y - this.drag.pointer.y;
+    if (this.constants.moveable == true) {
+      // move the graph
+      var diffX = pointer.x - this.drag.pointer.x;
+      var diffY = pointer.y - this.drag.pointer.y;
 
-    this._setTranslation(
-      this.drag.translation.x + diffX,
-      this.drag.translation.y + diffY);
-    this._redraw();
-    this.moving = true;
-    this.start();
+      this._setTranslation(
+        this.drag.translation.x + diffX,
+        this.drag.translation.y + diffY);
+      this._redraw();
+      this.moving = true;
+      this.start();
+    }
   }
 };
 
@@ -16603,37 +16736,38 @@ Graph.prototype._onPinch = function (event) {
  * @private
  */
 Graph.prototype._zoom = function(scale, pointer) {
-  var scaleOld = this._getScale();
-  if (scale < 0.00001) {
-    scale = 0.00001;
+  if (this.constants.zoomable == true) {
+    var scaleOld = this._getScale();
+    if (scale < 0.00001) {
+      scale = 0.00001;
+    }
+    if (scale > 10) {
+      scale = 10;
+    }
+  // + this.frame.canvas.clientHeight / 2
+    var translation = this._getTranslation();
+
+    var scaleFrac = scale / scaleOld;
+    var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
+    var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
+
+    this.areaCenter = {"x" : this._XconvertDOMtoCanvas(pointer.x),
+                       "y" : this._YconvertDOMtoCanvas(pointer.y)};
+
+    this._setScale(scale);
+    this._setTranslation(tx, ty);
+    this.updateClustersDefault();
+    this._redraw();
+
+    if (scaleOld < scale) {
+      this.emit("zoom", {direction:"+"});
+    }
+    else {
+      this.emit("zoom", {direction:"-"});
+    }
+
+    return scale;
   }
-  if (scale > 10) {
-    scale = 10;
-  }
-// + this.frame.canvas.clientHeight / 2
-  var translation = this._getTranslation();
-
-  var scaleFrac = scale / scaleOld;
-  var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
-  var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
-
-  this.areaCenter = {"x" : this._canvasToX(pointer.x),
-                     "y" : this._canvasToY(pointer.y)};
-
-  this._setScale(scale);
-  this._setTranslation(tx, ty);
-  this.updateClustersDefault();
-  this._redraw();
-
-  if (scaleOld < scale) {
-    this.emit("zoom", {direction:"+"});
-  }
-  else {
-    this.emit("zoom", {direction:"-"});
-  }
-
-
-  return scale;
 };
 
 
@@ -16719,10 +16853,10 @@ Graph.prototype._onMouseMoveTitle = function (event) {
  */
 Graph.prototype._checkShowPopup = function (pointer) {
   var obj = {
-    left:   this._canvasToX(pointer.x),
-    top:    this._canvasToY(pointer.y),
-    right:  this._canvasToX(pointer.x),
-    bottom: this._canvasToY(pointer.y)
+    left:   this._XconvertDOMtoCanvas(pointer.x),
+    top:    this._YconvertDOMtoCanvas(pointer.y),
+    right:  this._XconvertDOMtoCanvas(pointer.x),
+    bottom: this._YconvertDOMtoCanvas(pointer.y)
   };
 
   var id;
@@ -17186,12 +17320,12 @@ Graph.prototype._redraw = function() {
   ctx.scale(this.scale, this.scale);
 
   this.canvasTopLeft = {
-    "x": this._canvasToX(0),
-    "y": this._canvasToY(0)
+    "x": this._XconvertDOMtoCanvas(0),
+    "y": this._YconvertDOMtoCanvas(0)
   };
   this.canvasBottomRight = {
-    "x": this._canvasToX(this.frame.canvas.clientWidth),
-    "y": this._canvasToY(this.frame.canvas.clientHeight)
+    "x": this._XconvertDOMtoCanvas(this.frame.canvas.clientWidth),
+    "y": this._YconvertDOMtoCanvas(this.frame.canvas.clientHeight)
   };
 
   this._doInAllSectors("_drawAllSectorNodes",ctx);
@@ -17260,42 +17394,46 @@ Graph.prototype._getScale = function() {
 };
 
 /**
- * Convert a horizontal point on the HTML canvas to the x-value of the model
+ * Convert the X coordinate in DOM-space (coordinate point in browser relative to the container div) to
+ * the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
  * @param {number} x
  * @returns {number}
  * @private
  */
-Graph.prototype._canvasToX = function(x) {
+Graph.prototype._XconvertDOMtoCanvas = function(x) {
   return (x - this.translation.x) / this.scale;
 };
 
 /**
- * Convert an x-value in the model to a horizontal point on the HTML canvas
+ * Convert the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
+ * the X coordinate in DOM-space (coordinate point in browser relative to the container div)
  * @param {number} x
  * @returns {number}
  * @private
  */
-Graph.prototype._xToCanvas = function(x) {
+Graph.prototype._XconvertCanvasToDOM = function(x) {
   return x * this.scale + this.translation.x;
 };
 
 /**
- * Convert a vertical point on the HTML canvas to the y-value of the model
+ * Convert the Y coordinate in DOM-space (coordinate point in browser relative to the container div) to
+ * the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
  * @param {number} y
  * @returns {number}
  * @private
  */
-Graph.prototype._canvasToY = function(y) {
+Graph.prototype._YconvertDOMtoCanvas = function(y) {
   return (y - this.translation.y) / this.scale;
 };
 
 /**
- * Convert an y-value in the model to a vertical point on the HTML canvas
+ * Convert the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
+ * the Y coordinate in DOM-space (coordinate point in browser relative to the container div)
  * @param {number} y
  * @returns {number}
  * @private
  */
-Graph.prototype._yToCanvas = function(y) {
+Graph.prototype._YconvertCanvasToDOM = function(y) {
   return y * this.scale + this.translation.y ;
 };
 
@@ -17306,8 +17444,8 @@ Graph.prototype._yToCanvas = function(y) {
  * @returns {{x: number, y: number}}
  * @constructor
  */
-Graph.prototype.DOMtoCanvas = function(pos) {
-  return {x:this._xToCanvas(pos.x),y:this._yToCanvas(pos.y)};
+Graph.prototype.canvasToDOM = function(pos) {
+  return {x:this._XconvertCanvasToDOM(pos.x),y:this._YconvertCanvasToDOM(pos.y)};
 }
 
 /**
@@ -17316,8 +17454,8 @@ Graph.prototype.DOMtoCanvas = function(pos) {
  * @returns {{x: number, y: number}}
  * @constructor
  */
-Graph.prototype.canvasToDOM = function(pos) {
-  return {x:this._canvasToX(pos.x),y:this._canvasToY(pos.y)};
+Graph.prototype.DOMtoCanvas = function(pos) {
+  return {x:this._XconvertDOMtoCanvas(pos.x),y:this._YconvertDOMtoCanvas(pos.y)};
 }
 
 /**
@@ -17727,6 +17865,7 @@ Graph.prototype.storePosition = function() {
  */
 var vis = {
   util: util,
+  moment: moment,
 
   DataSet: DataSet,
   DataView: DataView,

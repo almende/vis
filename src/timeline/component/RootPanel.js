@@ -101,6 +101,7 @@ RootPanel.prototype.repaint = function repaint() {
 
   // update frame size
   this.frame.style.maxHeight = util.option.asSize(this.options.maxHeight, '');
+  this.frame.style.minHeight = util.option.asSize(this.options.minHeight, '');
   this._updateSize();
 
   // if the root panel or any of its childs is resized, repaint again,

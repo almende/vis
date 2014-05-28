@@ -188,7 +188,7 @@ var physicsMixin = {
    */
   _calculateSpringForces: function () {
     var edgeLength, edge, edgeId;
-    var dx, dy, fx, fy, springForce, length;
+    var dx, dy, fx, fy, springForce, distance;
     var edges = this.edges;
 
     // forces caused by the edges, modelled as springs
@@ -204,13 +204,14 @@ var physicsMixin = {
 
             dx = (edge.from.x - edge.to.x);
             dy = (edge.from.y - edge.to.y);
-            length = Math.sqrt(dx * dx + dy * dy);
+            distance = Math.sqrt(dx * dx + dy * dy);
 
-            if (length == 0) {
-              length = 0.01;
+            if (distance == 0) {
+              distance = 0.01;
             }
 
-            springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
+            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
 
             fx = dx * springForce;
             fy = dy * springForce;
@@ -272,17 +273,18 @@ var physicsMixin = {
    * @private
    */
   _calculateSpringForce: function (node1, node2, edgeLength) {
-    var dx, dy, fx, fy, springForce, length;
+    var dx, dy, fx, fy, springForce, distance;
 
     dx = (node1.x - node2.x);
     dy = (node1.y - node2.y);
-    length = Math.sqrt(dx * dx + dy * dy);
+    distance = Math.sqrt(dx * dx + dy * dy);
 
-    if (length == 0) {
-      length = 0.01;
+    if (distance == 0) {
+      distance = 0.01;
     }
 
-    springForce = this.constants.physics.springConstant * (edgeLength - length) / length;
+    // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+    springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
 
     fx = dx * springForce;
     fy = dy * springForce;
@@ -317,7 +319,7 @@ var physicsMixin = {
         '<table id="graph_BH_table" style="display:none">' +
         '<tr><td><b>Barnes Hut</b></td></tr>' +
         '<tr>' +
-        '<td width="150px">gravitationalConstant</td><td>0</td><td><input type="range" min="500" max="20000" value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" step="25" style="width:300px" id="graph_BH_gc"></td><td  width="50px">-20000</td><td><input value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" id="graph_BH_gc_value" style="width:60px"></td>' +
+        '<td width="150px">gravitationalConstant</td><td>0</td><td><input type="range" min="0" max="20000" value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" step="25" style="width:300px" id="graph_BH_gc"></td><td  width="50px">-20000</td><td><input value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" id="graph_BH_gc_value" style="width:60px"></td>' +
         '</tr>' +
         '<tr>' +
         '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.barnesHut.centralGravity + '" step="0.05"  style="width:300px" id="graph_BH_cg"></td><td>3</td><td><input value="' + this.constants.physics.barnesHut.centralGravity + '" id="graph_BH_cg_value" style="width:60px"></td>' +

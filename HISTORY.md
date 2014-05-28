@@ -2,6 +2,29 @@
 http://visjs.org
 
 
+## 2014-05-28, version 1.0.2
+
+### Timeline
+
+- Implemented option `minHeight`, similar to option `maxHeight`.
+- Implemented a method `clear([what])`, to clear items, groups, and configuration
+  of a Timeline instance.
+- Added function `repaint()` to force a repaint of the Timeline.
+- Some tweaks in snapping dragged items to nice dates.
+- Made the instance of moment.js packaged with vis.js accessibly via `vis.moment`.
+- A newly created item is initialized with `end` property when option `type`
+  is `"range"` or `"rangeoverflow"`.
+- Fixed a bug in replacing the DataSet of groups via `Timeline.setGroups(groups)`.
+- Fixed a bug when rendering the Timeline inside a hidden container. 
+- Fixed axis scale being determined wrongly for a second Timeline in a single page.
+
+### Graph
+
+- Added zoomable and moveable options.
+- Changes setOptions to avoid resetting view.
+- Interchanged canvasToDOM and DOMtoCanvas to correspond with the docs.
+
+
 ## 2014-05-09, version 1.0.1
 
 ### Timeline
@@ -12,9 +35,9 @@ http://visjs.org
 ### Graph
 
 - Added coordinate conversion from DOM to Canvas.
-- fixed bug where the graph stopped animation after settling in playing with physics.
-- fixed bug where hierarchical physics properties were not handled.
-- added events for change of view and zooming.
+- Fixed bug where the graph stopped animation after settling in playing with physics.
+- Fixed bug where hierarchical physics properties were not handled.
+- Added events for change of view and zooming.
 
 
 ## 2014-05-02, version 1.0.0
@@ -44,8 +67,8 @@ http://visjs.org
 
 ### Graph
 
-- added recalculate hierarchical layout to update node event.
-- added arrowScaleFactor to scale the arrows on the edges.
+- Added recalculate hierarchical layout to update node event.
+- Added arrowScaleFactor to scale the arrows on the edges.
 
 ### DataSet
 
@@ -57,48 +80,53 @@ http://visjs.org
 
 ### Graph
 
-- fixed IE9 bug.
-- style fixes.
-- minor bug fixes.
+- Fixed IE9 bug.
+- Style fixes.
+- Minor bug fixes.
 
 
 ## 2014-04-16, version 0.7.3
 
 ### Graph
 
-- fixed color bug.
-- added pull requests from kannonboy and vierja: tooltip styling, label fill color
+- Fixed color bug.
+- Added pull requests from kannonboy and vierja: tooltip styling, label fill 
+  color.
 
 
 ## 2014-04-09, version 0.7.2
 
 ### Graph
 
-- fixed edge select bug.
-- fixed zoom bug on empty initialization.
+- Fixed edge select bug.
+- Fixed zoom bug on empty initialization.
 
 
 ## 2014-03-27, version 0.7.1
 
 ### Graph
 
-- fixed edge color bug.
-- fixed select event bug.
-- clarified docs, stressing importance of css inclusion for correct display of navigation an manipulation icons.
-- improved and expanded playing with physics (configurePhysics option).
-- added highlights to navigation icons if the corresponding key is pressed.
-- added freezeForStabilization option to improve stabilization with cached positions.
+- Fixed edge color bug.
+- Fixed select event bug.
+- Clarified docs, stressing importance of css inclusion for correct display of 
+  navigation an manipulation icons.
+- Improved and expanded playing with physics (configurePhysics option).
+- Added highlights to navigation icons if the corresponding key is pressed.
+- Added freezeForStabilization option to improve stabilization with cached 
+  positions.
 
 
 ## 2014-03-07, version 0.7.0
 
 ### Graph
 
-- changed navigation CSS. Icons are now always correctly positioned.
-- added stabilizationIterations option to graph.
-- added storePosition() method to save the XY positions of nodes in the DataSet.
-- separated allowedToMove into allowedToMoveX and allowedToMoveY. This is required for initializing nodes from hierarchical layouts after storePosition().
-- added color options for the edges.
+- Changed navigation CSS. Icons are now always correctly positioned.
+- Added stabilizationIterations option to graph.
+- Added storePosition() method to save the XY positions of nodes in the DataSet.
+- Separated allowedToMove into allowedToMoveX and allowedToMoveY. This is 
+  required for initializing nodes from hierarchical layouts after 
+  storePosition().
+- Added color options for the edges.
 
 
 ## 2014-03-06, version 0.6.1
@@ -112,7 +140,8 @@ http://visjs.org
 
 ### Timeline
 
-- Fixed a bug with options `margin.axis` and `margin.item` being ignored when setting them to zero.
+- Fixed a bug with options `margin.axis` and `margin.item` being ignored when 
+  setting them to zero.
 - Some clarifications in the documentation.
 
 
@@ -120,7 +149,8 @@ http://visjs.org
 
 ### Graph
 
-- Added Physics Configuration option. This makes tweaking the physics system to suit your needs easier.
+- Added Physics Configuration option. This makes tweaking the physics system to 
+  suit your needs easier.
 - Click and doubleClick events.
 - Initial zoom bugfix.
 - Directions for Hierarchical layout.
@@ -150,7 +180,8 @@ http://visjs.org
 - Performance improvements.
 - Fixed scroll to zoom not working on IE in standards mode.
 - Added hierarchical layout option.
-- Overhauled physics system, now using Barnes-Hut simulation by default. Great performance gains.
+- Overhauled physics system, now using Barnes-Hut simulation by default. Great 
+  performance gains.
 - Modified clustering system to give better results.
 - Adaptive performance system to increase visual performance (60fps target).
 
