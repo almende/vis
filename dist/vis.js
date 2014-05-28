@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version @@version
- * @date    @@date
+ * @version 1.0.2-SNAPSHOT
+ * @date    2014-05-28
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -12735,10 +12735,10 @@ var manipulationMixin = {
           this.cachedFunctions["_handleOnDrag"] = this._handleOnDrag;
           this._handleOnDrag = function(event) {
             var pointer = this._getPointer(event.gesture.center);
-            this.sectors['support']['nodes']['targetNode'].x = this._canvasToX(pointer.x);
-            this.sectors['support']['nodes']['targetNode'].y = this._canvasToY(pointer.y);
-            this.sectors['support']['nodes']['targetViaNode'].x = 0.5 * (this._canvasToX(pointer.x) + this.edges['connectionEdge'].from.x);
-            this.sectors['support']['nodes']['targetViaNode'].y = this._canvasToY(pointer.y);
+            this.sectors['support']['nodes']['targetNode'].x = this._XconvertDOMtoCanvas(pointer.x);
+            this.sectors['support']['nodes']['targetNode'].y = this._YconvertDOMtoCanvas(pointer.y);
+            this.sectors['support']['nodes']['targetViaNode'].x = 0.5 * (this._XconvertDOMtoCanvas(pointer.x) + this.edges['connectionEdge'].from.x);
+            this.sectors['support']['nodes']['targetViaNode'].y = this._YconvertDOMtoCanvas(pointer.y);
           };
 
           this.moving = true;
@@ -14661,8 +14661,8 @@ var SelectionMixin = {
    * @private
    */
   _pointerToPositionObject : function(pointer) {
-    var x = this._canvasToX(pointer.x);
-    var y = this._canvasToY(pointer.y);
+    var x = this._XconvertDOMtoCanvas(pointer.x);
+    var y = this._YconvertDOMtoCanvas(pointer.y);
 
     return {left:   x,
             top:    y,
@@ -15054,8 +15054,8 @@ var SelectionMixin = {
     var node = this._getNodeAt(pointer);
     if (node != null && node !== undefined) {
       // we reset the areaCenter here so the opening of the node will occur
-      this.areaCenter =  {"x" : this._canvasToX(pointer.x),
-                          "y" : this._canvasToY(pointer.y)};
+      this.areaCenter =  {"x" : this._XconvertDOMtoCanvas(pointer.x),
+                          "y" : this._YconvertDOMtoCanvas(pointer.y)};
       this.openCluster(node);
     }
     this.emit("doubleClick", this.getSelection());
@@ -16554,11 +16554,11 @@ Graph.prototype._handleOnDrag = function(event) {
       var node = s.node;
 
       if (!s.xFixed) {
-        node.x = me._canvasToX(me._xToCanvas(s.x) + deltaX);
+        node.x = me._XconvertDOMtoCanvas(me._XconvertCanvasToDOM(s.x) + deltaX);
       }
 
       if (!s.yFixed) {
-        node.y = me._canvasToY(me._yToCanvas(s.y) + deltaY);
+        node.y = me._YconvertDOMtoCanvas(me._YconvertCanvasToDOM(s.y) + deltaY);
       }
     });
 
@@ -16683,8 +16683,8 @@ Graph.prototype._zoom = function(scale, pointer) {
     var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
     var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
 
-    this.areaCenter = {"x" : this._canvasToX(pointer.x),
-                       "y" : this._canvasToY(pointer.y)};
+    this.areaCenter = {"x" : this._XconvertDOMtoCanvas(pointer.x),
+                       "y" : this._YconvertDOMtoCanvas(pointer.y)};
 
     this._setScale(scale);
     this._setTranslation(tx, ty);
@@ -16785,10 +16785,10 @@ Graph.prototype._onMouseMoveTitle = function (event) {
  */
 Graph.prototype._checkShowPopup = function (pointer) {
   var obj = {
-    left:   this._canvasToX(pointer.x),
-    top:    this._canvasToY(pointer.y),
-    right:  this._canvasToX(pointer.x),
-    bottom: this._canvasToY(pointer.y)
+    left:   this._XconvertDOMtoCanvas(pointer.x),
+    top:    this._YconvertDOMtoCanvas(pointer.y),
+    right:  this._XconvertDOMtoCanvas(pointer.x),
+    bottom: this._YconvertDOMtoCanvas(pointer.y)
   };
 
   var id;
@@ -17252,12 +17252,12 @@ Graph.prototype._redraw = function() {
   ctx.scale(this.scale, this.scale);
 
   this.canvasTopLeft = {
-    "x": this._canvasToX(0),
-    "y": this._canvasToY(0)
+    "x": this._XconvertDOMtoCanvas(0),
+    "y": this._YconvertDOMtoCanvas(0)
   };
   this.canvasBottomRight = {
-    "x": this._canvasToX(this.frame.canvas.clientWidth),
-    "y": this._canvasToY(this.frame.canvas.clientHeight)
+    "x": this._XconvertDOMtoCanvas(this.frame.canvas.clientWidth),
+    "y": this._YconvertDOMtoCanvas(this.frame.canvas.clientHeight)
   };
 
   this._doInAllSectors("_drawAllSectorNodes",ctx);
@@ -17326,42 +17326,46 @@ Graph.prototype._getScale = function() {
 };
 
 /**
- * Convert a horizontal point on the HTML canvas to the x-value of the model
+ * Convert the X coordinate in DOM-space (coordinate point in browser relative to the container div) to
+ * the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
  * @param {number} x
  * @returns {number}
  * @private
  */
-Graph.prototype._canvasToX = function(x) {
+Graph.prototype._XconvertDOMtoCanvas = function(x) {
   return (x - this.translation.x) / this.scale;
 };
 
 /**
- * Convert an x-value in the model to a horizontal point on the HTML canvas
+ * Convert the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
+ * the X coordinate in DOM-space (coordinate point in browser relative to the container div)
  * @param {number} x
  * @returns {number}
  * @private
  */
-Graph.prototype._xToCanvas = function(x) {
+Graph.prototype._XconvertCanvasToDOM = function(x) {
   return x * this.scale + this.translation.x;
 };
 
 /**
- * Convert a vertical point on the HTML canvas to the y-value of the model
+ * Convert the Y coordinate in DOM-space (coordinate point in browser relative to the container div) to
+ * the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
  * @param {number} y
  * @returns {number}
  * @private
  */
-Graph.prototype._canvasToY = function(y) {
+Graph.prototype._YconvertDOMtoCanvas = function(y) {
   return (y - this.translation.y) / this.scale;
 };
 
 /**
- * Convert an y-value in the model to a vertical point on the HTML canvas
+ * Convert the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
+ * the Y coordinate in DOM-space (coordinate point in browser relative to the container div)
  * @param {number} y
  * @returns {number}
  * @private
  */
-Graph.prototype._yToCanvas = function(y) {
+Graph.prototype._YconvertCanvasToDOM = function(y) {
   return y * this.scale + this.translation.y ;
 };
 
@@ -17373,7 +17377,7 @@ Graph.prototype._yToCanvas = function(y) {
  * @constructor
  */
 Graph.prototype.canvasToDOM = function(pos) {
-  return {x:this._xToCanvas(pos.x),y:this._yToCanvas(pos.y)};
+  return {x:this._XconvertCanvasToDOM(pos.x),y:this._YconvertCanvasToDOM(pos.y)};
 }
 
 /**
@@ -17383,7 +17387,7 @@ Graph.prototype.canvasToDOM = function(pos) {
  * @constructor
  */
 Graph.prototype.DOMtoCanvas = function(pos) {
-  return {x:this._canvasToX(pos.x),y:this._canvasToY(pos.y)};
+  return {x:this._XconvertDOMtoCanvas(pos.x),y:this._YconvertDOMtoCanvas(pos.y)};
 }
 
 /**

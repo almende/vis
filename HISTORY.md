@@ -19,6 +19,7 @@ http://visjs.org
 
 - Added zoomable and moveable options.
 - Changes setOptions to avoid resetting view.
+- Interchanged canvasToDOM and DOMtoCanvas to correspond with the docs.
 
 
 ## 2014-05-09, version 1.0.1
