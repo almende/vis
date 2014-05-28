@@ -634,6 +634,19 @@ var options = {
   </tr>
 
   <tr>
+    <td>clear([what])</td>
+    <td>none</td>
+    <td>
+      Clear the Timeline. An object can be passed specifying which sections to clear: items, groups,
+      and/or options. By Default, items, groups and options are cleared, i.e. <code>what = {items: true, groups: true, options: true}</code>. Example usage:
+
+<pre class="prettyprint lang-js">timeline.clear();                // clear items, groups, and options
+timeline.clear({options: true}); // clear options only
+</pre>
+    </td>
+  </tr>
+
+  <tr>
     <td>fit()</td>
     <td>none</td>
     <td>Adjust the visible window such that it fits all items.

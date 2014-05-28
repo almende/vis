@@ -11,7 +11,7 @@ function Timeline (container, items, options) {
 
   var me = this;
   var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
-  this.options = {
+  this.defaultOptions = {
     orientation: 'bottom',
     direction: 'horizontal', // 'horizontal' or 'vertical'
     autoResize: true,
@@ -25,7 +25,6 @@ function Timeline (container, items, options) {
     },
 
     selectable: true,
-    snap: null, // will be specified after timeaxis is created
 
     min: null,
     max: null,
@@ -38,6 +37,13 @@ function Timeline (container, items, options) {
     showMajorLabels: true,
     showCurrentTime: false,
     showCustomTime: false,
+
+    groupOrder: null,
+
+    width: null,
+    height: null,
+    maxHeight: null,
+    minHeight: null,
 
     type: 'box',
     align: 'center',
@@ -58,11 +64,17 @@ function Timeline (container, items, options) {
     },
     onRemove: function (item, callback) {
       callback(item);
-    },
+    }
+  };
+
+  this.options = {};
+  util.deepExtend(this.options, this.defaultOptions);
+  util.deepExtend(this.options, {
+    snap: null, // will be specified after timeaxis is created
 
     toScreen: me._toScreen.bind(me),
     toTime: me._toTime.bind(me)
-  };
+  });
 
   // root panel
   var rootOptions = util.extend(Object.create(this.options), {
@@ -280,7 +292,7 @@ Emitter(Timeline.prototype);
  * @param {Object} options  TODO: describe the available options
  */
 Timeline.prototype.setOptions = function (options) {
-  util.extend(this.options, options);
+  util.deepExtend(this.options, options);
 
   if ('editable' in options) {
     var isBoolean = typeof options.editable === 'boolean';
@@ -437,6 +449,33 @@ Timeline.prototype.setGroups = function setGroups(groups) {
 
   this.groupsData = newDataSet;
   this.itemSet.setGroups(newDataSet);
+};
+
+/**
+ * Clear the Timeline. By Default, items, groups and options are cleared.
+ * Example usage:
+ *
+ *     timeline.clear();                // clear items, groups, and options
+ *     timeline.clear({options: true}); // clear options only
+ *
+ * @param {Object} [what]      Optionally specify what to clear. By default:
+ *                             {items: true, groups: true, options: true}
+ */
+Timeline.prototype.clear = function clear(what) {
+  // clear items
+  if (!what || what.items) {
+    this.setItems(null);
+  }
+
+  // clear groups
+  if (!what || what.groups) {
+    this.setGroups(null);
+  }
+
+  // clear options
+  if (!what || what.options) {
+    this.setOptions(this.defaultOptions);
+  }
 };
 
 /**

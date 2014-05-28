@@ -98,6 +98,40 @@ util.extend = function (a, b) {
 };
 
 /**
+ * Deep extend an object a with the properties of object b
+ * @param {Object} a
+ * @param {Object} b
+ * @returns {Object}
+ */
+util.deepExtend = function deepExtend (a, b) {
+  // TODO: add support for Arrays to deepExtend
+  if (Array.isArray(b)) {
+    throw new TypeError('Arrays are not supported by deepExtend');
+  }
+
+  for (var prop in b) {
+    if (b.hasOwnProperty(prop)) {
+      if (b[prop] && b[prop].constructor === Object) {
+        if (a[prop] === undefined) {
+          a[prop] = {};
+        }
+        if (a[prop].constructor === Object) {
+          deepExtend(a[prop], b[prop]);
+        }
+        else {
+          a[prop] = b[prop];
+        }
+      } else if (Array.isArray(b[prop])) {
+        throw new TypeError('Arrays are not supported by deepExtend');
+      } else {
+        a[prop] = b[prop];
+      }
+    }
+  }
+  return a;
+};
+
+/**
  * Test whether all elements in two arrays are equal.
  * @param {Array} a
  * @param {Array} b
