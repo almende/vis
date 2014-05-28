@@ -4,7 +4,7 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 1.0.2-SNAPSHOT
+ * @version 1.0.2
  * @date    2014-05-28
  *
  * @license
@@ -404,6 +404,40 @@ util.extend = function (a, b) {
     }
   }
 
+  return a;
+};
+
+/**
+ * Deep extend an object a with the properties of object b
+ * @param {Object} a
+ * @param {Object} b
+ * @returns {Object}
+ */
+util.deepExtend = function deepExtend (a, b) {
+  // TODO: add support for Arrays to deepExtend
+  if (Array.isArray(b)) {
+    throw new TypeError('Arrays are not supported by deepExtend');
+  }
+
+  for (var prop in b) {
+    if (b.hasOwnProperty(prop)) {
+      if (b[prop] && b[prop].constructor === Object) {
+        if (a[prop] === undefined) {
+          a[prop] = {};
+        }
+        if (a[prop].constructor === Object) {
+          deepExtend(a[prop], b[prop]);
+        }
+        else {
+          a[prop] = b[prop];
+        }
+      } else if (Array.isArray(b[prop])) {
+        throw new TypeError('Arrays are not supported by deepExtend');
+      } else {
+        a[prop] = b[prop];
+      }
+    }
+  }
   return a;
 };
 
@@ -4400,37 +4434,32 @@ TimeAxis.prototype._repaintLine = function() {
  * @private
  */
 TimeAxis.prototype._calculateCharSize = function () {
-  // Note: We only calculate char size once, but in case it is calculated as zero,
-  //       we will recalculate. This is the case if any of the timelines parents
-  //       has display:none for example.
+  // Note: We calculate char size with every repaint. Size may change, for
+  // example when any of the timelines parents had display:none for example.
 
   // determine the char width and height on the minor axis
-  if (!('minorCharHeight' in this.props) || this.props.minorCharHeight == 0) {
-    var textMinor = document.createTextNode('0');
-    var measureCharMinor = document.createElement('DIV');
-    measureCharMinor.className = 'text minor measure';
-    measureCharMinor.appendChild(textMinor);
-    this.frame.appendChild(measureCharMinor);
+  if (!this.dom.measureCharMinor) {
+    this.dom.measureCharMinor = document.createElement('DIV');
+    this.dom.measureCharMinor.className = 'text minor measure';
+    this.dom.measureCharMinor.style.position = 'absolute';
 
-    this.props.minorCharHeight = measureCharMinor.clientHeight;
-    this.props.minorCharWidth = measureCharMinor.clientWidth;
-
-    this.frame.removeChild(measureCharMinor);
+    this.dom.measureCharMinor.appendChild(document.createTextNode('0'));
+    this.frame.appendChild(this.dom.measureCharMinor);
   }
+  this.props.minorCharHeight = this.dom.measureCharMinor.clientHeight;
+  this.props.minorCharWidth = this.dom.measureCharMinor.clientWidth;
 
   // determine the char width and height on the major axis
-  if (!('majorCharHeight' in this.props) || this.props.majorCharHeight == 0) {
-    var textMajor = document.createTextNode('0');
-    var measureCharMajor = document.createElement('DIV');
-    measureCharMajor.className = 'text major measure';
-    measureCharMajor.appendChild(textMajor);
-    this.frame.appendChild(measureCharMajor);
+  if (!this.dom.measureCharMajor) {
+    this.dom.measureCharMajor = document.createElement('DIV');
+    this.dom.measureCharMajor.className = 'text minor measure';
+    this.dom.measureCharMajor.style.position = 'absolute';
 
-    this.props.majorCharHeight = measureCharMajor.clientHeight;
-    this.props.majorCharWidth = measureCharMajor.clientWidth;
-
-    this.frame.removeChild(measureCharMajor);
+    this.dom.measureCharMajor.appendChild(document.createTextNode('0'));
+    this.frame.appendChild(this.dom.measureCharMajor);
   }
+  this.props.majorCharHeight = this.dom.measureCharMajor.clientHeight;
+  this.props.majorCharWidth = this.dom.measureCharMajor.clientWidth;
 };
 
 /**
@@ -7194,7 +7223,7 @@ function Timeline (container, items, options) {
 
   var me = this;
   var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
-  this.options = {
+  this.defaultOptions = {
     orientation: 'bottom',
     direction: 'horizontal', // 'horizontal' or 'vertical'
     autoResize: true,
@@ -7208,7 +7237,6 @@ function Timeline (container, items, options) {
     },
 
     selectable: true,
-    snap: null, // will be specified after timeaxis is created
 
     min: null,
     max: null,
@@ -7221,6 +7249,13 @@ function Timeline (container, items, options) {
     showMajorLabels: true,
     showCurrentTime: false,
     showCustomTime: false,
+
+    groupOrder: null,
+
+    width: null,
+    height: null,
+    maxHeight: null,
+    minHeight: null,
 
     type: 'box',
     align: 'center',
@@ -7241,11 +7276,17 @@ function Timeline (container, items, options) {
     },
     onRemove: function (item, callback) {
       callback(item);
-    },
+    }
+  };
+
+  this.options = {};
+  util.deepExtend(this.options, this.defaultOptions);
+  util.deepExtend(this.options, {
+    snap: null, // will be specified after timeaxis is created
 
     toScreen: me._toScreen.bind(me),
     toTime: me._toTime.bind(me)
-  };
+  });
 
   // root panel
   var rootOptions = util.extend(Object.create(this.options), {
@@ -7463,7 +7504,7 @@ Emitter(Timeline.prototype);
  * @param {Object} options  TODO: describe the available options
  */
 Timeline.prototype.setOptions = function (options) {
-  util.extend(this.options, options);
+  util.deepExtend(this.options, options);
 
   if ('editable' in options) {
     var isBoolean = typeof options.editable === 'boolean';
@@ -7620,6 +7661,33 @@ Timeline.prototype.setGroups = function setGroups(groups) {
 
   this.groupsData = newDataSet;
   this.itemSet.setGroups(newDataSet);
+};
+
+/**
+ * Clear the Timeline. By Default, items, groups and options are cleared.
+ * Example usage:
+ *
+ *     timeline.clear();                // clear items, groups, and options
+ *     timeline.clear({options: true}); // clear options only
+ *
+ * @param {Object} [what]      Optionally specify what to clear. By default:
+ *                             {items: true, groups: true, options: true}
+ */
+Timeline.prototype.clear = function clear(what) {
+  // clear items
+  if (!what || what.items) {
+    this.setItems(null);
+  }
+
+  // clear groups
+  if (!what || what.groups) {
+    this.setGroups(null);
+  }
+
+  // clear options
+  if (!what || what.options) {
+    this.setOptions(this.defaultOptions);
+  }
 };
 
 /**
