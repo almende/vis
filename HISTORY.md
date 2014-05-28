@@ -1,17 +1,26 @@
 # vis.js history
 http://visjs.org
 
+
 ## not yet released, version 1.0.2
 
 ### Timeline
 
+- Implemented option `minHeight`, similar to option `maxHeight`.
+- Added function `repaint()` to force a repaint of the Timeline.
 - Some tweaks in snapping dragged items to nice dates.
+- Made the instance of moment.js packaged with vis.js accessibly via `vis.moment`.
+- A newly created item is initialized with `end` property when option `type`
+  is `"range"` or `"rangeoverflow"`.
 - Fixed a bug in replacing the DataSet of groups via `Timeline.setGroups(groups)`.
+- Fixed a bug when rendering the Timeline inside a hidden container. 
 
 ### Graph
 
-- added zoomable and moveable options.
-- changes setOptions to avoid resetting view.
+- Added zoomable and moveable options.
+- Changes setOptions to avoid resetting view.
+- Interchanged canvasToDOM and DOMtoCanvas to correspond with the docs.
+
 
 ## 2014-05-09, version 1.0.1
 

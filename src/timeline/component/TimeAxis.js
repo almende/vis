@@ -406,8 +406,12 @@ TimeAxis.prototype._repaintLine = function() {
  * @private
  */
 TimeAxis.prototype._calculateCharSize = function () {
+  // Note: We only calculate char size once, but in case it is calculated as zero,
+  //       we will recalculate. This is the case if any of the timelines parents
+  //       has display:none for example.
+
   // determine the char width and height on the minor axis
-  if (!('minorCharHeight' in this.props)) {
+  if (!('minorCharHeight' in this.props) || this.props.minorCharHeight == 0) {
     var textMinor = document.createTextNode('0');
     var measureCharMinor = document.createElement('DIV');
     measureCharMinor.className = 'text minor measure';
@@ -420,7 +424,8 @@ TimeAxis.prototype._calculateCharSize = function () {
     this.frame.removeChild(measureCharMinor);
   }
 
-  if (!('majorCharHeight' in this.props)) {
+  // determine the char width and height on the major axis
+  if (!('majorCharHeight' in this.props) || this.props.majorCharHeight == 0) {
     var textMajor = document.createTextNode('0');
     var measureCharMajor = document.createElement('DIV');
     measureCharMajor.className = 'text major measure';

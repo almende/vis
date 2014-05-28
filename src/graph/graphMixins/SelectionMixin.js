@@ -40,8 +40,8 @@ var SelectionMixin = {
    * @private
    */
   _pointerToPositionObject : function(pointer) {
-    var x = this._canvasToX(pointer.x);
-    var y = this._canvasToY(pointer.y);
+    var x = this._XconvertDOMtoCanvas(pointer.x);
+    var y = this._YconvertDOMtoCanvas(pointer.y);
 
     return {left:   x,
             top:    y,
@@ -433,8 +433,8 @@ var SelectionMixin = {
     var node = this._getNodeAt(pointer);
     if (node != null && node !== undefined) {
       // we reset the areaCenter here so the opening of the node will occur
-      this.areaCenter =  {"x" : this._canvasToX(pointer.x),
-                          "y" : this._canvasToY(pointer.y)};
+      this.areaCenter =  {"x" : this._XconvertDOMtoCanvas(pointer.x),
+                          "y" : this._YconvertDOMtoCanvas(pointer.y)};
       this.openCluster(node);
     }
     this.emit("doubleClick", this.getSelection());

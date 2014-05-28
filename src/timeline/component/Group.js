@@ -51,6 +51,14 @@ Group.prototype._create = function() {
   this.dom.background = document.createElement('div');
 
   this.dom.axis = document.createElement('div');
+
+  // create a hidden marker to detect when the Timelines container is attached
+  // to the DOM, or the style of a parent of the Timeline is changed from
+  // display:none is changed to visible.
+  this.dom.marker = document.createElement('div');
+  this.dom.marker.style.visibility = 'hidden';
+  this.dom.marker.innerHTML = '?';
+  this.dom.background.appendChild(this.dom.marker);
 };
 
 /**
@@ -122,6 +130,20 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
 
   this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
 
+  // force recalculation of the height of the items when the marker height changed
+  // (due to the Timeline being attached to the DOM or changed from display:none to visible)
+  var markerHeight = this.dom.marker.clientHeight;
+  if (markerHeight != this.lastMarkerHeight) {
+    this.lastMarkerHeight = markerHeight;
+
+    util.forEach(this.items, function (item) {
+      item.dirty = true;
+      if (item.displayed) item.repaint();
+    });
+
+    restack = true;
+  }
+
   // reposition visible items vertically
   if (this.itemSet.options.stack) { // TODO: ugly way to access options...
     stack.stack(this.visibleItems, margin, restack);
@@ -129,7 +151,6 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
   else { // no stacking
     stack.nostack(this.visibleItems, margin);
   }
-  this.stackDirty = false;
   for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
     var item = this.visibleItems[i];
     item.repositionY();

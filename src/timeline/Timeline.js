@@ -544,7 +544,7 @@ Timeline.prototype.getSelection = function getSelection() {
  * Where start and end can be a Date, number, or string, and range is an
  * object with properties start and end.
  *
- * @param {Date | Number | String} [start] Start date of visible window
+ * @param {Date | Number | String | Object} [start] Start date of visible window
  * @param {Date | Number | String} [end]   End date of visible window
  */
 Timeline.prototype.setWindow = function setWindow(start, end) {
@@ -567,6 +567,14 @@ Timeline.prototype.getWindow = function setWindow() {
     start: new Date(range.start),
     end: new Date(range.end)
   };
+};
+
+/**
+ * Force a repaint of the Timeline. Can be useful to manually repaint when
+ * option autoResize=false
+ */
+Timeline.prototype.repaint = function repaint() {
+    this.rootPanel.repaint();
 };
 
 /**
@@ -634,6 +642,11 @@ Timeline.prototype._onAddItem = function (event) {
       start: this.timeAxis.snap(this._toTime(x)),
       content: 'new item'
     };
+
+    // when default type is a range, add a default end date to the new item
+    if (this.options.type === 'range' || this.options.type == 'rangeoverflow') {
+      newItem.end = this.timeAxis.snap(this._toTime(x + this.rootPanel.width / 5));
+    }
 
     var id = util.randomUUID();
     newItem[this.itemsData.fieldId] = id;
