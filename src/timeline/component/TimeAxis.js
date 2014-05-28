@@ -407,37 +407,32 @@ TimeAxis.prototype._repaintLine = function() {
  * @private
  */
 TimeAxis.prototype._calculateCharSize = function () {
-  // Note: We only calculate char size once, but in case it is calculated as zero,
-  //       we will recalculate. This is the case if any of the timelines parents
-  //       has display:none for example.
+  // Note: We calculate char size with every repaint. Size may change, for
+  // example when any of the timelines parents had display:none for example.
 
   // determine the char width and height on the minor axis
-  if (!('minorCharHeight' in this.props) || this.props.minorCharHeight == 0) {
-    var textMinor = document.createTextNode('0');
-    var measureCharMinor = document.createElement('DIV');
-    measureCharMinor.className = 'text minor measure';
-    measureCharMinor.appendChild(textMinor);
-    this.frame.appendChild(measureCharMinor);
+  if (!this.dom.measureCharMinor) {
+    this.dom.measureCharMinor = document.createElement('DIV');
+    this.dom.measureCharMinor.className = 'text minor measure';
+    this.dom.measureCharMinor.style.position = 'absolute';
 
-    this.props.minorCharHeight = measureCharMinor.clientHeight;
-    this.props.minorCharWidth = measureCharMinor.clientWidth;
-
-    this.frame.removeChild(measureCharMinor);
+    this.dom.measureCharMinor.appendChild(document.createTextNode('0'));
+    this.frame.appendChild(this.dom.measureCharMinor);
   }
+  this.props.minorCharHeight = this.dom.measureCharMinor.clientHeight;
+  this.props.minorCharWidth = this.dom.measureCharMinor.clientWidth;
 
   // determine the char width and height on the major axis
-  if (!('majorCharHeight' in this.props) || this.props.majorCharHeight == 0) {
-    var textMajor = document.createTextNode('0');
-    var measureCharMajor = document.createElement('DIV');
-    measureCharMajor.className = 'text major measure';
-    measureCharMajor.appendChild(textMajor);
-    this.frame.appendChild(measureCharMajor);
+  if (!this.dom.measureCharMajor) {
+    this.dom.measureCharMajor = document.createElement('DIV');
+    this.dom.measureCharMajor.className = 'text minor measure';
+    this.dom.measureCharMajor.style.position = 'absolute';
 
-    this.props.majorCharHeight = measureCharMajor.clientHeight;
-    this.props.majorCharWidth = measureCharMajor.clientWidth;
-
-    this.frame.removeChild(measureCharMajor);
+    this.dom.measureCharMajor.appendChild(document.createTextNode('0'));
+    this.frame.appendChild(this.dom.measureCharMajor);
   }
+  this.props.majorCharHeight = this.dom.measureCharMajor.clientHeight;
+  this.props.majorCharWidth = this.dom.measureCharMajor.clientWidth;
 };
 
 /**
