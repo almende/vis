@@ -26,6 +26,8 @@ function Timeline (container, items, options) {
 
     selectable: true,
 
+    start: null,
+    end: null,
     min: null,
     max: null,
     zoomMin: 10,                                // milliseconds

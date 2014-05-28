@@ -4,6 +4,11 @@ http://visjs.org
 
 ## not yet released, version 1.0.3
 
+### Timeline
+
+- Fixed `Timeline.clear()` not resetting a configured `options.start` and 
+  `options.end`.
+
 
 ## 2014-05-28, version 1.0.2
 
