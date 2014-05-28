@@ -341,8 +341,7 @@ var options = {
   <td>autoResize</td>
   <td>boolean</td>
   <td>true</td>
-  <td>If true, the Timeline will automatically detect when its
-    container is resized, and redraw itself accordingly.</td>
+  <td>If true, the Timeline will automatically detect when its container is resized, and redraw itself accordingly. If false, the Timeline can be forced to repaint after its container has been resized using the function <code>repaint()</code>.</td>
 </tr>
 
 <tr>
@@ -402,7 +401,7 @@ var options = {
 
 <tr>
   <td>height</td>
-  <td>String</td>
+  <td>Number | String</td>
   <td>none</td>
   <td>The height of the timeline in pixels or as a percentage.
     When height is undefined or null, the height of the timeline is automatically
@@ -438,10 +437,9 @@ var options = {
 
 <tr>
   <td>maxHeight</td>
-  <td>Number</td>
+  <td>Number | String</td>
   <td>none</td>
-  <td>Specifies a maximum height for the Timeline in pixels.
-  </td>
+  <td>Specifies the maximum height for the Timeline. Can be a number in pixels or a string like "300px".</td>
 </tr>
 
 <tr>
@@ -451,6 +449,13 @@ var options = {
   <td>Set a minimum Date for the visible range.
     It will not be possible to move beyond this minimum.
   </td>
+</tr>
+
+<tr>
+    <td>minHeight</td>
+    <td>Number | String</td>
+    <td>none</td>
+    <td>Specifies the minimum height for the Timeline. Can be a number in pixels or a string like "300px".</td>
 </tr>
 
 <tr>
@@ -583,7 +588,7 @@ var options = {
   <td>type</td>
   <td>String</td>
   <td>'box'</td>
-  <td>Specifies the type for the timeline items. Choose from 'box', 'point', 'range', and 'rangeoverflow'. Note that individual items can override this global type.
+  <td>Specifies the default type for the timeline items. Choose from 'box', 'point', 'range', and 'rangeoverflow'. Note that individual items can override this default type.
   </td>
 </tr>
 
@@ -629,6 +634,19 @@ var options = {
   </tr>
 
   <tr>
+    <td>clear([what])</td>
+    <td>none</td>
+    <td>
+      Clear the Timeline. An object can be passed specifying which sections to clear: items, groups,
+      and/or options. By Default, items, groups and options are cleared, i.e. <code>what = {items: true, groups: true, options: true}</code>. Example usage:
+
+<pre class="prettyprint lang-js">timeline.clear();                // clear items, groups, and options
+timeline.clear({options: true}); // clear options only
+</pre>
+    </td>
+  </tr>
+
+  <tr>
     <td>fit()</td>
     <td>none</td>
     <td>Adjust the visible window such that it fits all items.
@@ -671,6 +689,13 @@ var options = {
     <td>off(event, callback)</td>
     <td>none</td>
     <td>Remove an event listener created before via function <code>on(event, callback)</code>. See section <a href="#Events">Events for more information</a>.</td>
+  </tr>
+
+  <tr>
+    <td>repaint()</td>
+    <td>none</td>
+    <td>Force a repaint of the Timeline. Can be useful to manually repaint when option autoResize=false.
+    </td>
   </tr>
 
   <tr>
