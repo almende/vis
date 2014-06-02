@@ -12,6 +12,7 @@ http://visjs.org
 ### Graph
 
 - Fixed error with zero nodes with hierarchical layout.
+- Added focusOnNode function.
 
 
 ## 2014-05-28, version 1.0.2

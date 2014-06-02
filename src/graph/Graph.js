@@ -2183,7 +2183,35 @@ Graph.prototype.storePosition = function() {
 };
 
 
+/**
+ * Center a node in view.
+ *
+ * @param {Number} nodeId
+ * @param {Number} [zoomLevel]
+ */
+Graph.prototype.focusOnNode = function (nodeId, zoomLevel) {
+  if (this.nodes.hasOwnProperty(nodeId)) {
+    if (zoomLevel === undefined) {
+      zoomLevel = this._getScale();
+    }
+    var nodePosition= {x: this.nodes[nodeId].x, y: this.nodes[nodeId].y};
+    var canvasCenter = this.DOMtoCanvas({x:0.5 * this.frame.canvas.width,y:0.5 * this.frame.canvas.height});
 
+    var translation = this._getTranslation();
+    var requiredScale = zoomLevel;
+
+    var distanceFromCenter = {x:canvasCenter.x - nodePosition.x,
+      y:canvasCenter.y - nodePosition.y};
+
+    this._setScale(requiredScale);
+    this._setTranslation(translation.x + requiredScale * distanceFromCenter.x,
+      translation.y + requiredScale * distanceFromCenter.y);
+    this.redraw();
+  }
+  else {
+    console.log("This nodeId cannot be found.")
+  }
+};
 
 
 

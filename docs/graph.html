@@ -2009,6 +2009,13 @@ var options: {
     </td>
   </tr>
     <tr>
+        <td>focusOnNode(nodeId, [zoomLevel])</td>
+        <td>none</td>
+        <td>This function will move the view to center on the specified node. An optional zoomLevel can be passed where 1.0 is 100&#37;, between 0.0 and 1.0 is zooming out and > 1.0 is zooming in. Generally, close to 1.0 is sufficient.
+            If this argument is not passed the view will only move, not zoom.
+        </td>
+    </tr>
+    <tr>
         <td>storePosition()</td>
         <td>none</td>
         <td>This will put the X and Y positions of all nodes in the dataset. It will also include allowedToMoveX and allowedToMoveY with the correct values.
