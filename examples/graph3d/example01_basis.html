@@ -7,42 +7,30 @@
         body {font: 10pt arial;}
     </style>
 
-    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-    <script type="text/javascript" src="../graph3d.js"></script>
+    <script type="text/javascript" src="../../dist/vis.js"></script>
 
     <script type="text/javascript">
         var data = null;
         var graph = null;
 
-        google.load("visualization", "1");
-
-        // Set callback to run when API is loaded
-        google.setOnLoadCallback(drawVisualization);
-
         function custom(x, y) {
-            return Math.sin(x/50) * Math.cos(y/50) * 50 + 50;
+            return (Math.sin(x/50) * Math.cos(y/50) * 50 + 50);
         }
 
         // Called when the Visualization API is loaded.
         function drawVisualization() {
             // Create and populate a data table.
-            data = new google.visualization.DataTable();
-            data.addColumn('number', 'x');
-            data.addColumn('number', 'y');
-            data.addColumn('number', 'value');
-            data.addColumn('string', 'Value range');
-
+            var data = new vis.DataSet({});
             // create some nice looking data with sin/cos
-            var steps = 50;  // number of datapoints will be steps^2
+            var steps = 50;  // number of datapoints will be steps*steps
             var axisMax = 314;
-            axisStep = axisMax / steps;
+            var axisStep = axisMax / steps;
             for (var x = 0; x < axisMax; x+=axisStep) {
                 for (var y = 0; y < axisMax; y+=axisStep) {
                     var value = custom(x,y);
-                    var valueRange = (value > 67) ? "67-100" :
-                            (value < 33) ? "0-33" :
-                                    "33-67";
-                    data.addRow([x, y, value, valueRange]);
+                    data.add([
+                        {x:x,y:y,z:value,t:0,style:value}
+                    ]);
                 }
             }
 
@@ -51,7 +39,7 @@
                 width:  "600px",
                 height: "600px",
                 style: "surface",
-                showPerspective: false,
+                showPerspective: true,
                 showGrid: true,
                 showShadow: false,
                 keepAspectRatio: true,
