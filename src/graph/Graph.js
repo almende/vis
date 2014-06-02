@@ -68,6 +68,7 @@ function Graph (container, data, options) {
       widthMin: 1,
       widthMax: 15,
       width: 1,
+      hoverWidth: 1.5,
       style: 'line',
       color: {
         color:'#848484',
@@ -1191,14 +1192,10 @@ Graph.prototype._onMouseMoveTitle = function (event) {
    */
   if (this.constants.hover == true) {
     // removing all hover highlights
-    for (var nodeId in this.hoverObj.nodes) {
-      if (this.hoverObj.nodes.hasOwnProperty(nodeId)) {
-        this.hoverObj.nodes[nodeId].hover = false;
-      }
-    }
     for (var edgeId in this.hoverObj.edges) {
       if (this.hoverObj.edges.hasOwnProperty(edgeId)) {
         this.hoverObj.edges[edgeId].hover = false;
+        delete this.hoverObj.edges[edgeId];
       }
     }
 
@@ -1209,6 +1206,16 @@ Graph.prototype._onMouseMoveTitle = function (event) {
     }
     if (obj != null) {
       this._hoverObject(obj);
+    }
+
+    // removing all node hover highlights except for the selected one.
+    for (var nodeId in this.hoverObj.nodes) {
+      if (this.hoverObj.nodes.hasOwnProperty(nodeId)) {
+        if (obj instanceof Node && obj.id != nodeId || obj instanceof Edge || obj == null) {
+          this._blurObject(this.hoverObj.nodes[nodeId]);
+          delete this.hoverObj.nodes[nodeId];
+        }
+      }
     }
     this.redraw();
   }

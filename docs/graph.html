@@ -817,6 +817,12 @@ var options = {
         <td>false</td>
         <td>Enabling the change of the colors of nodes and edges when the mouse hovers over them. Enabling this may have a minor impact on performance.</td>
     </tr>
+    <tr>
+        <td>hoverWidth</td>
+        <td>Number</td>
+        <td>1.5</td>
+        <td>This determines the thickness of the edge if it is hovered over. This will only manifest when the hover option is enabled.</td>
+    </tr>
   <tr>
     <td><a href="#Keyboard_navigation">keyboard</a></td>
     <td>Object</td>
@@ -2200,6 +2206,26 @@ graph.off('select', onSelect);
             <ul>
                 <li><code>nodes</code>: an array with the ids of the selected nodes</li>
                 <li><code>edges</code>: an array with the ids of the selected edges</li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+    <tr>
+        <td>hoverNode</td>
+        <td>Fired when the mouse is moved over a node (assuming the hover option is enabled).</td>
+        <td>
+            <ul>
+                <li><code>node</code>: an object with the id of the hovered node.</li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+    <tr>
+        <td>blurNode</td>
+        <td>Fired when the mouse is moved off a node (assuming the hover option is enabled).</td>
+        <td>
+            <ul>
+                <li><code>node</code>: an object with the id of the hovered node.</li>
             </ul>
         </td>
     </tr>

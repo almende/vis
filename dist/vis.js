@@ -10043,6 +10043,7 @@ function Edge (properties, graph, constants) {
   this.style  = constants.edges.style;
   this.title  = undefined;
   this.width  = constants.edges.width;
+  this.hoverWidth = constants.edges.hoverWidth;
   this.value  = undefined;
   this.length = constants.physics.springLength;
   this.customLength = false;
@@ -10107,6 +10108,7 @@ Edge.prototype.setProperties = function(properties, constants) {
 
   if (properties.title !== undefined)        {this.title = properties.title;}
   if (properties.width !== undefined)        {this.width = properties.width;}
+  if (properties.hoverWidth !== undefined)   {this.hoverWidth = properties.hoverWidth;}
   if (properties.value !== undefined)        {this.value = properties.value;}
   if (properties.length !== undefined)       {this.length = properties.length;
                                               this.customLength = true;}
@@ -10321,7 +10323,7 @@ Edge.prototype._getLineWidth = function() {
   }
   else {
     if (this.hover == true) {
-      return Math.min(this.width * 1.5, this.widthMax)*this.graphScaleInv;
+      return Math.min(this.hoverWidth, this.widthMax)*this.graphScaleInv;
     }
     else {
       return this.width*this.graphScaleInv;
@@ -15144,17 +15146,30 @@ var SelectionMixin = {
    * @param {Node || Edge} object
    * @private
    */
+  _blurObject : function(object) {
+    if (object.hover == true) {
+      object.hover = false;
+      this.emit("blurNode",{node:object.id});
+    }
+  },
+
+  /**
+   * This is called when someone clicks on a node. either select or deselect it.
+   * If there is an existing selection and we don't want to append to it, clear the existing selection
+   *
+   * @param {Node || Edge} object
+   * @private
+   */
   _hoverObject : function(object) {
     if (object.hover == false) {
       object.hover = true;
       this._addToHover(object);
-      if (object instanceof Node && this.blockConnectingEdgeSelection == false) {
-        this._hoverConnectedEdges(object);
+      if (object instanceof Node) {
+        this.emit("hoverNode",{node:object.id});
       }
     }
-    else {
-      object.hover = false;
-      this._removeFromHover(object);
+    if (object instanceof Node) {
+      this._hoverConnectedEdges(object);
     }
   },
 
@@ -15819,6 +15834,7 @@ function Graph (container, data, options) {
       widthMin: 1,
       widthMax: 15,
       width: 1,
+      hoverWidth: 1.5,
       style: 'line',
       color: {
         color:'#848484',
@@ -16942,14 +16958,10 @@ Graph.prototype._onMouseMoveTitle = function (event) {
    */
   if (this.constants.hover == true) {
     // removing all hover highlights
-    for (var nodeId in this.hoverObj.nodes) {
-      if (this.hoverObj.nodes.hasOwnProperty(nodeId)) {
-        this.hoverObj.nodes[nodeId].hover = false;
-      }
-    }
     for (var edgeId in this.hoverObj.edges) {
       if (this.hoverObj.edges.hasOwnProperty(edgeId)) {
         this.hoverObj.edges[edgeId].hover = false;
+        delete this.hoverObj.edges[edgeId];
       }
     }
 
@@ -16960,6 +16972,16 @@ Graph.prototype._onMouseMoveTitle = function (event) {
     }
     if (obj != null) {
       this._hoverObject(obj);
+    }
+
+    // removing all node hover highlights except for the selected one.
+    for (var nodeId in this.hoverObj.nodes) {
+      if (this.hoverObj.nodes.hasOwnProperty(nodeId)) {
+        if (obj instanceof Node && obj.id != nodeId || obj instanceof Edge || obj == null) {
+          this._blurObject(this.hoverObj.nodes[nodeId]);
+          delete this.hoverObj.nodes[nodeId];
+        }
+      }
     }
     this.redraw();
   }

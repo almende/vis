@@ -421,17 +421,30 @@ var SelectionMixin = {
    * @param {Node || Edge} object
    * @private
    */
+  _blurObject : function(object) {
+    if (object.hover == true) {
+      object.hover = false;
+      this.emit("blurNode",{node:object.id});
+    }
+  },
+
+  /**
+   * This is called when someone clicks on a node. either select or deselect it.
+   * If there is an existing selection and we don't want to append to it, clear the existing selection
+   *
+   * @param {Node || Edge} object
+   * @private
+   */
   _hoverObject : function(object) {
     if (object.hover == false) {
       object.hover = true;
       this._addToHover(object);
-      if (object instanceof Node && this.blockConnectingEdgeSelection == false) {
-        this._hoverConnectedEdges(object);
+      if (object instanceof Node) {
+        this.emit("hoverNode",{node:object.id});
       }
     }
-    else {
-      object.hover = false;
-      this._removeFromHover(object);
+    if (object instanceof Node) {
+      this._hoverConnectedEdges(object);
     }
   },
 

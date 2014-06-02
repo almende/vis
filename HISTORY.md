@@ -13,7 +13,8 @@ http://visjs.org
 
 - Fixed error with zero nodes with hierarchical layout.
 - Added focusOnNode function.
-- Added Hover option.
+- Added hover option.
+- Added hover events (hoverNode, blurNode).
 
 
 ## 2014-05-28, version 1.0.2
