@@ -1,0 +1,43 @@
+<html>
+  <head>
+    <title>Graph 3D demo</title>
+
+    <style>
+      body {font: 10pt arial;}
+    </style>
+
+    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+    <script type="text/javascript" src="../graph3d.js"></script>
+    <link rel="stylesheet" type="text/css" href="../graph3d.css">
+    <!--[if IE]><script src="../excanvas.js"></script><![endif]-->
+    
+    <script type="text/javascript">
+      var filter;
+      
+      var load = function () {
+        var filterDiv = document.getElementById("filter");
+        
+        filter = new links.Slider(filterDiv, "400px");
+        
+        var values = new Array();
+        for (var i = 0; i < 100; i+=5) {
+          values.push(i);
+        }
+        
+        filter.setValues(values);
+        
+        function onchange () {
+          document.title = filter.get();
+        }
+        filter.setOnChangeCallback(onchange);
+        filter.setPlayInterval(200);
+      }
+   </script>
+  </head>
+
+  <body onload="load();">
+    <div id="filter"></div>
+
+    <div id="info"></div>
+  </body>
+</html>

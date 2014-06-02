@@ -5530,16 +5530,14 @@ Linegraph.prototype.setData = function() {
         var dataset = this._extractData(datapoints);
         var data = dataset.data;
 
-        console.log("height",data,datapoints, dataset);
-
         this.yAxis.setRange({start:dataset.range.low,end:dataset.range.high});
         this.yAxis.repaint();
         data = this.yAxis.convertValues(data);
 
         var d, d2, d3;
-        d = this._catmullRom(data,0.5);
-        d3 = this._catmullRom(data,0);
-        d2 = this._catmullRom(data,1);
+        d = this._catmullRom(data,0.5); // centripetal
+        d3 = this._catmullRom(data,0);  // uniform
+        d2 = this._catmullRom(data,1);  // chordial
 
 
 //        var data2 = [];

@@ -1,0 +1,99 @@
+<html><head> 
+<title>Simple 3D on HTML5 canvas</title> 
+ 
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"> 
+		
+<script type="text/javascript"> 
+ 
+function setup()
+{
+ 
+ 
+var fov = 250;
+ 
+var SCREEN_WIDTH = 600; 
+var SCREEN_HEIGHT = 300; 
+ 
+var HALF_WIDTH = SCREEN_WIDTH/2; 
+var HALF_HEIGHT = SCREEN_HEIGHT/2; 
+ 
+var numPoints = 1000; 
+
+ 
+function draw3Din2D(point3d)
+{  
+	x3d = point3d[0];
+	y3d = point3d[1]; 
+	z3d = point3d[2]; 
+	var scale = fov/(fov+z3d); 
+	var x2d = (x3d * scale) + HALF_WIDTH;	
+	var y2d = (y3d * scale)  + HALF_HEIGHT;
+	
+	
+	c.lineWidth= scale; 
+	c.strokeStyle = "rgb(255,255,255)"; 	
+	c.beginPath();
+	c.moveTo(x2d,y2d); 
+	c.lineTo(x2d+scale,y2d); 
+	c.stroke(); 
+	
+}
+ 
+var canvas = document.getElementById('Canvas2D');
+var c = canvas.getContext('2d');
+ 
+var points = [];
+ 
+function initPoints()
+{
+	for (i=0; i<numPoints; i++)
+	{
+		point = [(Math.random()*400)-200, (Math.random()*400)-200 , (Math.random()*400)-200 ];
+		points.push(point); 
+	}
+ 
+}
+ 
+function render() 
+{
+ 
+	c.fillStyle="rgb(0,0,0)";
+  	c.fillRect(0,0, SCREEN_WIDTH, SCREEN_HEIGHT);
+  	
+	for (i=0; i<numPoints; i++)
+	{
+		point3d = points[i]; 
+		
+		z3d = point3d[2]; 
+		z3d-=4; 
+		if(z3d<-fov) z3d +=400; 
+		point3d[2] = z3d; 
+		
+		
+		draw3Din2D(point3d); 
+ 
+	}
+}
+ 
+initPoints();
+ 
+var loop = setInterval(function(){render();}, 50);
+ 
+}
+ 
+</script> 
+<style type="text/css">      
+  body{background:#000;color:#fff;font-family:arial;font-size:90%;}
+  .wrap{width:640px; margin:0 auto;}
+  canvas{border: 1px solid #0f0;}
+  a{color:#0f0;}
+</style> 
+</head><body onload="setup();"> 
+<div class="wrap"> 
+  <canvas id="Canvas2D" width="600" height="300">Internet Explorer Not Supported :(</canvas> 
+  <h1>Simple 3D HTML5 Canvas</h1> 
+  <p>By <a href="http://sebleedelisle.com">Seb Lee-Delisle</a></p> 
+	<p>Simple 3D on HTML5 Canvas, as demoed at BarCampBrighton4. More info at <a href="http://www.sebleedelisle.com/2009/09/simple-3d-in-html5-canvas">sebleedelisle.com</a>. </p> 
+</div> 
+
+</body></html>

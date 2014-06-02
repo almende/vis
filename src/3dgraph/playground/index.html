@@ -1,0 +1,247 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+
+<head>
+    <title>Graph 3D - Playground</title>
+
+    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+    <script type="text/javascript" src="../graph3d.js"></script>
+
+
+    <script type="text/javascript" src="playground.js"></script>
+    <script type="text/javascript" src="csv2array.js"></script>
+    <link rel='stylesheet' href='playground.css' type='text/css'>
+
+    <script type="text/javascript">
+        google.load("visualization", "1");
+
+        // Set callback to run when API is loaded
+        google.setOnLoadCallback(drawVisualization);
+
+        // Called when the Visualization API is loaded.
+        function drawVisualization() {
+            // TODO
+        }
+    </script>
+</head>
+
+<body onload="load();">
+
+<h1>Graph 3D - Playground</h1>
+
+<table style="width:100%;">
+<col width="50%">
+<col width="50%">
+
+<tr>
+    <td>
+        <h2>Data</h2>
+        <p>
+            Graph 3D expects a data table with first three to five columns:
+            colums <code>x</code>, <code>y</code>, <code>z</code> (optional),
+            <code>value</code>, <code>filtervalue</code> (optional).
+        </p>
+
+        <table>
+            <tr>
+                <td style="white-space: nowrap">
+                    <input type="radio" name="datatype" id="datatypeCsv" onclick="selectDataType();" checked value="csv">Csv
+                </td>
+                <td>
+                    <div id="csv">
+                        <p>
+                            The csv table must contain a header line with column names.
+                        </p>
+                        <textarea id="csvTextarea"></textarea>
+                        <p>
+                            <a href="javascript: loadCsvExample();" title="Load an example">Simple example</a>
+                            <a href="javascript: loadCsvLineExample();" title="Load an example">Line example</a>
+                            <a href="javascript: loadCsvAnimationExample();" title="Load an example">Animation example</a>
+                            <a href="javascript: loadCsvMovingDotsExample();" title="Load an example">Moving dots example</a>
+                            <a href="javascript: loadCsvColoredDotsExample();" title="Load an example">Colored dots example</a>
+                            <a href="javascript: loadCsvSizedDotsExample();" title="Load an example">Sized dots example</a>
+                        </p>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <td style="white-space: nowrap">
+                    <input type="radio" name="datatype" id="datatypeJson" onclick="selectDataType();" value="javascript">Json
+                </td>
+                <td>
+                    <div id="json">
+                        <p>
+
+                        </p>
+                        <textarea id="jsonTextarea"></textarea>
+                        <p>
+                            <a href="javascript: loadJsonExample();" title="Load an example">Simple example</a>
+                        </p>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <td style="white-space: nowrap">
+                    <input type="radio" name="datatype" id="datatypeJavascript" onclick="selectDataType();" value="javascript">Javascript
+                </td>
+                <td>
+                    <div id="javascript">
+                        <p>
+                            The javascript source must create a global variable named <code>data</code>
+                            which contains a google visualization DataTable.
+                        </p>
+                        <textarea id="javascriptTextarea"></textarea>
+                        <p>
+                            <a href="javascript: loadJavascriptExample();" title="Load an example">Simple example</a>
+                            <a href="javascript: loadJavascriptFunctionExample();" title="Load an example">Function example</a>
+                        </p>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <td style="white-space: nowrap">
+                    <input type="radio" name="datatype" id="datatypeGooglespreadsheet" onclick="selectDataType();" value="googlespreadsheet">Google Spreadsheet
+                </td>
+                <td>
+                    <div id="googlespreadsheet">
+                        <input type="text" id="googlespreadsheetText">
+                        <p>
+                            <a href="javascript: loadGooglespreadsheetExample();" title="Load an example">Google Spreadsheet example</a>
+                            (<a href="https://spreadsheets.google.com/a/almende.org/ccc?key=tJ6gaeq2Ldy82VVMr5dPQoA&hl=en#gid=0" target="_blank" title="View data">view spreadsheet</a>)
+                        </p>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <td style="white-space: nowrap">
+                    <input type="radio" name="datatype" id="datatypeDatasource" onclick="selectDataType();" value="datasource">Datasource
+                </td>
+                <td>
+                    <div id="datasource">
+                        <input type="text" id="datasourceText">
+                        <p>
+                            <a href="javascript: loadDatasourceExample();" title="Load an example">Example</a>
+                            (<a href="datasource.html" target="_blank" title="View php sourcecode">view source code</a>)
+                        </p>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <br>
+    </td>
+    <td rowspan=2>
+        <h2>Graph</h2>
+        <p>
+            <input type="button" value="Draw graph" onclick="draw();" id="draw">
+        </p>
+
+        <div id="graph"></div>
+    </td>
+</tr>
+<tr>
+    <td>
+        <h2>Options</h2>
+
+        <table>
+            <tr>
+                <th>Option</th>
+                <th>Value</th>
+            </tr>
+
+            <tr>
+                <td>width</td>
+                <td><input type="text" id="width" value="100%" /> <span class="info">for example "500px" or "100%"</span></td>
+            </tr>
+            <tr>
+                <td>height</td>
+                <td><input type="text" id="height" value="100%" /> <span class="info">for example "500px" or "100%"</span></td>
+            </tr>
+            <tr>
+                <td>style</td>
+                <td>
+                    <select id="style">
+                        <option value="bar" >bar
+                        <option value="bar-color" >bar-color
+                        <option value="bar-size" >bar-size
+                        <option value="dot" >dot
+                        <option value="dot-color" >dot-color
+                        <option value="dot-size" >dot-size
+                        <option value="dot-line" >dot-line
+                        <option value="line" >line
+                        <option value="grid" >grid
+                        <option value="surface" selected>surface
+                    </select>
+            </tr>
+
+            <tr>
+                <td>showAnimationControls</td>
+                <td><input type="checkbox" id="showAnimationControls" checked /></td>
+            </tr>
+            <tr>
+                <td>showGrid</td>
+                <td><input type="checkbox" id="showGrid" checked /></td>
+            </tr>
+            <tr>
+                <td>showPerspective</td>
+                <td><input type="checkbox" id="showPerspective" checked /></td>
+            </tr>
+            <tr>
+                <td>showShadow</td>
+                <td><input type="checkbox" id="showShadow" /></td>
+            </tr>
+
+            <tr>
+                <td>keepAspectRatio</td>
+                <td><input type="checkbox" id="keepAspectRatio" checked /></td>
+            </tr>
+            <tr>
+                <td>verticalRatio</td>
+                <td><input type="text" id="verticalRatio" value="0.5" /> <span class="info">a value between 0.1 and 1.0</span></td>
+            </tr>
+
+            <tr>
+                <td>animationInterval</td>
+                <td><input type="text" id="animationInterval" value="1000" /> <span class="info">in milliseconds</span></td>
+            </tr>
+            <tr>
+                <td>animationPreload</td>
+                <td><input type="checkbox" id="animationPreload" /></td>
+            </tr>
+            <tr>
+                <td>animationAutoStart</td>
+                <td><input type="checkbox" id="animationAutoStart" /></td>
+            </tr>
+
+            <tr><td>xCenter</td><td><input type="text" id="xCenter" value="55%" /></td></tr>
+            <tr><td>yCenter</td><td><input type="text" id="yCenter" value="45%" /></td></tr>
+
+            <tr><td>xMin</td><td><input type="text" id="xMin" /></td></tr>
+            <tr><td>xMax</td><td><input type="text" id="xMax" /></td></tr>
+            <tr><td>xStep</td><td><input type="text" id="xStep" /></td></tr>
+
+            <tr><td>yMin</td><td><input type="text" id="yMin" /></td></tr>
+            <tr><td>yMax</td><td><input type="text" id="yMax" /></td></tr>
+            <tr><td>yStep</td><td><input type="text" id="yStep" /></td></tr>
+
+            <tr><td>zMin</td><td><input type="text" id="zMin" /></td></tr>
+            <tr><td>zMax</td><td><input type="text" id="zMax" /></td></tr>
+            <tr><td>zStep</td><td><input type="text" id="zStep" /></td></tr>
+
+            <tr><td>valueMin</td><td><input type="text" id="valueMin" /></td></tr>
+            <tr><td>valueMax</td><td><input type="text" id="valueMax" /></td></tr>
+
+            <tr><td>xBarWidth</td><td><input type="text" id="xBarWidth" /></td></tr>
+            <tr><td>yBarWidth</td><td><input type="text" id="yBarWidth" /></td></tr>
+
+        </table>
+
+    </td>
+</tr>
+</table>
+
+</body>

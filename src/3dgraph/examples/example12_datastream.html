@@ -1,0 +1,185 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Datastream example</title>
+
+    <style>
+        body {
+            width: 600px;
+            font-size: 14px;
+        }
+    </style>
+
+    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+    <script type="text/javascript" src="../graph3d.js"></script>
+    <script type="text/javascript" src="ajax.js"></script>
+
+    <script>
+        var url = "datastream_csv.php";
+
+        google.load("visualization", "1");
+
+        // Set callback to run when API is loaded
+        google.setOnLoadCallback(load);
+
+        var loaded = false;
+        var ajax = new Ajax();
+        var dataBuffer = "";
+
+        var indexTable = undefined;
+        var dataTable = undefined;
+        var graph = undefined;
+        var options = undefined;
+
+        function load() {
+            // initialize data table
+            indexTable = new Array();
+            dataTable = new google.visualization.DataTable();
+            dataTable.addColumn('number', 'x');
+            dataTable.addColumn('number', 'y');
+            dataTable.addColumn('number', 'z');
+            dataTable.addColumn('number', 'color');
+
+            // specify options
+            options = {
+                width:  "500px",
+                height: "500px",
+                style: "dot-color",
+                showPerspective: true,
+                showGrid: true,
+                showShadow: false,
+                keepAspectRatio: true,
+                verticalRatio: 0.5,
+                cameraPosition: {
+                    distance: 1.4,
+                    horizontal: 0.0,
+                    vertical: 1.0
+                }
+            };
+
+            // Instantiate our graph object.
+            graph = new links.Graph3d(document.getElementById('graph'));
+
+            // Draw our graph with the created data and options
+            graph.draw(dataTable, options);
+
+            loaded = true;
+        }
+
+        /**
+         * Update the data in the datatable
+         */
+        function setData(id, x, y, z, color) {
+            if (indexTable[id] != undefined) {
+                // update data
+                var row = indexTable[id];
+                dataTable.setValue(row, 0, x);
+                dataTable.setValue(row, 1, y);
+                dataTable.setValue(row, 2, z);
+                dataTable.setValue(row, 3, color);
+            }
+            else {
+                // add data
+                var row = dataTable.addRow([x, y,z, color]);
+                indexTable[id] = row;
+            }
+        }
+
+        /**
+         * Parse data in csv format.
+         * The data is supposed to be in CSV format and has five numeric columns:
+         *   id, x, y,z, color
+         * Rows are separated by a line and, and fields by a comma. spaces are
+         * neglected.
+         * @param {string} data
+         * @param {string} delimeter  Optional delimeter. A comma "," by default
+         */
+        function parseData(data, delimeter) {
+            if (delimeter == undefined) {
+                delimeter = ",";
+            }
+
+            dataBuffer += data;
+
+            var id = undefined;
+            var x = undefined;
+            var y = undefined;
+            var z = undefined;
+            var color = undefined;
+
+            var rows = dataBuffer.split("\n");
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i].split(delimeter);
+
+                if (row.length == 5) {
+                    var id = parseInt(row[0]);
+                    var x = parseFloat(row[1]);
+                    var y = parseFloat(row[2]);
+                    var z = parseFloat(row[3]);
+                    var color = parseFloat(row[4]);
+
+                    setData(id, x, y, z, color);
+                }
+                else {
+                    // corrupt data or empty line
+                }
+            }
+
+            // empty the buffer up to the last line
+            // TODO: handle the buffer smarter, makes not much sense right now.
+            var lastReturn = dataBuffer.lastIndexOf("\n");
+            if (lastReturn >= 0)
+                dataBuffer = dataBuffer.substring(lastReturn);
+            else
+                dataBuffer = "";
+        }
+
+        function start() {
+            if(!loaded) {
+                alert("Still loading Google API. One moment please...");
+                return;
+            }
+
+            var callback = function (newData) {
+                parseData(newData);
+                graph.redraw(dataTable);
+            }
+
+            ajax.abort();
+            ajax.requestLongPoll("GET", url, callback);
+        }
+
+        function stop () {
+            ajax.abort();
+        }
+
+    </script>
+
+</head>
+<body>
+<h1>Datastream example</h1>
+
+<p>
+    This example demonstrates reading a data stream, via a long poll.
+</p>
+
+<p>
+    Note that some browsers buffer data from a stream before sending it to the
+    screen. In that case "nothing" seems to happens until the buffer limit is
+    reached.
+</p>
+
+<p>
+    When the datasource is located on an external server,
+    the datasource must enable cross domain scripting
+    (Access-Control-Allow-Origin must be set on the server side).
+</p>
+
+<p>
+    <input type="button" id="start" value="Start" onclick="start();">
+    <input type="button" is="stop" value="Stop" onclick="stop();">
+</p>
+
+<div id="graph"></div>
+</body>
+</html>

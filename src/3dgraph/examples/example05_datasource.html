@@ -1,0 +1,101 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Data from datasource</title>
+
+    <style>
+        body {font: 10pt arial;}
+    </style>
+
+    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+    <script type="text/javascript" src="../graph3d.js"></script>
+
+    <script type="text/javascript">
+        var dataSourceUrl = "datasource.php";
+        var data = null;
+        var graph = null;
+        var query = null;
+
+        function sendRequest () {
+            drawVisualization = function(response) {
+                document.getElementById("info").innerHTML = "";
+                document.getElementById("getdata").disabled = "";
+
+                if (response.isError()) {
+                    alert('Error: ' + response.getMessage());
+                    return;
+                }
+
+                // retrieve the data from the query response
+                data = response.getDataTable();
+
+                // specify options
+                var options = {width:  "600px",
+                    height: "600px",
+                    style: "surface",
+                    showPerspective: true,
+                    showGrid: true,
+                    showShadow: false,
+                    keepAspectRatio: true,
+                    verticalRatio: 0.5
+                };
+
+                // Instantiate our graph object.
+                graph = new links.Graph3d(document.getElementById('mygraph'));
+
+                // Draw our graph with the created data and options
+                graph.draw(data, options);
+            };
+
+            // built up the url with parameters
+            var url = dataSourceUrl + "?" +
+                    "xmin=" + document.getElementById("xmin").value + "&" +
+                    "xmax=" + document.getElementById("xmax").value + "&" +
+                    "xstepnum=" + document.getElementById("xstepnum").value + "&" +
+                    "ymin=" + document.getElementById("ymin").value+ "&" +
+                    "ymax=" + document.getElementById("ymax").value + "&" +
+                    "ystepnum=" + document.getElementById("ystepnum").value;
+
+            document.getElementById("info").innerHTML = "Loading...";
+            document.getElementById("getdata").disabled = "disabled";
+
+            // send the request
+            query && query.abort();
+            query = new google.visualization.Query(url);
+            query.send(drawVisualization);
+        }
+
+        google.load("visualization", "1");
+
+        // Set callback to run when API is loaded
+        google.setOnLoadCallback(sendRequest);
+    </script>
+</head>
+
+<body>
+<h1>Data from datasource</h1>
+<p style="font-style:italic;">
+    Note: this example works only when running it on a PHP server,
+    as the datasource is a php file.
+</p>
+
+<p>
+    xmin: <input type="text" value="-100" id="xmin" style="width:50px;">
+    xmax: <input type="text" value="300" id="xmax" style="width:50px;">
+    steps: <input type="text" value="50" id="xstepnum" style="width:50px;">
+</p>
+<p>
+    ymin: <input type="text" value="-100" id="ymin" style="width:50px;">
+    ymax: <input type="text" value="100" id="ymax" style="width:50px;">
+    steps: <input type="text" value="25" id="ystepnum" style="width:50px;">
+</p>
+<p>
+    <input type="button" value="Get Data" id="getdata" onclick="sendRequest();">
+    <span id="info"></span>
+</p>
+
+<div id="mygraph"></div>
+
+<div id="info"></div>
+</body>
+</html>
