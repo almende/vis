@@ -53,6 +53,10 @@ function Graph (container, data, options) {
         highlight: {
           border: '#2B7CE9',
           background: '#D2E5FF'
+        },
+        hover: {
+          border: '#2B7CE9',
+          background: '#D2E5FF'
         }
       },
       borderColor: '#2B7CE9',
@@ -67,7 +71,8 @@ function Graph (container, data, options) {
       style: 'line',
       color: {
         color:'#848484',
-        highlight:'#848484'
+        highlight:'#848484',
+        hover: '#848484'
       },
       fontColor: '#343434',
       fontSize: 14, // px
@@ -181,8 +186,10 @@ function Graph (container, data, options) {
       }
     },
     moveable: true,
-    zoomable: true
+    zoomable: true,
+    hover: false
   };
+  this.hoverObj = {nodes:{},edges:{}};
   this.editMode = this.constants.dataManipulation.initiallyVisible;
 
   // Node variables
@@ -521,9 +528,9 @@ Graph.prototype.setOptions = function (options) {
     if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
-    if (options.moveable !== undefined)           {this.constants.moveable = options.moveable;}
-    if (options.zoomable !== undefined)          {this.constants.zoomable = options.zoomable;}
-
+    if (options.moveable !== undefined)        {this.constants.moveable = options.moveable;}
+    if (options.zoomable !== undefined)        {this.constants.zoomable = options.zoomable;}
+    if (options.hover !== undefined)           {this.constants.hover = options.hover;}
 
     if (options.labels !== undefined)  {
       for (prop in options.labels) {
@@ -656,10 +663,12 @@ Graph.prototype.setOptions = function (options) {
           this.constants.edges.color = {};
           this.constants.edges.color.color = options.edges.color;
           this.constants.edges.color.highlight = options.edges.color;
+          this.constants.edges.color.hover = options.edges.color;
         }
         else {
           if (options.edges.color.color !== undefined)     {this.constants.edges.color.color = options.edges.color.color;}
           if (options.edges.color.highlight !== undefined) {this.constants.edges.color.highlight = options.edges.color.highlight;}
+          if (options.edges.color.hover !== undefined)     {this.constants.edges.color.hover = options.edges.color.hover;}
         }
       }
 
@@ -1159,7 +1168,7 @@ Graph.prototype._onMouseMoveTitle = function (event) {
   var pointer = this._getPointer(gesture.center);
 
   // check if the previously selected node is still selected
-  if (this.popupNode) {
+  if (this.popupObj) {
     this._checkHidePopup(pointer);
   }
 
@@ -1174,6 +1183,34 @@ Graph.prototype._onMouseMoveTitle = function (event) {
   }
   if (!this.drag.dragging) {
     this.popupTimer = setTimeout(checkShow, this.constants.tooltip.delay);
+  }
+
+
+  /**
+   * Adding hover highlights
+   */
+  if (this.constants.hover == true) {
+    // removing all hover highlights
+    for (var nodeId in this.hoverObj.nodes) {
+      if (this.hoverObj.nodes.hasOwnProperty(nodeId)) {
+        this.hoverObj.nodes[nodeId].hover = false;
+      }
+    }
+    for (var edgeId in this.hoverObj.edges) {
+      if (this.hoverObj.edges.hasOwnProperty(edgeId)) {
+        this.hoverObj.edges[edgeId].hover = false;
+      }
+    }
+
+    // adding hover highlights
+    var obj = this._getNodeAt(pointer);
+    if (obj == null) {
+      obj = this._getEdgeAt(pointer);
+    }
+    if (obj != null) {
+      this._hoverObject(obj);
+    }
+    this.redraw();
   }
 };
 
@@ -1194,23 +1231,23 @@ Graph.prototype._checkShowPopup = function (pointer) {
   };
 
   var id;
-  var lastPopupNode = this.popupNode;
+  var lastPopupNode = this.popupObj;
 
-  if (this.popupNode == undefined) {
+  if (this.popupObj == undefined) {
     // search the nodes for overlap, select the top one in case of multiple nodes
     var nodes = this.nodes;
     for (id in nodes) {
       if (nodes.hasOwnProperty(id)) {
         var node = nodes[id];
         if (node.getTitle() !== undefined && node.isOverlappingWith(obj)) {
-          this.popupNode = node;
+          this.popupObj = node;
           break;
         }
       }
     }
   }
 
-  if (this.popupNode === undefined) {
+  if (this.popupObj === undefined) {
     // search the edges for overlap
     var edges = this.edges;
     for (id in edges) {
@@ -1218,16 +1255,16 @@ Graph.prototype._checkShowPopup = function (pointer) {
         var edge = edges[id];
         if (edge.connected && (edge.getTitle() !== undefined) &&
             edge.isOverlappingWith(obj)) {
-          this.popupNode = edge;
+          this.popupObj = edge;
           break;
         }
       }
     }
   }
 
-  if (this.popupNode) {
+  if (this.popupObj) {
     // show popup message window
-    if (this.popupNode != lastPopupNode) {
+    if (this.popupObj != lastPopupNode) {
       var me = this;
       if (!me.popup) {
         me.popup = new Popup(me.frame, me.constants.tooltip);
@@ -1237,7 +1274,7 @@ Graph.prototype._checkShowPopup = function (pointer) {
       // bottom left location of the popup, and you can easily move over the
       // popup area
       me.popup.setPosition(pointer.x - 3, pointer.y - 3);
-      me.popup.setText(me.popupNode.getTitle());
+      me.popup.setText(me.popupObj.getTitle());
       me.popup.show();
     }
   }
@@ -1256,8 +1293,8 @@ Graph.prototype._checkShowPopup = function (pointer) {
  * @private
  */
 Graph.prototype._checkHidePopup = function (pointer) {
-  if (!this.popupNode || !this._getNodeAt(pointer) ) {
-    this.popupNode = undefined;
+  if (!this.popupObj || !this._getNodeAt(pointer) ) {
+    this.popupObj = undefined;
     if (this.popup) {
       this.popup.hide();
     }
@@ -2195,17 +2232,18 @@ Graph.prototype.focusOnNode = function (nodeId, zoomLevel) {
       zoomLevel = this._getScale();
     }
     var nodePosition= {x: this.nodes[nodeId].x, y: this.nodes[nodeId].y};
-    var canvasCenter = this.DOMtoCanvas({x:0.5 * this.frame.canvas.width,y:0.5 * this.frame.canvas.height});
 
-    var translation = this._getTranslation();
     var requiredScale = zoomLevel;
+    this._setScale(requiredScale);
+
+    var canvasCenter = this.DOMtoCanvas({x:0.5 * this.frame.canvas.width,y:0.5 * this.frame.canvas.height});
+    var translation = this._getTranslation();
 
     var distanceFromCenter = {x:canvasCenter.x - nodePosition.x,
-      y:canvasCenter.y - nodePosition.y};
+                              y:canvasCenter.y - nodePosition.y};
 
-    this._setScale(requiredScale);
     this._setTranslation(translation.x + requiredScale * distanceFromCenter.x,
-      translation.y + requiredScale * distanceFromCenter.y);
+                         translation.y + requiredScale * distanceFromCenter.y);
     this.redraw();
   }
   else {

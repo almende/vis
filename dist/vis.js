@@ -1095,6 +1095,10 @@ util.parseColor = function(color) {
         highlight: {
           background:lighterColorHex,
           border:darkerColorHex
+        },
+        hover: {
+          background:lighterColorHex,
+          border:darkerColorHex
         }
       };
     }
@@ -1103,6 +1107,10 @@ util.parseColor = function(color) {
         background:color,
         border:color,
         highlight: {
+          background:color,
+          border:color
+        },
+        hover: {
           background:color,
           border:color
         }
@@ -1124,6 +1132,18 @@ util.parseColor = function(color) {
       c.highlight = {};
       c.highlight.background = color.highlight && color.highlight.background || c.background;
       c.highlight.border = color.highlight && color.highlight.border || c.border;
+    }
+
+    if (util.isString(color.hover)) {
+      c.hover = {
+        border: color.hover,
+        background: color.hover
+      }
+    }
+    else {
+      c.hover = {};
+      c.hover.background = color.hover && color.hover.background || c.background;
+      c.hover.border = color.hover && color.hover.border || c.border;
     }
   }
 
@@ -9050,6 +9070,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined') {
  */
 function Node(properties, imagelist, grouplist, constants) {
   this.selected = false;
+  this.hover = false;
 
   this.edges = []; // all edges connected to this node
   this.dynamicEdges = [];
@@ -9594,7 +9615,7 @@ Node.prototype._drawBox = function (ctx) {
   var clusterLineWidth = 2.5;
   var selectionLineWidth = 2;
 
-  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.hover ? this.color.hover.border : this.color.border;
 
   // draw the outer border
   if (this.clusterSize > 1) {
@@ -9643,7 +9664,7 @@ Node.prototype._drawDatabase = function (ctx) {
   var clusterLineWidth = 2.5;
   var selectionLineWidth = 2;
 
-  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.hover ? this.color.hover.border : this.color.border;
 
   // draw the outer border
   if (this.clusterSize > 1) {
@@ -9658,7 +9679,7 @@ Node.prototype._drawDatabase = function (ctx) {
   ctx.lineWidth *= this.graphScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
-  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
   ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
   ctx.fill();
   ctx.stroke();
@@ -9693,7 +9714,7 @@ Node.prototype._drawCircle = function (ctx) {
   var clusterLineWidth = 2.5;
   var selectionLineWidth = 2;
 
-  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.hover ? this.color.hover.border : this.color.border;
 
   // draw the outer border
   if (this.clusterSize > 1) {
@@ -9708,7 +9729,7 @@ Node.prototype._drawCircle = function (ctx) {
   ctx.lineWidth *= this.graphScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
-  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
   ctx.circle(this.x, this.y, this.radius);
   ctx.fill();
   ctx.stroke();
@@ -9743,7 +9764,7 @@ Node.prototype._drawEllipse = function (ctx) {
   var clusterLineWidth = 2.5;
   var selectionLineWidth = 2;
 
-  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.hover ? this.color.hover.border : this.color.border;
 
   // draw the outer border
   if (this.clusterSize > 1) {
@@ -9758,7 +9779,7 @@ Node.prototype._drawEllipse = function (ctx) {
   ctx.lineWidth *= this.graphScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
-  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
 
   ctx.ellipse(this.left, this.top, this.width, this.height);
   ctx.fill();
@@ -9820,7 +9841,7 @@ Node.prototype._drawShape = function (ctx, shape) {
     case 'star':          radiusMultiplier = 4; break;
   }
 
-  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.hover ? this.color.hover.border : this.color.border;
 
   // draw the outer border
   if (this.clusterSize > 1) {
@@ -9835,7 +9856,7 @@ Node.prototype._drawShape = function (ctx, shape) {
   ctx.lineWidth *= this.graphScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
-  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
 
   ctx[shape](this.x, this.y, this.radius);
   ctx.fill();
@@ -9917,10 +9938,10 @@ Node.prototype.getTextSize = function(ctx) {
  */
 Node.prototype.inArea = function() {
   if (this.width !== undefined) {
-  return (this.x + this.width*this.graphScaleInv  >= this.canvasTopLeft.x    &&
-          this.x - this.width*this.graphScaleInv  <  this.canvasBottomRight.x &&
-          this.y + this.height*this.graphScaleInv >= this.canvasTopLeft.y    &&
-          this.y - this.height*this.graphScaleInv <  this.canvasBottomRight.y);
+  return (this.x + this.width *this.graphScaleInv  >= this.canvasTopLeft.x     &&
+          this.x - this.width *this.graphScaleInv  <  this.canvasBottomRight.x &&
+          this.y + this.height*this.graphScaleInv  >= this.canvasTopLeft.y     &&
+          this.y - this.height*this.graphScaleInv  <  this.canvasBottomRight.y);
   }
   else {
     return true;
@@ -10026,6 +10047,7 @@ function Edge (properties, graph, constants) {
   this.length = constants.physics.springLength;
   this.customLength = false;
   this.selected = false;
+  this.hover = false;
   this.smooth = constants.smoothCurves;
   this.arrowScaleFactor = constants.edges.arrowScaleFactor;
 
@@ -10046,7 +10068,8 @@ function Edge (properties, graph, constants) {
   this.dash = util.extend({}, constants.edges.dash); // contains properties length, gap, altLength
 
   this.color       = {color:constants.edges.color.color,
-                      highlight:constants.edges.color.highlight};
+                      highlight:constants.edges.color.highlight,
+                      hover:constants.edges.color.hover};
   this.widthFixed  = false;
   this.lengthFixed = false;
 
@@ -10242,8 +10265,9 @@ Edge.prototype.isOverlappingWith = function(obj) {
  */
 Edge.prototype._drawLine = function(ctx) {
   // set style
-  if (this.selected == true) {ctx.strokeStyle = this.color.highlight;}
-  else                       {ctx.strokeStyle = this.color.color;}
+  if (this.selected == true)   {ctx.strokeStyle = this.color.highlight;}
+  else if (this.hover == true) {ctx.strokeStyle = this.color.hover;}
+  else                         {ctx.strokeStyle = this.color.color;}
   ctx.lineWidth = this._getLineWidth();
 
   if (this.from != this.to) {
@@ -10296,7 +10320,12 @@ Edge.prototype._getLineWidth = function() {
     return Math.min(this.width * 2, this.widthMax)*this.graphScaleInv;
   }
   else {
-    return this.width*this.graphScaleInv;
+    if (this.hover == true) {
+      return Math.min(this.width * 1.5, this.widthMax)*this.graphScaleInv;
+    }
+    else {
+      return this.width*this.graphScaleInv;
+    }
   }
 };
 
@@ -10373,8 +10402,9 @@ Edge.prototype._label = function (ctx, text, x, y) {
  */
 Edge.prototype._drawDashLine = function(ctx) {
   // set style
-  if (this.selected == true) {ctx.strokeStyle = this.color.highlight;}
-  else                       {ctx.strokeStyle = this.color.color;}
+  if (this.selected == true)   {ctx.strokeStyle = this.color.highlight;}
+  else if (this.hover == true) {ctx.strokeStyle = this.color.hover;}
+  else                         {ctx.strokeStyle = this.color.color;}
 
   ctx.lineWidth = this._getLineWidth();
 
@@ -10498,8 +10528,9 @@ Edge.prototype._pointOnCircle = function (x, y, radius, percentage) {
 Edge.prototype._drawArrowCenter = function(ctx) {
   var point;
   // set style
-  if (this.selected == true) {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
-  else                       {ctx.strokeStyle = this.color.color; ctx.fillStyle = this.color.color;}
+  if (this.selected == true)   {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
+  else if (this.hover == true) {ctx.strokeStyle = this.color.hover;     ctx.fillStyle = this.color.hover;}
+  else                         {ctx.strokeStyle = this.color.color;     ctx.fillStyle = this.color.color;}
   ctx.lineWidth = this._getLineWidth();
 
   if (this.from != this.to) {
@@ -10572,8 +10603,9 @@ Edge.prototype._drawArrowCenter = function(ctx) {
  */
 Edge.prototype._drawArrow = function(ctx) {
   // set style
-  if (this.selected == true) {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
-  else                       {ctx.strokeStyle = this.color.color;     ctx.fillStyle = this.color.color;}
+  if (this.selected == true)   {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
+  else if (this.hover == true) {ctx.strokeStyle = this.color.hover;     ctx.fillStyle = this.color.hover;}
+  else                         {ctx.strokeStyle = this.color.color;     ctx.fillStyle = this.color.color;}
 
   ctx.lineWidth = this._getLineWidth();
 
@@ -14828,7 +14860,21 @@ var SelectionMixin = {
     else {
       this.selectionObj.edges[obj.id] = obj;
     }
+  },
 
+  /**
+   * Add object to the selection array.
+   *
+   * @param obj
+   * @private
+   */
+  _addToHover : function(obj) {
+    if (obj instanceof Node) {
+      this.hoverObj.nodes[obj.id] = obj;
+    }
+    else {
+      this.hoverObj.edges[obj.id] = obj;
+    }
   },
 
 
@@ -14846,7 +14892,6 @@ var SelectionMixin = {
       delete this.selectionObj.edges[obj.id];
     }
   },
-
 
   /**
    * Unselect all. The selectionObj is useful for this.
@@ -15024,6 +15069,20 @@ var SelectionMixin = {
     }
   },
 
+  /**
+   * select the edges connected to the node that is being selected
+   *
+   * @param {Node} node
+   * @private
+   */
+  _hoverConnectedEdges : function(node) {
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      var edge = node.dynamicEdges[i];
+      edge.hover = true;
+      this._addToHover(edge);
+    }
+  },
+
 
   /**
    * unselect the edges connected to the node that is being selected
@@ -15038,6 +15097,7 @@ var SelectionMixin = {
       this._removeFromSelection(edge);
     }
   },
+
 
 
 
@@ -15070,8 +15130,31 @@ var SelectionMixin = {
       object.unselect();
       this._removeFromSelection(object);
     }
+
     if (doNotTrigger == false) {
       this.emit('select', this.getSelection());
+    }
+  },
+
+
+  /**
+   * This is called when someone clicks on a node. either select or deselect it.
+   * If there is an existing selection and we don't want to append to it, clear the existing selection
+   *
+   * @param {Node || Edge} object
+   * @private
+   */
+  _hoverObject : function(object) {
+    if (object.hover == false) {
+      object.hover = true;
+      this._addToHover(object);
+      if (object instanceof Node && this.blockConnectingEdgeSelection == false) {
+        this._hoverConnectedEdges(object);
+      }
+    }
+    else {
+      object.hover = false;
+      this._removeFromHover(object);
     }
   },
 
@@ -15721,6 +15804,10 @@ function Graph (container, data, options) {
         highlight: {
           border: '#2B7CE9',
           background: '#D2E5FF'
+        },
+        hover: {
+          border: '#2B7CE9',
+          background: '#D2E5FF'
         }
       },
       borderColor: '#2B7CE9',
@@ -15735,7 +15822,8 @@ function Graph (container, data, options) {
       style: 'line',
       color: {
         color:'#848484',
-        highlight:'#848484'
+        highlight:'#848484',
+        hover: '#848484'
       },
       fontColor: '#343434',
       fontSize: 14, // px
@@ -15849,8 +15937,10 @@ function Graph (container, data, options) {
       }
     },
     moveable: true,
-    zoomable: true
+    zoomable: true,
+    hover: false
   };
+  this.hoverObj = {nodes:{},edges:{}};
   this.editMode = this.constants.dataManipulation.initiallyVisible;
 
   // Node variables
@@ -16189,9 +16279,9 @@ Graph.prototype.setOptions = function (options) {
     if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
-    if (options.moveable !== undefined)           {this.constants.moveable = options.moveable;}
-    if (options.zoomable !== undefined)          {this.constants.zoomable = options.zoomable;}
-
+    if (options.moveable !== undefined)        {this.constants.moveable = options.moveable;}
+    if (options.zoomable !== undefined)        {this.constants.zoomable = options.zoomable;}
+    if (options.hover !== undefined)           {this.constants.hover = options.hover;}
 
     if (options.labels !== undefined)  {
       for (prop in options.labels) {
@@ -16324,10 +16414,12 @@ Graph.prototype.setOptions = function (options) {
           this.constants.edges.color = {};
           this.constants.edges.color.color = options.edges.color;
           this.constants.edges.color.highlight = options.edges.color;
+          this.constants.edges.color.hover = options.edges.color;
         }
         else {
           if (options.edges.color.color !== undefined)     {this.constants.edges.color.color = options.edges.color.color;}
           if (options.edges.color.highlight !== undefined) {this.constants.edges.color.highlight = options.edges.color.highlight;}
+          if (options.edges.color.hover !== undefined)     {this.constants.edges.color.hover = options.edges.color.hover;}
         }
       }
 
@@ -16827,7 +16919,7 @@ Graph.prototype._onMouseMoveTitle = function (event) {
   var pointer = this._getPointer(gesture.center);
 
   // check if the previously selected node is still selected
-  if (this.popupNode) {
+  if (this.popupObj) {
     this._checkHidePopup(pointer);
   }
 
@@ -16842,6 +16934,34 @@ Graph.prototype._onMouseMoveTitle = function (event) {
   }
   if (!this.drag.dragging) {
     this.popupTimer = setTimeout(checkShow, this.constants.tooltip.delay);
+  }
+
+
+  /**
+   * Adding hover highlights
+   */
+  if (this.constants.hover == true) {
+    // removing all hover highlights
+    for (var nodeId in this.hoverObj.nodes) {
+      if (this.hoverObj.nodes.hasOwnProperty(nodeId)) {
+        this.hoverObj.nodes[nodeId].hover = false;
+      }
+    }
+    for (var edgeId in this.hoverObj.edges) {
+      if (this.hoverObj.edges.hasOwnProperty(edgeId)) {
+        this.hoverObj.edges[edgeId].hover = false;
+      }
+    }
+
+    // adding hover highlights
+    var obj = this._getNodeAt(pointer);
+    if (obj == null) {
+      obj = this._getEdgeAt(pointer);
+    }
+    if (obj != null) {
+      this._hoverObject(obj);
+    }
+    this.redraw();
   }
 };
 
@@ -16862,23 +16982,23 @@ Graph.prototype._checkShowPopup = function (pointer) {
   };
 
   var id;
-  var lastPopupNode = this.popupNode;
+  var lastPopupNode = this.popupObj;
 
-  if (this.popupNode == undefined) {
+  if (this.popupObj == undefined) {
     // search the nodes for overlap, select the top one in case of multiple nodes
     var nodes = this.nodes;
     for (id in nodes) {
       if (nodes.hasOwnProperty(id)) {
         var node = nodes[id];
         if (node.getTitle() !== undefined && node.isOverlappingWith(obj)) {
-          this.popupNode = node;
+          this.popupObj = node;
           break;
         }
       }
     }
   }
 
-  if (this.popupNode === undefined) {
+  if (this.popupObj === undefined) {
     // search the edges for overlap
     var edges = this.edges;
     for (id in edges) {
@@ -16886,16 +17006,16 @@ Graph.prototype._checkShowPopup = function (pointer) {
         var edge = edges[id];
         if (edge.connected && (edge.getTitle() !== undefined) &&
             edge.isOverlappingWith(obj)) {
-          this.popupNode = edge;
+          this.popupObj = edge;
           break;
         }
       }
     }
   }
 
-  if (this.popupNode) {
+  if (this.popupObj) {
     // show popup message window
-    if (this.popupNode != lastPopupNode) {
+    if (this.popupObj != lastPopupNode) {
       var me = this;
       if (!me.popup) {
         me.popup = new Popup(me.frame, me.constants.tooltip);
@@ -16905,7 +17025,7 @@ Graph.prototype._checkShowPopup = function (pointer) {
       // bottom left location of the popup, and you can easily move over the
       // popup area
       me.popup.setPosition(pointer.x - 3, pointer.y - 3);
-      me.popup.setText(me.popupNode.getTitle());
+      me.popup.setText(me.popupObj.getTitle());
       me.popup.show();
     }
   }
@@ -16924,8 +17044,8 @@ Graph.prototype._checkShowPopup = function (pointer) {
  * @private
  */
 Graph.prototype._checkHidePopup = function (pointer) {
-  if (!this.popupNode || !this._getNodeAt(pointer) ) {
-    this.popupNode = undefined;
+  if (!this.popupObj || !this._getNodeAt(pointer) ) {
+    this.popupObj = undefined;
     if (this.popup) {
       this.popup.hide();
     }
@@ -17863,17 +17983,18 @@ Graph.prototype.focusOnNode = function (nodeId, zoomLevel) {
       zoomLevel = this._getScale();
     }
     var nodePosition= {x: this.nodes[nodeId].x, y: this.nodes[nodeId].y};
-    var canvasCenter = this.DOMtoCanvas({x:0.5 * this.frame.canvas.width,y:0.5 * this.frame.canvas.height});
 
-    var translation = this._getTranslation();
     var requiredScale = zoomLevel;
+    this._setScale(requiredScale);
+
+    var canvasCenter = this.DOMtoCanvas({x:0.5 * this.frame.canvas.width,y:0.5 * this.frame.canvas.height});
+    var translation = this._getTranslation();
 
     var distanceFromCenter = {x:canvasCenter.x - nodePosition.x,
-      y:canvasCenter.y - nodePosition.y};
+                              y:canvasCenter.y - nodePosition.y};
 
-    this._setScale(requiredScale);
     this._setTranslation(translation.x + requiredScale * distanceFromCenter.x,
-      translation.y + requiredScale * distanceFromCenter.y);
+                         translation.y + requiredScale * distanceFromCenter.y);
     this.redraw();
   }
   else {

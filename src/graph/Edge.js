@@ -34,6 +34,7 @@ function Edge (properties, graph, constants) {
   this.length = constants.physics.springLength;
   this.customLength = false;
   this.selected = false;
+  this.hover = false;
   this.smooth = constants.smoothCurves;
   this.arrowScaleFactor = constants.edges.arrowScaleFactor;
 
@@ -54,7 +55,8 @@ function Edge (properties, graph, constants) {
   this.dash = util.extend({}, constants.edges.dash); // contains properties length, gap, altLength
 
   this.color       = {color:constants.edges.color.color,
-                      highlight:constants.edges.color.highlight};
+                      highlight:constants.edges.color.highlight,
+                      hover:constants.edges.color.hover};
   this.widthFixed  = false;
   this.lengthFixed = false;
 
@@ -250,8 +252,9 @@ Edge.prototype.isOverlappingWith = function(obj) {
  */
 Edge.prototype._drawLine = function(ctx) {
   // set style
-  if (this.selected == true) {ctx.strokeStyle = this.color.highlight;}
-  else                       {ctx.strokeStyle = this.color.color;}
+  if (this.selected == true)   {ctx.strokeStyle = this.color.highlight;}
+  else if (this.hover == true) {ctx.strokeStyle = this.color.hover;}
+  else                         {ctx.strokeStyle = this.color.color;}
   ctx.lineWidth = this._getLineWidth();
 
   if (this.from != this.to) {
@@ -304,7 +307,12 @@ Edge.prototype._getLineWidth = function() {
     return Math.min(this.width * 2, this.widthMax)*this.graphScaleInv;
   }
   else {
-    return this.width*this.graphScaleInv;
+    if (this.hover == true) {
+      return Math.min(this.width * 1.5, this.widthMax)*this.graphScaleInv;
+    }
+    else {
+      return this.width*this.graphScaleInv;
+    }
   }
 };
 
@@ -381,8 +389,9 @@ Edge.prototype._label = function (ctx, text, x, y) {
  */
 Edge.prototype._drawDashLine = function(ctx) {
   // set style
-  if (this.selected == true) {ctx.strokeStyle = this.color.highlight;}
-  else                       {ctx.strokeStyle = this.color.color;}
+  if (this.selected == true)   {ctx.strokeStyle = this.color.highlight;}
+  else if (this.hover == true) {ctx.strokeStyle = this.color.hover;}
+  else                         {ctx.strokeStyle = this.color.color;}
 
   ctx.lineWidth = this._getLineWidth();
 
@@ -506,8 +515,9 @@ Edge.prototype._pointOnCircle = function (x, y, radius, percentage) {
 Edge.prototype._drawArrowCenter = function(ctx) {
   var point;
   // set style
-  if (this.selected == true) {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
-  else                       {ctx.strokeStyle = this.color.color; ctx.fillStyle = this.color.color;}
+  if (this.selected == true)   {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
+  else if (this.hover == true) {ctx.strokeStyle = this.color.hover;     ctx.fillStyle = this.color.hover;}
+  else                         {ctx.strokeStyle = this.color.color;     ctx.fillStyle = this.color.color;}
   ctx.lineWidth = this._getLineWidth();
 
   if (this.from != this.to) {
@@ -580,8 +590,9 @@ Edge.prototype._drawArrowCenter = function(ctx) {
  */
 Edge.prototype._drawArrow = function(ctx) {
   // set style
-  if (this.selected == true) {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
-  else                       {ctx.strokeStyle = this.color.color;     ctx.fillStyle = this.color.color;}
+  if (this.selected == true)   {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
+  else if (this.hover == true) {ctx.strokeStyle = this.color.hover;     ctx.fillStyle = this.color.hover;}
+  else                         {ctx.strokeStyle = this.color.color;     ctx.fillStyle = this.color.color;}
 
   ctx.lineWidth = this._getLineWidth();
 

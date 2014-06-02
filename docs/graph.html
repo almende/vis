@@ -292,6 +292,20 @@ var nodes = [
   </tr>
 
   <tr>
+      <td>color.hover.background</td>
+      <td>String</td>
+      <td>no</td>
+      <td>Background color of the node when the node is hovered over and the hover option is enabled.</td>
+  </tr>
+
+  <tr>
+      <td>color.hover.border</td>
+      <td>String</td>
+      <td>no</td>
+      <td>Border color of the node when the node is hovered over and the hover option is enabled.</td>
+  </tr>
+
+  <tr>
     <td>group</td>
     <td>Number | String</td>
     <td>no</td>
@@ -515,6 +529,13 @@ var edges = [
         <td>String</td>
         <td>no</td>
         <td>Color of the edge when selected.</td>
+    </tr>
+
+    <tr>
+        <td>color.hover</td>
+        <td>String</td>
+        <td>no</td>
+        <td>Color of the edge when the edge is hovered over and the hover option is enabled.</td>
     </tr>
 
   <tr>
@@ -790,6 +811,12 @@ var options = {
     <td>The height of the graph in pixels or as a percentage.</td>
   </tr>
 
+    <tr>
+        <td>hover</td>
+        <td>Boolean</td>
+        <td>false</td>
+        <td>Enabling the change of the colors of nodes and edges when the mouse hovers over them. Enabling this may have a minor impact on performance.</td>
+    </tr>
   <tr>
     <td><a href="#Keyboard_navigation">keyboard</a></td>
     <td>Object</td>
