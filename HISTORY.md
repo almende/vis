@@ -9,6 +9,10 @@ http://visjs.org
 - Fixed `Timeline.clear()` not resetting a configured `options.start` and 
   `options.end`.
 
+### Graph
+
+- Fixed error with zero nodes with hierarchical layout.
+
 
 ## 2014-05-28, version 1.0.2
 

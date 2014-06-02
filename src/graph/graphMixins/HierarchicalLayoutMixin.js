@@ -20,7 +20,7 @@ var HierarchicalLayoutMixin = {
    * @private
    */
   _setupHierarchicalLayout : function() {
-    if (this.constants.hierarchicalLayout.enabled == true) {
+    if (this.constants.hierarchicalLayout.enabled == true && this.nodeIndices.length > 0) {
       if (this.constants.hierarchicalLayout.direction == "RL" || this.constants.hierarchicalLayout.direction == "DU") {
         this.constants.hierarchicalLayout.levelSeparation *= -1;
       }
