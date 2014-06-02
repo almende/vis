@@ -81,7 +81,7 @@ DataStep.prototype.setFirst = function() {
 
   this.marginEnd = this.roundToMinor(niceEnd);
   this.marginStart = this.roundToMinor(niceStart);
-  this.marginRange = this.current - this.marginStart;
+  this.marginRange = this.marginEnd - this.marginStart;
 
   this.current = this.marginEnd;
 

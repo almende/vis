@@ -16,6 +16,7 @@
 }
 
 .vis.timeline .foreground {
+    padding:0; margin:0;
 }
 
 .vis.timeline .axis {

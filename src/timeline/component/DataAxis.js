@@ -60,7 +60,6 @@ DataAxis.prototype._create = function _create() {
  * @param {Range | Object} range  A Range or an object containing start and end.
  */
 DataAxis.prototype.setRange = function (range) {
-  console.log(range, range.start, range.end, !range, !range.start, !range.end);
   if (!(range instanceof Range) && (!range || range.start === undefined || range.end === undefined)) {
     throw new TypeError('Range must be an instance of Range, ' +
       'or an object containing start and end.');
@@ -163,7 +162,8 @@ DataAxis.prototype._repaintLabels = function () {
   var marginStartPos = 0;
   var max = 0;
   while (step.hasNext() && max < 1000) {
-    var y = Math.round(max * stepPixels);
+    var y = max * stepPixels;
+    y = y.toPrecision(5)
     var isMajor = step.isMajor();
 
     if (this.getOption('showMinorLabels') && isMajor == false) {
@@ -189,6 +189,7 @@ DataAxis.prototype._repaintLabels = function () {
   }
 
   this.conversionFactor = marginStartPos/step.marginRange;
+  console.log(marginStartPos, step.marginRange, this.conversionFactor);
 
 
 
@@ -214,10 +215,17 @@ DataAxis.prototype._repaintLabels = function () {
   });
 };
 
+DataAxis.prototype.convertValues = function(data) {
+  for (var i = 0; i < data.length; i++) {
+    data[i].y = this._getPos(data[i].y);
+  }
+  return data;
+}
 
 DataAxis.prototype._getPos = function(value) {
   var invertedValue = this.valueAtZero - value;
-  return invertedValue * this.conversionFactor;
+  var convertedValue = invertedValue * this.conversionFactor;
+  return convertedValue
 }
 
 /**
@@ -293,12 +301,12 @@ DataAxis.prototype._repaintMajorText = function (x, text, orientation) {
 };
 
 /**
- * Create a minor line for the axis at position x
- * @param {Number} x
+ * Create a minor line for the axis at position y
+ * @param {Number} y
  * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-DataAxis.prototype._repaintMinorLine = function (x, orientation) {
+DataAxis.prototype._repaintMinorLine = function (y, orientation) {
   // reuse redundant line
   var line = this.dom.redundant.minorLines.shift();
 
@@ -319,7 +327,7 @@ DataAxis.prototype._repaintMinorLine = function (x, orientation) {
   }
 
   line.style.width = props.minorLineWidth + 'px';
-  line.style.top = (x - props.minorLineHeight / 2) + 'px';
+  line.style.top = y + 'px';
 };
 
 /**
@@ -328,7 +336,7 @@ DataAxis.prototype._repaintMinorLine = function (x, orientation) {
  * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-DataAxis.prototype._repaintMajorLine = function (x, orientation) {
+DataAxis.prototype._repaintMajorLine = function (y, orientation) {
   // reuse redundant line
   var line = this.dom.redundant.majorLines.shift();
 
@@ -347,7 +355,7 @@ DataAxis.prototype._repaintMajorLine = function (x, orientation) {
   else {
     line.style.left = -1*(this.width - 25) + 'px';
   }
-  line.style.top = (x - props.majorLineHeight / 2) + 'px';
+  line.style.top = y + 'px';
   line.style.width = props.majorLineWidth + 'px';
 };
 

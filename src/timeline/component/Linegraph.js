@@ -35,7 +35,7 @@ function Linegraph(backgroundPanel, axisPanel, sidePanel, options, timeline, sid
   this.groupsData = null;   // DataSet
   this.range = null;        // Range or Object {start: number, end: number}
 
-  // listeners for the DataSet of the items
+//  listeners for the DataSet of the items
 //  this.itemListeners = {
 //    'add': function(event, params, senderId) {
 //      if (senderId != me.id) me._onAdd(params.items);
@@ -92,6 +92,8 @@ function Linegraph(backgroundPanel, axisPanel, sidePanel, options, timeline, sid
     me.svg.style.left = util.option.asSize(-me.width);
     me.setData.apply(me);
   });
+
+//  this.data = new DataView(this.items)
 }
 
 Linegraph.prototype = new Panel();
@@ -133,6 +135,7 @@ Linegraph.prototype._create = function(){
   this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
   this.svg.style.position = "relative"
   this.svg.style.height = "300px";
+  this.svg.style.display = "block";
 
   this.path = document.createElementNS('http://www.w3.org/2000/svg',"path");
   this.path.setAttributeNS(null, "fill","none");
@@ -142,10 +145,16 @@ Linegraph.prototype._create = function(){
   this.path2 = document.createElementNS('http://www.w3.org/2000/svg',"path");
   this.path2.setAttributeNS(null, "fill","none");
   this.path2.setAttributeNS(null, "stroke","red");
-  this.path2.setAttributeNS(null, "stroke-width","2");
+  this.path2.setAttributeNS(null, "stroke-width","1");
+
+  this.path3 = document.createElementNS('http://www.w3.org/2000/svg',"path");
+  this.path3.setAttributeNS(null, "fill","none");
+  this.path3.setAttributeNS(null, "stroke","green");
+  this.path3.setAttributeNS(null, "stroke-width","1");
 
   this.dom.foreground.appendChild(this.svg);
 
+  this.svg.appendChild(this.path3);
   this.svg.appendChild(this.path2);
   this.svg.appendChild(this.path);
 
@@ -174,76 +183,60 @@ Linegraph.prototype._createAxis = function() {
     svg: this.svg
   };
   this.yAxis = new DataAxis(dataAxisOptions);
-  this.yAxis.setRange({start:-60,end:260});
   this.sidePanel.frame.appendChild(this.yAxis.getFrame());
 
 }
 
 Linegraph.prototype.setData = function() {
-  var data = [];
-
-  this.yAxis.repaint();
-
-  this.startTime = this.range.start;
-  var min = Date.now() - 3600000 * 24 * 30;
-  var max = Date.now() + 3600000 * 24 * 10;
-  var count = 60;
-  var step = (max-min) / count;
-
-  var range = this.range.end - this.range.start;
-
-
   if (this.width != 0) {
-    var rangePerPixel = range/this.width;
-    var rangePerPixelInv = this.width/range;
-    var xOffset = -this.range.start + this.width*rangePerPixel;
+    var dataview = new DataView(this.timeline.itemsData,
+      {filter: function (item) {return (item.value);}})
 
-    for (var i = 0; i < count; i++) {
-      data.push({x:(min + i*step + xOffset) * rangePerPixelInv, y: 250*(i%2) + 25})
+    var datapoints = dataview.get();
+    if (datapoints != null) {
+      if (datapoints.length > 0) {
+        var dataset = this._extractData(datapoints);
+        var data = dataset.data;
+
+        console.log("height",data,datapoints, dataset);
+
+        this.yAxis.setRange({start:dataset.range.low,end:dataset.range.high});
+        this.yAxis.repaint();
+        data = this.yAxis.convertValues(data);
+
+        var d, d2, d3;
+        d = this._catmullRom(data,0.5);
+        d3 = this._catmullRom(data,0);
+        d2 = this._catmullRom(data,1);
+
+
+//        var data2 = [];
+//        this.startTime = this.range.start;
+//        var min = Date.now() - 3600000 * 24 * 30;
+//        var max = Date.now() + 3600000 * 24 * 10;
+//        var count = 60;
+//        var step = (max-min) / count;
+//
+//        var range = this.range.end - this.range.start;
+//        var rangePerPixel = range/this.width;
+//        var rangePerPixelInv = this.width/range;
+//        var xOffset = -this.range.start + this.width*rangePerPixel;
+//
+//        for (var i = 0; i < count; i++) {
+//          data2.push({x:(min + i*step + xOffset) * rangePerPixelInv, y: 250*(i%2) + 25})
+//        }
+//
+//        var d2 = this._catmullRom(data2);
+
+
+
+
+
+        this.path.setAttributeNS(null, "d",d);
+        this.path2.setAttributeNS(null, "d",d2);
+        this.path3.setAttributeNS(null, "d",d3);
+      }
     }
-
-    // catmull rom
-    var p0, p1, p2, p3, bp1, bp2, bp3;
-    var d2 = "M" + data[0].x + "," + data[0].y + " ";
-    for (var i = 0; i < data.length - 2; i++) {
-      if (i == 0) {
-        p0 = data[0]
-      }
-      else {
-        p0 = data[i-1];
-      }
-      p1 = data[i];
-      p2 = data[i+1];
-      p3 = data[i+2];
-
-      // Catmull-Rom to Cubic Bezier conversion matrix
-      //    0       1       0       0
-      //  -1/6      1      1/6      0
-      //    0      1/6      1     -1/6
-      //    0       0       1       0
-
-  //    bp0 = { x: p1.x,                              y: p1.y };
-      bp1 = { x: ((-p0.x + 6*p1.x + p2.x) / 6), y: ((-p0.y + 6*p1.y + p2.y) / 6)};
-      bp2 = { x: ((p1.x + 6*p2.x - p3.x) / 6),  y: ((p1.y + 6*p2.y - p3.y)  / 6)};
-      bp3 = { x: p2.x,                              y: p2.y };
-
-      d2 += "C" + bp1.x + "," + bp1.y + " " + bp2.x + "," + bp2.y + " " + bp3.x + "," + bp3.y + " ";
-    }
-
-
-    // linear
-    var d = "";
-    for (var i = 0; i < data.length - 1; i++) {
-      if (i == 0) {
-        d += "M" + data[i].x + "," + data[i].y;
-      }
-      else {
-        d += " " + data[i].x + "," + data[i].y;
-      }
-    }
-
-    this.path.setAttributeNS(null, "d",d);
-    this.path2.setAttributeNS(null, "d",d2);
   }
 }
 
@@ -260,7 +253,7 @@ Linegraph.prototype.setData = function() {
  *                              Alignment for the items, only applicable for
  *                              ItemBox. Choose 'center' (default), 'left', or
  *                              'right'.
- *                           {String} orientation
+ *                            {String} orientation
  *                              Orientation of the item set. Choose 'top' or
  *                              'bottom' (default).
  *                           {Number} margin.axis
@@ -279,6 +272,159 @@ Linegraph.prototype.setOptions = function(options) {
   Component.prototype.setOptions.call(this, options);
 };
 
+
+Linegraph.prototype._extractData = function(dataset) {
+  var extractedData = [];
+  var low = dataset[0].value;
+  var high = dataset[0].value;
+
+  var range = this.range.end - this.range.start;
+  var rangePerPixel = range/this.width;
+  var rangePerPixelInv = this.width/range;
+  var xOffset = -this.range.start + this.width*rangePerPixel;
+
+  for (var i = 0; i < dataset.length; i++) {
+    var val = new Date(dataset[i].start).getTime();
+
+    val += xOffset;
+    val *= rangePerPixelInv;
+
+    extractedData.push({x:val, y:dataset[i].value});
+
+    if (low > dataset[i].value) {
+      low = dataset[i].value;
+    }
+    if (high < dataset[i].value) {
+      high = dataset[i].value;
+    }
+  }
+
+  //extractedData.sort(function (a,b) {return a.x - b.x;})
+  return {range:{low:low,high:high},data:extractedData};
+}
+
+Linegraph.prototype._catmullRomUniform = function(data) {
+  // catmull rom
+  var p0, p1, p2, p3, bp1, bp2
+  var d = "M" + Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
+  var normalization = 1/6;
+  var length = data.length;
+  for (var i = 0; i < length - 1; i++) {
+
+    p0 = (i == 0) ? data[0] : data[i-1];
+    p1 = data[i];
+    p2 = data[i+1];
+    p3 = (i + 2 < length) ? data[i+2] : p2;
+
+
+    // Catmull-Rom to Cubic Bezier conversion matrix
+    //    0       1       0       0
+    //  -1/6      1      1/6      0
+    //    0      1/6      1     -1/6
+    //    0       0       1       0
+
+    //    bp0 = { x: p1.x,                               y: p1.y };
+    bp1 = { x: ((-p0.x + 6*p1.x + p2.x) *normalization), y: ((-p0.y + 6*p1.y + p2.y) *normalization)};
+    bp2 = { x: (( p1.x + 6*p2.x - p3.x) *normalization), y: (( p1.y + 6*p2.y - p3.y) *normalization)};
+    //    bp0 = { x: p2.x,                               y: p2.y };
+
+    d += "C" +
+      Math.round(bp1.x) + "," +
+      Math.round(bp1.y) + " " +
+      Math.round(bp2.x) + "," +
+      Math.round(bp2.y) + " " +
+      Math.round(p2.x) + "," +
+      Math.round(p2.y) + " ";
+  }
+
+  return d;
+};
+
+
+Linegraph.prototype._catmullRom = function(data, alpha) {
+  if (alpha == 0 || alpha === undefined) {
+    return this._catmullRomUniform(data);
+  }
+  else {
+    var p0, p1, p2, p3, bp1, bp2, d1,d2,d3, A, B, N, M;
+    var d3powA, d2powA, d3pow2A, d2pow2A, d1pow2A, d1powA;
+    var d = "M" + Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
+    var length = data.length;
+    for (var i = 0; i < length - 1; i++) {
+
+      p0 = (i == 0) ? data[0] : data[i-1];
+      p1 = data[i];
+      p2 = data[i+1];
+      p3 = (i + 2 < length) ? data[i+2] : p2;
+
+      d1 = Math.sqrt(Math.pow(p0.x - p1.x,2) + Math.pow(p0.y - p1.y,2));
+      d2 = Math.sqrt(Math.pow(p1.x - p2.x,2) + Math.pow(p1.y - p2.y,2));
+      d3 = Math.sqrt(Math.pow(p2.x - p3.x,2) + Math.pow(p2.y - p3.y,2));
+
+      // Catmull-Rom to Cubic Bezier conversion matrix
+      //
+      // A = 2d1^2a + 3d1^a * d2^a + d3^2a
+      // B = 2d3^2a + 3d3^a * d2^a + d2^2a
+      //
+      // [   0             1            0          0          ]
+      // [   -d2^2a/N      A/N          d1^2a/N    0          ]
+      // [   0             d3^2a/M      B/M        -d2^2a/M   ]
+      // [   0             0            1          0          ]
+
+      // [   0             1            0          0          ]
+      // [   -d2pow2a/N    A/N          d1pow2a/N  0          ]
+      // [   0             d3pow2a/M    B/M        -d2pow2a/M ]
+      // [   0             0            1          0          ]
+
+      d3powA  = Math.pow(d3,  alpha);
+      d3pow2A = Math.pow(d3,2*alpha);
+      d2powA  = Math.pow(d2,  alpha);
+      d2pow2A = Math.pow(d2,2*alpha);
+      d1powA  = Math.pow(d1,  alpha);
+      d1pow2A = Math.pow(d1,2*alpha);
+
+      A = 2*d1pow2A + 3*d1powA * d2powA + d2pow2A;
+      B = 2*d3pow2A + 3*d3powA * d2powA + d2pow2A;
+      N = 3*d1powA * (d1powA + d2powA);
+      if (N > 0) {N = 1 / N;}
+      M = 3*d3powA * (d3powA + d2powA);
+      if (M > 0) {M = 1 / M;}
+
+      bp1 = { x: ((-d2pow2A * p0.x + A*p1.x + d1pow2A * p2.x) * N),
+              y: ((-d2pow2A * p0.y + A*p1.y + d1pow2A * p2.y) * N)};
+
+      bp2 = { x: (( d3pow2A * p1.x + B*p2.x - d2pow2A * p3.x) * M),
+              y: (( d3pow2A * p1.y + B*p2.y - d2pow2A * p3.y) * M)};
+
+      if (bp1.x == 0 && bp1.y == 0) {bp1 = p1;}
+      if (bp2.x == 0 && bp2.y == 0) {bp2 = p2;}
+      d += "C" +
+        Math.round(bp1.x) + "," +
+        Math.round(bp1.y) + " " +
+        Math.round(bp2.x) + "," +
+        Math.round(bp2.y) + " " +
+        Math.round(p2.x) + "," +
+        Math.round(p2.y) + " ";
+    }
+
+    return d;
+  }
+};
+
+
+Linegraph.prototype._linear = function(data) {
+  // linear
+  var d = "";
+  for (var i = 0; i < data.length; i++) {
+    if (i == 0) {
+      d += "M" + data[i].x + "," + data[i].y;
+    }
+    else {
+      d += " " + data[i].x + "," + data[i].y;
+    }
+  }
+  return d;
+}
 
 /**
  * Set range (start and end).
