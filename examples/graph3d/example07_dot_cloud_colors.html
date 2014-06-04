@@ -7,27 +7,17 @@
         body {font: 10pt arial;}
     </style>
 
-    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-    <script type="text/javascript" src="../graph3d.js"></script>
+    <script type="text/javascript" src="../../dist/vis.js"></script>
 
     <script type="text/javascript">
         var data = null;
         var graph = null;
 
-        google.load("visualization", "1");
-
-        // Set callback to run when API is loaded
-        google.setOnLoadCallback(drawVisualization);
 
         // Called when the Visualization API is loaded.
         function drawVisualization() {
             // create the data table.
-            data = new google.visualization.DataTable();
-            data.addColumn('number', 'x');
-            data.addColumn('number', 'y');
-            data.addColumn('number', 'z');
-            data.addColumn('number', 'distance');
-
+            var data = new vis.DataSet({});
             // create some shortcuts to math functions
             var sqrt = Math.sqrt;
             var pow = Math.pow;
@@ -41,7 +31,7 @@
                 var z = pow(random(), 2);
                 var dist = sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
 
-                data.addRow([x, y, z, dist]);
+                data.add({x:x,y:y,z:z,style:dist});
             }
 
             // specify options
@@ -53,6 +43,7 @@
                 showGrid: true,
                 keepAspectRatio: true,
                 verticalRatio: 1.0,
+                legendLabel: "distance",
                 cameraPosition: {
                     horizontal: -0.35,
                     vertical: 0.22,
@@ -69,7 +60,7 @@
     </script>
 </head>
 
-<body>
+<body onload="drawVisualization()">
 <div id="mygraph"></div>
 
 <div id="info"></div>

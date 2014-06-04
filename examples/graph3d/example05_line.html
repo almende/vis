@@ -7,25 +7,16 @@
         body {font: 10pt arial;}
     </style>
 
-    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-    <script type="text/javascript" src="../graph3d.js"></script>
+    <script type="text/javascript" src="../../dist/vis.js"></script>
 
     <script type="text/javascript">
         var data = null;
         var graph = null;
 
-        google.load("visualization", "1");
-
-        // Set callback to run when API is loaded
-        google.setOnLoadCallback(drawVisualization);
-
         // Called when the Visualization API is loaded.
         function drawVisualization() {
             // Create and populate a data table.
-            data = new google.visualization.DataTable();
-            data.addColumn('number', 'x');
-            data.addColumn('number', 'y');
-            data.addColumn('number', 'value');
+            var data = new vis.DataSet({});
 
             // create some nice looking data with sin/cos
             var steps = 500;
@@ -37,7 +28,7 @@
                 var x = r * Math.sin(t);
                 var y = r * Math.cos(t);
                 var z = t / tmax;
-                data.addRow([x, y, z]);
+                data.add({x:x,y:y,z:z});
             }
 
             // specify options
@@ -62,7 +53,7 @@
     </script>
 </head>
 
-<body>
+<body onload="drawVisualization()">
 <div id="mygraph"></div>
 
 <div id="info"></div>

@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 1.0.2-SNAPSHOT
- * @date    2014-06-02
+ * @date    2014-06-04
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -19036,6 +19036,12 @@ links.Graph3d = function (container) {
   this.defaultXCenter = "55%";
   this.defaultYCenter = "50%";
 
+  this.xLabel = "x";
+  this.yLabel = "y";
+  this.zLabel = "z";
+  this.filterLabel = "time";
+  this.legendLabel = "value";
+
   this.style = links.Graph3d.STYLE.DOT;
   this.showPerspective = true;
   this.showGrid = true;
@@ -19114,9 +19120,9 @@ links.Graph3d.Camera = function () {
 
 /**
  * Set the location (origin) of the arm
- * @param {number} x  Normalized value of x
- * @param {number} y  Normalized value of y
- * @param {number} z  Normalized value of z
+ * @param {Number} x  Normalized value of x
+ * @param {Number} y  Normalized value of y
+ * @param {Number} z  Normalized value of z
  */
 links.Graph3d.Camera.prototype.setArmLocation = function(x, y, z) {
   this.armLocation.x = x;
@@ -19128,9 +19134,9 @@ links.Graph3d.Camera.prototype.setArmLocation = function(x, y, z) {
 
 /**
  * Set the rotation of the camera arm
- * @param {number} horizontal   The horizontal rotation, between 0 and 2*PI.
+ * @param {Number} horizontal   The horizontal rotation, between 0 and 2*PI.
  *                Optional, can be left undefined.
- * @param {number} vertical   The vertical rotation, between 0 and 0.5*PI
+ * @param {Number} vertical   The vertical rotation, between 0 and 0.5*PI
  *                if vertical=0.5*PI, the graph is shown from the
  *                top. Optional, can be left undefined.
  */
@@ -19164,7 +19170,7 @@ links.Graph3d.Camera.prototype.getArmRotation = function() {
 
 /**
  * Set the (normalized) length of the camera arm.
- * @param {number} length A length between 0.71 and 5.0
+ * @param {Number} length A length between 0.71 and 5.0
  */
 links.Graph3d.Camera.prototype.setArmLength = function(length) {
   if (length === undefined)
@@ -19183,7 +19189,7 @@ links.Graph3d.Camera.prototype.setArmLength = function(length) {
 
 /**
  * Retrieve the arm length
- * @return {number} length
+ * @return {Number} length
  */
 links.Graph3d.Camera.prototype.getArmLength = function() {
   return this.armLength;
@@ -19354,6 +19360,12 @@ links.Graph3d.prototype.draw = function(data, options) {
     if (options.xCenter !== undefined)     this.defaultXCenter = options.xCenter;
     if (options.yCenter !== undefined)     this.defaultYCenter = options.yCenter;
 
+    if (options.filterLabel !== undefined)     this.filterLabel = options.filterLabel;
+    if (options.legendLabel !== undefined)     this.legendLabel = options.legendLabel;
+    if (options.xLabel !== undefined)     this.xLabel = options.xLabel;
+    if (options.yLabel !== undefined)     this.yLabel = options.yLabel;
+    if (options.zLabel !== undefined)     this.zLabel = options.zLabel;
+
     if (options.style !== undefined) {
       var styleNumber = this._getStyleNumber(options.style);
       if (styleNumber !== -1) {
@@ -19466,7 +19478,7 @@ links.Graph3d.STYLE = {
 /**
  * Retrieve the style index from given styleName
  * @param {string} styleName  Style name such as "dot", "grid", "dot-line"
- * @return {number} styleNumber Enumeration value representing the style, or -1
+ * @return {Number} styleNumber Enumeration value representing the style, or -1
  *                when not found
  */
 links.Graph3d.prototype._getStyleNumber = function(styleName) {
@@ -19488,8 +19500,8 @@ links.Graph3d.prototype._getStyleNumber = function(styleName) {
 
 /**
  * Determine the indexes of the data columns, based on the given style and data
- * @param {google.visualization.DataTable} data
- * @param {number}  style
+ * @param {DataSet} data
+ * @param {Number}  style
  */
 links.Graph3d.prototype._determineColumnIndexes = function(data, style) {
   if (this.style === links.Graph3d.STYLE.DOT ||
@@ -19566,9 +19578,9 @@ links.Graph3d.prototype.getColumnRange = function(data,column) {
 /**
  * Initialize the data from the data table. Calculate minimum and maximum values
  * and column index values
- * @param {google.visualization.DataTable} data   The data containing the events
+ * @param {DataSet} data   The data containing the events
  *                        for the Graph.
- * @param {number}     style   Style number
+ * @param {Number}     style   Style Number
  */
 links.Graph3d.prototype._dataInitialize = function (rawData, style) {
 
@@ -19597,15 +19609,13 @@ links.Graph3d.prototype._dataInitialize = function (rawData, style) {
   this.colZ = 'z';
   this.colValue = 'style';
   this.colFilter = 'filter';
-//
+
+
+
   // check if a filter column is provided
   if (data[0].hasOwnProperty("filter")) {
     if (this.dataFilter === undefined) {
-      this.dataFilter = new links.Filter(data, this.colFilter, this);
-//      this.dataFilter = new DataView(rawData, {filter: function (item) {return (item.value);}})
-//
-
-
+      this.dataFilter = new links.Filter(rawData, this.colFilter, this);
       var me = this;
       this.dataFilter.setOnLoadCallback(function() {me.redraw();});
     }
@@ -19677,7 +19687,7 @@ links.Graph3d.prototype._dataInitialize = function (rawData, style) {
 
 /**
  * Filter the data based on the current filter
- * @param {google.visualization.DataTable} data
+ * @param {DataSet} data
  * @return {Array} dataPoints   Array with point objects which can be drawn on screen
  */
 links.Graph3d.prototype._getDataPoints = function (data) {
@@ -19932,14 +19942,14 @@ links.Graph3d.prototype._resizeCenter = function() {
  * Set the rotation and distance of the camera
  * @param {Object} pos   An object with the camera position. The object
  *             contains three parameters:
- *             - horizontal {number}
+ *             - horizontal {Number}
  *             The horizontal rotation, between 0 and 2*PI.
  *             Optional, can be left undefined.
- *             - vertical {number}
+ *             - vertical {Number}
  *             The vertical rotation, between 0 and 0.5*PI
  *             if vertical=0.5*PI, the graph is shown from the
  *             top. Optional, can be left undefined.
- *             - distance {number}
+ *             - distance {Number}
  *             The (normalized) distance of the camera to the
  *             center of the graph, a value between 0.71 and 5.0.
  *             Optional, can be left undefined.
@@ -19997,7 +20007,7 @@ links.Graph3d.prototype._readData = function(data) {
 /**
  * Redraw the Graph. This needs to be executed after the start and/or
  * end time are changed, or when data is added or removed dynamically.
- * @param {google.visualization.DataTable} data  Optional, new data table
+ * @param {DataSet} data  Optional, new data table
  */
 links.Graph3d.prototype.redraw = function(data) {
   // load the data if needed
@@ -20143,7 +20153,7 @@ links.Graph3d.prototype._redrawLegend = function() {
 
     ctx.textAlign = "right";
     ctx.textBaseline = "top";
-    var label = this.dataTable.getColumnLabel(this.colValue);
+    var label = this.legendLabel;
     ctx.fillText(label, right, bottom + this.margin);
   }
 };
@@ -20427,7 +20437,7 @@ links.Graph3d.prototype._redrawAxis = function() {
   ctx.stroke();
 
   // draw x-label
-  var xLabel = this.colX;
+  var xLabel = this.xLabel;
   if (xLabel.length > 0) {
     yOffset = 0.1 / this.scale.y;
     xText = (this.xMin + this.xMax) / 2;
@@ -20450,7 +20460,7 @@ links.Graph3d.prototype._redrawAxis = function() {
   }
 
   // draw y-label
-  var yLabel = this.colY;
+  var yLabel = this.yLabel;
   if (yLabel.length > 0) {
     xOffset = 0.1 / this.scale.x;
     xText = (Math.sin(armAngle ) > 0) ? this.xMin - xOffset : this.xMax + xOffset;
@@ -20473,7 +20483,7 @@ links.Graph3d.prototype._redrawAxis = function() {
   }
 
   // draw z-label
-  var zLabel = this.colZ;
+  var zLabel = this.zLabel;
   if (zLabel.length > 0) {
     offset = 30;  // pixels.  // TODO: relate to the max width of the values on the z axis?
     xText = (Math.cos(armAngle ) > 0) ? this.xMin : this.xMax;
@@ -20489,9 +20499,9 @@ links.Graph3d.prototype._redrawAxis = function() {
 
 /**
  * Calculate the color based on the given value.
- * @param {number} H   Hue, a value be between 0 and 360
- * @param {number} S   Saturation, a value between 0 and 1
- * @param {number} V   Value, a value between 0 and 1
+ * @param {Number} H   Hue, a value be between 0 and 360
+ * @param {Number} S   Saturation, a value between 0 and 1
+ * @param {Number} V   Value, a value between 0 and 1
  */
 links.Graph3d.prototype._hsv2rgb = function(H, S, V) {
   var R, G, B, C, Hi, X;
@@ -21194,8 +21204,8 @@ links.Graph3d.prototype._insideTriangle = function (point, triangle) {
 
 /**
  * Find a data point close to given screen position (x, y)
- * @param {number} x
- * @param {number} y
+ * @param {Number} x
+ * @param {Number} y
  * @return {Object | null} The closest data point or null if not close to any data point
  * @private
  */
@@ -21451,8 +21461,8 @@ links.Point2d = function (x, y) {
 /**
  * @class Filter
  *
- * @param {google.visualization.DataTable} data The google data table
- * @param {number} column             The index of the column to be filtered
+ * @param {DataSet} data The google data table
+ * @param {Number}  column             The index of the column to be filtered
  * @param {links.Graph} graph           The graph
  */
 links.Filter = function (data, column, graph) {
@@ -21464,8 +21474,9 @@ links.Filter = function (data, column, graph) {
   this.value = undefined;
 
   // read all distinct values and select the first one
-  this.values = graph.getDistinctValues(data, this.column);
-  if (this.values.length) {
+  this.values = graph.getDistinctValues(data.get(), this.column);
+
+  if (this.values.length > 0) {
     this.selectValue(0);
   }
 
@@ -21496,7 +21507,7 @@ links.Filter.prototype.isLoaded = function() {
 
 /**
  * Return the loaded progress
- * @return {number} percentage between 0 and 100
+ * @return {Number} percentage between 0 and 100
  */
 links.Filter.prototype.getLoadedProgress = function() {
   var len = this.values.length;
@@ -21515,13 +21526,13 @@ links.Filter.prototype.getLoadedProgress = function() {
  * @return {string} label
  */
 links.Filter.prototype.getLabel = function() {
-  return this.data.getColumnLabel(this.column);
+  return this.graph.filterLabel;
 };
 
 
 /**
  * Return the columnIndex of the filter
- * @return {number} columnIndex
+ * @return {Number} columnIndex
  */
 links.Filter.prototype.getColumn = function() {
   return this.column;
@@ -21548,7 +21559,7 @@ links.Filter.prototype.getValues = function() {
 
 /**
  * Retrieve one value of the filter
- * @param {number}  index
+ * @param {Number}  index
  * @return {*} value
  */
 links.Filter.prototype.getValue = function(index) {
@@ -21561,7 +21572,7 @@ links.Filter.prototype.getValue = function(index) {
 
 /**
  * Retrieve the (filtered) dataPoints for the currently selected filter index
- * @param {number} index (optional)
+ * @param {Number} index (optional)
  * @return {Array} dataPoints
  */
 links.Filter.prototype._getDataPoints = function(index) {
@@ -21576,14 +21587,11 @@ links.Filter.prototype._getDataPoints = function(index) {
     dataPoints = this.dataPoints[index];
   }
   else {
-    var dataView = new google.visualization.DataView(this.data);
-
     var f = {};
     f.column = this.column;
     f.value = this.values[index];
-    var filteredRows = this.data.getFilteredRows([f]);
-    dataView.setRows(filteredRows);
 
+    var dataView = new DataView(this.data,{filter: function (item) {return (item[f.column] == f.value);}}).get();
     dataPoints = this.graph._getDataPoints(dataView);
 
     this.dataPoints[index] = dataPoints;
@@ -21605,7 +21613,7 @@ links.Filter.prototype.setOnLoadCallback = function(callback) {
 /**
  * Add a value to the list with available values for this filter
  * No double entries will be created.
- * @param {number} index
+ * @param {Number} index
  */
 links.Filter.prototype.selectValue = function(index) {
   if (index >= this.values.length)
@@ -21664,7 +21672,7 @@ links.Filter.prototype.loadInBackground = function(index) {
 
 /**
  * @prototype links.StepNumber
- * The class StepNumber is an iterator for numbers. You provide a start and end
+ * The class StepNumber is an iterator for Numbers. You provide a start and end
  * value, and a best step size. StepNumber itself rounds to fixed values and
  * a finds the step that best fits the provided step.
  *
@@ -21681,9 +21689,9 @@ links.Filter.prototype.loadInBackground = function(index) {
  *
  * Version: 1.0
  *
- * @param {number} start     The start value
- * @param {number} end     The end value
- * @param {number} step    Optional. Step size. Must be a positive value.
+ * @param {Number} start     The start value
+ * @param {Number} end     The end value
+ * @param {Number} step    Optional. Step size. Must be a positive value.
  * @param {boolean} prettyStep Optional. If true, the step size is rounded
  *               To a pretty step size (like 1, 2, 5, 10, 20, 50, ...)
  */
@@ -21702,9 +21710,9 @@ links.StepNumber = function (start, end, step, prettyStep) {
 /**
  * Set a new range: start, end and step.
  *
- * @param {number} start     The start value
- * @param {number} end     The end value
- * @param {number} step    Optional. Step size. Must be a positive value.
+ * @param {Number} start     The start value
+ * @param {Number} end     The end value
+ * @param {Number} step    Optional. Step size. Must be a positive value.
  * @param {boolean} prettyStep Optional. If true, the step size is rounded
  *               To a pretty step size (like 1, 2, 5, 10, 20, 50, ...)
  */
@@ -21717,7 +21725,7 @@ links.StepNumber.prototype.setRange = function(start, end, step, prettyStep) {
 
 /**
  * Set a new step size
- * @param {number} step    New step size. Must be a positive value
+ * @param {Number} step    New step size. Must be a positive value
  * @param {boolean} prettyStep Optional. If true, the provided step is rounded
  *               to a pretty step size (like 1, 2, 5, 10, 20, 50, ...)
  */
@@ -21737,9 +21745,9 @@ links.StepNumber.prototype.setStep = function(step, prettyStep) {
 /**
  * Calculate a nice step size, closest to the desired step size.
  * Returns a value in one of the ranges 1*10^n, 2*10^n, or 5*10^n, where n is an
- * integer number. For example 1, 2, 5, 10, 20, 50, etc...
- * @param {number}  step  Desired step size
- * @return {number}     Nice step size
+ * integer Number. For example 1, 2, 5, 10, 20, 50, etc...
+ * @param {Number}  step  Desired step size
+ * @return {Number}     Nice step size
  */
 links.StepNumber.calculatePrettyStep = function (step) {
   var log10 = function (x) {return Math.log(x) / Math.LN10;};
@@ -21764,7 +21772,7 @@ links.StepNumber.calculatePrettyStep = function (step) {
 
 /**
  * returns the current value of the step
- * @return {number} current value
+ * @return {Number} current value
  */
 links.StepNumber.prototype.getCurrent = function () {
   return parseFloat(this._current.toPrecision(this.precision));
@@ -21772,7 +21780,7 @@ links.StepNumber.prototype.getCurrent = function () {
 
 /**
  * returns the current step size
- * @return {number} current step size
+ * @return {Number} current step size
  */
 links.StepNumber.prototype.getStep = function () {
   return this._step;
@@ -21973,7 +21981,7 @@ links.Slider.prototype.setOnChangeCallback = function(callback) {
 
 /**
  * Set the interval for playing the list
- * @param {number} interval   The interval in milliseconds
+ * @param {Number} interval   The interval in milliseconds
  */
 links.Slider.prototype.setPlayInterval = function(interval) {
   this.playInterval = interval;
@@ -21981,7 +21989,7 @@ links.Slider.prototype.setPlayInterval = function(interval) {
 
 /**
  * Retrieve the current play interval
- * @return {number} interval   The interval in milliseconds
+ * @return {Number} interval   The interval in milliseconds
  */
 links.Slider.prototype.getPlayInterval = function(interval) {
   return this.playInterval;
@@ -22042,7 +22050,7 @@ links.Slider.prototype.setValues = function(values) {
 
 /**
  * Select a value by its index
- * @param {number} index
+ * @param {Number} index
  */
 links.Slider.prototype.setIndex = function(index) {
   if (index < this.values.length) {
@@ -22058,7 +22066,7 @@ links.Slider.prototype.setIndex = function(index) {
 
 /**
  * retrieve the index of the currently selected vaue
- * @return {number} index
+ * @return {Number} index
  */
 links.Slider.prototype.getIndex = function() {
   return this.index;
@@ -22229,7 +22237,7 @@ links.preventDefault = function (event) {
 /**
  * Retrieve the absolute left value of a DOM element
  * @param {Element} elem  A dom element, for example a div
- * @return {number} left    The absolute left position of this element
+ * @return {Number} left    The absolute left position of this element
  *                in the browser page.
  */
 links.getAbsoluteLeft = function(elem) {
@@ -22245,7 +22253,7 @@ links.getAbsoluteLeft = function(elem) {
 /**
  * Retrieve the absolute top value of a DOM element
  * @param {Element} elem  A dom element, for example a div
- * @return {number} top     The absolute top position of this element
+ * @return {Number} top     The absolute top position of this element
  *                in the browser page.
  */
 links.getAbsoluteTop = function(elem) {
@@ -22261,7 +22269,7 @@ links.getAbsoluteTop = function(elem) {
 /**
  * Get the horizontal mouse position from a mouse event
  * @param {Event} event
- * @return {number} mouse x
+ * @return {Number} mouse x
  */
 links.getMouseX = function(event) {
   if ('clientX' in event) return event.clientX;
@@ -22271,7 +22279,7 @@ links.getMouseX = function(event) {
 /**
  * Get the vertical mouse position from a mouse event
  * @param {Event} event
- * @return {number} mouse y
+ * @return {Number} mouse y
  */
 links.getMouseY = function(event) {
   if ('clientY' in event) return event.clientY;

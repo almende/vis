@@ -2,10 +2,10 @@
 
 <head>
     <title>Graph3d documentation</title>
-    <link rel='stylesheet' href='default.css' type='text/css'>
+    <link rel='stylesheet' href='css/default.css' type='text/css'>
 
-    <link href="prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="prettify/prettify.js"></script>
+    <link href="lib/prettify/prettify.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="lib/prettify/prettify.js"></script>
 </head>
 
 <body onload="prettyPrint();">
@@ -33,7 +33,6 @@
 <h2 id="Contents">Contents</h2>
 <ul>
     <li><a href="#Overview">Overview</a></li>
-    <li><a href="#Example">Example</a></li>
     <li><a href="#Loading">Loading</a></li>
     <li><a href="#Data_Format">Data Format</a></li>
     <li><a href="#Configuration_Options">Configuration Options</a></li>
@@ -50,135 +49,73 @@
     Graph3d also supports animation of a graph.
 </p>
 
-<p>
-    The graph works smooth on any modern browser for data up to 10.000 points.
-</p>
-
-<p>
-    The Graph is developed as a Google Visualization Chart in javascript.
-    <!--
-    There is a GWT wrapper available to use the Graph in GWT (Google Web Toolkit).
-    -->
-    It runs on all modern browsers without additional requirements.
-    Graph is tested on Firefox 3.6+, Safari 5.0+, Chrome 6.0+, Opera 10.6+,
-    Internet Explorer 9+.
-</p>
-
-<p>
-    To get started with Graph3d, download
-    <a href="http://almende.github.com/chap-links-library/downloads.html">graph3d.zip</a>,
-    and unzip the contents in a subfolder graph3d on your site.
-
-    Examples can be found in the
-    <a href="../examples" target="_blank">examples</a> directory.
-
-    The possiblities of Graph3d can be tested on the
-    <a href="../playground" target="_blank">playground</a>.
-</p>
-
-<h2 id="Example">Example</h2>
-<p>
-    Here a graph example. Click and drag to move the graph, scroll to zoom the graph.
-</p>
-
-<p style="width:100%; text-align:center;">
-    <iframe src="example.html" style="border:none; width:420px; height:420px;"></iframe>
-</p>
 <pre class="prettyprint lang-html">
-&lt;!DOCTYPE HTML PUBLIC
-     "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"&gt;
+&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"&gt;
 &lt;html&gt;
-  &lt;head&gt;
+&lt;head&gt;
     &lt;title&gt;Graph 3D demo&lt;/title&gt;
 
     &lt;style&gt;
-      body {font: 10pt arial;}
+        body {font: 10pt arial;}
     &lt;/style&gt;
 
-    &lt;script type="text/javascript" src="http://www.google.com/jsapi"&gt;&lt;/script&gt;
-    &lt;script type="text/javascript" src="../graph3d.js"&gt;&lt;/script&gt;
+    &lt;script type="text/javascript" src="../../dist/vis.js"&gt;&lt;/script&gt;
 
     &lt;script type="text/javascript"&gt;
-      var data = null;
-      var graph = null;
+    var data = null;
+    var graph = null;
 
-      google.load("visualization", "1");
+    function custom(x, y) {
+        return (Math.sin(x/50) * Math.cos(y/50) * 50 + 50);
+    }
 
-      // Set callback to run when API is loaded
-      google.setOnLoadCallback(drawVisualization);
-
-      function custom(x, y) {
-        return Math.sin(x/50) * Math.cos(y/50) * 50 + 50;
-      }
-
-      // Called when the Visualization API is loaded.
-      function drawVisualization() {
+    // Called when the Visualization API is loaded.
+    function drawVisualization() {
         // Create and populate a data table.
-        data = new google.visualization.DataTable();
-        data.addColumn('number', 'x');
-        data.addColumn('number', 'y');
-        data.addColumn('number', 'value');
-
+        var data = new vis.DataSet({});
         // create some nice looking data with sin/cos
-        var steps = 25;  // number of datapoints will be steps*steps
+        var steps = 50;  // number of datapoints will be steps*steps
         var axisMax = 314;
-        axisStep = axisMax / steps;
+        var axisStep = axisMax / steps;
         for (var x = 0; x &lt; axisMax; x+=axisStep) {
-          for (var y = 0; y &lt; axisMax; y+=axisStep) {
-            var value = custom(x,y);
-            data.addRow([x, y, value]);
-          }
+            for (var y = 0; y &lt; axisMax; y+=axisStep) {
+                var value = custom(x,y);
+                data.add([
+                    {x:x,y:y,z:value,style:value}
+                ]);
+            }
         }
 
         // specify options
-        options = {width:  "400px",
-                   height: "400px",
-                   style: "surface",
-                   showPerspective: true,
-                   showGrid: true,
-                   showShadow: false,
-                   keepAspectRatio: true,
-                   verticalRatio: 0.5
-                   };
+        var options = {
+            width:  "600px",
+            height: "600px",
+            style: "surface",
+            showPerspective: true,
+            showGrid: true,
+            showShadow: false,
+            keepAspectRatio: true,
+            verticalRatio: 0.5
+        };
 
         // Instantiate our graph object.
         graph = new links.Graph3d(document.getElementById('mygraph'));
 
         // Draw our graph with the created data and options
         graph.draw(data, options);
-      }
-   &lt;/script&gt;
-  &lt;/head&gt;
+    }
+    &lt;/script&gt;
+    &lt;/head&gt;
 
-  &lt;body&gt;
-    &lt;div id="mygraph"&gt;&lt;/div&gt;
-  &lt;/body&gt;
+&lt;body onload="drawVisualization();"&gt;
+&lt;div id="mygraph"&gt;&lt;/div&gt;
+
+        &lt;div id="info"&gt;&lt;/div&gt;
+&lt;/body&gt;
 &lt;/html&gt;
+
 </pre>
 
-
-<h2 id="Loading">Loading</h2>
-<p>
-    Graph3d is no built-in visualization of Google.
-
-    To load Graph3d, download the file
-    <a href="http://almende.github.com/chap-links-library/downloads.html"><code>graph3d.zip</code></a>,
-    and unzip it in your html page such that the files are located in a subfolder graph3d.
-    Include the google API and the following files in the head of your html code:
-</p>
-
-<pre class="prettyprint lang-html">&lt;script type="text/javascript" src="http://www.google.com/jsapi"&gt;&lt;/script&gt;
-&lt;script type="text/javascript" src="graph/graph3d.js"&gt;&lt;/script&gt;</pre>
-
-<p>
-    The google visualization needs to be loaded in order to use DataTable.
-</p>
-<pre class="prettyprint lang-js">google.load("visualization", "1");
-google.setOnLoadCallback(drawVisualization);
-function drawVisualization() {
-  // load data and create the graph here
-}
-</pre>
 
 The class name of the Graph3d is <code>links.Graph3d</code>
 <pre class="prettyprint lang-js">var graph = new links.Graph3d(container);</pre>

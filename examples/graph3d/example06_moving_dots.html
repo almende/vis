@@ -7,27 +7,16 @@
         body {font: 10pt arial;}
     </style>
 
-    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-    <script type="text/javascript" src="../graph3d.js"></script>
+    <script type="text/javascript" src="../../dist/vis.js"></script>
 
     <script type="text/javascript">
         var data = null;
         var graph = null;
 
-        google.load("visualization", "1");
-
-        // Set callback to run when API is loaded
-        google.setOnLoadCallback(drawVisualization);
-
         // Called when the Visualization API is loaded.
         function drawVisualization() {
             // create the data table.
-            data = new google.visualization.DataTable();
-            data.addColumn('number', 'x');
-            data.addColumn('number', 'y');
-            data.addColumn('number', 'z');
-            data.addColumn('number', 'color value');
-            data.addColumn('number', 'time');
+            var data = new vis.DataSet({});
 
             // create some shortcuts to math functions
             var sin = Math.sin;
@@ -43,13 +32,13 @@
                 var value = t;
 
                 // a dot in the center
-                data.addRow([0, 0, 0, value, tgroup]);
+                data.add( {x:0,y:0,z:0,filter:tgroup,style:value});
 
                 // one or multiple dots moving around the center
                 for (var dot = 0; dot < dotCount; dot++) {
                     var tdot = t + 2*pi * dot / dotCount;
-                    data.addRow([sin(tdot),  cos(tdot), sin(tdot), value, tgroup]);
-                    data.addRow([sin(tdot), -cos(tdot), sin(tdot + tmax*1/2), value, tgroup]);
+                    data.add( {x:sin(tdot),y:cos(tdot),z:sin(tdot),filter:tgroup,style:value});
+                    data.add( {x:sin(tdot),y:-cos(tdot),z:sin(tdot + tmax*1/2),filter:tgroup,style:value});
                 }
             }
 
@@ -65,6 +54,7 @@
                 animationInterval: 35, // milliseconds
                 animationPreload: false,
                 animationAutoStart: true,
+                legendLabel: "color value",
                 cameraPosition:
                 {
                     horizontal: 2.7,
@@ -82,7 +72,7 @@
     </script>
 </head>
 
-<body>
+<body onload="drawVisualization();">
 <div id="mygraph"></div>
 
 <div id="info"></div>

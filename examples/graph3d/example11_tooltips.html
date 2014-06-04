@@ -7,17 +7,11 @@
         body {font: 10pt arial;}
     </style>
 
-    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-    <script type="text/javascript" src="../graph3d.js"></script>
+    <script type="text/javascript" src="../../dist/vis.js"></script>
 
     <script type="text/javascript">
         var data = null;
         var graph = null;
-
-        google.load("visualization", "1");
-
-        // Set callback to run when API is loaded
-        google.setOnLoadCallback(drawVisualization);
 
         function custom(x, y) {
             return (-Math.sin(x/Math.PI) * Math.cos(y/Math.PI) * 10 + 10);
@@ -29,11 +23,7 @@
             var withValue = ['bar-color', 'bar-size', 'dot-size', 'dot-color'].indexOf(style) != -1;
 
             // Create and populate a data table.
-            data = new google.visualization.DataTable();
-            data.addColumn('number', 'x');
-            data.addColumn('number', 'y');
-            data.addColumn('number', 'z');
-            if (withValue) data.addColumn('number', 'value');
+            var data = new vis.DataSet({});
 
             // create some nice looking data with sin/cos
             var steps = 5;  // number of datapoints will be steps*steps
@@ -42,12 +32,13 @@
             for (var x = 0; x <= axisMax; x+=axisStep) {
                 for (var y = 0; y <= axisMax; y+=axisStep) {
                     var z = custom(x,y);
-                    var values = [x, y, z];
                     if (withValue) {
                         var value = (y - x);
-                        values.push(value);
+                        data.add({x:x, y:y, z: z, style:value});
                     }
-                    data.addRow(values);
+                    else {
+                        data.add({x:x, y:y, z: z});
+                    }
                 }
             }
 
@@ -86,7 +77,7 @@
     </script>
 </head>
 
-<body>
+<body onload="drawVisualization()">
 
 <p>
     <label for="style"> Style:

@@ -23,22 +23,10 @@ function selectDataType() {
     var datatype = getDataType();
 
     document.getElementById("csv").style.overflow = "hidden";
-    document.getElementById("json").style.overflow = "hidden";
-    document.getElementById("javascript").style.overflow = "hidden";
-    document.getElementById("googlespreadsheet").style.overflow = "hidden";
-    document.getElementById("datasource").style.overflow = "hidden";
 
     document.getElementById("csv").style.visibility               = (datatype == "csv") ? "" : "hidden";
-    document.getElementById("json").style.visibility              = (datatype == "json") ? "" : "hidden";
-    document.getElementById("javascript").style.visibility        = (datatype == "javascript") ? "" : "hidden";
-    document.getElementById("googlespreadsheet").style.visibility = (datatype == "googlespreadsheet") ? "" : "hidden";
-    document.getElementById("datasource").style.visibility        = (datatype == "datasource") ? "" : "hidden";
 
     document.getElementById("csv").style.height               = (datatype == "csv") ? "auto" : "0px";
-    document.getElementById("json").style.height              = (datatype == "json") ? "auto" : "0px";
-    document.getElementById("javascript").style.height        = (datatype == "javascript") ? "auto" : "0px";
-    document.getElementById("googlespreadsheet").style.height = (datatype == "googlespreadsheet") ? "auto" : "0px";
-    document.getElementById("datasource").style.height        = (datatype == "datasource") ? "auto" : "0px";
 }
 
 
@@ -69,6 +57,10 @@ function loadCsvExample() {
     // also adjust some settings
     document.getElementById("style").value = "surface";
     document.getElementById("verticalRatio").value = "0.5";
+
+  document.getElementById("xLabel").value = "x";
+  document.getElementById("yLabel").value = "y";
+  document.getElementById("zLabel").value = "value";
 }
 
 
@@ -99,6 +91,12 @@ function loadCsvAnimationExample() {
     document.getElementById("verticalRatio").value = "0.5";
     document.getElementById("animationInterval").value = 100;
 
+    document.getElementById("xLabel").value = "x";
+    document.getElementById("yLabel").value = "y";
+    document.getElementById("zLabel").value = "value";
+    document.getElementById("filterLabel").value = "time";
+    document.getElementById("legendLabel").value = "value";
+
 }
 
 
@@ -127,6 +125,10 @@ function loadCsvLineExample() {
     document.getElementById("style").value = "line";
     document.getElementById("verticalRatio").value = "1.0";
     document.getElementById("showPerspective").checked = false;
+
+  document.getElementById("xLabel").value = "sin(t)";
+  document.getElementById("yLabel").value = "cos(t)";
+  document.getElementById("zLabel").value = "t";
 }
 
 function loadCsvMovingDotsExample() {
@@ -181,6 +183,12 @@ function loadCsvMovingDotsExample() {
     document.getElementById("animationInterval").value = "35";
     document.getElementById("animationAutoStart").checked = true;
     document.getElementById("showPerspective").checked = true;
+
+  document.getElementById("xLabel").value = "x";
+  document.getElementById("yLabel").value = "y";
+  document.getElementById("zLabel").value = "z";
+  document.getElementById("filterLabel").value = "time";
+  document.getElementById("legendLabel").value = "color value";
 }
 
 function loadCsvColoredDotsExample() {
@@ -211,6 +219,11 @@ function loadCsvColoredDotsExample() {
     document.getElementById("style").value = "dot-color";
     document.getElementById("verticalRatio").value = "1.0";
     document.getElementById("showPerspective").checked = true;
+
+  document.getElementById("xLabel").value = "x";
+  document.getElementById("yLabel").value = "y";
+  document.getElementById("zLabel").value = "value";
+  document.getElementById("legendLabel").value = "distance";
 }
 
 function loadCsvSizedDotsExample() {
@@ -242,127 +255,30 @@ function loadCsvSizedDotsExample() {
     document.getElementById("style").value = "dot-size";
     document.getElementById("verticalRatio").value = "1.0";
     document.getElementById("showPerspective").checked = true;
+
+  document.getElementById("xLabel").value = "x";
+  document.getElementById("yLabel").value = "y";
+  document.getElementById("zLabel").value = "z";
+  document.getElementById("legendLabel").value = "range";
 }
 
 
 function loadJsonExample() {
-    var json = "";
-    // TODO: get json working
-
-    // headers
-    json +=
-        '{\n' +
-        '  "cols":[\n' +
-        '    {"id":"x",\n' +
-        '     "label":"x",\n' +
-        '     "type":"number"},\n' +
-        '    {"id":"y",\n' +
-        '     "label":"y",\n' +
-        '     "type":"number"},\n' +
-        '    {"id":"value",\n' +
-        '     "label":"value",\n' +
-        '     "type":"number"}\n' +
-        '  ],\n' +
-        '  "rows":[';
-
-    // create some nice looking data with sin/cos
-    var steps = 20;
-    var axisMax = 314;
-    var first = true;
-    var axisStep = axisMax / steps;
-    for (var x = 0; x < axisMax; x+=axisStep) {
-        for (var y = 0; y < axisMax; y+=axisStep) {
-            var value = Math.sin(x/50) * Math.cos(y/50) * 50 + 50;
-            if (first) {
-                json += '\n';
-                first = false;
-            }
-            else {
-                json += ',\n';
-            }
-
-            json += '    {"c":[{"v":' + round(x, 2) + '}, {"v":' + round(y, 2) + '}, {"v":' + round(value, 2) + '}]}';
-        }
-    }
-
-    // end of the table
-    json +=
-        '\n' +
-        '  ]\n' +
-        '}\n';
-
-    document.getElementById("jsonTextarea").innerHTML = json;
-
-    document.getElementById("verticalRatio").value = "0.5";
 }
 
 
 function loadJavascriptExample() {
-    var js =
-        'data = new google.visualization.DataTable();\n' +
-        'data.addColumn("number", "x");\n' +
-        'data.addColumn("number", "y");\n' +
-        'data.addColumn("number", "value");\n' +
-        '\n';
-
-    js += '// insert data\n';
-
-    var axisStep = 7;
-    for (var x = -100; x < 100; x += axisStep) {
-        for (var y = -100; y < 300; y += axisStep) {
-            //var value = Math.sin(x/50) * Math.cos(y/50) * 50 + 50;
-
-            var d = Math.sqrt(Math.pow(x/100, 2) + Math.pow(y/100, 2));
-            var value = 50 * Math.exp(-5 * d / 10) * Math.sin(d*5)
-
-            js += 'data.addRow([' + round(x, 2) + ', ' + round(y,2) + ', ' + round(value, 2) + ']);\n';
-        }
-    }
-
-    document.getElementById("javascriptTextarea").innerHTML = js;
-
-    document.getElementById("verticalRatio").value = "0.5";
 }
 
 function loadJavascriptFunctionExample() {
-    var js =
-        'data = new google.visualization.DataTable();\n' +
-        'data.addColumn("number", "x");\n' +
-        'data.addColumn("number", "y");\n' +
-        'data.addColumn("number", "value");\n' +
-        '\n' +
-        '// create some nice looking data with sin/cos\n' +
-        'var steps = 50;\n' +
-        'var axisMax = 314;\n' +
-        'axisStep = axisMax / steps;\n' +
-        'for (var x = 0; x < axisMax; x+=axisStep) {\n' +
-        '  for (var y = 0; y < axisMax; y+=axisStep) {\n' +
-        '    var value = Math.sin(x/50) * Math.cos(y/50) * 50 + 50;\n' +
-        '    data.addRow([x, y, value]);\n' +
-        '  }\n' +
-        '}';
-
-    document.getElementById("javascriptTextarea").innerHTML = js;
-
-    document.getElementById("verticalRatio").value = "0.5";
 }
 
 function loadGooglespreadsheetExample() {
-    var url =
-        "https://spreadsheets.google.com/a/almende.org/ccc?key=tJ6gaeq2Ldy82VVMr5dPQoA&hl=en#gid=0";
 
-    document.getElementById("googlespreadsheetText").value = url;
-
-    document.getElementById("verticalRatio").value = "0.5";
 }
 
 
 function loadDatasourceExample() {
-    var url = "datasource.php";
-
-    document.getElementById("datasourceText").value = url;
-
-    document.getElementById("verticalRatio").value = "0.5";
 }
 
 
@@ -372,11 +288,7 @@ function loadDatasourceExample() {
  * @return {string} datatype
  */
 function getDataType() {
-    if (document.getElementById("datatypeCsv").checked) return "csv";
-    if (document.getElementById("datatypeJson").checked) return "json";
-    if (document.getElementById("datatypeJavascript").checked) return "javascript";
-    if (document.getElementById("datatypeDatasource").checked) return "datasource";
-    if (document.getElementById("datatypeGooglespreadsheet").checked) return "googlespreadsheet";
+   return "csv";
 }
 
 
@@ -390,48 +302,29 @@ function getDataCsv() {
     // parse the csv content
     var csvArray = csv2array(csv);
 
-    // the first line of the csv file contains the column names
-    var data = new google.visualization.DataTable();
-    var columnTypes = [];
-    var row = 0;
-    for (var col = 0; col < csvArray[row].length; col++) {
-        var label = csvArray[row][col];
-        var columnType = "number";
-
-        if (col >= 4) {
-            if (csvArray.length > 1) {
-                var value = csvArray[1][3];
-                if (value) {
-                    columnType = typeof(value);
-                }
-            }
-            else {
-                columnType = "string";
-            }
-        }
-        columnTypes[col] = columnType;
-
-        data.addColumn(columnType, label);
-    }
+    var data = new vis.DataSet({});
 
     // read all data
-    var colCount = data.getNumberOfColumns();
     for (var row = 1; row < csvArray.length; row++) {
-        var rowData = csvArray[row];
-        if (rowData.length == colCount) {
-            data.addRow();
-
-            for (var col = 0; col < csvArray[row].length; col++) {
-                if (columnTypes[col] == 'number') {
-                    var value = parseFloat(csvArray[row][col]);
-                }
-                else {
-                    var value = trim(csvArray[row][col]);
-                }
-                //alert(value)
-                data.setValue(row-1, col, value);
-            }
-        }
+      if (csvArray[row].length == 4) {
+        data.add({x:parseFloat(csvArray[row][0]),
+          y:parseFloat(csvArray[row][1]),
+          z:parseFloat(csvArray[row][2]),
+          style:parseFloat(csvArray[row][3])});
+      }
+      else if (csvArray[row].length == 5) {
+        data.add({x:parseFloat(csvArray[row][0]),
+          y:parseFloat(csvArray[row][1]),
+          z:parseFloat(csvArray[row][2]),
+          style:parseFloat(csvArray[row][3]),
+          filter:parseFloat(csvArray[row][4])});
+      }
+      else {
+        data.add({x:parseFloat(csvArray[row][0]),
+          y:parseFloat(csvArray[row][1]),
+          z:parseFloat(csvArray[row][2]),
+          style:parseFloat(csvArray[row][2])});
+      }
     }
 
     return data;
@@ -480,9 +373,6 @@ function getDataJavascript() {
  * @return {Google DataTable}
  */
 function getDataDatasource() {
-    // TODO
-
-    throw "Sorry, datasource is not yet implemented...";
 }
 
 /**
@@ -500,6 +390,11 @@ function getOptions() {
         keepAspectRatio:   (document.getElementById("keepAspectRatio").checked != false),
         verticalRatio:      document.getElementById("verticalRatio").value,
         animationInterval:  document.getElementById("animationInterval").value,
+        xLabel:             document.getElementById("xLabel").value,
+        yLabel:             document.getElementById("yLabel").value,
+        zLabel:             document.getElementById("zLabel").value,
+        filterLabel:        document.getElementById("filterLabel").value,
+        legendLabel:        document.getElementById("legendLabel").value,
         animationPreload:  (document.getElementById("animationPreload").checked != false),
         animationAutoStart:(document.getElementById("animationAutoStart").checked != false),
 
@@ -528,22 +423,7 @@ function getOptions() {
  * Redraw the graph with the entered data and options
  */
 function draw() {
-    try {
-        var datatype = getDataType();
-
-        switch (datatype) {
-            case "csv":               return drawCsv();
-            case "json":              return drawJson();
-            case "javascript":        return drawJavascript();
-            case "googlespreadsheet": return drawGooglespreadsheet();
-            case "datasource":        return drawDatasource();
-            default:                  throw "Error: no data type specified";
-        }
-    }
-    catch (error) {
-        document.getElementById('graph').innerHTML =
-            "<span style='color: red; font-weight: bold;'>" + error + "</span>";
-    }
+    return drawCsv();
 }
 
 function drawCsv() {

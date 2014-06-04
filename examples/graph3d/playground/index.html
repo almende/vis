@@ -4,8 +4,7 @@
 <head>
     <title>Graph 3D - Playground</title>
 
-    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-    <script type="text/javascript" src="../graph3d.js"></script>
+    <script type="text/javascript" src="../../../dist/vis.js"></script>
 
 
     <script type="text/javascript" src="playground.js"></script>
@@ -13,11 +12,6 @@
     <link rel='stylesheet' href='playground.css' type='text/css'>
 
     <script type="text/javascript">
-        google.load("visualization", "1");
-
-        // Set callback to run when API is loaded
-        google.setOnLoadCallback(drawVisualization);
-
         // Called when the Visualization API is loaded.
         function drawVisualization() {
             // TODO
@@ -49,9 +43,6 @@
                 </td>
                 <td>
                     <div id="csv">
-                        <p>
-                            The csv table must contain a header line with column names.
-                        </p>
                         <textarea id="csvTextarea"></textarea>
                         <p>
                             <a href="javascript: loadCsvExample();" title="Load an example">Simple example</a>
@@ -60,72 +51,6 @@
                             <a href="javascript: loadCsvMovingDotsExample();" title="Load an example">Moving dots example</a>
                             <a href="javascript: loadCsvColoredDotsExample();" title="Load an example">Colored dots example</a>
                             <a href="javascript: loadCsvSizedDotsExample();" title="Load an example">Sized dots example</a>
-                        </p>
-                    </div>
-                </td>
-            </tr>
-
-            <tr>
-                <td style="white-space: nowrap">
-                    <input type="radio" name="datatype" id="datatypeJson" onclick="selectDataType();" value="javascript">Json
-                </td>
-                <td>
-                    <div id="json">
-                        <p>
-
-                        </p>
-                        <textarea id="jsonTextarea"></textarea>
-                        <p>
-                            <a href="javascript: loadJsonExample();" title="Load an example">Simple example</a>
-                        </p>
-                    </div>
-                </td>
-            </tr>
-
-            <tr>
-                <td style="white-space: nowrap">
-                    <input type="radio" name="datatype" id="datatypeJavascript" onclick="selectDataType();" value="javascript">Javascript
-                </td>
-                <td>
-                    <div id="javascript">
-                        <p>
-                            The javascript source must create a global variable named <code>data</code>
-                            which contains a google visualization DataTable.
-                        </p>
-                        <textarea id="javascriptTextarea"></textarea>
-                        <p>
-                            <a href="javascript: loadJavascriptExample();" title="Load an example">Simple example</a>
-                            <a href="javascript: loadJavascriptFunctionExample();" title="Load an example">Function example</a>
-                        </p>
-                    </div>
-                </td>
-            </tr>
-
-            <tr>
-                <td style="white-space: nowrap">
-                    <input type="radio" name="datatype" id="datatypeGooglespreadsheet" onclick="selectDataType();" value="googlespreadsheet">Google Spreadsheet
-                </td>
-                <td>
-                    <div id="googlespreadsheet">
-                        <input type="text" id="googlespreadsheetText">
-                        <p>
-                            <a href="javascript: loadGooglespreadsheetExample();" title="Load an example">Google Spreadsheet example</a>
-                            (<a href="https://spreadsheets.google.com/a/almende.org/ccc?key=tJ6gaeq2Ldy82VVMr5dPQoA&hl=en#gid=0" target="_blank" title="View data">view spreadsheet</a>)
-                        </p>
-                    </div>
-                </td>
-            </tr>
-
-            <tr>
-                <td style="white-space: nowrap">
-                    <input type="radio" name="datatype" id="datatypeDatasource" onclick="selectDataType();" value="datasource">Datasource
-                </td>
-                <td>
-                    <div id="datasource">
-                        <input type="text" id="datasourceText">
-                        <p>
-                            <a href="javascript: loadDatasourceExample();" title="Load an example">Example</a>
-                            (<a href="datasource.html" target="_blank" title="View php sourcecode">view source code</a>)
                         </p>
                     </div>
                 </td>
@@ -237,6 +162,12 @@
 
             <tr><td>xBarWidth</td><td><input type="text" id="xBarWidth" /></td></tr>
             <tr><td>yBarWidth</td><td><input type="text" id="yBarWidth" /></td></tr>
+
+            <tr><td>xLabel</td><td><input type="text" id="xLabel" value="x"/></td></tr>
+            <tr><td>yLabel</td><td><input type="text" id="yLabel" value="y"/></td></tr>
+            <tr><td>zLabel</td><td><input type="text" id="zLabel" value="z"/></td></tr>
+            <tr><td>filterLabel</td><td><input type="text" id="filterLabel" value="time"/></td></tr>
+            <tr><td>legendLabel</td><td><input type="text" id="legendLabel" value="value"/></td></tr>
 
         </table>
 

@@ -29,7 +29,7 @@
                 for (var y = 0; y < axisMax; y+=axisStep) {
                     var value = custom(x,y);
                     data.add([
-                        {x:x,y:y,z:value,t:0,style:value}
+                        {x:x,y:y,z:value,style:value}
                     ]);
                 }
             }
@@ -55,7 +55,7 @@
     </script>
 </head>
 
-<body>
+<body onload="drawVisualization();">
 <div id="mygraph"></div>
 
 <div id="info"></div>
