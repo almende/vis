@@ -1,28 +1,40 @@
 
-.vis.timeline.rootpanel {
+.vis.timeline.root {
   position: relative;
-  overflow: hidden;
-
   border: 1px solid #bfbfbf;
-  box-sizing: border-box;
 
-  /* FIXME: there is an issue with the height of the items when panel height is animated
-  -webkit-transition: height 4s ease-in-out;
-  transition:         height 4s ease-in-out;
-  /**/
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+
+  box-sizing: border-box;
 }
 
-.vis.timeline .vpanel {
+.vis.timeline .vispanel {
   position: absolute;
   overflow: hidden;
+  padding: 0;
+  margin: 0;
 
   box-sizing: border-box;
 }
 
-.vis.timeline .vpanel.side {
+.vis.timeline .vispanel.left,
+.vis.timeline .vispanel.right {
+  border-top: 1px solid #bfbfbf;
+  border-bottom: 1px solid #bfbfbf;
+}
+
+.vis.timeline .vispanel.top,
+.vis.timeline .vispanel.bottom {
+  border-left: 1px solid #bfbfbf;
   border-right: 1px solid #bfbfbf;
 }
 
-.vis.timeline .vpanel.side.hidden {
+.vis.timeline .vispanel.center {
+  border: 1px solid #bfbfbf;
+}
+
+.vis.timeline .vispanel.hidden {
   display: none;
 }

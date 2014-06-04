@@ -78,6 +78,26 @@ function Timeline (container, items, options) {
     toTime: me._toTime.bind(me)
   });
 
+  // Create the main DOM
+  this._create();
+
+  // attach the root panel to the provided container
+  if (!container) throw new Error('No container provided');
+  container.appendChild(this.dom.root);
+
+  // TODO: remove temporary contents
+  this.dom.background.innerHTML = '<span style="color: #d3d3d3;">background</span>';
+  this.dom.center.innerHTML = 'center';
+  this.dom.center.innerHTML = 'center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>';
+  this.dom.left.innerHTML = 'left';
+  this.dom.right.innerHTML = 'right';
+  this.dom.top.innerHTML = 'top';
+  this.dom.bottom.innerHTML = 'bottom';
+
+  this.repaint();
+
+  /* TODO
+
   // root panel
   var rootOptions = util.extend(Object.create(this.options), {
     height: function () {
@@ -284,10 +304,65 @@ function Timeline (container, items, options) {
   if (items) {
     this.setItems(items);
   }
+  */
 }
 
 // turn Timeline into an event emitter
 Emitter(Timeline.prototype);
+
+/**
+ * Create the main DOM for the Timeline: a root panel containing left, right,
+ * top, bottom, content, and background panel.
+ * @private
+ */
+Timeline.prototype._create = function () {
+  this.dom = {};
+
+  this.dom.root           = document.createElement('div');
+  this.dom.background     = document.createElement('div');
+  this.dom.centerContainer= document.createElement('div');
+  this.dom.leftContainer  = document.createElement('div');
+  this.dom.rightContainer = document.createElement('div');
+  this.dom.center         = document.createElement('div');
+  this.dom.left           = document.createElement('div');
+  this.dom.right          = document.createElement('div');
+  this.dom.top            = document.createElement('div');
+  this.dom.bottom         = document.createElement('div');
+
+  this.dom.background.className     = 'vispanel background';
+  this.dom.centerContainer.className= 'vispanel center';
+  this.dom.leftContainer.className  = 'vispanel left';
+  this.dom.rightContainer.className = 'vispanel right';
+  this.dom.top.className            = 'vispanel top';
+  this.dom.bottom.className         = 'vispanel bottom';
+  this.dom.left.className           = 'content';
+  this.dom.center.className         = 'content';
+  this.dom.right.className          = 'content';
+
+  this.dom.root.appendChild(this.dom.background);
+  this.dom.root.appendChild(this.dom.centerContainer);
+  this.dom.root.appendChild(this.dom.leftContainer);
+  this.dom.root.appendChild(this.dom.rightContainer);
+  this.dom.root.appendChild(this.dom.top);
+  this.dom.root.appendChild(this.dom.bottom);
+
+  this.dom.centerContainer.appendChild(this.dom.center);
+  this.dom.leftContainer.appendChild(this.dom.left);
+  this.dom.rightContainer.appendChild(this.dom.right);
+
+  this.props = {
+    root: {},
+    background: {},
+    centerContainer: {},
+    leftContainer: {},
+    rightContainer: {},
+    center: {},
+    left: {},
+    right: {},
+    top: {},
+    bottom: {}
+  };
+};
 
 /**
  * Set options
@@ -365,7 +440,7 @@ Timeline.prototype.setOptions = function (options) {
   }
 
   // repaint everything
-  this.rootPanel.repaint();
+  this.repaint();
 };
 
 /**
@@ -606,7 +681,81 @@ Timeline.prototype.getWindow = function setWindow() {
  * option autoResize=false
  */
 Timeline.prototype.repaint = function repaint() {
-    this.rootPanel.repaint();
+  var options = this.options,
+      props = this.props,
+      dom = this.dom,
+      editable = options.editable.updateTime || options.editable.updateGroup;
+
+  // update class names
+  dom.root.className = 'vis timeline root ' + options.orientation + (editable ? ' editable' : '');
+
+  // update root height options
+  dom.root.style.maxHeight = util.option.asSize(options.maxHeight, '');
+  dom.root.style.minHeight = util.option.asSize(options.minHeight, '');
+
+  props.center.height = dom.center.offsetHeight;
+  props.left.height   = dom.left.offsetHeight;
+  props.right.height  = dom.right.offsetHeight;
+  props.top.height    = dom.top.offsetHeight;
+  props.bottom.height = dom.bottom.offsetHeight;
+  var borderHeight    = dom.centerContainer.offsetHeight - dom.centerContainer.clientHeight;
+  var borderWidth     = dom.centerContainer.offsetWidth - dom.centerContainer.clientWidth;
+  var rootBorderHeight= dom.root.offsetHeight - dom.root.clientHeight;
+
+  // apply auto height
+  // TODO: only calculate autoHeight when needed (else we cause an extra reflow/repaint of the DOM)
+  var contentHeight = Math.max(props.left.height, props.center.height, props.right.height);
+  var autoHeight = props.top.height + contentHeight + props.bottom.height + borderHeight + rootBorderHeight;
+  dom.root.style.height = util.option.asSize(options.height, autoHeight + 'px');
+
+  // calculate heights of the content panels
+  props.root.height = dom.root.offsetHeight;
+  props.background.height = props.root.height;
+  var containerHeight = props.root.height - props.top.height - props.bottom.height - borderHeight;
+  props.centerContainer.height  = containerHeight;
+  props.leftContainer.height    = containerHeight;
+  props.rightContainer.height   = containerHeight;
+
+  // calculate the widths of the panels
+  props.root.width = dom.root.offsetWidth;
+  props.background.width = props.root.width;
+  props.left.width = dom.left.offsetWidth;
+  props.right.width = dom.right.offsetWidth;
+  var centerWidth = props.root.width - props.left.width - props.right.width - borderWidth;
+  props.center.width  = centerWidth;
+  props.top.width     = centerWidth;
+  props.bottom.width  = centerWidth;
+
+  // resize the panels
+  dom.background.style.height       = props.background.height + 'px';
+  dom.centerContainer.style.height  = props.centerContainer.height + 'px';
+  dom.leftContainer.style.height    = props.leftContainer.height + 'px';
+  dom.rightContainer.style.height   = props.rightContainer.height + 'px';
+
+  dom.background.style.width        = props.background.width + 'px';
+  dom.centerContainer.style.width   = props.center.width + 'px';
+  dom.leftContainer.style.width     = props.left.width + 'px';
+  dom.rightContainer.style.width    = props.right.width + 'px';
+  dom.top.style.width               = props.top.width + 'px';
+  dom.bottom.style.width            = props.bottom.width + 'px';
+
+  // reposition the panels
+  dom.background.style.left         = '0';
+  dom.background.style.top          = '0';
+  dom.centerContainer.style.left    = props.left.width + 'px';
+  dom.centerContainer.style.top     = props.top.height + 'px';
+  dom.leftContainer.style.left      = '0';
+  dom.leftContainer.style.top       = props.top.height + 'px';
+  dom.rightContainer.style.left     = (props.left.width + props.center.width) + 'px';
+  dom.rightContainer.style.top      = props.top.height + 'px';
+  dom.top.style.left                = props.left.width + 'px';
+  dom.top.style.top                 = '0';
+  dom.bottom.style.left             = props.left.width + 'px';
+  dom.bottom.style.top              = (props.top.height + props.centerContainer.height) + 'px';
+
+  /* TODO: repaint contents
+  this.rootPanel.repaint();
+  */
 };
 
 /**
