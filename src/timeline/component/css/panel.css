@@ -20,21 +20,24 @@
 }
 
 .vis.timeline .vispanel.left,
-.vis.timeline .vispanel.right {
-  border-top: 1px solid #bfbfbf;
-  border-bottom: 1px solid #bfbfbf;
-}
-
+.vis.timeline .vispanel.right,
 .vis.timeline .vispanel.top,
 .vis.timeline .vispanel.bottom {
-  border-left: 1px solid #bfbfbf;
-  border-right: 1px solid #bfbfbf;
-}
-
-.vis.timeline .vispanel.center {
   border: 1px solid #bfbfbf;
 }
 
-.vis.timeline .vispanel.hidden {
-  display: none;
+.vis.timeline .vispanel.left {
+  border-left: none;
+}
+
+.vis.timeline .vispanel.right {
+  border-right: none;
+}
+
+.vis.timeline .vispanel.top {
+  border-top: none;
+}
+
+.vis.timeline .vispanel.bottom {
+  border-bottom: none;
 }

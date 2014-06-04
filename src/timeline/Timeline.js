@@ -360,7 +360,8 @@ Timeline.prototype._create = function () {
     left: {},
     right: {},
     top: {},
-    bottom: {}
+    bottom: {},
+    border: {}
   };
 };
 
@@ -693,36 +694,45 @@ Timeline.prototype.repaint = function repaint() {
   dom.root.style.maxHeight = util.option.asSize(options.maxHeight, '');
   dom.root.style.minHeight = util.option.asSize(options.minHeight, '');
 
+  // calculate border widths
+  props.border.left   = dom.leftContainer.offsetWidth - dom.leftContainer.clientWidth;
+  props.border.right  = dom.rightContainer.offsetWidth - dom.rightContainer.clientWidth;
+  props.border.top    = dom.top.offsetHeight - dom.top.clientHeight;
+  props.border.bottom = dom.bottom.offsetHeight - dom.bottom.clientHeight;
+  var borderRootHeight= dom.root.offsetHeight - dom.root.clientHeight;
+  var borderRootWidth = dom.root.offsetWidth - dom.root.clientWidth;
+
   props.center.height = dom.center.offsetHeight;
   props.left.height   = dom.left.offsetHeight;
   props.right.height  = dom.right.offsetHeight;
-  props.top.height    = dom.top.offsetHeight;
-  props.bottom.height = dom.bottom.offsetHeight;
-  var borderHeight    = dom.centerContainer.offsetHeight - dom.centerContainer.clientHeight;
-  var borderWidth     = dom.centerContainer.offsetWidth - dom.centerContainer.clientWidth;
-  var rootBorderHeight= dom.root.offsetHeight - dom.root.clientHeight;
+  props.top.height    = dom.top.clientHeight;
+  props.bottom.height = dom.bottom.clientHeight;
+
+  // TODO: compensate borders when any of the panels is empty.
 
   // apply auto height
   // TODO: only calculate autoHeight when needed (else we cause an extra reflow/repaint of the DOM)
   var contentHeight = Math.max(props.left.height, props.center.height, props.right.height);
-  var autoHeight = props.top.height + contentHeight + props.bottom.height + borderHeight + rootBorderHeight;
+  var autoHeight = props.top.height + contentHeight + props.bottom.height +
+      borderRootHeight + props.border.top + props.border.bottom;
   dom.root.style.height = util.option.asSize(options.height, autoHeight + 'px');
 
   // calculate heights of the content panels
   props.root.height = dom.root.offsetHeight;
   props.background.height = props.root.height;
-  var containerHeight = props.root.height - props.top.height - props.bottom.height - borderHeight;
+  var containerHeight = props.root.height - props.top.height - props.bottom.height -
+      props.border.top - props.border.bottom - borderRootHeight;
   props.centerContainer.height  = containerHeight;
-  props.leftContainer.height    = containerHeight;
-  props.rightContainer.height   = containerHeight;
+  props.leftContainer.height    = containerHeight + props.border.top + props.border.bottom;
+  props.rightContainer.height   = props.leftContainer.height;
 
   // calculate the widths of the panels
   props.root.width = dom.root.offsetWidth;
   props.background.width = props.root.width;
-  props.left.width = dom.left.offsetWidth;
-  props.right.width = dom.right.offsetWidth;
-  var centerWidth = props.root.width - props.left.width - props.right.width - borderWidth;
-  props.center.width  = centerWidth;
+  props.left.width = dom.leftContainer.clientWidth;
+  props.right.width = dom.rightContainer.clientWidth;
+  var centerWidth = props.root.width - props.left.width - props.right.width - borderRootWidth;
+  props.center.width  = centerWidth - props.border.left - props.border.right;
   props.top.width     = centerWidth;
   props.bottom.width  = centerWidth;
 
@@ -734,24 +744,24 @@ Timeline.prototype.repaint = function repaint() {
 
   dom.background.style.width        = props.background.width + 'px';
   dom.centerContainer.style.width   = props.center.width + 'px';
-  dom.leftContainer.style.width     = props.left.width + 'px';
-  dom.rightContainer.style.width    = props.right.width + 'px';
+  dom.leftContainer.style.width     = (props.left.width + props.border.left) + 'px';
+  dom.rightContainer.style.width    = (props.right.width + props.border.right) + 'px';
   dom.top.style.width               = props.top.width + 'px';
   dom.bottom.style.width            = props.bottom.width + 'px';
 
   // reposition the panels
   dom.background.style.left         = '0';
   dom.background.style.top          = '0';
-  dom.centerContainer.style.left    = props.left.width + 'px';
-  dom.centerContainer.style.top     = props.top.height + 'px';
+  dom.centerContainer.style.left    = (props.left.width + props.border.left) + 'px';
+  dom.centerContainer.style.top     = (props.top.height + props.border.top)+ 'px';
   dom.leftContainer.style.left      = '0';
   dom.leftContainer.style.top       = props.top.height + 'px';
-  dom.rightContainer.style.left     = (props.left.width + props.center.width) + 'px';
+  dom.rightContainer.style.left     = (props.left.width + props.center.width + props.border.left) + 'px';
   dom.rightContainer.style.top      = props.top.height + 'px';
   dom.top.style.left                = props.left.width + 'px';
   dom.top.style.top                 = '0';
   dom.bottom.style.left             = props.left.width + 'px';
-  dom.bottom.style.top              = (props.top.height + props.centerContainer.height) + 'px';
+  dom.bottom.style.top              = (props.top.height + props.centerContainer.height + props.border.top) + 'px';
 
   /* TODO: repaint contents
   this.rootPanel.repaint();
