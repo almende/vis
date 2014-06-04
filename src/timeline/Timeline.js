@@ -695,18 +695,20 @@ Timeline.prototype.repaint = function repaint() {
   dom.root.style.minHeight = util.option.asSize(options.minHeight, '');
 
   // calculate border widths
-  props.border.left   = dom.leftContainer.offsetWidth - dom.leftContainer.clientWidth;
-  props.border.right  = dom.rightContainer.offsetWidth - dom.rightContainer.clientWidth;
-  props.border.top    = dom.top.offsetHeight - dom.top.clientHeight;
-  props.border.bottom = dom.bottom.offsetHeight - dom.bottom.clientHeight;
+  props.border.left   = (dom.centerContainer.offsetWidth - dom.centerContainer.clientWidth) / 2;
+  props.border.right  = props.border.left;
+  props.border.top    = (dom.centerContainer.offsetHeight - dom.centerContainer.clientHeight) / 2;
+  props.border.bottom = props.border.top;
   var borderRootHeight= dom.root.offsetHeight - dom.root.clientHeight;
   var borderRootWidth = dom.root.offsetWidth - dom.root.clientWidth;
 
+  // calculate the heights. If any of the side panels is empty, we set the height to
+  // minus the border width, such that the border will be invisible
   props.center.height = dom.center.offsetHeight;
   props.left.height   = dom.left.offsetHeight;
   props.right.height  = dom.right.offsetHeight;
-  props.top.height    = dom.top.clientHeight;
-  props.bottom.height = dom.bottom.clientHeight;
+  props.top.height    = dom.top.clientHeight    || -props.border.top;
+  props.bottom.height = dom.bottom.clientHeight || -props.border.bottom;
 
   // TODO: compensate borders when any of the panels is empty.
 
@@ -721,18 +723,18 @@ Timeline.prototype.repaint = function repaint() {
   props.root.height = dom.root.offsetHeight;
   props.background.height = props.root.height;
   var containerHeight = props.root.height - props.top.height - props.bottom.height -
-      props.border.top - props.border.bottom - borderRootHeight;
+      borderRootHeight;
   props.centerContainer.height  = containerHeight;
-  props.leftContainer.height    = containerHeight + props.border.top + props.border.bottom;
+  props.leftContainer.height    = containerHeight;
   props.rightContainer.height   = props.leftContainer.height;
 
   // calculate the widths of the panels
   props.root.width = dom.root.offsetWidth;
   props.background.width = props.root.width;
-  props.left.width = dom.leftContainer.clientWidth;
-  props.right.width = dom.rightContainer.clientWidth;
+  props.left.width = dom.leftContainer.clientWidth   || -props.border.left;
+  props.right.width = dom.rightContainer.clientWidth || -props.border.right;
   var centerWidth = props.root.width - props.left.width - props.right.width - borderRootWidth;
-  props.center.width  = centerWidth - props.border.left - props.border.right;
+  props.center.width  = centerWidth;
   props.top.width     = centerWidth;
   props.bottom.width  = centerWidth;
 
@@ -752,16 +754,16 @@ Timeline.prototype.repaint = function repaint() {
   // reposition the panels
   dom.background.style.left         = '0';
   dom.background.style.top          = '0';
-  dom.centerContainer.style.left    = (props.left.width + props.border.left) + 'px';
-  dom.centerContainer.style.top     = (props.top.height + props.border.top)+ 'px';
+  dom.centerContainer.style.left    = props.left.width + 'px';
+  dom.centerContainer.style.top     = props.top.height + 'px';
   dom.leftContainer.style.left      = '0';
   dom.leftContainer.style.top       = props.top.height + 'px';
-  dom.rightContainer.style.left     = (props.left.width + props.center.width + props.border.left) + 'px';
+  dom.rightContainer.style.left     = (props.left.width + props.center.width) + 'px';
   dom.rightContainer.style.top      = props.top.height + 'px';
   dom.top.style.left                = props.left.width + 'px';
   dom.top.style.top                 = '0';
   dom.bottom.style.left             = props.left.width + 'px';
-  dom.bottom.style.top              = (props.top.height + props.centerContainer.height + props.border.top) + 'px';
+  dom.bottom.style.top              = (props.top.height + props.centerContainer.height) + 'px';
 
   /* TODO: repaint contents
   this.rootPanel.repaint();

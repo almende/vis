@@ -19,25 +19,24 @@
   box-sizing: border-box;
 }
 
+.vis.timeline .vispanel.center,
 .vis.timeline .vispanel.left,
 .vis.timeline .vispanel.right,
 .vis.timeline .vispanel.top,
 .vis.timeline .vispanel.bottom {
-  border: 1px solid #bfbfbf;
+  border: 1px #bfbfbf;
 }
 
-.vis.timeline .vispanel.left {
-  border-left: none;
-}
-
+.vis.timeline .vispanel.center,
+.vis.timeline .vispanel.left,
 .vis.timeline .vispanel.right {
-  border-right: none;
+  border-top-style: solid;
+  border-bottom-style: solid;
 }
 
-.vis.timeline .vispanel.top {
-  border-top: none;
-}
-
+.vis.timeline .vispanel.center,
+.vis.timeline .vispanel.top,
 .vis.timeline .vispanel.bottom {
-  border-bottom: none;
+  border-left-style: solid;
+  border-right-style: solid;
 }
