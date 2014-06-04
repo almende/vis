@@ -721,7 +721,7 @@ Timeline.prototype.repaint = function repaint() {
 
   // calculate heights of the content panels
   props.root.height = dom.root.offsetHeight;
-  props.background.height = props.root.height;
+  props.background.height = props.root.height - borderRootHeight;
   var containerHeight = props.root.height - props.top.height - props.bottom.height -
       borderRootHeight;
   props.centerContainer.height  = containerHeight;
@@ -730,7 +730,7 @@ Timeline.prototype.repaint = function repaint() {
 
   // calculate the widths of the panels
   props.root.width = dom.root.offsetWidth;
-  props.background.width = props.root.width;
+  props.background.width = props.root.width - borderRootWidth;
   props.left.width = dom.leftContainer.clientWidth   || -props.border.left;
   props.right.width = dom.rightContainer.clientWidth || -props.border.right;
   var centerWidth = props.root.width - props.left.width - props.right.width - borderRootWidth;
