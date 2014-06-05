@@ -73,6 +73,7 @@ TimeAxis.prototype.repaint = function () {
 
   // determine the correct parent DOM element (depending on option orientation)
   var parent = (options.orientation == 'top') ? this.timeline.dom.top : this.timeline.dom.bottom;
+  var parentChanged = (frame.parentNode !== parent);
 
   // update classname
   frame.className = 'timeaxis'; // TODO: add className from options if defined
@@ -118,7 +119,7 @@ TimeAxis.prototype.repaint = function () {
     parent.appendChild(frame)
   }
 
-  return this._isResized();
+  return this._isResized() || parentChanged;
 };
 
 /**

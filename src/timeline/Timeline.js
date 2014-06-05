@@ -732,7 +732,8 @@ Timeline.prototype.getWindow = function setWindow() {
  * option autoResize=false
  */
 Timeline.prototype.repaint = function repaint() {
-  var options = this.options,
+  var resized = false,
+      options = this.options,
       props = this.props,
       dom = this.dom,
       editable = options.editable.updateTime || options.editable.updateGroup;
@@ -814,7 +815,6 @@ Timeline.prototype.repaint = function repaint() {
   dom.bottom.style.top              = (props.top.height + props.centerContainer.height) + 'px';
 
   // repaint all components
-  var resized = false;
   this.components.forEach(function (component) {
     resized = component.repaint() || resized;
   });
