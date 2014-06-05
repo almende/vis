@@ -36,15 +36,14 @@ CurrentTime.prototype._create = function _create () {
  * @return {boolean} Returns true if the component is resized
  */
 CurrentTime.prototype.repaint = function repaint() {
-  // FIXME: CurrentTime should be on the foreground
-
   if (this.options.showCurrentTime) {
-    if (this.bar.parentNode != this.timeline.dom.backgroundVertical) {
+    var parent = this.timeline.dom.foregroundVertical;
+    if (this.bar.parentNode != parent) {
       // attach to the dom
       if (this.bar.parentNode) {
         this.bar.parentNode.removeChild(this.bar);
       }
-      this.timeline.dom.backgroundVertical.appendChild(this.bar);
+      parent.appendChild(this.bar);
 
       this.start();
     }
