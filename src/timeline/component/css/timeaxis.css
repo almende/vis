@@ -1,5 +1,5 @@
 .vis.timeline .timeaxis {
-  position: absolute;
+  position: relative;
 }
 
 .vis.timeline .timeaxis .text {
@@ -29,7 +29,6 @@
   left: 0;
   width: 100%;
   height: 0;
-  border-bottom: 1px solid;
 }
 
 .vis.timeline .timeaxis .grid.minor {

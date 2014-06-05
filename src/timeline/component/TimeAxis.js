@@ -1,14 +1,14 @@
 /**
  * A horizontal time axis
+ * @param {{dom: Object, props: Object, emitter: Emitter, range: Range}} timeline
  * @param {Object} [options]        See TimeAxis.setOptions for the available
  *                                  options.
  * @constructor TimeAxis
  * @extends Component
  */
-function TimeAxis (options) {
-  this.id = util.randomUUID();
-
+function TimeAxis (timeline, options) {
   this.dom = {
+    frame: null,
     majorLines: [],
     majorTexts: [],
     minorLines: [],
@@ -37,7 +37,7 @@ function TimeAxis (options) {
     showMajorLabels: true
   };
 
-  this.range = null;
+  this.timeline = timeline;
 
   // create the HTML DOM
   this._create();
@@ -45,34 +45,21 @@ function TimeAxis (options) {
 
 TimeAxis.prototype = new Component();
 
-// TODO: comment options
+/**
+ * Set parameters for the timeaxis.
+ * Parameters will be merged in current parameter set.
+ * @param {Object} options  Available parameters:
+ *                          {string} [orientation]
+ *                          {boolean} [showMinorLabels]
+ *                          {boolean} [showMajorLabels]
+ */
 TimeAxis.prototype.setOptions = Component.prototype.setOptions;
 
 /**
  * Create the HTML DOM for the TimeAxis
  */
 TimeAxis.prototype._create = function _create() {
-  this.frame = document.createElement('div');
-};
-
-/**
- * Set a range (start and end)
- * @param {Range | Object} range  A Range or an object containing start and end.
- */
-TimeAxis.prototype.setRange = function (range) {
-  if (!(range instanceof Range) && (!range || !range.start || !range.end)) {
-    throw new TypeError('Range must be an instance of Range, ' +
-        'or an object containing start and end.');
-  }
-  this.range = range;
-};
-
-/**
- * Get the outer frame of the time axis
- * @return {HTMLElement} frame
- */
-TimeAxis.prototype.getFrame = function getFrame() {
-  return this.frame;
+  this.dom.frame = document.createElement('div');
 };
 
 /**
@@ -80,67 +67,55 @@ TimeAxis.prototype.getFrame = function getFrame() {
  * @return {boolean} Returns true if the component is resized
  */
 TimeAxis.prototype.repaint = function () {
-  var asSize = util.option.asSize,
-      options = this.options,
+  var options = this.options,
       props = this.props,
-      frame = this.frame;
+      frame = this.dom.frame;
+
+  // determine the correct parent DOM element (depending on option orientation)
+  var parent = (options.orientation == 'top') ? this.timeline.dom.top : this.timeline.dom.bottom;
 
   // update classname
   frame.className = 'timeaxis'; // TODO: add className from options if defined
 
-  var parent = frame.parentNode;
-  if (parent) {
-    // calculate character width and height
-    this._calculateCharSize();
+  // calculate character width and height
+  this._calculateCharSize();
 
-    // TODO: recalculate sizes only needed when parent is resized or options is changed
-    var orientation = this.getOption('orientation'),
-        showMinorLabels = this.getOption('showMinorLabels'),
-        showMajorLabels = this.getOption('showMajorLabels');
+  // TODO: recalculate sizes only needed when parent is resized or options is changed
+  var orientation = this.getOption('orientation'),
+      showMinorLabels = this.getOption('showMinorLabels'),
+      showMajorLabels = this.getOption('showMajorLabels');
 
-    // determine the width and height of the elemens for the axis
-    var parentHeight = this.parent.height;
-    props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
-    props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
-    this.height = props.minorLabelHeight + props.majorLabelHeight;
-    this.width = frame.offsetWidth; // TODO: only update the width when the frame is resized?
+  // determine the width and height of the elemens for the axis
+  var backgroundHeight = this.timeline.props.background.height;
+  props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
+  props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
+  props.height = props.minorLabelHeight + props.majorLabelHeight;
+  props.width = frame.offsetWidth; // TODO: only update the width when the frame is resized?
 
-    props.minorLineHeight = parentHeight + props.minorLabelHeight;
-    props.minorLineWidth = 1; // TODO: really calculate width
-    props.majorLineHeight = parentHeight + this.height;
-    props.majorLineWidth = 1; // TODO: really calculate width
+  props.minorLineHeight = backgroundHeight + props.minorLabelHeight;
+  props.minorLineWidth = 1; // TODO: really calculate width
+  props.majorLineHeight = backgroundHeight + this.props.height;
+  props.majorLineWidth = 1; // TODO: really calculate width
 
-    //  take frame offline while updating (is almost twice as fast)
-    var beforeChild = frame.nextSibling;
-    parent.removeChild(frame);
+  //  take frame offline while updating (is almost twice as fast)
+  var beforeChild = frame.nextSibling;
+  frame.parentNode && frame.parentNode.removeChild(frame);
 
-    // TODO: top/bottom positioning should be determined by options set in the Timeline, not here
-    if (orientation == 'top') {
-      frame.style.top = '0';
-      frame.style.left = '0';
-      frame.style.bottom = '';
-      frame.style.width = asSize(options.width, '100%');
-      frame.style.height = this.height + 'px';
-    }
-    else { // bottom
-      frame.style.top = '';
-      frame.style.bottom = '0';
-      frame.style.left = '0';
-      frame.style.width = asSize(options.width, '100%');
-      frame.style.height = this.height + 'px';
-    }
+  frame.style.top = '0';
+  frame.style.left = '0';
+  frame.style.width = '100%';
+  frame.style.height = this.props.height + 'px';
 
-    this._repaintLabels();
+  this._repaintLabels();
 
-    this._repaintLine();
+  this._repaintLine();
 
-    // put frame online again
-    if (beforeChild) {
-      parent.insertBefore(frame, beforeChild);
-    }
-    else {
-      parent.appendChild(frame)
-    }
+  // put frame online again at the same place
+  if (beforeChild) {
+    parent.insertBefore(frame, beforeChild);
+  }
+  else {
+    parent.appendChild(frame)
   }
 
   return this._isResized();
@@ -154,8 +129,8 @@ TimeAxis.prototype._repaintLabels = function () {
   var orientation = this.getOption('orientation');
 
   // calculate range and step (step such that we have space for 7 characters per label)
-  var start = util.convert(this.range.start, 'Number'),
-      end = util.convert(this.range.end, 'Number'),
+  var start = util.convert(this.timeline.range.start, 'Number'),
+      end = util.convert(this.timeline.range.end, 'Number'),
       minimumStep = this.options.toTime((this.props.minorCharWidth || 10) * 7).valueOf()
           -this.options.toTime(0).valueOf();
   var step = new TimeStep(new Date(start), new Date(end), minimumStep);
@@ -244,7 +219,7 @@ TimeAxis.prototype._repaintMinorText = function (x, text, orientation) {
     label = document.createElement('div');
     label.appendChild(content);
     label.className = 'text minor';
-    this.frame.appendChild(label);
+    this.dom.frame.appendChild(label);
   }
   this.dom.minorTexts.push(label);
 
@@ -279,7 +254,7 @@ TimeAxis.prototype._repaintMajorText = function (x, text, orientation) {
     label = document.createElement('div');
     label.className = 'text major';
     label.appendChild(content);
-    this.frame.appendChild(label);
+    this.dom.frame.appendChild(label);
   }
   this.dom.majorTexts.push(label);
 
@@ -311,7 +286,7 @@ TimeAxis.prototype._repaintMinorLine = function (x, orientation) {
     // create vertical line
     line = document.createElement('div');
     line.className = 'grid vertical minor';
-    this.frame.appendChild(line);
+    this.dom.frame.appendChild(line);
   }
   this.dom.minorLines.push(line);
 
@@ -342,7 +317,7 @@ TimeAxis.prototype._repaintMajorLine = function (x, orientation) {
     // create vertical line
     line = document.createElement('DIV');
     line.className = 'grid vertical major';
-    this.frame.appendChild(line);
+    this.dom.frame.appendChild(line);
   }
   this.dom.majorLines.push(line);
 
@@ -366,7 +341,7 @@ TimeAxis.prototype._repaintMajorLine = function (x, orientation) {
  */
 TimeAxis.prototype._repaintLine = function() {
   var line = this.dom.line,
-      frame = this.frame,
+      frame = this.dom.frame,
       orientation = this.getOption('orientation');
 
   // line before all axis elements
@@ -417,7 +392,7 @@ TimeAxis.prototype._calculateCharSize = function () {
     this.dom.measureCharMinor.style.position = 'absolute';
 
     this.dom.measureCharMinor.appendChild(document.createTextNode('0'));
-    this.frame.appendChild(this.dom.measureCharMinor);
+    this.dom.frame.appendChild(this.dom.measureCharMinor);
   }
   this.props.minorCharHeight = this.dom.measureCharMinor.clientHeight;
   this.props.minorCharWidth = this.dom.measureCharMinor.clientWidth;
@@ -429,7 +404,7 @@ TimeAxis.prototype._calculateCharSize = function () {
     this.dom.measureCharMajor.style.position = 'absolute';
 
     this.dom.measureCharMajor.appendChild(document.createTextNode('0'));
-    this.frame.appendChild(this.dom.measureCharMajor);
+    this.dom.frame.appendChild(this.dom.measureCharMajor);
   }
   this.props.majorCharHeight = this.dom.measureCharMajor.clientHeight;
   this.props.majorCharWidth = this.dom.measureCharMajor.clientWidth;

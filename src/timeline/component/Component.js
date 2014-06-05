@@ -2,19 +2,9 @@
  * Prototype for visual components
  */
 function Component () {
-  this.id = null;
-  this.parent = null;
-  this.childs = null;
   this.options = null;
-
-  this.top = 0;
-  this.left = 0;
-  this.width = 0;
-  this.height = 0;
+  this.props = null;
 }
-
-// Turn the Component into an event emitter
-Emitter(Component.prototype);
 
 /**
  * Set parameters for the frame. Parameters will be merged in current parameter
@@ -53,15 +43,6 @@ Component.prototype.getOption = function getOption(name) {
 };
 
 /**
- * Get the frame element of the component, the outer HTML DOM element.
- * @returns {HTMLElement | null} frame
- */
-Component.prototype.getFrame = function getFrame() {
-  // should be implemented by the component
-  return null;
-};
-
-/**
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
@@ -77,10 +58,11 @@ Component.prototype.repaint = function repaint() {
  * @protected
  */
 Component.prototype._isResized = function _isResized() {
-  var resized = (this._previousWidth !== this.width || this._previousHeight !== this.height);
+  var resized = (this.props._previousWidth !== this.props.width ||
+      this.props._previousHeight !== this.props.height);
 
-  this._previousWidth = this.width;
-  this._previousHeight = this.height;
+  this.props._previousWidth = this.props.width;
+  this.props._previousHeight = this.props.height;
 
   return resized;
 };

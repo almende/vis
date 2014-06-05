@@ -3,40 +3,35 @@
  * A Range controls a numeric range with a start and end value.
  * The Range adjusts the range based on mouse events or programmatic changes,
  * and triggers events when the range is changing or has been changed.
- * @param {RootPanel} root      Root panel, used to subscribe to events
- * @param {Panel} parent        Parent panel, used to attach to the DOM
+ * @param {{dom: Object, props: Object, emitter: Emitter, range: Range}} timeline
  * @param {Object} [options]    See description at Range.setOptions
  */
-function Range(root, parent, options) {
+function Range(timeline, options) {
   this.id = util.randomUUID();
   this.start = null; // Number
   this.end = null;   // Number
 
-  this.root = root;
-  this.parent = parent;
+  this.timeline = timeline;
   this.options = options || {};
 
   // drag listeners for dragging
-  this.root.on('dragstart', this._onDragStart.bind(this));
-  this.root.on('drag',      this._onDrag.bind(this));
-  this.root.on('dragend',   this._onDragEnd.bind(this));
+  this.timeline.emitter.on('dragstart', this._onDragStart.bind(this));
+  this.timeline.emitter.on('drag',      this._onDrag.bind(this));
+  this.timeline.emitter.on('dragend',   this._onDragEnd.bind(this));
 
   // ignore dragging when holding
-  this.root.on('hold', this._onHold.bind(this));
+  this.timeline.emitter.on('hold', this._onHold.bind(this));
 
   // mouse wheel for zooming
-  this.root.on('mousewheel',      this._onMouseWheel.bind(this));
-  this.root.on('DOMMouseScroll',  this._onMouseWheel.bind(this)); // For FF
+  this.timeline.emitter.on('mousewheel',      this._onMouseWheel.bind(this));
+  this.timeline.emitter.on('DOMMouseScroll',  this._onMouseWheel.bind(this)); // For FF
 
   // pinch to zoom
-  this.root.on('touch', this._onTouch.bind(this));
-  this.root.on('pinch', this._onPinch.bind(this));
+  this.timeline.emitter.on('touch', this._onTouch.bind(this));
+  this.timeline.emitter.on('pinch', this._onPinch.bind(this));
 
   this.setOptions(options);
 }
-
-// turn Range into an event emitter
-Emitter(Range.prototype);
 
 /**
  * Set options for the range controller
@@ -80,8 +75,8 @@ Range.prototype.setRange = function(start, end) {
       start: new Date(this.start),
       end: new Date(this.end)
     };
-    this.emit('rangechange', params);
-    this.emit('rangechanged', params);
+    this.timeline.emitter.emit('rangechange', params);
+    this.timeline.emitter.emit('rangechanged', params);
   }
 };
 
@@ -258,9 +253,8 @@ Range.prototype._onDragStart = function(event) {
   touchParams.start = this.start;
   touchParams.end = this.end;
 
-  var frame = this.parent.frame;
-  if (frame) {
-    frame.style.cursor = 'move';
+  if (this.timeline.dom.root) {
+    this.timeline.dom.root.style.cursor = 'move';
   }
 };
 
@@ -282,12 +276,12 @@ Range.prototype._onDrag = function (event) {
 
   var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
       interval = (touchParams.end - touchParams.start),
-      width = (direction == 'horizontal') ? this.parent.width : this.parent.height,
+      width = (direction == 'horizontal') ? this.timeline.props.center.width : this.timeline.props.center.height,
       diffRange = -delta / width * interval;
 
   this._applyRange(touchParams.start + diffRange, touchParams.end + diffRange);
 
-  this.emit('rangechange', {
+  this.timeline.emitter.emit('rangechange', {
     start: new Date(this.start),
     end:   new Date(this.end)
   });
@@ -305,12 +299,12 @@ Range.prototype._onDragEnd = function (event) {
 
   // TODO: reckon with option movable
 
-  if (this.parent.frame) {
-    this.parent.frame.style.cursor = 'auto';
+  if (this.timeline.dom.root) {
+    this.timeline.dom.root.style.cursor = 'auto';
   }
 
   // fire a rangechanged event
-  this.emit('rangechanged', {
+  this.timeline.emitter.emit('rangechanged', {
     start: new Date(this.start),
     end:   new Date(this.end)
   });
@@ -353,7 +347,7 @@ Range.prototype._onMouseWheel = function(event) {
 
     // calculate center, the date to zoom around
     var gesture = util.fakeGesture(this, event),
-        pointer = getPointer(gesture.center, this.parent.frame),
+        pointer = getPointer(gesture.center, this.timeline.dom.root),
         pointerDate = this._pointerToDate(pointer);
 
     this.zoom(scale, pointerDate);
@@ -396,21 +390,17 @@ Range.prototype._onHold = function () {
  * @private
  */
 Range.prototype._onPinch = function (event) {
-  var direction = this.options.direction;
   touchParams.ignore = true;
 
   // TODO: reckon with option zoomable
 
   if (event.gesture.touches.length > 1) {
     if (!touchParams.center) {
-      touchParams.center = getPointer(event.gesture.center, this.parent.frame);
+      touchParams.center = getPointer(event.gesture.center, this.timeline.dom.root);
     }
 
     var scale = 1 / event.gesture.scale,
-        initDate = this._pointerToDate(touchParams.center),
-        center = getPointer(event.gesture.center, this.parent.frame),
-        date = this._pointerToDate(this.parent, center),
-        delta = date - initDate; // TODO: utilize delta
+        initDate = this._pointerToDate(touchParams.center);
 
     // calculate new start and end
     var newStart = parseInt(initDate + (touchParams.start - initDate) * scale);
@@ -434,12 +424,12 @@ Range.prototype._pointerToDate = function (pointer) {
   validateDirection(direction);
 
   if (direction == 'horizontal') {
-    var width = this.parent.width;
+    var width = this.timeline.props.center.width;
     conversion = this.conversion(width);
     return pointer.x / conversion.scale + conversion.offset;
   }
   else {
-    var height = this.parent.height;
+    var height = this.timeline.props.center.height;
     conversion = this.conversion(height);
     return pointer.y / conversion.scale + conversion.offset;
   }

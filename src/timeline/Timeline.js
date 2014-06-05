@@ -72,13 +72,14 @@ function Timeline (container, items, options) {
   this.options = {};
   util.deepExtend(this.options, this.defaultOptions);
   util.deepExtend(this.options, {
+    // FIXME: not nice passing these functions via the options
     snap: null, // will be specified after timeaxis is created
 
     toScreen: me._toScreen.bind(me),
     toTime: me._toTime.bind(me)
   });
 
-  // Create the main DOM
+  // Create the DOM, props, and emitter
   this._create();
 
   // attach the root panel to the provided container
@@ -86,18 +87,37 @@ function Timeline (container, items, options) {
   container.appendChild(this.dom.root);
 
   // TODO: remove temporary contents
-  this.dom.background.innerHTML = '<span style="color: #d3d3d3;">background</span>';
-  this.dom.center.innerHTML = 'center';
-  this.dom.center.innerHTML = 'center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>';
-  this.dom.left.innerHTML = 'left';
-  this.dom.right.innerHTML = 'right';
-  this.dom.top.innerHTML = 'top';
-  this.dom.bottom.innerHTML = 'bottom';
+  //this.dom.background.innerHTML = '<span style="color: red;">background</span>';
+  this.dom.center.innerHTML = '<span style="color: red;">center</span>';
+  this.dom.center.innerHTML = 'center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center';
+  this.dom.left.innerHTML = '<span style="color: red;">left</span>';
+  this.dom.right.innerHTML = '<span style="color: red;">right</span>';
+  this.dom.top.innerHTML = '<span style="color: red;">top</span>';
+  //this.dom.bottom.innerHTML = '<span style="color: red;">bottom</span>';
 
-  this.repaint();
+  this.components = [];
+
+  // create a Range
+  this.range = new Range(this, this.options);
+  this.range.setRange(
+      now.clone().add('days', -3).valueOf(),
+      now.clone().add('days', 4).valueOf()
+  );
+
+  // Create a TimeAxis
+  var timeAxis = new TimeAxis(this, this.options);
+  this.components.push(timeAxis);
+
+  // re-emit public events
+  this.emitter.on('rangechange', function (properties) {
+    me.emit('rangechange', properties);
+  });
+  this.emitter.on('rangechanged', function (properties) {
+    me.emit('rangechanged', properties);
+  });
+
 
   /* TODO
-
   // root panel
   var rootOptions = util.extend(Object.create(this.options), {
     height: function () {
@@ -291,7 +311,7 @@ function Timeline (container, items, options) {
   this.itemSet.setRange(this.range);
   this.itemSet.on('change', me.rootPanel.repaint.bind(me.rootPanel));
   this.contentPanel.appendChild(this.itemSet);
-
+*/
   this.itemsData = null;      // DataSet
   this.groupsData = null;     // DataSet
 
@@ -304,7 +324,6 @@ function Timeline (container, items, options) {
   if (items) {
     this.setItems(items);
   }
-  */
 }
 
 // turn Timeline into an event emitter
@@ -350,6 +369,36 @@ Timeline.prototype._create = function () {
   this.dom.leftContainer.appendChild(this.dom.left);
   this.dom.rightContainer.appendChild(this.dom.right);
 
+  // TODO: move watch from RootPanel to here
+
+  // create a central event bus
+  this.emitter = new Emitter();
+
+  this.emitter.on('rangechange', this.repaint.bind(this));
+
+  // create event listeners for all interesting events, these events will be
+  // emitted via emitter
+  this.hammer = Hammer(this.dom.root, {
+    prevent_default: true
+  });
+  this.listeners = {};
+
+  var me = this;
+  var events = [
+    'touch', 'pinch', 'tap', 'doubletap', 'hold',
+    'dragstart', 'drag', 'dragend',
+    'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
+  ];
+  events.forEach(function (event) {
+    var listener = function () {
+      var args = [event].concat(Array.prototype.slice.call(arguments, 0));
+      me.emitter.emit.apply(me.emitter, args);
+    };
+    me.hammer.on(event, listener);
+    me.listeners[event] = listener;
+  });
+
+  // size properties of each of the panels
   this.props = {
     root: {},
     background: {},
@@ -382,11 +431,11 @@ Timeline.prototype.setOptions = function (options) {
       remove:      isBoolean ? options.editable : (options.editable.remove || false)
     };
   }
-
+/* TODO
   // force update of range (apply new min/max etc.)
   // both start and end are optional
   this.range.setRange(options.start, options.end);
-
+ */
   if ('editable' in options || 'selectable' in options) {
     if (this.options.selectable) {
       // force update of selection
@@ -397,10 +446,10 @@ Timeline.prototype.setOptions = function (options) {
       this.setSelection([]);
     }
   }
-
+/* TODO
   // force the itemSet to refresh: options like orientation and margins may be changed
   this.itemSet.markDirty();
-
+*/
   // validate the callback functions
   var validateCallback = (function (fn) {
     if (!(this.options[fn] instanceof Function) || this.options[fn].length != 2) {
@@ -409,6 +458,7 @@ Timeline.prototype.setOptions = function (options) {
   }).bind(this);
   ['onAdd', 'onUpdate', 'onRemove', 'onMove'].forEach(validateCallback);
 
+  /* TODO
   // add/remove the current time bar
   if (this.options.showCurrentTime) {
     if (!this.mainPanel.hasChild(this.currentTime)) {
@@ -434,7 +484,7 @@ Timeline.prototype.setOptions = function (options) {
       this.mainPanel.removeChild(this.customTime);
     }
   }
-
+*/
   // TODO: remove deprecation error one day (deprecated since version 0.8.0)
   if (options && options.order) {
     throw new Error('Option order is deprecated. There is no replacement for this feature.');
@@ -495,7 +545,7 @@ Timeline.prototype.setItems = function(items) {
 
   // set items
   this.itemsData = newDataSet;
-  this.itemSet.setItems(newDataSet);
+  this.itemSet && this.itemSet.setItems(newDataSet);
 
   if (initialLoad && (this.options.start == undefined || this.options.end == undefined)) {
     this.fit();
@@ -631,7 +681,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
  *                      unselected.
  */
 Timeline.prototype.setSelection = function setSelection (ids) {
-  this.itemSet.setSelection(ids);
+  this.itemSet && this.itemSet.setSelection(ids);
 };
 
 /**
@@ -639,7 +689,7 @@ Timeline.prototype.setSelection = function setSelection (ids) {
  * @return {Array} ids  The ids of the selected items
  */
 Timeline.prototype.getSelection = function getSelection() {
-  return this.itemSet.getSelection();
+  return this.itemSet && this.itemSet.getSelection() || [];
 };
 
 /**
@@ -746,8 +796,6 @@ Timeline.prototype.repaint = function repaint() {
 
   dom.background.style.width        = props.background.width + 'px';
   dom.centerContainer.style.width   = props.center.width + 'px';
-  dom.leftContainer.style.width     = (props.left.width + props.border.left) + 'px';
-  dom.rightContainer.style.width    = (props.right.width + props.border.right) + 'px';
   dom.top.style.width               = props.top.width + 'px';
   dom.bottom.style.width            = props.bottom.width + 'px';
 
@@ -765,9 +813,15 @@ Timeline.prototype.repaint = function repaint() {
   dom.bottom.style.left             = props.left.width + 'px';
   dom.bottom.style.top              = (props.top.height + props.centerContainer.height) + 'px';
 
-  /* TODO: repaint contents
-  this.rootPanel.repaint();
-  */
+  // repaint all components
+  var resized = false;
+  this.components.forEach(function (component) {
+    resized = component.repaint() || resized;
+  });
+  if (resized) {
+    // keep repainting until all sizes are settled
+    this.repaint();
+  }
 };
 
 /**
@@ -900,7 +954,7 @@ Timeline.prototype._onMultiSelectItem = function (event) {
  * @private
  */
 Timeline.prototype._toTime = function _toTime(x) {
-  var conversion = this.range.conversion(this.mainPanel.width);
+  var conversion = this.range.conversion(this.props.center.width);
   return new Date(x / conversion.scale + conversion.offset);
 };
 
@@ -912,6 +966,6 @@ Timeline.prototype._toTime = function _toTime(x) {
  * @private
  */
 Timeline.prototype._toScreen = function _toScreen(time) {
-  var conversion = this.range.conversion(this.mainPanel.width);
+  var conversion = this.range.conversion(this.props.center.width);
   return (time.valueOf() - conversion.offset) * conversion.scale;
 };
