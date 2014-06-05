@@ -94,8 +94,8 @@ TimeAxis.prototype.repaint = function () {
   props.height = props.minorLabelHeight + props.majorLabelHeight;
   props.width = foreground.offsetWidth;
 
-  props.minorLineHeight = this.timeline.props.center.height + props.minorLabelHeight +
-    this.timeline.props.border.top + this.timeline.props.border.bottom;
+  props.minorLineHeight = this.timeline.props.root.height - props.majorLabelHeight -
+      (options.orientation == 'top' ? this.timeline.props.bottom.height : this.timeline.props.top.height);
   props.minorLineWidth = 1; // TODO: really calculate width
   props.majorLineHeight = props.minorLineHeight + props.majorLabelHeight;
   props.majorLineWidth = 1; // TODO: really calculate width
