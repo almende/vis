@@ -92,7 +92,7 @@ function Timeline (container, items, options) {
   this.dom.center.innerHTML = 'center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center';
   this.dom.left.innerHTML = '<span style="color: red;">left</span>';
   this.dom.right.innerHTML = '<span style="color: red;">right</span>';
-  this.dom.top.innerHTML = '<span style="color: red;">top</span>';
+  //this.dom.top.innerHTML = '<span style="color: red;">top</span>';
   //this.dom.bottom.innerHTML = '<span style="color: red;">bottom</span>';
 
   this.components = [];

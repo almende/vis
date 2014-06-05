@@ -1,5 +1,20 @@
 .vis.timeline .timeaxis {
   position: relative;
+  overflow: hidden;
+}
+
+.vis.timeline .timeaxis.foreground {
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.vis.timeline .timeaxis.background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .vis.timeline .timeaxis .text {
@@ -22,13 +37,6 @@
   position: absolute;
   width: 0;
   border-right: 1px solid;
-}
-
-.vis.timeline .timeaxis .grid.horizontal {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  height: 0;
 }
 
 .vis.timeline .timeaxis .grid.minor {

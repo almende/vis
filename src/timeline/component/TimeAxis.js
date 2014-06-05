@@ -8,7 +8,7 @@
  */
 function TimeAxis (timeline, options) {
   this.dom = {
-    frame: null,
+    foreground: null,
     majorLines: [],
     majorTexts: [],
     minorLines: [],
@@ -59,7 +59,11 @@ TimeAxis.prototype.setOptions = Component.prototype.setOptions;
  * Create the HTML DOM for the TimeAxis
  */
 TimeAxis.prototype._create = function _create() {
-  this.dom.frame = document.createElement('div');
+  this.dom.foreground = document.createElement('div');
+  this.dom.background = document.createElement('div');
+
+  this.dom.foreground.className = 'timeaxis foreground';
+  this.dom.background.className = 'timeaxis background';
 };
 
 /**
@@ -69,14 +73,12 @@ TimeAxis.prototype._create = function _create() {
 TimeAxis.prototype.repaint = function () {
   var options = this.options,
       props = this.props,
-      frame = this.dom.frame;
+      foreground = this.dom.foreground,
+      background = this.dom.background;
 
   // determine the correct parent DOM element (depending on option orientation)
   var parent = (options.orientation == 'top') ? this.timeline.dom.top : this.timeline.dom.bottom;
-  var parentChanged = (frame.parentNode !== parent);
-
-  // update classname
-  frame.className = 'timeaxis'; // TODO: add className from options if defined
+  var parentChanged = (foreground.parentNode !== parent);
 
   // calculate character width and height
   this._calculateCharSize();
@@ -87,37 +89,34 @@ TimeAxis.prototype.repaint = function () {
       showMajorLabels = this.getOption('showMajorLabels');
 
   // determine the width and height of the elemens for the axis
-  var backgroundHeight = this.timeline.props.background.height;
   props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
   props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
   props.height = props.minorLabelHeight + props.majorLabelHeight;
-  props.width = frame.offsetWidth; // TODO: only update the width when the frame is resized?
+  props.width = foreground.offsetWidth;
 
-  props.minorLineHeight = backgroundHeight + props.minorLabelHeight;
+  props.minorLineHeight = this.timeline.props.center.height + props.minorLabelHeight +
+    this.timeline.props.border.top + this.timeline.props.border.bottom;
   props.minorLineWidth = 1; // TODO: really calculate width
-  props.majorLineHeight = backgroundHeight + this.props.height;
+  props.majorLineHeight = props.minorLineHeight + props.majorLabelHeight;
   props.majorLineWidth = 1; // TODO: really calculate width
 
-  //  take frame offline while updating (is almost twice as fast)
-  var beforeChild = frame.nextSibling;
-  frame.parentNode && frame.parentNode.removeChild(frame);
+  //  take foreground and background offline while updating (is almost twice as fast)
+  var beforeChild = foreground.nextSibling;
+  foreground.parentNode && foreground.parentNode.removeChild(foreground);
+  background.parentNode && background.parentNode.removeChild(background);
 
-  frame.style.top = '0';
-  frame.style.left = '0';
-  frame.style.width = '100%';
-  frame.style.height = this.props.height + 'px';
+  foreground.style.height = this.props.height + 'px';
 
   this._repaintLabels();
 
-  this._repaintLine();
-
-  // put frame online again at the same place
+  // put DOM online again (foreground at the same place)
   if (beforeChild) {
-    parent.insertBefore(frame, beforeChild);
+    parent.insertBefore(foreground, beforeChild);
   }
   else {
-    parent.appendChild(frame)
+    parent.appendChild(foreground)
   }
+  this.timeline.dom.backgroundVertical.appendChild(background);
 
   return this._isResized() || parentChanged;
 };
@@ -220,7 +219,7 @@ TimeAxis.prototype._repaintMinorText = function (x, text, orientation) {
     label = document.createElement('div');
     label.appendChild(content);
     label.className = 'text minor';
-    this.dom.frame.appendChild(label);
+    this.dom.foreground.appendChild(label);
   }
   this.dom.minorTexts.push(label);
 
@@ -255,7 +254,7 @@ TimeAxis.prototype._repaintMajorText = function (x, text, orientation) {
     label = document.createElement('div');
     label.className = 'text major';
     label.appendChild(content);
-    this.dom.frame.appendChild(label);
+    this.dom.foreground.appendChild(label);
   }
   this.dom.majorTexts.push(label);
 
@@ -287,18 +286,16 @@ TimeAxis.prototype._repaintMinorLine = function (x, orientation) {
     // create vertical line
     line = document.createElement('div');
     line.className = 'grid vertical minor';
-    this.dom.frame.appendChild(line);
+    this.dom.background.appendChild(line);
   }
   this.dom.minorLines.push(line);
 
   var props = this.props;
   if (orientation == 'top') {
-    line.style.top = this.props.majorLabelHeight + 'px';
-    line.style.bottom = '';
+    line.style.top = props.majorLabelHeight + 'px';
   }
   else {
-    line.style.top = '';
-    line.style.bottom = this.props.majorLabelHeight + 'px';
+    line.style.top = this.timeline.props.top.height + 'px';
   }
   line.style.height = props.minorLineHeight + 'px';
   line.style.left = (x - props.minorLineWidth / 2) + 'px';
@@ -318,63 +315,19 @@ TimeAxis.prototype._repaintMajorLine = function (x, orientation) {
     // create vertical line
     line = document.createElement('DIV');
     line.className = 'grid vertical major';
-    this.dom.frame.appendChild(line);
+    this.dom.background.appendChild(line);
   }
   this.dom.majorLines.push(line);
 
   var props = this.props;
   if (orientation == 'top') {
-    line.style.top = '0px';
-    line.style.bottom = '';
+    line.style.top = '0';
   }
   else {
-    line.style.top = '';
-    line.style.bottom = '0px';
+    line.style.top = this.timeline.props.top.height + 'px';
   }
   line.style.left = (x - props.majorLineWidth / 2) + 'px';
   line.style.height = props.majorLineHeight + 'px';
-};
-
-
-/**
- * Repaint the horizontal line for the axis
- * @private
- */
-TimeAxis.prototype._repaintLine = function() {
-  var line = this.dom.line,
-      frame = this.dom.frame,
-      orientation = this.getOption('orientation');
-
-  // line before all axis elements
-  if (this.getOption('showMinorLabels') || this.getOption('showMajorLabels')) {
-    if (line) {
-      // put this line at the end of all childs
-      frame.removeChild(line);
-      frame.appendChild(line);
-    }
-    else {
-      // create the axis line
-      line = document.createElement('div');
-      line.className = 'grid horizontal major';
-      frame.appendChild(line);
-      this.dom.line = line;
-    }
-
-    if (orientation == 'top') {
-      line.style.top = this.height + 'px';
-      line.style.bottom = '';
-    }
-    else {
-      line.style.top = '';
-      line.style.bottom = this.height + 'px';
-    }
-  }
-  else {
-    if (line && line.parentNode) {
-      line.parentNode.removeChild(line);
-      delete this.dom.line;
-    }
-  }
 };
 
 /**
@@ -393,7 +346,7 @@ TimeAxis.prototype._calculateCharSize = function () {
     this.dom.measureCharMinor.style.position = 'absolute';
 
     this.dom.measureCharMinor.appendChild(document.createTextNode('0'));
-    this.dom.frame.appendChild(this.dom.measureCharMinor);
+    this.dom.foreground.appendChild(this.dom.measureCharMinor);
   }
   this.props.minorCharHeight = this.dom.measureCharMinor.clientHeight;
   this.props.minorCharWidth = this.dom.measureCharMinor.clientWidth;
@@ -405,7 +358,7 @@ TimeAxis.prototype._calculateCharSize = function () {
     this.dom.measureCharMajor.style.position = 'absolute';
 
     this.dom.measureCharMajor.appendChild(document.createTextNode('0'));
-    this.dom.frame.appendChild(this.dom.measureCharMajor);
+    this.dom.foreground.appendChild(this.dom.measureCharMajor);
   }
   this.props.majorCharHeight = this.dom.measureCharMajor.clientHeight;
   this.props.majorCharWidth = this.dom.measureCharMajor.clientWidth;
