@@ -54,6 +54,8 @@ CustomTime.prototype._create = function _create () {
  * @return {boolean} Returns true if the component is resized
  */
 CustomTime.prototype.repaint = function () {
+  // FIXME: CustomTime should be on the foreground
+
   if (this.options.showCustomTime) {
     if (this.bar.parentNode != this.timeline.dom.backgroundVertical) {
       // attach to the dom

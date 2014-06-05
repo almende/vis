@@ -78,17 +78,17 @@ ItemBox.prototype.repaint = function repaint() {
     throw new Error('Cannot repaint item: no parent attached');
   }
   if (!dom.box.parentNode) {
-    var foreground = this.parent.getForeground();
+    var foreground = this.parent.dom.foreground;
     if (!foreground) throw new Error('Cannot repaint time axis: parent has no foreground container element');
     foreground.appendChild(dom.box);
   }
   if (!dom.line.parentNode) {
-    var background = this.parent.getBackground();
+    var background = this.parent.dom.background;
     if (!background) throw new Error('Cannot repaint time axis: parent has no background container element');
     background.appendChild(dom.line);
   }
   if (!dom.dot.parentNode) {
-    var axis = this.parent.getAxis();
+    var axis = this.parent.dom.axis;
     if (!background) throw new Error('Cannot repaint time axis: parent has no axis container element');
     axis.appendChild(dom.dot);
   }

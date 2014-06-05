@@ -78,35 +78,18 @@ Group.prototype.setData = function setData(data) {
     this.dom.inner.innerHTML = this.groupId;
   }
 
+  if (!this.dom.inner.firstChild) {
+    util.addClassName(this.dom.inner, 'hidden');
+  }
+  else {
+    util.removeClassName(this.dom.inner, 'hidden');
+  }
+
   // update className
   var className = data && data.className;
   if (className) {
     util.addClassName(this.dom.label, className);
   }
-};
-
-/**
- * Get the foreground container element
- * @return {HTMLElement} foreground
- */
-Group.prototype.getForeground = function getForeground() {
-  return this.dom.foreground;
-};
-
-/**
- * Get the background container element
- * @return {HTMLElement} background
- */
-Group.prototype.getBackground = function getBackground() {
-  return this.dom.background;
-};
-
-/**
- * Get the axis container element
- * @return {HTMLElement} axis
- */
-Group.prototype.getAxis = function getAxis() {
-  return this.dom.axis;
 };
 
 /**
@@ -196,19 +179,19 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
  */
 Group.prototype.show = function show() {
   if (!this.dom.label.parentNode) {
-    this.itemSet.getLabelSet().appendChild(this.dom.label);
+    this.itemSet.dom.labelSet.appendChild(this.dom.label);
   }
 
   if (!this.dom.foreground.parentNode) {
-    this.itemSet.getForeground().appendChild(this.dom.foreground);
+    this.itemSet.dom.foreground.appendChild(this.dom.foreground);
   }
 
   if (!this.dom.background.parentNode) {
-    this.itemSet.getBackground().appendChild(this.dom.background);
+    this.itemSet.dom.background.appendChild(this.dom.background);
   }
 
   if (!this.dom.axis.parentNode) {
-    this.itemSet.getAxis().appendChild(this.dom.axis);
+    this.itemSet.dom.axis.appendChild(this.dom.axis);
   }
 };
 
@@ -246,7 +229,7 @@ Group.prototype.add = function add(item) {
   item.setParent(this);
 
   if (item instanceof ItemRange && this.visibleItems.indexOf(item) == -1) {
-    var range = this.itemSet.range; // TODO: not nice accessing the range like this
+    var range = this.itemSet.timeline.range; // TODO: not nice accessing the range like this
     this._checkIfVisible(item, this.visibleItems, range);
   }
 };

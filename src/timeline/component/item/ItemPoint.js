@@ -76,7 +76,7 @@ ItemPoint.prototype.repaint = function repaint() {
     throw new Error('Cannot repaint item: no parent attached');
   }
   if (!dom.point.parentNode) {
-    var foreground = this.parent.getForeground();
+    var foreground = this.parent.dom.foreground;
     if (!foreground) {
       throw new Error('Cannot repaint time axis: parent has no foreground container element');
     }

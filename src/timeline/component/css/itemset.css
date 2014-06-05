@@ -12,21 +12,31 @@
   /**/
 }
 
-.vis.timeline .background {
+.vis.timeline .background,
+.vis.timeline .foreground {
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }
 
 .vis.timeline .foreground {
+  overflow: hidden;
 }
 
 .vis.timeline .axis {
-  overflow: visible;
 }
 
 .vis.timeline  .group {
   position: relative;
   box-sizing: border-box;
+  border-bottom: 1px solid #bfbfbf;
 }
 
+.vis.timeline  .group:last-child {
+  border-bottom: none;
+}
+
+/*
 .vis.timeline.top .group {
   border-top: 1px solid #bfbfbf;
   border-bottom: none;
@@ -36,3 +46,4 @@
   border-top: none;
   border-bottom: 1px solid #bfbfbf;
 }
+*/

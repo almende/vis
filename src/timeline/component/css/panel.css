@@ -32,6 +32,7 @@
 .vis.timeline .vispanel.right {
   border-top-style: solid;
   border-bottom-style: solid;
+  overflow: hidden;
 }
 
 .vis.timeline .vispanel.center,

@@ -4,31 +4,24 @@ var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
  * An ItemSet holds a set of items and ranges which can be displayed in a
  * range. The width is determined by the parent of the ItemSet, and the height
  * is determined by the size of the items.
- * @param {Panel} backgroundPanel Panel which can be used to display the
- *                                vertical lines of box items.
- * @param {Panel} axisPanel       Panel on the axis where the dots of box-items
- *                                can be displayed.
- * @param {Panel} sidePanel      Left side panel holding labels
+ * @param {{dom: Object}} timeline
  * @param {Object} [options]      See ItemSet.setOptions for the available options.
  * @constructor ItemSet
  * @extends Panel
  */
-function ItemSet(backgroundPanel, axisPanel, sidePanel, options) {
-  this.id = util.randomUUID();
+function ItemSet(timeline, options) {
+  this.timeline = timeline;
 
   // one options object is shared by this itemset and all its items
   this.options = options || {};
-  this.backgroundPanel = backgroundPanel;
-  this.axisPanel = axisPanel;
-  this.sidePanel = sidePanel;
   this.itemOptions = Object.create(this.options);
   this.dom = {};
+  this.props = {};
   this.hammer = null;
 
   var me = this;
   this.itemsData = null;    // DataSet
   this.groupsData = null;   // DataSet
-  this.range = null;        // Range or Object {start: number, end: number}
 
   // listeners for the DataSet of the items
   this.itemListeners = {
@@ -69,7 +62,7 @@ function ItemSet(backgroundPanel, axisPanel, sidePanel, options) {
   this._create();
 }
 
-ItemSet.prototype = new Panel();
+ItemSet.prototype = new Component();
 
 // available item types will be registered here
 ItemSet.types = {
@@ -84,13 +77,14 @@ ItemSet.types = {
  */
 ItemSet.prototype._create = function _create(){
   var frame = document.createElement('div');
+  frame.className = 'itemset';
   frame['timeline-itemset'] = this;
-  this.frame = frame;
+  this.dom.frame = frame;
 
   // create background panel
   var background = document.createElement('div');
   background.className = 'background';
-  this.backgroundPanel.frame.appendChild(background);
+  frame.appendChild(background);
   this.dom.background = background;
 
   // create foreground panel
@@ -103,13 +97,11 @@ ItemSet.prototype._create = function _create(){
   var axis = document.createElement('div');
   axis.className = 'axis';
   this.dom.axis = axis;
-  this.axisPanel.frame.appendChild(axis);
 
   // create labelset
   var labelSet = document.createElement('div');
   labelSet.className = 'labelset';
   this.dom.labelSet = labelSet;
-  this.sidePanel.frame.appendChild(labelSet);
 
   // create ungrouped Group
   this._updateUngrouped();
@@ -122,13 +114,14 @@ ItemSet.prototype._create = function _create(){
   this.hammer.on('dragstart', this._onDragStart.bind(this));
   this.hammer.on('drag',      this._onDrag.bind(this));
   this.hammer.on('dragend',   this._onDragEnd.bind(this));
+
+  // attach to the DOM
+  this.show();
 };
 
 /**
  * Set options for the ItemSet. Existing options will be extended/overwritten.
  * @param {Object} [options] The following options are available:
- *                           {String | function} [className]
- *                              class name for the itemset
  *                           {String} [type]
  *                              Default type for the items. Choose from 'box'
  *                              (default), 'point', or 'range'. The default
@@ -152,9 +145,7 @@ ItemSet.prototype._create = function _create(){
  *                              Function to let items snap to nice dates when
  *                              dragging items.
  */
-ItemSet.prototype.setOptions = function setOptions(options) {
-  Component.prototype.setOptions.call(this, options);
-};
+ItemSet.prototype.setOptions = Component.prototype.setOptions;
 
 /**
  * Mark the ItemSet dirty so it will refresh everything with next repaint
@@ -168,14 +159,14 @@ ItemSet.prototype.markDirty = function markDirty() {
  * Hide the component from the DOM
  */
 ItemSet.prototype.hide = function hide() {
+  // remove the frame containing the items
+  if (this.dom.frame.parentNode) {
+    this.dom.frame.parentNode.removeChild(this.dom.frame);
+  }
+
   // remove the axis with dots
   if (this.dom.axis.parentNode) {
     this.dom.axis.parentNode.removeChild(this.dom.axis);
-  }
-
-  // remove the background with vertical lines
-  if (this.dom.background.parentNode) {
-    this.dom.background.parentNode.removeChild(this.dom.background);
   }
 
   // remove the labelset containing all group labels
@@ -189,32 +180,20 @@ ItemSet.prototype.hide = function hide() {
  * @return {Boolean} changed
  */
 ItemSet.prototype.show = function show() {
-  // show axis with dots
-  if (!this.dom.axis.parentNode) {
-    this.axisPanel.frame.appendChild(this.dom.axis);
+  // show frame containing the items
+  if (!this.dom.frame.parentNode) {
+    this.timeline.dom.center.appendChild(this.dom.frame);
   }
 
-  // show background with vertical lines
-  if (!this.dom.background.parentNode) {
-    this.backgroundPanel.frame.appendChild(this.dom.background);
+  // show axis with dots
+  if (!this.dom.axis.parentNode) {
+    this.timeline.dom.bottom.appendChild(this.dom.axis);
   }
 
   // show labelset containing labels
   if (!this.dom.labelSet.parentNode) {
-    this.sidePanel.frame.appendChild(this.dom.labelSet);
+    this.timeline.dom.left.appendChild(this.dom.labelSet);
   }
-};
-
-/**
- * Set range (start and end).
- * @param {Range | Object} range  A Range or an object containing start and end.
- */
-ItemSet.prototype.setRange = function setRange(range) {
-  if (!(range instanceof Range) && (!range || !range.start || !range.end)) {
-    throw new TypeError('Range must be an instance of Range, ' +
-        'or an object containing start and end.');
-  }
-  this.range = range;
 };
 
 /**
@@ -276,26 +255,17 @@ ItemSet.prototype._deselect = function _deselect(id) {
 };
 
 /**
- * Return the item sets frame
- * @returns {HTMLElement} frame
- */
-ItemSet.prototype.getFrame = function getFrame() {
-  return this.frame;
-};
-
-/**
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
 ItemSet.prototype.repaint = function repaint() {
   var margin = this.options.margin,
-      range = this.range,
+      range = this.timeline.range,
       asSize = util.option.asSize,
-      asString = util.option.asString,
       options = this.options,
       orientation = this.getOption('orientation'),
       resized = false,
-      frame = this.frame;
+      frame = this.dom.frame;
 
   // TODO: document this feature to specify one margin for both item and axis distance
   if (typeof margin === 'number') {
@@ -305,19 +275,16 @@ ItemSet.prototype.repaint = function repaint() {
     };
   }
 
-  // update className
-  frame.className = 'itemset' + (options.className ? (' ' + asString(options.className)) : '');
-
   // reorder the groups (if needed)
   resized = this._orderGroups() || resized;
 
   // check whether zoomed (in that case we need to re-stack everything)
   // TODO: would be nicer to get this as a trigger from Range
-  var visibleInterval = this.range.end - this.range.start;
-  var zoomed = (visibleInterval != this.lastVisibleInterval) || (this.width != this.lastWidth);
+  var visibleInterval = range.end - range.start;
+  var zoomed = (visibleInterval != this.lastVisibleInterval) || (this.props.width != this.props.lastWidth);
   if (zoomed) this.stackDirty = true;
   this.lastVisibleInterval = visibleInterval;
-  this.lastWidth = this.width;
+  this.props.lastWidth = this.props.width;
 
   // repaint all groups
   var restack = this.stackDirty,
@@ -350,10 +317,10 @@ ItemSet.prototype.repaint = function repaint() {
   //frame.style.height  = asSize('height' in options ? options.height : height); // TODO: reckon with height
 
   // calculate actual size and position
-  this.top = frame.offsetTop;
-  this.left = frame.offsetLeft;
-  this.width = frame.offsetWidth;
-  this.height = height;
+  this.props.top = frame.offsetTop;
+  this.props.left = frame.offsetLeft;
+  this.props.width = frame.offsetWidth;
+  this.props.height = height;
 
   // reposition axis
   this.dom.axis.style.left   = asSize(options.left, '0');
@@ -417,30 +384,6 @@ ItemSet.prototype._updateUngrouped = function _updateUngrouped() {
 };
 
 /**
- * Get the foreground container element
- * @return {HTMLElement} foreground
- */
-ItemSet.prototype.getForeground = function getForeground() {
-  return this.dom.foreground;
-};
-
-/**
- * Get the background container element
- * @return {HTMLElement} background
- */
-ItemSet.prototype.getBackground = function getBackground() {
-  return this.dom.background;
-};
-
-/**
- * Get the axis container element
- * @return {HTMLElement} axis
- */
-ItemSet.prototype.getAxis = function getAxis() {
-  return this.dom.axis;
-};
-
-/**
  * Get the element for the labelset
  * @return {HTMLElement} labelSet
  */
@@ -471,7 +414,7 @@ ItemSet.prototype.setItems = function setItems(items) {
   if (oldItemsData) {
     // unsubscribe from old dataset
     util.forEach(this.itemListeners, function (callback, event) {
-      oldItemsData.unsubscribe(event, callback);
+      oldItemsData.off(event, callback);
     });
 
     // remove all drawn items
@@ -552,7 +495,7 @@ ItemSet.prototype.setGroups = function setGroups(groups) {
   // update the order of all items in each group
   this._order();
 
-  this.emit('change');
+  this.timeline.emitter.emit('change');
 };
 
 /**
@@ -630,7 +573,7 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
 
   this._order();
   this.stackDirty = true; // force re-stacking of all items next repaint
-  this.emit('change');
+  this.timeline.emitter.emit('change');
 };
 
 /**
@@ -660,7 +603,7 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
     // update order
     this._order();
     this.stackDirty = true; // force re-stacking of all items next repaint
-    this.emit('change');
+    this.timeline.emitter.emit('change');
   }
 };
 
@@ -730,7 +673,7 @@ ItemSet.prototype._onAddGroups = function _onAddGroups(ids) {
     }
   });
 
-  this.emit('change');
+  this.timeline.emitter.emit('change');
 };
 
 /**
@@ -751,7 +694,7 @@ ItemSet.prototype._onRemoveGroups = function _onRemoveGroups(ids) {
 
   this.markDirty();
 
-  this.emit('change');
+  this.timeline.emitter.emit('change');
 };
 
 /**
@@ -872,6 +815,7 @@ ItemSet.prototype._constructByEndArray = function _constructByEndArray(array) {
  * Get the width of the group labels
  * @return {Number} width
  */
+// TODO: is this function getLabelsWidth redundant?
 ItemSet.prototype.getLabelsWidth = function getLabelsWidth() {
   var width = 0;
 
@@ -880,14 +824,6 @@ ItemSet.prototype.getLabelsWidth = function getLabelsWidth() {
   });
 
   return width;
-};
-
-/**
- * Get the height of the itemsets background
- * @return {Number} height
- */
-ItemSet.prototype.getBackgroundHeight = function getBackgroundHeight() {
-  return this.height;
 };
 
 /**
@@ -966,9 +902,10 @@ ItemSet.prototype._onDragStart = function (event) {
  */
 ItemSet.prototype._onDrag = function (event) {
   if (this.touchParams.itemProps) {
-    var snap = this.options.snap || null,
+    var range = this.timeline.range,
+        snap = this.options.snap || null,
         deltaX = event.gesture.deltaX,
-        scale = (this.width / (this.range.end - this.range.start)),
+        scale = (this.props.width / (range.end - range.start)),
         offset = deltaX / scale;
 
     // move
@@ -1001,7 +938,7 @@ ItemSet.prototype._onDrag = function (event) {
     // TODO: implement onMoving handler
 
     this.stackDirty = true; // force re-stacking of all items next repaint
-    this.emit('change');
+    this.timeline.emitter.emit('change');
 
     event.stopPropagation();
   }
@@ -1051,7 +988,7 @@ ItemSet.prototype._onDragEnd = function (event) {
             if ('end' in props)   props.item.data.end   = props.end;
 
             me.stackDirty = true; // force re-stacking of all items next repaint
-            me.emit('change');
+            me.timeline.emitter.emit('change');
           }
         });
       }

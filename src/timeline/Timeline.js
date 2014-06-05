@@ -86,15 +86,7 @@ function Timeline (container, items, options) {
   if (!container) throw new Error('No container provided');
   container.appendChild(this.dom.root);
 
-  // TODO: remove temporary contents
-  //this.dom.background.innerHTML = '<span style="color: red;">background</span>';
-  this.dom.center.innerHTML = '<span style="color: red;">center</span>';
-  this.dom.center.innerHTML = 'center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center<br>center';
-  this.dom.left.innerHTML = '<span style="color: red;">left</span>';
-  this.dom.right.innerHTML = '<span style="color: red;">right</span>';
-  //this.dom.top.innerHTML = '<span style="color: red;">top</span>';
-  //this.dom.bottom.innerHTML = '<span style="color: red;">bottom</span>';
-
+  // all components listed here will be repainted automatically
   this.components = [];
 
   // range
@@ -116,6 +108,11 @@ function Timeline (container, items, options) {
   // Note: time bar will be attached in this.setOptions when selected
   this.customTime = new CustomTime(this, this.options);
   this.components.push(this.customTime);
+
+  // item set
+  this.itemSet = new ItemSet(this, this.options);
+  this.components.push(this.itemSet);
+  this.emitter.on('change', this.repaint.bind(this));
 
   /* TODO
   // root panel
@@ -375,8 +372,6 @@ Timeline.prototype._create = function () {
   this.dom.leftContainer.appendChild(this.dom.left);
   this.dom.rightContainer.appendChild(this.dom.right);
 
-  // TODO: move watch from RootPanel to here
-
   // create a central event bus
   this.emitter = this;
 
@@ -437,11 +432,11 @@ Timeline.prototype.setOptions = function (options) {
       remove:      isBoolean ? options.editable : (options.editable.remove || false)
     };
   }
-/* TODO
+
   // force update of range (apply new min/max etc.)
   // both start and end are optional
   this.range.setRange(options.start, options.end);
- */
+
   if ('editable' in options || 'selectable' in options) {
     if (this.options.selectable) {
       // force update of selection
@@ -452,10 +447,10 @@ Timeline.prototype.setOptions = function (options) {
       this.setSelection([]);
     }
   }
-/* TODO
+
   // force the itemSet to refresh: options like orientation and margins may be changed
   this.itemSet.markDirty();
-*/
+
   // validate the callback functions
   var validateCallback = (function (fn) {
     if (!(this.options[fn] instanceof Function) || this.options[fn].length != 2) {
@@ -491,6 +486,10 @@ Timeline.prototype.setOptions = function (options) {
     }
   }
 */
+
+  // enable/disable autoResize
+  this._initAutoResize();
+
   // TODO: remove deprecation error one day (deprecated since version 0.8.0)
   if (options && options.order) {
     throw new Error('Option order is deprecated. There is no replacement for this feature.');
@@ -567,7 +566,7 @@ Timeline.prototype.setItems = function(items) {
  * Set groups
  * @param {vis.DataSet | Array | google.visualization.DataTable} groups
  */
-Timeline.prototype.setGroups = function setGroups(groups) {
+Timeline.prototype.setGroups = function(groups) {
   // convert to type DataSet when needed
   var newDataSet;
   if (!groups) {
@@ -595,7 +594,7 @@ Timeline.prototype.setGroups = function setGroups(groups) {
  * @param {Object} [what]      Optionally specify what to clear. By default:
  *                             {items: true, groups: true, options: true}
  */
-Timeline.prototype.clear = function clear(what) {
+Timeline.prototype.clear = function(what) {
   // clear items
   if (!what || what.items) {
     this.setItems(null);
@@ -615,7 +614,7 @@ Timeline.prototype.clear = function clear(what) {
 /**
  * Set Timeline window such that it fits all items
  */
-Timeline.prototype.fit = function fit() {
+Timeline.prototype.fit = function() {
   // apply the data range as range
   var dataRange = this.getItemRange();
 
@@ -646,7 +645,7 @@ Timeline.prototype.fit = function fit() {
  *                                          When no minimum is found, min==null
  *                                          When no maximum is found, max==null
  */
-Timeline.prototype.getItemRange = function getItemRange() {
+Timeline.prototype.getItemRange = function() {
   // calculate min from start filed
   var itemsData = this.itemsData,
       min = null,
@@ -686,7 +685,7 @@ Timeline.prototype.getItemRange = function getItemRange() {
  *                      selected. If ids is an empty array, all items will be
  *                      unselected.
  */
-Timeline.prototype.setSelection = function setSelection (ids) {
+Timeline.prototype.setSelection = function(ids) {
   this.itemSet && this.itemSet.setSelection(ids);
 };
 
@@ -694,7 +693,7 @@ Timeline.prototype.setSelection = function setSelection (ids) {
  * Get the selected items by their id
  * @return {Array} ids  The ids of the selected items
  */
-Timeline.prototype.getSelection = function getSelection() {
+Timeline.prototype.getSelection = function() {
   return this.itemSet && this.itemSet.getSelection() || [];
 };
 
@@ -711,7 +710,7 @@ Timeline.prototype.getSelection = function getSelection() {
  * @param {Date | Number | String | Object} [start] Start date of visible window
  * @param {Date | Number | String} [end]   End date of visible window
  */
-Timeline.prototype.setWindow = function setWindow(start, end) {
+Timeline.prototype.setWindow = function(start, end) {
   if (arguments.length == 1) {
     var range = arguments[0];
     this.range.setRange(range.start, range.end);
@@ -725,7 +724,7 @@ Timeline.prototype.setWindow = function setWindow(start, end) {
  * Get the visible window
  * @return {{start: Date, end: Date}}   Visible range
  */
-Timeline.prototype.getWindow = function setWindow() {
+Timeline.prototype.getWindow = function() {
   var range = this.range.getRange();
   return {
     start: new Date(range.start),
@@ -737,7 +736,7 @@ Timeline.prototype.getWindow = function setWindow() {
  * Force a repaint of the Timeline. Can be useful to manually repaint when
  * option autoResize=false
  */
-Timeline.prototype.repaint = function repaint() {
+Timeline.prototype.repaint = function() {
   var resized = false,
       options = this.options,
       props = this.props,
@@ -880,6 +879,7 @@ Timeline.prototype._onSelectItem = function (event) {
  * @param event
  * @private
  */
+// TODO: move this function to ItemSet
 Timeline.prototype._onAddItem = function (event) {
   if (!this.options.selectable) return;
   if (!this.options.editable.add) return;
@@ -970,7 +970,8 @@ Timeline.prototype._onMultiSelectItem = function (event) {
  * @return {Date}   time The datetime the corresponds with given position x
  * @private
  */
-Timeline.prototype._toTime = function _toTime(x) {
+// TODO: move this function to Range
+Timeline.prototype._toTime = function(x) {
   var conversion = this.range.conversion(this.props.center.width);
   return new Date(x / conversion.scale + conversion.offset);
 };
@@ -982,7 +983,69 @@ Timeline.prototype._toTime = function _toTime(x) {
  *                      with the given date.
  * @private
  */
-Timeline.prototype._toScreen = function _toScreen(time) {
+// TODO: move this function to Range
+Timeline.prototype._toScreen = function(time) {
   var conversion = this.range.conversion(this.props.center.width);
   return (time.valueOf() - conversion.offset) * conversion.scale;
+};
+
+/**
+ * Initialize watching when option autoResize is true
+ * @private
+ */
+Timeline.prototype._initAutoResize = function () {
+  if (this.options.autoResize == true) {
+    this._startAutoResize();
+  }
+  else {
+    this._stopAutoResize();
+  }
+};
+
+/**
+ * Watch for changes in the size of the container. On resize, the Panel will
+ * automatically redraw itself.
+ * @private
+ */
+Timeline.prototype._startAutoResize = function () {
+  var me = this;
+
+  this._stopAutoResize();
+
+  function checkSize() {
+    if (me.options.autoResize != true) {
+      // stop watching when the option autoResize is changed to false
+      me._stopAutoResize();
+      return;
+    }
+
+    if (me.dom.root) {
+      // check whether the frame is resized
+      if ((me.dom.root.clientWidth != me.props.lastWidth) ||
+          (me.dom.root.clientHeight != me.props.lastHeight)) {
+        me.props.lastWidth = me.dom.root.clientWidth;
+        me.props.lastHeight = me.dom.root.clientHeight;
+
+        me.emitter.emit('change');
+      }
+    }
+  }
+
+  // TODO: automatically cleanup the event listener when the frame is deleted
+  util.addEventListener(window, 'resize', checkSize);
+
+  this.watchTimer = setInterval(checkSize, 1000);
+};
+
+/**
+ * Stop watching for a resize of the frame.
+ * @private
+ */
+Timeline.prototype._stopAutoResize = function () {
+  if (this.watchTimer) {
+    clearInterval(this.watchTimer);
+    this.watchTimer = undefined;
+  }
+
+  // TODO: remove event listener on window.resize
 };
