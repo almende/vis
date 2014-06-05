@@ -19798,6 +19798,7 @@ Graph3d.prototype._redrawDataBar = function() {
 
     // calculate the distance from the point at the bottom to the camera
     var transBottom = this._convertPointToTranslation(this.dataPoints[i].bottom);
+    console.log(this.dataPoints[i], this.showPerspective, transBottom.length)
     this.dataPoints[i].dist = this.showPerspective ? transBottom.length() : -transBottom.z;
   }
 
@@ -20388,7 +20389,7 @@ Graph3d.prototype._hideTooltip = function () {
  * @param {boolean}   useCapture
  */
 G3DaddEventListener = function(element, action, listener, useCapture) {
-  if (element.G3DaddEventListener) {
+  if (element.addEventListener) {
     if (useCapture === undefined)
       useCapture = false;
 
@@ -20465,7 +20466,7 @@ G3DpreventDefault = function (event) {
  * @param {Number} y
  * @param {Number} z
  */
-function Point3d (x, y, z) {
+Point3d = function(x, y, z) {
   this.x = x !== undefined ? x : 0;
   this.y = y !== undefined ? y : 0;
   this.z = z !== undefined ? z : 0;
@@ -20477,7 +20478,7 @@ function Point3d (x, y, z) {
  * @param {Point3d} b
  * @return {Point3d} a-b
  */
-Point3d.prototype.subtract = function(a, b) {
+Point3d.subtract = function(a, b) {
   var sub = new Point3d();
   sub.x = a.x - b.x;
   sub.y = a.y - b.y;
@@ -20491,7 +20492,7 @@ Point3d.prototype.subtract = function(a, b) {
  * @param {Point3d} b
  * @return {Point3d} a+b
  */
-Point3d.prototype.add = function(a, b) {
+Point3d.add = function(a, b) {
   var sum = new Point3d();
   sum.x = a.x + b.x;
   sum.y = a.y + b.y;
@@ -20505,7 +20506,7 @@ Point3d.prototype.add = function(a, b) {
  * @param {Point3d} b
  * @return {Point3d} The average, (a+b)/2
  */
-Point3d.prototype.avg = function(a, b) {
+Point3d.avg = function(a, b) {
   return new Point3d(
       (a.x + b.x) / 2,
       (a.y + b.y) / 2,
@@ -20520,7 +20521,7 @@ Point3d.prototype.avg = function(a, b) {
  * @param {Point3d} b
  * @return {Point3d} cross product axb
  */
-Point3d.prototype.crossProduct = function(a, b) {
+Point3d.crossProduct = function(a, b) {
   var crossproduct = new Point3d();
 
   crossproduct.x = a.y * b.z - a.z * b.y;
@@ -21340,7 +21341,8 @@ var vis = {
   },
 
   Timeline: Timeline,
-  Graph: Graph
+  Graph: Graph,
+  Graph3d: Graph3d
 };
 
 /**
