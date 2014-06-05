@@ -187,7 +187,7 @@ ItemSet.prototype.show = function show() {
 
   // show axis with dots
   if (!this.dom.axis.parentNode) {
-    this.timeline.dom.bottom.appendChild(this.dom.axis);
+    this.timeline.dom.foregroundVertical.appendChild(this.dom.axis);
   }
 
   // show labelset containing labels
@@ -323,12 +323,11 @@ ItemSet.prototype.repaint = function repaint() {
   this.props.height = height;
 
   // reposition axis
-  this.dom.axis.style.left   = asSize(options.left, '0');
-  this.dom.axis.style.right  = asSize(options.right, '');
-  this.dom.axis.style.width  = asSize(options.width, '100%');
-  this.dom.axis.style.height = asSize(0);
-  this.dom.axis.style.top    = asSize((orientation == 'top') ? '0' : '');
-  this.dom.axis.style.bottom = asSize((orientation == 'top') ? '' : '0');
+  this.dom.axis.style.top = asSize((orientation == 'top') ?
+      this.timeline.props.top.height :
+      this.timeline.props.top.height + this.timeline.props.center.height +
+      this.timeline.props.border.top + this.timeline.props.border.bottom);
+  this.dom.axis.style.left = this.timeline.props.border.left + 'px';
 
   // check if this component is resized
   resized = this._isResized() || resized;

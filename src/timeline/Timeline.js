@@ -346,6 +346,7 @@ Timeline.prototype._create = function () {
   this.dom.right                = document.createElement('div');
   this.dom.top                  = document.createElement('div');
   this.dom.bottom               = document.createElement('div');
+  this.dom.foregroundVertical   = document.createElement('div');
 
   this.dom.background.className           = 'vispanel background';
   this.dom.backgroundVertical.className   = 'vispanel background vertical';
@@ -358,6 +359,7 @@ Timeline.prototype._create = function () {
   this.dom.left.className                 = 'content';
   this.dom.center.className               = 'content';
   this.dom.right.className                = 'content';
+  this.dom.foregroundVertical.className   = 'vispanel foreground vertical';
 
   this.dom.root.appendChild(this.dom.background);
   this.dom.root.appendChild(this.dom.backgroundVertical);
@@ -367,6 +369,7 @@ Timeline.prototype._create = function () {
   this.dom.root.appendChild(this.dom.rightContainer);
   this.dom.root.appendChild(this.dom.top);
   this.dom.root.appendChild(this.dom.bottom);
+  this.dom.root.appendChild(this.dom.foregroundVertical);
 
   this.dom.centerContainer.appendChild(this.dom.center);
   this.dom.leftContainer.appendChild(this.dom.left);
@@ -804,6 +807,7 @@ Timeline.prototype.repaint = function() {
   dom.centerContainer.style.height      = props.centerContainer.height + 'px';
   dom.leftContainer.style.height        = props.leftContainer.height + 'px';
   dom.rightContainer.style.height       = props.rightContainer.height + 'px';
+  dom.foregroundVertical.style.height   = props.background.height + 'px';
 
   dom.background.style.width            = props.background.width + 'px';
   dom.backgroundVertical.style.width    = props.centerContainer.width + 'px';
@@ -811,6 +815,7 @@ Timeline.prototype.repaint = function() {
   dom.centerContainer.style.width       = props.center.width + 'px';
   dom.top.style.width                   = props.top.width + 'px';
   dom.bottom.style.width                = props.bottom.width + 'px';
+  dom.foregroundVertical.style.width    = props.centerContainer.width + 'px';
 
   // reposition the panels
   dom.background.style.left           = '0';
@@ -829,6 +834,8 @@ Timeline.prototype.repaint = function() {
   dom.top.style.top                   = '0';
   dom.bottom.style.left               = props.left.width + 'px';
   dom.bottom.style.top                = (props.top.height + props.centerContainer.height) + 'px';
+  dom.foregroundVertical.style.left   = props.left.width + 'px';
+  dom.foregroundVertical.style.top    = '0';
 
   // repaint all components
   this.components.forEach(function (component) {

@@ -24,6 +24,10 @@
 }
 
 .vis.timeline .axis {
+  position: absolute;
+  width: 100%;
+  height: 0;
+  left: 1px;
 }
 
 .vis.timeline  .group {
