@@ -16,6 +16,10 @@ http://visjs.org
 - Added hover option.
 - Added hover events (hoverNode, blurNode).
 
+### Graph3D
+
+- Ported Graph3D from Chap Links.
+
 
 ## 2014-05-28, version 1.0.2
 
