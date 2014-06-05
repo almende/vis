@@ -324,9 +324,9 @@ ItemSet.prototype.repaint = function repaint() {
 
   // reposition axis
   this.dom.axis.style.top = asSize((orientation == 'top') ?
-      this.timeline.props.top.height :
-      this.timeline.props.top.height + this.timeline.props.center.height +
-      this.timeline.props.border.top + this.timeline.props.border.bottom);
+      (this.timeline.props.top.height + this.timeline.props.border.top) :
+      (this.timeline.props.top.height + this.timeline.props.center.height +
+      this.timeline.props.border.top + this.timeline.props.border.bottom));
   this.dom.axis.style.left = this.timeline.props.border.left + 'px';
 
   // check if this component is resized

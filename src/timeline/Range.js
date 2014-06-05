@@ -347,7 +347,7 @@ Range.prototype._onMouseWheel = function(event) {
 
     // calculate center, the date to zoom around
     var gesture = util.fakeGesture(this, event),
-        pointer = getPointer(gesture.center, this.timeline.dom.root),
+        pointer = getPointer(gesture.center, this.timeline.dom.center),
         pointerDate = this._pointerToDate(pointer);
 
     this.zoom(scale, pointerDate);
@@ -396,7 +396,7 @@ Range.prototype._onPinch = function (event) {
 
   if (event.gesture.touches.length > 1) {
     if (!touchParams.center) {
-      touchParams.center = getPointer(event.gesture.center, this.timeline.dom.root);
+      touchParams.center = getPointer(event.gesture.center, this.timeline.dom.center);
     }
 
     var scale = 1 / event.gesture.scale,
