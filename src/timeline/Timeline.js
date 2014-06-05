@@ -337,28 +337,34 @@ Emitter(Timeline.prototype);
 Timeline.prototype._create = function () {
   this.dom = {};
 
-  this.dom.root           = document.createElement('div');
-  this.dom.background     = document.createElement('div');
-  this.dom.centerContainer= document.createElement('div');
-  this.dom.leftContainer  = document.createElement('div');
-  this.dom.rightContainer = document.createElement('div');
-  this.dom.center         = document.createElement('div');
-  this.dom.left           = document.createElement('div');
-  this.dom.right          = document.createElement('div');
-  this.dom.top            = document.createElement('div');
-  this.dom.bottom         = document.createElement('div');
+  this.dom.root                 = document.createElement('div');
+  this.dom.background           = document.createElement('div');
+  this.dom.backgroundVertical   = document.createElement('div');
+  this.dom.backgroundHorizontal = document.createElement('div');
+  this.dom.centerContainer      = document.createElement('div');
+  this.dom.leftContainer        = document.createElement('div');
+  this.dom.rightContainer       = document.createElement('div');
+  this.dom.center               = document.createElement('div');
+  this.dom.left                 = document.createElement('div');
+  this.dom.right                = document.createElement('div');
+  this.dom.top                  = document.createElement('div');
+  this.dom.bottom               = document.createElement('div');
 
-  this.dom.background.className     = 'vispanel background';
-  this.dom.centerContainer.className= 'vispanel center';
-  this.dom.leftContainer.className  = 'vispanel left';
-  this.dom.rightContainer.className = 'vispanel right';
-  this.dom.top.className            = 'vispanel top';
-  this.dom.bottom.className         = 'vispanel bottom';
-  this.dom.left.className           = 'content';
-  this.dom.center.className         = 'content';
-  this.dom.right.className          = 'content';
+  this.dom.background.className           = 'vispanel background';
+  this.dom.backgroundVertical.className   = 'vispanel background vertical';
+  this.dom.backgroundHorizontal.className = 'vispanel background horizontal';
+  this.dom.centerContainer.className      = 'vispanel center';
+  this.dom.leftContainer.className        = 'vispanel left';
+  this.dom.rightContainer.className       = 'vispanel right';
+  this.dom.top.className                  = 'vispanel top';
+  this.dom.bottom.className               = 'vispanel bottom';
+  this.dom.left.className                 = 'content';
+  this.dom.center.className               = 'content';
+  this.dom.right.className                = 'content';
 
   this.dom.root.appendChild(this.dom.background);
+  this.dom.root.appendChild(this.dom.backgroundVertical);
+  this.dom.root.appendChild(this.dom.backgroundHorizontal);
   this.dom.root.appendChild(this.dom.centerContainer);
   this.dom.root.appendChild(this.dom.leftContainer);
   this.dom.root.appendChild(this.dom.rightContainer);
@@ -783,36 +789,47 @@ Timeline.prototype.repaint = function repaint() {
   props.root.width = dom.root.offsetWidth;
   props.background.width = props.root.width - borderRootWidth;
   props.left.width = dom.leftContainer.clientWidth   || -props.border.left;
+  props.leftContainer.width = props.left.width;
   props.right.width = dom.rightContainer.clientWidth || -props.border.right;
+  props.rightContainer.width = props.right.width;
   var centerWidth = props.root.width - props.left.width - props.right.width - borderRootWidth;
-  props.center.width  = centerWidth;
-  props.top.width     = centerWidth;
-  props.bottom.width  = centerWidth;
+  props.center.width          = centerWidth;
+  props.centerContainer.width = centerWidth;
+  props.top.width             = centerWidth;
+  props.bottom.width          = centerWidth;
 
   // resize the panels
-  dom.background.style.height       = props.background.height + 'px';
-  dom.centerContainer.style.height  = props.centerContainer.height + 'px';
-  dom.leftContainer.style.height    = props.leftContainer.height + 'px';
-  dom.rightContainer.style.height   = props.rightContainer.height + 'px';
+  dom.background.style.height           = props.background.height + 'px';
+  dom.backgroundVertical.style.height   = props.background.height + 'px';
+  dom.backgroundHorizontal.style.height = props.centerContainer.height + 'px';
+  dom.centerContainer.style.height      = props.centerContainer.height + 'px';
+  dom.leftContainer.style.height        = props.leftContainer.height + 'px';
+  dom.rightContainer.style.height       = props.rightContainer.height + 'px';
 
-  dom.background.style.width        = props.background.width + 'px';
-  dom.centerContainer.style.width   = props.center.width + 'px';
-  dom.top.style.width               = props.top.width + 'px';
-  dom.bottom.style.width            = props.bottom.width + 'px';
+  dom.background.style.width            = props.background.width + 'px';
+  dom.backgroundVertical.style.width    = props.centerContainer.width + 'px';
+  dom.backgroundHorizontal.style.width  = props.background.width + 'px';
+  dom.centerContainer.style.width       = props.center.width + 'px';
+  dom.top.style.width                   = props.top.width + 'px';
+  dom.bottom.style.width                = props.bottom.width + 'px';
 
   // reposition the panels
-  dom.background.style.left         = '0';
-  dom.background.style.top          = '0';
-  dom.centerContainer.style.left    = props.left.width + 'px';
-  dom.centerContainer.style.top     = props.top.height + 'px';
-  dom.leftContainer.style.left      = '0';
-  dom.leftContainer.style.top       = props.top.height + 'px';
-  dom.rightContainer.style.left     = (props.left.width + props.center.width) + 'px';
-  dom.rightContainer.style.top      = props.top.height + 'px';
-  dom.top.style.left                = props.left.width + 'px';
-  dom.top.style.top                 = '0';
-  dom.bottom.style.left             = props.left.width + 'px';
-  dom.bottom.style.top              = (props.top.height + props.centerContainer.height) + 'px';
+  dom.background.style.left           = '0';
+  dom.background.style.top            = '0';
+  dom.backgroundVertical.style.left   = props.left.width + 'px';
+  dom.backgroundVertical.style.top    = '0';
+  dom.backgroundHorizontal.style.left = '0';
+  dom.backgroundHorizontal.style.top  = props.top.height + 'px';
+  dom.centerContainer.style.left      = props.left.width + 'px';
+  dom.centerContainer.style.top       = props.top.height + 'px';
+  dom.leftContainer.style.left        = '0';
+  dom.leftContainer.style.top         = props.top.height + 'px';
+  dom.rightContainer.style.left       = (props.left.width + props.center.width) + 'px';
+  dom.rightContainer.style.top        = props.top.height + 'px';
+  dom.top.style.left                  = props.left.width + 'px';
+  dom.top.style.top                   = '0';
+  dom.bottom.style.left               = props.left.width + 'px';
+  dom.bottom.style.top                = (props.top.height + props.centerContainer.height) + 'px';
 
   // repaint all components
   this.components.forEach(function (component) {
