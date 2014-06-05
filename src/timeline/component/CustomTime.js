@@ -1,18 +1,15 @@
 /**
  * A custom time bar
+ * @param {{range: Range, dom: Object}} timeline
  * @param {Object} [options]        Available parameters:
  *                                  {Boolean} [showCustomTime]
  * @constructor CustomTime
  * @extends Component
  */
 
-function CustomTime (options) {
-  this.id = util.randomUUID();
-
+function CustomTime (timeline, options) {
+  this.timeline = timeline;
   this.options = options || {};
-  this.defaultOptions = {
-    showCustomTime: false
-  };
 
   this.customTime = new Date();
   this.eventParams = {}; // stores state parameters while dragging the bar
@@ -22,8 +19,6 @@ function CustomTime (options) {
 }
 
 CustomTime.prototype = new Component();
-
-CustomTime.prototype.setOptions = Component.prototype.setOptions;
 
 /**
  * Create the DOM for the custom time
@@ -55,22 +50,30 @@ CustomTime.prototype._create = function _create () {
 };
 
 /**
- * Get the frame element of the custom time bar
- * @returns {HTMLElement} frame
- */
-CustomTime.prototype.getFrame = function getFrame() {
-  return this.bar;
-};
-
-/**
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
 CustomTime.prototype.repaint = function () {
-  var x = this.options.toScreen(this.customTime);
+  if (this.options.showCustomTime) {
+    if (this.bar.parentNode != this.timeline.dom.backgroundVertical) {
+      // attach to the dom
+      if (this.bar.parentNode) {
+        this.bar.parentNode.removeChild(this.bar);
+      }
+      this.timeline.dom.backgroundVertical.appendChild(this.bar);
+    }
 
-  this.bar.style.left = x + 'px';
-  this.bar.title = 'Time: ' + this.customTime;
+    var x = this.options.toScreen(this.customTime);
+
+    this.bar.style.left = x + 'px';
+    this.bar.title = 'Time: ' + this.customTime;
+  }
+  else {
+    // remove the line from the DOM
+    if (this.bar.parentNode) {
+      this.bar.parentNode.removeChild(this.bar);
+    }
+  }
 
   return false;
 };
@@ -120,7 +123,7 @@ CustomTime.prototype._onDrag = function (event) {
   this.setCustomTime(time);
 
   // fire a timechange event
-  this.emit('timechange', {
+  this.timeline.emitter.emit('timechange', {
     time: new Date(this.customTime.valueOf())
   });
 
@@ -137,7 +140,7 @@ CustomTime.prototype._onDragEnd = function (event) {
   if (!this.eventParams.dragging) return;
 
   // fire a timechanged event
-  this.emit('timechanged', {
+  this.timeline.emitter.emit('timechanged', {
     time: new Date(this.customTime.valueOf())
   });
 

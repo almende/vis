@@ -101,7 +101,8 @@ TimeAxis.prototype.repaint = function () {
   props.majorLineWidth = 1; // TODO: really calculate width
 
   //  take foreground and background offline while updating (is almost twice as fast)
-  var beforeChild = foreground.nextSibling;
+  var foregroundNextSibling = foreground.nextSibling;
+  var backgroundNextSibling = background.nextSibling;
   foreground.parentNode && foreground.parentNode.removeChild(foreground);
   background.parentNode && background.parentNode.removeChild(background);
 
@@ -109,14 +110,19 @@ TimeAxis.prototype.repaint = function () {
 
   this._repaintLabels();
 
-  // put DOM online again (foreground at the same place)
-  if (beforeChild) {
-    parent.insertBefore(foreground, beforeChild);
+  // put DOM online again (at the same place)
+  if (foregroundNextSibling) {
+    parent.insertBefore(foreground, foregroundNextSibling);
   }
   else {
     parent.appendChild(foreground)
   }
-  this.timeline.dom.backgroundVertical.appendChild(background);
+  if (backgroundNextSibling) {
+    this.timeline.dom.backgroundVertical.insertBefore(background, backgroundNextSibling);
+  }
+  else {
+    this.timeline.dom.backgroundVertical.appendChild(background)
+  }
 
   return this._isResized() || parentChanged;
 };

@@ -97,25 +97,25 @@ function Timeline (container, items, options) {
 
   this.components = [];
 
-  // create a Range
+  // range
   this.range = new Range(this, this.options);
   this.range.setRange(
       now.clone().add('days', -3).valueOf(),
       now.clone().add('days', 4).valueOf()
   );
 
-  // Create a TimeAxis
-  var timeAxis = new TimeAxis(this, this.options);
-  this.components.push(timeAxis);
+  // time axis
+  this.timeAxis = new TimeAxis(this, this.options);
+  this.components.push(this.timeAxis);
 
-  // re-emit public events
-  this.emitter.on('rangechange', function (properties) {
-    me.emit('rangechange', properties);
-  });
-  this.emitter.on('rangechanged', function (properties) {
-    me.emit('rangechanged', properties);
-  });
+  // current time bar
+  this.currentTime = new CurrentTime(this, this.options);
+  this.components.push(this.currentTime);
 
+  // custom time bar
+  // Note: time bar will be attached in this.setOptions when selected
+  this.customTime = new CustomTime(this, this.options);
+  this.components.push(this.customTime);
 
   /* TODO
   // root panel
@@ -378,7 +378,7 @@ Timeline.prototype._create = function () {
   // TODO: move watch from RootPanel to here
 
   // create a central event bus
-  this.emitter = new Emitter();
+  this.emitter = this;
 
   this.emitter.on('rangechange', this.repaint.bind(this));
 

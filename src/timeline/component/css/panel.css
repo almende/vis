@@ -40,3 +40,7 @@
   border-left-style: solid;
   border-right-style: solid;
 }
+
+.vis.timeline .background {
+  overflow: hidden;
+}

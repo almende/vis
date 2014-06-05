@@ -1,27 +1,21 @@
 /**
  * A current time bar
- * @param {Range} range
+ * @param {{range: Range, dom: Object}} timeline
  * @param {Object} [options]        Available parameters:
  *                                  {Boolean} [showCurrentTime]
  * @constructor CurrentTime
  * @extends Component
  */
 
-function CurrentTime (range, options) {
-  this.id = util.randomUUID();
+function CurrentTime (timeline, options) {
+  this.timeline = timeline;
 
-  this.range = range;
   this.options = options || {};
-  this.defaultOptions = {
-    showCurrentTime: false
-  };
 
   this._create();
 }
 
 CurrentTime.prototype = new Component();
-
-CurrentTime.prototype.setOptions = Component.prototype.setOptions;
 
 /**
  * Create the HTML DOM for the current time bar
@@ -38,25 +32,36 @@ CurrentTime.prototype._create = function _create () {
 };
 
 /**
- * Get the frame element of the current time bar
- * @returns {HTMLElement} frame
- */
-CurrentTime.prototype.getFrame = function getFrame() {
-  return this.bar;
-};
-
-/**
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
 CurrentTime.prototype.repaint = function repaint() {
-  var parent = this.parent;
+  // FIXME: CurrentTime should be on the foreground
 
-  var now = new Date();
-  var x = this.options.toScreen(now);
+  if (this.options.showCurrentTime) {
+    if (this.bar.parentNode != this.timeline.dom.backgroundVertical) {
+      // attach to the dom
+      if (this.bar.parentNode) {
+        this.bar.parentNode.removeChild(this.bar);
+      }
+      this.timeline.dom.backgroundVertical.appendChild(this.bar);
 
-  this.bar.style.left = x + 'px';
-  this.bar.title = 'Current time: ' + now;
+      this.start();
+    }
+
+    var now = new Date();
+    var x = this.options.toScreen(now);
+
+    this.bar.style.left = x + 'px';
+    this.bar.title = 'Current time: ' + now;
+  }
+  else {
+    // remove the line from the DOM
+    if (this.bar.parentNode) {
+      this.bar.parentNode.removeChild(this.bar);
+      this.stop();
+    }
+  }
 
   return false;
 };
@@ -71,7 +76,7 @@ CurrentTime.prototype.start = function start() {
     me.stop();
 
     // determine interval to refresh
-    var scale = me.range.conversion(me.parent.width).scale;
+    var scale = me.timeline.range.conversion(me.timeline.props.center.width).scale;
     var interval = 1 / scale / 10;
     if (interval < 30)   interval = 30;
     if (interval > 1000) interval = 1000;
