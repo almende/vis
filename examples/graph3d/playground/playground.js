@@ -20,13 +20,6 @@ function load() {
  * Upate the UI based on the currently selected datatype
  */
 function selectDataType() {
-    var datatype = getDataType();
-
-    document.getElementById("csv").style.overflow = "hidden";
-
-    document.getElementById("csv").style.visibility               = (datatype == "csv") ? "" : "hidden";
-
-    document.getElementById("csv").style.height               = (datatype == "csv") ? "auto" : "0px";
 }
 
 
@@ -61,6 +54,9 @@ function loadCsvExample() {
   document.getElementById("xLabel").value = "x";
   document.getElementById("yLabel").value = "y";
   document.getElementById("zLabel").value = "value";
+  document.getElementById("filterLabel").value = "";
+  document.getElementById("legendLabel").value = "";
+  drawCsv();
 }
 
 
@@ -95,8 +91,9 @@ function loadCsvAnimationExample() {
     document.getElementById("yLabel").value = "y";
     document.getElementById("zLabel").value = "value";
     document.getElementById("filterLabel").value = "time";
-    document.getElementById("legendLabel").value = "value";
+    document.getElementById("legendLabel").value = "";
 
+  drawCsv();
 }
 
 
@@ -129,6 +126,10 @@ function loadCsvLineExample() {
   document.getElementById("xLabel").value = "sin(t)";
   document.getElementById("yLabel").value = "cos(t)";
   document.getElementById("zLabel").value = "t";
+  document.getElementById("filterLabel").value = "";
+  document.getElementById("legendLabel").value = "";
+
+  drawCsv();
 }
 
 function loadCsvMovingDotsExample() {
@@ -189,6 +190,8 @@ function loadCsvMovingDotsExample() {
   document.getElementById("zLabel").value = "z";
   document.getElementById("filterLabel").value = "time";
   document.getElementById("legendLabel").value = "color value";
+
+  drawCsv();
 }
 
 function loadCsvColoredDotsExample() {
@@ -223,7 +226,10 @@ function loadCsvColoredDotsExample() {
   document.getElementById("xLabel").value = "x";
   document.getElementById("yLabel").value = "y";
   document.getElementById("zLabel").value = "value";
-  document.getElementById("legendLabel").value = "distance";
+  document.getElementById("legendLabel").value = "distance"
+  document.getElementById("filterLabel").value = "";
+
+  drawCsv();
 }
 
 function loadCsvSizedDotsExample() {
@@ -260,6 +266,9 @@ function loadCsvSizedDotsExample() {
   document.getElementById("yLabel").value = "y";
   document.getElementById("zLabel").value = "z";
   document.getElementById("legendLabel").value = "range";
+  document.getElementById("filterLabel").value = "";
+
+  drawCsv();
 }
 
 
@@ -294,7 +303,8 @@ function getDataType() {
 
 /**
  * Retrieve the datatable from the entered contents of the csv text
- * @return {Google DataTable}
+ * @param {boolean} [skipValue] | if true, the 4th element is a filter value
+ * @return {vis DataSet}
  */
 function getDataCsv() {
     var csv = document.getElementById("csvTextarea").value;
@@ -304,13 +314,24 @@ function getDataCsv() {
 
     var data = new vis.DataSet({});
 
+    var skipValue = false;
+    if (document.getElementById("filterLabel").value != "" && document.getElementById("legendLabel").value == "") {
+      skipValue = true;
+    }
+
     // read all data
     for (var row = 1; row < csvArray.length; row++) {
-      if (csvArray[row].length == 4) {
+      if (csvArray[row].length == 4 && skipValue == false) {
         data.add({x:parseFloat(csvArray[row][0]),
           y:parseFloat(csvArray[row][1]),
           z:parseFloat(csvArray[row][2]),
           style:parseFloat(csvArray[row][3])});
+      }
+      else if (csvArray[row].length == 4 && skipValue == true) {
+        data.add({x:parseFloat(csvArray[row][0]),
+          y:parseFloat(csvArray[row][1]),
+          z:parseFloat(csvArray[row][2]),
+          filter:parseFloat(csvArray[row][3])});
       }
       else if (csvArray[row].length == 5) {
         data.add({x:parseFloat(csvArray[row][0]),
@@ -345,7 +366,7 @@ function trim(text) {
 
 /**
  * Retrieve the datatable from the entered contents of the javascript text
- * @return {Google DataTable}
+ * @return {vis Dataset}
  */
 function getDataJson() {
     var json = document.getElementById("jsonTextarea").value;
@@ -357,7 +378,7 @@ function getDataJson() {
 
 /**
  * Retrieve the datatable from the entered contents of the javascript text
- * @return {Google DataTable}
+ * @return {vis Dataset}
  */
 function getDataJavascript() {
     var js = document.getElementById("javascriptTextarea").value;
@@ -370,7 +391,7 @@ function getDataJavascript() {
 
 /**
  * Retrieve the datatable from the entered contents of the datasource text
- * @return {Google DataTable}
+ * @return {vis Dataset}
  */
 function getDataDatasource() {
 }
@@ -426,9 +447,10 @@ function draw() {
     return drawCsv();
 }
 
+
 function drawCsv() {
     // Instantiate our graph object.
-    var graph = new links.Graph3d(document.getElementById('graph'));
+    var graph = new vis.Graph3d(document.getElementById('graph'));
 
     // retrieve data and options
     var data = getDataCsv();
@@ -440,7 +462,7 @@ function drawCsv() {
 
 function drawJson() {
     // Instantiate our graph object.
-    var graph = new links.Graph3d(document.getElementById('graph'));
+    var graph = new vis.Graph3d(document.getElementById('graph'));
 
     // retrieve data and options
     var data = getDataJson();
@@ -452,7 +474,7 @@ function drawJson() {
 
 function drawJavascript() {
     // Instantiate our graph object.
-    var graph = new links.Graph3d(document.getElementById('graph'));
+    var graph = new vis.Graph3d(document.getElementById('graph'));
 
     // retrieve data and options
     var data = getDataJavascript();
@@ -481,7 +503,7 @@ function drawGooglespreadsheet() {
         options = getOptions();
 
         // Instantiate our graph object.
-        var graph = new links.Graph3d(document.getElementById('graph'));
+        var graph = new vis.Graph3d(document.getElementById('graph'));
 
         // Draw our graph with the created data and options
         graph.draw(data, options);
@@ -515,7 +537,7 @@ function drawDatasource() {
         options = getOptions();
 
         // Instantiate our graph object.
-        var graph = new links.Graph3d(document.getElementById('graph'));
+        var graph = new vis.Graph3d(document.getElementById('graph'));
 
         // Draw our graph with the created data and options
         graph.draw(data, options);

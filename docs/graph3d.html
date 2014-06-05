@@ -13,23 +13,6 @@
 
 <h1>Graph3d documentation</h1>
 
-<table>
-    <tr>
-        <td>Author</td>
-        <td>Jos de Jong, <a href="http://www.almende.com" target="_blank">Almende B.V.</a></td>
-    </tr>
-    <tr>
-        <td>Webpage</td>
-        <td><a href="http://almende.github.com/chap-links-library" target="_blank">Chap Links Library</a></td>
-    </tr>
-    <tr>
-        <td>License</td>
-        <td> <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License, Version 2.0</a></td>
-    </tr>
-
-</table>
-
-
 <h2 id="Contents">Contents</h2>
 <ul>
     <li><a href="#Overview">Overview</a></li>
@@ -99,10 +82,13 @@
         };
 
         // Instantiate our graph object.
-        graph = new links.Graph3d(document.getElementById('mygraph'));
+        graph3d = new vis.Graph3d(document.getElementById('mygraph'));
 
         // Draw our graph with the created data and options
-        graph.draw(data, options);
+        graph3d.draw(data, options);
+
+        // subscribe to event
+        graph3d.on("camerapositionchange", function(event) {console.log(event);});
     }
     &lt;/script&gt;
     &lt;/head&gt;
@@ -117,37 +103,22 @@
 </pre>
 
 
-The class name of the Graph3d is <code>links.Graph3d</code>
-<pre class="prettyprint lang-js">var graph = new links.Graph3d(container);</pre>
+The class name of the Graph3d is <code>vis.Graph3d</code>
+<pre class="prettyprint lang-js">var graph = new vis.Graph3d(container);</pre>
 
 After being loaded, the graph can be drawn via the function <code>draw()</code>,
 provided with data and options.
 <pre class="prettyprint lang-js">graph.draw(data, options);</pre>
-where data is a <code>DataTable</code>, and options is a name-value map in the JSON format.
+where data is a vis <code>DataSet</code>, and options is a name-value map in the JSON format.
 
 <h2 id="Data_Format">Data Format</h2>
 <p>
-    Graph3d requires a data table with tree to five columns, depending on the chosen style
-    and animation.
-
-    The first three columns must contain the location coordinates for x-axis,
-    y-axis, and z-axis.
-
-    The forth column is optional, and can contain a data value.
-
-    The last column (this can be the fourth or fifth column) and can contain
-    filter values used for animation.
-</p>
-
-<p>
-    Note that the column labels can be changed (for example instead of <code>'value'</code>
-    one can use <code>'Temperature'</code>).
-</p>
-
+    Graph3d requires a vis DataSet. JSON objects are added to this DataSet by using the <code>add()</code> function.
+    These JSON objects have 5 fields, of which 2 are optional. These are described below.
 
 <h3>Definition</h3>
 <p>
-    The data columns are defined as:
+    The DataSet JSON objects are defined as:
 </p>
 
 <table>
@@ -176,7 +147,7 @@ where data is a <code>DataTable</code>, and options is a name-value map in the J
         <td>Location on the z-axis.</td>
     </tr>
     <tr>
-        <td>value</td>
+        <td>style</td>
         <td>number</td>
         <td>no</td>
         <td>The data value, required for graph styles <code>dot-color</code> and
@@ -184,7 +155,7 @@ where data is a <code>DataTable</code>, and options is a name-value map in the J
         </td>
     </tr>
     <tr>
-        <td>filtervalue</td>
+        <td>filter</td>
         <td>anytype</td>
         <td>no</td>
         <td>Filter values used for the animation.
@@ -192,81 +163,6 @@ where data is a <code>DataTable</code>, and options is a name-value map in the J
     </tr>
 </table>
 
-<h3>Construction of 3D data</h3>
-<p>
-    Graph3d supports the following styles to display data in three dimensions:
-    <code>dot</code>, <code>dot-line</code>, <code>line</code>, <code>grid</code>,
-    and <code>surface</code>.
-
-    The data table for these styles is constructed as follows.
-</p>
-
-<pre class="prettyprint lang-js">
-var data = new google.visualization.DataTable();
-data.addColumn('number', 'x');
-data.addColumn('number', 'y');
-data.addColumn('number', 'z');  // the data value, visualized as a height at the z-axis
-                                // and by a color.
-
-data.addRow([2.3, 5.2, 102.1]);
-// ...
-</pre>
-
-
-<h3>Construction of 4D data</h3>
-<p>
-    Graph3d supports the following styles to display data in four dimensions:
-    <code>dot-color</code>, <code>dot-size</code>.
-
-    The data table for these styles is constructed as follows.
-</p>
-
-<pre class="prettyprint lang-js">
-var data = new google.visualization.DataTable();
-data.addColumn('number', 'x');
-data.addColumn('number', 'y');
-data.addColumn('number', 'z');
-data.addColumn('number', 'value');  // the data value, visualized by a color or size
-
-data.addRow([2.3, 5.2, 102.1, 45.2]);
-// ...
-</pre>
-
-
-<h3>Construction of animation data</h3>
-<p>
-    If an extra column with filter values is provided in the data table, Graph3d
-    will use these values for animation.
-
-    The filter values are grouped and each group represents one animation frame.
-
-    When animating, Graph3d loops through the distinct filter values,
-    and draws all data points which have the current filter value.
-</p>
-<p>
-    For example, to create an animation with three frames, first add all datapoints
-    for the first frame with a filtervalue 1. Next, add the datapoints for the
-    second frame and give them a filtervalue 2. Last, add the datapoints for the
-    third frame and give them a filtervalue of 3. Now, when the Graph3d is loaded,
-    a slider with buttons play/next/previous will be drawn below the graph, where one can loop through the
-    three frames.
-</p>
-
-<p>
-    To create an animation, add an extra column to the data table.
-    This column may have any type (number, date, string, ...).
-</p>
-
-<pre class="prettyprint lang-js">
-var data = new google.visualization.DataTable();
-data.addColumn('number', 'x');
-data.addColumn('number', 'y');
-data.addColumn('number', 'value');
-data.addColumn('number', 'filtervalue'); // Optional column with filter values for animation
-
-data.addRow([2.3, 5.2, 102.1, 23]);
-// ...
-</pre>
 
 
 <h2 id="Configuration_Options">Configuration Options</h2>
@@ -560,6 +456,36 @@ options = {
     <td>Step size for the grid on the z-axis.</td>
 </tr>
 
+<tr>
+    <td>xLabel</td>
+    <td>String</td>
+    <td>x</td>
+    <td>Label on the X axis.</td>
+</tr>
+<tr>
+    <td>yLabel</td>
+    <td>String</td>
+    <td>y</td>
+    <td>Label on the Y axis.</td>
+</tr>
+<tr>
+    <td>zLabel</td>
+    <td>String</td>
+    <td>z</td>
+    <td>Label on the Z axis.</td>
+</tr>
+<tr>
+    <td>filterLabel</td>
+    <td>String</td>
+    <td>time</td>
+    <td>Label for the filter column.</td>
+</tr>
+<tr>
+    <td>legendLabel</td>
+    <td>String</td>
+    <td>value</td>
+    <td>Label for the style description.</td>
+</tr>
 </table>
 
 
@@ -652,8 +578,8 @@ function oncamerapositionchange(event) {
         "Vertical: " + event.vertical + "\n" +
         "Distance: " + event.distance);
 }
-
-google.visualization.events.addListener(mygraph, 'camerapositionchange', oncamerapositionchange);
+// assuming var graph3d = new vis.Graph3d(document.getElementById('mygraph'));
+graph3d.on("camerapositionchange",oncamerapositionchange);
 </pre>
 
 <p>
@@ -685,15 +611,6 @@ google.visualization.events.addListener(mygraph, 'camerapositionchange', oncamer
                 <li><code>distance</code>: Number. The distance of the camera to the center of the graph.</li>
             </ul>
         </td>
-    </tr>
-
-    <tr>
-        <td>ready</td>
-        <td>The graph is ready for external method calls.
-            If you want to interact with the graph, and call methods after you draw it,
-            you should set up a listener for this event before you call the draw method,
-            and call them only after the event was fired.</td>
-        <td>none</td>
     </tr>
 </table>
 
