@@ -827,11 +827,11 @@ Graph3d.prototype.create = function () {
   var ontooltip = function (event) {me._onTooltip(event);};
   // TODO: these events are never cleaned up... can give a "memory leakage"
 
-  addEventListener(this.frame.canvas, "keydown", onkeydown);
-  addEventListener(this.frame.canvas, "mousedown", onmousedown);
-  addEventListener(this.frame.canvas, "touchstart", ontouchstart);
-  addEventListener(this.frame.canvas, "mousewheel", onmousewheel);
-  addEventListener(this.frame.canvas, "mousemove", ontooltip);
+  G3DaddEventListener(this.frame.canvas, "keydown", onkeydown);
+  G3DaddEventListener(this.frame.canvas, "mousedown", onmousedown);
+  G3DaddEventListener(this.frame.canvas, "touchstart", ontouchstart);
+  G3DaddEventListener(this.frame.canvas, "mousewheel", onmousewheel);
+  G3DaddEventListener(this.frame.canvas, "mousemove", ontooltip);
 
   // add the new graph to the container element
   this.containerElement.appendChild(this.frame);
@@ -1959,9 +1959,9 @@ Graph3d.prototype._onMouseDown = function(event) {
   var me = this;
   this.onmousemove = function (event) {me._onMouseMove(event);};
   this.onmouseup   = function (event) {me._onMouseUp(event);};
-  addEventListener(document, "mousemove", me.onmousemove);
-  addEventListener(document, "mouseup", me.onmouseup);
-  preventDefault(event);
+  G3DaddEventListener(document, "mousemove", me.onmousemove);
+  G3DaddEventListener(document, "mouseup", me.onmouseup);
+  G3DpreventDefault(event);
 };
 
 
@@ -2007,7 +2007,7 @@ Graph3d.prototype._onMouseMove = function (event) {
   var parameters = this.getCameraPosition();
   this.emit('camerapositionchange', parameters);
 
-  preventDefault(event);
+  G3DpreventDefault(event);
 };
 
 
@@ -2021,9 +2021,9 @@ Graph3d.prototype._onMouseUp = function (event) {
   this.leftButtonDown = false;
 
   // remove event listeners here
-  removeEventListener(document, "mousemove", this.onmousemove);
-  removeEventListener(document, "mouseup",   this.onmouseup);
-  preventDefault(event);
+  G3DremoveEventListener(document, "mousemove", this.onmousemove);
+  G3DremoveEventListener(document, "mouseup",   this.onmouseup);
+  G3DpreventDefault(event);
 };
 
 /**
@@ -2086,8 +2086,8 @@ Graph3d.prototype._onTouchStart = function(event) {
   var me = this;
   this.ontouchmove = function (event) {me._onTouchMove(event);};
   this.ontouchend  = function (event) {me._onTouchEnd(event);};
-  addEventListener(document, "touchmove", me.ontouchmove);
-  addEventListener(document, "touchend", me.ontouchend);
+  G3DaddEventListener(document, "touchmove", me.ontouchmove);
+  G3DaddEventListener(document, "touchend", me.ontouchend);
 
   this._onMouseDown(event);
 };
@@ -2105,8 +2105,8 @@ Graph3d.prototype._onTouchMove = function(event) {
 Graph3d.prototype._onTouchEnd = function(event) {
   this.touchDown = false;
 
-  removeEventListener(document, "touchmove", this.ontouchmove);
-  removeEventListener(document, "touchend",   this.ontouchend);
+  G3DremoveEventListener(document, "touchmove", this.ontouchmove);
+  G3DremoveEventListener(document, "touchend",   this.ontouchend);
 
   this._onMouseUp(event);
 };
@@ -2151,7 +2151,7 @@ Graph3d.prototype._onWheel = function(event) {
   // Prevent default actions caused by mouse wheel.
   // That might be ugly, but we handle scrolls somehow
   // anyway, so don't bother here..
-  preventDefault(event);
+  G3DpreventDefault(event);
 };
 
 /**
@@ -2342,6 +2342,87 @@ Graph3d.prototype._hideTooltip = function () {
     }
   }
 };
+
+
+/**
+ * Add and event listener. Works for all browsers
+ * @param {Element}   element  An html element
+ * @param {string}    action   The action, for example "click",
+ *                 without the prefix "on"
+ * @param {function}  listener   The callback function to be executed
+ * @param {boolean}   useCapture
+ */
+G3DaddEventListener = function(element, action, listener, useCapture) {
+  if (element.G3DaddEventListener) {
+    if (useCapture === undefined)
+      useCapture = false;
+
+    if (action === "mousewheel" && navigator.userAgent.indexOf("Firefox") >= 0) {
+      action = "DOMMouseScroll";  // For Firefox
+    }
+
+    element.addEventListener(action, listener, useCapture);
+  } else {
+    element.attachEvent("on" + action, listener);  // IE browsers
+  }
+};
+
+/**
+ * Remove an event listener from an element
+ * @param {Element}    element   An html dom element
+ * @param {string}     action  The name of the event, for example "mousedown"
+ * @param {function}   listener  The listener function
+ * @param {boolean}    useCapture
+ */
+G3DremoveEventListener = function(element, action, listener, useCapture) {
+  if (element.removeEventListener) {
+    // non-IE browsers
+    if (useCapture === undefined)
+      useCapture = false;
+
+    if (action === "mousewheel" && navigator.userAgent.indexOf("Firefox") >= 0) {
+      action = "DOMMouseScroll";  // For Firefox
+    }
+
+    element.removeEventListener(action, listener, useCapture);
+  } else {
+    // IE browsers
+    element.detachEvent("on" + action, listener);
+  }
+};
+
+/**
+ * Stop event propagation
+ */
+G3DstopPropagation = function(event) {
+  if (!event)
+    event = window.event;
+
+  if (event.stopPropagation) {
+    event.stopPropagation();  // non-IE browsers
+  }
+  else {
+    event.cancelBubble = true;  // IE browsers
+  }
+};
+
+
+/**
+ * Cancels the event if it is cancelable, without stopping further propagation of the event.
+ */
+G3DpreventDefault = function (event) {
+  if (!event)
+    event = window.event;
+
+  if (event.preventDefault) {
+    event.preventDefault();  // non-IE browsers
+  }
+  else {
+    event.returnValue = false;  // IE browsers
+  }
+};
+
+
 
 /**
  * @prototype Point3d
@@ -3076,9 +3157,9 @@ Slider.prototype._onMouseDown = function(event) {
   var me = this;
   this.onmousemove = function (event) {me._onMouseMove(event);};
   this.onmouseup   = function (event) {me._onMouseUp(event);};
-  addEventListener(document, "mousemove", this.onmousemove);
-  addEventListener(document, "mouseup",   this.onmouseup);
-  preventDefault(event);
+  G3DaddEventListener(document, "mousemove", this.onmousemove);
+  G3DaddEventListener(document, "mouseup",   this.onmouseup);
+  G3DpreventDefault(event);
 };
 
 
@@ -3114,7 +3195,7 @@ Slider.prototype._onMouseMove = function (event) {
 
   this.setIndex(index);
 
-  preventDefault();
+  G3DpreventDefault();
 };
 
 
@@ -3122,10 +3203,10 @@ Slider.prototype._onMouseUp = function (event) {
   this.frame.style.cursor = 'auto';
 
   // remove event listeners
-  removeEventListener(document, "mousemove", this.onmousemove);
-  removeEventListener(document, "mouseup", this.onmouseup);
+  G3DremoveEventListener(document, "mousemove", this.onmousemove);
+  G3DremoveEventListener(document, "mouseup", this.onmouseup);
 
-  preventDefault();
+  G3DpreventDefault();
 };
 
 
@@ -3133,84 +3214,6 @@ Slider.prototype._onMouseUp = function (event) {
 /**--------------------------------------------------------------------------**/
 
 
-
-/**
- * Add and event listener. Works for all browsers
- * @param {Element}   element  An html element
- * @param {string}    action   The action, for example "click",
- *                 without the prefix "on"
- * @param {function}  listener   The callback function to be executed
- * @param {boolean}   useCapture
- */
-addEventListener = function(element, action, listener, useCapture) {
-  if (element.addEventListener) {
-    if (useCapture === undefined)
-      useCapture = false;
-
-    if (action === "mousewheel" && navigator.userAgent.indexOf("Firefox") >= 0) {
-      action = "DOMMouseScroll";  // For Firefox
-    }
-
-    element.addEventListener(action, listener, useCapture);
-  } else {
-    element.attachEvent("on" + action, listener);  // IE browsers
-  }
-};
-
-/**
- * Remove an event listener from an element
- * @param {Element}    element   An html dom element
- * @param {string}     action  The name of the event, for example "mousedown"
- * @param {function}   listener  The listener function
- * @param {boolean}    useCapture
- */
-removeEventListener = function(element, action, listener, useCapture) {
-  if (element.removeEventListener) {
-    // non-IE browsers
-    if (useCapture === undefined)
-      useCapture = false;
-
-    if (action === "mousewheel" && navigator.userAgent.indexOf("Firefox") >= 0) {
-      action = "DOMMouseScroll";  // For Firefox
-    }
-
-    element.removeEventListener(action, listener, useCapture);
-  } else {
-    // IE browsers
-    element.detachEvent("on" + action, listener);
-  }
-};
-
-/**
- * Stop event propagation
- */
-stopPropagation = function(event) {
-  if (!event)
-    event = window.event;
-
-  if (event.stopPropagation) {
-    event.stopPropagation();  // non-IE browsers
-  }
-  else {
-    event.cancelBubble = true;  // IE browsers
-  }
-};
-
-
-/**
- * Cancels the event if it is cancelable, without stopping further propagation of the event.
- */
-preventDefault = function (event) {
-  if (!event)
-    event = window.event;
-
-  if (event.preventDefault) {
-    event.preventDefault();  // non-IE browsers
-  }
-  else {
-    event.returnValue = false;  // IE browsers
-  }
-};
 
 /**
  * Retrieve the absolute left value of a DOM element

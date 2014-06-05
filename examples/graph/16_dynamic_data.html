@@ -134,6 +134,10 @@
 
       // create an array with nodes
       nodes = new vis.DataSet();
+        // subscribe to any changes of the dataset
+        nodes.on('*', function () {
+            $('#nodes').html(toJSON(nodes.get()));
+        });
       nodes.add([
         {id: '1', label: 'Node 1'},
         {id: '2', label: 'Node 2'},
@@ -144,7 +148,12 @@
 
       // create an array with edges
       edges = new vis.DataSet();
-      edges.add([
+        // subscribe to any changes of the dataset
+        edges.on('*', function () {
+            $('#edges').html(toJSON(edges.get()));
+        });
+
+        edges.add([
         {id: '1', from: '1', to: '2'},
         {id: '2', from: '1', to: '3'},
         {id: '3', from: '2', to: '4'},
@@ -152,13 +161,7 @@
       ]);
 
 
-    // subscribe to any changes of the dataset
-    nodes.on('*', function () {
-        $('#nodes').html(toJSON(nodes.get()));
-    });
-    edges.on('*', function () {
-        $('#edges').html(toJSON(edges.get()));
-    });
+
 
 
         // create a graph
