@@ -1763,7 +1763,6 @@ Graph3d.prototype._redrawDataBar = function() {
 
     // calculate the distance from the point at the bottom to the camera
     var transBottom = this._convertPointToTranslation(this.dataPoints[i].bottom);
-    console.log(this.dataPoints[i], this.showPerspective, transBottom.length)
     this.dataPoints[i].dist = this.showPerspective ? transBottom.length() : -transBottom.z;
   }
 
@@ -1776,7 +1775,6 @@ Graph3d.prototype._redrawDataBar = function() {
   // draw the datapoints as bars
   var xWidth = this.xBarWidth / 2;
   var yWidth = this.yBarWidth / 2;
-  var dotSize = this.frame.clientWidth * 0.02;  // px
   for (i = 0; i < this.dataPoints.length; i++) {
     var point = this.dataPoints[i];
 
