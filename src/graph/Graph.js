@@ -186,7 +186,8 @@ function Graph (container, data, options) {
         background: '#FFFFC6'
       }
     },
-    moveable: true,
+    dragGraph: true,
+    dragNodes: true,
     zoomable: true,
     hover: false
   };
@@ -529,7 +530,8 @@ Graph.prototype.setOptions = function (options) {
     if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
-    if (options.moveable !== undefined)        {this.constants.moveable = options.moveable;}
+    if (options.dragGraph !== undefined)       {this.constants.dragGraph = options.dragGraph;}
+    if (options.dragNodes !== undefined)       {this.constants.dragNodes = options.dragNodes;}
     if (options.zoomable !== undefined)        {this.constants.zoomable = options.zoomable;}
     if (options.hover !== undefined)           {this.constants.hover = options.hover;}
 
@@ -956,7 +958,7 @@ Graph.prototype._handleOnDrag = function(event) {
   var me = this,
     drag = this.drag,
     selection = drag.selection;
-  if (selection && selection.length) {
+  if (selection && selection.length && this.constants.dragNodes == true) {
     // calculate delta's and new location
     var deltaX = pointer.x - drag.pointer.x,
       deltaY = pointer.y - drag.pointer.y;
@@ -981,7 +983,7 @@ Graph.prototype._handleOnDrag = function(event) {
     }
   }
   else {
-    if (this.constants.moveable == true) {
+    if (this.constants.dragGraph == true) {
       // move the graph
       var diffX = pointer.x - this.drag.pointer.x;
       var diffY = pointer.y - this.drag.pointer.y;

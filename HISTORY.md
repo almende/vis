@@ -17,6 +17,7 @@ http://visjs.org
 - Fixed error with zero nodes with hierarchical layout.
 - Added focusOnNode function.
 - Added hover option.
+- Added dragNodes option. Renamed movebale to dragGraph option.
 - Added hover events (hoverNode, blurNode).
 
 ### Graph3D
