@@ -191,7 +191,6 @@ function Graph (container, data, options) {
     hover: false
   };
   this.hoverObj = {nodes:{},edges:{}};
-  this.editMode = this.constants.dataManipulation.initiallyVisible;
 
   // Node variables
   var graph = this;
@@ -643,6 +642,7 @@ Graph.prototype.setOptions = function (options) {
           this.constants.dataManipulation[prop] = options.dataManipulation[prop];
         }
       }
+	  this.editMode = this.constants.dataManipulation.initiallyVisible;
     }
     else if (options.dataManipulation !== undefined)  {
       this.constants.dataManipulation.enabled = false;
