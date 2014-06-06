@@ -820,6 +820,7 @@ timeline.off('select', onSelect);
   <tr>
     <td>select</td>
     <td>Fired after the user selects or deselects items by tapping or holding them.
+      When a use taps an already selected item, the select event is fired again.
       Not fired when the method <code>setSelection</code>is executed.
     </td>
     <td>

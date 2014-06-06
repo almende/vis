@@ -633,8 +633,9 @@ Timeline.prototype._onSelectItem = function (event) {
 
   var newSelection = this.getSelection();
 
-  // if selection is changed, emit a select event
-  if (!util.equalArray(oldSelection, newSelection)) {
+  // emit a select event,
+  // except when old selection is empty and new selection is still empty
+  if (newSelection.length > 0 || oldSelection.length > 0) {
     this.emit('select', {
       items: this.getSelection()
     });
