@@ -5,9 +5,11 @@
  * Graph is developed in javascript as a Google Visualization Chart.
  *
  * @param {Element} container   The DOM element in which the Graph will
- *                  be created. Normally a div element.
+ *                              be created. Normally a div element.
+ * @param {DataSet | DataView | Array} [data]
+ * @param {Object} [options]
  */
-function Graph3d(container) {
+function Graph3d(container, data, options) {
   // create variables and set default values
   this.containerElement = container;
   this.width = "400px";
@@ -70,7 +72,15 @@ function Graph3d(container) {
 
   // create a frame and canvas
   this.create();
-};
+
+  // apply options (also when undefined)
+  this.setOptions(options);
+
+  // apply data
+  if (data) {
+    this.setData(data);
+  }
+}
 
 // Extend Graph with an Emitter mixin
 Emitter(Graph3d.prototype);
@@ -319,92 +329,6 @@ Graph3d.prototype._convertTranslationToScreen = function(translation) {
     this.xcenter + bx * this.frame.canvas.clientWidth,
     this.ycenter - by * this.frame.canvas.clientWidth);
 };
-
-/**
- * Main drawing logic. This is the function that needs to be called
- * in the html page, to draw the Graph.
- *
- * A data table with the events must be provided, and an options table.
- * @param {Object} data The data containing the events
- *                        for the Graph.
- * @param {Object} options A name/value map containing settings for the Graph.
- */
-Graph3d.prototype.draw = function(data, options) {
-  var cameraPosition = undefined;
-
-  if (options !== undefined) {
-    // retrieve parameter values
-    if (options.width !== undefined)       this.width = options.width;
-    if (options.height !== undefined)      this.height = options.height;
-
-    if (options.xCenter !== undefined)     this.defaultXCenter = options.xCenter;
-    if (options.yCenter !== undefined)     this.defaultYCenter = options.yCenter;
-
-    if (options.filterLabel !== undefined)     this.filterLabel = options.filterLabel;
-    if (options.legendLabel !== undefined)     this.legendLabel = options.legendLabel;
-    if (options.xLabel !== undefined)     this.xLabel = options.xLabel;
-    if (options.yLabel !== undefined)     this.yLabel = options.yLabel;
-    if (options.zLabel !== undefined)     this.zLabel = options.zLabel;
-
-    if (options.style !== undefined) {
-      var styleNumber = this._getStyleNumber(options.style);
-      if (styleNumber !== -1) {
-        this.style = styleNumber;
-      }
-    }
-    if (options.showGrid !== undefined)      this.showGrid = options.showGrid;
-    if (options.showPerspective !== undefined)   this.showPerspective = options.showPerspective;
-    if (options.showShadow !== undefined)    this.showShadow = options.showShadow;
-    if (options.tooltip !== undefined)       this.showTooltip = options.tooltip;
-    if (options.showAnimationControls !== undefined) this.showAnimationControls = options.showAnimationControls;
-    if (options.keepAspectRatio !== undefined)   this.keepAspectRatio = options.keepAspectRatio;
-    if (options.verticalRatio !== undefined)   this.verticalRatio = options.verticalRatio;
-
-    if (options.animationInterval !== undefined) this.animationInterval = options.animationInterval;
-    if (options.animationPreload !== undefined)  this.animationPreload = options.animationPreload;
-    if (options.animationAutoStart !== undefined)this.animationAutoStart = options.animationAutoStart;
-
-    if (options.xBarWidth !== undefined) this.defaultXBarWidth = options.xBarWidth;
-    if (options.yBarWidth !== undefined) this.defaultYBarWidth = options.yBarWidth;
-
-    if (options.xMin !== undefined) this.defaultXMin = options.xMin;
-    if (options.xStep !== undefined) this.defaultXStep = options.xStep;
-    if (options.xMax !== undefined) this.defaultXMax = options.xMax;
-    if (options.yMin !== undefined) this.defaultYMin = options.yMin;
-    if (options.yStep !== undefined) this.defaultYStep = options.yStep;
-    if (options.yMax !== undefined) this.defaultYMax = options.yMax;
-    if (options.zMin !== undefined) this.defaultZMin = options.zMin;
-    if (options.zStep !== undefined) this.defaultZStep = options.zStep;
-    if (options.zMax !== undefined) this.defaultZMax = options.zMax;
-    if (options.valueMin !== undefined) this.defaultValueMin = options.valueMin;
-    if (options.valueMax !== undefined) this.defaultValueMax = options.valueMax;
-
-    if (options.cameraPosition !== undefined) cameraPosition = options.cameraPosition;
-  }
-
-  this._setBackgroundColor(options.backgroundColor);
-
-  this.setSize(this.width, this.height);
-
-  if (cameraPosition !== undefined) {
-    this.camera.setArmRotation(cameraPosition.horizontal, cameraPosition.vertical);
-    this.camera.setArmLength(cameraPosition.distance);
-  }
-  else {
-    this.camera.setArmRotation(1.0, 0.5);
-    this.camera.setArmLength(1.7);
-  }
-
-  // draw the Graph
-  this.redraw(data);
-
-  // start animation when option is true
-  if (this.animationAutoStart && this.dataFilter) {
-    this.animationStart();
-  }
-
-};
-
 
 /**
  * Set the background styling for the graph
@@ -987,21 +911,98 @@ Graph3d.prototype._readData = function(data) {
   this._redrawFilter();
 };
 
+/**
+ * Replace the dataset of the Graph3d
+ * @param {Array | DataSet | DataView} data
+ */
+Graph3d.prototype.setData = function (data) {
+  this._readData(data);
+  this.redraw();
+};
 
 /**
- * Redraw the Graph. This needs to be executed after the start and/or
- * end time are changed, or when data is added or removed dynamically.
- * @param {DataSet} [data]  Optional, new data table
+ * Update the options. Options will be merged with current options
+ * @param {Object} options
  */
-Graph3d.prototype.redraw = function(data) {
-  // load the data if needed
-  if (data !== undefined) {
-    this._readData(data);
+Graph3d.prototype.setOptions = function (options) {
+  var cameraPosition = undefined;
+
+  if (options !== undefined) {
+    // retrieve parameter values
+    if (options.width !== undefined)       this.width = options.width;
+    if (options.height !== undefined)      this.height = options.height;
+
+    if (options.xCenter !== undefined)     this.defaultXCenter = options.xCenter;
+    if (options.yCenter !== undefined)     this.defaultYCenter = options.yCenter;
+
+    if (options.filterLabel !== undefined)     this.filterLabel = options.filterLabel;
+    if (options.legendLabel !== undefined)     this.legendLabel = options.legendLabel;
+    if (options.xLabel !== undefined)     this.xLabel = options.xLabel;
+    if (options.yLabel !== undefined)     this.yLabel = options.yLabel;
+    if (options.zLabel !== undefined)     this.zLabel = options.zLabel;
+
+    if (options.style !== undefined) {
+      var styleNumber = this._getStyleNumber(options.style);
+      if (styleNumber !== -1) {
+        this.style = styleNumber;
+      }
+    }
+    if (options.showGrid !== undefined)      this.showGrid = options.showGrid;
+    if (options.showPerspective !== undefined)   this.showPerspective = options.showPerspective;
+    if (options.showShadow !== undefined)    this.showShadow = options.showShadow;
+    if (options.tooltip !== undefined)       this.showTooltip = options.tooltip;
+    if (options.showAnimationControls !== undefined) this.showAnimationControls = options.showAnimationControls;
+    if (options.keepAspectRatio !== undefined)   this.keepAspectRatio = options.keepAspectRatio;
+    if (options.verticalRatio !== undefined)   this.verticalRatio = options.verticalRatio;
+
+    if (options.animationInterval !== undefined) this.animationInterval = options.animationInterval;
+    if (options.animationPreload !== undefined)  this.animationPreload = options.animationPreload;
+    if (options.animationAutoStart !== undefined)this.animationAutoStart = options.animationAutoStart;
+
+    if (options.xBarWidth !== undefined) this.defaultXBarWidth = options.xBarWidth;
+    if (options.yBarWidth !== undefined) this.defaultYBarWidth = options.yBarWidth;
+
+    if (options.xMin !== undefined) this.defaultXMin = options.xMin;
+    if (options.xStep !== undefined) this.defaultXStep = options.xStep;
+    if (options.xMax !== undefined) this.defaultXMax = options.xMax;
+    if (options.yMin !== undefined) this.defaultYMin = options.yMin;
+    if (options.yStep !== undefined) this.defaultYStep = options.yStep;
+    if (options.yMax !== undefined) this.defaultYMax = options.yMax;
+    if (options.zMin !== undefined) this.defaultZMin = options.zMin;
+    if (options.zStep !== undefined) this.defaultZStep = options.zStep;
+    if (options.zMax !== undefined) this.defaultZMax = options.zMax;
+    if (options.valueMin !== undefined) this.defaultValueMin = options.valueMin;
+    if (options.valueMax !== undefined) this.defaultValueMax = options.valueMax;
+
+    if (options.cameraPosition !== undefined) cameraPosition = options.cameraPosition;
+
+    if (cameraPosition !== undefined) {
+      this.camera.setArmRotation(cameraPosition.horizontal, cameraPosition.vertical);
+      this.camera.setArmLength(cameraPosition.distance);
+    }
+    else {
+      this.camera.setArmRotation(1.0, 0.5);
+      this.camera.setArmLength(1.7);
+    }
   }
+
+  this._setBackgroundColor(options && options.backgroundColor);
+
+  this.setSize(this.width, this.height);
+
+  // re-load the data
+  if (this.dataTable) {
+    this.setData(this.dataTable);
+  }
+};
+
+/**
+ * Redraw the Graph.
+ */
+Graph3d.prototype.redraw = function() {
   if (this.dataPoints === undefined) {
     throw "Error: graph data not initialized";
   }
-
 
   this._resizeCanvas();
   this._resizeCenter();
@@ -1028,6 +1029,11 @@ Graph3d.prototype.redraw = function(data) {
 
   this._redrawInfo();
   this._redrawLegend();
+
+  // start animation when option is true
+  if (this.animationAutoStart && this.dataFilter) {
+    this.animationStart();
+  }
 };
 
 /**
@@ -2641,7 +2647,7 @@ Filter.prototype.getValue = function(index) {
 
 /**
  * Retrieve the (filtered) dataPoints for the currently selected filter index
- * @param {Number} index (optional)
+ * @param {Number} [index] (optional)
  * @return {Array} dataPoints
  */
 Filter.prototype._getDataPoints = function(index) {

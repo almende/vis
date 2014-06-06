@@ -71,13 +71,11 @@
         verticalRatio: 0.5
       };
 
-      // Instantiate our graph object.
-      graph = new vis.Graph3d(document.getElementById('mygraph'));
+      // create our graph
+      var container = document.getElementById('mygraph');
+      graph = new vis.Graph3d(container, data, options);
 
-      // Draw our graph with the created data and options
-      graph.draw(data, options);
       graph.on("cameraPositionChange", onCameraPositionChange);
-      //graph.redraw();
     }
   </script>
 </head>

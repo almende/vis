@@ -91,22 +91,15 @@
       verticalRatio: 0.5
     };
 
-    // Instantiate our graph object.
-    graph3d = new vis.Graph3d(document.getElementById('mygraph'));
-
-    // Draw our graph with the created data and options
-    graph3d.draw(data, options);
-
-    // subscribe to event
-    graph3d.on("cameraPositionChange", function(event) {console.log(event);});
+    // create a graph3d
+    var container = document.getElementById('mygraph');
+    graph3d = new vis.Graph3d(container, data, options);
   }
   &lt;/script&gt;
-  &lt;/head&gt;
+&lt;/head&gt;
 
 &lt;body onload="drawVisualization();"&gt;
   &lt;div id="mygraph"&gt;&lt;/div&gt;
-
-  &lt;div id="info"&gt;&lt;/div&gt;
 &lt;/body&gt;
 &lt;/html&gt;
 
@@ -116,17 +109,19 @@
 <h2 id="Loading">Loading</h2>
 
 <p>
-  The class name of the Graph3d is <code>vis.Graph3d</code>
+  The class name of the Graph3d is <code>vis.Graph3d</code>.
+  When constructing a Graph3d, an HTML DOM container must be provided to attach
+  the graph to. Optionally, data an options can be provided.
+  Data is a vis <code>DataSet</code> or an <code>Array</code>, described in
+  section <a href="#Data_Format">Data Format</a>.
+  Options is a name-value map in the JSON format. The available options
+  are described in section <a href="#Configuration_Options">Configuration Options</a>.
 </p>
-<pre class="prettyprint lang-js">var graph = new vis.Graph3d(container);</pre>
+<pre class="prettyprint lang-js">var graph = new vis.Graph3d(container [, data] [, options]);</pre>
 
 <p>
-  After being loaded, the graph can be drawn via the function <code>draw()</code>,
-  provided with data and options.
-</p>
-<pre class="prettyprint lang-js">graph.draw(data, options);</pre>
-<p>
-  where data is a vis <code>DataSet</code>, and options is a name-value map in the JSON format.
+  Data and options can be set or changed later on using the functions
+  <code>Graph3d.setData(data)</code> and <code>Graph3d.setOptions(options)</code>.
 </p>
 
 <h2 id="Data_Format">Data Format</h2>
@@ -536,12 +531,6 @@ options = {
   </tr>
 
   <tr>
-    <td>draw(data, options)</td>
-    <td>none</td>
-    <td>Loads data, sets the provided options, and draws the 3d graph.</td>
-  </tr>
-
-  <tr>
     <td>getCameraPosition()</td>
     <td>An object with parameters <code>horizontal</code>,
       <code>vertical</code> and <code>distance</code></td>
@@ -556,6 +545,19 @@ options = {
     <td>none</td>
     <td>Redraw the graph. Useful after the camera position is changed externally,
       when data is changed, or when the layout of the webpage changed.</td>
+  </tr>
+
+  <tr>
+    <td>setData(data)</td>
+    <td>none</td>
+    <td>Replace the data in the Graph3d.</td>
+  </tr>
+
+  <tr>
+    <td>setOptions(options)</td>
+    <td>none</td>
+    <td>Update options of Graph3d.
+      The provided options will be merged with current options.</td>
   </tr>
 
   <tr>

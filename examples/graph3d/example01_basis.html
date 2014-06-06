@@ -45,10 +45,8 @@
       };
 
       // Instantiate our graph object.
-      graph = new vis.Graph3d(document.getElementById('mygraph'));
-
-      // Draw our graph with the created data and options
-      graph.draw(data, options);
+      var container = document.getElementById('mygraph');
+      graph = new vis.Graph3d(container, data, options);
     }
   </script>
 </head>

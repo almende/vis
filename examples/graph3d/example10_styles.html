@@ -61,11 +61,9 @@
 
       var camera = graph ? graph.getCameraPosition() : null;
 
-      // Instantiate our graph object.
-      graph = new vis.Graph3d(document.getElementById('mygraph'));
-
-      // Draw our graph with the created data and options
-      graph.draw(data, options);
+      // create our graph
+      var container = document.getElementById('mygraph');
+      graph = new vis.Graph3d(container, data, options);
 
       if (camera) graph.setCameraPosition(camera); // restore camera position
 
