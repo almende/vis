@@ -449,39 +449,30 @@ function draw() {
 
 
 function drawCsv() {
-  // Instantiate our graph object.
-  var graph = new vis.Graph3d(document.getElementById('graph'));
-
   // retrieve data and options
   var data = getDataCsv();
   var options = getOptions();
 
-  // Draw our graph with the created data and options
-  graph.draw(data, options);
+  // Creat a graph
+  var graph = new vis.Graph3d(document.getElementById('graph'), data, options);
 }
 
 function drawJson() {
-  // Instantiate our graph object.
-  var graph = new vis.Graph3d(document.getElementById('graph'));
-
   // retrieve data and options
   var data = getDataJson();
   var options = getOptions();
 
-  // Draw our graph with the created data and options
-  graph.draw(data, options);
+  // Creat a graph
+  var graph = new vis.Graph3d(document.getElementById('graph'), data, options);
 }
 
 function drawJavascript() {
-  // Instantiate our graph object.
-  var graph = new vis.Graph3d(document.getElementById('graph'));
-
   // retrieve data and options
   var data = getDataJavascript();
   var options = getOptions();
 
-  // Draw our graph with the created data and options
-  graph.draw(data, options);
+  // Creat a graph
+  var graph = new vis.Graph3d(document.getElementById('graph'), data, options);
 }
 
 
@@ -503,10 +494,7 @@ function drawGooglespreadsheet() {
     options = getOptions();
 
     // Instantiate our graph object.
-    var graph = new vis.Graph3d(document.getElementById('graph'));
-
-    // Draw our graph with the created data and options
-    graph.draw(data, options);
+    var graph = new vis.Graph3d(document.getElementById('graph'), data, options);
   }
 
   url = document.getElementById("googlespreadsheetText").value;
@@ -537,10 +525,7 @@ function drawDatasource() {
     options = getOptions();
 
     // Instantiate our graph object.
-    var graph = new vis.Graph3d(document.getElementById('graph'));
-
-    // Draw our graph with the created data and options
-    graph.draw(data, options);
+    var graph = new vis.Graph3d(document.getElementById('graph'), data, options);
   };
 
   url = document.getElementById("datasourceText").value;
