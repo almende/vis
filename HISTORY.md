@@ -2,7 +2,7 @@
 http://visjs.org
 
 
-## not yet released, version 1.1.0
+## 2014-06-06, version 1.1.0
 
 ### Timeline
 
