@@ -692,9 +692,9 @@ timeline.clear({options: true}); // clear options only
   </tr>
 
   <tr>
-    <td>repaint()</td>
+    <td>redraw()</td>
     <td>none</td>
-    <td>Force a repaint of the Timeline. Can be useful to manually repaint when option autoResize=false.
+    <td>Force a redraw of the Timeline. Can be useful to manually redraw when option autoResize=false.
     </td>
   </tr>
 
@@ -820,6 +820,7 @@ timeline.off('select', onSelect);
   <tr>
     <td>select</td>
     <td>Fired after the user selects or deselects items by tapping or holding them.
+      When a use taps an already selected item, the select event is fired again.
       Not fired when the method <code>setSelection</code>is executed.
     </td>
     <td>

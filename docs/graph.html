@@ -235,7 +235,18 @@ var nodes = [
   // ... more nodes
 ];
 </pre>
-
+Alternatively, a vis DataSet can also be used:
+<pre class="prettyprint lang-js">
+var nodes = new vis.DataSet();
+nodes.add([
+    {id: '1', label: 'Node 1'},
+    {id: '2', label: 'Node 2'},
+    {id: '3', label: 'Node 3'},
+    {id: '4', label: 'Node 4'},
+    // ... more nodes
+]);
+</pre>
+When using a DataSet, the graph is automatically updating to changes in the DataSet.
 
 <p>
   Nodes support the following properties:
@@ -289,6 +300,20 @@ var nodes = [
     <td>String</td>
     <td>no</td>
     <td>Border color of the node when selected.</td>
+  </tr>
+
+  <tr>
+      <td>color.hover.background</td>
+      <td>String</td>
+      <td>no</td>
+      <td>Background color of the node when the node is hovered over and the hover option is enabled.</td>
+  </tr>
+
+  <tr>
+      <td>color.hover.border</td>
+      <td>String</td>
+      <td>no</td>
+      <td>Border color of the node when the node is hovered over and the hover option is enabled.</td>
   </tr>
 
   <tr>
@@ -478,6 +503,18 @@ var edges = [
   // ... more edges
 ];
 </pre>
+Alternatively, a vis DataSet can also be used:
+<pre class="prettyprint lang-js">
+var edges = new vis.DataSet();
+edges.add([
+    {from: '1', to: '2'},
+    {from: '1', to: '3'},
+    {from: '2', to: '4'},
+    {from: '2', to: '5'},
+    // ... more edges
+]);
+</pre>
+When using a DataSet, the graph is automatically updating to changes in the DataSet.
 
 <p>
   Edges support the following properties:
@@ -515,6 +552,19 @@ var edges = [
         <td>String</td>
         <td>no</td>
         <td>Color of the edge when selected.</td>
+    </tr>
+
+    <tr>
+        <td>color.hover</td>
+        <td>String</td>
+        <td>no</td>
+        <td>Color of the edge when the edge is hovered over and the hover option is enabled.</td>
+    </tr>
+    <tr>
+        <td>hoverWidth</td>
+        <td>Number</td>
+        <td>1.5</td>
+        <td>This determines the thickness of the edge if it is hovered over. This will only manifest when the hover option is enabled.</td>
     </tr>
 
   <tr>
@@ -656,6 +706,7 @@ var edges = [
       override a specified <code>value</code>, if a <code>value</code> is
       specified too.</td>
   </tr>
+
 </table>
 
 
@@ -789,6 +840,13 @@ var options = {
     <td>"400px"</td>
     <td>The height of the graph in pixels or as a percentage.</td>
   </tr>
+
+    <tr>
+        <td>hover</td>
+        <td>Boolean</td>
+        <td>false</td>
+        <td>Enabling the change of the colors of nodes and edges when the mouse hovers over them. Enabling this may have a minor impact on performance.</td>
+    </tr>
 
   <tr>
     <td><a href="#Keyboard_navigation">keyboard</a></td>
@@ -2009,6 +2067,13 @@ var options: {
     </td>
   </tr>
     <tr>
+        <td>focusOnNode(nodeId, [zoomLevel])</td>
+        <td>none</td>
+        <td>This function will move the view to center on the specified node. An optional zoomLevel can be passed where 1.0 is 100&#37;, between 0.0 and 1.0 is zooming out and > 1.0 is zooming in. Generally, close to 1.0 is sufficient.
+            If this argument is not passed the view will only move, not zoom.
+        </td>
+    </tr>
+    <tr>
         <td>storePosition()</td>
         <td>none</td>
         <td>This will put the X and Y positions of all nodes in the dataset. It will also include allowedToMoveX and allowedToMoveY with the correct values.
@@ -2166,6 +2231,26 @@ graph.off('select', onSelect);
             <ul>
                 <li><code>nodes</code>: an array with the ids of the selected nodes</li>
                 <li><code>edges</code>: an array with the ids of the selected edges</li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+    <tr>
+        <td>hoverNode</td>
+        <td>Fired when the mouse is moved over a node (assuming the hover option is enabled).</td>
+        <td>
+            <ul>
+                <li><code>node</code>: an object with the id of the hovered node.</li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+    <tr>
+        <td>blurNode</td>
+        <td>Fired when the mouse is moved off a node (assuming the hover option is enabled).</td>
+        <td>
+            <ul>
+                <li><code>node</code>: an object with the id of the hovered node.</li>
             </ul>
         </td>
     </tr>
