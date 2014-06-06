@@ -20,7 +20,7 @@
     // Called when the Visualization API is loaded.
     function drawVisualization() {
       // Create and populate a data table.
-      var data = [];
+      var data = new vis.DataSet();
       // create some nice looking data with sin/cos
       var steps = 50;  // number of datapoints will be steps*steps
       var axisMax = 314;
@@ -28,7 +28,7 @@
       for (var x = 0; x < axisMax; x+=axisStep) {
         for (var y = 0; y < axisMax; y+=axisStep) {
           var value = custom(x,y);
-          data.push({x:x,y:y,z:value,style:value});
+          data.add({x:x,y:y,z:value,style:value});
         }
       }
 

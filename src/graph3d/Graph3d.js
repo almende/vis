@@ -556,8 +556,7 @@ Graph3d.prototype.getColumnRange = function(data,column) {
 /**
  * Initialize the data from the data table. Calculate minimum and maximum values
  * and column index values
- * @param {DataSet} data   The data containing the events
- *                        for the Graph.
+ * @param {Array | DataSet | DataView} rawData   The data containing the items for the Graph.
  * @param {Number}     style   Style Number
  */
 Graph3d.prototype._dataInitialize = function (rawData, style) {
@@ -565,9 +564,16 @@ Graph3d.prototype._dataInitialize = function (rawData, style) {
   if (rawData === undefined)
     return;
 
+  if (Array.isArray(rawData)) {
+    rawData = new DataSet(rawData);
+  }
+
   var data;
-  if (rawData instanceof DataSet) {
+  if (rawData instanceof DataSet || rawData instanceof DataView) {
     data = rawData.get();
+  }
+  else {
+    throw new Error('Array, DataSet, or DataView expected');
   }
 
   if (data.length == 0)
@@ -665,7 +671,7 @@ Graph3d.prototype._dataInitialize = function (rawData, style) {
 
 /**
  * Filter the data based on the current filter
- * @param {DataSet} data
+ * @param {Array} data
  * @return {Array} dataPoints   Array with point objects which can be drawn on screen
  */
 Graph3d.prototype._getDataPoints = function (data) {
@@ -985,7 +991,7 @@ Graph3d.prototype._readData = function(data) {
 /**
  * Redraw the Graph. This needs to be executed after the start and/or
  * end time are changed, or when data is added or removed dynamically.
- * @param {DataSet} data  Optional, new data table
+ * @param {DataSet} [data]  Optional, new data table
  */
 Graph3d.prototype.redraw = function(data) {
   // load the data if needed
@@ -2002,9 +2008,9 @@ Graph3d.prototype._onMouseMove = function (event) {
   this.camera.setArmRotation(horizontalNew, verticalNew);
   this.redraw();
 
-  // fire an oncamerapositionchange event
+  // fire a cameraPositionChange event
   var parameters = this.getCameraPosition();
-  this.emit('camerapositionchange', parameters);
+  this.emit('cameraPositionChange', parameters);
 
   G3DpreventDefault(event);
 };
@@ -2143,9 +2149,9 @@ Graph3d.prototype._onWheel = function(event) {
     this._hideTooltip();
   }
 
-  // fire an oncamerapositionchange event
+  // fire a cameraPositionChange event
   var parameters = this.getCameraPosition();
-  this.emit('camerapositionchange', parameters);
+  this.emit('cameraPositionChange', parameters);
 
   // Prevent default actions caused by mouse wheel.
   // That might be ugly, but we handle scrolls somehow
@@ -2533,6 +2539,11 @@ function Filter (data, column, graph) {
 
   // read all distinct values and select the first one
   this.values = graph.getDistinctValues(data.get(), this.column);
+
+  // sort both numeric and string values correctly
+  this.values.sort(function (a, b) {
+    return a > b ? 1 : a < b ? -1 : 0;
+  });
 
   if (this.values.length > 0) {
     this.selectValue(0);

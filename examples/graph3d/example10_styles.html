@@ -26,7 +26,7 @@
       var withValue = ['bar-color', 'bar-size', 'dot-size', 'dot-color'].indexOf(style) != -1;
 
       // Create and populate a data table.
-      var data = new vis.DataSet();
+      var data = [];
 
       // create some nice looking data with sin/cos
       var steps = 5;  // number of datapoints will be steps*steps
@@ -37,10 +37,10 @@
           var z = custom(x,y);
           if (withValue) {
             var value = (y - x);
-            data.add({x:x, y:y, z: z, style:value});
+            data.push({x:x, y:y, z: z, style:value});
           }
           else {
-            data.add({x:x, y:y, z: z});
+            data.push({x:x, y:y, z: z});
           }
         }
       }

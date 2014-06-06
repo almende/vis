@@ -19,7 +19,7 @@
     }
 
     // callback function, called when the camera position has changed
-    function oncamerapositionchange() {
+    function onCameraPositionChange() {
       // adjust the values of startDate and endDate
       var pos = graph.getCameraPosition();
       document.getElementById('horizontal').value = parseFloat(pos.horizontal.toFixed(3));
@@ -28,7 +28,7 @@
     }
 
     // set the camera position
-    function setcameraposition() {
+    function setCameraPosition() {
       var horizontal = parseFloat(document.getElementById('horizontal').value);
       var vertical = parseFloat(document.getElementById('vertical').value);
       var distance = parseFloat(document.getElementById('distance').value);
@@ -39,7 +39,7 @@
       graph.setCameraPosition(pos);
 
       // retrieve the camera position again, to get the applied values
-      oncamerapositionchange();
+      onCameraPositionChange();
     }
 
     // Called when the Visualization API is loaded.
@@ -76,7 +76,7 @@
 
       // Draw our graph with the created data and options
       graph.draw(data, options);
-      graph.on("camerapositionchange", oncamerapositionchange);
+      graph.on("cameraPositionChange", onCameraPositionChange);
       //graph.redraw();
     }
   </script>
@@ -99,7 +99,7 @@
   </tr>
   <tr>
     <td></td>
-    <td><input type="button" value="Set" onclick="setcameraposition();"></td>
+    <td><input type="button" value="Set" onclick="setCameraPosition();"></td>
   </tr>
 </table>
 

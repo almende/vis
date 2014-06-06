@@ -62,7 +62,7 @@
   // Called when the Visualization API is loaded.
   function drawVisualization() {
     // Create and populate a data table.
-    var data = [];
+    var data = new vis.DataSet();
     // create some nice looking data with sin/cos
     var steps = 50;  // number of datapoints will be steps*steps
     var axisMax = 314;
@@ -70,7 +70,7 @@
     for (var x = 0; x &lt; axisMax; x+=axisStep) {
       for (var y = 0; y &lt; axisMax; y+=axisStep) {
         var value = custom(x, y);
-        data.push({
+        data.add({
           x: x,
           y: y,
           z: value,
@@ -98,7 +98,7 @@
     graph3d.draw(data, options);
 
     // subscribe to event
-    graph3d.on("camerapositionchange", function(event) {console.log(event);});
+    graph3d.on("cameraPositionChange", function(event) {console.log(event);});
   }
   &lt;/script&gt;
   &lt;/head&gt;
@@ -131,8 +131,10 @@
 
 <h2 id="Data_Format">Data Format</h2>
 <p>
-  Graph3d requires a vis DataSet. JSON objects are added to this DataSet by using the <code>add()</code> function.
-  These JSON objects have 5 fields, of which 2 are optional. These are described below.
+  Graph3d can load data from an <code>Array</code>, a <code>DataSet</code> or a <code>DataView</code>.
+  JSON objects are added to this DataSet by using the <code>add()</code> function.
+  Data points must have properties <code>x</code>, <code>y</code>, and <code>z</code>,
+  and can optionally have a property <code>style</code> and <code>filter</code>.
 
 <h3>Definition</h3>
 <p>
@@ -174,7 +176,7 @@
   </tr>
   <tr>
     <td>filter</td>
-    <td>anytype</td>
+    <td>*</td>
     <td>no</td>
     <td>Filter values used for the animation.
       This column may have any type, such as a number, string, or Date.</td>
@@ -586,18 +588,18 @@ options = {
 <p>
   Graph3d fires events after the camera position has been changed.
   The event can be catched by creating a listener.
-  Here an example on how to catch a <code>camerapositionchange</code> event.
+  Here an example on how to catch a <code>cameraPositionChange</code> event.
 </p>
 
 <pre class="prettyprint lang-js">
-function oncamerapositionchange(event) {
+function onCameraPositionChange(event) {
   alert("The camera position changed to:\n" +
         "Horizontal: " + event.horizontal + "\n" +
         "Vertical: " + event.vertical + "\n" +
         "Distance: " + event.distance);
 }
 // assuming var graph3d = new vis.Graph3d(document.getElementById('mygraph'));
-graph3d.on("camerapositionchange",oncamerapositionchange);
+graph3d.on("cameraPositionChange", onCameraPositionChange);
 </pre>
 
 <p>
@@ -616,7 +618,7 @@ graph3d.on("camerapositionchange",oncamerapositionchange);
   </tr>
 
   <tr>
-    <td>camerapositionchange</td>
+    <td>cameraPositionChange</td>
     <td>The camera position changed. Fired after the user modified the camera position
       by moving (dragging) the graph, or by zooming (scrolling),
       but not after a call to <code>setCameraPosition</code> method.
