@@ -602,11 +602,16 @@ Timeline.prototype.getWindow = function setWindow() {
 };
 
 /**
- * Force a repaint of the Timeline. Can be useful to manually repaint when
+ * Force a redraw of the Timeline. Can be useful to manually redraw when
  * option autoResize=false
  */
-Timeline.prototype.repaint = function repaint() {
+Timeline.prototype.redraw = function redraw() {
     this.rootPanel.repaint();
+};
+
+// TODO: deprecated since version 1.1.0, remove some day
+Timeline.prototype.repaint = function repaint() {
+    throw new Error('Function repaint is deprecated. Use redraw instead.');
 };
 
 /**
@@ -693,7 +698,7 @@ Timeline.prototype._onAddItem = function (event) {
     this.options.onAdd(newItem, function (item) {
       if (item) {
         me.itemsData.add(newItem);
-        // TODO: need to trigger a repaint?
+        // TODO: need to trigger a redraw?
       }
     });
   }

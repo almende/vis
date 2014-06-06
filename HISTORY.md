@@ -6,6 +6,9 @@ http://visjs.org
 
 ### Timeline
 
+- Select event now triggers repeatedly when selecting an already selected item.
+- Renamed `Timeline.repaint()` to `Timeline.redraw()` to be consistent with
+  the other visualisations of vis.js.
 - Fixed `Timeline.clear()` not resetting a configured `options.start` and 
   `options.end`.
 
