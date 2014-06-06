@@ -12,17 +12,17 @@
 function Graph3d(container, data, options) {
   // create variables and set default values
   this.containerElement = container;
-  this.width = "400px";
-  this.height = "400px";
+  this.width = '400px';
+  this.height = '400px';
   this.margin = 10; // px
-  this.defaultXCenter = "55%";
-  this.defaultYCenter = "50%";
+  this.defaultXCenter = '55%';
+  this.defaultYCenter = '50%';
 
-  this.xLabel = "x";
-  this.yLabel = "y";
-  this.zLabel = "z";
-  this.filterLabel = "time";
-  this.legendLabel = "value";
+  this.xLabel = 'x';
+  this.yLabel = 'y';
+  this.zLabel = 'z';
+  this.filterLabel = 'time';
+  this.legendLabel = 'value';
 
   this.style = Graph3d.STYLE.DOT;
   this.showPerspective = true;
@@ -31,7 +31,7 @@ function Graph3d(container, data, options) {
   this.showShadow = false;
   this.showGrayBottom = false; // TODO: this does not work correctly
   this.showTooltip = false;
-  this.verticalRatio = 0.5; // 0.1 to 1.0, where 1.0 results in a "cube"
+  this.verticalRatio = 0.5; // 0.1 to 1.0, where 1.0 results in a 'cube'
 
   this.animationInterval = 1000; // milliseconds
   this.animationPreload = false;
@@ -65,10 +65,10 @@ function Graph3d(container, data, options) {
   // TODO: customize axis range
 
   // constants
-  this.colorAxis = "#4D4D4D";
-  this.colorGrid = "#D3D3D3";
-  this.colorDot = "#7DC1FF";
-  this.colorDotBorder = "#3267D2";
+  this.colorAxis = '#4D4D4D';
+  this.colorGrid = '#D3D3D3';
+  this.colorDot = '#7DC1FF';
+  this.colorDotBorder = '#3267D2';
 
   // create a frame and canvas
   this.create();
@@ -335,16 +335,16 @@ Graph3d.prototype._convertTranslationToScreen = function(translation) {
  * @param {string | {fill: string, stroke: string, strokeWidth: string}} backgroundColor
  */
 Graph3d.prototype._setBackgroundColor = function(backgroundColor) {
-  var fill = "white";
-  var stroke = "gray";
+  var fill = 'white';
+  var stroke = 'gray';
   var strokeWidth = 1;
 
-  if (typeof(backgroundColor) === "string") {
+  if (typeof(backgroundColor) === 'string') {
     fill = backgroundColor;
-    stroke = "none";
+    stroke = 'none';
     strokeWidth = 0;
   }
-  else if (typeof(backgroundColor) === "object") {
+  else if (typeof(backgroundColor) === 'object') {
     if (backgroundColor.fill !== undefined)    fill = backgroundColor.fill;
     if (backgroundColor.stroke !== undefined)    stroke = backgroundColor.stroke;
     if (backgroundColor.strokeWidth !== undefined) strokeWidth = backgroundColor.strokeWidth;
@@ -353,13 +353,13 @@ Graph3d.prototype._setBackgroundColor = function(backgroundColor) {
     // use use defaults
   }
   else {
-    throw "Unsupported type of backgroundColor";
+    throw 'Unsupported type of backgroundColor';
   }
 
   this.frame.style.backgroundColor = fill;
   this.frame.style.borderColor = stroke;
-  this.frame.style.borderWidth = strokeWidth + "px";
-  this.frame.style.borderStyle = "solid";
+  this.frame.style.borderWidth = strokeWidth + 'px';
+  this.frame.style.borderStyle = 'solid';
 };
 
 
@@ -379,22 +379,22 @@ Graph3d.STYLE = {
 
 /**
  * Retrieve the style index from given styleName
- * @param {string} styleName  Style name such as "dot", "grid", "dot-line"
+ * @param {string} styleName  Style name such as 'dot', 'grid', 'dot-line'
  * @return {Number} styleNumber Enumeration value representing the style, or -1
  *                when not found
  */
 Graph3d.prototype._getStyleNumber = function(styleName) {
   switch (styleName) {
-    case "dot":     return Graph3d.STYLE.DOT;
-    case "dot-line":  return Graph3d.STYLE.DOTLINE;
-    case "dot-color":   return Graph3d.STYLE.DOTCOLOR;
-    case "dot-size":  return Graph3d.STYLE.DOTSIZE;
-    case "line":    return Graph3d.STYLE.LINE;
-    case "grid":    return Graph3d.STYLE.GRID;
-    case "surface":   return Graph3d.STYLE.SURFACE;
-    case "bar":     return Graph3d.STYLE.BAR;
-    case "bar-color":   return Graph3d.STYLE.BARCOLOR;
-    case "bar-size":  return Graph3d.STYLE.BARSIZE;
+    case 'dot':     return Graph3d.STYLE.DOT;
+    case 'dot-line':  return Graph3d.STYLE.DOTLINE;
+    case 'dot-color':   return Graph3d.STYLE.DOTCOLOR;
+    case 'dot-size':  return Graph3d.STYLE.DOTSIZE;
+    case 'line':    return Graph3d.STYLE.LINE;
+    case 'grid':    return Graph3d.STYLE.GRID;
+    case 'surface':   return Graph3d.STYLE.SURFACE;
+    case 'bar':     return Graph3d.STYLE.BAR;
+    case 'bar-color':   return Graph3d.STYLE.BARCOLOR;
+    case 'bar-size':  return Graph3d.STYLE.BARSIZE;
   }
 
   return -1;
@@ -437,7 +437,7 @@ Graph3d.prototype._determineColumnIndexes = function(data, style) {
     }
   }
   else {
-    throw "Unknown style '" + this.style + "'";
+    throw 'Unknown style "' + this.style + '"';
   }
 };
 
@@ -534,7 +534,7 @@ Graph3d.prototype._dataInitialize = function (rawData, style) {
 
 
   // check if a filter column is provided
-  if (data[0].hasOwnProperty("filter")) {
+  if (data[0].hasOwnProperty('filter')) {
     if (this.dataFilter === undefined) {
       this.dataFilter = new Filter(rawData, this.colFilter, this);
       this.dataFilter.setOnLoadCallback(function() {me.redraw();});
@@ -686,7 +686,7 @@ Graph3d.prototype._getDataPoints = function (data) {
       }
     }
   }
-  else {  // "dot", "dot-line", etc.
+  else {  // 'dot', 'dot-line', etc.
     // copy all values from the google data table to a list with Point3d objects
     for (i = 0; i < data.length; i++) {
       point = new Point3d();
@@ -715,12 +715,12 @@ Graph3d.prototype._getDataPoints = function (data) {
 
 
 /**
- * Append suffix "px" to provided value x
+ * Append suffix 'px' to provided value x
  * @param {int}   x  An integer value
- * @return {string} the string value of x, followed by the suffix "px"
+ * @return {string} the string value of x, followed by the suffix 'px'
  */
 Graph3d.px = function(x) {
-  return x + "px";
+  return x + 'px';
 };
 
 
@@ -736,29 +736,29 @@ Graph3d.prototype.create = function () {
     this.containerElement.removeChild(this.containerElement.firstChild);
   }
 
-  this.frame = document.createElement("div");
-  this.frame.style.position = "relative";
-  this.frame.style.overflow = "hidden";
+  this.frame = document.createElement('div');
+  this.frame.style.position = 'relative';
+  this.frame.style.overflow = 'hidden';
 
   // create the graph canvas (HTML canvas element)
-  this.frame.canvas = document.createElement( "canvas" );
-  this.frame.canvas.style.position = "relative";
+  this.frame.canvas = document.createElement( 'canvas' );
+  this.frame.canvas.style.position = 'relative';
   this.frame.appendChild(this.frame.canvas);
   //if (!this.frame.canvas.getContext) {
   {
-    var noCanvas = document.createElement( "DIV" );
-    noCanvas.style.color = "red";
-    noCanvas.style.fontWeight =  "bold" ;
-    noCanvas.style.padding =  "10px";
-    noCanvas.innerHTML =  "Error: your browser does not support HTML canvas";
+    var noCanvas = document.createElement( 'DIV' );
+    noCanvas.style.color = 'red';
+    noCanvas.style.fontWeight =  'bold' ;
+    noCanvas.style.padding =  '10px';
+    noCanvas.innerHTML =  'Error: your browser does not support HTML canvas';
     this.frame.canvas.appendChild(noCanvas);
   }
 
-  this.frame.filter = document.createElement( "div" );
-  this.frame.filter.style.position = "absolute";
-  this.frame.filter.style.bottom = "0px";
-  this.frame.filter.style.left = "0px";
-  this.frame.filter.style.width = "100%";
+  this.frame.filter = document.createElement( 'div' );
+  this.frame.filter.style.position = 'absolute';
+  this.frame.filter.style.bottom = '0px';
+  this.frame.filter.style.left = '0px';
+  this.frame.filter.style.width = '100%';
   this.frame.appendChild(this.frame.filter);
 
   // add event listeners to handle moving and zooming the contents
@@ -767,13 +767,13 @@ Graph3d.prototype.create = function () {
   var ontouchstart = function (event) {me._onTouchStart(event);};
   var onmousewheel = function (event) {me._onWheel(event);};
   var ontooltip = function (event) {me._onTooltip(event);};
-  // TODO: these events are never cleaned up... can give a "memory leakage"
+  // TODO: these events are never cleaned up... can give a 'memory leakage'
 
-  G3DaddEventListener(this.frame.canvas, "keydown", onkeydown);
-  G3DaddEventListener(this.frame.canvas, "mousedown", onmousedown);
-  G3DaddEventListener(this.frame.canvas, "touchstart", ontouchstart);
-  G3DaddEventListener(this.frame.canvas, "mousewheel", onmousewheel);
-  G3DaddEventListener(this.frame.canvas, "mousemove", ontooltip);
+  G3DaddEventListener(this.frame.canvas, 'keydown', onkeydown);
+  G3DaddEventListener(this.frame.canvas, 'mousedown', onmousedown);
+  G3DaddEventListener(this.frame.canvas, 'touchstart', ontouchstart);
+  G3DaddEventListener(this.frame.canvas, 'mousewheel', onmousewheel);
+  G3DaddEventListener(this.frame.canvas, 'mousemove', ontooltip);
 
   // add the new graph to the container element
   this.containerElement.appendChild(this.frame);
@@ -782,10 +782,10 @@ Graph3d.prototype.create = function () {
 
 /**
  * Set a new size for the graph
- * @param {string} width   Width in pixels or percentage (for example "800px"
- *             or "50%")
- * @param {string} height  Height in pixels or percentage  (for example "400px"
- *             or "30%")
+ * @param {string} width   Width in pixels or percentage (for example '800px'
+ *             or '50%')
+ * @param {string} height  Height in pixels or percentage  (for example '400px'
+ *             or '30%')
  */
 Graph3d.prototype.setSize = function(width, height) {
   this.frame.style.width = width;
@@ -798,14 +798,14 @@ Graph3d.prototype.setSize = function(width, height) {
  * Resize the canvas to the current size of the frame
  */
 Graph3d.prototype._resizeCanvas = function() {
-  this.frame.canvas.style.width = "100%";
-  this.frame.canvas.style.height = "100%";
+  this.frame.canvas.style.width = '100%';
+  this.frame.canvas.style.height = '100%';
 
   this.frame.canvas.width = this.frame.canvas.clientWidth;
   this.frame.canvas.height = this.frame.canvas.clientHeight;
 
   // adjust with for margin
-  this.frame.filter.style.width = (this.frame.canvas.clientWidth - 2 * 10) + "px";
+  this.frame.filter.style.width = (this.frame.canvas.clientWidth - 2 * 10) + 'px';
 };
 
 /**
@@ -813,7 +813,7 @@ Graph3d.prototype._resizeCanvas = function() {
  */
 Graph3d.prototype.animationStart = function() {
   if (!this.frame.filter || !this.frame.filter.slider)
-    throw "No animation available";
+    throw 'No animation available';
 
   this.frame.filter.slider.play();
 };
@@ -837,7 +837,7 @@ Graph3d.prototype.animationStop = function() {
  */
 Graph3d.prototype._resizeCenter = function() {
   // calculate the horizontal center position
-  if (this.defaultXCenter.charAt(this.defaultXCenter.length-1) === "%") {
+  if (this.defaultXCenter.charAt(this.defaultXCenter.length-1) === '%') {
     this.xcenter =
       parseFloat(this.defaultXCenter) / 100 *
         this.frame.canvas.clientWidth;
@@ -847,7 +847,7 @@ Graph3d.prototype._resizeCenter = function() {
   }
 
   // calculate the vertical center position
-  if (this.defaultYCenter.charAt(this.defaultYCenter.length-1) === "%") {
+  if (this.defaultYCenter.charAt(this.defaultYCenter.length-1) === '%') {
     this.ycenter =
       parseFloat(this.defaultYCenter) / 100 *
         (this.frame.canvas.clientHeight - this.frame.filter.clientHeight);
@@ -1024,7 +1024,7 @@ Graph3d.prototype.setOptions = function (options) {
  */
 Graph3d.prototype.redraw = function() {
   if (this.dataPoints === undefined) {
-    throw "Error: graph data not initialized";
+    throw 'Error: graph data not initialized';
   }
 
   this._resizeCanvas();
@@ -1059,7 +1059,7 @@ Graph3d.prototype.redraw = function() {
  */
 Graph3d.prototype._redrawClear = function() {
   var canvas = this.frame.canvas;
-  var ctx = canvas.getContext("2d");
+  var ctx = canvas.getContext('2d');
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 };
@@ -1094,9 +1094,9 @@ Graph3d.prototype._redrawLegend = function() {
   }
 
   var canvas = this.frame.canvas;
-  var ctx = canvas.getContext("2d");
+  var ctx = canvas.getContext('2d');
   ctx.lineWidth = 1;
-  ctx.font = "14px arial"; // TODO: put in options
+  ctx.font = '14px arial'; // TODO: put in options
 
   if (this.style === Graph3d.STYLE.DOTCOLOR) {
     // draw the color bar
@@ -1151,16 +1151,16 @@ Graph3d.prototype._redrawLegend = function() {
       ctx.lineTo(left, y);
       ctx.stroke();
 
-      ctx.textAlign = "right";
-      ctx.textBaseline = "middle";
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
       ctx.fillStyle = this.colorAxis;
       ctx.fillText(step.getCurrent(), left - 2 * gridLineLen, y);
 
       step.next();
     }
 
-    ctx.textAlign = "right";
-    ctx.textBaseline = "top";
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'top';
     var label = this.legendLabel;
     ctx.fillText(label, right, bottom + this.margin);
   }
@@ -1170,7 +1170,7 @@ Graph3d.prototype._redrawLegend = function() {
  * Redraw the filter
  */
 Graph3d.prototype._redrawFilter = function() {
-  this.frame.filter.innerHTML = "";
+  this.frame.filter.innerHTML = '';
 
   if (this.dataFilter) {
     var options = {
@@ -1180,8 +1180,8 @@ Graph3d.prototype._redrawFilter = function() {
     this.frame.filter.slider = slider;
 
     // TODO: css here is not nice here...
-    this.frame.filter.style.padding = "10px";
-    //this.frame.filter.style.backgroundColor = "#EFEFEF";
+    this.frame.filter.style.padding = '10px';
+    //this.frame.filter.style.backgroundColor = '#EFEFEF';
 
     slider.setValues(this.dataFilter.values);
     slider.setPlayInterval(this.animationInterval);
@@ -1219,17 +1219,17 @@ Graph3d.prototype._redrawSlider = function() {
 Graph3d.prototype._redrawInfo = function() {
   if (this.dataFilter) {
     var canvas = this.frame.canvas;
-    var ctx = canvas.getContext("2d");
+    var ctx = canvas.getContext('2d');
 
-    ctx.font = "14px arial"; // TODO: put in options
-    ctx.lineStyle = "gray";
-    ctx.fillStyle = "gray";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "top";
+    ctx.font = '14px arial'; // TODO: put in options
+    ctx.lineStyle = 'gray';
+    ctx.fillStyle = 'gray';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
 
     var x = this.margin;
     var y = this.margin;
-    ctx.fillText(this.dataFilter.getLabel() + ": " + this.dataFilter.getSelectedValue(), x, y);
+    ctx.fillText(this.dataFilter.getLabel() + ': ' + this.dataFilter.getSelectedValue(), x, y);
   }
 };
 
@@ -1239,7 +1239,7 @@ Graph3d.prototype._redrawInfo = function() {
  */
 Graph3d.prototype._redrawAxis = function() {
   var canvas = this.frame.canvas,
-    ctx = canvas.getContext("2d"),
+    ctx = canvas.getContext('2d'),
     from, to, step, prettyStep,
     text, xText, yText, zText,
     offset, xOffset, yOffset,
@@ -1247,7 +1247,7 @@ Graph3d.prototype._redrawAxis = function() {
 
   // TODO: get the actual rendered style of the containerElement
   //ctx.font = this.containerElement.style.font;
-  ctx.font = 24 / this.camera.getArmLength() + "px arial";
+  ctx.font = 24 / this.camera.getArmLength() + 'px arial';
 
   // calculate the length for the short grid lines
   var gridLenX = 0.025 / this.scale.x;
@@ -1296,20 +1296,20 @@ Graph3d.prototype._redrawAxis = function() {
     yText = (Math.cos(armAngle) > 0) ? this.yMin : this.yMax;
     text = this._convert3Dto2D(new Point3d(x, yText, this.zMin));
     if (Math.cos(armAngle * 2) > 0) {
-      ctx.textAlign = "center";
-      ctx.textBaseline = "top";
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
       text.y += textMargin;
     }
     else if (Math.sin(armAngle * 2) < 0){
-      ctx.textAlign = "right";
-      ctx.textBaseline = "middle";
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
     }
     else {
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
     }
     ctx.fillStyle = this.colorAxis;
-    ctx.fillText("  " + step.getCurrent() + "  ", text.x, text.y);
+    ctx.fillText('  ' + step.getCurrent() + '  ', text.x, text.y);
 
     step.next();
   }
@@ -1353,20 +1353,20 @@ Graph3d.prototype._redrawAxis = function() {
     xText = (Math.sin(armAngle ) > 0) ? this.xMin : this.xMax;
     text = this._convert3Dto2D(new Point3d(xText, step.getCurrent(), this.zMin));
     if (Math.cos(armAngle * 2) < 0) {
-      ctx.textAlign = "center";
-      ctx.textBaseline = "top";
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
       text.y += textMargin;
     }
     else if (Math.sin(armAngle * 2) > 0){
-      ctx.textAlign = "right";
-      ctx.textBaseline = "middle";
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
     }
     else {
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
     }
     ctx.fillStyle = this.colorAxis;
-    ctx.fillText("  " + step.getCurrent() + "  ", text.x, text.y);
+    ctx.fillText('  ' + step.getCurrent() + '  ', text.x, text.y);
 
     step.next();
   }
@@ -1390,10 +1390,10 @@ Graph3d.prototype._redrawAxis = function() {
     ctx.lineTo(from.x - textMargin, from.y);
     ctx.stroke();
 
-    ctx.textAlign = "right";
-    ctx.textBaseline = "middle";
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
     ctx.fillStyle = this.colorAxis;
-    ctx.fillText(step.getCurrent() + " ", from.x - 5, from.y);
+    ctx.fillText(step.getCurrent() + ' ', from.x - 5, from.y);
 
     step.next();
   }
@@ -1452,16 +1452,16 @@ Graph3d.prototype._redrawAxis = function() {
     yText = (Math.cos(armAngle) > 0) ? this.yMin - yOffset: this.yMax + yOffset;
     text = this._convert3Dto2D(new Point3d(xText, yText, this.zMin));
     if (Math.cos(armAngle * 2) > 0) {
-      ctx.textAlign = "center";
-      ctx.textBaseline = "top";
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
     }
     else if (Math.sin(armAngle * 2) < 0){
-      ctx.textAlign = "right";
-      ctx.textBaseline = "middle";
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
     }
     else {
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
     }
     ctx.fillStyle = this.colorAxis;
     ctx.fillText(xLabel, text.x, text.y);
@@ -1475,16 +1475,16 @@ Graph3d.prototype._redrawAxis = function() {
     yText = (this.yMin + this.yMax) / 2;
     text = this._convert3Dto2D(new Point3d(xText, yText, this.zMin));
     if (Math.cos(armAngle * 2) < 0) {
-      ctx.textAlign = "center";
-      ctx.textBaseline = "top";
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
     }
     else if (Math.sin(armAngle * 2) > 0){
-      ctx.textAlign = "right";
-      ctx.textBaseline = "middle";
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
     }
     else {
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
     }
     ctx.fillStyle = this.colorAxis;
     ctx.fillText(yLabel, text.x, text.y);
@@ -1498,8 +1498,8 @@ Graph3d.prototype._redrawAxis = function() {
     yText = (Math.sin(armAngle ) < 0) ? this.yMin : this.yMax;
     zText = (this.zMin + this.zMax) / 2;
     text = this._convert3Dto2D(new Point3d(xText, yText, zText));
-    ctx.textAlign = "right";
-    ctx.textBaseline = "middle";
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
     ctx.fillStyle = this.colorAxis;
     ctx.fillText(zLabel, text.x - offset, text.y);
   }
@@ -1529,17 +1529,17 @@ Graph3d.prototype._hsv2rgb = function(H, S, V) {
     default: R = 0; G = 0; B = 0; break;
   }
 
-  return "RGB(" + parseInt(R*255) + "," + parseInt(G*255) + "," + parseInt(B*255) + ")";
+  return 'RGB(' + parseInt(R*255) + ',' + parseInt(G*255) + ',' + parseInt(B*255) + ')';
 };
 
 
 /**
  * Draw all datapoints as a grid
- * This function can be used when the style is "grid"
+ * This function can be used when the style is 'grid'
  */
 Graph3d.prototype._redrawDataGrid = function() {
   var canvas = this.frame.canvas,
-    ctx = canvas.getContext("2d"),
+    ctx = canvas.getContext('2d'),
     point, right, top, cross,
     i,
     topSideVisible, fillStyle, strokeStyle, lineWidth,
@@ -1612,7 +1612,7 @@ Graph3d.prototype._redrawDataGrid = function() {
           }
         }
         else {
-          fillStyle = "gray";
+          fillStyle = 'gray';
           strokeStyle = this.colorAxis;
         }
         lineWidth = 0.5;
@@ -1678,11 +1678,11 @@ Graph3d.prototype._redrawDataGrid = function() {
 
 /**
  * Draw all datapoints as dots.
- * This function can be used when the style is "dot" or "dot-line"
+ * This function can be used when the style is 'dot' or 'dot-line'
  */
 Graph3d.prototype._redrawDataDot = function() {
   var canvas = this.frame.canvas;
-  var ctx = canvas.getContext("2d");
+  var ctx = canvas.getContext('2d');
   var i;
 
   if (this.dataPoints === undefined || this.dataPoints.length <= 0)
@@ -1774,11 +1774,11 @@ Graph3d.prototype._redrawDataDot = function() {
 
 /**
  * Draw all datapoints as bars.
- * This function can be used when the style is "bar", "bar-color", or "bar-size"
+ * This function can be used when the style is 'bar', 'bar-color', or 'bar-size'
  */
 Graph3d.prototype._redrawDataBar = function() {
   var canvas = this.frame.canvas;
-  var ctx = canvas.getContext("2d");
+  var ctx = canvas.getContext('2d');
   var i, j, surface, corners;
 
   if (this.dataPoints === undefined || this.dataPoints.length <= 0)
@@ -1913,11 +1913,11 @@ Graph3d.prototype._redrawDataBar = function() {
 
 /**
  * Draw a line through all datapoints.
- * This function can be used when the style is "line"
+ * This function can be used when the style is 'line'
  */
 Graph3d.prototype._redrawDataLine = function() {
   var canvas = this.frame.canvas,
-    ctx = canvas.getContext("2d"),
+    ctx = canvas.getContext('2d'),
     point, i;
 
   if (this.dataPoints === undefined || this.dataPoints.length <= 0)
@@ -1937,7 +1937,7 @@ Graph3d.prototype._redrawDataLine = function() {
     point = this.dataPoints[0];
 
     ctx.lineWidth = 1;    // TODO: make customizable
-    ctx.strokeStyle = "blue"; // TODO: make customizable
+    ctx.strokeStyle = 'blue'; // TODO: make customizable
     ctx.beginPath();
     ctx.moveTo(point.screen.x, point.screen.y);
   }
@@ -1988,8 +1988,8 @@ Graph3d.prototype._onMouseDown = function(event) {
   var me = this;
   this.onmousemove = function (event) {me._onMouseMove(event);};
   this.onmouseup   = function (event) {me._onMouseUp(event);};
-  G3DaddEventListener(document, "mousemove", me.onmousemove);
-  G3DaddEventListener(document, "mouseup", me.onmouseup);
+  G3DaddEventListener(document, 'mousemove', me.onmousemove);
+  G3DaddEventListener(document, 'mouseup', me.onmouseup);
   G3DpreventDefault(event);
 };
 
@@ -2050,8 +2050,8 @@ Graph3d.prototype._onMouseUp = function (event) {
   this.leftButtonDown = false;
 
   // remove event listeners here
-  G3DremoveEventListener(document, "mousemove", this.onmousemove);
-  G3DremoveEventListener(document, "mouseup",   this.onmouseup);
+  G3DremoveEventListener(document, 'mousemove', this.onmousemove);
+  G3DremoveEventListener(document, 'mouseup',   this.onmouseup);
   G3DpreventDefault(event);
 };
 
@@ -2115,8 +2115,8 @@ Graph3d.prototype._onTouchStart = function(event) {
   var me = this;
   this.ontouchmove = function (event) {me._onTouchMove(event);};
   this.ontouchend  = function (event) {me._onTouchEnd(event);};
-  G3DaddEventListener(document, "touchmove", me.ontouchmove);
-  G3DaddEventListener(document, "touchend", me.ontouchend);
+  G3DaddEventListener(document, 'touchmove', me.ontouchmove);
+  G3DaddEventListener(document, 'touchend', me.ontouchend);
 
   this._onMouseDown(event);
 };
@@ -2134,8 +2134,8 @@ Graph3d.prototype._onTouchMove = function(event) {
 Graph3d.prototype._onTouchEnd = function(event) {
   this.touchDown = false;
 
-  G3DremoveEventListener(document, "touchmove", this.ontouchmove);
-  G3DremoveEventListener(document, "touchend",   this.ontouchend);
+  G3DremoveEventListener(document, 'touchmove', this.ontouchmove);
+  G3DremoveEventListener(document, 'touchend',   this.ontouchend);
 
   this._onMouseUp(event);
 };
@@ -2376,8 +2376,8 @@ Graph3d.prototype._hideTooltip = function () {
 /**
  * Add and event listener. Works for all browsers
  * @param {Element}   element  An html element
- * @param {string}    action   The action, for example "click",
- *                 without the prefix "on"
+ * @param {string}    action   The action, for example 'click',
+ *                 without the prefix 'on'
  * @param {function}  listener   The callback function to be executed
  * @param {boolean}   useCapture
  */
@@ -2386,20 +2386,20 @@ G3DaddEventListener = function(element, action, listener, useCapture) {
     if (useCapture === undefined)
       useCapture = false;
 
-    if (action === "mousewheel" && navigator.userAgent.indexOf("Firefox") >= 0) {
-      action = "DOMMouseScroll";  // For Firefox
+    if (action === 'mousewheel' && navigator.userAgent.indexOf('Firefox') >= 0) {
+      action = 'DOMMouseScroll';  // For Firefox
     }
 
     element.addEventListener(action, listener, useCapture);
   } else {
-    element.attachEvent("on" + action, listener);  // IE browsers
+    element.attachEvent('on' + action, listener);  // IE browsers
   }
 };
 
 /**
  * Remove an event listener from an element
  * @param {Element}    element   An html dom element
- * @param {string}     action  The name of the event, for example "mousedown"
+ * @param {string}     action  The name of the event, for example 'mousedown'
  * @param {function}   listener  The listener function
  * @param {boolean}    useCapture
  */
@@ -2409,14 +2409,14 @@ G3DremoveEventListener = function(element, action, listener, useCapture) {
     if (useCapture === undefined)
       useCapture = false;
 
-    if (action === "mousewheel" && navigator.userAgent.indexOf("Firefox") >= 0) {
-      action = "DOMMouseScroll";  // For Firefox
+    if (action === 'mousewheel' && navigator.userAgent.indexOf('Firefox') >= 0) {
+      action = 'DOMMouseScroll';  // For Firefox
     }
 
     element.removeEventListener(action, listener, useCapture);
   } else {
     // IE browsers
-    element.detachEvent("on" + action, listener);
+    element.detachEvent('on' + action, listener);
   }
 };
 
@@ -2657,7 +2657,7 @@ Filter.prototype.getValues = function() {
  */
 Filter.prototype.getValue = function(index) {
   if (index >= this.values.length)
-    throw "Error: index out of range";
+    throw 'Error: index out of range';
 
   return this.values[index];
 };
@@ -2710,7 +2710,7 @@ Filter.prototype.setOnLoadCallback = function(callback) {
  */
 Filter.prototype.selectValue = function(index) {
   if (index >= this.values.length)
-    throw "Error: index out of range";
+    throw 'Error: index out of range';
 
   this.index = index;
   this.value = this.values[index];
@@ -2732,13 +2732,13 @@ Filter.prototype.loadInBackground = function(index) {
 
     // create a progress box
     if (frame.progress === undefined) {
-      frame.progress = document.createElement("DIV");
-      frame.progress.style.position = "absolute";
-      frame.progress.style.color = "gray";
+      frame.progress = document.createElement('DIV');
+      frame.progress.style.position = 'absolute';
+      frame.progress.style.color = 'gray';
       frame.appendChild(frame.progress);
     }
     var progress = this.getLoadedProgress();
-    frame.progress.innerHTML = "Loading animation... " + progress + "%";
+    frame.progress.innerHTML = 'Loading animation... ' + progress + '%';
     // TODO: this is no nice solution...
     frame.progress.style.bottom = Graph3d.px(60); // TODO: use height of slider
     frame.progress.style.left = Graph3d.px(10);
@@ -2914,51 +2914,51 @@ StepNumber.prototype.end = function () {
  */
 function Slider(container, options) {
   if (container === undefined) {
-    throw "Error: No container element defined";
+    throw 'Error: No container element defined';
   }
   this.container = container;
   this.visible = (options && options.visible != undefined) ? options.visible : true;
 
   if (this.visible) {
-    this.frame = document.createElement("DIV");
-    //this.frame.style.backgroundColor = "#E5E5E5";
-    this.frame.style.width = "100%";
-    this.frame.style.position = "relative";
+    this.frame = document.createElement('DIV');
+    //this.frame.style.backgroundColor = '#E5E5E5';
+    this.frame.style.width = '100%';
+    this.frame.style.position = 'relative';
     this.container.appendChild(this.frame);
 
-    this.frame.prev = document.createElement("INPUT");
-    this.frame.prev.type = "BUTTON";
-    this.frame.prev.value = "Prev";
+    this.frame.prev = document.createElement('INPUT');
+    this.frame.prev.type = 'BUTTON';
+    this.frame.prev.value = 'Prev';
     this.frame.appendChild(this.frame.prev);
 
-    this.frame.play = document.createElement("INPUT");
-    this.frame.play.type = "BUTTON";
-    this.frame.play.value = "Play";
+    this.frame.play = document.createElement('INPUT');
+    this.frame.play.type = 'BUTTON';
+    this.frame.play.value = 'Play';
     this.frame.appendChild(this.frame.play);
 
-    this.frame.next = document.createElement("INPUT");
-    this.frame.next.type = "BUTTON";
-    this.frame.next.value = "Next";
+    this.frame.next = document.createElement('INPUT');
+    this.frame.next.type = 'BUTTON';
+    this.frame.next.value = 'Next';
     this.frame.appendChild(this.frame.next);
 
-    this.frame.bar = document.createElement("INPUT");
-    this.frame.bar.type = "BUTTON";
-    this.frame.bar.style.position = "absolute";
-    this.frame.bar.style.border = "1px solid red";
-    this.frame.bar.style.width = "100px";
-    this.frame.bar.style.height = "6px";
-    this.frame.bar.style.borderRadius = "2px";
-    this.frame.bar.style.MozBorderRadius = "2px";
-    this.frame.bar.style.border = "1px solid #7F7F7F";
-    this.frame.bar.style.backgroundColor = "#E5E5E5";
+    this.frame.bar = document.createElement('INPUT');
+    this.frame.bar.type = 'BUTTON';
+    this.frame.bar.style.position = 'absolute';
+    this.frame.bar.style.border = '1px solid red';
+    this.frame.bar.style.width = '100px';
+    this.frame.bar.style.height = '6px';
+    this.frame.bar.style.borderRadius = '2px';
+    this.frame.bar.style.MozBorderRadius = '2px';
+    this.frame.bar.style.border = '1px solid #7F7F7F';
+    this.frame.bar.style.backgroundColor = '#E5E5E5';
     this.frame.appendChild(this.frame.bar);
 
-    this.frame.slide = document.createElement("INPUT");
-    this.frame.slide.type = "BUTTON";
-    this.frame.slide.style.margin = "0px";
-    this.frame.slide.value = " ";
-    this.frame.slide.style.position = "relative";
-    this.frame.slide.style.left = "-100px";
+    this.frame.slide = document.createElement('INPUT');
+    this.frame.slide.type = 'BUTTON';
+    this.frame.slide.style.margin = '0px';
+    this.frame.slide.value = ' ';
+    this.frame.slide.style.position = 'relative';
+    this.frame.slide.style.left = '-100px';
     this.frame.appendChild(this.frame.slide);
 
     // create events
@@ -3051,7 +3051,7 @@ Slider.prototype.play = function() {
   this.playNext();
 
   if (this.frame) {
-    this.frame.play.value = "Stop";
+    this.frame.play.value = 'Stop';
   }
 };
 
@@ -3063,7 +3063,7 @@ Slider.prototype.stop = function() {
   this.playTimeout = undefined;
 
   if (this.frame) {
-    this.frame.play.value = "Play";
+    this.frame.play.value = 'Play';
   }
 };
 
@@ -3118,15 +3118,15 @@ Slider.prototype.redraw = function() {
   if (this.frame) {
     // resize the bar
     this.frame.bar.style.top = (this.frame.clientHeight/2 -
-      this.frame.bar.offsetHeight/2) + "px";
+      this.frame.bar.offsetHeight/2) + 'px';
     this.frame.bar.style.width = (this.frame.clientWidth -
       this.frame.prev.clientWidth -
       this.frame.play.clientWidth -
-      this.frame.next.clientWidth - 30)  + "px";
+      this.frame.next.clientWidth - 30)  + 'px';
 
     // position the slider button
     var left = this.indexToLeft(this.index);
-    this.frame.slide.style.left = (left) + "px";
+    this.frame.slide.style.left = (left) + 'px';
   }
 };
 
@@ -3156,7 +3156,7 @@ Slider.prototype.setIndex = function(index) {
     this.onChange();
   }
   else {
-    throw "Error: index out of range";
+    throw 'Error: index out of range';
   }
 };
 
@@ -3194,8 +3194,8 @@ Slider.prototype._onMouseDown = function(event) {
   var me = this;
   this.onmousemove = function (event) {me._onMouseMove(event);};
   this.onmouseup   = function (event) {me._onMouseUp(event);};
-  G3DaddEventListener(document, "mousemove", this.onmousemove);
-  G3DaddEventListener(document, "mouseup",   this.onmouseup);
+  G3DaddEventListener(document, 'mousemove', this.onmousemove);
+  G3DaddEventListener(document, 'mouseup',   this.onmouseup);
   G3DpreventDefault(event);
 };
 
@@ -3240,8 +3240,8 @@ Slider.prototype._onMouseUp = function (event) {
   this.frame.style.cursor = 'auto';
 
   // remove event listeners
-  G3DremoveEventListener(document, "mousemove", this.onmousemove);
-  G3DremoveEventListener(document, "mouseup", this.onmouseup);
+  G3DremoveEventListener(document, 'mousemove', this.onmousemove);
+  G3DremoveEventListener(document, 'mouseup', this.onmouseup);
 
   G3DpreventDefault();
 };

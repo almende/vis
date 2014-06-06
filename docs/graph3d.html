@@ -81,9 +81,9 @@
 
     // specify options
     var options = {
-      width:  "600px",
-      height: "600px",
-      style: "surface",
+      width:  '600px',
+      height: '600px',
+      style: 'surface',
       showPerspective: true,
       showGrid: true,
       showShadow: false,
@@ -188,10 +188,10 @@
 </p>
 
 <pre class="prettyprint lang-js">
-options = {
-    width:  "100%",
-    height: "400px",
-    style: "surface"
+var options = {
+    width:  '100%',
+    height: '400px',
+    style: 'surface'
 };
 </pre>
 
@@ -234,7 +234,7 @@ options = {
 <tr>
   <td>backgroundColor</td>
   <td>string or Object</td>
-  <td>"white"</td>
+  <td>'white'</td>
   <td>The background color for the main area of the chart.
     Can be either a simple HTML color string, for example: 'red' or '#00cc00',
     or an object with the following properties.</td>
@@ -242,7 +242,7 @@ options = {
 <tr>
   <td>backgroundColor.stroke</td>
   <td>string</td>
-  <td>"gray"</td>
+  <td>'gray'</td>
   <td>The color of the chart border, as an HTML color string.</td>
 </tr>
 <tr>
@@ -254,14 +254,14 @@ options = {
 <tr>
   <td>backgroundColor.fill</td>
   <td>string</td>
-  <td>"white"</td>
+  <td>'white'</td>
   <td>The chart fill color, as an HTML color string.</td>
 </tr>
 
 <tr>
   <td>cameraPosition</td>
   <td>Object</td>
-  <td>{"horizontal":&nbsp;1.0, "vertical":&nbsp;0.5, "distance":&nbsp;1.7}</td>
+  <td>{horizontal:&nbsp;1.0, vertical:&nbsp;0.5, distance:&nbsp;1.7}</td>
   <td>Set the initial rotation and position of the camera.
     The object <code>cameraPosition</code> contains three parameters:
     <code>horizontal</code>, <code>vertical</code>, and <code>distance</code>.
@@ -277,7 +277,7 @@ options = {
 <tr>
   <td>height</td>
   <td>string</td>
-  <td>"400px"</td>
+  <td>'400px'</td>
   <td>The height of the graph in pixels or as a percentage.</td>
 </tr>
 
@@ -325,7 +325,7 @@ options = {
 <tr>
   <td>style</td>
   <td>string</td>
-  <td>"dot"</td>
+  <td>'dot'</td>
   <td>The style of the 3d graph. Available styles:
     <code>bar</code>,
     <code>bar-color</code>,
@@ -378,7 +378,7 @@ options = {
 <tr>
   <td>width</td>
   <td>string</td>
-  <td>"400px"</td>
+  <td>'400px'</td>
   <td>The width of the graph in pixels or as a percentage.</td>
 </tr>
 
@@ -388,13 +388,13 @@ options = {
   <td>none</td>
   <td>The width of bars in x direction. By default, the width is equal to the distance
     between the data points, such that bars adjoin each other.
-    Only applicable for styles <code>"bar"</code> and <code>"bar-color"</code>.</td>
+    Only applicable for styles <code>'bar'</code> and <code>'bar-color'</code>.</td>
 </tr>
 
 <tr>
   <td>xCenter</td>
   <td>string</td>
-  <td>"55%"</td>
+  <td>'55%'</td>
   <td>The horizontal center position of the graph, as a percentage or in
     pixels.</td>
 </tr>
@@ -423,13 +423,13 @@ options = {
   <td>none</td>
   <td>The width of bars in y direction. By default, the width is equal to the distance
     between the data points, such that bars adjoin each other.
-    Only applicable for styles <code>"bar"</code> and <code>"bar-color"</code>.</td>
+    Only applicable for styles <code>'bar'</code> and <code>'bar-color'</code>.</td>
 </tr>
 
 <tr>
   <td>yCenter</td>
   <td>string</td>
-  <td>"45%"</td>
+  <td>'45%'</td>
   <td>The vertical center position of the graph, as a percentage or in
     pixels.</td>
 </tr>
@@ -570,7 +570,7 @@ options = {
 
   <tr>
     <td>setCameraPosition (pos)</td>
-    <td>{"horizontal":&nbsp;1.0, "vertical":&nbsp;0.5, "distance":&nbsp;1.7}</td>
+    <td>{horizontal:&nbsp;1.0, vertical:&nbsp;0.5, distance:&nbsp;1.7}</td>
     <td>Set the rotation and position of the camera. Parameter <code>pos</code>
       is an object which contains three parameters: <code>horizontal</code>,
       <code>vertical</code>, and <code>distance</code>.
@@ -595,13 +595,13 @@ options = {
 
 <pre class="prettyprint lang-js">
 function onCameraPositionChange(event) {
-  alert("The camera position changed to:\n" +
-        "Horizontal: " + event.horizontal + "\n" +
-        "Vertical: " + event.vertical + "\n" +
-        "Distance: " + event.distance);
+  alert('The camera position changed to:\n' +
+        'Horizontal: ' + event.horizontal + '\n' +
+        'Vertical: ' + event.vertical + '\n' +
+        'Distance: ' + event.distance);
 }
 // assuming var graph3d = new vis.Graph3d(document.getElementById('mygraph'));
-graph3d.on("cameraPositionChange", onCameraPositionChange);
+graph3d.on('cameraPositionChange', onCameraPositionChange);
 </pre>
 
 <p>

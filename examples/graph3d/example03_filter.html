@@ -28,24 +28,24 @@
       for (var x = 0; x < axisMax; x+=axisStep) {
         for (var y = 0; y < axisMax; y+=axisStep) {
           var value = custom(x,y);
-          var valueRange = (value > 67) ? "67-100" :
-              (value < 33) ? "0-33" :
-                  "33-67";
+          var valueRange = (value > 67) ? '67-100' :
+              (value < 33) ? '0-33' :
+                  '33-67';
           data.push({x:x,y:y,z:value,filter:valueRange,style:value});
         }
       }
 
       // specify options
       var options = {
-        width:  "600px",
-        height: "600px",
-        style: "surface",
+        width:  '600px',
+        height: '600px',
+        style: 'surface',
         showPerspective: false,
         showGrid: true,
         showShadow: false,
         keepAspectRatio: true,
         verticalRatio: 0.5,
-        filterLabel: "values"
+        filterLabel: 'values'
       };
 
       // Create our graph

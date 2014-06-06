@@ -33,9 +33,10 @@
       var vertical = parseFloat(document.getElementById('vertical').value);
       var distance = parseFloat(document.getElementById('distance').value);
       var pos = {
-        "horizontal": horizontal,
-        "vertical":vertical,
-        "distance":distance};
+        horizontal: horizontal,
+        vertical: vertical,
+        distance: distance
+      };
       graph.setCameraPosition(pos);
 
       // retrieve the camera position again, to get the applied values
@@ -61,9 +62,9 @@
 
       // specify options
       var options = {
-        width:  "600px",
-        height: "600px",
-        style: "surface",
+        width:  '600px',
+        height: '600px',
+        style: 'surface',
         showPerspective: true,
         showGrid: true,
         showShadow: false,
@@ -75,7 +76,7 @@
       var container = document.getElementById('mygraph');
       graph = new vis.Graph3d(container, data, options);
 
-      graph.on("cameraPositionChange", onCameraPositionChange);
+      graph.on('cameraPositionChange', onCameraPositionChange);
     }
   </script>
 </head>

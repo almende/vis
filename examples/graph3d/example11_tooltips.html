@@ -19,7 +19,7 @@
 
     // Called when the Visualization API is loaded.
     function drawVisualization() {
-      var style = document.getElementById("style").value;
+      var style = document.getElementById('style').value;
       var withValue = ['bar-color', 'bar-size', 'dot-size', 'dot-color'].indexOf(style) != -1;
 
       // Create and populate a data table.
@@ -44,8 +44,8 @@
 
       // specify options
       var options = {
-        width:  "600px",
-        height: "600px",
+        width:  '600px',
+        height: '600px',
         style: style,
         showPerspective: true,
         showGrid: true,
@@ -70,7 +70,7 @@
 
       if (camera) graph.setCameraPosition(camera); // restore camera position
 
-      document.getElementById("style").onchange = drawVisualization;
+      document.getElementById('style').onchange = drawVisualization;
     }
   </script>
 </head>

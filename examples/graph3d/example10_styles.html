@@ -19,10 +19,10 @@
 
     // Called when the Visualization API is loaded.
     function drawVisualization() {
-      var style = document.getElementById("style").value;
-      var showPerspective = document.getElementById("perspective").checked;
-      var xBarWidth = parseFloat(document.getElementById("xBarWidth").value) || undefined;
-      var yBarWidth = parseFloat(document.getElementById("yBarWidth").value) || undefined;
+      var style = document.getElementById('style').value;
+      var showPerspective = document.getElementById('perspective').checked;
+      var xBarWidth = parseFloat(document.getElementById('xBarWidth').value) || undefined;
+      var yBarWidth = parseFloat(document.getElementById('yBarWidth').value) || undefined;
       var withValue = ['bar-color', 'bar-size', 'dot-size', 'dot-color'].indexOf(style) != -1;
 
       // Create and populate a data table.
@@ -47,8 +47,8 @@
 
       // specify options
       var options = {
-        width:  "600px",
-        height: "600px",
+        width:  '600px',
+        height: '600px',
         style: style,
         xBarWidth: xBarWidth,
         yBarWidth: yBarWidth,
@@ -67,10 +67,10 @@
 
       if (camera) graph.setCameraPosition(camera); // restore camera position
 
-      document.getElementById("style").onchange = drawVisualization;
-      document.getElementById("perspective").onchange = drawVisualization;
-      document.getElementById("xBarWidth").onchange = drawVisualization;
-      document.getElementById("yBarWidth").onchange = drawVisualization;
+      document.getElementById('style').onchange = drawVisualization;
+      document.getElementById('perspective').onchange = drawVisualization;
+      document.getElementById('xBarWidth').onchange = drawVisualization;
+      document.getElementById('yBarWidth').onchange = drawVisualization;
     }
   </script>
 </head>
