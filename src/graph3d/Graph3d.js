@@ -475,7 +475,7 @@ Graph3d.prototype.getColumnRange = function(data,column) {
     if (minMax.max < data[i][column]) { minMax.max = data[i][column]; }
   }
   return minMax;
-}
+};
 
 /**
  * Initialize the data from the data table. Calculate minimum and maximum values
@@ -484,6 +484,12 @@ Graph3d.prototype.getColumnRange = function(data,column) {
  * @param {Number}     style   Style Number
  */
 Graph3d.prototype._dataInitialize = function (rawData, style) {
+  var me = this;
+
+  // unsubscribe from the dataTable
+  if (this.dataSet) {
+    this.dataSet.off('*', this._onChange);
+  }
 
   if (rawData === undefined)
     return;
@@ -503,7 +509,14 @@ Graph3d.prototype._dataInitialize = function (rawData, style) {
   if (data.length == 0)
     return;
 
+  this.dataSet = rawData;
   this.dataTable = data;
+
+  // subscribe to changes in the dataset
+  this._onChange = function () {
+    me.setData(me.dataSet);
+  };
+  this.dataSet.on('*', this._onChange);
 
   // _determineColumnIndexes
   // getNumberOfRows (points)
@@ -524,7 +537,6 @@ Graph3d.prototype._dataInitialize = function (rawData, style) {
   if (data[0].hasOwnProperty("filter")) {
     if (this.dataFilter === undefined) {
       this.dataFilter = new Filter(rawData, this.colFilter, this);
-      var me = this;
       this.dataFilter.setOnLoadCallback(function() {me.redraw();});
     }
   }
