@@ -1,56 +1,56 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-    <title>Graph 3D demo</title>
+  <title>Graph 3D demo</title>
 
-    <style>
-        body {font: 10pt arial;}
-    </style>
+  <style>
+    body {font: 10pt arial;}
+  </style>
 
-    <script type="text/javascript" src="../../dist/vis.js"></script>
+  <script type="text/javascript" src="../../dist/vis.js"></script>
 
-    <script type="text/javascript">
-        var data = null;
-        var graph = null;
+  <script type="text/javascript">
+    var data = null;
+    var graph = null;
 
-        function custom(x, y) {
-            return (Math.sin(x/50) * Math.cos(y/50) * 50 + 50);
+    function custom(x, y) {
+      return (Math.sin(x/50) * Math.cos(y/50) * 50 + 50);
+    }
+
+    // Called when the Visualization API is loaded.
+    function drawVisualization() {
+      // Create and populate a data table.
+      var data = [];
+      // create some nice looking data with sin/cos
+      var steps = 50;  // number of datapoints will be steps*steps
+      var axisMax = 314;
+      var axisStep = axisMax / steps;
+      for (var x = 0; x < axisMax; x+=axisStep) {
+        for (var y = 0; y < axisMax; y+=axisStep) {
+          var value = custom(x,y);
+          data.push({x:x,y:y,z:value,style:value});
         }
+      }
 
-        // Called when the Visualization API is loaded.
-        function drawVisualization() {
-            // Create and populate a data table.
-            var data = [];
-            // create some nice looking data with sin/cos
-            var steps = 50;  // number of datapoints will be steps*steps
-            var axisMax = 314;
-            var axisStep = axisMax / steps;
-            for (var x = 0; x < axisMax; x+=axisStep) {
-                for (var y = 0; y < axisMax; y+=axisStep) {
-                    var value = custom(x,y);
-                    data.push({x:x,y:y,z:value,style:value});
-                }
-            }
+      // specify options
+      var options = {
+        width:  "600px",
+        height: "600px",
+        style: "surface",
+        showPerspective: true,
+        showGrid: true,
+        showShadow: false,
+        keepAspectRatio: true,
+        verticalRatio: 0.5
+      };
 
-            // specify options
-            var options = {
-                width:  "600px",
-                height: "600px",
-                style: "surface",
-                showPerspective: true,
-                showGrid: true,
-                showShadow: false,
-                keepAspectRatio: true,
-                verticalRatio: 0.5
-            };
+      // Instantiate our graph object.
+      graph = new vis.Graph3d(document.getElementById('mygraph'));
 
-            // Instantiate our graph object.
-            graph = new vis.Graph3d(document.getElementById('mygraph'));
-
-            // Draw our graph with the created data and options
-            graph.draw(data, options);
-        }
-    </script>
+      // Draw our graph with the created data and options
+      graph.draw(data, options);
+    }
+  </script>
 </head>
 
 <body onload="drawVisualization();">

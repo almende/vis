@@ -1,41 +1,41 @@
 body
 {
-	font: 13px "Lucida Grande", Tahoma, Arial, Helvetica, sans-serif;
+  font: 13px "Lucida Grande", Tahoma, Arial, Helvetica, sans-serif;
 }
- 
+
 h1
 {
-	font-size: 180%;
-	font-weight: bold;
+  font-size: 180%;
+  font-weight: bold;
 
-	margin: 1em 0 1em 0;
+  margin: 1em 0 1em 0;
 }
 
-h2 
-{ 
-  font-size: 140%; 
+h2
+{
+  font-size: 140%;
   padding: 5px;
   border-bottom: 1px solid #a0c0f0;
   color: #2B7CE9;
 }
 
 h3
-{ 
-  font-size: 100%; 
+{
+  font-size: 100%;
 }
 
 hr
 {
-	border: none 0;
-	border-top: 1px solid #a0c0f0;
-	height: 1px;
+  border: none 0;
+  border-top: 1px solid #a0c0f0;
+  height: 1px;
 }
- 
+
 pre.code
 {
-	display: block;
-	padding: 8px;
-	border: 1px dashed #ccc;
+  display: block;
+  padding: 8px;
+  border: 1px dashed #ccc;
 }
 
 table
@@ -52,7 +52,7 @@ th, td
   padding: 3px;
 }
 
-th 
+th
 {
   font-weight: bold;
 }
@@ -69,8 +69,8 @@ input[type=text] {
 }
 
 #datasourceText, #googlespreadsheetText {
-  width: 500px; 
-  
+  width: 500px;
+
 }
 
 .info {

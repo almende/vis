@@ -98,7 +98,7 @@ task('build', {async: true}, function () {
       './src/graph/graphMixins/MixinLoader.js',
       './src/graph/Graph.js',
 
-      './src/graph3d/graph3d.js',
+      './src/graph3d/Graph3d.js',
 
       './src/module/exports.js'
     ],

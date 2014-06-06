@@ -2,7 +2,7 @@
 http://visjs.org
 
 
-## not yet released, version 1.0.3
+## not yet released, version 1.1.0
 
 ### Timeline
 
@@ -18,7 +18,7 @@ http://visjs.org
 
 ### Graph3D
 
-- Ported Graph3D from Chap Links.
+- Ported Graph3D from Chap Links Library.
 
 
 ## 2014-05-28, version 1.0.2

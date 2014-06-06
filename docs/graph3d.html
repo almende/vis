@@ -43,67 +43,70 @@
 &lt;!DOCTYPE HTML&gt;
 &lt;html&gt;
 &lt;head&gt;
-    &lt;title&gt;Graph 3D demo&lt;/title&gt;
+  &lt;title&gt;Graph 3D demo&lt;/title&gt;
 
-    &lt;style&gt;
-        body {font: 10pt arial;}
-    &lt;/style&gt;
+  &lt;style&gt;
+    body {font: 10pt arial;}
+  &lt;/style&gt;
 
-    &lt;script type="text/javascript" src="../../dist/vis.js"&gt;&lt;/script&gt;
+  &lt;script type="text/javascript" src="../../dist/vis.js"&gt;&lt;/script&gt;
 
-    &lt;script type="text/javascript"&gt;
-    var data = null;
-    var graph = null;
+  &lt;script type="text/javascript"&gt;
+  var data = null;
+  var graph = null;
 
-    function custom(x, y) {
-        return (Math.sin(x/50) * Math.cos(y/50) * 50 + 50);
+  function custom(x, y) {
+    return (Math.sin(x/50) * Math.cos(y/50) * 50 + 50);
+  }
+
+  // Called when the Visualization API is loaded.
+  function drawVisualization() {
+    // Create and populate a data table.
+    var data = [];
+    // create some nice looking data with sin/cos
+    var steps = 50;  // number of datapoints will be steps*steps
+    var axisMax = 314;
+    var axisStep = axisMax / steps;
+    for (var x = 0; x &lt; axisMax; x+=axisStep) {
+      for (var y = 0; y &lt; axisMax; y+=axisStep) {
+        var value = custom(x, y);
+        data.push({
+          x: x,
+          y: y,
+          z: value,
+          style: value
+        });
+      }
     }
 
-    // Called when the Visualization API is loaded.
-    function drawVisualization() {
-        // Create and populate a data table.
-        var data = new vis.DataSet({});
-        // create some nice looking data with sin/cos
-        var steps = 50;  // number of datapoints will be steps*steps
-        var axisMax = 314;
-        var axisStep = axisMax / steps;
-        for (var x = 0; x &lt; axisMax; x+=axisStep) {
-            for (var y = 0; y &lt; axisMax; y+=axisStep) {
-                var value = custom(x,y);
-                data.add([
-                    {x:x,y:y,z:value,style:value}
-                ]);
-            }
-        }
+    // specify options
+    var options = {
+      width:  "600px",
+      height: "600px",
+      style: "surface",
+      showPerspective: true,
+      showGrid: true,
+      showShadow: false,
+      keepAspectRatio: true,
+      verticalRatio: 0.5
+    };
 
-        // specify options
-        var options = {
-            width:  "600px",
-            height: "600px",
-            style: "surface",
-            showPerspective: true,
-            showGrid: true,
-            showShadow: false,
-            keepAspectRatio: true,
-            verticalRatio: 0.5
-        };
+    // Instantiate our graph object.
+    graph3d = new vis.Graph3d(document.getElementById('mygraph'));
 
-        // Instantiate our graph object.
-        graph3d = new vis.Graph3d(document.getElementById('mygraph'));
+    // Draw our graph with the created data and options
+    graph3d.draw(data, options);
 
-        // Draw our graph with the created data and options
-        graph3d.draw(data, options);
-
-        // subscribe to event
-        graph3d.on("camerapositionchange", function(event) {console.log(event);});
-    }
-    &lt;/script&gt;
-    &lt;/head&gt;
+    // subscribe to event
+    graph3d.on("camerapositionchange", function(event) {console.log(event);});
+  }
+  &lt;/script&gt;
+  &lt;/head&gt;
 
 &lt;body onload="drawVisualization();"&gt;
-&lt;div id="mygraph"&gt;&lt;/div&gt;
+  &lt;div id="mygraph"&gt;&lt;/div&gt;
 
-        &lt;div id="info"&gt;&lt;/div&gt;
+  &lt;div id="info"&gt;&lt;/div&gt;
 &lt;/body&gt;
 &lt;/html&gt;
 
