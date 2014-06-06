@@ -823,8 +823,7 @@ Graph3d.prototype.animationStart = function() {
  * Stop animation
  */
 Graph3d.prototype.animationStop = function() {
-  if (!this.frame.filter || !this.frame.filter.slider)
-    throw "No animation available";
+  if (!this.frame.filter || !this.frame.filter.slider) return;
 
   this.frame.filter.slider.stop();
 };
@@ -930,6 +929,11 @@ Graph3d.prototype._readData = function(data) {
 Graph3d.prototype.setData = function (data) {
   this._readData(data);
   this.redraw();
+
+  // start animation when option is true
+  if (this.animationAutoStart && this.dataFilter) {
+    this.animationStart();
+  }
 };
 
 /**
@@ -938,6 +942,8 @@ Graph3d.prototype.setData = function (data) {
  */
 Graph3d.prototype.setOptions = function (options) {
   var cameraPosition = undefined;
+
+  this.animationStop();
 
   if (options !== undefined) {
     // retrieve parameter values
@@ -1006,6 +1012,11 @@ Graph3d.prototype.setOptions = function (options) {
   if (this.dataTable) {
     this.setData(this.dataTable);
   }
+
+  // start animation when option is true
+  if (this.animationAutoStart && this.dataFilter) {
+    this.animationStart();
+  }
 };
 
 /**
@@ -1041,11 +1052,6 @@ Graph3d.prototype.redraw = function() {
 
   this._redrawInfo();
   this._redrawLegend();
-
-  // start animation when option is true
-  if (this.animationAutoStart && this.dataFilter) {
-    this.animationStart();
-  }
 };
 
 /**
@@ -2906,7 +2912,7 @@ StepNumber.prototype.end = function () {
  *                 {boolean} visible   If true (default) the
  *                           slider is visible.
  */
-Slider = function(container, options) {
+function Slider(container, options) {
   if (container === undefined) {
     throw "Error: No container element defined";
   }
@@ -3039,6 +3045,9 @@ Slider.prototype.togglePlay = function() {
  * Start playing
  */
 Slider.prototype.play = function() {
+  // Test whether already playing
+  if (this.playTimeout) return;
+
   this.playNext();
 
   if (this.frame) {
