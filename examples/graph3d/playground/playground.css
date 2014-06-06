@@ -14,9 +14,9 @@ h1
 h2 
 { 
   font-size: 140%; 
-  color: white;
-  background-color: #7F8FB1;
   padding: 5px;
+  border-bottom: 1px solid #a0c0f0;
+  color: #2B7CE9;
 }
 
 h3
@@ -27,7 +27,7 @@ h3
 hr
 {
 	border: none 0;
-	border-top: 1px solid #7F8FB1;
+	border-top: 1px solid #a0c0f0;
 	height: 1px;
 }
  
