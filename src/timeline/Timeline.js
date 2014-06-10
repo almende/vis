@@ -112,7 +112,7 @@ function Timeline (container, items, options) {
   // item set
   this.itemSet = new ItemSet(this, this.options);
   this.components.push(this.itemSet);
-  this.emitter.on('change', this.repaint.bind(this));
+  this.emitter.on('change', this.redraw.bind(this));
 
   /* TODO
   // root panel
@@ -378,7 +378,7 @@ Timeline.prototype._create = function () {
   // create a central event bus
   this.emitter = this;
 
-  this.emitter.on('rangechange', this.repaint.bind(this));
+  this.emitter.on('rangechange', this.redraw.bind(this));
 
   // create event listeners for all interesting events, these events will be
   // emitted via emitter
@@ -498,8 +498,8 @@ Timeline.prototype.setOptions = function (options) {
     throw new Error('Option order is deprecated. There is no replacement for this feature.');
   }
 
-  // repaint everything
-  this.repaint();
+  // redraw everything
+  this.redraw();
 };
 
 /**
@@ -843,11 +843,12 @@ Timeline.prototype.redraw = function() {
   });
   if (resized) {
     // keep repainting until all sizes are settled
-    this.repaint();
+    this.redraw();
   }
+};
 
 // TODO: deprecated since version 1.1.0, remove some day
-Timeline.prototype.repaint = function repaint() {
+Timeline.prototype.repaint = function () {
     throw new Error('Function repaint is deprecated. Use redraw instead.');
 };
 
