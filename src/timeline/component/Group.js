@@ -134,10 +134,6 @@ Group.prototype.redraw = function redraw(range, margin, restack) {
   else { // no stacking
     stack.nostack(this.visibleItems, margin);
   }
-  for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
-    var item = this.visibleItems[i];
-    item.repositionY();
-  }
 
   // recalculate the height of the group
   var height;
@@ -170,6 +166,12 @@ Group.prototype.redraw = function redraw(range, margin, restack) {
   // apply new height
   foreground.style.height  = height + 'px';
   this.dom.label.style.height = height + 'px';
+
+  // update vertical position of items after they are re-stacked and the height of the group is calculated
+  for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
+    var item = this.visibleItems[i];
+    item.repositionY();
+  }
 
   return resized;
 };

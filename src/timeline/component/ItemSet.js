@@ -313,7 +313,8 @@ ItemSet.prototype.redraw = function redraw() {
       minHeight = margin.axis + margin.item;
   util.forEach(this.groups, function (group) {
     var groupMargin = (group == firstGroup) ? firstMargin : nonFirstMargin;
-    resized = group.redraw(range, groupMargin, restack) || resized;
+    var groupResized = group.redraw(range, groupMargin, restack);
+    resized = groupResized || resized;
     height += group.height;
   });
   height = Math.max(height, minHeight);
