@@ -99,6 +99,7 @@ function Timeline (container, items, options) {
   // time axis
   this.timeAxis = new TimeAxis(this, this.options);
   this.components.push(this.timeAxis);
+  this.options.snap = this.timeAxis.snap.bind(this.timeAxis); // TODO: not nice adding snap to options
 
   // current time bar
   this.currentTime = new CurrentTime(this, this.options);

@@ -1076,7 +1076,7 @@ ItemSet.prototype._onAddItem = function (event) {
     // add item
     var xAbs = vis.util.getAbsoluteLeft(this.dom.frame);
     var x = event.gesture.center.pageX - xAbs;
-    var start = this._toTime(x);
+    var start = this.options.toTime(x);
     var newItem = {
       start: snap ? snap(start) : start,
       content: 'new item'
@@ -1084,7 +1084,7 @@ ItemSet.prototype._onAddItem = function (event) {
 
     // when default type is a range, add a default end date to the new item
     if (this.options.type === 'range' || this.options.type == 'rangeoverflow') {
-      var end = this._toTime(x + this.props.width / 5);
+      var end = this.options.toTime(x + this.props.width / 5);
       newItem.end = snap ? snap(end) : end;
     }
 
