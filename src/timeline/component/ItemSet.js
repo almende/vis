@@ -823,21 +823,6 @@ ItemSet.prototype._constructByEndArray = function _constructByEndArray(array) {
 };
 
 /**
- * Get the width of the group labels
- * @return {Number} width
- */
-// TODO: is this function getLabelsWidth redundant?
-ItemSet.prototype.getLabelsWidth = function getLabelsWidth() {
-  var width = 0;
-
-  util.forEach(this.groups, function (group) {
-    width = Math.max(width, group.getLabelWidth());
-  });
-
-  return width;
-};
-
-/**
  * Register the clicked item on touch, before dragStart is initiated.
  *
  * dragStart is initiated from a mousemove event, which can have left the item
