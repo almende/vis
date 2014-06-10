@@ -111,9 +111,20 @@ ItemSet.prototype._create = function _create(){
   this.hammer = Hammer(frame, {
     prevent_default: true
   });
+
+  // drag items when selected
   this.hammer.on('dragstart', this._onDragStart.bind(this));
   this.hammer.on('drag',      this._onDrag.bind(this));
   this.hammer.on('dragend',   this._onDragEnd.bind(this));
+
+  // single select (or unselect) when tapping an item
+  this.hammer.on('tap',  this._onSelectItem.bind(this));
+
+  // multi select when holding mouse/touch, or on ctrl+click
+  this.hammer.on('hold', this._onMultiSelectItem.bind(this));
+
+  // add item on doubletap
+  this.hammer.on('doubletap', this._onAddItem.bind(this));
 
   // attach to the DOM
   this.show();
@@ -187,7 +198,7 @@ ItemSet.prototype.show = function show() {
 
   // show axis with dots
   if (!this.dom.axis.parentNode) {
-    this.timeline.dom.foregroundVertical.appendChild(this.dom.axis);
+    this.timeline.dom.backgroundVertical.appendChild(this.dom.axis);
   }
 
   // show labelset containing labels
@@ -998,6 +1009,131 @@ ItemSet.prototype._onDragEnd = function (event) {
     if (changes.length) {
       dataset.update(changes);
     }
+
+    event.stopPropagation();
+  }
+};
+
+/**
+ * Handle selecting/deselecting an item when tapping it
+ * @param {Event} event
+ * @private
+ */
+ItemSet.prototype._onSelectItem = function (event) {
+  if (!this.options.selectable) return;
+
+  var ctrlKey  = event.gesture.srcEvent && event.gesture.srcEvent.ctrlKey;
+  var shiftKey = event.gesture.srcEvent && event.gesture.srcEvent.shiftKey;
+  if (ctrlKey || shiftKey) {
+    this._onMultiSelectItem(event);
+    return;
+  }
+
+  var oldSelection = this.getSelection();
+
+  var item = ItemSet.itemFromTarget(event);
+  var selection = item ? [item.id] : [];
+  this.setSelection(selection);
+
+  var newSelection = this.getSelection();
+
+  // emit a select event,
+  // except when old selection is empty and new selection is still empty
+  if (newSelection.length > 0 || oldSelection.length > 0) {
+    this.timeline.emitter.emit('select', {
+      items: this.getSelection()
+    });
+  }
+
+  event.stopPropagation();
+};
+
+/**
+ * Handle creation and updates of an item on double tap
+ * @param event
+ * @private
+ */
+ItemSet.prototype._onAddItem = function (event) {
+  if (!this.options.selectable) return;
+  if (!this.options.editable.add) return;
+
+  var me = this,
+      snap = this.options.snap || null,
+      item = ItemSet.itemFromTarget(event);
+
+  if (item) {
+    // update item
+
+    // execute async handler to update the item (or cancel it)
+    var itemData = me.itemsData.get(item.id); // get a clone of the data from the dataset
+    this.options.onUpdate(itemData, function (itemData) {
+      if (itemData) {
+        me.itemsData.update(itemData);
+      }
+    });
+  }
+  else {
+    // add item
+    var xAbs = vis.util.getAbsoluteLeft(this.dom.frame);
+    var x = event.gesture.center.pageX - xAbs;
+    var start = this._toTime(x);
+    var newItem = {
+      start: snap ? snap(start) : start,
+      content: 'new item'
+    };
+
+    // when default type is a range, add a default end date to the new item
+    if (this.options.type === 'range' || this.options.type == 'rangeoverflow') {
+      var end = this._toTime(x + this.props.width / 5);
+      newItem.end = snap ? snap(end) : end;
+    }
+
+    var id = util.randomUUID();
+    newItem[this.itemsData.fieldId] = id;
+
+    var group = ItemSet.groupFromTarget(event);
+    if (group) {
+      newItem.group = group.groupId;
+    }
+
+    // execute async handler to customize (or cancel) adding an item
+    this.options.onAdd(newItem, function (item) {
+      if (item) {
+        me.itemsData.add(newItem);
+        // TODO: need to trigger a redraw?
+      }
+    });
+  }
+};
+
+/**
+ * Handle selecting/deselecting multiple items when holding an item
+ * @param {Event} event
+ * @private
+ */
+ItemSet.prototype._onMultiSelectItem = function (event) {
+  if (!this.options.selectable) return;
+
+  var selection,
+      item = ItemSet.itemFromTarget(event);
+
+  if (item) {
+    // multi select items
+    selection = this.getSelection(); // current selection
+    var index = selection.indexOf(item.id);
+    if (index == -1) {
+      // item is not yet selected -> select it
+      selection.push(item.id);
+    }
+    else {
+      // item is already selected -> deselect it
+      selection.splice(index, 1);
+    }
+    this.setSelection(selection);
+
+    this.timeline.emitter.emit('select', {
+      items: this.getSelection()
+    });
 
     event.stopPropagation();
   }

@@ -37,7 +37,7 @@ CurrentTime.prototype._create = function _create () {
  */
 CurrentTime.prototype.redraw = function redraw() {
   if (this.options.showCurrentTime) {
-    var parent = this.timeline.dom.foregroundVertical;
+    var parent = this.timeline.dom.backgroundVertical;
     if (this.bar.parentNode != parent) {
       // attach to the dom
       if (this.bar.parentNode) {

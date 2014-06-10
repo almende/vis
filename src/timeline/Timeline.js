@@ -346,7 +346,6 @@ Timeline.prototype._create = function () {
   this.dom.right                = document.createElement('div');
   this.dom.top                  = document.createElement('div');
   this.dom.bottom               = document.createElement('div');
-  this.dom.foregroundVertical   = document.createElement('div');
 
   this.dom.background.className           = 'vispanel background';
   this.dom.backgroundVertical.className   = 'vispanel background vertical';
@@ -359,7 +358,6 @@ Timeline.prototype._create = function () {
   this.dom.left.className                 = 'content';
   this.dom.center.className               = 'content';
   this.dom.right.className                = 'content';
-  this.dom.foregroundVertical.className   = 'vispanel foreground vertical';
 
   this.dom.root.appendChild(this.dom.background);
   this.dom.root.appendChild(this.dom.backgroundVertical);
@@ -369,7 +367,6 @@ Timeline.prototype._create = function () {
   this.dom.root.appendChild(this.dom.rightContainer);
   this.dom.root.appendChild(this.dom.top);
   this.dom.root.appendChild(this.dom.bottom);
-  this.dom.root.appendChild(this.dom.foregroundVertical);
 
   this.dom.centerContainer.appendChild(this.dom.center);
   this.dom.leftContainer.appendChild(this.dom.left);
@@ -389,7 +386,8 @@ Timeline.prototype._create = function () {
 
   var me = this;
   var events = [
-    'touch', 'pinch', 'tap', 'doubletap', 'hold',
+    'pinch',
+    //'tap', 'doubletap', 'hold', // TODO: catching the events here disables selecting an item
     'dragstart', 'drag', 'dragend',
     'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
   ];
@@ -807,7 +805,6 @@ Timeline.prototype.redraw = function() {
   dom.centerContainer.style.height      = props.centerContainer.height + 'px';
   dom.leftContainer.style.height        = props.leftContainer.height + 'px';
   dom.rightContainer.style.height       = props.rightContainer.height + 'px';
-  dom.foregroundVertical.style.height   = props.background.height + 'px';
 
   dom.background.style.width            = props.background.width + 'px';
   dom.backgroundVertical.style.width    = props.centerContainer.width + 'px';
@@ -815,7 +812,6 @@ Timeline.prototype.redraw = function() {
   dom.centerContainer.style.width       = props.center.width + 'px';
   dom.top.style.width                   = props.top.width + 'px';
   dom.bottom.style.width                = props.bottom.width + 'px';
-  dom.foregroundVertical.style.width    = props.centerContainer.width + 'px';
 
   // reposition the panels
   dom.background.style.left           = '0';
@@ -834,8 +830,6 @@ Timeline.prototype.redraw = function() {
   dom.top.style.top                   = '0';
   dom.bottom.style.left               = props.left.width + 'px';
   dom.bottom.style.top                = (props.top.height + props.centerContainer.height) + 'px';
-  dom.foregroundVertical.style.left   = props.left.width + 'px';
-  dom.foregroundVertical.style.top    = '0';
 
   // redraw all components
   this.components.forEach(function (component) {
@@ -850,131 +844,6 @@ Timeline.prototype.redraw = function() {
 // TODO: deprecated since version 1.1.0, remove some day
 Timeline.prototype.repaint = function () {
     throw new Error('Function repaint is deprecated. Use redraw instead.');
-};
-
-/**
- * Handle selecting/deselecting an item when tapping it
- * @param {Event} event
- * @private
- */
-// TODO: move this function to ItemSet
-Timeline.prototype._onSelectItem = function (event) {
-  if (!this.options.selectable) return;
-
-  var ctrlKey  = event.gesture.srcEvent && event.gesture.srcEvent.ctrlKey;
-  var shiftKey = event.gesture.srcEvent && event.gesture.srcEvent.shiftKey;
-  if (ctrlKey || shiftKey) {
-    this._onMultiSelectItem(event);
-    return;
-  }
-
-  var oldSelection = this.getSelection();
-
-  var item = ItemSet.itemFromTarget(event);
-  var selection = item ? [item.id] : [];
-  this.setSelection(selection);
-
-  var newSelection = this.getSelection();
-
-  // emit a select event,
-  // except when old selection is empty and new selection is still empty
-  if (newSelection.length > 0 || oldSelection.length > 0) {
-    this.emit('select', {
-      items: this.getSelection()
-    });
-  }
-
-  event.stopPropagation();
-};
-
-/**
- * Handle creation and updates of an item on double tap
- * @param event
- * @private
- */
-// TODO: move this function to ItemSet
-Timeline.prototype._onAddItem = function (event) {
-  if (!this.options.selectable) return;
-  if (!this.options.editable.add) return;
-
-  var me = this,
-      item = ItemSet.itemFromTarget(event);
-
-  if (item) {
-    // update item
-
-    // execute async handler to update the item (or cancel it)
-    var itemData = me.itemsData.get(item.id); // get a clone of the data from the dataset
-    this.options.onUpdate(itemData, function (itemData) {
-      if (itemData) {
-        me.itemsData.update(itemData);
-      }
-    });
-  }
-  else {
-    // add item
-    var xAbs = vis.util.getAbsoluteLeft(this.contentPanel.frame);
-    var x = event.gesture.center.pageX - xAbs;
-    var newItem = {
-      start: this.timeAxis.snap(this._toTime(x)),
-      content: 'new item'
-    };
-
-    // when default type is a range, add a default end date to the new item
-    if (this.options.type === 'range' || this.options.type == 'rangeoverflow') {
-      newItem.end = this.timeAxis.snap(this._toTime(x + this.rootPanel.width / 5));
-    }
-
-    var id = util.randomUUID();
-    newItem[this.itemsData.fieldId] = id;
-
-    var group = ItemSet.groupFromTarget(event);
-    if (group) {
-      newItem.group = group.groupId;
-    }
-
-    // execute async handler to customize (or cancel) adding an item
-    this.options.onAdd(newItem, function (item) {
-      if (item) {
-        me.itemsData.add(newItem);
-        // TODO: need to trigger a redraw?
-      }
-    });
-  }
-};
-
-/**
- * Handle selecting/deselecting multiple items when holding an item
- * @param {Event} event
- * @private
- */
-// TODO: move this function to ItemSet
-Timeline.prototype._onMultiSelectItem = function (event) {
-  if (!this.options.selectable) return;
-
-  var selection,
-      item = ItemSet.itemFromTarget(event);
-
-  if (item) {
-    // multi select items
-    selection = this.getSelection(); // current selection
-    var index = selection.indexOf(item.id);
-    if (index == -1) {
-      // item is not yet selected -> select it
-      selection.push(item.id);
-    }
-    else {
-      // item is already selected -> deselect it
-      selection.splice(index, 1);
-    }
-    this.setSelection(selection);
-
-    this.emit('select', {
-      items: this.getSelection()
-    });
-
-    event.stopPropagation();
-  }
 };
 
 /**

@@ -12,14 +12,14 @@
   /**/
 }
 
-.vis.timeline .background,
-.vis.timeline .foreground {
+.vis.timeline .itemset .background,
+.vis.timeline .itemset .foreground {
   position: absolute;
   width: 100%;
   height: 100%;
 }
 
-.vis.timeline .foreground {
+.vis.timeline .itemset.foreground {
   overflow: hidden;
 }
 
@@ -28,6 +28,7 @@
   width: 100%;
   height: 0;
   left: 1px;
+  z-index: 1;
 }
 
 .vis.timeline  .group {

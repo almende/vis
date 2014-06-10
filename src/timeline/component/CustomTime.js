@@ -55,7 +55,7 @@ CustomTime.prototype._create = function _create () {
  */
 CustomTime.prototype.redraw = function () {
   if (this.options.showCustomTime) {
-    var parent = this.timeline.dom.foregroundVertical;
+    var parent = this.timeline.dom.backgroundVertical;
     if (this.bar.parentNode != parent) {
       // attach to the dom
       if (this.bar.parentNode) {
