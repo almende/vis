@@ -1,14 +1,14 @@
 /**
  * A current time bar
- * @param {{range: Range, dom: Object}} timeline
+ * @param {{range: Range, dom: Object}} body
  * @param {Object} [options]        Available parameters:
  *                                  {Boolean} [showCurrentTime]
  * @constructor CurrentTime
  * @extends Component
  */
 
-function CurrentTime (timeline, options) {
-  this.timeline = timeline;
+function CurrentTime (body, options) {
+  this.body = body;
 
   this.options = options || {};
 
@@ -37,7 +37,7 @@ CurrentTime.prototype._create = function() {
  */
 CurrentTime.prototype.redraw = function() {
   if (this.options.showCurrentTime) {
-    var parent = this.timeline.dom.backgroundVertical;
+    var parent = this.body.dom.backgroundVertical;
     if (this.bar.parentNode != parent) {
       // attach to the dom
       if (this.bar.parentNode) {
@@ -75,7 +75,7 @@ CurrentTime.prototype.start = function() {
     me.stop();
 
     // determine interval to refresh
-    var scale = me.timeline.range.conversion(me.timeline.props.center.width).scale;
+    var scale = me.body.range.conversion(me.body.props.center.width).scale;
     var interval = 1 / scale / 10;
     if (interval < 30)   interval = 30;
     if (interval > 1000) interval = 1000;

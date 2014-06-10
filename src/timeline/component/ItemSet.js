@@ -4,13 +4,13 @@ var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
  * An ItemSet holds a set of items and ranges which can be displayed in a
  * range. The width is determined by the parent of the ItemSet, and the height
  * is determined by the size of the items.
- * @param {{dom: Object}} timeline
+ * @param {{dom: Object, props: Object, emitter: Emitter, range: Range}} body
  * @param {Object} [options]      See ItemSet.setOptions for the available options.
  * @constructor ItemSet
  * @extends Component
  */
-function ItemSet(timeline, options) {
-  this.timeline = timeline;
+function ItemSet(body, options) {
+  this.body = body;
 
   // one options object is shared by this itemset and all its items
   this.options = options || {};
@@ -194,17 +194,17 @@ ItemSet.prototype.hide = function() {
 ItemSet.prototype.show = function() {
   // show frame containing the items
   if (!this.dom.frame.parentNode) {
-    this.timeline.dom.center.appendChild(this.dom.frame);
+    this.body.dom.center.appendChild(this.dom.frame);
   }
 
   // show axis with dots
   if (!this.dom.axis.parentNode) {
-    this.timeline.dom.backgroundVertical.appendChild(this.dom.axis);
+    this.body.dom.backgroundVertical.appendChild(this.dom.axis);
   }
 
   // show labelset containing labels
   if (!this.dom.labelSet.parentNode) {
-    this.timeline.dom.left.appendChild(this.dom.labelSet);
+    this.body.dom.left.appendChild(this.dom.labelSet);
   }
 };
 
@@ -272,7 +272,7 @@ ItemSet.prototype._deselect = function(id) {
  */
 ItemSet.prototype.redraw = function() {
   var margin = this.options.margin,
-      range = this.timeline.range,
+      range = this.body.range,
       asSize = util.option.asSize,
       options = this.options,
       orientation = options.orientation,
@@ -337,9 +337,9 @@ ItemSet.prototype.redraw = function() {
 
   // reposition axis
   this.dom.axis.style.top = asSize((orientation == 'top') ?
-      (this.timeline.props.top.height + this.timeline.props.border.top) :
-      (this.timeline.props.top.height + this.timeline.props.centerContainer.height));
-  this.dom.axis.style.left = this.timeline.props.border.left + 'px';
+      (this.body.props.top.height + this.body.props.border.top) :
+      (this.body.props.top.height + this.body.props.centerContainer.height));
+  this.dom.axis.style.left = this.body.props.border.left + 'px';
 
   // check if this component is resized
   resized = this._isResized() || resized;
@@ -506,7 +506,7 @@ ItemSet.prototype.setGroups = function(groups) {
   // update the order of all items in each group
   this._order();
 
-  this.timeline.emitter.emit('change');
+  this.body.emitter.emit('change');
 };
 
 /**
@@ -584,7 +584,7 @@ ItemSet.prototype._onUpdate = function(ids) {
 
   this._order();
   this.stackDirty = true; // force re-stacking of all items next redraw
-  this.timeline.emitter.emit('change');
+  this.body.emitter.emit('change');
 };
 
 /**
@@ -614,7 +614,7 @@ ItemSet.prototype._onRemove = function(ids) {
     // update order
     this._order();
     this.stackDirty = true; // force re-stacking of all items next redraw
-    this.timeline.emitter.emit('change');
+    this.body.emitter.emit('change');
   }
 };
 
@@ -684,7 +684,7 @@ ItemSet.prototype._onAddGroups = function(ids) {
     }
   });
 
-  this.timeline.emitter.emit('change');
+  this.body.emitter.emit('change');
 };
 
 /**
@@ -705,7 +705,7 @@ ItemSet.prototype._onRemoveGroups = function(ids) {
 
   this.markDirty();
 
-  this.timeline.emitter.emit('change');
+  this.body.emitter.emit('change');
 };
 
 /**
@@ -912,7 +912,7 @@ ItemSet.prototype._onDragStart = function (event) {
  */
 ItemSet.prototype._onDrag = function (event) {
   if (this.touchParams.itemProps) {
-    var range = this.timeline.range,
+    var range = this.body.range,
         snap = this.options.snap || null,
         deltaX = event.gesture.deltaX,
         scale = (this.props.width / (range.end - range.start)),
@@ -948,7 +948,7 @@ ItemSet.prototype._onDrag = function (event) {
     // TODO: implement onMoving handler
 
     this.stackDirty = true; // force re-stacking of all items next redraw
-    this.timeline.emitter.emit('change');
+    this.body.emitter.emit('change');
 
     event.stopPropagation();
   }
@@ -998,7 +998,7 @@ ItemSet.prototype._onDragEnd = function (event) {
             if ('end' in props)   props.item.data.end   = props.end;
 
             me.stackDirty = true; // force re-stacking of all items next redraw
-            me.timeline.emitter.emit('change');
+            me.body.emitter.emit('change');
           }
         });
       }
@@ -1040,7 +1040,7 @@ ItemSet.prototype._onSelectItem = function (event) {
   // emit a select event,
   // except when old selection is empty and new selection is still empty
   if (newSelection.length > 0 || oldSelection.length > 0) {
-    this.timeline.emitter.emit('select', {
+    this.body.emitter.emit('select', {
       items: this.getSelection()
     });
   }
@@ -1131,7 +1131,7 @@ ItemSet.prototype._onMultiSelectItem = function (event) {
     }
     this.setSelection(selection);
 
-    this.timeline.emitter.emit('select', {
+    this.body.emitter.emit('select', {
       items: this.getSelection()
     });
 

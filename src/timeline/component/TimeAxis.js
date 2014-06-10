@@ -1,12 +1,12 @@
 /**
  * A horizontal time axis
- * @param {{dom: Object, props: Object, emitter: Emitter, range: Range}} timeline
+ * @param {{dom: Object, props: Object, emitter: Emitter, range: Range}} body
  * @param {Object} [options]        See TimeAxis.setOptions for the available
  *                                  options.
  * @constructor TimeAxis
  * @extends Component
  */
-function TimeAxis (timeline, options) {
+function TimeAxis (body, options) {
   this.dom = {
     foreground: null,
     majorLines: [],
@@ -37,7 +37,7 @@ function TimeAxis (timeline, options) {
     showMajorLabels: true
   };
 
-  this.timeline = timeline;
+  this.body = body;
 
   // create the HTML DOM
   this._create();
@@ -77,7 +77,7 @@ TimeAxis.prototype.redraw = function () {
       background = this.dom.background;
 
   // determine the correct parent DOM element (depending on option orientation)
-  var parent = (options.orientation == 'top') ? this.timeline.dom.top : this.timeline.dom.bottom;
+  var parent = (options.orientation == 'top') ? this.body.dom.top : this.body.dom.bottom;
   var parentChanged = (foreground.parentNode !== parent);
 
   // calculate character width and height
@@ -94,8 +94,8 @@ TimeAxis.prototype.redraw = function () {
   props.height = props.minorLabelHeight + props.majorLabelHeight;
   props.width = foreground.offsetWidth;
 
-  props.minorLineHeight = this.timeline.props.root.height - props.majorLabelHeight -
-      (options.orientation == 'top' ? this.timeline.props.bottom.height : this.timeline.props.top.height);
+  props.minorLineHeight = this.body.props.root.height - props.majorLabelHeight -
+      (options.orientation == 'top' ? this.body.props.bottom.height : this.body.props.top.height);
   props.minorLineWidth = 1; // TODO: really calculate width
   props.majorLineHeight = props.minorLineHeight + props.majorLabelHeight;
   props.majorLineWidth = 1; // TODO: really calculate width
@@ -118,10 +118,10 @@ TimeAxis.prototype.redraw = function () {
     parent.appendChild(foreground)
   }
   if (backgroundNextSibling) {
-    this.timeline.dom.backgroundVertical.insertBefore(background, backgroundNextSibling);
+    this.body.dom.backgroundVertical.insertBefore(background, backgroundNextSibling);
   }
   else {
-    this.timeline.dom.backgroundVertical.appendChild(background)
+    this.body.dom.backgroundVertical.appendChild(background)
   }
 
   return this._isResized() || parentChanged;
@@ -135,8 +135,8 @@ TimeAxis.prototype._repaintLabels = function () {
   var orientation = this.getOption('orientation');
 
   // calculate range and step (step such that we have space for 7 characters per label)
-  var start = util.convert(this.timeline.range.start, 'Number'),
-      end = util.convert(this.timeline.range.end, 'Number'),
+  var start = util.convert(this.body.range.start, 'Number'),
+      end = util.convert(this.body.range.end, 'Number'),
       minimumStep = this.options.toTime((this.props.minorCharWidth || 10) * 7).valueOf()
           -this.options.toTime(0).valueOf();
   var step = new TimeStep(new Date(start), new Date(end), minimumStep);
@@ -301,7 +301,7 @@ TimeAxis.prototype._repaintMinorLine = function (x, orientation) {
     line.style.top = props.majorLabelHeight + 'px';
   }
   else {
-    line.style.top = this.timeline.props.top.height + 'px';
+    line.style.top = this.body.props.top.height + 'px';
   }
   line.style.height = props.minorLineHeight + 'px';
   line.style.left = (x - props.minorLineWidth / 2) + 'px';
@@ -330,7 +330,7 @@ TimeAxis.prototype._repaintMajorLine = function (x, orientation) {
     line.style.top = '0';
   }
   else {
-    line.style.top = this.timeline.props.top.height + 'px';
+    line.style.top = this.body.props.top.height + 'px';
   }
   line.style.left = (x - props.majorLineWidth / 2) + 'px';
   line.style.height = props.majorLineHeight + 'px';

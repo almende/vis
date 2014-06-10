@@ -1,14 +1,14 @@
 /**
  * A custom time bar
- * @param {{range: Range, dom: Object}} timeline
+ * @param {{range: Range, dom: Object}} body
  * @param {Object} [options]        Available parameters:
  *                                  {Boolean} [showCustomTime]
  * @constructor CustomTime
  * @extends Component
  */
 
-function CustomTime (timeline, options) {
-  this.timeline = timeline;
+function CustomTime (body, options) {
+  this.body = body;
   this.options = options || {};
 
   this.customTime = new Date();
@@ -55,7 +55,7 @@ CustomTime.prototype._create = function() {
  */
 CustomTime.prototype.redraw = function () {
   if (this.options.showCustomTime) {
-    var parent = this.timeline.dom.backgroundVertical;
+    var parent = this.body.dom.backgroundVertical;
     if (this.bar.parentNode != parent) {
       // attach to the dom
       if (this.bar.parentNode) {
@@ -124,7 +124,7 @@ CustomTime.prototype._onDrag = function (event) {
   this.setCustomTime(time);
 
   // fire a timechange event
-  this.timeline.emitter.emit('timechange', {
+  this.body.emitter.emit('timechange', {
     time: new Date(this.customTime.valueOf())
   });
 
@@ -141,7 +141,7 @@ CustomTime.prototype._onDragEnd = function (event) {
   if (!this.eventParams.dragging) return;
 
   // fire a timechanged event
-  this.timeline.emitter.emit('timechanged', {
+  this.body.emitter.emit('timechanged', {
     time: new Date(this.customTime.valueOf())
   });
 

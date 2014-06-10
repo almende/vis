@@ -1,7 +1,9 @@
 /**
  * Prototype for visual components
+ * @param {{dom: Object, props: Object, emitter: Emitter, range: Range}} body
+ * @param {Object} [options]
  */
-function Component () {
+function Component (body, options) {
   this.options = null;
   this.props = null;
 }

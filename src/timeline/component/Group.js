@@ -231,7 +231,7 @@ Group.prototype.add = function(item) {
   item.setParent(this);
 
   if (item instanceof ItemRange && this.visibleItems.indexOf(item) == -1) {
-    var range = this.itemSet.timeline.range; // TODO: not nice accessing the range like this
+    var range = this.itemSet.body.range; // TODO: not nice accessing the range like this
     this._checkIfVisible(item, this.visibleItems, range);
   }
 };

@@ -89,31 +89,38 @@ function Timeline (container, items, options) {
   // all components listed here will be repainted automatically
   this.components = [];
 
+  this.body = {
+    dom: this.dom,
+    props: this.props,
+    emitter: this
+  };
+
   // range
-  this.range = new Range(this, this.options);
+  this.range = new Range(this.body, this.options);
   this.range.setRange(
       now.clone().add('days', -3).valueOf(),
       now.clone().add('days', 4).valueOf()
   );
+  this.body.range = this.range;
 
   // time axis
-  this.timeAxis = new TimeAxis(this, this.options);
+  this.timeAxis = new TimeAxis(this.body, this.options);
   this.components.push(this.timeAxis);
   this.options.snap = this.timeAxis.snap.bind(this.timeAxis); // TODO: not nice adding snap to options
 
   // current time bar
-  this.currentTime = new CurrentTime(this, this.options);
+  this.currentTime = new CurrentTime(this.body, this.options);
   this.components.push(this.currentTime);
 
   // custom time bar
   // Note: time bar will be attached in this.setOptions when selected
-  this.customTime = new CustomTime(this, this.options);
+  this.customTime = new CustomTime(this.body, this.options);
   this.components.push(this.customTime);
 
   // item set
-  this.itemSet = new ItemSet(this, this.options);
+  this.itemSet = new ItemSet(this.body, this.options);
   this.components.push(this.itemSet);
-  this.emitter.on('change', this.redraw.bind(this));
+  this.on('change', this.redraw.bind(this));
 
   this.itemsData = null;      // DataSet
   this.groupsData = null;     // DataSet
@@ -178,10 +185,7 @@ Timeline.prototype._create = function () {
   this.dom.leftContainer.appendChild(this.dom.left);
   this.dom.rightContainer.appendChild(this.dom.right);
 
-  // create a central event bus
-  this.emitter = this;
-
-  this.emitter.on('rangechange', this.redraw.bind(this));
+  this.on('rangechange', this.redraw.bind(this));
 
   // create event listeners for all interesting events, these events will be
   // emitted via emitter
@@ -200,7 +204,7 @@ Timeline.prototype._create = function () {
   events.forEach(function (event) {
     var listener = function () {
       var args = [event].concat(Array.prototype.slice.call(arguments, 0));
-      me.emitter.emit.apply(me.emitter, args);
+      me.emit.apply(me, args);
     };
     me.hammer.on(event, listener);
     me.listeners[event] = listener;
@@ -730,7 +734,7 @@ Timeline.prototype._startAutoResize = function () {
         me.props.lastWidth = me.dom.root.clientWidth;
         me.props.lastHeight = me.dom.root.clientHeight;
 
-        me.emitter.emit('change');
+        me.emit('change');
       }
     }
   }
