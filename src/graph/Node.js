@@ -25,6 +25,7 @@
  */
 function Node(properties, imagelist, grouplist, constants) {
   this.selected = false;
+  this.hover = false;
 
   this.edges = []; // all edges connected to this node
   this.dynamicEdges = [];
@@ -569,7 +570,7 @@ Node.prototype._drawBox = function (ctx) {
   var clusterLineWidth = 2.5;
   var selectionLineWidth = 2;
 
-  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.hover ? this.color.hover.border : this.color.border;
 
   // draw the outer border
   if (this.clusterSize > 1) {
@@ -618,7 +619,7 @@ Node.prototype._drawDatabase = function (ctx) {
   var clusterLineWidth = 2.5;
   var selectionLineWidth = 2;
 
-  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.hover ? this.color.hover.border : this.color.border;
 
   // draw the outer border
   if (this.clusterSize > 1) {
@@ -633,7 +634,7 @@ Node.prototype._drawDatabase = function (ctx) {
   ctx.lineWidth *= this.graphScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
-  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
   ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
   ctx.fill();
   ctx.stroke();
@@ -668,7 +669,7 @@ Node.prototype._drawCircle = function (ctx) {
   var clusterLineWidth = 2.5;
   var selectionLineWidth = 2;
 
-  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.hover ? this.color.hover.border : this.color.border;
 
   // draw the outer border
   if (this.clusterSize > 1) {
@@ -683,7 +684,7 @@ Node.prototype._drawCircle = function (ctx) {
   ctx.lineWidth *= this.graphScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
-  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
   ctx.circle(this.x, this.y, this.radius);
   ctx.fill();
   ctx.stroke();
@@ -718,7 +719,7 @@ Node.prototype._drawEllipse = function (ctx) {
   var clusterLineWidth = 2.5;
   var selectionLineWidth = 2;
 
-  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.hover ? this.color.hover.border : this.color.border;
 
   // draw the outer border
   if (this.clusterSize > 1) {
@@ -733,7 +734,7 @@ Node.prototype._drawEllipse = function (ctx) {
   ctx.lineWidth *= this.graphScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
-  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
 
   ctx.ellipse(this.left, this.top, this.width, this.height);
   ctx.fill();
@@ -795,7 +796,7 @@ Node.prototype._drawShape = function (ctx, shape) {
     case 'star':          radiusMultiplier = 4; break;
   }
 
-  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.color.border;
+  ctx.strokeStyle = this.selected ? this.color.highlight.border : this.hover ? this.color.hover.border : this.color.border;
 
   // draw the outer border
   if (this.clusterSize > 1) {
@@ -810,7 +811,7 @@ Node.prototype._drawShape = function (ctx, shape) {
   ctx.lineWidth *= this.graphScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
-  ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+  ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
 
   ctx[shape](this.x, this.y, this.radius);
   ctx.fill();
@@ -892,10 +893,10 @@ Node.prototype.getTextSize = function(ctx) {
  */
 Node.prototype.inArea = function() {
   if (this.width !== undefined) {
-  return (this.x + this.width*this.graphScaleInv  >= this.canvasTopLeft.x    &&
-          this.x - this.width*this.graphScaleInv  <  this.canvasBottomRight.x &&
-          this.y + this.height*this.graphScaleInv >= this.canvasTopLeft.y    &&
-          this.y - this.height*this.graphScaleInv <  this.canvasBottomRight.y);
+  return (this.x + this.width *this.graphScaleInv  >= this.canvasTopLeft.x     &&
+          this.x - this.width *this.graphScaleInv  <  this.canvasBottomRight.x &&
+          this.y + this.height*this.graphScaleInv  >= this.canvasTopLeft.y     &&
+          this.y - this.height*this.graphScaleInv  <  this.canvasBottomRight.y);
   }
   else {
     return true;

@@ -785,6 +785,10 @@ util.parseColor = function(color) {
         highlight: {
           background:lighterColorHex,
           border:darkerColorHex
+        },
+        hover: {
+          background:lighterColorHex,
+          border:darkerColorHex
         }
       };
     }
@@ -793,6 +797,10 @@ util.parseColor = function(color) {
         background:color,
         border:color,
         highlight: {
+          background:color,
+          border:color
+        },
+        hover: {
           background:color,
           border:color
         }
@@ -814,6 +822,18 @@ util.parseColor = function(color) {
       c.highlight = {};
       c.highlight.background = color.highlight && color.highlight.background || c.background;
       c.highlight.border = color.highlight && color.highlight.border || c.border;
+    }
+
+    if (util.isString(color.hover)) {
+      c.hover = {
+        border: color.hover,
+        background: color.hover
+      }
+    }
+    else {
+      c.hover = {};
+      c.hover.background = color.hover && color.hover.background || c.background;
+      c.hover.border = color.hover && color.hover.border || c.border;
     }
   }
 

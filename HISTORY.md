@@ -2,12 +2,27 @@
 http://visjs.org
 
 
-## not yet released, version 1.0.3
+## 2014-06-06, version 1.1.0
 
 ### Timeline
 
+- Select event now triggers repeatedly when selecting an already selected item.
+- Renamed `Timeline.repaint()` to `Timeline.redraw()` to be consistent with
+  the other visualisations of vis.js.
 - Fixed `Timeline.clear()` not resetting a configured `options.start` and 
   `options.end`.
+
+### Graph
+
+- Fixed error with zero nodes with hierarchical layout.
+- Added focusOnNode function.
+- Added hover option.
+- Added dragNodes option. Renamed movebale to dragGraph option.
+- Added hover events (hoverNode, blurNode).
+
+### Graph3D
+
+- Ported Graph3D from Chap Links Library.
 
 
 ## 2014-05-28, version 1.0.2
