@@ -275,7 +275,7 @@ ItemSet.prototype.redraw = function redraw() {
       range = this.timeline.range,
       asSize = util.option.asSize,
       options = this.options,
-      orientation = this.getOption('orientation'),
+      orientation = options.orientation,
       resized = false,
       frame = this.dom.frame;
 
@@ -337,8 +337,7 @@ ItemSet.prototype.redraw = function redraw() {
   // reposition axis
   this.dom.axis.style.top = asSize((orientation == 'top') ?
       (this.timeline.props.top.height + this.timeline.props.border.top) :
-      (this.timeline.props.top.height + this.timeline.props.center.height +
-      this.timeline.props.border.top + this.timeline.props.border.bottom));
+      (this.timeline.props.top.height + this.timeline.props.centerContainer.height));
   this.dom.axis.style.left = this.timeline.props.border.left + 'px';
 
   // check if this component is resized
