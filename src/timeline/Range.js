@@ -7,7 +7,6 @@
  * @param {Object} [options]    See description at Range.setOptions
  */
 function Range(timeline, options) {
-  this.id = util.randomUUID();
   this.start = null; // Number
   this.end = null;   // Number
 

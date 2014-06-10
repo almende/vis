@@ -26,26 +26,26 @@ function ItemSet(timeline, options) {
   // listeners for the DataSet of the items
   this.itemListeners = {
     'add': function (event, params, senderId) {
-      if (senderId != me.id) me._onAdd(params.items);
+      me._onAdd(params.items);
     },
     'update': function (event, params, senderId) {
-      if (senderId != me.id) me._onUpdate(params.items);
+      me._onUpdate(params.items);
     },
     'remove': function (event, params, senderId) {
-      if (senderId != me.id) me._onRemove(params.items);
+      me._onRemove(params.items);
     }
   };
 
   // listeners for the DataSet of the groups
   this.groupListeners = {
     'add': function (event, params, senderId) {
-      if (senderId != me.id) me._onAddGroups(params.items);
+      me._onAddGroups(params.items);
     },
     'update': function (event, params, senderId) {
-      if (senderId != me.id) me._onUpdateGroups(params.items);
+      me._onUpdateGroups(params.items);
     },
     'remove': function (event, params, senderId) {
-      if (senderId != me.id) me._onRemoveGroups(params.items);
+      me._onRemoveGroups(params.items);
     }
   };
 
