@@ -113,6 +113,7 @@ ItemSet.prototype._create = function _create(){
   });
 
   // drag items when selected
+  this.hammer.on('touch',     this._onTouch.bind(this));
   this.hammer.on('dragstart', this._onDragStart.bind(this));
   this.hammer.on('drag',      this._onDrag.bind(this));
   this.hammer.on('dragend',   this._onDragEnd.bind(this));
@@ -837,6 +838,20 @@ ItemSet.prototype.getLabelsWidth = function getLabelsWidth() {
 };
 
 /**
+ * Register the clicked item on touch, before dragStart is initiated.
+ *
+ * dragStart is initiated from a mousemove event, which can have left the item
+ * already resulting in an item == null
+ *
+ * @param {Event} event
+ * @private
+ */
+ItemSet.prototype._onTouch = function (event) {
+  // store the touched item, used in _onDragStart
+  this.touchParams.item = ItemSet.itemFromTarget(event);
+};
+
+/**
  * Start dragging the selected events
  * @param {Event} event
  * @private
@@ -846,7 +861,7 @@ ItemSet.prototype._onDragStart = function (event) {
     return;
   }
 
-  var item = ItemSet.itemFromTarget(event),
+  var item = this.touchParams.item || null,
       me = this,
       props;
 
