@@ -19,7 +19,7 @@ function RootPanel(container, options) {
   this._create();
 
   // attach the root panel to the provided container
-  if (!this.container) throw new Error('Cannot repaint root panel: no container attached');
+  if (!this.container) throw new Error('Cannot redraw root panel: no container attached');
   this.container.appendChild(this.getFrame());
 
 
@@ -72,7 +72,7 @@ RootPanel.prototype.setOptions = function setOptions(options) {
   if (options) {
     util.extend(this.options, options);
 
-    this.repaint();
+    this.redraw();
 
     this._initWatch();
   }
@@ -88,7 +88,7 @@ RootPanel.prototype.getFrame = function getFrame() {
 /**
  * Repaint the root panel
  */
-RootPanel.prototype.repaint = function repaint() {
+RootPanel.prototype.redraw = function redraw() {
   // update class name
   var options = this.options;
   var editable = options.editable.updateTime || options.editable.updateGroup;
@@ -96,7 +96,7 @@ RootPanel.prototype.repaint = function repaint() {
   if (options.className) className += ' ' + util.option.asString(className);
   this.frame.className = className;
 
-  // repaint the child components
+  // redraw the child components
   var childsResized = this._repaintChilds();
 
   // update frame size
@@ -104,11 +104,11 @@ RootPanel.prototype.repaint = function repaint() {
   this.frame.style.minHeight = util.option.asSize(this.options.minHeight, '');
   this._updateSize();
 
-  // if the root panel or any of its childs is resized, repaint again,
+  // if the root panel or any of its childs is resized, redraw again,
   // as other components may need to be resized accordingly
   var resized = this._isResized() || childsResized;
   if (resized) {
-    setTimeout(this.repaint.bind(this), 0);
+    setTimeout(this.redraw.bind(this), 0);
   }
 };
 
@@ -150,7 +150,7 @@ RootPanel.prototype._watch = function _watch() {
           (me.frame.clientHeight != me.lastHeight)) {
         me.lastWidth = me.frame.clientWidth;
         me.lastHeight = me.frame.clientHeight;
-        me.repaint();
+        me.redraw();
         // TODO: emit a resize event instead?
       }
     }

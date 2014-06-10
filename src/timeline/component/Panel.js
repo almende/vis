@@ -117,9 +117,9 @@ Panel.prototype.hasChild = function (child) {
 
 /**
  * Repaint the component
- * @return {boolean} Returns true if the component was resized since previous repaint
+ * @return {boolean} Returns true if the component was resized since previous redraw
  */
-Panel.prototype.repaint = function () {
+Panel.prototype.redraw = function () {
   var asString = util.option.asString,
       options = this.options,
       frame = this.getFrame();
@@ -127,7 +127,7 @@ Panel.prototype.repaint = function () {
   // update className
   frame.className = 'vpanel' + (options.className ? (' ' + asString(options.className)) : '');
 
-  // repaint the child components
+  // redraw the child components
   var childsResized = this._repaintChilds();
 
   // update frame size
@@ -144,7 +144,7 @@ Panel.prototype.repaint = function () {
 Panel.prototype._repaintChilds = function () {
   var resized = false;
   for (var i = 0, ii = this.childs.length; i < ii; i++) {
-    resized = this.childs[i].repaint() || resized;
+    resized = this.childs[i].redraw() || resized;
   }
   return resized;
 };

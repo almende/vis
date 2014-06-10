@@ -53,7 +53,7 @@ CustomTime.prototype._create = function _create () {
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
-CustomTime.prototype.repaint = function () {
+CustomTime.prototype.redraw = function () {
   if (this.options.showCustomTime) {
     var parent = this.timeline.dom.foregroundVertical;
     if (this.bar.parentNode != parent) {
@@ -85,7 +85,7 @@ CustomTime.prototype.repaint = function () {
  */
 CustomTime.prototype.setCustomTime = function(time) {
   this.customTime = new Date(time.valueOf());
-  this.repaint();
+  this.redraw();
 };
 
 /**

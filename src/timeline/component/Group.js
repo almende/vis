@@ -108,7 +108,7 @@ Group.prototype.getLabelWidth = function getLabelWidth() {
  * @param {boolean} [restack=false]  Force restacking of all items
  * @return {boolean} Returns true if the group is resized
  */
-Group.prototype.repaint = function repaint(range, margin, restack) {
+Group.prototype.redraw = function redraw(range, margin, restack) {
   var resized = false;
 
   this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
@@ -121,7 +121,7 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
 
     util.forEach(this.items, function (item) {
       item.dirty = true;
-      if (item.displayed) item.repaint();
+      if (item.displayed) item.redraw();
     });
 
     restack = true;

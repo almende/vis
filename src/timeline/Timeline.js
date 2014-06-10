@@ -191,11 +191,11 @@ function Timeline (container, items, options) {
       now.clone().add('days', 4).valueOf()
   );
   this.range.on('rangechange', function (properties) {
-    me.rootPanel.repaint();
+    me.rootPanel.redraw();
     me.emit('rangechange', properties);
   });
   this.range.on('rangechanged', function (properties) {
-    me.rootPanel.repaint();
+    me.rootPanel.redraw();
     me.emit('rangechanged', properties);
   });
 
@@ -306,7 +306,7 @@ function Timeline (container, items, options) {
   });
   this.itemSet = new ItemSet(this.backgroundPanel, this.axisPanel, this.sideContentPanel, itemOptions);
   this.itemSet.setRange(this.range);
-  this.itemSet.on('change', me.rootPanel.repaint.bind(me.rootPanel));
+  this.itemSet.on('change', me.rootPanel.redraw.bind(me.rootPanel));
   this.contentPanel.appendChild(this.itemSet);
 */
   this.itemsData = null;      // DataSet
@@ -837,9 +837,9 @@ Timeline.prototype.redraw = function() {
   dom.foregroundVertical.style.left   = props.left.width + 'px';
   dom.foregroundVertical.style.top    = '0';
 
-  // repaint all components
+  // redraw all components
   this.components.forEach(function (component) {
-    resized = component.repaint() || resized;
+    resized = component.redraw() || resized;
   });
   if (resized) {
     // keep repainting until all sizes are settled

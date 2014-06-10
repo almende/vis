@@ -70,7 +70,7 @@ TimeAxis.prototype._create = function _create() {
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
-TimeAxis.prototype.repaint = function () {
+TimeAxis.prototype.redraw = function () {
   var options = this.options,
       props = this.props,
       foreground = this.dom.foreground,
@@ -342,7 +342,7 @@ TimeAxis.prototype._repaintMajorLine = function (x, orientation) {
  * @private
  */
 TimeAxis.prototype._calculateCharSize = function () {
-  // Note: We calculate char size with every repaint. Size may change, for
+  // Note: We calculate char size with every redraw. Size may change, for
   // example when any of the timelines parents had display:none for example.
 
   // determine the char width and height on the minor axis

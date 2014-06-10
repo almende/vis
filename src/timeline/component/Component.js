@@ -20,7 +20,7 @@ Component.prototype.setOptions = function setOptions(options) {
   if (options) {
     util.extend(this.options, options);
 
-    this.repaint();
+    this.redraw();
   }
 };
 
@@ -46,7 +46,7 @@ Component.prototype.getOption = function getOption(name) {
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
-Component.prototype.repaint = function repaint() {
+Component.prototype.redraw = function redraw() {
   // should be implemented by the component
   return false;
 };

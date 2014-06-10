@@ -54,7 +54,7 @@ function ItemSet(timeline, options) {
   this.groupIds = [];
 
   this.selection = [];  // list with the ids of all selected nodes
-  this.stackDirty = true; // if true, all items will be restacked on next repaint
+  this.stackDirty = true; // if true, all items will be restacked on next redraw
 
   this.touchParams = {}; // stores properties while dragging
   // create the HTML DOM
@@ -148,7 +148,7 @@ ItemSet.prototype._create = function _create(){
 ItemSet.prototype.setOptions = Component.prototype.setOptions;
 
 /**
- * Mark the ItemSet dirty so it will refresh everything with next repaint
+ * Mark the ItemSet dirty so it will refresh everything with next redraw
  */
 ItemSet.prototype.markDirty = function markDirty() {
   this.groupIds = [];
@@ -258,7 +258,7 @@ ItemSet.prototype._deselect = function _deselect(id) {
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
-ItemSet.prototype.repaint = function repaint() {
+ItemSet.prototype.redraw = function redraw() {
   var margin = this.options.margin,
       range = this.timeline.range,
       asSize = util.option.asSize,
@@ -286,7 +286,7 @@ ItemSet.prototype.repaint = function repaint() {
   this.lastVisibleInterval = visibleInterval;
   this.props.lastWidth = this.props.width;
 
-  // repaint all groups
+  // redraw all groups
   var restack = this.stackDirty,
       firstGroup = this._firstGroup(),
       firstMargin = {
@@ -301,7 +301,7 @@ ItemSet.prototype.repaint = function repaint() {
       minHeight = margin.axis + margin.item;
   util.forEach(this.groups, function (group) {
     var groupMargin = (group == firstGroup) ? firstMargin : nonFirstMargin;
-    resized = group.repaint(range, groupMargin, restack) || resized;
+    resized = group.redraw(range, groupMargin, restack) || resized;
     height += group.height;
   });
   height = Math.max(height, minHeight);
@@ -462,7 +462,7 @@ ItemSet.prototype.setGroups = function setGroups(groups) {
     // remove all drawn groups
     ids = this.groupsData.getIds();
     this.groupsData = null;
-    this._onRemoveGroups(ids); // note: this will cause a repaint
+    this._onRemoveGroups(ids); // note: this will cause a redraw
   }
 
   // replace the dataset
@@ -571,7 +571,7 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
   });
 
   this._order();
-  this.stackDirty = true; // force re-stacking of all items next repaint
+  this.stackDirty = true; // force re-stacking of all items next redraw
   this.timeline.emitter.emit('change');
 };
 
@@ -601,7 +601,7 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
   if (count) {
     // update order
     this._order();
-    this.stackDirty = true; // force re-stacking of all items next repaint
+    this.stackDirty = true; // force re-stacking of all items next redraw
     this.timeline.emitter.emit('change');
   }
 };
@@ -756,7 +756,7 @@ ItemSet.prototype._updateItem = function _updateItem(item, itemData) {
 
   item.data = itemData;
   if (item.displayed) {
-    item.repaint();
+    item.redraw();
   }
 
   // update group
@@ -936,7 +936,7 @@ ItemSet.prototype._onDrag = function (event) {
 
     // TODO: implement onMoving handler
 
-    this.stackDirty = true; // force re-stacking of all items next repaint
+    this.stackDirty = true; // force re-stacking of all items next redraw
     this.timeline.emitter.emit('change');
 
     event.stopPropagation();
@@ -986,7 +986,7 @@ ItemSet.prototype._onDragEnd = function (event) {
             if ('start' in props) props.item.data.start = props.start;
             if ('end' in props)   props.item.data.end   = props.end;
 
-            me.stackDirty = true; // force re-stacking of all items next repaint
+            me.stackDirty = true; // force re-stacking of all items next redraw
             me.timeline.emitter.emit('change');
           }
         });

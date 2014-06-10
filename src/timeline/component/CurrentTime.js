@@ -35,7 +35,7 @@ CurrentTime.prototype._create = function _create () {
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
-CurrentTime.prototype.repaint = function repaint() {
+CurrentTime.prototype.redraw = function redraw() {
   if (this.options.showCurrentTime) {
     var parent = this.timeline.dom.foregroundVertical;
     if (this.bar.parentNode != parent) {
@@ -80,7 +80,7 @@ CurrentTime.prototype.start = function start() {
     if (interval < 30)   interval = 30;
     if (interval > 1000) interval = 1000;
 
-    me.repaint();
+    me.redraw();
 
     // start a timer to adjust for the new time
     me.currentTimeTimer = setTimeout(update, interval);

@@ -46,7 +46,7 @@ ItemBox.prototype.isVisible = function isVisible (range) {
 /**
  * Repaint the item
  */
-ItemBox.prototype.repaint = function repaint() {
+ItemBox.prototype.redraw = function redraw() {
   var dom = this.dom;
   if (!dom) {
     // create DOM
@@ -75,21 +75,21 @@ ItemBox.prototype.repaint = function repaint() {
 
   // append DOM to parent DOM
   if (!this.parent) {
-    throw new Error('Cannot repaint item: no parent attached');
+    throw new Error('Cannot redraw item: no parent attached');
   }
   if (!dom.box.parentNode) {
     var foreground = this.parent.dom.foreground;
-    if (!foreground) throw new Error('Cannot repaint time axis: parent has no foreground container element');
+    if (!foreground) throw new Error('Cannot redraw time axis: parent has no foreground container element');
     foreground.appendChild(dom.box);
   }
   if (!dom.line.parentNode) {
     var background = this.parent.dom.background;
-    if (!background) throw new Error('Cannot repaint time axis: parent has no background container element');
+    if (!background) throw new Error('Cannot redraw time axis: parent has no background container element');
     background.appendChild(dom.line);
   }
   if (!dom.dot.parentNode) {
     var axis = this.parent.dom.axis;
-    if (!background) throw new Error('Cannot repaint time axis: parent has no axis container element');
+    if (!background) throw new Error('Cannot redraw time axis: parent has no axis container element');
     axis.appendChild(dom.dot);
   }
   this.displayed = true;
@@ -143,7 +143,7 @@ ItemBox.prototype.repaint = function repaint() {
  */
 ItemBox.prototype.show = function show() {
   if (!this.displayed) {
-    this.repaint();
+    this.redraw();
   }
 };
 

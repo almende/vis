@@ -29,7 +29,7 @@ function Item (data, options, defaultOptions) {
  */
 Item.prototype.select = function select() {
   this.selected = true;
-  if (this.displayed) this.repaint();
+  if (this.displayed) this.redraw();
 };
 
 /**
@@ -37,7 +37,7 @@ Item.prototype.select = function select() {
  */
 Item.prototype.unselect = function unselect() {
   this.selected = false;
-  if (this.displayed) this.repaint();
+  if (this.displayed) this.redraw();
 };
 
 /**
@@ -86,7 +86,7 @@ Item.prototype.hide = function hide() {
 /**
  * Repaint the item
  */
-Item.prototype.repaint = function repaint() {
+Item.prototype.redraw = function redraw() {
   // should be implemented by the item
 };
 

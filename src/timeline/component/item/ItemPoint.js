@@ -47,7 +47,7 @@ ItemPoint.prototype.isVisible = function isVisible (range) {
 /**
  * Repaint the item
  */
-ItemPoint.prototype.repaint = function repaint() {
+ItemPoint.prototype.redraw = function redraw() {
   var dom = this.dom;
   if (!dom) {
     // create DOM
@@ -56,7 +56,7 @@ ItemPoint.prototype.repaint = function repaint() {
 
     // background box
     dom.point = document.createElement('div');
-    // className is updated in repaint()
+    // className is updated in redraw()
 
     // contents box, right from the dot
     dom.content = document.createElement('div');
@@ -73,12 +73,12 @@ ItemPoint.prototype.repaint = function repaint() {
 
   // append DOM to parent DOM
   if (!this.parent) {
-    throw new Error('Cannot repaint item: no parent attached');
+    throw new Error('Cannot redraw item: no parent attached');
   }
   if (!dom.point.parentNode) {
     var foreground = this.parent.dom.foreground;
     if (!foreground) {
-      throw new Error('Cannot repaint time axis: parent has no foreground container element');
+      throw new Error('Cannot redraw time axis: parent has no foreground container element');
     }
     foreground.appendChild(dom.point);
   }
@@ -139,7 +139,7 @@ ItemPoint.prototype.repaint = function repaint() {
  */
 ItemPoint.prototype.show = function show() {
   if (!this.displayed) {
-    this.repaint();
+    this.redraw();
   }
 };
 
