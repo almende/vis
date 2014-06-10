@@ -36,7 +36,7 @@ ItemBox.prototype = new Item (null);
  * @returns {{start: Number, end: Number}} range with a timestamp for start and end
  * @returns {boolean} True if visible
  */
-ItemBox.prototype.isVisible = function isVisible (range) {
+ItemBox.prototype.isVisible = function(range) {
   // determine visibility
   // TODO: account for the real width of the item. Right now we just add 1/4 to the window
   var interval = (range.end - range.start) / 4;
@@ -46,7 +46,7 @@ ItemBox.prototype.isVisible = function isVisible (range) {
 /**
  * Repaint the item
  */
-ItemBox.prototype.redraw = function redraw() {
+ItemBox.prototype.redraw = function() {
   var dom = this.dom;
   if (!dom) {
     // create DOM
@@ -141,7 +141,7 @@ ItemBox.prototype.redraw = function redraw() {
  * Show the item in the DOM (when not already displayed). The items DOM will
  * be created when needed.
  */
-ItemBox.prototype.show = function show() {
+ItemBox.prototype.show = function() {
   if (!this.displayed) {
     this.redraw();
   }
@@ -150,7 +150,7 @@ ItemBox.prototype.show = function show() {
 /**
  * Hide the item from the DOM (when visible)
  */
-ItemBox.prototype.hide = function hide() {
+ItemBox.prototype.hide = function() {
   if (this.displayed) {
     var dom = this.dom;
 
@@ -169,7 +169,7 @@ ItemBox.prototype.hide = function hide() {
  * Reposition the item horizontally
  * @Override
  */
-ItemBox.prototype.repositionX = function repositionX() {
+ItemBox.prototype.repositionX = function() {
   var start = this.defaultOptions.toScreen(this.data.start),
       align = this.options.align || this.defaultOptions.align,
       left,
@@ -203,7 +203,7 @@ ItemBox.prototype.repositionX = function repositionX() {
  * Reposition the item vertically
  * @Override
  */
-ItemBox.prototype.repositionY = function repositionY () {
+ItemBox.prototype.repositionY = function() {
   var orientation = this.options.orientation || this.defaultOptions.orientation,
       box = this.dom.box,
       line = this.dom.line,

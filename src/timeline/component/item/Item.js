@@ -27,7 +27,7 @@ function Item (data, options, defaultOptions) {
 /**
  * Select current item
  */
-Item.prototype.select = function select() {
+Item.prototype.select = function() {
   this.selected = true;
   if (this.displayed) this.redraw();
 };
@@ -35,7 +35,7 @@ Item.prototype.select = function select() {
 /**
  * Unselect current item
  */
-Item.prototype.unselect = function unselect() {
+Item.prototype.unselect = function() {
   this.selected = false;
   if (this.displayed) this.redraw();
 };
@@ -44,7 +44,7 @@ Item.prototype.unselect = function unselect() {
  * Set a parent for the item
  * @param {ItemSet | Group} parent
  */
-Item.prototype.setParent = function setParent(parent) {
+Item.prototype.setParent = function(parent) {
   if (this.displayed) {
     this.hide();
     this.parent = parent;
@@ -62,7 +62,7 @@ Item.prototype.setParent = function setParent(parent) {
  * @returns {{start: Number, end: Number}} range with a timestamp for start and end
  * @returns {boolean} True if visible
  */
-Item.prototype.isVisible = function isVisible (range) {
+Item.prototype.isVisible = function(range) {
   // Should be implemented by Item implementations
   return false;
 };
@@ -71,7 +71,7 @@ Item.prototype.isVisible = function isVisible (range) {
  * Show the Item in the DOM (when not already visible)
  * @return {Boolean} changed
  */
-Item.prototype.show = function show() {
+Item.prototype.show = function() {
   return false;
 };
 
@@ -79,28 +79,28 @@ Item.prototype.show = function show() {
  * Hide the Item from the DOM (when visible)
  * @return {Boolean} changed
  */
-Item.prototype.hide = function hide() {
+Item.prototype.hide = function() {
   return false;
 };
 
 /**
  * Repaint the item
  */
-Item.prototype.redraw = function redraw() {
+Item.prototype.redraw = function() {
   // should be implemented by the item
 };
 
 /**
  * Reposition the Item horizontally
  */
-Item.prototype.repositionX = function repositionX() {
+Item.prototype.repositionX = function() {
   // should be implemented by the item
 };
 
 /**
  * Reposition the Item vertically
  */
-Item.prototype.repositionY = function repositionY() {
+Item.prototype.repositionY = function() {
   // should be implemented by the item
 };
 

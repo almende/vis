@@ -36,7 +36,7 @@ ItemRange.prototype.baseClassName = 'item range';
  * @returns {{start: Number, end: Number}} range with a timestamp for start and end
  * @returns {boolean} True if visible
  */
-ItemRange.prototype.isVisible = function isVisible (range) {
+ItemRange.prototype.isVisible = function(range) {
   // determine visibility
   return (this.data.start < range.end) && (this.data.end > range.start);
 };
@@ -44,7 +44,7 @@ ItemRange.prototype.isVisible = function isVisible (range) {
 /**
  * Repaint the item
  */
-ItemRange.prototype.redraw = function redraw() {
+ItemRange.prototype.redraw = function() {
   var dom = this.dom;
   if (!dom) {
     // create DOM
@@ -121,7 +121,7 @@ ItemRange.prototype.redraw = function redraw() {
  * Show the item in the DOM (when not already visible). The items DOM will
  * be created when needed.
  */
-ItemRange.prototype.show = function show() {
+ItemRange.prototype.show = function() {
   if (!this.displayed) {
     this.redraw();
   }
@@ -131,7 +131,7 @@ ItemRange.prototype.show = function show() {
  * Hide the item from the DOM (when visible)
  * @return {Boolean} changed
  */
-ItemRange.prototype.hide = function hide() {
+ItemRange.prototype.hide = function() {
   if (this.displayed) {
     var box = this.dom.box;
 
@@ -150,7 +150,7 @@ ItemRange.prototype.hide = function hide() {
  * Reposition the item horizontally
  * @Override
  */
-ItemRange.prototype.repositionX = function repositionX() {
+ItemRange.prototype.repositionX = function() {
   var props = this.props,
       parentWidth = this.parent.width,
       start = this.defaultOptions.toScreen(this.data.start),
@@ -188,7 +188,7 @@ ItemRange.prototype.repositionX = function repositionX() {
  * Reposition the item vertically
  * @Override
  */
-ItemRange.prototype.repositionY = function repositionY() {
+ItemRange.prototype.repositionY = function() {
   var orientation = this.options.orientation || this.defaultOptions.orientation,
       box = this.dom.box;
 

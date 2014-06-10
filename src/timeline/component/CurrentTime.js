@@ -21,7 +21,7 @@ CurrentTime.prototype = new Component();
  * Create the HTML DOM for the current time bar
  * @private
  */
-CurrentTime.prototype._create = function _create () {
+CurrentTime.prototype._create = function() {
   var bar = document.createElement('div');
   bar.className = 'currenttime';
   bar.style.position = 'absolute';
@@ -35,7 +35,7 @@ CurrentTime.prototype._create = function _create () {
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
-CurrentTime.prototype.redraw = function redraw() {
+CurrentTime.prototype.redraw = function() {
   if (this.options.showCurrentTime) {
     var parent = this.timeline.dom.backgroundVertical;
     if (this.bar.parentNode != parent) {
@@ -68,7 +68,7 @@ CurrentTime.prototype.redraw = function redraw() {
 /**
  * Start auto refreshing the current time bar
  */
-CurrentTime.prototype.start = function start() {
+CurrentTime.prototype.start = function() {
   var me = this;
 
   function update () {
@@ -92,7 +92,7 @@ CurrentTime.prototype.start = function start() {
 /**
  * Stop auto refreshing the current time bar
  */
-CurrentTime.prototype.stop = function stop() {
+CurrentTime.prototype.stop = function() {
   if (this.currentTimeTimer !== undefined) {
     clearTimeout(this.currentTimeTimer);
     delete this.currentTimeTimer;

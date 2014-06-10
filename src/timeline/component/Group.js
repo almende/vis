@@ -65,7 +65,7 @@ Group.prototype._create = function() {
  * Set the group data for this group
  * @param {Object} data   Group data, can contain properties content and className
  */
-Group.prototype.setData = function setData(data) {
+Group.prototype.setData = function(data) {
   // update contents
   var content = data && data.content;
   if (content instanceof Element) {
@@ -96,7 +96,7 @@ Group.prototype.setData = function setData(data) {
  * Get the width of the group label
  * @return {number} width
  */
-Group.prototype.getLabelWidth = function getLabelWidth() {
+Group.prototype.getLabelWidth = function() {
   return this.props.label.width;
 };
 
@@ -108,7 +108,7 @@ Group.prototype.getLabelWidth = function getLabelWidth() {
  * @param {boolean} [restack=false]  Force restacking of all items
  * @return {boolean} Returns true if the group is resized
  */
-Group.prototype.redraw = function redraw(range, margin, restack) {
+Group.prototype.redraw = function(range, margin, restack) {
   var resized = false;
 
   this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
@@ -179,7 +179,7 @@ Group.prototype.redraw = function redraw(range, margin, restack) {
 /**
  * Show this group: attach to the DOM
  */
-Group.prototype.show = function show() {
+Group.prototype.show = function() {
   if (!this.dom.label.parentNode) {
     this.itemSet.dom.labelSet.appendChild(this.dom.label);
   }
@@ -200,7 +200,7 @@ Group.prototype.show = function show() {
 /**
  * Hide this group: remove from the DOM
  */
-Group.prototype.hide = function hide() {
+Group.prototype.hide = function() {
   var label = this.dom.label;
   if (label.parentNode) {
     label.parentNode.removeChild(label);
@@ -226,7 +226,7 @@ Group.prototype.hide = function hide() {
  * Add an item to the group
  * @param {Item} item
  */
-Group.prototype.add = function add(item) {
+Group.prototype.add = function(item) {
   this.items[item.id] = item;
   item.setParent(this);
 
@@ -240,7 +240,7 @@ Group.prototype.add = function add(item) {
  * Remove an item from the group
  * @param {Item} item
  */
-Group.prototype.remove = function remove(item) {
+Group.prototype.remove = function(item) {
   delete this.items[item.id];
   item.setParent(this.itemSet);
 
@@ -255,14 +255,14 @@ Group.prototype.remove = function remove(item) {
  * Remove an item from the corresponding DataSet
  * @param {Item} item
  */
-Group.prototype.removeFromDataSet = function removeFromDataSet(item) {
+Group.prototype.removeFromDataSet = function(item) {
   this.itemSet.removeItem(item.id);
 };
 
 /**
  * Reorder the items
  */
-Group.prototype.order = function order() {
+Group.prototype.order = function() {
   var array = util.toArray(this.items);
   this.orderedItems.byStart = array;
   this.orderedItems.byEnd = this._constructByEndArray(array);
@@ -277,7 +277,7 @@ Group.prototype.order = function order() {
  * @returns {ItemRange[]}
  * @private
  */
-Group.prototype._constructByEndArray = function _constructByEndArray(array) {
+Group.prototype._constructByEndArray = function(array) {
   var endArray = [];
 
   for (var i = 0; i < array.length; i++) {
@@ -296,7 +296,7 @@ Group.prototype._constructByEndArray = function _constructByEndArray(array) {
  * @return {Item[]} visibleItems                            The new visible items.
  * @private
  */
-Group.prototype._updateVisibleItems = function _updateVisibleItems(orderedItems, visibleItems, range) {
+Group.prototype._updateVisibleItems = function(orderedItems, visibleItems, range) {
   var initialPosByStart,
       newVisibleItems = [],
       i;
@@ -359,7 +359,7 @@ Group.prototype._updateVisibleItems = function _updateVisibleItems(orderedItems,
  * @returns {number}
  * @private
  */
-Group.prototype._binarySearch = function _binarySearch(orderedItems, range, byEnd) {
+Group.prototype._binarySearch = function(orderedItems, range, byEnd) {
   var array = [];
   var byTime = byEnd ? 'end' : 'start';
   if (byEnd == true) {array = orderedItems.byEnd;  }
@@ -420,7 +420,7 @@ Group.prototype._binarySearch = function _binarySearch(orderedItems, range, byEn
  * @returns {boolean}
  * @private
  */
-Group.prototype._checkIfInvisible = function _checkIfInvisible(item, visibleItems, range) {
+Group.prototype._checkIfInvisible = function(item, visibleItems, range) {
   if (item.isVisible(range)) {
     if (!item.displayed) item.show();
     item.repositionX();
@@ -445,7 +445,7 @@ Group.prototype._checkIfInvisible = function _checkIfInvisible(item, visibleItem
  * @param {{start:number, end:number}} range
  * @private
  */
-Group.prototype._checkIfVisible = function _checkIfVisible(item, visibleItems, range) {
+Group.prototype._checkIfVisible = function(item, visibleItems, range) {
   if (item.isVisible(range)) {
     if (!item.displayed) item.show();
     // reposition item horizontally

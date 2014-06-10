@@ -37,7 +37,7 @@ ItemPoint.prototype = new Item (null);
  * @returns {{start: Number, end: Number}} range with a timestamp for start and end
  * @returns {boolean} True if visible
  */
-ItemPoint.prototype.isVisible = function isVisible (range) {
+ItemPoint.prototype.isVisible = function(range) {
   // determine visibility
   // TODO: account for the real width of the item. Right now we just add 1/4 to the window
   var interval = (range.end - range.start) / 4;
@@ -47,7 +47,7 @@ ItemPoint.prototype.isVisible = function isVisible (range) {
 /**
  * Repaint the item
  */
-ItemPoint.prototype.redraw = function redraw() {
+ItemPoint.prototype.redraw = function() {
   var dom = this.dom;
   if (!dom) {
     // create DOM
@@ -137,7 +137,7 @@ ItemPoint.prototype.redraw = function redraw() {
  * Show the item in the DOM (when not already visible). The items DOM will
  * be created when needed.
  */
-ItemPoint.prototype.show = function show() {
+ItemPoint.prototype.show = function() {
   if (!this.displayed) {
     this.redraw();
   }
@@ -146,7 +146,7 @@ ItemPoint.prototype.show = function show() {
 /**
  * Hide the item from the DOM (when visible)
  */
-ItemPoint.prototype.hide = function hide() {
+ItemPoint.prototype.hide = function() {
   if (this.displayed) {
     if (this.dom.point.parentNode) {
       this.dom.point.parentNode.removeChild(this.dom.point);
@@ -163,7 +163,7 @@ ItemPoint.prototype.hide = function hide() {
  * Reposition the item horizontally
  * @Override
  */
-ItemPoint.prototype.repositionX = function repositionX() {
+ItemPoint.prototype.repositionX = function() {
   var start = this.defaultOptions.toScreen(this.data.start);
 
   this.left = start - this.props.dot.width;
@@ -176,7 +176,7 @@ ItemPoint.prototype.repositionX = function repositionX() {
  * Reposition the item vertically
  * @Override
  */
-ItemPoint.prototype.repositionY = function repositionY () {
+ItemPoint.prototype.repositionY = function() {
   var orientation = this.options.orientation || this.defaultOptions.orientation,
       point = this.dom.point;
 

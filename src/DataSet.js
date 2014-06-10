@@ -83,7 +83,7 @@ function DataSet (data, options) {
  *                                  {Object | null} params
  *                                  {String | Number} senderId
  */
-DataSet.prototype.on = function on (event, callback) {
+DataSet.prototype.on = function(event, callback) {
   var subscribers = this.subscribers[event];
   if (!subscribers) {
     subscribers = [];
@@ -103,7 +103,7 @@ DataSet.prototype.subscribe = DataSet.prototype.on;
  * @param {String} event
  * @param {function} callback
  */
-DataSet.prototype.off = function off(event, callback) {
+DataSet.prototype.off = function(event, callback) {
   var subscribers = this.subscribers[event];
   if (subscribers) {
     this.subscribers[event] = subscribers.filter(function (listener) {

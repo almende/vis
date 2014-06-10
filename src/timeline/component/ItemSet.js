@@ -7,7 +7,7 @@ var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
  * @param {{dom: Object}} timeline
  * @param {Object} [options]      See ItemSet.setOptions for the available options.
  * @constructor ItemSet
- * @extends Panel
+ * @extends Component
  */
 function ItemSet(timeline, options) {
   this.timeline = timeline;
@@ -75,7 +75,7 @@ ItemSet.types = {
 /**
  * Create the HTML DOM for the ItemSet
  */
-ItemSet.prototype._create = function _create(){
+ItemSet.prototype._create = function(){
   var frame = document.createElement('div');
   frame.className = 'itemset';
   frame['timeline-itemset'] = this;
@@ -162,7 +162,7 @@ ItemSet.prototype.setOptions = Component.prototype.setOptions;
 /**
  * Mark the ItemSet dirty so it will refresh everything with next redraw
  */
-ItemSet.prototype.markDirty = function markDirty() {
+ItemSet.prototype.markDirty = function() {
   this.groupIds = [];
   this.stackDirty = true;
 };
@@ -170,7 +170,7 @@ ItemSet.prototype.markDirty = function markDirty() {
 /**
  * Hide the component from the DOM
  */
-ItemSet.prototype.hide = function hide() {
+ItemSet.prototype.hide = function() {
   // remove the frame containing the items
   if (this.dom.frame.parentNode) {
     this.dom.frame.parentNode.removeChild(this.dom.frame);
@@ -191,7 +191,7 @@ ItemSet.prototype.hide = function hide() {
  * Show the component in the DOM (when not already visible).
  * @return {Boolean} changed
  */
-ItemSet.prototype.show = function show() {
+ItemSet.prototype.show = function() {
   // show frame containing the items
   if (!this.dom.frame.parentNode) {
     this.timeline.dom.center.appendChild(this.dom.frame);
@@ -215,7 +215,7 @@ ItemSet.prototype.show = function show() {
  *                      selected. If ids is an empty array, all items will be
  *                      unselected.
  */
-ItemSet.prototype.setSelection = function setSelection(ids) {
+ItemSet.prototype.setSelection = function(ids) {
   var i, ii, id, item;
 
   if (ids) {
@@ -247,7 +247,7 @@ ItemSet.prototype.setSelection = function setSelection(ids) {
  * Get the selected items by their id
  * @return {Array} ids  The ids of the selected items
  */
-ItemSet.prototype.getSelection = function getSelection() {
+ItemSet.prototype.getSelection = function() {
   return this.selection.concat([]);
 };
 
@@ -256,7 +256,7 @@ ItemSet.prototype.getSelection = function getSelection() {
  * @param {String | Number} id
  * @private
  */
-ItemSet.prototype._deselect = function _deselect(id) {
+ItemSet.prototype._deselect = function(id) {
   var selection = this.selection;
   for (var i = 0, ii = selection.length; i < ii; i++) {
     if (selection[i] == id) { // non-strict comparison!
@@ -270,7 +270,7 @@ ItemSet.prototype._deselect = function _deselect(id) {
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
-ItemSet.prototype.redraw = function redraw() {
+ItemSet.prototype.redraw = function() {
   var margin = this.options.margin,
       range = this.timeline.range,
       asSize = util.option.asSize,
@@ -352,7 +352,7 @@ ItemSet.prototype.redraw = function redraw() {
  * @return {Group | null} firstGroup
  * @private
  */
-ItemSet.prototype._firstGroup = function _firstGroup() {
+ItemSet.prototype._firstGroup = function() {
   var firstGroupIndex = (this.options.orientation == 'top') ? 0 : (this.groupIds.length - 1);
   var firstGroupId = this.groupIds[firstGroupIndex];
   var firstGroup = this.groups[firstGroupId] || this.groups[UNGROUPED];
@@ -365,7 +365,7 @@ ItemSet.prototype._firstGroup = function _firstGroup() {
  * there are no groups specified.
  * @protected
  */
-ItemSet.prototype._updateUngrouped = function _updateUngrouped() {
+ItemSet.prototype._updateUngrouped = function() {
   var ungrouped = this.groups[UNGROUPED];
 
   if (this.groupsData) {
@@ -398,7 +398,7 @@ ItemSet.prototype._updateUngrouped = function _updateUngrouped() {
  * Get the element for the labelset
  * @return {HTMLElement} labelSet
  */
-ItemSet.prototype.getLabelSet = function getLabelSet() {
+ItemSet.prototype.getLabelSet = function() {
   return this.dom.labelSet;
 };
 
@@ -406,7 +406,7 @@ ItemSet.prototype.getLabelSet = function getLabelSet() {
  * Set items
  * @param {vis.DataSet | null} items
  */
-ItemSet.prototype.setItems = function setItems(items) {
+ItemSet.prototype.setItems = function(items) {
   var me = this,
       ids,
       oldItemsData = this.itemsData;
@@ -453,7 +453,7 @@ ItemSet.prototype.setItems = function setItems(items) {
  * Get the current items
  * @returns {vis.DataSet | null}
  */
-ItemSet.prototype.getItems = function getItems() {
+ItemSet.prototype.getItems = function() {
   return this.itemsData;
 };
 
@@ -461,7 +461,7 @@ ItemSet.prototype.getItems = function getItems() {
  * Set groups
  * @param {vis.DataSet} groups
  */
-ItemSet.prototype.setGroups = function setGroups(groups) {
+ItemSet.prototype.setGroups = function(groups) {
   var me = this,
       ids;
 
@@ -513,7 +513,7 @@ ItemSet.prototype.setGroups = function setGroups(groups) {
  * Get the current groups
  * @returns {vis.DataSet | null} groups
  */
-ItemSet.prototype.getGroups = function getGroups() {
+ItemSet.prototype.getGroups = function() {
   return this.groupsData;
 };
 
@@ -521,7 +521,7 @@ ItemSet.prototype.getGroups = function getGroups() {
  * Remove an item by its id
  * @param {String | Number} id
  */
-ItemSet.prototype.removeItem = function removeItem (id) {
+ItemSet.prototype.removeItem = function(id) {
   var item = this.itemsData.get(id),
       dataset = this._myDataSet();
 
@@ -542,7 +542,7 @@ ItemSet.prototype.removeItem = function removeItem (id) {
  * @param {Number[]} ids
  * @protected
  */
-ItemSet.prototype._onUpdate = function _onUpdate(ids) {
+ItemSet.prototype._onUpdate = function(ids) {
   var me = this,
       items = this.items,
       itemOptions = this.itemOptions;
@@ -599,7 +599,7 @@ ItemSet.prototype._onAdd = ItemSet.prototype._onUpdate;
  * @param {Number[]} ids
  * @protected
  */
-ItemSet.prototype._onRemove = function _onRemove(ids) {
+ItemSet.prototype._onRemove = function(ids) {
   var count = 0;
   var me = this;
   ids.forEach(function (id) {
@@ -622,7 +622,7 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
  * Update the order of item in all groups
  * @private
  */
-ItemSet.prototype._order = function _order() {
+ItemSet.prototype._order = function() {
   // reorder the items in all groups
   // TODO: optimization: only reorder groups affected by the changed items
   util.forEach(this.groups, function (group) {
@@ -635,7 +635,7 @@ ItemSet.prototype._order = function _order() {
  * @param {Number[]} ids
  * @private
  */
-ItemSet.prototype._onUpdateGroups = function _onUpdateGroups(ids) {
+ItemSet.prototype._onUpdateGroups = function(ids) {
   this._onAddGroups(ids);
 };
 
@@ -644,7 +644,7 @@ ItemSet.prototype._onUpdateGroups = function _onUpdateGroups(ids) {
  * @param {Number[]} ids
  * @private
  */
-ItemSet.prototype._onAddGroups = function _onAddGroups(ids) {
+ItemSet.prototype._onAddGroups = function(ids) {
   var me = this;
 
   ids.forEach(function (id) {
@@ -692,7 +692,7 @@ ItemSet.prototype._onAddGroups = function _onAddGroups(ids) {
  * @param {Number[]} ids
  * @private
  */
-ItemSet.prototype._onRemoveGroups = function _onRemoveGroups(ids) {
+ItemSet.prototype._onRemoveGroups = function(ids) {
   var groups = this.groups;
   ids.forEach(function (id) {
     var group = groups[id];
@@ -748,7 +748,7 @@ ItemSet.prototype._orderGroups = function () {
  * @param {Item} item
  * @private
  */
-ItemSet.prototype._addItem = function _addItem(item) {
+ItemSet.prototype._addItem = function(item) {
   this.items[item.id] = item;
 
   // add to group
@@ -763,7 +763,7 @@ ItemSet.prototype._addItem = function _addItem(item) {
  * @param {Object} itemData
  * @private
  */
-ItemSet.prototype._updateItem = function _updateItem(item, itemData) {
+ItemSet.prototype._updateItem = function(item, itemData) {
   var oldGroupId = item.data.group;
 
   item.data = itemData;
@@ -788,7 +788,7 @@ ItemSet.prototype._updateItem = function _updateItem(item, itemData) {
  * @param {Item} item
  * @private
  */
-ItemSet.prototype._removeItem = function _removeItem(item) {
+ItemSet.prototype._removeItem = function(item) {
   // remove from DOM
   item.hide();
 
@@ -811,7 +811,7 @@ ItemSet.prototype._removeItem = function _removeItem(item) {
  * @returns {Array}
  * @private
  */
-ItemSet.prototype._constructByEndArray = function _constructByEndArray(array) {
+ItemSet.prototype._constructByEndArray = function(array) {
   var endArray = [];
 
   for (var i = 0; i < array.length; i++) {
@@ -1145,7 +1145,7 @@ ItemSet.prototype._onMultiSelectItem = function (event) {
  * @param {Event} event
  * @return {Item | null} item
  */
-ItemSet.itemFromTarget = function itemFromTarget (event) {
+ItemSet.itemFromTarget = function(event) {
   var target = event.target;
   while (target) {
     if (target.hasOwnProperty('timeline-item')) {
@@ -1163,7 +1163,7 @@ ItemSet.itemFromTarget = function itemFromTarget (event) {
  * @param {Event} event
  * @return {Group | null} group
  */
-ItemSet.groupFromTarget = function groupFromTarget (event) {
+ItemSet.groupFromTarget = function(event) {
   var target = event.target;
   while (target) {
     if (target.hasOwnProperty('timeline-group')) {
@@ -1181,7 +1181,7 @@ ItemSet.groupFromTarget = function groupFromTarget (event) {
  * @param {Event} event
  * @return {ItemSet | null} item
  */
-ItemSet.itemSetFromTarget = function itemSetFromTarget (event) {
+ItemSet.itemSetFromTarget = function(event) {
   var target = event.target;
   while (target) {
     if (target.hasOwnProperty('timeline-itemset')) {
@@ -1198,7 +1198,7 @@ ItemSet.itemSetFromTarget = function itemSetFromTarget (event) {
  * @returns {null | DataSet} dataset
  * @private
  */
-ItemSet.prototype._myDataSet = function _myDataSet() {
+ItemSet.prototype._myDataSet = function() {
   // find the root DataSet
   var dataset = this.itemsData;
   while (dataset instanceof DataView) {

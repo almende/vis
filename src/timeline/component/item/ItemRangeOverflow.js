@@ -26,7 +26,7 @@ ItemRangeOverflow.prototype.baseClassName = 'item rangeoverflow';
  * Reposition the item horizontally
  * @Override
  */
-ItemRangeOverflow.prototype.repositionX = function repositionX() {
+ItemRangeOverflow.prototype.repositionX = function() {
   var parentWidth = this.parent.width,
       start = this.defaultOptions.toScreen(this.data.start),
       end = this.defaultOptions.toScreen(this.data.end),

@@ -16,7 +16,7 @@ function Component () {
  *                          {String | Number | function} [width]
  *                          {String | Number | function} [height]
  */
-Component.prototype.setOptions = function setOptions(options) {
+Component.prototype.setOptions = function(options) {
   if (options) {
     util.extend(this.options, options);
 
@@ -31,7 +31,7 @@ Component.prototype.setOptions = function setOptions(options) {
  * @param {String} name
  * @return {*} value
  */
-Component.prototype.getOption = function getOption(name) {
+Component.prototype.getOption = function(name) {
   var value;
   if (this.options) {
     value = this.options[name];
@@ -46,7 +46,7 @@ Component.prototype.getOption = function getOption(name) {
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
-Component.prototype.redraw = function redraw() {
+Component.prototype.redraw = function() {
   // should be implemented by the component
   return false;
 };
@@ -57,7 +57,7 @@ Component.prototype.redraw = function redraw() {
  * @return {Boolean} Returns true if the component is resized
  * @protected
  */
-Component.prototype._isResized = function _isResized() {
+Component.prototype._isResized = function() {
   var resized = (this.props._previousWidth !== this.props.width ||
       this.props._previousHeight !== this.props.height);
 

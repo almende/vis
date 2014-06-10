@@ -24,7 +24,7 @@ CustomTime.prototype = new Component();
  * Create the DOM for the custom time
  * @private
  */
-CustomTime.prototype._create = function _create () {
+CustomTime.prototype._create = function() {
   var bar = document.createElement('div');
   bar.className = 'customtime';
   bar.style.position = 'absolute';

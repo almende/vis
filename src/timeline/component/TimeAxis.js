@@ -29,7 +29,7 @@ function TimeAxis (timeline, options) {
     lineTop: 0
   };
 
-  this.options = options || {};
+  this.options = Object.create(options) || {};
   this.defaultOptions = {
     orientation: 'bottom',  // supported: 'top', 'bottom'
     // TODO: implement timeaxis orientations 'left' and 'right'
@@ -58,7 +58,7 @@ TimeAxis.prototype.setOptions = Component.prototype.setOptions;
 /**
  * Create the HTML DOM for the TimeAxis
  */
-TimeAxis.prototype._create = function _create() {
+TimeAxis.prototype._create = function() {
   this.dom.foreground = document.createElement('div');
   this.dom.background = document.createElement('div');
 
@@ -376,6 +376,6 @@ TimeAxis.prototype._calculateCharSize = function () {
  * @param {Date} date   the date to be snapped.
  * @return {Date} snappedDate
  */
-TimeAxis.prototype.snap = function snap (date) {
+TimeAxis.prototype.snap = function(date) {
   return this.step.snap(date);
 };
