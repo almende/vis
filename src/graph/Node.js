@@ -32,7 +32,7 @@ function Node(properties, imagelist, grouplist, constants) {
   this.reroutedEdges = {};
   this.group = constants.nodes.group;
 
-  this.fontSize = constants.nodes.fontSize;
+  this.fontSize = Number(constants.nodes.fontSize);
   this.fontFace = constants.nodes.fontFace;
   this.fontColor = constants.nodes.fontColor;
   this.fontDrawThreshold = 3;

@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 1.1.0
- * @date    2014-06-06
+ * @date    2014-06-10
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -9083,7 +9083,7 @@ function Node(properties, imagelist, grouplist, constants) {
   this.reroutedEdges = {};
   this.group = constants.nodes.group;
 
-  this.fontSize = constants.nodes.fontSize;
+  this.fontSize = Number(constants.nodes.fontSize);
   this.fontFace = constants.nodes.fontFace;
   this.fontColor = constants.nodes.fontColor;
   this.fontDrawThreshold = 3;
@@ -15795,7 +15795,7 @@ function Graph (container, data, options) {
   this.renderTimestep = 1000 / this.renderRefreshRate; // ms -- saves calculation later on
   this.renderTime = 0.5 * this.renderTimestep;         // measured time it takes to render a frame
   this.maxPhysicsTicksPerRender = 3;                   // max amount of physics ticks per render step.
-  this.physicsDiscreteStepsize = 0.65;                 // discrete stepsize of the simulation
+  this.physicsDiscreteStepsize = 0.50;                 // discrete stepsize of the simulation
 
   this.stabilize = true;  // stabilize before displaying the graph
   this.selectable = true;
@@ -15958,12 +15958,13 @@ function Graph (container, data, options) {
         background: '#FFFFC6'
       }
     },
-    moveable: true,
+    dragGraph: true,
+    dragNodes: true,
     zoomable: true,
     hover: false
   };
   this.hoverObj = {nodes:{},edges:{}};
-  this.editMode = this.constants.dataManipulation.initiallyVisible;
+
 
   // Node variables
   var graph = this;
@@ -15996,7 +15997,6 @@ function Graph (container, data, options) {
   this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
   this._setScale(1);
   this.setOptions(options);
-
 
   // other vars
   this.freezeSimulation = false;// freeze the simulation
@@ -16301,7 +16301,8 @@ Graph.prototype.setOptions = function (options) {
     if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
-    if (options.moveable !== undefined)        {this.constants.moveable = options.moveable;}
+    if (options.dragGraph !== undefined)       {this.constants.dragGraph = options.dragGraph;}
+    if (options.dragNodes !== undefined)       {this.constants.dragNodes = options.dragNodes;}
     if (options.zoomable !== undefined)        {this.constants.zoomable = options.zoomable;}
     if (options.hover !== undefined)           {this.constants.hover = options.hover;}
 
@@ -16415,6 +16416,7 @@ Graph.prototype.setOptions = function (options) {
           this.constants.dataManipulation[prop] = options.dataManipulation[prop];
         }
       }
+      this.editMode = this.constants.dataManipulation.initiallyVisible;
     }
     else if (options.dataManipulation !== undefined)  {
       this.constants.dataManipulation.enabled = false;
@@ -16728,7 +16730,7 @@ Graph.prototype._handleOnDrag = function(event) {
   var me = this,
     drag = this.drag,
     selection = drag.selection;
-  if (selection && selection.length) {
+  if (selection && selection.length && this.constants.dragNodes == true) {
     // calculate delta's and new location
     var deltaX = pointer.x - drag.pointer.x,
       deltaY = pointer.y - drag.pointer.y;
@@ -16753,7 +16755,7 @@ Graph.prototype._handleOnDrag = function(event) {
     }
   }
   else {
-    if (this.constants.moveable == true) {
+    if (this.constants.dragGraph == true) {
       // move the graph
       var diffX = pointer.x - this.drag.pointer.x;
       var diffY = pointer.y - this.drag.pointer.y;
