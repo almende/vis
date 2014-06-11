@@ -71,13 +71,6 @@ function Timeline (container, items, options) {
 
   this.options = {};
   util.deepExtend(this.options, this.defaultOptions);
-  util.deepExtend(this.options, {
-    // FIXME: not nice passing these functions via the options
-    snap: null, // will be specified after timeaxis is created
-
-    toScreen: me._toScreen.bind(me),
-    toTime: me._toTime.bind(me)
-  });
 
   // Create the DOM, props, and emitter
   this._create();
@@ -92,7 +85,12 @@ function Timeline (container, items, options) {
   this.body = {
     dom: this.dom,
     props: this.props,
-    emitter: this
+    emitter: this,
+    util: {
+      snap: null, // will be specified after TimeAxis is created
+      toScreen: me._toScreen.bind(me),
+      toTime: me._toTime.bind(me)
+    }
   };
 
   // range
@@ -106,7 +104,7 @@ function Timeline (container, items, options) {
   // time axis
   this.timeAxis = new TimeAxis(this.body, this.options);
   this.components.push(this.timeAxis);
-  this.options.snap = this.timeAxis.snap.bind(this.timeAxis); // TODO: not nice adding snap to options
+  this.body.util.snap = this.timeAxis.snap.bind(this.timeAxis);
 
   // current time bar
   this.currentTime = new CurrentTime(this.body, this.options);

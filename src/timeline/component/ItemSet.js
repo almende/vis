@@ -15,6 +15,10 @@ function ItemSet(body, options) {
   // one options object is shared by this itemset and all its items
   this.options = options || {};
   this.itemOptions = Object.create(this.options);
+  this.itemConversion = {
+    toScreen: body.util.toScreen,
+    toTime: body.util.toTime
+  };
   this.dom = {};
   this.props = {};
   this.hammer = null;
@@ -543,13 +547,11 @@ ItemSet.prototype.removeItem = function(id) {
  * @protected
  */
 ItemSet.prototype._onUpdate = function(ids) {
-  var me = this,
-      items = this.items,
-      itemOptions = this.itemOptions;
+  var me = this;
 
   ids.forEach(function (id) {
     var itemData = me.itemsData.get(id),
-        item = items[id],
+        item = me.items[id],
         type = itemData.type ||
             (itemData.start && itemData.end && 'range') ||
             me.options.type ||
@@ -572,7 +574,7 @@ ItemSet.prototype._onUpdate = function(ids) {
     if (!item) {
       // create item
       if (constructor) {
-        item = new constructor(itemData, me.options, itemOptions);
+        item = new constructor(itemData, me.itemConversion, me.itemOptions);
         item.id = id; // TODO: not so nice setting id afterwards
         me._addItem(item);
       }
@@ -913,7 +915,7 @@ ItemSet.prototype._onDragStart = function (event) {
 ItemSet.prototype._onDrag = function (event) {
   if (this.touchParams.itemProps) {
     var range = this.body.range,
-        snap = this.options.snap || null,
+        snap = this.body.util.snap || null,
         deltaX = event.gesture.deltaX,
         scale = (this.props.width / (range.end - range.start)),
         offset = deltaX / scale;
@@ -1058,7 +1060,7 @@ ItemSet.prototype._onAddItem = function (event) {
   if (!this.options.editable.add) return;
 
   var me = this,
-      snap = this.options.snap || null,
+      snap = this.body.util.snap || null,
       item = ItemSet.itemFromTarget(event);
 
   if (item) {
@@ -1076,7 +1078,7 @@ ItemSet.prototype._onAddItem = function (event) {
     // add item
     var xAbs = vis.util.getAbsoluteLeft(this.dom.frame);
     var x = event.gesture.center.pageX - xAbs;
-    var start = this.options.toTime(x);
+    var start = this.body.util.toTime(x);
     var newItem = {
       start: snap ? snap(start) : start,
       content: 'new item'
@@ -1084,7 +1086,7 @@ ItemSet.prototype._onAddItem = function (event) {
 
     // when default type is a range, add a default end date to the new item
     if (this.options.type === 'range' || this.options.type == 'rangeoverflow') {
-      var end = this.options.toTime(x + this.props.width / 5);
+      var end = this.body.util.toTime(x + this.props.width / 5);
       newItem.end = snap ? snap(end) : end;
     }
 

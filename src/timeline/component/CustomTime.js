@@ -64,7 +64,7 @@ CustomTime.prototype.redraw = function () {
       parent.appendChild(this.bar);
     }
 
-    var x = this.options.toScreen(this.customTime);
+    var x = this.body.util.toScreen(this.customTime);
 
     this.bar.style.left = x + 'px';
     this.bar.title = 'Time: ' + this.customTime;
@@ -118,8 +118,8 @@ CustomTime.prototype._onDrag = function (event) {
   if (!this.eventParams.dragging) return;
 
   var deltaX = event.gesture.deltaX,
-      x = this.options.toScreen(this.eventParams.customTime) + deltaX,
-      time = this.options.toTime(x);
+      x = this.body.util.toScreen(this.eventParams.customTime) + deltaX,
+      time = this.body.util.toTime(x);
 
   this.setCustomTime(time);
 

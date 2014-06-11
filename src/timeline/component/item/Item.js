@@ -2,17 +2,18 @@
  * @constructor Item
  * @param {Object} data             Object containing (optional) parameters type,
  *                                  start, end, content, group, className.
- * @param {Object} [options]        Options to set initial property values
- * @param {Object} [defaultOptions] default options
+ * @param {{toScreen: function, toTime: function}} conversion
+ *                                  Conversion functions from time to screen and vice versa
+ * @param {Object} options          Configuration options
  *                                  // TODO: describe available options
  */
-function Item (data, options, defaultOptions) {
+function Item (data, conversion, options) {
   this.id = null;
   this.parent = null;
   this.data = data;
   this.dom = null;
+  this.conversion = conversion || {};
   this.options = options || {};
-  this.defaultOptions = defaultOptions || {};
 
   this.selected = false;
   this.displayed = false;

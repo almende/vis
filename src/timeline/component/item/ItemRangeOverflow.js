@@ -3,11 +3,12 @@
  * @extends ItemRange
  * @param {Object} data             Object containing parameters start, end
  *                                  content, className.
- * @param {Object} [options]        Options to set initial property values
- * @param {Object} [defaultOptions] default options
- *                                  // TODO: describe available options
+ * @param {{toScreen: function, toTime: function}} conversion
+ *                                  Conversion functions from time to screen and vice versa
+ * @param {Object} [options]        Configuration options
+ *                                  // TODO: describe options
  */
-function ItemRangeOverflow (data, options, defaultOptions) {
+function ItemRangeOverflow (data, conversion, options) {
   this.props = {
     content: {
       left: 0,
@@ -15,10 +16,10 @@ function ItemRangeOverflow (data, options, defaultOptions) {
     }
   };
 
-  ItemRange.call(this, data, options, defaultOptions);
+  ItemRange.call(this, data, conversion, options);
 }
 
-ItemRangeOverflow.prototype = new ItemRange (null);
+ItemRangeOverflow.prototype = new ItemRange (null, null, null);
 
 ItemRangeOverflow.prototype.baseClassName = 'item rangeoverflow';
 
@@ -28,9 +29,8 @@ ItemRangeOverflow.prototype.baseClassName = 'item rangeoverflow';
  */
 ItemRangeOverflow.prototype.repositionX = function() {
   var parentWidth = this.parent.width,
-      start = this.defaultOptions.toScreen(this.data.start),
-      end = this.defaultOptions.toScreen(this.data.end),
-      padding = 'padding' in this.options ? this.options.padding : this.defaultOptions.padding,
+      start = this.conversion.toScreen(this.data.start),
+      end = this.conversion.toScreen(this.data.end),
       contentLeft;
 
   // limit the width of the this, as browsers cannot draw very wide divs

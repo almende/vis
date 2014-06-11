@@ -137,8 +137,8 @@ TimeAxis.prototype._repaintLabels = function () {
   // calculate range and step (step such that we have space for 7 characters per label)
   var start = util.convert(this.body.range.start, 'Number'),
       end = util.convert(this.body.range.end, 'Number'),
-      minimumStep = this.options.toTime((this.props.minorCharWidth || 10) * 7).valueOf()
-          -this.options.toTime(0).valueOf();
+      minimumStep = this.body.util.toTime((this.props.minorCharWidth || 10) * 7).valueOf()
+          -this.body.util.toTime(0).valueOf();
   var step = new TimeStep(new Date(start), new Date(end), minimumStep);
   this.step = step;
 
@@ -161,7 +161,7 @@ TimeAxis.prototype._repaintLabels = function () {
   while (step.hasNext() && max < 1000) {
     max++;
     var cur = step.getCurrent(),
-        x = this.options.toScreen(cur),
+        x = this.body.util.toScreen(cur),
         isMajor = step.isMajor();
 
     // TODO: lines must have a width, such that we can create css backgrounds
@@ -188,7 +188,7 @@ TimeAxis.prototype._repaintLabels = function () {
 
   // create a major label on the left when needed
   if (this.getOption('showMajorLabels')) {
-    var leftTime = this.options.toTime(0),
+    var leftTime = this.body.util.toTime(0),
         leftText = step.getLabelMajor(leftTime),
         widthText = leftText.length * (this.props.majorCharWidth || 10) + 10; // upper bound estimation
 

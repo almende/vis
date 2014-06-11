@@ -3,11 +3,12 @@
  * @extends Item
  * @param {Object} data             Object containing parameters start
  *                                  content, className.
- * @param {Object} [options]        Options to set initial property values
- * @param {Object} [defaultOptions] default options
+ * @param {{toScreen: function, toTime: function}} conversion
+ *                                  Conversion functions from time to screen and vice versa
+ * @param {Object} [options]        Configuration options
  *                                  // TODO: describe available options
  */
-function ItemBox (data, options, defaultOptions) {
+function ItemBox (data, conversion, options) {
   this.props = {
     dot: {
       width: 0,
@@ -26,10 +27,10 @@ function ItemBox (data, options, defaultOptions) {
     }
   }
 
-  Item.call(this, data, options, defaultOptions);
+  Item.call(this, data, conversion, options);
 }
 
-ItemBox.prototype = new Item (null);
+ItemBox.prototype = new Item (null, null, null);
 
 /**
  * Check whether this item is visible inside given range
@@ -170,8 +171,8 @@ ItemBox.prototype.hide = function() {
  * @Override
  */
 ItemBox.prototype.repositionX = function() {
-  var start = this.defaultOptions.toScreen(this.data.start),
-      align = this.options.align || this.defaultOptions.align,
+  var start = this.conversion.toScreen(this.data.start),
+      align = this.options.align,
       left,
       box = this.dom.box,
       line = this.dom.line,
@@ -204,7 +205,7 @@ ItemBox.prototype.repositionX = function() {
  * @Override
  */
 ItemBox.prototype.repositionY = function() {
-  var orientation = this.options.orientation || this.defaultOptions.orientation,
+  var orientation = this.options.orientation,
       box = this.dom.box,
       line = this.dom.line,
       dot = this.dom.dot;

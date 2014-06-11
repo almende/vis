@@ -3,11 +3,12 @@
  * @extends Item
  * @param {Object} data             Object containing parameters start
  *                                  content, className.
- * @param {Object} [options]        Options to set initial property values
- * @param {Object} [defaultOptions] default options
+ * @param {{toScreen: function, toTime: function}} conversion
+ *                                  Conversion functions from time to screen and vice versa
+ * @param {Object} [options]        Configuration options
  *                                  // TODO: describe available options
  */
-function ItemPoint (data, options, defaultOptions) {
+function ItemPoint (data, conversion, options) {
   this.props = {
     dot: {
       top: 0,
@@ -27,10 +28,10 @@ function ItemPoint (data, options, defaultOptions) {
     }
   }
 
-  Item.call(this, data, options, defaultOptions);
+  Item.call(this, data, conversion, options);
 }
 
-ItemPoint.prototype = new Item (null);
+ItemPoint.prototype = new Item (null, null, null);
 
 /**
  * Check whether this item is visible inside given range
@@ -164,7 +165,7 @@ ItemPoint.prototype.hide = function() {
  * @Override
  */
 ItemPoint.prototype.repositionX = function() {
-  var start = this.defaultOptions.toScreen(this.data.start);
+  var start = this.conversion.toScreen(this.data.start);
 
   this.left = start - this.props.dot.width;
 
@@ -177,7 +178,7 @@ ItemPoint.prototype.repositionX = function() {
  * @Override
  */
 ItemPoint.prototype.repositionY = function() {
-  var orientation = this.options.orientation || this.defaultOptions.orientation,
+  var orientation = this.options.orientation,
       point = this.dom.point;
 
   if (orientation == 'top') {

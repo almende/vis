@@ -3,11 +3,12 @@
  * @extends Item
  * @param {Object} data             Object containing parameters start, end
  *                                  content, className.
- * @param {Object} [options]        Options to set initial property values
- * @param {Object} [defaultOptions] default options
- *                                  // TODO: describe available options
+ * @param {{toScreen: function, toTime: function}} conversion
+ *                                  Conversion functions from time to screen and vice versa
+ * @param {Object} [options]        Configuration options
+ *                                  // TODO: describe options
  */
-function ItemRange (data, options, defaultOptions) {
+function ItemRange (data, conversion, options) {
   this.props = {
     content: {
       width: 0
@@ -24,10 +25,10 @@ function ItemRange (data, options, defaultOptions) {
     }
   }
 
-  Item.call(this, data, options, defaultOptions);
+  Item.call(this, data, conversion, options);
 }
 
-ItemRange.prototype = new Item (null);
+ItemRange.prototype = new Item (null, null, null);
 
 ItemRange.prototype.baseClassName = 'item range';
 
@@ -153,9 +154,9 @@ ItemRange.prototype.hide = function() {
 ItemRange.prototype.repositionX = function() {
   var props = this.props,
       parentWidth = this.parent.width,
-      start = this.defaultOptions.toScreen(this.data.start),
-      end = this.defaultOptions.toScreen(this.data.end),
-      padding = 'padding' in this.options ? this.options.padding : this.defaultOptions.padding,
+      start = this.conversion.toScreen(this.data.start),
+      end = this.conversion.toScreen(this.data.end),
+      padding = this.options.padding,
       contentLeft;
 
   // limit the width of the this, as browsers cannot draw very wide divs
@@ -189,7 +190,7 @@ ItemRange.prototype.repositionX = function() {
  * @Override
  */
 ItemRange.prototype.repositionY = function() {
-  var orientation = this.options.orientation || this.defaultOptions.orientation,
+  var orientation = this.options.orientation,
       box = this.dom.box;
 
   if (orientation == 'top') {

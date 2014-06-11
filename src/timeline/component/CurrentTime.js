@@ -49,7 +49,7 @@ CurrentTime.prototype.redraw = function() {
     }
 
     var now = new Date();
-    var x = this.options.toScreen(now);
+    var x = this.body.util.toScreen(now);
 
     this.bar.style.left = x + 'px';
     this.bar.title = 'Current time: ' + now;
