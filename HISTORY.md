@@ -4,11 +4,16 @@ http://visjs.org
 
 ## 2014-06-06, version 1.1.1
 
+### Timeline
+
+- Changed default value of option `showCurrentTime` to true.
+
 ### Graph
 
-- reduced the timestep a little for smoother animations.
-- fixed dataManipulation.initiallyVisible functionality (thanks theGrue).
-- forced typecast of fontSize to Number.
+- Reduced the timestep a little for smoother animations.
+- Fixed dataManipulation.initiallyVisible functionality (thanks theGrue).
+- Forced typecast of fontSize to Number.
+
 
 ## 2014-06-06, version 1.1.0
 

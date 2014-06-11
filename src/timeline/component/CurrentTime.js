@@ -10,9 +10,15 @@
 function CurrentTime (body, options) {
   this.body = body;
 
-  this.options = options || {};
+  // default options
+  this.defaultOptions = {
+    showCurrentTime: true
+  };
+  this.options = util.extend({}, this.defaultOptions);
 
   this._create();
+
+  this.setOptions(options);
 }
 
 CurrentTime.prototype = new Component();
@@ -29,6 +35,18 @@ CurrentTime.prototype._create = function() {
   bar.style.height = '100%';
 
   this.bar = bar;
+};
+
+/**
+ * Set options for the component. Options will be merged in current options.
+ * @param {Object} options  Available parameters:
+ *                          {boolean} [showCurrentTime]
+ */
+CurrentTime.prototype.setOptions = function(options) {
+  if (options) {
+    // copy all options that we know
+    util.selectiveExtend(['showCurrentTime'], this.options, options);
+  }
 };
 
 /**

@@ -20,7 +20,7 @@
   z-index: 999;
 }
 
-.vis.timeline.editable .item.selected {
+.vis.timeline .editable .item.selected {
   cursor: move;
 }
 

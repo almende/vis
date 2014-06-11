@@ -12,65 +12,16 @@ function Timeline (container, items, options) {
   var me = this;
   var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
   this.defaultOptions = {
-    orientation: 'bottom',
-    direction: 'horizontal', // 'horizontal' or 'vertical'
     autoResize: true,
-    stack: true,
-
-    editable: {
-      updateTime: false,
-      updateGroup: false,
-      add: false,
-      remove: false
-    },
-
-    selectable: true,
-
-    start: null,
-    end: null,
-    min: null,
-    max: null,
-    zoomMin: 10,                                // milliseconds
-    zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000, // milliseconds
-    // moveable: true, // TODO: option moveable
-    // zoomable: true, // TODO: option zoomable
-
-    showMinorLabels: true,
-    showMajorLabels: true,
-    showCurrentTime: false,
-    showCustomTime: false,
-
-    groupOrder: null,
 
     width: null,
     height: null,
     maxHeight: null,
-    minHeight: null,
+    minHeight: null
 
-    type: 'box',
-    align: 'center',
-    margin: {
-      axis: 20,
-      item: 10
-    },
-    padding: 5,
-
-    onAdd: function (item, callback) {
-      callback(item);
-    },
-    onUpdate: function (item, callback) {
-      callback(item);
-    },
-    onMove: function (item, callback) {
-      callback(item);
-    },
-    onRemove: function (item, callback) {
-      callback(item);
-    }
+    // TODO: implement options moveable and zoomable
   };
-
-  this.options = {};
-  util.deepExtend(this.options, this.defaultOptions);
+  this.options = util.deepExtend({}, this.defaultOptions);
 
   // Create the DOM, props, and emitter
   this._create();
@@ -94,7 +45,9 @@ function Timeline (container, items, options) {
   };
 
   // range
-  this.range = new Range(this.body, this.options);
+  this.range = new Range(this.body);
+  this.components.push(this.range);
+  // TODO: use default start and en of range?
   this.range.setRange(
       now.clone().add('days', -3).valueOf(),
       now.clone().add('days', 4).valueOf()
@@ -102,21 +55,21 @@ function Timeline (container, items, options) {
   this.body.range = this.range;
 
   // time axis
-  this.timeAxis = new TimeAxis(this.body, this.options);
+  this.timeAxis = new TimeAxis(this.body);
   this.components.push(this.timeAxis);
   this.body.util.snap = this.timeAxis.snap.bind(this.timeAxis);
 
   // current time bar
-  this.currentTime = new CurrentTime(this.body, this.options);
+  this.currentTime = new CurrentTime(this.body);
   this.components.push(this.currentTime);
 
   // custom time bar
   // Note: time bar will be attached in this.setOptions when selected
-  this.customTime = new CustomTime(this.body, this.options);
+  this.customTime = new CustomTime(this.body);
   this.components.push(this.customTime);
 
   // item set
-  this.itemSet = new ItemSet(this.body, this.options);
+  this.itemSet = new ItemSet(this.body);
   this.components.push(this.itemSet);
   this.on('change', this.redraw.bind(this));
 
@@ -131,6 +84,9 @@ function Timeline (container, items, options) {
   // create itemset
   if (items) {
     this.setItems(items);
+  }
+  else {
+    this.redraw();
   }
 }
 
@@ -225,79 +181,41 @@ Timeline.prototype._create = function () {
 };
 
 /**
- * Set options
- * @param {Object} options  TODO: describe the available options
+ * Set options. Options will be passed to all components loaded in the Timeline.
+ * @param {Object} [options]
+ *                           {String | Number} width
+ *                              Width for the timeline, a number in pixels or
+ *                              a css string like '1000px' or '75%'. '100%' by default.
+ *                           {String | Number} height
+ *                              Fixed height for the Timeline, a number in pixels or
+ *                              a css string like '400px' or '75%'. If undefined,
+ *                              The Timeline will automatically size such that
+ *                              its contents fit.
+ *                           {String | Number} minHeight
+ *                              Minimum height for the Timeline, a number in pixels or
+ *                              a css string like '400px' or '75%'.
+ *                           {String | Number} maxHeight
+ *                              Maximum height for the Timeline, a number in pixels or
+ *                              a css string like '400px' or '75%'.
+ *                           {Number | Date | String} start
+ *                              Start date for the visible window
+ *                           {Number | Date | String} end
+ *                              End date for the visible window
  */
 Timeline.prototype.setOptions = function (options) {
-  util.deepExtend(this.options, options);
+  if (options) {
+    // copy the known options
+    var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end'];
+    util.selectiveExtend(fields, this.options, options);
 
-  if ('editable' in options) {
-    var isBoolean = typeof options.editable === 'boolean';
-
-    this.options.editable = {
-      updateTime:  isBoolean ? options.editable : (options.editable.updateTime || false),
-      updateGroup: isBoolean ? options.editable : (options.editable.updateGroup || false),
-      add:         isBoolean ? options.editable : (options.editable.add || false),
-      remove:      isBoolean ? options.editable : (options.editable.remove || false)
-    };
+    // enable/disable autoResize
+    this._initAutoResize();
   }
 
-  // force update of range (apply new min/max etc.)
-  // both start and end are optional
-  this.range.setRange(options.start, options.end);
-
-  if ('editable' in options || 'selectable' in options) {
-    if (this.options.selectable) {
-      // force update of selection
-      this.setSelection(this.getSelection());
-    }
-    else {
-      // remove selection
-      this.setSelection([]);
-    }
-  }
-
-  // force the itemSet to refresh: options like orientation and margins may be changed
-  this.itemSet.markDirty();
-
-  // validate the callback functions
-  var validateCallback = (function (fn) {
-    if (!(this.options[fn] instanceof Function) || this.options[fn].length != 2) {
-      throw new Error('option ' + fn + ' must be a function ' + fn + '(item, callback)');
-    }
-  }).bind(this);
-  ['onAdd', 'onUpdate', 'onRemove', 'onMove'].forEach(validateCallback);
-
-  /* TODO
-  // add/remove the current time bar
-  if (this.options.showCurrentTime) {
-    if (!this.mainPanel.hasChild(this.currentTime)) {
-      this.mainPanel.appendChild(this.currentTime);
-      this.currentTime.start();
-    }
-  }
-  else {
-    if (this.mainPanel.hasChild(this.currentTime)) {
-      this.currentTime.stop();
-      this.mainPanel.removeChild(this.currentTime);
-    }
-  }
-
-  // add/remove the custom time bar
-  if (this.options.showCustomTime) {
-    if (!this.mainPanel.hasChild(this.customTime)) {
-      this.mainPanel.appendChild(this.customTime);
-    }
-  }
-  else {
-    if (this.mainPanel.hasChild(this.customTime)) {
-      this.mainPanel.removeChild(this.customTime);
-    }
-  }
-*/
-
-  // enable/disable autoResize
-  this._initAutoResize();
+  // propagate options to all components
+  this.components.forEach(function (component) {
+    component.setOptions(options);
+  });
 
   // TODO: remove deprecation error one day (deprecated since version 0.8.0)
   if (options && options.order) {
@@ -361,11 +279,11 @@ Timeline.prototype.setItems = function(items) {
   this.itemsData = newDataSet;
   this.itemSet && this.itemSet.setItems(newDataSet);
 
-  if (initialLoad && (this.options.start == undefined || this.options.end == undefined)) {
+  if (initialLoad && ('start' in this.options || 'end' in this.options)) {
     this.fit();
 
-    var start = (this.options.start != undefined) ? util.convert(this.options.start, 'Date') : null;
-    var end   = (this.options.end != undefined) ? util.convert(this.options.end, 'Date') : null;
+    var start = ('start' in this.options) ? util.convert(this.options.start, 'Date') : null;
+    var end   = ('end' in this.options)   ? util.convert(this.options.end, 'Date') : null;
 
     this.setWindow(start, end);
   }
@@ -414,9 +332,13 @@ Timeline.prototype.clear = function(what) {
     this.setGroups(null);
   }
 
-  // clear options
+  // clear options of timeline and of each of the components
   if (!what || what.options) {
-    this.setOptions(this.defaultOptions);
+    this.components.forEach(function (component) {
+      component.setOptions(component.defaultOptions);
+    })
+
+    this.setOptions(this.defaultOptions); // this will also do a redraw
   }
 };
 
@@ -549,15 +471,15 @@ Timeline.prototype.redraw = function() {
   var resized = false,
       options = this.options,
       props = this.props,
-      dom = this.dom,
-      editable = options.editable.updateTime || options.editable.updateGroup;
+      dom = this.dom;
 
   // update class names
-  dom.root.className = 'vis timeline root ' + options.orientation + (editable ? ' editable' : '');
+  dom.root.className = 'vis timeline root ' + options.orientation;
 
-  // update root height options
+  // update root width and height options
   dom.root.style.maxHeight = util.option.asSize(options.maxHeight, '');
   dom.root.style.minHeight = util.option.asSize(options.minHeight, '');
+  dom.root.style.width = util.option.asSize(options.width, '');
 
   // calculate border widths
   props.border.left   = (dom.centerContainer.offsetWidth - dom.centerContainer.clientWidth) / 2;

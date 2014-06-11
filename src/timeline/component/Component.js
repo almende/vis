@@ -9,39 +9,14 @@ function Component (body, options) {
 }
 
 /**
- * Set parameters for the frame. Parameters will be merged in current parameter
- * set.
- * @param {Object} options  Available parameters:
- *                          {String | function} [className]
- *                          {String | Number | function} [left]
- *                          {String | Number | function} [top]
- *                          {String | Number | function} [width]
- *                          {String | Number | function} [height]
+ * Set options for the component. The new options will be merged into the
+ * current options.
+ * @param {Object} options
  */
 Component.prototype.setOptions = function(options) {
   if (options) {
     util.extend(this.options, options);
-
-    this.redraw();
   }
-};
-
-/**
- * Get an option value by name
- * The function will first check this.options object, and else will check
- * this.defaultOptions.
- * @param {String} name
- * @return {*} value
- */
-Component.prototype.getOption = function(name) {
-  var value;
-  if (this.options) {
-    value = this.options[name];
-  }
-  if (value === undefined && this.defaultOptions) {
-    value = this.defaultOptions[name];
-  }
-  return value;
 };
 
 /**

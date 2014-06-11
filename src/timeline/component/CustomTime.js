@@ -9,16 +9,35 @@
 
 function CustomTime (body, options) {
   this.body = body;
-  this.options = options || {};
+
+  // default options
+  this.defaultOptions = {
+    showCustomTime: false
+  };
+  this.options = util.extend({}, this.defaultOptions);
 
   this.customTime = new Date();
   this.eventParams = {}; // stores state parameters while dragging the bar
 
   // create the DOM
   this._create();
+
+  this.setOptions(options);
 }
 
 CustomTime.prototype = new Component();
+
+/**
+ * Set options for the component. Options will be merged in current options.
+ * @param {Object} options  Available parameters:
+ *                          {boolean} [showCustomTime]
+ */
+CustomTime.prototype.setOptions = function(options) {
+  if (options) {
+    // copy all options that we know
+    util.selectiveExtend(['showCustomTime'], this.options, options);
+  }
+};
 
 /**
  * Create the DOM for the custom time

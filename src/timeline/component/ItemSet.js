@@ -12,10 +12,45 @@ var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 function ItemSet(body, options) {
   this.body = body;
 
-  // one options object is shared by this itemset and all its items
-  this.options = options || {};
-  this.itemOptions = Object.create(this.options);
-  this.itemConversion = {
+  this.defaultOptions = {
+    type: 'box',
+    orientation: 'bottom',  // 'top' or 'bottom'
+    align: 'center', // alignment of box items
+    stack: true,
+    groupOrder: null,
+
+    selectable: true,
+    editable: {
+      updateTime: false,
+      updateGroup: false,
+      add: false,
+      remove: false
+    },
+
+    onAdd: function (item, callback) {
+      callback(item);
+    },
+    onUpdate: function (item, callback) {
+      callback(item);
+    },
+    onMove: function (item, callback) {
+      callback(item);
+    },
+    onRemove: function (item, callback) {
+      callback(item);
+    },
+
+    margin: {
+      item: 10,
+      axis: 20
+    },
+    padding: 5
+  };
+
+  // options is shared by this ItemSet and all its items
+  this.options = util.extend({}, this.defaultOptions);
+
+  this.conversion = {
     toScreen: body.util.toScreen,
     toTime: body.util.toTime
   };
@@ -64,6 +99,8 @@ function ItemSet(body, options) {
   // create the HTML DOM
 
   this._create();
+
+  this.setOptions(options);
 }
 
 ItemSet.prototype = new Component();
@@ -138,7 +175,7 @@ ItemSet.prototype._create = function(){
 /**
  * Set options for the ItemSet. Existing options will be extended/overwritten.
  * @param {Object} [options] The following options are available:
- *                           {String} [type]
+ *                           {String} type
  *                              Default type for the items. Choose from 'box'
  *                              (default), 'point', or 'range'. The default
  *                              Style can be overwritten by individual items.
@@ -149,19 +186,92 @@ ItemSet.prototype._create = function(){
  *                           {String} orientation
  *                              Orientation of the item set. Choose 'top' or
  *                              'bottom' (default).
+ *                           {Function} groupOrder
+ *                              A sorting function for ordering groups
+ *                           {Boolean} stack
+ *                              If true (deafult), items will be stacked on
+ *                              top of each other.
  *                           {Number} margin.axis
  *                              Margin between the axis and the items in pixels.
  *                              Default is 20.
  *                           {Number} margin.item
  *                              Margin between items in pixels. Default is 10.
+ *                           {Number} margin
+ *                              Set margin for both axis and items in pixels.
  *                           {Number} padding
  *                              Padding of the contents of an item in pixels.
  *                              Must correspond with the items css. Default is 5.
- *                           {Function} snap
- *                              Function to let items snap to nice dates when
- *                              dragging items.
+ *                           {Boolean} selectable
+ *                              If true (default), items can be selected.
+ *                           {Boolean} editable
+ *                              Set all editable options to true or false
+ *                           {Boolean} editable.updateTime
+ *                              Allow dragging an item to an other moment in time
+ *                           {Boolean} editable.updateGroup
+ *                              Allow dragging an item to an other group
+ *                           {Boolean} editable.add
+ *                              Allow creating new items on double tap
+ *                           {Boolean} editable.remove
+ *                              Allow removing items by clicking the delete button
+ *                              top right of a selected item.
+ *                           {Function(item: Item, callback: Function)} onAdd
+ *                              Callback function triggered when an item is about to be added:
+ *                              when the user double taps an empty space in the Timeline.
+ *                           {Function(item: Item, callback: Function)} onUpdate
+ *                              Callback function fired when an item is about to be updated.
+ *                              This function typically has to show a dialog where the user
+ *                              change the item. If not implemented, nothing happens.
+ *                           {Function(item: Item, callback: Function)} onMove
+ *                              Fired when an item has been moved. If not implemented,
+ *                              the move action will be accepted.
+ *                           {Function(item: Item, callback: Function)} onRemove
+ *                              Fired when an item is about to be deleted.
+ *                              If not implemented, the item will be always removed.
  */
-ItemSet.prototype.setOptions = Component.prototype.setOptions;
+ItemSet.prototype.setOptions = function(options) {
+  if (options) {
+    // copy all options that we know
+    var fields = ['type', 'align', 'orientation', 'padding', 'stack', 'selectable', 'groupOrder'];
+    util.selectiveExtend(fields, this.options, options);
+
+    if ('margin' in options) {
+      if (typeof options.margin === 'number') {
+        this.options.margin.axis = options.margin;
+        this.options.margin.item = options.margin;
+      }
+      else if (typeof options.margin === 'object'){
+        util.selectiveExtend(['axis', 'item'], this.options.margin, options.margin);
+      }
+    }
+
+    if ('editable' in options) {
+      if (typeof options.editable === 'boolean') {
+        this.options.editable.updateTime  = options.editable;
+        this.options.editable.updateGroup = options.editable;
+        this.options.editable.add         = options.editable;
+        this.options.editable.remove      = options.editable;
+      }
+      else if (typeof options.editable === 'object') {
+        util.selectiveExtend(['updateTime', 'updateGroup', 'add', 'remove'], this.options.editable, options.editable);
+      }
+    }
+
+    // callback functions
+    var addCallback = (function (name) {
+      if (name in options) {
+        var fn = options[name];
+        if (!(fn instanceof Function) || fn.length != 2) {
+          throw new Error('option ' + name + ' must be a function ' + name + '(item, callback)');
+        }
+        this.options[name] = fn;
+      }
+    }).bind(this);
+    ['onAdd', 'onUpdate', 'onRemove', 'onMove'].forEach(addCallback);
+
+    // force the itemSet to refresh: options like orientation and margins may be changed
+    this.markDirty();
+  }
+};
 
 /**
  * Mark the ItemSet dirty so it will refresh everything with next redraw
@@ -281,15 +391,11 @@ ItemSet.prototype.redraw = function() {
       options = this.options,
       orientation = options.orientation,
       resized = false,
-      frame = this.dom.frame;
+      frame = this.dom.frame,
+      editable = options.editable.updateTime || options.editable.updateGroup;
 
-  // TODO: document this feature to specify one margin for both item and axis distance
-  if (typeof margin === 'number') {
-    margin = {
-      item: margin,
-      axis: margin
-    };
-  }
+  // update class name
+  frame.className = 'itemset' + (editable ? ' editable' : '');
 
   // reorder the groups (if needed)
   resized = this._orderGroups() || resized;
@@ -574,7 +680,7 @@ ItemSet.prototype._onUpdate = function(ids) {
     if (!item) {
       // create item
       if (constructor) {
-        item = new constructor(itemData, me.itemConversion, me.itemOptions);
+        item = new constructor(itemData, me.conversion, me.options);
         item.id = id; // TODO: not so nice setting id afterwards
         me._addItem(item);
       }

@@ -88,7 +88,34 @@ util.extend = function (a, b) {
   for (var i = 1, len = arguments.length; i < len; i++) {
     var other = arguments[i];
     for (var prop in other) {
-      if (other.hasOwnProperty(prop) && other[prop] !== undefined) {
+      if (other.hasOwnProperty(prop)) {
+        a[prop] = other[prop];
+      }
+    }
+  }
+
+  return a;
+};
+
+/**
+ * Extend object a with selected properties of object b or a series of objects
+ * Only properties with defined values are copied
+ * @param {Array.<String>} props
+ * @param {Object} a
+ * @param {... Object} b
+ * @return {Object} a
+ */
+util.selectiveExtend = function (props, a, b) {
+  if (!Array.isArray(props)) {
+    throw new Error('Array with property names expected as first argument');
+  }
+
+  for (var i = 1, len = arguments.length; i < len; i++) {
+    var other = arguments[i];
+
+    for (var p = 0, pp = props.length; p < pp; p++) {
+      var prop = props[p];
+      if (other.hasOwnProperty(prop)) {
         a[prop] = other[prop];
       }
     }

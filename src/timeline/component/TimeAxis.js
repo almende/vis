@@ -29,31 +29,38 @@ function TimeAxis (body, options) {
     lineTop: 0
   };
 
-  this.options = Object.create(options) || {};
   this.defaultOptions = {
     orientation: 'bottom',  // supported: 'top', 'bottom'
     // TODO: implement timeaxis orientations 'left' and 'right'
     showMinorLabels: true,
     showMajorLabels: true
   };
+  this.options = util.extend({}, this.defaultOptions);
 
   this.body = body;
 
   // create the HTML DOM
   this._create();
+
+  this.setOptions(options);
 }
 
 TimeAxis.prototype = new Component();
 
 /**
- * Set parameters for the timeaxis.
- * Parameters will be merged in current parameter set.
- * @param {Object} options  Available parameters:
+ * Set options for the TimeAxis.
+ * Parameters will be merged in current options.
+ * @param {Object} options  Available options:
  *                          {string} [orientation]
  *                          {boolean} [showMinorLabels]
  *                          {boolean} [showMajorLabels]
  */
-TimeAxis.prototype.setOptions = Component.prototype.setOptions;
+TimeAxis.prototype.setOptions = function(options) {
+  if (options) {
+    // copy all options that we know
+    util.selectiveExtend(['orientation', 'showMinorLabels', 'showMajorLabels'], this.options, options);
+  }
+};
 
 /**
  * Create the HTML DOM for the TimeAxis
@@ -84,9 +91,9 @@ TimeAxis.prototype.redraw = function () {
   this._calculateCharSize();
 
   // TODO: recalculate sizes only needed when parent is resized or options is changed
-  var orientation = this.getOption('orientation'),
-      showMinorLabels = this.getOption('showMinorLabels'),
-      showMajorLabels = this.getOption('showMajorLabels');
+  var orientation = this.options.orientation,
+      showMinorLabels = this.options.showMinorLabels,
+      showMajorLabels = this.options.showMajorLabels;
 
   // determine the width and height of the elemens for the axis
   props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
@@ -132,7 +139,7 @@ TimeAxis.prototype.redraw = function () {
  * @private
  */
 TimeAxis.prototype._repaintLabels = function () {
-  var orientation = this.getOption('orientation');
+  var orientation = this.options.orientation;
 
   // calculate range and step (step such that we have space for 7 characters per label)
   var start = util.convert(this.body.range.start, 'Number'),
@@ -166,11 +173,11 @@ TimeAxis.prototype._repaintLabels = function () {
 
     // TODO: lines must have a width, such that we can create css backgrounds
 
-    if (this.getOption('showMinorLabels')) {
+    if (this.options.showMinorLabels) {
       this._repaintMinorText(x, step.getLabelMinor(), orientation);
     }
 
-    if (isMajor && this.getOption('showMajorLabels')) {
+    if (isMajor && this.options.showMajorLabels) {
       if (x > 0) {
         if (xFirstMajorLabel == undefined) {
           xFirstMajorLabel = x;
@@ -187,7 +194,7 @@ TimeAxis.prototype._repaintLabels = function () {
   }
 
   // create a major label on the left when needed
-  if (this.getOption('showMajorLabels')) {
+  if (this.options.showMajorLabels) {
     var leftTime = this.body.util.toTime(0),
         leftText = step.getLabelMajor(leftTime),
         widthText = leftText.length * (this.props.majorCharWidth || 10) + 10; // upper bound estimation

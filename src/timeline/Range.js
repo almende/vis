@@ -11,7 +11,18 @@ function Range(body, options) {
   this.end = null;   // Number
 
   this.body = body;
-  this.options = options || {};
+
+  // default options
+  this.defaultOptions = {
+    start: null,
+    end: null,
+    direction: 'horizontal', // 'horizontal' or 'vertical'
+    min: null,
+    max: null,
+    zoomMin: 10,                                // milliseconds
+    zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000  // milliseconds
+  };
+  this.options = util.extend({}, this.defaultOptions);
 
   // drag listeners for dragging
   this.body.emitter.on('dragstart', this._onDragStart.bind(this));
@@ -32,9 +43,13 @@ function Range(body, options) {
   this.setOptions(options);
 }
 
+Range.prototype = new Component();
+
 /**
  * Set options for the range controller
  * @param {Object} options      Available options:
+ *                              {Number | Date | String} start  Start date for the range
+ *                              {Number | Date | String} end    End date for the range
  *                              {Number} min    Minimum value for start
  *                              {Number} max    Maximum value for end
  *                              {Number} zoomMin    Set a minimum value for
@@ -43,11 +58,14 @@ function Range(body, options) {
  *                                                  (end - start).
  */
 Range.prototype.setOptions = function (options) {
-  util.extend(this.options, options);
+  if (options) {
+    // copy the options that we know
+    util.selectiveExtend(['direction', 'min', 'max', 'zoomMin', 'zoomMax'], this.options, options);
 
-  // re-apply range with new limitations
-  if (this.start !== null && this.end !== null) {
-    this.setRange(this.start, this.end);
+    if ('start' in options || 'end' in options) {
+      // apply a new range. both start and end are optional
+      this.setRange(options.start, options.end);
+    }
   }
 };
 
