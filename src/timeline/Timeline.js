@@ -13,6 +13,7 @@ function Timeline (container, items, options) {
 
     autoResize: true,
 
+    orientation: 'bottom',
     width: null,
     height: null,
     maxHeight: null,
@@ -181,6 +182,9 @@ Timeline.prototype._create = function (container) {
 /**
  * Set options. Options will be passed to all components loaded in the Timeline.
  * @param {Object} [options]
+ *                           {String} orientation
+ *                              Vertical orienation for the Timeline:
+ *                              'bottom' (default) or 'top'
  *                           {String | Number} width
  *                              Width for the timeline, a number in pixels or
  *                              a css string like '1000px' or '75%'. '100%' by default.
@@ -203,7 +207,7 @@ Timeline.prototype._create = function (container) {
 Timeline.prototype.setOptions = function (options) {
   if (options) {
     // copy the known options
-    var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end'];
+    var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation'];
     util.selectiveExtend(fields, this.options, options);
 
     // enable/disable autoResize
