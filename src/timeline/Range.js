@@ -18,6 +18,8 @@ function Range(body, options) {
     start: null,
     end: null,
     direction: 'horizontal', // 'horizontal' or 'vertical'
+    moveable: true,
+    zoomable: true,
     min: null,
     max: null,
     zoomMin: 10,                                // milliseconds
@@ -57,11 +59,16 @@ Range.prototype = new Component();
  *                                                  (end - start).
  *                              {Number} zoomMax    Set a maximum value for
  *                                                  (end - start).
+ *                              {Boolean} moveable Enable moving of the range
+ *                                                 by dragging. True by default
+ *                              {Boolean} zoomable Enable zooming of the range
+ *                                                 by pinching/scrolling. True by default
  */
 Range.prototype.setOptions = function (options) {
   if (options) {
     // copy the options that we know
-    util.selectiveExtend(['direction', 'min', 'max', 'zoomMin', 'zoomMax'], this.options, options);
+    var fields = ['direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable'];
+    util.selectiveExtend(fields, this.options, options);
 
     if ('start' in options || 'end' in options) {
       // apply a new range. both start and end are optional
@@ -262,6 +269,9 @@ var touchParams = {};
  * @private
  */
 Range.prototype._onDragStart = function(event) {
+  // only allow dragging when configured as movable
+  if (!this.options.moveable) return;
+
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
   if (touchParams.ignore) return;
@@ -282,6 +292,9 @@ Range.prototype._onDragStart = function(event) {
  * @private
  */
 Range.prototype._onDrag = function (event) {
+  // only allow dragging when configured as movable
+  if (!this.options.moveable) return;
+
   var direction = this.options.direction;
   validateDirection(direction);
 
@@ -311,6 +324,9 @@ Range.prototype._onDrag = function (event) {
  * @private
  */
 Range.prototype._onDragEnd = function (event) {
+  // only allow dragging when configured as movable
+  if (!this.options.moveable) return;
+
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
   if (touchParams.ignore) return;
@@ -335,7 +351,8 @@ Range.prototype._onDragEnd = function (event) {
  * @private
  */
 Range.prototype._onMouseWheel = function(event) {
-  // TODO: reckon with option zoomable
+  // only allow zooming when configured as zoomable and moveable
+  if (!(this.options.zoomable && this.options.moveable)) return;
 
   // retrieve delta
   var delta = 0;
@@ -408,6 +425,9 @@ Range.prototype._onHold = function () {
  * @private
  */
 Range.prototype._onPinch = function (event) {
+  // only allow zooming when configured as zoomable and moveable
+  if (!(this.options.zoomable && this.options.moveable)) return;
+
   touchParams.ignore = true;
 
   // TODO: reckon with option zoomable

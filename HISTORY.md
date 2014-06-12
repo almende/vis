@@ -6,7 +6,9 @@ http://visjs.org
 
 ### Timeline
 
+- Implemented options `zoomable` and `moveable`.
 - Changed default value of option `showCurrentTime` to true.
+- Internal refactoring and simplification of the code.
 
 ### Graph
 

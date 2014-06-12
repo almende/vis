@@ -17,8 +17,6 @@ function Timeline (container, items, options) {
     height: null,
     maxHeight: null,
     minHeight: null
-
-    // TODO: implement options moveable and zoomable
   };
   this.options = util.deepExtend({}, this.defaultOptions);
 
