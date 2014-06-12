@@ -6,12 +6,11 @@
  * @constructor
  */
 function Timeline (container, items, options) {
-  // validate arguments
-  if (!container) throw new Error('No container element provided');
-
   var me = this;
-  var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
   this.defaultOptions = {
+    start: null,
+    end:   null,
+
     autoResize: true,
 
     width: null,
@@ -24,11 +23,7 @@ function Timeline (container, items, options) {
   this.options = util.deepExtend({}, this.defaultOptions);
 
   // Create the DOM, props, and emitter
-  this._create();
-
-  // attach the root panel to the provided container
-  if (!container) throw new Error('No container provided');
-  container.appendChild(this.dom.root);
+  this._create(container);
 
   // all components listed here will be repainted automatically
   this.components = [];
@@ -47,11 +42,6 @@ function Timeline (container, items, options) {
   // range
   this.range = new Range(this.body);
   this.components.push(this.range);
-  // TODO: use default start and en of range?
-  this.range.setRange(
-      now.clone().add('days', -3).valueOf(),
-      now.clone().add('days', 4).valueOf()
-  );
   this.body.range = this.range;
 
   // time axis
@@ -96,9 +86,11 @@ Emitter(Timeline.prototype);
 /**
  * Create the main DOM for the Timeline: a root panel containing left, right,
  * top, bottom, content, and background panel.
+ * @param {Element} container  The container element where the Timeline will
+ *                             be attached.
  * @private
  */
-Timeline.prototype._create = function () {
+Timeline.prototype._create = function (container) {
   this.dom = {};
 
   this.dom.root                 = document.createElement('div');
@@ -178,6 +170,10 @@ Timeline.prototype._create = function () {
     bottom: {},
     border: {}
   };
+
+  // attach the root panel to the provided container
+  if (!container) throw new Error('No container provided');
+  container.appendChild(this.dom.root);
 };
 
 /**
@@ -336,7 +332,7 @@ Timeline.prototype.clear = function(what) {
   if (!what || what.options) {
     this.components.forEach(function (component) {
       component.setOptions(component.defaultOptions);
-    })
+    });
 
     this.setOptions(this.defaultOptions); // this will also do a redraw
   }

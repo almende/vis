@@ -7,8 +7,9 @@
  * @param {Object} [options]    See description at Range.setOptions
  */
 function Range(body, options) {
-  this.start = null; // Number
-  this.end = null;   // Number
+  var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
+  this.start = now.clone().add('days', -3).valueOf(); // Number
+  this.end = now.clone().add('days', 4).valueOf();   // Number
 
   this.body = body;
 
