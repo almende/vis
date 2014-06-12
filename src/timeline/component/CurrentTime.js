@@ -1,6 +1,6 @@
 /**
  * A current time bar
- * @param {{range: Range, dom: Object}} body
+ * @param {{range: Range, dom: Object, domProps: Object}} body
  * @param {Object} [options]        Available parameters:
  *                                  {Boolean} [showCurrentTime]
  * @constructor CurrentTime
@@ -93,7 +93,7 @@ CurrentTime.prototype.start = function() {
     me.stop();
 
     // determine interval to refresh
-    var scale = me.body.range.conversion(me.body.props.center.width).scale;
+    var scale = me.body.range.conversion(me.body.domProps.center.width).scale;
     var interval = 1 / scale / 10;
     if (interval < 30)   interval = 30;
     if (interval > 1000) interval = 1000;

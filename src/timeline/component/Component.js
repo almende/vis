@@ -1,6 +1,6 @@
 /**
  * Prototype for visual components
- * @param {{dom: Object, props: Object, emitter: Emitter, range: Range}} [body]
+ * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} [body]
  * @param {Object} [options]
  */
 function Component (body, options) {

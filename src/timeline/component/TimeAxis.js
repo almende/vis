@@ -1,6 +1,6 @@
 /**
  * A horizontal time axis
- * @param {{dom: Object, props: Object, emitter: Emitter, range: Range}} body
+ * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} body
  * @param {Object} [options]        See TimeAxis.setOptions for the available
  *                                  options.
  * @constructor TimeAxis
@@ -101,8 +101,8 @@ TimeAxis.prototype.redraw = function () {
   props.height = props.minorLabelHeight + props.majorLabelHeight;
   props.width = foreground.offsetWidth;
 
-  props.minorLineHeight = this.body.props.root.height - props.majorLabelHeight -
-      (options.orientation == 'top' ? this.body.props.bottom.height : this.body.props.top.height);
+  props.minorLineHeight = this.body.domProps.root.height - props.majorLabelHeight -
+      (options.orientation == 'top' ? this.body.domProps.bottom.height : this.body.domProps.top.height);
   props.minorLineWidth = 1; // TODO: really calculate width
   props.majorLineHeight = props.minorLineHeight + props.majorLabelHeight;
   props.majorLineWidth = 1; // TODO: really calculate width
@@ -308,7 +308,7 @@ TimeAxis.prototype._repaintMinorLine = function (x, orientation) {
     line.style.top = props.majorLabelHeight + 'px';
   }
   else {
-    line.style.top = this.body.props.top.height + 'px';
+    line.style.top = this.body.domProps.top.height + 'px';
   }
   line.style.height = props.minorLineHeight + 'px';
   line.style.left = (x - props.minorLineWidth / 2) + 'px';
@@ -337,7 +337,7 @@ TimeAxis.prototype._repaintMajorLine = function (x, orientation) {
     line.style.top = '0';
   }
   else {
-    line.style.top = this.body.props.top.height + 'px';
+    line.style.top = this.body.domProps.top.height + 'px';
   }
   line.style.left = (x - props.majorLineWidth / 2) + 'px';
   line.style.height = props.majorLineHeight + 'px';

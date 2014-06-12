@@ -3,7 +3,7 @@
  * A Range controls a numeric range with a start and end value.
  * The Range adjusts the range based on mouse events or programmatic changes,
  * and triggers events when the range is changing or has been changed.
- * @param {{dom: Object, props: Object, emitter: Emitter}} body
+ * @param {{dom: Object, domProps: Object, emitter: Emitter}} body
  * @param {Object} [options]    See description at Range.setOptions
  */
 function Range(body, options) {
@@ -294,7 +294,7 @@ Range.prototype._onDrag = function (event) {
 
   var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
       interval = (touchParams.end - touchParams.start),
-      width = (direction == 'horizontal') ? this.body.props.center.width : this.body.props.center.height,
+      width = (direction == 'horizontal') ? this.body.domProps.center.width : this.body.domProps.center.height,
       diffRange = -delta / width * interval;
 
   this._applyRange(touchParams.start + diffRange, touchParams.end + diffRange);
@@ -442,12 +442,12 @@ Range.prototype._pointerToDate = function (pointer) {
   validateDirection(direction);
 
   if (direction == 'horizontal') {
-    var width = this.body.props.center.width;
+    var width = this.body.domProps.center.width;
     conversion = this.conversion(width);
     return pointer.x / conversion.scale + conversion.offset;
   }
   else {
-    var height = this.body.props.center.height;
+    var height = this.body.domProps.center.height;
     conversion = this.conversion(height);
     return pointer.y / conversion.scale + conversion.offset;
   }

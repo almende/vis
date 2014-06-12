@@ -4,7 +4,7 @@ var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
  * An ItemSet holds a set of items and ranges which can be displayed in a
  * range. The width is determined by the parent of the ItemSet, and the height
  * is determined by the size of the items.
- * @param {{dom: Object, props: Object, emitter: Emitter, range: Range}} body
+ * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} body
  * @param {Object} [options]      See ItemSet.setOptions for the available options.
  * @constructor ItemSet
  * @extends Component
@@ -447,9 +447,9 @@ ItemSet.prototype.redraw = function() {
 
   // reposition axis
   this.dom.axis.style.top = asSize((orientation == 'top') ?
-      (this.body.props.top.height + this.body.props.border.top) :
-      (this.body.props.top.height + this.body.props.centerContainer.height));
-  this.dom.axis.style.left = this.body.props.border.left + 'px';
+      (this.body.domProps.top.height + this.body.domProps.border.top) :
+      (this.body.domProps.top.height + this.body.domProps.centerContainer.height));
+  this.dom.axis.style.left = this.body.domProps.border.left + 'px';
 
   // check if this component is resized
   resized = this._isResized() || resized;

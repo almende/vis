@@ -30,8 +30,12 @@ function Timeline (container, items, options) {
 
   this.body = {
     dom: this.dom,
-    props: this.props,
-    emitter: this,
+    domProps: this.props,
+    emitter: {
+      on: this.on.bind(this),
+      off: this.off.bind(this),
+      emit: this.emit.bind(this)
+    },
     util: {
       snap: null, // will be specified after TimeAxis is created
       toScreen: me._toScreen.bind(me),
