@@ -65,7 +65,6 @@ function Timeline (container, items, options) {
   // item set
   this.itemSet = new ItemSet(this.body);
   this.components.push(this.itemSet);
-  this.on('change', this.redraw.bind(this));
 
   this.itemsData = null;      // DataSet
   this.groupsData = null;     // DataSet
@@ -136,6 +135,7 @@ Timeline.prototype._create = function (container) {
   this.dom.rightContainer.appendChild(this.dom.right);
 
   this.on('rangechange', this.redraw.bind(this));
+  this.on('change', this.redraw.bind(this));
 
   // create event listeners for all interesting events, these events will be
   // emitted via emitter
