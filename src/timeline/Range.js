@@ -276,8 +276,6 @@ Range.prototype._onDragStart = function(event) {
   // when releasing the fingers in opposite order from the touch screen
   if (touchParams.ignore) return;
 
-  // TODO: reckon with option movable
-
   touchParams.start = this.start;
   touchParams.end = this.end;
 
@@ -287,7 +285,7 @@ Range.prototype._onDragStart = function(event) {
 };
 
 /**
- * Perform dragging operating.
+ * Perform dragging operation
  * @param {Event} event
  * @private
  */
@@ -297,9 +295,6 @@ Range.prototype._onDrag = function (event) {
 
   var direction = this.options.direction;
   validateDirection(direction);
-
-  // TODO: reckon with option movable
-
 
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
@@ -319,7 +314,7 @@ Range.prototype._onDrag = function (event) {
 };
 
 /**
- * Stop dragging operating.
+ * Stop dragging operation
  * @param {event} event
  * @private
  */
@@ -330,8 +325,6 @@ Range.prototype._onDragEnd = function (event) {
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
   if (touchParams.ignore) return;
-
-  // TODO: reckon with option movable
 
   if (this.body.dom.root) {
     this.body.dom.root.style.cursor = 'auto';
@@ -404,7 +397,7 @@ Range.prototype._onTouch = function (event) {
   touchParams.center = null;
 
   // don't move the range when dragging a selected event
-  // TODO: it's not so neat to have to know about the state of the ItemSet
+  // TODO: it's not so neat to have to know about ItemSet here
   var item = ItemSet.itemFromTarget(event);
   if (item && item.selected && this.options.editable) {
     touchParams.ignore = true;
@@ -429,8 +422,6 @@ Range.prototype._onPinch = function (event) {
   if (!(this.options.zoomable && this.options.moveable)) return;
 
   touchParams.ignore = true;
-
-  // TODO: reckon with option zoomable
 
   if (event.gesture.touches.length > 1) {
     if (!touchParams.center) {

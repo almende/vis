@@ -135,6 +135,8 @@ Timeline.prototype._create = function (container) {
 
   this.on('rangechange', this.redraw.bind(this));
   this.on('change', this.redraw.bind(this));
+  this.on('dragstart', this._onDragStart.bind(this));
+  this.on('drag', this._onDrag.bind(this));
 
   // create event listeners for all interesting events, these events will be
   // emitted via emitter
@@ -146,7 +148,7 @@ Timeline.prototype._create = function (container) {
   var me = this;
   var events = [
     'pinch',
-    //'tap', 'doubletap', 'hold', // TODO: catching the events here disables selecting an item
+    'tap', 'doubletap', 'hold',
     'dragstart', 'drag', 'dragend',
     'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
   ];
@@ -171,7 +173,8 @@ Timeline.prototype._create = function (container) {
     right: {},
     top: {},
     bottom: {},
-    border: {}
+    border: {},
+    scrollTop: 0
   };
 
   // attach the root panel to the provided container
@@ -183,8 +186,8 @@ Timeline.prototype._create = function (container) {
  * Set options. Options will be passed to all components loaded in the Timeline.
  * @param {Object} [options]
  *                           {String} orientation
- *                              Vertical orienation for the Timeline:
- *                              'bottom' (default) or 'top'
+ *                              Vertical orientation for the Timeline,
+ *                              can be 'bottom' (default) or 'top'.
  *                           {String | Number} width
  *                              Width for the timeline, a number in pixels or
  *                              a css string like '1000px' or '75%'. '100%' by default.
@@ -563,21 +566,26 @@ Timeline.prototype.redraw = function() {
   dom.bottom.style.left               = props.left.width + 'px';
   dom.bottom.style.top                = (props.top.height + props.centerContainer.height) + 'px';
 
+  // update the scrollTop, feasible range for the offset can be changed
+  // when the height of the Timeline or of the contents of the center changed
+  this._setScrollTop(this._getScrollTop());
+
   // reposition the scrollable contents
   var offset;
   if (options.orientation == 'top') {
-    offset = 0;
+    offset = this.props.scrollTop;
   }
   else { // orientation == 'bottom'
     // keep the items aligned to the axis at the bottom
-    offset = props.centerContainer.height - props.center.height;
+    offset = this.props.scrollTop + props.centerContainer.height - props.center.height;
   }
+
   dom.center.style.left               = '0';
-  dom.center.style.top                = offset+ 'px';
+  dom.center.style.top                = offset + 'px';
   dom.left.style.left                 = '0';
-  dom.left.style.top                  = offset+ 'px';
+  dom.left.style.top                  = offset + 'px';
   dom.right.style.left                = '0';
-  dom.right.style.top                 = offset+ 'px';
+  dom.right.style.top                 = offset + 'px';
 
   // redraw all components
   this.components.forEach(function (component) {
@@ -679,3 +687,69 @@ Timeline.prototype._stopAutoResize = function () {
 
   // TODO: remove event listener on window.resize
 };
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onDragStart = function (event) {
+  touchParams.initialScrollTop = this.props.scrollTop;
+};
+
+/**
+ * Move the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onDrag = function (event) {
+/* TODO: no dragging when pinching
+  // refuse to drag when we where pinching to prevent the timeline make a jump
+  // when releasing the fingers in opposite order from the touch screen
+  if (touchParams.pinching) return;
+*/
+  var delta = event.gesture.deltaY;
+
+  var oldScrollTop = this._getScrollTop();
+  var newScrollTop = this._setScrollTop(touchParams.initialScrollTop + delta);
+
+  if (newScrollTop != oldScrollTop) {
+    this.redraw(); // TODO: this causes two redraws when dragging, the other is triggered by rangechange already
+  }
+};
+
+/**
+ * Apply a scrollTop
+ * @param {Number} scrollTop
+ * @returns {Number} scrollTop  Returns the applied scrollTop
+ * @private
+ */
+Timeline.prototype._setScrollTop = function (scrollTop) {
+  // limit the scrollTop to the feasible scroll range
+  var scrollTopMax = Math.max(this.props.center.height - this.props.centerContainer.height, 0);
+  if (this.options.orientation == 'top') {
+    if (scrollTop > 0) scrollTop = 0;
+    if (scrollTop < -scrollTopMax) scrollTop = -scrollTopMax;
+  }
+  else { // orientation == 'bottom'
+    if (scrollTop < 0) scrollTop = 0;
+    if (scrollTop > scrollTopMax) scrollTop = scrollTopMax;
+  }
+
+  // apply new scroll top
+  this.props.scrollTop = scrollTop;
+
+  return scrollTop;
+};
+
+/**
+ * Get the current scrollTop
+ * @returns {number} scrollTop
+ * @private
+ */
+Timeline.prototype._getScrollTop = function () {
+  return this.props.scrollTop;
+};
+
+// global (private) object to store drag params
+var touchParams = {};

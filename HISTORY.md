@@ -6,6 +6,7 @@ http://visjs.org
 
 ### Timeline
 
+- Implemented support for dragging the timeline contents vertically.
 - Implemented options `zoomable` and `moveable`.
 - Changed default value of option `showCurrentTime` to true.
 - Internal refactoring and simplification of the code.
