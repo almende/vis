@@ -183,10 +183,8 @@ ItemPoint.prototype.repositionY = function() {
 
   if (orientation == 'top') {
     point.style.top = this.top + 'px';
-    point.style.bottom = '';
   }
   else {
-    point.style.top = '';
-    point.style.bottom = this.top + 'px';
+    point.style.top = (this.parent.height - this.top - this.height) + 'px';
   }
 };

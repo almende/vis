@@ -211,20 +211,14 @@ ItemBox.prototype.repositionY = function() {
       dot = this.dom.dot;
 
   if (orientation == 'top') {
-    box.style.top = (this.top || 0) + 'px';
-    box.style.bottom = '';
-
-    line.style.top = '0';
-    line.style.bottom = '';
+    box.style.top     = (this.top || 0) + 'px';
+    line.style.top    = '0';
     line.style.height = (this.parent.top + this.top + 1) + 'px';
   }
   else { // orientation 'bottom'
-    box.style.top = '';
-    box.style.bottom = (this.top || 0) + 'px';
-
-    line.style.top = (this.parent.top + this.parent.height - this.top - 1) + 'px';
-    line.style.bottom = '0';
-    line.style.height = '';
+    box.style.top     = (this.parent.height - this.top - this.height || 0) + 'px';
+    line.style.top    = (this.parent.height - this.top - 1) + 'px';
+    line.style.height = this.top + 'px';
   }
 
   dot.style.top = (-this.props.dot.height / 2) + 'px';

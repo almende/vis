@@ -195,11 +195,9 @@ ItemRange.prototype.repositionY = function() {
 
   if (orientation == 'top') {
     box.style.top = this.top + 'px';
-    box.style.bottom = '';
   }
   else {
-    box.style.top = '';
-    box.style.bottom = this.top + 'px';
+    box.style.top = (this.parent.height - this.top - this.height) + 'px';
   }
 };
 
