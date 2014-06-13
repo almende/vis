@@ -45,6 +45,8 @@ task('build', {async: true}, function () {
       './src/timeline/component/css/currenttime.css',
       './src/timeline/component/css/customtime.css',
 
+      './src/timeline/component/css/dataaxis.css',
+
       './src/graph/css/graph-manipulation.css',
       './src/graph/css/graph-navigation.css'
     ],
@@ -64,6 +66,10 @@ task('build', {async: true}, function () {
       './src/DataSet.js',
       './src/DataView.js',
 
+      './src/timeline/component/DataAxis.js',
+      './src/timeline/component/Linegraph.js',
+      './src/timeline/DataStep.js',
+
       './src/timeline/stack.js',
       './src/timeline/TimeStep.js',
       './src/timeline/Range.js',
@@ -75,6 +81,7 @@ task('build', {async: true}, function () {
       './src/timeline/component/item/*.js',
       './src/timeline/component/Group.js',
       './src/timeline/Timeline.js',
+      './src/timeline/Graph2d.js',
 
       './src/graph/dotparser.js',
       './src/graph/shapes.js',

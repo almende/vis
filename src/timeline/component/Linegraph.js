@@ -1,117 +1,114 @@
-/**
- * Created by Alex on 5/6/14.
- */
-
 var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
 /**
  * An ItemSet holds a set of items and ranges which can be displayed in a
  * range. The width is determined by the parent of the ItemSet, and the height
  * is determined by the size of the items.
- * @param {Panel} backgroundPanel Panel which can be used to display the
- *                                vertical lines of box items.
- * @param {Panel} axisPanel       Panel on the axis where the dots of box-items
- *                                can be displayed.
- * @param {Panel} sidePanel      Left side panel holding labels
- * @param {Object} [options]      See ItemSet.setOptions for the available options.
+ * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} body
+ * @param {Object} [options]      See Linegraph.setOptions for the available options.
  * @constructor ItemSet
- * @extends Panel
+ * @extends Component
  */
-function Linegraph(backgroundPanel, axisPanel, sidePanel, options, timeline, sidePanelParent) {
-  this.id = util.randomUUID();
-  this.timeline = timeline;
+function Linegraph(body, options) {
+  this.body = body;
 
-  // one options object is shared by this itemset and all its items
-  this.options = options || {};
-  this.backgroundPanel = backgroundPanel;
-  this.axisPanel = axisPanel;
-  this.sidePanel = sidePanel;
-  this.sidePanelParent = sidePanelParent;
-  this.itemOptions = Object.create(this.options);
+  this.defaultOptions = {
+    type: 'box',
+    orientation: 'bottom',  // 'top' or 'bottom'
+    align: 'center', // alignment of box items
+    stack: true,
+    groupOrder: null,
+
+    selectable: true,
+    editable: {
+      updateTime: false,
+      updateGroup: false,
+      add: false,
+      remove: false
+    },
+
+    onAdd: function (item, callback) {
+      callback(item);
+    },
+    onUpdate: function (item, callback) {
+      callback(item);
+    },
+    onMove: function (item, callback) {
+      callback(item);
+    },
+    onRemove: function (item, callback) {
+      callback(item);
+    },
+
+    margin: {
+      item: 10,
+      axis: 20
+    },
+    padding: 5
+  };
+
+  // options is shared by this ItemSet and all its items
+  this.options = util.extend({}, this.defaultOptions);
+
+  this.conversion = {
+    toScreen: body.util.toScreen,
+    toTime: body.util.toTime
+  };
   this.dom = {};
+  this.props = {};
   this.hammer = null;
 
+  var me = this;
   this.itemsData = null;    // DataSet
   this.groupsData = null;   // DataSet
-  this.range = null;        // Range or Object {start: number, end: number}
 
-//  listeners for the DataSet of the items
-//  this.itemListeners = {
-//    'add': function(event, params, senderId) {
-//      if (senderId != me.id) me._onAdd(params.items);
-//    },
-//    'update': function(event, params, senderId) {
-//      if (senderId != me.id) me._onUpdate(params.items);
-//    },
-//    'remove': function(event, params, senderId) {
-//      if (senderId != me.id) me._onRemove(params.items);
-//    }
-//  };
-//
-//  // listeners for the DataSet of the groups
-//  this.groupListeners = {
-//    'add': function(event, params, senderId) {
-//      if (senderId != me.id) me._onAddGroups(params.items);
-//    },
-//    'update': function(event, params, senderId) {
-//      if (senderId != me.id) me._onUpdateGroups(params.items);
-//    },
-//    'remove': function(event, params, senderId) {
-//      if (senderId != me.id) me._onRemoveGroups(params.items);
-//    }
-//  };
+  // listeners for the DataSet of the items
+  this.itemListeners = {
+    'add': function (event, params, senderId) {
+      me._onAdd(params.items);
+    },
+    'update': function (event, params, senderId) {
+      me._onUpdate(params.items);
+    },
+    'remove': function (event, params, senderId) {
+      me._onRemove(params.items);
+    }
+  };
 
   this.items = {};      // object with an Item for every data item
-  this.groups = {};     // Group object for every group
-  this.groupIds = [];
-
   this.selection = [];  // list with the ids of all selected nodes
-  this.stackDirty = true; // if true, all items will be restacked on next repaint
 
   this.touchParams = {}; // stores properties while dragging
   // create the HTML DOM
 
-  this.lastStart = 0;
-
   this._create();
 
-  var me = this;
-  this.timeline.on("rangechange", function() {
-    if (me.lastStart != 0) {
-      var offset = me.range.start - me.lastStart;
-      var range = me.range.end - me.range.start;
-      if (me.width != 0) {
-        var rangePerPixelInv = me.width/range;
-        var xOffset = offset * rangePerPixelInv;
-        me.svg.style.left = util.option.asSize(-me.width - xOffset);
-      }
-    }
-  })
-  this.timeline.on("rangechanged", function() {
-    me.lastStart = me.range.start;
-    me.svg.style.left = util.option.asSize(-me.width);
-    me.setData.apply(me);
-  });
-
-//  this.data = new DataView(this.items)
+  this.setOptions(options);
 }
 
-Linegraph.prototype = new Panel();
+Linegraph.prototype = new Component();
 
+// available item types will be registered here
+Linegraph.types = {
+  box: ItemBox,
+  range: ItemRange,
+  rangeoverflow: ItemRangeOverflow,
+  point: ItemPoint
+};
 
 /**
  * Create the HTML DOM for the ItemSet
  */
 Linegraph.prototype._create = function(){
   var frame = document.createElement('div');
-  frame['timeline-linegraph'] = this;
-  this.frame = frame;
-  this.frame.className = 'itemset';
+  frame.className = 'linegraph';
+  frame['linegraph'] = this;
+  this.dom.frame = frame;
 
   // create background panel
   var background = document.createElement('div');
   background.className = 'background';
-  this.backgroundPanel.frame.appendChild(background);
+  frame.appendChild(background);
   this.dom.background = background;
 
   // create foreground panel
@@ -120,59 +117,6 @@ Linegraph.prototype._create = function(){
   frame.appendChild(foreground);
   this.dom.foreground = foreground;
 
-//  // create axis panel
-//  var axis = document.createElement('div');
-//  axis.className = 'axis';
-//  this.dom.axis = axis;
-//  this.axisPanel.frame.appendChild(axis);
-//
-//  // create labelset
-//  var labelSet = document.createElement('div');
-//  labelSet.className = 'labelset';
-//  this.dom.labelSet = labelSet;
-//  this.sidePanel.frame.appendChild(labelSet);
-
-  this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
-  this.svg.style.position = "relative"
-  this.svg.style.height = "300px";
-  this.svg.style.display = "block";
-
-  this.path = document.createElementNS('http://www.w3.org/2000/svg',"path");
-  this.path.setAttributeNS(null, "fill","none");
-  this.path.setAttributeNS(null, "stroke","blue");
-  this.path.setAttributeNS(null, "stroke-width","1");
-
-  this.path2 = document.createElementNS('http://www.w3.org/2000/svg',"path");
-  this.path2.setAttributeNS(null, "fill","none");
-  this.path2.setAttributeNS(null, "stroke","red");
-  this.path2.setAttributeNS(null, "stroke-width","1");
-
-  this.path3 = document.createElementNS('http://www.w3.org/2000/svg',"path");
-  this.path3.setAttributeNS(null, "fill","none");
-  this.path3.setAttributeNS(null, "stroke","green");
-  this.path3.setAttributeNS(null, "stroke-width","1");
-
-  this.dom.foreground.appendChild(this.svg);
-
-  this.svg.appendChild(this.path3);
-  this.svg.appendChild(this.path2);
-  this.svg.appendChild(this.path);
-
-//  this.yAxisDiv = document.createElement('div');
-//  this.yAxisDiv.style.backgroundColor = 'rgb(220,220,220)';
-//  this.yAxisDiv.style.width = '100px';
-//  this.yAxisDiv.style.height = this.svg.style.height;
-
-  this._createAxis();
-
-//  this.dom.yAxisDiv = this.yAxisDiv;
-//  this.sidePanel.frame.appendChild(this.yAxisDiv);
-  this.sidePanel.showPanel.apply(this.sidePanel);
-
-  this.sidePanelParent.showPanel();
-};
-
-Linegraph.prototype._createAxis = function() {
   // panel with time axis
   var dataAxisOptions = {
     range: this.range,
@@ -183,11 +127,130 @@ Linegraph.prototype._createAxis = function() {
     svg: this.svg
   };
   this.yAxis = new DataAxis(dataAxisOptions);
-  this.sidePanel.frame.appendChild(this.yAxis.getFrame());
+  this.dom.axis = this.yAxis.getFrame();
 
-}
 
-Linegraph.prototype.setData = function() {
+  this.show();
+};
+
+
+Linegraph.prototype.setOptions = function(options) {
+  if (options) {
+    // copy all options that we know
+    var fields = ['type', 'align', 'orientation', 'padding', 'stack', 'selectable', 'groupOrder'];
+    util.selectiveExtend(fields, this.options, options);
+
+    if ('margin' in options) {
+      if (typeof options.margin === 'number') {
+        this.options.margin.axis = options.margin;
+        this.options.margin.item = options.margin;
+      }
+      else if (typeof options.margin === 'object'){
+        util.selectiveExtend(['axis', 'item'], this.options.margin, options.margin);
+      }
+    }
+
+    if ('editable' in options) {
+      if (typeof options.editable === 'boolean') {
+        this.options.editable.updateTime  = options.editable;
+        this.options.editable.updateGroup = options.editable;
+        this.options.editable.add         = options.editable;
+        this.options.editable.remove      = options.editable;
+      }
+      else if (typeof options.editable === 'object') {
+        util.selectiveExtend(['updateTime', 'updateGroup', 'add', 'remove'], this.options.editable, options.editable);
+      }
+    }
+
+    // callback functions
+    var addCallback = (function (name) {
+      if (name in options) {
+        var fn = options[name];
+        if (!(fn instanceof Function) || fn.length != 2) {
+          throw new Error('option ' + name + ' must be a function ' + name + '(item, callback)');
+        }
+        this.options[name] = fn;
+      }
+    }).bind(this);
+    ['onAdd', 'onUpdate', 'onRemove', 'onMove'].forEach(addCallback);
+
+    // force the itemSet to refresh: options like orientation and margins may be changed
+
+  }
+};
+
+/**
+ * Hide the component from the DOM
+ */
+Linegraph.prototype.hide = function() {
+  // remove the frame containing the items
+  if (this.dom.frame.parentNode) {
+    this.dom.frame.parentNode.removeChild(this.dom.frame);
+  }
+
+  // remove the labelset containing all group labels
+  if (this.dom.axis.parentNode) {
+    this.dom.axis.parentNode.removeChild(this.dom.axis);
+  }
+};
+
+/**
+ * Show the component in the DOM (when not already visible).
+ * @return {Boolean} changed
+ */
+Linegraph.prototype.show = function() {
+  // show frame containing the items
+  if (!this.dom.frame.parentNode) {
+    this.body.dom.center.appendChild(this.dom.frame);
+  }
+
+  // show labelset containing labels
+  if (!this.dom.axis.parentNode) {
+    this.body.dom.left.appendChild(this.dom.axis);
+  }
+};
+
+/**
+ * Repaint the component
+ * @return {boolean} Returns true if the component is resized
+ */
+Linegraph.prototype.redraw = function() {
+  // check whether zoomed (in that case we need to re-stack everything)
+  var visibleInterval = this.range.end - this.range.start;
+  var zoomed = (visibleInterval != this.lastVisibleInterval) || (this.width != this.lastWidth);
+  if (zoomed) this.stackDirty = true;
+  this.lastVisibleInterval = visibleInterval;
+  this.lastWidth = this.width;
+
+  // calculate actual size and position
+  this.width = this.frame.offsetWidth;
+
+  // check if this component is resized
+  resized = this._isResized();
+
+  if (resized) {
+    this.svg.style.width = asSize(3*this.width);
+    this.svg.style.left = asSize(-this.width);
+  }
+  if (zoomed) {
+    this.updateGraph();
+  }
+};
+
+/**
+ * Get the first group, aligned with the axis
+ * @return {Group | null} firstGroup
+ * @private
+ */
+Linegraph.prototype._firstGroup = function() {
+  var firstGroupIndex = (this.options.orientation == 'top') ? 0 : (this.groupIds.length - 1);
+  var firstGroupId = this.groupIds[firstGroupIndex];
+  var firstGroup = this.groups[firstGroupId] || this.groups[UNGROUPED];
+
+  return firstGroup || null;
+};
+
+Linegraph.prototype.updateGraph = function() {
   if (this.width != 0) {
     var dataview = new DataView(this.timeline.itemsData,
       {filter: function (item) {return (item.value);}})
@@ -241,67 +304,13 @@ Linegraph.prototype.setData = function() {
 }
 
 /**
- * Set options for the Linegraph. Existing options will be extended/overwritten.
- * @param {Object} [options] The following options are available:
- *                           {String | function} [className]
- *                              class name for the itemset
- *                           {String} [type]
- *                              Default type for the items. Choose from 'box'
- *                              (default), 'point', or 'range'. The default
- *                              Style can be overwritten by individual items.
- *                           {String} align
- *                              Alignment for the items, only applicable for
- *                              ItemBox. Choose 'center' (default), 'left', or
- *                              'right'.
- *                            {String} orientation
- *                              Orientation of the item set. Choose 'top' or
- *                              'bottom' (default).
- *                           {Number} margin.axis
- *                              Margin between the axis and the items in pixels.
- *                              Default is 20.
- *                           {Number} margin.item
- *                              Margin between items in pixels. Default is 10.
- *                           {Number} padding
- *                              Padding of the contents of an item in pixels.
- *                              Must correspond with the items css. Default is 5.
- *                           {Function} snap
- *                              Function to let items snap to nice dates when
- *                              dragging items.
+ * Set items
+ * @param {vis.DataSet | null} items
  */
-Linegraph.prototype.setOptions = function(options) {
-  Component.prototype.setOptions.call(this, options);
+Linegraph.prototype.setItems = function(items) {
+
 };
 
-
-Linegraph.prototype._extractData = function(dataset) {
-  var extractedData = [];
-  var low = dataset[0].value;
-  var high = dataset[0].value;
-
-  var range = this.range.end - this.range.start;
-  var rangePerPixel = range/this.width;
-  var rangePerPixelInv = this.width/range;
-  var xOffset = -this.range.start + this.width*rangePerPixel;
-
-  for (var i = 0; i < dataset.length; i++) {
-    var val = new Date(dataset[i].start).getTime();
-
-    val += xOffset;
-    val *= rangePerPixelInv;
-
-    extractedData.push({x:val, y:dataset[i].value});
-
-    if (low > dataset[i].value) {
-      low = dataset[i].value;
-    }
-    if (high < dataset[i].value) {
-      high = dataset[i].value;
-    }
-  }
-
-  //extractedData.sort(function (a,b) {return a.x - b.x;})
-  return {range:{low:low,high:high},data:extractedData};
-}
 
 Linegraph.prototype._catmullRomUniform = function(data) {
   // catmull rom
@@ -391,10 +400,10 @@ Linegraph.prototype._catmullRom = function(data, alpha) {
       if (M > 0) {M = 1 / M;}
 
       bp1 = { x: ((-d2pow2A * p0.x + A*p1.x + d1pow2A * p2.x) * N),
-              y: ((-d2pow2A * p0.y + A*p1.y + d1pow2A * p2.y) * N)};
+        y: ((-d2pow2A * p0.y + A*p1.y + d1pow2A * p2.y) * N)};
 
       bp2 = { x: (( d3pow2A * p1.x + B*p2.x - d2pow2A * p3.x) * M),
-              y: (( d3pow2A * p1.y + B*p2.y - d2pow2A * p3.y) * M)};
+        y: (( d3pow2A * p1.y + B*p2.y - d2pow2A * p3.y) * M)};
 
       if (bp1.x == 0 && bp1.y == 0) {bp1 = p1;}
       if (bp2.x == 0 && bp2.y == 0) {bp2 = p2;}
@@ -424,77 +433,4 @@ Linegraph.prototype._linear = function(data) {
     }
   }
   return d;
-}
-
-/**
- * Set range (start and end).
- * @param {Range | Object} range  A Range or an object containing start and end.
- */
-Linegraph.prototype.setRange = function(range) {
-  if (!(range instanceof Range) && (!range || !range.start || !range.end)) {
-    throw new TypeError('Range must be an instance of Range, ' +
-      'or an object containing start and end.');
-  }
-  this.range = range;
-};
-
-Linegraph.prototype.repaint = function() {
-  var margin = this.options.margin,
-    range = this.range,
-    asSize = util.option.asSize,
-    asString = util.option.asString,
-    options = this.options,
-    orientation = this.getOption('orientation'),
-    resized = false,
-    frame = this.frame;
-
-  // TODO: document this feature to specify one margin for both item and axis distance
-  if (typeof margin === 'number') {
-    margin = {
-      item: margin,
-      axis: margin
-    };
-  }
-
-
-  // update className
-  this.frame.className = 'itemset' + (options.className ? (' ' + asString(options.className)) : '');
-
-  // check whether zoomed (in that case we need to re-stack everything)
-  // TODO: would be nicer to get this as a trigger from Range
-  var visibleInterval = this.range.end - this.range.start;
-  var zoomed = (visibleInterval != this.lastVisibleInterval) || (this.width != this.lastWidth);
-  if (zoomed) this.stackDirty = true;
-  this.lastVisibleInterval = visibleInterval;
-  this.lastWidth = this.width;
-
-  // reposition frame
-  this.frame.style.left    = asSize(options.left, '');
-  this.frame.style.right   = asSize(options.right, '');
-  this.frame.style.top     = asSize((orientation == 'top') ? '0' : '');
-  this.frame.style.bottom  = asSize((orientation == 'top') ? '' : '0');
-  this.frame.style.width   = asSize(options.width, '100%');
-//  frame.style.height  = asSize(height);
-  //frame.style.height  = asSize('height' in options ? options.height : height); // TODO: reckon with height
-
-  // calculate actual size and position
-  this.top   = this.frame.offsetTop;
-  this.left  = this.frame.offsetLeft;
-  this.width = this.frame.offsetWidth;
-//  this.height = height;
-
-  // check if this component is resized
-  resized = this._isResized() || resized;
-
-  if (resized) {
-    this.svg.style.width = asSize(3*this.width);
-    this.svg.style.left = asSize(-this.width);
-  }
-  if (zoomed) {
-    this.setData();
-  }
-
-
-
-
 }

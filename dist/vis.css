@@ -2,32 +2,55 @@
 }
 
 
-.vis.timeline.rootpanel {
+.vis.timeline.root {
   position: relative;
-  overflow: hidden;
-
   border: 1px solid #bfbfbf;
-  box-sizing: border-box;
 
-  /* FIXME: there is an issue with the height of the items when panel height is animated
-  -webkit-transition: height 4s ease-in-out;
-  transition:         height 4s ease-in-out;
-  /**/
-}
-
-.vis.timeline .vpanel {
-  position: absolute;
   overflow: hidden;
+  padding: 0;
+  margin: 0;
 
   box-sizing: border-box;
 }
 
-.vis.timeline .vpanel.side {
-  border-right: 1px solid #bfbfbf;
+.vis.timeline .vispanel {
+  position: absolute;
+
+  padding: 0;
+  margin: 0;
+
+  box-sizing: border-box;
 }
 
-.vis.timeline .vpanel.side.hidden {
-  display: none;
+.vis.timeline .vispanel.center,
+.vis.timeline .vispanel.left,
+.vis.timeline .vispanel.right,
+.vis.timeline .vispanel.top,
+.vis.timeline .vispanel.bottom {
+  border: 1px #bfbfbf;
+}
+
+.vis.timeline .vispanel.center,
+.vis.timeline .vispanel.left,
+.vis.timeline .vispanel.right {
+  border-top-style: solid;
+  border-bottom-style: solid;
+  overflow: hidden;
+}
+
+.vis.timeline .vispanel.center,
+.vis.timeline .vispanel.top,
+.vis.timeline .vispanel.bottom {
+  border-left-style: solid;
+  border-right-style: solid;
+}
+
+.vis.timeline .background {
+  overflow: hidden;
+}
+
+.vis.timeline .vispanel > .content {
+  position: relative;
 }
 
 
@@ -50,19 +73,21 @@
   box-sizing: border-box;
 }
 
-.vis.timeline.top .labelset .vlabel {
-  border-top: 1px solid #bfbfbf;
-  border-bottom: none;
+.vis.timeline .labelset .vlabel {
+  border-bottom: 1px solid #bfbfbf;
 }
 
-.vis.timeline.bottom .labelset .vlabel {
-  border-top: none;
-  border-bottom: 1px solid #bfbfbf;
+.vis.timeline .labelset .vlabel:last-child {
+  border-bottom: none;
 }
 
 .vis.timeline .labelset .vlabel .inner {
   display: inline-block;
   padding: 5px;
+}
+
+.vis.timeline .labelset .vlabel .inner.hidden {
+  padding: 0;
 }
 
 
@@ -79,21 +104,36 @@
   /**/
 }
 
-.vis.timeline .background {
+.vis.timeline .itemset .background,
+.vis.timeline .itemset .foreground {
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }
 
-.vis.timeline .foreground {
+.vis.timeline .itemset.foreground {
+  overflow: hidden;
 }
 
 .vis.timeline .axis {
-  overflow: visible;
+  position: absolute;
+  width: 100%;
+  height: 0;
+  left: 1px;
+  z-index: 1;
 }
 
 .vis.timeline  .group {
   position: relative;
   box-sizing: border-box;
+  border-bottom: 1px solid #bfbfbf;
 }
 
+.vis.timeline  .group:last-child {
+  border-bottom: none;
+}
+
+/*
 .vis.timeline.top .group {
   border-top: 1px solid #bfbfbf;
   border-bottom: none;
@@ -103,7 +143,7 @@
   border-top: none;
   border-bottom: 1px solid #bfbfbf;
 }
-
+*/
 
 .vis.timeline .item {
   position: absolute;
@@ -126,7 +166,7 @@
   z-index: 999;
 }
 
-.vis.timeline.editable .item.selected {
+.vis.timeline .editable .item.selected {
   cursor: move;
 }
 
@@ -223,7 +263,22 @@
 }
 
 .vis.timeline .timeaxis {
+  position: relative;
+  overflow: hidden;
+}
+
+.vis.timeline .timeaxis.foreground {
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.vis.timeline .timeaxis.background {
   position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .vis.timeline .timeaxis .text {
@@ -248,14 +303,6 @@
   border-right: 1px solid;
 }
 
-.vis.timeline .timeaxis .grid.horizontal {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  height: 0;
-  border-bottom: 1px solid;
-}
-
 .vis.timeline .timeaxis .grid.minor {
   border-color: #e5e5e5;
 }
@@ -267,13 +314,47 @@
 .vis.timeline .currenttime {
   background-color: #FF7F6E;
   width: 2px;
-  z-index: 9;
+  z-index: 1;
 }
 .vis.timeline .customtime {
   background-color: #6E94FF;
   width: 2px;
   cursor: move;
-  z-index: 9;
+  z-index: 1;
+}
+
+.vis.timeline .dataaxis .grid.horizontal {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 0;
+    border-bottom: 1px solid;
+}
+
+.vis.timeline .dataaxis .grid.minor {
+    border-color: #e5e5e5;
+}
+
+.vis.timeline .dataaxis .grid.major {
+    border-color: #bfbfbf;
+}
+
+
+.vis.timeline .dataaxis .yAxis.major {
+    font-size:12px;
+    width: 100%;
+    position: absolute;
+    color: #4d4d4d;
+    white-space: nowrap;
+}
+
+
+.vis.timeline .dataaxis .yAxis.minor{
+    font-size:9px;
+    position: absolute;
+    width: 100%;
+    color: #4d4d4d;
+    white-space: nowrap;
 }
 div.graph-manipulationDiv {
     border-width:0px;

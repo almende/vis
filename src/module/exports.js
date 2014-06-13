@@ -34,7 +34,8 @@ var vis = {
 
   Timeline: Timeline,
   Graph: Graph,
-  Graph3d: Graph3d
+  Graph3d: Graph3d,
+  Graph2d: Graph2d
 };
 
 /**
