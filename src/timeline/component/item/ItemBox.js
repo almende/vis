@@ -212,8 +212,10 @@ ItemBox.prototype.repositionY = function() {
 
   if (orientation == 'top') {
     box.style.top     = (this.top || 0) + 'px';
+
     line.style.top    = '0';
     line.style.height = (this.parent.top + this.top + 1) + 'px';
+    line.style.bottom = '';
   }
   else { // orientation 'bottom'
     var itemSetHeight = this.parent.itemSet.props.height; // TODO: this is nasty
@@ -221,7 +223,7 @@ ItemBox.prototype.repositionY = function() {
 
     box.style.top     = (this.parent.height - this.top - this.height || 0) + 'px';
     line.style.top    = (itemSetHeight - lineHeight) + 'px';
-    line.style.height = (lineHeight) + 'px';
+    line.style.bottom = '0';
   }
 
   dot.style.top = (-this.props.dot.height / 2) + 'px';
