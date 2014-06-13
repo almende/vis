@@ -92,9 +92,9 @@ DataAxis.prototype.repaint = function () {
   this._calculateCharSize();
 
   // TODO: recalculate sizes only needed when parent is resized or options is changed
-  var orientation = this.getOption('orientation');
-  var showMinorLabels = this.getOption('showMinorLabels');
-  var showMajorLabels = this.getOption('showMajorLabels');
+  var orientation = this.options['orientation'];
+  var showMinorLabels = this.options['showMinorLabels'];
+  var showMajorLabels = this.options['showMajorLabels'];
 
   // determine the width and height of the elemens for the axis
   props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
@@ -132,7 +132,7 @@ DataAxis.prototype.repaint = function () {
  * @private
  */
 DataAxis.prototype._repaintLabels = function () {
-  var orientation = this.getOption('orientation');
+  var orientation = this.options['orientation'];
 
   // calculate range and step (step such that we have space for 7 characters per label)
   var start = this.range.start;
@@ -166,11 +166,11 @@ DataAxis.prototype._repaintLabels = function () {
     y = y.toPrecision(5)
     var isMajor = step.isMajor();
 
-    if (this.getOption('showMinorLabels') && isMajor == false) {
+    if (this.options['showMinorLabels'] && isMajor == false) {
       this._repaintMinorText(y, step.getLabelMinor(), orientation);
     }
 
-    if (isMajor && this.getOption('showMajorLabels')) {
+    if (isMajor && this.options['showMajorLabels']) {
       if (y > 0) {
         if (xFirstMajorLabel == undefined) {
           xFirstMajorLabel = y;
@@ -194,7 +194,7 @@ DataAxis.prototype._repaintLabels = function () {
 
 
   // create a major label on the left when needed
-  if (this.getOption('showMajorLabels')) {
+  if (this.options['showMajorLabels']) {
     var leftPoint = this._start;
     var leftText = step.getLabelMajor(leftPoint);
     var widthText = leftText.length * (this.props.majorCharWidth || 10) + 10; // upper bound estimation

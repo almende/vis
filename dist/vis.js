@@ -2631,9 +2631,9 @@ DataAxis.prototype.repaint = function () {
   this._calculateCharSize();
 
   // TODO: recalculate sizes only needed when parent is resized or options is changed
-  var orientation = this.getOption('orientation');
-  var showMinorLabels = this.getOption('showMinorLabels');
-  var showMajorLabels = this.getOption('showMajorLabels');
+  var orientation = this.options['orientation'];
+  var showMinorLabels = this.options['showMinorLabels'];
+  var showMajorLabels = this.options['showMajorLabels'];
 
   // determine the width and height of the elemens for the axis
   props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
@@ -2671,7 +2671,7 @@ DataAxis.prototype.repaint = function () {
  * @private
  */
 DataAxis.prototype._repaintLabels = function () {
-  var orientation = this.getOption('orientation');
+  var orientation = this.options['orientation'];
 
   // calculate range and step (step such that we have space for 7 characters per label)
   var start = this.range.start;
@@ -2705,11 +2705,11 @@ DataAxis.prototype._repaintLabels = function () {
     y = y.toPrecision(5)
     var isMajor = step.isMajor();
 
-    if (this.getOption('showMinorLabels') && isMajor == false) {
+    if (this.options['showMinorLabels'] && isMajor == false) {
       this._repaintMinorText(y, step.getLabelMinor(), orientation);
     }
 
-    if (isMajor && this.getOption('showMajorLabels')) {
+    if (isMajor && this.options['showMajorLabels']) {
       if (y > 0) {
         if (xFirstMajorLabel == undefined) {
           xFirstMajorLabel = y;
@@ -2733,7 +2733,7 @@ DataAxis.prototype._repaintLabels = function () {
 
 
   // create a major label on the left when needed
-  if (this.getOption('showMajorLabels')) {
+  if (this.options['showMajorLabels']) {
     var leftPoint = this._start;
     var leftText = step.getLabelMajor(leftPoint);
     var widthText = leftText.length * (this.props.majorCharWidth || 10) + 10; // upper bound estimation
@@ -2943,18 +2943,10 @@ DataAxis.prototype.snap = function snap (date) {
   return this.step.snap(date);
 };
 
-var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
-/**
- * An ItemSet holds a set of items and ranges which can be displayed in a
- * range. The width is determined by the parent of the ItemSet, and the height
- * is determined by the size of the items.
- * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} body
- * @param {Object} [options]      See Linegraph.setOptions for the available options.
- * @constructor ItemSet
- * @extends Component
- */
+
 function Linegraph(body, options) {
+  this.id = util.randomUUID();
   this.body = body;
 
   this.defaultOptions = {
@@ -3027,8 +3019,20 @@ function Linegraph(body, options) {
   // create the HTML DOM
 
   this._create();
+  this.body.emitter.on("drag", this._onDrag.bind(this))
+  this.body.emitter.on("dragEnd", this._onDragEnd.bind(this))
 
   this.setOptions(options);
+}
+
+Linegraph.prototype._onDrag = function (event) {
+  if (this.svg) {
+    
+  }
+}
+
+Linegraph.prototype._onDragEnd = function (event) {
+  this.updateGraph();
 }
 
 Linegraph.prototype = new Component();
@@ -3062,9 +3066,35 @@ Linegraph.prototype._create = function(){
   frame.appendChild(foreground);
   this.dom.foreground = foreground;
 
+  this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
+  this.svg.style.position = "relative"
+  this.svg.style.height = "300px";
+  this.svg.style.display = "block";
+
+  this.path = document.createElementNS('http://www.w3.org/2000/svg',"path");
+  this.path.setAttributeNS(null, "fill","none");
+  this.path.setAttributeNS(null, "stroke","blue");
+  this.path.setAttributeNS(null, "stroke-width","1");
+
+  this.path2 = document.createElementNS('http://www.w3.org/2000/svg',"path");
+  this.path2.setAttributeNS(null, "fill","none");
+  this.path2.setAttributeNS(null, "stroke","red");
+  this.path2.setAttributeNS(null, "stroke-width","1");
+
+  this.path3 = document.createElementNS('http://www.w3.org/2000/svg',"path");
+  this.path3.setAttributeNS(null, "fill","none");
+  this.path3.setAttributeNS(null, "stroke","green");
+  this.path3.setAttributeNS(null, "stroke-width","1");
+
+  frame.appendChild(this.svg);
+
+  this.svg.appendChild(this.path3);
+  this.svg.appendChild(this.path2);
+  this.svg.appendChild(this.path);
+
   // panel with time axis
   var dataAxisOptions = {
-    range: this.range,
+    range: this.body.range,
     left: null,
     top: null,
     width: null,
@@ -3073,7 +3103,6 @@ Linegraph.prototype._create = function(){
   };
   this.yAxis = new DataAxis(dataAxisOptions);
   this.dom.axis = this.yAxis.getFrame();
-
 
   this.show();
 };
@@ -3155,24 +3184,91 @@ Linegraph.prototype.show = function() {
   }
 };
 
+
+
+
+/**
+ * Set items
+ * @param {vis.DataSet | null} items
+ */
+Linegraph.prototype.setItems = function(items) {
+  var me = this,
+    ids,
+    oldItemsData = this.itemsData;
+
+  // replace the dataset
+  if (!items) {
+    this.itemsData = null;
+  }
+  else if (items instanceof DataSet || items instanceof DataView) {
+    this.itemsData = items;
+  }
+  else {
+    throw new TypeError('Data must be an instance of DataSet or DataView');
+  }
+
+  if (oldItemsData) {
+    // unsubscribe from old dataset
+    util.forEach(this.itemListeners, function (callback, event) {
+      oldItemsData.off(event, callback);
+    });
+
+    // remove all drawn items
+    ids = oldItemsData.getIds();
+    this._onRemove(ids);
+  }
+
+  if (this.itemsData) {
+//    // subscribe to new dataset
+//    var id = this.id;
+//    util.forEach(this.itemListeners, function (callback, event) {
+//      me.itemsData.on(event, callback, id);
+//    });
+//
+//    // add all new items
+//    ids = this.itemsData.getIds();
+//    this._onAdd(ids);
+  }
+  this.updateGraph();
+};
+
+
+
+/**
+ * Handle added items
+ * @param {Number[]} ids
+ * @protected
+ */
+Linegraph.prototype._onAdd = Linegraph.prototype._onUpdate;
+
+/**
+ * Handle updated items
+ * @param {Number[]} ids
+ * @protected
+ */
+Linegraph.prototype._onUpdate = function(ids) {
+};
+
+
+
+
 /**
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
 Linegraph.prototype.redraw = function() {
+  console.log('redraw')
   // check whether zoomed (in that case we need to re-stack everything)
-  var visibleInterval = this.range.end - this.range.start;
+  var visibleInterval = this.body.range.end - this.body.range.start;
   var zoomed = (visibleInterval != this.lastVisibleInterval) || (this.width != this.lastWidth);
-  if (zoomed) this.stackDirty = true;
   this.lastVisibleInterval = visibleInterval;
   this.lastWidth = this.width;
 
   // calculate actual size and position
-  this.width = this.frame.offsetWidth;
+  this.width = this.dom.frame.offsetWidth;
 
   // check if this component is resized
-  resized = this._isResized();
-
+  var resized = this._isResized();
   if (resized) {
     this.svg.style.width = asSize(3*this.width);
     this.svg.style.left = asSize(-this.width);
@@ -3182,31 +3278,44 @@ Linegraph.prototype.redraw = function() {
   }
 };
 
-/**
- * Get the first group, aligned with the axis
- * @return {Group | null} firstGroup
- * @private
- */
-Linegraph.prototype._firstGroup = function() {
-  var firstGroupIndex = (this.options.orientation == 'top') ? 0 : (this.groupIds.length - 1);
-  var firstGroupId = this.groupIds[firstGroupIndex];
-  var firstGroup = this.groups[firstGroupId] || this.groups[UNGROUPED];
 
-  return firstGroup || null;
-};
+Linegraph.prototype._extractData = function(dataset) {
+  var extractedData = [];
+  var low = dataset[0].y;
+  var high = dataset[0].y;
+
+  var range = this.body.range.end - this.body.range.start;
+  var rangePerPixel = range/this.width;
+  var rangePerPixelInv = this.width/range;
+  var xOffset = -this.body.range.start + this.width*rangePerPixel;
+
+  for (var i = 0; i < dataset.length; i++) {
+    var val = new Date(dataset[i].x).getTime();
+    val += xOffset;
+    val *= rangePerPixelInv;
+
+    extractedData.push({x:val, y:dataset[i].y});
+
+    if (low > dataset[i].y) {
+      low = dataset[i].y;
+    }
+    if (high < dataset[i].y) {
+      high = dataset[i].y;
+    }
+  }
+
+//  extractedData.sort(function (a,b) {return a.x - b.x;});
+  return {range:{low:low,high:high},data:extractedData};
+}
 
 Linegraph.prototype.updateGraph = function() {
-  if (this.width != 0) {
-    var dataview = new DataView(this.timeline.itemsData,
-      {filter: function (item) {return (item.value);}})
+  if (this.width != 0 && this.itemsData != null) {
 
-    var datapoints = dataview.get();
+    var datapoints = this.itemsData.get();
     if (datapoints != null) {
       if (datapoints.length > 0) {
         var dataset = this._extractData(datapoints);
         var data = dataset.data;
-
-        console.log("height",data,datapoints, dataset);
 
         this.yAxis.setRange({start:dataset.range.low,end:dataset.range.high});
         this.yAxis.repaint();
@@ -3217,29 +3326,6 @@ Linegraph.prototype.updateGraph = function() {
         d3 = this._catmullRom(data,0);
         d2 = this._catmullRom(data,1);
 
-
-//        var data2 = [];
-//        this.startTime = this.range.start;
-//        var min = Date.now() - 3600000 * 24 * 30;
-//        var max = Date.now() + 3600000 * 24 * 10;
-//        var count = 60;
-//        var step = (max-min) / count;
-//
-//        var range = this.range.end - this.range.start;
-//        var rangePerPixel = range/this.width;
-//        var rangePerPixelInv = this.width/range;
-//        var xOffset = -this.range.start + this.width*rangePerPixel;
-//
-//        for (var i = 0; i < count; i++) {
-//          data2.push({x:(min + i*step + xOffset) * rangePerPixelInv, y: 250*(i%2) + 25})
-//        }
-//
-//        var d2 = this._catmullRom(data2);
-
-
-
-
-
         this.path.setAttributeNS(null, "d",d);
         this.path2.setAttributeNS(null, "d",d2);
         this.path3.setAttributeNS(null, "d",d3);
@@ -3247,14 +3333,6 @@ Linegraph.prototype.updateGraph = function() {
     }
   }
 }
-
-/**
- * Set items
- * @param {vis.DataSet | null} items
- */
-Linegraph.prototype.setItems = function(items) {
-
-};
 
 
 Linegraph.prototype._catmullRomUniform = function(data) {
