@@ -135,6 +135,8 @@ Timeline.prototype._create = function (container) {
 
   this.on('rangechange', this.redraw.bind(this));
   this.on('change', this.redraw.bind(this));
+  this.on('touch', this._onTouch.bind(this));
+  this.on('pinch', this._onPinch.bind(this));
   this.on('dragstart', this._onDragStart.bind(this));
   this.on('drag', this._onDrag.bind(this));
 
@@ -147,7 +149,7 @@ Timeline.prototype._create = function (container) {
 
   var me = this;
   var events = [
-    'pinch',
+    'touch', 'pinch',
     'tap', 'doubletap', 'hold',
     'dragstart', 'drag', 'dragend',
     'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
@@ -176,6 +178,7 @@ Timeline.prototype._create = function (container) {
     border: {},
     scrollTop: 0
   };
+  this.touch = {}; // store state information needed for touch events
 
   // attach the root panel to the provided container
   if (!container) throw new Error('No container provided');
@@ -693,8 +696,26 @@ Timeline.prototype._stopAutoResize = function () {
  * @param {Event} event
  * @private
  */
+Timeline.prototype._onTouch = function (event) {
+  this.touch.allowDragging = true;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onPinch = function (event) {
+  this.touch.allowDragging = false;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
 Timeline.prototype._onDragStart = function (event) {
-  touchParams.initialScrollTop = this.props.scrollTop;
+  this.touch.initialScrollTop = this.props.scrollTop;
 };
 
 /**
@@ -703,15 +724,14 @@ Timeline.prototype._onDragStart = function (event) {
  * @private
  */
 Timeline.prototype._onDrag = function (event) {
-/* TODO: no dragging when pinching
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
-  if (touchParams.pinching) return;
-*/
+  if (!this.touch.allowDragging) return;
+
   var delta = event.gesture.deltaY;
 
   var oldScrollTop = this._getScrollTop();
-  var newScrollTop = this._setScrollTop(touchParams.initialScrollTop + delta);
+  var newScrollTop = this._setScrollTop(this.touch.initialScrollTop + delta);
 
   if (newScrollTop != oldScrollTop) {
     this.redraw(); // TODO: this causes two redraws when dragging, the other is triggered by rangechange already
@@ -750,6 +770,3 @@ Timeline.prototype._setScrollTop = function (scrollTop) {
 Timeline.prototype._getScrollTop = function () {
   return this.props.scrollTop;
 };
-
-// global (private) object to store drag params
-var touchParams = {};

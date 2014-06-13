@@ -28,10 +28,10 @@
   </select>
 </div>
 <script>
-  var orientation = document.getElementById('orientation');
-  orientation.onchange = function () {
+  var o = document.getElementById('orientation');
+  o.onchange = function () {
     timeline.setOptions({
-      orientation: orientation.value
+      orientation: o.value
     });
   };
 </script>

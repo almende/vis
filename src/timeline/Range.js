@@ -27,6 +27,10 @@ function Range(body, options) {
   };
   this.options = util.extend({}, this.defaultOptions);
 
+  this.props = {
+    touch: {}
+  };
+
   // drag listeners for dragging
   this.body.emitter.on('dragstart', this._onDragStart.bind(this));
   this.body.emitter.on('drag',      this._onDrag.bind(this));
@@ -260,9 +264,6 @@ Range.conversion = function (start, end, width) {
   }
 };
 
-// global (private) object to store drag params
-var touchParams = {};
-
 /**
  * Start dragging horizontally or vertically
  * @param {Event} event
@@ -274,10 +275,10 @@ Range.prototype._onDragStart = function(event) {
 
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
-  if (touchParams.ignore) return;
+  if (!this.props.touch.allowDragging) return;
 
-  touchParams.start = this.start;
-  touchParams.end = this.end;
+  this.props.touch.start = this.start;
+  this.props.touch.end = this.end;
 
   if (this.body.dom.root) {
     this.body.dom.root.style.cursor = 'move';
@@ -298,14 +299,15 @@ Range.prototype._onDrag = function (event) {
 
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
-  if (touchParams.ignore) return;
+  if (!this.props.touch.allowDragging) return;
+  console.log('onDrag range');
 
   var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
-      interval = (touchParams.end - touchParams.start),
+      interval = (this.props.touch.end - this.props.touch.start),
       width = (direction == 'horizontal') ? this.body.domProps.center.width : this.body.domProps.center.height,
       diffRange = -delta / width * interval;
 
-  this._applyRange(touchParams.start + diffRange, touchParams.end + diffRange);
+  this._applyRange(this.props.touch.start + diffRange, this.props.touch.end + diffRange);
 
   this.body.emitter.emit('rangechange', {
     start: new Date(this.start),
@@ -324,7 +326,7 @@ Range.prototype._onDragEnd = function (event) {
 
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
-  if (touchParams.ignore) return;
+  if (!this.props.touch.allowDragging) return;
 
   if (this.body.dom.root) {
     this.body.dom.root.style.cursor = 'auto';
@@ -391,17 +393,10 @@ Range.prototype._onMouseWheel = function(event) {
  * @private
  */
 Range.prototype._onTouch = function (event) {
-  touchParams.start = this.start;
-  touchParams.end = this.end;
-  touchParams.ignore = false;
-  touchParams.center = null;
-
-  // don't move the range when dragging a selected event
-  // TODO: it's not so neat to have to know about ItemSet here
-  var item = ItemSet.itemFromTarget(event);
-  if (item && item.selected && this.options.editable) {
-    touchParams.ignore = true;
-  }
+  this.props.touch.start = this.start;
+  this.props.touch.end = this.end;
+  this.props.touch.allowDragging = true;
+  this.props.touch.center = null;
 };
 
 /**
@@ -409,7 +404,7 @@ Range.prototype._onTouch = function (event) {
  * @private
  */
 Range.prototype._onHold = function () {
-  touchParams.ignore = true;
+  this.props.touch.allowDragging = false;
 };
 
 /**
@@ -421,19 +416,19 @@ Range.prototype._onPinch = function (event) {
   // only allow zooming when configured as zoomable and moveable
   if (!(this.options.zoomable && this.options.moveable)) return;
 
-  touchParams.ignore = true;
+  this.props.touch.allowDragging = false;
 
   if (event.gesture.touches.length > 1) {
-    if (!touchParams.center) {
-      touchParams.center = getPointer(event.gesture.center, this.body.dom.center);
+    if (!this.props.touch.center) {
+      this.props.touch.center = getPointer(event.gesture.center, this.body.dom.center);
     }
 
     var scale = 1 / event.gesture.scale,
-        initDate = this._pointerToDate(touchParams.center);
+        initDate = this._pointerToDate(this.props.touch.center);
 
     // calculate new start and end
-    var newStart = parseInt(initDate + (touchParams.start - initDate) * scale);
-    var newEnd = parseInt(initDate + (touchParams.end - initDate) * scale);
+    var newStart = parseInt(initDate + (this.props.touch.start - initDate) * scale);
+    var newEnd = parseInt(initDate + (this.props.touch.end - initDate) * scale);
 
     // apply new range
     this.setRange(newStart, newEnd);
