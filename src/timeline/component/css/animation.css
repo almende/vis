@@ -1,0 +1,31 @@
+/* TODO: get animation working nicely
+.vis.timeline.root {
+  -webkit-transition: height .4s ease-in-out;
+  transition:         height .4s ease-in-out;
+}
+
+.vis.timeline .vispanel {
+  -webkit-transition: height .4s ease-in-out, top .4s ease-in-out;
+  transition:         height .4s ease-in-out, top .4s ease-in-out;
+}
+
+.vis.timeline .axis {
+  -webkit-transition: top .4s ease-in-out;
+  transition:         top .4s ease-in-out;
+}
+
+.vis.timeline  .group {
+  -webkit-transition: height .4s ease-in-out;
+  transition:         height .4s ease-in-out;
+}
+
+.vis.timeline .item {
+  -webkit-transition: top .4s ease-in-out;
+  transition:         top .4s ease-in-out;
+}
+
+.vis.timeline .item.line {
+  -webkit-transition: height .4s ease-in-out, top .4s ease-in-out;
+  transition:         height .4s ease-in-out, top .4s ease-in-out;
+}
+/**/

@@ -44,6 +44,7 @@ task('build', {async: true}, function () {
       './src/timeline/component/css/timeaxis.css',
       './src/timeline/component/css/currenttime.css',
       './src/timeline/component/css/customtime.css',
+      './src/timeline/component/css/animation.css',
 
       './src/graph/css/graph-manipulation.css',
       './src/graph/css/graph-navigation.css'
