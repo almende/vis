@@ -14,7 +14,8 @@
   transition:         top .4s ease-in-out;
 }
 
-.vis.timeline  .group {
+.vis.timeline  .group,
+.vis.timeline  .labelset .vlabel {
   -webkit-transition: height .4s ease-in-out;
   transition:         height .4s ease-in-out;
 }
