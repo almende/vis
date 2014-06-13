@@ -216,9 +216,12 @@ ItemBox.prototype.repositionY = function() {
     line.style.height = (this.parent.top + this.top + 1) + 'px';
   }
   else { // orientation 'bottom'
+    var itemSetHeight = this.parent.itemSet.props.height; // TODO: this is nasty
+    var lineHeight = itemSetHeight - this.parent.top - this.parent.height + this.top;
+
     box.style.top     = (this.parent.height - this.top - this.height || 0) + 'px';
-    line.style.top    = (this.parent.height - this.top - 1) + 'px';
-    line.style.height = this.top + 'px';
+    line.style.top    = (itemSetHeight - lineHeight) + 'px';
+    line.style.height = (lineHeight) + 'px';
   }
 
   dot.style.top = (-this.props.dot.height / 2) + 'px';

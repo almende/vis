@@ -5,11 +5,6 @@
   margin: 0;
 
   box-sizing: border-box;
-
-  /* FIXME: get transition working for rootpanel and itemset
-  -webkit-transition: height 4s ease-in-out;
-  transition:         height 4s ease-in-out;
-  /**/
 }
 
 .vis.timeline .itemset .background,
@@ -40,15 +35,3 @@
 .vis.timeline  .group:last-child {
   border-bottom: none;
 }
-
-/*
-.vis.timeline.top .group {
-  border-top: 1px solid #bfbfbf;
-  border-bottom: none;
-}
-
-.vis.timeline.bottom .group {
-  border-top: none;
-  border-bottom: 1px solid #bfbfbf;
-}
-*/

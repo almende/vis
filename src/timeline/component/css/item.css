@@ -7,11 +7,6 @@
   background-color: #D5DDF6;
   display: inline-block;
   padding: 5px;
-
-  /* TODO: enable css transitions
-  -webkit-transition: top .4s ease-in-out, bottom .4s ease-in-out;
-  transition:         top .4s ease-in-out, bottom .4s ease-in-out;
-  /**/
 }
 
 .vis.timeline .item.selected {
@@ -70,11 +65,6 @@
   width: 0;
   border-left-width: 1px;
   border-left-style: solid;
-
-  /* TODO: enable css transitions
-  -webkit-transition: height .4s ease-in-out, top .4s ease-in-out;
-  transition:         height .4s ease-in-out, top .4s ease-in-out;
-  /**/
 }
 
 .vis.timeline .item .content {
