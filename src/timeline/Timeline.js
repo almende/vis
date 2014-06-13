@@ -779,7 +779,7 @@ Timeline.prototype._setScrollTop = function (scrollTop) {
  */
 Timeline.prototype._updateScrollTop = function () {
   // recalculate the scrollTopMin
-  var scrollTopMin = this.props.centerContainer.height - this.props.center.height; // is negative or zero
+  var scrollTopMin = Math.min(this.props.centerContainer.height - this.props.center.height, 0); // is negative or zero
   if (scrollTopMin != this.props.scrollTopMin) {
     // in case of bottom orientation, change the scrollTop such that the contents
     // do not move relative to the time axis at the bottom
