@@ -300,7 +300,6 @@ Range.prototype._onDrag = function (event) {
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
   if (!this.props.touch.allowDragging) return;
-  console.log('onDrag range');
 
   var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
       interval = (this.props.touch.end - this.props.touch.start),

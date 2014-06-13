@@ -107,6 +107,12 @@ Timeline.prototype._create = function (container) {
   this.dom.right                = document.createElement('div');
   this.dom.top                  = document.createElement('div');
   this.dom.bottom               = document.createElement('div');
+  this.dom.shadowTop            = document.createElement('div');
+  this.dom.shadowBottom         = document.createElement('div');
+  this.dom.shadowTopLeft        = document.createElement('div');
+  this.dom.shadowBottomLeft     = document.createElement('div');
+  this.dom.shadowTopRight       = document.createElement('div');
+  this.dom.shadowBottomRight    = document.createElement('div');
 
   this.dom.background.className           = 'vispanel background';
   this.dom.backgroundVertical.className   = 'vispanel background vertical';
@@ -119,6 +125,12 @@ Timeline.prototype._create = function (container) {
   this.dom.left.className                 = 'content';
   this.dom.center.className               = 'content';
   this.dom.right.className                = 'content';
+  this.dom.shadowTop.className            = 'shadow top';
+  this.dom.shadowBottom.className         = 'shadow bottom';
+  this.dom.shadowTopLeft.className        = 'shadow top';
+  this.dom.shadowBottomLeft.className     = 'shadow bottom';
+  this.dom.shadowTopRight.className       = 'shadow top';
+  this.dom.shadowBottomRight.className    = 'shadow bottom';
 
   this.dom.root.appendChild(this.dom.background);
   this.dom.root.appendChild(this.dom.backgroundVertical);
@@ -132,6 +144,13 @@ Timeline.prototype._create = function (container) {
   this.dom.centerContainer.appendChild(this.dom.center);
   this.dom.leftContainer.appendChild(this.dom.left);
   this.dom.rightContainer.appendChild(this.dom.right);
+
+  this.dom.centerContainer.appendChild(this.dom.shadowTop);
+  this.dom.centerContainer.appendChild(this.dom.shadowBottom);
+  this.dom.leftContainer.appendChild(this.dom.shadowTopLeft);
+  this.dom.leftContainer.appendChild(this.dom.shadowBottomLeft);
+  this.dom.rightContainer.appendChild(this.dom.shadowTopRight);
+  this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
 
   this.on('rangechange', this.redraw.bind(this));
   this.on('change', this.redraw.bind(this));
@@ -176,7 +195,8 @@ Timeline.prototype._create = function (container) {
     top: {},
     bottom: {},
     border: {},
-    scrollTop: 0
+    scrollTop: 0,
+    scrollTopMin: 0
   };
   this.touch = {}; // store state information needed for touch events
 
@@ -571,24 +591,26 @@ Timeline.prototype.redraw = function() {
 
   // update the scrollTop, feasible range for the offset can be changed
   // when the height of the Timeline or of the contents of the center changed
-  this._setScrollTop(this._getScrollTop());
+  this._updateScrollTop();
 
   // reposition the scrollable contents
-  var offset;
-  if (options.orientation == 'top') {
-    offset = this.props.scrollTop;
-  }
-  else { // orientation == 'bottom'
-    // keep the items aligned to the axis at the bottom
-    offset = this.props.scrollTop + props.centerContainer.height - props.center.height;
-  }
+  var offset = this.props.scrollTop;
+  dom.center.style.left = '0';
+  dom.center.style.top  = offset + 'px';
+  dom.left.style.left   = '0';
+  dom.left.style.top    = offset + 'px';
+  dom.right.style.left  = '0';
+  dom.right.style.top   = offset + 'px';
 
-  dom.center.style.left               = '0';
-  dom.center.style.top                = offset + 'px';
-  dom.left.style.left                 = '0';
-  dom.left.style.top                  = offset + 'px';
-  dom.right.style.left                = '0';
-  dom.right.style.top                 = offset + 'px';
+  // show shadows when vertical scrolling is available
+  var visibilityTop = this.props.scrollTop == 0 ? 'hidden' : '';
+  var visibilityBottom = this.props.scrollTop == this.props.scrollTopMin ? 'hidden' : '';
+  dom.shadowTop.style.visibility          = visibilityTop;
+  dom.shadowBottom.style.visibility       = visibilityBottom;
+  dom.shadowTopLeft.style.visibility      = visibilityTop;
+  dom.shadowBottomLeft.style.visibility   = visibilityBottom;
+  dom.shadowTopRight.style.visibility     = visibilityTop;
+  dom.shadowBottomRight.style.visibility  = visibilityBottom;
 
   // redraw all components
   this.components.forEach(function (component) {
@@ -745,21 +767,33 @@ Timeline.prototype._onDrag = function (event) {
  * @private
  */
 Timeline.prototype._setScrollTop = function (scrollTop) {
-  // limit the scrollTop to the feasible scroll range
-  var scrollTopMax = Math.max(this.props.center.height - this.props.centerContainer.height, 0);
-  if (this.options.orientation == 'top') {
-    if (scrollTop > 0) scrollTop = 0;
-    if (scrollTop < -scrollTopMax) scrollTop = -scrollTopMax;
-  }
-  else { // orientation == 'bottom'
-    if (scrollTop < 0) scrollTop = 0;
-    if (scrollTop > scrollTopMax) scrollTop = scrollTopMax;
-  }
-
-  // apply new scroll top
   this.props.scrollTop = scrollTop;
+  this._updateScrollTop();
+  return this.props.scrollTop;
+};
 
-  return scrollTop;
+/**
+ * Update the current scrollTop when the height of  the containers has been changed
+ * @returns {Number} scrollTop  Returns the applied scrollTop
+ * @private
+ */
+Timeline.prototype._updateScrollTop = function () {
+  // recalculate the scrollTopMin
+  var scrollTopMin = this.props.centerContainer.height - this.props.center.height; // is negative or zero
+  if (scrollTopMin != this.props.scrollTopMin) {
+    // in case of bottom orientation, change the scrollTop such that the contents
+    // do not move relative to the time axis at the bottom
+    if (this.options.orientation == 'bottom') {
+      this.props.scrollTop += (scrollTopMin - this.props.scrollTopMin);
+    }
+    this.props.scrollTopMin = scrollTopMin;
+  }
+
+  // limit the scrollTop to the feasible scroll range
+  if (this.props.scrollTop > 0) this.props.scrollTop = 0;
+  if (this.props.scrollTop < scrollTopMin) this.props.scrollTop = scrollTopMin;
+
+  return this.props.scrollTop;
 };
 
 /**
