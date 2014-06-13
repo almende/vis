@@ -1,5 +1,5 @@
 
-.vis.timeline .dataaxis .grid.horizontal {
+.vis.timeline .vispanel.background.horizontal .grid.horizontal {
     position: absolute;
     left: 0;
     width: 100%;
@@ -7,11 +7,11 @@
     border-bottom: 1px solid;
 }
 
-.vis.timeline .dataaxis .grid.minor {
+.vis.timeline .vispanel.background.horizontal .grid.minor {
     border-color: #e5e5e5;
 }
 
-.vis.timeline .dataaxis .grid.major {
+.vis.timeline .vispanel.background.horizontal .grid.major {
     border-color: #bfbfbf;
 }
 

@@ -69,25 +69,32 @@ function Linegraph(body, options) {
 
   this.items = {};      // object with an Item for every data item
   this.selection = [];  // list with the ids of all selected nodes
-
+  this.lastStart = this.body.range.start;
   this.touchParams = {}; // stores properties while dragging
   // create the HTML DOM
 
   this._create();
-  this.body.emitter.on("drag", this._onDrag.bind(this))
-  this.body.emitter.on("dragEnd", this._onDragEnd.bind(this))
+  var me = this;
+
+  this.body.emitter.on("rangechange",function() {
+      if (me.lastStart != 0) {
+        var offset = me.body.range.start - me.lastStart;
+        var range = me.body.range.end - me.body.range.start;
+        if (me.width != 0) {
+          var rangePerPixelInv = me.width/range;
+          var xOffset = offset * rangePerPixelInv;
+          me.svg.style.left = (-me.width - xOffset) + "px";
+        }
+      }
+    });
+  this.body.emitter.on("rangechanged", function() {
+    me.lastStart = me.body.range.start;
+    me.svg.style.left = util.option.asSize(-me.width);
+    me.updateGraph.apply(me);
+  });
 
   this.setOptions(options);
-}
-
-Linegraph.prototype._onDrag = function (event) {
-  if (this.svg) {
-    
-  }
-}
-
-Linegraph.prototype._onDragEnd = function (event) {
-  this.updateGraph();
+  this.body.emitter.emit("change");
 }
 
 Linegraph.prototype = new Component();
@@ -124,6 +131,7 @@ Linegraph.prototype._create = function(){
   this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
   this.svg.style.position = "relative"
   this.svg.style.height = "300px";
+//  this.svg.style.width =
   this.svg.style.display = "block";
 
   this.path = document.createElementNS('http://www.w3.org/2000/svg',"path");
@@ -148,16 +156,13 @@ Linegraph.prototype._create = function(){
   this.svg.appendChild(this.path);
 
   // panel with time axis
-  var dataAxisOptions = {
-    range: this.body.range,
-    left: null,
-    top: null,
-    width: null,
-    height: 300,
-    svg: this.svg
-  };
-  this.yAxis = new DataAxis(dataAxisOptions);
-  this.dom.axis = this.yAxis.getFrame();
+  this.yAxis = new DataAxis(this.body, {
+    orientation: 'left',
+    showMinorLabels: true,
+    showMajorLabels: true,
+    width: '90px',
+    height: this.svg.style.height
+  });
 
   this.show();
 };
@@ -165,45 +170,6 @@ Linegraph.prototype._create = function(){
 
 Linegraph.prototype.setOptions = function(options) {
   if (options) {
-    // copy all options that we know
-    var fields = ['type', 'align', 'orientation', 'padding', 'stack', 'selectable', 'groupOrder'];
-    util.selectiveExtend(fields, this.options, options);
-
-    if ('margin' in options) {
-      if (typeof options.margin === 'number') {
-        this.options.margin.axis = options.margin;
-        this.options.margin.item = options.margin;
-      }
-      else if (typeof options.margin === 'object'){
-        util.selectiveExtend(['axis', 'item'], this.options.margin, options.margin);
-      }
-    }
-
-    if ('editable' in options) {
-      if (typeof options.editable === 'boolean') {
-        this.options.editable.updateTime  = options.editable;
-        this.options.editable.updateGroup = options.editable;
-        this.options.editable.add         = options.editable;
-        this.options.editable.remove      = options.editable;
-      }
-      else if (typeof options.editable === 'object') {
-        util.selectiveExtend(['updateTime', 'updateGroup', 'add', 'remove'], this.options.editable, options.editable);
-      }
-    }
-
-    // callback functions
-    var addCallback = (function (name) {
-      if (name in options) {
-        var fn = options[name];
-        if (!(fn instanceof Function) || fn.length != 2) {
-          throw new Error('option ' + name + ' must be a function ' + name + '(item, callback)');
-        }
-        this.options[name] = fn;
-      }
-    }).bind(this);
-    ['onAdd', 'onUpdate', 'onRemove', 'onMove'].forEach(addCallback);
-
-    // force the itemSet to refresh: options like orientation and margins may be changed
 
   }
 };
@@ -216,11 +182,6 @@ Linegraph.prototype.hide = function() {
   if (this.dom.frame.parentNode) {
     this.dom.frame.parentNode.removeChild(this.dom.frame);
   }
-
-  // remove the labelset containing all group labels
-  if (this.dom.axis.parentNode) {
-    this.dom.axis.parentNode.removeChild(this.dom.axis);
-  }
 };
 
 /**
@@ -231,11 +192,6 @@ Linegraph.prototype.show = function() {
   // show frame containing the items
   if (!this.dom.frame.parentNode) {
     this.body.dom.center.appendChild(this.dom.frame);
-  }
-
-  // show labelset containing labels
-  if (!this.dom.axis.parentNode) {
-    this.body.dom.left.appendChild(this.dom.axis);
   }
 };
 
@@ -284,7 +240,7 @@ Linegraph.prototype.setItems = function(items) {
 //    ids = this.itemsData.getIds();
 //    this._onAdd(ids);
   }
-  this.updateGraph();
+  this.redraw();
 };
 
 
@@ -312,7 +268,11 @@ Linegraph.prototype._onUpdate = function(ids) {
  * @return {boolean} Returns true if the component is resized
  */
 Linegraph.prototype.redraw = function() {
-  console.log('redraw')
+  var resized = false;
+
+  if (this.lastWidth === undefined && this.width) {
+    resized = true;
+  }
   // check whether zoomed (in that case we need to re-stack everything)
   var visibleInterval = this.body.range.end - this.body.range.start;
   var zoomed = (visibleInterval != this.lastVisibleInterval) || (this.width != this.lastWidth);
@@ -323,10 +283,10 @@ Linegraph.prototype.redraw = function() {
   this.width = this.dom.frame.offsetWidth;
 
   // check if this component is resized
-  var resized = this._isResized();
+  resized = this._isResized() || resized;
   if (resized) {
-    this.svg.style.width = asSize(3*this.width);
-    this.svg.style.left = asSize(-this.width);
+    this.svg.style.width = util.option.asSize(3*this.width);
+    this.svg.style.left = util.option.asSize(-this.width);
   }
   if (zoomed) {
     this.updateGraph();
@@ -336,19 +296,12 @@ Linegraph.prototype.redraw = function() {
 
 Linegraph.prototype._extractData = function(dataset) {
   var extractedData = [];
+
   var low = dataset[0].y;
   var high = dataset[0].y;
 
-  var range = this.body.range.end - this.body.range.start;
-  var rangePerPixel = range/this.width;
-  var rangePerPixelInv = this.width/range;
-  var xOffset = -this.body.range.start + this.width*rangePerPixel;
-
   for (var i = 0; i < dataset.length; i++) {
-    var val = new Date(dataset[i].x).getTime();
-    val += xOffset;
-    val *= rangePerPixelInv;
-
+    var val = this.body.util.toScreen(new Date(dataset[i].x)) + this.width;
     extractedData.push({x:val, y:dataset[i].y});
 
     if (low > dataset[i].y) {
@@ -373,16 +326,16 @@ Linegraph.prototype.updateGraph = function() {
         var data = dataset.data;
 
         this.yAxis.setRange({start:dataset.range.low,end:dataset.range.high});
-        this.yAxis.repaint();
+        this.yAxis.redraw();
         data = this.yAxis.convertValues(data);
 
         var d, d2, d3;
         d = this._catmullRom(data,0.5);
-        d3 = this._catmullRom(data,0);
-        d2 = this._catmullRom(data,1);
+        d2 = this._catmullRom(data,0);
+        d3 = this._linear(data);
 
-        this.path.setAttributeNS(null, "d",d);
-        this.path2.setAttributeNS(null, "d",d2);
+//        this.path.setAttributeNS(null, "d",d);
+//        this.path2.setAttributeNS(null, "d",d2);
         this.path3.setAttributeNS(null, "d",d3);
       }
     }

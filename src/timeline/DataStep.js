@@ -27,7 +27,6 @@
 function DataStep(start, end, minimumStep, containerHeight) {
   // variables
   this.current = 0;
-  this.containerHeight = containerHeight;
 
   this.autoScale  = true;
   this.stepIndex = 0;
@@ -40,7 +39,7 @@ function DataStep(start, end, minimumStep, containerHeight) {
   this.majorSteps = [1,     2,    5,  10];
   this.minorSteps = [0.25,  0.5,  1,  2];
 
-  this.setRange(start,end,minimumStep, containerHeight);
+  this.setRange(start, end, minimumStep, containerHeight);
 }
 
 
@@ -159,9 +158,6 @@ DataStep.prototype.setMinimumStep = function(minimumStep, containerHeight) {
       break;
     }
   }
-
-
-
   this.stepIndex = minorStepIdx;
   this.scale = magnitudefactor;
   this.step = magnitudefactor * this.minorSteps[minorStepIdx];

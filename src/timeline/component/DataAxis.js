@@ -5,9 +5,19 @@
  * @constructor DataAxis
  * @extends Component
  */
-function DataAxis (options) {
+function DataAxis (body, options) {
   this.id = util.randomUUID();
+  this.body = body;
 
+  this.defaultOptions = {
+    orientation: 'left',  // supported: 'left'
+    showMinorLabels: true,
+    showMajorLabels: true,
+    width: '90px',
+    height: '300px'
+  };
+
+  this.props = {};
   this.dom = {
     majorLines: [],
     majorTexts: [],
@@ -20,23 +30,17 @@ function DataAxis (options) {
       minorTexts: []
     }
   };
-  this.props = {
-    range: {
-      start: 0,
-      end: 0,
-      minimumStep: 0
-    },
-    lineTop: 0
-  };
 
-  this.options = options || {};
-  this.defaultOptions = {
-    orientation: 'left',  // supported: 'left'
-    showMinorLabels: true,
-    showMajorLabels: true
-  };
+//  this.yRange = new Range(body,{
+//                                direction: 'vertical',
+//                                min: null,
+//                                max: null,
+//                                zoomMin: 1e-5,
+//                                zoomMax: 1e9
+//                               });
+  this.yRange = {start:0, end:0};
 
-  this.range = null;
+  this.options = util.extend({}, this.defaultOptions);
   this.conversionFactor = 1;
 
   // create the HTML DOM
@@ -44,71 +48,95 @@ function DataAxis (options) {
 }
 
 DataAxis.prototype = new Component();
-
-// TODO: comment options
 DataAxis.prototype.setOptions = Component.prototype.setOptions;
+
 
 /**
  * Create the HTML DOM for the DataAxis
  */
-DataAxis.prototype._create = function _create() {
-  this.frame = document.createElement('div');
+DataAxis.prototype._create = function() {
+  this.dom.frame = document.createElement('div');
+  this.dom.frame.style.width = this.options.width;
+  this.dom.frame.style.height = this.options.height;
+
+  this.dom.lineContainer = document.createElement('div');
+  this.dom.lineContainer.style.width = '100%';
+  this.dom.lineContainer.style.height = this.options.height;
+
+  this.show();
 };
 
+
+/**
+ * Create the HTML DOM for the DataAxis
+ */
+DataAxis.prototype.show = function() {
+  if (!this.dom.frame.parentNode) {
+    if (this.options.orientation == 'left') {
+      this.body.dom.left.appendChild(this.dom.frame);
+    }
+    if (this.options.orientation == 'right') {
+      this.body.dom.right.appendChild(this.dom.frame);
+    }
+  }
+
+  if (!this.dom.lineContainer.parentNode) {
+    this.body.dom.backgroundHorizontal.appendChild(this.dom.lineContainer);
+  }
+};
+
+/**
+ * Create the HTML DOM for the DataAxis
+ */
+DataAxis.prototype.hide = function() {
+  if (this.dom.frame.parentNode) {
+    this.dom.frame.parentNode.removeChild(this.dom.frame);
+  }
+
+  if (this.dom.lineContainer.parentNode) {
+    this.body.dom.backgroundHorizontal.removeChild(this.dom.lineContainer);
+  }
+};
 /**
  * Set a range (start and end)
  * @param {Range | Object} range  A Range or an object containing start and end.
  */
 DataAxis.prototype.setRange = function (range) {
   if (!(range instanceof Range) && (!range || range.start === undefined || range.end === undefined)) {
-    throw new TypeError('Range must be an instance of Range, ' +
-      'or an object containing start and end.');
+    throw new TypeError('Range must be an instance of Range, ' + 'or an object containing start and end.');
   }
-  this.range = range;
-};
-
-/**
- * Get the outer frame of the time axis
- * @return {HTMLElement} frame
- */
-DataAxis.prototype.getFrame = function getFrame() {
-  return this.frame;
+  this.yRange.start = range.start;
+  this.yRange.end = range.end;
 };
 
 /**
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
-DataAxis.prototype.repaint = function () {
-  var asSize = util.option.asSize;
-  var options = this.options;
+DataAxis.prototype.redraw = function () {
   var props = this.props;
-  var frame = this.frame;
+  var frame = this.dom.frame;
 
   // update classname
-  frame.className = 'dataaxis'; // TODO: add className from options if defined
+  frame.className = 'dataaxis';
 
   // calculate character width and height
   this._calculateCharSize();
 
-  // TODO: recalculate sizes only needed when parent is resized or options is changed
-  var orientation = this.options['orientation'];
-  var showMinorLabels = this.options['showMinorLabels'];
-  var showMajorLabels = this.options['showMajorLabels'];
+  var orientation = this.options.orientation;
+  var showMinorLabels = this.options.showMinorLabels;
+  var showMajorLabels = this.options.showMajorLabels;
 
   // determine the width and height of the elemens for the axis
   props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
   props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
-  this.height = this.options.height;
-  this.width = frame.offsetWidth; // TODO: only update the width when the frame is resized?
 
-  props.minorLineWidth = this.options.svg.offsetWidth;
-  props.minorLineHeight = 1; // TODO: really calculate width
-  props.majorLineWidth = this.options.svg.offsetWidth;
-  props.majorLineHeight = 1; // TODO: really calculate width
+  props.minorLineWidth = 3000;
+  props.minorLineHeight = 1;
+  props.majorLineWidth = 3000;
+  props.majorLineHeight = 1;
 
   //  take frame offline while updating (is almost twice as fast)
-  // TODO: top/bottom positioning should be determined by options set in the Timeline, not here
   if (orientation == 'left') {
     frame.style.top = '0';
     frame.style.left = '0';
@@ -124,26 +152,26 @@ DataAxis.prototype.repaint = function () {
     frame.style.height = this.height + "px";
   }
 
-  this._repaintLabels();
+  this._redrawLabels();
 };
 
 /**
  * Repaint major and minor text labels and vertical grid lines
  * @private
  */
-DataAxis.prototype._repaintLabels = function () {
+DataAxis.prototype._redrawLabels = function () {
   var orientation = this.options['orientation'];
 
   // calculate range and step (step such that we have space for 7 characters per label)
-  var start = this.range.start;
-  var end = this.range.end;
+  var start = this.yRange.start;
+  var end = this.yRange.end;
   var minimumStep = (this.props.minorCharHeight || 10); //in pixels
-  var step = new DataStep(start, end, minimumStep, this.options.svg.offsetHeight);
+  var step = new DataStep(start, end, minimumStep, this.dom.frame.offsetHeight);
   this.step = step;
 
   // Move all DOM elements to a "redundant" list, where they
   // can be picked for re-use, and clear the lists with lines and texts.
-  // At the end of the function _repaintLabels, left over elements will be cleaned up
+  // At the end of the function _redrawLabels, left over elements will be cleaned up
   var dom = this.dom;
   dom.redundant.majorLines = dom.majorLines;
   dom.redundant.majorTexts = dom.majorTexts;
@@ -155,7 +183,7 @@ DataAxis.prototype._repaintLabels = function () {
   dom.minorTexts = [];
 
   step.first();
-  var stepPixels = this.options.svg.offsetHeight / ((step.marginRange / step.step) + 1);
+  var stepPixels = this.dom.frame.offsetHeight / ((step.marginRange / step.step) + 1);
   var xFirstMajorLabel = undefined;
 
   this.valueAtZero = step.marginEnd;
@@ -167,7 +195,7 @@ DataAxis.prototype._repaintLabels = function () {
     var isMajor = step.isMajor();
 
     if (this.options['showMinorLabels'] && isMajor == false) {
-      this._repaintMinorText(y, step.getLabelMinor(), orientation);
+      this._redrawMinorText(y, step.getLabelMinor(), orientation);
     }
 
     if (isMajor && this.options['showMajorLabels']) {
@@ -175,12 +203,12 @@ DataAxis.prototype._repaintLabels = function () {
         if (xFirstMajorLabel == undefined) {
           xFirstMajorLabel = y;
         }
-        this._repaintMajorText(y, step.getLabelMajor(), orientation);
+        this._redrawMajorText(y, step.getLabelMajor(), orientation);
       }
-      this._repaintMajorLine(y, orientation);
+      this._redrawMajorLine(y, orientation);
     }
     else {
-      this._repaintMinorLine(y, orientation);
+      this._redrawMinorLine(y, orientation);
     }
 
     step.next();
@@ -189,9 +217,6 @@ DataAxis.prototype._repaintLabels = function () {
   }
 
   this.conversionFactor = marginStartPos/step.marginRange;
-  console.log(marginStartPos, step.marginRange, this.conversionFactor);
-
-
 
   // create a major label on the left when needed
   if (this.options['showMajorLabels']) {
@@ -200,7 +225,7 @@ DataAxis.prototype._repaintLabels = function () {
     var widthText = leftText.length * (this.props.majorCharWidth || 10) + 10; // upper bound estimation
 
     if (xFirstMajorLabel == undefined || widthText < xFirstMajorLabel) {
-      this._repaintMajorText(0, leftText, orientation);
+      this._redrawMajorText(0, leftText, orientation);
     }
   }
 
@@ -225,7 +250,7 @@ DataAxis.prototype.convertValues = function(data) {
 DataAxis.prototype._getPos = function(value) {
   var invertedValue = this.valueAtZero - value;
   var convertedValue = invertedValue * this.conversionFactor;
-  return convertedValue
+  return convertedValue - 2; // the -2 is to compensate for the borders
 }
 
 /**
@@ -235,7 +260,7 @@ DataAxis.prototype._getPos = function(value) {
  * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-DataAxis.prototype._repaintMinorText = function (x, text, orientation) {
+DataAxis.prototype._redrawMinorText = function (x, text, orientation) {
   // reuse redundant label
   var label = this.dom.redundant.minorTexts.shift();
 
@@ -245,7 +270,7 @@ DataAxis.prototype._repaintMinorText = function (x, text, orientation) {
     label = document.createElement('div');
     label.appendChild(content);
     label.className = 'yAxis minor';
-    this.frame.appendChild(label);
+    this.dom.frame.appendChild(label);
   }
   this.dom.minorTexts.push(label);
 
@@ -271,7 +296,7 @@ DataAxis.prototype._repaintMinorText = function (x, text, orientation) {
  * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-DataAxis.prototype._repaintMajorText = function (x, text, orientation) {
+DataAxis.prototype._redrawMajorText = function (x, text, orientation) {
   // reuse redundant label
   var label = this.dom.redundant.majorTexts.shift();
 
@@ -281,7 +306,7 @@ DataAxis.prototype._repaintMajorText = function (x, text, orientation) {
     label = document.createElement('div');
     label.className = 'yAxis major';
     label.appendChild(content);
-    this.frame.appendChild(label);
+    this.dom.frame.appendChild(label);
   }
   this.dom.majorTexts.push(label);
 
@@ -306,7 +331,7 @@ DataAxis.prototype._repaintMajorText = function (x, text, orientation) {
  * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-DataAxis.prototype._repaintMinorLine = function (y, orientation) {
+DataAxis.prototype._redrawMinorLine = function (y, orientation) {
   // reuse redundant line
   var line = this.dom.redundant.minorLines.shift();
 
@@ -314,7 +339,7 @@ DataAxis.prototype._repaintMinorLine = function (y, orientation) {
     // create vertical line
     line = document.createElement('div');
     line.className = 'grid horizontal minor';
-    this.frame.appendChild(line);
+    this.dom.lineContainer.appendChild(line);
   }
   this.dom.minorLines.push(line);
 
@@ -336,7 +361,7 @@ DataAxis.prototype._repaintMinorLine = function (y, orientation) {
  * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-DataAxis.prototype._repaintMajorLine = function (y, orientation) {
+DataAxis.prototype._redrawMajorLine = function (y, orientation) {
   // reuse redundant line
   var line = this.dom.redundant.majorLines.shift();
 
@@ -344,7 +369,7 @@ DataAxis.prototype._repaintMajorLine = function (y, orientation) {
     // create vertical line
     line = document.createElement('div');
     line.className = 'grid horizontal major';
-    this.frame.appendChild(line);
+    this.dom.lineContainer.appendChild(line);
   }
   this.dom.majorLines.push(line);
 
@@ -372,12 +397,12 @@ DataAxis.prototype._calculateCharSize = function () {
     var measureCharMinor = document.createElement('DIV');
     measureCharMinor.className = 'text minor measure';
     measureCharMinor.appendChild(textMinor);
-    this.frame.appendChild(measureCharMinor);
+    this.dom.frame.appendChild(measureCharMinor);
 
     this.props.minorCharHeight = measureCharMinor.clientHeight;
     this.props.minorCharWidth = measureCharMinor.clientWidth;
 
-    this.frame.removeChild(measureCharMinor);
+    this.dom.frame.removeChild(measureCharMinor);
   }
 
   if (!('majorCharHeight' in this.props)) {
@@ -385,12 +410,12 @@ DataAxis.prototype._calculateCharSize = function () {
     var measureCharMajor = document.createElement('DIV');
     measureCharMajor.className = 'text major measure';
     measureCharMajor.appendChild(textMajor);
-    this.frame.appendChild(measureCharMajor);
+    this.dom.frame.appendChild(measureCharMajor);
 
     this.props.majorCharHeight = measureCharMajor.clientHeight;
     this.props.majorCharWidth = measureCharMajor.clientWidth;
 
-    this.frame.removeChild(measureCharMajor);
+    this.dom.frame.removeChild(measureCharMajor);
   }
 };
 
@@ -400,6 +425,6 @@ DataAxis.prototype._calculateCharSize = function () {
  * @param {Date} date   the date to be snapped.
  * @return {Date} snappedDate
  */
-DataAxis.prototype.snap = function snap (date) {
+DataAxis.prototype.snap = function(date) {
   return this.step.snap(date);
 };
