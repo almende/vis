@@ -13,7 +13,7 @@ function DataAxis (body, options) {
     orientation: 'left',  // supported: 'left'
     showMinorLabels: true,
     showMajorLabels: true,
-    width: '90px',
+    width: '50px',
     height: '300px'
   };
 
@@ -43,6 +43,7 @@ function DataAxis (body, options) {
   this.options = util.extend({}, this.defaultOptions);
   this.conversionFactor = 1;
 
+  this.width = Number(this.options.width.replace("px",""));
   // create the HTML DOM
   this._create();
 }
@@ -97,6 +98,7 @@ DataAxis.prototype.hide = function() {
     this.body.dom.backgroundHorizontal.removeChild(this.dom.lineContainer);
   }
 };
+
 /**
  * Set a range (start and end)
  * @param {Range | Object} range  A Range or an object containing start and end.
@@ -131,9 +133,9 @@ DataAxis.prototype.redraw = function () {
   props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
   props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
 
-  props.minorLineWidth = 3000;
+  props.minorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth;
   props.minorLineHeight = 1;
-  props.majorLineWidth = 3000;
+  props.majorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth;
   props.majorLineHeight = 1;
 
   //  take frame offline while updating (is almost twice as fast)
@@ -190,12 +192,12 @@ DataAxis.prototype._redrawLabels = function () {
   var marginStartPos = 0;
   var max = 0;
   while (step.hasNext() && max < 1000) {
-    var y = max * stepPixels;
-    y = y.toPrecision(5)
+    var y = Math.round(max * stepPixels);
+    marginStartPos = max * stepPixels;
     var isMajor = step.isMajor();
 
     if (this.options['showMinorLabels'] && isMajor == false) {
-      this._redrawMinorText(y, step.getLabelMinor(), orientation);
+      this._redrawMinorText(y - 2, step.getLabelMinor(), orientation);
     }
 
     if (isMajor && this.options['showMajorLabels']) {
@@ -203,7 +205,7 @@ DataAxis.prototype._redrawLabels = function () {
         if (xFirstMajorLabel == undefined) {
           xFirstMajorLabel = y;
         }
-        this._redrawMajorText(y, step.getLabelMajor(), orientation);
+        this._redrawMajorText(y - 2, step.getLabelMajor(), orientation);
       }
       this._redrawMajorLine(y, orientation);
     }
@@ -212,7 +214,6 @@ DataAxis.prototype._redrawLabels = function () {
     }
 
     step.next();
-    marginStartPos = y;
     max++;
   }
 
@@ -242,12 +243,12 @@ DataAxis.prototype._redrawLabels = function () {
 
 DataAxis.prototype.convertValues = function(data) {
   for (var i = 0; i < data.length; i++) {
-    data[i].y = this._getPos(data[i].y);
+    data[i].y = this.convertValue(data[i].y);
   }
   return data;
 }
 
-DataAxis.prototype._getPos = function(value) {
+DataAxis.prototype.convertValue = function(value) {
   var invertedValue = this.valueAtZero - value;
   var convertedValue = invertedValue * this.conversionFactor;
   return convertedValue - 2; // the -2 is to compensate for the borders
@@ -260,7 +261,7 @@ DataAxis.prototype._getPos = function(value) {
  * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-DataAxis.prototype._redrawMinorText = function (x, text, orientation) {
+DataAxis.prototype._redrawMinorText = function (y, text, orientation) {
   // reuse redundant label
   var label = this.dom.redundant.minorTexts.shift();
 
@@ -285,7 +286,7 @@ DataAxis.prototype._redrawMinorText = function (x, text, orientation) {
     label.style.textAlign = "left";
   }
 
-  label.style.top = x + 'px';
+  label.style.top = y + 'px';
   //label.title = title;  // TODO: this is a heavy operation
 };
 
@@ -296,7 +297,7 @@ DataAxis.prototype._redrawMinorText = function (x, text, orientation) {
  * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-DataAxis.prototype._redrawMajorText = function (x, text, orientation) {
+DataAxis.prototype._redrawMajorText = function (y, text, orientation) {
   // reuse redundant label
   var label = this.dom.redundant.majorTexts.shift();
 
@@ -322,7 +323,7 @@ DataAxis.prototype._redrawMajorText = function (x, text, orientation) {
     label.style.textAlign = "left";
   }
 
-  label.style.top = x + 'px';
+  label.style.top = y + 'px';
 };
 
 /**
@@ -373,7 +374,6 @@ DataAxis.prototype._redrawMajorLine = function (y, orientation) {
   }
   this.dom.majorLines.push(line);
 
-  var props = this.props;
   if (orientation == 'left') {
     line.style.left = (this.width - 25) + 'px';
   }
@@ -381,7 +381,7 @@ DataAxis.prototype._redrawMajorLine = function (y, orientation) {
     line.style.left = -1*(this.width - 25) + 'px';
   }
   line.style.top = y + 'px';
-  line.style.width = props.majorLineWidth + 'px';
+  line.style.width = this.props.majorLineWidth + 'px';
 };
 
 

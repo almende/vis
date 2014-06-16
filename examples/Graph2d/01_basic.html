@@ -18,15 +18,17 @@
 <script type="text/javascript">
   var container = document.getElementById('visualization');
   var items = [
-    {x: '2014-06-11', y: 10},
-    {x: '2014-06-12', y: 25},
-    {x: '2014-06-13', y: 30},
-    {x: '2014-06-14', y: 10},
-    {x: '2014-06-15', y: 15},
-    {x: '2014-06-16', y: 30}
+    {x: '2014-06-11', y: 10, className: 'redd'},
+    {x: '2014-06-12', y: 25, className: 'redd'},
+    {x: '2014-06-13', y: 30, className: 'redd'},
+    {x: '2014-06-14', y: 10, className: 'greenn'},
+    {x: '2014-06-15', y: 15, className: 'greenn'},
+    {x: '2014-06-16', y: 30, className: 'greenn'}
   ];
+
+  var dataset = new vis.DataSet(items);
   var options = {};
-  var graph2d = new vis.Graph2d(container, items, options);
+  var graph2d = new vis.Graph2d(container, dataset, options);
 </script>
 </body>
 </html>

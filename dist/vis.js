@@ -2552,7 +2552,7 @@ function DataAxis (body, options) {
     orientation: 'left',  // supported: 'left'
     showMinorLabels: true,
     showMajorLabels: true,
-    width: '90px',
+    width: '50px',
     height: '300px'
   };
 
@@ -2582,6 +2582,7 @@ function DataAxis (body, options) {
   this.options = util.extend({}, this.defaultOptions);
   this.conversionFactor = 1;
 
+  this.width = Number(this.options.width.replace("px",""));
   // create the HTML DOM
   this._create();
 }
@@ -2636,6 +2637,7 @@ DataAxis.prototype.hide = function() {
     this.body.dom.backgroundHorizontal.removeChild(this.dom.lineContainer);
   }
 };
+
 /**
  * Set a range (start and end)
  * @param {Range | Object} range  A Range or an object containing start and end.
@@ -2670,9 +2672,9 @@ DataAxis.prototype.redraw = function () {
   props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
   props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
 
-  props.minorLineWidth = 3000;
+  props.minorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth;
   props.minorLineHeight = 1;
-  props.majorLineWidth = 3000;
+  props.majorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth;
   props.majorLineHeight = 1;
 
   //  take frame offline while updating (is almost twice as fast)
@@ -2729,12 +2731,12 @@ DataAxis.prototype._redrawLabels = function () {
   var marginStartPos = 0;
   var max = 0;
   while (step.hasNext() && max < 1000) {
-    var y = max * stepPixels;
-    y = y.toPrecision(5)
+    var y = Math.round(max * stepPixels);
+    marginStartPos = max * stepPixels;
     var isMajor = step.isMajor();
 
     if (this.options['showMinorLabels'] && isMajor == false) {
-      this._redrawMinorText(y, step.getLabelMinor(), orientation);
+      this._redrawMinorText(y - 2, step.getLabelMinor(), orientation);
     }
 
     if (isMajor && this.options['showMajorLabels']) {
@@ -2742,7 +2744,7 @@ DataAxis.prototype._redrawLabels = function () {
         if (xFirstMajorLabel == undefined) {
           xFirstMajorLabel = y;
         }
-        this._redrawMajorText(y, step.getLabelMajor(), orientation);
+        this._redrawMajorText(y - 2, step.getLabelMajor(), orientation);
       }
       this._redrawMajorLine(y, orientation);
     }
@@ -2751,7 +2753,6 @@ DataAxis.prototype._redrawLabels = function () {
     }
 
     step.next();
-    marginStartPos = y;
     max++;
   }
 
@@ -2781,12 +2782,12 @@ DataAxis.prototype._redrawLabels = function () {
 
 DataAxis.prototype.convertValues = function(data) {
   for (var i = 0; i < data.length; i++) {
-    data[i].y = this._getPos(data[i].y);
+    data[i].y = this.convertValue(data[i].y);
   }
   return data;
 }
 
-DataAxis.prototype._getPos = function(value) {
+DataAxis.prototype.convertValue = function(value) {
   var invertedValue = this.valueAtZero - value;
   var convertedValue = invertedValue * this.conversionFactor;
   return convertedValue - 2; // the -2 is to compensate for the borders
@@ -2799,7 +2800,7 @@ DataAxis.prototype._getPos = function(value) {
  * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-DataAxis.prototype._redrawMinorText = function (x, text, orientation) {
+DataAxis.prototype._redrawMinorText = function (y, text, orientation) {
   // reuse redundant label
   var label = this.dom.redundant.minorTexts.shift();
 
@@ -2824,7 +2825,7 @@ DataAxis.prototype._redrawMinorText = function (x, text, orientation) {
     label.style.textAlign = "left";
   }
 
-  label.style.top = x + 'px';
+  label.style.top = y + 'px';
   //label.title = title;  // TODO: this is a heavy operation
 };
 
@@ -2835,7 +2836,7 @@ DataAxis.prototype._redrawMinorText = function (x, text, orientation) {
  * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-DataAxis.prototype._redrawMajorText = function (x, text, orientation) {
+DataAxis.prototype._redrawMajorText = function (y, text, orientation) {
   // reuse redundant label
   var label = this.dom.redundant.majorTexts.shift();
 
@@ -2861,7 +2862,7 @@ DataAxis.prototype._redrawMajorText = function (x, text, orientation) {
     label.style.textAlign = "left";
   }
 
-  label.style.top = x + 'px';
+  label.style.top = y + 'px';
 };
 
 /**
@@ -2912,7 +2913,6 @@ DataAxis.prototype._redrawMajorLine = function (y, orientation) {
   }
   this.dom.majorLines.push(line);
 
-  var props = this.props;
   if (orientation == 'left') {
     line.style.left = (this.width - 25) + 'px';
   }
@@ -2920,7 +2920,7 @@ DataAxis.prototype._redrawMajorLine = function (y, orientation) {
     line.style.left = -1*(this.width - 25) + 'px';
   }
   line.style.top = y + 'px';
-  line.style.width = props.majorLineWidth + 'px';
+  line.style.width = this.props.majorLineWidth + 'px';
 };
 
 
@@ -2975,47 +2975,15 @@ function Linegraph(body, options) {
   this.body = body;
 
   this.defaultOptions = {
-    type: 'box',
-    orientation: 'bottom',  // 'top' or 'bottom'
-    align: 'center', // alignment of box items
-    stack: true,
-    groupOrder: null,
-
-    selectable: true,
-    editable: {
-      updateTime: false,
-      updateGroup: false,
-      add: false,
-      remove: false
-    },
-
-    onAdd: function (item, callback) {
-      callback(item);
-    },
-    onUpdate: function (item, callback) {
-      callback(item);
-    },
-    onMove: function (item, callback) {
-      callback(item);
-    },
-    onRemove: function (item, callback) {
-      callback(item);
-    },
-
-    margin: {
-      item: 10,
-      axis: 20
-    },
-    padding: 5
+    catmullRom: {
+      enabled: true,
+      parametrization: 'centripetal', // uniform (0,0), chordal (1.0), centripetal (0.5)
+      alpha: 0.5
+    }
   };
 
   // options is shared by this ItemSet and all its items
   this.options = util.extend({}, this.defaultOptions);
-
-  this.conversion = {
-    toScreen: body.util.toScreen,
-    toTime: body.util.toTime
-  };
   this.dom = {};
   this.props = {};
   this.hammer = null;
@@ -3041,6 +3009,8 @@ function Linegraph(body, options) {
   this.selection = [];  // list with the ids of all selected nodes
   this.lastStart = this.body.range.start;
   this.touchParams = {}; // stores properties while dragging
+  this.lines = [];
+  this.redundantLines = [];
   // create the HTML DOM
 
   this._create();
@@ -3069,14 +3039,6 @@ function Linegraph(body, options) {
 
 Linegraph.prototype = new Component();
 
-// available item types will be registered here
-Linegraph.types = {
-  box: ItemBox,
-  range: ItemRange,
-  rangeoverflow: ItemRangeOverflow,
-  point: ItemPoint
-};
-
 /**
  * Create the HTML DOM for the ItemSet
  */
@@ -3098,33 +3060,13 @@ Linegraph.prototype._create = function(){
   frame.appendChild(foreground);
   this.dom.foreground = foreground;
 
+  // create svg element for graph drawing.
   this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
   this.svg.style.position = "relative"
   this.svg.style.height = "300px";
-//  this.svg.style.width =
   this.svg.style.display = "block";
 
-  this.path = document.createElementNS('http://www.w3.org/2000/svg',"path");
-  this.path.setAttributeNS(null, "fill","none");
-  this.path.setAttributeNS(null, "stroke","blue");
-  this.path.setAttributeNS(null, "stroke-width","1");
-
-  this.path2 = document.createElementNS('http://www.w3.org/2000/svg',"path");
-  this.path2.setAttributeNS(null, "fill","none");
-  this.path2.setAttributeNS(null, "stroke","red");
-  this.path2.setAttributeNS(null, "stroke-width","1");
-
-  this.path3 = document.createElementNS('http://www.w3.org/2000/svg',"path");
-  this.path3.setAttributeNS(null, "fill","none");
-  this.path3.setAttributeNS(null, "stroke","green");
-  this.path3.setAttributeNS(null, "stroke-width","1");
-
   frame.appendChild(this.svg);
-
-  this.svg.appendChild(this.path3);
-  this.svg.appendChild(this.path2);
-  this.svg.appendChild(this.path);
-
   // panel with time axis
   this.yAxis = new DataAxis(this.body, {
     orientation: 'left',
@@ -3140,7 +3082,38 @@ Linegraph.prototype._create = function(){
 
 Linegraph.prototype.setOptions = function(options) {
   if (options) {
-
+    var fields = ['catmullRom'];
+    util.selectiveExtend(fields, this.options, options);
+    console.log(this.options);
+    if (options.catmullRom) {
+      if (typeof options.catmullRom == 'boolean') {
+        this.options.catmullRom.enabled = options.catmullRom;
+      }
+      else {
+        if (options.catmullRom.enabled) {
+          this.options.catmullRom.enabled = options.catmullRom.enabled;
+        }
+        else {
+          this.options.catmullRom.enabled = true;
+        }
+        if (options.catmullRom.parametrization) {
+          this.options.catmullRom.parametrization = options.catmullRom.parametrization;
+          if (options.catmullRom.parametrization == 'uniform') {
+            this.options.catmullRom.alpha = 0;
+          }
+          else if (options.catmullRom.parametrization == 'chordal') {
+            this.options.catmullRom.alpha = 1.0;
+          }
+          else {
+            this.options.catmullRom.parametrization = 'centripetal'
+            this.options.catmullRom.alpha = 0.5;
+          }
+        }
+        if (options.catmullRom.alpha) {
+          this.options.catmullRom.alpha = options.catmullRom.alpha;
+        }
+      }
+    }
   }
 };
 
@@ -3200,19 +3173,18 @@ Linegraph.prototype.setItems = function(items) {
   }
 
   if (this.itemsData) {
-//    // subscribe to new dataset
-//    var id = this.id;
-//    util.forEach(this.itemListeners, function (callback, event) {
-//      me.itemsData.on(event, callback, id);
-//    });
-//
-//    // add all new items
-//    ids = this.itemsData.getIds();
-//    this._onAdd(ids);
+    // subscribe to new dataset
+    var id = this.id;
+    util.forEach(this.itemListeners, function (callback, event) {
+      me.itemsData.on(event, callback, id);
+    });
+
+    // add all new items
+    ids = this.itemsData.getIds();
+    this._onAdd(ids);
   }
   this.redraw();
 };
-
 
 
 /**
@@ -3220,16 +3192,16 @@ Linegraph.prototype.setItems = function(items) {
  * @param {Number[]} ids
  * @protected
  */
-Linegraph.prototype._onAdd = Linegraph.prototype._onUpdate;
+
 
 /**
  * Handle updated items
  * @param {Number[]} ids
  * @protected
  */
-Linegraph.prototype._onUpdate = function(ids) {
-};
-
+Linegraph.prototype._onUpdate = function(ids) {};
+Linegraph.prototype._onAdd = Linegraph.prototype._onUpdate;
+Linegraph.prototype._onRemove = function(ids) {};
 
 
 
@@ -3264,54 +3236,81 @@ Linegraph.prototype.redraw = function() {
 };
 
 
-Linegraph.prototype._extractData = function(dataset) {
-  var extractedData = [];
-
-  var low = dataset[0].y;
-  var high = dataset[0].y;
-
-  for (var i = 0; i < dataset.length; i++) {
-    var val = this.body.util.toScreen(new Date(dataset[i].x)) + this.width;
-    extractedData.push({x:val, y:dataset[i].y});
-
-    if (low > dataset[i].y) {
-      low = dataset[i].y;
-    }
-    if (high < dataset[i].y) {
-      high = dataset[i].y;
-    }
-  }
-
-//  extractedData.sort(function (a,b) {return a.x - b.x;});
-  return {range:{low:low,high:high},data:extractedData};
-}
-
 Linegraph.prototype.updateGraph = function() {
+  // reset the lines
+  this.redundantLines = this.lines;
+  this.lines = [];
+
   if (this.width != 0 && this.itemsData != null) {
+    // get the range for the y Axis and draw it
+    var yRange = {start:this.itemsData.min('y').y,end:this.itemsData.max('y').y};
+    this.yAxis.setRange(yRange);
+    this.yAxis.redraw();
 
-    var datapoints = this.itemsData.get();
-    if (datapoints != null) {
-      if (datapoints.length > 0) {
-        var dataset = this._extractData(datapoints);
-        var data = dataset.data;
 
-        this.yAxis.setRange({start:dataset.range.low,end:dataset.range.high});
-        this.yAxis.redraw();
-        data = this.yAxis.convertValues(data);
+    console.log(this.itemsData);
+    // look at different lines
+    var classes = this.itemsData.distinct('className');
+    var datapoints;
 
-        var d, d2, d3;
-        d = this._catmullRom(data,0.5);
-        d2 = this._catmullRom(data,0);
-        d3 = this._linear(data);
-
-//        this.path.setAttributeNS(null, "d",d);
-//        this.path2.setAttributeNS(null, "d",d2);
-        this.path3.setAttributeNS(null, "d",d3);
+    if (classes.length == 0) {
+      datapoints = this.itemsData.get();
+      this.drawGraph(datapoints, 'default');
+    }
+    else {
+      for (var i = 0; i < classes.length; i++) {
+        datapoints = this.itemsData.get({filter: function(item) {return item.className == classes[i];}});
+        this.drawGraph(datapoints, classes[i]);
       }
     }
   }
+
+  // cleanup the redundant lines;
+  for (var i = 0; i < this.redundantLines.length; i++) {
+    this.redundantLines[i].parentNode.removeChild(this.redundantLines[i]);
+  }
+  this.redundantLines = [];
 }
 
+Linegraph.prototype.drawGraph = function(datapoints, className) {
+  if (datapoints != null) {
+    if (datapoints.length > 0) {
+      var dataset = this._prepareData(datapoints);
+      var path, d;
+      if (this.redundantLines.length != 0) {
+        path = this.redundantLines[this.redundantLines.length-1];
+        this.redundantLines.pop()
+      }
+      else {
+        path = document.createElementNS('http://www.w3.org/2000/svg',"path");
+        this.svg.appendChild(path);
+      }
+      path.setAttributeNS(null, "class",className);
+      this.lines.push(path);
+
+      if (this.options.catmullRom.enabled == true) {
+        d = this._catmullRom(dataset,this.options.catmullRom.alpha);
+      }
+      else {
+        d = this._linear(dataset);
+      }
+
+      path.setAttributeNS(null, "d",d);
+    }
+  }
+}
+
+
+Linegraph.prototype._prepareData = function(dataset) {
+  var extractedData = [];
+  for (var i = 0; i < dataset.length; i++) {
+    var xValue = this.body.util.toScreen(new Date(dataset[i].x)) + this.width;
+    var yValue = this.yAxis.convertValue(dataset[i].y);
+    extractedData.push({x:xValue, y:yValue});
+  }
+//  extractedData.sort(function (a,b) {return a.x - b.x;});
+  return extractedData;
+}
 
 Linegraph.prototype._catmullRomUniform = function(data) {
   // catmull rom

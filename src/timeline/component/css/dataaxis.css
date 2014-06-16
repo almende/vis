@@ -17,7 +17,7 @@
 
 
 .vis.timeline .dataaxis .yAxis.major {
-    font-size:12px;
+    font-size:10px;
     width: 100%;
     position: absolute;
     color: #4d4d4d;
@@ -26,9 +26,27 @@
 
 
 .vis.timeline .dataaxis .yAxis.minor{
-    font-size:9px;
+    font-size:10px;
     position: absolute;
     width: 100%;
-    color: #4d4d4d;
+    color: #979797;
     white-space: nowrap;
+}
+
+.vis.timeline .default {
+    fill:none;
+    stroke-width:1px;
+    stroke: #5388ff;
+}
+
+.vis.timeline .redd {
+    fill:none;
+    stroke-width:1px;
+    stroke: #ff0000;
+}
+
+.vis.timeline .greenn {
+    fill:none;
+    stroke-width:1px;
+    stroke: #00ff00;
 }
