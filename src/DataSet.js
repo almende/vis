@@ -74,6 +74,27 @@ function DataSet (data, options) {
   }
 }
 
+DataSet.prototype.setOptions = function(options) {
+  if (options.fieldId !== undefined)         {this.fieldId = options.fieldId;};
+  if (options.showInternalIds !== undefined) {this.showInternalIds = options.fieldId;};
+
+  if (options.convert) {
+    this.options.convert = options.convert;
+
+    for (var field in options.convert) {
+      if (options.convert.hasOwnProperty(field)) {
+        var value = options.convert[field];
+        if (value == 'Date' || value == 'ISODate' || value == 'ASPDate') {
+          this.convert[field] = 'Date';
+        }
+        else {
+          this.convert[field] = value;
+        }
+      }
+    }
+  }
+};
+
 /**
  * Subscribe to an event, add an event listener
  * @param {String} event        Event name. Available events: 'put', 'update',
@@ -773,13 +794,13 @@ DataSet.prototype.min = function (field) {
 DataSet.prototype.distinct = function (field) {
   var data = this.data,
       values = [],
-      fieldType = this.options.convert[field],
+      value,
       count = 0;
 
   for (var prop in data) {
     if (data.hasOwnProperty(prop)) {
       var item = data[prop];
-      var value = util.convert(item[field], fieldType);
+      value = util.convert(item[field], this.convert[field]);
       var exists = false;
       for (var i = 0; i < count; i++) {
         if (values[i] == value) {
