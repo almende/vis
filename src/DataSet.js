@@ -794,13 +794,12 @@ DataSet.prototype.min = function (field) {
 DataSet.prototype.distinct = function (field) {
   var data = this.data,
       values = [],
-      value,
       count = 0;
 
   for (var prop in data) {
     if (data.hasOwnProperty(prop)) {
       var item = data[prop];
-      value = util.convert(item[field], this.convert[field]);
+      var value = util.convert(item[field], this.convert[field]);
       var exists = false;
       for (var i = 0; i < count; i++) {
         if (values[i] == value) {

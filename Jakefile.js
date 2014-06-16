@@ -46,6 +46,7 @@ task('build', {async: true}, function () {
       './src/timeline/component/css/customtime.css',
 
       './src/timeline/component/css/dataaxis.css',
+      './src/timeline/component/css/pathStyles.css',
 
       './src/graph/css/graph-manipulation.css',
       './src/graph/css/graph-navigation.css'

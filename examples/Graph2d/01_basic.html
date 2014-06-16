@@ -18,17 +18,33 @@
 <script type="text/javascript">
   var container = document.getElementById('visualization');
   var items = [
-    {x: '2014-06-11', y: 10, className: 'redd'},
-    {x: '2014-06-12', y: 25, className: 'redd'},
-    {x: '2014-06-13', y: 30, className: 'redd'},
-    {x: '2014-06-14', y: 10, className: 'greenn'},
-    {x: '2014-06-15', y: 15, className: 'greenn'},
-    {x: '2014-06-16', y: 30, className: 'greenn'}
+    {x: '2014-06-11', y: 10, className: 'group0', label: 'red'},
+    {x: '2014-06-12', y: 25, className: 'group0', label: 'red'},
+    {x: '2014-06-13', y: 30, className: 'group0', label: 'red'},
+    {x: '2014-06-14', y: 10, className: 'group1', label: 'green'},
+    {x: '2014-06-15', y: 15, className: 'group1', label: 'green'},
+    {x: '2014-06-16', y: 30, className: 'group1', label: 'green'},
+    {x: '2014-06-17', y: 10, className: 'group2', label: 'green'},
+    {x: '2014-06-18', y: 15, className: 'group2', label: 'green'},
+    {x: '2014-06-19', y: 50, className: 'group2', label: 'green'},
+    {x: '2014-06-20', y: 10, className: 'group3', label: 'green'},
+    {x: '2014-06-21', y: 19, className: 'group3', label: 'green'},
+    {x: '2014-06-22', y: 60, className: 'group3', label: 'green'},
+    {x: '2014-06-23', y: 10, className: 'group4', label: 'red'},
+    {x: '2014-06-24', y: 25, className: 'group4', label: 'red'},
+    {x: '2014-06-25', y: 30, className: 'group4', label: 'red'}
+//      {x: '2014-06-11', y: 10},
+//      {x: '2014-06-12', y: 25},
+//      {x: '2014-06-13', y: 30},
+//      {x: '2014-06-14', y: 10},
+//      {x: '2014-06-15', y: 15},
+//      {x: '2014-06-16', y: 30}
   ];
 
   var dataset = new vis.DataSet(items);
   var options = {};
   var graph2d = new vis.Graph2d(container, dataset, options);
+
 </script>
 </body>
 </html>

@@ -256,7 +256,7 @@ var barnesHutMixin = {
    * @private
    */
   _splitBranch : function(parentBranch) {
-    // if the branch is filled with a node, replace the node in the new subset.
+    // if the branch is shaded with a node, replace the node in the new subset.
     var containedNode = null;
     if (parentBranch.childrenCount == 1) {
       containedNode = parentBranch.children.data;

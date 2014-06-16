@@ -43,13 +43,19 @@ function DataAxis (body, options) {
   this.options = util.extend({}, this.defaultOptions);
   this.conversionFactor = 1;
 
+  this.setOptions(options);
   this.width = Number(this.options.width.replace("px",""));
+  this.height = Number(this.options.height.replace("px",""));
+
   // create the HTML DOM
   this._create();
 }
 
 DataAxis.prototype = new Component();
-DataAxis.prototype.setOptions = Component.prototype.setOptions;
+
+//DataAxis.prototype.setOptions = function(options) {
+//
+//}
 
 
 /**

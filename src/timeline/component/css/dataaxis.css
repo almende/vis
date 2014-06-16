@@ -32,21 +32,3 @@
     color: #979797;
     white-space: nowrap;
 }
-
-.vis.timeline .default {
-    fill:none;
-    stroke-width:1px;
-    stroke: #5388ff;
-}
-
-.vis.timeline .redd {
-    fill:none;
-    stroke-width:1px;
-    stroke: #ff0000;
-}
-
-.vis.timeline .greenn {
-    fill:none;
-    stroke-width:1px;
-    stroke: #00ff00;
-}

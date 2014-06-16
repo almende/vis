@@ -5,9 +5,22 @@ function Linegraph(body, options) {
   this.body = body;
 
   this.defaultOptions = {
+    shaded: {
+      enabled: true,
+      orientation: 'top' // top, bottom
+    },
+    barGraph: {
+      enabled: true,
+      binSize: 'auto'
+    },
+    drawPoints: {
+      enabled: true,
+      size: 6,
+      style: 'square' // square, circle
+    },
     catmullRom: {
       enabled: true,
-      parametrization: 'centripetal', // uniform (0,0), chordal (1.0), centripetal (0.5)
+      parametrization: 'centripetal', // uniform (alpha = 0.0), chordal (alpha = 1.0), centripetal (alpha = 0.5)
       alpha: 0.5
     }
   };
@@ -39,8 +52,9 @@ function Linegraph(body, options) {
   this.selection = [];  // list with the ids of all selected nodes
   this.lastStart = this.body.range.start;
   this.touchParams = {}; // stores properties while dragging
-  this.lines = [];
-  this.redundantLines = [];
+
+  this.svgElements = {};
+  this.svgLegendElements = {};
   // create the HTML DOM
 
   this._create();
@@ -78,31 +92,28 @@ Linegraph.prototype._create = function(){
   frame['linegraph'] = this;
   this.dom.frame = frame;
 
-  // create background panel
-  var background = document.createElement('div');
-  background.className = 'background';
-  frame.appendChild(background);
-  this.dom.background = background;
-
-  // create foreground panel
-  var foreground = document.createElement('div');
-  foreground.className = 'foreground';
-  frame.appendChild(foreground);
-  this.dom.foreground = foreground;
-
   // create svg element for graph drawing.
   this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
-  this.svg.style.position = "relative"
+  this.svg.style.position = "relative";
   this.svg.style.height = "300px";
   this.svg.style.display = "block";
-
   frame.appendChild(this.svg);
+
+  this.svgLegend = document.createElementNS('http://www.w3.org/2000/svg',"svg");
+  this.svgLegend.style.position = "absolute";
+  this.svgLegend.style.top = "10px";
+  this.svgLegend.style.height = "300px";
+  this.svgLegend.style.width = "300px";
+  this.svgLegend.style.display = "block";
+
+  frame.appendChild(this.svgLegend);
+
   // panel with time axis
   this.yAxis = new DataAxis(this.body, {
     orientation: 'left',
     showMinorLabels: true,
     showMajorLabels: true,
-    width: '90px',
+    width: '50px',
     height: this.svg.style.height
   });
 
@@ -112,22 +123,20 @@ Linegraph.prototype._create = function(){
 
 Linegraph.prototype.setOptions = function(options) {
   if (options) {
-    var fields = ['catmullRom'];
+    var fields = ['barGraph','catmullRom','shaded','drawPoints'];
     util.selectiveExtend(fields, this.options, options);
-    console.log(this.options);
     if (options.catmullRom) {
       if (typeof options.catmullRom == 'boolean') {
         this.options.catmullRom.enabled = options.catmullRom;
       }
       else {
-        if (options.catmullRom.enabled) {
-          this.options.catmullRom.enabled = options.catmullRom.enabled;
-        }
-        else {
-          this.options.catmullRom.enabled = true;
+        this.options.catmullRom.enabled = true;
+        for (var prop in options.catmullRom) {
+          if (options.catmullRom.hasOwnProperty(prop)) {
+            this.options.catmullRom[prop] = options.catmullRom[prop];
+          }
         }
         if (options.catmullRom.parametrization) {
-          this.options.catmullRom.parametrization = options.catmullRom.parametrization;
           if (options.catmullRom.parametrization == 'uniform') {
             this.options.catmullRom.alpha = 0;
           }
@@ -135,12 +144,37 @@ Linegraph.prototype.setOptions = function(options) {
             this.options.catmullRom.alpha = 1.0;
           }
           else {
-            this.options.catmullRom.parametrization = 'centripetal'
+            this.options.catmullRom.parametrization = 'centripetal';
             this.options.catmullRom.alpha = 0.5;
           }
         }
-        if (options.catmullRom.alpha) {
-          this.options.catmullRom.alpha = options.catmullRom.alpha;
+      }
+    }
+
+    if (options.drawPoints) {
+      if (typeof options.catmullRom == 'boolean') {
+        this.options.drawPoints.enabled = options.drawPoints;
+      }
+      else {
+        this.options.drawPoints.enabled = true;
+        for (prop in options.drawPoints) {
+          if (options.drawPoints.hasOwnProperty(prop)) {
+            this.options.drawPoints[prop] = options.drawPoints[prop];
+          }
+        }
+      }
+    }
+
+    if (options.shaded) {
+      if (typeof options.shaded == 'boolean') {
+        this.options.shaded.enabled = options.shaded;
+      }
+      else {
+        this.options.shaded.enabled = true;
+        for (prop in options.shaded) {
+          if (options.shaded.hasOwnProperty(prop)) {
+            this.options.shaded[prop] = options.shaded.drawPoints[prop];
+          }
         }
       }
     }
@@ -229,7 +263,10 @@ Linegraph.prototype.setItems = function(items) {
  * @param {Number[]} ids
  * @protected
  */
-Linegraph.prototype._onUpdate = function(ids) {};
+Linegraph.prototype._onUpdate = function(ids) {
+  this.updateGraph();
+  this.redraw();
+};
 Linegraph.prototype._onAdd = Linegraph.prototype._onUpdate;
 Linegraph.prototype._onRemove = function(ids) {};
 
@@ -253,7 +290,7 @@ Linegraph.prototype.redraw = function() {
 
   // calculate actual size and position
   this.width = this.dom.frame.offsetWidth;
-
+  this.svgLegend.style.left = (this.width - this.svgLegend.offsetWidth - 10) + "px";
   // check if this component is resized
   resized = this._isResized() || resized;
   if (resized) {
@@ -266,85 +303,203 @@ Linegraph.prototype.redraw = function() {
 };
 
 
-Linegraph.prototype.updateGraph = function() {
-  // reset the lines
-  this.redundantLines = this.lines;
-  this.lines = [];
+Linegraph.prototype.updateGraph = function () {
+  // reset the svg elements
+  this._prepareSVGElements(this.svgElements);
 
   if (this.width != 0 && this.itemsData != null) {
     // get the range for the y Axis and draw it
-    var yRange = {start:this.itemsData.min('y').y,end:this.itemsData.max('y').y};
+    var yRange = {start: this.itemsData.min('y').y, end: this.itemsData.max('y').y};
     this.yAxis.setRange(yRange);
     this.yAxis.redraw();
 
-
-    console.log(this.itemsData);
     // look at different lines
     var classes = this.itemsData.distinct('className');
-    var datapoints;
-
-    if (classes.length == 0) {
-      datapoints = this.itemsData.get();
-      this.drawGraph(datapoints, 'default');
+    if (classes.length > 0) {
+      for (var i = 0; i < classes.length; i++) {
+        this.drawGraph(classes[i], classes.length);
+      }
     }
     else {
-      for (var i = 0; i < classes.length; i++) {
-        datapoints = this.itemsData.get({filter: function(item) {return item.className == classes[i];}});
-        this.drawGraph(datapoints, classes[i]);
+      this.drawGraph('group0', 1);
+    }
+    this.drawLegend(classes);
+  }
+
+  // cleanup unused svg elements
+  this._cleanupSVGElements(this.svgElements);
+};
+
+Linegraph.prototype.drawGraph = function (className, amountOfGraphs) {
+  var datapoints = this.itemsData.get({filter: function (item) {
+    return item.className == className || !item.className;
+  }});
+
+  if (this.options.style == 'bar') {
+    this.drawBarGraph(datapoints, className, amountOfGraphs);
+  }
+  else {
+    this.drawLineGraph(datapoints, className);
+  }
+};
+
+Linegraph.prototype.drawBarGraph = function (datapoints, className, amountOfGraphs) {
+  if (datapoints != null) {
+    if (datapoints.length > 0) {
+      var dataset = this._prepareData(datapoints);
+      // draw points
+      for (var i = 0; i < dataset.length; i++) {
+
+        this.drawBar(dataset[i].x, dataset[i].y, className);
       }
     }
   }
+};
 
-  // cleanup the redundant lines;
-  for (var i = 0; i < this.redundantLines.length; i++) {
-    this.redundantLines[i].parentNode.removeChild(this.redundantLines[i]);
-  }
-  this.redundantLines = [];
-}
+Linegraph.prototype.drawBar = function (x, y, className) {
+  var width = 10;
+  rect = this._getSVGElement('rect',this.svgElements, this.svg);
 
-Linegraph.prototype.drawGraph = function(datapoints, className) {
+  rect.setAttributeNS(null, "x", x - 0.5 * width);
+  rect.setAttributeNS(null, "y", y);
+  rect.setAttributeNS(null, "width", width);
+  rect.setAttributeNS(null, "height", this.svg.offsetHeight - y);
+  rect.setAttributeNS(null, "class", className + " point");
+};
+
+Linegraph.prototype.drawLineGraph = function (datapoints, className) {
   if (datapoints != null) {
     if (datapoints.length > 0) {
       var dataset = this._prepareData(datapoints);
       var path, d;
-      if (this.redundantLines.length != 0) {
-        path = this.redundantLines[this.redundantLines.length-1];
-        this.redundantLines.pop()
-      }
-      else {
-        path = document.createElementNS('http://www.w3.org/2000/svg',"path");
-        this.svg.appendChild(path);
-      }
-      path.setAttributeNS(null, "class",className);
-      this.lines.push(path);
 
+      path = this._getSVGElement('path', this.svgElements, this.svg);
+      path.setAttributeNS(null, "class", className);
+
+
+      // construct path from dataset
       if (this.options.catmullRom.enabled == true) {
-        d = this._catmullRom(dataset,this.options.catmullRom.alpha);
+        d = this._catmullRom(dataset);
       }
       else {
         d = this._linear(dataset);
       }
 
-      path.setAttributeNS(null, "d",d);
+      // append with points for fill and finalize the path
+      if (this.options.shaded.enabled == true) {
+        var fillPath = this._getSVGElement('path',this.svgElements, this.svg);
+        if (this.options.shaded.orientation == 'top') {
+          var dFill = "M" + dataset[0].x + "," + 0 + " " + d + "L" + dataset[dataset.length - 1].x + "," + 0;
+        }
+        else {
+          var dFill = "M" + dataset[0].x + "," + this.svg.offsetHeight + " " + d + "L" + dataset[dataset.length - 1].x + "," + this.svg.offsetHeight;
+        }
+        fillPath.setAttributeNS(null, "class", className + " fill");
+        fillPath.setAttributeNS(null, "d", dFill);
+      }
+      // copy properties to path for drawing.
+      path.setAttributeNS(null, "d", "M" + d);
+
+      // draw points
+      if (this.options.drawPoints.enabled == true) {
+        this.drawPoints(dataset, className, this.svgElements, this.svg);
+      }
     }
   }
-}
+};
 
 
-Linegraph.prototype._prepareData = function(dataset) {
-  var extractedData = [];
+Linegraph.prototype.drawPoints = function (dataset, className, container, svg) {
   for (var i = 0; i < dataset.length; i++) {
-    var xValue = this.body.util.toScreen(new Date(dataset[i].x)) + this.width;
-    var yValue = this.yAxis.convertValue(dataset[i].y);
-    extractedData.push({x:xValue, y:yValue});
+    this.drawPoint(dataset[i].x, dataset[i].y, className, container, svg);
   }
-//  extractedData.sort(function (a,b) {return a.x - b.x;});
-  return extractedData;
+};
+
+Linegraph.prototype.drawPoint = function(x, y, className, container, svg) {
+  var point;
+  if (this.options.drawPoints.style == 'circle') {
+    point = this._getSVGElement('circle',container,svg);
+    point.setAttributeNS(null, "cx", x);
+    point.setAttributeNS(null, "cy", y);
+    point.setAttributeNS(null, "r", 0.5 * this.options.drawPoints.size);
+    point.setAttributeNS(null, "class", className + " point");
+  }
+  else {
+    point = this._getSVGElement('rect',container,svg);
+    point.setAttributeNS(null, "x", x - 0.5*this.options.drawPoints.size);
+    point.setAttributeNS(null, "y", y - 0.5*this.options.drawPoints.size);
+    point.setAttributeNS(null, "width", this.options.drawPoints.size);
+    point.setAttributeNS(null, "height", this.options.drawPoints.size);
+    point.setAttributeNS(null, "class", className + " point");
+  }
+  return point;
 }
+
+Linegraph.prototype._getSVGElement = function (elementType, container, svg) {
+
+  var element;
+  // allocate SVG element, if it doesnt yet exist, create one.
+  if (container.hasOwnProperty(elementType)) { // this element has been created before
+    // check if there is an redundant element
+    if (container[elementType].redundant.length > 0) {
+      element = container[elementType].redundant[0];
+      container[elementType].redundant.shift()
+    }
+    else {
+      // create a new element and add it to the SVG
+      element = document.createElementNS('http://www.w3.org/2000/svg', elementType);
+      svg.appendChild(element);
+    }
+  }
+  else {
+    // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
+    element = document.createElementNS('http://www.w3.org/2000/svg', elementType);
+    container[elementType] = {used: [], redundant: []};
+    svg.appendChild(element);
+  }
+  container[elementType].used.push(element);
+  return element;
+};
+
+Linegraph.prototype._cleanupSVGElements = function(container) {
+  // cleanup the redundant svgElements;
+  for (var elementType in container) {
+    if (container.hasOwnProperty(elementType)) {
+      for (var i = 0; i < container[elementType].redundant.length; i++) {
+        container[elementType].redundant[i].parentNode.removeChild(container[elementType].redundant[i]);
+      }
+      container[elementType].redundant = [];
+    }
+  }
+};
+
+Linegraph.prototype._prepareSVGElements = function(container) {
+  // cleanup the redundant svgElements;
+  for (var elementType in container) {
+    if (container.hasOwnProperty(elementType)) {
+      container[elementType].redundant = container[elementType].used;
+      container[elementType].used = [];
+    }
+  }
+};
+
+Linegraph.prototype._prepareData = function (dataset) {
+  var extractedData = [];
+  var xValue, yValue;
+
+  for (var i = 0; i < dataset.length; i++) {
+    xValue = this.body.util.toScreen(new Date(dataset[i].x)) + this.width;
+    yValue = this.yAxis.convertValue(dataset[i].y);
+    extractedData.push({x: xValue, y: yValue});
+  }
+
+  // extractedData.sort(function (a,b) {return a.x - b.x;});
+  return extractedData;
+};
 
 Linegraph.prototype._catmullRomUniform = function(data) {
   // catmull rom
-  var p0, p1, p2, p3, bp1, bp2
+  var p0, p1, p2, p3, bp1, bp2;
   var d = "M" + Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
   var normalization = 1/6;
   var length = data.length;
@@ -378,16 +533,15 @@ Linegraph.prototype._catmullRomUniform = function(data) {
 
   return d;
 };
-
-
-Linegraph.prototype._catmullRom = function(data, alpha) {
+Linegraph.prototype._catmullRom = function(data) {
+  var alpha = this.options.catmullRom.alpha;
   if (alpha == 0 || alpha === undefined) {
     return this._catmullRomUniform(data);
   }
   else {
     var p0, p1, p2, p3, bp1, bp2, d1,d2,d3, A, B, N, M;
     var d3powA, d2powA, d3pow2A, d2pow2A, d1pow2A, d1powA;
-    var d = "M" + Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
+    var d = "" + Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
     var length = data.length;
     for (var i = 0; i < length - 1; i++) {
 
@@ -449,8 +603,6 @@ Linegraph.prototype._catmullRom = function(data, alpha) {
     return d;
   }
 };
-
-
 Linegraph.prototype._linear = function(data) {
   // linear
   var d = "";
@@ -463,4 +615,68 @@ Linegraph.prototype._linear = function(data) {
     }
   }
   return d;
+};
+
+
+Linegraph.prototype.drawLegend = function(classes) {
+  this._prepareSVGElements(this.svgLegendElements);
+  var x = 0;
+  var y = 0;
+  var lineLength = 30;
+  var fillHeight = 10;
+  var spacing = 25;
+  var path, fillPath, outline;
+  var legendWidth = 298;
+  var padding = 5;
+
+  var border = this._getSVGElement("rect", this.svgLegendElements, this.svgLegend);
+  border.setAttributeNS(null, "x", x);
+  border.setAttributeNS(null, "y", y);
+  border.setAttributeNS(null, "width", legendWidth);
+  border.setAttributeNS(null, "height", y + padding + classes.length * spacing);
+  border.setAttributeNS(null, "class", "legendBackground");
+  x += 5;
+  y += fillHeight + padding;
+
+  if (classes.length > 0) {
+    for (var i = 0; i < classes.length; i++) {
+      outline = this._getSVGElement("rect", this.svgLegendElements, this.svgLegend);
+      outline.setAttributeNS(null, "x", x);
+      outline.setAttributeNS(null, "y", y - fillHeight);
+      outline.setAttributeNS(null, "width", lineLength);
+      outline.setAttributeNS(null, "height", 2*fillHeight);
+      outline.setAttributeNS(null, "class", "outline");
+
+      path = this._getSVGElement("path", this.svgLegendElements, this.svgLegend);
+      path.setAttributeNS(null, "class", classes[i]);
+      path.setAttributeNS(null, "d", "M" + x + ","+y+" L" + (x + lineLength) + ","+y+"");
+      if (this.options.shaded.enabled == true) {
+        fillPath = this._getSVGElement("path", this.svgLegendElements, this.svgLegend);
+        if (this.options.shaded.orientation == 'top') {
+          fillPath.setAttributeNS(null, "d", "M"+x+", " + (y - fillHeight) +
+            "L"+x+","+y+" L"+ (x + lineLength) + ","+y+" L"+ (x + lineLength) + "," + (y - fillHeight));
+        }
+        else {
+          fillPath.setAttributeNS(null, "d", "M"+x+","+y+" " +
+            "L"+x+"," + (y + fillHeight) + " " +
+            "L"+ (x + lineLength) + "," + (y + fillHeight) +
+            "L"+ (x + lineLength) + ","+y);
+        }
+        fillPath.setAttributeNS(null, "class", classes[i] + " fill");
+      }
+
+      if (this.options.drawPoints.enabled == true) {
+        this.drawPoint(x + 0.5 * lineLength,y,classes[i], this.svgLegendElements, this.svgLegend);
+      }
+      y += spacing;
+    }
+  }
+  else {
+    //TODO: bars
+  }
+
+
+
+  this._cleanupSVGElements(this.svgLegendElements);
 }
+

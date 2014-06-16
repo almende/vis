@@ -568,7 +568,7 @@ Timeline.prototype.redraw = function() {
   }
   else { // orientation == 'bottom'
     // keep the items aligned to the axis at the bottom
-    offset = props.centerContainer.height - props.center.height;
+    offset = 0;// props.centerContainer.height - props.center.height;
   }
   dom.center.style.left               = '0';
   dom.center.style.top                = offset+ 'px';

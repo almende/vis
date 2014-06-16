@@ -28,7 +28,7 @@ function DataStep(start, end, minimumStep, containerHeight) {
   // variables
   this.current = 0;
 
-  this.autoScale  = true;
+  this.autoScale = true;
   this.stepIndex = 0;
   this.step = 1;
   this.scale = 1;
@@ -62,6 +62,41 @@ DataStep.prototype.setRange = function(start, end, minimumStep, containerHeight)
     this.setMinimumStep(minimumStep, containerHeight);
   }
 };
+
+/**
+ * Automatically determine the scale that bests fits the provided minimum step
+ * @param {Number} [minimumStep]  The minimum step size in milliseconds
+ */
+DataStep.prototype.setMinimumStep = function(minimumStep, containerHeight) {
+  // round to floor
+  var size = this._end - this._start;
+  var safeSize = size * 1.1;
+  var minimumStepValue = minimumStep * (safeSize / containerHeight);
+  var orderOfMagnitude = Math.round(Math.log(safeSize)/Math.LN10);
+
+  var minorStepIdx = -1;
+  var magnitudefactor = Math.pow(10,orderOfMagnitude);
+
+  var solutionFound = false;
+  for (var i = 0; i <= orderOfMagnitude; i++) {
+    magnitudefactor = Math.pow(10,i);
+    for (var j = 0; j < this.minorSteps.length; j++) {
+      var stepSize = magnitudefactor * this.minorSteps[j];
+      if (stepSize >= minimumStepValue) {
+        solutionFound = true;
+        minorStepIdx = j;
+        break;
+      }
+    }
+    if (solutionFound == true) {
+      break;
+    }
+  }
+  this.stepIndex = minorStepIdx;
+  this.scale = magnitudefactor;
+  this.step = magnitudefactor * this.minorSteps[minorStepIdx];
+};
+
 
 /**
  * Set the range iterator to the start date.
@@ -128,40 +163,6 @@ DataStep.prototype.getCurrent = function() {
 };
 
 
-
-/**
- * Automatically determine the scale that bests fits the provided minimum step
- * @param {Number} [minimumStep]  The minimum step size in milliseconds
- */
-DataStep.prototype.setMinimumStep = function(minimumStep, containerHeight) {
-  // round to floor
-  var size = this._end - this._start;
-  var safeSize = size * 1.1;
-  var minimumStepValue = minimumStep * (safeSize / containerHeight);
-  var orderOfMagnitude = Math.round(Math.log(safeSize)/Math.LN10);
-
-  var minorStepIdx = -1;
-  var magnitudefactor = Math.pow(10,orderOfMagnitude);
-
-  var solutionFound = false;
-  for (var i = 0; i <= orderOfMagnitude; i++) {
-    magnitudefactor = Math.pow(10,i);
-    for (var j = 0; j < this.minorSteps.length; j++) {
-      var stepSize = magnitudefactor * this.minorSteps[j];
-      if (stepSize >= minimumStepValue) {
-        solutionFound = true;
-        minorStepIdx = j;
-        break;
-      }
-    }
-    if (solutionFound == true) {
-      break;
-    }
-  }
-  this.stepIndex = minorStepIdx;
-  this.scale = magnitudefactor;
-  this.step = magnitudefactor * this.minorSteps[minorStepIdx];
-};
 
 /**
  * Snap a date to a rounded value.
