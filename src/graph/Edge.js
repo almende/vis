@@ -721,44 +721,65 @@ Edge.prototype._drawArrow = function(ctx) {
  * @private
  */
 Edge.prototype._getDistanceToEdge = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
-  if (this.smooth == true) {
-    var minDistance = 1e9;
-    var i,t,x,y,dx,dy;
-    for (i = 0; i < 10; i++) {
-      t = 0.1*i;
-      x = Math.pow(1-t,2)*x1 + (2*t*(1 - t))*this.via.x + Math.pow(t,2)*x2;
-      y = Math.pow(1-t,2)*y1 + (2*t*(1 - t))*this.via.y + Math.pow(t,2)*y2;
-      dx = Math.abs(x3-x);
-      dy = Math.abs(y3-y);
-      minDistance = Math.min(minDistance,Math.sqrt(dx*dx + dy*dy));
+  if (this.from != this.to) {
+    if (this.smooth == true) {
+      var minDistance = 1e9;
+      var i,t,x,y,dx,dy;
+      for (i = 0; i < 10; i++) {
+        t = 0.1*i;
+        x = Math.pow(1-t,2)*x1 + (2*t*(1 - t))*this.via.x + Math.pow(t,2)*x2;
+        y = Math.pow(1-t,2)*y1 + (2*t*(1 - t))*this.via.y + Math.pow(t,2)*y2;
+        dx = Math.abs(x3-x);
+        dy = Math.abs(y3-y);
+        minDistance = Math.min(minDistance,Math.sqrt(dx*dx + dy*dy));
+      }
+      return minDistance
     }
-    return minDistance
+    else {
+      var px = x2-x1,
+          py = y2-y1,
+          something = px*px + py*py,
+          u =  ((x3 - x1) * px + (y3 - y1) * py) / something;
+
+      if (u > 1) {
+        u = 1;
+      }
+      else if (u < 0) {
+        u = 0;
+      }
+
+      var x = x1 + u * px,
+          y = y1 + u * py,
+          dx = x - x3,
+          dy = y - y3;
+
+      //# Note: If the actual distance does not matter,
+      //# if you only want to compare what this function
+      //# returns to other results of this function, you
+      //# can just return the squared distance instead
+      //# (i.e. remove the sqrt) to gain a little performance
+
+      return Math.sqrt(dx*dx + dy*dy);
+    }
   }
   else {
-    var px = x2-x1,
-        py = y2-y1,
-        something = px*px + py*py,
-        u =  ((x3 - x1) * px + (y3 - y1) * py) / something;
-
-    if (u > 1) {
-      u = 1;
+    var x, y, dx, dy;
+    var radius = this.length / 4;
+    var node = this.from;
+    if (!node.width) {
+      node.resize(ctx);
     }
-    else if (u < 0) {
-      u = 0;
+    if (node.width > node.height) {
+      x = node.x + node.width / 2;
+      y = node.y - radius;
     }
-
-    var x = x1 + u * px,
-        y = y1 + u * py,
-        dx = x - x3,
-        dy = y - y3;
-
-    //# Note: If the actual distance does not matter,
-    //# if you only want to compare what this function
-    //# returns to other results of this function, you
-    //# can just return the squared distance instead
-    //# (i.e. remove the sqrt) to gain a little performance
-
-    return Math.sqrt(dx*dx + dy*dy);
+    else {
+      x = node.x + radius;
+      y = node.y - node.height / 2;
+    }
+    dx = x - x3;
+    dy = y - y3;
+    return Math.abs(Math.sqrt(dx*dx + dy*dy) - radius);
   }
 };
 
