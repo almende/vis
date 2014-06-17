@@ -31,6 +31,7 @@ items.forEach(function (item) {
 var sort = function (a, b) {
   return a.id > b.id;
 };
+
 assert.deepEqual(data.get({
   fields: ['id', 'content']
 }).sort(sort), [
@@ -150,17 +151,7 @@ data.clear();
 data.add({content: 'Item 1'});
 data.add({content: 'Item 2'});
 
-assert.strictEqual(data.get()[0].id, undefined);
-assert.deepEqual((data.get({"showInternalIds": true})[0].id == undefined),false);
-assert.deepEqual(data.isInternalId(data.get({"showInternalIds": true})[0].id), true);
-assert.deepEqual((data.get()[0].id == undefined), true);
-
-// check if the global setting is applied correctly
-var data = new DataSet({showInternalIds: true});
-data.add({content: 'Item 1'});
-assert.deepEqual((data.get()[0].id == undefined), false);
-assert.deepEqual(data.isInternalId(data.get()[0].id), true);
-assert.deepEqual((data.get({"showInternalIds": false})[0].id == undefined),true);
+assert.notStrictEqual(data.get()[0].id, undefined);
 
 // create a dataset with initial data
 var data = new DataSet([

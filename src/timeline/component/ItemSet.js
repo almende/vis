@@ -1081,12 +1081,12 @@ ItemSet.prototype._onDragEnd = function (event) {
       if ('start' in props.item.data) {
         changed = (props.start != props.item.data.start.valueOf());
         itemData.start = util.convert(props.item.data.start,
-                dataset.options.type && dataset.options.type.start || 'Date');
+                dataset._options.type && dataset._options.type.start || 'Date');
       }
       if ('end' in props.item.data) {
         changed = changed  || (props.end != props.item.data.end.valueOf());
         itemData.end = util.convert(props.item.data.end,
-                dataset.options.type && dataset.options.type.end || 'Date');
+                dataset._options.type && dataset._options.type.end || 'Date');
       }
       if ('group' in props.item.data) {
         changed = changed  || (props.group != props.item.data.group);
@@ -1098,7 +1098,7 @@ ItemSet.prototype._onDragEnd = function (event) {
         me.options.onMove(itemData, function (itemData) {
           if (itemData) {
             // apply changes
-            itemData[dataset.fieldId] = id; // ensure the item contains its id (can be undefined)
+            itemData[dataset._fieldId] = id; // ensure the item contains its id (can be undefined)
             changes.push(itemData);
           }
           else {
@@ -1197,8 +1197,7 @@ ItemSet.prototype._onAddItem = function (event) {
       newItem.end = snap ? snap(end) : end;
     }
 
-    var id = util.randomUUID();
-    newItem[this.itemsData.fieldId] = id;
+    newItem[this.itemsData.fieldId] = util.randomUUID();
 
     var group = ItemSet.groupFromTarget(event);
     if (group) {
