@@ -50,6 +50,11 @@ function ItemSet(body, options) {
   // options is shared by this ItemSet and all its items
   this.options = util.extend({}, this.defaultOptions);
 
+  // options for getting items from the DataSet with the correct type
+  this.itemOptions = {
+    type: {start: 'Date', end: 'Date'}
+  };
+
   this.conversion = {
     toScreen: body.util.toScreen,
     toTime: body.util.toTime
@@ -650,7 +655,7 @@ ItemSet.prototype._onUpdate = function(ids) {
   var me = this;
 
   ids.forEach(function (id) {
-    var itemData = me.itemsData.get(id),
+    var itemData = me.itemsData.get(id, me.itemOptions),
         item = me.items[id],
         type = itemData.type ||
             (itemData.start && itemData.end && 'range') ||
@@ -1070,16 +1075,18 @@ ItemSet.prototype._onDragEnd = function (event) {
 
     this.touchParams.itemProps.forEach(function (props) {
       var id = props.item.id,
-          itemData = me.itemsData.get(id);
+          itemData = me.itemsData.get(id, me.itemOptions);
 
       var changed = false;
       if ('start' in props.item.data) {
         changed = (props.start != props.item.data.start.valueOf());
-        itemData.start = util.convert(props.item.data.start, dataset.convert['start']);
+        itemData.start = util.convert(props.item.data.start,
+                dataset.options.type && dataset.options.type.start || 'Date');
       }
       if ('end' in props.item.data) {
         changed = changed  || (props.end != props.item.data.end.valueOf());
-        itemData.end = util.convert(props.item.data.end, dataset.convert['end']);
+        itemData.end = util.convert(props.item.data.end,
+                dataset.options.type && dataset.options.type.end || 'Date');
       }
       if ('group' in props.item.data) {
         changed = changed  || (props.group != props.item.data.group);

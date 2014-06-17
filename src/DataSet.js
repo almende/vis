@@ -48,9 +48,11 @@ function DataSet (data, options) {
   this.options = options || {};
   this.data = {};                                 // map with data indexed by id
   this.fieldId = this.options.fieldId || 'id';    // name of the field containing id
-  this.type = {};                                 // field types by field name
+  this.type = {};                                 // internal field types (NOTE: this can differ from this.options.type)
   this.showInternalIds = this.options.showInternalIds || false; // show internal ids with the get function
 
+  // all variants of a Date are internally stored as Date, so we can convert
+  // from everything to everything (also from ISODate to Number for example)
   if (this.options.type) {
     for (var field in this.options.type) {
       if (this.options.type.hasOwnProperty(field)) {

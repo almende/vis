@@ -22,10 +22,7 @@
 <script>
   // create a dataset with items
   var items = new vis.DataSet({
-    type: {
-      start: 'Date',
-      end: 'Date'
-    }
+    type: { start: 'ISODate', end: 'ISODate' }
   });
   items.add([
     {id: 1, content: 'item 1<br>start', start: '2014-01-23'},

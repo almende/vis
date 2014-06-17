@@ -915,7 +915,7 @@ var options = {
 </p>
 <ul>
   <li><code>item</code>: the item being manipulated</li>
-  <li><code>callback</code>: a callback function which must be invoked to report back. The callback must be invoked as <code>callback(item | null)</code>. Here, <code>item</code> can contain changes to the passed item. When invoked as <code>callback(null)</code>, the action will be cancelled.</li>
+  <li><code>callback</code>: a callback function which must be invoked to report back. The callback must be invoked as <code>callback(item | null)</code>. Here, <code>item</code> can contain changes to the passed item. Parameter `item` typically contains fields `content`, `start`, and optionally `end`. The type of `start` and `end` is determined by the DataSet type configuration and is `Date` by default.  When invoked as <code>callback(null)</code>, the action will be cancelled.</li>
 </ul>
 
 <p>

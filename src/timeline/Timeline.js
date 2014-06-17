@@ -413,20 +413,22 @@ Timeline.prototype.getItemRange = function() {
   if (itemsData) {
     // calculate the minimum value of the field 'start'
     var minItem = itemsData.min('start');
-    min = minItem ? minItem.start.valueOf() : null;
+    min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
+    // Note: we convert first to Date and then to number because else
+    // a conversion from ISODate to Number will fail
 
     // calculate maximum value of fields 'start' and 'end'
     var maxStartItem = itemsData.max('start');
     if (maxStartItem) {
-      max = maxStartItem.start.valueOf();
+      max = util.convert(maxStartItem.start, 'Date').valueOf();
     }
     var maxEndItem = itemsData.max('end');
     if (maxEndItem) {
       if (max == null) {
-        max = maxEndItem.end.valueOf();
+        max = util.convert(maxEndItem.end, 'Date').valueOf();
       }
       else {
-        max = Math.max(max, maxEndItem.end.valueOf());
+        max = Math.max(max, util.convert(maxEndItem.end, 'Date').valueOf());
       }
     }
   }
