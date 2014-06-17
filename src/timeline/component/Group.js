@@ -16,6 +16,7 @@ function Group (groupId, data, itemSet) {
       height: 0
     }
   };
+  this.className = null;
 
   this.items = {};        // items filtered by groupId of this group
   this.visibleItems = []; // items currently visible in window
@@ -49,8 +50,10 @@ Group.prototype._create = function() {
   this.dom.foreground = foreground;
 
   this.dom.background = document.createElement('div');
+  this.dom.background.className = 'group';
 
   this.dom.axis = document.createElement('div');
+  this.dom.axis.className = 'group';
 
   // create a hidden marker to detect when the Timelines container is attached
   // to the DOM, or the style of a parent of the Timeline is changed from
@@ -86,9 +89,18 @@ Group.prototype.setData = function(data) {
   }
 
   // update className
-  var className = data && data.className;
-  if (className) {
+  var className = data && data.className || null;
+  if (className != this.className) {
+    if (this.className) {
+      util.removeClassName(this.dom.label, className);
+      util.removeClassName(this.dom.foreground, className);
+      util.removeClassName(this.dom.background, className);
+      util.removeClassName(this.dom.axis, className);
+    }
     util.addClassName(this.dom.label, className);
+    util.addClassName(this.dom.foreground, className);
+    util.addClassName(this.dom.background, className);
+    util.addClassName(this.dom.axis, className);
   }
 };
 

@@ -2,7 +2,7 @@
 http://visjs.org
 
 
-## 2014-06-06, version 1.1.1
+## not yet released, version 1.1.1
 
 ### Timeline
 
@@ -10,6 +10,8 @@ http://visjs.org
 - Implemented options `zoomable` and `moveable`.
 - Changed default value of option `showCurrentTime` to true.
 - Internal refactoring and simplification of the code.
+- Fixed property `className` of groups not being applied to related contents and 
+  background elements, and not being updated once applied.
 
 ### Graph
 
