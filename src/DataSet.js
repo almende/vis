@@ -4,7 +4,7 @@
  * Usage:
  *     var dataSet = new DataSet({
  *         fieldId: '_id',
- *         convert: {
+ *         type: {
  *             // ...
  *         }
  *     });
@@ -30,7 +30,7 @@
  * @param {Object} [options]   Available options:
  *                             {String} fieldId Field name of the id in the
  *                                              items, 'id' by default.
- *                             {Object.<String, String} convert
+ *                             {Object.<String, String} type
  *                                              A map with field names as key,
  *                                              and the field type as value.
  * @constructor DataSet
@@ -48,21 +48,26 @@ function DataSet (data, options) {
   this.options = options || {};
   this.data = {};                                 // map with data indexed by id
   this.fieldId = this.options.fieldId || 'id';    // name of the field containing id
-  this.convert = {};                              // field types by field name
+  this.type = {};                                 // field types by field name
   this.showInternalIds = this.options.showInternalIds || false; // show internal ids with the get function
 
-  if (this.options.convert) {
-    for (var field in this.options.convert) {
-      if (this.options.convert.hasOwnProperty(field)) {
-        var value = this.options.convert[field];
+  if (this.options.type) {
+    for (var field in this.options.type) {
+      if (this.options.type.hasOwnProperty(field)) {
+        var value = this.options.type[field];
         if (value == 'Date' || value == 'ISODate' || value == 'ASPDate') {
-          this.convert[field] = 'Date';
+          this.type[field] = 'Date';
         }
         else {
-          this.convert[field] = value;
+          this.type[field] = value;
         }
       }
     }
+  }
+
+  // TODO: deprecated since version 1.1.1 (or 2.0.0?)
+  if (this.options.convert) {
+    throw new Error('Option "convert" is deprecated. Use "type" instead.');
   }
 
   this.subscribers = {};  // event subscribers
@@ -277,9 +282,9 @@ DataSet.prototype.update = function (data, senderId) {
  * {Number | String} id         The id of an item
  * {Number[] | String{}} ids    An array with ids of items
  * {Object} options             An Object with options. Available options:
- *                              {String} [type] Type of data to be returned. Can
- *                                              be 'DataTable' or 'Array' (default)
- *                              {Object.<String, String>} [convert]
+ *                              {String} [returnType] Type of data to be
+ *                                  returned. Can be 'DataTable' or 'Array' (default)
+ *                              {Object.<String, String>} [type]
  *                              {String[]} [fields] field names to be returned
  *                              {function} [filter] filter items
  *                              {String | function} [order] Order the items by
@@ -316,24 +321,24 @@ DataSet.prototype.get = function (args) {
   }
 
   // determine the return type
-  var type;
-  if (options && options.type) {
-    type = (options.type == 'DataTable') ? 'DataTable' : 'Array';
+  var returnType;
+  if (options && options.returnType) {
+    returnType = (options.returnType == 'DataTable') ? 'DataTable' : 'Array';
 
-    if (data && (type != util.getType(data))) {
+    if (data && (returnType != util.getType(data))) {
       throw new Error('Type of parameter "data" (' + util.getType(data) + ') ' +
           'does not correspond with specified options.type (' + options.type + ')');
     }
-    if (type == 'DataTable' && !util.isDataTable(data)) {
+    if (returnType == 'DataTable' && !util.isDataTable(data)) {
       throw new Error('Parameter "data" must be a DataTable ' +
           'when options.type is "DataTable"');
     }
   }
   else if (data) {
-    type = (util.getType(data) == 'DataTable') ? 'DataTable' : 'Array';
+    returnType = (util.getType(data) == 'DataTable') ? 'DataTable' : 'Array';
   }
   else {
-    type = 'Array';
+    returnType = 'Array';
   }
 
   // we allow the setting of this value for a single get request.
@@ -344,14 +349,14 @@ DataSet.prototype.get = function (args) {
   }
 
   // build options
-  var convert = options && options.convert || this.options.convert;
+  var type = options && options.type || this.options.type;
   var filter = options && options.filter;
   var items = [], item, itemId, i, len;
 
   // convert items
   if (id != undefined) {
     // return a single item
-    item = me._getItem(id, convert);
+    item = me._getItem(id, type);
     if (filter && !filter(item)) {
       item = null;
     }
@@ -359,7 +364,7 @@ DataSet.prototype.get = function (args) {
   else if (ids != undefined) {
     // return a subset of items
     for (i = 0, len = ids.length; i < len; i++) {
-      item = me._getItem(ids[i], convert);
+      item = me._getItem(ids[i], type);
       if (!filter || filter(item)) {
         items.push(item);
       }
@@ -369,7 +374,7 @@ DataSet.prototype.get = function (args) {
     // return all items
     for (itemId in this.data) {
       if (this.data.hasOwnProperty(itemId)) {
-        item = me._getItem(itemId, convert);
+        item = me._getItem(itemId, type);
         if (!filter || filter(item)) {
           items.push(item);
         }
@@ -399,7 +404,7 @@ DataSet.prototype.get = function (args) {
   }
 
   // return the results
-  if (type == 'DataTable') {
+  if (returnType == 'DataTable') {
     var columns = this._getColumnNames(data);
     if (id != undefined) {
       // append a single item to the data table
@@ -448,7 +453,7 @@ DataSet.prototype.getIds = function (options) {
   var data = this.data,
       filter = options && options.filter,
       order = options && options.order,
-      convert = options && options.convert || this.options.convert,
+      type = options && options.type || this.options.type,
       i,
       len,
       id,
@@ -463,7 +468,7 @@ DataSet.prototype.getIds = function (options) {
       items = [];
       for (id in data) {
         if (data.hasOwnProperty(id)) {
-          item = this._getItem(id, convert);
+          item = this._getItem(id, type);
           if (filter(item)) {
             items.push(item);
           }
@@ -480,7 +485,7 @@ DataSet.prototype.getIds = function (options) {
       // create unordered list
       for (id in data) {
         if (data.hasOwnProperty(id)) {
-          item = this._getItem(id, convert);
+          item = this._getItem(id, type);
           if (filter(item)) {
             ids.push(item[this.fieldId]);
           }
@@ -523,7 +528,7 @@ DataSet.prototype.getIds = function (options) {
  * Execute a callback function for every item in the dataset.
  * @param {function} callback
  * @param {Object} [options]    Available options:
- *                              {Object.<String, String>} [convert]
+ *                              {Object.<String, String>} [type]
  *                              {String[]} [fields] filter fields
  *                              {function} [filter] filter items
  *                              {String | function} [order] Order the items by
@@ -531,7 +536,7 @@ DataSet.prototype.getIds = function (options) {
  */
 DataSet.prototype.forEach = function (callback, options) {
   var filter = options && options.filter,
-      convert = options && options.convert || this.options.convert,
+      type = options && options.type || this.options.type,
       data = this.data,
       item,
       id;
@@ -550,7 +555,7 @@ DataSet.prototype.forEach = function (callback, options) {
     // unordered
     for (id in data) {
       if (data.hasOwnProperty(id)) {
-        item = this._getItem(id, convert);
+        item = this._getItem(id, type);
         if (!filter || filter(item)) {
           callback(item, id);
         }
@@ -563,7 +568,7 @@ DataSet.prototype.forEach = function (callback, options) {
  * Map every item in the dataset.
  * @param {function} callback
  * @param {Object} [options]    Available options:
- *                              {Object.<String, String>} [convert]
+ *                              {Object.<String, String>} [type]
  *                              {String[]} [fields] filter fields
  *                              {function} [filter] filter items
  *                              {String | function} [order] Order the items by
@@ -572,7 +577,7 @@ DataSet.prototype.forEach = function (callback, options) {
  */
 DataSet.prototype.map = function (callback, options) {
   var filter = options && options.filter,
-      convert = options && options.convert || this.options.convert,
+      type = options && options.type || this.options.type,
       mappedItems = [],
       data = this.data,
       item;
@@ -580,7 +585,7 @@ DataSet.prototype.map = function (callback, options) {
   // convert and filter items
   for (var id in data) {
     if (data.hasOwnProperty(id)) {
-      item = this._getItem(id, convert);
+      item = this._getItem(id, type);
       if (!filter || filter(item)) {
         mappedItems.push(callback(item, id));
       }
@@ -773,7 +778,7 @@ DataSet.prototype.min = function (field) {
 DataSet.prototype.distinct = function (field) {
   var data = this.data,
       values = [],
-      fieldType = this.options.convert[field],
+      fieldType = this.options.type[field],
       count = 0;
 
   for (var prop in data) {
@@ -823,7 +828,7 @@ DataSet.prototype._addItem = function (item) {
   var d = {};
   for (var field in item) {
     if (item.hasOwnProperty(field)) {
-      var fieldType = this.convert[field];  // type may be undefined
+      var fieldType = this.type[field];  // type may be undefined
       d[field] = util.convert(item[field], fieldType);
     }
   }
@@ -835,11 +840,11 @@ DataSet.prototype._addItem = function (item) {
 /**
  * Get an item. Fields can be converted to a specific type
  * @param {String} id
- * @param {Object.<String, String>} [convert]  field types to convert
+ * @param {Object.<String, String>} [type]  field types to convert
  * @return {Object | null} item
  * @private
  */
-DataSet.prototype._getItem = function (id, convert) {
+DataSet.prototype._getItem = function (id, type) {
   var field, value;
 
   // get the item from the dataset
@@ -852,13 +857,13 @@ DataSet.prototype._getItem = function (id, convert) {
   var converted = {},
       fieldId = this.fieldId,
       internalIds = this.internalIds;
-  if (convert) {
+  if (type) {
     for (field in raw) {
       if (raw.hasOwnProperty(field)) {
         value = raw[field];
         // output all fields, except internal ids
         if ((field != fieldId) || (!(value in internalIds) || this.showInternalIds)) {
-          converted[field] = util.convert(value, convert[field]);
+          converted[field] = util.convert(value, type[field]);
         }
       }
     }
@@ -900,7 +905,7 @@ DataSet.prototype._updateItem = function (item) {
   // merge with current item
   for (var field in item) {
     if (item.hasOwnProperty(field)) {
-      var fieldType = this.convert[field];  // type may be undefined
+      var fieldType = this.type[field];  // type may be undefined
       d[field] = util.convert(item[field], fieldType);
     }
   }

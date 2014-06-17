@@ -91,7 +91,7 @@ console.log('filtered items', items);
 // retrieve formatted items
 var items = data.get({
   fields: ['id', 'date'],
-  convert: {
+  type: {
     date: 'ISODate'
   }
 });
@@ -149,7 +149,7 @@ var data = new vis.DataSet([data] [, options])
     </td>
   </tr>
   <tr>
-    <td>convert</td>
+    <td>type</td>
     <td>Object.&lt;String,&nbsp;String&gt;</td>
     <td>none</td>
     <td>
@@ -227,7 +227,7 @@ var data = new vis.DataSet([data] [, options])
     <td>Number[]</td>
     <td>
       Get ids of all items or of a filtered set of items.
-      Available <code>options</code> are described in section <a href="#Data_Selection">Data Selection</a>, except that options <code>fields</code> and <code>convert</code> are not applicable in case of <code>getIds</code>.
+      Available <code>options</code> are described in section <a href="#Data_Selection">Data Selection</a>, except that options <code>fields</code> and <code>type</code> are not applicable in case of <code>getIds</code>.
     </td>
   </tr>
 
@@ -649,7 +649,7 @@ DataSet.map(callback [, options]);
   </tr>
 
   <tr>
-    <td>convert</td>
+    <td>type</td>
     <td>Object.&lt;String,&nbsp;String&gt;</td>
     <td>
       An object containing field names as key, and data types as value.
@@ -700,7 +700,7 @@ data.add([
 // retrieve formatted items
 var items = data.get({
   fields: ['id', 'date', 'group'],    // output the specified fields only
-  convert: {
+  type: {
     date: 'Date',                   // convert the date fields to Date objects
     group: 'String'                 // convert the group fields to Strings
   }

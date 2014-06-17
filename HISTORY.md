@@ -2,7 +2,7 @@
 http://visjs.org
 
 
-## not yet released, version 1.1.1
+## not yet released, version 2.0.0
 
 ### Timeline
 
@@ -18,6 +18,10 @@ http://visjs.org
 - Reduced the timestep a little for smoother animations.
 - Fixed dataManipulation.initiallyVisible functionality (thanks theGrue).
 - Forced typecast of fontSize to Number.
+
+### DataSet
+
+- Renamed option `convert` to `type`.
 
 
 ## 2014-06-06, version 1.1.0
