@@ -78,6 +78,7 @@ Group.prototype.setData = function(data) {
     this.dom.inner.innerHTML = this.groupId;
   }
 
+  // Mark hidden when empty
   if (!this.dom.inner.firstChild) {
     util.addClassName(this.dom.inner, 'hidden');
   }
@@ -89,17 +90,10 @@ Group.prototype.setData = function(data) {
   var className = data && data.className;
   if (className) {
     util.addClassName(this.dom.label, className);
+    // TODO: addClassName to contents as well
   }
+  // TODO: be able to remove className
 };
-
-/**
- * Get the width of the group label
- * @return {number} width
- */
-Group.prototype.getLabelWidth = function() {
-  return this.props.label.width;
-};
-
 
 /**
  * Repaint this group
@@ -154,7 +148,7 @@ Group.prototype.redraw = function(range, margin, restack) {
 
   // calculate actual size and position
   var foreground = this.dom.foreground;
-  this.top = foreground.offsetTop;
+  this.top = this.itemSet.getGroupTop(this.groupId); // top is determined by the ItemSet, from the heights of previous groups
   this.left = foreground.offsetLeft;
   this.width = foreground.offsetWidth;
   resized = util.updateProperty(this, 'height', height) || resized;

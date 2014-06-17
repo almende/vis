@@ -497,6 +497,7 @@ Timeline.prototype.getWindow = function() {
  */
 Timeline.prototype.redraw = function() {
   var resized = false,
+      updateProperty = util.updateProperty,
       options = this.options,
       props = this.props,
       dom = this.dom;
@@ -519,11 +520,14 @@ Timeline.prototype.redraw = function() {
 
   // calculate the heights. If any of the side panels is empty, we set the height to
   // minus the border width, such that the border will be invisible
-  props.center.height = dom.center.offsetHeight;
+  //props.center.height = dom.center.offsetHeight;
+  resized = updateProperty(props.center, 'height', this.itemSet.props.height || 0) || resized; // TODO: this is a really ugly hack
   props.left.height   = dom.left.offsetHeight;
   props.right.height  = dom.right.offsetHeight;
   props.top.height    = dom.top.clientHeight    || -props.border.top;
   props.bottom.height = dom.bottom.clientHeight || -props.border.bottom;
+
+  console.log('props.center.height', props.center.height);
 
   // TODO: compensate borders when any of the panels is empty.
 
@@ -532,7 +536,7 @@ Timeline.prototype.redraw = function() {
   var contentHeight = Math.max(props.left.height, props.center.height, props.right.height);
   var autoHeight = props.top.height + contentHeight + props.bottom.height +
       borderRootHeight + props.border.top + props.border.bottom;
-  dom.root.style.height = util.option.asSize(options.height, autoHeight + 'px');
+  resized = updateProperty(dom.root.style, 'height', util.option.asSize(options.height, autoHeight + 'px')) || resized;
 
   // calculate heights of the content panels
   props.root.height = dom.root.offsetHeight;
@@ -679,8 +683,10 @@ Timeline.prototype._startAutoResize = function () {
   this._stopAutoResize();
 
   function checkSize() {
-    if (me.options.autoResize != true) {
-      // stop watching when the option autoResize is changed to false
+    if (me.options.autoResize != true || !me.dom.root.parentNode) {
+    //if (me.options.autoResize != true) {
+      // stop watching when the option autoResize is changed to false,
+      // or when the Timeline is no longer attached to the DOM.
       me._stopAutoResize();
       return;
     }
@@ -697,7 +703,6 @@ Timeline.prototype._startAutoResize = function () {
     }
   }
 
-  // TODO: automatically cleanup the event listener when the frame is deleted
   util.addEventListener(window, 'resize', checkSize);
 
   this.watchTimer = setInterval(checkSize, 1000);

@@ -385,7 +385,8 @@ ItemSet.prototype._deselect = function(id) {
  * @return {boolean} Returns true if the component is resized
  */
 ItemSet.prototype.redraw = function() {
-  var margin = this.options.margin,
+  var me = this,
+      margin = this.options.margin,
       range = this.body.range,
       asSize = util.option.asSize,
       options = this.options,
@@ -421,7 +422,8 @@ ItemSet.prototype.redraw = function() {
       },
       height = 0,
       minHeight = margin.axis + margin.item;
-  util.forEach(this.groups, function (group) {
+  this.groupIds.forEach(function (groupId) {
+    var group = me.groups[groupId];
     var groupMargin = (group == firstGroup) ? firstMargin : nonFirstMargin;
     var groupResized = group.redraw(range, groupMargin, restack);
     resized = groupResized || resized;
@@ -449,6 +451,24 @@ ItemSet.prototype.redraw = function() {
   resized = this._isResized() || resized;
 
   return resized;
+};
+
+/**
+ * Calculate the top for a group
+ * @param {Number} groupId
+ */
+ItemSet.prototype.getGroupTop = function(groupId) {
+  var top = 0,
+      count = this.groupIds.length,
+      orientation = this.options.orientation;
+  for (var index = 0; index < count; index++) {
+    var id = this.groupIds[index];
+    if (id == groupId) break;
+
+    top += this.groups[id].height;
+  }
+
+  return top;
 };
 
 /**

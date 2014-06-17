@@ -1,25 +1,22 @@
-.vis.timeline.root {
-  /*
-  -webkit-transition: height .4s ease-in-out;
-  transition:         height .4s ease-in-out;
-  */
-}
-
-.vis.timeline .vispanel {
-  /*
+/*
+  Note: .vis.timeline.root may not have transitions, else its height cannot be
+  determined (depends on autoHeight, css height, css minHeight, and css maxHeight)
+*/
+/*.vis.timeline.root,*/
+.vis.timeline .axis,
+.vis.timeline .vispanel.center,
+.vis.timeline .vispanel.left,
+.vis.timeline .vispanel.right,
+.vis.timeline .vispanel.bottom {
   -webkit-transition: height .4s ease-in-out, top .4s ease-in-out;
   transition:         height .4s ease-in-out, top .4s ease-in-out;
-  */
 }
 
-.vis.timeline .axis {
-  /*
-  -webkit-transition: top .4s ease-in-out;
-  transition:         top .4s ease-in-out;
-  */
+.vis.timeline .vispanel .itemset .group,
+.vis.timeline .vispanel .labelset .vlabel {
+  -webkit-transition: height .4s ease-in-out;
+  transition:         height .4s ease-in-out;
 }
-
-/* TODO: get animation working nicely
 
 .vis.timeline .item {
   -webkit-transition: top .4s ease-in-out;
@@ -30,4 +27,3 @@
   -webkit-transition: height .4s ease-in-out, top .4s ease-in-out;
   transition:         height .4s ease-in-out, top .4s ease-in-out;
 }
-/**/

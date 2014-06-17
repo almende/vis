@@ -47,6 +47,7 @@ function DataSet (data, options) {
 
   this.options = options || {};
   this.data = {};                                 // map with data indexed by id
+  this.length = 0;                                // number of items in the dataset
   this.fieldId = this.options.fieldId || 'id';    // name of the field containing id
   this.convert = {};                              // field types by field name
   this.showInternalIds = this.options.showInternalIds || false; // show internal ids with the get function
@@ -685,6 +686,7 @@ DataSet.prototype._remove = function (id) {
     if (this.data[id]) {
       delete this.data[id];
       delete this.internalIds[id];
+      this.length--;
       return id;
     }
   }
@@ -693,6 +695,7 @@ DataSet.prototype._remove = function (id) {
     if (itemId && this.data[itemId]) {
       delete this.data[itemId];
       delete this.internalIds[itemId];
+      this.length--;
       return itemId;
     }
   }
@@ -709,6 +712,7 @@ DataSet.prototype.clear = function (senderId) {
 
   this.data = {};
   this.internalIds = {};
+  this.length--;
 
   this._trigger('remove', {items: ids}, senderId);
 
@@ -828,6 +832,7 @@ DataSet.prototype._addItem = function (item) {
     }
   }
   this.data[id] = d;
+  this.length++;
 
   return id;
 };
