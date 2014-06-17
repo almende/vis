@@ -435,29 +435,28 @@ Linegraph.prototype.drawPoint = function(x, y, className, container, svg) {
   return point;
 }
 
-Linegraph.prototype._getSVGElement = function (elementType, container, svg) {
-
+Linegraph.prototype._getSVGElement = function (elementType, JSONcontainer, svgContainer) {
   var element;
   // allocate SVG element, if it doesnt yet exist, create one.
-  if (container.hasOwnProperty(elementType)) { // this element has been created before
+  if (JSONcontainer.hasOwnProperty(elementType)) { // this element has been created before
     // check if there is an redundant element
-    if (container[elementType].redundant.length > 0) {
-      element = container[elementType].redundant[0];
-      container[elementType].redundant.shift()
+    if (JSONcontainer[elementType].redundant.length > 0) {
+      element = JSONcontainer[elementType].redundant[0];
+      JSONcontainer[elementType].redundant.shift()
     }
     else {
       // create a new element and add it to the SVG
       element = document.createElementNS('http://www.w3.org/2000/svg', elementType);
-      svg.appendChild(element);
+      svgContainer.appendChild(element);
     }
   }
   else {
     // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
     element = document.createElementNS('http://www.w3.org/2000/svg', elementType);
-    container[elementType] = {used: [], redundant: []};
-    svg.appendChild(element);
+    JSONcontainer[elementType] = {used: [], redundant: []};
+    svgContainer.appendChild(element);
   }
-  container[elementType].used.push(element);
+  JSONcontainer[elementType].used.push(element);
   return element;
 };
 
