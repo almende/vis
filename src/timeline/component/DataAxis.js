@@ -13,6 +13,8 @@ function DataAxis (body, options) {
     orientation: 'left',  // supported: 'left'
     showMinorLabels: true,
     showMajorLabels: true,
+    majorLinesOffset: 25,
+    minorLinesOffset: 25,
     width: '50px',
     height: '300px'
   };
@@ -47,15 +49,32 @@ function DataAxis (body, options) {
   this.width = Number(this.options.width.replace("px",""));
   this.height = Number(this.options.height.replace("px",""));
 
+  this.stepPixels = 25;
+  this.stepPixelsForced = 25;
+  this.lineOffset = 0;
+  this.master = true;
+
   // create the HTML DOM
   this._create();
 }
 
 DataAxis.prototype = new Component();
 
-//DataAxis.prototype.setOptions = function(options) {
-//
-//}
+DataAxis.prototype.setOptions = function(options) {
+  if (options) {
+    var redraw = false;
+    if (this.options.orientation != options.orientation && options.orientation !== undefined) {
+      redraw = true;
+    }
+    var fields = ['orientation','showMinorLabels','showMajorLabels','width','height'];
+    util.selectiveExtend(fields, this.options, options);
+
+    if (redraw == true && this.dom.frame) {
+      this.hide();
+      this.show();
+    }
+  }
+}
 
 
 /**
@@ -69,8 +88,6 @@ DataAxis.prototype._create = function() {
   this.dom.lineContainer = document.createElement('div');
   this.dom.lineContainer.style.width = '100%';
   this.dom.lineContainer.style.height = this.options.height;
-
-  this.show();
 };
 
 
@@ -82,7 +99,7 @@ DataAxis.prototype.show = function() {
     if (this.options.orientation == 'left') {
       this.body.dom.left.appendChild(this.dom.frame);
     }
-    if (this.options.orientation == 'right') {
+    else {
       this.body.dom.right.appendChild(this.dom.frame);
     }
   }
@@ -139,9 +156,9 @@ DataAxis.prototype.redraw = function () {
   props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
   props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
 
-  props.minorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth;
+  props.minorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2*this.options.minorLinesOffset;
   props.minorLineHeight = 1;
-  props.majorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth;
+  props.majorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2*this.options.majorLinesOffset;;
   props.majorLineHeight = 1;
 
   //  take frame offline while updating (is almost twice as fast)
@@ -192,13 +209,27 @@ DataAxis.prototype._redrawLabels = function () {
 
   step.first();
   var stepPixels = this.dom.frame.offsetHeight / ((step.marginRange / step.step) + 1);
-  var xFirstMajorLabel = undefined;
+  this.stepPixels = stepPixels;
 
+  var amountOfSteps = this.height / stepPixels;
+  var stepDifference = 0;
+
+  if (this.master == false) {
+    stepPixels = this.stepPixelsForced;
+    stepDifference = Math.round((this.height / stepPixels) - amountOfSteps);
+    for (var i = 0; i < 0.5 * stepDifference; i++) {
+      step.previous();
+    }
+    amountOfSteps = this.height / stepPixels;
+  }
+
+  var xFirstMajorLabel = undefined;
   this.valueAtZero = step.marginEnd;
   var marginStartPos = 0;
   var max = 0;
-  while (step.hasNext() && max < 1000) {
-    var y = Math.round(max * stepPixels);
+  var y = 0;
+  while (max < amountOfSteps) {
+    y = Math.round(max * stepPixels);
     marginStartPos = max * stepPixels;
     var isMajor = step.isMajor();
 
@@ -207,7 +238,7 @@ DataAxis.prototype._redrawLabels = function () {
     }
 
     if (isMajor && this.options['showMajorLabels']) {
-      if (y > 0) {
+      if (y >= 0) {
         if (xFirstMajorLabel == undefined) {
           xFirstMajorLabel = y;
         }
@@ -223,7 +254,7 @@ DataAxis.prototype._redrawLabels = function () {
     max++;
   }
 
-  this.conversionFactor = marginStartPos/step.marginRange;
+  this.conversionFactor = marginStartPos/((amountOfSteps-1) * step.step);
 
   // create a major label on the left when needed
   if (this.options['showMajorLabels']) {
@@ -257,7 +288,7 @@ DataAxis.prototype.convertValues = function(data) {
 DataAxis.prototype.convertValue = function(value) {
   var invertedValue = this.valueAtZero - value;
   var convertedValue = invertedValue * this.conversionFactor;
-  return convertedValue - 2; // the -2 is to compensate for the borders
+  return convertedValue; // the -2 is to compensate for the borders
 }
 
 /**
@@ -325,7 +356,7 @@ DataAxis.prototype._redrawMajorText = function (y, text, orientation) {
     label.style.textAlign = "right";
   }
   else {
-    label.style.left = '2';
+    label.style.left = '2px';
     label.style.textAlign = "left";
   }
 
@@ -339,27 +370,29 @@ DataAxis.prototype._redrawMajorText = function (y, text, orientation) {
  * @private
  */
 DataAxis.prototype._redrawMinorLine = function (y, orientation) {
-  // reuse redundant line
-  var line = this.dom.redundant.minorLines.shift();
+  if (this.master == true) {
+    // reuse redundant line
+    var line = this.dom.redundant.minorLines.shift();
 
-  if (!line) {
-    // create vertical line
-    line = document.createElement('div');
-    line.className = 'grid horizontal minor';
-    this.dom.lineContainer.appendChild(line);
-  }
-  this.dom.minorLines.push(line);
+    if (!line) {
+      // create vertical line
+      line = document.createElement('div');
+      line.className = 'grid horizontal minor';
+      this.dom.lineContainer.appendChild(line);
+    }
+    this.dom.minorLines.push(line);
 
-  var props = this.props;
-  if (orientation == 'left') {
-    line.style.left = (this.width - 15) + 'px';
-  }
-  else {
-    line.style.left = -1*(this.width - 15) + 'px';
-  }
+    var props = this.props;
+    if (orientation == 'left') {
+      line.style.left = (this.width - this.options.minorLinesOffset) + 'px';
+    }
+    else {
+      line.style.left = -1*(this.width - this.options.minorLinesOffset) + 'px';
+    }
 
-  line.style.width = props.minorLineWidth + 'px';
-  line.style.top = y + 'px';
+    line.style.width = props.minorLineWidth + 'px';
+    line.style.top = y + 'px';
+  }
 };
 
 /**
@@ -369,25 +402,27 @@ DataAxis.prototype._redrawMinorLine = function (y, orientation) {
  * @private
  */
 DataAxis.prototype._redrawMajorLine = function (y, orientation) {
-  // reuse redundant line
-  var line = this.dom.redundant.majorLines.shift();
+  if (this.master == true) {
+    // reuse redundant line
+    var line = this.dom.redundant.majorLines.shift();
 
-  if (!line) {
-    // create vertical line
-    line = document.createElement('div');
-    line.className = 'grid horizontal major';
-    this.dom.lineContainer.appendChild(line);
-  }
-  this.dom.majorLines.push(line);
+    if (!line) {
+      // create vertical line
+      line = document.createElement('div');
+      line.className = 'grid horizontal major';
+      this.dom.lineContainer.appendChild(line);
+    }
+    this.dom.majorLines.push(line);
 
-  if (orientation == 'left') {
-    line.style.left = (this.width - 25) + 'px';
+    if (orientation == 'left') {
+      line.style.left = (this.width - this.options.majorLinesOffset) + 'px';
+    }
+    else {
+      line.style.left = -1*(this.width - this.options.mayorLinesOffset) + 'px';
+    }
+    line.style.top = y + 'px';
+    line.style.width = this.props.majorLineWidth + 'px';
   }
-  else {
-    line.style.left = -1*(this.width - 25) + 'px';
-  }
-  line.style.top = y + 'px';
-  line.style.width = this.props.majorLineWidth + 'px';
 };
 
 

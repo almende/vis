@@ -24,7 +24,7 @@
  * @param {Date} [end]           The end date
  * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
  */
-function DataStep(start, end, minimumStep, containerHeight) {
+function DataStep(start, end, minimumStep, containerHeight, forcedStepSize) {
   // variables
   this.current = 0;
 
@@ -39,7 +39,7 @@ function DataStep(start, end, minimumStep, containerHeight) {
   this.majorSteps = [1,     2,    5,  10];
   this.minorSteps = [0.25,  0.5,  1,  2];
 
-  this.setRange(start, end, minimumStep, containerHeight);
+  this.setRange(start, end, minimumStep, containerHeight, forcedStepSize);
 }
 
 
@@ -54,12 +54,12 @@ function DataStep(start, end, minimumStep, containerHeight) {
  * @param {Number} [end]        The end date and time.
  * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
  */
-DataStep.prototype.setRange = function(start, end, minimumStep, containerHeight) {
+DataStep.prototype.setRange = function(start, end, minimumStep, containerHeight, forcedStepSize) {
   this._start = start;
   this._end = end;
   this.setFirst();
   if (this.autoScale) {
-    this.setMinimumStep(minimumStep, containerHeight);
+    this.setMinimumStep(minimumStep, containerHeight, forcedStepSize);
   }
 };
 
@@ -152,6 +152,16 @@ DataStep.prototype.next = function() {
     this.current = this._end;
   }
 };
+
+/**
+ * Do the next step
+ */
+DataStep.prototype.previous = function() {
+  this.current += this.step;
+  this.marginEnd += this.step;
+  this.marginRange = this.marginEnd - this.marginStart;
+};
+
 
 
 /**

@@ -290,6 +290,28 @@ Graph2d.prototype.setItems = function(items) {
 };
 
 
+/**
+ * Set groups
+ * @param {vis.DataSet | Array | google.visualization.DataTable} groups
+ */
+Graph2d.prototype.setGroups = function(groups) {
+  // convert to type DataSet when needed
+  var newDataSet;
+  if (!groups) {
+    newDataSet = null;
+  }
+  else if (groups instanceof DataSet || groups instanceof DataView) {
+    newDataSet = groups;
+  }
+  else {
+    // turn an array into a dataset
+    newDataSet = new DataSet(groups);
+  }
+
+  this.groupsData = newDataSet;
+  this.linegraph.setGroups(newDataSet);
+};
+
 
 /**
  * Clear the Graph2d. By Default, items, groups and options are cleared.

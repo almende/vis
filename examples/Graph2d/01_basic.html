@@ -16,23 +16,76 @@
 <div id="visualization"></div>
 
 <script type="text/javascript">
+    var options = {
+        yAxisOrientation: 'left',
+        shaded: {
+            enabled: true,
+            orientation: 'bottom' // top, bottom
+        },
+        drawPoints: {
+            enabled: false,
+            size: 6,
+            style: 'circle' // square, circle
+        }
+    };
+
+
+    // create a data set with groups
+    var names = ['John', 'Alston', 'Lee', 'Grant'];
+    var groups = new vis.DataSet();
+        groups.add({
+        id: 0,
+        content: names[0],
+        className: "graphGroup9",
+        options: {
+            drawPoints: {
+                style: 'square' // square, circle
+            },
+            shaded: {
+                orientation: 'bottom' // top, bottom
+            }
+        }});
+
+    groups.add({
+        id: 1,
+        content: names[1],
+        className: "graphGroup1",
+        options: {
+            yAxisOrientation: 'right',
+            drawPoints: true, // square, circle
+            shaded: {
+                orientation: 'top' // top, bottom
+            }
+        }});
+
+    groups.add({
+        id: 2,
+        content: names[2],
+        className: "graphGroup2",
+        options: {
+            shaded: {
+                enabled: false,
+                orientation: 'top' // top, bottom
+            }
+        }});
+
   var container = document.getElementById('visualization');
   var items = [
-    {x: '2014-06-11', y: 10, className: 'group0', label: 'red'},
-    {x: '2014-06-12', y: 25, className: 'group0', label: 'red'},
-    {x: '2014-06-13', y: 30, className: 'group0', label: 'red'},
-    {x: '2014-06-14', y: 10, className: 'group1', label: 'green'},
-    {x: '2014-06-15', y: 15, className: 'group1', label: 'green'},
-    {x: '2014-06-16', y: 30, className: 'group1', label: 'green'},
-    {x: '2014-06-17', y: 10, className: 'group2', label: 'green'},
-    {x: '2014-06-18', y: 15, className: 'group2', label: 'green'},
-    {x: '2014-06-19', y: 50, className: 'group2', label: 'green'},
-    {x: '2014-06-20', y: 10, className: 'group3', label: 'green'},
-    {x: '2014-06-21', y: 19, className: 'group3', label: 'green'},
-    {x: '2014-06-22', y: 60, className: 'group3', label: 'green'},
-    {x: '2014-06-23', y: 10, className: 'group4', label: 'red'},
-    {x: '2014-06-24', y: 25, className: 'group4', label: 'red'},
-    {x: '2014-06-25', y: 30, className: 'group4', label: 'red'}
+    {x: '2014-06-11', y: 10 },
+    {x: '2014-06-12', y: 25 },
+    {x: '2014-06-13', y: 30, group: 0},
+    {x: '2014-06-14', y: 10, group: 0},
+    {x: '2014-06-15', y: 150, group: 1},
+    {x: '2014-06-16', y: 300, group: 1},
+    {x: '2014-06-17', y: 100, group: 1},
+    {x: '2014-06-18', y: 150, group: 1},
+    {x: '2014-06-19', y: 520, group: 1},
+    {x: '2014-06-20', y: 100, group: 1},
+    {x: '2014-06-21', y: 19, group: 2},
+    {x: '2014-06-22', y: 60, group: 2},
+    {x: '2014-06-23', y: 10, group: 2},
+    {x: '2014-06-24', y: 25, group: 2},
+    {x: '2014-06-25', y: 30, group: 2}
 //      {x: '2014-06-11', y: 10},
 //      {x: '2014-06-12', y: 25},
 //      {x: '2014-06-13', y: 30},
@@ -42,8 +95,10 @@
   ];
 
   var dataset = new vis.DataSet(items);
-  var options = {};
-  var graph2d = new vis.Graph2d(container, dataset, options);
+  var graph2d = new vis.Graph2d(container);
+    graph2d.setOptions(options);
+    graph2d.setGroups(groups);
+    graph2d.setItems(dataset);
 
 </script>
 </body>

@@ -67,6 +67,7 @@ task('build', {async: true}, function () {
       './src/DataSet.js',
       './src/DataView.js',
 
+      './src/timeline/component/Legend.js',
       './src/timeline/component/DataAxis.js',
       './src/timeline/component/Linegraph.js',
       './src/timeline/DataStep.js',

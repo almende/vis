@@ -988,4 +988,5 @@ util.copyObject = function(objectFrom, objectTo) {
       }
     }
   }
+  return objectTo;
 };
