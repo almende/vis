@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 1.1.0
- * @date    2014-06-17
+ * @date    2014-06-18
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -629,8 +629,7 @@ util.convert = function(object, type) {
       }
 
     default:
-      throw new Error('Cannot convert object of type ' + util.getType(object) +
-          ' to type "' + type + '"');
+      throw new Error('Unknown type "' + type + '"');
   }
 };
 
@@ -1306,7 +1305,7 @@ util.copyObject = function(objectFrom, objectTo) {
  * Usage:
  *     var dataSet = new DataSet({
  *         fieldId: '_id',
- *         convert: {
+ *         type: {
  *             // ...
  *         }
  *     });
@@ -1332,7 +1331,7 @@ util.copyObject = function(objectFrom, objectTo) {
  * @param {Object} [options]   Available options:
  *                             {String} fieldId Field name of the id in the
  *                                              items, 'id' by default.
- *                             {Object.<String, String} convert
+ *                             {Object.<String, String} type
  *                                              A map with field names as key,
  *                                              and the field type as value.
  * @constructor DataSet
@@ -1350,21 +1349,28 @@ function DataSet (data, options) {
   this.options = options || {};
   this.data = {};                                 // map with data indexed by id
   this.fieldId = this.options.fieldId || 'id';    // name of the field containing id
-  this.convert = {};                              // field types by field name
+  this.type = {};                                 // internal field types (NOTE: this can differ from this.options.type)
   this.showInternalIds = this.options.showInternalIds || false; // show internal ids with the get function
 
-  if (this.options.convert) {
-    for (var field in this.options.convert) {
-      if (this.options.convert.hasOwnProperty(field)) {
-        var value = this.options.convert[field];
+  // all variants of a Date are internally stored as Date, so we can convert
+  // from everything to everything (also from ISODate to Number for example)
+  if (this.options.type) {
+    for (var field in this.options.type) {
+      if (this.options.type.hasOwnProperty(field)) {
+        var value = this.options.type[field];
         if (value == 'Date' || value == 'ISODate' || value == 'ASPDate') {
-          this.convert[field] = 'Date';
+          this.type[field] = 'Date';
         }
         else {
-          this.convert[field] = value;
+          this.type[field] = value;
         }
       }
     }
+  }
+
+  // TODO: deprecated since version 1.1.1 (or 2.0.0?)
+  if (this.options.convert) {
+    throw new Error('Option "convert" is deprecated. Use "type" instead.');
   }
 
   this.subscribers = {};  // event subscribers
@@ -1579,9 +1585,9 @@ DataSet.prototype.update = function (data, senderId) {
  * {Number | String} id         The id of an item
  * {Number[] | String{}} ids    An array with ids of items
  * {Object} options             An Object with options. Available options:
- *                              {String} [type] Type of data to be returned. Can
- *                                              be 'DataTable' or 'Array' (default)
- *                              {Object.<String, String>} [convert]
+ *                              {String} [returnType] Type of data to be
+ *                                  returned. Can be 'DataTable' or 'Array' (default)
+ *                              {Object.<String, String>} [type]
  *                              {String[]} [fields] field names to be returned
  *                              {function} [filter] filter items
  *                              {String | function} [order] Order the items by
@@ -1618,24 +1624,24 @@ DataSet.prototype.get = function (args) {
   }
 
   // determine the return type
-  var type;
-  if (options && options.type) {
-    type = (options.type == 'DataTable') ? 'DataTable' : 'Array';
+  var returnType;
+  if (options && options.returnType) {
+    returnType = (options.returnType == 'DataTable') ? 'DataTable' : 'Array';
 
-    if (data && (type != util.getType(data))) {
+    if (data && (returnType != util.getType(data))) {
       throw new Error('Type of parameter "data" (' + util.getType(data) + ') ' +
           'does not correspond with specified options.type (' + options.type + ')');
     }
-    if (type == 'DataTable' && !util.isDataTable(data)) {
+    if (returnType == 'DataTable' && !util.isDataTable(data)) {
       throw new Error('Parameter "data" must be a DataTable ' +
           'when options.type is "DataTable"');
     }
   }
   else if (data) {
-    type = (util.getType(data) == 'DataTable') ? 'DataTable' : 'Array';
+    returnType = (util.getType(data) == 'DataTable') ? 'DataTable' : 'Array';
   }
   else {
-    type = 'Array';
+    returnType = 'Array';
   }
 
   // we allow the setting of this value for a single get request.
@@ -1646,14 +1652,14 @@ DataSet.prototype.get = function (args) {
   }
 
   // build options
-  var convert = options && options.convert || this.options.convert;
+  var type = options && options.type || this.options.type;
   var filter = options && options.filter;
   var items = [], item, itemId, i, len;
 
   // convert items
   if (id != undefined) {
     // return a single item
-    item = me._getItem(id, convert);
+    item = me._getItem(id, type);
     if (filter && !filter(item)) {
       item = null;
     }
@@ -1661,7 +1667,7 @@ DataSet.prototype.get = function (args) {
   else if (ids != undefined) {
     // return a subset of items
     for (i = 0, len = ids.length; i < len; i++) {
-      item = me._getItem(ids[i], convert);
+      item = me._getItem(ids[i], type);
       if (!filter || filter(item)) {
         items.push(item);
       }
@@ -1671,7 +1677,7 @@ DataSet.prototype.get = function (args) {
     // return all items
     for (itemId in this.data) {
       if (this.data.hasOwnProperty(itemId)) {
-        item = me._getItem(itemId, convert);
+        item = me._getItem(itemId, type);
         if (!filter || filter(item)) {
           items.push(item);
         }
@@ -1701,7 +1707,7 @@ DataSet.prototype.get = function (args) {
   }
 
   // return the results
-  if (type == 'DataTable') {
+  if (returnType == 'DataTable') {
     var columns = this._getColumnNames(data);
     if (id != undefined) {
       // append a single item to the data table
@@ -1750,7 +1756,7 @@ DataSet.prototype.getIds = function (options) {
   var data = this.data,
       filter = options && options.filter,
       order = options && options.order,
-      convert = options && options.convert || this.options.convert,
+      type = options && options.type || this.options.type,
       i,
       len,
       id,
@@ -1765,7 +1771,7 @@ DataSet.prototype.getIds = function (options) {
       items = [];
       for (id in data) {
         if (data.hasOwnProperty(id)) {
-          item = this._getItem(id, convert);
+          item = this._getItem(id, type);
           if (filter(item)) {
             items.push(item);
           }
@@ -1782,7 +1788,7 @@ DataSet.prototype.getIds = function (options) {
       // create unordered list
       for (id in data) {
         if (data.hasOwnProperty(id)) {
-          item = this._getItem(id, convert);
+          item = this._getItem(id, type);
           if (filter(item)) {
             ids.push(item[this.fieldId]);
           }
@@ -1825,7 +1831,7 @@ DataSet.prototype.getIds = function (options) {
  * Execute a callback function for every item in the dataset.
  * @param {function} callback
  * @param {Object} [options]    Available options:
- *                              {Object.<String, String>} [convert]
+ *                              {Object.<String, String>} [type]
  *                              {String[]} [fields] filter fields
  *                              {function} [filter] filter items
  *                              {String | function} [order] Order the items by
@@ -1833,7 +1839,7 @@ DataSet.prototype.getIds = function (options) {
  */
 DataSet.prototype.forEach = function (callback, options) {
   var filter = options && options.filter,
-      convert = options && options.convert || this.options.convert,
+      type = options && options.type || this.options.type,
       data = this.data,
       item,
       id;
@@ -1852,7 +1858,7 @@ DataSet.prototype.forEach = function (callback, options) {
     // unordered
     for (id in data) {
       if (data.hasOwnProperty(id)) {
-        item = this._getItem(id, convert);
+        item = this._getItem(id, type);
         if (!filter || filter(item)) {
           callback(item, id);
         }
@@ -1865,7 +1871,7 @@ DataSet.prototype.forEach = function (callback, options) {
  * Map every item in the dataset.
  * @param {function} callback
  * @param {Object} [options]    Available options:
- *                              {Object.<String, String>} [convert]
+ *                              {Object.<String, String>} [type]
  *                              {String[]} [fields] filter fields
  *                              {function} [filter] filter items
  *                              {String | function} [order] Order the items by
@@ -1874,7 +1880,7 @@ DataSet.prototype.forEach = function (callback, options) {
  */
 DataSet.prototype.map = function (callback, options) {
   var filter = options && options.filter,
-      convert = options && options.convert || this.options.convert,
+      type = options && options.type || this.options.type,
       mappedItems = [],
       data = this.data,
       item;
@@ -1882,7 +1888,7 @@ DataSet.prototype.map = function (callback, options) {
   // convert and filter items
   for (var id in data) {
     if (data.hasOwnProperty(id)) {
-      item = this._getItem(id, convert);
+      item = this._getItem(id, type);
       if (!filter || filter(item)) {
         mappedItems.push(callback(item, id));
       }
@@ -2075,7 +2081,7 @@ DataSet.prototype.min = function (field) {
 DataSet.prototype.distinct = function (field) {
   var data = this.data,
       values = [],
-      fieldType = this.options.convert[field],
+      fieldType = this.options.type[field],
       count = 0;
 
   for (var prop in data) {
@@ -2125,7 +2131,7 @@ DataSet.prototype._addItem = function (item) {
   var d = {};
   for (var field in item) {
     if (item.hasOwnProperty(field)) {
-      var fieldType = this.convert[field];  // type may be undefined
+      var fieldType = this.type[field];  // type may be undefined
       d[field] = util.convert(item[field], fieldType);
     }
   }
@@ -2137,11 +2143,11 @@ DataSet.prototype._addItem = function (item) {
 /**
  * Get an item. Fields can be converted to a specific type
  * @param {String} id
- * @param {Object.<String, String>} [convert]  field types to convert
+ * @param {Object.<String, String>} [type]  field types to convert
  * @return {Object | null} item
  * @private
  */
-DataSet.prototype._getItem = function (id, convert) {
+DataSet.prototype._getItem = function (id, type) {
   var field, value;
 
   // get the item from the dataset
@@ -2154,13 +2160,13 @@ DataSet.prototype._getItem = function (id, convert) {
   var converted = {},
       fieldId = this.fieldId,
       internalIds = this.internalIds;
-  if (convert) {
+  if (type) {
     for (field in raw) {
       if (raw.hasOwnProperty(field)) {
         value = raw[field];
         // output all fields, except internal ids
         if ((field != fieldId) || (!(value in internalIds) || this.showInternalIds)) {
-          converted[field] = util.convert(value, convert[field]);
+          converted[field] = util.convert(value, type[field]);
         }
       }
     }
@@ -2202,7 +2208,7 @@ DataSet.prototype._updateItem = function (item) {
   // merge with current item
   for (var field in item) {
     if (item.hasOwnProperty(field)) {
-      var fieldType = this.convert[field];  // type may be undefined
+      var fieldType = this.type[field];  // type may be undefined
       d[field] = util.convert(item[field], fieldType);
     }
   }
@@ -4412,6 +4418,11 @@ function ItemSet(body, options) {
   // options is shared by this ItemSet and all its items
   this.options = util.extend({}, this.defaultOptions);
 
+  // options for getting items from the DataSet with the correct type
+  this.itemOptions = {
+    type: {start: 'Date', end: 'Date'}
+  };
+
   this.conversion = {
     toScreen: body.util.toScreen,
     toTime: body.util.toTime
@@ -5012,7 +5023,7 @@ ItemSet.prototype._onUpdate = function(ids) {
   var me = this;
 
   ids.forEach(function (id) {
-    var itemData = me.itemsData.get(id),
+    var itemData = me.itemsData.get(id, me.itemOptions),
         item = me.items[id],
         type = itemData.type ||
             (itemData.start && itemData.end && 'range') ||
@@ -5432,16 +5443,18 @@ ItemSet.prototype._onDragEnd = function (event) {
 
     this.touchParams.itemProps.forEach(function (props) {
       var id = props.item.id,
-          itemData = me.itemsData.get(id);
+          itemData = me.itemsData.get(id, me.itemOptions);
 
       var changed = false;
       if ('start' in props.item.data) {
         changed = (props.start != props.item.data.start.valueOf());
-        itemData.start = util.convert(props.item.data.start, dataset.convert['start']);
+        itemData.start = util.convert(props.item.data.start,
+                dataset.options.type && dataset.options.type.start || 'Date');
       }
       if ('end' in props.item.data) {
         changed = changed  || (props.end != props.item.data.end.valueOf());
-        itemData.end = util.convert(props.item.data.end, dataset.convert['end']);
+        itemData.end = util.convert(props.item.data.end,
+                dataset.options.type && dataset.options.type.end || 'Date');
       }
       if ('group' in props.item.data) {
         changed = changed  || (props.group != props.item.data.group);
@@ -6571,6 +6584,7 @@ function Group (groupId, data, itemSet) {
       height: 0
     }
   };
+  this.className = null;
 
   this.items = {};        // items filtered by groupId of this group
   this.visibleItems = []; // items currently visible in window
@@ -6604,8 +6618,10 @@ Group.prototype._create = function() {
   this.dom.foreground = foreground;
 
   this.dom.background = document.createElement('div');
+  this.dom.background.className = 'group';
 
   this.dom.axis = document.createElement('div');
+  this.dom.axis.className = 'group';
 
   // create a hidden marker to detect when the Timelines container is attached
   // to the DOM, or the style of a parent of the Timeline is changed from
@@ -6641,9 +6657,18 @@ Group.prototype.setData = function(data) {
   }
 
   // update className
-  var className = data && data.className;
-  if (className) {
+  var className = data && data.className || null;
+  if (className != this.className) {
+    if (this.className) {
+      util.removeClassName(this.dom.label, className);
+      util.removeClassName(this.dom.foreground, className);
+      util.removeClassName(this.dom.background, className);
+      util.removeClassName(this.dom.axis, className);
+    }
     util.addClassName(this.dom.label, className);
+    util.addClassName(this.dom.foreground, className);
+    util.addClassName(this.dom.background, className);
+    util.addClassName(this.dom.axis, className);
   }
 };
 
@@ -7310,7 +7335,7 @@ Timeline.prototype.setItems = function(items) {
   else {
     // turn an array into a dataset
     newDataSet = new DataSet(items, {
-      convert: {
+      type: {
         start: 'Date',
         end: 'Date'
       }
@@ -7427,20 +7452,22 @@ Timeline.prototype.getItemRange = function() {
   if (itemsData) {
     // calculate the minimum value of the field 'start'
     var minItem = itemsData.min('start');
-    min = minItem ? minItem.start.valueOf() : null;
+    min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
+    // Note: we convert first to Date and then to number because else
+    // a conversion from ISODate to Number will fail
 
     // calculate maximum value of fields 'start' and 'end'
     var maxStartItem = itemsData.max('start');
     if (maxStartItem) {
-      max = maxStartItem.start.valueOf();
+      max = util.convert(maxStartItem.start, 'Date').valueOf();
     }
     var maxEndItem = itemsData.max('end');
     if (maxEndItem) {
       if (max == null) {
-        max = maxEndItem.end.valueOf();
+        max = util.convert(maxEndItem.end, 'Date').valueOf();
       }
       else {
-        max = Math.max(max, maxEndItem.end.valueOf());
+        max = Math.max(max, util.convert(maxEndItem.end, 'Date').valueOf());
       }
     }
   }
@@ -8910,8 +8937,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.edges = []; // all edges connected to this node
   this.dynamicEdges = [];
   this.reroutedEdges = {};
-  this.group = constants.nodes.group;
 
+  this.group = constants.nodes.group;
   this.fontSize = Number(constants.nodes.fontSize);
   this.fontFace = constants.nodes.fontFace;
   this.fontColor = constants.nodes.fontColor;
@@ -9692,7 +9719,6 @@ Node.prototype._drawShape = function (ctx, shape) {
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
-
   ctx[shape](this.x, this.y, this.radius);
   ctx.fill();
   ctx.stroke();
@@ -9910,6 +9936,10 @@ function Edge (properties, graph, constants) {
   this.lengthFixed = false;
 
   this.setProperties(properties, constants);
+
+  this.controlNodesEnabled = false;
+  this.controlNodes = {from:null, to:null, positions:{}};
+  this.connectedNode = null;
 }
 
 /**
@@ -10658,6 +10688,147 @@ Edge.prototype.positionBezierNode = function() {
   }
 };
 
+/**
+ * This function draws the control nodes for the manipulator. In order to enable this, only set the this.controlNodesEnabled to true.
+ * @param ctx
+ */
+Edge.prototype._drawControlNodes = function(ctx) {
+  if (this.controlNodesEnabled == true) {
+    if (this.controlNodes.from === null && this.controlNodes.to === null) {
+      var nodeIdFrom = "edgeIdFrom:".concat(this.id);
+      var nodeIdTo = "edgeIdTo:".concat(this.id);
+      var constants = {
+                      nodes:{group:'', radius:8},
+                      physics:{damping:0},
+                      clustering: {maxNodeSizeIncrements: 0 ,nodeScaling: {width:0, height: 0, radius:0}}
+                      };
+      this.controlNodes.from = new Node(
+        {id:nodeIdFrom,
+          shape:'dot',
+            color:{background:'#ff4e00', border:'#3c3c3c', highlight: {background:'#07f968'}}
+        },{},{},constants);
+      this.controlNodes.to = new Node(
+        {id:nodeIdTo,
+          shape:'dot',
+          color:{background:'#ff4e00', border:'#3c3c3c', highlight: {background:'#07f968'}}
+        },{},{},constants);
+    }
+
+    if (this.controlNodes.from.selected == false && this.controlNodes.to.selected == false) {
+      this.controlNodes.positions = this.getControlNodePositions(ctx);
+      this.controlNodes.from.x = this.controlNodes.positions.from.x;
+      this.controlNodes.from.y = this.controlNodes.positions.from.y;
+      this.controlNodes.to.x = this.controlNodes.positions.to.x;
+      this.controlNodes.to.y = this.controlNodes.positions.to.y;
+    }
+
+    this.controlNodes.from.draw(ctx);
+    this.controlNodes.to.draw(ctx);
+  }
+  else {
+    this.controlNodes = {from:null, to:null, positions:{}};
+  }
+}
+
+/**
+ * Enable control nodes.
+ * @private
+ */
+Edge.prototype._enableControlNodes = function() {
+  this.controlNodesEnabled = true;
+}
+
+/**
+ * disable control nodes
+ * @private
+ */
+Edge.prototype._disableControlNodes = function() {
+  this.controlNodesEnabled = false;
+}
+
+/**
+ * This checks if one of the control nodes is selected and if so, returns the control node object. Else it returns null.
+ * @param x
+ * @param y
+ * @returns {null}
+ * @private
+ */
+Edge.prototype._getSelectedControlNode = function(x,y) {
+  var positions = this.controlNodes.positions;
+  var fromDistance = Math.sqrt(Math.pow(x - positions.from.x,2) + Math.pow(y - positions.from.y,2));
+  var toDistance =   Math.sqrt(Math.pow(x - positions.to.x  ,2) + Math.pow(y - positions.to.y  ,2));
+
+  if (fromDistance < 15) {
+    this.connectedNode = this.from;
+    this.from = this.controlNodes.from;
+    return this.controlNodes.from;
+  }
+  else if (toDistance < 15) {
+    this.connectedNode = this.to;
+    this.to = this.controlNodes.to;
+    return this.controlNodes.to;
+  }
+  else {
+    return null;
+  }
+}
+
+
+/**
+ * this resets the control nodes to their original position.
+ * @private
+ */
+Edge.prototype._restoreControlNodes = function() {
+  if (this.controlNodes.from.selected == true) {
+    this.from = this.connectedNode;
+    this.connectedNode = null;
+    this.controlNodes.from.unselect();
+  }
+  if (this.controlNodes.to.selected == true) {
+    this.to = this.connectedNode;
+    this.connectedNode = null;
+    this.controlNodes.to.unselect();
+  }
+}
+
+/**
+ * this calculates the position of the control nodes on the edges of the parent nodes.
+ *
+ * @param ctx
+ * @returns {{from: {x: number, y: number}, to: {x: *, y: *}}}
+ */
+Edge.prototype.getControlNodePositions = function(ctx) {
+  var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
+  var dx = (this.to.x - this.from.x);
+  var dy = (this.to.y - this.from.y);
+  var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
+  var fromBorderDist = this.from.distanceToBorder(ctx, angle + Math.PI);
+  var fromBorderPoint = (edgeSegmentLength - fromBorderDist) / edgeSegmentLength;
+  var xFrom = (fromBorderPoint) * this.from.x + (1 - fromBorderPoint) * this.to.x;
+  var yFrom = (fromBorderPoint) * this.from.y + (1 - fromBorderPoint) * this.to.y;
+
+
+  if (this.smooth == true) {
+    angle = Math.atan2((this.to.y - this.via.y), (this.to.x - this.via.x));
+    dx = (this.to.x - this.via.x);
+    dy = (this.to.y - this.via.y);
+    edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
+  }
+  var toBorderDist = this.to.distanceToBorder(ctx, angle);
+  var toBorderPoint = (edgeSegmentLength - toBorderDist) / edgeSegmentLength;
+
+  var xTo,yTo;
+  if (this.smooth == true) {
+    xTo = (1 - toBorderPoint) * this.via.x + toBorderPoint * this.to.x;
+    yTo = (1 - toBorderPoint) * this.via.y + toBorderPoint * this.to.y;
+  }
+  else {
+    xTo = (1 - toBorderPoint) * this.from.x + toBorderPoint * this.to.x;
+    yTo = (1 - toBorderPoint) * this.from.y + toBorderPoint * this.to.y;
+  }
+
+  return {from:{x:xFrom,y:yFrom},to:{x:xTo,y:yTo}};
+}
 /**
  * Popup is a class to create a popup window with some text
  * @param {Element}  container     The container object.
@@ -12518,6 +12689,11 @@ var manipulationMixin = {
     if (this.boundFunction) {
       this.off('select', this.boundFunction);
     }
+    if (this.edgeBeingEdited !== undefined) {
+      this.edgeBeingEdited._disableControlNodes();
+      this.edgeBeingEdited = undefined;
+      this.selectedControlNode = null;
+    }
 
     // restore overloaded functions
     this._restoreOverloadedFunctions();
@@ -12546,6 +12722,12 @@ var manipulationMixin = {
           "<span class='graph-manipulationUI edit' id='graph-manipulate-editNode'>" +
             "<span class='graph-manipulationLabel'>"+this.constants.labels['editNode'] +"</span></span>";
       }
+      else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
+        this.manipulationDiv.innerHTML += "" +
+          "<div class='graph-seperatorLine'></div>" +
+          "<span class='graph-manipulationUI edit' id='graph-manipulate-editEdge'>" +
+          "<span class='graph-manipulationLabel'>"+this.constants.labels['editEdge'] +"</span></span>";
+      }
       if (this._selectionIsEmpty() == false) {
         this.manipulationDiv.innerHTML += "" +
           "<div class='graph-seperatorLine'></div>" +
@@ -12562,6 +12744,10 @@ var manipulationMixin = {
       if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
         var editButton = document.getElementById("graph-manipulate-editNode");
         editButton.onclick = this._editNode.bind(this);
+      }
+      else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
+        var editButton = document.getElementById("graph-manipulate-editEdge");
+        editButton.onclick = this._createEditEdgeToolbar.bind(this);
       }
       if (this._selectionIsEmpty() == false) {
         var deleteButton = document.getElementById("graph-manipulate-delete");
@@ -12656,9 +12842,105 @@ var manipulationMixin = {
 
     // redraw to show the unselect
     this._redraw();
-
   },
 
+  /**
+   * create the toolbar to edit edges
+   *
+   * @private
+   */
+  _createEditEdgeToolbar : function() {
+    // clear the toolbar
+    this._clearManipulatorBar();
+
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
+
+    this.edgeBeingEdited = this._getSelectedEdge();
+    this.edgeBeingEdited._enableControlNodes();
+
+    this.manipulationDiv.innerHTML = "" +
+      "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
+      "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
+      "<div class='graph-seperatorLine'></div>" +
+      "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
+      "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['editEdgeDescription'] + "</span></span>";
+
+    // bind the icon
+    var backButton = document.getElementById("graph-manipulate-back");
+    backButton.onclick = this._createManipulatorBar.bind(this);
+
+    // temporarily overload functions
+    this.cachedFunctions["_handleTouch"]      = this._handleTouch;
+    this.cachedFunctions["_handleOnRelease"]  = this._handleOnRelease;
+    this.cachedFunctions["_handleTap"]        = this._handleTap;
+    this.cachedFunctions["_handleDragStart"]  = this._handleDragStart;
+    this.cachedFunctions["_handleOnDrag"]     = this._handleOnDrag;
+    this._handleTouch     = this._selectControlNode;
+    this._handleTap       = function () {};
+    this._handleOnDrag    = this._controlNodeDrag;
+    this._handleDragStart = function () {}
+    this._handleOnRelease = this._releaseControlNode;
+
+    // redraw to show the unselect
+    this._redraw();
+  },
+
+
+
+
+
+  /**
+   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+   * to walk the user through the process.
+   *
+   * @private
+   */
+  _selectControlNode : function(pointer) {
+    this.edgeBeingEdited.controlNodes.from.unselect();
+    this.edgeBeingEdited.controlNodes.to.unselect();
+    this.selectedControlNode = this.edgeBeingEdited._getSelectedControlNode(this._XconvertDOMtoCanvas(pointer.x),this._YconvertDOMtoCanvas(pointer.y));
+    if (this.selectedControlNode !== null) {
+      this.selectedControlNode.select();
+      this.freezeSimulation = true;
+    }
+    this._redraw();
+  },
+
+  /**
+   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+   * to walk the user through the process.
+   *
+   * @private
+   */
+  _controlNodeDrag : function(event) {
+    var pointer = this._getPointer(event.gesture.center);
+    if (this.selectedControlNode !== null && this.selectedControlNode !== undefined) {
+      this.selectedControlNode.x = this._XconvertDOMtoCanvas(pointer.x);
+      this.selectedControlNode.y = this._YconvertDOMtoCanvas(pointer.y);
+    }
+    this._redraw();
+  },
+
+  _releaseControlNode : function(pointer) {
+    var newNode = this._getNodeAt(pointer);
+    if (newNode != null) {
+      if (this.edgeBeingEdited.controlNodes.from.selected == true) {
+        this._editEdge(newNode.id, this.edgeBeingEdited.to.id);
+        this.edgeBeingEdited.controlNodes.from.unselect();
+      }
+      if (this.edgeBeingEdited.controlNodes.to.selected == true) {
+        this._editEdge(this.edgeBeingEdited.from.id, newNode.id);
+        this.edgeBeingEdited.controlNodes.to.unselect();
+      }
+    }
+    else {
+      this.edgeBeingEdited._restoreControlNodes();
+    }
+    this.freezeSimulation = false;
+    this._redraw();
+  },
 
   /**
    * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
@@ -12804,6 +13086,36 @@ var manipulationMixin = {
     }
   },
 
+  /**
+   * connect two nodes with a new edge.
+   *
+   * @private
+   */
+  _editEdge : function(sourceNodeId,targetNodeId) {
+    if (this.editMode == true) {
+      var defaultData = {id: this.edgeBeingEdited.id, from:sourceNodeId, to:targetNodeId};
+      if (this.triggerFunctions.editEdge) {
+        if (this.triggerFunctions.editEdge.length == 2) {
+          var me = this;
+          this.triggerFunctions.editEdge(defaultData, function(finalizedData) {
+            me.edgesData.update(finalizedData);
+            me.moving = true;
+            me.start();
+          });
+        }
+        else {
+          alert(this.constants.labels["linkError"]);
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        this.edgesData.update(defaultData);
+        this.moving = true;
+        this.start();
+      }
+    }
+  },
 
   /**
    * Create the toolbar to edit the selected node. The label and the color can be changed. Other colors are derived from the chosen color.
@@ -12842,6 +13154,8 @@ var manipulationMixin = {
       alert(this.constants.labels["editBoundError"]);
     }
   },
+
+
 
 
   /**
@@ -14823,7 +15137,7 @@ var SelectionMixin = {
   },
 
   /**
-   * return the number of selected nodes
+   * return the selected node
    *
    * @returns {number}
    * @private
@@ -14832,6 +15146,21 @@ var SelectionMixin = {
     for (var nodeId in this.selectionObj.nodes) {
       if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
         return this.selectionObj.nodes[nodeId];
+      }
+    }
+    return null;
+  },
+
+  /**
+   * return the selected edge
+   *
+   * @returns {number}
+   * @private
+   */
+  _getSelectedEdge : function() {
+    for (var edgeId in this.selectionObj.edges) {
+      if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        return this.selectionObj.edges[edgeId];
       }
     }
     return null;
@@ -15040,7 +15369,6 @@ var SelectionMixin = {
    * @private
    */
   _handleTouch : function(pointer) {
-
   },
 
 
@@ -15653,7 +15981,7 @@ function Graph (container, data, options) {
   this.initializing = true;
 
   // these functions are triggered when the dataset is edited
-  this.triggerFunctions = {add:null,edit:null,connect:null,del:null};
+  this.triggerFunctions = {add:null,edit:null,editEdge:null,connect:null,del:null};
 
   // set constant values
   this.constants = {
@@ -15789,9 +16117,11 @@ function Graph (container, data, options) {
       link:"Add Link",
       del:"Delete selected",
       editNode:"Edit Node",
+      editEdge:"Edit Edge",
       back:"Back",
       addDescription:"Click in an empty space to place a new node.",
       linkDescription:"Click on a node and drag the edge to another node to connect them.",
+      editEdgeDescription:"Click on the control points and drag them to a node to connect to it.",
       addError:"The function for add does not support two arguments (data,callback).",
       linkError:"The function for connect does not support two arguments (data,callback).",
       editError:"The function for edit does not support two arguments (data, callback).",
@@ -16171,6 +16501,10 @@ Graph.prototype.setOptions = function (options) {
 
     if (options.onEdit) {
       this.triggerFunctions.edit = options.onEdit;
+    }
+
+    if (options.onEditEdge) {
+      this.triggerFunctions.editEdge = options.onEditEdge;
     }
 
     if (options.onConnect) {
@@ -17302,7 +17636,6 @@ Graph.prototype._updateValueRange = function(obj) {
  */
 Graph.prototype.redraw = function() {
   this.setSize(this.width, this.height);
-
   this._redraw();
 };
 
@@ -17334,6 +17667,7 @@ Graph.prototype._redraw = function() {
   this._doInAllSectors("_drawAllSectorNodes",ctx);
   this._doInAllSectors("_drawEdges",ctx);
   this._doInAllSectors("_drawNodes",ctx,false);
+  this._doInAllSectors("_drawControlNodes",ctx);
 
 //  this._doInSupportSector("_drawNodes",ctx,true);
 //  this._drawTree(ctx,"#F00F0F");
@@ -17514,6 +17848,21 @@ Graph.prototype._drawEdges = function(ctx) {
       if (edge.connected) {
         edges[id].draw(ctx);
       }
+    }
+  }
+};
+
+/**
+ * Redraw all edges
+ * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
+ * @param {CanvasRenderingContext2D}   ctx
+ * @private
+ */
+Graph.prototype._drawControlNodes = function(ctx) {
+  var edges = this.edges;
+  for (var id in edges) {
+    if (edges.hasOwnProperty(id)) {
+      edges[id]._drawControlNodes(ctx);
     }
   }
 };
