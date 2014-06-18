@@ -18,6 +18,7 @@ http://visjs.org
 - Reduced the timestep a little for smoother animations.
 - Fixed dataManipulation.initiallyVisible functionality (thanks theGrue).
 - Forced typecast of fontSize to Number.
+- Added editing of edges using the data manipulation toolkit.
 
 ### DataSet
 
