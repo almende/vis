@@ -1,4 +1,4 @@
-
+var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
 function Linegraph(body, options) {
   this.id = util.randomUUID();
@@ -31,6 +31,7 @@ function Linegraph(body, options) {
   this.dom = {};
   this.props = {};
   this.hammer = null;
+  this.groups = {};
 
   var me = this;
   this.itemsData = null;    // DataSet
@@ -68,8 +69,8 @@ function Linegraph(body, options) {
   this.touchParams = {}; // stores properties while dragging
 
   this.svgElements = {};
-  this.svgLegendElements = {};
   this.setOptions(options);
+  this.groupsUsingDefaultStyles = 0;
 
 
   var me = this;
@@ -113,15 +114,6 @@ Linegraph.prototype._create = function(){
   this.svg.style.display = "block";
   frame.appendChild(this.svg);
 
-  this.svgLegend = document.createElementNS('http://www.w3.org/2000/svg',"svg");
-  this.svgLegend.style.position = "absolute";
-  this.svgLegend.style.top = "10px";
-  this.svgLegend.style.height = "300px";
-  this.svgLegend.style.width = "300px";
-  this.svgLegend.style.display = "block";
-
-  frame.appendChild(this.svgLegend);
-
   // panel with time axis
   this.yAxisLeft = new DataAxis(this.body, {
     orientation: 'left',
@@ -143,9 +135,17 @@ Linegraph.prototype._create = function(){
     height: this.svg.style.height
   });
 
+  this.legend = new Legend(this.body, {
+    orientation:'left'
+  });
+
   this.show();
 };
 
+/**
+ * set the options of the linegraph. the mergeOptions is used for subObjects that have an enabled element.
+ * @param options
+ */
 Linegraph.prototype.setOptions = function(options) {
   if (options) {
     var fields = ['yAxisOrientation'];
@@ -173,6 +173,15 @@ Linegraph.prototype.setOptions = function(options) {
   }
 };
 
+/**
+ * this is used to set the options of subobjects in the options object. A requirement of these subobjects
+ * is that they have an 'enabled' element which is optional for the user but mandatory for the program.
+ *
+ * @param [object] mergeTarget | this is either this.options or the options used for the groups.
+ * @param [object] options     | options
+ * @param [String] option      | this is the option key in the options argument
+ * @private
+ */
 Linegraph.prototype._mergeOptions = function (mergeTarget, options,option) {
   if (options[option]) {
     if (typeof options[option] == 'boolean') {
@@ -308,38 +317,76 @@ Linegraph.prototype.setGroups = function(groups) {
 
 
 Linegraph.prototype._onUpdate = function(ids) {
+  this._updateUngrouped();
   this.updateGraph();
   this.redraw();
 };
 Linegraph.prototype._onAdd          = Linegraph.prototype._onUpdate;
 Linegraph.prototype._onRemove       = Linegraph.prototype._onUpdate;
-Linegraph.prototype._onUpdateGroups = Linegraph.prototype._onUpdate;
-Linegraph.prototype._onAddGroups    = Linegraph.prototype._onUpdate;
-Linegraph.prototype._onRemoveGroups = Linegraph.prototype._onUpdate;
+Linegraph.prototype._onUpdateGroups  = function (groupIds) {
+  for (var i = 0; i < groupIds.length; i++) {
+    var group = this.groupsData.get(groupIds[i]);
+    if (!this.groups.hasOwnProperty(groupIds[i])) {
+      this.groups[groupIds[i]] = new GraphGroup(group, this.options, this);
+      this.legend.addGroup(groupIds[i],this.groups[groupIds[i]]);
+    }
+    else {
+      this.groups[groupIds[i]].update(group);
+      this.legend.updateGroup(groupIds[i],this.groups[groupIds[i]]);
+    }
+  }
+
+  this.updateGraph();
+  this.redraw();
+};
+Linegraph.prototype._onAddGroups = Linegraph.prototype._onUpdateGroups;
+
+Linegraph.prototype._onRemoveGroups = function (groupIds) {
+  for (var i = 0; i < groupIds.length; i++) {
+      this.legend.removeGroup(groupIds[i]);
+  }
+  this.updateGraph();
+  this.redraw();
+};
 
 /**
  * Create or delete the group holding all ungrouped items. This group is used when
- * there are no groups specified.
+ * there are no groups specified. This anonymous group is called 'graph'.
  * @protected
  */
 Linegraph.prototype._updateUngrouped = function() {
+  var group = {content: "graph"};
+  if (!this.groups.hasOwnProperty(UNGROUPED)) {
+    this.groups[UNGROUPED] = new GraphGroup(group, this.options, this);
+  }
+  else {
+    this.groups[UNGROUPED].update(group);
+  }
+
   if (this.itemsData != null) {
     var datapoints = this.itemsData.get({
       filter: function (item) {return item.group === undefined;},
       showInternalIds:true
     });
-
-    var updateQuery = [];
-    for (var i = 0; i < datapoints.length; i++) {
-      updateQuery.push({id:datapoints[i].id, group: 'graph'});
+    if (datapoints.length > 0) {
+      var updateQuery = [];
+      for (var i = 0; i < datapoints.length; i++) {
+        updateQuery.push({id:datapoints[i].id, group: UNGROUPED});
+      }
+      this.itemsData.update(updateQuery);
     }
 
-    this.itemsData.update(updateQuery);
-
+    var pointInUNGROUPED = this.itemsData.get({filter: function (item) {return item.group == UNGROUPED;}});
+    if (pointInUNGROUPED.length == 0) {
+      this.legend.deleteGroup(UNGROUPED);
+      delete this.groups[UNGROUPED];
+    }
   }
 };
+
+
 /**
- * Repaint the component
+ * Redraw the component, mandatory function
  * @return {boolean} Returns true if the component is resized
  */
 Linegraph.prototype.redraw = function() {
@@ -348,6 +395,8 @@ Linegraph.prototype.redraw = function() {
   if (this.lastWidth === undefined && this.width || this.lastWidth != this.width) {
     resized = true;
   }
+  // check if this component is resized
+  resized = this._isResized() || resized;
   // check whether zoomed (in that case we need to re-stack everything)
   var visibleInterval = this.body.range.end - this.body.range.start;
   var zoomed = (visibleInterval != this.lastVisibleInterval) || (this.width != this.lastWidth);
@@ -356,20 +405,23 @@ Linegraph.prototype.redraw = function() {
 
   // calculate actual size and position
   this.width = this.dom.frame.offsetWidth;
-  this.svgLegend.style.left = (this.width - this.svgLegend.offsetWidth - 10) + "px";
 
-  // check if this component is resized
-  resized = this._isResized() || resized;
-  if (resized) {
+  // the svg element is three times as big as the width, this allows for fully dragging left and right
+  // without reloading the graph. the controls for this are bound to events in the constructor
+  if (resized == true) {
     this.svg.style.width = util.option.asSize(3*this.width);
     this.svg.style.left = util.option.asSize(-this.width);
   }
-  if (zoomed) {
+  if (zoomed == true) {
     this.updateGraph();
   }
+  return resized;
 };
 
-
+/**
+ * Update and redraw the graph.
+ *
+ */
 Linegraph.prototype.updateGraph = function () {
   // reset the svg elements
   this._prepareSVGElements(this.svgElements);
@@ -378,37 +430,38 @@ Linegraph.prototype.updateGraph = function () {
     // look at different lines
     var groupIds = this.itemsData.distinct('group');
     if (groupIds.length > 0) {
-      this._setYRanges(groupIds);
+      this._updateYAxis(groupIds);
       for (var i = 0; i < groupIds.length; i++) {
         this.drawGraph(groupIds[i], i, groupIds.length);
       }
     }
-    else {
-      this._setYRanges(groupIds);
-      this.drawGraph('graph', 0, 1);
-    }
   }
+
+//  this.legend.redraw();
 
   // cleanup unused svg elements
   this._cleanupSVGElements(this.svgElements);
 };
 
-Linegraph.prototype._setYRanges = function(groupIds) {
+/**
+ * this sets the Y ranges for the Y axis. It also determines which of the axis should be shown or hidden.
+ * @param {array} groupIds
+ * @private
+ */
+Linegraph.prototype._updateYAxis = function(groupIds) {
   var yAxisLeftUsed = false;
   var yAxisRightUsed = false;
   var minLeft = 1e9, minRight = 1e9, maxLeft = -1e9, maxRight = -1e9, minVal, maxVal;
   var orientation = 'left';
 
+
+  // if groups are present
   if (groupIds.length > 0) {
     for (var i = 0; i < groupIds.length; i++) {
       orientation = 'left';
-      var group = this.groupsData.get(groupIds[i]);
-      if (group != null) {
-        if (group.options) {
-          if (group.options.yAxisOrientation == 'right') {
-            orientation = 'right';
-          }
-        }
+      var group = this.groups[groupIds[i]];
+      if (group.options.yAxisOrientation == 'right') {
+        orientation = 'right';
       }
 
       var view = new vis.DataSet(this.itemsData.get({filter: function (item) {return item.group == groupIds[i];}}));
@@ -435,17 +488,7 @@ Linegraph.prototype._setYRanges = function(groupIds) {
       this.yAxisRight.setRange({start: minRight, end: maxRight});
     }
   }
-  else {
-    var yRange = {start: this.itemsData.min('y').y, end: this.itemsData.max('y').y};
-    if (this.options.yAxisOrientation == 'left') {
-      this.yAxisLeft.setRange(yRange);
-      yAxisLeftUsed = true;
-    }
-    else {
-      this.yAxisRight.setRange(yRange);
-      yAxisRightUsed = true;
-    }
-  }
+
   var changed = this._toggleAxisVisiblity(yAxisLeftUsed, this.yAxisLeft);
   changed = this._toggleAxisVisiblity(yAxisRightUsed, this.yAxisRight) || changed;
   if (changed) {
@@ -467,6 +510,14 @@ Linegraph.prototype._setYRanges = function(groupIds) {
   }
 }
 
+/**
+ * This shows or hides the Y axis if needed. If there is a change, the changed event is emitted by the updateYAxis function
+ *
+ * @param {boolean} axisUsed
+ * @param {DataAxis object} axis
+ * @returns {boolean}
+ * @private
+ */
 Linegraph.prototype._toggleAxisVisiblity = function(axisUsed, axis) {
   var changed = false;
   if (axisUsed == false) {
@@ -484,17 +535,35 @@ Linegraph.prototype._toggleAxisVisiblity = function(axisUsed, axis) {
   return changed;
 }
 
+
+/**
+ * determine if the graph is a bar or line, get the group options and the datapoints. Then draw the graph.
+ *
+ * @param groupId
+ * @param groupIndex
+ * @param amountOfGraphs
+ */
 Linegraph.prototype.drawGraph = function (groupId, groupIndex, amountOfGraphs) {
   var datapoints = this.itemsData.get({filter: function (item) {return item.group == groupId;}});
-  var options = this._getGroupOptions(groupId, groupIndex);
+
+  // can be optimized, only has to be done once.
+  var group = this.groups[groupId];
+
   if (this.options.style == 'bar') {
-    this.drawBarGraph(datapoints, options, amountOfGraphs);
+    this.drawBarGraph(datapoints, group, amountOfGraphs);
   }
   else {
-    this.drawLineGraph(datapoints, options);
+    this.drawLineGraph(datapoints, group);
   }
 };
-Linegraph.prototype.drawBarGraph = function (datapoints, options, amountOfGraphs) {
+
+/**
+ * draw a bar graph
+ * @param datapoints
+ * @param options
+ * @param amountOfGraphs
+ */
+Linegraph.prototype.drawBarGraph = function (datapoints, group, amountOfGraphs) {
   if (datapoints != null) {
     if (datapoints.length > 0) {
       var dataset = this._prepareData(datapoints);
@@ -506,6 +575,14 @@ Linegraph.prototype.drawBarGraph = function (datapoints, options, amountOfGraphs
     }
   }
 };
+
+/**
+ * draw a bar SVG element
+ *
+ * @param x
+ * @param y
+ * @param className
+ */
 Linegraph.prototype.drawBar = function (x, y, className) {
   var width = 10;
   rect = this._getSVGElement('rect',this.svgElements, this.svg);
@@ -517,18 +594,25 @@ Linegraph.prototype.drawBar = function (x, y, className) {
   rect.setAttributeNS(null, "class", className + " point");
 };
 
-Linegraph.prototype.drawLineGraph = function (datapoints, options) {
+
+/**
+ * draw a line graph
+ * 
+ * @param datapoints
+ * @param options
+ */
+Linegraph.prototype.drawLineGraph = function (datapoints, group) {
   if (datapoints != null) {
     if (datapoints.length > 0) {
-      var dataset = this._prepareData(datapoints, options);
+      var dataset = this._prepareData(datapoints, group.options);
       var path, d;
 
       path = this._getSVGElement('path', this.svgElements, this.svg);
-      path.setAttributeNS(null, "class", options.className);
+      path.setAttributeNS(null, "class", group.className);
 
 
       // construct path from dataset
-      if (this.options.catmullRom.enabled == true) {
+      if (group.options.catmullRom.enabled == true) {
         d = this._catmullRom(dataset);
       }
       else {
@@ -536,52 +620,84 @@ Linegraph.prototype.drawLineGraph = function (datapoints, options) {
       }
 
       // append with points for fill and finalize the path
-      if (options.shaded.enabled == true) {
+      if (group.options.shaded.enabled == true) {
         var fillPath = this._getSVGElement('path',this.svgElements, this.svg);
-        if (options.shaded.orientation == 'top') {
+        if (group.options.shaded.orientation == 'top') {
           var dFill = "M" + dataset[0].x + "," + 0 + " " + d + "L" + dataset[dataset.length - 1].x + "," + 0;
         }
         else {
           var dFill = "M" + dataset[0].x + "," + this.svg.offsetHeight + " " + d + "L" + dataset[dataset.length - 1].x + "," + this.svg.offsetHeight;
         }
-        fillPath.setAttributeNS(null, "class", options.className + " fill");
+        fillPath.setAttributeNS(null, "class", group.className + " fill");
         fillPath.setAttributeNS(null, "d", dFill);
       }
       // copy properties to path for drawing.
       path.setAttributeNS(null, "d", "M" + d);
 
       // draw points
-      if (options.drawPoints.enabled == true) {
-        this.drawPoints(dataset, options, this.svgElements, this.svg);
+      if (group.options.drawPoints.enabled == true) {
+        this.drawPoints(dataset, group, this.svgElements, this.svg);
       }
     }
   }
 };
-Linegraph.prototype.drawPoints = function (dataset, options, container, svg) {
+
+/**
+ * draw the data points
+ * 
+ * @param dataset
+ * @param options
+ * @param JSONcontainer
+ * @param svg
+ */
+Linegraph.prototype.drawPoints = function (dataset, group, JSONcontainer, svg) {
   for (var i = 0; i < dataset.length; i++) {
-    this.drawPoint(dataset[i].x, dataset[i].y, options, container, svg);
+    this.drawPoint(dataset[i].x, dataset[i].y, group, JSONcontainer, svg);
   }
 };
-Linegraph.prototype.drawPoint = function(x, y, options, container, svg) {
+
+/**
+ * draw a point object. this is a seperate function because it can also be called by the legend.
+ * The reason the JSONcontainer and the target SVG svgContainer have to be supplied is so the legend can use these functions
+ * as well.
+ * 
+ * @param x
+ * @param y
+ * @param group
+ * @param JSONcontainer
+ * @param svgContainer
+ * @returns {*}
+ */
+Linegraph.prototype.drawPoint = function(x, y, group, JSONcontainer, svgContainer) {
   var point;
   if (options.drawPoints.style == 'circle') {
-    point = this._getSVGElement('circle',container,svg);
+    point = this._getSVGElement('circle',JSONcontainer,svgContainer);
     point.setAttributeNS(null, "cx", x);
     point.setAttributeNS(null, "cy", y);
-    point.setAttributeNS(null, "r", 0.5 * options.drawPoints.size);
-    point.setAttributeNS(null, "class", options.className + " point");
+    point.setAttributeNS(null, "r", 0.5 * group.options.drawPoints.size);
+    point.setAttributeNS(null, "class", group.className + " point");
   }
   else {
-    point = this._getSVGElement('rect',container,svg);
-    point.setAttributeNS(null, "x", x - 0.5*this.options.drawPoints.size);
-    point.setAttributeNS(null, "y", y - 0.5*this.options.drawPoints.size);
-    point.setAttributeNS(null, "width", this.options.drawPoints.size);
-    point.setAttributeNS(null, "height", this.options.drawPoints.size);
-    point.setAttributeNS(null, "class", options.className + " point");
+    point = this._getSVGElement('rect',JSONcontainer,svgContainer);
+    point.setAttributeNS(null, "x", x - 0.5*group.options.drawPoints.size);
+    point.setAttributeNS(null, "y", y - 0.5*group.options.drawPoints.size);
+    point.setAttributeNS(null, "width", group.options.drawPoints.size);
+    point.setAttributeNS(null, "height", group.options.drawPoints.size);
+    point.setAttributeNS(null, "class", group.className + " point");
   }
   return point;
 }
 
+/**
+ * Allocate or generate an SVG element if needed. Store a reference to it in the JSON container and draw it in the svgContainer
+ * the JSON container and the SVG container have to be supplied so other svg containers (like the legend) can use this.
+ * 
+ * @param elementType
+ * @param JSONcontainer
+ * @param svgContainer
+ * @returns {*}
+ * @private
+ */
 Linegraph.prototype._getSVGElement = function (elementType, JSONcontainer, svgContainer) {
   var element;
   // allocate SVG element, if it doesnt yet exist, create one.
@@ -606,26 +722,50 @@ Linegraph.prototype._getSVGElement = function (elementType, JSONcontainer, svgCo
   JSONcontainer[elementType].used.push(element);
   return element;
 };
-Linegraph.prototype._cleanupSVGElements = function(container) {
+
+/**
+ * this cleans up all the unused SVG elements. By asking for the parentNode, we only need to supply the JSON container from
+ * which to remove the redundant elements.
+ * 
+ * @param JSONcontainer
+ * @private
+ */
+Linegraph.prototype._cleanupSVGElements = function(JSONcontainer) {
   // cleanup the redundant svgElements;
-  for (var elementType in container) {
-    if (container.hasOwnProperty(elementType)) {
-      for (var i = 0; i < container[elementType].redundant.length; i++) {
-        container[elementType].redundant[i].parentNode.removeChild(container[elementType].redundant[i]);
+  for (var elementType in JSONcontainer) {
+    if (JSONcontainer.hasOwnProperty(elementType)) {
+      for (var i = 0; i < JSONcontainer[elementType].redundant.length; i++) {
+        JSONcontainer[elementType].redundant[i].parentNode.removeChild(JSONcontainer[elementType].redundant[i]);
       }
-      container[elementType].redundant = [];
+      JSONcontainer[elementType].redundant = [];
     }
   }
 };
-Linegraph.prototype._prepareSVGElements = function(container) {
+
+/**
+ * this prepares the JSON container for allocating SVG elements
+ * @param JSONcontainer
+ * @private
+ */
+Linegraph.prototype._prepareSVGElements = function(JSONcontainer) {
   // cleanup the redundant svgElements;
-  for (var elementType in container) {
-    if (container.hasOwnProperty(elementType)) {
-      container[elementType].redundant = container[elementType].used;
-      container[elementType].used = [];
+  for (var elementType in JSONcontainer) {
+    if (JSONcontainer.hasOwnProperty(elementType)) {
+      JSONcontainer[elementType].redundant = JSONcontainer[elementType].used;
+      JSONcontainer[elementType].used = [];
     }
   }
 };
+
+/**
+ * This uses the DataAxis object to generate the correct Y coordinate on the SVG window. It uses the
+ * util function toScreen to get the x coordinate from the timestamp.
+ *
+ * @param dataset
+ * @param options
+ * @returns {Array}
+ * @private
+ */
 Linegraph.prototype._prepareData = function (dataset, options) {
   var extractedData = [];
   var xValue, yValue;
@@ -644,26 +784,15 @@ Linegraph.prototype._prepareData = function (dataset, options) {
   // extractedData.sort(function (a,b) {return a.x - b.x;});
   return extractedData;
 };
-Linegraph.prototype._getGroupOptions = function(groupId, groupIndex) {
-  var group = this.groupsData.get(groupId);
-  var options = util.copyObject(this.options, {});
 
-  options.className = 'graphGroup' + groupIndex%10;
-  if (group != null) {
-    if (group.className) {
-      options.className = group.className;
-    }
-    if (group.options) {
-      var fields = ['yAxisOrientation'];
-      util.selectiveExtend(fields, options, group.options);
 
-      this._mergeOptions(options, group.options,'catmullRom');
-      this._mergeOptions(options, group.options,'drawPoints');
-      this._mergeOptions(options, group.options,'shaded');
-    }
-  }
-  return options;
-}
+/**
+ * This uses an uniform parametrization of the CatmullRom algorithm:
+ * "On the Parameterization of Catmull-Rom Curves" by Cem Yuksel et al.
+ * @param data
+ * @returns {string}
+ * @private
+ */
 Linegraph.prototype._catmullRomUniform = function(data) {
   // catmull rom
   var p0, p1, p2, p3, bp1, bp2;
@@ -700,6 +829,17 @@ Linegraph.prototype._catmullRomUniform = function(data) {
 
   return d;
 };
+
+/**
+ * This uses either the chordal or centripetal parameterization of the catmull-rom algorithm.
+ * By default, the centripetal parameterization is used because this gives the nicest results.
+ * These parameterizations are relatively heavy because the distance between 4 points have to be calculated.
+ *
+ * One optimization can be used to reuse distances since this is a sliding window approach.
+ * @param data
+ * @returns {string}
+ * @private
+ */
 Linegraph.prototype._catmullRom = function(data) {
   var alpha = this.options.catmullRom.alpha;
   if (alpha == 0 || alpha === undefined) {
@@ -770,6 +910,13 @@ Linegraph.prototype._catmullRom = function(data) {
     return d;
   }
 };
+
+/**
+ * this generates the SVG path for a linear drawing between datapoints.
+ * @param data
+ * @returns {string}
+ * @private
+ */
 Linegraph.prototype._linear = function(data) {
   // linear
   var d = "";
@@ -784,67 +931,6 @@ Linegraph.prototype._linear = function(data) {
   return d;
 };
 
-Linegraph.prototype.drawLegend = function(classes) {
-  this._prepareSVGElements(this.svgLegendElements);
-  var x = 0;
-  var y = 0;
-  var lineLength = 30;
-  var fillHeight = 10;
-  var spacing = 25;
-  var path, fillPath, outline;
-  var legendWidth = 298;
-  var padding = 5;
-
-  var border = this._getSVGElement("rect", this.svgLegendElements, this.svgLegend);
-  border.setAttributeNS(null, "x", x);
-  border.setAttributeNS(null, "y", y);
-  border.setAttributeNS(null, "width", legendWidth);
-  border.setAttributeNS(null, "height", y + padding + classes.length * spacing);
-  border.setAttributeNS(null, "class", "legendBackground");
-  x += 5;
-  y += fillHeight + padding;
-
-  if (classes.length > 0) {
-    for (var i = 0; i < classes.length; i++) {
-      outline = this._getSVGElement("rect", this.svgLegendElements, this.svgLegend);
-      outline.setAttributeNS(null, "x", x);
-      outline.setAttributeNS(null, "y", y - fillHeight);
-      outline.setAttributeNS(null, "width", lineLength);
-      outline.setAttributeNS(null, "height", 2*fillHeight);
-      outline.setAttributeNS(null, "class", "outline");
-
-      path = this._getSVGElement("path", this.svgLegendElements, this.svgLegend);
-      path.setAttributeNS(null, "class", classes[i]);
-      path.setAttributeNS(null, "d", "M" + x + ","+y+" L" + (x + lineLength) + ","+y+"");
-      if (this.options.shaded.enabled == true) {
-        fillPath = this._getSVGElement("path", this.svgLegendElements, this.svgLegend);
-        if (this.options.shaded.orientation == 'top') {
-          fillPath.setAttributeNS(null, "d", "M"+x+", " + (y - fillHeight) +
-            "L"+x+","+y+" L"+ (x + lineLength) + ","+y+" L"+ (x + lineLength) + "," + (y - fillHeight));
-        }
-        else {
-          fillPath.setAttributeNS(null, "d", "M"+x+","+y+" " +
-            "L"+x+"," + (y + fillHeight) + " " +
-            "L"+ (x + lineLength) + "," + (y + fillHeight) +
-            "L"+ (x + lineLength) + ","+y);
-        }
-        fillPath.setAttributeNS(null, "class", classes[i] + " fill");
-      }
-
-      if (this.options.drawPoints.enabled == true) {
-        this.drawPoint(x + 0.5 * lineLength,y,classes[i], this.svgLegendElements, this.svgLegend);
-      }
-      y += spacing;
-    }
-  }
-  else {
-    //TODO: bars
-  }
-
-
-
-  this._cleanupSVGElements(this.svgLegendElements);
-}
 
 
 

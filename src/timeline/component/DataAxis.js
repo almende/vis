@@ -33,13 +33,6 @@ function DataAxis (body, options) {
     }
   };
 
-//  this.yRange = new Range(body,{
-//                                direction: 'vertical',
-//                                min: null,
-//                                max: null,
-//                                zoomMin: 1e-5,
-//                                zoomMax: 1e9
-//                               });
   this.yRange = {start:0, end:0};
 
   this.options = util.extend({}, this.defaultOptions);
