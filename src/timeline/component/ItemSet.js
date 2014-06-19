@@ -289,6 +289,21 @@ ItemSet.prototype.markDirty = function() {
 };
 
 /**
+ * Destroy the ItemSet
+ */
+ItemSet.prototype.destroy = function() {
+  this.hide();
+  this.setItems(null);
+  this.setGroups(null);
+
+  this.hammer.enable(false);
+  this.hammer = null;
+
+  this.body = null;
+  this.conversion = null;
+};
+
+/**
  * Hide the component from the DOM
  */
 ItemSet.prototype.hide = function() {

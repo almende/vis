@@ -206,6 +206,53 @@ Timeline.prototype._create = function (container) {
 };
 
 /**
+ * Destroy the Timeline, clean up all DOM elements and event listeners.
+ */
+Timeline.prototype.destroy = function () {
+  // unbind datasets
+  this.clear();
+
+  // remove all event listeners
+  this.off();
+
+  // stop checking for changed size
+  this._stopAutoResize();
+
+  // remove from DOM
+  if (this.dom.root.parentNode) {
+    this.dom.root.parentNode.removeChild(this.dom.root);
+  }
+  this.dom = null;
+
+  // cleanup hammer touch events
+  for (var event in this.listeners) {
+    if (this.listeners.hasOwnProperty(event)) {
+      this.hammer.off(event, this.listeners[event]);
+    }
+  }
+  this.listeners = null;
+  this.hammer = null;
+
+  // give all components the opportunity to cleanup
+  this.components.forEach(function (component) {
+    component.destroy();
+  });
+
+  // remove all components
+  this.components = [];
+  this.range = null;
+  this.timeAxis = null;
+  this.itemSet = null;
+  this.currentTime = null;
+  this.customTime = null;
+
+  //this.body.util.snap = null;
+  //this.body.util.toTime = null;
+  //this.body.util.toScreen = null;
+  this.body = null;
+};
+
+/**
  * Set options. Options will be passed to all components loaded in the Timeline.
  * @param {Object} [options]
  *                           {String} orientation
@@ -503,6 +550,8 @@ Timeline.prototype.redraw = function() {
       props = this.props,
       dom = this.dom;
 
+  if (!dom) return; // when destroyed
+
   // update class names
   dom.root.className = 'vis timeline root ' + options.orientation;
 
@@ -680,7 +729,7 @@ Timeline.prototype._startAutoResize = function () {
 
   this._stopAutoResize();
 
-  function checkSize() {
+  this._onResize = function() {
     if (me.options.autoResize != true) {
       // stop watching when the option autoResize is changed to false
       me._stopAutoResize();
@@ -697,12 +746,12 @@ Timeline.prototype._startAutoResize = function () {
         me.emit('change');
       }
     }
-  }
+  };
 
-  // TODO: automatically cleanup the event listener when the frame is deleted
-  util.addEventListener(window, 'resize', checkSize);
+  // add event listener to window resize
+  util.addEventListener(window, 'resize', this._onResize);
 
-  this.watchTimer = setInterval(checkSize, 1000);
+  this.watchTimer = setInterval(this._onResize, 1000);
 };
 
 /**
@@ -715,7 +764,9 @@ Timeline.prototype._stopAutoResize = function () {
     this.watchTimer = undefined;
   }
 
-  // TODO: remove event listener on window.resize
+  // remove event listener on window.resize
+  util.removeEventListener(window, 'resize', this._onResize);
+  this._onResize = null;
 };
 
 /**

@@ -69,6 +69,19 @@ CustomTime.prototype._create = function() {
 };
 
 /**
+ * Destroy the CustomTime bar
+ */
+CustomTime.prototype.destroy = function () {
+  this.options.showCustomTime = false;
+  this.redraw(); // will remove the bar from the DOM
+
+  this.hammer.enable(false);
+  this.hammer = null;
+
+  this.body = null;
+};
+
+/**
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
