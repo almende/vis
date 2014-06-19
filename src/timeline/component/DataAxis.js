@@ -10,26 +10,24 @@ function DataAxis (body, options) {
   this.body = body;
 
   this.defaultOptions = {
-    orientation: 'left',  // supported: 'left'
+    orientation: 'left',  // supported: 'left', 'right'
     showMinorLabels: true,
     showMajorLabels: true,
-    majorLinesOffset: 25,
-    minorLinesOffset: 25,
-    width: '50px',
+    majorLinesOffset: 7,
+    minorLinesOffset: 4,
+    labelOffsetX: 9,
+    labelOffsetY: -6,
+    width: '60px',
     height: '300px'
   };
 
   this.props = {};
   this.dom = {
-    majorLines: [],
-    majorTexts: [],
-    minorLines: [],
-    minorTexts: [],
+    lines: [],
+    labels: [],
     redundant: {
-      majorLines: [],
-      majorTexts: [],
-      minorLines: [],
-      minorTexts: []
+      lines: [],
+      labels: []
     }
   };
 
@@ -46,12 +44,35 @@ function DataAxis (body, options) {
   this.stepPixelsForced = 25;
   this.lineOffset = 0;
   this.master = true;
+  this.svgElements = {};
+  this.drawIcons = false;
+
+  this.groups = {};
 
   // create the HTML DOM
   this._create();
 }
 
 DataAxis.prototype = new Component();
+
+
+
+DataAxis.prototype.addGroup = function(label, graphOptions) {
+  if (!this.groups.hasOwnProperty(label)) {
+    this.groups[label] = graphOptions;
+  }
+};
+
+DataAxis.prototype.updateGroup = function(label, graphOptions) {
+  this.groups[label] = graphOptions;
+};
+
+DataAxis.prototype.deleteGroup = function(label) {
+  if (this.groups.hasOwnProperty(label)) {
+    delete this.groups[label];
+  }
+};
+
 
 DataAxis.prototype.setOptions = function(options) {
   if (options) {
@@ -81,8 +102,38 @@ DataAxis.prototype._create = function() {
   this.dom.lineContainer = document.createElement('div');
   this.dom.lineContainer.style.width = '100%';
   this.dom.lineContainer.style.height = this.options.height;
+
+  // create svg element for graph drawing.
+  this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
+  this.svg.style.position = "absolute";
+  this.svg.style.top = '0px';
+  this.svg.style.height = '100%';
+  this.svg.style.width = '100%';
+  this.svg.style.display = "block";
+  this.dom.frame.appendChild(this.svg);
 };
 
+DataAxis.prototype._redrawGroupIcons = function() {
+  var x;
+  var iconWidth = 20;
+  var iconHeight = 15;
+  var iconOffset = 4;
+  var y = iconOffset + 0.5 * iconHeight;
+  if (this.options.orientation == 'left') {
+    x = iconOffset;
+  }
+  else {
+    x = this.width - iconWidth - iconOffset;
+  }
+
+
+  for (var groupId in this.groups) {
+    if (this.groups.hasOwnProperty(groupId)) {
+      this.groups[groupId].drawIcon(x, y, this.svgElements, this.svg, iconWidth, iconHeight);
+      y += iconHeight + iconOffset;
+    }
+  }
+}
 
 /**
  * Create the HTML DOM for the DataAxis
@@ -171,6 +222,9 @@ DataAxis.prototype.redraw = function () {
   }
 
   this._redrawLabels();
+  if (this.drawIcons == true) {
+    this._redrawGroupIcons();
+  }
 };
 
 /**
@@ -191,14 +245,10 @@ DataAxis.prototype._redrawLabels = function () {
   // can be picked for re-use, and clear the lists with lines and texts.
   // At the end of the function _redrawLabels, left over elements will be cleaned up
   var dom = this.dom;
-  dom.redundant.majorLines = dom.majorLines;
-  dom.redundant.majorTexts = dom.majorTexts;
-  dom.redundant.minorLines = dom.minorLines;
-  dom.redundant.minorTexts = dom.minorTexts;
-  dom.majorLines = [];
-  dom.majorTexts = [];
-  dom.minorLines = [];
-  dom.minorTexts = [];
+  dom.redundant.lines = dom.lines;
+  dom.redundant.labels = dom.labels;
+  dom.lines = [];
+  dom.labels = [];
 
   step.first();
   var stepPixels = this.dom.frame.offsetHeight / ((step.marginRange / step.step) + 1);
@@ -219,7 +269,11 @@ DataAxis.prototype._redrawLabels = function () {
   var xFirstMajorLabel = undefined;
   this.valueAtZero = step.marginEnd;
   var marginStartPos = 0;
-  var max = 0;
+
+  // do not draw the first label
+  var max = 1;
+  step.next();
+
   var y = 0;
   while (max < amountOfSteps) {
     y = Math.round(max * stepPixels);
@@ -227,7 +281,7 @@ DataAxis.prototype._redrawLabels = function () {
     var isMajor = step.isMajor();
 
     if (this.options['showMinorLabels'] && isMajor == false) {
-      this._redrawMinorText(y - 2, step.getLabelMinor(), orientation);
+      this._redrawLabel(y - 2, step.getLabelMinor(), orientation, 'yAxis minor');
     }
 
     if (isMajor && this.options['showMajorLabels']) {
@@ -235,7 +289,7 @@ DataAxis.prototype._redrawLabels = function () {
         if (xFirstMajorLabel == undefined) {
           xFirstMajorLabel = y;
         }
-        this._redrawMajorText(y - 2, step.getLabelMajor(), orientation);
+        this._redrawLabel(y - 2, step.getLabelMajor(), orientation, 'yAxis major');
       }
       this._redrawMajorLine(y, orientation);
     }
@@ -248,17 +302,6 @@ DataAxis.prototype._redrawLabels = function () {
   }
 
   this.conversionFactor = marginStartPos/((amountOfSteps-1) * step.step);
-
-  // create a major label on the left when needed
-  if (this.options['showMajorLabels']) {
-    var leftPoint = this._start;
-    var leftText = step.getLabelMajor(leftPoint);
-    var widthText = leftText.length * (this.props.majorCharWidth || 10) + 10; // upper bound estimation
-
-    if (xFirstMajorLabel == undefined || widthText < xFirstMajorLabel) {
-      this._redrawMajorText(0, leftText, orientation);
-    }
-  }
 
   // Cleanup leftover DOM elements from the redundant list
   util.forEach(this.dom.redundant, function (arr) {
@@ -284,76 +327,42 @@ DataAxis.prototype.convertValue = function(value) {
   return convertedValue; // the -2 is to compensate for the borders
 }
 
+
+
 /**
- * Create a minor label for the axis at position x
+ * Create a label for the axis at position x
  * @param {Number} x
  * @param {String} text
  * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-DataAxis.prototype._redrawMinorText = function (y, text, orientation) {
+DataAxis.prototype._redrawLabel = function (y, text, orientation, className) {
   // reuse redundant label
-  var label = this.dom.redundant.minorTexts.shift();
-
-  if (!label) {
-    // create new label
-    var content = document.createTextNode('');
-    label = document.createElement('div');
-    label.appendChild(content);
-    label.className = 'yAxis minor';
-    this.dom.frame.appendChild(label);
-  }
-  this.dom.minorTexts.push(label);
-
-  label.childNodes[0].nodeValue = text;
-
-  if (orientation == 'left') {
-    label.style.left = '-2px';
-    label.style.textAlign = "right";
-  }
-  else {
-    label.style.left = '2px';
-    label.style.textAlign = "left";
-  }
-
-  label.style.top = y + 'px';
-  //label.title = title;  // TODO: this is a heavy operation
-};
-
-/**
- * Create a Major label for the axis at position x
- * @param {Number} x
- * @param {String} text
- * @param {String} orientation   "top" or "bottom" (default)
- * @private
- */
-DataAxis.prototype._redrawMajorText = function (y, text, orientation) {
-  // reuse redundant label
-  var label = this.dom.redundant.majorTexts.shift();
+  var label = this.dom.redundant.labels.shift();
 
   if (!label) {
     // create label
     var content = document.createTextNode(text);
     label = document.createElement('div');
-    label.className = 'yAxis major';
+    label.className = className;
     label.appendChild(content);
     this.dom.frame.appendChild(label);
   }
-  this.dom.majorTexts.push(label);
+  this.dom.labels.push(label);
 
   label.childNodes[0].nodeValue = text;
   //label.title = title; // TODO: this is a heavy operation
 
   if (orientation == 'left') {
-    label.style.left = '-2px';
+    label.style.left = '-' + this.options.labelOffsetX + 'px';
     label.style.textAlign = "right";
   }
   else {
-    label.style.left = '2px';
+    label.style.left = this.options.labelOffsetX + 'px';
     label.style.textAlign = "left";
   }
 
-  label.style.top = y + 'px';
+  label.style.top = y + this.options.labelOffsetY + 'px';
 };
 
 /**
@@ -365,7 +374,7 @@ DataAxis.prototype._redrawMajorText = function (y, text, orientation) {
 DataAxis.prototype._redrawMinorLine = function (y, orientation) {
   if (this.master == true) {
     // reuse redundant line
-    var line = this.dom.redundant.minorLines.shift();
+    var line = this.dom.redundant.lines.shift();
 
     if (!line) {
       // create vertical line
@@ -373,7 +382,7 @@ DataAxis.prototype._redrawMinorLine = function (y, orientation) {
       line.className = 'grid horizontal minor';
       this.dom.lineContainer.appendChild(line);
     }
-    this.dom.minorLines.push(line);
+    this.dom.lines.push(line);
 
     var props = this.props;
     if (orientation == 'left') {
@@ -397,7 +406,7 @@ DataAxis.prototype._redrawMinorLine = function (y, orientation) {
 DataAxis.prototype._redrawMajorLine = function (y, orientation) {
   if (this.master == true) {
     // reuse redundant line
-    var line = this.dom.redundant.majorLines.shift();
+    var line = this.dom.redundant.lines.shift();
 
     if (!line) {
       // create vertical line
@@ -405,13 +414,13 @@ DataAxis.prototype._redrawMajorLine = function (y, orientation) {
       line.className = 'grid horizontal major';
       this.dom.lineContainer.appendChild(line);
     }
-    this.dom.majorLines.push(line);
+    this.dom.lines.push(line);
 
     if (orientation == 'left') {
       line.style.left = (this.width - this.options.majorLinesOffset) + 'px';
     }
     else {
-      line.style.left = -1*(this.width - this.options.mayorLinesOffset) + 'px';
+      line.style.left = -1*(this.width - this.options.majorLinesOffset) + 'px';
     }
     line.style.top = y + 'px';
     line.style.width = this.props.majorLineWidth + 'px';
@@ -462,3 +471,5 @@ DataAxis.prototype._calculateCharSize = function () {
 DataAxis.prototype.snap = function(date) {
   return this.step.snap(date);
 };
+
+

@@ -11,7 +11,7 @@ function Linegraph(body, options) {
       orientation: 'top' // top, bottom
     },
     barGraph: {
-      enabled: true,
+      enabled: false,
       binSize: 'auto'
     },
     drawPoints: {
@@ -23,6 +23,24 @@ function Linegraph(body, options) {
       enabled: true,
       parametrization: 'centripetal', // uniform (alpha = 0.0), chordal (alpha = 1.0), centripetal (alpha = 0.5)
       alpha: 0.5
+    },
+    dataAxis: {
+      showMinorLabels: true,
+      showMajorLabels: true,
+      majorLinesOffset: 27,
+      minorLinesOffset: 24,
+      labelOffsetX: 2,
+      labelOffsetY: 0,
+      width: '60px'
+    },
+    dataAxisRight: {
+      showMinorLabels: true,
+      showMajorLabels: true,
+      majorLinesOffset: 7,
+      minorLinesOffset: 4,
+      labelOffsetX: 9,
+      labelOffsetY: -6,
+      width: '60px'
     }
   };
 
@@ -117,21 +135,11 @@ Linegraph.prototype._create = function(){
   // panel with time axis
   this.yAxisLeft = new DataAxis(this.body, {
     orientation: 'left',
-    showMinorLabels: true,
-    showMajorLabels: true,
-    majorLinesOffset: 25,
-    minorLinesOffset: 25,
-    width: '50px',
     height: this.svg.style.height
   });
 
   this.yAxisRight = new DataAxis(this.body, {
     orientation: 'right',
-    showMinorLabels: true,
-    showMajorLabels: true,
-    majorLinesOffset: 25,
-    minorLinesOffset: 25,
-    width: '50px',
     height: this.svg.style.height
   });
 
@@ -329,13 +337,24 @@ Linegraph.prototype._onUpdateGroups  = function (groupIds) {
     if (!this.groups.hasOwnProperty(groupIds[i])) {
       this.groups[groupIds[i]] = new GraphGroup(group, this.options, this);
       this.legend.addGroup(groupIds[i],this.groups[groupIds[i]]);
+      if (this.groups[groupIds[i]].options.yAxisOrientation == 'right') {
+        this.yAxisRight.addGroup(groupIds[i], this.groups[groupIds[i]]);
+      }
+      else {
+        this.yAxisLeft.addGroup(groupIds[i], this.groups[groupIds[i]]);
+      }
     }
     else {
       this.groups[groupIds[i]].update(group);
       this.legend.updateGroup(groupIds[i],this.groups[groupIds[i]]);
+      if (this.groups[groupIds[i]].options.yAxisOrientation == 'right') {
+        this.yAxisRight.updateGroup(groupIds[i], this.groups[groupIds[i]]);
+      }
+      else {
+        this.yAxisLeft.updateGroup(groupIds[i], this.groups[groupIds[i]]);
+      }
     }
   }
-
   this.updateGraph();
   this.redraw();
 };
@@ -358,9 +377,23 @@ Linegraph.prototype._updateUngrouped = function() {
   var group = {content: "graph"};
   if (!this.groups.hasOwnProperty(UNGROUPED)) {
     this.groups[UNGROUPED] = new GraphGroup(group, this.options, this);
+    this.legend.addGroup(UNGROUPED,this.groups[UNGROUPED]);
+    if (this.groups[UNGROUPED].options.yAxisOrientation == 'right') {
+      this.yAxisRight.addGroup(UNGROUPED, this.groups[UNGROUPED]);
+    }
+    else {
+      this.yAxisLeft.addGroup(UNGROUPED, this.groups[UNGROUPED]);
+    }
   }
   else {
     this.groups[UNGROUPED].update(group);
+    this.legend.updateGroup(UNGROUPED,this.groups[UNGROUPED]);
+    if (this.groups[UNGROUPED].options.yAxisOrientation == 'right') {
+      this.yAxisRight.updateGroup(UNGROUPED, this.groups[UNGROUPED]);
+    }
+    else {
+      this.yAxisLeft.updateGroup(UNGROUPED, this.groups[UNGROUPED]);
+    }
   }
 
   if (this.itemsData != null) {
@@ -380,6 +413,8 @@ Linegraph.prototype._updateUngrouped = function() {
     if (pointInUNGROUPED.length == 0) {
       this.legend.deleteGroup(UNGROUPED);
       delete this.groups[UNGROUPED];
+      this.yAxisLeft.yAxisRight(UNGROUPED);
+      this.yAxisLeft.deleteGroup(UNGROUPED);
     }
   }
 };
@@ -495,6 +530,15 @@ Linegraph.prototype._updateYAxis = function(groupIds) {
     this.body.emitter.emit('change');
   }
 
+  if (yAxisRightUsed == true && yAxisLeftUsed == true) {
+    this.yAxisLeft.drawIcons  = true;
+    this.yAxisRight.drawIcons = true;
+  }
+  else {
+    this.yAxisLeft.drawIcons  = false;
+    this.yAxisRight.drawIcons = false;
+  }
+
   this.yAxisRight.master = !yAxisLeftUsed;
 
   if (this.yAxisRight.master == false) {
@@ -549,7 +593,7 @@ Linegraph.prototype.drawGraph = function (groupId, groupIndex, amountOfGraphs) {
   // can be optimized, only has to be done once.
   var group = this.groups[groupId];
 
-  if (this.options.style == 'bar') {
+  if (this.options.barGraph.enabled == 'true') {
     this.drawBarGraph(datapoints, group, amountOfGraphs);
   }
   else {
@@ -569,7 +613,6 @@ Linegraph.prototype.drawBarGraph = function (datapoints, group, amountOfGraphs) 
       var dataset = this._prepareData(datapoints);
       // draw points
       for (var i = 0; i < dataset.length; i++) {
-
         this.drawBar(dataset[i].x, dataset[i].y, className);
       }
     }
@@ -670,7 +713,7 @@ Linegraph.prototype.drawPoints = function (dataset, group, JSONcontainer, svg) {
  */
 Linegraph.prototype.drawPoint = function(x, y, group, JSONcontainer, svgContainer) {
   var point;
-  if (options.drawPoints.style == 'circle') {
+  if (group.options.drawPoints.style == 'circle') {
     point = this._getSVGElement('circle',JSONcontainer,svgContainer);
     point.setAttributeNS(null, "cx", x);
     point.setAttributeNS(null, "cy", y);

@@ -13,7 +13,7 @@ function Legend(body, options, linegraph) {
   this.svgElements = {};
   this.dom = {};
   this.classes;
-  this.graphs = {};
+  this.groups = {};
 
   this.setOptions(options);
   this.create();
@@ -23,20 +23,18 @@ Legend.prototype = new Component();
 
 
 Legend.prototype.addGroup = function(label, graphOptions) {
-  if (!this.graphs.hasOwnProperty(label)) {
-    this.graphs[label] = graphOptions;
-    this.redraw();
+  if (!this.groups.hasOwnProperty(label)) {
+    this.groups[label] = graphOptions;
   }
 };
 
 Legend.prototype.updateGroup = function(label, graphOptions) {
-  this.graphs[label] = graphOptions;
+  this.groups[label] = graphOptions;
 };
 
 Legend.prototype.deleteGroup = function(label) {
-  if (this.graphs.hasOwnProperty(label)) {
-    delete this.graphs[label];
-    this.redraw();
+  if (this.groups.hasOwnProperty(label)) {
+    delete this.groups[label];
   }
 };
 

@@ -94,5 +94,9 @@
     stroke: #e5e5e5;
 }
 
+.vis.timeline .iconFill {
+    fill-opacity:0.3;
+    stroke: none;
+}
 
 

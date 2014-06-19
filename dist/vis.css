@@ -341,7 +341,7 @@
 
 
 .vis.timeline .dataaxis .yAxis.major {
-    font-size:10px;
+    font-size:12px;
     width: 100%;
     position: absolute;
     color: #4d4d4d;
@@ -350,7 +350,7 @@
 
 
 .vis.timeline .dataaxis .yAxis.minor{
-    font-size:10px;
+    font-size:12px;
     position: absolute;
     width: 100%;
     color: #979797;
@@ -453,6 +453,10 @@
     stroke: #e5e5e5;
 }
 
+.vis.timeline .iconFill {
+    fill-opacity:0.3;
+    stroke: none;
+}
 
 
 
