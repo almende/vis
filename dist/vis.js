@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 1.1.0
- * @date    2014-06-18
+ * @version 2.0.0
+ * @date    2014-06-19
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -1338,43 +1338,39 @@ util.copyObject = function(objectFrom, objectTo) {
  */
 // TODO: add a DataSet constructor DataSet(data, options)
 function DataSet (data, options) {
-  this.id = util.randomUUID();
-
   // correctly read optional arguments
   if (data && !Array.isArray(data) && !util.isDataTable(data)) {
     options = data;
     data = null;
   }
 
-  this.options = options || {};
-  this.data = {};                                 // map with data indexed by id
-  this.fieldId = this.options.fieldId || 'id';    // name of the field containing id
-  this.type = {};                                 // internal field types (NOTE: this can differ from this.options.type)
-  this.showInternalIds = this.options.showInternalIds || false; // show internal ids with the get function
+  this._options = options || {};
+  this._data = {};                                 // map with data indexed by id
+  this._fieldId = this._options.fieldId || 'id';   // name of the field containing id
+  this._type = {};                                 // internal field types (NOTE: this can differ from this._options.type)
 
   // all variants of a Date are internally stored as Date, so we can convert
   // from everything to everything (also from ISODate to Number for example)
-  if (this.options.type) {
-    for (var field in this.options.type) {
-      if (this.options.type.hasOwnProperty(field)) {
-        var value = this.options.type[field];
+  if (this._options.type) {
+    for (var field in this._options.type) {
+      if (this._options.type.hasOwnProperty(field)) {
+        var value = this._options.type[field];
         if (value == 'Date' || value == 'ISODate' || value == 'ASPDate') {
-          this.type[field] = 'Date';
+          this._type[field] = 'Date';
         }
         else {
-          this.type[field] = value;
+          this._type[field] = value;
         }
       }
     }
   }
 
   // TODO: deprecated since version 1.1.1 (or 2.0.0?)
-  if (this.options.convert) {
+  if (this._options.convert) {
     throw new Error('Option "convert" is deprecated. Use "type" instead.');
   }
 
-  this.subscribers = {};  // event subscribers
-  this.internalIds = {};  // internally generated id's
+  this._subscribers = {};  // event subscribers
 
   // add initial data when provided
   if (data) {
@@ -1392,10 +1388,10 @@ function DataSet (data, options) {
  *                                  {String | Number} senderId
  */
 DataSet.prototype.on = function(event, callback) {
-  var subscribers = this.subscribers[event];
+  var subscribers = this._subscribers[event];
   if (!subscribers) {
     subscribers = [];
-    this.subscribers[event] = subscribers;
+    this._subscribers[event] = subscribers;
   }
 
   subscribers.push({
@@ -1412,9 +1408,9 @@ DataSet.prototype.subscribe = DataSet.prototype.on;
  * @param {function} callback
  */
 DataSet.prototype.off = function(event, callback) {
-  var subscribers = this.subscribers[event];
+  var subscribers = this._subscribers[event];
   if (subscribers) {
-    this.subscribers[event] = subscribers.filter(function (listener) {
+    this._subscribers[event] = subscribers.filter(function (listener) {
       return (listener.callback != callback);
     });
   }
@@ -1436,11 +1432,11 @@ DataSet.prototype._trigger = function (event, params, senderId) {
   }
 
   var subscribers = [];
-  if (event in this.subscribers) {
-    subscribers = subscribers.concat(this.subscribers[event]);
+  if (event in this._subscribers) {
+    subscribers = subscribers.concat(this._subscribers[event]);
   }
-  if ('*' in this.subscribers) {
-    subscribers = subscribers.concat(this.subscribers['*']);
+  if ('*' in this._subscribers) {
+    subscribers = subscribers.concat(this._subscribers['*']);
   }
 
   for (var i = 0; i < subscribers.length; i++) {
@@ -1463,7 +1459,7 @@ DataSet.prototype.add = function (data, senderId) {
       id,
       me = this;
 
-  if (data instanceof Array) {
+  if (Array.isArray(data)) {
     // Array
     for (var i = 0, len = data.length; i < len; i++) {
       id = me._addItem(data[i]);
@@ -1510,11 +1506,11 @@ DataSet.prototype.update = function (data, senderId) {
   var addedIds = [],
       updatedIds = [],
       me = this,
-      fieldId = me.fieldId;
+      fieldId = me._fieldId;
 
   var addOrUpdate = function (item) {
     var id = item[fieldId];
-    if (me.data[id]) {
+    if (me._data[id]) {
       // update item
       id = me._updateItem(item);
       updatedIds.push(id);
@@ -1526,7 +1522,7 @@ DataSet.prototype.update = function (data, senderId) {
     }
   };
 
-  if (data instanceof Array) {
+  if (Array.isArray(data)) {
     // Array
     for (var i = 0, len = data.length; i < len; i++) {
       addOrUpdate(data[i]);
@@ -1600,7 +1596,6 @@ DataSet.prototype.update = function (data, senderId) {
  */
 DataSet.prototype.get = function (args) {
   var me = this;
-  var globalShowInternalIds = this.showInternalIds;
 
   // parse the arguments
   var id, ids, options, data;
@@ -1644,15 +1639,8 @@ DataSet.prototype.get = function (args) {
     returnType = 'Array';
   }
 
-  // we allow the setting of this value for a single get request.
-  if (options != undefined) {
-    if (options.showInternalIds != undefined) {
-      this.showInternalIds = options.showInternalIds;
-    }
-  }
-
   // build options
-  var type = options && options.type || this.options.type;
+  var type = options && options.type || this._options.type;
   var filter = options && options.filter;
   var items = [], item, itemId, i, len;
 
@@ -1675,8 +1663,8 @@ DataSet.prototype.get = function (args) {
   }
   else {
     // return all items
-    for (itemId in this.data) {
-      if (this.data.hasOwnProperty(itemId)) {
+    for (itemId in this._data) {
+      if (this._data.hasOwnProperty(itemId)) {
         item = me._getItem(itemId, type);
         if (!filter || filter(item)) {
           items.push(item);
@@ -1684,9 +1672,6 @@ DataSet.prototype.get = function (args) {
       }
     }
   }
-
-  // restore the global value of showInternalIds
-  this.showInternalIds = globalShowInternalIds;
 
   // order the results
   if (options && options.order && id == undefined) {
@@ -1753,10 +1738,10 @@ DataSet.prototype.get = function (args) {
  * @return {Array} ids
  */
 DataSet.prototype.getIds = function (options) {
-  var data = this.data,
+  var data = this._data,
       filter = options && options.filter,
       order = options && options.order,
-      type = options && options.type || this.options.type,
+      type = options && options.type || this._options.type,
       i,
       len,
       id,
@@ -1781,7 +1766,7 @@ DataSet.prototype.getIds = function (options) {
       this._sort(items, order);
 
       for (i = 0, len = items.length; i < len; i++) {
-        ids[i] = items[i][this.fieldId];
+        ids[i] = items[i][this._fieldId];
       }
     }
     else {
@@ -1790,7 +1775,7 @@ DataSet.prototype.getIds = function (options) {
         if (data.hasOwnProperty(id)) {
           item = this._getItem(id, type);
           if (filter(item)) {
-            ids.push(item[this.fieldId]);
+            ids.push(item[this._fieldId]);
           }
         }
       }
@@ -1810,7 +1795,7 @@ DataSet.prototype.getIds = function (options) {
       this._sort(items, order);
 
       for (i = 0, len = items.length; i < len; i++) {
-        ids[i] = items[i][this.fieldId];
+        ids[i] = items[i][this._fieldId];
       }
     }
     else {
@@ -1818,7 +1803,7 @@ DataSet.prototype.getIds = function (options) {
       for (id in data) {
         if (data.hasOwnProperty(id)) {
           item = data[id];
-          ids.push(item[this.fieldId]);
+          ids.push(item[this._fieldId]);
         }
       }
     }
@@ -1839,8 +1824,8 @@ DataSet.prototype.getIds = function (options) {
  */
 DataSet.prototype.forEach = function (callback, options) {
   var filter = options && options.filter,
-      type = options && options.type || this.options.type,
-      data = this.data,
+      type = options && options.type || this._options.type,
+      data = this._data,
       item,
       id;
 
@@ -1850,7 +1835,7 @@ DataSet.prototype.forEach = function (callback, options) {
 
     for (var i = 0, len = items.length; i < len; i++) {
       item = items[i];
-      id = item[this.fieldId];
+      id = item[this._fieldId];
       callback(item, id);
     }
   }
@@ -1880,9 +1865,9 @@ DataSet.prototype.forEach = function (callback, options) {
  */
 DataSet.prototype.map = function (callback, options) {
   var filter = options && options.filter,
-      type = options && options.type || this.options.type,
+      type = options && options.type || this._options.type,
       mappedItems = [],
-      data = this.data,
+      data = this._data,
       item;
 
   // convert and filter items
@@ -1960,7 +1945,7 @@ DataSet.prototype.remove = function (id, senderId) {
   var removedIds = [],
       i, len, removedId;
 
-  if (id instanceof Array) {
+  if (Array.isArray(id)) {
     for (i = 0, len = id.length; i < len; i++) {
       removedId = this._remove(id[i]);
       if (removedId != null) {
@@ -1990,17 +1975,15 @@ DataSet.prototype.remove = function (id, senderId) {
  */
 DataSet.prototype._remove = function (id) {
   if (util.isNumber(id) || util.isString(id)) {
-    if (this.data[id]) {
-      delete this.data[id];
-      delete this.internalIds[id];
+    if (this._data[id]) {
+      delete this._data[id];
       return id;
     }
   }
   else if (id instanceof Object) {
-    var itemId = id[this.fieldId];
-    if (itemId && this.data[itemId]) {
-      delete this.data[itemId];
-      delete this.internalIds[itemId];
+    var itemId = id[this._fieldId];
+    if (itemId && this._data[itemId]) {
+      delete this._data[itemId];
       return itemId;
     }
   }
@@ -2013,10 +1996,9 @@ DataSet.prototype._remove = function (id) {
  * @return {Array} removedIds    The ids of all removed items
  */
 DataSet.prototype.clear = function (senderId) {
-  var ids = Object.keys(this.data);
+  var ids = Object.keys(this._data);
 
-  this.data = {};
-  this.internalIds = {};
+  this._data = {};
 
   this._trigger('remove', {items: ids}, senderId);
 
@@ -2029,7 +2011,7 @@ DataSet.prototype.clear = function (senderId) {
  * @return {Object | null} item  Item containing max value, or null if no items
  */
 DataSet.prototype.max = function (field) {
-  var data = this.data,
+  var data = this._data,
       max = null,
       maxField = null;
 
@@ -2053,7 +2035,7 @@ DataSet.prototype.max = function (field) {
  * @return {Object | null} item  Item containing max value, or null if no items
  */
 DataSet.prototype.min = function (field) {
-  var data = this.data,
+  var data = this._data,
       min = null,
       minField = null;
 
@@ -2079,17 +2061,18 @@ DataSet.prototype.min = function (field) {
  *                         The returned array is unordered.
  */
 DataSet.prototype.distinct = function (field) {
-  var data = this.data,
-      values = [],
-      fieldType = this.options.type[field],
-      count = 0;
+  var data = this._data;
+  var values = [];
+  var fieldType = this._options.type && this._options.type[field] || null;
+  var count = 0;
+  var i;
 
   for (var prop in data) {
     if (data.hasOwnProperty(prop)) {
       var item = data[prop];
-      var value = util.convert(item[field], fieldType);
+      var value = item[field];
       var exists = false;
-      for (var i = 0; i < count; i++) {
+      for (i = 0; i < count; i++) {
         if (values[i] == value) {
           exists = true;
           break;
@@ -2099,6 +2082,12 @@ DataSet.prototype.distinct = function (field) {
         values[count] = value;
         count++;
       }
+    }
+  }
+
+  if (fieldType) {
+    for (i = 0; i < values.length; i++) {
+      values[i] = util.convert(values[i], fieldType);
     }
   }
 
@@ -2112,11 +2101,11 @@ DataSet.prototype.distinct = function (field) {
  * @private
  */
 DataSet.prototype._addItem = function (item) {
-  var id = item[this.fieldId];
+  var id = item[this._fieldId];
 
   if (id != undefined) {
     // check whether this id is already taken
-    if (this.data[id]) {
+    if (this._data[id]) {
       // item already exists
       throw new Error('Cannot add item: item with id ' + id + ' already exists');
     }
@@ -2124,18 +2113,17 @@ DataSet.prototype._addItem = function (item) {
   else {
     // generate an id
     id = util.randomUUID();
-    item[this.fieldId] = id;
-    this.internalIds[id] = item;
+    item[this._fieldId] = id;
   }
 
   var d = {};
   for (var field in item) {
     if (item.hasOwnProperty(field)) {
-      var fieldType = this.type[field];  // type may be undefined
+      var fieldType = this._type[field];  // type may be undefined
       d[field] = util.convert(item[field], fieldType);
     }
   }
-  this.data[id] = d;
+  this._data[id] = d;
 
   return id;
 };
@@ -2143,31 +2131,26 @@ DataSet.prototype._addItem = function (item) {
 /**
  * Get an item. Fields can be converted to a specific type
  * @param {String} id
- * @param {Object.<String, String>} [type]  field types to convert
+ * @param {Object.<String, String>} [types]  field types to convert
  * @return {Object | null} item
  * @private
  */
-DataSet.prototype._getItem = function (id, type) {
+DataSet.prototype._getItem = function (id, types) {
   var field, value;
 
   // get the item from the dataset
-  var raw = this.data[id];
+  var raw = this._data[id];
   if (!raw) {
     return null;
   }
 
   // convert the items field types
-  var converted = {},
-      fieldId = this.fieldId,
-      internalIds = this.internalIds;
-  if (type) {
+  var converted = {};
+  if (types) {
     for (field in raw) {
       if (raw.hasOwnProperty(field)) {
         value = raw[field];
-        // output all fields, except internal ids
-        if ((field != fieldId) || (!(value in internalIds) || this.showInternalIds)) {
-          converted[field] = util.convert(value, type[field]);
-        }
+        converted[field] = util.convert(value, types[field]);
       }
     }
   }
@@ -2176,10 +2159,7 @@ DataSet.prototype._getItem = function (id, type) {
     for (field in raw) {
       if (raw.hasOwnProperty(field)) {
         value = raw[field];
-        // output all fields, except internal ids
-        if ((field != fieldId) || (!(value in internalIds) || this.showInternalIds)) {
-          converted[field] = value;
-        }
+        converted[field] = value;
       }
     }
   }
@@ -2195,11 +2175,11 @@ DataSet.prototype._getItem = function (id, type) {
  * @private
  */
 DataSet.prototype._updateItem = function (item) {
-  var id = item[this.fieldId];
+  var id = item[this._fieldId];
   if (id == undefined) {
     throw new Error('Cannot update item: item has no id (item: ' + JSON.stringify(item) + ')');
   }
-  var d = this.data[id];
+  var d = this._data[id];
   if (!d) {
     // item doesn't exist
     throw new Error('Cannot update item: no item with id ' + id + ' found');
@@ -2208,24 +2188,13 @@ DataSet.prototype._updateItem = function (item) {
   // merge with current item
   for (var field in item) {
     if (item.hasOwnProperty(field)) {
-      var fieldType = this.type[field];  // type may be undefined
+      var fieldType = this._type[field];  // type may be undefined
       d[field] = util.convert(item[field], fieldType);
     }
   }
 
   return id;
 };
-
-/**
- * check if an id is an internal or external id
- * @param id
- * @returns {boolean}
- * @private
- */
-DataSet.prototype.isInternalId = function(id) {
-  return (id in this.internalIds);
-};
-
 
 /**
  * Get an array with the column names of a Google DataTable
@@ -2268,13 +2237,11 @@ DataSet.prototype._appendRow = function (dataTable, columns, item) {
  * @constructor DataView
  */
 function DataView (data, options) {
-  this.id = util.randomUUID();
-
-  this.data = null;
-  this.ids = {}; // ids of the items currently in memory (just contains a boolean true)
-  this.options = options || {};
-  this.fieldId = 'id'; // name of the field containing id
-  this.subscribers = {}; // event subscribers
+  this._data = null;
+  this._ids = {}; // ids of the items currently in memory (just contains a boolean true)
+  this._options = options || {};
+  this._fieldId = 'id'; // name of the field containing id
+  this._subscribers = {}; // event subscribers
 
   var me = this;
   this.listener = function () {
@@ -2292,44 +2259,44 @@ function DataView (data, options) {
  * @param {DataSet | DataView} data
  */
 DataView.prototype.setData = function (data) {
-  var ids, dataItems, i, len;
+  var ids, i, len;
 
-  if (this.data) {
+  if (this._data) {
     // unsubscribe from current dataset
-    if (this.data.unsubscribe) {
-      this.data.unsubscribe('*', this.listener);
+    if (this._data.unsubscribe) {
+      this._data.unsubscribe('*', this.listener);
     }
 
     // trigger a remove of all items in memory
     ids = [];
-    for (var id in this.ids) {
-      if (this.ids.hasOwnProperty(id)) {
+    for (var id in this._ids) {
+      if (this._ids.hasOwnProperty(id)) {
         ids.push(id);
       }
     }
-    this.ids = {};
+    this._ids = {};
     this._trigger('remove', {items: ids});
   }
 
-  this.data = data;
+  this._data = data;
 
-  if (this.data) {
+  if (this._data) {
     // update fieldId
-    this.fieldId = this.options.fieldId ||
-        (this.data && this.data.options && this.data.options.fieldId) ||
+    this._fieldId = this._options.fieldId ||
+        (this._data && this._data.options && this._data.options.fieldId) ||
         'id';
 
     // trigger an add of all added items
-    ids = this.data.getIds({filter: this.options && this.options.filter});
+    ids = this._data.getIds({filter: this._options && this._options.filter});
     for (i = 0, len = ids.length; i < len; i++) {
       id = ids[i];
-      this.ids[id] = true;
+      this._ids[id] = true;
     }
     this._trigger('add', {items: ids});
 
     // subscribe to new dataset
-    if (this.data.on) {
-      this.data.on('*', this.listener);
+    if (this._data.on) {
+      this._data.on('*', this.listener);
     }
   }
 };
@@ -2387,12 +2354,12 @@ DataView.prototype.get = function (args) {
   }
 
   // extend the options with the default options and provided options
-  var viewOptions = util.extend({}, this.options, options);
+  var viewOptions = util.extend({}, this._options, options);
 
   // create a combined filter method when needed
-  if (this.options.filter && options && options.filter) {
+  if (this._options.filter && options && options.filter) {
     viewOptions.filter = function (item) {
-      return me.options.filter(item) && options.filter(item);
+      return me._options.filter(item) && options.filter(item);
     }
   }
 
@@ -2404,7 +2371,7 @@ DataView.prototype.get = function (args) {
   getArguments.push(viewOptions);
   getArguments.push(data);
 
-  return this.data && this.data.get.apply(this.data, getArguments);
+  return this._data && this._data.get.apply(this._data, getArguments);
 };
 
 /**
@@ -2418,8 +2385,8 @@ DataView.prototype.get = function (args) {
 DataView.prototype.getIds = function (options) {
   var ids;
 
-  if (this.data) {
-    var defaultFilter = this.options.filter;
+  if (this._data) {
+    var defaultFilter = this._options.filter;
     var filter;
 
     if (options && options.filter) {
@@ -2436,7 +2403,7 @@ DataView.prototype.getIds = function (options) {
       filter = defaultFilter;
     }
 
-    ids = this.data.getIds({
+    ids = this._data.getIds({
       filter: filter,
       order: options && options.order
     });
@@ -2460,7 +2427,7 @@ DataView.prototype.getIds = function (options) {
 DataView.prototype._onEvent = function (event, params, senderId) {
   var i, len, id, item,
       ids = params && params.items,
-      data = this.data,
+      data = this._data,
       added = [],
       updated = [],
       removed = [];
@@ -2473,7 +2440,7 @@ DataView.prototype._onEvent = function (event, params, senderId) {
           id = ids[i];
           item = this.get(id);
           if (item) {
-            this.ids[id] = true;
+            this._ids[id] = true;
             added.push(id);
           }
         }
@@ -2488,17 +2455,17 @@ DataView.prototype._onEvent = function (event, params, senderId) {
           item = this.get(id);
 
           if (item) {
-            if (this.ids[id]) {
+            if (this._ids[id]) {
               updated.push(id);
             }
             else {
-              this.ids[id] = true;
+              this._ids[id] = true;
               added.push(id);
             }
           }
           else {
-            if (this.ids[id]) {
-              delete this.ids[id];
+            if (this._ids[id]) {
+              delete this._ids[id];
               removed.push(id);
             }
             else {
@@ -2513,8 +2480,8 @@ DataView.prototype._onEvent = function (event, params, senderId) {
         // filter the ids of the removed items
         for (i = 0, len = ids.length; i < len; i++) {
           id = ids[i];
-          if (this.ids[id]) {
-            delete this.ids[id];
+          if (this._ids[id]) {
+            delete this._ids[id];
             removed.push(id);
           }
         }
@@ -3687,6 +3654,13 @@ Component.prototype.redraw = function() {
 };
 
 /**
+ * Destroy the component. Cleanup DOM and event listeners
+ */
+Component.prototype.destroy = function() {
+  // should be implemented by the component
+};
+
+/**
  * Test whether the component is resized since the last time _isResized() was
  * called.
  * @return {Boolean} Returns true if the component is resized
@@ -3775,6 +3749,21 @@ TimeAxis.prototype._create = function() {
 
   this.dom.foreground.className = 'timeaxis foreground';
   this.dom.background.className = 'timeaxis background';
+};
+
+/**
+ * Destroy the TimeAxis
+ */
+TimeAxis.prototype.destroy = function() {
+  // remove from DOM
+  if (this.dom.foreground.parentNode) {
+    this.dom.foreground.parentNode.removeChild(this.dom.foreground);
+  }
+  if (this.dom.background.parentNode) {
+    this.dom.background.parentNode.removeChild(this.dom.background);
+  }
+
+  this.body = null;
 };
 
 /**
@@ -4117,6 +4106,16 @@ CurrentTime.prototype._create = function() {
 };
 
 /**
+ * Destroy the CurrentTime bar
+ */
+CurrentTime.prototype.destroy = function () {
+  this.options.showCurrentTime = false;
+  this.redraw(); // will remove the bar from the DOM and stop refreshing
+
+  this.body = null;
+};
+
+/**
  * Set options for the component. Options will be merged in current options.
  * @param {Object} options  Available parameters:
  *                          {boolean} [showCurrentTime]
@@ -4155,8 +4154,8 @@ CurrentTime.prototype.redraw = function() {
     // remove the line from the DOM
     if (this.bar.parentNode) {
       this.bar.parentNode.removeChild(this.bar);
-      this.stop();
     }
+    this.stop();
   }
 
   return false;
@@ -4264,6 +4263,19 @@ CustomTime.prototype._create = function() {
   this.hammer.on('dragstart', this._onDragStart.bind(this));
   this.hammer.on('drag',      this._onDrag.bind(this));
   this.hammer.on('dragend',   this._onDragEnd.bind(this));
+};
+
+/**
+ * Destroy the CustomTime bar
+ */
+CustomTime.prototype.destroy = function () {
+  this.options.showCustomTime = false;
+  this.redraw(); // will remove the bar from the DOM
+
+  this.hammer.enable(false);
+  this.hammer = null;
+
+  this.body = null;
 };
 
 /**
@@ -4521,8 +4533,10 @@ ItemSet.prototype._create = function(){
   this._updateUngrouped();
 
   // attach event listeners
-  // TODO: use event listeners from the rootpanel to improve performance?
-  this.hammer = Hammer(frame, {
+  // Note: we bind to the centerContainer for the case where the height
+  //       of the center container is larger than of the ItemSet, so we
+  //       can click in the empty area to create a new item or deselect an item.
+  this.hammer = Hammer(this.body.dom.centerContainer, {
     prevent_default: true
   });
 
@@ -4652,6 +4666,20 @@ ItemSet.prototype.setOptions = function(options) {
 ItemSet.prototype.markDirty = function() {
   this.groupIds = [];
   this.stackDirty = true;
+};
+
+/**
+ * Destroy the ItemSet
+ */
+ItemSet.prototype.destroy = function() {
+  this.hide();
+  this.setItems(null);
+  this.setGroups(null);
+
+  this.hammer = null;
+
+  this.body = null;
+  this.conversion = null;
 };
 
 /**
@@ -5449,12 +5477,12 @@ ItemSet.prototype._onDragEnd = function (event) {
       if ('start' in props.item.data) {
         changed = (props.start != props.item.data.start.valueOf());
         itemData.start = util.convert(props.item.data.start,
-                dataset.options.type && dataset.options.type.start || 'Date');
+                dataset._options.type && dataset._options.type.start || 'Date');
       }
       if ('end' in props.item.data) {
         changed = changed  || (props.end != props.item.data.end.valueOf());
         itemData.end = util.convert(props.item.data.end,
-                dataset.options.type && dataset.options.type.end || 'Date');
+                dataset._options.type && dataset._options.type.end || 'Date');
       }
       if ('group' in props.item.data) {
         changed = changed  || (props.group != props.item.data.group);
@@ -5466,7 +5494,7 @@ ItemSet.prototype._onDragEnd = function (event) {
         me.options.onMove(itemData, function (itemData) {
           if (itemData) {
             // apply changes
-            itemData[dataset.fieldId] = id; // ensure the item contains its id (can be undefined)
+            itemData[dataset._fieldId] = id; // ensure the item contains its id (can be undefined)
             changes.push(itemData);
           }
           else {
@@ -5565,8 +5593,7 @@ ItemSet.prototype._onAddItem = function (event) {
       newItem.end = snap ? snap(end) : end;
     }
 
-    var id = util.randomUUID();
-    newItem[this.itemsData.fieldId] = id;
+    newItem[this.itemsData.fieldId] = util.randomUUID();
 
     var group = ItemSet.groupFromTarget(event);
     if (group) {
@@ -7245,6 +7272,42 @@ Timeline.prototype._create = function (container) {
 };
 
 /**
+ * Destroy the Timeline, clean up all DOM elements and event listeners.
+ */
+Timeline.prototype.destroy = function () {
+  // unbind datasets
+  this.clear();
+
+  // remove all event listeners
+  this.off();
+
+  // stop checking for changed size
+  this._stopAutoResize();
+
+  // remove from DOM
+  if (this.dom.root.parentNode) {
+    this.dom.root.parentNode.removeChild(this.dom.root);
+  }
+  this.dom = null;
+
+  // cleanup hammer touch events
+  for (var event in this.listeners) {
+    if (this.listeners.hasOwnProperty(event)) {
+      delete this.listeners[event];
+    }
+  }
+  this.listeners = null;
+  this.hammer = null;
+
+  // give all components the opportunity to cleanup
+  this.components.forEach(function (component) {
+    component.destroy();
+  });
+
+  this.body = null;
+};
+
+/**
  * Set options. Options will be passed to all components loaded in the Timeline.
  * @param {Object} [options]
  *                           {String} orientation
@@ -7542,6 +7605,8 @@ Timeline.prototype.redraw = function() {
       props = this.props,
       dom = this.dom;
 
+  if (!dom) return; // when destroyed
+
   // update class names
   dom.root.className = 'vis timeline root ' + options.orientation;
 
@@ -7719,7 +7784,7 @@ Timeline.prototype._startAutoResize = function () {
 
   this._stopAutoResize();
 
-  function checkSize() {
+  this._onResize = function() {
     if (me.options.autoResize != true) {
       // stop watching when the option autoResize is changed to false
       me._stopAutoResize();
@@ -7736,12 +7801,12 @@ Timeline.prototype._startAutoResize = function () {
         me.emit('change');
       }
     }
-  }
+  };
 
-  // TODO: automatically cleanup the event listener when the frame is deleted
-  util.addEventListener(window, 'resize', checkSize);
+  // add event listener to window resize
+  util.addEventListener(window, 'resize', this._onResize);
 
-  this.watchTimer = setInterval(checkSize, 1000);
+  this.watchTimer = setInterval(this._onResize, 1000);
 };
 
 /**
@@ -7754,7 +7819,9 @@ Timeline.prototype._stopAutoResize = function () {
     this.watchTimer = undefined;
   }
 
-  // TODO: remove event listener on window.resize
+  // remove event listener on window.resize
+  util.removeEventListener(window, 'resize', this._onResize);
+  this._onResize = null;
 };
 
 /**
@@ -23205,7 +23272,7 @@ else {
 })(this);
 },{}],4:[function(require,module,exports){
 var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};//! moment.js
-//! version : 2.6.0
+//! version : 2.7.0
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
@@ -23217,7 +23284,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     ************************************/
 
     var moment,
-        VERSION = "2.6.0",
+        VERSION = "2.7.0",
         // the global-scope this is NOT the global object in Node.js
         globalScope = typeof global !== 'undefined' ? global : this,
         oldGlobalMoment,
@@ -23242,6 +23309,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             _f : null,
             _l : null,
             _strict : null,
+            _tzm : null,
             _isUTC : null,
             _offset : null,  // optional. Combine with _isUTC
             _pf : null,
@@ -23349,6 +23417,16 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
         // format function strings
         formatFunctions = {},
+
+        // default relative time thresholds
+        relativeTimeThresholds = {
+          s: 45,   //seconds to minutes
+          m: 45,   //minutes to hours
+          h: 22,   //hours to days
+          dd: 25,  //days to month (month == 1)
+          dm: 45,  //days to months (months > 1)
+          dy: 345  //days to year
+        },
 
         // tokens to ordinalize and pad
         ordinalizeTokens = 'DDD w W M D d'.split(' '),
@@ -23488,6 +23566,16 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
         },
 
         lists = ['months', 'monthsShort', 'weekdays', 'weekdaysShort', 'weekdaysMin'];
+
+    // Pick the first defined of two or three arguments. dfl comes from
+    // default.
+    function dfl(a, b, c) {
+        switch (arguments.length) {
+            case 2: return a != null ? a : b;
+            case 3: return a != null ? a : b != null ? b : c;
+            default: throw new Error("Implement me");
+        }
+    }
 
     function defaultParsingFlags() {
         // We need to deep clone this object, and es5 standard is not very
@@ -24357,30 +24445,86 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             config._useUTC = true;
             config._tzm = timezoneMinutesFromString(input);
             break;
+        // WEEKDAY - human
+        case 'dd':
+        case 'ddd':
+        case 'dddd':
+            a = getLangDefinition(config._l).weekdaysParse(input);
+            // if we didn't get a weekday name, mark the date as invalid
+            if (a != null) {
+                config._w = config._w || {};
+                config._w['d'] = a;
+            } else {
+                config._pf.invalidWeekday = input;
+            }
+            break;
+        // WEEK, WEEK DAY - numeric
         case 'w':
         case 'ww':
         case 'W':
         case 'WW':
         case 'd':
-        case 'dd':
-        case 'ddd':
-        case 'dddd':
         case 'e':
         case 'E':
             token = token.substr(0, 1);
             /* falls through */
-        case 'gg':
         case 'gggg':
-        case 'GG':
         case 'GGGG':
         case 'GGGGG':
             token = token.substr(0, 2);
             if (input) {
                 config._w = config._w || {};
-                config._w[token] = input;
+                config._w[token] = toInt(input);
             }
             break;
+        case 'gg':
+        case 'GG':
+            config._w = config._w || {};
+            config._w[token] = moment.parseTwoDigitYear(input);
         }
+    }
+
+    function dayOfYearFromWeekInfo(config) {
+        var w, weekYear, week, weekday, dow, doy, temp, lang;
+
+        w = config._w;
+        if (w.GG != null || w.W != null || w.E != null) {
+            dow = 1;
+            doy = 4;
+
+            // TODO: We need to take the current isoWeekYear, but that depends on
+            // how we interpret now (local, utc, fixed offset). So create
+            // a now version of current config (take local/utc/offset flags, and
+            // create now).
+            weekYear = dfl(w.GG, config._a[YEAR], weekOfYear(moment(), 1, 4).year);
+            week = dfl(w.W, 1);
+            weekday = dfl(w.E, 1);
+        } else {
+            lang = getLangDefinition(config._l);
+            dow = lang._week.dow;
+            doy = lang._week.doy;
+
+            weekYear = dfl(w.gg, config._a[YEAR], weekOfYear(moment(), dow, doy).year);
+            week = dfl(w.w, 1);
+
+            if (w.d != null) {
+                // weekday -- low day numbers are considered next week
+                weekday = w.d;
+                if (weekday < dow) {
+                    ++week;
+                }
+            } else if (w.e != null) {
+                // local weekday -- counting starts from begining of week
+                weekday = w.e + dow;
+            } else {
+                // default to begining of week
+                weekday = dow;
+            }
+        }
+        temp = dayOfYearFromWeeks(weekYear, week, weekday, doy, dow);
+
+        config._a[YEAR] = temp.year;
+        config._dayOfYear = temp.dayOfYear;
     }
 
     // convert an array to a date.
@@ -24388,8 +24532,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     // note: all values past the year are optional and will default to the lowest possible value.
     // [year, month, day , hour, minute, second, millisecond]
     function dateFromConfig(config) {
-        var i, date, input = [], currentDate,
-            yearToUse, fixYear, w, temp, lang, weekday, week;
+        var i, date, input = [], currentDate, yearToUse;
 
         if (config._d) {
             return;
@@ -24399,39 +24542,12 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
         //compute day of the year from weeks and weekdays
         if (config._w && config._a[DATE] == null && config._a[MONTH] == null) {
-            fixYear = function (val) {
-                var intVal = parseInt(val, 10);
-                return val ?
-                  (val.length < 3 ? (intVal > 68 ? 1900 + intVal : 2000 + intVal) : intVal) :
-                  (config._a[YEAR] == null ? moment().weekYear() : config._a[YEAR]);
-            };
-
-            w = config._w;
-            if (w.GG != null || w.W != null || w.E != null) {
-                temp = dayOfYearFromWeeks(fixYear(w.GG), w.W || 1, w.E, 4, 1);
-            }
-            else {
-                lang = getLangDefinition(config._l);
-                weekday = w.d != null ?  parseWeekday(w.d, lang) :
-                  (w.e != null ?  parseInt(w.e, 10) + lang._week.dow : 0);
-
-                week = parseInt(w.w, 10) || 1;
-
-                //if we're parsing 'd', then the low day numbers may be next week
-                if (w.d != null && weekday < lang._week.dow) {
-                    week++;
-                }
-
-                temp = dayOfYearFromWeeks(fixYear(w.gg), week, weekday, lang._week.doy, lang._week.dow);
-            }
-
-            config._a[YEAR] = temp.year;
-            config._dayOfYear = temp.dayOfYear;
+            dayOfYearFromWeekInfo(config);
         }
 
         //if the day of the year is set, figure out what it is
         if (config._dayOfYear) {
-            yearToUse = config._a[YEAR] == null ? currentDate[YEAR] : config._a[YEAR];
+            yearToUse = dfl(config._a[YEAR], currentDate[YEAR]);
 
             if (config._dayOfYear > daysInYear(yearToUse)) {
                 config._pf._overflowDayOfYear = true;
@@ -24456,11 +24572,12 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             config._a[i] = input[i] = (config._a[i] == null) ? (i === 2 ? 1 : 0) : config._a[i];
         }
 
-        // add the offsets to the time to be parsed so that we can have a clean array for checking isValid
-        input[HOUR] += toInt((config._tzm || 0) / 60);
-        input[MINUTE] += toInt((config._tzm || 0) % 60);
-
         config._d = (config._useUTC ? makeUTCDate : makeDate).apply(null, input);
+        // Apply timezone offset from input. The actual zone can be changed
+        // with parseZone.
+        if (config._tzm != null) {
+            config._d.setUTCMinutes(config._d.getUTCMinutes() + config._tzm);
+        }
     }
 
     function dateFromObject(config) {
@@ -24499,6 +24616,11 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
     // date from string and format string
     function makeDateFromStringAndFormat(config) {
+
+        if (config._f === moment.ISO_8601) {
+            parseISO(config);
+            return;
+        }
 
         config._a = [];
         config._pf.empty = true;
@@ -24612,7 +24734,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     }
 
     // date from iso format
-    function makeDateFromString(config) {
+    function parseISO(config) {
         var i, l,
             string = config._i,
             match = isoRegex.exec(string);
@@ -24636,8 +24758,16 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
                 config._f += "Z";
             }
             makeDateFromStringAndFormat(config);
+        } else {
+            config._isValid = false;
         }
-        else {
+    }
+
+    // date from iso format or fallback
+    function makeDateFromString(config) {
+        parseISO(config);
+        if (config._isValid === false) {
+            delete config._isValid;
             moment.createFromInputFallback(config);
         }
     }
@@ -24718,15 +24848,15 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             hours = round(minutes / 60),
             days = round(hours / 24),
             years = round(days / 365),
-            args = seconds < 45 && ['s', seconds] ||
+            args = seconds < relativeTimeThresholds.s  && ['s', seconds] ||
                 minutes === 1 && ['m'] ||
-                minutes < 45 && ['mm', minutes] ||
+                minutes < relativeTimeThresholds.m && ['mm', minutes] ||
                 hours === 1 && ['h'] ||
-                hours < 22 && ['hh', hours] ||
+                hours < relativeTimeThresholds.h && ['hh', hours] ||
                 days === 1 && ['d'] ||
-                days <= 25 && ['dd', days] ||
-                days <= 45 && ['M'] ||
-                days < 345 && ['MM', round(days / 30)] ||
+                days <= relativeTimeThresholds.dd && ['dd', days] ||
+                days <= relativeTimeThresholds.dm && ['M'] ||
+                days < relativeTimeThresholds.dy && ['MM', round(days / 30)] ||
                 years === 1 && ['y'] || ['yy', years];
         args[2] = withoutSuffix;
         args[3] = milliseconds > 0;
@@ -24772,6 +24902,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     function dayOfYearFromWeeks(year, week, weekday, firstDayOfWeekOfYear, firstDayOfWeek) {
         var d = makeUTCDate(year, 0, 1).getUTCDay(), daysToAdd, dayOfYear;
 
+        d = d === 0 ? 7 : d;
         weekday = weekday != null ? weekday : firstDayOfWeek;
         daysToAdd = firstDayOfWeek - d + (d > firstDayOfWeekOfYear ? 7 : 0) - (d < firstDayOfWeek ? 7 : 0);
         dayOfYear = 7 * (week - 1) + (weekday - firstDayOfWeek) + daysToAdd + 1;
@@ -24846,6 +24977,40 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             function (config) {
         config._d = new Date(config._i);
     });
+
+    // Pick a moment m from moments so that m[fn](other) is true for all
+    // other. This relies on the function fn to be transitive.
+    //
+    // moments should either be an array of moment objects or an array, whose
+    // first element is an array of moment objects.
+    function pickBy(fn, moments) {
+        var res, i;
+        if (moments.length === 1 && isArray(moments[0])) {
+            moments = moments[0];
+        }
+        if (!moments.length) {
+            return moment();
+        }
+        res = moments[0];
+        for (i = 1; i < moments.length; ++i) {
+            if (moments[i][fn](res)) {
+                res = moments[i];
+            }
+        }
+        return res;
+    }
+
+    moment.min = function () {
+        var args = [].slice.call(arguments, 0);
+
+        return pickBy('isBefore', args);
+    };
+
+    moment.max = function () {
+        var args = [].slice.call(arguments, 0);
+
+        return pickBy('isAfter', args);
+    };
 
     // creating with utc
     moment.utc = function (input, format, lang, strict) {
@@ -24943,6 +25108,9 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     // default format
     moment.defaultFormat = isoFormat;
 
+    // constant that refers to the ISO standard
+    moment.ISO_8601 = function () {};
+
     // Plugins that add properties should also add the key here (null value),
     // so we can properly clone ourselves.
     moment.momentProperties = momentProperties;
@@ -24950,6 +25118,15 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     // This function will be called whenever a moment is mutated.
     // It is intended to keep the offset in sync with the timezone.
     moment.updateOffset = function () {};
+
+    // This function allows you to set a threshold for relative time strings
+    moment.relativeTimeThreshold = function(threshold, limit) {
+      if (relativeTimeThresholds[threshold] === undefined) {
+        return false;
+      }
+      relativeTimeThresholds[threshold] = limit;
+      return true;
+    };
 
     // This function will load languages and then set the global language.  If
     // no arguments are passed in, it will simply return the current global
@@ -25106,7 +25283,9 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
         add : function (input, val) {
             var dur;
             // switch args to support add('s', 1) and add(1, 's')
-            if (typeof input === 'string') {
+            if (typeof input === 'string' && typeof val === 'string') {
+                dur = moment.duration(isNaN(+val) ? +input : +val, isNaN(+val) ? val : input);
+            } else if (typeof input === 'string') {
                 dur = moment.duration(+val, input);
             } else {
                 dur = moment.duration(input, val);
@@ -25118,7 +25297,9 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
         subtract : function (input, val) {
             var dur;
             // switch args to support subtract('s', 1) and subtract(1, 's')
-            if (typeof input === 'string') {
+            if (typeof input === 'string' && typeof val === 'string') {
+                dur = moment.duration(isNaN(+val) ? +input : +val, isNaN(+val) ? val : input);
+            } else if (typeof input === 'string') {
                 dur = moment.duration(+val, input);
             } else {
                 dur = moment.duration(input, val);
@@ -25169,10 +25350,11 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             return this.from(moment(), withoutSuffix);
         },
 
-        calendar : function () {
+        calendar : function (time) {
             // We want to compare the start of today, vs this.
             // Getting start-of-today depends on whether we're zone'd or not.
-            var sod = makeAs(moment(), this).startOf('day'),
+            var now = time || moment(),
+                sod = makeAs(now, this).startOf('day'),
                 diff = this.diff(sod, 'days', true),
                 format = diff < -6 ? 'sameElse' :
                     diff < -1 ? 'lastWeek' :
@@ -25267,15 +25449,21 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             return +this.clone().startOf(units) === +makeAs(input, this).startOf(units);
         },
 
-        min: function (other) {
-            other = moment.apply(null, arguments);
-            return other < this ? this : other;
-        },
+        min: deprecate(
+                 "moment().min is deprecated, use moment.min instead. https://github.com/moment/moment/issues/1548",
+                 function (other) {
+                     other = moment.apply(null, arguments);
+                     return other < this ? this : other;
+                 }
+         ),
 
-        max: function (other) {
-            other = moment.apply(null, arguments);
-            return other > this ? this : other;
-        },
+        max: deprecate(
+                "moment().max is deprecated, use moment.max instead. https://github.com/moment/moment/issues/1548",
+                function (other) {
+                    other = moment.apply(null, arguments);
+                    return other > this ? this : other;
+                }
+        ),
 
         // keepTime = true means only change the timezone, without affecting
         // the local hour. So 5:31:26 +0300 --[zone(2, true)]--> 5:31:26 +0200
