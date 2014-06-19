@@ -62,6 +62,10 @@ function Edge (properties, graph, constants) {
   this.lengthFixed = false;
 
   this.setProperties(properties, constants);
+
+  this.controlNodesEnabled = false;
+  this.controlNodes = {from:null, to:null, positions:{}};
+  this.connectedNode = null;
 }
 
 /**
@@ -809,3 +813,145 @@ Edge.prototype.positionBezierNode = function() {
     this.via.y = 0.5 * (this.from.y + this.to.y);
   }
 };
+
+/**
+ * This function draws the control nodes for the manipulator. In order to enable this, only set the this.controlNodesEnabled to true.
+ * @param ctx
+ */
+Edge.prototype._drawControlNodes = function(ctx) {
+  if (this.controlNodesEnabled == true) {
+    if (this.controlNodes.from === null && this.controlNodes.to === null) {
+      var nodeIdFrom = "edgeIdFrom:".concat(this.id);
+      var nodeIdTo = "edgeIdTo:".concat(this.id);
+      var constants = {
+                      nodes:{group:'', radius:8},
+                      physics:{damping:0},
+                      clustering: {maxNodeSizeIncrements: 0 ,nodeScaling: {width:0, height: 0, radius:0}}
+                      };
+      this.controlNodes.from = new Node(
+        {id:nodeIdFrom,
+          shape:'dot',
+            color:{background:'#ff4e00', border:'#3c3c3c', highlight: {background:'#07f968'}}
+        },{},{},constants);
+      this.controlNodes.to = new Node(
+        {id:nodeIdTo,
+          shape:'dot',
+          color:{background:'#ff4e00', border:'#3c3c3c', highlight: {background:'#07f968'}}
+        },{},{},constants);
+    }
+
+    if (this.controlNodes.from.selected == false && this.controlNodes.to.selected == false) {
+      this.controlNodes.positions = this.getControlNodePositions(ctx);
+      this.controlNodes.from.x = this.controlNodes.positions.from.x;
+      this.controlNodes.from.y = this.controlNodes.positions.from.y;
+      this.controlNodes.to.x = this.controlNodes.positions.to.x;
+      this.controlNodes.to.y = this.controlNodes.positions.to.y;
+    }
+
+    this.controlNodes.from.draw(ctx);
+    this.controlNodes.to.draw(ctx);
+  }
+  else {
+    this.controlNodes = {from:null, to:null, positions:{}};
+  }
+}
+
+/**
+ * Enable control nodes.
+ * @private
+ */
+Edge.prototype._enableControlNodes = function() {
+  this.controlNodesEnabled = true;
+}
+
+/**
+ * disable control nodes
+ * @private
+ */
+Edge.prototype._disableControlNodes = function() {
+  this.controlNodesEnabled = false;
+}
+
+/**
+ * This checks if one of the control nodes is selected and if so, returns the control node object. Else it returns null.
+ * @param x
+ * @param y
+ * @returns {null}
+ * @private
+ */
+Edge.prototype._getSelectedControlNode = function(x,y) {
+  var positions = this.controlNodes.positions;
+  var fromDistance = Math.sqrt(Math.pow(x - positions.from.x,2) + Math.pow(y - positions.from.y,2));
+  var toDistance =   Math.sqrt(Math.pow(x - positions.to.x  ,2) + Math.pow(y - positions.to.y  ,2));
+
+  if (fromDistance < 15) {
+    this.connectedNode = this.from;
+    this.from = this.controlNodes.from;
+    return this.controlNodes.from;
+  }
+  else if (toDistance < 15) {
+    this.connectedNode = this.to;
+    this.to = this.controlNodes.to;
+    return this.controlNodes.to;
+  }
+  else {
+    return null;
+  }
+}
+
+
+/**
+ * this resets the control nodes to their original position.
+ * @private
+ */
+Edge.prototype._restoreControlNodes = function() {
+  if (this.controlNodes.from.selected == true) {
+    this.from = this.connectedNode;
+    this.connectedNode = null;
+    this.controlNodes.from.unselect();
+  }
+  if (this.controlNodes.to.selected == true) {
+    this.to = this.connectedNode;
+    this.connectedNode = null;
+    this.controlNodes.to.unselect();
+  }
+}
+
+/**
+ * this calculates the position of the control nodes on the edges of the parent nodes.
+ *
+ * @param ctx
+ * @returns {{from: {x: number, y: number}, to: {x: *, y: *}}}
+ */
+Edge.prototype.getControlNodePositions = function(ctx) {
+  var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
+  var dx = (this.to.x - this.from.x);
+  var dy = (this.to.y - this.from.y);
+  var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
+  var fromBorderDist = this.from.distanceToBorder(ctx, angle + Math.PI);
+  var fromBorderPoint = (edgeSegmentLength - fromBorderDist) / edgeSegmentLength;
+  var xFrom = (fromBorderPoint) * this.from.x + (1 - fromBorderPoint) * this.to.x;
+  var yFrom = (fromBorderPoint) * this.from.y + (1 - fromBorderPoint) * this.to.y;
+
+
+  if (this.smooth == true) {
+    angle = Math.atan2((this.to.y - this.via.y), (this.to.x - this.via.x));
+    dx = (this.to.x - this.via.x);
+    dy = (this.to.y - this.via.y);
+    edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
+  }
+  var toBorderDist = this.to.distanceToBorder(ctx, angle);
+  var toBorderPoint = (edgeSegmentLength - toBorderDist) / edgeSegmentLength;
+
+  var xTo,yTo;
+  if (this.smooth == true) {
+    xTo = (1 - toBorderPoint) * this.via.x + toBorderPoint * this.to.x;
+    yTo = (1 - toBorderPoint) * this.via.y + toBorderPoint * this.to.y;
+  }
+  else {
+    xTo = (1 - toBorderPoint) * this.from.x + toBorderPoint * this.to.x;
+    yTo = (1 - toBorderPoint) * this.from.y + toBorderPoint * this.to.y;
+  }
+
+  return {from:{x:xFrom,y:yFrom},to:{x:xTo,y:yTo}};
+}

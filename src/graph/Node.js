@@ -30,8 +30,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.edges = []; // all edges connected to this node
   this.dynamicEdges = [];
   this.reroutedEdges = {};
-  this.group = constants.nodes.group;
 
+  this.group = constants.nodes.group;
   this.fontSize = Number(constants.nodes.fontSize);
   this.fontFace = constants.nodes.fontFace;
   this.fontColor = constants.nodes.fontColor;
@@ -812,7 +812,6 @@ Node.prototype._drawShape = function (ctx, shape) {
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
-
   ctx[shape](this.x, this.y, this.radius);
   ctx.fill();
   ctx.stroke();

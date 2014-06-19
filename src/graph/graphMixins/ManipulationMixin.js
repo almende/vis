@@ -65,6 +65,11 @@ var manipulationMixin = {
     if (this.boundFunction) {
       this.off('select', this.boundFunction);
     }
+    if (this.edgeBeingEdited !== undefined) {
+      this.edgeBeingEdited._disableControlNodes();
+      this.edgeBeingEdited = undefined;
+      this.selectedControlNode = null;
+    }
 
     // restore overloaded functions
     this._restoreOverloadedFunctions();
@@ -93,6 +98,12 @@ var manipulationMixin = {
           "<span class='graph-manipulationUI edit' id='graph-manipulate-editNode'>" +
             "<span class='graph-manipulationLabel'>"+this.constants.labels['editNode'] +"</span></span>";
       }
+      else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
+        this.manipulationDiv.innerHTML += "" +
+          "<div class='graph-seperatorLine'></div>" +
+          "<span class='graph-manipulationUI edit' id='graph-manipulate-editEdge'>" +
+          "<span class='graph-manipulationLabel'>"+this.constants.labels['editEdge'] +"</span></span>";
+      }
       if (this._selectionIsEmpty() == false) {
         this.manipulationDiv.innerHTML += "" +
           "<div class='graph-seperatorLine'></div>" +
@@ -109,6 +120,10 @@ var manipulationMixin = {
       if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
         var editButton = document.getElementById("graph-manipulate-editNode");
         editButton.onclick = this._editNode.bind(this);
+      }
+      else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
+        var editButton = document.getElementById("graph-manipulate-editEdge");
+        editButton.onclick = this._createEditEdgeToolbar.bind(this);
       }
       if (this._selectionIsEmpty() == false) {
         var deleteButton = document.getElementById("graph-manipulate-delete");
@@ -203,9 +218,105 @@ var manipulationMixin = {
 
     // redraw to show the unselect
     this._redraw();
-
   },
 
+  /**
+   * create the toolbar to edit edges
+   *
+   * @private
+   */
+  _createEditEdgeToolbar : function() {
+    // clear the toolbar
+    this._clearManipulatorBar();
+
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
+
+    this.edgeBeingEdited = this._getSelectedEdge();
+    this.edgeBeingEdited._enableControlNodes();
+
+    this.manipulationDiv.innerHTML = "" +
+      "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
+      "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
+      "<div class='graph-seperatorLine'></div>" +
+      "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
+      "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['editEdgeDescription'] + "</span></span>";
+
+    // bind the icon
+    var backButton = document.getElementById("graph-manipulate-back");
+    backButton.onclick = this._createManipulatorBar.bind(this);
+
+    // temporarily overload functions
+    this.cachedFunctions["_handleTouch"]      = this._handleTouch;
+    this.cachedFunctions["_handleOnRelease"]  = this._handleOnRelease;
+    this.cachedFunctions["_handleTap"]        = this._handleTap;
+    this.cachedFunctions["_handleDragStart"]  = this._handleDragStart;
+    this.cachedFunctions["_handleOnDrag"]     = this._handleOnDrag;
+    this._handleTouch     = this._selectControlNode;
+    this._handleTap       = function () {};
+    this._handleOnDrag    = this._controlNodeDrag;
+    this._handleDragStart = function () {}
+    this._handleOnRelease = this._releaseControlNode;
+
+    // redraw to show the unselect
+    this._redraw();
+  },
+
+
+
+
+
+  /**
+   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+   * to walk the user through the process.
+   *
+   * @private
+   */
+  _selectControlNode : function(pointer) {
+    this.edgeBeingEdited.controlNodes.from.unselect();
+    this.edgeBeingEdited.controlNodes.to.unselect();
+    this.selectedControlNode = this.edgeBeingEdited._getSelectedControlNode(this._XconvertDOMtoCanvas(pointer.x),this._YconvertDOMtoCanvas(pointer.y));
+    if (this.selectedControlNode !== null) {
+      this.selectedControlNode.select();
+      this.freezeSimulation = true;
+    }
+    this._redraw();
+  },
+
+  /**
+   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+   * to walk the user through the process.
+   *
+   * @private
+   */
+  _controlNodeDrag : function(event) {
+    var pointer = this._getPointer(event.gesture.center);
+    if (this.selectedControlNode !== null && this.selectedControlNode !== undefined) {
+      this.selectedControlNode.x = this._XconvertDOMtoCanvas(pointer.x);
+      this.selectedControlNode.y = this._YconvertDOMtoCanvas(pointer.y);
+    }
+    this._redraw();
+  },
+
+  _releaseControlNode : function(pointer) {
+    var newNode = this._getNodeAt(pointer);
+    if (newNode != null) {
+      if (this.edgeBeingEdited.controlNodes.from.selected == true) {
+        this._editEdge(newNode.id, this.edgeBeingEdited.to.id);
+        this.edgeBeingEdited.controlNodes.from.unselect();
+      }
+      if (this.edgeBeingEdited.controlNodes.to.selected == true) {
+        this._editEdge(this.edgeBeingEdited.from.id, newNode.id);
+        this.edgeBeingEdited.controlNodes.to.unselect();
+      }
+    }
+    else {
+      this.edgeBeingEdited._restoreControlNodes();
+    }
+    this.freezeSimulation = false;
+    this._redraw();
+  },
 
   /**
    * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
@@ -351,6 +462,36 @@ var manipulationMixin = {
     }
   },
 
+  /**
+   * connect two nodes with a new edge.
+   *
+   * @private
+   */
+  _editEdge : function(sourceNodeId,targetNodeId) {
+    if (this.editMode == true) {
+      var defaultData = {id: this.edgeBeingEdited.id, from:sourceNodeId, to:targetNodeId};
+      if (this.triggerFunctions.editEdge) {
+        if (this.triggerFunctions.editEdge.length == 2) {
+          var me = this;
+          this.triggerFunctions.editEdge(defaultData, function(finalizedData) {
+            me.edgesData.update(finalizedData);
+            me.moving = true;
+            me.start();
+          });
+        }
+        else {
+          alert(this.constants.labels["linkError"]);
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        this.edgesData.update(defaultData);
+        this.moving = true;
+        this.start();
+      }
+    }
+  },
 
   /**
    * Create the toolbar to edit the selected node. The label and the color can be changed. Other colors are derived from the chosen color.
@@ -389,6 +530,8 @@ var manipulationMixin = {
       alert(this.constants.labels["editBoundError"]);
     }
   },
+
+
 
 
   /**
