@@ -760,17 +760,18 @@ DataSet.prototype.min = function (field) {
  *                         The returned array is unordered.
  */
 DataSet.prototype.distinct = function (field) {
-  var data = this._data,
-      values = [],
-      fieldType = this._options.type[field],
-      count = 0;
+  var data = this._data;
+  var values = [];
+  var fieldType = this._options.type && this._options.type[field] || null;
+  var count = 0;
+  var i;
 
   for (var prop in data) {
     if (data.hasOwnProperty(prop)) {
       var item = data[prop];
-      var value = util.convert(item[field], fieldType);
+      var value = item[field];
       var exists = false;
-      for (var i = 0; i < count; i++) {
+      for (i = 0; i < count; i++) {
         if (values[i] == value) {
           exists = true;
           break;
@@ -780,6 +781,12 @@ DataSet.prototype.distinct = function (field) {
         values[count] = value;
         count++;
       }
+    }
+  }
+
+  if (fieldType) {
+    for (i = 0; i < values.length; i++) {
+      values[i] = util.convert(values[i], fieldType);
     }
   }
 
