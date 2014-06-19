@@ -153,8 +153,10 @@ ItemSet.prototype._create = function(){
   this._updateUngrouped();
 
   // attach event listeners
-  // TODO: use event listeners from the rootpanel to improve performance?
-  this.hammer = Hammer(frame, {
+  // Note: we bind to the centerContainer for the case where the height
+  //       of the center container is larger than of the ItemSet, so we
+  //       can click in the empty area to create a new item or deselect an item.
+  this.hammer = Hammer(this.body.dom.centerContainer, {
     prevent_default: true
   });
 
