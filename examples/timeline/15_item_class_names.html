@@ -74,7 +74,7 @@
 <script type="text/javascript">
   // create data
   // note that months are zero-based in the JavaScript Date object
-  var data = [
+  var data = new vis.DataSet([
     {
       'start': new Date(2012,7,19),
       'content': 'default'
@@ -100,7 +100,7 @@
       'content': 'magenta',
       'className': 'magenta'
     }
-  ];
+  ]);
 
   // specify options
   var options = {

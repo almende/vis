@@ -1,73 +1,38 @@
 /**
  * Prototype for visual components
+ * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} [body]
+ * @param {Object} [options]
  */
-function Component () {
-  this.id = null;
-  this.parent = null;
-  this.childs = null;
+function Component (body, options) {
   this.options = null;
-
-  this.top = 0;
-  this.left = 0;
-  this.width = 0;
-  this.height = 0;
+  this.props = null;
 }
 
-// Turn the Component into an event emitter
-Emitter(Component.prototype);
-
 /**
- * Set parameters for the frame. Parameters will be merged in current parameter
- * set.
- * @param {Object} options  Available parameters:
- *                          {String | function} [className]
- *                          {String | Number | function} [left]
- *                          {String | Number | function} [top]
- *                          {String | Number | function} [width]
- *                          {String | Number | function} [height]
+ * Set options for the component. The new options will be merged into the
+ * current options.
+ * @param {Object} options
  */
-Component.prototype.setOptions = function setOptions(options) {
+Component.prototype.setOptions = function(options) {
   if (options) {
     util.extend(this.options, options);
-
-    this.repaint();
   }
-};
-
-/**
- * Get an option value by name
- * The function will first check this.options object, and else will check
- * this.defaultOptions.
- * @param {String} name
- * @return {*} value
- */
-Component.prototype.getOption = function getOption(name) {
-  var value;
-  if (this.options) {
-    value = this.options[name];
-  }
-  if (value === undefined && this.defaultOptions) {
-    value = this.defaultOptions[name];
-  }
-  return value;
-};
-
-/**
- * Get the frame element of the component, the outer HTML DOM element.
- * @returns {HTMLElement | null} frame
- */
-Component.prototype.getFrame = function getFrame() {
-  // should be implemented by the component
-  return null;
 };
 
 /**
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
-Component.prototype.repaint = function repaint() {
+Component.prototype.redraw = function() {
   // should be implemented by the component
   return false;
+};
+
+/**
+ * Destroy the component. Cleanup DOM and event listeners
+ */
+Component.prototype.destroy = function() {
+  // should be implemented by the component
 };
 
 /**
@@ -76,11 +41,12 @@ Component.prototype.repaint = function repaint() {
  * @return {Boolean} Returns true if the component is resized
  * @protected
  */
-Component.prototype._isResized = function _isResized() {
-  var resized = (this._previousWidth !== this.width || this._previousHeight !== this.height);
+Component.prototype._isResized = function() {
+  var resized = (this.props._previousWidth !== this.props.width ||
+      this.props._previousHeight !== this.props.height);
 
-  this._previousWidth = this.width;
-  this._previousHeight = this.height;
+  this.props._previousWidth = this.props.width;
+  this.props._previousHeight = this.props.height;
 
   return resized;
 };

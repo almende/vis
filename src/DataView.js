@@ -9,13 +9,11 @@
  * @constructor DataView
  */
 function DataView (data, options) {
-  this.id = util.randomUUID();
-
-  this.data = null;
-  this.ids = {}; // ids of the items currently in memory (just contains a boolean true)
-  this.options = options || {};
-  this.fieldId = 'id'; // name of the field containing id
-  this.subscribers = {}; // event subscribers
+  this._data = null;
+  this._ids = {}; // ids of the items currently in memory (just contains a boolean true)
+  this._options = options || {};
+  this._fieldId = 'id'; // name of the field containing id
+  this._subscribers = {}; // event subscribers
 
   var me = this;
   this.listener = function () {
@@ -33,44 +31,44 @@ function DataView (data, options) {
  * @param {DataSet | DataView} data
  */
 DataView.prototype.setData = function (data) {
-  var ids, dataItems, i, len;
+  var ids, i, len;
 
-  if (this.data) {
+  if (this._data) {
     // unsubscribe from current dataset
-    if (this.data.unsubscribe) {
-      this.data.unsubscribe('*', this.listener);
+    if (this._data.unsubscribe) {
+      this._data.unsubscribe('*', this.listener);
     }
 
     // trigger a remove of all items in memory
     ids = [];
-    for (var id in this.ids) {
-      if (this.ids.hasOwnProperty(id)) {
+    for (var id in this._ids) {
+      if (this._ids.hasOwnProperty(id)) {
         ids.push(id);
       }
     }
-    this.ids = {};
+    this._ids = {};
     this._trigger('remove', {items: ids});
   }
 
-  this.data = data;
+  this._data = data;
 
-  if (this.data) {
+  if (this._data) {
     // update fieldId
-    this.fieldId = this.options.fieldId ||
-        (this.data && this.data.options && this.data.options.fieldId) ||
+    this._fieldId = this._options.fieldId ||
+        (this._data && this._data.options && this._data.options.fieldId) ||
         'id';
 
     // trigger an add of all added items
-    ids = this.data.getIds({filter: this.options && this.options.filter});
+    ids = this._data.getIds({filter: this._options && this._options.filter});
     for (i = 0, len = ids.length; i < len; i++) {
       id = ids[i];
-      this.ids[id] = true;
+      this._ids[id] = true;
     }
     this._trigger('add', {items: ids});
 
     // subscribe to new dataset
-    if (this.data.on) {
-      this.data.on('*', this.listener);
+    if (this._data.on) {
+      this._data.on('*', this.listener);
     }
   }
 };
@@ -128,12 +126,12 @@ DataView.prototype.get = function (args) {
   }
 
   // extend the options with the default options and provided options
-  var viewOptions = util.extend({}, this.options, options);
+  var viewOptions = util.extend({}, this._options, options);
 
   // create a combined filter method when needed
-  if (this.options.filter && options && options.filter) {
+  if (this._options.filter && options && options.filter) {
     viewOptions.filter = function (item) {
-      return me.options.filter(item) && options.filter(item);
+      return me._options.filter(item) && options.filter(item);
     }
   }
 
@@ -145,7 +143,7 @@ DataView.prototype.get = function (args) {
   getArguments.push(viewOptions);
   getArguments.push(data);
 
-  return this.data && this.data.get.apply(this.data, getArguments);
+  return this._data && this._data.get.apply(this._data, getArguments);
 };
 
 /**
@@ -159,8 +157,8 @@ DataView.prototype.get = function (args) {
 DataView.prototype.getIds = function (options) {
   var ids;
 
-  if (this.data) {
-    var defaultFilter = this.options.filter;
+  if (this._data) {
+    var defaultFilter = this._options.filter;
     var filter;
 
     if (options && options.filter) {
@@ -177,7 +175,7 @@ DataView.prototype.getIds = function (options) {
       filter = defaultFilter;
     }
 
-    ids = this.data.getIds({
+    ids = this._data.getIds({
       filter: filter,
       order: options && options.order
     });
@@ -201,7 +199,7 @@ DataView.prototype.getIds = function (options) {
 DataView.prototype._onEvent = function (event, params, senderId) {
   var i, len, id, item,
       ids = params && params.items,
-      data = this.data,
+      data = this._data,
       added = [],
       updated = [],
       removed = [];
@@ -214,7 +212,7 @@ DataView.prototype._onEvent = function (event, params, senderId) {
           id = ids[i];
           item = this.get(id);
           if (item) {
-            this.ids[id] = true;
+            this._ids[id] = true;
             added.push(id);
           }
         }
@@ -229,17 +227,17 @@ DataView.prototype._onEvent = function (event, params, senderId) {
           item = this.get(id);
 
           if (item) {
-            if (this.ids[id]) {
+            if (this._ids[id]) {
               updated.push(id);
             }
             else {
-              this.ids[id] = true;
+              this._ids[id] = true;
               added.push(id);
             }
           }
           else {
-            if (this.ids[id]) {
-              delete this.ids[id];
+            if (this._ids[id]) {
+              delete this._ids[id];
               removed.push(id);
             }
             else {
@@ -254,8 +252,8 @@ DataView.prototype._onEvent = function (event, params, senderId) {
         // filter the ids of the removed items
         for (i = 0, len = ids.length; i < len; i++) {
           id = ids[i];
-          if (this.ids[id]) {
-            delete this.ids[id];
+          if (this._ids[id]) {
+            delete this._ids[id];
             removed.push(id);
           }
         }

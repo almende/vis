@@ -7,7 +7,7 @@ var stack = {};
  * Order items by their start data
  * @param {Item[]} items
  */
-stack.orderByStart = function orderByStart(items) {
+stack.orderByStart = function(items) {
   items.sort(function (a, b) {
     return a.data.start - b.data.start;
   });
@@ -18,7 +18,7 @@ stack.orderByStart = function orderByStart(items) {
  * is used.
  * @param {Item[]} items
  */
-stack.orderByEnd = function orderByEnd(items) {
+stack.orderByEnd = function(items) {
   items.sort(function (a, b) {
     var aTime = ('end' in a.data) ? a.data.end : a.data.start,
         bTime = ('end' in b.data) ? b.data.end : b.data.start;
@@ -38,7 +38,7 @@ stack.orderByEnd = function orderByEnd(items) {
  *            If true, all items will be repositioned. If false (default), only
  *            items having a top===null will be re-stacked
  */
-stack.stack = function _stack (items, margin, force) {
+stack.stack = function(items, margin, force) {
   var i, iMax;
 
   if (force) {
@@ -83,7 +83,7 @@ stack.stack = function _stack (items, margin, force) {
  * @param {{item: number, axis: number}} margin
  *            Margins between items and between items and the axis.
  */
-stack.nostack = function nostack (items, margin) {
+stack.nostack = function(items, margin) {
   var i, iMax;
 
   // reset top position of all items
@@ -104,7 +104,7 @@ stack.nostack = function nostack (items, margin) {
  *                          the requested margin.
  * @return {boolean}        true if a and b collide, else false
  */
-stack.collision = function collision (a, b, margin) {
+stack.collision = function(a, b, margin) {
   return ((a.left - margin) < (b.left + b.width) &&
       (a.left + a.width + margin) > b.left &&
       (a.top - margin) < (b.top + b.height) &&

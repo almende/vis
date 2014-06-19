@@ -1,14 +1,14 @@
 /**
  * A horizontal time axis
+ * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} body
  * @param {Object} [options]        See TimeAxis.setOptions for the available
  *                                  options.
  * @constructor TimeAxis
  * @extends Component
  */
-function TimeAxis (options) {
-  this.id = util.randomUUID();
-
+function TimeAxis (body, options) {
   this.dom = {
+    foreground: null,
     majorLines: [],
     majorTexts: [],
     minorLines: [],
@@ -29,121 +29,124 @@ function TimeAxis (options) {
     lineTop: 0
   };
 
-  this.options = options || {};
   this.defaultOptions = {
     orientation: 'bottom',  // supported: 'top', 'bottom'
     // TODO: implement timeaxis orientations 'left' and 'right'
     showMinorLabels: true,
     showMajorLabels: true
   };
+  this.options = util.extend({}, this.defaultOptions);
 
-  this.range = null;
+  this.body = body;
 
   // create the HTML DOM
   this._create();
+
+  this.setOptions(options);
 }
 
 TimeAxis.prototype = new Component();
 
-// TODO: comment options
-TimeAxis.prototype.setOptions = Component.prototype.setOptions;
+/**
+ * Set options for the TimeAxis.
+ * Parameters will be merged in current options.
+ * @param {Object} options  Available options:
+ *                          {string} [orientation]
+ *                          {boolean} [showMinorLabels]
+ *                          {boolean} [showMajorLabels]
+ */
+TimeAxis.prototype.setOptions = function(options) {
+  if (options) {
+    // copy all options that we know
+    util.selectiveExtend(['orientation', 'showMinorLabels', 'showMajorLabels'], this.options, options);
+  }
+};
 
 /**
  * Create the HTML DOM for the TimeAxis
  */
-TimeAxis.prototype._create = function _create() {
-  this.frame = document.createElement('div');
+TimeAxis.prototype._create = function() {
+  this.dom.foreground = document.createElement('div');
+  this.dom.background = document.createElement('div');
+
+  this.dom.foreground.className = 'timeaxis foreground';
+  this.dom.background.className = 'timeaxis background';
 };
 
 /**
- * Set a range (start and end)
- * @param {Range | Object} range  A Range or an object containing start and end.
+ * Destroy the TimeAxis
  */
-TimeAxis.prototype.setRange = function (range) {
-  if (!(range instanceof Range) && (!range || !range.start || !range.end)) {
-    throw new TypeError('Range must be an instance of Range, ' +
-        'or an object containing start and end.');
+TimeAxis.prototype.destroy = function() {
+  // remove from DOM
+  if (this.dom.foreground.parentNode) {
+    this.dom.foreground.parentNode.removeChild(this.dom.foreground);
   }
-  this.range = range;
-};
+  if (this.dom.background.parentNode) {
+    this.dom.background.parentNode.removeChild(this.dom.background);
+  }
 
-/**
- * Get the outer frame of the time axis
- * @return {HTMLElement} frame
- */
-TimeAxis.prototype.getFrame = function getFrame() {
-  return this.frame;
+  this.body = null;
 };
 
 /**
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
-TimeAxis.prototype.repaint = function () {
-  var asSize = util.option.asSize,
-      options = this.options,
+TimeAxis.prototype.redraw = function () {
+  var options = this.options,
       props = this.props,
-      frame = this.frame;
+      foreground = this.dom.foreground,
+      background = this.dom.background;
 
-  // update classname
-  frame.className = 'timeaxis'; // TODO: add className from options if defined
+  // determine the correct parent DOM element (depending on option orientation)
+  var parent = (options.orientation == 'top') ? this.body.dom.top : this.body.dom.bottom;
+  var parentChanged = (foreground.parentNode !== parent);
 
-  var parent = frame.parentNode;
-  if (parent) {
-    // calculate character width and height
-    this._calculateCharSize();
+  // calculate character width and height
+  this._calculateCharSize();
 
-    // TODO: recalculate sizes only needed when parent is resized or options is changed
-    var orientation = this.getOption('orientation'),
-        showMinorLabels = this.getOption('showMinorLabels'),
-        showMajorLabels = this.getOption('showMajorLabels');
+  // TODO: recalculate sizes only needed when parent is resized or options is changed
+  var orientation = this.options.orientation,
+      showMinorLabels = this.options.showMinorLabels,
+      showMajorLabels = this.options.showMajorLabels;
 
-    // determine the width and height of the elemens for the axis
-    var parentHeight = this.parent.height;
-    props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
-    props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
-    this.height = props.minorLabelHeight + props.majorLabelHeight;
-    this.width = frame.offsetWidth; // TODO: only update the width when the frame is resized?
+  // determine the width and height of the elemens for the axis
+  props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
+  props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
+  props.height = props.minorLabelHeight + props.majorLabelHeight;
+  props.width = foreground.offsetWidth;
 
-    props.minorLineHeight = parentHeight + props.minorLabelHeight;
-    props.minorLineWidth = 1; // TODO: really calculate width
-    props.majorLineHeight = parentHeight + this.height;
-    props.majorLineWidth = 1; // TODO: really calculate width
+  props.minorLineHeight = this.body.domProps.root.height - props.majorLabelHeight -
+      (options.orientation == 'top' ? this.body.domProps.bottom.height : this.body.domProps.top.height);
+  props.minorLineWidth = 1; // TODO: really calculate width
+  props.majorLineHeight = props.minorLineHeight + props.majorLabelHeight;
+  props.majorLineWidth = 1; // TODO: really calculate width
 
-    //  take frame offline while updating (is almost twice as fast)
-    var beforeChild = frame.nextSibling;
-    parent.removeChild(frame);
+  //  take foreground and background offline while updating (is almost twice as fast)
+  var foregroundNextSibling = foreground.nextSibling;
+  var backgroundNextSibling = background.nextSibling;
+  foreground.parentNode && foreground.parentNode.removeChild(foreground);
+  background.parentNode && background.parentNode.removeChild(background);
 
-    // TODO: top/bottom positioning should be determined by options set in the Timeline, not here
-    if (orientation == 'top') {
-      frame.style.top = '0';
-      frame.style.left = '0';
-      frame.style.bottom = '';
-      frame.style.width = asSize(options.width, '100%');
-      frame.style.height = this.height + 'px';
-    }
-    else { // bottom
-      frame.style.top = '';
-      frame.style.bottom = '0';
-      frame.style.left = '0';
-      frame.style.width = asSize(options.width, '100%');
-      frame.style.height = this.height + 'px';
-    }
+  foreground.style.height = this.props.height + 'px';
 
-    this._repaintLabels();
+  this._repaintLabels();
 
-    this._repaintLine();
-
-    // put frame online again
-    if (beforeChild) {
-      parent.insertBefore(frame, beforeChild);
-    }
-    else {
-      parent.appendChild(frame)
-    }
+  // put DOM online again (at the same place)
+  if (foregroundNextSibling) {
+    parent.insertBefore(foreground, foregroundNextSibling);
+  }
+  else {
+    parent.appendChild(foreground)
+  }
+  if (backgroundNextSibling) {
+    this.body.dom.backgroundVertical.insertBefore(background, backgroundNextSibling);
+  }
+  else {
+    this.body.dom.backgroundVertical.appendChild(background)
   }
 
-  return this._isResized();
+  return this._isResized() || parentChanged;
 };
 
 /**
@@ -151,13 +154,13 @@ TimeAxis.prototype.repaint = function () {
  * @private
  */
 TimeAxis.prototype._repaintLabels = function () {
-  var orientation = this.getOption('orientation');
+  var orientation = this.options.orientation;
 
   // calculate range and step (step such that we have space for 7 characters per label)
-  var start = util.convert(this.range.start, 'Number'),
-      end = util.convert(this.range.end, 'Number'),
-      minimumStep = this.options.toTime((this.props.minorCharWidth || 10) * 7).valueOf()
-          -this.options.toTime(0).valueOf();
+  var start = util.convert(this.body.range.start, 'Number'),
+      end = util.convert(this.body.range.end, 'Number'),
+      minimumStep = this.body.util.toTime((this.props.minorCharWidth || 10) * 7).valueOf()
+          -this.body.util.toTime(0).valueOf();
   var step = new TimeStep(new Date(start), new Date(end), minimumStep);
   this.step = step;
 
@@ -180,16 +183,16 @@ TimeAxis.prototype._repaintLabels = function () {
   while (step.hasNext() && max < 1000) {
     max++;
     var cur = step.getCurrent(),
-        x = this.options.toScreen(cur),
+        x = this.body.util.toScreen(cur),
         isMajor = step.isMajor();
 
     // TODO: lines must have a width, such that we can create css backgrounds
 
-    if (this.getOption('showMinorLabels')) {
+    if (this.options.showMinorLabels) {
       this._repaintMinorText(x, step.getLabelMinor(), orientation);
     }
 
-    if (isMajor && this.getOption('showMajorLabels')) {
+    if (isMajor && this.options.showMajorLabels) {
       if (x > 0) {
         if (xFirstMajorLabel == undefined) {
           xFirstMajorLabel = x;
@@ -206,8 +209,8 @@ TimeAxis.prototype._repaintLabels = function () {
   }
 
   // create a major label on the left when needed
-  if (this.getOption('showMajorLabels')) {
-    var leftTime = this.options.toTime(0),
+  if (this.options.showMajorLabels) {
+    var leftTime = this.body.util.toTime(0),
         leftText = step.getLabelMajor(leftTime),
         widthText = leftText.length * (this.props.majorCharWidth || 10) + 10; // upper bound estimation
 
@@ -244,20 +247,13 @@ TimeAxis.prototype._repaintMinorText = function (x, text, orientation) {
     label = document.createElement('div');
     label.appendChild(content);
     label.className = 'text minor';
-    this.frame.appendChild(label);
+    this.dom.foreground.appendChild(label);
   }
   this.dom.minorTexts.push(label);
 
   label.childNodes[0].nodeValue = text;
 
-  if (orientation == 'top') {
-    label.style.top = this.props.majorLabelHeight + 'px';
-    label.style.bottom = '';
-  }
-  else {
-    label.style.top = '';
-    label.style.bottom = this.props.majorLabelHeight + 'px';
-  }
+  label.style.top = (orientation == 'top') ? (this.props.majorLabelHeight + 'px') : '0';
   label.style.left = x + 'px';
   //label.title = title;  // TODO: this is a heavy operation
 };
@@ -279,21 +275,14 @@ TimeAxis.prototype._repaintMajorText = function (x, text, orientation) {
     label = document.createElement('div');
     label.className = 'text major';
     label.appendChild(content);
-    this.frame.appendChild(label);
+    this.dom.foreground.appendChild(label);
   }
   this.dom.majorTexts.push(label);
 
   label.childNodes[0].nodeValue = text;
   //label.title = title; // TODO: this is a heavy operation
 
-  if (orientation == 'top') {
-    label.style.top = '0px';
-    label.style.bottom = '';
-  }
-  else {
-    label.style.top = '';
-    label.style.bottom = '0px';
-  }
+  label.style.top = (orientation == 'top') ? '0' : (this.props.minorLabelHeight  + 'px');
   label.style.left = x + 'px';
 };
 
@@ -311,18 +300,16 @@ TimeAxis.prototype._repaintMinorLine = function (x, orientation) {
     // create vertical line
     line = document.createElement('div');
     line.className = 'grid vertical minor';
-    this.frame.appendChild(line);
+    this.dom.background.appendChild(line);
   }
   this.dom.minorLines.push(line);
 
   var props = this.props;
   if (orientation == 'top') {
-    line.style.top = this.props.majorLabelHeight + 'px';
-    line.style.bottom = '';
+    line.style.top = props.majorLabelHeight + 'px';
   }
   else {
-    line.style.top = '';
-    line.style.bottom = this.props.majorLabelHeight + 'px';
+    line.style.top = this.body.domProps.top.height + 'px';
   }
   line.style.height = props.minorLineHeight + 'px';
   line.style.left = (x - props.minorLineWidth / 2) + 'px';
@@ -342,63 +329,19 @@ TimeAxis.prototype._repaintMajorLine = function (x, orientation) {
     // create vertical line
     line = document.createElement('DIV');
     line.className = 'grid vertical major';
-    this.frame.appendChild(line);
+    this.dom.background.appendChild(line);
   }
   this.dom.majorLines.push(line);
 
   var props = this.props;
   if (orientation == 'top') {
-    line.style.top = '0px';
-    line.style.bottom = '';
+    line.style.top = '0';
   }
   else {
-    line.style.top = '';
-    line.style.bottom = '0px';
+    line.style.top = this.body.domProps.top.height + 'px';
   }
   line.style.left = (x - props.majorLineWidth / 2) + 'px';
   line.style.height = props.majorLineHeight + 'px';
-};
-
-
-/**
- * Repaint the horizontal line for the axis
- * @private
- */
-TimeAxis.prototype._repaintLine = function() {
-  var line = this.dom.line,
-      frame = this.frame,
-      orientation = this.getOption('orientation');
-
-  // line before all axis elements
-  if (this.getOption('showMinorLabels') || this.getOption('showMajorLabels')) {
-    if (line) {
-      // put this line at the end of all childs
-      frame.removeChild(line);
-      frame.appendChild(line);
-    }
-    else {
-      // create the axis line
-      line = document.createElement('div');
-      line.className = 'grid horizontal major';
-      frame.appendChild(line);
-      this.dom.line = line;
-    }
-
-    if (orientation == 'top') {
-      line.style.top = this.height + 'px';
-      line.style.bottom = '';
-    }
-    else {
-      line.style.top = '';
-      line.style.bottom = this.height + 'px';
-    }
-  }
-  else {
-    if (line && line.parentNode) {
-      line.parentNode.removeChild(line);
-      delete this.dom.line;
-    }
-  }
 };
 
 /**
@@ -407,7 +350,7 @@ TimeAxis.prototype._repaintLine = function() {
  * @private
  */
 TimeAxis.prototype._calculateCharSize = function () {
-  // Note: We calculate char size with every repaint. Size may change, for
+  // Note: We calculate char size with every redraw. Size may change, for
   // example when any of the timelines parents had display:none for example.
 
   // determine the char width and height on the minor axis
@@ -417,7 +360,7 @@ TimeAxis.prototype._calculateCharSize = function () {
     this.dom.measureCharMinor.style.position = 'absolute';
 
     this.dom.measureCharMinor.appendChild(document.createTextNode('0'));
-    this.frame.appendChild(this.dom.measureCharMinor);
+    this.dom.foreground.appendChild(this.dom.measureCharMinor);
   }
   this.props.minorCharHeight = this.dom.measureCharMinor.clientHeight;
   this.props.minorCharWidth = this.dom.measureCharMinor.clientWidth;
@@ -429,7 +372,7 @@ TimeAxis.prototype._calculateCharSize = function () {
     this.dom.measureCharMajor.style.position = 'absolute';
 
     this.dom.measureCharMajor.appendChild(document.createTextNode('0'));
-    this.frame.appendChild(this.dom.measureCharMajor);
+    this.dom.foreground.appendChild(this.dom.measureCharMajor);
   }
   this.props.majorCharHeight = this.dom.measureCharMajor.clientHeight;
   this.props.majorCharWidth = this.dom.measureCharMajor.clientWidth;
@@ -441,6 +384,6 @@ TimeAxis.prototype._calculateCharSize = function () {
  * @param {Date} date   the date to be snapped.
  * @return {Date} snappedDate
  */
-TimeAxis.prototype.snap = function snap (date) {
+TimeAxis.prototype.snap = function(date) {
   return this.step.snap(date);
 };

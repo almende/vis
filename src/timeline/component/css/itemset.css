@@ -5,34 +5,29 @@
   margin: 0;
 
   box-sizing: border-box;
-
-  /* FIXME: get transition working for rootpanel and itemset
-  -webkit-transition: height 4s ease-in-out;
-  transition:         height 4s ease-in-out;
-  /**/
 }
 
-.vis.timeline .background {
-}
-
-.vis.timeline .foreground {
+.vis.timeline .itemset .background,
+.vis.timeline .itemset .foreground {
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }
 
 .vis.timeline .axis {
-  overflow: visible;
+  position: absolute;
+  width: 100%;
+  height: 0;
+  left: 1px;
+  z-index: 1;
 }
 
-.vis.timeline  .group {
+.vis.timeline  .foreground .group {
   position: relative;
   box-sizing: border-box;
-}
-
-.vis.timeline.top .group {
-  border-top: 1px solid #bfbfbf;
-  border-bottom: none;
-}
-
-.vis.timeline.bottom .group {
-  border-top: none;
   border-bottom: 1px solid #bfbfbf;
+}
+
+.vis.timeline  .foreground .group:last-child {
+  border-bottom: none;
 }

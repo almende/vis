@@ -20,8 +20,6 @@ var vis = {
     },
 
     Component: Component,
-    Panel: Panel,
-    RootPanel: RootPanel,
     ItemSet: ItemSet,
     TimeAxis: TimeAxis
   },

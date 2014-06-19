@@ -44,6 +44,7 @@ task('build', {async: true}, function () {
       './src/timeline/component/css/timeaxis.css',
       './src/timeline/component/css/currenttime.css',
       './src/timeline/component/css/customtime.css',
+      './src/timeline/component/css/animation.css',
 
       './src/graph/css/graph-manipulation.css',
       './src/graph/css/graph-navigation.css'
@@ -68,8 +69,6 @@ task('build', {async: true}, function () {
       './src/timeline/TimeStep.js',
       './src/timeline/Range.js',
       './src/timeline/component/Component.js',
-      './src/timeline/component/Panel.js',
-      './src/timeline/component/RootPanel.js',
       './src/timeline/component/TimeAxis.js',
       './src/timeline/component/CurrentTime.js',
       './src/timeline/component/CustomTime.js',

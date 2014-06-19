@@ -3,11 +3,12 @@
  * @extends Item
  * @param {Object} data             Object containing parameters start, end
  *                                  content, className.
- * @param {Object} [options]        Options to set initial property values
- * @param {Object} [defaultOptions] default options
- *                                  // TODO: describe available options
+ * @param {{toScreen: function, toTime: function}} conversion
+ *                                  Conversion functions from time to screen and vice versa
+ * @param {Object} [options]        Configuration options
+ *                                  // TODO: describe options
  */
-function ItemRange (data, options, defaultOptions) {
+function ItemRange (data, conversion, options) {
   this.props = {
     content: {
       width: 0
@@ -24,10 +25,10 @@ function ItemRange (data, options, defaultOptions) {
     }
   }
 
-  Item.call(this, data, options, defaultOptions);
+  Item.call(this, data, conversion, options);
 }
 
-ItemRange.prototype = new Item (null);
+ItemRange.prototype = new Item (null, null, null);
 
 ItemRange.prototype.baseClassName = 'item range';
 
@@ -36,7 +37,7 @@ ItemRange.prototype.baseClassName = 'item range';
  * @returns {{start: Number, end: Number}} range with a timestamp for start and end
  * @returns {boolean} True if visible
  */
-ItemRange.prototype.isVisible = function isVisible (range) {
+ItemRange.prototype.isVisible = function(range) {
   // determine visibility
   return (this.data.start < range.end) && (this.data.end > range.start);
 };
@@ -44,7 +45,7 @@ ItemRange.prototype.isVisible = function isVisible (range) {
 /**
  * Repaint the item
  */
-ItemRange.prototype.repaint = function repaint() {
+ItemRange.prototype.redraw = function() {
   var dom = this.dom;
   if (!dom) {
     // create DOM
@@ -53,7 +54,7 @@ ItemRange.prototype.repaint = function repaint() {
 
       // background box
     dom.box = document.createElement('div');
-    // className is updated in repaint()
+    // className is updated in redraw()
 
     // contents box
     dom.content = document.createElement('div');
@@ -66,12 +67,12 @@ ItemRange.prototype.repaint = function repaint() {
 
   // append DOM to parent DOM
   if (!this.parent) {
-    throw new Error('Cannot repaint item: no parent attached');
+    throw new Error('Cannot redraw item: no parent attached');
   }
   if (!dom.box.parentNode) {
-    var foreground = this.parent.getForeground();
+    var foreground = this.parent.dom.foreground;
     if (!foreground) {
-      throw new Error('Cannot repaint time axis: parent has no foreground container element');
+      throw new Error('Cannot redraw time axis: parent has no foreground container element');
     }
     foreground.appendChild(dom.box);
   }
@@ -121,9 +122,9 @@ ItemRange.prototype.repaint = function repaint() {
  * Show the item in the DOM (when not already visible). The items DOM will
  * be created when needed.
  */
-ItemRange.prototype.show = function show() {
+ItemRange.prototype.show = function() {
   if (!this.displayed) {
-    this.repaint();
+    this.redraw();
   }
 };
 
@@ -131,7 +132,7 @@ ItemRange.prototype.show = function show() {
  * Hide the item from the DOM (when visible)
  * @return {Boolean} changed
  */
-ItemRange.prototype.hide = function hide() {
+ItemRange.prototype.hide = function() {
   if (this.displayed) {
     var box = this.dom.box;
 
@@ -150,12 +151,12 @@ ItemRange.prototype.hide = function hide() {
  * Reposition the item horizontally
  * @Override
  */
-ItemRange.prototype.repositionX = function repositionX() {
+ItemRange.prototype.repositionX = function() {
   var props = this.props,
       parentWidth = this.parent.width,
-      start = this.defaultOptions.toScreen(this.data.start),
-      end = this.defaultOptions.toScreen(this.data.end),
-      padding = 'padding' in this.options ? this.options.padding : this.defaultOptions.padding,
+      start = this.conversion.toScreen(this.data.start),
+      end = this.conversion.toScreen(this.data.end),
+      padding = this.options.padding,
       contentLeft;
 
   // limit the width of the this, as browsers cannot draw very wide divs
@@ -188,17 +189,15 @@ ItemRange.prototype.repositionX = function repositionX() {
  * Reposition the item vertically
  * @Override
  */
-ItemRange.prototype.repositionY = function repositionY() {
-  var orientation = this.options.orientation || this.defaultOptions.orientation,
+ItemRange.prototype.repositionY = function() {
+  var orientation = this.options.orientation,
       box = this.dom.box;
 
   if (orientation == 'top') {
     box.style.top = this.top + 'px';
-    box.style.bottom = '';
   }
   else {
-    box.style.top = '';
-    box.style.bottom = this.top + 'px';
+    box.style.top = (this.parent.height - this.top - this.height) + 'px';
   }
 };
 

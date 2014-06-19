@@ -8,7 +8,7 @@ var util = {};
  * @param {*} object
  * @return {Boolean} isNumber
  */
-util.isNumber = function isNumber(object) {
+util.isNumber = function(object) {
   return (object instanceof Number || typeof object == 'number');
 };
 
@@ -17,7 +17,7 @@ util.isNumber = function isNumber(object) {
  * @param {*} object
  * @return {Boolean} isString
  */
-util.isString = function isString(object) {
+util.isString = function(object) {
   return (object instanceof String || typeof object == 'string');
 };
 
@@ -26,7 +26,7 @@ util.isString = function isString(object) {
  * @param {Date | String} object
  * @return {Boolean} isDate
  */
-util.isDate = function isDate(object) {
+util.isDate = function(object) {
   if (object instanceof Date) {
     return true;
   }
@@ -49,7 +49,7 @@ util.isDate = function isDate(object) {
  * @param {*} object
  * @return {Boolean} isDataTable
  */
-util.isDataTable = function isDataTable(object) {
+util.isDataTable = function(object) {
   return (typeof (google) !== 'undefined') &&
       (google.visualization) &&
       (google.visualization.DataTable) &&
@@ -61,7 +61,7 @@ util.isDataTable = function isDataTable(object) {
  * source: http://stackoverflow.com/a/105074/1262753
  * @return {String} uuid
  */
-util.randomUUID = function randomUUID () {
+util.randomUUID = function() {
   var S4 = function () {
     return Math.floor(
         Math.random() * 0x10000 /* 65536 */
@@ -88,7 +88,34 @@ util.extend = function (a, b) {
   for (var i = 1, len = arguments.length; i < len; i++) {
     var other = arguments[i];
     for (var prop in other) {
-      if (other.hasOwnProperty(prop) && other[prop] !== undefined) {
+      if (other.hasOwnProperty(prop)) {
+        a[prop] = other[prop];
+      }
+    }
+  }
+
+  return a;
+};
+
+/**
+ * Extend object a with selected properties of object b or a series of objects
+ * Only properties with defined values are copied
+ * @param {Array.<String>} props
+ * @param {Object} a
+ * @param {... Object} b
+ * @return {Object} a
+ */
+util.selectiveExtend = function (props, a, b) {
+  if (!Array.isArray(props)) {
+    throw new Error('Array with property names expected as first argument');
+  }
+
+  for (var i = 1, len = arguments.length; i < len; i++) {
+    var other = arguments[i];
+
+    for (var p = 0, pp = props.length; p < pp; p++) {
+      var prop = props[p];
+      if (other.hasOwnProperty(prop)) {
         a[prop] = other[prop];
       }
     }
@@ -103,7 +130,7 @@ util.extend = function (a, b) {
  * @param {Object} b
  * @returns {Object}
  */
-util.deepExtend = function deepExtend (a, b) {
+util.deepExtend = function(a, b) {
   // TODO: add support for Arrays to deepExtend
   if (Array.isArray(b)) {
     throw new TypeError('Arrays are not supported by deepExtend');
@@ -116,7 +143,7 @@ util.deepExtend = function deepExtend (a, b) {
           a[prop] = {};
         }
         if (a[prop].constructor === Object) {
-          deepExtend(a[prop], b[prop]);
+          util.deepExtend(a[prop], b[prop]);
         }
         else {
           a[prop] = b[prop];
@@ -157,7 +184,7 @@ util.equalArray = function (a, b) {
  * @return {*} object
  * @throws Error
  */
-util.convert = function convert(object, type) {
+util.convert = function(object, type) {
   var match;
 
   if (object === undefined) {
@@ -292,8 +319,7 @@ util.convert = function convert(object, type) {
       }
 
     default:
-      throw new Error('Cannot convert object of type ' + util.getType(object) +
-          ' to type "' + type + '"');
+      throw new Error('Unknown type "' + type + '"');
   }
 };
 
@@ -307,7 +333,7 @@ var ASPDateRegex = /^\/?Date\((\-?\d+)/i;
  * @param {*} object
  * @return {String} type
  */
-util.getType = function getType(object) {
+util.getType = function(object) {
   var type = typeof object;
 
   if (type == 'object') {
@@ -350,7 +376,7 @@ util.getType = function getType(object) {
  * @return {number} left        The absolute left position of this element
  *                              in the browser page.
  */
-util.getAbsoluteLeft = function getAbsoluteLeft (elem) {
+util.getAbsoluteLeft = function(elem) {
   var doc = document.documentElement;
   var body = document.body;
 
@@ -370,7 +396,7 @@ util.getAbsoluteLeft = function getAbsoluteLeft (elem) {
  * @return {number} top        The absolute top position of this element
  *                              in the browser page.
  */
-util.getAbsoluteTop = function getAbsoluteTop (elem) {
+util.getAbsoluteTop = function(elem) {
   var doc = document.documentElement;
   var body = document.body;
 
@@ -389,7 +415,7 @@ util.getAbsoluteTop = function getAbsoluteTop (elem) {
  * @param {Event} event
  * @return {Number} pageY
  */
-util.getPageY = function getPageY (event) {
+util.getPageY = function(event) {
   if ('pageY' in event) {
     return event.pageY;
   }
@@ -415,7 +441,7 @@ util.getPageY = function getPageY (event) {
  * @param {Event} event
  * @return {Number} pageX
  */
-util.getPageX = function getPageX (event) {
+util.getPageX = function(event) {
   if ('pageY' in event) {
     return event.pageX;
   }
@@ -441,7 +467,7 @@ util.getPageX = function getPageX (event) {
  * @param {Element} elem
  * @param {String} className
  */
-util.addClassName = function addClassName(elem, className) {
+util.addClassName = function(elem, className) {
   var classes = elem.className.split(' ');
   if (classes.indexOf(className) == -1) {
     classes.push(className); // add the class to the array
@@ -454,7 +480,7 @@ util.addClassName = function addClassName(elem, className) {
  * @param {Element} elem
  * @param {String} className
  */
-util.removeClassName = function removeClassname(elem, className) {
+util.removeClassName = function(elem, className) {
   var classes = elem.className.split(' ');
   var index = classes.indexOf(className);
   if (index != -1) {
@@ -472,7 +498,7 @@ util.removeClassName = function removeClassname(elem, className) {
  *                                  the object or array with three parameters:
  *                                  callback(value, index, object)
  */
-util.forEach = function forEach (object, callback) {
+util.forEach = function(object, callback) {
   var i,
       len;
   if (object instanceof Array) {
@@ -497,7 +523,7 @@ util.forEach = function forEach (object, callback) {
  * @param {Object} object
  * @param {Array} array
  */
-util.toArray = function toArray(object) {
+util.toArray = function(object) {
   var array = [];
 
   for (var prop in object) {
@@ -514,7 +540,7 @@ util.toArray = function toArray(object) {
  * @param {*} value
  * @return {Boolean} changed
  */
-util.updateProperty = function updateProperty (object, key, value) {
+util.updateProperty = function(object, key, value) {
   if (object[key] !== value) {
     object[key] = value;
     return true;
@@ -532,7 +558,7 @@ util.updateProperty = function updateProperty (object, key, value) {
  * @param {function}    listener   The callback function to be executed
  * @param {boolean}     [useCapture]
  */
-util.addEventListener = function addEventListener(element, action, listener, useCapture) {
+util.addEventListener = function(element, action, listener, useCapture) {
   if (element.addEventListener) {
     if (useCapture === undefined)
       useCapture = false;
@@ -554,7 +580,7 @@ util.addEventListener = function addEventListener(element, action, listener, use
  * @param {function}    listener        The listener function
  * @param {boolean}     [useCapture]
  */
-util.removeEventListener = function removeEventListener(element, action, listener, useCapture) {
+util.removeEventListener = function(element, action, listener, useCapture) {
   if (element.removeEventListener) {
     // non-IE browsers
     if (useCapture === undefined)
@@ -577,7 +603,7 @@ util.removeEventListener = function removeEventListener(element, action, listene
  * @param {Event} event
  * @return {Element} target element
  */
-util.getTarget = function getTarget(event) {
+util.getTarget = function(event) {
   // code from http://www.quirksmode.org/js/events_properties.html
   if (!event) {
     event = window.event;
@@ -605,7 +631,7 @@ util.getTarget = function getTarget(event) {
  * @param {Element} element
  * @param {Event} event
  */
-util.fakeGesture = function fakeGesture (element, event) {
+util.fakeGesture = function(element, event) {
   var eventType = null;
 
   // for hammer.js 1.0.5
@@ -721,7 +747,7 @@ util.option.asElement = function (value, defaultValue) {
 
 
 
-util.GiveDec = function GiveDec(Hex) {
+util.GiveDec = function(Hex) {
   var Value;
 
   if (Hex == "A")
@@ -742,7 +768,7 @@ util.GiveDec = function GiveDec(Hex) {
   return Value;
 };
 
-util.GiveHex = function GiveHex(Dec) {
+util.GiveHex = function(Dec) {
   var Value;
 
   if(Dec == 10)
@@ -846,7 +872,7 @@ util.parseColor = function(color) {
  * @param {String} hex
  * @returns {{r: *, g: *, b: *}}
  */
-util.hexToRGB = function hexToRGB(hex) {
+util.hexToRGB = function(hex) {
   hex = hex.replace("#","").toUpperCase();
 
   var a = util.GiveDec(hex.substring(0, 1));
@@ -863,7 +889,7 @@ util.hexToRGB = function hexToRGB(hex) {
   return {r:r,g:g,b:b};
 };
 
-util.RGBToHex = function RGBToHex(red,green,blue) {
+util.RGBToHex = function(red,green,blue) {
   var a = util.GiveHex(Math.floor(red / 16));
   var b = util.GiveHex(red % 16);
   var c = util.GiveHex(Math.floor(green / 16));
@@ -885,7 +911,7 @@ util.RGBToHex = function RGBToHex(red,green,blue) {
  * @returns {*}
  * @constructor
  */
-util.RGBToHSV = function  RGBToHSV (red,green,blue) {
+util.RGBToHSV = function(red,green,blue) {
   red=red/255; green=green/255; blue=blue/255;
   var minRGB = Math.min(red,Math.min(green,blue));
   var maxRGB = Math.max(red,Math.max(green,blue));
@@ -913,7 +939,7 @@ util.RGBToHSV = function  RGBToHSV (red,green,blue) {
  * @returns {{r: number, g: number, b: number}}
  * @constructor
  */
-util.HSVToRGB = function HSVToRGB(h, s, v) {
+util.HSVToRGB = function(h, s, v) {
   var r, g, b;
 
   var i = Math.floor(h * 6);
@@ -934,22 +960,22 @@ util.HSVToRGB = function HSVToRGB(h, s, v) {
   return {r:Math.floor(r * 255), g:Math.floor(g * 255), b:Math.floor(b * 255) };
 };
 
-util.HSVToHex = function HSVToHex(h, s, v) {
+util.HSVToHex = function(h, s, v) {
   var rgb = util.HSVToRGB(h, s, v);
   return util.RGBToHex(rgb.r, rgb.g, rgb.b);
 };
 
-util.hexToHSV = function hexToHSV(hex) {
+util.hexToHSV = function(hex) {
   var rgb = util.hexToRGB(hex);
   return util.RGBToHSV(rgb.r, rgb.g, rgb.b);
 };
 
-util.isValidHex = function isValidHex(hex) {
+util.isValidHex = function(hex) {
   var isOk = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
   return isOk;
 };
 
-util.copyObject = function copyObject(objectFrom, objectTo) {
+util.copyObject = function(objectFrom, objectTo) {
   for (var i in objectFrom) {
     if (objectFrom.hasOwnProperty(i)) {
       if (typeof objectFrom[i] == "object") {

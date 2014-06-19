@@ -28,10 +28,10 @@
   </select>
 </div>
 <script>
-  var orientation = document.getElementById('orientation');
-  orientation.onchange = function () {
+  var o = document.getElementById('orientation');
+  o.onchange = function () {
     timeline.setOptions({
-      orientation: orientation.value
+      orientation: o.value
     });
   };
 </script>
@@ -58,9 +58,9 @@
   // create a dataset with items
   var now = moment().minutes(0).seconds(0).milliseconds(0);
   var items = new vis.DataSet({
-    convert: {
-      start: 'Date',
-      end: 'Date'
+    type: {
+      start: 'ISODate',
+      end: 'ISODate'
     },
     fieldId: '_id'
   });

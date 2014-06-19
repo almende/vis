@@ -23,7 +23,7 @@
   var container = document.getElementById('visualization');
 
   // note that months are zero-based in the JavaScript Date object
-  var items = [
+  var items = new vis.DataSet([
     {start: new Date(1939,8,1),  content: 'German Invasion of Poland'},
     {start: new Date(1940,4,10), content: 'Battle of France and the Low Countries'},
     {start: new Date(1940,7,13), content: 'Battle of Britain - RAF vs. Luftwaffe'},
@@ -44,7 +44,7 @@
     {start: new Date(1944,1,19), content: 'American Landings on Iwo Jima'},
     {start: new Date(1945,3,1),  content: 'US Invasion of Okinawa'},
     {start: new Date(1945,3,16), content: 'Battle of Berlin - End of the Third Reich'}
-  ];
+  ]);
 
   var options = {
     // Set global item type. Type can also be specified for items individually

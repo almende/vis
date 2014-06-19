@@ -1,35 +1,49 @@
 /**
  * A custom time bar
+ * @param {{range: Range, dom: Object}} body
  * @param {Object} [options]        Available parameters:
  *                                  {Boolean} [showCustomTime]
  * @constructor CustomTime
  * @extends Component
  */
 
-function CustomTime (options) {
-  this.id = util.randomUUID();
+function CustomTime (body, options) {
+  this.body = body;
 
-  this.options = options || {};
+  // default options
   this.defaultOptions = {
     showCustomTime: false
   };
+  this.options = util.extend({}, this.defaultOptions);
 
   this.customTime = new Date();
   this.eventParams = {}; // stores state parameters while dragging the bar
 
   // create the DOM
   this._create();
+
+  this.setOptions(options);
 }
 
 CustomTime.prototype = new Component();
 
-CustomTime.prototype.setOptions = Component.prototype.setOptions;
+/**
+ * Set options for the component. Options will be merged in current options.
+ * @param {Object} options  Available parameters:
+ *                          {boolean} [showCustomTime]
+ */
+CustomTime.prototype.setOptions = function(options) {
+  if (options) {
+    // copy all options that we know
+    util.selectiveExtend(['showCustomTime'], this.options, options);
+  }
+};
 
 /**
  * Create the DOM for the custom time
  * @private
  */
-CustomTime.prototype._create = function _create () {
+CustomTime.prototype._create = function() {
   var bar = document.createElement('div');
   bar.className = 'customtime';
   bar.style.position = 'absolute';
@@ -55,22 +69,44 @@ CustomTime.prototype._create = function _create () {
 };
 
 /**
- * Get the frame element of the custom time bar
- * @returns {HTMLElement} frame
+ * Destroy the CustomTime bar
  */
-CustomTime.prototype.getFrame = function getFrame() {
-  return this.bar;
+CustomTime.prototype.destroy = function () {
+  this.options.showCustomTime = false;
+  this.redraw(); // will remove the bar from the DOM
+
+  this.hammer.enable(false);
+  this.hammer = null;
+
+  this.body = null;
 };
 
 /**
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
-CustomTime.prototype.repaint = function () {
-  var x = this.options.toScreen(this.customTime);
+CustomTime.prototype.redraw = function () {
+  if (this.options.showCustomTime) {
+    var parent = this.body.dom.backgroundVertical;
+    if (this.bar.parentNode != parent) {
+      // attach to the dom
+      if (this.bar.parentNode) {
+        this.bar.parentNode.removeChild(this.bar);
+      }
+      parent.appendChild(this.bar);
+    }
 
-  this.bar.style.left = x + 'px';
-  this.bar.title = 'Time: ' + this.customTime;
+    var x = this.body.util.toScreen(this.customTime);
+
+    this.bar.style.left = x + 'px';
+    this.bar.title = 'Time: ' + this.customTime;
+  }
+  else {
+    // remove the line from the DOM
+    if (this.bar.parentNode) {
+      this.bar.parentNode.removeChild(this.bar);
+    }
+  }
 
   return false;
 };
@@ -81,7 +117,7 @@ CustomTime.prototype.repaint = function () {
  */
 CustomTime.prototype.setCustomTime = function(time) {
   this.customTime = new Date(time.valueOf());
-  this.repaint();
+  this.redraw();
 };
 
 /**
@@ -114,13 +150,13 @@ CustomTime.prototype._onDrag = function (event) {
   if (!this.eventParams.dragging) return;
 
   var deltaX = event.gesture.deltaX,
-      x = this.options.toScreen(this.eventParams.customTime) + deltaX,
-      time = this.options.toTime(x);
+      x = this.body.util.toScreen(this.eventParams.customTime) + deltaX,
+      time = this.body.util.toTime(x);
 
   this.setCustomTime(time);
 
   // fire a timechange event
-  this.emit('timechange', {
+  this.body.emitter.emit('timechange', {
     time: new Date(this.customTime.valueOf())
   });
 
@@ -137,7 +173,7 @@ CustomTime.prototype._onDragEnd = function (event) {
   if (!this.eventParams.dragging) return;
 
   // fire a timechanged event
-  this.emit('timechanged', {
+  this.body.emitter.emit('timechanged', {
     time: new Date(this.customTime.valueOf())
   });
 

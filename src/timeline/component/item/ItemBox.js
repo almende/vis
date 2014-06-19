@@ -3,11 +3,12 @@
  * @extends Item
  * @param {Object} data             Object containing parameters start
  *                                  content, className.
- * @param {Object} [options]        Options to set initial property values
- * @param {Object} [defaultOptions] default options
+ * @param {{toScreen: function, toTime: function}} conversion
+ *                                  Conversion functions from time to screen and vice versa
+ * @param {Object} [options]        Configuration options
  *                                  // TODO: describe available options
  */
-function ItemBox (data, options, defaultOptions) {
+function ItemBox (data, conversion, options) {
   this.props = {
     dot: {
       width: 0,
@@ -26,17 +27,17 @@ function ItemBox (data, options, defaultOptions) {
     }
   }
 
-  Item.call(this, data, options, defaultOptions);
+  Item.call(this, data, conversion, options);
 }
 
-ItemBox.prototype = new Item (null);
+ItemBox.prototype = new Item (null, null, null);
 
 /**
  * Check whether this item is visible inside given range
  * @returns {{start: Number, end: Number}} range with a timestamp for start and end
  * @returns {boolean} True if visible
  */
-ItemBox.prototype.isVisible = function isVisible (range) {
+ItemBox.prototype.isVisible = function(range) {
   // determine visibility
   // TODO: account for the real width of the item. Right now we just add 1/4 to the window
   var interval = (range.end - range.start) / 4;
@@ -46,7 +47,7 @@ ItemBox.prototype.isVisible = function isVisible (range) {
 /**
  * Repaint the item
  */
-ItemBox.prototype.repaint = function repaint() {
+ItemBox.prototype.redraw = function() {
   var dom = this.dom;
   if (!dom) {
     // create DOM
@@ -75,21 +76,21 @@ ItemBox.prototype.repaint = function repaint() {
 
   // append DOM to parent DOM
   if (!this.parent) {
-    throw new Error('Cannot repaint item: no parent attached');
+    throw new Error('Cannot redraw item: no parent attached');
   }
   if (!dom.box.parentNode) {
-    var foreground = this.parent.getForeground();
-    if (!foreground) throw new Error('Cannot repaint time axis: parent has no foreground container element');
+    var foreground = this.parent.dom.foreground;
+    if (!foreground) throw new Error('Cannot redraw time axis: parent has no foreground container element');
     foreground.appendChild(dom.box);
   }
   if (!dom.line.parentNode) {
-    var background = this.parent.getBackground();
-    if (!background) throw new Error('Cannot repaint time axis: parent has no background container element');
+    var background = this.parent.dom.background;
+    if (!background) throw new Error('Cannot redraw time axis: parent has no background container element');
     background.appendChild(dom.line);
   }
   if (!dom.dot.parentNode) {
-    var axis = this.parent.getAxis();
-    if (!background) throw new Error('Cannot repaint time axis: parent has no axis container element');
+    var axis = this.parent.dom.axis;
+    if (!background) throw new Error('Cannot redraw time axis: parent has no axis container element');
     axis.appendChild(dom.dot);
   }
   this.displayed = true;
@@ -141,16 +142,16 @@ ItemBox.prototype.repaint = function repaint() {
  * Show the item in the DOM (when not already displayed). The items DOM will
  * be created when needed.
  */
-ItemBox.prototype.show = function show() {
+ItemBox.prototype.show = function() {
   if (!this.displayed) {
-    this.repaint();
+    this.redraw();
   }
 };
 
 /**
  * Hide the item from the DOM (when visible)
  */
-ItemBox.prototype.hide = function hide() {
+ItemBox.prototype.hide = function() {
   if (this.displayed) {
     var dom = this.dom;
 
@@ -169,9 +170,9 @@ ItemBox.prototype.hide = function hide() {
  * Reposition the item horizontally
  * @Override
  */
-ItemBox.prototype.repositionX = function repositionX() {
-  var start = this.defaultOptions.toScreen(this.data.start),
-      align = this.options.align || this.defaultOptions.align,
+ItemBox.prototype.repositionX = function() {
+  var start = this.conversion.toScreen(this.data.start),
+      align = this.options.align,
       left,
       box = this.dom.box,
       line = this.dom.line,
@@ -203,27 +204,26 @@ ItemBox.prototype.repositionX = function repositionX() {
  * Reposition the item vertically
  * @Override
  */
-ItemBox.prototype.repositionY = function repositionY () {
-  var orientation = this.options.orientation || this.defaultOptions.orientation,
+ItemBox.prototype.repositionY = function() {
+  var orientation = this.options.orientation,
       box = this.dom.box,
       line = this.dom.line,
       dot = this.dom.dot;
 
   if (orientation == 'top') {
-    box.style.top = (this.top || 0) + 'px';
-    box.style.bottom = '';
+    box.style.top     = (this.top || 0) + 'px';
 
-    line.style.top = '0';
-    line.style.bottom = '';
+    line.style.top    = '0';
     line.style.height = (this.parent.top + this.top + 1) + 'px';
+    line.style.bottom = '';
   }
   else { // orientation 'bottom'
-    box.style.top = '';
-    box.style.bottom = (this.top || 0) + 'px';
+    var itemSetHeight = this.parent.itemSet.props.height; // TODO: this is nasty
+    var lineHeight = itemSetHeight - this.parent.top - this.parent.height + this.top;
 
-    line.style.top = (this.parent.top + this.parent.height - this.top - 1) + 'px';
+    box.style.top     = (this.parent.height - this.top - this.height || 0) + 'px';
+    line.style.top    = (itemSetHeight - lineHeight) + 'px';
     line.style.bottom = '0';
-    line.style.height = '';
   }
 
   dot.style.top = (-this.props.dot.height / 2) + 'px';

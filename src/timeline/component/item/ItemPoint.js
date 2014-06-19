@@ -3,11 +3,12 @@
  * @extends Item
  * @param {Object} data             Object containing parameters start
  *                                  content, className.
- * @param {Object} [options]        Options to set initial property values
- * @param {Object} [defaultOptions] default options
+ * @param {{toScreen: function, toTime: function}} conversion
+ *                                  Conversion functions from time to screen and vice versa
+ * @param {Object} [options]        Configuration options
  *                                  // TODO: describe available options
  */
-function ItemPoint (data, options, defaultOptions) {
+function ItemPoint (data, conversion, options) {
   this.props = {
     dot: {
       top: 0,
@@ -27,17 +28,17 @@ function ItemPoint (data, options, defaultOptions) {
     }
   }
 
-  Item.call(this, data, options, defaultOptions);
+  Item.call(this, data, conversion, options);
 }
 
-ItemPoint.prototype = new Item (null);
+ItemPoint.prototype = new Item (null, null, null);
 
 /**
  * Check whether this item is visible inside given range
  * @returns {{start: Number, end: Number}} range with a timestamp for start and end
  * @returns {boolean} True if visible
  */
-ItemPoint.prototype.isVisible = function isVisible (range) {
+ItemPoint.prototype.isVisible = function(range) {
   // determine visibility
   // TODO: account for the real width of the item. Right now we just add 1/4 to the window
   var interval = (range.end - range.start) / 4;
@@ -47,7 +48,7 @@ ItemPoint.prototype.isVisible = function isVisible (range) {
 /**
  * Repaint the item
  */
-ItemPoint.prototype.repaint = function repaint() {
+ItemPoint.prototype.redraw = function() {
   var dom = this.dom;
   if (!dom) {
     // create DOM
@@ -56,7 +57,7 @@ ItemPoint.prototype.repaint = function repaint() {
 
     // background box
     dom.point = document.createElement('div');
-    // className is updated in repaint()
+    // className is updated in redraw()
 
     // contents box, right from the dot
     dom.content = document.createElement('div');
@@ -73,12 +74,12 @@ ItemPoint.prototype.repaint = function repaint() {
 
   // append DOM to parent DOM
   if (!this.parent) {
-    throw new Error('Cannot repaint item: no parent attached');
+    throw new Error('Cannot redraw item: no parent attached');
   }
   if (!dom.point.parentNode) {
-    var foreground = this.parent.getForeground();
+    var foreground = this.parent.dom.foreground;
     if (!foreground) {
-      throw new Error('Cannot repaint time axis: parent has no foreground container element');
+      throw new Error('Cannot redraw time axis: parent has no foreground container element');
     }
     foreground.appendChild(dom.point);
   }
@@ -137,16 +138,16 @@ ItemPoint.prototype.repaint = function repaint() {
  * Show the item in the DOM (when not already visible). The items DOM will
  * be created when needed.
  */
-ItemPoint.prototype.show = function show() {
+ItemPoint.prototype.show = function() {
   if (!this.displayed) {
-    this.repaint();
+    this.redraw();
   }
 };
 
 /**
  * Hide the item from the DOM (when visible)
  */
-ItemPoint.prototype.hide = function hide() {
+ItemPoint.prototype.hide = function() {
   if (this.displayed) {
     if (this.dom.point.parentNode) {
       this.dom.point.parentNode.removeChild(this.dom.point);
@@ -163,8 +164,8 @@ ItemPoint.prototype.hide = function hide() {
  * Reposition the item horizontally
  * @Override
  */
-ItemPoint.prototype.repositionX = function repositionX() {
-  var start = this.defaultOptions.toScreen(this.data.start);
+ItemPoint.prototype.repositionX = function() {
+  var start = this.conversion.toScreen(this.data.start);
 
   this.left = start - this.props.dot.width;
 
@@ -176,16 +177,14 @@ ItemPoint.prototype.repositionX = function repositionX() {
  * Reposition the item vertically
  * @Override
  */
-ItemPoint.prototype.repositionY = function repositionY () {
-  var orientation = this.options.orientation || this.defaultOptions.orientation,
+ItemPoint.prototype.repositionY = function() {
+  var orientation = this.options.orientation,
       point = this.dom.point;
 
   if (orientation == 'top') {
     point.style.top = this.top + 'px';
-    point.style.bottom = '';
   }
   else {
-    point.style.top = '';
-    point.style.bottom = this.top + 'px';
+    point.style.top = (this.parent.height - this.top - this.height) + 'px';
   }
 };

@@ -34,6 +34,13 @@
     Vis.js contains of the following components:
   </p>
 
+  <div style="text-align: center; float: right; padding-left: 30px;">
+    <a href="img/vis_overview.png" target="_blank">
+      <img src="img/vis_overview.png" style="width: 350px; "/><br>
+      (click for a larger view)
+    </a>
+  </div>
+
   <ul>
     <li>
       <a href="dataset.html"><b>DataSet</b></a>.
@@ -58,14 +65,6 @@
       Display different types of data on a timeline.
     </li>
   </ul>
-
-  <div style="text-align: center;">
-    <a href="img/vis_overview.png" target="_blank">
-      <img src="img/vis_overview.png" style="width: 250px; "/><br>
-      (click for a larger view)
-    </a>
-  </div>
-
 
   <h2 id="Install">Install</h2>
 
@@ -163,16 +162,23 @@ var timeline = new vis.Timeline(container, data, options);
 &lt;div id="visualization"&gt;&lt;/div&gt;
 
 &lt;script type="text/javascript"&gt;
+  // DOM element where the Timeline will be attached
   var container = document.getElementById('visualization');
-  var data = [
+
+  // Create a DataSet (allows two way data-binding)
+  var data = new vis.DataSet([
     {id: 1, content: 'item 1', start: '2013-04-20'},
     {id: 2, content: 'item 2', start: '2013-04-14'},
     {id: 3, content: 'item 3', start: '2013-04-18'},
     {id: 4, content: 'item 4', start: '2013-04-16', end: '2013-04-19'},
     {id: 5, content: 'item 5', start: '2013-04-25'},
     {id: 6, content: 'item 6', start: '2013-04-27'}
-  ];
+  ]);
+
+    // Configuration for the Timeline
   var options = {};
+
+  // Create a Timeline
   var timeline = new vis.Timeline(container, data, options);
 &lt;/script&gt;
 &lt;/body&gt;

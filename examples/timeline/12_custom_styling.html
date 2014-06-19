@@ -7,7 +7,7 @@
   <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
 
   <style type="text/css">
-    .vis.timeline.rootpanel {
+    .vis.timeline.root {
       border: 2px solid purple;
       font-family:  purisa, 'comic sans', cursive;
       font-size: 12pt;
@@ -67,7 +67,7 @@
   var container = document.getElementById('visualization');
 
   // note that months are zero-based in the JavaScript Date object
-  var items = [
+  var items = new vis.DataSet([
     {start: new Date(2010,7,23), content: '<div>Conversation</div><img src="img/community-users-icon.png" style="width:32px; height:32px;">'},
     {start: new Date(2010,7,23,23,0,0), content: '<div>Mail from boss</div><img src="img/mail-icon.png" style="width:32px; height:32px;">'},
     {start: new Date(2010,7,24,16,0,0), content: 'Report'},
@@ -76,7 +76,7 @@
     {start: new Date(2010,7,29), content: '<div>Phone call</div><img src="img/Hardware-Mobile-Phone-icon.png" style="width:32px; height:32px;">'},
     {start: new Date(2010,7,31), end: new Date(2010,8,3), content: 'Traject B'},
     {start: new Date(2010,8,4,12,0,0), content: '<div>Report</div><img src="img/attachment-icon.png" style="width:32px; height:32px;">'}
-  ];
+  ]);
 
   var options = {
     editable: true,

@@ -23,14 +23,14 @@ function Graph (container, data, options) {
   this.renderTimestep = 1000 / this.renderRefreshRate; // ms -- saves calculation later on
   this.renderTime = 0.5 * this.renderTimestep;         // measured time it takes to render a frame
   this.maxPhysicsTicksPerRender = 3;                   // max amount of physics ticks per render step.
-  this.physicsDiscreteStepsize = 0.65;                 // discrete stepsize of the simulation
+  this.physicsDiscreteStepsize = 0.50;                 // discrete stepsize of the simulation
 
   this.stabilize = true;  // stabilize before displaying the graph
   this.selectable = true;
   this.initializing = true;
 
   // these functions are triggered when the dataset is edited
-  this.triggerFunctions = {add:null,edit:null,connect:null,del:null};
+  this.triggerFunctions = {add:null,edit:null,editEdge:null,connect:null,del:null};
 
   // set constant values
   this.constants = {
@@ -166,9 +166,11 @@ function Graph (container, data, options) {
       link:"Add Link",
       del:"Delete selected",
       editNode:"Edit Node",
+      editEdge:"Edit Edge",
       back:"Back",
       addDescription:"Click in an empty space to place a new node.",
       linkDescription:"Click on a node and drag the edge to another node to connect them.",
+      editEdgeDescription:"Click on the control points and drag them to a node to connect to it.",
       addError:"The function for add does not support two arguments (data,callback).",
       linkError:"The function for connect does not support two arguments (data,callback).",
       editError:"The function for edit does not support two arguments (data, callback).",
@@ -186,11 +188,13 @@ function Graph (container, data, options) {
         background: '#FFFFC6'
       }
     },
-    moveable: true,
+    dragGraph: true,
+    dragNodes: true,
     zoomable: true,
     hover: false
   };
   this.hoverObj = {nodes:{},edges:{}};
+
 
   // Node variables
   var graph = this;
@@ -223,7 +227,6 @@ function Graph (container, data, options) {
   this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
   this._setScale(1);
   this.setOptions(options);
-
 
   // other vars
   this.freezeSimulation = false;// freeze the simulation
@@ -528,7 +531,8 @@ Graph.prototype.setOptions = function (options) {
     if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
-    if (options.moveable !== undefined)        {this.constants.moveable = options.moveable;}
+    if (options.dragGraph !== undefined)       {this.constants.dragGraph = options.dragGraph;}
+    if (options.dragNodes !== undefined)       {this.constants.dragNodes = options.dragNodes;}
     if (options.zoomable !== undefined)        {this.constants.zoomable = options.zoomable;}
     if (options.hover !== undefined)           {this.constants.hover = options.hover;}
 
@@ -546,6 +550,10 @@ Graph.prototype.setOptions = function (options) {
 
     if (options.onEdit) {
       this.triggerFunctions.edit = options.onEdit;
+    }
+
+    if (options.onEditEdge) {
+      this.triggerFunctions.editEdge = options.onEditEdge;
     }
 
     if (options.onConnect) {
@@ -642,7 +650,7 @@ Graph.prototype.setOptions = function (options) {
           this.constants.dataManipulation[prop] = options.dataManipulation[prop];
         }
       }
-	  this.editMode = this.constants.dataManipulation.initiallyVisible;
+      this.editMode = this.constants.dataManipulation.initiallyVisible;
     }
     else if (options.dataManipulation !== undefined)  {
       this.constants.dataManipulation.enabled = false;
@@ -956,7 +964,7 @@ Graph.prototype._handleOnDrag = function(event) {
   var me = this,
     drag = this.drag,
     selection = drag.selection;
-  if (selection && selection.length) {
+  if (selection && selection.length && this.constants.dragNodes == true) {
     // calculate delta's and new location
     var deltaX = pointer.x - drag.pointer.x,
       deltaY = pointer.y - drag.pointer.y;
@@ -981,7 +989,7 @@ Graph.prototype._handleOnDrag = function(event) {
     }
   }
   else {
-    if (this.constants.moveable == true) {
+    if (this.constants.dragGraph == true) {
       // move the graph
       var diffX = pointer.x - this.drag.pointer.x;
       var diffY = pointer.y - this.drag.pointer.y;
@@ -1677,7 +1685,6 @@ Graph.prototype._updateValueRange = function(obj) {
  */
 Graph.prototype.redraw = function() {
   this.setSize(this.width, this.height);
-
   this._redraw();
 };
 
@@ -1709,6 +1716,7 @@ Graph.prototype._redraw = function() {
   this._doInAllSectors("_drawAllSectorNodes",ctx);
   this._doInAllSectors("_drawEdges",ctx);
   this._doInAllSectors("_drawNodes",ctx,false);
+  this._doInAllSectors("_drawControlNodes",ctx);
 
 //  this._doInSupportSector("_drawNodes",ctx,true);
 //  this._drawTree(ctx,"#F00F0F");
@@ -1889,6 +1897,21 @@ Graph.prototype._drawEdges = function(ctx) {
       if (edge.connected) {
         edges[id].draw(ctx);
       }
+    }
+  }
+};
+
+/**
+ * Redraw all edges
+ * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
+ * @param {CanvasRenderingContext2D}   ctx
+ * @private
+ */
+Graph.prototype._drawControlNodes = function(ctx) {
+  var edges = this.edges;
+  for (var id in edges) {
+    if (edges.hasOwnProperty(id)) {
+      edges[id]._drawControlNodes(ctx);
     }
   }
 };
