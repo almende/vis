@@ -158,7 +158,7 @@ DataSet.prototype.add = function (data, senderId) {
       id,
       me = this;
 
-  if (data instanceof Array) {
+  if (Array.isArray(data)) {
     // Array
     for (var i = 0, len = data.length; i < len; i++) {
       id = me._addItem(data[i]);
@@ -221,7 +221,7 @@ DataSet.prototype.update = function (data, senderId) {
     }
   };
 
-  if (data instanceof Array) {
+  if (Array.isArray(data)) {
     // Array
     for (var i = 0, len = data.length; i < len; i++) {
       addOrUpdate(data[i]);
@@ -644,7 +644,7 @@ DataSet.prototype.remove = function (id, senderId) {
   var removedIds = [],
       i, len, removedId;
 
-  if (id instanceof Array) {
+  if (Array.isArray(id)) {
     for (i = 0, len = id.length; i < len; i++) {
       removedId = this._remove(id[i]);
       if (removedId != null) {
