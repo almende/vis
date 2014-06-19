@@ -13817,6 +13817,7 @@ var SectorMixin = {
     this._loadLatestSector();
   }
 };
+
 /**
  * Creation of the ClusterMixin var.
  *
