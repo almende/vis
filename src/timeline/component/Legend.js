@@ -5,7 +5,8 @@ function Legend(body, options, linegraph) {
   this.body = body;
   this.linegraph = linegraph;
   this.defaultOptions = {
-    orientation: 'left' // left, right
+    orientation: 'left', // left, right
+    position: 'left'     // left, center, right
   }
 
   this.options = util.extend({},this.defaultOptions);

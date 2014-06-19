@@ -17,7 +17,8 @@ function DataAxis (body, options) {
     minorLinesOffset: 4,
     labelOffsetX: 9,
     labelOffsetY: -6,
-    width: '60px',
+    iconWidth: 20,
+    width: '40px',
     height: '300px'
   };
 
@@ -80,7 +81,17 @@ DataAxis.prototype.setOptions = function(options) {
     if (this.options.orientation != options.orientation && options.orientation !== undefined) {
       redraw = true;
     }
-    var fields = ['orientation','showMinorLabels','showMajorLabels','width','height'];
+    var fields = [
+      'orientation',
+      'showMinorLabels',
+      'showMajorLabels',
+      'majorLinesOffset',
+      'minorLinesOffset',
+      'labelOffsetX',
+      'labelOffsetY',
+      'iconWidth',
+      'width',
+      'height'];
     util.selectiveExtend(fields, this.options, options);
 
     if (redraw == true && this.dom.frame) {
@@ -115,7 +126,7 @@ DataAxis.prototype._create = function() {
 
 DataAxis.prototype._redrawGroupIcons = function() {
   var x;
-  var iconWidth = 20;
+  var iconWidth = this.options.iconWidth;
   var iconHeight = 15;
   var iconOffset = 4;
   var y = iconOffset + 0.5 * iconHeight;
@@ -125,7 +136,6 @@ DataAxis.prototype._redrawGroupIcons = function() {
   else {
     x = this.width - iconWidth - iconOffset;
   }
-
 
   for (var groupId in this.groups) {
     if (this.groups.hasOwnProperty(groupId)) {
@@ -186,6 +196,8 @@ DataAxis.prototype.redraw = function () {
   var props = this.props;
   var frame = this.dom.frame;
 
+
+
   // update classname
   frame.className = 'dataaxis';
 
@@ -240,6 +252,8 @@ DataAxis.prototype._redrawLabels = function () {
   var minimumStep = (this.props.minorCharHeight || 10); //in pixels
   var step = new DataStep(start, end, minimumStep, this.dom.frame.offsetHeight);
   this.step = step;
+  step.first();
+
 
   // Move all DOM elements to a "redundant" list, where they
   // can be picked for re-use, and clear the lists with lines and texts.
@@ -250,7 +264,6 @@ DataAxis.prototype._redrawLabels = function () {
   dom.lines = [];
   dom.labels = [];
 
-  step.first();
   var stepPixels = this.dom.frame.offsetHeight / ((step.marginRange / step.step) + 1);
   this.stepPixels = stepPixels;
 
@@ -274,14 +287,15 @@ DataAxis.prototype._redrawLabels = function () {
   var max = 1;
   step.next();
 
+  this.maxLabelSize = 0;
   var y = 0;
-  while (max < amountOfSteps) {
+  while (max < Math.round(amountOfSteps)) {
     y = Math.round(max * stepPixels);
     marginStartPos = max * stepPixels;
     var isMajor = step.isMajor();
 
     if (this.options['showMinorLabels'] && isMajor == false) {
-      this._redrawLabel(y - 2, step.getLabelMinor(), orientation, 'yAxis minor');
+      this._redrawLabel(y - 2, step.current, orientation, 'yAxis minor');
     }
 
     if (isMajor && this.options['showMajorLabels']) {
@@ -289,7 +303,7 @@ DataAxis.prototype._redrawLabels = function () {
         if (xFirstMajorLabel == undefined) {
           xFirstMajorLabel = y;
         }
-        this._redrawLabel(y - 2, step.getLabelMajor(), orientation, 'yAxis major');
+        this._redrawLabel(y - 2, step.current, orientation, 'yAxis major');
       }
       this._redrawMajorLine(y, orientation);
     }
@@ -300,6 +314,16 @@ DataAxis.prototype._redrawLabels = function () {
     step.next();
     max++;
   }
+
+  var offset = this.drawIcons == true ? this.options.iconWidth + this.options.labelOffsetX : this.options.labelOffsetX;
+  if (this.maxLabelSize > (this.width - offset)) {
+    this.width = this.maxLabelSize + offset;
+    this.options.width = this.width + "px";
+    this.body.emitter.emit("changed");
+    this.redraw();
+    return;
+  }
+
 
   this.conversionFactor = marginStartPos/((amountOfSteps-1) * step.step);
 
@@ -363,6 +387,12 @@ DataAxis.prototype._redrawLabel = function (y, text, orientation, className) {
   }
 
   label.style.top = y + this.options.labelOffsetY + 'px';
+  text += '';
+
+  var largestWidth = this.props.majorCharWidth > this.props.minorCharWidth ? this.props.majorCharWidth : this.props.minorCharWidth;
+  if (this.maxLabelSize < text.length * largestWidth) {
+    this.maxLabelSize = text.length * largestWidth;
+  }
 };
 
 /**
@@ -436,6 +466,7 @@ DataAxis.prototype._redrawMajorLine = function (y, orientation) {
 DataAxis.prototype._calculateCharSize = function () {
   // determine the char width and height on the minor axis
   if (!('minorCharHeight' in this.props)) {
+
     var textMinor = document.createTextNode('0');
     var measureCharMinor = document.createElement('DIV');
     measureCharMinor.className = 'text minor measure';

@@ -820,6 +820,7 @@ Linegraph.prototype._prepareData = function (dataset, options) {
   }
   for (var i = 0; i < dataset.length; i++) {
     xValue = toScreen(new Date(dataset[i].x)) + this.width;
+    console.log(dataset[i].x, new Date(dataset[i].x))
     yValue = axis.convertValue(dataset[i].y);
     extractedData.push({x: xValue, y: yValue});
   }
