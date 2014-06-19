@@ -268,7 +268,7 @@ Graph2d.prototype.setItems = function(items) {
   else {
     // turn an array into a dataset
     newDataSet = new DataSet(items, {
-      convert: {
+      type: {
         start: 'Date',
         end: 'Date'
       }

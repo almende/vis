@@ -72,34 +72,34 @@
 
   var container = document.getElementById('visualization');
   var items = [
-//    {x: '2014-06-11', y: 10 },
-//    {x: '2014-06-12', y: 25 },
-//    {x: '2014-06-13', y: 30, group: 0},
-//    {x: '2014-06-14', y: 10, group: 0},
-//    {x: '2014-06-15', y: 15, group: 1},
-//    {x: '2014-06-16', y: 30, group: 1},
-//    {x: '2014-06-17', y: 100, group: 1},
-//    {x: '2014-06-18', y: 150, group: 1},
-//    {x: '2014-06-19', y: 520, group: 1},
-//    {x: '2014-06-20', y: 100, group: 1},
-//    {x: '2014-06-21', y: 19, group: 2},
-//    {x: '2014-06-22', y: 60, group: 2},
-//    {x: '2014-06-23', y: 10, group: 2},
-//    {x: '2014-06-24', y: 25, group: 2},
-//    {x: '2014-06-25', y: 30, group: 2}
-      {x: '2014-06-11', y: 10},
-      {x: '2014-06-12', y: 25},
-      {x: '2014-06-13', y: 30},
-      {x: '2014-06-14', y: 10},
-      {x: '2014-06-15', y: 15},
-      {x: '2014-06-16', y: 30}
+    {x: '2014-06-11', y: 10 },
+    {x: '2014-06-12', y: 25 },
+    {x: '2014-06-13', y: 30, group: 0},
+    {x: '2014-06-14', y: 10, group: 0},
+    {x: '2014-06-15', y: 15, group: 1},
+    {x: '2014-06-16', y: 30, group: 1},
+    {x: '2014-06-17', y: 100, group: 1},
+    {x: '2014-06-18', y: 150, group: 1},
+    {x: '2014-06-19', y: 520, group: 1},
+    {x: '2014-06-20', y: 100, group: 1},
+    {x: '2014-06-21', y: 19, group: 2},
+    {x: '2014-06-22', y: 60, group: 2},
+    {x: '2014-06-23', y: 10, group: 2},
+    {x: '2014-06-24', y: 25, group: 2},
+    {x: '2014-06-25', y: 30, group: 2}
+//      {x: '2014-06-11', y: 10},
+//      {x: '2014-06-12', y: 25},
+//      {x: '2014-06-13', y: 30},
+//      {x: '2014-06-14', y: 10},
+//      {x: '2014-06-15', y: 15},
+//      {x: '2014-06-16', y: 30}
   ];
 
   var dataset = new vis.DataSet(items);
-  var graph2d = new vis.Graph2d(container, items, {});
-//    graph2d.setOptions(options);
-//    graph2d.setGroups(groups);
-//    graph2d.setItems(items);
+  var graph2d = new vis.Graph2d(container);
+    graph2d.setOptions(options);
+    graph2d.setGroups(groups);
+    graph2d.setItems(dataset);
 
 </script>
 </body>

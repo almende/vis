@@ -588,7 +588,7 @@ Linegraph.prototype._toggleAxisVisiblity = function(axisUsed, axis) {
  * @param amountOfGraphs
  */
 Linegraph.prototype.drawGraph = function (groupId, groupIndex, amountOfGraphs) {
-  var datapoints = this.itemsData.get({filter: function (item) {return item.group == groupId;}});
+  var datapoints = this.itemsData.get({filter: function (item) {return item.group == groupId;}, type: {x:"Date"}});
 
   // can be optimized, only has to be done once.
   var group = this.groups[groupId];
@@ -804,12 +804,12 @@ Linegraph.prototype._prepareSVGElements = function(JSONcontainer) {
  * This uses the DataAxis object to generate the correct Y coordinate on the SVG window. It uses the
  * util function toScreen to get the x coordinate from the timestamp.
  *
- * @param dataset
+ * @param datapoints
  * @param options
  * @returns {Array}
  * @private
  */
-Linegraph.prototype._prepareData = function (dataset, options) {
+Linegraph.prototype._prepareData = function (datapoints, options) {
   var extractedData = [];
   var xValue, yValue;
   var axis = this.yAxisLeft;
@@ -818,10 +818,9 @@ Linegraph.prototype._prepareData = function (dataset, options) {
   if (options.yAxisOrientation == 'right') {
     axis = this.yAxisRight;
   }
-  for (var i = 0; i < dataset.length; i++) {
-    xValue = toScreen(new Date(dataset[i].x)) + this.width;
-    console.log(dataset[i].x, new Date(dataset[i].x))
-    yValue = axis.convertValue(dataset[i].y);
+  for (var i = 0; i < datapoints.length; i++) {
+    xValue = toScreen(datapoints[i].x) + this.width;
+    yValue = axis.convertValue(datapoints[i].y);
     extractedData.push({x: xValue, y: yValue});
   }
 
