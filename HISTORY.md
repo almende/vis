@@ -6,6 +6,7 @@ http://visjs.org
 
 ### Timeline
 
+- Implemented function `destroy` to neatly cleanup a Timeline.
 - Implemented support for dragging the timeline contents vertically.
 - Implemented options `zoomable` and `moveable`.
 - Changed default value of option `showCurrentTime` to true.

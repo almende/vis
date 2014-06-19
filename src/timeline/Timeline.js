@@ -227,7 +227,7 @@ Timeline.prototype.destroy = function () {
   // cleanup hammer touch events
   for (var event in this.listeners) {
     if (this.listeners.hasOwnProperty(event)) {
-      this.hammer.off(event, this.listeners[event]);
+      delete this.listeners[event];
     }
   }
   this.listeners = null;
@@ -238,17 +238,6 @@ Timeline.prototype.destroy = function () {
     component.destroy();
   });
 
-  // remove all components
-  this.components = [];
-  this.range = null;
-  this.timeAxis = null;
-  this.itemSet = null;
-  this.currentTime = null;
-  this.customTime = null;
-
-  //this.body.util.snap = null;
-  //this.body.util.toTime = null;
-  //this.body.util.toScreen = null;
   this.body = null;
 };
 

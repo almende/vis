@@ -296,7 +296,6 @@ ItemSet.prototype.destroy = function() {
   this.setItems(null);
   this.setGroups(null);
 
-  this.hammer.enable(false);
   this.hammer = null;
 
   this.body = null;
