@@ -6,6 +6,7 @@ http://visjs.org
 
 ### Timeline
 
+- Fixed auto detected item type being preferred over the global item `type`.
 - Throws an error when constructing without new keyword.
 
 ### Graph
