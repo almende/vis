@@ -16,29 +16,35 @@
 }
 
 
-
-.vis.timeline .dataaxis .text.measure {
-    position: absolute;
-    padding-left: 0;
-    padding-right: 0;
-    margin-left: 0;
-    margin-right: 0;
-    visibility: hidden;
-}
-
 .vis.timeline .dataaxis .yAxis.major {
-    font-size:12px;
     width: 100%;
     position: absolute;
     color: #4d4d4d;
     white-space: nowrap;
 }
 
+.vis.timeline .dataaxis .yAxis.major.measure{
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: 0;
+    margin-right: 0;
+    visibility: hidden;
+    width: auto;
+}
+
 
 .vis.timeline .dataaxis .yAxis.minor{
-    font-size:12px;
     position: absolute;
     width: 100%;
     color: #979797;
     white-space: nowrap;
+}
+
+.vis.timeline .dataaxis .yAxis.minor.measure{
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: 0;
+    margin-right: 0;
+    visibility: hidden;
+    width: auto;
 }

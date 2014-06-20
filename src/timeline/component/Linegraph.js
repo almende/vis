@@ -27,20 +27,18 @@ function Linegraph(body, options) {
     dataAxis: {
       showMinorLabels: true,
       showMajorLabels: true,
-      majorLinesOffset: 27,
-      minorLinesOffset: 24,
-      labelOffsetX: 2,
-      labelOffsetY: 0,
-      width: '60px'
-    },
-    dataAxisRight: {
-      showMinorLabels: true,
-      showMajorLabels: true,
       majorLinesOffset: 7,
       minorLinesOffset: 4,
-      labelOffsetX: 9,
-      labelOffsetY: -6,
-      width: '60px'
+      labelOffsetX: 10,
+      labelOffsetY: 2,
+      iconWidth: 20,
+      width: '40px',
+      visible:true
+    },
+    legend: {
+      orientation: 'left', // left, right
+      position: 'left',     // left, center, right
+      visible: true
     }
   };
 
@@ -133,10 +131,9 @@ Linegraph.prototype._create = function(){
   frame.appendChild(this.svg);
 
   // panel with time axis
-  this.yAxisLeft = new DataAxis(this.body, {
-    orientation: 'left',
-    height: this.svg.style.height
-  });
+  this.options.dataAxis.orientation = 'left';
+  this.options.dataAxis.height = this.svg.style.height;
+  this.yAxisLeft = new DataAxis(this.body, this.options.dataAxis);
 
   this.yAxisRight = new DataAxis(this.body, {
     orientation: 'right',
@@ -156,8 +153,8 @@ Linegraph.prototype._create = function(){
  */
 Linegraph.prototype.setOptions = function(options) {
   if (options) {
-    var fields = ['yAxisOrientation'];
-    util.selectiveExtend(fields, this.options, options);
+    var fields = ['yAxisOrientation','dataAxis','legend'];
+    util.selectiveDeepExtend(fields, this.options, options);
 
     if (options.catmullRom) {
       if (typeof options.catmullRom == 'object') {
@@ -175,6 +172,8 @@ Linegraph.prototype.setOptions = function(options) {
         }
       }
     }
+
+    console.log("OPTIONS:",this.options , options);
     this._mergeOptions(this.options, options,'catmullRom');
     this._mergeOptions(this.options, options,'drawPoints');
     this._mergeOptions(this.options, options,'shaded');
@@ -190,7 +189,7 @@ Linegraph.prototype.setOptions = function(options) {
  * @param [String] option      | this is the option key in the options argument
  * @private
  */
-Linegraph.prototype._mergeOptions = function (mergeTarget, options,option) {
+Linegraph.prototype._mergeOptions = function (mergeTarget, options, option) {
   if (options[option]) {
     if (typeof options[option] == 'boolean') {
       mergeTarget[option].enabled = options[option];

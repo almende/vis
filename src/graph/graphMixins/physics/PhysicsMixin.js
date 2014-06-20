@@ -303,7 +303,7 @@ var physicsMixin = {
   _loadPhysicsConfiguration: function () {
     if (this.physicsConfiguration === undefined) {
       this.backupConstants = {};
-      util.copyObject(this.constants, this.backupConstants);
+      util.deepExtend(this.backupConstants,this.constants);
 
       var hierarchicalLayoutDirections = ["LR", "RL", "UD", "DU"];
       this.physicsConfiguration = document.createElement('div');

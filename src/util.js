@@ -110,10 +110,10 @@ util.selectiveExtend = function (props, a, b) {
     throw new Error('Array with property names expected as first argument');
   }
 
-  for (var i = 1, len = arguments.length; i < len; i++) {
+  for (var i = 2; i < arguments.length; i++) {
     var other = arguments[i];
 
-    for (var p = 0, pp = props.length; p < pp; p++) {
+    for (var p = 0; p < props.length; p++) {
       var prop = props[p];
       if (other.hasOwnProperty(prop)) {
         a[prop] = other[prop];
@@ -121,6 +121,46 @@ util.selectiveExtend = function (props, a, b) {
     }
   }
 
+  return a;
+};
+
+/**
+ * Extend object a with selected properties of object b or a series of objects
+ * Only properties with defined values are copied
+ * @param {Array.<String>} props
+ * @param {Object} a
+ * @param {... Object} b
+ * @return {Object} a
+ */
+util.selectiveDeepExtend = function (props, a, b) {
+  // TODO: add support for Arrays to deepExtend
+  if (Array.isArray(b)) {
+    throw new TypeError('Arrays are not supported by deepExtend');
+  }
+  for (var i = 2; i < arguments.length; i++) {
+    var other = arguments[i];
+    for (var p = 0; p < props.length; p++) {
+      var prop = props[p];
+      if (other.hasOwnProperty(prop)) {
+        if (b[prop] && b[prop].constructor === Object) {
+          if (a[prop] === undefined) {
+            a[prop] = {};
+          }
+          if (a[prop].constructor === Object) {
+            util.deepExtend(a[prop], b[prop]);
+          }
+          else {
+            a[prop] = b[prop];
+          }
+        } else if (Array.isArray(b[prop])) {
+          throw new TypeError('Arrays are not supported by deepExtend');
+        } else {
+          a[prop] = b[prop];
+        }
+
+      }
+    }
+  }
   return a;
 };
 

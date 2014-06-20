@@ -5,7 +5,8 @@
  * @param {ItemSet} itemSet
  */
 function GraphGroup (group, options, linegraph) {
-  this.options = util.copyObject(options,{});
+  var fields = ['yAxisOrientation','barGraph','drawPoints','catmullRom']
+  this.options = util.selectiveDeepExtend(fields,{},options);
   this.linegraph = linegraph;
   this.usingDefaultStyle = group.className === undefined;
   this.update(group);

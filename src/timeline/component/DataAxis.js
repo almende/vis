@@ -15,11 +15,12 @@ function DataAxis (body, options) {
     showMajorLabels: true,
     majorLinesOffset: 7,
     minorLinesOffset: 4,
-    labelOffsetX: 9,
-    labelOffsetY: -6,
+    labelOffsetX: 10,
+    labelOffsetY: 2,
     iconWidth: 20,
     width: '40px',
-    height: '300px'
+    height: '300px',
+    visible: true
   };
 
   this.props = {};
@@ -196,8 +197,6 @@ DataAxis.prototype.redraw = function () {
   var props = this.props;
   var frame = this.dom.frame;
 
-
-
   // update classname
   frame.className = 'dataaxis';
 
@@ -295,7 +294,7 @@ DataAxis.prototype._redrawLabels = function () {
     var isMajor = step.isMajor();
 
     if (this.options['showMinorLabels'] && isMajor == false) {
-      this._redrawLabel(y - 2, step.current, orientation, 'yAxis minor');
+      this._redrawLabel(y - 2, step.current, orientation, 'yAxis minor', this.props.minorCharHeight);
     }
 
     if (isMajor && this.options['showMajorLabels']) {
@@ -303,7 +302,7 @@ DataAxis.prototype._redrawLabels = function () {
         if (xFirstMajorLabel == undefined) {
           xFirstMajorLabel = y;
         }
-        this._redrawLabel(y - 2, step.current, orientation, 'yAxis major');
+        this._redrawLabel(y - 2, step.current, orientation, 'yAxis major', this.props.majorCharHeight);
       }
       this._redrawMajorLine(y, orientation);
     }
@@ -315,7 +314,7 @@ DataAxis.prototype._redrawLabels = function () {
     max++;
   }
 
-  var offset = this.drawIcons == true ? this.options.iconWidth + this.options.labelOffsetX : this.options.labelOffsetX;
+  var offset = this.drawIcons == true ? this.options.iconWidth + this.options.labelOffsetX + 15 : this.options.labelOffsetX + 15;
   if (this.maxLabelSize > (this.width - offset)) {
     this.width = this.maxLabelSize + offset;
     this.options.width = this.width + "px";
@@ -360,7 +359,7 @@ DataAxis.prototype.convertValue = function(value) {
  * @param {String} orientation   "top" or "bottom" (default)
  * @private
  */
-DataAxis.prototype._redrawLabel = function (y, text, orientation, className) {
+DataAxis.prototype._redrawLabel = function (y, text, orientation, className, characterHeight) {
   // reuse redundant label
   var label = this.dom.redundant.labels.shift();
 
@@ -386,13 +385,16 @@ DataAxis.prototype._redrawLabel = function (y, text, orientation, className) {
     label.style.textAlign = "left";
   }
 
-  label.style.top = y + this.options.labelOffsetY + 'px';
+  label.style.top = y - 0.5 * characterHeight + this.options.labelOffsetY + 'px';
+
   text += '';
 
   var largestWidth = this.props.majorCharWidth > this.props.minorCharWidth ? this.props.majorCharWidth : this.props.minorCharWidth;
   if (this.maxLabelSize < text.length * largestWidth) {
     this.maxLabelSize = text.length * largestWidth;
   }
+
+
 };
 
 /**
@@ -469,7 +471,7 @@ DataAxis.prototype._calculateCharSize = function () {
 
     var textMinor = document.createTextNode('0');
     var measureCharMinor = document.createElement('DIV');
-    measureCharMinor.className = 'text minor measure';
+    measureCharMinor.className = 'yAxis minor measure';
     measureCharMinor.appendChild(textMinor);
     this.dom.frame.appendChild(measureCharMinor);
 
@@ -482,7 +484,7 @@ DataAxis.prototype._calculateCharSize = function () {
   if (!('majorCharHeight' in this.props)) {
     var textMajor = document.createTextNode('0');
     var measureCharMajor = document.createElement('DIV');
-    measureCharMajor.className = 'text major measure';
+    measureCharMajor.className = 'yAxis major measure';
     measureCharMajor.appendChild(textMajor);
     this.dom.frame.appendChild(measureCharMajor);
 
