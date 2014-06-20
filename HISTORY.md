@@ -2,7 +2,22 @@
 http://visjs.org
 
 
-## not yet released, version 2.0.0
+## 2014-06-19, version 2.0.1
+
+### Timeline
+
+- Throws an error when constructing without new keyword.
+
+### Graph
+
+- Throws an error when constructing without new keyword.
+
+### Graph3d
+
+- Throws an error when constructing without new keyword.
+
+
+## 2014-06-19, version 2.0.0
 
 ### Timeline
 

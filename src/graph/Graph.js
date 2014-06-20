@@ -10,6 +10,9 @@
  * @param {Object} options      Options
  */
 function Graph (container, data, options) {
+  if (!(this instanceof Graph)) {
+    throw new SyntaxError('Constructor must be called with the new operator');
+  }
 
   this._initializeMixinLoaders();
 
