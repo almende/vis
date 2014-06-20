@@ -140,7 +140,7 @@ Legend.prototype.drawLegend = function() {
         fillPath.setAttributeNS(null, "class", classes[i] + " fill");
       }
 
-      if (this.options.drawPoints.enabled == true) {
+      if (this.options._drawPoints.enabled == true) {
         this.drawPoint(x + 0.5 * lineLength,y,classes[i], this.svgLegendElements, this.svgLegend);
       }
       y += spacing;

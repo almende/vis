@@ -64,6 +64,7 @@ task('build', {async: true}, function () {
 
       './src/shim.js',
       './src/util.js',
+      './src/SVGutil.js',
       './src/DataSet.js',
       './src/DataView.js',
 

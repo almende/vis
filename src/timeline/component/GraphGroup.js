@@ -4,14 +4,14 @@
  * @param {Object} data
  * @param {ItemSet} itemSet
  */
-function GraphGroup (group, options, linegraph) {
-  var fields = ['yAxisOrientation','barGraph','drawPoints','catmullRom']
+function GraphGroup (group, options, groupsUsingDefaultStyles) {
+  var fields = ['style','yAxisOrientation','barChart','drawPoints','shaded','catmullRom']
   this.options = util.selectiveDeepExtend(fields,{},options);
-  this.linegraph = linegraph;
   this.usingDefaultStyle = group.className === undefined;
+  this.groupsUsingDefaultStyles = groupsUsingDefaultStyles;
   this.update(group);
   if (this.usingDefaultStyle == true) {
-    this.linegraph.groupsUsingDefaultStyles += 1;
+    this.groupsUsingDefaultStyles[0] += 1;
   }
 }
 
@@ -21,55 +21,57 @@ GraphGroup.prototype.setClass = function (className) {
 
 GraphGroup.prototype.setOptions = function(options) {
   if (options !== undefined) {
-    var fields = ['yAxisOrientation'];
-    util.selectiveExtend(fields, this.options, options);
-    this.linegraph._mergeOptions(this.options, options,'catmullRom');
-    this.linegraph._mergeOptions(this.options, options,'drawPoints');
-    this.linegraph._mergeOptions(this.options, options,'shaded');
+    var fields = ['yAxisOrientation','style','barChart'];
+    util.selectiveDeepExtend(fields, this.options, options);
+
+    util._mergeOptions(this.options, options,'catmullRom');
+    util._mergeOptions(this.options, options,'drawPoints');
+    util._mergeOptions(this.options, options,'shaded');
   }
 };
 
 GraphGroup.prototype.update = function(group) {
   this.group = group;
   this.content = group.content || 'graph';
-  this.className = group.className || this.className || "graphGroup" + this.linegraph.groupsUsingDefaultStyles;
+  this.className = group.className || this.className || "graphGroup" + this.groupsUsingDefaultStyles[0];
   this.setOptions(group.options);
 };
 
-GraphGroup.prototype.drawIcon = function(x,y,JSONcontainer, SVGcontainer, lineLength, iconHeight) {
+GraphGroup.prototype.drawIcon = function(x,y,JSONcontainer, SVGcontainer, iconWidth, iconHeight) {
   var fillHeight = iconHeight * 0.5;
   var path, fillPath, outline;
-  if (this.options.barGraph.enabled == false) {
-    outline = this.linegraph._getSVGElement("rect", JSONcontainer, SVGcontainer);
+  if (this.options.style == 'line') {
+    outline = SVGutil._getSVGElement("rect", JSONcontainer, SVGcontainer);
     outline.setAttributeNS(null, "x", x);
     outline.setAttributeNS(null, "y", y - fillHeight);
-    outline.setAttributeNS(null, "width", lineLength);
+    outline.setAttributeNS(null, "width", iconWidth);
     outline.setAttributeNS(null, "height", 2*fillHeight);
     outline.setAttributeNS(null, "class", "outline");
 
-    path = this.linegraph._getSVGElement("path", JSONcontainer, SVGcontainer);
+    path = SVGutil._getSVGElement("path", JSONcontainer, SVGcontainer);
     path.setAttributeNS(null, "class", this.className);
-    path.setAttributeNS(null, "d", "M" + x + ","+y+" L" + (x + lineLength) + ","+y+"");
+    path.setAttributeNS(null, "d", "M" + x + ","+y+" L" + (x + iconWidth) + ","+y+"");
     if (this.options.shaded.enabled == true) {
-      fillPath = this.linegraph._getSVGElement("path", JSONcontainer, SVGcontainer);
+      fillPath = SVGutil._getSVGElement("path", JSONcontainer, SVGcontainer);
       if (this.options.shaded.orientation == 'top') {
         fillPath.setAttributeNS(null, "d", "M"+x+", " + (y - fillHeight) +
-          "L"+x+","+y+" L"+ (x + lineLength) + ","+y+" L"+ (x + lineLength) + "," + (y - fillHeight));
+          "L"+x+","+y+" L"+ (x + iconWidth) + ","+y+" L"+ (x + iconWidth) + "," + (y - fillHeight));
       }
       else {
         fillPath.setAttributeNS(null, "d", "M"+x+","+y+" " +
           "L"+x+"," + (y + fillHeight) + " " +
-          "L"+ (x + lineLength) + "," + (y + fillHeight) +
-          "L"+ (x + lineLength) + ","+y);
+          "L"+ (x + iconWidth) + "," + (y + fillHeight) +
+          "L"+ (x + iconWidth) + ","+y);
       }
       fillPath.setAttributeNS(null, "class", this.className + " iconFill");
     }
 
     if (this.options.drawPoints.enabled == true) {
-      this.linegraph.drawPoint(x + 0.5 * lineLength,y, this, JSONcontainer, SVGcontainer);
+      SVGutil.drawPoint(x + 0.5 * iconWidth,y, this, JSONcontainer, SVGcontainer);
     }
   }
   else {
+    console.log("bar")
     //TODO: bars
   }
 }

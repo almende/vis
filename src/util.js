@@ -1030,3 +1030,29 @@ util.copyObject = function(objectFrom, objectTo) {
   }
   return objectTo;
 };
+
+
+/**
+ * this is used to set the options of subobjects in the options object. A requirement of these subobjects
+ * is that they have an 'enabled' element which is optional for the user but mandatory for the program.
+ *
+ * @param [object] mergeTarget | this is either this.options or the options used for the groups.
+ * @param [object] options     | options
+ * @param [String] option      | this is the option key in the options argument
+ * @private
+ */
+util._mergeOptions = function (mergeTarget, options, option) {
+  if (options[option]) {
+    if (typeof options[option] == 'boolean') {
+      mergeTarget[option].enabled = options[option];
+    }
+    else {
+      mergeTarget[option].enabled = true;
+      for (prop in options[option]) {
+        if (options[option].hasOwnProperty(prop)) {
+          mergeTarget[option][prop] = options[option][prop];
+        }
+      }
+    }
+  }
+}

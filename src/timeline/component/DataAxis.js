@@ -126,6 +126,8 @@ DataAxis.prototype._create = function() {
 };
 
 DataAxis.prototype._redrawGroupIcons = function() {
+  SVGutil._prepareSVGElements(this.svgContainer);
+
   var x;
   var iconWidth = this.options.iconWidth;
   var iconHeight = 15;
@@ -144,6 +146,8 @@ DataAxis.prototype._redrawGroupIcons = function() {
       y += iconHeight + iconOffset;
     }
   }
+
+  SVGutil._cleanupSVGElements(this.svgContainer);
 }
 
 /**
@@ -389,7 +393,7 @@ DataAxis.prototype._redrawLabel = function (y, text, orientation, className, cha
 
   text += '';
 
-  var largestWidth = this.props.majorCharWidth > this.props.minorCharWidth ? this.props.majorCharWidth : this.props.minorCharWidth;
+  var largestWidth = Math.max(this.props.majorCharWidth,this.props.minorCharWidth);
   if (this.maxLabelSize < text.length * largestWidth) {
     this.maxLabelSize = text.length * largestWidth;
   }
@@ -504,5 +508,3 @@ DataAxis.prototype._calculateCharSize = function () {
 DataAxis.prototype.snap = function(date) {
   return this.step.snap(date);
 };
-
-

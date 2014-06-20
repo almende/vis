@@ -73,6 +73,11 @@
     stroke: none;
 }
 
+
+.vis.timeline .bar {
+    fill-opacity:0.7;
+}
+
 .vis.timeline .point {
     stroke-width:2px;
     fill-opacity:1.0;
