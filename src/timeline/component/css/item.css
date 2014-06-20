@@ -57,10 +57,6 @@
   max-width: 100%;
 }
 
-.vis.timeline .item.range.overflow .content {
-  overflow: visible;
-}
-
 .vis.timeline .item.line {
   padding: 0;
   position: absolute;
