@@ -41,15 +41,13 @@
   border-radius: 4px;
 }
 
-.vis.timeline .item.range,
-.vis.timeline .item.rangeoverflow{
+.vis.timeline .item.range {
   border-style: solid;
   border-radius: 2px;
   box-sizing: border-box;
 }
 
-.vis.timeline .item.range .content,
-.vis.timeline .item.rangeoverflow .content {
+.vis.timeline .item.range .content {
   position: relative;
   display: inline-block;
 }
@@ -57,6 +55,10 @@
 .vis.timeline .item.range .content {
   overflow: hidden;
   max-width: 100%;
+}
+
+.vis.timeline .item.range.overflow .content {
+  overflow: visible;
 }
 
 .vis.timeline .item.line {
@@ -82,8 +84,7 @@
   cursor: pointer;
 }
 
-.vis.timeline .item.range .drag-left,
-.vis.timeline .item.rangeoverflow .drag-left {
+.vis.timeline .item.range .drag-left {
   position: absolute;
   width: 24px;
   height: 100%;
@@ -94,8 +95,7 @@
   z-index: 10000;
 }
 
-.vis.timeline .item.range .drag-right,
-.vis.timeline .item.rangeoverflow .drag-right {
+.vis.timeline .item.range .drag-right {
   position: absolute;
   width: 24px;
   height: 100%;

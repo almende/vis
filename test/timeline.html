@@ -15,6 +15,15 @@
     #visualization .itemset {
       /*background: rgba(255, 255, 0, 0.5);*/
     }
+
+    /*
+    .vis.timeline .item.range .content {
+      overflow: hidden;
+      max-width: none;
+    }
+    */
+
+
   </style>
 
 </head>
@@ -70,7 +79,12 @@
     {_id: 2, content: 'item 2', start: now.clone().add('days', -2).toDate() },
     {_id: 3, content: 'item 3', start: now.clone().add('days', 2).toDate()},
     {
-      _id: 4, content: 'item 4',
+      _id: 4, content: 'item 4 asdfjkadsf adksfk adskfadks aksdfk asdfkkadkskafdskdfs ',
+      start: now.clone().add('days', 0).toDate(),
+      end: now.clone().add('days', 7).toDate(), className: 'overflow'
+    },
+    {
+      _id: 7, content: 'item 7 asdfjkadsf adksfk adskfadks aksdfk asdfkkadkskafdskdfs ',
       start: now.clone().add('days', 0).toDate(),
       end: now.clone().add('days', 7).toDate()
     },

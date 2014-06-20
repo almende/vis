@@ -202,8 +202,8 @@ var items = [
     <td>type</td>
     <td>String</td>
     <td>'box'</td>
-    <td>The type of the item. Can be 'box' (default), 'point', 'range', or 'rangeoverflow'.
-      Types 'box' and 'point' need a start date, and types 'range' and 'rangeoverflow' need both a start and end date. Types 'range' and rangeoverflow are equal, except that overflowing text in 'range' is hidden, while visible in 'rangeoverflow'.
+    <td>The type of the item. Can be 'box' (default), 'point', or 'range'.
+      Types 'box' and 'point' need a start date, and type 'range' needs both a start and end date.
     </td>
   </tr>
   <tr>
@@ -604,8 +604,8 @@ var options = {
 <tr>
   <td>type</td>
   <td>String</td>
-  <td>'box'</td>
-  <td>Specifies the default type for the timeline items. Choose from 'box', 'point', 'range', and 'rangeoverflow'. Note that individual items can override this default type.
+  <td>none</td>
+  <td>Specifies the default type for the timeline items. Choose from 'box', 'point', and 'range'. Note that individual items can override this default type. If undefined, the Timeline will auto detect the type from the items data: if a start and end date is available, a 'range' will be created, and else, a 'box' is created.
   </td>
 </tr>
 

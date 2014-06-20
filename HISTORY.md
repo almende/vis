@@ -2,12 +2,18 @@
 http://visjs.org
 
 
-## 2014-06-19, version 2.0.1
+## not yet released, version 2.1.0
 
 ### Timeline
 
 - Fixed auto detected item type being preferred over the global item `type`.
 - Throws an error when constructing without new keyword.
+- Removed the 'rangeoverflow' item type. Instead, one can use a regular range
+  and change css styling of the item contents to:
+
+        .vis.timeline .item.range .content {
+          overflow: visible;
+        }
 
 ### Graph
 
