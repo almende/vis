@@ -94,7 +94,7 @@ Legend.prototype.redraw = function() {
 }
 
 Legend.prototype.drawLegend = function() {
-  this.linegraph._prepareSVGElements.call(this,this.svgElements);
+  this.linegraph.prepareElements.call(this,this.svgElements);
   var x = 0;
   var y = 0;
   var lineLength = 30;
@@ -104,7 +104,7 @@ Legend.prototype.drawLegend = function() {
   var legendWidth = 298;
   var padding = 5;
 
-  var border = this._getSVGElement("rect", this.svgLegendElements, this.svgLegend);
+  var border = this.getSVGElement("rect", this.svgLegendElements, this.svgLegend);
   border.setAttributeNS(null, "x", x);
   border.setAttributeNS(null, "y", y);
   border.setAttributeNS(null, "width", legendWidth);
@@ -115,18 +115,18 @@ Legend.prototype.drawLegend = function() {
 
   if (classes.length > 0) {
     for (var i = 0; i < classes.length; i++) {
-      outline = this._getSVGElement("rect", this.svgLegendElements, this.svgLegend);
+      outline = this.getSVGElement("rect", this.svgLegendElements, this.svgLegend);
       outline.setAttributeNS(null, "x", x);
       outline.setAttributeNS(null, "y", y - fillHeight);
       outline.setAttributeNS(null, "width", lineLength);
       outline.setAttributeNS(null, "height", 2*fillHeight);
       outline.setAttributeNS(null, "class", "outline");
 
-      path = this._getSVGElement("path", this.svgLegendElements, this.svgLegend);
+      path = this.getSVGElement("path", this.svgLegendElements, this.svgLegend);
       path.setAttributeNS(null, "class", classes[i]);
       path.setAttributeNS(null, "d", "M" + x + ","+y+" L" + (x + lineLength) + ","+y+"");
       if (this.options.shaded.enabled == true) {
-        fillPath = this._getSVGElement("path", this.svgLegendElements, this.svgLegend);
+        fillPath = this.getSVGElement("path", this.svgLegendElements, this.svgLegend);
         if (this.options.shaded.orientation == 'top') {
           fillPath.setAttributeNS(null, "d", "M"+x+", " + (y - fillHeight) +
             "L"+x+","+y+" L"+ (x + lineLength) + ","+y+" L"+ (x + lineLength) + "," + (y - fillHeight));
@@ -152,5 +152,5 @@ Legend.prototype.drawLegend = function() {
 
 
 
-  this._cleanupSVGElements(this.svgLegendElements);
+  this.cleanupElements(this.svgLegendElements);
 }

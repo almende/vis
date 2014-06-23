@@ -76,6 +76,7 @@
 
 .vis.timeline .bar {
     fill-opacity:0.7;
+    stroke-width:1px;
 }
 
 .vis.timeline .point {

@@ -39,20 +39,21 @@ GraphGroup.prototype.update = function(group) {
 
 GraphGroup.prototype.drawIcon = function(x,y,JSONcontainer, SVGcontainer, iconWidth, iconHeight) {
   var fillHeight = iconHeight * 0.5;
-  var path, fillPath, outline;
-  if (this.options.style == 'line') {
-    outline = SVGutil._getSVGElement("rect", JSONcontainer, SVGcontainer);
-    outline.setAttributeNS(null, "x", x);
-    outline.setAttributeNS(null, "y", y - fillHeight);
-    outline.setAttributeNS(null, "width", iconWidth);
-    outline.setAttributeNS(null, "height", 2*fillHeight);
-    outline.setAttributeNS(null, "class", "outline");
+  var path, fillPath;
 
-    path = SVGutil._getSVGElement("path", JSONcontainer, SVGcontainer);
+  var outline = DOMutil.getSVGElement("rect", JSONcontainer, SVGcontainer);
+  outline.setAttributeNS(null, "x", x);
+  outline.setAttributeNS(null, "y", y - fillHeight);
+  outline.setAttributeNS(null, "width", iconWidth);
+  outline.setAttributeNS(null, "height", 2*fillHeight);
+  outline.setAttributeNS(null, "class", "outline");
+
+  if (this.options.style == 'line') {
+    path = DOMutil.getSVGElement("path", JSONcontainer, SVGcontainer);
     path.setAttributeNS(null, "class", this.className);
     path.setAttributeNS(null, "d", "M" + x + ","+y+" L" + (x + iconWidth) + ","+y+"");
     if (this.options.shaded.enabled == true) {
-      fillPath = SVGutil._getSVGElement("path", JSONcontainer, SVGcontainer);
+      fillPath = DOMutil.getSVGElement("path", JSONcontainer, SVGcontainer);
       if (this.options.shaded.orientation == 'top') {
         fillPath.setAttributeNS(null, "d", "M"+x+", " + (y - fillHeight) +
           "L"+x+","+y+" L"+ (x + iconWidth) + ","+y+" L"+ (x + iconWidth) + "," + (y - fillHeight));
@@ -67,11 +68,17 @@ GraphGroup.prototype.drawIcon = function(x,y,JSONcontainer, SVGcontainer, iconWi
     }
 
     if (this.options.drawPoints.enabled == true) {
-      SVGutil.drawPoint(x + 0.5 * iconWidth,y, this, JSONcontainer, SVGcontainer);
+      DOMutil.drawPoint(x + 0.5 * iconWidth,y, this, JSONcontainer, SVGcontainer);
     }
   }
   else {
-    console.log("bar")
-    //TODO: bars
+    var barWidth = Math.round(0.3 * iconWidth);
+    var bar1Height = Math.round(0.4 * iconHeight);
+    var bar2Height = Math.round(0.75 * iconHeight);
+
+    var offset = Math.round((iconWidth - (2 * barWidth))/3);
+
+    DOMutil.drawBar(x + 0.5*barWidth + offset    , y + fillHeight - bar1Height - 1, barWidth, bar1Height, this.className + ' bar', JSONcontainer, SVGcontainer);
+    DOMutil.drawBar(x + 1.5*barWidth + offset + 2, y + fillHeight - bar2Height - 1, barWidth, bar2Height, this.className + ' bar', JSONcontainer, SVGcontainer);
   }
 }

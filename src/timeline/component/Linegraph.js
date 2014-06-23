@@ -97,7 +97,6 @@ function Linegraph(body, options) {
   this.setOptions(options);
   this.groupsUsingDefaultStyles = [0];
 
-  var me = this;
   this.body.emitter.on("rangechange",function() {
       if (me.lastStart != 0) {
         var offset = me.body.range.start - me.lastStart;
@@ -315,27 +314,7 @@ Linegraph.prototype._onRemove       = Linegraph.prototype._onUpdate;
 Linegraph.prototype._onUpdateGroups  = function (groupIds) {
   for (var i = 0; i < groupIds.length; i++) {
     var group = this.groupsData.get(groupIds[i]);
-    if (!this.groups.hasOwnProperty(groupIds[i])) {
-      this.groups[groupIds[i]] = new GraphGroup(group, this.options, this.groupsUsingDefaultStyles);
-      this.legend.addGroup(groupIds[i],this.groups[groupIds[i]]);
-
-      if (this.groups[groupIds[i]].options.yAxisOrientation == 'right') {
-        this.yAxisRight.addGroup(groupIds[i], this.groups[groupIds[i]]);
-      }
-      else {
-        this.yAxisLeft.addGroup(groupIds[i], this.groups[groupIds[i]]);
-      }
-    }
-    else {
-      this.groups[groupIds[i]].update(group);
-      this.legend.updateGroup(groupIds[i],this.groups[groupIds[i]]);
-      if (this.groups[groupIds[i]].options.yAxisOrientation == 'right') {
-        this.yAxisRight.updateGroup(groupIds[i], this.groups[groupIds[i]]);
-      }
-      else {
-        this.yAxisLeft.updateGroup(groupIds[i], this.groups[groupIds[i]]);
-      }
-    }
+    this._updateGroup(group, groupIds[i]);
   }
   this._updateUngrouped();
   this._updateGraph();
@@ -352,6 +331,32 @@ Linegraph.prototype._onRemoveGroups = function (groupIds) {
   this.redraw();
 };
 
+
+Linegraph.prototype._updateGroup = function (group, groupId) {
+
+  if (!this.groups.hasOwnProperty(groupId)) {
+    this.groups[groupId] = new GraphGroup(group, this.options, this.groupsUsingDefaultStyles);
+    this.legend.addGroup(groupId, this.groups[groupId]);
+
+    if (this.groups[groupId].options.yAxisOrientation == 'right') {
+      this.yAxisRight.addGroup(groupId, this.groups[groupId]);
+    }
+    else {
+      this.yAxisLeft.addGroup(groupId, this.groups[groupId]);
+    }
+  }
+  else {
+    this.groups[groupId].update(group);
+    this.legend.updateGroup(groupId, this.groups[groupId]);
+    if (this.groups[groupId].options.yAxisOrientation == 'right') {
+      this.yAxisRight.updateGroup(groupId, this.groups[groupId]);
+    }
+    else {
+      this.yAxisLeft.updateGroup(groupId, this.groups[groupId]);
+    }
+  }
+};
+
 /**
  * Create or delete the group holding all ungrouped items. This group is used when
  * there are no groups specified. This anonymous group is called 'graph'.
@@ -359,27 +364,7 @@ Linegraph.prototype._onRemoveGroups = function (groupIds) {
  */
 Linegraph.prototype._updateUngrouped = function() {
   var group = {id: UNGROUPED, content: "graph"};
-  if (!this.groups.hasOwnProperty(UNGROUPED)) {
-    this.groups[UNGROUPED] = new GraphGroup(group, this.options, this.groupsUsingDefaultStyles);
-    this.legend.addGroup(UNGROUPED,this.groups[UNGROUPED]);
-
-    if (this.groups[UNGROUPED].options.yAxisOrientation == 'right') {
-      this.yAxisRight.addGroup(UNGROUPED, this.groups[UNGROUPED]);
-    }
-    else {
-      this.yAxisLeft.addGroup(UNGROUPED, this.groups[UNGROUPED]);
-    }
-  }
-  else {
-    this.groups[UNGROUPED].update(group);
-    this.legend.updateGroup(UNGROUPED,this.groups[UNGROUPED]);
-    if (this.groups[UNGROUPED].options.yAxisOrientation == 'right') {
-      this.yAxisRight.updateGroup(UNGROUPED, this.groups[UNGROUPED]);
-    }
-    else {
-      this.yAxisLeft.updateGroup(UNGROUPED, this.groups[UNGROUPED]);
-    }
-  }
+  this._updateGroup(group, UNGROUPED);
 
   if (this.itemsData != null) {
     var datapoints = this.itemsData.get({
@@ -444,7 +429,7 @@ Linegraph.prototype.redraw = function() {
  */
 Linegraph.prototype._updateGraph = function () {
   // reset the svg elements
-  SVGutil._prepareSVGElements(this.svgElements);
+  DOMutil.prepareElements(this.svgElements);
 
   if (this.width != 0 && this.itemsData != null) {
     // look at different lines
@@ -457,10 +442,8 @@ Linegraph.prototype._updateGraph = function () {
     }
   }
 
-  // this.legend.redraw();
-
   // cleanup unused svg elements
-  SVGutil._cleanupSVGElements(this.svgElements);
+  DOMutil.cleanupElements(this.svgElements);
 };
 
 /**
@@ -468,7 +451,7 @@ Linegraph.prototype._updateGraph = function () {
  * @param {array} groupIds
  * @private
  */
-Linegraph.prototype._updateYAxis = function(groupIds) {
+Linegraph.prototype._updateYAxis = function (groupIds) {
   var yAxisLeftUsed = false;
   var yAxisRightUsed = false;
   var minLeft = 1e9, minRight = 1e9, maxLeft = -1e9, maxRight = -1e9, minVal, maxVal;
@@ -484,28 +467,38 @@ Linegraph.prototype._updateYAxis = function(groupIds) {
         orientation = 'right';
       }
 
-      var view = new vis.DataSet(this.itemsData.get({filter: function (item) {return item.group == groupIds[i];}}));
+      var view = new vis.DataSet(this.itemsData.get({filter: function (item) {
+        return item.group == groupIds[i];
+      }}));
       minVal = view.min("y").y;
       maxVal = view.max("y").y;
 
       if (orientation == 'left') {
         yAxisLeftUsed = true;
-        if (minLeft > minVal) {minLeft = minVal;}
-        if (maxLeft < maxVal) {maxLeft = maxVal;}
+        if (minLeft > minVal) {
+          minLeft = minVal;
+        }
+        if (maxLeft < maxVal) {
+          maxLeft = maxVal;
+        }
       }
       else {
         yAxisRightUsed = true;
-        if (minRight > minVal) {minRight = minVal;}
-        if (maxRight < maxVal) {maxRight = maxVal;}
+        if (minRight > minVal) {
+          minRight = minVal;
+        }
+        if (maxRight < maxVal) {
+          maxRight = maxVal;
+        }
       }
 
       delete view;
     }
-    if (yAxisLeftUsed == true)  {
-      this.yAxisLeft.setRange({start: minLeft, end: maxLeft});
+    if (yAxisLeftUsed == true) {
+      this.yAxisLeft.setRange(minLeft, maxLeft);
     }
     if (yAxisRightUsed == true) {
-      this.yAxisRight.setRange({start: minRight, end: maxRight});
+      this.yAxisRight.setRange(minRight, maxRight);
     }
   }
 
@@ -516,11 +509,11 @@ Linegraph.prototype._updateYAxis = function(groupIds) {
   }
 
   if (yAxisRightUsed == true && yAxisLeftUsed == true) {
-    this.yAxisLeft.drawIcons  = true;
+    this.yAxisLeft.drawIcons = true;
     this.yAxisRight.drawIcons = true;
   }
   else {
-    this.yAxisLeft.drawIcons  = false;
+    this.yAxisLeft.drawIcons = false;
     this.yAxisRight.drawIcons = false;
   }
 
@@ -537,17 +530,17 @@ Linegraph.prototype._updateYAxis = function(groupIds) {
   else {
     this.yAxisRight.redraw();
   }
-}
+};
 
 /**
  * This shows or hides the Y axis if needed. If there is a change, the changed event is emitted by the updateYAxis function
  *
  * @param {boolean} axisUsed
- * @param {DataAxis object} axis
  * @returns {boolean}
  * @private
+ * @param axis
  */
-Linegraph.prototype._toggleAxisVisiblity = function(axisUsed, axis) {
+Linegraph.prototype._toggleAxisVisiblity = function (axisUsed, axis) {
   var changed = false;
   if (axisUsed == false) {
     if (axis.dom.frame.parentNode) {
@@ -562,7 +555,7 @@ Linegraph.prototype._toggleAxisVisiblity = function(axisUsed, axis) {
     }
   }
   return changed;
-}
+};
 
 
 /**
@@ -582,24 +575,30 @@ Linegraph.prototype._drawGraph = function (groupId, groupIndex, amountOfGraphs) 
     this._drawLineGraph(datapoints, group);
   }
   else {
-    this._drawBarGraph(datapoints, group, amountOfGraphs);
+    this._drawBarGraph(datapoints, group);
   }
 };
 
 /**
  * draw a bar graph
  * @param datapoints
- * @param options
- * @param amountOfGraphs
+ * @param group
  */
-Linegraph.prototype._drawBarGraph = function (datapoints, group, amountOfGraphs) {
+Linegraph.prototype._drawBarGraph = function (datapoints, group) {
   if (datapoints != null) {
     if (datapoints.length > 0) {
       var dataset = this._prepareData(datapoints, group.options);
-      var bar;
-      console.log(group.options);
+      var width, coreDistance;
+      var minWidth = 0.1 * group.options.barChart.width;
+
       for (var i = 0; i < dataset.length; i++) {
-        this._drawBar(dataset[i].x, dataset[i].y, group.options.barChart.width, this.zeroPosition - dataset[i].y, group.className + ' bar');
+        width = group.options.barChart.width;
+        // dynammically downscale the width so there is no overlap up to 1/10th the original width
+        if (i+1 < dataset.length) {coreDistance = Math.abs(dataset[i+1].x - dataset[i].x);}
+        if (i > 0)                {coreDistance = Math.min(coreDistance,Math.abs(dataset[i-1].x - dataset[i].x));}
+        if (coreDistance < width) {width = coreDistance < minWidth ? minWidth : coreDistance;}
+
+        DOMutil.drawBar(dataset[i].x, dataset[i].y, width, this.zeroPosition - dataset[i].y, group.className + ' bar', this.svgElements, this.svg);
       }
 
       // draw points
@@ -610,29 +609,12 @@ Linegraph.prototype._drawBarGraph = function (datapoints, group, amountOfGraphs)
   }
 };
 
-/**
- * draw a bar SVG element
- *
- * @param x
- * @param y
- * @param className
- */
-Linegraph.prototype._drawBar = function (x, y, width, height, className) {
-  rect = SVGutil._getSVGElement('rect',this.svgElements, this.svg);
-
-  rect.setAttributeNS(null, "x", x - 0.5 * width);
-  rect.setAttributeNS(null, "y", y);
-  rect.setAttributeNS(null, "width", width);
-  rect.setAttributeNS(null, "height", height);
-  rect.setAttributeNS(null, "class", className);
-};
-
 
 /**
  * draw a line graph
- * 
+ *
  * @param datapoints
- * @param options
+ * @param group
  */
 Linegraph.prototype._drawLineGraph = function (datapoints, group) {
   if (datapoints != null) {
@@ -640,7 +622,7 @@ Linegraph.prototype._drawLineGraph = function (datapoints, group) {
       var dataset = this._prepareData(datapoints, group.options);
       var path, d;
 
-      path = SVGutil._getSVGElement('path', this.svgElements, this.svg);
+      path = DOMutil.getSVGElement('path', this.svgElements, this.svg);
       path.setAttributeNS(null, "class", group.className);
 
 
@@ -654,12 +636,13 @@ Linegraph.prototype._drawLineGraph = function (datapoints, group) {
 
       // append with points for fill and finalize the path
       if (group.options.shaded.enabled == true) {
-        var fillPath = SVGutil._getSVGElement('path',this.svgElements, this.svg);
+        var fillPath = DOMutil.getSVGElement('path',this.svgElements, this.svg);
+        var dFill;
         if (group.options.shaded.orientation == 'top') {
-          var dFill = "M" + dataset[0].x + "," + 0 + " " + d + "L" + dataset[dataset.length - 1].x + "," + 0;
+          dFill = "M" + dataset[0].x + "," + 0 + " " + d + "L" + dataset[dataset.length - 1].x + "," + 0;
         }
         else {
-          var dFill = "M" + dataset[0].x + "," + this.svg.offsetHeight + " " + d + "L" + dataset[dataset.length - 1].x + "," + this.svg.offsetHeight;
+          dFill = "M" + dataset[0].x + "," + this.svg.offsetHeight + " " + d + "L" + dataset[dataset.length - 1].x + "," + this.svg.offsetHeight;
         }
         fillPath.setAttributeNS(null, "class", group.className + " fill");
         fillPath.setAttributeNS(null, "d", dFill);
@@ -677,15 +660,15 @@ Linegraph.prototype._drawLineGraph = function (datapoints, group) {
 
 /**
  * draw the data points
- * 
+ *
  * @param dataset
- * @param options
  * @param JSONcontainer
  * @param svg
+ * @param group
  */
 Linegraph.prototype._drawPoints = function (dataset, group, JSONcontainer, svg) {
   for (var i = 0; i < dataset.length; i++) {
-    SVGutil.drawPoint(dataset[i].x, dataset[i].y, group, JSONcontainer, svg);
+    DOMutil.drawPoint(dataset[i].x, dataset[i].y, group, JSONcontainer, svg);
   }
 };
 
@@ -711,7 +694,7 @@ Linegraph.prototype._prepareData = function (datapoints, options) {
     axis = this.yAxisRight;
   }
   for (var i = 0; i < datapoints.length; i++) {
-    xValue = toScreen(datapoints[i].x) + this.width;
+    xValue = toScreen(datapoints[i].x) + this.width - 1;
     yValue = axis.convertValue(datapoints[i].y);
     extractedData.push({x: xValue, y: yValue});
   }

@@ -2,13 +2,13 @@
  * Created by Alex on 6/20/14.
  */
 
-var SVGutil = {}
+var DOMutil = {}
 /**
  * this prepares the JSON container for allocating SVG elements
  * @param JSONcontainer
  * @private
  */
-SVGutil._prepareSVGElements = function(JSONcontainer) {
+DOMutil.prepareElements = function(JSONcontainer) {
   // cleanup the redundant svgElements;
   for (var elementType in JSONcontainer) {
     if (JSONcontainer.hasOwnProperty(elementType)) {
@@ -25,7 +25,7 @@ SVGutil._prepareSVGElements = function(JSONcontainer) {
  * @param JSONcontainer
  * @private
  */
-SVGutil._cleanupSVGElements = function(JSONcontainer) {
+DOMutil.cleanupElements = function(JSONcontainer) {
   // cleanup the redundant svgElements;
   for (var elementType in JSONcontainer) {
     if (JSONcontainer.hasOwnProperty(elementType)) {
@@ -47,7 +47,7 @@ SVGutil._cleanupSVGElements = function(JSONcontainer) {
  * @returns {*}
  * @private
  */
-SVGutil._getSVGElement = function (elementType, JSONcontainer, svgContainer) {
+DOMutil.getSVGElement = function (elementType, JSONcontainer, svgContainer) {
   var element;
   // allocate SVG element, if it doesnt yet exist, create one.
   if (JSONcontainer.hasOwnProperty(elementType)) { // this element has been created before
@@ -73,6 +73,43 @@ SVGutil._getSVGElement = function (elementType, JSONcontainer, svgContainer) {
 };
 
 
+/**
+ * Allocate or generate an SVG element if needed. Store a reference to it in the JSON container and draw it in the svgContainer
+ * the JSON container and the SVG container have to be supplied so other svg containers (like the legend) can use this.
+ *
+ * @param elementType
+ * @param JSONcontainer
+ * @param svgContainer
+ * @returns {*}
+ * @private
+ */
+DOMutil.getDOMElement = function (elementType, JSONcontainer, DOMContainer) {
+  var element;
+  // allocate SVG element, if it doesnt yet exist, create one.
+  if (JSONcontainer.hasOwnProperty(elementType)) { // this element has been created before
+    // check if there is an redundant element
+    if (JSONcontainer[elementType].redundant.length > 0) {
+      element = JSONcontainer[elementType].redundant[0];
+      JSONcontainer[elementType].redundant.shift()
+    }
+    else {
+      // create a new element and add it to the SVG
+      element = document.createElement(elementType);
+      DOMContainer.appendChild(element);
+    }
+  }
+  else {
+    // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
+    element = document.createElement(elementType);
+    JSONcontainer[elementType] = {used: [], redundant: []};
+    DOMContainer.appendChild(element);
+  }
+  JSONcontainer[elementType].used.push(element);
+  return element;
+};
+
+
+
 
 /**
  * draw a point object. this is a seperate function because it can also be called by the legend.
@@ -86,17 +123,17 @@ SVGutil._getSVGElement = function (elementType, JSONcontainer, svgContainer) {
  * @param svgContainer
  * @returns {*}
  */
-SVGutil.drawPoint = function(x, y, group, JSONcontainer, svgContainer) {
+DOMutil.drawPoint = function(x, y, group, JSONcontainer, svgContainer) {
   var point;
   if (group.options.drawPoints.style == 'circle') {
-    point = SVGutil._getSVGElement('circle',JSONcontainer,svgContainer);
+    point = DOMutil.getSVGElement('circle',JSONcontainer,svgContainer);
     point.setAttributeNS(null, "cx", x);
     point.setAttributeNS(null, "cy", y);
     point.setAttributeNS(null, "r", 0.5 * group.options.drawPoints.size);
     point.setAttributeNS(null, "class", group.className + " point");
   }
   else {
-    point = SVGutil._getSVGElement('rect',JSONcontainer,svgContainer);
+    point = DOMutil.getSVGElement('rect',JSONcontainer,svgContainer);
     point.setAttributeNS(null, "x", x - 0.5*group.options.drawPoints.size);
     point.setAttributeNS(null, "y", y - 0.5*group.options.drawPoints.size);
     point.setAttributeNS(null, "width", group.options.drawPoints.size);
@@ -104,4 +141,20 @@ SVGutil.drawPoint = function(x, y, group, JSONcontainer, svgContainer) {
     point.setAttributeNS(null, "class", group.className + " point");
   }
   return point;
-}
+};
+
+/**
+ * draw a bar SVG element
+ *
+ * @param x
+ * @param y
+ * @param className
+ */
+DOMutil.drawBar = function (x, y, width, height, className, JSONcontainer, svgContainer) {
+  rect = DOMutil.getSVGElement('rect',JSONcontainer, svgContainer);
+  rect.setAttributeNS(null, "x", Math.round(x - 0.5 * width));
+  rect.setAttributeNS(null, "y", Math.round(y));
+  rect.setAttributeNS(null, "width", width);
+  rect.setAttributeNS(null, "height", height);
+  rect.setAttributeNS(null, "class", className);
+};

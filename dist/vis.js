@@ -1370,13 +1370,13 @@ util._mergeOptions = function (mergeTarget, options, option) {
  * Created by Alex on 6/20/14.
  */
 
-var SVGutil = {}
+var DOMutil = {}
 /**
  * this prepares the JSON container for allocating SVG elements
  * @param JSONcontainer
  * @private
  */
-SVGutil._prepareSVGElements = function(JSONcontainer) {
+DOMutil.prepareElements = function(JSONcontainer) {
   // cleanup the redundant svgElements;
   for (var elementType in JSONcontainer) {
     if (JSONcontainer.hasOwnProperty(elementType)) {
@@ -1393,7 +1393,7 @@ SVGutil._prepareSVGElements = function(JSONcontainer) {
  * @param JSONcontainer
  * @private
  */
-SVGutil._cleanupSVGElements = function(JSONcontainer) {
+DOMutil.cleanupElements = function(JSONcontainer) {
   // cleanup the redundant svgElements;
   for (var elementType in JSONcontainer) {
     if (JSONcontainer.hasOwnProperty(elementType)) {
@@ -1415,7 +1415,7 @@ SVGutil._cleanupSVGElements = function(JSONcontainer) {
  * @returns {*}
  * @private
  */
-SVGutil._getSVGElement = function (elementType, JSONcontainer, svgContainer) {
+DOMutil.getSVGElement = function (elementType, JSONcontainer, svgContainer) {
   var element;
   // allocate SVG element, if it doesnt yet exist, create one.
   if (JSONcontainer.hasOwnProperty(elementType)) { // this element has been created before
@@ -1441,6 +1441,43 @@ SVGutil._getSVGElement = function (elementType, JSONcontainer, svgContainer) {
 };
 
 
+/**
+ * Allocate or generate an SVG element if needed. Store a reference to it in the JSON container and draw it in the svgContainer
+ * the JSON container and the SVG container have to be supplied so other svg containers (like the legend) can use this.
+ *
+ * @param elementType
+ * @param JSONcontainer
+ * @param svgContainer
+ * @returns {*}
+ * @private
+ */
+DOMutil.getDOMElement = function (elementType, JSONcontainer, DOMContainer) {
+  var element;
+  // allocate SVG element, if it doesnt yet exist, create one.
+  if (JSONcontainer.hasOwnProperty(elementType)) { // this element has been created before
+    // check if there is an redundant element
+    if (JSONcontainer[elementType].redundant.length > 0) {
+      element = JSONcontainer[elementType].redundant[0];
+      JSONcontainer[elementType].redundant.shift()
+    }
+    else {
+      // create a new element and add it to the SVG
+      element = document.createElement(elementType);
+      DOMContainer.appendChild(element);
+    }
+  }
+  else {
+    // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
+    element = document.createElement(elementType);
+    JSONcontainer[elementType] = {used: [], redundant: []};
+    DOMContainer.appendChild(element);
+  }
+  JSONcontainer[elementType].used.push(element);
+  return element;
+};
+
+
+
 
 /**
  * draw a point object. this is a seperate function because it can also be called by the legend.
@@ -1454,17 +1491,17 @@ SVGutil._getSVGElement = function (elementType, JSONcontainer, svgContainer) {
  * @param svgContainer
  * @returns {*}
  */
-SVGutil.drawPoint = function(x, y, group, JSONcontainer, svgContainer) {
+DOMutil.drawPoint = function(x, y, group, JSONcontainer, svgContainer) {
   var point;
   if (group.options.drawPoints.style == 'circle') {
-    point = SVGutil._getSVGElement('circle',JSONcontainer,svgContainer);
+    point = DOMutil.getSVGElement('circle',JSONcontainer,svgContainer);
     point.setAttributeNS(null, "cx", x);
     point.setAttributeNS(null, "cy", y);
     point.setAttributeNS(null, "r", 0.5 * group.options.drawPoints.size);
     point.setAttributeNS(null, "class", group.className + " point");
   }
   else {
-    point = SVGutil._getSVGElement('rect',JSONcontainer,svgContainer);
+    point = DOMutil.getSVGElement('rect',JSONcontainer,svgContainer);
     point.setAttributeNS(null, "x", x - 0.5*group.options.drawPoints.size);
     point.setAttributeNS(null, "y", y - 0.5*group.options.drawPoints.size);
     point.setAttributeNS(null, "width", group.options.drawPoints.size);
@@ -1472,7 +1509,23 @@ SVGutil.drawPoint = function(x, y, group, JSONcontainer, svgContainer) {
     point.setAttributeNS(null, "class", group.className + " point");
   }
   return point;
-}
+};
+
+/**
+ * draw a bar SVG element
+ *
+ * @param x
+ * @param y
+ * @param className
+ */
+DOMutil.drawBar = function (x, y, width, height, className, JSONcontainer, svgContainer) {
+  rect = DOMutil.getSVGElement('rect',JSONcontainer, svgContainer);
+  rect.setAttributeNS(null, "x", Math.round(x - 0.5 * width));
+  rect.setAttributeNS(null, "y", Math.round(y));
+  rect.setAttributeNS(null, "width", width);
+  rect.setAttributeNS(null, "height", height);
+  rect.setAttributeNS(null, "class", className);
+};
 /**
  * DataSet
  *
@@ -2735,20 +2788,21 @@ GraphGroup.prototype.update = function(group) {
 
 GraphGroup.prototype.drawIcon = function(x,y,JSONcontainer, SVGcontainer, iconWidth, iconHeight) {
   var fillHeight = iconHeight * 0.5;
-  var path, fillPath, outline;
-  if (this.options.style == 'line') {
-    outline = SVGutil._getSVGElement("rect", JSONcontainer, SVGcontainer);
-    outline.setAttributeNS(null, "x", x);
-    outline.setAttributeNS(null, "y", y - fillHeight);
-    outline.setAttributeNS(null, "width", iconWidth);
-    outline.setAttributeNS(null, "height", 2*fillHeight);
-    outline.setAttributeNS(null, "class", "outline");
+  var path, fillPath;
 
-    path = SVGutil._getSVGElement("path", JSONcontainer, SVGcontainer);
+  var outline = DOMutil.getSVGElement("rect", JSONcontainer, SVGcontainer);
+  outline.setAttributeNS(null, "x", x);
+  outline.setAttributeNS(null, "y", y - fillHeight);
+  outline.setAttributeNS(null, "width", iconWidth);
+  outline.setAttributeNS(null, "height", 2*fillHeight);
+  outline.setAttributeNS(null, "class", "outline");
+
+  if (this.options.style == 'line') {
+    path = DOMutil.getSVGElement("path", JSONcontainer, SVGcontainer);
     path.setAttributeNS(null, "class", this.className);
     path.setAttributeNS(null, "d", "M" + x + ","+y+" L" + (x + iconWidth) + ","+y+"");
     if (this.options.shaded.enabled == true) {
-      fillPath = SVGutil._getSVGElement("path", JSONcontainer, SVGcontainer);
+      fillPath = DOMutil.getSVGElement("path", JSONcontainer, SVGcontainer);
       if (this.options.shaded.orientation == 'top') {
         fillPath.setAttributeNS(null, "d", "M"+x+", " + (y - fillHeight) +
           "L"+x+","+y+" L"+ (x + iconWidth) + ","+y+" L"+ (x + iconWidth) + "," + (y - fillHeight));
@@ -2763,12 +2817,18 @@ GraphGroup.prototype.drawIcon = function(x,y,JSONcontainer, SVGcontainer, iconWi
     }
 
     if (this.options.drawPoints.enabled == true) {
-      SVGutil.drawPoint(x + 0.5 * iconWidth,y, this, JSONcontainer, SVGcontainer);
+      DOMutil.drawPoint(x + 0.5 * iconWidth,y, this, JSONcontainer, SVGcontainer);
     }
   }
   else {
-    console.log("bar")
-    //TODO: bars
+    var barWidth = Math.round(0.3 * iconWidth);
+    var bar1Height = Math.round(0.4 * iconHeight);
+    var bar2Height = Math.round(0.75 * iconHeight);
+
+    var offset = Math.round((iconWidth - (2 * barWidth))/3);
+
+    DOMutil.drawBar(x + 0.5*barWidth + offset    , y + fillHeight - bar1Height - 1, barWidth, bar1Height, this.className + ' bar', JSONcontainer, SVGcontainer);
+    DOMutil.drawBar(x + 1.5*barWidth + offset + 2, y + fillHeight - bar2Height - 1, barWidth, bar2Height, this.className + ' bar', JSONcontainer, SVGcontainer);
   }
 }
 
@@ -2868,7 +2928,7 @@ Legend.prototype.redraw = function() {
 }
 
 Legend.prototype.drawLegend = function() {
-  this.linegraph._prepareSVGElements.call(this,this.svgElements);
+  this.linegraph.prepareElements.call(this,this.svgElements);
   var x = 0;
   var y = 0;
   var lineLength = 30;
@@ -2878,7 +2938,7 @@ Legend.prototype.drawLegend = function() {
   var legendWidth = 298;
   var padding = 5;
 
-  var border = this._getSVGElement("rect", this.svgLegendElements, this.svgLegend);
+  var border = this.getSVGElement("rect", this.svgLegendElements, this.svgLegend);
   border.setAttributeNS(null, "x", x);
   border.setAttributeNS(null, "y", y);
   border.setAttributeNS(null, "width", legendWidth);
@@ -2889,18 +2949,18 @@ Legend.prototype.drawLegend = function() {
 
   if (classes.length > 0) {
     for (var i = 0; i < classes.length; i++) {
-      outline = this._getSVGElement("rect", this.svgLegendElements, this.svgLegend);
+      outline = this.getSVGElement("rect", this.svgLegendElements, this.svgLegend);
       outline.setAttributeNS(null, "x", x);
       outline.setAttributeNS(null, "y", y - fillHeight);
       outline.setAttributeNS(null, "width", lineLength);
       outline.setAttributeNS(null, "height", 2*fillHeight);
       outline.setAttributeNS(null, "class", "outline");
 
-      path = this._getSVGElement("path", this.svgLegendElements, this.svgLegend);
+      path = this.getSVGElement("path", this.svgLegendElements, this.svgLegend);
       path.setAttributeNS(null, "class", classes[i]);
       path.setAttributeNS(null, "d", "M" + x + ","+y+" L" + (x + lineLength) + ","+y+"");
       if (this.options.shaded.enabled == true) {
-        fillPath = this._getSVGElement("path", this.svgLegendElements, this.svgLegend);
+        fillPath = this.getSVGElement("path", this.svgLegendElements, this.svgLegend);
         if (this.options.shaded.orientation == 'top') {
           fillPath.setAttributeNS(null, "d", "M"+x+", " + (y - fillHeight) +
             "L"+x+","+y+" L"+ (x + lineLength) + ","+y+" L"+ (x + lineLength) + "," + (y - fillHeight));
@@ -2926,7 +2986,7 @@ Legend.prototype.drawLegend = function() {
 
 
 
-  this._cleanupSVGElements(this.svgLegendElements);
+  this.cleanupElements(this.svgLegendElements);
 }
 /**
  * A horizontal time axis
@@ -2934,6 +2994,7 @@ Legend.prototype.drawLegend = function() {
  *                                  options.
  * @constructor DataAxis
  * @extends Component
+ * @param body
  */
 function DataAxis (body, options) {
   this.id = util.randomUUID();
@@ -2954,14 +3015,12 @@ function DataAxis (body, options) {
   };
 
   this.props = {};
-  this.dom = {
-    lines: [],
-    labels: [],
-    redundant: {
-      lines: [],
-      labels: []
-    }
+  this.DOMelements = { // dynamic elements
+    lines: {},
+    labels: {}
   };
+
+  this.dom = {};
 
   this.yRange = {start:0, end:0};
 
@@ -3006,7 +3065,7 @@ DataAxis.prototype.deleteGroup = function(label) {
 };
 
 
-DataAxis.prototype.setOptions = function(options) {
+DataAxis.prototype.setOptions = function (options) {
   if (options) {
     var redraw = false;
     if (this.options.orientation != options.orientation && options.orientation !== undefined) {
@@ -3030,7 +3089,7 @@ DataAxis.prototype.setOptions = function(options) {
       this.show();
     }
   }
-}
+};
 
 
 /**
@@ -3055,14 +3114,15 @@ DataAxis.prototype._create = function() {
   this.dom.frame.appendChild(this.svg);
 };
 
-DataAxis.prototype._redrawGroupIcons = function() {
-  SVGutil._prepareSVGElements(this.svgContainer);
+DataAxis.prototype._redrawGroupIcons = function () {
+  DOMutil.prepareElements(this.svgElements);
 
   var x;
   var iconWidth = this.options.iconWidth;
   var iconHeight = 15;
   var iconOffset = 4;
   var y = iconOffset + 0.5 * iconHeight;
+
   if (this.options.orientation == 'left') {
     x = iconOffset;
   }
@@ -3077,8 +3137,8 @@ DataAxis.prototype._redrawGroupIcons = function() {
     }
   }
 
-  SVGutil._cleanupSVGElements(this.svgContainer);
-}
+  DOMutil.cleanupElements(this.svgElements);
+};
 
 /**
  * Create the HTML DOM for the DataAxis
@@ -3113,14 +3173,13 @@ DataAxis.prototype.hide = function() {
 
 /**
  * Set a range (start and end)
- * @param {Range | Object} range  A Range or an object containing start and end.
+ * @param end
+ * @param start
+ * @param end
  */
-DataAxis.prototype.setRange = function (range) {
-  if (!(range instanceof Range) && (!range || range.start === undefined || range.end === undefined)) {
-    throw new TypeError('Range must be an instance of Range, ' + 'or an object containing start and end.');
-  }
-  this.yRange.start = range.start;
-  this.yRange.end = range.end;
+DataAxis.prototype.setRange = function (start, end) {
+  this.yRange.start = start;
+  this.yRange.end = end;
 };
 
 /**
@@ -3147,7 +3206,7 @@ DataAxis.prototype.redraw = function () {
 
   props.minorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2*this.options.minorLinesOffset;
   props.minorLineHeight = 1;
-  props.majorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2*this.options.majorLinesOffset;;
+  props.majorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.majorLinesOffset;
   props.majorLineHeight = 1;
 
   //  take frame offline while updating (is almost twice as fast)
@@ -3177,26 +3236,19 @@ DataAxis.prototype.redraw = function () {
  * @private
  */
 DataAxis.prototype._redrawLabels = function () {
+  DOMutil.prepareElements(this.DOMelements);
+
   var orientation = this.options['orientation'];
 
   // calculate range and step (step such that we have space for 7 characters per label)
   var start = this.yRange.start;
   var end = this.yRange.end;
-  var minimumStep = (this.props.minorCharHeight || 10); //in pixels
+  var minimumStep = (this.props.majorCharHeight || 10); //in pixels
   var step = new DataStep(start, end, minimumStep, this.dom.frame.offsetHeight);
   this.step = step;
   step.first();
 
-
-  // Move all DOM elements to a "redundant" list, where they
-  // can be picked for re-use, and clear the lists with lines and texts.
-  // At the end of the function _redrawLabels, left over elements will be cleaned up
-  var dom = this.dom;
-  dom.redundant.lines = dom.lines;
-  dom.redundant.labels = dom.labels;
-  dom.lines = [];
-  dom.labels = [];
-
+  // get the distance in pixels for a step
   var stepPixels = this.dom.frame.offsetHeight / ((step.marginRange / step.step) + 1);
   this.stepPixels = stepPixels;
 
@@ -3212,7 +3264,6 @@ DataAxis.prototype._redrawLabels = function () {
     amountOfSteps = this.height / stepPixels;
   }
 
-  var xFirstMajorLabel = undefined;
   this.valueAtZero = step.marginEnd;
   var marginStartPos = 0;
 
@@ -3227,21 +3278,18 @@ DataAxis.prototype._redrawLabels = function () {
     marginStartPos = max * stepPixels;
     var isMajor = step.isMajor();
 
-    if (this.options['showMinorLabels'] && isMajor == false) {
+    if (this.options['showMinorLabels'] && isMajor == false || this.master == false) {
       this._redrawLabel(y - 2, step.current, orientation, 'yAxis minor', this.props.minorCharHeight);
     }
 
-    if (isMajor && this.options['showMajorLabels']) {
+    if (isMajor && this.options['showMajorLabels'] && this.master == true) {
       if (y >= 0) {
-        if (xFirstMajorLabel == undefined) {
-          xFirstMajorLabel = y;
-        }
         this._redrawLabel(y - 2, step.current, orientation, 'yAxis major', this.props.majorCharHeight);
       }
-      this._redrawMajorLine(y, orientation);
+      this._redrawLine(y, orientation, 'grid horizontal major', this.options.majorLinesOffset, this.props.majorLineWidth);
     }
     else {
-      this._redrawMinorLine(y, orientation);
+      this._redrawLine(y, orientation, 'grid horizontal minor', this.options.minorLinesOffset, this.props.minorLineWidth);
     }
 
     step.next();
@@ -3260,55 +3308,23 @@ DataAxis.prototype._redrawLabels = function () {
 
   this.conversionFactor = marginStartPos/((amountOfSteps-1) * step.step);
 
-  // Cleanup leftover DOM elements from the redundant list
-  util.forEach(this.dom.redundant, function (arr) {
-    while (arr.length) {
-      var elem = arr.pop();
-      if (elem && elem.parentNode) {
-        elem.parentNode.removeChild(elem);
-      }
-    }
-  });
+  DOMutil.cleanupElements(this.DOMelements);
 };
-
-DataAxis.prototype.convertValues = function(data) {
-  for (var i = 0; i < data.length; i++) {
-    data[i].y = this.convertValue(data[i].y);
-  }
-  return data;
-}
-
-DataAxis.prototype.convertValue = function(value) {
-  var invertedValue = this.valueAtZero - value;
-  var convertedValue = invertedValue * this.conversionFactor;
-  return convertedValue; // the -2 is to compensate for the borders
-}
-
-
 
 /**
  * Create a label for the axis at position x
- * @param {Number} x
- * @param {String} text
- * @param {String} orientation   "top" or "bottom" (default)
  * @private
+ * @param y
+ * @param text
+ * @param orientation
+ * @param className
+ * @param characterHeight
  */
 DataAxis.prototype._redrawLabel = function (y, text, orientation, className, characterHeight) {
   // reuse redundant label
-  var label = this.dom.redundant.labels.shift();
-
-  if (!label) {
-    // create label
-    var content = document.createTextNode(text);
-    label = document.createElement('div');
-    label.className = className;
-    label.appendChild(content);
-    this.dom.frame.appendChild(label);
-  }
-  this.dom.labels.push(label);
-
-  label.childNodes[0].nodeValue = text;
-  //label.title = title; // TODO: this is a heavy operation
+  var label = DOMutil.getDOMElement('div',this.DOMelements, this.dom.frame); //this.dom.redundant.labels.shift();
+  label.className = className;
+  label.innerHTML = text;
 
   if (orientation == 'left') {
     label.style.left = '-' + this.options.labelOffsetX + 'px';
@@ -3327,70 +3343,40 @@ DataAxis.prototype._redrawLabel = function (y, text, orientation, className, cha
   if (this.maxLabelSize < text.length * largestWidth) {
     this.maxLabelSize = text.length * largestWidth;
   }
-
-
 };
 
 /**
  * Create a minor line for the axis at position y
- * @param {Number} y
- * @param {String} orientation   "top" or "bottom" (default)
- * @private
+ * @param y
+ * @param orientation
+ * @param className
+ * @param offset
+ * @param width
  */
-DataAxis.prototype._redrawMinorLine = function (y, orientation) {
+DataAxis.prototype._redrawLine = function (y, orientation, className, offset, width) {
   if (this.master == true) {
     // reuse redundant line
-    var line = this.dom.redundant.lines.shift();
+    var line = DOMutil.getDOMElement('div',this.DOMelements, this.dom.lineContainer);//this.dom.redundant.lines.shift();
+    line.className = className;
+    line.innerHTML = '';
 
-    if (!line) {
-      // create vertical line
-      line = document.createElement('div');
-      line.className = 'grid horizontal minor';
-      this.dom.lineContainer.appendChild(line);
-    }
-    this.dom.lines.push(line);
-
-    var props = this.props;
     if (orientation == 'left') {
-      line.style.left = (this.width - this.options.minorLinesOffset) + 'px';
+      line.style.left = (this.width - offset) + 'px';
     }
     else {
-      line.style.left = -1*(this.width - this.options.minorLinesOffset) + 'px';
+      line.style.left = -1*(this.width - offset) + 'px';
     }
 
-    line.style.width = props.minorLineWidth + 'px';
+    line.style.width = width + 'px';
     line.style.top = y + 'px';
   }
 };
 
-/**
- * Create a Major line for the axis at position x
- * @param {Number} x
- * @param {String} orientation   "top" or "bottom" (default)
- * @private
- */
-DataAxis.prototype._redrawMajorLine = function (y, orientation) {
-  if (this.master == true) {
-    // reuse redundant line
-    var line = this.dom.redundant.lines.shift();
 
-    if (!line) {
-      // create vertical line
-      line = document.createElement('div');
-      line.className = 'grid horizontal major';
-      this.dom.lineContainer.appendChild(line);
-    }
-    this.dom.lines.push(line);
-
-    if (orientation == 'left') {
-      line.style.left = (this.width - this.options.majorLinesOffset) + 'px';
-    }
-    else {
-      line.style.left = -1*(this.width - this.options.majorLinesOffset) + 'px';
-    }
-    line.style.top = y + 'px';
-    line.style.width = this.props.majorLineWidth + 'px';
-  }
+DataAxis.prototype.convertValue = function (value) {
+  var invertedValue = this.valueAtZero - value;
+  var convertedValue = invertedValue * this.conversionFactor;
+  return convertedValue; // the -2 is to compensate for the borders
 };
 
 
@@ -3538,7 +3524,6 @@ function Linegraph(body, options) {
   this.setOptions(options);
   this.groupsUsingDefaultStyles = [0];
 
-  var me = this;
   this.body.emitter.on("rangechange",function() {
       if (me.lastStart != 0) {
         var offset = me.body.range.start - me.lastStart;
@@ -3756,27 +3741,7 @@ Linegraph.prototype._onRemove       = Linegraph.prototype._onUpdate;
 Linegraph.prototype._onUpdateGroups  = function (groupIds) {
   for (var i = 0; i < groupIds.length; i++) {
     var group = this.groupsData.get(groupIds[i]);
-    if (!this.groups.hasOwnProperty(groupIds[i])) {
-      this.groups[groupIds[i]] = new GraphGroup(group, this.options, this.groupsUsingDefaultStyles);
-      this.legend.addGroup(groupIds[i],this.groups[groupIds[i]]);
-
-      if (this.groups[groupIds[i]].options.yAxisOrientation == 'right') {
-        this.yAxisRight.addGroup(groupIds[i], this.groups[groupIds[i]]);
-      }
-      else {
-        this.yAxisLeft.addGroup(groupIds[i], this.groups[groupIds[i]]);
-      }
-    }
-    else {
-      this.groups[groupIds[i]].update(group);
-      this.legend.updateGroup(groupIds[i],this.groups[groupIds[i]]);
-      if (this.groups[groupIds[i]].options.yAxisOrientation == 'right') {
-        this.yAxisRight.updateGroup(groupIds[i], this.groups[groupIds[i]]);
-      }
-      else {
-        this.yAxisLeft.updateGroup(groupIds[i], this.groups[groupIds[i]]);
-      }
-    }
+    this._updateGroup(group, groupIds[i]);
   }
   this._updateUngrouped();
   this._updateGraph();
@@ -3793,6 +3758,32 @@ Linegraph.prototype._onRemoveGroups = function (groupIds) {
   this.redraw();
 };
 
+
+Linegraph.prototype._updateGroup = function (group, groupId) {
+
+  if (!this.groups.hasOwnProperty(groupId)) {
+    this.groups[groupId] = new GraphGroup(group, this.options, this.groupsUsingDefaultStyles);
+    this.legend.addGroup(groupId, this.groups[groupId]);
+
+    if (this.groups[groupId].options.yAxisOrientation == 'right') {
+      this.yAxisRight.addGroup(groupId, this.groups[groupId]);
+    }
+    else {
+      this.yAxisLeft.addGroup(groupId, this.groups[groupId]);
+    }
+  }
+  else {
+    this.groups[groupId].update(group);
+    this.legend.updateGroup(groupId, this.groups[groupId]);
+    if (this.groups[groupId].options.yAxisOrientation == 'right') {
+      this.yAxisRight.updateGroup(groupId, this.groups[groupId]);
+    }
+    else {
+      this.yAxisLeft.updateGroup(groupId, this.groups[groupId]);
+    }
+  }
+};
+
 /**
  * Create or delete the group holding all ungrouped items. This group is used when
  * there are no groups specified. This anonymous group is called 'graph'.
@@ -3800,27 +3791,7 @@ Linegraph.prototype._onRemoveGroups = function (groupIds) {
  */
 Linegraph.prototype._updateUngrouped = function() {
   var group = {id: UNGROUPED, content: "graph"};
-  if (!this.groups.hasOwnProperty(UNGROUPED)) {
-    this.groups[UNGROUPED] = new GraphGroup(group, this.options, this.groupsUsingDefaultStyles);
-    this.legend.addGroup(UNGROUPED,this.groups[UNGROUPED]);
-
-    if (this.groups[UNGROUPED].options.yAxisOrientation == 'right') {
-      this.yAxisRight.addGroup(UNGROUPED, this.groups[UNGROUPED]);
-    }
-    else {
-      this.yAxisLeft.addGroup(UNGROUPED, this.groups[UNGROUPED]);
-    }
-  }
-  else {
-    this.groups[UNGROUPED].update(group);
-    this.legend.updateGroup(UNGROUPED,this.groups[UNGROUPED]);
-    if (this.groups[UNGROUPED].options.yAxisOrientation == 'right') {
-      this.yAxisRight.updateGroup(UNGROUPED, this.groups[UNGROUPED]);
-    }
-    else {
-      this.yAxisLeft.updateGroup(UNGROUPED, this.groups[UNGROUPED]);
-    }
-  }
+  this._updateGroup(group, UNGROUPED);
 
   if (this.itemsData != null) {
     var datapoints = this.itemsData.get({
@@ -3885,7 +3856,7 @@ Linegraph.prototype.redraw = function() {
  */
 Linegraph.prototype._updateGraph = function () {
   // reset the svg elements
-  SVGutil._prepareSVGElements(this.svgElements);
+  DOMutil.prepareElements(this.svgElements);
 
   if (this.width != 0 && this.itemsData != null) {
     // look at different lines
@@ -3898,10 +3869,8 @@ Linegraph.prototype._updateGraph = function () {
     }
   }
 
-  // this.legend.redraw();
-
   // cleanup unused svg elements
-  SVGutil._cleanupSVGElements(this.svgElements);
+  DOMutil.cleanupElements(this.svgElements);
 };
 
 /**
@@ -3909,7 +3878,7 @@ Linegraph.prototype._updateGraph = function () {
  * @param {array} groupIds
  * @private
  */
-Linegraph.prototype._updateYAxis = function(groupIds) {
+Linegraph.prototype._updateYAxis = function (groupIds) {
   var yAxisLeftUsed = false;
   var yAxisRightUsed = false;
   var minLeft = 1e9, minRight = 1e9, maxLeft = -1e9, maxRight = -1e9, minVal, maxVal;
@@ -3925,28 +3894,38 @@ Linegraph.prototype._updateYAxis = function(groupIds) {
         orientation = 'right';
       }
 
-      var view = new vis.DataSet(this.itemsData.get({filter: function (item) {return item.group == groupIds[i];}}));
+      var view = new vis.DataSet(this.itemsData.get({filter: function (item) {
+        return item.group == groupIds[i];
+      }}));
       minVal = view.min("y").y;
       maxVal = view.max("y").y;
 
       if (orientation == 'left') {
         yAxisLeftUsed = true;
-        if (minLeft > minVal) {minLeft = minVal;}
-        if (maxLeft < maxVal) {maxLeft = maxVal;}
+        if (minLeft > minVal) {
+          minLeft = minVal;
+        }
+        if (maxLeft < maxVal) {
+          maxLeft = maxVal;
+        }
       }
       else {
         yAxisRightUsed = true;
-        if (minRight > minVal) {minRight = minVal;}
-        if (maxRight < maxVal) {maxRight = maxVal;}
+        if (minRight > minVal) {
+          minRight = minVal;
+        }
+        if (maxRight < maxVal) {
+          maxRight = maxVal;
+        }
       }
 
       delete view;
     }
-    if (yAxisLeftUsed == true)  {
-      this.yAxisLeft.setRange({start: minLeft, end: maxLeft});
+    if (yAxisLeftUsed == true) {
+      this.yAxisLeft.setRange(minLeft, maxLeft);
     }
     if (yAxisRightUsed == true) {
-      this.yAxisRight.setRange({start: minRight, end: maxRight});
+      this.yAxisRight.setRange(minRight, maxRight);
     }
   }
 
@@ -3957,11 +3936,11 @@ Linegraph.prototype._updateYAxis = function(groupIds) {
   }
 
   if (yAxisRightUsed == true && yAxisLeftUsed == true) {
-    this.yAxisLeft.drawIcons  = true;
+    this.yAxisLeft.drawIcons = true;
     this.yAxisRight.drawIcons = true;
   }
   else {
-    this.yAxisLeft.drawIcons  = false;
+    this.yAxisLeft.drawIcons = false;
     this.yAxisRight.drawIcons = false;
   }
 
@@ -3978,17 +3957,17 @@ Linegraph.prototype._updateYAxis = function(groupIds) {
   else {
     this.yAxisRight.redraw();
   }
-}
+};
 
 /**
  * This shows or hides the Y axis if needed. If there is a change, the changed event is emitted by the updateYAxis function
  *
  * @param {boolean} axisUsed
- * @param {DataAxis object} axis
  * @returns {boolean}
  * @private
+ * @param axis
  */
-Linegraph.prototype._toggleAxisVisiblity = function(axisUsed, axis) {
+Linegraph.prototype._toggleAxisVisiblity = function (axisUsed, axis) {
   var changed = false;
   if (axisUsed == false) {
     if (axis.dom.frame.parentNode) {
@@ -4003,7 +3982,7 @@ Linegraph.prototype._toggleAxisVisiblity = function(axisUsed, axis) {
     }
   }
   return changed;
-}
+};
 
 
 /**
@@ -4023,24 +4002,30 @@ Linegraph.prototype._drawGraph = function (groupId, groupIndex, amountOfGraphs) 
     this._drawLineGraph(datapoints, group);
   }
   else {
-    this._drawBarGraph(datapoints, group, amountOfGraphs);
+    this._drawBarGraph(datapoints, group);
   }
 };
 
 /**
  * draw a bar graph
  * @param datapoints
- * @param options
- * @param amountOfGraphs
+ * @param group
  */
-Linegraph.prototype._drawBarGraph = function (datapoints, group, amountOfGraphs) {
+Linegraph.prototype._drawBarGraph = function (datapoints, group) {
   if (datapoints != null) {
     if (datapoints.length > 0) {
       var dataset = this._prepareData(datapoints, group.options);
-      var bar;
-      console.log(group.options);
+      var width, coreDistance;
+      var minWidth = 0.1 * group.options.barChart.width;
+
       for (var i = 0; i < dataset.length; i++) {
-        this._drawBar(dataset[i].x, dataset[i].y, group.options.barChart.width, this.zeroPosition - dataset[i].y, group.className + ' bar');
+        width = group.options.barChart.width;
+        // dynammically downscale the width so there is no overlap up to 1/10th the original width
+        if (i+1 < dataset.length) {coreDistance = Math.abs(dataset[i+1].x - dataset[i].x);}
+        if (i > 0)                {coreDistance = Math.min(coreDistance,Math.abs(dataset[i-1].x - dataset[i].x));}
+        if (coreDistance < width) {width = coreDistance < minWidth ? minWidth : coreDistance;}
+
+        DOMutil.drawBar(dataset[i].x, dataset[i].y, width, this.zeroPosition - dataset[i].y, group.className + ' bar', this.svgElements, this.svg);
       }
 
       // draw points
@@ -4051,29 +4036,12 @@ Linegraph.prototype._drawBarGraph = function (datapoints, group, amountOfGraphs)
   }
 };
 
-/**
- * draw a bar SVG element
- *
- * @param x
- * @param y
- * @param className
- */
-Linegraph.prototype._drawBar = function (x, y, width, height, className) {
-  rect = SVGutil._getSVGElement('rect',this.svgElements, this.svg);
-
-  rect.setAttributeNS(null, "x", x - 0.5 * width);
-  rect.setAttributeNS(null, "y", y);
-  rect.setAttributeNS(null, "width", width);
-  rect.setAttributeNS(null, "height", height);
-  rect.setAttributeNS(null, "class", className);
-};
-
 
 /**
  * draw a line graph
- * 
+ *
  * @param datapoints
- * @param options
+ * @param group
  */
 Linegraph.prototype._drawLineGraph = function (datapoints, group) {
   if (datapoints != null) {
@@ -4081,7 +4049,7 @@ Linegraph.prototype._drawLineGraph = function (datapoints, group) {
       var dataset = this._prepareData(datapoints, group.options);
       var path, d;
 
-      path = SVGutil._getSVGElement('path', this.svgElements, this.svg);
+      path = DOMutil.getSVGElement('path', this.svgElements, this.svg);
       path.setAttributeNS(null, "class", group.className);
 
 
@@ -4095,12 +4063,13 @@ Linegraph.prototype._drawLineGraph = function (datapoints, group) {
 
       // append with points for fill and finalize the path
       if (group.options.shaded.enabled == true) {
-        var fillPath = SVGutil._getSVGElement('path',this.svgElements, this.svg);
+        var fillPath = DOMutil.getSVGElement('path',this.svgElements, this.svg);
+        var dFill;
         if (group.options.shaded.orientation == 'top') {
-          var dFill = "M" + dataset[0].x + "," + 0 + " " + d + "L" + dataset[dataset.length - 1].x + "," + 0;
+          dFill = "M" + dataset[0].x + "," + 0 + " " + d + "L" + dataset[dataset.length - 1].x + "," + 0;
         }
         else {
-          var dFill = "M" + dataset[0].x + "," + this.svg.offsetHeight + " " + d + "L" + dataset[dataset.length - 1].x + "," + this.svg.offsetHeight;
+          dFill = "M" + dataset[0].x + "," + this.svg.offsetHeight + " " + d + "L" + dataset[dataset.length - 1].x + "," + this.svg.offsetHeight;
         }
         fillPath.setAttributeNS(null, "class", group.className + " fill");
         fillPath.setAttributeNS(null, "d", dFill);
@@ -4118,15 +4087,15 @@ Linegraph.prototype._drawLineGraph = function (datapoints, group) {
 
 /**
  * draw the data points
- * 
+ *
  * @param dataset
- * @param options
  * @param JSONcontainer
  * @param svg
+ * @param group
  */
 Linegraph.prototype._drawPoints = function (dataset, group, JSONcontainer, svg) {
   for (var i = 0; i < dataset.length; i++) {
-    SVGutil.drawPoint(dataset[i].x, dataset[i].y, group, JSONcontainer, svg);
+    DOMutil.drawPoint(dataset[i].x, dataset[i].y, group, JSONcontainer, svg);
   }
 };
 
@@ -4152,7 +4121,7 @@ Linegraph.prototype._prepareData = function (datapoints, options) {
     axis = this.yAxisRight;
   }
   for (var i = 0; i < datapoints.length; i++) {
-    xValue = toScreen(datapoints[i].x) + this.width;
+    xValue = toScreen(datapoints[i].x) + this.width - 1;
     yValue = axis.convertValue(datapoints[i].y);
     extractedData.push({x: xValue, y: yValue});
   }
@@ -4506,28 +4475,6 @@ DataStep.prototype.snap = function(date) {
  */
 DataStep.prototype.isMajor = function() {
   return (this.current % (this.scale * this.majorSteps[this.stepIndex]) == 0);
-};
-
-
-/**
- * Returns formatted text for the minor axislabel, depending on the current
- * date and the scale. For example when scale is MINUTE, the current time is
- * formatted as "hh:mm".
- * @param {Date} [date] custom date. if not provided, current date is taken
- */
-DataStep.prototype.getLabelMinor = function() {
-  return this.current;
-};
-
-
-/**
- * Returns formatted text for the major axis label, depending on the current
- * date and the scale. For example when scale is MINUTE, the major scale is
- * hours, and the hour will be formatted as "hh".
- * @param {Date} [date] custom date. if not provided, current date is taken
- */
-DataStep.prototype.getLabelMajor = function() {
- return this.current;
 };
 
 /**

@@ -4,6 +4,7 @@
  *                                  options.
  * @constructor DataAxis
  * @extends Component
+ * @param body
  */
 function DataAxis (body, options) {
   this.id = util.randomUUID();
@@ -24,14 +25,12 @@ function DataAxis (body, options) {
   };
 
   this.props = {};
-  this.dom = {
-    lines: [],
-    labels: [],
-    redundant: {
-      lines: [],
-      labels: []
-    }
+  this.DOMelements = { // dynamic elements
+    lines: {},
+    labels: {}
   };
+
+  this.dom = {};
 
   this.yRange = {start:0, end:0};
 
@@ -76,7 +75,7 @@ DataAxis.prototype.deleteGroup = function(label) {
 };
 
 
-DataAxis.prototype.setOptions = function(options) {
+DataAxis.prototype.setOptions = function (options) {
   if (options) {
     var redraw = false;
     if (this.options.orientation != options.orientation && options.orientation !== undefined) {
@@ -100,7 +99,7 @@ DataAxis.prototype.setOptions = function(options) {
       this.show();
     }
   }
-}
+};
 
 
 /**
@@ -125,14 +124,15 @@ DataAxis.prototype._create = function() {
   this.dom.frame.appendChild(this.svg);
 };
 
-DataAxis.prototype._redrawGroupIcons = function() {
-  SVGutil._prepareSVGElements(this.svgContainer);
+DataAxis.prototype._redrawGroupIcons = function () {
+  DOMutil.prepareElements(this.svgElements);
 
   var x;
   var iconWidth = this.options.iconWidth;
   var iconHeight = 15;
   var iconOffset = 4;
   var y = iconOffset + 0.5 * iconHeight;
+
   if (this.options.orientation == 'left') {
     x = iconOffset;
   }
@@ -147,8 +147,8 @@ DataAxis.prototype._redrawGroupIcons = function() {
     }
   }
 
-  SVGutil._cleanupSVGElements(this.svgContainer);
-}
+  DOMutil.cleanupElements(this.svgElements);
+};
 
 /**
  * Create the HTML DOM for the DataAxis
@@ -183,14 +183,13 @@ DataAxis.prototype.hide = function() {
 
 /**
  * Set a range (start and end)
- * @param {Range | Object} range  A Range or an object containing start and end.
+ * @param end
+ * @param start
+ * @param end
  */
-DataAxis.prototype.setRange = function (range) {
-  if (!(range instanceof Range) && (!range || range.start === undefined || range.end === undefined)) {
-    throw new TypeError('Range must be an instance of Range, ' + 'or an object containing start and end.');
-  }
-  this.yRange.start = range.start;
-  this.yRange.end = range.end;
+DataAxis.prototype.setRange = function (start, end) {
+  this.yRange.start = start;
+  this.yRange.end = end;
 };
 
 /**
@@ -217,7 +216,7 @@ DataAxis.prototype.redraw = function () {
 
   props.minorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2*this.options.minorLinesOffset;
   props.minorLineHeight = 1;
-  props.majorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2*this.options.majorLinesOffset;;
+  props.majorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.majorLinesOffset;
   props.majorLineHeight = 1;
 
   //  take frame offline while updating (is almost twice as fast)
@@ -247,26 +246,19 @@ DataAxis.prototype.redraw = function () {
  * @private
  */
 DataAxis.prototype._redrawLabels = function () {
+  DOMutil.prepareElements(this.DOMelements);
+
   var orientation = this.options['orientation'];
 
   // calculate range and step (step such that we have space for 7 characters per label)
   var start = this.yRange.start;
   var end = this.yRange.end;
-  var minimumStep = (this.props.minorCharHeight || 10); //in pixels
+  var minimumStep = (this.props.majorCharHeight || 10); //in pixels
   var step = new DataStep(start, end, minimumStep, this.dom.frame.offsetHeight);
   this.step = step;
   step.first();
 
-
-  // Move all DOM elements to a "redundant" list, where they
-  // can be picked for re-use, and clear the lists with lines and texts.
-  // At the end of the function _redrawLabels, left over elements will be cleaned up
-  var dom = this.dom;
-  dom.redundant.lines = dom.lines;
-  dom.redundant.labels = dom.labels;
-  dom.lines = [];
-  dom.labels = [];
-
+  // get the distance in pixels for a step
   var stepPixels = this.dom.frame.offsetHeight / ((step.marginRange / step.step) + 1);
   this.stepPixels = stepPixels;
 
@@ -282,7 +274,6 @@ DataAxis.prototype._redrawLabels = function () {
     amountOfSteps = this.height / stepPixels;
   }
 
-  var xFirstMajorLabel = undefined;
   this.valueAtZero = step.marginEnd;
   var marginStartPos = 0;
 
@@ -297,21 +288,18 @@ DataAxis.prototype._redrawLabels = function () {
     marginStartPos = max * stepPixels;
     var isMajor = step.isMajor();
 
-    if (this.options['showMinorLabels'] && isMajor == false) {
+    if (this.options['showMinorLabels'] && isMajor == false || this.master == false) {
       this._redrawLabel(y - 2, step.current, orientation, 'yAxis minor', this.props.minorCharHeight);
     }
 
-    if (isMajor && this.options['showMajorLabels']) {
+    if (isMajor && this.options['showMajorLabels'] && this.master == true) {
       if (y >= 0) {
-        if (xFirstMajorLabel == undefined) {
-          xFirstMajorLabel = y;
-        }
         this._redrawLabel(y - 2, step.current, orientation, 'yAxis major', this.props.majorCharHeight);
       }
-      this._redrawMajorLine(y, orientation);
+      this._redrawLine(y, orientation, 'grid horizontal major', this.options.majorLinesOffset, this.props.majorLineWidth);
     }
     else {
-      this._redrawMinorLine(y, orientation);
+      this._redrawLine(y, orientation, 'grid horizontal minor', this.options.minorLinesOffset, this.props.minorLineWidth);
     }
 
     step.next();
@@ -330,55 +318,23 @@ DataAxis.prototype._redrawLabels = function () {
 
   this.conversionFactor = marginStartPos/((amountOfSteps-1) * step.step);
 
-  // Cleanup leftover DOM elements from the redundant list
-  util.forEach(this.dom.redundant, function (arr) {
-    while (arr.length) {
-      var elem = arr.pop();
-      if (elem && elem.parentNode) {
-        elem.parentNode.removeChild(elem);
-      }
-    }
-  });
+  DOMutil.cleanupElements(this.DOMelements);
 };
-
-DataAxis.prototype.convertValues = function(data) {
-  for (var i = 0; i < data.length; i++) {
-    data[i].y = this.convertValue(data[i].y);
-  }
-  return data;
-}
-
-DataAxis.prototype.convertValue = function(value) {
-  var invertedValue = this.valueAtZero - value;
-  var convertedValue = invertedValue * this.conversionFactor;
-  return convertedValue; // the -2 is to compensate for the borders
-}
-
-
 
 /**
  * Create a label for the axis at position x
- * @param {Number} x
- * @param {String} text
- * @param {String} orientation   "top" or "bottom" (default)
  * @private
+ * @param y
+ * @param text
+ * @param orientation
+ * @param className
+ * @param characterHeight
  */
 DataAxis.prototype._redrawLabel = function (y, text, orientation, className, characterHeight) {
   // reuse redundant label
-  var label = this.dom.redundant.labels.shift();
-
-  if (!label) {
-    // create label
-    var content = document.createTextNode(text);
-    label = document.createElement('div');
-    label.className = className;
-    label.appendChild(content);
-    this.dom.frame.appendChild(label);
-  }
-  this.dom.labels.push(label);
-
-  label.childNodes[0].nodeValue = text;
-  //label.title = title; // TODO: this is a heavy operation
+  var label = DOMutil.getDOMElement('div',this.DOMelements, this.dom.frame); //this.dom.redundant.labels.shift();
+  label.className = className;
+  label.innerHTML = text;
 
   if (orientation == 'left') {
     label.style.left = '-' + this.options.labelOffsetX + 'px';
@@ -397,70 +353,40 @@ DataAxis.prototype._redrawLabel = function (y, text, orientation, className, cha
   if (this.maxLabelSize < text.length * largestWidth) {
     this.maxLabelSize = text.length * largestWidth;
   }
-
-
 };
 
 /**
  * Create a minor line for the axis at position y
- * @param {Number} y
- * @param {String} orientation   "top" or "bottom" (default)
- * @private
+ * @param y
+ * @param orientation
+ * @param className
+ * @param offset
+ * @param width
  */
-DataAxis.prototype._redrawMinorLine = function (y, orientation) {
+DataAxis.prototype._redrawLine = function (y, orientation, className, offset, width) {
   if (this.master == true) {
     // reuse redundant line
-    var line = this.dom.redundant.lines.shift();
+    var line = DOMutil.getDOMElement('div',this.DOMelements, this.dom.lineContainer);//this.dom.redundant.lines.shift();
+    line.className = className;
+    line.innerHTML = '';
 
-    if (!line) {
-      // create vertical line
-      line = document.createElement('div');
-      line.className = 'grid horizontal minor';
-      this.dom.lineContainer.appendChild(line);
-    }
-    this.dom.lines.push(line);
-
-    var props = this.props;
     if (orientation == 'left') {
-      line.style.left = (this.width - this.options.minorLinesOffset) + 'px';
+      line.style.left = (this.width - offset) + 'px';
     }
     else {
-      line.style.left = -1*(this.width - this.options.minorLinesOffset) + 'px';
+      line.style.left = -1*(this.width - offset) + 'px';
     }
 
-    line.style.width = props.minorLineWidth + 'px';
+    line.style.width = width + 'px';
     line.style.top = y + 'px';
   }
 };
 
-/**
- * Create a Major line for the axis at position x
- * @param {Number} x
- * @param {String} orientation   "top" or "bottom" (default)
- * @private
- */
-DataAxis.prototype._redrawMajorLine = function (y, orientation) {
-  if (this.master == true) {
-    // reuse redundant line
-    var line = this.dom.redundant.lines.shift();
 
-    if (!line) {
-      // create vertical line
-      line = document.createElement('div');
-      line.className = 'grid horizontal major';
-      this.dom.lineContainer.appendChild(line);
-    }
-    this.dom.lines.push(line);
-
-    if (orientation == 'left') {
-      line.style.left = (this.width - this.options.majorLinesOffset) + 'px';
-    }
-    else {
-      line.style.left = -1*(this.width - this.options.majorLinesOffset) + 'px';
-    }
-    line.style.top = y + 'px';
-    line.style.width = this.props.majorLineWidth + 'px';
-  }
+DataAxis.prototype.convertValue = function (value) {
+  var invertedValue = this.valueAtZero - value;
+  var convertedValue = invertedValue * this.conversionFactor;
+  return convertedValue; // the -2 is to compensate for the borders
 };
 
 

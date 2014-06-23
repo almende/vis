@@ -192,25 +192,3 @@ DataStep.prototype.snap = function(date) {
 DataStep.prototype.isMajor = function() {
   return (this.current % (this.scale * this.majorSteps[this.stepIndex]) == 0);
 };
-
-
-/**
- * Returns formatted text for the minor axislabel, depending on the current
- * date and the scale. For example when scale is MINUTE, the current time is
- * formatted as "hh:mm".
- * @param {Date} [date] custom date. if not provided, current date is taken
- */
-DataStep.prototype.getLabelMinor = function() {
-  return this.current;
-};
-
-
-/**
- * Returns formatted text for the major axis label, depending on the current
- * date and the scale. For example when scale is MINUTE, the major scale is
- * hours, and the hour will be formatted as "hh".
- * @param {Date} [date] custom date. if not provided, current date is taken
- */
-DataStep.prototype.getLabelMajor = function() {
- return this.current;
-};
