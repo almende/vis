@@ -68,6 +68,7 @@ function Graph (container, data, options) {
       widthMin: 1,
       widthMax: 15,
       width: 1,
+      widthSelectedScale: 2,
       hoverWidth: 1.5,
       style: 'line',
       color: {

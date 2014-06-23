@@ -30,6 +30,7 @@ function Edge (properties, graph, constants) {
   this.style  = constants.edges.style;
   this.title  = undefined;
   this.width  = constants.edges.width;
+  this.widthSelectedScale = constants.edges.widthSelectedScale;
   this.hoverWidth = constants.edges.hoverWidth;
   this.value  = undefined;
   this.length = constants.physics.springLength;
@@ -99,6 +100,7 @@ Edge.prototype.setProperties = function(properties, constants) {
 
   if (properties.title !== undefined)        {this.title = properties.title;}
   if (properties.width !== undefined)        {this.width = properties.width;}
+  if (properties.widthSelectedScale !== undefined)     {this.widthSelectedScale = properties.widthSelectedScale;}
   if (properties.hoverWidth !== undefined)   {this.hoverWidth = properties.hoverWidth;}
   if (properties.value !== undefined)        {this.value = properties.value;}
   if (properties.length !== undefined)       {this.length = properties.length;
@@ -310,7 +312,7 @@ Edge.prototype._drawLine = function(ctx) {
  */
 Edge.prototype._getLineWidth = function() {
   if (this.selected == true) {
-    return Math.min(this.width * 2, this.widthMax)*this.graphScaleInv;
+    return Math.min(this.width * this.widthSelectedScale, this.widthMax)*this.graphScaleInv;
   }
   else {
     if (this.hover == true) {
