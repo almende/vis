@@ -2149,16 +2149,36 @@ var options: {
     </td>
   </tr>
 
+    <tr>
+        <td>selectNodes(selection, [highlightEdges])</td>
+        <td>none</td>
+        <td>Select nodes.
+            <code>selection</code> is an array with ids of nodes to be selected.
+            The array <code>selection</code> can contain zero or multiple ids.
+            Example usage: <code>graph.selectNodes([3, 5]);</code> will select
+            nodes with id 3 and 5. The highlisghEdges boolean can be used to automatically select the edges connected to the node.
+        </td>
+    </tr>
+    <tr>
+        <td>selectEdges(selection)</td>
+        <td>none</td>
+        <td>Select Edges.
+            <code>selection</code> is an array with ids of edges to be selected.
+            The array <code>selection</code> can contain zero or multiple ids.
+            Example usage: <code>graph.selectEdges([3, 5]);</code> will select
+            edges with id 3 and 5.
+        </td>
+    </tr>
   <tr>
     <td>setSelection(selection)</td>
     <td>none</td>
-    <td>Select nodes.
-      <code>selection</code> is an array with ids of nodes to be selected.
-      The array <code>selection</code> can contain zero or multiple ids.
-      Example usage: <code>graph.setSelection([3, 5]);</code> will select
-      nodes with id 3 and 5.
+    <td>Select nodes [deprecated].
+        <code>selection</code> is an array with ids of nodes to be selected.
+        The array <code>selection</code> can contain zero or multiple ids.
+        Example usage: <code>graph.setSelection([3, 5]);</code> will select
+        nodes with id 3 and 5.
     </td>
-  </tr>
+</tr>
 
   <tr>
     <td>setSize(width, height)</td>
