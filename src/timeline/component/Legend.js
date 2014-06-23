@@ -1,24 +1,34 @@
 /**
  * Created by Alex on 6/17/14.
  */
-function Legend(body, options, linegraph) {
+function Legend(body, options, side) {
   this.body = body;
-  this.linegraph = linegraph;
   this.defaultOptions = {
-    orientation: 'left', // left, right
-    position: 'left',     // left, center, right
-    visible: true
+    enabled: true,
+    axisIcons: true,
+    iconSize: 20,
+    iconSpacing: 6,
+    left: {
+      visible: true,
+      position: 'top-left', // top/bottom - left,center,right
+      textAlign: 'left'
+    },
+    right: {
+      visible: true,
+      position: 'top-left', // top/bottom - left,center,right
+      textAlign: 'right'
+    }
   }
-
+  this.side = side;
   this.options = util.extend({},this.defaultOptions);
 
   this.svgElements = {};
   this.dom = {};
-  this.classes;
   this.groups = {};
+  this.amountOfGroups = 0;
+  this._create();
 
   this.setOptions(options);
-  this.create();
 };
 
 Legend.prototype = new Component();
@@ -28,32 +38,39 @@ Legend.prototype.addGroup = function(label, graphOptions) {
   if (!this.groups.hasOwnProperty(label)) {
     this.groups[label] = graphOptions;
   }
+  this.amountOfGroups += 1;
 };
 
 Legend.prototype.updateGroup = function(label, graphOptions) {
   this.groups[label] = graphOptions;
 };
 
-Legend.prototype.deleteGroup = function(label) {
+Legend.prototype.removeGroup = function(label) {
   if (this.groups.hasOwnProperty(label)) {
     delete this.groups[label];
+    this.amountOfGroups -= 1;
   }
 };
 
-Legend.prototype.create = function() {
-  var frame = document.createElement('div');
-  frame.className = 'legend';
-  frame['legend'] = this;
-  this.dom.frame = frame;
+Legend.prototype._create = function() {
+  this.dom.frame = document.createElement('div');
+  this.dom.frame.className = 'legend';
+  this.dom.frame.style.position = "absolute";
+  this.dom.frame.style.top = "10px";
+  this.dom.frame.style.display = "block";
+
+  this.dom.textArea = document.createElement('div');
+  this.dom.textArea.className = 'legendText';
+  this.dom.textArea.style.position = "relative";
+  this.dom.textArea.style.top = "0px";
 
   this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
-  this.svg.style.position = "absolute";
-  this.svg.style.top = "10px";
-  this.svg.style.height = "300px";
-  this.svg.style.width = "300px";
-  this.svg.style.display = "block";
+  this.svg.style.position = 'absolute';
+  this.svg.style.top = 0 +'px';
+  this.svg.style.width = this.options.iconSize + 5 + 'px';
 
   this.dom.frame.appendChild(this.svg);
+  this.dom.frame.appendChild(this.dom.textArea);
 }
 
 /**
@@ -78,79 +95,85 @@ Legend.prototype.show = function() {
 };
 
 Legend.prototype.setOptions = function(options) {
-  var fields = ['orientation'];
-  util.selectiveExtend(fields, this.options, options);
+  var fields = ['orientation','icons','left','right'];
+  util.selectiveDeepExtend(fields, this.options, options);
 }
 
 Legend.prototype.redraw = function() {
-  if (this.options.orientation == 'left') {
-    this.svg.style.left = '10px';
+  if (this.options[this.side].visible == false || this.amountOfGroups == 0) {
+    this.hide();
   }
   else {
-    this.svg.style.right = '10px';
+    this.show();
+    if (this.options[this.side].position == 'top-left' || this.options[this.side].position == 'bottom-left') {
+      this.dom.frame.style.left = '4px';
+      this.dom.frame.style.textAlign = "left";
+      this.dom.textArea.style.textAlign = "left";
+      this.dom.textArea.style.left = (this.options.iconSize + 15) + 'px';
+      this.dom.textArea.style.right = '';
+      this.svg.style.left = 0 +'px';
+      this.svg.style.right = '';
+    }
+    else {
+      this.dom.frame.style.right = '4px';
+      this.dom.frame.style.textAlign = "right";
+      this.dom.textArea.style.textAlign = "right";
+      this.dom.textArea.style.right = (this.options.iconSize + 15) + 'px';
+      this.dom.textArea.style.left = '';
+      this.svg.style.right = 0 +'px';
+      this.svg.style.left = '';
+    }
+
+    if (this.options[this.side].position == 'top-left' || this.options[this.side].position == 'top-right') {
+      this.dom.frame.style.top = '4px';
+      this.dom.frame.style.bottom = '';
+    }
+    else {
+      this.dom.frame.style.bottom = '4px';
+      this.dom.frame.style.top = '';
+    }
+
+    if (this.options.icons == false) {
+      this.dom.frame.style.width = this.dom.textArea.offsetWidth + 10 + 'px';
+      this.dom.textArea.style.right = '';
+      this.dom.textArea.style.left = '';
+      this.svg.style.width = '0px';
+    }
+    else {
+      this.dom.frame.style.width = this.options.iconSize + 15 + this.dom.textArea.offsetWidth + 10 + 'px'
+      this.drawLegendIcons();
+    }
+
+    var content = "";
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        content += this.groups[groupId].content + '<br />';
+      }
+    }
+    this.dom.textArea.innerHTML = content;
+    this.dom.textArea.style.lineHeight = ((0.75 * this.options.iconSize) + this.options.iconSpacing) + 'px';
   }
-  console.log(this.graphs);
-//  this.drawLegend();
 }
 
-Legend.prototype.drawLegend = function() {
-  this.linegraph.prepareElements.call(this,this.svgElements);
-  var x = 0;
-  var y = 0;
-  var lineLength = 30;
-  var fillHeight = 10;
-  var spacing = 25;
-  var path, fillPath, outline;
-  var legendWidth = 298;
-  var padding = 5;
+Legend.prototype.drawLegendIcons = function() {
+  if (this.dom.frame.parentNode) {
+    DOMutil.prepareElements(this.svgElements);
+    var padding = window.getComputedStyle(this.dom.frame).paddingTop;
+    var iconOffset = Number(padding.replace("px",''));
+    var x = iconOffset;
+    var iconWidth = this.options.iconSize;
+    var iconHeight = 0.75 * this.options.iconSize;
+    var y = iconOffset + 0.5 * iconHeight + 3;
 
-  var border = this.getSVGElement("rect", this.svgLegendElements, this.svgLegend);
-  border.setAttributeNS(null, "x", x);
-  border.setAttributeNS(null, "y", y);
-  border.setAttributeNS(null, "width", legendWidth);
-  border.setAttributeNS(null, "height", y + padding + classes.length * spacing);
-  border.setAttributeNS(null, "class", "legendBackground");
-  x += 5;
-  y += fillHeight + padding;
+    this.svg.style.width = iconWidth + 5 + iconOffset + 'px';
 
-  if (classes.length > 0) {
-    for (var i = 0; i < classes.length; i++) {
-      outline = this.getSVGElement("rect", this.svgLegendElements, this.svgLegend);
-      outline.setAttributeNS(null, "x", x);
-      outline.setAttributeNS(null, "y", y - fillHeight);
-      outline.setAttributeNS(null, "width", lineLength);
-      outline.setAttributeNS(null, "height", 2*fillHeight);
-      outline.setAttributeNS(null, "class", "outline");
-
-      path = this.getSVGElement("path", this.svgLegendElements, this.svgLegend);
-      path.setAttributeNS(null, "class", classes[i]);
-      path.setAttributeNS(null, "d", "M" + x + ","+y+" L" + (x + lineLength) + ","+y+"");
-      if (this.options.shaded.enabled == true) {
-        fillPath = this.getSVGElement("path", this.svgLegendElements, this.svgLegend);
-        if (this.options.shaded.orientation == 'top') {
-          fillPath.setAttributeNS(null, "d", "M"+x+", " + (y - fillHeight) +
-            "L"+x+","+y+" L"+ (x + lineLength) + ","+y+" L"+ (x + lineLength) + "," + (y - fillHeight));
-        }
-        else {
-          fillPath.setAttributeNS(null, "d", "M"+x+","+y+" " +
-            "L"+x+"," + (y + fillHeight) + " " +
-            "L"+ (x + lineLength) + "," + (y + fillHeight) +
-            "L"+ (x + lineLength) + ","+y);
-        }
-        fillPath.setAttributeNS(null, "class", classes[i] + " fill");
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        this.groups[groupId].drawIcon(x, y, this.svgElements, this.svg, iconWidth, iconHeight);
+        y += iconHeight + this.options.iconSpacing;
       }
-
-      if (this.options._drawPoints.enabled == true) {
-        this.drawPoint(x + 0.5 * lineLength,y,classes[i], this.svgLegendElements, this.svgLegend);
-      }
-      y += spacing;
     }
+
+    DOMutil.cleanupElements(this.svgElements);
   }
-  else {
-    //TODO: bars
-  }
-
-
-
-  this.cleanupElements(this.svgLegendElements);
 }

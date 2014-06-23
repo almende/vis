@@ -1397,10 +1397,12 @@ DOMutil.cleanupElements = function(JSONcontainer) {
   // cleanup the redundant svgElements;
   for (var elementType in JSONcontainer) {
     if (JSONcontainer.hasOwnProperty(elementType)) {
-      for (var i = 0; i < JSONcontainer[elementType].redundant.length; i++) {
-        JSONcontainer[elementType].redundant[i].parentNode.removeChild(JSONcontainer[elementType].redundant[i]);
+      if (JSONcontainer[elementType].redundant) {
+        for (var i = 0; i < JSONcontainer[elementType].redundant.length; i++) {
+          JSONcontainer[elementType].redundant[i].parentNode.removeChild(JSONcontainer[elementType].redundant[i]);
+        }
+        JSONcontainer[elementType].redundant = [];
       }
-      JSONcontainer[elementType].redundant = [];
     }
   }
 };
@@ -2753,7 +2755,8 @@ DataView.prototype.unsubscribe = DataView.prototype.off;
  * @param {Object} data
  * @param {ItemSet} itemSet
  */
-function GraphGroup (group, options, groupsUsingDefaultStyles) {
+function GraphGroup (group, groupId, options, groupsUsingDefaultStyles) {
+  this.id = groupId;
   var fields = ['style','yAxisOrientation','barChart','drawPoints','shaded','catmullRom']
   this.options = util.selectiveDeepExtend(fields,{},options);
   this.usingDefaultStyle = group.className === undefined;
@@ -2762,10 +2765,6 @@ function GraphGroup (group, options, groupsUsingDefaultStyles) {
   if (this.usingDefaultStyle == true) {
     this.groupsUsingDefaultStyles[0] += 1;
   }
-}
-
-GraphGroup.prototype.setClass = function (className) {
-  this.className = className;
 }
 
 GraphGroup.prototype.setOptions = function(options) {
@@ -2786,7 +2785,7 @@ GraphGroup.prototype.update = function(group) {
   this.setOptions(group.options);
 };
 
-GraphGroup.prototype.drawIcon = function(x,y,JSONcontainer, SVGcontainer, iconWidth, iconHeight) {
+GraphGroup.prototype.drawIcon = function(x, y, JSONcontainer, SVGcontainer, iconWidth, iconHeight) {
   var fillHeight = iconHeight * 0.5;
   var path, fillPath;
 
@@ -2835,24 +2834,34 @@ GraphGroup.prototype.drawIcon = function(x,y,JSONcontainer, SVGcontainer, iconWi
 /**
  * Created by Alex on 6/17/14.
  */
-function Legend(body, options, linegraph) {
+function Legend(body, options, side) {
   this.body = body;
-  this.linegraph = linegraph;
   this.defaultOptions = {
-    orientation: 'left', // left, right
-    position: 'left',     // left, center, right
-    visible: true
+    enabled: true,
+    axisIcons: true,
+    iconSize: 20,
+    iconSpacing: 6,
+    left: {
+      visible: true,
+      position: 'top-left', // top/bottom - left,center,right
+      textAlign: 'left'
+    },
+    right: {
+      visible: true,
+      position: 'top-left', // top/bottom - left,center,right
+      textAlign: 'right'
+    }
   }
-
+  this.side = side;
   this.options = util.extend({},this.defaultOptions);
 
   this.svgElements = {};
   this.dom = {};
-  this.classes;
   this.groups = {};
+  this.amountOfGroups = 0;
+  this._create();
 
   this.setOptions(options);
-  this.create();
 };
 
 Legend.prototype = new Component();
@@ -2862,32 +2871,39 @@ Legend.prototype.addGroup = function(label, graphOptions) {
   if (!this.groups.hasOwnProperty(label)) {
     this.groups[label] = graphOptions;
   }
+  this.amountOfGroups += 1;
 };
 
 Legend.prototype.updateGroup = function(label, graphOptions) {
   this.groups[label] = graphOptions;
 };
 
-Legend.prototype.deleteGroup = function(label) {
+Legend.prototype.removeGroup = function(label) {
   if (this.groups.hasOwnProperty(label)) {
     delete this.groups[label];
+    this.amountOfGroups -= 1;
   }
 };
 
-Legend.prototype.create = function() {
-  var frame = document.createElement('div');
-  frame.className = 'legend';
-  frame['legend'] = this;
-  this.dom.frame = frame;
+Legend.prototype._create = function() {
+  this.dom.frame = document.createElement('div');
+  this.dom.frame.className = 'legend';
+  this.dom.frame.style.position = "absolute";
+  this.dom.frame.style.top = "10px";
+  this.dom.frame.style.display = "block";
+
+  this.dom.textArea = document.createElement('div');
+  this.dom.textArea.className = 'legendText';
+  this.dom.textArea.style.position = "relative";
+  this.dom.textArea.style.top = "0px";
 
   this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
-  this.svg.style.position = "absolute";
-  this.svg.style.top = "10px";
-  this.svg.style.height = "300px";
-  this.svg.style.width = "300px";
-  this.svg.style.display = "block";
+  this.svg.style.position = 'absolute';
+  this.svg.style.top = 0 +'px';
+  this.svg.style.width = this.options.iconSize + 5 + 'px';
 
   this.dom.frame.appendChild(this.svg);
+  this.dom.frame.appendChild(this.dom.textArea);
 }
 
 /**
@@ -2912,81 +2928,87 @@ Legend.prototype.show = function() {
 };
 
 Legend.prototype.setOptions = function(options) {
-  var fields = ['orientation'];
-  util.selectiveExtend(fields, this.options, options);
+  var fields = ['orientation','icons','left','right'];
+  util.selectiveDeepExtend(fields, this.options, options);
 }
 
 Legend.prototype.redraw = function() {
-  if (this.options.orientation == 'left') {
-    this.svg.style.left = '10px';
+  if (this.options[this.side].visible == false || this.amountOfGroups == 0) {
+    this.hide();
   }
   else {
-    this.svg.style.right = '10px';
+    this.show();
+    if (this.options[this.side].position == 'top-left' || this.options[this.side].position == 'bottom-left') {
+      this.dom.frame.style.left = '4px';
+      this.dom.frame.style.textAlign = "left";
+      this.dom.textArea.style.textAlign = "left";
+      this.dom.textArea.style.left = (this.options.iconSize + 15) + 'px';
+      this.dom.textArea.style.right = '';
+      this.svg.style.left = 0 +'px';
+      this.svg.style.right = '';
+    }
+    else {
+      this.dom.frame.style.right = '4px';
+      this.dom.frame.style.textAlign = "right";
+      this.dom.textArea.style.textAlign = "right";
+      this.dom.textArea.style.right = (this.options.iconSize + 15) + 'px';
+      this.dom.textArea.style.left = '';
+      this.svg.style.right = 0 +'px';
+      this.svg.style.left = '';
+    }
+
+    if (this.options[this.side].position == 'top-left' || this.options[this.side].position == 'top-right') {
+      this.dom.frame.style.top = '4px';
+      this.dom.frame.style.bottom = '';
+    }
+    else {
+      this.dom.frame.style.bottom = '4px';
+      this.dom.frame.style.top = '';
+    }
+
+    if (this.options.icons == false) {
+      this.dom.frame.style.width = this.dom.textArea.offsetWidth + 10 + 'px';
+      this.dom.textArea.style.right = '';
+      this.dom.textArea.style.left = '';
+      this.svg.style.width = '0px';
+    }
+    else {
+      this.dom.frame.style.width = this.options.iconSize + 15 + this.dom.textArea.offsetWidth + 10 + 'px'
+      this.drawLegendIcons();
+    }
+
+    var content = "";
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        content += this.groups[groupId].content + '<br />';
+      }
+    }
+    this.dom.textArea.innerHTML = content;
+    this.dom.textArea.style.lineHeight = ((0.75 * this.options.iconSize) + this.options.iconSpacing) + 'px';
   }
-  console.log(this.graphs);
-//  this.drawLegend();
 }
 
-Legend.prototype.drawLegend = function() {
-  this.linegraph.prepareElements.call(this,this.svgElements);
-  var x = 0;
-  var y = 0;
-  var lineLength = 30;
-  var fillHeight = 10;
-  var spacing = 25;
-  var path, fillPath, outline;
-  var legendWidth = 298;
-  var padding = 5;
+Legend.prototype.drawLegendIcons = function() {
+  if (this.dom.frame.parentNode) {
+    DOMutil.prepareElements(this.svgElements);
+    var padding = window.getComputedStyle(this.dom.frame).paddingTop;
+    var iconOffset = Number(padding.replace("px",''));
+    var x = iconOffset;
+    var iconWidth = this.options.iconSize;
+    var iconHeight = 0.75 * this.options.iconSize;
+    var y = iconOffset + 0.5 * iconHeight + 3;
 
-  var border = this.getSVGElement("rect", this.svgLegendElements, this.svgLegend);
-  border.setAttributeNS(null, "x", x);
-  border.setAttributeNS(null, "y", y);
-  border.setAttributeNS(null, "width", legendWidth);
-  border.setAttributeNS(null, "height", y + padding + classes.length * spacing);
-  border.setAttributeNS(null, "class", "legendBackground");
-  x += 5;
-  y += fillHeight + padding;
+    this.svg.style.width = iconWidth + 5 + iconOffset + 'px';
 
-  if (classes.length > 0) {
-    for (var i = 0; i < classes.length; i++) {
-      outline = this.getSVGElement("rect", this.svgLegendElements, this.svgLegend);
-      outline.setAttributeNS(null, "x", x);
-      outline.setAttributeNS(null, "y", y - fillHeight);
-      outline.setAttributeNS(null, "width", lineLength);
-      outline.setAttributeNS(null, "height", 2*fillHeight);
-      outline.setAttributeNS(null, "class", "outline");
-
-      path = this.getSVGElement("path", this.svgLegendElements, this.svgLegend);
-      path.setAttributeNS(null, "class", classes[i]);
-      path.setAttributeNS(null, "d", "M" + x + ","+y+" L" + (x + lineLength) + ","+y+"");
-      if (this.options.shaded.enabled == true) {
-        fillPath = this.getSVGElement("path", this.svgLegendElements, this.svgLegend);
-        if (this.options.shaded.orientation == 'top') {
-          fillPath.setAttributeNS(null, "d", "M"+x+", " + (y - fillHeight) +
-            "L"+x+","+y+" L"+ (x + lineLength) + ","+y+" L"+ (x + lineLength) + "," + (y - fillHeight));
-        }
-        else {
-          fillPath.setAttributeNS(null, "d", "M"+x+","+y+" " +
-            "L"+x+"," + (y + fillHeight) + " " +
-            "L"+ (x + lineLength) + "," + (y + fillHeight) +
-            "L"+ (x + lineLength) + ","+y);
-        }
-        fillPath.setAttributeNS(null, "class", classes[i] + " fill");
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        this.groups[groupId].drawIcon(x, y, this.svgElements, this.svg, iconWidth, iconHeight);
+        y += iconHeight + this.options.iconSpacing;
       }
-
-      if (this.options._drawPoints.enabled == true) {
-        this.drawPoint(x + 0.5 * lineLength,y,classes[i], this.svgLegendElements, this.svgLegend);
-      }
-      y += spacing;
     }
+
+    DOMutil.cleanupElements(this.svgElements);
   }
-  else {
-    //TODO: bars
-  }
-
-
-
-  this.cleanupElements(this.svgLegendElements);
 }
 /**
  * A horizontal time axis
@@ -3004,6 +3026,7 @@ function DataAxis (body, options) {
     orientation: 'left',  // supported: 'left', 'right'
     showMinorLabels: true,
     showMajorLabels: true,
+    icons: true,
     majorLinesOffset: 7,
     minorLinesOffset: 4,
     labelOffsetX: 10,
@@ -3036,9 +3059,10 @@ function DataAxis (body, options) {
   this.lineOffset = 0;
   this.master = true;
   this.svgElements = {};
-  this.drawIcons = false;
+
 
   this.groups = {};
+  this.amountOfGroups = 0;
 
   // create the HTML DOM
   this._create();
@@ -3052,15 +3076,17 @@ DataAxis.prototype.addGroup = function(label, graphOptions) {
   if (!this.groups.hasOwnProperty(label)) {
     this.groups[label] = graphOptions;
   }
+  this.amountOfGroups += 1;
 };
 
 DataAxis.prototype.updateGroup = function(label, graphOptions) {
   this.groups[label] = graphOptions;
 };
 
-DataAxis.prototype.deleteGroup = function(label) {
+DataAxis.prototype.removeGroup = function(label) {
   if (this.groups.hasOwnProperty(label)) {
     delete this.groups[label];
+    this.amountOfGroups -= 1;
   }
 };
 
@@ -3075,13 +3101,15 @@ DataAxis.prototype.setOptions = function (options) {
       'orientation',
       'showMinorLabels',
       'showMajorLabels',
+      'icons',
       'majorLinesOffset',
       'minorLinesOffset',
       'labelOffsetX',
       'labelOffsetY',
       'iconWidth',
       'width',
-      'height'];
+      'height',
+      'visible'];
     util.selectiveExtend(fields, this.options, options);
 
     if (redraw == true && this.dom.frame) {
@@ -3187,47 +3215,54 @@ DataAxis.prototype.setRange = function (start, end) {
  * @return {boolean} Returns true if the component is resized
  */
 DataAxis.prototype.redraw = function () {
-  var props = this.props;
-  var frame = this.dom.frame;
-
-  // update classname
-  frame.className = 'dataaxis';
-
-  // calculate character width and height
-  this._calculateCharSize();
-
-  var orientation = this.options.orientation;
-  var showMinorLabels = this.options.showMinorLabels;
-  var showMajorLabels = this.options.showMajorLabels;
-
-  // determine the width and height of the elemens for the axis
-  props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
-  props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
-
-  props.minorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2*this.options.minorLinesOffset;
-  props.minorLineHeight = 1;
-  props.majorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.majorLinesOffset;
-  props.majorLineHeight = 1;
-
-  //  take frame offline while updating (is almost twice as fast)
-  if (orientation == 'left') {
-    frame.style.top = '0';
-    frame.style.left = '0';
-    frame.style.bottom = '';
-    frame.style.width = this.width + 'px';
-    frame.style.height = this.height + "px";
+  if (this.amountOfGroups == 0) {
+    this.hide();
   }
-  else { // right
-    frame.style.top = '';
-    frame.style.bottom = '0';
-    frame.style.left = '0';
-    frame.style.width = this.width + 'px';
-    frame.style.height = this.height + "px";
-  }
+  else {
+    this.width = this.options.visible ? Number(this.options.width.replace("px","")) : 0;
 
-  this._redrawLabels();
-  if (this.drawIcons == true) {
-    this._redrawGroupIcons();
+    var props = this.props;
+    var frame = this.dom.frame;
+
+    // update classname
+    frame.className = 'dataaxis';
+
+    // calculate character width and height
+    this._calculateCharSize();
+
+    var orientation = this.options.orientation;
+    var showMinorLabels = this.options.showMinorLabels;
+    var showMajorLabels = this.options.showMajorLabels;
+
+    // determine the width and height of the elemens for the axis
+    props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
+    props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
+
+    props.minorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.minorLinesOffset;
+    props.minorLineHeight = 1;
+    props.majorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.majorLinesOffset;
+    props.majorLineHeight = 1;
+
+    //  take frame offline while updating (is almost twice as fast)
+    if (orientation == 'left') {
+      frame.style.top = '0';
+      frame.style.left = '0';
+      frame.style.bottom = '';
+      frame.style.width = this.width + 'px';
+      frame.style.height = this.height + "px";
+    }
+    else { // right
+      frame.style.top = '';
+      frame.style.bottom = '0';
+      frame.style.left = '0';
+      frame.style.width = this.width + 'px';
+      frame.style.height = this.height + "px";
+    }
+
+    this._redrawLabels();
+    if (this.options.icons == true) {
+      this._redrawGroupIcons();
+    }
   }
 };
 
@@ -3296,8 +3331,8 @@ DataAxis.prototype._redrawLabels = function () {
     max++;
   }
 
-  var offset = this.drawIcons == true ? this.options.iconWidth + this.options.labelOffsetX + 15 : this.options.labelOffsetX + 15;
-  if (this.maxLabelSize > (this.width - offset)) {
+  var offset = this.options.icons == true ? this.options.iconWidth + this.options.labelOffsetX + 15 : this.options.labelOffsetX + 15;
+  if (this.maxLabelSize > (this.width - offset) && this.options.visible == true) {
     this.width = this.maxLabelSize + offset;
     this.options.width = this.width + "px";
     this.body.emitter.emit("changed");
@@ -3331,7 +3366,7 @@ DataAxis.prototype._redrawLabel = function (y, text, orientation, className, cha
     label.style.textAlign = "right";
   }
   else {
-    label.style.left = this.options.labelOffsetX + 'px';
+    label.style.right = '-' + this.options.labelOffsetX + 'px';
     label.style.textAlign = "left";
   }
 
@@ -3355,7 +3390,6 @@ DataAxis.prototype._redrawLabel = function (y, text, orientation, className, cha
  */
 DataAxis.prototype._redrawLine = function (y, orientation, className, offset, width) {
   if (this.master == true) {
-    // reuse redundant line
     var line = DOMutil.getDOMElement('div',this.DOMelements, this.dom.lineContainer);//this.dom.redundant.lines.shift();
     line.className = className;
     line.innerHTML = '';
@@ -3364,7 +3398,7 @@ DataAxis.prototype._redrawLine = function (y, orientation, className, offset, wi
       line.style.left = (this.width - offset) + 'px';
     }
     else {
-      line.style.left = -1*(this.width - offset) + 'px';
+      line.style.right = (this.width - offset) + 'px';
     }
 
     line.style.width = width + 'px';
@@ -3433,6 +3467,7 @@ function Linegraph(body, options) {
 
   this.defaultOptions = {
     yAxisOrientation: 'left',
+    label: 'default',
     shaded: {
       enabled: true,
       orientation: 'top' // top, bottom
@@ -3441,39 +3476,32 @@ function Linegraph(body, options) {
     barChart: {
       width: 50
     },
-    drawPoints: {
-      enabled: true,
-      size: 6,
-      style: 'square' // square, circle
-    },
     catmullRom: {
       enabled: true,
       parametrization: 'centripetal', // uniform (alpha = 0.0), chordal (alpha = 1.0), centripetal (alpha = 0.5)
       alpha: 0.5
     },
+    drawPoints: {
+      enabled: true,
+      size: 6,
+      style: 'square' // square, circle
+    },
     dataAxis: {
       showMinorLabels: true,
       showMajorLabels: true,
-      majorLinesOffset: 7,
-      minorLinesOffset: 4,
-      labelOffsetX: 10,
-      labelOffsetY: 2,
-      iconWidth: 20,
+      icons: true,
       width: '40px',
-      visible:true
+      visible: true
     },
     legend: {
-      enabled: true,
-      axisIcons: true,
+      icons: true,
       left: {
         visible: true,
-        position: 'top-left', // top/bottom - left,center,right
-        textAlign: 'left'
+        position: 'top-left' // top/bottom - left,right
       },
       right: {
         visible: true,
-        position: 'top-left', // top/bottom - left,center,right
-        textAlign: 'right'
+        position: 'top-right' // top/bottom - left,right
       }
     }
   };
@@ -3554,7 +3582,6 @@ Linegraph.prototype = new Component();
 Linegraph.prototype._create = function(){
   var frame = document.createElement('div');
   frame.className = 'linegraph';
-  frame['linegraph'] = this;
   this.dom.frame = frame;
 
   // create svg element for graph drawing.
@@ -3564,19 +3591,17 @@ Linegraph.prototype._create = function(){
   this.svg.style.display = "block";
   frame.appendChild(this.svg);
 
-  // panel with time axis
+  // data axis
   this.options.dataAxis.orientation = 'left';
   this.options.dataAxis.height = this.svg.style.height;
   this.yAxisLeft = new DataAxis(this.body, this.options.dataAxis);
 
-  this.yAxisRight = new DataAxis(this.body, {
-    orientation: 'right',
-    height: this.svg.style.height
-  });
+  this.options.dataAxis.orientation = 'right';
+  this.yAxisRight = new DataAxis(this.body, this.options.dataAxis);
 
-  this.legend = new Legend(this.body, {
-    orientation:'left'
-  });
+  // legends
+  this.legendLeft = new Legend(this.body, this.options.legend, 'left');
+  this.legendRight = new Legend(this.body, this.options.legend, 'right');
 
   this.show();
 };
@@ -3587,7 +3612,7 @@ Linegraph.prototype._create = function(){
  */
 Linegraph.prototype.setOptions = function(options) {
   if (options) {
-    var fields = ['yAxisOrientation','style','barChart','dataAxis','legend'];
+    var fields = ['label','yAxisOrientation','style','barChart','dataAxis','legend'];
     util.selectiveDeepExtend(fields, this.options, options);
 
     if (options.catmullRom) {
@@ -3610,6 +3635,20 @@ Linegraph.prototype.setOptions = function(options) {
     util._mergeOptions(this.options, options,'catmullRom');
     util._mergeOptions(this.options, options,'drawPoints');
     util._mergeOptions(this.options, options,'shaded');
+
+    if (this.yAxisLeft) {
+      if (options.dataAxis) {
+        this.yAxisLeft.setOptions(options.legend);
+        this.yAxisRight.setOptions(options.legend);
+      }
+    }
+
+    if (this.legend) {
+      if (options.legend) {
+        this.legendLeft.setOptions(options.legend);
+        this.legendRight.setOptions(options.legend);
+      }
+    }
   }
 };
 
@@ -3751,38 +3790,59 @@ Linegraph.prototype._onAddGroups = Linegraph.prototype._onUpdateGroups;
 
 Linegraph.prototype._onRemoveGroups = function (groupIds) {
   for (var i = 0; i < groupIds.length; i++) {
-      this.legend.removeGroup(groupIds[i]);
+    if (!this.groups.hasOwnProperty(groupIds[i])) {
+      if (this.groups[groupIds[i]].options.yAxisOrientation == 'right') {
+        this.yAxisRight.removeGroup(groupIds[i]);
+        this.legendRight.removeGroup(groupIds[i]);
+        this.legendRight.redraw();
+      }
+      else {
+        this.yAxisLeft.removeGroup(groupIds[i]);
+        this.legendLeft.removeGroup(groupIds[i]);
+        this.legendLeft.redraw();
+      }
+      delete this.groups[groupIds[i]];
+    }
   }
   this._updateUngrouped();
   this._updateGraph();
   this.redraw();
 };
 
-
+/**
+ * update a group object
+ *
+ * @param group
+ * @param groupId
+ * @private
+ */
 Linegraph.prototype._updateGroup = function (group, groupId) {
-
   if (!this.groups.hasOwnProperty(groupId)) {
-    this.groups[groupId] = new GraphGroup(group, this.options, this.groupsUsingDefaultStyles);
-    this.legend.addGroup(groupId, this.groups[groupId]);
-
+    this.groups[groupId] = new GraphGroup(group, groupId, this.options, this.groupsUsingDefaultStyles);
     if (this.groups[groupId].options.yAxisOrientation == 'right') {
       this.yAxisRight.addGroup(groupId, this.groups[groupId]);
+      this.legendRight.addGroup(groupId, this.groups[groupId]);
     }
     else {
       this.yAxisLeft.addGroup(groupId, this.groups[groupId]);
+      this.legendLeft.addGroup(groupId, this.groups[groupId]);
     }
   }
   else {
     this.groups[groupId].update(group);
-    this.legend.updateGroup(groupId, this.groups[groupId]);
     if (this.groups[groupId].options.yAxisOrientation == 'right') {
       this.yAxisRight.updateGroup(groupId, this.groups[groupId]);
+      this.legendRight.updateGroup(groupId, this.groups[groupId]);
     }
     else {
       this.yAxisLeft.updateGroup(groupId, this.groups[groupId]);
+      this.legendLeft.updateGroup(groupId, this.groups[groupId]);
     }
   }
+  this.legendLeft.redraw();
+  this.legendRight.redraw();
 };
+
 
 /**
  * Create or delete the group holding all ungrouped items. This group is used when
@@ -3790,7 +3850,7 @@ Linegraph.prototype._updateGroup = function (group, groupId) {
  * @protected
  */
 Linegraph.prototype._updateUngrouped = function() {
-  var group = {id: UNGROUPED, content: "graph"};
+  var group = {id: UNGROUPED, content: this.options.label};
   this._updateGroup(group, UNGROUPED);
 
   if (this.itemsData != null) {
@@ -3861,10 +3921,13 @@ Linegraph.prototype._updateGraph = function () {
   if (this.width != 0 && this.itemsData != null) {
     // look at different lines
     var groupIds = this.itemsData.distinct('group');
+    var group;
+
     if (groupIds.length > 0) {
       this._updateYAxis(groupIds);
       for (var i = 0; i < groupIds.length; i++) {
-        this._drawGraph(groupIds[i], i, groupIds.length);
+        group = this.groups[groupIds[i]];
+        this._drawGraph(group);
       }
     }
   }
@@ -3989,14 +4052,9 @@ Linegraph.prototype._toggleAxisVisiblity = function (axisUsed, axis) {
  * determine if the graph is a bar or line, get the group options and the datapoints. Then draw the graph.
  *
  * @param groupId
- * @param groupIndex
- * @param amountOfGraphs
  */
-Linegraph.prototype._drawGraph = function (groupId, groupIndex, amountOfGraphs) {
-  var datapoints = this.itemsData.get({filter: function (item) {return item.group == groupId;}, type: {x:"Date"}});
-
-  // can be optimized, only has to be done once.
-  var group = this.groups[groupId];
+Linegraph.prototype._drawGraph = function (group) {
+  var datapoints = this.itemsData.get({filter: function (item) {return item.group == group.id;}, type: {x:"Date"}});
 
   if (group.options.style == 'line') {
     this._drawLineGraph(datapoints, group);
@@ -4277,6 +4335,7 @@ Linegraph.prototype._linear = function(data) {
   }
   return d;
 };
+
 
 
 

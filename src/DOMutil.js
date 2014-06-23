@@ -29,10 +29,12 @@ DOMutil.cleanupElements = function(JSONcontainer) {
   // cleanup the redundant svgElements;
   for (var elementType in JSONcontainer) {
     if (JSONcontainer.hasOwnProperty(elementType)) {
-      for (var i = 0; i < JSONcontainer[elementType].redundant.length; i++) {
-        JSONcontainer[elementType].redundant[i].parentNode.removeChild(JSONcontainer[elementType].redundant[i]);
+      if (JSONcontainer[elementType].redundant) {
+        for (var i = 0; i < JSONcontainer[elementType].redundant.length; i++) {
+          JSONcontainer[elementType].redundant[i].parentNode.removeChild(JSONcontainer[elementType].redundant[i]);
+        }
+        JSONcontainer[elementType].redundant = [];
       }
-      JSONcontainer[elementType].redundant = [];
     }
   }
 };

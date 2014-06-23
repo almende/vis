@@ -14,6 +14,7 @@ function DataAxis (body, options) {
     orientation: 'left',  // supported: 'left', 'right'
     showMinorLabels: true,
     showMajorLabels: true,
+    icons: true,
     majorLinesOffset: 7,
     minorLinesOffset: 4,
     labelOffsetX: 10,
@@ -46,9 +47,10 @@ function DataAxis (body, options) {
   this.lineOffset = 0;
   this.master = true;
   this.svgElements = {};
-  this.drawIcons = false;
+
 
   this.groups = {};
+  this.amountOfGroups = 0;
 
   // create the HTML DOM
   this._create();
@@ -62,15 +64,17 @@ DataAxis.prototype.addGroup = function(label, graphOptions) {
   if (!this.groups.hasOwnProperty(label)) {
     this.groups[label] = graphOptions;
   }
+  this.amountOfGroups += 1;
 };
 
 DataAxis.prototype.updateGroup = function(label, graphOptions) {
   this.groups[label] = graphOptions;
 };
 
-DataAxis.prototype.deleteGroup = function(label) {
+DataAxis.prototype.removeGroup = function(label) {
   if (this.groups.hasOwnProperty(label)) {
     delete this.groups[label];
+    this.amountOfGroups -= 1;
   }
 };
 
@@ -85,13 +89,15 @@ DataAxis.prototype.setOptions = function (options) {
       'orientation',
       'showMinorLabels',
       'showMajorLabels',
+      'icons',
       'majorLinesOffset',
       'minorLinesOffset',
       'labelOffsetX',
       'labelOffsetY',
       'iconWidth',
       'width',
-      'height'];
+      'height',
+      'visible'];
     util.selectiveExtend(fields, this.options, options);
 
     if (redraw == true && this.dom.frame) {
@@ -197,47 +203,54 @@ DataAxis.prototype.setRange = function (start, end) {
  * @return {boolean} Returns true if the component is resized
  */
 DataAxis.prototype.redraw = function () {
-  var props = this.props;
-  var frame = this.dom.frame;
-
-  // update classname
-  frame.className = 'dataaxis';
-
-  // calculate character width and height
-  this._calculateCharSize();
-
-  var orientation = this.options.orientation;
-  var showMinorLabels = this.options.showMinorLabels;
-  var showMajorLabels = this.options.showMajorLabels;
-
-  // determine the width and height of the elemens for the axis
-  props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
-  props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
-
-  props.minorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2*this.options.minorLinesOffset;
-  props.minorLineHeight = 1;
-  props.majorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.majorLinesOffset;
-  props.majorLineHeight = 1;
-
-  //  take frame offline while updating (is almost twice as fast)
-  if (orientation == 'left') {
-    frame.style.top = '0';
-    frame.style.left = '0';
-    frame.style.bottom = '';
-    frame.style.width = this.width + 'px';
-    frame.style.height = this.height + "px";
+  if (this.amountOfGroups == 0) {
+    this.hide();
   }
-  else { // right
-    frame.style.top = '';
-    frame.style.bottom = '0';
-    frame.style.left = '0';
-    frame.style.width = this.width + 'px';
-    frame.style.height = this.height + "px";
-  }
+  else {
+    this.width = this.options.visible ? Number(this.options.width.replace("px","")) : 0;
 
-  this._redrawLabels();
-  if (this.drawIcons == true) {
-    this._redrawGroupIcons();
+    var props = this.props;
+    var frame = this.dom.frame;
+
+    // update classname
+    frame.className = 'dataaxis';
+
+    // calculate character width and height
+    this._calculateCharSize();
+
+    var orientation = this.options.orientation;
+    var showMinorLabels = this.options.showMinorLabels;
+    var showMajorLabels = this.options.showMajorLabels;
+
+    // determine the width and height of the elemens for the axis
+    props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
+    props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
+
+    props.minorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.minorLinesOffset;
+    props.minorLineHeight = 1;
+    props.majorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.majorLinesOffset;
+    props.majorLineHeight = 1;
+
+    //  take frame offline while updating (is almost twice as fast)
+    if (orientation == 'left') {
+      frame.style.top = '0';
+      frame.style.left = '0';
+      frame.style.bottom = '';
+      frame.style.width = this.width + 'px';
+      frame.style.height = this.height + "px";
+    }
+    else { // right
+      frame.style.top = '';
+      frame.style.bottom = '0';
+      frame.style.left = '0';
+      frame.style.width = this.width + 'px';
+      frame.style.height = this.height + "px";
+    }
+
+    this._redrawLabels();
+    if (this.options.icons == true) {
+      this._redrawGroupIcons();
+    }
   }
 };
 
@@ -306,8 +319,8 @@ DataAxis.prototype._redrawLabels = function () {
     max++;
   }
 
-  var offset = this.drawIcons == true ? this.options.iconWidth + this.options.labelOffsetX + 15 : this.options.labelOffsetX + 15;
-  if (this.maxLabelSize > (this.width - offset)) {
+  var offset = this.options.icons == true ? this.options.iconWidth + this.options.labelOffsetX + 15 : this.options.labelOffsetX + 15;
+  if (this.maxLabelSize > (this.width - offset) && this.options.visible == true) {
     this.width = this.maxLabelSize + offset;
     this.options.width = this.width + "px";
     this.body.emitter.emit("changed");
@@ -341,7 +354,7 @@ DataAxis.prototype._redrawLabel = function (y, text, orientation, className, cha
     label.style.textAlign = "right";
   }
   else {
-    label.style.left = this.options.labelOffsetX + 'px';
+    label.style.right = '-' + this.options.labelOffsetX + 'px';
     label.style.textAlign = "left";
   }
 
@@ -365,7 +378,6 @@ DataAxis.prototype._redrawLabel = function (y, text, orientation, className, cha
  */
 DataAxis.prototype._redrawLine = function (y, orientation, className, offset, width) {
   if (this.master == true) {
-    // reuse redundant line
     var line = DOMutil.getDOMElement('div',this.DOMelements, this.dom.lineContainer);//this.dom.redundant.lines.shift();
     line.className = className;
     line.innerHTML = '';
@@ -374,7 +386,7 @@ DataAxis.prototype._redrawLine = function (y, orientation, className, offset, wi
       line.style.left = (this.width - offset) + 'px';
     }
     else {
-      line.style.left = -1*(this.width - offset) + 'px';
+      line.style.right = (this.width - offset) + 'px';
     }
 
     line.style.width = width + 'px';

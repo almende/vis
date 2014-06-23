@@ -4,7 +4,8 @@
  * @param {Object} data
  * @param {ItemSet} itemSet
  */
-function GraphGroup (group, options, groupsUsingDefaultStyles) {
+function GraphGroup (group, groupId, options, groupsUsingDefaultStyles) {
+  this.id = groupId;
   var fields = ['style','yAxisOrientation','barChart','drawPoints','shaded','catmullRom']
   this.options = util.selectiveDeepExtend(fields,{},options);
   this.usingDefaultStyle = group.className === undefined;
@@ -13,10 +14,6 @@ function GraphGroup (group, options, groupsUsingDefaultStyles) {
   if (this.usingDefaultStyle == true) {
     this.groupsUsingDefaultStyles[0] += 1;
   }
-}
-
-GraphGroup.prototype.setClass = function (className) {
-  this.className = className;
 }
 
 GraphGroup.prototype.setOptions = function(options) {
@@ -37,7 +34,7 @@ GraphGroup.prototype.update = function(group) {
   this.setOptions(group.options);
 };
 
-GraphGroup.prototype.drawIcon = function(x,y,JSONcontainer, SVGcontainer, iconWidth, iconHeight) {
+GraphGroup.prototype.drawIcon = function(x, y, JSONcontainer, SVGcontainer, iconWidth, iconHeight) {
   var fillHeight = iconHeight * 0.5;
   var path, fillPath;
 

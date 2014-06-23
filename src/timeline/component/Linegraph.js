@@ -6,6 +6,7 @@ function Linegraph(body, options) {
 
   this.defaultOptions = {
     yAxisOrientation: 'left',
+    label: 'default',
     shaded: {
       enabled: true,
       orientation: 'top' // top, bottom
@@ -14,39 +15,32 @@ function Linegraph(body, options) {
     barChart: {
       width: 50
     },
-    drawPoints: {
-      enabled: true,
-      size: 6,
-      style: 'square' // square, circle
-    },
     catmullRom: {
       enabled: true,
       parametrization: 'centripetal', // uniform (alpha = 0.0), chordal (alpha = 1.0), centripetal (alpha = 0.5)
       alpha: 0.5
     },
+    drawPoints: {
+      enabled: true,
+      size: 6,
+      style: 'square' // square, circle
+    },
     dataAxis: {
       showMinorLabels: true,
       showMajorLabels: true,
-      majorLinesOffset: 7,
-      minorLinesOffset: 4,
-      labelOffsetX: 10,
-      labelOffsetY: 2,
-      iconWidth: 20,
+      icons: true,
       width: '40px',
-      visible:true
+      visible: true
     },
     legend: {
-      enabled: true,
-      axisIcons: true,
+      icons: true,
       left: {
         visible: true,
-        position: 'top-left', // top/bottom - left,center,right
-        textAlign: 'left'
+        position: 'top-left' // top/bottom - left,right
       },
       right: {
         visible: true,
-        position: 'top-left', // top/bottom - left,center,right
-        textAlign: 'right'
+        position: 'top-right' // top/bottom - left,right
       }
     }
   };
@@ -127,7 +121,6 @@ Linegraph.prototype = new Component();
 Linegraph.prototype._create = function(){
   var frame = document.createElement('div');
   frame.className = 'linegraph';
-  frame['linegraph'] = this;
   this.dom.frame = frame;
 
   // create svg element for graph drawing.
@@ -137,19 +130,17 @@ Linegraph.prototype._create = function(){
   this.svg.style.display = "block";
   frame.appendChild(this.svg);
 
-  // panel with time axis
+  // data axis
   this.options.dataAxis.orientation = 'left';
   this.options.dataAxis.height = this.svg.style.height;
   this.yAxisLeft = new DataAxis(this.body, this.options.dataAxis);
 
-  this.yAxisRight = new DataAxis(this.body, {
-    orientation: 'right',
-    height: this.svg.style.height
-  });
+  this.options.dataAxis.orientation = 'right';
+  this.yAxisRight = new DataAxis(this.body, this.options.dataAxis);
 
-  this.legend = new Legend(this.body, {
-    orientation:'left'
-  });
+  // legends
+  this.legendLeft = new Legend(this.body, this.options.legend, 'left');
+  this.legendRight = new Legend(this.body, this.options.legend, 'right');
 
   this.show();
 };
@@ -160,7 +151,7 @@ Linegraph.prototype._create = function(){
  */
 Linegraph.prototype.setOptions = function(options) {
   if (options) {
-    var fields = ['yAxisOrientation','style','barChart','dataAxis','legend'];
+    var fields = ['label','yAxisOrientation','style','barChart','dataAxis','legend'];
     util.selectiveDeepExtend(fields, this.options, options);
 
     if (options.catmullRom) {
@@ -183,6 +174,20 @@ Linegraph.prototype.setOptions = function(options) {
     util._mergeOptions(this.options, options,'catmullRom');
     util._mergeOptions(this.options, options,'drawPoints');
     util._mergeOptions(this.options, options,'shaded');
+
+    if (this.yAxisLeft) {
+      if (options.dataAxis) {
+        this.yAxisLeft.setOptions(options.legend);
+        this.yAxisRight.setOptions(options.legend);
+      }
+    }
+
+    if (this.legend) {
+      if (options.legend) {
+        this.legendLeft.setOptions(options.legend);
+        this.legendRight.setOptions(options.legend);
+      }
+    }
   }
 };
 
@@ -324,38 +329,59 @@ Linegraph.prototype._onAddGroups = Linegraph.prototype._onUpdateGroups;
 
 Linegraph.prototype._onRemoveGroups = function (groupIds) {
   for (var i = 0; i < groupIds.length; i++) {
-      this.legend.removeGroup(groupIds[i]);
+    if (!this.groups.hasOwnProperty(groupIds[i])) {
+      if (this.groups[groupIds[i]].options.yAxisOrientation == 'right') {
+        this.yAxisRight.removeGroup(groupIds[i]);
+        this.legendRight.removeGroup(groupIds[i]);
+        this.legendRight.redraw();
+      }
+      else {
+        this.yAxisLeft.removeGroup(groupIds[i]);
+        this.legendLeft.removeGroup(groupIds[i]);
+        this.legendLeft.redraw();
+      }
+      delete this.groups[groupIds[i]];
+    }
   }
   this._updateUngrouped();
   this._updateGraph();
   this.redraw();
 };
 
-
+/**
+ * update a group object
+ *
+ * @param group
+ * @param groupId
+ * @private
+ */
 Linegraph.prototype._updateGroup = function (group, groupId) {
-
   if (!this.groups.hasOwnProperty(groupId)) {
-    this.groups[groupId] = new GraphGroup(group, this.options, this.groupsUsingDefaultStyles);
-    this.legend.addGroup(groupId, this.groups[groupId]);
-
+    this.groups[groupId] = new GraphGroup(group, groupId, this.options, this.groupsUsingDefaultStyles);
     if (this.groups[groupId].options.yAxisOrientation == 'right') {
       this.yAxisRight.addGroup(groupId, this.groups[groupId]);
+      this.legendRight.addGroup(groupId, this.groups[groupId]);
     }
     else {
       this.yAxisLeft.addGroup(groupId, this.groups[groupId]);
+      this.legendLeft.addGroup(groupId, this.groups[groupId]);
     }
   }
   else {
     this.groups[groupId].update(group);
-    this.legend.updateGroup(groupId, this.groups[groupId]);
     if (this.groups[groupId].options.yAxisOrientation == 'right') {
       this.yAxisRight.updateGroup(groupId, this.groups[groupId]);
+      this.legendRight.updateGroup(groupId, this.groups[groupId]);
     }
     else {
       this.yAxisLeft.updateGroup(groupId, this.groups[groupId]);
+      this.legendLeft.updateGroup(groupId, this.groups[groupId]);
     }
   }
+  this.legendLeft.redraw();
+  this.legendRight.redraw();
 };
+
 
 /**
  * Create or delete the group holding all ungrouped items. This group is used when
@@ -363,7 +389,7 @@ Linegraph.prototype._updateGroup = function (group, groupId) {
  * @protected
  */
 Linegraph.prototype._updateUngrouped = function() {
-  var group = {id: UNGROUPED, content: "graph"};
+  var group = {id: UNGROUPED, content: this.options.label};
   this._updateGroup(group, UNGROUPED);
 
   if (this.itemsData != null) {
@@ -434,10 +460,13 @@ Linegraph.prototype._updateGraph = function () {
   if (this.width != 0 && this.itemsData != null) {
     // look at different lines
     var groupIds = this.itemsData.distinct('group');
+    var group;
+
     if (groupIds.length > 0) {
       this._updateYAxis(groupIds);
       for (var i = 0; i < groupIds.length; i++) {
-        this._drawGraph(groupIds[i], i, groupIds.length);
+        group = this.groups[groupIds[i]];
+        this._drawGraph(group);
       }
     }
   }
@@ -562,14 +591,9 @@ Linegraph.prototype._toggleAxisVisiblity = function (axisUsed, axis) {
  * determine if the graph is a bar or line, get the group options and the datapoints. Then draw the graph.
  *
  * @param groupId
- * @param groupIndex
- * @param amountOfGraphs
  */
-Linegraph.prototype._drawGraph = function (groupId, groupIndex, amountOfGraphs) {
-  var datapoints = this.itemsData.get({filter: function (item) {return item.group == groupId;}, type: {x:"Date"}});
-
-  // can be optimized, only has to be done once.
-  var group = this.groups[groupId];
+Linegraph.prototype._drawGraph = function (group) {
+  var datapoints = this.itemsData.get({filter: function (item) {return item.group == group.id;}, type: {x:"Date"}});
 
   if (group.options.style == 'line') {
     this._drawLineGraph(datapoints, group);
@@ -850,6 +874,7 @@ Linegraph.prototype._linear = function(data) {
   }
   return d;
 };
+
 
 
 
