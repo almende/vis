@@ -17,11 +17,14 @@ http://visjs.org
 
 ### Graph
 
-- Throws an error when constructing without new keyword.
+- Now throws an error when constructing without new keyword.
+- Added pull request from Vukk, user can now define the edge width multiplier when selected.
+- Fixed graph.storePositions()
+- Extended Selection API with selectNodes and selectEdges, deprecating setSelection.
 
 ### Graph3d
 
-- Throws an error when constructing without new keyword.
+- Now throws an error when constructing without new keyword.
 
 
 ## 2014-06-19, version 2.0.0
