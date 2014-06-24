@@ -31,6 +31,7 @@ function Edge (properties, graph, constants) {
   this.title  = undefined;
   this.width  = constants.edges.width;
   this.widthSelectionMultiplier = constants.edges.widthSelectionMultiplier;
+  this.widthSelected = this.width * this.widthSelectionMultiplier;
   this.hoverWidth = constants.edges.hoverWidth;
   this.value  = undefined;
   this.length = constants.physics.springLength;
@@ -63,9 +64,6 @@ function Edge (properties, graph, constants) {
   this.lengthFixed = false;
 
   this.setProperties(properties, constants);
-
-  // calculate width of edge when it, or a node it is connected to, is selected
-  this.widthSelected = this.width * this.widthSelectionMultiplier;
 
   this.controlNodesEnabled = false;
   this.controlNodes = {from:null, to:null, positions:{}};
@@ -103,7 +101,8 @@ Edge.prototype.setProperties = function(properties, constants) {
 
   if (properties.title !== undefined)        {this.title = properties.title;}
   if (properties.width !== undefined)        {this.width = properties.width;}
-  if (properties.widthSelectionMultiplier !== undefined)    {this.widthSelectionMultiplier = properties.widthSelectionMultiplier;}
+  if (properties.widthSelectionMultiplier !== undefined)
+                                             {this.widthSelectionMultiplier = properties.widthSelectionMultiplier;}
   if (properties.hoverWidth !== undefined)   {this.hoverWidth = properties.hoverWidth;}
   if (properties.value !== undefined)        {this.value = properties.value;}
   if (properties.length !== undefined)       {this.length = properties.length;
