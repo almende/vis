@@ -24,6 +24,23 @@ GraphGroup.prototype.setOptions = function(options) {
     util._mergeOptions(this.options, options,'catmullRom');
     util._mergeOptions(this.options, options,'drawPoints');
     util._mergeOptions(this.options, options,'shaded');
+
+    if (options.catmullRom) {
+      if (typeof options.catmullRom == 'object') {
+        if (options.catmullRom.parametrization) {
+          if (options.catmullRom.parametrization == 'uniform') {
+            this.options.catmullRom.alpha = 0;
+          }
+          else if (options.catmullRom.parametrization == 'chordal') {
+            this.options.catmullRom.alpha = 1.0;
+          }
+          else {
+            this.options.catmullRom.parametrization = 'centripetal';
+            this.options.catmullRom.alpha = 0.5;
+          }
+        }
+      }
+    }
   }
 };
 

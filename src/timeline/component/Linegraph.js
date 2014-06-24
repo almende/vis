@@ -6,10 +6,11 @@ function Linegraph(body, options) {
 
   this.defaultOptions = {
     yAxisOrientation: 'left',
-    label: 'default',
+    defaultGroup: 'default',
+    graphHeight: '400px',
     shaded: {
-      enabled: true,
-      orientation: 'top' // top, bottom
+      enabled: false,
+      orientation: 'bottom' // top, bottom
     },
     style: 'line', // line, bar
     barChart: {
@@ -28,11 +29,12 @@ function Linegraph(body, options) {
     dataAxis: {
       showMinorLabels: true,
       showMajorLabels: true,
-      icons: true,
+      icons: false,
       width: '40px',
       visible: true
     },
     legend: {
+      enabled: false,
       icons: true,
       left: {
         visible: true,
@@ -126,17 +128,17 @@ Linegraph.prototype._create = function(){
   // create svg element for graph drawing.
   this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
   this.svg.style.position = "relative";
-  this.svg.style.height = "300px";
+  this.svg.style.height = ('' + this.options.graphHeight).replace("px",'') + 'px';
   this.svg.style.display = "block";
   frame.appendChild(this.svg);
 
   // data axis
   this.options.dataAxis.orientation = 'left';
-  this.options.dataAxis.height = this.svg.style.height;
-  this.yAxisLeft = new DataAxis(this.body, this.options.dataAxis);
+  this.yAxisLeft = new DataAxis(this.body, this.options.dataAxis, this.svg);
 
   this.options.dataAxis.orientation = 'right';
-  this.yAxisRight = new DataAxis(this.body, this.options.dataAxis);
+  this.yAxisRight = new DataAxis(this.body, this.options.dataAxis, this.svg);
+  delete this.options.dataAxis.orientation;
 
   // legends
   this.legendLeft = new Legend(this.body, this.options.legend, 'left');
@@ -151,8 +153,12 @@ Linegraph.prototype._create = function(){
  */
 Linegraph.prototype.setOptions = function(options) {
   if (options) {
-    var fields = ['label','yAxisOrientation','style','barChart','dataAxis','legend'];
+    var fields = ['defaultGroup','graphHeight','yAxisOrientation','style','barChart','dataAxis'];
     util.selectiveDeepExtend(fields, this.options, options);
+    util._mergeOptions(this.options, options,'catmullRom');
+    util._mergeOptions(this.options, options,'drawPoints');
+    util._mergeOptions(this.options, options,'shaded');
+    util._mergeOptions(this.options, options,'legend');
 
     if (options.catmullRom) {
       if (typeof options.catmullRom == 'object') {
@@ -171,21 +177,17 @@ Linegraph.prototype.setOptions = function(options) {
       }
     }
 
-    util._mergeOptions(this.options, options,'catmullRom');
-    util._mergeOptions(this.options, options,'drawPoints');
-    util._mergeOptions(this.options, options,'shaded');
-
     if (this.yAxisLeft) {
-      if (options.dataAxis) {
-        this.yAxisLeft.setOptions(options.legend);
-        this.yAxisRight.setOptions(options.legend);
+      if (options.dataAxis !== undefined) {
+        this.yAxisLeft.setOptions(this.options.dataAxis);
+        this.yAxisRight.setOptions(this.options.dataAxis);
       }
     }
 
-    if (this.legend) {
-      if (options.legend) {
-        this.legendLeft.setOptions(options.legend);
-        this.legendRight.setOptions(options.legend);
+    if (this.legendLeft) {
+      if (options.legend !== undefined) {
+        this.legendLeft.setOptions(this.options.legend);
+        this.legendRight.setOptions(this.options.legend);
       }
     }
   }
@@ -389,10 +391,10 @@ Linegraph.prototype._updateGroup = function (group, groupId) {
  * @protected
  */
 Linegraph.prototype._updateUngrouped = function() {
-  var group = {id: UNGROUPED, content: this.options.label};
-  this._updateGroup(group, UNGROUPED);
-
   if (this.itemsData != null) {
+    var group = {id: UNGROUPED, content: this.options.defaultGroup};
+    this._updateGroup(group, UNGROUPED);
+
     var datapoints = this.itemsData.get({
       filter: function (item) {return item.group === undefined;},
       showInternalIds:true
@@ -407,12 +409,16 @@ Linegraph.prototype._updateUngrouped = function() {
 
     var pointInUNGROUPED = this.itemsData.get({filter: function (item) {return item.group == UNGROUPED;}});
     if (pointInUNGROUPED.length == 0) {
-      this.legend.deleteGroup(UNGROUPED);
       delete this.groups[UNGROUPED];
-      this.yAxisLeft.yAxisRight(UNGROUPED);
-      this.yAxisLeft.deleteGroup(UNGROUPED);
+      this.legendLeft.removeGroup(UNGROUPED);
+      this.legendRight.removeGroup(UNGROUPED);
+      this.yAxisLeft.removeGroup(UNGROUPED);
+      this.yAxisLeft.removeGroup(UNGROUPED);
     }
   }
+
+  this.legendLeft.redraw();
+  this.legendRight.redraw();
 };
 
 
@@ -423,6 +429,7 @@ Linegraph.prototype._updateUngrouped = function() {
 Linegraph.prototype.redraw = function() {
   var resized = false;
 
+  this.svg.style.height = ('' + this.options.graphHeight).replace('px','') + 'px';
   if (this.lastWidth === undefined && this.width || this.lastWidth != this.width) {
     resized = true;
   }
@@ -649,10 +656,9 @@ Linegraph.prototype._drawLineGraph = function (datapoints, group) {
       path = DOMutil.getSVGElement('path', this.svgElements, this.svg);
       path.setAttributeNS(null, "class", group.className);
 
-
       // construct path from dataset
       if (group.options.catmullRom.enabled == true) {
-        d = this._catmullRom(dataset);
+        d = this._catmullRom(dataset, group);
       }
       else {
         d = this._linear(dataset);
@@ -740,7 +746,7 @@ Linegraph.prototype._prepareData = function (datapoints, options) {
 Linegraph.prototype._catmullRomUniform = function(data) {
   // catmull rom
   var p0, p1, p2, p3, bp1, bp2;
-  var d = "M" + Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
+  var d = Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
   var normalization = 1/6;
   var length = data.length;
   for (var i = 0; i < length - 1; i++) {
@@ -784,15 +790,15 @@ Linegraph.prototype._catmullRomUniform = function(data) {
  * @returns {string}
  * @private
  */
-Linegraph.prototype._catmullRom = function(data) {
-  var alpha = this.options.catmullRom.alpha;
+Linegraph.prototype._catmullRom = function(data, group) {
+  var alpha = group.options.catmullRom.alpha;
   if (alpha == 0 || alpha === undefined) {
     return this._catmullRomUniform(data);
   }
   else {
     var p0, p1, p2, p3, bp1, bp2, d1,d2,d3, A, B, N, M;
     var d3powA, d2powA, d3pow2A, d2pow2A, d1pow2A, d1powA;
-    var d = "" + Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
+    var d = Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
     var length = data.length;
     for (var i = 0; i < length - 1; i++) {
 
@@ -866,10 +872,10 @@ Linegraph.prototype._linear = function(data) {
   var d = "";
   for (var i = 0; i < data.length; i++) {
     if (i == 0) {
-      d += "M" + data[i].x + "," + data[i].y;
+      d += Math.round(data[i].x) + "," + Math.round(data[i].y);
     }
     else {
-      d += " " + data[i].x + "," + data[i].y;
+      d += " " + Math.round(data[i].x) + "," + Math.round(data[i].y);
     }
   }
   return d;

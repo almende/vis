@@ -5,18 +5,16 @@ function Legend(body, options, side) {
   this.body = body;
   this.defaultOptions = {
     enabled: true,
-    axisIcons: true,
+    icons: true,
     iconSize: 20,
     iconSpacing: 6,
     left: {
       visible: true,
-      position: 'top-left', // top/bottom - left,center,right
-      textAlign: 'left'
+      position: 'top-left' // top/bottom - left,center,right
     },
     right: {
       visible: true,
-      position: 'top-left', // top/bottom - left,center,right
-      textAlign: 'right'
+      position: 'top-left' // top/bottom - left,center,right
     }
   }
   this.side = side;
@@ -95,12 +93,12 @@ Legend.prototype.show = function() {
 };
 
 Legend.prototype.setOptions = function(options) {
-  var fields = ['orientation','icons','left','right'];
+  var fields = ['enabled','orientation','icons','left','right'];
   util.selectiveDeepExtend(fields, this.options, options);
 }
 
 Legend.prototype.redraw = function() {
-  if (this.options[this.side].visible == false || this.amountOfGroups == 0) {
+  if (this.options[this.side].visible == false || this.amountOfGroups == 0 || this.options.enabled == false) {
     this.hide();
   }
   else {

@@ -6,7 +6,7 @@
  * @extends Component
  * @param body
  */
-function DataAxis (body, options) {
+function DataAxis (body, options, svg) {
   this.id = util.randomUUID();
   this.body = body;
 
@@ -21,10 +21,10 @@ function DataAxis (body, options) {
     labelOffsetY: 2,
     iconWidth: 20,
     width: '40px',
-    height: '300px',
     visible: true
   };
 
+  this.linegraphSVG = svg;
   this.props = {};
   this.DOMelements = { // dynamic elements
     lines: {},
@@ -40,7 +40,7 @@ function DataAxis (body, options) {
 
   this.setOptions(options);
   this.width = Number(this.options.width.replace("px",""));
-  this.height = Number(this.options.height.replace("px",""));
+  this.height = this.linegraphSVG.offsetHeight;
 
   this.stepPixels = 25;
   this.stepPixelsForced = 25;
@@ -96,10 +96,8 @@ DataAxis.prototype.setOptions = function (options) {
       'labelOffsetY',
       'iconWidth',
       'width',
-      'height',
       'visible'];
     util.selectiveExtend(fields, this.options, options);
-
     if (redraw == true && this.dom.frame) {
       this.hide();
       this.show();
@@ -114,11 +112,11 @@ DataAxis.prototype.setOptions = function (options) {
 DataAxis.prototype._create = function() {
   this.dom.frame = document.createElement('div');
   this.dom.frame.style.width = this.options.width;
-  this.dom.frame.style.height = this.options.height;
+  this.dom.frame.style.height = this.height;
 
   this.dom.lineContainer = document.createElement('div');
   this.dom.lineContainer.style.width = '100%';
-  this.dom.lineContainer.style.height = this.options.height;
+  this.dom.lineContainer.style.height = this.height;
 
   // create svg element for graph drawing.
   this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
@@ -183,7 +181,7 @@ DataAxis.prototype.hide = function() {
   }
 
   if (this.dom.lineContainer.parentNode) {
-    this.body.dom.backgroundHorizontal.removeChild(this.dom.lineContainer);
+    this.dom.lineContainer.parentNode.removeChild(this.dom.lineContainer);
   }
 };
 
@@ -207,6 +205,10 @@ DataAxis.prototype.redraw = function () {
     this.hide();
   }
   else {
+
+    this.height = this.linegraphSVG.offsetHeight;
+
+    this.dom.lineContainer.style.height = this.height + 'px';
     this.width = this.options.visible ? Number(this.options.width.replace("px","")) : 0;
 
     var props = this.props;
@@ -301,11 +303,13 @@ DataAxis.prototype._redrawLabels = function () {
     marginStartPos = max * stepPixels;
     var isMajor = step.isMajor();
 
-    if (this.options['showMinorLabels'] && isMajor == false || this.master == false) {
+    if (this.options['showMinorLabels'] && isMajor == false || this.master == false && this.options['showMinorLabels'] == true) {
       this._redrawLabel(y - 2, step.current, orientation, 'yAxis minor', this.props.minorCharHeight);
     }
 
-    if (isMajor && this.options['showMajorLabels'] && this.master == true) {
+    if (isMajor && this.options['showMajorLabels'] && this.master == true ||
+        this.options['showMinorLabels'] == false && this.master == false && isMajor == true) {
+
       if (y >= 0) {
         this._redrawLabel(y - 2, step.current, orientation, 'yAxis major', this.props.majorCharHeight);
       }

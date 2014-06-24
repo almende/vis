@@ -1041,7 +1041,7 @@ util.copyObject = function(objectFrom, objectTo) {
  * @private
  */
 util._mergeOptions = function (mergeTarget, options, option) {
-  if (options[option]) {
+  if (options[option] !== undefined) {
     if (typeof options[option] == 'boolean') {
       mergeTarget[option].enabled = options[option];
     }

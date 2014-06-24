@@ -5,7 +5,7 @@
  * @param {Object} [options]  See Graph2d.setOptions for the available options.
  * @constructor
  */
-function Graph2d (container, items, options) {
+function Graph2d (container, items, options, groups) {
   var me = this;
   this.defaultOptions = {
     start: null,
@@ -13,12 +13,11 @@ function Graph2d (container, items, options) {
 
     autoResize: true,
 
+    orientation: 'bottom',
     width: null,
     height: null,
     maxHeight: null,
     minHeight: null
-
-    // TODO: implement options moveable and zoomable
   };
   this.options = util.deepExtend({}, this.defaultOptions);
 
@@ -74,6 +73,10 @@ function Graph2d (container, items, options) {
     this.setOptions(options);
   }
 
+  if (groups) {
+    this.setGroups(groups);
+  }
+
   // create itemset
   if (items) {
     this.setItems(items);
@@ -83,13 +86,13 @@ function Graph2d (container, items, options) {
   }
 }
 
-// turn Timeline into an event emitter
+// turn Graph2d into an event emitter
 Emitter(Graph2d.prototype);
 
 /**
- * Create the main DOM for the Timeline: a root panel containing left, right,
+ * Create the main DOM for the Graph2d: a root panel containing left, right,
  * top, bottom, content, and background panel.
- * @param {Element} container  The container element where the Timeline will
+ * @param {Element} container  The container element where the Graph2d will
  *                             be attached.
  * @private
  */
@@ -99,18 +102,26 @@ Graph2d.prototype._create = function (container) {
   this.dom.root                 = document.createElement('div');
   this.dom.background           = document.createElement('div');
   this.dom.backgroundVertical   = document.createElement('div');
-  this.dom.backgroundHorizontal = document.createElement('div');
+  this.dom.backgroundHorizontalContainer = document.createElement('div');
   this.dom.centerContainer      = document.createElement('div');
   this.dom.leftContainer        = document.createElement('div');
   this.dom.rightContainer       = document.createElement('div');
+  this.dom.backgroundHorizontal = document.createElement('div');
   this.dom.center               = document.createElement('div');
   this.dom.left                 = document.createElement('div');
   this.dom.right                = document.createElement('div');
   this.dom.top                  = document.createElement('div');
   this.dom.bottom               = document.createElement('div');
+  this.dom.shadowTop            = document.createElement('div');
+  this.dom.shadowBottom         = document.createElement('div');
+  this.dom.shadowTopLeft        = document.createElement('div');
+  this.dom.shadowBottomLeft     = document.createElement('div');
+  this.dom.shadowTopRight       = document.createElement('div');
+  this.dom.shadowBottomRight    = document.createElement('div');
 
   this.dom.background.className           = 'vispanel background';
   this.dom.backgroundVertical.className   = 'vispanel background vertical';
+  this.dom.backgroundHorizontalContainer.className = 'vispanel background horizontal';
   this.dom.backgroundHorizontal.className = 'vispanel background horizontal';
   this.dom.centerContainer.className      = 'vispanel center';
   this.dom.leftContainer.className        = 'vispanel left';
@@ -120,22 +131,40 @@ Graph2d.prototype._create = function (container) {
   this.dom.left.className                 = 'content';
   this.dom.center.className               = 'content';
   this.dom.right.className                = 'content';
+  this.dom.shadowTop.className            = 'shadow top';
+  this.dom.shadowBottom.className         = 'shadow bottom';
+  this.dom.shadowTopLeft.className        = 'shadow top';
+  this.dom.shadowBottomLeft.className     = 'shadow bottom';
+  this.dom.shadowTopRight.className       = 'shadow top';
+  this.dom.shadowBottomRight.className    = 'shadow bottom';
 
   this.dom.root.appendChild(this.dom.background);
   this.dom.root.appendChild(this.dom.backgroundVertical);
-  this.dom.root.appendChild(this.dom.backgroundHorizontal);
+  this.dom.root.appendChild(this.dom.backgroundHorizontalContainer);
   this.dom.root.appendChild(this.dom.centerContainer);
   this.dom.root.appendChild(this.dom.leftContainer);
   this.dom.root.appendChild(this.dom.rightContainer);
   this.dom.root.appendChild(this.dom.top);
   this.dom.root.appendChild(this.dom.bottom);
 
+  this.dom.backgroundHorizontalContainer.appendChild(this.dom.backgroundHorizontal);
   this.dom.centerContainer.appendChild(this.dom.center);
   this.dom.leftContainer.appendChild(this.dom.left);
   this.dom.rightContainer.appendChild(this.dom.right);
 
+  this.dom.centerContainer.appendChild(this.dom.shadowTop);
+  this.dom.centerContainer.appendChild(this.dom.shadowBottom);
+  this.dom.leftContainer.appendChild(this.dom.shadowTopLeft);
+  this.dom.leftContainer.appendChild(this.dom.shadowBottomLeft);
+  this.dom.rightContainer.appendChild(this.dom.shadowTopRight);
+  this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
+
   this.on('rangechange', this.redraw.bind(this));
   this.on('change', this.redraw.bind(this));
+  this.on('touch', this._onTouch.bind(this));
+  this.on('pinch', this._onPinch.bind(this));
+  this.on('dragstart', this._onDragStart.bind(this));
+  this.on('drag', this._onDrag.bind(this));
 
   // create event listeners for all interesting events, these events will be
   // emitted via emitter
@@ -146,8 +175,8 @@ Graph2d.prototype._create = function (container) {
 
   var me = this;
   var events = [
-    'pinch',
-    //'tap', 'doubletap', 'hold', // TODO: catching the events here disables selecting an item
+    'touch', 'pinch',
+    'tap', 'doubletap', 'hold',
     'dragstart', 'drag', 'dragend',
     'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
   ];
@@ -172,8 +201,11 @@ Graph2d.prototype._create = function (container) {
     right: {},
     top: {},
     bottom: {},
-    border: {}
+    border: {},
+    scrollTop: 0,
+    scrollTopMin: 0
   };
+  this.touch = {}; // store state information needed for touch events
 
   // attach the root panel to the provided container
   if (!container) throw new Error('No container provided');
@@ -181,21 +213,60 @@ Graph2d.prototype._create = function (container) {
 };
 
 /**
+ * Destroy the Graph2d, clean up all DOM elements and event listeners.
+ */
+Graph2d.prototype.destroy = function () {
+  // unbind datasets
+  this.clear();
+
+  // remove all event listeners
+  this.off();
+
+  // stop checking for changed size
+  this._stopAutoResize();
+
+  // remove from DOM
+  if (this.dom.root.parentNode) {
+    this.dom.root.parentNode.removeChild(this.dom.root);
+  }
+  this.dom = null;
+
+  // cleanup hammer touch events
+  for (var event in this.listeners) {
+    if (this.listeners.hasOwnProperty(event)) {
+      delete this.listeners[event];
+    }
+  }
+  this.listeners = null;
+  this.hammer = null;
+
+  // give all components the opportunity to cleanup
+  this.components.forEach(function (component) {
+    component.destroy();
+  });
+
+  this.body = null;
+};
+
+/**
  * Set options. Options will be passed to all components loaded in the Graph2d.
  * @param {Object} [options]
+ *                           {String} orientation
+ *                              Vertical orientation for the Graph2d,
+ *                              can be 'bottom' (default) or 'top'.
  *                           {String | Number} width
  *                              Width for the timeline, a number in pixels or
  *                              a css string like '1000px' or '75%'. '100%' by default.
  *                           {String | Number} height
- *                              Fixed height for the Timeline, a number in pixels or
+ *                              Fixed height for the Graph2d, a number in pixels or
  *                              a css string like '400px' or '75%'. If undefined,
- *                              The Timeline will automatically size such that
+ *                              The Graph2d will automatically size such that
  *                              its contents fit.
  *                           {String | Number} minHeight
- *                              Minimum height for the Timeline, a number in pixels or
+ *                              Minimum height for the Graph2d, a number in pixels or
  *                              a css string like '400px' or '75%'.
  *                           {String | Number} maxHeight
- *                              Maximum height for the Timeline, a number in pixels or
+ *                              Maximum height for the Graph2d, a number in pixels or
  *                              a css string like '400px' or '75%'.
  *                           {Number | Date | String} start
  *                              Start date for the visible window
@@ -205,7 +276,7 @@ Graph2d.prototype._create = function (container) {
 Graph2d.prototype.setOptions = function (options) {
   if (options) {
     // copy the known options
-    var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end'];
+    var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation'];
     util.selectiveExtend(fields, this.options, options);
 
     // enable/disable autoResize
@@ -289,7 +360,6 @@ Graph2d.prototype.setItems = function(items) {
   }
 };
 
-
 /**
  * Set groups
  * @param {vis.DataSet | Array | google.visualization.DataTable} groups
@@ -311,7 +381,6 @@ Graph2d.prototype.setGroups = function(groups) {
   this.groupsData = newDataSet;
   this.linegraph.setGroups(newDataSet);
 };
-
 
 /**
  * Clear the Graph2d. By Default, items, groups and options are cleared.
@@ -345,7 +414,7 @@ Graph2d.prototype.clear = function(what) {
 };
 
 /**
- * Set Timeline window such that it fits all items
+ * Set Graph2d window such that it fits all items
  */
 Graph2d.prototype.fit = function() {
   // apply the data range as range
@@ -381,26 +450,28 @@ Graph2d.prototype.fit = function() {
 Graph2d.prototype.getItemRange = function() {
   // calculate min from start filed
   var itemsData = this.itemsData,
-      min = null,
-      max = null;
+    min = null,
+    max = null;
 
   if (itemsData) {
     // calculate the minimum value of the field 'start'
     var minItem = itemsData.min('start');
-    min = minItem ? minItem.start.valueOf() : null;
+    min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
+    // Note: we convert first to Date and then to number because else
+    // a conversion from ISODate to Number will fail
 
     // calculate maximum value of fields 'start' and 'end'
     var maxStartItem = itemsData.max('start');
     if (maxStartItem) {
-      max = maxStartItem.start.valueOf();
+      max = util.convert(maxStartItem.start, 'Date').valueOf();
     }
     var maxEndItem = itemsData.max('end');
     if (maxEndItem) {
       if (max == null) {
-        max = maxEndItem.end.valueOf();
+        max = util.convert(maxEndItem.end, 'Date').valueOf();
       }
       else {
-        max = Math.max(max, maxEndItem.end.valueOf());
+        max = Math.max(max, util.convert(maxEndItem.end, 'Date').valueOf());
       }
     }
   }
@@ -419,7 +490,7 @@ Graph2d.prototype.getItemRange = function() {
  *                      unselected.
  */
 Graph2d.prototype.setSelection = function(ids) {
-  this.itemSet && this.itemSet.setSelection(ids);
+  this.linegraph && this.linegraph.setSelection(ids);
 };
 
 /**
@@ -427,7 +498,7 @@ Graph2d.prototype.setSelection = function(ids) {
  * @return {Array} ids  The ids of the selected items
  */
 Graph2d.prototype.getSelection = function() {
-  return this.itemSet && this.itemSet.getSelection() || [];
+  return this.linegraph && this.linegraph.getSelection() || [];
 };
 
 /**
@@ -471,9 +542,11 @@ Graph2d.prototype.getWindow = function() {
  */
 Graph2d.prototype.redraw = function() {
   var resized = false,
-      options = this.options,
-      props = this.props,
-      dom = this.dom;
+    options = this.options,
+    props = this.props,
+    dom = this.dom;
+
+  if (!dom) return; // when destroyed
 
   // update class names
   dom.root.className = 'vis timeline root ' + options.orientation;
@@ -505,14 +578,14 @@ Graph2d.prototype.redraw = function() {
   // TODO: only calculate autoHeight when needed (else we cause an extra reflow/repaint of the DOM)
   var contentHeight = Math.max(props.left.height, props.center.height, props.right.height);
   var autoHeight = props.top.height + contentHeight + props.bottom.height +
-      borderRootHeight + props.border.top + props.border.bottom;
+    borderRootHeight + props.border.top + props.border.bottom;
   dom.root.style.height = util.option.asSize(options.height, autoHeight + 'px');
 
   // calculate heights of the content panels
   props.root.height = dom.root.offsetHeight;
   props.background.height = props.root.height - borderRootHeight;
   var containerHeight = props.root.height - props.top.height - props.bottom.height -
-      borderRootHeight;
+    borderRootHeight;
   props.centerContainer.height  = containerHeight;
   props.leftContainer.height    = containerHeight;
   props.rightContainer.height   = props.leftContainer.height;
@@ -533,13 +606,14 @@ Graph2d.prototype.redraw = function() {
   // resize the panels
   dom.background.style.height           = props.background.height + 'px';
   dom.backgroundVertical.style.height   = props.background.height + 'px';
-  dom.backgroundHorizontal.style.height = props.centerContainer.height + 'px';
+  dom.backgroundHorizontalContainer.style.height = props.centerContainer.height + 'px';
   dom.centerContainer.style.height      = props.centerContainer.height + 'px';
   dom.leftContainer.style.height        = props.leftContainer.height + 'px';
   dom.rightContainer.style.height       = props.rightContainer.height + 'px';
 
   dom.background.style.width            = props.background.width + 'px';
   dom.backgroundVertical.style.width    = props.centerContainer.width + 'px';
+  dom.backgroundHorizontalContainer.style.width  = props.background.width + 'px';
   dom.backgroundHorizontal.style.width  = props.background.width + 'px';
   dom.centerContainer.style.width       = props.center.width + 'px';
   dom.top.style.width                   = props.top.width + 'px';
@@ -550,8 +624,8 @@ Graph2d.prototype.redraw = function() {
   dom.background.style.top            = '0';
   dom.backgroundVertical.style.left   = props.left.width + 'px';
   dom.backgroundVertical.style.top    = '0';
-  dom.backgroundHorizontal.style.left = '0';
-  dom.backgroundHorizontal.style.top  = props.top.height + 'px';
+  dom.backgroundHorizontalContainer.style.left = '0';
+  dom.backgroundHorizontalContainer.style.top  = props.top.height + 'px';
   dom.centerContainer.style.left      = props.left.width + 'px';
   dom.centerContainer.style.top       = props.top.height + 'px';
   dom.leftContainer.style.left        = '0';
@@ -563,21 +637,33 @@ Graph2d.prototype.redraw = function() {
   dom.bottom.style.left               = props.left.width + 'px';
   dom.bottom.style.top                = (props.top.height + props.centerContainer.height) + 'px';
 
+  // update the scrollTop, feasible range for the offset can be changed
+  // when the height of the Graph2d or of the contents of the center changed
+  this._updateScrollTop();
+
   // reposition the scrollable contents
-  var offset;
-  if (options.orientation == 'top') {
-    offset = 0;
-  }
-  else { // orientation == 'bottom'
-    // keep the items aligned to the axis at the bottom
-    offset = 0; //props.centerContainer.height - props.center.height;
-  }
-  dom.center.style.left               = '0';
-  dom.center.style.top                = offset+ 'px';
-  dom.left.style.left                 = '0';
-  dom.left.style.top                  = offset+ 'px';
-  dom.right.style.left                = '0';
-  dom.right.style.top                 = offset+ 'px';
+  var offset = this.props.scrollTop;
+//  if (options.orientation == 'bottom') {
+//     offset += Math.max(this.props.centerContainer.height - this.props.center.height, 0);
+//  }
+  dom.center.style.left = '0';
+  dom.center.style.top  = offset + 'px';
+  dom.backgroundHorizontal.style.left = '0';
+  dom.backgroundHorizontal.style.top  = offset + 'px';
+  dom.left.style.left   = '0';
+  dom.left.style.top    = offset + 'px';
+  dom.right.style.left  = '0';
+  dom.right.style.top   = offset + 'px';
+
+  // show shadows when vertical scrolling is available
+  var visibilityTop = this.props.scrollTop == 0 ? 'hidden' : '';
+  var visibilityBottom = this.props.scrollTop == this.props.scrollTopMin ? 'hidden' : '';
+  dom.shadowTop.style.visibility          = visibilityTop;
+  dom.shadowBottom.style.visibility       = visibilityBottom;
+  dom.shadowTopLeft.style.visibility      = visibilityTop;
+  dom.shadowBottomLeft.style.visibility   = visibilityBottom;
+  dom.shadowTopRight.style.visibility     = visibilityTop;
+  dom.shadowBottomRight.style.visibility  = visibilityBottom;
 
   // redraw all components
   this.components.forEach(function (component) {
@@ -591,7 +677,7 @@ Graph2d.prototype.redraw = function() {
 
 // TODO: deprecated since version 1.1.0, remove some day
 Graph2d.prototype.repaint = function () {
-    throw new Error('Function repaint is deprecated. Use redraw instead.');
+  throw new Error('Function repaint is deprecated. Use redraw instead.');
 };
 
 /**
@@ -642,7 +728,7 @@ Graph2d.prototype._startAutoResize = function () {
 
   this._stopAutoResize();
 
-  function checkSize() {
+  this._onResize = function() {
     if (me.options.autoResize != true) {
       // stop watching when the option autoResize is changed to false
       me._stopAutoResize();
@@ -652,19 +738,19 @@ Graph2d.prototype._startAutoResize = function () {
     if (me.dom.root) {
       // check whether the frame is resized
       if ((me.dom.root.clientWidth != me.props.lastWidth) ||
-          (me.dom.root.clientHeight != me.props.lastHeight)) {
+        (me.dom.root.clientHeight != me.props.lastHeight)) {
         me.props.lastWidth = me.dom.root.clientWidth;
         me.props.lastHeight = me.dom.root.clientHeight;
 
         me.emit('change');
       }
     }
-  }
+  };
 
-  // TODO: automatically cleanup the event listener when the frame is deleted
-  util.addEventListener(window, 'resize', checkSize);
+  // add event listener to window resize
+  util.addEventListener(window, 'resize', this._onResize);
 
-  this.watchTimer = setInterval(checkSize, 1000);
+  this.watchTimer = setInterval(this._onResize, 1000);
 };
 
 /**
@@ -677,5 +763,99 @@ Graph2d.prototype._stopAutoResize = function () {
     this.watchTimer = undefined;
   }
 
-  // TODO: remove event listener on window.resize
+  // remove event listener on window.resize
+  util.removeEventListener(window, 'resize', this._onResize);
+  this._onResize = null;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Graph2d.prototype._onTouch = function (event) {
+  this.touch.allowDragging = true;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Graph2d.prototype._onPinch = function (event) {
+  this.touch.allowDragging = false;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Graph2d.prototype._onDragStart = function (event) {
+  this.touch.initialScrollTop = this.props.scrollTop;
+};
+
+/**
+ * Move the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Graph2d.prototype._onDrag = function (event) {
+  // refuse to drag when we where pinching to prevent the timeline make a jump
+  // when releasing the fingers in opposite order from the touch screen
+  if (!this.touch.allowDragging) return;
+
+  var delta = event.gesture.deltaY;
+
+  var oldScrollTop = this._getScrollTop();
+  var newScrollTop = this._setScrollTop(this.touch.initialScrollTop + delta);
+
+  if (newScrollTop != oldScrollTop) {
+    this.redraw(); // TODO: this causes two redraws when dragging, the other is triggered by rangechange already
+  }
+};
+
+/**
+ * Apply a scrollTop
+ * @param {Number} scrollTop
+ * @returns {Number} scrollTop  Returns the applied scrollTop
+ * @private
+ */
+Graph2d.prototype._setScrollTop = function (scrollTop) {
+  this.props.scrollTop = scrollTop;
+  this._updateScrollTop();
+  return this.props.scrollTop;
+};
+
+/**
+ * Update the current scrollTop when the height of  the containers has been changed
+ * @returns {Number} scrollTop  Returns the applied scrollTop
+ * @private
+ */
+Graph2d.prototype._updateScrollTop = function () {
+  // recalculate the scrollTopMin
+  var scrollTopMin = Math.min(this.props.centerContainer.height - this.props.center.height, 0); // is negative or zero
+  if (scrollTopMin != this.props.scrollTopMin) {
+    // in case of bottom orientation, change the scrollTop such that the contents
+    // do not move relative to the time axis at the bottom
+    if (this.options.orientation == 'bottom') {
+      this.props.scrollTop += (scrollTopMin - this.props.scrollTopMin);
+    }
+    this.props.scrollTopMin = scrollTopMin;
+  }
+
+  // limit the scrollTop to the feasible scroll range
+  if (this.props.scrollTop > 0) this.props.scrollTop = 0;
+  if (this.props.scrollTop < scrollTopMin) this.props.scrollTop = scrollTopMin;
+
+  return this.props.scrollTop;
+};
+
+/**
+ * Get the current scrollTop
+ * @returns {number} scrollTop
+ * @private
+ */
+Graph2d.prototype._getScrollTop = function () {
+  return this.props.scrollTop;
 };

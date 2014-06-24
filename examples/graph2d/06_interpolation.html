@@ -1,0 +1,100 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Graph2d | Interpolation</title>
+    <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
+    <style type="text/css">
+        body, html {
+            font-family: sans-serif;
+        }
+    </style>
+
+    <script src="../../dist/vis.js"></script>
+
+</head>
+<body>
+<h2>Graph2D | Interpolation</h2>
+<div style="width:700px; font-size:14px; text-align: justify;">
+    This example shows the most basic functionality of the vis.js Graph2D module. An array or a vis.Dataset can be used as input.
+    In the following examples we'll explore the options Graph2D offest for customization. This example uses all default settings.
+    There are 10 predefined styles that will be cycled through automatically when you add different groups. Alternatively you can
+    create your own styling.
+    <br /><br />
+    Graph2D is built upon the framework of the newly refactored timeline. A lot of the timeline options will also apply to Graph2D.
+    In these examples however, we will focus on what's new in Graph2D!
+</div>
+<br />
+<div id="visualization"></div>
+
+<script type="text/javascript">
+    // create a dataSet with groups
+    var names = ['centripetal', 'chordal', 'uniform', 'disabled'];
+    var groups = new vis.DataSet();
+    groups.add({
+        id: 0,
+        content: names[0],
+        options: {
+            drawPoints: false,
+            catmullRom: {
+                parametrization: 'centripetal'
+            }
+        }});
+
+    groups.add({
+        id: 1,
+        content: names[1],
+        options: {
+            drawPoints: false,
+            catmullRom: {
+                parametrization: 'chordal'
+            }
+        }});
+
+    groups.add({
+        id: 2,
+        content: names[2],
+        options: {
+            drawPoints: false,
+            catmullRom: {
+                parametrization: 'uniform'
+            }
+        }
+    });
+
+    groups.add({
+        id: 3,
+        content: names[3],
+        options: {
+            drawPoints: { style: 'circle' },
+            catmullRom: false
+        }});
+
+    var container = document.getElementById('visualization');
+    var dataset = new vis.DataSet();
+    for (var i = 0; i < names.length; i++) {
+        dataset.add( [
+            {x: '2014-06-12', y: 0 , group: i},
+            {x: '2014-06-13', y: 30, group: i},
+            {x: '2014-06-14', y: 10, group: i},
+            {x: '2014-06-15', y: 15, group: i},
+            {x: '2014-06-15', y: 30, group: i},
+            {x: '2014-06-17', y: 10, group: i},
+            {x: '2014-06-18', y: 15, group: i},
+            {x: '2014-06-19', y: 52, group: i},
+            {x: '2014-06-20', y: 10, group: i},
+            {x: '2014-06-21', y: 20, group: i}
+        ]);
+    }
+
+    var options = {
+        dataPoints: false,
+        dataAxis: {visible: false},
+        legend: true,
+        start: '2014-06-10',
+        end: '2014-06-22'
+    };
+    var graph2d = new vis.Graph2d(container, dataset, options, groups);
+
+</script>
+</body>
+</html>

@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version @@version
- * @date    @@date
+ * @version 2.0.1-SNAPSHOT
+ * @date    2014-06-24
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -669,8 +669,7 @@ util.convert = function(object, type) {
       }
 
     default:
-      throw new Error('Cannot convert object of type ' + util.getType(object) +
-          ' to type "' + type + '"');
+      throw new Error('Unknown type "' + type + '"');
   }
 };
 
@@ -1352,7 +1351,7 @@ util.copyObject = function(objectFrom, objectTo) {
  * @private
  */
 util._mergeOptions = function (mergeTarget, options, option) {
-  if (options[option]) {
+  if (options[option] !== undefined) {
     if (typeof options[option] == 'boolean') {
       mergeTarget[option].enabled = options[option];
     }
@@ -1366,6 +1365,7 @@ util._mergeOptions = function (mergeTarget, options, option) {
     }
   }
 }
+
 /**
  * Created by Alex on 6/20/14.
  */
@@ -2290,28 +2290,18 @@ DataSet.prototype.min = function (field) {
  *                         The returned array is unordered.
  */
 DataSet.prototype.distinct = function (field) {
-  var data = this._data,
-      values = [],
-      fieldType = "",
-      count = 0;
-
-  // do not convert unless this is required.
-  var convert = false;
-  if (this._options) {
-    if (this._options.type) {
-      if (this._options.type.hasOwnProperty(field)) {
-        fieldType = this._options.type[field];
-        convert = true;
-      }
-    }
-  }
+  var data = this._data;
+  var values = [];
+  var fieldType = this._options.type && this._options.type[field] || null;
+  var count = 0;
+  var i;
 
   for (var prop in data) {
     if (data.hasOwnProperty(prop)) {
       var item = data[prop];
       var value = item[field];
       var exists = false;
-      for (var i = 0; i < count; i++) {
+      for (i = 0; i < count; i++) {
         if (values[i] == value) {
           exists = true;
           break;
@@ -2324,9 +2314,9 @@ DataSet.prototype.distinct = function (field) {
     }
   }
 
-  if (convert == true) {
-    for (var i = 0; i < values.length; i++) {
-      values[i] = util.convert(values[i],fieldType);
+  if (fieldType) {
+    for (i = 0; i < values.length; i++) {
+      values[i] = util.convert(values[i], fieldType);
     }
   }
 
@@ -2775,6 +2765,23 @@ GraphGroup.prototype.setOptions = function(options) {
     util._mergeOptions(this.options, options,'catmullRom');
     util._mergeOptions(this.options, options,'drawPoints');
     util._mergeOptions(this.options, options,'shaded');
+
+    if (options.catmullRom) {
+      if (typeof options.catmullRom == 'object') {
+        if (options.catmullRom.parametrization) {
+          if (options.catmullRom.parametrization == 'uniform') {
+            this.options.catmullRom.alpha = 0;
+          }
+          else if (options.catmullRom.parametrization == 'chordal') {
+            this.options.catmullRom.alpha = 1.0;
+          }
+          else {
+            this.options.catmullRom.parametrization = 'centripetal';
+            this.options.catmullRom.alpha = 0.5;
+          }
+        }
+      }
+    }
   }
 };
 
@@ -2838,18 +2845,16 @@ function Legend(body, options, side) {
   this.body = body;
   this.defaultOptions = {
     enabled: true,
-    axisIcons: true,
+    icons: true,
     iconSize: 20,
     iconSpacing: 6,
     left: {
       visible: true,
-      position: 'top-left', // top/bottom - left,center,right
-      textAlign: 'left'
+      position: 'top-left' // top/bottom - left,center,right
     },
     right: {
       visible: true,
-      position: 'top-left', // top/bottom - left,center,right
-      textAlign: 'right'
+      position: 'top-left' // top/bottom - left,center,right
     }
   }
   this.side = side;
@@ -2928,12 +2933,12 @@ Legend.prototype.show = function() {
 };
 
 Legend.prototype.setOptions = function(options) {
-  var fields = ['orientation','icons','left','right'];
+  var fields = ['enabled','orientation','icons','left','right'];
   util.selectiveDeepExtend(fields, this.options, options);
 }
 
 Legend.prototype.redraw = function() {
-  if (this.options[this.side].visible == false || this.amountOfGroups == 0) {
+  if (this.options[this.side].visible == false || this.amountOfGroups == 0 || this.options.enabled == false) {
     this.hide();
   }
   else {
@@ -3018,7 +3023,7 @@ Legend.prototype.drawLegendIcons = function() {
  * @extends Component
  * @param body
  */
-function DataAxis (body, options) {
+function DataAxis (body, options, svg) {
   this.id = util.randomUUID();
   this.body = body;
 
@@ -3033,10 +3038,10 @@ function DataAxis (body, options) {
     labelOffsetY: 2,
     iconWidth: 20,
     width: '40px',
-    height: '300px',
     visible: true
   };
 
+  this.linegraphSVG = svg;
   this.props = {};
   this.DOMelements = { // dynamic elements
     lines: {},
@@ -3052,7 +3057,7 @@ function DataAxis (body, options) {
 
   this.setOptions(options);
   this.width = Number(this.options.width.replace("px",""));
-  this.height = Number(this.options.height.replace("px",""));
+  this.height = this.linegraphSVG.offsetHeight;
 
   this.stepPixels = 25;
   this.stepPixelsForced = 25;
@@ -3108,10 +3113,8 @@ DataAxis.prototype.setOptions = function (options) {
       'labelOffsetY',
       'iconWidth',
       'width',
-      'height',
       'visible'];
     util.selectiveExtend(fields, this.options, options);
-
     if (redraw == true && this.dom.frame) {
       this.hide();
       this.show();
@@ -3126,11 +3129,11 @@ DataAxis.prototype.setOptions = function (options) {
 DataAxis.prototype._create = function() {
   this.dom.frame = document.createElement('div');
   this.dom.frame.style.width = this.options.width;
-  this.dom.frame.style.height = this.options.height;
+  this.dom.frame.style.height = this.height;
 
   this.dom.lineContainer = document.createElement('div');
   this.dom.lineContainer.style.width = '100%';
-  this.dom.lineContainer.style.height = this.options.height;
+  this.dom.lineContainer.style.height = this.height;
 
   // create svg element for graph drawing.
   this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
@@ -3195,7 +3198,7 @@ DataAxis.prototype.hide = function() {
   }
 
   if (this.dom.lineContainer.parentNode) {
-    this.body.dom.backgroundHorizontal.removeChild(this.dom.lineContainer);
+    this.dom.lineContainer.parentNode.removeChild(this.dom.lineContainer);
   }
 };
 
@@ -3219,6 +3222,10 @@ DataAxis.prototype.redraw = function () {
     this.hide();
   }
   else {
+
+    this.height = this.linegraphSVG.offsetHeight;
+
+    this.dom.lineContainer.style.height = this.height + 'px';
     this.width = this.options.visible ? Number(this.options.width.replace("px","")) : 0;
 
     var props = this.props;
@@ -3313,11 +3320,13 @@ DataAxis.prototype._redrawLabels = function () {
     marginStartPos = max * stepPixels;
     var isMajor = step.isMajor();
 
-    if (this.options['showMinorLabels'] && isMajor == false || this.master == false) {
+    if (this.options['showMinorLabels'] && isMajor == false || this.master == false && this.options['showMinorLabels'] == true) {
       this._redrawLabel(y - 2, step.current, orientation, 'yAxis minor', this.props.minorCharHeight);
     }
 
-    if (isMajor && this.options['showMajorLabels'] && this.master == true) {
+    if (isMajor && this.options['showMajorLabels'] && this.master == true ||
+        this.options['showMinorLabels'] == false && this.master == false && isMajor == true) {
+
       if (y >= 0) {
         this._redrawLabel(y - 2, step.current, orientation, 'yAxis major', this.props.majorCharHeight);
       }
@@ -3467,10 +3476,11 @@ function Linegraph(body, options) {
 
   this.defaultOptions = {
     yAxisOrientation: 'left',
-    label: 'default',
+    defaultGroup: 'default',
+    graphHeight: '400px',
     shaded: {
-      enabled: true,
-      orientation: 'top' // top, bottom
+      enabled: false,
+      orientation: 'bottom' // top, bottom
     },
     style: 'line', // line, bar
     barChart: {
@@ -3489,11 +3499,12 @@ function Linegraph(body, options) {
     dataAxis: {
       showMinorLabels: true,
       showMajorLabels: true,
-      icons: true,
+      icons: false,
       width: '40px',
       visible: true
     },
     legend: {
+      enabled: false,
       icons: true,
       left: {
         visible: true,
@@ -3587,17 +3598,17 @@ Linegraph.prototype._create = function(){
   // create svg element for graph drawing.
   this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
   this.svg.style.position = "relative";
-  this.svg.style.height = "300px";
+  this.svg.style.height = ('' + this.options.graphHeight).replace("px",'') + 'px';
   this.svg.style.display = "block";
   frame.appendChild(this.svg);
 
   // data axis
   this.options.dataAxis.orientation = 'left';
-  this.options.dataAxis.height = this.svg.style.height;
-  this.yAxisLeft = new DataAxis(this.body, this.options.dataAxis);
+  this.yAxisLeft = new DataAxis(this.body, this.options.dataAxis, this.svg);
 
   this.options.dataAxis.orientation = 'right';
-  this.yAxisRight = new DataAxis(this.body, this.options.dataAxis);
+  this.yAxisRight = new DataAxis(this.body, this.options.dataAxis, this.svg);
+  delete this.options.dataAxis.orientation;
 
   // legends
   this.legendLeft = new Legend(this.body, this.options.legend, 'left');
@@ -3612,8 +3623,12 @@ Linegraph.prototype._create = function(){
  */
 Linegraph.prototype.setOptions = function(options) {
   if (options) {
-    var fields = ['label','yAxisOrientation','style','barChart','dataAxis','legend'];
+    var fields = ['defaultGroup','graphHeight','yAxisOrientation','style','barChart','dataAxis'];
     util.selectiveDeepExtend(fields, this.options, options);
+    util._mergeOptions(this.options, options,'catmullRom');
+    util._mergeOptions(this.options, options,'drawPoints');
+    util._mergeOptions(this.options, options,'shaded');
+    util._mergeOptions(this.options, options,'legend');
 
     if (options.catmullRom) {
       if (typeof options.catmullRom == 'object') {
@@ -3632,21 +3647,17 @@ Linegraph.prototype.setOptions = function(options) {
       }
     }
 
-    util._mergeOptions(this.options, options,'catmullRom');
-    util._mergeOptions(this.options, options,'drawPoints');
-    util._mergeOptions(this.options, options,'shaded');
-
     if (this.yAxisLeft) {
-      if (options.dataAxis) {
-        this.yAxisLeft.setOptions(options.legend);
-        this.yAxisRight.setOptions(options.legend);
+      if (options.dataAxis !== undefined) {
+        this.yAxisLeft.setOptions(this.options.dataAxis);
+        this.yAxisRight.setOptions(this.options.dataAxis);
       }
     }
 
-    if (this.legend) {
-      if (options.legend) {
-        this.legendLeft.setOptions(options.legend);
-        this.legendRight.setOptions(options.legend);
+    if (this.legendLeft) {
+      if (options.legend !== undefined) {
+        this.legendLeft.setOptions(this.options.legend);
+        this.legendRight.setOptions(this.options.legend);
       }
     }
   }
@@ -3850,10 +3861,10 @@ Linegraph.prototype._updateGroup = function (group, groupId) {
  * @protected
  */
 Linegraph.prototype._updateUngrouped = function() {
-  var group = {id: UNGROUPED, content: this.options.label};
-  this._updateGroup(group, UNGROUPED);
-
   if (this.itemsData != null) {
+    var group = {id: UNGROUPED, content: this.options.defaultGroup};
+    this._updateGroup(group, UNGROUPED);
+
     var datapoints = this.itemsData.get({
       filter: function (item) {return item.group === undefined;},
       showInternalIds:true
@@ -3868,12 +3879,16 @@ Linegraph.prototype._updateUngrouped = function() {
 
     var pointInUNGROUPED = this.itemsData.get({filter: function (item) {return item.group == UNGROUPED;}});
     if (pointInUNGROUPED.length == 0) {
-      this.legend.deleteGroup(UNGROUPED);
       delete this.groups[UNGROUPED];
-      this.yAxisLeft.yAxisRight(UNGROUPED);
-      this.yAxisLeft.deleteGroup(UNGROUPED);
+      this.legendLeft.removeGroup(UNGROUPED);
+      this.legendRight.removeGroup(UNGROUPED);
+      this.yAxisLeft.removeGroup(UNGROUPED);
+      this.yAxisLeft.removeGroup(UNGROUPED);
     }
   }
+
+  this.legendLeft.redraw();
+  this.legendRight.redraw();
 };
 
 
@@ -3884,6 +3899,7 @@ Linegraph.prototype._updateUngrouped = function() {
 Linegraph.prototype.redraw = function() {
   var resized = false;
 
+  this.svg.style.height = ('' + this.options.graphHeight).replace('px','') + 'px';
   if (this.lastWidth === undefined && this.width || this.lastWidth != this.width) {
     resized = true;
   }
@@ -4110,10 +4126,9 @@ Linegraph.prototype._drawLineGraph = function (datapoints, group) {
       path = DOMutil.getSVGElement('path', this.svgElements, this.svg);
       path.setAttributeNS(null, "class", group.className);
 
-
       // construct path from dataset
       if (group.options.catmullRom.enabled == true) {
-        d = this._catmullRom(dataset);
+        d = this._catmullRom(dataset, group);
       }
       else {
         d = this._linear(dataset);
@@ -4201,7 +4216,7 @@ Linegraph.prototype._prepareData = function (datapoints, options) {
 Linegraph.prototype._catmullRomUniform = function(data) {
   // catmull rom
   var p0, p1, p2, p3, bp1, bp2;
-  var d = "M" + Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
+  var d = Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
   var normalization = 1/6;
   var length = data.length;
   for (var i = 0; i < length - 1; i++) {
@@ -4245,15 +4260,15 @@ Linegraph.prototype._catmullRomUniform = function(data) {
  * @returns {string}
  * @private
  */
-Linegraph.prototype._catmullRom = function(data) {
-  var alpha = this.options.catmullRom.alpha;
+Linegraph.prototype._catmullRom = function(data, group) {
+  var alpha = group.options.catmullRom.alpha;
   if (alpha == 0 || alpha === undefined) {
     return this._catmullRomUniform(data);
   }
   else {
     var p0, p1, p2, p3, bp1, bp2, d1,d2,d3, A, B, N, M;
     var d3powA, d2powA, d3pow2A, d2pow2A, d1pow2A, d1powA;
-    var d = "" + Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
+    var d = Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
     var length = data.length;
     for (var i = 0; i < length - 1; i++) {
 
@@ -4327,10 +4342,10 @@ Linegraph.prototype._linear = function(data) {
   var d = "";
   for (var i = 0; i < data.length; i++) {
     if (i == 0) {
-      d += "M" + data[i].x + "," + data[i].y;
+      d += Math.round(data[i].x) + "," + Math.round(data[i].y);
     }
     else {
-      d += " " + data[i].x + "," + data[i].y;
+      d += " " + Math.round(data[i].x) + "," + Math.round(data[i].y);
     }
   }
   return d;
@@ -5136,12 +5151,18 @@ function Range(body, options) {
     start: null,
     end: null,
     direction: 'horizontal', // 'horizontal' or 'vertical'
+    moveable: true,
+    zoomable: true,
     min: null,
     max: null,
     zoomMin: 10,                                // milliseconds
     zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000  // milliseconds
   };
   this.options = util.extend({}, this.defaultOptions);
+
+  this.props = {
+    touch: {}
+  };
 
   // drag listeners for dragging
   this.body.emitter.on('dragstart', this._onDragStart.bind(this));
@@ -5175,11 +5196,16 @@ Range.prototype = new Component();
  *                                                  (end - start).
  *                              {Number} zoomMax    Set a maximum value for
  *                                                  (end - start).
+ *                              {Boolean} moveable Enable moving of the range
+ *                                                 by dragging. True by default
+ *                              {Boolean} zoomable Enable zooming of the range
+ *                                                 by pinching/scrolling. True by default
  */
 Range.prototype.setOptions = function (options) {
   if (options) {
     // copy the options that we know
-    util.selectiveExtend(['direction', 'min', 'max', 'zoomMin', 'zoomMax'], this.options, options);
+    var fields = ['direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable'];
+    util.selectiveExtend(fields, this.options, options);
 
     if ('start' in options || 'end' in options) {
       // apply a new range. both start and end are optional
@@ -5371,23 +5397,21 @@ Range.conversion = function (start, end, width) {
   }
 };
 
-// global (private) object to store drag params
-var touchParams = {};
-
 /**
  * Start dragging horizontally or vertically
  * @param {Event} event
  * @private
  */
 Range.prototype._onDragStart = function(event) {
+  // only allow dragging when configured as movable
+  if (!this.options.moveable) return;
+
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
-  if (touchParams.ignore) return;
+  if (!this.props.touch.allowDragging) return;
 
-  // TODO: reckon with option movable
-
-  touchParams.start = this.start;
-  touchParams.end = this.end;
+  this.props.touch.start = this.start;
+  this.props.touch.end = this.end;
 
   if (this.body.dom.root) {
     this.body.dom.root.style.cursor = 'move';
@@ -5395,28 +5419,23 @@ Range.prototype._onDragStart = function(event) {
 };
 
 /**
- * Perform dragging operating.
+ * Perform dragging operation
  * @param {Event} event
  * @private
  */
 Range.prototype._onDrag = function (event) {
+  // only allow dragging when configured as movable
+  if (!this.options.moveable) return;
   var direction = this.options.direction;
   validateDirection(direction);
-
-  // TODO: reckon with option movable
-
-
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
-  if (touchParams.ignore) return;
-
+  if (!this.props.touch.allowDragging) return;
   var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
-      interval = (touchParams.end - touchParams.start),
+      interval = (this.props.touch.end - this.props.touch.start),
       width = (direction == 'horizontal') ? this.body.domProps.center.width : this.body.domProps.center.height,
       diffRange = -delta / width * interval;
-
-  this._applyRange(touchParams.start + diffRange, touchParams.end + diffRange);
-
+  this._applyRange(this.props.touch.start + diffRange, this.props.touch.end + diffRange);
   this.body.emitter.emit('rangechange', {
     start: new Date(this.start),
     end:   new Date(this.end)
@@ -5424,16 +5443,17 @@ Range.prototype._onDrag = function (event) {
 };
 
 /**
- * Stop dragging operating.
+ * Stop dragging operation
  * @param {event} event
  * @private
  */
 Range.prototype._onDragEnd = function (event) {
+  // only allow dragging when configured as movable
+  if (!this.options.moveable) return;
+
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
-  if (touchParams.ignore) return;
-
-  // TODO: reckon with option movable
+  if (!this.props.touch.allowDragging) return;
 
   if (this.body.dom.root) {
     this.body.dom.root.style.cursor = 'auto';
@@ -5453,7 +5473,8 @@ Range.prototype._onDragEnd = function (event) {
  * @private
  */
 Range.prototype._onMouseWheel = function(event) {
-  // TODO: reckon with option zoomable
+  // only allow zooming when configured as zoomable and moveable
+  if (!(this.options.zoomable && this.options.moveable)) return;
 
   // retrieve delta
   var delta = 0;
@@ -5499,17 +5520,10 @@ Range.prototype._onMouseWheel = function(event) {
  * @private
  */
 Range.prototype._onTouch = function (event) {
-  touchParams.start = this.start;
-  touchParams.end = this.end;
-  touchParams.ignore = false;
-  touchParams.center = null;
-
-  // don't move the range when dragging a selected event
-  // TODO: it's not so neat to have to know about the state of the ItemSet
-  var item = ItemSet.itemFromTarget(event);
-  if (item && item.selected && this.options.editable) {
-    touchParams.ignore = true;
-  }
+  this.props.touch.start = this.start;
+  this.props.touch.end = this.end;
+  this.props.touch.allowDragging = true;
+  this.props.touch.center = null;
 };
 
 /**
@@ -5517,7 +5531,7 @@ Range.prototype._onTouch = function (event) {
  * @private
  */
 Range.prototype._onHold = function () {
-  touchParams.ignore = true;
+  this.props.touch.allowDragging = false;
 };
 
 /**
@@ -5526,21 +5540,22 @@ Range.prototype._onHold = function () {
  * @private
  */
 Range.prototype._onPinch = function (event) {
-  touchParams.ignore = true;
+  // only allow zooming when configured as zoomable and moveable
+  if (!(this.options.zoomable && this.options.moveable)) return;
 
-  // TODO: reckon with option zoomable
+  this.props.touch.allowDragging = false;
 
   if (event.gesture.touches.length > 1) {
-    if (!touchParams.center) {
-      touchParams.center = getPointer(event.gesture.center, this.body.dom.center);
+    if (!this.props.touch.center) {
+      this.props.touch.center = getPointer(event.gesture.center, this.body.dom.center);
     }
 
     var scale = 1 / event.gesture.scale,
-        initDate = this._pointerToDate(touchParams.center);
+        initDate = this._pointerToDate(this.props.touch.center);
 
     // calculate new start and end
-    var newStart = parseInt(initDate + (touchParams.start - initDate) * scale);
-    var newEnd = parseInt(initDate + (touchParams.end - initDate) * scale);
+    var newStart = parseInt(initDate + (this.props.touch.start - initDate) * scale);
+    var newEnd = parseInt(initDate + (this.props.touch.end - initDate) * scale);
 
     // apply new range
     this.setRange(newStart, newEnd);
@@ -5675,6 +5690,13 @@ Component.prototype.redraw = function() {
 };
 
 /**
+ * Destroy the component. Cleanup DOM and event listeners
+ */
+Component.prototype.destroy = function() {
+  // should be implemented by the component
+};
+
+/**
  * Test whether the component is resized since the last time _isResized() was
  * called.
  * @return {Boolean} Returns true if the component is resized
@@ -5763,6 +5785,21 @@ TimeAxis.prototype._create = function() {
 
   this.dom.foreground.className = 'timeaxis foreground';
   this.dom.background.className = 'timeaxis background';
+};
+
+/**
+ * Destroy the TimeAxis
+ */
+TimeAxis.prototype.destroy = function() {
+  // remove from DOM
+  if (this.dom.foreground.parentNode) {
+    this.dom.foreground.parentNode.removeChild(this.dom.foreground);
+  }
+  if (this.dom.background.parentNode) {
+    this.dom.background.parentNode.removeChild(this.dom.background);
+  }
+
+  this.body = null;
 };
 
 /**
@@ -5930,14 +5967,7 @@ TimeAxis.prototype._repaintMinorText = function (x, text, orientation) {
 
   label.childNodes[0].nodeValue = text;
 
-  if (orientation == 'top') {
-    label.style.top = this.props.majorLabelHeight + 'px';
-    label.style.bottom = '';
-  }
-  else {
-    label.style.top = '';
-    label.style.bottom = this.props.majorLabelHeight + 'px';
-  }
+  label.style.top = (orientation == 'top') ? (this.props.majorLabelHeight + 'px') : '0';
   label.style.left = x + 'px';
   //label.title = title;  // TODO: this is a heavy operation
 };
@@ -5966,14 +5996,7 @@ TimeAxis.prototype._repaintMajorText = function (x, text, orientation) {
   label.childNodes[0].nodeValue = text;
   //label.title = title; // TODO: this is a heavy operation
 
-  if (orientation == 'top') {
-    label.style.top = '0px';
-    label.style.bottom = '';
-  }
-  else {
-    label.style.top = '';
-    label.style.bottom = '0px';
-  }
+  label.style.top = (orientation == 'top') ? '0' : (this.props.minorLabelHeight  + 'px');
   label.style.left = x + 'px';
 };
 
@@ -6119,6 +6142,16 @@ CurrentTime.prototype._create = function() {
 };
 
 /**
+ * Destroy the CurrentTime bar
+ */
+CurrentTime.prototype.destroy = function () {
+  this.options.showCurrentTime = false;
+  this.redraw(); // will remove the bar from the DOM and stop refreshing
+
+  this.body = null;
+};
+
+/**
  * Set options for the component. Options will be merged in current options.
  * @param {Object} options  Available parameters:
  *                          {boolean} [showCurrentTime]
@@ -6157,8 +6190,8 @@ CurrentTime.prototype.redraw = function() {
     // remove the line from the DOM
     if (this.bar.parentNode) {
       this.bar.parentNode.removeChild(this.bar);
-      this.stop();
     }
+    this.stop();
   }
 
   return false;
@@ -6266,6 +6299,19 @@ CustomTime.prototype._create = function() {
   this.hammer.on('dragstart', this._onDragStart.bind(this));
   this.hammer.on('drag',      this._onDrag.bind(this));
   this.hammer.on('dragend',   this._onDragEnd.bind(this));
+};
+
+/**
+ * Destroy the CustomTime bar
+ */
+CustomTime.prototype.destroy = function () {
+  this.options.showCustomTime = false;
+  this.redraw(); // will remove the bar from the DOM
+
+  this.hammer.enable(false);
+  this.hammer = null;
+
+  this.body = null;
 };
 
 /**
@@ -6383,7 +6429,7 @@ function ItemSet(body, options) {
   this.body = body;
 
   this.defaultOptions = {
-    type: 'box',
+    type: null,  // 'box', 'point', 'range'
     orientation: 'bottom',  // 'top' or 'bottom'
     align: 'center', // alignment of box items
     stack: true,
@@ -6419,6 +6465,11 @@ function ItemSet(body, options) {
 
   // options is shared by this ItemSet and all its items
   this.options = util.extend({}, this.defaultOptions);
+
+  // options for getting items from the DataSet with the correct type
+  this.itemOptions = {
+    type: {start: 'Date', end: 'Date'}
+  };
 
   this.conversion = {
     toScreen: body.util.toScreen,
@@ -6479,7 +6530,6 @@ ItemSet.prototype = new Component();
 ItemSet.types = {
   box: ItemBox,
   range: ItemRange,
-  rangeoverflow: ItemRangeOverflow,
   point: ItemPoint
 };
 
@@ -6518,8 +6568,10 @@ ItemSet.prototype._create = function(){
   this._updateUngrouped();
 
   // attach event listeners
-  // TODO: use event listeners from the rootpanel to improve performance?
-  this.hammer = Hammer(frame, {
+  // Note: we bind to the centerContainer for the case where the height
+  //       of the center container is larger than of the ItemSet, so we
+  //       can click in the empty area to create a new item or deselect an item.
+  this.hammer = Hammer(this.body.dom.centerContainer, {
     prevent_default: true
   });
 
@@ -6649,6 +6701,20 @@ ItemSet.prototype.setOptions = function(options) {
 ItemSet.prototype.markDirty = function() {
   this.groupIds = [];
   this.stackDirty = true;
+};
+
+/**
+ * Destroy the ItemSet
+ */
+ItemSet.prototype.destroy = function() {
+  this.hide();
+  this.setItems(null);
+  this.setGroups(null);
+
+  this.hammer = null;
+
+  this.body = null;
+  this.conversion = null;
 };
 
 /**
@@ -6800,14 +6866,8 @@ ItemSet.prototype.redraw = function() {
   height = Math.max(height, minHeight);
   this.stackDirty = false;
 
-  // reposition frame
-  frame.style.left    = asSize(options.left, '');
-  frame.style.right   = asSize(options.right, '');
-  frame.style.top     = asSize((orientation == 'top') ? '0' : '');
-  frame.style.bottom  = asSize((orientation == 'top') ? '' : '0');
-  frame.style.width   = asSize(options.width, '100%');
+  // update frame height
   frame.style.height  = asSize(height);
-  //frame.style.height  = asSize('height' in options ? options.height : height); // TODO: reckon with height
 
   // calculate actual size and position
   this.props.top = frame.offsetTop;
@@ -7026,12 +7086,9 @@ ItemSet.prototype._onUpdate = function(ids) {
   var me = this;
 
   ids.forEach(function (id) {
-    var itemData = me.itemsData.get(id),
+    var itemData = me.itemsData.get(id, me.itemOptions),
         item = me.items[id],
-        type = itemData.type ||
-            (itemData.start && itemData.end && 'range') ||
-            me.options.type ||
-            'box';
+        type = itemData.type || me.options.type || (itemData.end ? 'range' : 'box');
 
     var constructor = ItemSet.types[type];
 
@@ -7053,6 +7110,11 @@ ItemSet.prototype._onUpdate = function(ids) {
         item = new constructor(itemData, me.conversion, me.options);
         item.id = id; // TODO: not so nice setting id afterwards
         me._addItem(item);
+      }
+      else if (type == 'rangeoverflow') {
+        // TODO: deprecated since version 2.1.0 (or 3.0.0?). cleanup some day
+        throw new TypeError('Item type "rangeoverflow" is deprecated. Use css styling instead: ' +
+            '.vis.timeline .item.range .content {overflow: visible;}');
       }
       else {
         throw new TypeError('Unknown item type "' + type + '"');
@@ -7446,16 +7508,18 @@ ItemSet.prototype._onDragEnd = function (event) {
 
     this.touchParams.itemProps.forEach(function (props) {
       var id = props.item.id,
-          itemData = me.itemsData.get(id);
+          itemData = me.itemsData.get(id, me.itemOptions);
 
       var changed = false;
       if ('start' in props.item.data) {
         changed = (props.start != props.item.data.start.valueOf());
-        itemData.start = util.convert(props.item.data.start, dataset.convert['start']);
+        itemData.start = util.convert(props.item.data.start,
+                dataset._options.type && dataset._options.type.start || 'Date');
       }
       if ('end' in props.item.data) {
         changed = changed  || (props.end != props.item.data.end.valueOf());
-        itemData.end = util.convert(props.item.data.end, dataset.convert['end']);
+        itemData.end = util.convert(props.item.data.end,
+                dataset._options.type && dataset._options.type.end || 'Date');
       }
       if ('group' in props.item.data) {
         changed = changed  || (props.group != props.item.data.group);
@@ -7467,7 +7531,7 @@ ItemSet.prototype._onDragEnd = function (event) {
         me.options.onMove(itemData, function (itemData) {
           if (itemData) {
             // apply changes
-            itemData[dataset.fieldId] = id; // ensure the item contains its id (can be undefined)
+            itemData[dataset._fieldId] = id; // ensure the item contains its id (can be undefined)
             changes.push(itemData);
           }
           else {
@@ -7561,13 +7625,12 @@ ItemSet.prototype._onAddItem = function (event) {
     };
 
     // when default type is a range, add a default end date to the new item
-    if (this.options.type === 'range' || this.options.type == 'rangeoverflow') {
+    if (this.options.type === 'range') {
       var end = this.body.util.toTime(x + this.props.width / 5);
       newItem.end = snap ? snap(end) : end;
     }
 
-    var id = util.randomUUID();
-    newItem[this.itemsData.fieldId] = id;
+    newItem[this.itemsData.fieldId] = util.randomUUID();
 
     var group = ItemSet.groupFromTarget(event);
     if (group) {
@@ -8037,20 +8100,19 @@ ItemBox.prototype.repositionY = function() {
       dot = this.dom.dot;
 
   if (orientation == 'top') {
-    box.style.top = (this.top || 0) + 'px';
-    box.style.bottom = '';
+    box.style.top     = (this.top || 0) + 'px';
 
-    line.style.top = '0';
-    line.style.bottom = '';
+    line.style.top    = '0';
     line.style.height = (this.parent.top + this.top + 1) + 'px';
+    line.style.bottom = '';
   }
   else { // orientation 'bottom'
-    box.style.top = '';
-    box.style.bottom = (this.top || 0) + 'px';
+    var itemSetHeight = this.parent.itemSet.props.height; // TODO: this is nasty
+    var lineHeight = itemSetHeight - this.parent.top - this.parent.height + this.top;
 
-    line.style.top = (this.parent.top + this.parent.height - this.top - 1) + 'px';
+    box.style.top     = (this.parent.height - this.top - this.height || 0) + 'px';
+    line.style.top    = (itemSetHeight - lineHeight) + 'px';
     line.style.bottom = '0';
-    line.style.height = '';
   }
 
   dot.style.top = (-this.props.dot.height / 2) + 'px';
@@ -8241,11 +8303,9 @@ ItemPoint.prototype.repositionY = function() {
 
   if (orientation == 'top') {
     point.style.top = this.top + 'px';
-    point.style.bottom = '';
   }
   else {
-    point.style.top = '';
-    point.style.bottom = this.top + 'px';
+    point.style.top = (this.parent.height - this.top - this.height) + 'px';
   }
 };
 
@@ -8265,6 +8325,7 @@ function ItemRange (data, conversion, options) {
       width: 0
     }
   };
+  this.overflow = false; // if contents can overflow (css styling), this flag is set to true
 
   // validate data
   if (data) {
@@ -8358,6 +8419,9 @@ ItemRange.prototype.redraw = function() {
 
   // recalculate size
   if (this.dirty) {
+    // determine from css whether this box has overflow
+    this.overflow = window.getComputedStyle(dom.content).overflow !== 'hidden';
+
     this.props.content.width = this.dom.content.offsetWidth;
     this.height = this.dom.box.offsetHeight;
 
@@ -8402,6 +8466,7 @@ ItemRange.prototype.hide = function() {
  * Reposition the item horizontally
  * @Override
  */
+// TODO: delete the old function
 ItemRange.prototype.repositionX = function() {
   var props = this.props,
       parentWidth = this.parent.width,
@@ -8417,22 +8482,35 @@ ItemRange.prototype.repositionX = function() {
   if (end > 2 * parentWidth) {
     end = 2 * parentWidth;
   }
+  var boxWidth = Math.max(end - start, 1);
 
-  // when range exceeds left of the window, position the contents at the left of the visible area
-  if (start < 0) {
-    contentLeft = Math.min(-start,
-        (end - start - props.content.width - 2 * padding));
-    // TODO: remove the need for options.padding. it's terrible.
-  }
-  else {
-    contentLeft = 0;
-  }
+  if (this.overflow) {
+    // when range exceeds left of the window, position the contents at the left of the visible area
+    contentLeft = Math.max(-start, 0);
 
-  this.left = start;
-  this.width = Math.max(end - start, 1);
+    this.left = start;
+    this.width = boxWidth + this.props.content.width;
+    // Note: The calculation of width is an optimistic calculation, giving
+    //       a width which will not change when moving the Timeline
+    //       So no restacking needed, which is nicer for the eye;
+  }
+  else { // no overflow
+    // when range exceeds left of the window, position the contents at the left of the visible area
+    if (start < 0) {
+      contentLeft = Math.min(-start,
+          (end - start - props.content.width - 2 * padding));
+      // TODO: remove the need for options.padding. it's terrible.
+    }
+    else {
+      contentLeft = 0;
+    }
+
+    this.left = start;
+    this.width = boxWidth;
+  }
 
   this.dom.box.style.left = this.left + 'px';
-  this.dom.box.style.width = this.width + 'px';
+  this.dom.box.style.width = boxWidth + 'px';
   this.dom.content.style.left = contentLeft + 'px';
 };
 
@@ -8446,11 +8524,9 @@ ItemRange.prototype.repositionY = function() {
 
   if (orientation == 'top') {
     box.style.top = this.top + 'px';
-    box.style.bottom = '';
   }
   else {
-    box.style.top = '';
-    box.style.bottom = this.top + 'px';
+    box.style.top = (this.parent.height - this.top - this.height) + 'px';
   }
 };
 
@@ -8515,64 +8591,6 @@ ItemRange.prototype._repaintDragRight = function () {
 };
 
 /**
- * @constructor ItemRangeOverflow
- * @extends ItemRange
- * @param {Object} data             Object containing parameters start, end
- *                                  content, className.
- * @param {{toScreen: function, toTime: function}} conversion
- *                                  Conversion functions from time to screen and vice versa
- * @param {Object} [options]        Configuration options
- *                                  // TODO: describe options
- */
-function ItemRangeOverflow (data, conversion, options) {
-  this.props = {
-    content: {
-      left: 0,
-      width: 0
-    }
-  };
-
-  ItemRange.call(this, data, conversion, options);
-}
-
-ItemRangeOverflow.prototype = new ItemRange (null, null, null);
-
-ItemRangeOverflow.prototype.baseClassName = 'item rangeoverflow';
-
-/**
- * Reposition the item horizontally
- * @Override
- */
-ItemRangeOverflow.prototype.repositionX = function() {
-  var parentWidth = this.parent.width,
-      start = this.conversion.toScreen(this.data.start),
-      end = this.conversion.toScreen(this.data.end),
-      contentLeft;
-
-  // limit the width of the this, as browsers cannot draw very wide divs
-  if (start < -parentWidth) {
-    start = -parentWidth;
-  }
-  if (end > 2 * parentWidth) {
-    end = 2 * parentWidth;
-  }
-
-  // when range exceeds left of the window, position the contents at the left of the visible area
-  contentLeft = Math.max(-start, 0);
-
-  this.left = start;
-  var boxWidth = Math.max(end - start, 1);
-  this.width = boxWidth + this.props.content.width;
-  // Note: The calculation of width is an optimistic calculation, giving
-  //       a width which will not change when moving the Timeline
-  //       So no restacking needed, which is nicer for the eye
-
-  this.dom.box.style.left = this.left + 'px';
-  this.dom.box.style.width = boxWidth + 'px';
-  this.dom.content.style.left = contentLeft + 'px';
-};
-
-/**
  * @constructor Group
  * @param {Number | String} groupId
  * @param {Object} data
@@ -8590,6 +8608,7 @@ function Group (groupId, data, itemSet) {
       height: 0
     }
   };
+  this.className = null;
 
   this.items = {};        // items filtered by groupId of this group
   this.visibleItems = []; // items currently visible in window
@@ -8623,8 +8642,10 @@ Group.prototype._create = function() {
   this.dom.foreground = foreground;
 
   this.dom.background = document.createElement('div');
+  this.dom.background.className = 'group';
 
   this.dom.axis = document.createElement('div');
+  this.dom.axis.className = 'group';
 
   // create a hidden marker to detect when the Timelines container is attached
   // to the DOM, or the style of a parent of the Timeline is changed from
@@ -8660,9 +8681,18 @@ Group.prototype.setData = function(data) {
   }
 
   // update className
-  var className = data && data.className;
-  if (className) {
+  var className = data && data.className || null;
+  if (className != this.className) {
+    if (this.className) {
+      util.removeClassName(this.dom.label, className);
+      util.removeClassName(this.dom.foreground, className);
+      util.removeClassName(this.dom.background, className);
+      util.removeClassName(this.dom.axis, className);
+    }
     util.addClassName(this.dom.label, className);
+    util.addClassName(this.dom.foreground, className);
+    util.addClassName(this.dom.background, className);
+    util.addClassName(this.dom.axis, className);
   }
 };
 
@@ -8738,7 +8768,8 @@ Group.prototype.redraw = function(range, margin, restack) {
   resized = util.updateProperty(this.props.label, 'height', this.dom.inner.clientHeight) || resized;
 
   // apply new height
-  foreground.style.height  = height + 'px';
+  this.dom.background.style.height  = height + 'px';
+  this.dom.foreground.style.height  = height + 'px';
   this.dom.label.style.height = height + 'px';
 
   // update vertical position of items after they are re-stacked and the height of the group is calculated
@@ -9039,6 +9070,10 @@ Group.prototype._checkIfVisible = function(item, visibleItems, range) {
  * @constructor
  */
 function Timeline (container, items, options) {
+  if (!(this instanceof Timeline)) {
+    throw new SyntaxError('Constructor must be called with the new operator');
+  }
+
   var me = this;
   this.defaultOptions = {
     start: null,
@@ -9046,12 +9081,11 @@ function Timeline (container, items, options) {
 
     autoResize: true,
 
+    orientation: 'bottom',
     width: null,
     height: null,
     maxHeight: null,
     minHeight: null
-
-    // TODO: implement options moveable and zoomable
   };
   this.options = util.deepExtend({}, this.defaultOptions);
 
@@ -9141,6 +9175,12 @@ Timeline.prototype._create = function (container) {
   this.dom.right                = document.createElement('div');
   this.dom.top                  = document.createElement('div');
   this.dom.bottom               = document.createElement('div');
+  this.dom.shadowTop            = document.createElement('div');
+  this.dom.shadowBottom         = document.createElement('div');
+  this.dom.shadowTopLeft        = document.createElement('div');
+  this.dom.shadowBottomLeft     = document.createElement('div');
+  this.dom.shadowTopRight       = document.createElement('div');
+  this.dom.shadowBottomRight    = document.createElement('div');
 
   this.dom.background.className           = 'vispanel background';
   this.dom.backgroundVertical.className   = 'vispanel background vertical';
@@ -9153,6 +9193,12 @@ Timeline.prototype._create = function (container) {
   this.dom.left.className                 = 'content';
   this.dom.center.className               = 'content';
   this.dom.right.className                = 'content';
+  this.dom.shadowTop.className            = 'shadow top';
+  this.dom.shadowBottom.className         = 'shadow bottom';
+  this.dom.shadowTopLeft.className        = 'shadow top';
+  this.dom.shadowBottomLeft.className     = 'shadow bottom';
+  this.dom.shadowTopRight.className       = 'shadow top';
+  this.dom.shadowBottomRight.className    = 'shadow bottom';
 
   this.dom.root.appendChild(this.dom.background);
   this.dom.root.appendChild(this.dom.backgroundVertical);
@@ -9167,8 +9213,19 @@ Timeline.prototype._create = function (container) {
   this.dom.leftContainer.appendChild(this.dom.left);
   this.dom.rightContainer.appendChild(this.dom.right);
 
+  this.dom.centerContainer.appendChild(this.dom.shadowTop);
+  this.dom.centerContainer.appendChild(this.dom.shadowBottom);
+  this.dom.leftContainer.appendChild(this.dom.shadowTopLeft);
+  this.dom.leftContainer.appendChild(this.dom.shadowBottomLeft);
+  this.dom.rightContainer.appendChild(this.dom.shadowTopRight);
+  this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
+
   this.on('rangechange', this.redraw.bind(this));
   this.on('change', this.redraw.bind(this));
+  this.on('touch', this._onTouch.bind(this));
+  this.on('pinch', this._onPinch.bind(this));
+  this.on('dragstart', this._onDragStart.bind(this));
+  this.on('drag', this._onDrag.bind(this));
 
   // create event listeners for all interesting events, these events will be
   // emitted via emitter
@@ -9179,8 +9236,8 @@ Timeline.prototype._create = function (container) {
 
   var me = this;
   var events = [
-    'pinch',
-    //'tap', 'doubletap', 'hold', // TODO: catching the events here disables selecting an item
+    'touch', 'pinch',
+    'tap', 'doubletap', 'hold',
     'dragstart', 'drag', 'dragend',
     'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
   ];
@@ -9205,8 +9262,11 @@ Timeline.prototype._create = function (container) {
     right: {},
     top: {},
     bottom: {},
-    border: {}
+    border: {},
+    scrollTop: 0,
+    scrollTopMin: 0
   };
+  this.touch = {}; // store state information needed for touch events
 
   // attach the root panel to the provided container
   if (!container) throw new Error('No container provided');
@@ -9214,8 +9274,47 @@ Timeline.prototype._create = function (container) {
 };
 
 /**
+ * Destroy the Timeline, clean up all DOM elements and event listeners.
+ */
+Timeline.prototype.destroy = function () {
+  // unbind datasets
+  this.clear();
+
+  // remove all event listeners
+  this.off();
+
+  // stop checking for changed size
+  this._stopAutoResize();
+
+  // remove from DOM
+  if (this.dom.root.parentNode) {
+    this.dom.root.parentNode.removeChild(this.dom.root);
+  }
+  this.dom = null;
+
+  // cleanup hammer touch events
+  for (var event in this.listeners) {
+    if (this.listeners.hasOwnProperty(event)) {
+      delete this.listeners[event];
+    }
+  }
+  this.listeners = null;
+  this.hammer = null;
+
+  // give all components the opportunity to cleanup
+  this.components.forEach(function (component) {
+    component.destroy();
+  });
+
+  this.body = null;
+};
+
+/**
  * Set options. Options will be passed to all components loaded in the Timeline.
  * @param {Object} [options]
+ *                           {String} orientation
+ *                              Vertical orientation for the Timeline,
+ *                              can be 'bottom' (default) or 'top'.
  *                           {String | Number} width
  *                              Width for the timeline, a number in pixels or
  *                              a css string like '1000px' or '75%'. '100%' by default.
@@ -9238,7 +9337,7 @@ Timeline.prototype._create = function (container) {
 Timeline.prototype.setOptions = function (options) {
   if (options) {
     // copy the known options
-    var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end'];
+    var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation'];
     util.selectiveExtend(fields, this.options, options);
 
     // enable/disable autoResize
@@ -9301,7 +9400,7 @@ Timeline.prototype.setItems = function(items) {
   else {
     // turn an array into a dataset
     newDataSet = new DataSet(items, {
-      convert: {
+      type: {
         start: 'Date',
         end: 'Date'
       }
@@ -9418,20 +9517,22 @@ Timeline.prototype.getItemRange = function() {
   if (itemsData) {
     // calculate the minimum value of the field 'start'
     var minItem = itemsData.min('start');
-    min = minItem ? minItem.start.valueOf() : null;
+    min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
+    // Note: we convert first to Date and then to number because else
+    // a conversion from ISODate to Number will fail
 
     // calculate maximum value of fields 'start' and 'end'
     var maxStartItem = itemsData.max('start');
     if (maxStartItem) {
-      max = maxStartItem.start.valueOf();
+      max = util.convert(maxStartItem.start, 'Date').valueOf();
     }
     var maxEndItem = itemsData.max('end');
     if (maxEndItem) {
       if (max == null) {
-        max = maxEndItem.end.valueOf();
+        max = util.convert(maxEndItem.end, 'Date').valueOf();
       }
       else {
-        max = Math.max(max, maxEndItem.end.valueOf());
+        max = Math.max(max, util.convert(maxEndItem.end, 'Date').valueOf());
       }
     }
   }
@@ -9505,6 +9606,8 @@ Timeline.prototype.redraw = function() {
       options = this.options,
       props = this.props,
       dom = this.dom;
+
+  if (!dom) return; // when destroyed
 
   // update class names
   dom.root.className = 'vis timeline root ' + options.orientation;
@@ -9594,21 +9697,31 @@ Timeline.prototype.redraw = function() {
   dom.bottom.style.left               = props.left.width + 'px';
   dom.bottom.style.top                = (props.top.height + props.centerContainer.height) + 'px';
 
+  // update the scrollTop, feasible range for the offset can be changed
+  // when the height of the Timeline or of the contents of the center changed
+  this._updateScrollTop();
+
   // reposition the scrollable contents
-  var offset;
-  if (options.orientation == 'top') {
-    offset = 0;
-  }
-  else { // orientation == 'bottom'
-    // keep the items aligned to the axis at the bottom
-    offset = 0;// props.centerContainer.height - props.center.height;
-  }
-  dom.center.style.left               = '0';
-  dom.center.style.top                = offset+ 'px';
-  dom.left.style.left                 = '0';
-  dom.left.style.top                  = offset+ 'px';
-  dom.right.style.left                = '0';
-  dom.right.style.top                 = offset+ 'px';
+  var offset = this.props.scrollTop;
+//  if (options.orientation == 'bottom') {
+//    offset += Math.max(this.props.centerContainer.height - this.props.center.height, 0);
+//  }
+  dom.center.style.left = '0';
+  dom.center.style.top  = offset + 'px';
+  dom.left.style.left   = '0';
+  dom.left.style.top    = offset + 'px';
+  dom.right.style.left  = '0';
+  dom.right.style.top   = offset + 'px';
+
+  // show shadows when vertical scrolling is available
+  var visibilityTop = this.props.scrollTop == 0 ? 'hidden' : '';
+  var visibilityBottom = this.props.scrollTop == this.props.scrollTopMin ? 'hidden' : '';
+  dom.shadowTop.style.visibility          = visibilityTop;
+  dom.shadowBottom.style.visibility       = visibilityBottom;
+  dom.shadowTopLeft.style.visibility      = visibilityTop;
+  dom.shadowBottomLeft.style.visibility   = visibilityBottom;
+  dom.shadowTopRight.style.visibility     = visibilityTop;
+  dom.shadowBottomRight.style.visibility  = visibilityBottom;
 
   // redraw all components
   this.components.forEach(function (component) {
@@ -9673,7 +9786,7 @@ Timeline.prototype._startAutoResize = function () {
 
   this._stopAutoResize();
 
-  function checkSize() {
+  this._onResize = function() {
     if (me.options.autoResize != true) {
       // stop watching when the option autoResize is changed to false
       me._stopAutoResize();
@@ -9690,12 +9803,12 @@ Timeline.prototype._startAutoResize = function () {
         me.emit('change');
       }
     }
-  }
+  };
 
-  // TODO: automatically cleanup the event listener when the frame is deleted
-  util.addEventListener(window, 'resize', checkSize);
+  // add event listener to window resize
+  util.addEventListener(window, 'resize', this._onResize);
 
-  this.watchTimer = setInterval(checkSize, 1000);
+  this.watchTimer = setInterval(this._onResize, 1000);
 };
 
 /**
@@ -9708,7 +9821,101 @@ Timeline.prototype._stopAutoResize = function () {
     this.watchTimer = undefined;
   }
 
-  // TODO: remove event listener on window.resize
+  // remove event listener on window.resize
+  util.removeEventListener(window, 'resize', this._onResize);
+  this._onResize = null;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onTouch = function (event) {
+  this.touch.allowDragging = true;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onPinch = function (event) {
+  this.touch.allowDragging = false;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onDragStart = function (event) {
+  this.touch.initialScrollTop = this.props.scrollTop;
+};
+
+/**
+ * Move the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onDrag = function (event) {
+  // refuse to drag when we where pinching to prevent the timeline make a jump
+  // when releasing the fingers in opposite order from the touch screen
+  if (!this.touch.allowDragging) return;
+
+  var delta = event.gesture.deltaY;
+
+  var oldScrollTop = this._getScrollTop();
+  var newScrollTop = this._setScrollTop(this.touch.initialScrollTop + delta);
+
+  if (newScrollTop != oldScrollTop) {
+    this.redraw(); // TODO: this causes two redraws when dragging, the other is triggered by rangechange already
+  }
+};
+
+/**
+ * Apply a scrollTop
+ * @param {Number} scrollTop
+ * @returns {Number} scrollTop  Returns the applied scrollTop
+ * @private
+ */
+Timeline.prototype._setScrollTop = function (scrollTop) {
+  this.props.scrollTop = scrollTop;
+  this._updateScrollTop();
+  return this.props.scrollTop;
+};
+
+/**
+ * Update the current scrollTop when the height of  the containers has been changed
+ * @returns {Number} scrollTop  Returns the applied scrollTop
+ * @private
+ */
+Timeline.prototype._updateScrollTop = function () {
+  // recalculate the scrollTopMin
+  var scrollTopMin = Math.min(this.props.centerContainer.height - this.props.center.height, 0); // is negative or zero
+  if (scrollTopMin != this.props.scrollTopMin) {
+    // in case of bottom orientation, change the scrollTop such that the contents
+    // do not move relative to the time axis at the bottom
+    if (this.options.orientation == 'bottom') {
+      this.props.scrollTop += (scrollTopMin - this.props.scrollTopMin);
+    }
+    this.props.scrollTopMin = scrollTopMin;
+  }
+
+  // limit the scrollTop to the feasible scroll range
+  if (this.props.scrollTop > 0) this.props.scrollTop = 0;
+  if (this.props.scrollTop < scrollTopMin) this.props.scrollTop = scrollTopMin;
+
+  return this.props.scrollTop;
+};
+
+/**
+ * Get the current scrollTop
+ * @returns {number} scrollTop
+ * @private
+ */
+Timeline.prototype._getScrollTop = function () {
+  return this.props.scrollTop;
 };
 
 /**
@@ -9718,7 +9925,7 @@ Timeline.prototype._stopAutoResize = function () {
  * @param {Object} [options]  See Graph2d.setOptions for the available options.
  * @constructor
  */
-function Graph2d (container, items, options) {
+function Graph2d (container, items, options, groups) {
   var me = this;
   this.defaultOptions = {
     start: null,
@@ -9726,12 +9933,11 @@ function Graph2d (container, items, options) {
 
     autoResize: true,
 
+    orientation: 'bottom',
     width: null,
     height: null,
     maxHeight: null,
     minHeight: null
-
-    // TODO: implement options moveable and zoomable
   };
   this.options = util.deepExtend({}, this.defaultOptions);
 
@@ -9787,6 +9993,10 @@ function Graph2d (container, items, options) {
     this.setOptions(options);
   }
 
+  if (groups) {
+    this.setGroups(groups);
+  }
+
   // create itemset
   if (items) {
     this.setItems(items);
@@ -9796,13 +10006,13 @@ function Graph2d (container, items, options) {
   }
 }
 
-// turn Timeline into an event emitter
+// turn Graph2d into an event emitter
 Emitter(Graph2d.prototype);
 
 /**
- * Create the main DOM for the Timeline: a root panel containing left, right,
+ * Create the main DOM for the Graph2d: a root panel containing left, right,
  * top, bottom, content, and background panel.
- * @param {Element} container  The container element where the Timeline will
+ * @param {Element} container  The container element where the Graph2d will
  *                             be attached.
  * @private
  */
@@ -9812,18 +10022,26 @@ Graph2d.prototype._create = function (container) {
   this.dom.root                 = document.createElement('div');
   this.dom.background           = document.createElement('div');
   this.dom.backgroundVertical   = document.createElement('div');
-  this.dom.backgroundHorizontal = document.createElement('div');
+  this.dom.backgroundHorizontalContainer = document.createElement('div');
   this.dom.centerContainer      = document.createElement('div');
   this.dom.leftContainer        = document.createElement('div');
   this.dom.rightContainer       = document.createElement('div');
+  this.dom.backgroundHorizontal = document.createElement('div');
   this.dom.center               = document.createElement('div');
   this.dom.left                 = document.createElement('div');
   this.dom.right                = document.createElement('div');
   this.dom.top                  = document.createElement('div');
   this.dom.bottom               = document.createElement('div');
+  this.dom.shadowTop            = document.createElement('div');
+  this.dom.shadowBottom         = document.createElement('div');
+  this.dom.shadowTopLeft        = document.createElement('div');
+  this.dom.shadowBottomLeft     = document.createElement('div');
+  this.dom.shadowTopRight       = document.createElement('div');
+  this.dom.shadowBottomRight    = document.createElement('div');
 
   this.dom.background.className           = 'vispanel background';
   this.dom.backgroundVertical.className   = 'vispanel background vertical';
+  this.dom.backgroundHorizontalContainer.className = 'vispanel background horizontal';
   this.dom.backgroundHorizontal.className = 'vispanel background horizontal';
   this.dom.centerContainer.className      = 'vispanel center';
   this.dom.leftContainer.className        = 'vispanel left';
@@ -9833,22 +10051,40 @@ Graph2d.prototype._create = function (container) {
   this.dom.left.className                 = 'content';
   this.dom.center.className               = 'content';
   this.dom.right.className                = 'content';
+  this.dom.shadowTop.className            = 'shadow top';
+  this.dom.shadowBottom.className         = 'shadow bottom';
+  this.dom.shadowTopLeft.className        = 'shadow top';
+  this.dom.shadowBottomLeft.className     = 'shadow bottom';
+  this.dom.shadowTopRight.className       = 'shadow top';
+  this.dom.shadowBottomRight.className    = 'shadow bottom';
 
   this.dom.root.appendChild(this.dom.background);
   this.dom.root.appendChild(this.dom.backgroundVertical);
-  this.dom.root.appendChild(this.dom.backgroundHorizontal);
+  this.dom.root.appendChild(this.dom.backgroundHorizontalContainer);
   this.dom.root.appendChild(this.dom.centerContainer);
   this.dom.root.appendChild(this.dom.leftContainer);
   this.dom.root.appendChild(this.dom.rightContainer);
   this.dom.root.appendChild(this.dom.top);
   this.dom.root.appendChild(this.dom.bottom);
 
+  this.dom.backgroundHorizontalContainer.appendChild(this.dom.backgroundHorizontal);
   this.dom.centerContainer.appendChild(this.dom.center);
   this.dom.leftContainer.appendChild(this.dom.left);
   this.dom.rightContainer.appendChild(this.dom.right);
 
+  this.dom.centerContainer.appendChild(this.dom.shadowTop);
+  this.dom.centerContainer.appendChild(this.dom.shadowBottom);
+  this.dom.leftContainer.appendChild(this.dom.shadowTopLeft);
+  this.dom.leftContainer.appendChild(this.dom.shadowBottomLeft);
+  this.dom.rightContainer.appendChild(this.dom.shadowTopRight);
+  this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
+
   this.on('rangechange', this.redraw.bind(this));
   this.on('change', this.redraw.bind(this));
+  this.on('touch', this._onTouch.bind(this));
+  this.on('pinch', this._onPinch.bind(this));
+  this.on('dragstart', this._onDragStart.bind(this));
+  this.on('drag', this._onDrag.bind(this));
 
   // create event listeners for all interesting events, these events will be
   // emitted via emitter
@@ -9859,8 +10095,8 @@ Graph2d.prototype._create = function (container) {
 
   var me = this;
   var events = [
-    'pinch',
-    //'tap', 'doubletap', 'hold', // TODO: catching the events here disables selecting an item
+    'touch', 'pinch',
+    'tap', 'doubletap', 'hold',
     'dragstart', 'drag', 'dragend',
     'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
   ];
@@ -9885,8 +10121,11 @@ Graph2d.prototype._create = function (container) {
     right: {},
     top: {},
     bottom: {},
-    border: {}
+    border: {},
+    scrollTop: 0,
+    scrollTopMin: 0
   };
+  this.touch = {}; // store state information needed for touch events
 
   // attach the root panel to the provided container
   if (!container) throw new Error('No container provided');
@@ -9894,21 +10133,60 @@ Graph2d.prototype._create = function (container) {
 };
 
 /**
+ * Destroy the Graph2d, clean up all DOM elements and event listeners.
+ */
+Graph2d.prototype.destroy = function () {
+  // unbind datasets
+  this.clear();
+
+  // remove all event listeners
+  this.off();
+
+  // stop checking for changed size
+  this._stopAutoResize();
+
+  // remove from DOM
+  if (this.dom.root.parentNode) {
+    this.dom.root.parentNode.removeChild(this.dom.root);
+  }
+  this.dom = null;
+
+  // cleanup hammer touch events
+  for (var event in this.listeners) {
+    if (this.listeners.hasOwnProperty(event)) {
+      delete this.listeners[event];
+    }
+  }
+  this.listeners = null;
+  this.hammer = null;
+
+  // give all components the opportunity to cleanup
+  this.components.forEach(function (component) {
+    component.destroy();
+  });
+
+  this.body = null;
+};
+
+/**
  * Set options. Options will be passed to all components loaded in the Graph2d.
  * @param {Object} [options]
+ *                           {String} orientation
+ *                              Vertical orientation for the Graph2d,
+ *                              can be 'bottom' (default) or 'top'.
  *                           {String | Number} width
  *                              Width for the timeline, a number in pixels or
  *                              a css string like '1000px' or '75%'. '100%' by default.
  *                           {String | Number} height
- *                              Fixed height for the Timeline, a number in pixels or
+ *                              Fixed height for the Graph2d, a number in pixels or
  *                              a css string like '400px' or '75%'. If undefined,
- *                              The Timeline will automatically size such that
+ *                              The Graph2d will automatically size such that
  *                              its contents fit.
  *                           {String | Number} minHeight
- *                              Minimum height for the Timeline, a number in pixels or
+ *                              Minimum height for the Graph2d, a number in pixels or
  *                              a css string like '400px' or '75%'.
  *                           {String | Number} maxHeight
- *                              Maximum height for the Timeline, a number in pixels or
+ *                              Maximum height for the Graph2d, a number in pixels or
  *                              a css string like '400px' or '75%'.
  *                           {Number | Date | String} start
  *                              Start date for the visible window
@@ -9918,7 +10196,7 @@ Graph2d.prototype._create = function (container) {
 Graph2d.prototype.setOptions = function (options) {
   if (options) {
     // copy the known options
-    var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end'];
+    var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation'];
     util.selectiveExtend(fields, this.options, options);
 
     // enable/disable autoResize
@@ -10002,7 +10280,6 @@ Graph2d.prototype.setItems = function(items) {
   }
 };
 
-
 /**
  * Set groups
  * @param {vis.DataSet | Array | google.visualization.DataTable} groups
@@ -10024,7 +10301,6 @@ Graph2d.prototype.setGroups = function(groups) {
   this.groupsData = newDataSet;
   this.linegraph.setGroups(newDataSet);
 };
-
 
 /**
  * Clear the Graph2d. By Default, items, groups and options are cleared.
@@ -10058,7 +10334,7 @@ Graph2d.prototype.clear = function(what) {
 };
 
 /**
- * Set Timeline window such that it fits all items
+ * Set Graph2d window such that it fits all items
  */
 Graph2d.prototype.fit = function() {
   // apply the data range as range
@@ -10094,26 +10370,28 @@ Graph2d.prototype.fit = function() {
 Graph2d.prototype.getItemRange = function() {
   // calculate min from start filed
   var itemsData = this.itemsData,
-      min = null,
-      max = null;
+    min = null,
+    max = null;
 
   if (itemsData) {
     // calculate the minimum value of the field 'start'
     var minItem = itemsData.min('start');
-    min = minItem ? minItem.start.valueOf() : null;
+    min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
+    // Note: we convert first to Date and then to number because else
+    // a conversion from ISODate to Number will fail
 
     // calculate maximum value of fields 'start' and 'end'
     var maxStartItem = itemsData.max('start');
     if (maxStartItem) {
-      max = maxStartItem.start.valueOf();
+      max = util.convert(maxStartItem.start, 'Date').valueOf();
     }
     var maxEndItem = itemsData.max('end');
     if (maxEndItem) {
       if (max == null) {
-        max = maxEndItem.end.valueOf();
+        max = util.convert(maxEndItem.end, 'Date').valueOf();
       }
       else {
-        max = Math.max(max, maxEndItem.end.valueOf());
+        max = Math.max(max, util.convert(maxEndItem.end, 'Date').valueOf());
       }
     }
   }
@@ -10132,7 +10410,7 @@ Graph2d.prototype.getItemRange = function() {
  *                      unselected.
  */
 Graph2d.prototype.setSelection = function(ids) {
-  this.itemSet && this.itemSet.setSelection(ids);
+  this.linegraph && this.linegraph.setSelection(ids);
 };
 
 /**
@@ -10140,7 +10418,7 @@ Graph2d.prototype.setSelection = function(ids) {
  * @return {Array} ids  The ids of the selected items
  */
 Graph2d.prototype.getSelection = function() {
-  return this.itemSet && this.itemSet.getSelection() || [];
+  return this.linegraph && this.linegraph.getSelection() || [];
 };
 
 /**
@@ -10184,9 +10462,11 @@ Graph2d.prototype.getWindow = function() {
  */
 Graph2d.prototype.redraw = function() {
   var resized = false,
-      options = this.options,
-      props = this.props,
-      dom = this.dom;
+    options = this.options,
+    props = this.props,
+    dom = this.dom;
+
+  if (!dom) return; // when destroyed
 
   // update class names
   dom.root.className = 'vis timeline root ' + options.orientation;
@@ -10218,14 +10498,14 @@ Graph2d.prototype.redraw = function() {
   // TODO: only calculate autoHeight when needed (else we cause an extra reflow/repaint of the DOM)
   var contentHeight = Math.max(props.left.height, props.center.height, props.right.height);
   var autoHeight = props.top.height + contentHeight + props.bottom.height +
-      borderRootHeight + props.border.top + props.border.bottom;
+    borderRootHeight + props.border.top + props.border.bottom;
   dom.root.style.height = util.option.asSize(options.height, autoHeight + 'px');
 
   // calculate heights of the content panels
   props.root.height = dom.root.offsetHeight;
   props.background.height = props.root.height - borderRootHeight;
   var containerHeight = props.root.height - props.top.height - props.bottom.height -
-      borderRootHeight;
+    borderRootHeight;
   props.centerContainer.height  = containerHeight;
   props.leftContainer.height    = containerHeight;
   props.rightContainer.height   = props.leftContainer.height;
@@ -10246,13 +10526,14 @@ Graph2d.prototype.redraw = function() {
   // resize the panels
   dom.background.style.height           = props.background.height + 'px';
   dom.backgroundVertical.style.height   = props.background.height + 'px';
-  dom.backgroundHorizontal.style.height = props.centerContainer.height + 'px';
+  dom.backgroundHorizontalContainer.style.height = props.centerContainer.height + 'px';
   dom.centerContainer.style.height      = props.centerContainer.height + 'px';
   dom.leftContainer.style.height        = props.leftContainer.height + 'px';
   dom.rightContainer.style.height       = props.rightContainer.height + 'px';
 
   dom.background.style.width            = props.background.width + 'px';
   dom.backgroundVertical.style.width    = props.centerContainer.width + 'px';
+  dom.backgroundHorizontalContainer.style.width  = props.background.width + 'px';
   dom.backgroundHorizontal.style.width  = props.background.width + 'px';
   dom.centerContainer.style.width       = props.center.width + 'px';
   dom.top.style.width                   = props.top.width + 'px';
@@ -10263,8 +10544,8 @@ Graph2d.prototype.redraw = function() {
   dom.background.style.top            = '0';
   dom.backgroundVertical.style.left   = props.left.width + 'px';
   dom.backgroundVertical.style.top    = '0';
-  dom.backgroundHorizontal.style.left = '0';
-  dom.backgroundHorizontal.style.top  = props.top.height + 'px';
+  dom.backgroundHorizontalContainer.style.left = '0';
+  dom.backgroundHorizontalContainer.style.top  = props.top.height + 'px';
   dom.centerContainer.style.left      = props.left.width + 'px';
   dom.centerContainer.style.top       = props.top.height + 'px';
   dom.leftContainer.style.left        = '0';
@@ -10276,21 +10557,33 @@ Graph2d.prototype.redraw = function() {
   dom.bottom.style.left               = props.left.width + 'px';
   dom.bottom.style.top                = (props.top.height + props.centerContainer.height) + 'px';
 
+  // update the scrollTop, feasible range for the offset can be changed
+  // when the height of the Graph2d or of the contents of the center changed
+  this._updateScrollTop();
+
   // reposition the scrollable contents
-  var offset;
-  if (options.orientation == 'top') {
-    offset = 0;
-  }
-  else { // orientation == 'bottom'
-    // keep the items aligned to the axis at the bottom
-    offset = 0; //props.centerContainer.height - props.center.height;
-  }
-  dom.center.style.left               = '0';
-  dom.center.style.top                = offset+ 'px';
-  dom.left.style.left                 = '0';
-  dom.left.style.top                  = offset+ 'px';
-  dom.right.style.left                = '0';
-  dom.right.style.top                 = offset+ 'px';
+  var offset = this.props.scrollTop;
+//  if (options.orientation == 'bottom') {
+//     offset += Math.max(this.props.centerContainer.height - this.props.center.height, 0);
+//  }
+  dom.center.style.left = '0';
+  dom.center.style.top  = offset + 'px';
+  dom.backgroundHorizontal.style.left = '0';
+  dom.backgroundHorizontal.style.top  = offset + 'px';
+  dom.left.style.left   = '0';
+  dom.left.style.top    = offset + 'px';
+  dom.right.style.left  = '0';
+  dom.right.style.top   = offset + 'px';
+
+  // show shadows when vertical scrolling is available
+  var visibilityTop = this.props.scrollTop == 0 ? 'hidden' : '';
+  var visibilityBottom = this.props.scrollTop == this.props.scrollTopMin ? 'hidden' : '';
+  dom.shadowTop.style.visibility          = visibilityTop;
+  dom.shadowBottom.style.visibility       = visibilityBottom;
+  dom.shadowTopLeft.style.visibility      = visibilityTop;
+  dom.shadowBottomLeft.style.visibility   = visibilityBottom;
+  dom.shadowTopRight.style.visibility     = visibilityTop;
+  dom.shadowBottomRight.style.visibility  = visibilityBottom;
 
   // redraw all components
   this.components.forEach(function (component) {
@@ -10304,7 +10597,7 @@ Graph2d.prototype.redraw = function() {
 
 // TODO: deprecated since version 1.1.0, remove some day
 Graph2d.prototype.repaint = function () {
-    throw new Error('Function repaint is deprecated. Use redraw instead.');
+  throw new Error('Function repaint is deprecated. Use redraw instead.');
 };
 
 /**
@@ -10355,7 +10648,7 @@ Graph2d.prototype._startAutoResize = function () {
 
   this._stopAutoResize();
 
-  function checkSize() {
+  this._onResize = function() {
     if (me.options.autoResize != true) {
       // stop watching when the option autoResize is changed to false
       me._stopAutoResize();
@@ -10365,19 +10658,19 @@ Graph2d.prototype._startAutoResize = function () {
     if (me.dom.root) {
       // check whether the frame is resized
       if ((me.dom.root.clientWidth != me.props.lastWidth) ||
-          (me.dom.root.clientHeight != me.props.lastHeight)) {
+        (me.dom.root.clientHeight != me.props.lastHeight)) {
         me.props.lastWidth = me.dom.root.clientWidth;
         me.props.lastHeight = me.dom.root.clientHeight;
 
         me.emit('change');
       }
     }
-  }
+  };
 
-  // TODO: automatically cleanup the event listener when the frame is deleted
-  util.addEventListener(window, 'resize', checkSize);
+  // add event listener to window resize
+  util.addEventListener(window, 'resize', this._onResize);
 
-  this.watchTimer = setInterval(checkSize, 1000);
+  this.watchTimer = setInterval(this._onResize, 1000);
 };
 
 /**
@@ -10390,7 +10683,101 @@ Graph2d.prototype._stopAutoResize = function () {
     this.watchTimer = undefined;
   }
 
-  // TODO: remove event listener on window.resize
+  // remove event listener on window.resize
+  util.removeEventListener(window, 'resize', this._onResize);
+  this._onResize = null;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Graph2d.prototype._onTouch = function (event) {
+  this.touch.allowDragging = true;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Graph2d.prototype._onPinch = function (event) {
+  this.touch.allowDragging = false;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Graph2d.prototype._onDragStart = function (event) {
+  this.touch.initialScrollTop = this.props.scrollTop;
+};
+
+/**
+ * Move the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Graph2d.prototype._onDrag = function (event) {
+  // refuse to drag when we where pinching to prevent the timeline make a jump
+  // when releasing the fingers in opposite order from the touch screen
+  if (!this.touch.allowDragging) return;
+
+  var delta = event.gesture.deltaY;
+
+  var oldScrollTop = this._getScrollTop();
+  var newScrollTop = this._setScrollTop(this.touch.initialScrollTop + delta);
+
+  if (newScrollTop != oldScrollTop) {
+    this.redraw(); // TODO: this causes two redraws when dragging, the other is triggered by rangechange already
+  }
+};
+
+/**
+ * Apply a scrollTop
+ * @param {Number} scrollTop
+ * @returns {Number} scrollTop  Returns the applied scrollTop
+ * @private
+ */
+Graph2d.prototype._setScrollTop = function (scrollTop) {
+  this.props.scrollTop = scrollTop;
+  this._updateScrollTop();
+  return this.props.scrollTop;
+};
+
+/**
+ * Update the current scrollTop when the height of  the containers has been changed
+ * @returns {Number} scrollTop  Returns the applied scrollTop
+ * @private
+ */
+Graph2d.prototype._updateScrollTop = function () {
+  // recalculate the scrollTopMin
+  var scrollTopMin = Math.min(this.props.centerContainer.height - this.props.center.height, 0); // is negative or zero
+  if (scrollTopMin != this.props.scrollTopMin) {
+    // in case of bottom orientation, change the scrollTop such that the contents
+    // do not move relative to the time axis at the bottom
+    if (this.options.orientation == 'bottom') {
+      this.props.scrollTop += (scrollTopMin - this.props.scrollTopMin);
+    }
+    this.props.scrollTopMin = scrollTopMin;
+  }
+
+  // limit the scrollTop to the feasible scroll range
+  if (this.props.scrollTop > 0) this.props.scrollTop = 0;
+  if (this.props.scrollTop < scrollTopMin) this.props.scrollTop = scrollTopMin;
+
+  return this.props.scrollTop;
+};
+
+/**
+ * Get the current scrollTop
+ * @returns {number} scrollTop
+ * @private
+ */
+Graph2d.prototype._getScrollTop = function () {
+  return this.props.scrollTop;
 };
 
 (function(exports) {
@@ -11481,8 +11868,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.edges = []; // all edges connected to this node
   this.dynamicEdges = [];
   this.reroutedEdges = {};
-  this.group = constants.nodes.group;
 
+  this.group = constants.nodes.group;
   this.fontSize = Number(constants.nodes.fontSize);
   this.fontFace = constants.nodes.fontFace;
   this.fontColor = constants.nodes.fontColor;
@@ -12263,7 +12650,6 @@ Node.prototype._drawShape = function (ctx, shape) {
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
-
   ctx[shape](this.x, this.y, this.radius);
   ctx.fill();
   ctx.stroke();
@@ -12481,6 +12867,10 @@ function Edge (properties, graph, constants) {
   this.lengthFixed = false;
 
   this.setProperties(properties, constants);
+
+  this.controlNodesEnabled = false;
+  this.controlNodes = {from:null, to:null, positions:{}};
+  this.connectedNode = null;
 }
 
 /**
@@ -13140,44 +13530,65 @@ Edge.prototype._drawArrow = function(ctx) {
  * @private
  */
 Edge.prototype._getDistanceToEdge = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
-  if (this.smooth == true) {
-    var minDistance = 1e9;
-    var i,t,x,y,dx,dy;
-    for (i = 0; i < 10; i++) {
-      t = 0.1*i;
-      x = Math.pow(1-t,2)*x1 + (2*t*(1 - t))*this.via.x + Math.pow(t,2)*x2;
-      y = Math.pow(1-t,2)*y1 + (2*t*(1 - t))*this.via.y + Math.pow(t,2)*y2;
-      dx = Math.abs(x3-x);
-      dy = Math.abs(y3-y);
-      minDistance = Math.min(minDistance,Math.sqrt(dx*dx + dy*dy));
+  if (this.from != this.to) {
+    if (this.smooth == true) {
+      var minDistance = 1e9;
+      var i,t,x,y,dx,dy;
+      for (i = 0; i < 10; i++) {
+        t = 0.1*i;
+        x = Math.pow(1-t,2)*x1 + (2*t*(1 - t))*this.via.x + Math.pow(t,2)*x2;
+        y = Math.pow(1-t,2)*y1 + (2*t*(1 - t))*this.via.y + Math.pow(t,2)*y2;
+        dx = Math.abs(x3-x);
+        dy = Math.abs(y3-y);
+        minDistance = Math.min(minDistance,Math.sqrt(dx*dx + dy*dy));
+      }
+      return minDistance
     }
-    return minDistance
+    else {
+      var px = x2-x1,
+          py = y2-y1,
+          something = px*px + py*py,
+          u =  ((x3 - x1) * px + (y3 - y1) * py) / something;
+
+      if (u > 1) {
+        u = 1;
+      }
+      else if (u < 0) {
+        u = 0;
+      }
+
+      var x = x1 + u * px,
+          y = y1 + u * py,
+          dx = x - x3,
+          dy = y - y3;
+
+      //# Note: If the actual distance does not matter,
+      //# if you only want to compare what this function
+      //# returns to other results of this function, you
+      //# can just return the squared distance instead
+      //# (i.e. remove the sqrt) to gain a little performance
+
+      return Math.sqrt(dx*dx + dy*dy);
+    }
   }
   else {
-    var px = x2-x1,
-        py = y2-y1,
-        something = px*px + py*py,
-        u =  ((x3 - x1) * px + (y3 - y1) * py) / something;
-
-    if (u > 1) {
-      u = 1;
+    var x, y, dx, dy;
+    var radius = this.length / 4;
+    var node = this.from;
+    if (!node.width) {
+      node.resize(ctx);
     }
-    else if (u < 0) {
-      u = 0;
+    if (node.width > node.height) {
+      x = node.x + node.width / 2;
+      y = node.y - radius;
     }
-
-    var x = x1 + u * px,
-        y = y1 + u * py,
-        dx = x - x3,
-        dy = y - y3;
-
-    //# Note: If the actual distance does not matter,
-    //# if you only want to compare what this function
-    //# returns to other results of this function, you
-    //# can just return the squared distance instead
-    //# (i.e. remove the sqrt) to gain a little performance
-
-    return Math.sqrt(dx*dx + dy*dy);
+    else {
+      x = node.x + radius;
+      y = node.y - node.height / 2;
+    }
+    dx = x - x3;
+    dy = y - y3;
+    return Math.abs(Math.sqrt(dx*dx + dy*dy) - radius);
   }
 };
 
@@ -13207,6 +13618,148 @@ Edge.prototype.positionBezierNode = function() {
     this.via.y = 0.5 * (this.from.y + this.to.y);
   }
 };
+
+/**
+ * This function draws the control nodes for the manipulator. In order to enable this, only set the this.controlNodesEnabled to true.
+ * @param ctx
+ */
+Edge.prototype._drawControlNodes = function(ctx) {
+  if (this.controlNodesEnabled == true) {
+    if (this.controlNodes.from === null && this.controlNodes.to === null) {
+      var nodeIdFrom = "edgeIdFrom:".concat(this.id);
+      var nodeIdTo = "edgeIdTo:".concat(this.id);
+      var constants = {
+                      nodes:{group:'', radius:8},
+                      physics:{damping:0},
+                      clustering: {maxNodeSizeIncrements: 0 ,nodeScaling: {width:0, height: 0, radius:0}}
+                      };
+      this.controlNodes.from = new Node(
+        {id:nodeIdFrom,
+          shape:'dot',
+            color:{background:'#ff4e00', border:'#3c3c3c', highlight: {background:'#07f968'}}
+        },{},{},constants);
+      this.controlNodes.to = new Node(
+        {id:nodeIdTo,
+          shape:'dot',
+          color:{background:'#ff4e00', border:'#3c3c3c', highlight: {background:'#07f968'}}
+        },{},{},constants);
+    }
+
+    if (this.controlNodes.from.selected == false && this.controlNodes.to.selected == false) {
+      this.controlNodes.positions = this.getControlNodePositions(ctx);
+      this.controlNodes.from.x = this.controlNodes.positions.from.x;
+      this.controlNodes.from.y = this.controlNodes.positions.from.y;
+      this.controlNodes.to.x = this.controlNodes.positions.to.x;
+      this.controlNodes.to.y = this.controlNodes.positions.to.y;
+    }
+
+    this.controlNodes.from.draw(ctx);
+    this.controlNodes.to.draw(ctx);
+  }
+  else {
+    this.controlNodes = {from:null, to:null, positions:{}};
+  }
+}
+
+/**
+ * Enable control nodes.
+ * @private
+ */
+Edge.prototype._enableControlNodes = function() {
+  this.controlNodesEnabled = true;
+}
+
+/**
+ * disable control nodes
+ * @private
+ */
+Edge.prototype._disableControlNodes = function() {
+  this.controlNodesEnabled = false;
+}
+
+/**
+ * This checks if one of the control nodes is selected and if so, returns the control node object. Else it returns null.
+ * @param x
+ * @param y
+ * @returns {null}
+ * @private
+ */
+Edge.prototype._getSelectedControlNode = function(x,y) {
+  var positions = this.controlNodes.positions;
+  var fromDistance = Math.sqrt(Math.pow(x - positions.from.x,2) + Math.pow(y - positions.from.y,2));
+  var toDistance =   Math.sqrt(Math.pow(x - positions.to.x  ,2) + Math.pow(y - positions.to.y  ,2));
+
+  if (fromDistance < 15) {
+    this.connectedNode = this.from;
+    this.from = this.controlNodes.from;
+    return this.controlNodes.from;
+  }
+  else if (toDistance < 15) {
+    this.connectedNode = this.to;
+    this.to = this.controlNodes.to;
+    return this.controlNodes.to;
+  }
+  else {
+    return null;
+  }
+}
+
+
+/**
+ * this resets the control nodes to their original position.
+ * @private
+ */
+Edge.prototype._restoreControlNodes = function() {
+  if (this.controlNodes.from.selected == true) {
+    this.from = this.connectedNode;
+    this.connectedNode = null;
+    this.controlNodes.from.unselect();
+  }
+  if (this.controlNodes.to.selected == true) {
+    this.to = this.connectedNode;
+    this.connectedNode = null;
+    this.controlNodes.to.unselect();
+  }
+}
+
+/**
+ * this calculates the position of the control nodes on the edges of the parent nodes.
+ *
+ * @param ctx
+ * @returns {{from: {x: number, y: number}, to: {x: *, y: *}}}
+ */
+Edge.prototype.getControlNodePositions = function(ctx) {
+  var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
+  var dx = (this.to.x - this.from.x);
+  var dy = (this.to.y - this.from.y);
+  var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
+  var fromBorderDist = this.from.distanceToBorder(ctx, angle + Math.PI);
+  var fromBorderPoint = (edgeSegmentLength - fromBorderDist) / edgeSegmentLength;
+  var xFrom = (fromBorderPoint) * this.from.x + (1 - fromBorderPoint) * this.to.x;
+  var yFrom = (fromBorderPoint) * this.from.y + (1 - fromBorderPoint) * this.to.y;
+
+
+  if (this.smooth == true) {
+    angle = Math.atan2((this.to.y - this.via.y), (this.to.x - this.via.x));
+    dx = (this.to.x - this.via.x);
+    dy = (this.to.y - this.via.y);
+    edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
+  }
+  var toBorderDist = this.to.distanceToBorder(ctx, angle);
+  var toBorderPoint = (edgeSegmentLength - toBorderDist) / edgeSegmentLength;
+
+  var xTo,yTo;
+  if (this.smooth == true) {
+    xTo = (1 - toBorderPoint) * this.via.x + toBorderPoint * this.to.x;
+    yTo = (1 - toBorderPoint) * this.via.y + toBorderPoint * this.to.y;
+  }
+  else {
+    xTo = (1 - toBorderPoint) * this.from.x + toBorderPoint * this.to.x;
+    yTo = (1 - toBorderPoint) * this.from.y + toBorderPoint * this.to.y;
+  }
+
+  return {from:{x:xFrom,y:yFrom},to:{x:xTo,y:yTo}};
+}
 /**
  * Popup is a class to create a popup window with some text
  * @param {Element}  container     The container object.
@@ -15067,6 +15620,11 @@ var manipulationMixin = {
     if (this.boundFunction) {
       this.off('select', this.boundFunction);
     }
+    if (this.edgeBeingEdited !== undefined) {
+      this.edgeBeingEdited._disableControlNodes();
+      this.edgeBeingEdited = undefined;
+      this.selectedControlNode = null;
+    }
 
     // restore overloaded functions
     this._restoreOverloadedFunctions();
@@ -15095,6 +15653,12 @@ var manipulationMixin = {
           "<span class='graph-manipulationUI edit' id='graph-manipulate-editNode'>" +
             "<span class='graph-manipulationLabel'>"+this.constants.labels['editNode'] +"</span></span>";
       }
+      else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
+        this.manipulationDiv.innerHTML += "" +
+          "<div class='graph-seperatorLine'></div>" +
+          "<span class='graph-manipulationUI edit' id='graph-manipulate-editEdge'>" +
+          "<span class='graph-manipulationLabel'>"+this.constants.labels['editEdge'] +"</span></span>";
+      }
       if (this._selectionIsEmpty() == false) {
         this.manipulationDiv.innerHTML += "" +
           "<div class='graph-seperatorLine'></div>" +
@@ -15111,6 +15675,10 @@ var manipulationMixin = {
       if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
         var editButton = document.getElementById("graph-manipulate-editNode");
         editButton.onclick = this._editNode.bind(this);
+      }
+      else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
+        var editButton = document.getElementById("graph-manipulate-editEdge");
+        editButton.onclick = this._createEditEdgeToolbar.bind(this);
       }
       if (this._selectionIsEmpty() == false) {
         var deleteButton = document.getElementById("graph-manipulate-delete");
@@ -15205,9 +15773,105 @@ var manipulationMixin = {
 
     // redraw to show the unselect
     this._redraw();
-
   },
 
+  /**
+   * create the toolbar to edit edges
+   *
+   * @private
+   */
+  _createEditEdgeToolbar : function() {
+    // clear the toolbar
+    this._clearManipulatorBar();
+
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
+
+    this.edgeBeingEdited = this._getSelectedEdge();
+    this.edgeBeingEdited._enableControlNodes();
+
+    this.manipulationDiv.innerHTML = "" +
+      "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
+      "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
+      "<div class='graph-seperatorLine'></div>" +
+      "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
+      "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['editEdgeDescription'] + "</span></span>";
+
+    // bind the icon
+    var backButton = document.getElementById("graph-manipulate-back");
+    backButton.onclick = this._createManipulatorBar.bind(this);
+
+    // temporarily overload functions
+    this.cachedFunctions["_handleTouch"]      = this._handleTouch;
+    this.cachedFunctions["_handleOnRelease"]  = this._handleOnRelease;
+    this.cachedFunctions["_handleTap"]        = this._handleTap;
+    this.cachedFunctions["_handleDragStart"]  = this._handleDragStart;
+    this.cachedFunctions["_handleOnDrag"]     = this._handleOnDrag;
+    this._handleTouch     = this._selectControlNode;
+    this._handleTap       = function () {};
+    this._handleOnDrag    = this._controlNodeDrag;
+    this._handleDragStart = function () {}
+    this._handleOnRelease = this._releaseControlNode;
+
+    // redraw to show the unselect
+    this._redraw();
+  },
+
+
+
+
+
+  /**
+   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+   * to walk the user through the process.
+   *
+   * @private
+   */
+  _selectControlNode : function(pointer) {
+    this.edgeBeingEdited.controlNodes.from.unselect();
+    this.edgeBeingEdited.controlNodes.to.unselect();
+    this.selectedControlNode = this.edgeBeingEdited._getSelectedControlNode(this._XconvertDOMtoCanvas(pointer.x),this._YconvertDOMtoCanvas(pointer.y));
+    if (this.selectedControlNode !== null) {
+      this.selectedControlNode.select();
+      this.freezeSimulation = true;
+    }
+    this._redraw();
+  },
+
+  /**
+   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+   * to walk the user through the process.
+   *
+   * @private
+   */
+  _controlNodeDrag : function(event) {
+    var pointer = this._getPointer(event.gesture.center);
+    if (this.selectedControlNode !== null && this.selectedControlNode !== undefined) {
+      this.selectedControlNode.x = this._XconvertDOMtoCanvas(pointer.x);
+      this.selectedControlNode.y = this._YconvertDOMtoCanvas(pointer.y);
+    }
+    this._redraw();
+  },
+
+  _releaseControlNode : function(pointer) {
+    var newNode = this._getNodeAt(pointer);
+    if (newNode != null) {
+      if (this.edgeBeingEdited.controlNodes.from.selected == true) {
+        this._editEdge(newNode.id, this.edgeBeingEdited.to.id);
+        this.edgeBeingEdited.controlNodes.from.unselect();
+      }
+      if (this.edgeBeingEdited.controlNodes.to.selected == true) {
+        this._editEdge(this.edgeBeingEdited.from.id, newNode.id);
+        this.edgeBeingEdited.controlNodes.to.unselect();
+      }
+    }
+    else {
+      this.edgeBeingEdited._restoreControlNodes();
+    }
+    this.freezeSimulation = false;
+    this._redraw();
+  },
 
   /**
    * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
@@ -15353,6 +16017,36 @@ var manipulationMixin = {
     }
   },
 
+  /**
+   * connect two nodes with a new edge.
+   *
+   * @private
+   */
+  _editEdge : function(sourceNodeId,targetNodeId) {
+    if (this.editMode == true) {
+      var defaultData = {id: this.edgeBeingEdited.id, from:sourceNodeId, to:targetNodeId};
+      if (this.triggerFunctions.editEdge) {
+        if (this.triggerFunctions.editEdge.length == 2) {
+          var me = this;
+          this.triggerFunctions.editEdge(defaultData, function(finalizedData) {
+            me.edgesData.update(finalizedData);
+            me.moving = true;
+            me.start();
+          });
+        }
+        else {
+          alert(this.constants.labels["linkError"]);
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        this.edgesData.update(defaultData);
+        this.moving = true;
+        this.start();
+      }
+    }
+  },
 
   /**
    * Create the toolbar to edit the selected node. The label and the color can be changed. Other colors are derived from the chosen color.
@@ -15391,6 +16085,8 @@ var manipulationMixin = {
       alert(this.constants.labels["editBoundError"]);
     }
   },
+
+
 
 
   /**
@@ -17372,7 +18068,7 @@ var SelectionMixin = {
   },
 
   /**
-   * return the number of selected nodes
+   * return the selected node
    *
    * @returns {number}
    * @private
@@ -17381,6 +18077,21 @@ var SelectionMixin = {
     for (var nodeId in this.selectionObj.nodes) {
       if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
         return this.selectionObj.nodes[nodeId];
+      }
+    }
+    return null;
+  },
+
+  /**
+   * return the selected edge
+   *
+   * @returns {number}
+   * @private
+   */
+  _getSelectedEdge : function() {
+    for (var edgeId in this.selectionObj.edges) {
+      if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        return this.selectionObj.edges[edgeId];
       }
     }
     return null;
@@ -17518,9 +18229,12 @@ var SelectionMixin = {
    * @param {Boolean} [doNotTrigger] | ignore trigger
    * @private
    */
-  _selectObject : function(object, append, doNotTrigger) {
+  _selectObject : function(object, append, doNotTrigger, highlightEdges) {
     if (doNotTrigger === undefined) {
       doNotTrigger = false;
+    }
+    if (highlightEdges === undefined) {
+      highlightEdges = true;
     }
 
     if (this._selectionIsEmpty() == false && append == false && this.forceAppendSelection == false) {
@@ -17530,7 +18244,7 @@ var SelectionMixin = {
     if (object.selected == false) {
       object.select();
       this._addToSelection(object);
-      if (object instanceof Node && this.blockConnectingEdgeSelection == false) {
+      if (object instanceof Node && this.blockConnectingEdgeSelection == false && highlightEdges == true) {
         this._selectConnectedEdges(object);
       }
     }
@@ -17589,7 +18303,6 @@ var SelectionMixin = {
    * @private
    */
   _handleTouch : function(pointer) {
-
   },
 
 
@@ -17736,9 +18449,66 @@ var SelectionMixin = {
       }
       this._selectObject(node,true,true);
     }
+
+    console.log("setSelection is deprecated. Please use selectNodes instead.")
+
     this.redraw();
   },
 
+
+  /**
+   * select zero or more nodes with the option to highlight edges
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   * @param {boolean} [highlightEdges]
+   */
+  selectNodes : function(selection, highlightEdges) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    this._unselectAll(true);
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var node = this.nodes[id];
+      if (!node) {
+        throw new RangeError('Node with id "' + id + '" not found');
+      }
+      this._selectObject(node,true,true,highlightEdges);
+    }
+    this.redraw();
+  },
+
+
+  /**
+   * select zero or more edges
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   */
+  selectEdges : function(selection) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    this._unselectAll(true);
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var edge = this.edges[id];
+      if (!edge) {
+        throw new RangeError('Edge with id "' + id + '" not found');
+      }
+      this._selectObject(edge,true,true,highlightEdges);
+    }
+    this.redraw();
+  },
 
   /**
    * Validate the selection: remove ids of nodes which no longer exist
@@ -18182,6 +18952,9 @@ var graphMixinLoaders = {
  * @param {Object} options      Options
  */
 function Graph (container, data, options) {
+  if (!(this instanceof Graph)) {
+    throw new SyntaxError('Constructor must be called with the new operator');
+  }
 
   this._initializeMixinLoaders();
 
@@ -18202,7 +18975,7 @@ function Graph (container, data, options) {
   this.initializing = true;
 
   // these functions are triggered when the dataset is edited
-  this.triggerFunctions = {add:null,edit:null,connect:null,del:null};
+  this.triggerFunctions = {add:null,edit:null,editEdge:null,connect:null,del:null};
 
   // set constant values
   this.constants = {
@@ -18338,9 +19111,11 @@ function Graph (container, data, options) {
       link:"Add Link",
       del:"Delete selected",
       editNode:"Edit Node",
+      editEdge:"Edit Edge",
       back:"Back",
       addDescription:"Click in an empty space to place a new node.",
       linkDescription:"Click on a node and drag the edge to another node to connect them.",
+      editEdgeDescription:"Click on the control points and drag them to a node to connect to it.",
       addError:"The function for add does not support two arguments (data,callback).",
       linkError:"The function for connect does not support two arguments (data,callback).",
       editError:"The function for edit does not support two arguments (data, callback).",
@@ -18720,6 +19495,10 @@ Graph.prototype.setOptions = function (options) {
 
     if (options.onEdit) {
       this.triggerFunctions.edit = options.onEdit;
+    }
+
+    if (options.onEditEdge) {
+      this.triggerFunctions.editEdge = options.onEditEdge;
     }
 
     if (options.onConnect) {
@@ -19851,7 +20630,6 @@ Graph.prototype._updateValueRange = function(obj) {
  */
 Graph.prototype.redraw = function() {
   this.setSize(this.width, this.height);
-
   this._redraw();
 };
 
@@ -19883,6 +20661,7 @@ Graph.prototype._redraw = function() {
   this._doInAllSectors("_drawAllSectorNodes",ctx);
   this._doInAllSectors("_drawEdges",ctx);
   this._doInAllSectors("_drawNodes",ctx,false);
+  this._doInAllSectors("_drawControlNodes",ctx);
 
 //  this._doInSupportSector("_drawNodes",ctx,true);
 //  this._drawTree(ctx,"#F00F0F");
@@ -20063,6 +20842,21 @@ Graph.prototype._drawEdges = function(ctx) {
       if (edge.connected) {
         edges[id].draw(ctx);
       }
+    }
+  }
+};
+
+/**
+ * Redraw all edges
+ * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
+ * @param {CanvasRenderingContext2D}   ctx
+ * @private
+ */
+Graph.prototype._drawControlNodes = function(ctx) {
+  var edges = this.edges;
+  for (var id in edges) {
+    if (edges.hasOwnProperty(id)) {
+      edges[id]._drawControlNodes(ctx);
     }
   }
 };
@@ -20453,6 +21247,10 @@ Graph.prototype.focusOnNode = function (nodeId, zoomLevel) {
  * @param {Object} [options]
  */
 function Graph3d(container, data, options) {
+  if (!(this instanceof Graph3d)) {
+    throw new SyntaxError('Constructor must be called with the new operator');
+  }
+
   // create variables and set default values
   this.containerElement = container;
   this.width = '400px';
