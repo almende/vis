@@ -19,62 +19,65 @@
 <body>
 <h2>Graph2D | Performance</h2>
 <div style="width:700px; font-size:14px; text-align: justify;">
-    This example shows the some of the graphs outlined on the right side using the <code>yAxisOrientation</code> option within the groups.
-    We also show a few more custom styles for the graphs. Finally, the legend is manually positioned. Both the left and right axis
-    have their own legend. If one of the axis is unused, the legend is not shown. The options for the legend have been split
-    in a <code>left</code> and a <code>right</code> segment. The default position of the left axis has been changed.
-
-
+    This example is a test of the performance of the Graph2D. Select the amount of datapoints you want to plot and press draw.
+    You can choose between the style of the points as well as the interpolation method. This can only be toggled with the buttons.
 </div>
 <br />
 <p>
     <label for="count">Number of items</label>
     <input id="count" value="100">
-    <input id="draw" type="button" value="draw">
     <input id="toggleInterpolation" type="button" value="toggle Interpolation">
+    Interpolation method: <input id="interpolation" value="linear">
     <input id="togglePoints" type="button" value="toggle Points">
+    Points style: <input id="points" value="none"> <br/>
+    <input id="draw" type="button" value="draw" style="width:200px;">
 </p>
 <div id="visualization"></div>
 
 <script>
-    var points = '';
-    var interpolation = '';
+    var points = 'none';
+    var interpolation = 'linear';
 
     function togglePoints() {
         var pointsOptions = {};
-        if (points == "") {
+        var pointsField = document.getElementById("points");
+        if (points == "none") {
             points = 'circle';
-            pointsOptions = {drawPoints: {style: 'circle'}};
+            pointsOptions = {drawPoints: {style: points}};
         }
         else if (points == "circle") {
             points = 'square';
-            pointsOptions = {drawPoints: {style: 'square'}};
+            pointsOptions = {drawPoints: {style: points}};
         }
         else if (points == "square") {
-            points = '';
+            points = 'none';
             pointsOptions = {drawPoints: false};
         }
+        pointsField.value = points;
+
         graph2D.setOptions(pointsOptions);
     }
 
     function toggleInterpolation() {
         var interpolationOptions = {};
-        if (interpolation == "") {
+        var interpolationField = document.getElementById("interpolation");
+        if (interpolation == "linear") {
             interpolation = 'centripetal';
-            interpolationOptions = {drawPoints: {style: 'circle'}};
+            interpolationOptions = {catmullRom: {parametrization: interpolation}};
         }
-        else if (interpolation == "circle") {
+        else if (interpolation == "centripetal") {
             interpolation = 'chordal';
-            interpolationOptions = {drawPoints: {style: 'square'}};
+            interpolationOptions = {catmullRom: {parametrization: interpolation}};
         }
-        else if (interpolation == "square") {
+        else if (interpolation == "chordal") {
             interpolation = 'uniform';
-            interpolationOptions = {drawPoints: false};
+            interpolationOptions = {catmullRom: {parametrization: interpolation}};
         }
-        else if (interpolation == "square") {
-            interpolation = '';
-            interpolationOptions = {drawPoints: false};
+        else if (interpolation == "uniform") {
+            interpolation = 'linear';
+            interpolationOptions = {catmullRom: false};
         }
+        interpolationField.value = interpolation;
         graph2D.setOptions(interpolationOptions);
     }
 
@@ -101,11 +104,13 @@
     createData();
 
     document.getElementById('draw').onclick = createData;
-    document.getElementById('toggleInterpolation').onclick = createData;
-    document.getElementById('togglePoints').onclick = createData;
+    document.getElementById('toggleInterpolation').onclick = toggleInterpolation;
+    document.getElementById('togglePoints').onclick = togglePoints;
 
     var container = document.getElementById('visualization');
     var options = {
+        drawPoints: false,
+        catmullRom: false,
         start: startPoint,
         end: endPoint
     };

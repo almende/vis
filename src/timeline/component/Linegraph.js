@@ -190,6 +190,13 @@ Linegraph.prototype.setOptions = function(options) {
         this.legendRight.setOptions(this.options.legend);
       }
     }
+
+    if (this.groups.hasOwnProperty(UNGROUPED)) {
+      this.groups[UNGROUPED].setOptions(options);
+    }
+  }
+  if (this.dom.frame) {
+    this._updateGraph();
   }
 };
 
@@ -727,6 +734,7 @@ Linegraph.prototype._prepareData = function (datapoints, options) {
   if (options.yAxisOrientation == 'right') {
     axis = this.yAxisRight;
   }
+
   for (var i = 0; i < datapoints.length; i++) {
     xValue = Math.round(toScreen(datapoints[i].x) + this.width - 1);
     yValue = Math.round(axis.convertValue(datapoints[i].y));
