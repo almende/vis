@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 2.0.0
- * @date    2014-06-19
+ * @version 2.0.1-SNAPSHOT
+ * @date    2014-06-24
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -4393,7 +4393,7 @@ function ItemSet(body, options) {
   this.body = body;
 
   this.defaultOptions = {
-    type: 'box',
+    type: null,  // 'box', 'point', 'range'
     orientation: 'bottom',  // 'top' or 'bottom'
     align: 'center', // alignment of box items
     stack: true,
@@ -4494,7 +4494,6 @@ ItemSet.prototype = new Component();
 ItemSet.types = {
   box: ItemBox,
   range: ItemRange,
-  rangeoverflow: ItemRangeOverflow,
   point: ItemPoint
 };
 
@@ -5053,10 +5052,7 @@ ItemSet.prototype._onUpdate = function(ids) {
   ids.forEach(function (id) {
     var itemData = me.itemsData.get(id, me.itemOptions),
         item = me.items[id],
-        type = itemData.type ||
-            (itemData.start && itemData.end && 'range') ||
-            me.options.type ||
-            'box';
+        type = itemData.type || me.options.type || (itemData.end ? 'range' : 'box');
 
     var constructor = ItemSet.types[type];
 
@@ -5078,6 +5074,11 @@ ItemSet.prototype._onUpdate = function(ids) {
         item = new constructor(itemData, me.conversion, me.options);
         item.id = id; // TODO: not so nice setting id afterwards
         me._addItem(item);
+      }
+      else if (type == 'rangeoverflow') {
+        // TODO: deprecated since version 2.1.0 (or 3.0.0?). cleanup some day
+        throw new TypeError('Item type "rangeoverflow" is deprecated. Use css styling instead: ' +
+            '.vis.timeline .item.range .content {overflow: visible;}');
       }
       else {
         throw new TypeError('Unknown item type "' + type + '"');
@@ -5588,7 +5589,7 @@ ItemSet.prototype._onAddItem = function (event) {
     };
 
     // when default type is a range, add a default end date to the new item
-    if (this.options.type === 'range' || this.options.type == 'rangeoverflow') {
+    if (this.options.type === 'range') {
       var end = this.body.util.toTime(x + this.props.width / 5);
       newItem.end = snap ? snap(end) : end;
     }
@@ -6288,6 +6289,7 @@ function ItemRange (data, conversion, options) {
       width: 0
     }
   };
+  this.overflow = false; // if contents can overflow (css styling), this flag is set to true
 
   // validate data
   if (data) {
@@ -6381,6 +6383,9 @@ ItemRange.prototype.redraw = function() {
 
   // recalculate size
   if (this.dirty) {
+    // determine from css whether this box has overflow
+    this.overflow = window.getComputedStyle(dom.content).overflow !== 'hidden';
+
     this.props.content.width = this.dom.content.offsetWidth;
     this.height = this.dom.box.offsetHeight;
 
@@ -6425,6 +6430,7 @@ ItemRange.prototype.hide = function() {
  * Reposition the item horizontally
  * @Override
  */
+// TODO: delete the old function
 ItemRange.prototype.repositionX = function() {
   var props = this.props,
       parentWidth = this.parent.width,
@@ -6440,22 +6446,35 @@ ItemRange.prototype.repositionX = function() {
   if (end > 2 * parentWidth) {
     end = 2 * parentWidth;
   }
+  var boxWidth = Math.max(end - start, 1);
 
-  // when range exceeds left of the window, position the contents at the left of the visible area
-  if (start < 0) {
-    contentLeft = Math.min(-start,
-        (end - start - props.content.width - 2 * padding));
-    // TODO: remove the need for options.padding. it's terrible.
-  }
-  else {
-    contentLeft = 0;
-  }
+  if (this.overflow) {
+    // when range exceeds left of the window, position the contents at the left of the visible area
+    contentLeft = Math.max(-start, 0);
 
-  this.left = start;
-  this.width = Math.max(end - start, 1);
+    this.left = start;
+    this.width = boxWidth + this.props.content.width;
+    // Note: The calculation of width is an optimistic calculation, giving
+    //       a width which will not change when moving the Timeline
+    //       So no restacking needed, which is nicer for the eye;
+  }
+  else { // no overflow
+    // when range exceeds left of the window, position the contents at the left of the visible area
+    if (start < 0) {
+      contentLeft = Math.min(-start,
+          (end - start - props.content.width - 2 * padding));
+      // TODO: remove the need for options.padding. it's terrible.
+    }
+    else {
+      contentLeft = 0;
+    }
+
+    this.left = start;
+    this.width = boxWidth;
+  }
 
   this.dom.box.style.left = this.left + 'px';
-  this.dom.box.style.width = this.width + 'px';
+  this.dom.box.style.width = boxWidth + 'px';
   this.dom.content.style.left = contentLeft + 'px';
 };
 
@@ -6533,64 +6552,6 @@ ItemRange.prototype._repaintDragRight = function () {
     }
     this.dom.dragRight = null;
   }
-};
-
-/**
- * @constructor ItemRangeOverflow
- * @extends ItemRange
- * @param {Object} data             Object containing parameters start, end
- *                                  content, className.
- * @param {{toScreen: function, toTime: function}} conversion
- *                                  Conversion functions from time to screen and vice versa
- * @param {Object} [options]        Configuration options
- *                                  // TODO: describe options
- */
-function ItemRangeOverflow (data, conversion, options) {
-  this.props = {
-    content: {
-      left: 0,
-      width: 0
-    }
-  };
-
-  ItemRange.call(this, data, conversion, options);
-}
-
-ItemRangeOverflow.prototype = new ItemRange (null, null, null);
-
-ItemRangeOverflow.prototype.baseClassName = 'item rangeoverflow';
-
-/**
- * Reposition the item horizontally
- * @Override
- */
-ItemRangeOverflow.prototype.repositionX = function() {
-  var parentWidth = this.parent.width,
-      start = this.conversion.toScreen(this.data.start),
-      end = this.conversion.toScreen(this.data.end),
-      contentLeft;
-
-  // limit the width of the this, as browsers cannot draw very wide divs
-  if (start < -parentWidth) {
-    start = -parentWidth;
-  }
-  if (end > 2 * parentWidth) {
-    end = 2 * parentWidth;
-  }
-
-  // when range exceeds left of the window, position the contents at the left of the visible area
-  contentLeft = Math.max(-start, 0);
-
-  this.left = start;
-  var boxWidth = Math.max(end - start, 1);
-  this.width = boxWidth + this.props.content.width;
-  // Note: The calculation of width is an optimistic calculation, giving
-  //       a width which will not change when moving the Timeline
-  //       So no restacking needed, which is nicer for the eye
-
-  this.dom.box.style.left = this.left + 'px';
-  this.dom.box.style.width = boxWidth + 'px';
-  this.dom.content.style.left = contentLeft + 'px';
 };
 
 /**
@@ -6771,7 +6732,8 @@ Group.prototype.redraw = function(range, margin, restack) {
   resized = util.updateProperty(this.props.label, 'height', this.dom.inner.clientHeight) || resized;
 
   // apply new height
-  foreground.style.height  = height + 'px';
+  this.dom.background.style.height  = height + 'px';
+  this.dom.foreground.style.height  = height + 'px';
   this.dom.label.style.height = height + 'px';
 
   // update vertical position of items after they are re-stacked and the height of the group is calculated
@@ -7072,6 +7034,10 @@ Group.prototype._checkIfVisible = function(item, visibleItems, range) {
  * @constructor
  */
 function Timeline (container, items, options) {
+  if (!(this instanceof Timeline)) {
+    throw new SyntaxError('Constructor must be called with the new operator');
+  }
+
   var me = this;
   this.defaultOptions = {
     start: null,
@@ -15365,9 +15331,12 @@ var SelectionMixin = {
    * @param {Boolean} [doNotTrigger] | ignore trigger
    * @private
    */
-  _selectObject : function(object, append, doNotTrigger) {
+  _selectObject : function(object, append, doNotTrigger, highlightEdges) {
     if (doNotTrigger === undefined) {
       doNotTrigger = false;
+    }
+    if (highlightEdges === undefined) {
+      highlightEdges = true;
     }
 
     if (this._selectionIsEmpty() == false && append == false && this.forceAppendSelection == false) {
@@ -15377,7 +15346,7 @@ var SelectionMixin = {
     if (object.selected == false) {
       object.select();
       this._addToSelection(object);
-      if (object instanceof Node && this.blockConnectingEdgeSelection == false) {
+      if (object instanceof Node && this.blockConnectingEdgeSelection == false && highlightEdges == true) {
         this._selectConnectedEdges(object);
       }
     }
@@ -15582,9 +15551,66 @@ var SelectionMixin = {
       }
       this._selectObject(node,true,true);
     }
+
+    console.log("setSelection is deprecated. Please use selectNodes instead.")
+
     this.redraw();
   },
 
+
+  /**
+   * select zero or more nodes with the option to highlight edges
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   * @param {boolean} [highlightEdges]
+   */
+  selectNodes : function(selection, highlightEdges) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    this._unselectAll(true);
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var node = this.nodes[id];
+      if (!node) {
+        throw new RangeError('Node with id "' + id + '" not found');
+      }
+      this._selectObject(node,true,true,highlightEdges);
+    }
+    this.redraw();
+  },
+
+
+  /**
+   * select zero or more edges
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   */
+  selectEdges : function(selection) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    this._unselectAll(true);
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var edge = this.edges[id];
+      if (!edge) {
+        throw new RangeError('Edge with id "' + id + '" not found');
+      }
+      this._selectObject(edge,true,true,highlightEdges);
+    }
+    this.redraw();
+  },
 
   /**
    * Validate the selection: remove ids of nodes which no longer exist
@@ -16028,6 +16054,9 @@ var graphMixinLoaders = {
  * @param {Object} options      Options
  */
 function Graph (container, data, options) {
+  if (!(this instanceof Graph)) {
+    throw new SyntaxError('Constructor must be called with the new operator');
+  }
 
   this._initializeMixinLoaders();
 
@@ -18259,7 +18288,7 @@ Graph.prototype.storePosition = function() {
       var node = this.nodes[nodeId];
       var allowedToMoveX = !this.nodes.xFixed;
       var allowedToMoveY = !this.nodes.yFixed;
-      if (this.nodesData.data[nodeId].x != Math.round(node.x) || this.nodesData.data[nodeId].y != Math.round(node.y)) {
+      if (this.nodesData._data[nodeId].x != Math.round(node.x) || this.nodesData.data[nodeId].y != Math.round(node.y)) {
         dataArray.push({id:nodeId,x:Math.round(node.x),y:Math.round(node.y),allowedToMoveX:allowedToMoveX,allowedToMoveY:allowedToMoveY});
       }
     }
@@ -18320,6 +18349,10 @@ Graph.prototype.focusOnNode = function (nodeId, zoomLevel) {
  * @param {Object} [options]
  */
 function Graph3d(container, data, options) {
+  if (!(this instanceof Graph3d)) {
+    throw new SyntaxError('Constructor must be called with the new operator');
+  }
+
   // create variables and set default values
   this.containerElement = container;
   this.width = '400px';
