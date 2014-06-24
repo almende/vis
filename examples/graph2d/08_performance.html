@@ -1,0 +1,116 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Graph2D | Performance</title>
+
+    <style>
+        body, html {
+            font-family: arial, sans-serif;
+            font-size: 11pt;
+        }
+    </style>
+
+    <!-- note: moment.js must be loaded before vis.js, else vis.js uses its embedded version of moment.js -->
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.3.1/moment.min.js"></script>
+
+    <script src="../../dist/vis.js"></script>
+    <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<h2>Graph2D | Performance</h2>
+<div style="width:700px; font-size:14px; text-align: justify;">
+    This example shows the some of the graphs outlined on the right side using the <code>yAxisOrientation</code> option within the groups.
+    We also show a few more custom styles for the graphs. Finally, the legend is manually positioned. Both the left and right axis
+    have their own legend. If one of the axis is unused, the legend is not shown. The options for the legend have been split
+    in a <code>left</code> and a <code>right</code> segment. The default position of the left axis has been changed.
+
+
+</div>
+<br />
+<p>
+    <label for="count">Number of items</label>
+    <input id="count" value="100">
+    <input id="draw" type="button" value="draw">
+    <input id="toggleInterpolation" type="button" value="toggle Interpolation">
+    <input id="togglePoints" type="button" value="toggle Points">
+</p>
+<div id="visualization"></div>
+
+<script>
+    var points = '';
+    var interpolation = '';
+
+    function togglePoints() {
+        var pointsOptions = {};
+        if (points == "") {
+            points = 'circle';
+            pointsOptions = {drawPoints: {style: 'circle'}};
+        }
+        else if (points == "circle") {
+            points = 'square';
+            pointsOptions = {drawPoints: {style: 'square'}};
+        }
+        else if (points == "square") {
+            points = '';
+            pointsOptions = {drawPoints: false};
+        }
+        graph2D.setOptions(pointsOptions);
+    }
+
+    function toggleInterpolation() {
+        var interpolationOptions = {};
+        if (interpolation == "") {
+            interpolation = 'centripetal';
+            interpolationOptions = {drawPoints: {style: 'circle'}};
+        }
+        else if (interpolation == "circle") {
+            interpolation = 'chordal';
+            interpolationOptions = {drawPoints: {style: 'square'}};
+        }
+        else if (interpolation == "square") {
+            interpolation = 'uniform';
+            interpolationOptions = {drawPoints: false};
+        }
+        else if (interpolation == "square") {
+            interpolation = '';
+            interpolationOptions = {drawPoints: false};
+        }
+        graph2D.setOptions(interpolationOptions);
+    }
+
+
+    // create a dataset with items
+    var now = moment().minutes(0).seconds(0).milliseconds(0);
+    var dataset = new vis.DataSet({
+        type: {start: 'ISODate', end: 'ISODate' }
+    });
+
+    var startPoint = now;
+    var endPoint = now.clone().add('days', 100);
+
+    // create data
+    function createData() {
+        var count = parseInt(document.getElementById('count').value) || 100;
+        var newData = [];
+        for (var i = 0; i < count; i++) {
+            newData.push({id: i, x: now.clone().add('days', i), y: Math.sin(0.1 * 3.14159654 * i)});
+        }
+        dataset.clear();
+        dataset.add(newData);
+    }
+    createData();
+
+    document.getElementById('draw').onclick = createData;
+    document.getElementById('toggleInterpolation').onclick = createData;
+    document.getElementById('togglePoints').onclick = createData;
+
+    var container = document.getElementById('visualization');
+    var options = {
+        start: startPoint,
+        end: endPoint
+    };
+
+    var graph2D = new vis.Graph2d(container, dataset, options);
+</script>
+</body>
+</html>

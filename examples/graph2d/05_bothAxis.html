@@ -41,10 +41,9 @@
 <h2>Graph2D | Both Axis Example</h2>
 <div style="width:700px; font-size:14px; text-align: justify;">
     This example shows the some of the graphs outlined on the right side using the <code>yAxisOrientation</code> option within the groups.
-    We also show a few more custom styles for the graphs.
-    Finally, the legend is manually positioned. Both the left and right axis
+    We also show a few more custom styles for the graphs. Finally, the legend is manually positioned. Both the left and right axis
     have their own legend. If one of the axis is unused, the legend is not shown. The options for the legend have been split
-    in a <code>left</code> and a <code>right</code> segment. Since this example shows the right axis, the right legend is configured.
+    in a <code>left</code> and a <code>right</code> segment. The default position of the left axis has been changed.
 
 
 </div>
@@ -128,7 +127,7 @@
     var dataset = new vis.DataSet(items);
     var options = {
         dataAxis: {showMinorLabels: false},
-        legend: {left:{position:"bottom-left"},right:{position:'top-right'}},
+        legend: {left:{position:"bottom-left"}},
         start: '2014-06-09',
         end: '2014-07-03'
     };

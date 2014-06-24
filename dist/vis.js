@@ -2788,7 +2788,7 @@ GraphGroup.prototype.setOptions = function(options) {
 GraphGroup.prototype.update = function(group) {
   this.group = group;
   this.content = group.content || 'graph';
-  this.className = group.className || this.className || "graphGroup" + this.groupsUsingDefaultStyles[0];
+  this.className = group.className || this.className || "graphGroup" + this.groupsUsingDefaultStyles[0] % 10;
   this.setOptions(group.options);
 };
 
@@ -2963,11 +2963,11 @@ Legend.prototype.redraw = function() {
     }
 
     if (this.options[this.side].position == 'top-left' || this.options[this.side].position == 'top-right') {
-      this.dom.frame.style.top = '4px';
+      this.dom.frame.style.top = 4 - Number(this.body.dom.center.style.top.replace("px","")) + 'px';
       this.dom.frame.style.bottom = '';
     }
     else {
-      this.dom.frame.style.bottom = '4px';
+      this.dom.frame.style.bottom = 4 - Number(this.body.dom.center.style.top.replace("px","")) + 'px';
       this.dom.frame.style.top = '';
     }
 
@@ -3923,6 +3923,10 @@ Linegraph.prototype.redraw = function() {
   if (zoomed == true) {
     this._updateGraph();
   }
+
+  this.legendLeft.redraw();
+  this.legendRight.redraw();
+
   return resized;
 };
 
@@ -4194,8 +4198,8 @@ Linegraph.prototype._prepareData = function (datapoints, options) {
     axis = this.yAxisRight;
   }
   for (var i = 0; i < datapoints.length; i++) {
-    xValue = toScreen(datapoints[i].x) + this.width - 1;
-    yValue = axis.convertValue(datapoints[i].y);
+    xValue = Math.round(toScreen(datapoints[i].x) + this.width - 1);
+    yValue = Math.round(axis.convertValue(datapoints[i].y));
     extractedData.push({x: xValue, y: yValue});
   }
 

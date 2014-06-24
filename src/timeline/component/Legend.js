@@ -123,11 +123,11 @@ Legend.prototype.redraw = function() {
     }
 
     if (this.options[this.side].position == 'top-left' || this.options[this.side].position == 'top-right') {
-      this.dom.frame.style.top = '4px';
+      this.dom.frame.style.top = 4 - Number(this.body.dom.center.style.top.replace("px","")) + 'px';
       this.dom.frame.style.bottom = '';
     }
     else {
-      this.dom.frame.style.bottom = '4px';
+      this.dom.frame.style.bottom = 4 - Number(this.body.dom.center.style.top.replace("px","")) + 'px';
       this.dom.frame.style.top = '';
     }
 

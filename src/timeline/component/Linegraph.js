@@ -453,6 +453,10 @@ Linegraph.prototype.redraw = function() {
   if (zoomed == true) {
     this._updateGraph();
   }
+
+  this.legendLeft.redraw();
+  this.legendRight.redraw();
+
   return resized;
 };
 
@@ -724,8 +728,8 @@ Linegraph.prototype._prepareData = function (datapoints, options) {
     axis = this.yAxisRight;
   }
   for (var i = 0; i < datapoints.length; i++) {
-    xValue = toScreen(datapoints[i].x) + this.width - 1;
-    yValue = axis.convertValue(datapoints[i].y);
+    xValue = Math.round(toScreen(datapoints[i].x) + this.width - 1);
+    yValue = Math.round(axis.convertValue(datapoints[i].y));
     extractedData.push({x: xValue, y: yValue});
   }
 

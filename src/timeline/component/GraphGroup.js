@@ -47,7 +47,7 @@ GraphGroup.prototype.setOptions = function(options) {
 GraphGroup.prototype.update = function(group) {
   this.group = group;
   this.content = group.content || 'graph';
-  this.className = group.className || this.className || "graphGroup" + this.groupsUsingDefaultStyles[0];
+  this.className = group.className || this.className || "graphGroup" + this.groupsUsingDefaultStyles[0] % 10;
   this.setOptions(group.options);
 };
 
