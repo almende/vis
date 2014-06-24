@@ -6,6 +6,10 @@
  * @constructor
  */
 function Timeline (container, items, options) {
+  if (!(this instanceof Timeline)) {
+    throw new SyntaxError('Constructor must be called with the new operator');
+  }
+
   var me = this;
   this.defaultOptions = {
     start: null,
@@ -13,12 +17,11 @@ function Timeline (container, items, options) {
 
     autoResize: true,
 
+    orientation: 'bottom',
     width: null,
     height: null,
     maxHeight: null,
     minHeight: null
-
-    // TODO: implement options moveable and zoomable
   };
   this.options = util.deepExtend({}, this.defaultOptions);
 
@@ -108,6 +111,12 @@ Timeline.prototype._create = function (container) {
   this.dom.right                = document.createElement('div');
   this.dom.top                  = document.createElement('div');
   this.dom.bottom               = document.createElement('div');
+  this.dom.shadowTop            = document.createElement('div');
+  this.dom.shadowBottom         = document.createElement('div');
+  this.dom.shadowTopLeft        = document.createElement('div');
+  this.dom.shadowBottomLeft     = document.createElement('div');
+  this.dom.shadowTopRight       = document.createElement('div');
+  this.dom.shadowBottomRight    = document.createElement('div');
 
   this.dom.background.className           = 'vispanel background';
   this.dom.backgroundVertical.className   = 'vispanel background vertical';
@@ -120,6 +129,12 @@ Timeline.prototype._create = function (container) {
   this.dom.left.className                 = 'content';
   this.dom.center.className               = 'content';
   this.dom.right.className                = 'content';
+  this.dom.shadowTop.className            = 'shadow top';
+  this.dom.shadowBottom.className         = 'shadow bottom';
+  this.dom.shadowTopLeft.className        = 'shadow top';
+  this.dom.shadowBottomLeft.className     = 'shadow bottom';
+  this.dom.shadowTopRight.className       = 'shadow top';
+  this.dom.shadowBottomRight.className    = 'shadow bottom';
 
   this.dom.root.appendChild(this.dom.background);
   this.dom.root.appendChild(this.dom.backgroundVertical);
@@ -134,8 +149,19 @@ Timeline.prototype._create = function (container) {
   this.dom.leftContainer.appendChild(this.dom.left);
   this.dom.rightContainer.appendChild(this.dom.right);
 
+  this.dom.centerContainer.appendChild(this.dom.shadowTop);
+  this.dom.centerContainer.appendChild(this.dom.shadowBottom);
+  this.dom.leftContainer.appendChild(this.dom.shadowTopLeft);
+  this.dom.leftContainer.appendChild(this.dom.shadowBottomLeft);
+  this.dom.rightContainer.appendChild(this.dom.shadowTopRight);
+  this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
+
   this.on('rangechange', this.redraw.bind(this));
   this.on('change', this.redraw.bind(this));
+  this.on('touch', this._onTouch.bind(this));
+  this.on('pinch', this._onPinch.bind(this));
+  this.on('dragstart', this._onDragStart.bind(this));
+  this.on('drag', this._onDrag.bind(this));
 
   // create event listeners for all interesting events, these events will be
   // emitted via emitter
@@ -146,8 +172,8 @@ Timeline.prototype._create = function (container) {
 
   var me = this;
   var events = [
-    'pinch',
-    //'tap', 'doubletap', 'hold', // TODO: catching the events here disables selecting an item
+    'touch', 'pinch',
+    'tap', 'doubletap', 'hold',
     'dragstart', 'drag', 'dragend',
     'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
   ];
@@ -172,8 +198,11 @@ Timeline.prototype._create = function (container) {
     right: {},
     top: {},
     bottom: {},
-    border: {}
+    border: {},
+    scrollTop: 0,
+    scrollTopMin: 0
   };
+  this.touch = {}; // store state information needed for touch events
 
   // attach the root panel to the provided container
   if (!container) throw new Error('No container provided');
@@ -181,8 +210,47 @@ Timeline.prototype._create = function (container) {
 };
 
 /**
+ * Destroy the Timeline, clean up all DOM elements and event listeners.
+ */
+Timeline.prototype.destroy = function () {
+  // unbind datasets
+  this.clear();
+
+  // remove all event listeners
+  this.off();
+
+  // stop checking for changed size
+  this._stopAutoResize();
+
+  // remove from DOM
+  if (this.dom.root.parentNode) {
+    this.dom.root.parentNode.removeChild(this.dom.root);
+  }
+  this.dom = null;
+
+  // cleanup hammer touch events
+  for (var event in this.listeners) {
+    if (this.listeners.hasOwnProperty(event)) {
+      delete this.listeners[event];
+    }
+  }
+  this.listeners = null;
+  this.hammer = null;
+
+  // give all components the opportunity to cleanup
+  this.components.forEach(function (component) {
+    component.destroy();
+  });
+
+  this.body = null;
+};
+
+/**
  * Set options. Options will be passed to all components loaded in the Timeline.
  * @param {Object} [options]
+ *                           {String} orientation
+ *                              Vertical orientation for the Timeline,
+ *                              can be 'bottom' (default) or 'top'.
  *                           {String | Number} width
  *                              Width for the timeline, a number in pixels or
  *                              a css string like '1000px' or '75%'. '100%' by default.
@@ -205,7 +273,7 @@ Timeline.prototype._create = function (container) {
 Timeline.prototype.setOptions = function (options) {
   if (options) {
     // copy the known options
-    var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end'];
+    var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation'];
     util.selectiveExtend(fields, this.options, options);
 
     // enable/disable autoResize
@@ -268,7 +336,7 @@ Timeline.prototype.setItems = function(items) {
   else {
     // turn an array into a dataset
     newDataSet = new DataSet(items, {
-      convert: {
+      type: {
         start: 'Date',
         end: 'Date'
       }
@@ -385,20 +453,22 @@ Timeline.prototype.getItemRange = function() {
   if (itemsData) {
     // calculate the minimum value of the field 'start'
     var minItem = itemsData.min('start');
-    min = minItem ? minItem.start.valueOf() : null;
+    min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
+    // Note: we convert first to Date and then to number because else
+    // a conversion from ISODate to Number will fail
 
     // calculate maximum value of fields 'start' and 'end'
     var maxStartItem = itemsData.max('start');
     if (maxStartItem) {
-      max = maxStartItem.start.valueOf();
+      max = util.convert(maxStartItem.start, 'Date').valueOf();
     }
     var maxEndItem = itemsData.max('end');
     if (maxEndItem) {
       if (max == null) {
-        max = maxEndItem.end.valueOf();
+        max = util.convert(maxEndItem.end, 'Date').valueOf();
       }
       else {
-        max = Math.max(max, maxEndItem.end.valueOf());
+        max = Math.max(max, util.convert(maxEndItem.end, 'Date').valueOf());
       }
     }
   }
@@ -472,6 +542,8 @@ Timeline.prototype.redraw = function() {
       options = this.options,
       props = this.props,
       dom = this.dom;
+
+  if (!dom) return; // when destroyed
 
   // update class names
   dom.root.className = 'vis timeline root ' + options.orientation;
@@ -561,21 +633,31 @@ Timeline.prototype.redraw = function() {
   dom.bottom.style.left               = props.left.width + 'px';
   dom.bottom.style.top                = (props.top.height + props.centerContainer.height) + 'px';
 
+  // update the scrollTop, feasible range for the offset can be changed
+  // when the height of the Timeline or of the contents of the center changed
+  this._updateScrollTop();
+
   // reposition the scrollable contents
-  var offset;
-  if (options.orientation == 'top') {
-    offset = 0;
+  var offset = this.props.scrollTop;
+  if (options.orientation == 'bottom') {
+    offset += Math.max(this.props.centerContainer.height - this.props.center.height, 0);
   }
-  else { // orientation == 'bottom'
-    // keep the items aligned to the axis at the bottom
-    offset = 0;// props.centerContainer.height - props.center.height;
-  }
-  dom.center.style.left               = '0';
-  dom.center.style.top                = offset+ 'px';
-  dom.left.style.left                 = '0';
-  dom.left.style.top                  = offset+ 'px';
-  dom.right.style.left                = '0';
-  dom.right.style.top                 = offset+ 'px';
+  dom.center.style.left = '0';
+  dom.center.style.top  = offset + 'px';
+  dom.left.style.left   = '0';
+  dom.left.style.top    = offset + 'px';
+  dom.right.style.left  = '0';
+  dom.right.style.top   = offset + 'px';
+
+  // show shadows when vertical scrolling is available
+  var visibilityTop = this.props.scrollTop == 0 ? 'hidden' : '';
+  var visibilityBottom = this.props.scrollTop == this.props.scrollTopMin ? 'hidden' : '';
+  dom.shadowTop.style.visibility          = visibilityTop;
+  dom.shadowBottom.style.visibility       = visibilityBottom;
+  dom.shadowTopLeft.style.visibility      = visibilityTop;
+  dom.shadowBottomLeft.style.visibility   = visibilityBottom;
+  dom.shadowTopRight.style.visibility     = visibilityTop;
+  dom.shadowBottomRight.style.visibility  = visibilityBottom;
 
   // redraw all components
   this.components.forEach(function (component) {
@@ -640,7 +722,7 @@ Timeline.prototype._startAutoResize = function () {
 
   this._stopAutoResize();
 
-  function checkSize() {
+  this._onResize = function() {
     if (me.options.autoResize != true) {
       // stop watching when the option autoResize is changed to false
       me._stopAutoResize();
@@ -657,12 +739,12 @@ Timeline.prototype._startAutoResize = function () {
         me.emit('change');
       }
     }
-  }
+  };
 
-  // TODO: automatically cleanup the event listener when the frame is deleted
-  util.addEventListener(window, 'resize', checkSize);
+  // add event listener to window resize
+  util.addEventListener(window, 'resize', this._onResize);
 
-  this.watchTimer = setInterval(checkSize, 1000);
+  this.watchTimer = setInterval(this._onResize, 1000);
 };
 
 /**
@@ -675,5 +757,99 @@ Timeline.prototype._stopAutoResize = function () {
     this.watchTimer = undefined;
   }
 
-  // TODO: remove event listener on window.resize
+  // remove event listener on window.resize
+  util.removeEventListener(window, 'resize', this._onResize);
+  this._onResize = null;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onTouch = function (event) {
+  this.touch.allowDragging = true;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onPinch = function (event) {
+  this.touch.allowDragging = false;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onDragStart = function (event) {
+  this.touch.initialScrollTop = this.props.scrollTop;
+};
+
+/**
+ * Move the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onDrag = function (event) {
+  // refuse to drag when we where pinching to prevent the timeline make a jump
+  // when releasing the fingers in opposite order from the touch screen
+  if (!this.touch.allowDragging) return;
+
+  var delta = event.gesture.deltaY;
+
+  var oldScrollTop = this._getScrollTop();
+  var newScrollTop = this._setScrollTop(this.touch.initialScrollTop + delta);
+
+  if (newScrollTop != oldScrollTop) {
+    this.redraw(); // TODO: this causes two redraws when dragging, the other is triggered by rangechange already
+  }
+};
+
+/**
+ * Apply a scrollTop
+ * @param {Number} scrollTop
+ * @returns {Number} scrollTop  Returns the applied scrollTop
+ * @private
+ */
+Timeline.prototype._setScrollTop = function (scrollTop) {
+  this.props.scrollTop = scrollTop;
+  this._updateScrollTop();
+  return this.props.scrollTop;
+};
+
+/**
+ * Update the current scrollTop when the height of  the containers has been changed
+ * @returns {Number} scrollTop  Returns the applied scrollTop
+ * @private
+ */
+Timeline.prototype._updateScrollTop = function () {
+  // recalculate the scrollTopMin
+  var scrollTopMin = Math.min(this.props.centerContainer.height - this.props.center.height, 0); // is negative or zero
+  if (scrollTopMin != this.props.scrollTopMin) {
+    // in case of bottom orientation, change the scrollTop such that the contents
+    // do not move relative to the time axis at the bottom
+    if (this.options.orientation == 'bottom') {
+      this.props.scrollTop += (scrollTopMin - this.props.scrollTopMin);
+    }
+    this.props.scrollTopMin = scrollTopMin;
+  }
+
+  // limit the scrollTop to the feasible scroll range
+  if (this.props.scrollTop > 0) this.props.scrollTop = 0;
+  if (this.props.scrollTop < scrollTopMin) this.props.scrollTop = scrollTopMin;
+
+  return this.props.scrollTop;
+};
+
+/**
+ * Get the current scrollTop
+ * @returns {number} scrollTop
+ * @private
+ */
+Timeline.prototype._getScrollTop = function () {
+  return this.props.scrollTop;
 };

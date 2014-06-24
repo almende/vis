@@ -359,8 +359,7 @@ util.convert = function(object, type) {
       }
 
     default:
-      throw new Error('Cannot convert object of type ' + util.getType(object) +
-          ' to type "' + type + '"');
+      throw new Error('Unknown type "' + type + '"');
   }
 };
 

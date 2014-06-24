@@ -1593,6 +1593,16 @@ var options: {
                             // all fields normally accepted by a node can be used.
         callback(newData);  // call the callback with the new data to edit the node.
     }
+    onEditEdge: function(data,callback) {
+        /** data = {id: edgeID,
+        *           from: nodeId1,
+        *           to: nodeId2,
+        *          };
+        */
+        var newData = {..}; // alter the data as you want, except for the ID.
+                            // all fields normally accepted by an edge can be used.
+        callback(newData);  // call the callback with the new data to edit the edge.
+    }
     onConnect: function(data,callback) {
         // data = {from: nodeId1, to: nodeId2};
         var newData = {..};      // check or alter data as you see fit.
@@ -1951,10 +1961,12 @@ var options: {
       link:"Add Link",
       del:"Delete selected",
       editNode:"Edit Node",
+      editEdge:"Edit Edge",
       back:"Back",
       addDescription:"Click in an empty space to place a new node.",
       linkDescription:"Click on a node and drag the edge to another
                        node to connect them.",
+      editEdgeDescription:"Click on either one of the control points and drag them to another node to connect to it.".
       addError:"The function for add does not support two arguments
                                                         (data,callback).",
       linkError:"The function for connect does not support two arguments
@@ -2137,16 +2149,36 @@ var options: {
     </td>
   </tr>
 
+    <tr>
+        <td>selectNodes(selection, [highlightEdges])</td>
+        <td>none</td>
+        <td>Select nodes.
+            <code>selection</code> is an array with ids of nodes to be selected.
+            The array <code>selection</code> can contain zero or multiple ids.
+            Example usage: <code>graph.selectNodes([3, 5]);</code> will select
+            nodes with id 3 and 5. The highlisghEdges boolean can be used to automatically select the edges connected to the node.
+        </td>
+    </tr>
+    <tr>
+        <td>selectEdges(selection)</td>
+        <td>none</td>
+        <td>Select Edges.
+            <code>selection</code> is an array with ids of edges to be selected.
+            The array <code>selection</code> can contain zero or multiple ids.
+            Example usage: <code>graph.selectEdges([3, 5]);</code> will select
+            edges with id 3 and 5.
+        </td>
+    </tr>
   <tr>
     <td>setSelection(selection)</td>
     <td>none</td>
-    <td>Select nodes.
-      <code>selection</code> is an array with ids of nodes to be selected.
-      The array <code>selection</code> can contain zero or multiple ids.
-      Example usage: <code>graph.setSelection([3, 5]);</code> will select
-      nodes with id 3 and 5.
+    <td>Select nodes [deprecated].
+        <code>selection</code> is an array with ids of nodes to be selected.
+        The array <code>selection</code> can contain zero or multiple ids.
+        Example usage: <code>graph.setSelection([3, 5]);</code> will select
+        nodes with id 3 and 5.
     </td>
-  </tr>
+</tr>
 
   <tr>
     <td>setSize(width, height)</td>

@@ -44,6 +44,7 @@ task('build', {async: true}, function () {
       './src/timeline/component/css/timeaxis.css',
       './src/timeline/component/css/currenttime.css',
       './src/timeline/component/css/customtime.css',
+      './src/timeline/component/css/animation.css',
 
       './src/timeline/component/css/dataaxis.css',
       './src/timeline/component/css/pathStyles.css',

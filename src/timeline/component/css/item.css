@@ -7,11 +7,6 @@
   background-color: #D5DDF6;
   display: inline-block;
   padding: 5px;
-
-  /* TODO: enable css transitions
-  -webkit-transition: top .4s ease-in-out, bottom .4s ease-in-out;
-  transition:         top .4s ease-in-out, bottom .4s ease-in-out;
-  /**/
 }
 
 .vis.timeline .item.selected {
@@ -46,15 +41,13 @@
   border-radius: 4px;
 }
 
-.vis.timeline .item.range,
-.vis.timeline .item.rangeoverflow{
+.vis.timeline .item.range {
   border-style: solid;
   border-radius: 2px;
   box-sizing: border-box;
 }
 
-.vis.timeline .item.range .content,
-.vis.timeline .item.rangeoverflow .content {
+.vis.timeline .item.range .content {
   position: relative;
   display: inline-block;
 }
@@ -70,11 +63,6 @@
   width: 0;
   border-left-width: 1px;
   border-left-style: solid;
-
-  /* TODO: enable css transitions
-  -webkit-transition: height .4s ease-in-out, top .4s ease-in-out;
-  transition:         height .4s ease-in-out, top .4s ease-in-out;
-  /**/
 }
 
 .vis.timeline .item .content {
@@ -92,8 +80,7 @@
   cursor: pointer;
 }
 
-.vis.timeline .item.range .drag-left,
-.vis.timeline .item.rangeoverflow .drag-left {
+.vis.timeline .item.range .drag-left {
   position: absolute;
   width: 24px;
   height: 100%;
@@ -104,8 +91,7 @@
   z-index: 10000;
 }
 
-.vis.timeline .item.range .drag-right,
-.vis.timeline .item.rangeoverflow .drag-right {
+.vis.timeline .item.range .drag-right {
   position: absolute;
   width: 24px;
   height: 100%;

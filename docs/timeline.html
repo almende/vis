@@ -68,16 +68,23 @@
 &lt;div id="visualization"&gt;&lt;/div&gt;
 
 &lt;script type="text/javascript"&gt;
+  // DOM element where the Timeline will be attached
   var container = document.getElementById('visualization');
-  var items = [
+
+  // Create a DataSet (allows two way data-binding)
+  var items = new vis.DataSet([
     {id: 1, content: 'item 1', start: '2013-04-20'},
     {id: 2, content: 'item 2', start: '2013-04-14'},
     {id: 3, content: 'item 3', start: '2013-04-18'},
     {id: 4, content: 'item 4', start: '2013-04-16', end: '2013-04-19'},
     {id: 5, content: 'item 5', start: '2013-04-25'},
     {id: 6, content: 'item 6', start: '2013-04-27'}
-  ];
+  ]);
+
+  // Configuration for the Timeline
   var options = {};
+
+  // Create a Timeline
   var timeline = new vis.Timeline(container, items, options);
 &lt;/script&gt;
 &lt;/body&gt;
@@ -195,8 +202,8 @@ var items = [
     <td>type</td>
     <td>String</td>
     <td>'box'</td>
-    <td>The type of the item. Can be 'box' (default), 'point', 'range', or 'rangeoverflow'.
-      Types 'box' and 'point' need a start date, and types 'range' and 'rangeoverflow' need both a start and end date. Types 'range' and rangeoverflow are equal, except that overflowing text in 'range' is hidden, while visible in 'rangeoverflow'.
+    <td>The type of the item. Can be 'box' (default), 'point', or 'range'.
+      Types 'box' and 'point' need a start date, and type 'range' needs both a start and end date.
     </td>
   </tr>
   <tr>
@@ -459,6 +466,16 @@ var options = {
 </tr>
 
 <tr>
+    <td>moveable</td>
+    <td>Boolean</td>
+    <td>true</td>
+    <td>
+      Specifies whether the Timeline can be moved and zoomed by dragging the window.
+      See also option <code>zoomable</code>.
+    </td>
+</tr>
+
+<tr>
   <td>onAdd</td>
   <td>Function</td>
   <td>none</td>
@@ -587,8 +604,8 @@ var options = {
 <tr>
   <td>type</td>
   <td>String</td>
-  <td>'box'</td>
-  <td>Specifies the default type for the timeline items. Choose from 'box', 'point', 'range', and 'rangeoverflow'. Note that individual items can override this default type.
+  <td>none</td>
+  <td>Specifies the default type for the timeline items. Choose from 'box', 'point', and 'range'. Note that individual items can override this default type. If undefined, the Timeline will auto detect the type from the items data: if a start and end date is available, a 'range' will be created, and else, a 'box' is created.
   </td>
 </tr>
 
@@ -597,6 +614,16 @@ var options = {
   <td>String</td>
   <td>'100%'</td>
   <td>The width of the timeline in pixels or as a percentage.</td>
+</tr>
+
+<tr>
+  <td>zoomable</td>
+  <td>Boolean</td>
+  <td>true</td>
+  <td>
+    Specifies whether the Timeline can be zoomed by pinching or scrolling in the window.
+    Only applicable when option <code>moveable</code> is set <code>true</code>.
+  </td>
 </tr>
 
 <tr>
@@ -643,6 +670,13 @@ var options = {
 <pre class="prettyprint lang-js">timeline.clear();                // clear items, groups, and options
 timeline.clear({options: true}); // clear options only
 </pre>
+    </td>
+  </tr>
+
+  <tr>
+    <td>destroy()</td>
+    <td>none</td>
+    <td>Destroy the Timeline. The timeline is removed from memory. all DOM elements and event listeners are cleaned up.
     </td>
   </tr>
 
@@ -895,7 +929,7 @@ var options = {
 </p>
 <ul>
   <li><code>item</code>: the item being manipulated</li>
-  <li><code>callback</code>: a callback function which must be invoked to report back. The callback must be invoked as <code>callback(item | null)</code>. Here, <code>item</code> can contain changes to the passed item. When invoked as <code>callback(null)</code>, the action will be cancelled.</li>
+  <li><code>callback</code>: a callback function which must be invoked to report back. The callback must be invoked as <code>callback(item | null)</code>. Here, <code>item</code> can contain changes to the passed item. Parameter `item` typically contains fields `content`, `start`, and optionally `end`. The type of `start` and `end` is determined by the DataSet type configuration and is `Date` by default.  When invoked as <code>callback(null)</code>, the action will be cancelled.</li>
 </ul>
 
 <p>

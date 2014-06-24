@@ -2,17 +2,50 @@
 http://visjs.org
 
 
-## 2014-06-06, version 1.1.1
+## not yet released, version 2.1.0
 
 ### Timeline
 
+- Fixed auto detected item type being preferred over the global item `type`.
+- Throws an error when constructing without new keyword.
+- Removed the 'rangeoverflow' item type. Instead, one can use a regular range
+  and change css styling of the item contents to:
+
+        .vis.timeline .item.range .content {
+          overflow: visible;
+        }
+
+### Graph
+
+- Throws an error when constructing without new keyword.
+
+### Graph3d
+
+- Throws an error when constructing without new keyword.
+
+
+## 2014-06-19, version 2.0.0
+
+### Timeline
+
+- Implemented function `destroy` to neatly cleanup a Timeline.
+- Implemented support for dragging the timeline contents vertically.
+- Implemented options `zoomable` and `moveable`.
 - Changed default value of option `showCurrentTime` to true.
+- Internal refactoring and simplification of the code.
+- Fixed property `className` of groups not being applied to related contents and 
+  background elements, and not being updated once applied.
 
 ### Graph
 
 - Reduced the timestep a little for smoother animations.
 - Fixed dataManipulation.initiallyVisible functionality (thanks theGrue).
 - Forced typecast of fontSize to Number.
+- Added editing of edges using the data manipulation toolkit.
+
+### DataSet
+
+- Renamed option `convert` to `type`.
 
 
 ## 2014-06-06, version 1.1.0

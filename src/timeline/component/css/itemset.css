@@ -5,11 +5,6 @@
   margin: 0;
 
   box-sizing: border-box;
-
-  /* FIXME: get transition working for rootpanel and itemset
-  -webkit-transition: height 4s ease-in-out;
-  transition:         height 4s ease-in-out;
-  /**/
 }
 
 .vis.timeline .itemset .background,
@@ -17,10 +12,6 @@
   position: absolute;
   width: 100%;
   height: 100%;
-}
-
-.vis.timeline .itemset.foreground {
-  overflow: hidden;
 }
 
 .vis.timeline .axis {
@@ -31,24 +22,12 @@
   z-index: 1;
 }
 
-.vis.timeline  .group {
+.vis.timeline  .foreground .group {
   position: relative;
   box-sizing: border-box;
   border-bottom: 1px solid #bfbfbf;
 }
 
-.vis.timeline  .group:last-child {
+.vis.timeline  .foreground .group:last-child {
   border-bottom: none;
 }
-
-/*
-.vis.timeline.top .group {
-  border-top: 1px solid #bfbfbf;
-  border-bottom: none;
-}
-
-.vis.timeline.bottom .group {
-  border-top: none;
-  border-bottom: 1px solid #bfbfbf;
-}
-*/

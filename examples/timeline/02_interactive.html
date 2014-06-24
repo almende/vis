@@ -21,12 +21,14 @@
 
 <script>
   // create a dataset with items
+  // we specify the type of the fields `start` and `end` here to be strings
+  // containing an ISO date. The fields will be outputted as ISO dates
+  // automatically getting data from the DataSet via items.get().
   var items = new vis.DataSet({
-    convert: {
-      start: 'Date',
-      end: 'Date'
-    }
+    type: { start: 'ISODate', end: 'ISODate' }
   });
+
+  // add items to the DataSet
   items.add([
     {id: 1, content: 'item 1<br>start', start: '2014-01-23'},
     {id: 2, content: 'item 2', start: '2014-01-18'},

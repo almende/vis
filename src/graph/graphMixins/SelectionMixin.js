@@ -241,7 +241,7 @@ var SelectionMixin = {
   },
 
   /**
-   * return the number of selected nodes
+   * return the selected node
    *
    * @returns {number}
    * @private
@@ -250,6 +250,21 @@ var SelectionMixin = {
     for (var nodeId in this.selectionObj.nodes) {
       if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
         return this.selectionObj.nodes[nodeId];
+      }
+    }
+    return null;
+  },
+
+  /**
+   * return the selected edge
+   *
+   * @returns {number}
+   * @private
+   */
+  _getSelectedEdge : function() {
+    for (var edgeId in this.selectionObj.edges) {
+      if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        return this.selectionObj.edges[edgeId];
       }
     }
     return null;
@@ -387,9 +402,12 @@ var SelectionMixin = {
    * @param {Boolean} [doNotTrigger] | ignore trigger
    * @private
    */
-  _selectObject : function(object, append, doNotTrigger) {
+  _selectObject : function(object, append, doNotTrigger, highlightEdges) {
     if (doNotTrigger === undefined) {
       doNotTrigger = false;
+    }
+    if (highlightEdges === undefined) {
+      highlightEdges = true;
     }
 
     if (this._selectionIsEmpty() == false && append == false && this.forceAppendSelection == false) {
@@ -399,7 +417,7 @@ var SelectionMixin = {
     if (object.selected == false) {
       object.select();
       this._addToSelection(object);
-      if (object instanceof Node && this.blockConnectingEdgeSelection == false) {
+      if (object instanceof Node && this.blockConnectingEdgeSelection == false && highlightEdges == true) {
         this._selectConnectedEdges(object);
       }
     }
@@ -458,7 +476,6 @@ var SelectionMixin = {
    * @private
    */
   _handleTouch : function(pointer) {
-
   },
 
 
@@ -605,9 +622,66 @@ var SelectionMixin = {
       }
       this._selectObject(node,true,true);
     }
+
+    console.log("setSelection is deprecated. Please use selectNodes instead.")
+
     this.redraw();
   },
 
+
+  /**
+   * select zero or more nodes with the option to highlight edges
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   * @param {boolean} [highlightEdges]
+   */
+  selectNodes : function(selection, highlightEdges) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    this._unselectAll(true);
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var node = this.nodes[id];
+      if (!node) {
+        throw new RangeError('Node with id "' + id + '" not found');
+      }
+      this._selectObject(node,true,true,highlightEdges);
+    }
+    this.redraw();
+  },
+
+
+  /**
+   * select zero or more edges
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   */
+  selectEdges : function(selection) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    this._unselectAll(true);
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var edge = this.edges[id];
+      if (!edge) {
+        throw new RangeError('Edge with id "' + id + '" not found');
+      }
+      this._selectObject(edge,true,true,highlightEdges);
+    }
+    this.redraw();
+  },
 
   /**
    * Validate the selection: remove ids of nodes which no longer exist

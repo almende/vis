@@ -13,7 +13,7 @@ function ItemSet(body, options) {
   this.body = body;
 
   this.defaultOptions = {
-    type: 'box',
+    type: null,  // 'box', 'point', 'range'
     orientation: 'bottom',  // 'top' or 'bottom'
     align: 'center', // alignment of box items
     stack: true,
@@ -49,6 +49,11 @@ function ItemSet(body, options) {
 
   // options is shared by this ItemSet and all its items
   this.options = util.extend({}, this.defaultOptions);
+
+  // options for getting items from the DataSet with the correct type
+  this.itemOptions = {
+    type: {start: 'Date', end: 'Date'}
+  };
 
   this.conversion = {
     toScreen: body.util.toScreen,
@@ -109,7 +114,6 @@ ItemSet.prototype = new Component();
 ItemSet.types = {
   box: ItemBox,
   range: ItemRange,
-  rangeoverflow: ItemRangeOverflow,
   point: ItemPoint
 };
 
@@ -148,8 +152,10 @@ ItemSet.prototype._create = function(){
   this._updateUngrouped();
 
   // attach event listeners
-  // TODO: use event listeners from the rootpanel to improve performance?
-  this.hammer = Hammer(frame, {
+  // Note: we bind to the centerContainer for the case where the height
+  //       of the center container is larger than of the ItemSet, so we
+  //       can click in the empty area to create a new item or deselect an item.
+  this.hammer = Hammer(this.body.dom.centerContainer, {
     prevent_default: true
   });
 
@@ -279,6 +285,20 @@ ItemSet.prototype.setOptions = function(options) {
 ItemSet.prototype.markDirty = function() {
   this.groupIds = [];
   this.stackDirty = true;
+};
+
+/**
+ * Destroy the ItemSet
+ */
+ItemSet.prototype.destroy = function() {
+  this.hide();
+  this.setItems(null);
+  this.setGroups(null);
+
+  this.hammer = null;
+
+  this.body = null;
+  this.conversion = null;
 };
 
 /**
@@ -430,14 +450,8 @@ ItemSet.prototype.redraw = function() {
   height = Math.max(height, minHeight);
   this.stackDirty = false;
 
-  // reposition frame
-  frame.style.left    = asSize(options.left, '');
-  frame.style.right   = asSize(options.right, '');
-  frame.style.top     = asSize((orientation == 'top') ? '0' : '');
-  frame.style.bottom  = asSize((orientation == 'top') ? '' : '0');
-  frame.style.width   = asSize(options.width, '100%');
+  // update frame height
   frame.style.height  = asSize(height);
-  //frame.style.height  = asSize('height' in options ? options.height : height); // TODO: reckon with height
 
   // calculate actual size and position
   this.props.top = frame.offsetTop;
@@ -656,12 +670,9 @@ ItemSet.prototype._onUpdate = function(ids) {
   var me = this;
 
   ids.forEach(function (id) {
-    var itemData = me.itemsData.get(id),
+    var itemData = me.itemsData.get(id, me.itemOptions),
         item = me.items[id],
-        type = itemData.type ||
-            (itemData.start && itemData.end && 'range') ||
-            me.options.type ||
-            'box';
+        type = itemData.type || me.options.type || (itemData.end ? 'range' : 'box');
 
     var constructor = ItemSet.types[type];
 
@@ -683,6 +694,11 @@ ItemSet.prototype._onUpdate = function(ids) {
         item = new constructor(itemData, me.conversion, me.options);
         item.id = id; // TODO: not so nice setting id afterwards
         me._addItem(item);
+      }
+      else if (type == 'rangeoverflow') {
+        // TODO: deprecated since version 2.1.0 (or 3.0.0?). cleanup some day
+        throw new TypeError('Item type "rangeoverflow" is deprecated. Use css styling instead: ' +
+            '.vis.timeline .item.range .content {overflow: visible;}');
       }
       else {
         throw new TypeError('Unknown item type "' + type + '"');
@@ -1076,16 +1092,18 @@ ItemSet.prototype._onDragEnd = function (event) {
 
     this.touchParams.itemProps.forEach(function (props) {
       var id = props.item.id,
-          itemData = me.itemsData.get(id);
+          itemData = me.itemsData.get(id, me.itemOptions);
 
       var changed = false;
       if ('start' in props.item.data) {
         changed = (props.start != props.item.data.start.valueOf());
-        itemData.start = util.convert(props.item.data.start, dataset.convert['start']);
+        itemData.start = util.convert(props.item.data.start,
+                dataset._options.type && dataset._options.type.start || 'Date');
       }
       if ('end' in props.item.data) {
         changed = changed  || (props.end != props.item.data.end.valueOf());
-        itemData.end = util.convert(props.item.data.end, dataset.convert['end']);
+        itemData.end = util.convert(props.item.data.end,
+                dataset._options.type && dataset._options.type.end || 'Date');
       }
       if ('group' in props.item.data) {
         changed = changed  || (props.group != props.item.data.group);
@@ -1097,7 +1115,7 @@ ItemSet.prototype._onDragEnd = function (event) {
         me.options.onMove(itemData, function (itemData) {
           if (itemData) {
             // apply changes
-            itemData[dataset.fieldId] = id; // ensure the item contains its id (can be undefined)
+            itemData[dataset._fieldId] = id; // ensure the item contains its id (can be undefined)
             changes.push(itemData);
           }
           else {
@@ -1191,13 +1209,12 @@ ItemSet.prototype._onAddItem = function (event) {
     };
 
     // when default type is a range, add a default end date to the new item
-    if (this.options.type === 'range' || this.options.type == 'rangeoverflow') {
+    if (this.options.type === 'range') {
       var end = this.body.util.toTime(x + this.props.width / 5);
       newItem.end = snap ? snap(end) : end;
     }
 
-    var id = util.randomUUID();
-    newItem[this.itemsData.fieldId] = id;
+    newItem[this.itemsData.fieldId] = util.randomUUID();
 
     var group = ItemSet.groupFromTarget(event);
     if (group) {

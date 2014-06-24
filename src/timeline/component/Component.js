@@ -29,6 +29,13 @@ Component.prototype.redraw = function() {
 };
 
 /**
+ * Destroy the component. Cleanup DOM and event listeners
+ */
+Component.prototype.destroy = function() {
+  // should be implemented by the component
+};
+
+/**
  * Test whether the component is resized since the last time _isResized() was
  * called.
  * @return {Boolean} Returns true if the component is resized

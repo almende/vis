@@ -10,6 +10,10 @@
  * @param {Object} [options]
  */
 function Graph3d(container, data, options) {
+  if (!(this instanceof Graph3d)) {
+    throw new SyntaxError('Constructor must be called with the new operator');
+  }
+
   // create variables and set default values
   this.containerElement = container;
   this.width = '400px';

@@ -6,7 +6,7 @@ var assert = require('assert'),
 var now = new Date();
 
 var data = new DataSet({
-  convert: {
+  type: {
     start: 'Date',
     end: 'Date'
   }
@@ -31,6 +31,7 @@ items.forEach(function (item) {
 var sort = function (a, b) {
   return a.id > b.id;
 };
+
 assert.deepEqual(data.get({
   fields: ['id', 'content']
 }).sort(sort), [
@@ -44,7 +45,7 @@ assert.deepEqual(data.get({
 // convert dates
 assert.deepEqual(data.get({
   fields: ['id', 'start'],
-  convert: {start: 'Number'}
+  type: {start: 'Number'}
 }).sort(sort), [
   {id: 1, start: now.valueOf()},
   {id: 2, start: now.valueOf()},
@@ -56,7 +57,7 @@ assert.deepEqual(data.get({
 // get a single item
 assert.deepEqual(data.get(1, {
   fields: ['id', 'start'],
-  convert: {start: 'ISODate'}
+  type: {start: 'ISODate'}
 }), {
   id: 1,
   start: now.toISOString()
@@ -150,17 +151,7 @@ data.clear();
 data.add({content: 'Item 1'});
 data.add({content: 'Item 2'});
 
-assert.strictEqual(data.get()[0].id, undefined);
-assert.deepEqual((data.get({"showInternalIds": true})[0].id == undefined),false);
-assert.deepEqual(data.isInternalId(data.get({"showInternalIds": true})[0].id), true);
-assert.deepEqual((data.get()[0].id == undefined), true);
-
-// check if the global setting is applied correctly
-var data = new DataSet({showInternalIds: true});
-data.add({content: 'Item 1'});
-assert.deepEqual((data.get()[0].id == undefined), false);
-assert.deepEqual(data.isInternalId(data.get()[0].id), true);
-assert.deepEqual((data.get({"showInternalIds": false})[0].id == undefined),true);
+assert.notStrictEqual(data.get()[0].id, undefined);
 
 // create a dataset with initial data
 var data = new DataSet([

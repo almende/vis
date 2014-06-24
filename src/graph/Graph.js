@@ -10,6 +10,9 @@
  * @param {Object} options      Options
  */
 function Graph (container, data, options) {
+  if (!(this instanceof Graph)) {
+    throw new SyntaxError('Constructor must be called with the new operator');
+  }
 
   this._initializeMixinLoaders();
 
@@ -30,7 +33,7 @@ function Graph (container, data, options) {
   this.initializing = true;
 
   // these functions are triggered when the dataset is edited
-  this.triggerFunctions = {add:null,edit:null,connect:null,del:null};
+  this.triggerFunctions = {add:null,edit:null,editEdge:null,connect:null,del:null};
 
   // set constant values
   this.constants = {
@@ -166,9 +169,11 @@ function Graph (container, data, options) {
       link:"Add Link",
       del:"Delete selected",
       editNode:"Edit Node",
+      editEdge:"Edit Edge",
       back:"Back",
       addDescription:"Click in an empty space to place a new node.",
       linkDescription:"Click on a node and drag the edge to another node to connect them.",
+      editEdgeDescription:"Click on the control points and drag them to a node to connect to it.",
       addError:"The function for add does not support two arguments (data,callback).",
       linkError:"The function for connect does not support two arguments (data,callback).",
       editError:"The function for edit does not support two arguments (data, callback).",
@@ -548,6 +553,10 @@ Graph.prototype.setOptions = function (options) {
 
     if (options.onEdit) {
       this.triggerFunctions.edit = options.onEdit;
+    }
+
+    if (options.onEditEdge) {
+      this.triggerFunctions.editEdge = options.onEditEdge;
     }
 
     if (options.onConnect) {
@@ -1679,7 +1688,6 @@ Graph.prototype._updateValueRange = function(obj) {
  */
 Graph.prototype.redraw = function() {
   this.setSize(this.width, this.height);
-
   this._redraw();
 };
 
@@ -1711,6 +1719,7 @@ Graph.prototype._redraw = function() {
   this._doInAllSectors("_drawAllSectorNodes",ctx);
   this._doInAllSectors("_drawEdges",ctx);
   this._doInAllSectors("_drawNodes",ctx,false);
+  this._doInAllSectors("_drawControlNodes",ctx);
 
 //  this._doInSupportSector("_drawNodes",ctx,true);
 //  this._drawTree(ctx,"#F00F0F");
@@ -1891,6 +1900,21 @@ Graph.prototype._drawEdges = function(ctx) {
       if (edge.connected) {
         edges[id].draw(ctx);
       }
+    }
+  }
+};
+
+/**
+ * Redraw all edges
+ * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
+ * @param {CanvasRenderingContext2D}   ctx
+ * @private
+ */
+Graph.prototype._drawControlNodes = function(ctx) {
+  var edges = this.edges;
+  for (var id in edges) {
+    if (edges.hasOwnProperty(id)) {
+      edges[id]._drawControlNodes(ctx);
     }
   }
 };

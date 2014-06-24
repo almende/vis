@@ -760,28 +760,18 @@ DataSet.prototype.min = function (field) {
  *                         The returned array is unordered.
  */
 DataSet.prototype.distinct = function (field) {
-  var data = this._data,
-      values = [],
-      fieldType = "",
-      count = 0;
-
-  // do not convert unless this is required.
-  var convert = false;
-  if (this._options) {
-    if (this._options.type) {
-      if (this._options.type.hasOwnProperty(field)) {
-        fieldType = this._options.type[field];
-        convert = true;
-      }
-    }
-  }
+  var data = this._data;
+  var values = [];
+  var fieldType = this._options.type && this._options.type[field] || null;
+  var count = 0;
+  var i;
 
   for (var prop in data) {
     if (data.hasOwnProperty(prop)) {
       var item = data[prop];
       var value = item[field];
       var exists = false;
-      for (var i = 0; i < count; i++) {
+      for (i = 0; i < count; i++) {
         if (values[i] == value) {
           exists = true;
           break;
@@ -794,9 +784,9 @@ DataSet.prototype.distinct = function (field) {
     }
   }
 
-  if (convert == true) {
-    for (var i = 0; i < values.length; i++) {
-      values[i] = util.convert(values[i],fieldType);
+  if (fieldType) {
+    for (i = 0; i < values.length; i++) {
+      values[i] = util.convert(values[i], fieldType);
     }
   }
 
