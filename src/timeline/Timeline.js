@@ -699,6 +699,22 @@ Timeline.prototype._toScreen = function(time) {
   return (time.valueOf() - conversion.offset) * conversion.scale;
 };
 
+
+/**
+ * Convert a datetime (Date object) into a position on the root
+ * This is used to get the pixel density estimate for the screen, not the center panel
+ * @param {Date}   time A date
+ * @return {int}   x    The position on root in pixels which corresponds
+ *                      with the given date.
+ * @private
+ */
+// TODO: move this function to Range
+Graph2d.prototype._toGlobalScreen = function(time) {
+  var conversion = this.range.conversion(this.props.root.width);
+  return (time.valueOf() - conversion.offset) * conversion.scale;
+};
+
+
 /**
  * Initialize watching when option autoResize is true
  * @private

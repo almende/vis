@@ -21,7 +21,8 @@
     <br /><br />
     Vertical scrolling is planned, though not yet available. The graphHeight also does not conform if only the <code>height</code> is defined.
     <br /><br />
-    Graph2D does not sort the data. It is plotted as it is inputted. If you want your data to be sorted, sort your data.
+    You can manually disable the automatic sorting of the datapoints by using the <code>sort</code> option. However, doing so does reduce the optimization
+    of the drawing so if you have a lot of points, keep <code>sort</code> turned on for the best results.
 </div>
 <br />
 <div id="visualization"></div>
@@ -59,6 +60,7 @@
   var dataset = new vis.DataSet(items);
   var options = {
       legend: true,
+      sort: false,
       defaultGroup: 'doodle',
       graphHeight: '1500px',
       height: '500px',

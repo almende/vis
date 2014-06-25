@@ -201,12 +201,14 @@ DataAxis.prototype.setRange = function (start, end) {
  * @return {boolean} Returns true if the component is resized
  */
 DataAxis.prototype.redraw = function () {
+  var changeCalled = false;
   if (this.amountOfGroups == 0) {
     this.hide();
   }
   else {
-
-    this.height = this.linegraphSVG.offsetHeight;
+    this.show();
+    this.height = Number(this.linegraphSVG.style.height.replace("px",""));
+    // svg offsetheight did not work in firefox and explorer...
 
     this.dom.lineContainer.style.height = this.height + 'px';
     this.width = this.options.visible ? Number(this.options.width.replace("px","")) : 0;
@@ -248,12 +250,12 @@ DataAxis.prototype.redraw = function () {
       frame.style.width = this.width + 'px';
       frame.style.height = this.height + "px";
     }
-
-    this._redrawLabels();
+    changeCalled = this._redrawLabels();
     if (this.options.icons == true) {
       this._redrawGroupIcons();
     }
   }
+  return changeCalled;
 };
 
 /**
@@ -266,10 +268,8 @@ DataAxis.prototype._redrawLabels = function () {
   var orientation = this.options['orientation'];
 
   // calculate range and step (step such that we have space for 7 characters per label)
-  var start = this.yRange.start;
-  var end = this.yRange.end;
   var minimumStep = (this.props.majorCharHeight || 10); //in pixels
-  var step = new DataStep(start, end, minimumStep, this.dom.frame.offsetHeight);
+  var step = new DataStep(this.yRange.start, this.yRange.end, minimumStep, this.dom.frame.offsetHeight);
   this.step = step;
   step.first();
 
@@ -289,6 +289,7 @@ DataAxis.prototype._redrawLabels = function () {
     amountOfSteps = this.height / stepPixels;
   }
 
+
   this.valueAtZero = step.marginEnd;
   var marginStartPos = 0;
 
@@ -299,6 +300,7 @@ DataAxis.prototype._redrawLabels = function () {
   this.maxLabelSize = 0;
   var y = 0;
   while (max < Math.round(amountOfSteps)) {
+
     y = Math.round(max * stepPixels);
     marginStartPos = max * stepPixels;
     var isMajor = step.isMajor();
@@ -323,19 +325,29 @@ DataAxis.prototype._redrawLabels = function () {
     max++;
   }
 
+  this.conversionFactor = marginStartPos/((amountOfSteps-1) * step.step);
+
   var offset = this.options.icons == true ? this.options.iconWidth + this.options.labelOffsetX + 15 : this.options.labelOffsetX + 15;
+  // this will resize the yAxis to accomodate the labels.
   if (this.maxLabelSize > (this.width - offset) && this.options.visible == true) {
     this.width = this.maxLabelSize + offset;
     this.options.width = this.width + "px";
-    this.body.emitter.emit("changed");
+    DOMutil.cleanupElements(this.DOMelements);
     this.redraw();
-    return;
+    return true;
   }
-
-
-  this.conversionFactor = marginStartPos/((amountOfSteps-1) * step.step);
-
-  DOMutil.cleanupElements(this.DOMelements);
+  // this will resize the yAxis if it is too big for the labels.
+  else if (this.maxLabelSize < (this.width - offset) && this.options.visible == true) {
+    this.width = this.maxLabelSize + offset;
+    this.options.width = this.width + "px";
+    DOMutil.cleanupElements(this.DOMelements);
+    this.redraw();
+    return true;
+  }
+  else {
+    DOMutil.cleanupElements(this.DOMelements);
+    return false;
+  }
 };
 
 /**

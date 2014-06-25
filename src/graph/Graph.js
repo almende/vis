@@ -35,6 +35,7 @@ function Graph (container, data, options) {
   // these functions are triggered when the dataset is edited
   this.triggerFunctions = {add:null,edit:null,editEdge:null,connect:null,del:null};
 
+
   // set constant values
   this.constants = {
     nodes: {

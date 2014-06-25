@@ -6,7 +6,7 @@
  */
 function GraphGroup (group, groupId, options, groupsUsingDefaultStyles) {
   this.id = groupId;
-  var fields = ['style','yAxisOrientation','barChart','drawPoints','shaded','catmullRom']
+  var fields = ['sampling','style','sort','yAxisOrientation','barChart','drawPoints','shaded','catmullRom']
   this.options = util.selectiveDeepExtend(fields,{},options);
   this.usingDefaultStyle = group.className === undefined;
   this.groupsUsingDefaultStyles = groupsUsingDefaultStyles;
@@ -14,11 +14,24 @@ function GraphGroup (group, groupId, options, groupsUsingDefaultStyles) {
   if (this.usingDefaultStyle == true) {
     this.groupsUsingDefaultStyles[0] += 1;
   }
+  this.itemsData = [];
+}
+
+GraphGroup.prototype.setItems = function(items) {
+  if (items != null) {
+    this.itemsData = items;
+    if (this.options.sort == true) {
+      this.itemsData.sort(function (a,b) {return a.x - b.x;})
+    }
+  }
+  else {
+    this.itemsData = [];
+  }
 }
 
 GraphGroup.prototype.setOptions = function(options) {
   if (options !== undefined) {
-    var fields = ['yAxisOrientation','style','barChart'];
+    var fields = ['yAxisOrientation','style','barChart','sort'];
     util.selectiveDeepExtend(fields, this.options, options);
 
     util._mergeOptions(this.options, options,'catmullRom');

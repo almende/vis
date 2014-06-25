@@ -1055,3 +1055,149 @@ util._mergeOptions = function (mergeTarget, options, option) {
     }
   }
 }
+
+
+/**
+ * This function does a binary search for a visible item. The user can select either the this.orderedItems.byStart or .byEnd
+ * arrays. This is done by giving a boolean value true if you want to use the byEnd.
+ * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
+ * if the time we selected (start or end) is within the current range).
+ *
+ * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the ItemRange that is
+ * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
+ * either the start OR end time has to be in the range.
+ *
+ * @param {{byStart: Item[], byEnd: Item[]}} orderedItems
+ * @param {{start: number, end: number}} range
+ * @param {Boolean} byEnd
+ * @returns {number}
+ * @private
+ */
+util.binarySearch = function(orderedItems, range, field, field2) {
+  var array = orderedItems;
+  var interval = range.end - range.start;
+
+  var found = false;
+  var low = 0;
+  var high = array.length;
+  var guess = Math.floor(0.5*(high+low));
+  var newGuess;
+  var value;
+
+  if (high == 0) {guess = -1;}
+  else if (high == 1) {
+    value = field2 === undefined ? array[guess][field] : array[guess][field][field2];
+    if ((value > range.start - interval) && (value < range.end)) {
+      guess =  0;
+    }
+    else {
+      guess = -1;
+    }
+  }
+  else {
+    high -= 1;
+    while (found == false) {
+      value = field2 === undefined ? array[guess][field] : array[guess][field][field2];
+      if ((value > range.start - interval) && (value < range.end)) {
+        found = true;
+      }
+      else {
+        if (value < range.start - interval) { // it is too small --> increase low
+          low = Math.floor(0.5*(high+low));
+        }
+        else {  // it is too big --> decrease high
+          high = Math.floor(0.5*(high+low));
+        }
+        newGuess = Math.floor(0.5*(high+low));
+        // not in list;
+        if (guess == newGuess) {
+          guess = -1;
+          found = true;
+        }
+        else {
+          guess = newGuess;
+        }
+      }
+    }
+  }
+  return guess;
+};
+
+/**
+ * This function does a binary search for a visible item. The user can select either the this.orderedItems.byStart or .byEnd
+ * arrays. This is done by giving a boolean value true if you want to use the byEnd.
+ * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
+ * if the time we selected (start or end) is within the current range).
+ *
+ * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the ItemRange that is
+ * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
+ * either the start OR end time has to be in the range.
+ *
+ * @param {Array} orderedItems
+ * @param {{start: number, end: number}} target
+ * @param {Boolean} byEnd
+ * @returns {number}
+ * @private
+ */
+util.binarySearchGeneric = function(orderedItems, target, field, sidePreference) {
+  var array = orderedItems;
+  var found = false;
+  var low = 0;
+  var high = array.length;
+  var guess = Math.floor(0.5*(high+low));
+  var newGuess;
+  var prevValue, value, nextValue;
+
+  if (high == 0) {guess = -1;}
+  else if (high == 1) {
+    value = array[guess][field];
+    if (value == target) {
+      guess =  0;
+    }
+    else {
+      guess = -1;
+    }
+  }
+  else {
+    high -= 1;
+    while (found == false) {
+      prevValue = array[Math.max(0,guess - 1)][field];
+      value = array[guess][field];
+      nextValue = array[Math.min(array.length-1,guess + 1)][field];
+
+      if (value == target || prevValue < target && value > target || value < target && nextValue > target) {
+        found = true;
+        if (value != target) {
+          if (sidePreference == 'before') {
+            if (prevValue < target && value > target) {
+              guess = Math.max(0,guess - 1);
+            }
+          }
+          else {
+            if (value < target && nextValue > target) {
+              guess = Math.min(array.length-1,guess + 1);
+            }
+          }
+        }
+      }
+      else {
+        if (value < target) { // it is too small --> increase low
+          low = Math.floor(0.5*(high+low));
+        }
+        else {  // it is too big --> decrease high
+          high = Math.floor(0.5*(high+low));
+        }
+        newGuess = Math.floor(0.5*(high+low));
+        // not in list;
+        if (guess == newGuess) {
+          guess = -2;
+          found = true;
+        }
+        else {
+          guess = newGuess;
+        }
+      }
+    }
+  }
+  return guess;
+};

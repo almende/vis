@@ -56,7 +56,7 @@ DOMutil.getSVGElement = function (elementType, JSONcontainer, svgContainer) {
     // check if there is an redundant element
     if (JSONcontainer[elementType].redundant.length > 0) {
       element = JSONcontainer[elementType].redundant[0];
-      JSONcontainer[elementType].redundant.shift()
+      JSONcontainer[elementType].redundant.shift();
     }
     else {
       // create a new element and add it to the SVG
@@ -81,7 +81,7 @@ DOMutil.getSVGElement = function (elementType, JSONcontainer, svgContainer) {
  *
  * @param elementType
  * @param JSONcontainer
- * @param svgContainer
+ * @param DOMContainer
  * @returns {*}
  * @private
  */
@@ -92,7 +92,7 @@ DOMutil.getDOMElement = function (elementType, JSONcontainer, DOMContainer) {
     // check if there is an redundant element
     if (JSONcontainer[elementType].redundant.length > 0) {
       element = JSONcontainer[elementType].redundant[0];
-      JSONcontainer[elementType].redundant.shift()
+      JSONcontainer[elementType].redundant.shift();
     }
     else {
       // create a new element and add it to the SVG

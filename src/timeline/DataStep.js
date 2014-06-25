@@ -57,10 +57,11 @@ function DataStep(start, end, minimumStep, containerHeight, forcedStepSize) {
 DataStep.prototype.setRange = function(start, end, minimumStep, containerHeight, forcedStepSize) {
   this._start = start;
   this._end = end;
-  this.setFirst();
+
   if (this.autoScale) {
     this.setMinimumStep(minimumStep, containerHeight, forcedStepSize);
   }
+  this.setFirst();
 };
 
 /**
@@ -77,8 +78,13 @@ DataStep.prototype.setMinimumStep = function(minimumStep, containerHeight) {
   var minorStepIdx = -1;
   var magnitudefactor = Math.pow(10,orderOfMagnitude);
 
+  var start = 0;
+  if (orderOfMagnitude < 0) {
+    start = orderOfMagnitude;
+  }
+
   var solutionFound = false;
-  for (var i = 0; i <= orderOfMagnitude; i++) {
+  for (var i = start; Math.abs(i) <= Math.abs(orderOfMagnitude); i++) {
     magnitudefactor = Math.pow(10,i);
     for (var j = 0; j < this.minorSteps.length; j++) {
       var stepSize = magnitudefactor * this.minorSteps[j];

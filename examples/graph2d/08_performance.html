@@ -21,16 +21,20 @@
 <div style="width:700px; font-size:14px; text-align: justify;">
     This example is a test of the performance of the Graph2D. Select the amount of datapoints you want to plot and press draw.
     You can choose between the style of the points as well as the interpolation method. This can only be toggled with the buttons.
+    The interpolation options may not look different for this dataset but you can see their effects clearly in example 7.
+    <br /><br />
+    Linear interpolation and no points are the settings that will render quickest. By default, graph2D will downsample when there are more
+    than 1 point per pixel. This can be manually disabled at the cost of performance by using the <code>sampling</code> option.
 </div>
 <br />
 <p>
     <label for="count">Number of items</label>
-    <input id="count" value="100">
+    <input id="count" value="50000">
     <input id="toggleInterpolation" type="button" value="toggle Interpolation">
     Interpolation method: <input id="interpolation" value="linear">
     <input id="togglePoints" type="button" value="toggle Points">
-    Points style: <input id="points" value="none"> <br/>
-    <input id="draw" type="button" value="draw" style="width:200px;">
+    Points style: <input id="points" value="none"> <br/><br/>
+    <input id="draw" type="button" value="draw" style="width:200px;"> <span id="description"><b>Click the draw button to load the data!</b></span>
 </p>
 <div id="visualization"></div>
 
@@ -88,20 +92,37 @@
         type: {start: 'ISODate', end: 'ISODate' }
     });
 
-    var startPoint = now;
-    var endPoint = now.clone().add('days', 100);
 
-    // create data
+    var startPoint = now;
+    var endPoint = now + 3600000 * 5000;
+
+    // create data -- this is seperated into 3 functions so we can update the span.
     function createData() {
+        var span = document.getElementById("description");
+        span.innerHTML = 'Generating data... (just javascript, not vis.graph2D)...';
+        setTimeout(generateData,1);
+    }
+
+    function generateData() {
         var count = parseInt(document.getElementById('count').value) || 100;
         var newData = [];
+        var span = document.getElementById("description");
+        var start = now;
         for (var i = 0; i < count; i++) {
-            newData.push({id: i, x: now.clone().add('days', i), y: Math.sin(0.1 * 3.14159654 * i)});
+            var yval = Math.sin(i/100) * Math.cos(i/50) * 50 + Math.sin(i/1000) * 50;
+            newData.push({id: i, x: start + 3600000 * i, y: yval});
         }
+        span.innerHTML = 'Loading data into Graph2D...';
+        setTimeout(function() {loadDataIntoVis(newData);},1);
+
+    }
+
+    function loadDataIntoVis(newData) {
+        var span = document.getElementById("description");
         dataset.clear();
         dataset.add(newData);
+        span.innerHTML = 'Done!';
     }
-    createData();
 
     document.getElementById('draw').onclick = createData;
     document.getElementById('toggleInterpolation').onclick = toggleInterpolation;
@@ -109,7 +130,8 @@
 
     var container = document.getElementById('visualization');
     var options = {
-        drawPoints: false,
+        sampling: true,
+        drawPoints: {enabled:false, size:3},
         catmullRom: false,
         start: startPoint,
         end: endPoint
