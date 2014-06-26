@@ -10,6 +10,7 @@ function GraphGroup (group, groupId, options, groupsUsingDefaultStyles) {
   this.options = util.selectiveDeepExtend(fields,{},options);
   this.usingDefaultStyle = group.className === undefined;
   this.groupsUsingDefaultStyles = groupsUsingDefaultStyles;
+  this.zeroPosition = 0;
   this.update(group);
   if (this.usingDefaultStyle == true) {
     this.groupsUsingDefaultStyles[0] += 1;
@@ -27,6 +28,10 @@ GraphGroup.prototype.setItems = function(items) {
   else {
     this.itemsData = [];
   }
+}
+
+GraphGroup.prototype.setZeroPosition = function(pos) {
+  this.zeroPosition = pos;
 }
 
 GraphGroup.prototype.setOptions = function(options) {

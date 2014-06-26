@@ -2896,6 +2896,7 @@ function GraphGroup (group, groupId, options, groupsUsingDefaultStyles) {
   this.options = util.selectiveDeepExtend(fields,{},options);
   this.usingDefaultStyle = group.className === undefined;
   this.groupsUsingDefaultStyles = groupsUsingDefaultStyles;
+  this.zeroPosition = 0;
   this.update(group);
   if (this.usingDefaultStyle == true) {
     this.groupsUsingDefaultStyles[0] += 1;
@@ -2913,6 +2914,10 @@ GraphGroup.prototype.setItems = function(items) {
   else {
     this.itemsData = [];
   }
+}
+
+GraphGroup.prototype.setZeroPosition = function(pos) {
+  this.zeroPosition = pos;
 }
 
 GraphGroup.prototype.setOptions = function(options) {
@@ -3443,7 +3448,7 @@ DataAxis.prototype._redrawLabels = function () {
   var orientation = this.options['orientation'];
 
   // calculate range and step (step such that we have space for 7 characters per label)
-  var minimumStep = (this.props.majorCharHeight || 10); //in pixels
+  var minimumStep = this.master ? this.props.majorCharHeight || 10 : this.stepPixelsForced;
   var step = new DataStep(this.yRange.start, this.yRange.end, minimumStep, this.dom.frame.offsetHeight);
   this.step = step;
   step.first();
@@ -4052,7 +4057,7 @@ Linegraph.prototype._updateAllGroupData = function () {
     for (var itemId in this.itemsData._data) {
       if (this.itemsData._data.hasOwnProperty(itemId)) {
         var item = this.itemsData._data[itemId];
-//        item.x = util.convert(item.x,"Date");
+        item.x = util.convert(item.x,"Date");
         groupsContent[item.group].push(item);
       }
     }
@@ -4257,11 +4262,10 @@ Linegraph.prototype._updateGraph = function () {
         return;
       }
 
-
       // with the yAxis scaled correctly, use this to get the Y values of the points.
       for (i = 0; i < groupIds.length; i++) {
         group = this.groups[groupIds[i]];
-        processedGroupData.push(this._convertYvalues(preprocessedGroupData[i],group.options))
+        processedGroupData.push(this._convertYvalues(preprocessedGroupData[i],group))
       }
 
       // draw the groups
@@ -4396,7 +4400,7 @@ Linegraph.prototype._drawBarGraph = function (dataset, group) {
         if (i > 0)                {coreDistance = Math.min(coreDistance,Math.abs(dataset[i-1].x - dataset[i].x));}
         if (coreDistance < width) {width = coreDistance < minWidth ? minWidth : coreDistance;}
 
-        DOMutil.drawBar(dataset[i].x, dataset[i].y, width, this.zeroPosition - dataset[i].y, group.className + ' bar', this.svgElements, this.svg);
+        DOMutil.drawBar(dataset[i].x, dataset[i].y, width, group.zeroPosition - dataset[i].y, group.className + ' bar', this.svgElements, this.svg);
       }
 
       // draw points
@@ -4522,14 +4526,13 @@ Linegraph.prototype._preprocessData = function (datapoints, group) {
  * @returns {Array}
  * @private
  */
-Linegraph.prototype._convertYvalues = function (datapoints, options) {
+Linegraph.prototype._convertYvalues = function (datapoints, group) {
   var extractedData = [];
   var xValue, yValue;
   var axis = this.yAxisLeft;
   var svgHeight = Number(this.svg.style.height.replace("px",""));
-  this.zeroPosition = 0;
 
-  if (options.yAxisOrientation == 'right') {
+  if (group.options.yAxisOrientation == 'right') {
     axis = this.yAxisRight;
   }
 
@@ -4539,7 +4542,7 @@ Linegraph.prototype._convertYvalues = function (datapoints, options) {
     extractedData.push({x: xValue, y: yValue});
   }
 
-  this.zeroPosition = Math.min(svgHeight, axis.convertValue(0));
+  group.setZeroPosition(Math.min(svgHeight, axis.convertValue(0)));
 
   // extractedData.sort(function (a,b) {return a.x - b.x;});
   return extractedData;

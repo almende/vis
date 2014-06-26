@@ -23,10 +23,8 @@
 }
 
 .vis.timeline .dataaxis .yAxis.major.measure{
-    padding-left: 0;
-    padding-right: 0;
-    margin-left: 0;
-    margin-right: 0;
+    padding: 0px 0px 0px 0px;
+    margin: 0px 0px 0px 0px;
     visibility: hidden;
     width: auto;
 }
@@ -40,10 +38,8 @@
 }
 
 .vis.timeline .dataaxis .yAxis.minor.measure{
-    padding-left: 0;
-    padding-right: 0;
-    margin-left: 0;
-    margin-right: 0;
+    padding: 0px 0px 0px 0px;
+    margin: 0px 0px 0px 0px;
     visibility: hidden;
     width: auto;
 }

@@ -268,7 +268,7 @@ DataAxis.prototype._redrawLabels = function () {
   var orientation = this.options['orientation'];
 
   // calculate range and step (step such that we have space for 7 characters per label)
-  var minimumStep = (this.props.majorCharHeight || 10); //in pixels
+  var minimumStep = this.master ? this.props.majorCharHeight || 10 : this.stepPixelsForced;
   var step = new DataStep(this.yRange.start, this.yRange.end, minimumStep, this.dom.frame.offsetHeight);
   this.step = step;
   step.first();
