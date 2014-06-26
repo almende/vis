@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 2.0.1-SNAPSHOT
- * @date    2014-06-24
+ * @date    2014-06-26
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -9795,7 +9795,7 @@ Node.prototype._label = function (ctx, text, x, y, align, baseline) {
     var lines = text.split('\n'),
         lineCount = lines.length,
         fontSize = (this.fontSize + 4),
-        yLine = y + (1 - lineCount) / 2 * fontSize;
+        yLine = y + (1 - lineCount) / (2 * fontSize);
 
     for (var i = 0; i < lineCount; i++) {
       ctx.fillText(lines[i], x, yLine);

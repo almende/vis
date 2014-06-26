@@ -21,6 +21,7 @@ http://visjs.org
 - Added pull request from Vukk, user can now define the edge width multiplier when selected.
 - Fixed graph.storePositions()
 - Extended Selection API with selectNodes and selectEdges, deprecating setSelection.
+- Fixed multiline labels.
 
 ### Graph3d
 
