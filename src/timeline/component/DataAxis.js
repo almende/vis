@@ -306,14 +306,14 @@ DataAxis.prototype._redrawLabels = function () {
     var isMajor = step.isMajor();
 
     if (this.options['showMinorLabels'] && isMajor == false || this.master == false && this.options['showMinorLabels'] == true) {
-      this._redrawLabel(y - 2, step.current, orientation, 'yAxis minor', this.props.minorCharHeight);
+      this._redrawLabel(y - 2, step.getCurrent(), orientation, 'yAxis minor', this.props.minorCharHeight);
     }
 
     if (isMajor && this.options['showMajorLabels'] && this.master == true ||
         this.options['showMinorLabels'] == false && this.master == false && isMajor == true) {
 
       if (y >= 0) {
-        this._redrawLabel(y - 2, step.current, orientation, 'yAxis major', this.props.majorCharHeight);
+        this._redrawLabel(y - 2, step.getCurrent(), orientation, 'yAxis major', this.props.majorCharHeight);
       }
       this._redrawLine(y, orientation, 'grid horizontal major', this.options.majorLinesOffset, this.props.majorLineWidth);
     }

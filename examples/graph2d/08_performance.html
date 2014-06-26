@@ -8,6 +8,10 @@
             font-family: arial, sans-serif;
             font-size: 11pt;
         }
+        span.label {
+            width:150px;
+            display:inline-block;
+        }
     </style>
 
     <!-- note: moment.js must be loaded before vis.js, else vis.js uses its embedded version of moment.js -->
@@ -28,13 +32,16 @@
 </div>
 <br />
 <p>
-    <label for="count">Number of items</label>
-    <input id="count" value="50000">
-    <input id="toggleInterpolation" type="button" value="toggle Interpolation">
-    Interpolation method: <input id="interpolation" value="linear">
-    <input id="togglePoints" type="button" value="toggle Points">
-    Points style: <input id="points" value="none"> <br/><br/>
+    <span class="label">Number of items:</span><input id="count" value="50000">
     <input id="draw" type="button" value="draw" style="width:200px;"> <span id="description"><b>Click the draw button to load the data!</b></span>
+    <br />
+
+    <span class="label">Interpolation method:</span><input id="interpolation" value="linear">
+    <input id="toggleInterpolation" type="button" value="toggle Interpolation" style="width:200px;">
+    <br />
+    <span class="label">Points style:</span><input id="points" value="none">
+    <input id="togglePoints" type="button" value="toggle Points" style="width:200px;">
+
 </p>
 <div id="visualization"></div>
 
@@ -100,7 +107,7 @@
     function createData() {
         var span = document.getElementById("description");
         span.innerHTML = 'Generating data... (just javascript, not vis.graph2D)...';
-        setTimeout(generateData,1);
+        setTimeout(generateData,10);
     }
 
     function generateData() {
@@ -113,7 +120,7 @@
             newData.push({id: i, x: start + 3600000 * i, y: yval});
         }
         span.innerHTML = 'Loading data into Graph2D...';
-        setTimeout(function() {loadDataIntoVis(newData);},1);
+        setTimeout(function() {loadDataIntoVis(newData);},10);
 
     }
 

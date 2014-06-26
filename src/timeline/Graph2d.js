@@ -39,7 +39,8 @@ function Graph2d (container, items, options, groups) {
       snap: null, // will be specified after TimeAxis is created
       toScreen: me._toScreen.bind(me),
       toGlobalScreen: me._toGlobalScreen.bind(me), // this refers to the root.width
-      toTime: me._toTime.bind(me)
+      toTime: me._toTime.bind(me),
+      toGlobalTime : me._toGlobalTime.bind(me)
     }
   };
 
@@ -691,6 +692,20 @@ Graph2d.prototype.repaint = function () {
 // TODO: move this function to Range
 Graph2d.prototype._toTime = function(x) {
   var conversion = this.range.conversion(this.props.center.width);
+  return new Date(x / conversion.scale + conversion.offset);
+};
+
+/**
+ * Convert a datetime (Date object) into a position on the root
+ * This is used to get the pixel density estimate for the screen, not the center panel
+ * @param {Date}   time A date
+ * @return {int}   x    The position on root in pixels which corresponds
+ *                      with the given date.
+ * @private
+ */
+// TODO: move this function to Range
+Graph2d.prototype._toGlobalTime = function(x) {
+  var conversion = this.range.conversion(this.props.root.width);
   return new Date(x / conversion.scale + conversion.offset);
 };
 

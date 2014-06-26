@@ -172,10 +172,25 @@ DataStep.prototype.previous = function() {
 
 /**
  * Get the current datetime
- * @return {Date}  current The current date
+ * @return {Number}  current The current date
  */
 DataStep.prototype.getCurrent = function() {
-  return this.current;
+  var toPrecision = '' + Number(this.current).toPrecision(5);
+  for (var i = toPrecision.length-1; i > 0; i--) {
+    if (toPrecision[i] == "0") {
+      toPrecision = toPrecision.slice(0,i);
+    }
+    else if (toPrecision[i] == "." || toPrecision[i] == ",") {
+      toPrecision = toPrecision.slice(0,i);
+      break;
+    }
+    else{
+      break;
+    }
+  }
+
+
+  return toPrecision;
 };
 
 

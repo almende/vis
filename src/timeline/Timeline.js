@@ -42,7 +42,9 @@ function Timeline (container, items, options) {
     util: {
       snap: null, // will be specified after TimeAxis is created
       toScreen: me._toScreen.bind(me),
-      toTime: me._toTime.bind(me)
+      toGlobalScreen: me._toGlobalScreen.bind(me), // this refers to the root.width
+      toTime: me._toTime.bind(me),
+      toGlobalTime : me._toGlobalTime.bind(me)
     }
   };
 
@@ -683,6 +685,19 @@ Timeline.prototype.repaint = function () {
 // TODO: move this function to Range
 Timeline.prototype._toTime = function(x) {
   var conversion = this.range.conversion(this.props.center.width);
+  return new Date(x / conversion.scale + conversion.offset);
+};
+
+
+/**
+ * Convert a position on the global screen (pixels) to a datetime
+ * @param {int}     x    Position on the screen in pixels
+ * @return {Date}   time The datetime the corresponds with given position x
+ * @private
+ */
+// TODO: move this function to Range
+Timeline.prototype._toGlobalTime = function(x) {
+  var conversion = this.range.conversion(this.props.root.width);
   return new Date(x / conversion.scale + conversion.offset);
 };
 

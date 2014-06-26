@@ -1,5 +1,12 @@
 var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
+/**
+ * This is the constructor of the linegraph. It requires a timeline body and options.
+ *
+ * @param body
+ * @param options
+ * @constructor
+ */
 function Linegraph(body, options) {
   this.id = util.randomUUID();
   this.body = body;
@@ -313,9 +320,7 @@ Linegraph.prototype.setGroups = function(groups) {
     ids = this.groupsData.getIds();
     this._onAddGroups(ids);
   }
-  this._updateUngrouped();
-  this._updateGraph();
-  this.redraw();
+  this._onUpdate();
 };
 
 
@@ -326,7 +331,7 @@ Linegraph.prototype._onUpdate = function(ids) {
   this._updateGraph();
   this.redraw();
 };
-Linegraph.prototype._onAdd          = Linegraph.prototype._onUpdate;
+Linegraph.prototype._onAdd          = function (ids) {this._onUpdate(ids);};
 Linegraph.prototype._onRemove       = Linegraph.prototype._onUpdate;
 Linegraph.prototype._onUpdateGroups  = function (groupIds) {
   for (var i = 0; i < groupIds.length; i++) {
@@ -334,8 +339,6 @@ Linegraph.prototype._onUpdateGroups  = function (groupIds) {
     this._updateGroup(group, groupIds[i]);
   }
 
-  this._updateUngrouped();
-  this._updateAllGroupData();
   this._updateGraph();
   this.redraw();
 };
@@ -398,18 +401,38 @@ Linegraph.prototype._updateGroup = function (group, groupId) {
 
 Linegraph.prototype._updateAllGroupData = function () {
   if (this.itemsData != null) {
+    // ~450 ms @ 500k
+
+    var groupsContent = {};
     for (var groupId in this.groups) {
       if (this.groups.hasOwnProperty(groupId)) {
-        this.groups[groupId].setItems(this.itemsData.get({filter:
-            function (item) {
-              return (item.group == groupId);
-            },
-            type: {x:"Date"}}
-        ));
+        groupsContent[groupId] = [];
       }
     }
+    for (var itemId in this.itemsData._data) {
+      if (this.itemsData._data.hasOwnProperty(itemId)) {
+        var item = this.itemsData._data[itemId];
+//        item.x = util.convert(item.x,"Date");
+        groupsContent[item.group].push(item);
+      }
+    }
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        this.groups[groupId].setItems(groupsContent[groupId]);
+      }
+    }
+//    // ~4500ms @ 500k
+//    for (var groupId in this.groups) {
+//      if (this.groups.hasOwnProperty(groupId)) {
+//        this.groups[groupId].setItems(this.itemsData.get({filter:
+//            function (item) {
+//              return (item.group == groupId);
+//            }, type:{x:"Date"}}
+//        ));
+//      }
+//    }
   }
-}
+};
 
 /**
  * Create or delete the group holding all ungrouped items. This group is used when
@@ -418,29 +441,52 @@ Linegraph.prototype._updateAllGroupData = function () {
  */
 Linegraph.prototype._updateUngrouped = function() {
   if (this.itemsData != null) {
+//    var t0 = new Date();
     var group = {id: UNGROUPED, content: this.options.defaultGroup};
     this._updateGroup(group, UNGROUPED);
-
-    var datapoints = this.itemsData.get({
-      filter: function (item) {return item.group === undefined;},
-      showInternalIds:true
-    });
-    if (datapoints.length > 0) {
-      var updateQuery = [];
-      for (var i = 0; i < datapoints.length; i++) {
-        updateQuery.push({id:datapoints[i].id, group: UNGROUPED});
+    var ungroupedCounter = 0;
+    if (this.itemsData) {
+      for (var itemId in this.itemsData._data) {
+        if (this.itemsData._data.hasOwnProperty(itemId)) {
+          var item = this.itemsData._data[itemId];
+          if (item != undefined) {
+            if (item.hasOwnProperty('group')) {
+              if (item.group === undefined) {
+                item.group = UNGROUPED;
+              }
+            }
+            else {
+              item.group = UNGROUPED;
+            }
+            ungroupedCounter = item.group == UNGROUPED ? ungroupedCounter + 1 : ungroupedCounter;
+          }
+        }
       }
-      this.itemsData.update(updateQuery);
     }
 
-    var pointInUNGROUPED = this.itemsData.get({filter: function (item) {return item.group == UNGROUPED;}});
-    if (pointInUNGROUPED.length == 0) {
+    // much much slower
+//    var datapoints = this.itemsData.get({
+//      filter: function (item) {return item.group === undefined;},
+//      showInternalIds:true
+//    });
+//    if (datapoints.length > 0) {
+//      var updateQuery = [];
+//      for (var i = 0; i < datapoints.length; i++) {
+//        updateQuery.push({id:datapoints[i].id, group: UNGROUPED});
+//      }
+//      this.itemsData.update(updateQuery, true);
+//    }
+//    var t1 = new Date();
+//    var pointInUNGROUPED = this.itemsData.get({filter: function (item) {return item.group == UNGROUPED;}});
+    if (ungroupedCounter == 0) {
       delete this.groups[UNGROUPED];
       this.legendLeft.removeGroup(UNGROUPED);
       this.legendRight.removeGroup(UNGROUPED);
       this.yAxisLeft.removeGroup(UNGROUPED);
       this.yAxisLeft.removeGroup(UNGROUPED);
     }
+//    console.log("getting amount ungrouped",new Date() - t1);
+//    console.log("putting in ungrouped",new Date() - t0);
   }
 
   this.legendLeft.redraw();
@@ -493,9 +539,7 @@ Linegraph.prototype.redraw = function() {
 Linegraph.prototype._updateGraph = function () {
   // reset the svg elements
   DOMutil.prepareElements(this.svgElements);
-
-
-  // todo: discuss with Jos why this filter is so HORRIBLY slow (factor 5!)
+//        // very slow...
 //        groupData = group.itemsData.get({filter:
 //          function (item) {
 //            return (item.x > minDate && item.x < maxDate);
@@ -504,16 +548,23 @@ Linegraph.prototype._updateGraph = function () {
 
 
   if (this.width != 0 && this.itemsData != null) {
-    var groupIds = this.itemsData.distinct('group');
     var group, groupData, preprocessedGroup, i;
     var preprocessedGroupData = [];
     var processedGroupData = [];
     var groupRanges = [];
     var changeCalled = false;
 
+    // getting group Ids
+    var groupIds = [];
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        groupIds.push(groupId);
+      }
+    }
+
     // this is the range of the SVG canvas
-    var minDate = this.body.util.toTime(- this.body.domProps.root.width);
-    var maxDate = this.body.util.toTime(2 * this.body.domProps.root.width);
+    var minDate = this.body.util.toGlobalTime(- this.body.domProps.root.width);
+    var maxDate = this.body.util.toGlobalTime(2 * this.body.domProps.root.width);
 
     // first select and preprocess the data from the datasets.
     // the groups have their preselection of data, we now loop over this data to see
@@ -527,6 +578,7 @@ Linegraph.prototype._updateGraph = function () {
         // optimization for sorted data
         if (group.options.sort == true) {
           var guess = Math.max(0,util.binarySearchGeneric(group.itemsData, minDate, 'x', 'before'));
+
           for (var j = guess; j < group.itemsData.length; j++) {
             var item = group.itemsData[j];
             if (item !== undefined) {
@@ -564,6 +616,7 @@ Linegraph.prototype._updateGraph = function () {
         this.body.emitter.emit("change");
         return;
       }
+
 
       // with the yAxis scaled correctly, use this to get the Y values of the points.
       for (i = 0; i < groupIds.length; i++) {
@@ -631,11 +684,8 @@ Linegraph.prototype._updateYAxis = function (groupIds, groupRanges) {
     }
   }
 
-  var changed = this._toggleAxisVisiblity(yAxisLeftUsed, this.yAxisLeft);
-  changed = this._toggleAxisVisiblity(yAxisRightUsed, this.yAxisRight) || changed;
-  if (changed) {
-    this.body.emitter.emit('change');
-  }
+  changeCalled = this._toggleAxisVisiblity(yAxisLeftUsed , this.yAxisLeft)  || changeCalled;
+  changeCalled = this._toggleAxisVisiblity(yAxisRightUsed, this.yAxisRight) || changeCalled;
 
   if (yAxisRightUsed == true && yAxisLeftUsed == true) {
     this.yAxisLeft.drawIcons = true;
@@ -808,6 +858,7 @@ Linegraph.prototype._preprocessData = function (datapoints, group) {
   else {
     increment = 1;
   }
+
 
   for (var i = 0; i < amountOfPoints; i += increment) {
     xValue = toScreen(datapoints[i].x) + this.width - 1;

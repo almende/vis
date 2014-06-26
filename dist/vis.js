@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version @@version
- * @date    @@date
+ * @version 2.0.1-SNAPSHOT
+ * @date    2014-06-26
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -3481,14 +3481,14 @@ DataAxis.prototype._redrawLabels = function () {
     var isMajor = step.isMajor();
 
     if (this.options['showMinorLabels'] && isMajor == false || this.master == false && this.options['showMinorLabels'] == true) {
-      this._redrawLabel(y - 2, step.current, orientation, 'yAxis minor', this.props.minorCharHeight);
+      this._redrawLabel(y - 2, step.getCurrent(), orientation, 'yAxis minor', this.props.minorCharHeight);
     }
 
     if (isMajor && this.options['showMajorLabels'] && this.master == true ||
         this.options['showMinorLabels'] == false && this.master == false && isMajor == true) {
 
       if (y >= 0) {
-        this._redrawLabel(y - 2, step.current, orientation, 'yAxis major', this.props.majorCharHeight);
+        this._redrawLabel(y - 2, step.getCurrent(), orientation, 'yAxis major', this.props.majorCharHeight);
       }
       this._redrawLine(y, orientation, 'grid horizontal major', this.options.majorLinesOffset, this.props.majorLineWidth);
     }
@@ -3640,6 +3640,13 @@ DataAxis.prototype.snap = function(date) {
 
 var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
+/**
+ * This is the constructor of the linegraph. It requires a timeline body and options.
+ *
+ * @param body
+ * @param options
+ * @constructor
+ */
 function Linegraph(body, options) {
   this.id = util.randomUUID();
   this.body = body;
@@ -3953,9 +3960,7 @@ Linegraph.prototype.setGroups = function(groups) {
     ids = this.groupsData.getIds();
     this._onAddGroups(ids);
   }
-  this._updateUngrouped();
-  this._updateGraph();
-  this.redraw();
+  this._onUpdate();
 };
 
 
@@ -3966,7 +3971,7 @@ Linegraph.prototype._onUpdate = function(ids) {
   this._updateGraph();
   this.redraw();
 };
-Linegraph.prototype._onAdd          = Linegraph.prototype._onUpdate;
+Linegraph.prototype._onAdd          = function (ids) {this._onUpdate(ids);};
 Linegraph.prototype._onRemove       = Linegraph.prototype._onUpdate;
 Linegraph.prototype._onUpdateGroups  = function (groupIds) {
   for (var i = 0; i < groupIds.length; i++) {
@@ -3974,8 +3979,6 @@ Linegraph.prototype._onUpdateGroups  = function (groupIds) {
     this._updateGroup(group, groupIds[i]);
   }
 
-  this._updateUngrouped();
-  this._updateAllGroupData();
   this._updateGraph();
   this.redraw();
 };
@@ -4038,18 +4041,38 @@ Linegraph.prototype._updateGroup = function (group, groupId) {
 
 Linegraph.prototype._updateAllGroupData = function () {
   if (this.itemsData != null) {
+    // ~450 ms @ 500k
+
+    var groupsContent = {};
     for (var groupId in this.groups) {
       if (this.groups.hasOwnProperty(groupId)) {
-        this.groups[groupId].setItems(this.itemsData.get({filter:
-            function (item) {
-              return (item.group == groupId);
-            },
-            type: {x:"Date"}}
-        ));
+        groupsContent[groupId] = [];
       }
     }
+    for (var itemId in this.itemsData._data) {
+      if (this.itemsData._data.hasOwnProperty(itemId)) {
+        var item = this.itemsData._data[itemId];
+//        item.x = util.convert(item.x,"Date");
+        groupsContent[item.group].push(item);
+      }
+    }
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        this.groups[groupId].setItems(groupsContent[groupId]);
+      }
+    }
+//    // ~4500ms @ 500k
+//    for (var groupId in this.groups) {
+//      if (this.groups.hasOwnProperty(groupId)) {
+//        this.groups[groupId].setItems(this.itemsData.get({filter:
+//            function (item) {
+//              return (item.group == groupId);
+//            }, type:{x:"Date"}}
+//        ));
+//      }
+//    }
   }
-}
+};
 
 /**
  * Create or delete the group holding all ungrouped items. This group is used when
@@ -4058,29 +4081,52 @@ Linegraph.prototype._updateAllGroupData = function () {
  */
 Linegraph.prototype._updateUngrouped = function() {
   if (this.itemsData != null) {
+//    var t0 = new Date();
     var group = {id: UNGROUPED, content: this.options.defaultGroup};
     this._updateGroup(group, UNGROUPED);
-
-    var datapoints = this.itemsData.get({
-      filter: function (item) {return item.group === undefined;},
-      showInternalIds:true
-    });
-    if (datapoints.length > 0) {
-      var updateQuery = [];
-      for (var i = 0; i < datapoints.length; i++) {
-        updateQuery.push({id:datapoints[i].id, group: UNGROUPED});
+    var ungroupedCounter = 0;
+    if (this.itemsData) {
+      for (var itemId in this.itemsData._data) {
+        if (this.itemsData._data.hasOwnProperty(itemId)) {
+          var item = this.itemsData._data[itemId];
+          if (item != undefined) {
+            if (item.hasOwnProperty('group')) {
+              if (item.group === undefined) {
+                item.group = UNGROUPED;
+              }
+            }
+            else {
+              item.group = UNGROUPED;
+            }
+            ungroupedCounter = item.group == UNGROUPED ? ungroupedCounter + 1 : ungroupedCounter;
+          }
+        }
       }
-      this.itemsData.update(updateQuery);
     }
 
-    var pointInUNGROUPED = this.itemsData.get({filter: function (item) {return item.group == UNGROUPED;}});
-    if (pointInUNGROUPED.length == 0) {
+    // much much slower
+//    var datapoints = this.itemsData.get({
+//      filter: function (item) {return item.group === undefined;},
+//      showInternalIds:true
+//    });
+//    if (datapoints.length > 0) {
+//      var updateQuery = [];
+//      for (var i = 0; i < datapoints.length; i++) {
+//        updateQuery.push({id:datapoints[i].id, group: UNGROUPED});
+//      }
+//      this.itemsData.update(updateQuery, true);
+//    }
+//    var t1 = new Date();
+//    var pointInUNGROUPED = this.itemsData.get({filter: function (item) {return item.group == UNGROUPED;}});
+    if (ungroupedCounter == 0) {
       delete this.groups[UNGROUPED];
       this.legendLeft.removeGroup(UNGROUPED);
       this.legendRight.removeGroup(UNGROUPED);
       this.yAxisLeft.removeGroup(UNGROUPED);
       this.yAxisLeft.removeGroup(UNGROUPED);
     }
+//    console.log("getting amount ungrouped",new Date() - t1);
+//    console.log("putting in ungrouped",new Date() - t0);
   }
 
   this.legendLeft.redraw();
@@ -4133,9 +4179,7 @@ Linegraph.prototype.redraw = function() {
 Linegraph.prototype._updateGraph = function () {
   // reset the svg elements
   DOMutil.prepareElements(this.svgElements);
-
-
-  // todo: discuss with Jos why this filter is so HORRIBLY slow (factor 5!)
+//        // very slow...
 //        groupData = group.itemsData.get({filter:
 //          function (item) {
 //            return (item.x > minDate && item.x < maxDate);
@@ -4144,16 +4188,23 @@ Linegraph.prototype._updateGraph = function () {
 
 
   if (this.width != 0 && this.itemsData != null) {
-    var groupIds = this.itemsData.distinct('group');
     var group, groupData, preprocessedGroup, i;
     var preprocessedGroupData = [];
     var processedGroupData = [];
     var groupRanges = [];
     var changeCalled = false;
 
+    // getting group Ids
+    var groupIds = [];
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        groupIds.push(groupId);
+      }
+    }
+
     // this is the range of the SVG canvas
-    var minDate = this.body.util.toTime(- this.body.domProps.root.width);
-    var maxDate = this.body.util.toTime(2 * this.body.domProps.root.width);
+    var minDate = this.body.util.toGlobalTime(- this.body.domProps.root.width);
+    var maxDate = this.body.util.toGlobalTime(2 * this.body.domProps.root.width);
 
     // first select and preprocess the data from the datasets.
     // the groups have their preselection of data, we now loop over this data to see
@@ -4167,6 +4218,7 @@ Linegraph.prototype._updateGraph = function () {
         // optimization for sorted data
         if (group.options.sort == true) {
           var guess = Math.max(0,util.binarySearchGeneric(group.itemsData, minDate, 'x', 'before'));
+
           for (var j = guess; j < group.itemsData.length; j++) {
             var item = group.itemsData[j];
             if (item !== undefined) {
@@ -4204,6 +4256,7 @@ Linegraph.prototype._updateGraph = function () {
         this.body.emitter.emit("change");
         return;
       }
+
 
       // with the yAxis scaled correctly, use this to get the Y values of the points.
       for (i = 0; i < groupIds.length; i++) {
@@ -4271,11 +4324,8 @@ Linegraph.prototype._updateYAxis = function (groupIds, groupRanges) {
     }
   }
 
-  var changed = this._toggleAxisVisiblity(yAxisLeftUsed, this.yAxisLeft);
-  changed = this._toggleAxisVisiblity(yAxisRightUsed, this.yAxisRight) || changed;
-  if (changed) {
-    this.body.emitter.emit('change');
-  }
+  changeCalled = this._toggleAxisVisiblity(yAxisLeftUsed , this.yAxisLeft)  || changeCalled;
+  changeCalled = this._toggleAxisVisiblity(yAxisRightUsed, this.yAxisRight) || changeCalled;
 
   if (yAxisRightUsed == true && yAxisLeftUsed == true) {
     this.yAxisLeft.drawIcons = true;
@@ -4448,6 +4498,7 @@ Linegraph.prototype._preprocessData = function (datapoints, group) {
   else {
     increment = 1;
   }
+
 
   for (var i = 0; i < amountOfPoints; i += increment) {
     xValue = toScreen(datapoints[i].x) + this.width - 1;
@@ -4819,10 +4870,25 @@ DataStep.prototype.previous = function() {
 
 /**
  * Get the current datetime
- * @return {Date}  current The current date
+ * @return {Number}  current The current date
  */
 DataStep.prototype.getCurrent = function() {
-  return this.current;
+  var toPrecision = '' + Number(this.current).toPrecision(5);
+  for (var i = toPrecision.length-1; i > 0; i--) {
+    if (toPrecision[i] == "0") {
+      toPrecision = toPrecision.slice(0,i);
+    }
+    else if (toPrecision[i] == "." || toPrecision[i] == ",") {
+      toPrecision = toPrecision.slice(0,i);
+      break;
+    }
+    else{
+      break;
+    }
+  }
+
+
+  return toPrecision;
 };
 
 
@@ -9336,7 +9402,9 @@ function Timeline (container, items, options) {
     util: {
       snap: null, // will be specified after TimeAxis is created
       toScreen: me._toScreen.bind(me),
-      toTime: me._toTime.bind(me)
+      toGlobalScreen: me._toGlobalScreen.bind(me), // this refers to the root.width
+      toTime: me._toTime.bind(me),
+      toGlobalTime : me._toGlobalTime.bind(me)
     }
   };
 
@@ -9980,6 +10048,19 @@ Timeline.prototype._toTime = function(x) {
   return new Date(x / conversion.scale + conversion.offset);
 };
 
+
+/**
+ * Convert a position on the global screen (pixels) to a datetime
+ * @param {int}     x    Position on the screen in pixels
+ * @return {Date}   time The datetime the corresponds with given position x
+ * @private
+ */
+// TODO: move this function to Range
+Timeline.prototype._toGlobalTime = function(x) {
+  var conversion = this.range.conversion(this.props.root.width);
+  return new Date(x / conversion.scale + conversion.offset);
+};
+
 /**
  * Convert a datetime (Date object) into a position on the screen
  * @param {Date}   time A date
@@ -10205,7 +10286,8 @@ function Graph2d (container, items, options, groups) {
       snap: null, // will be specified after TimeAxis is created
       toScreen: me._toScreen.bind(me),
       toGlobalScreen: me._toGlobalScreen.bind(me), // this refers to the root.width
-      toTime: me._toTime.bind(me)
+      toTime: me._toTime.bind(me),
+      toGlobalTime : me._toGlobalTime.bind(me)
     }
   };
 
@@ -10857,6 +10939,20 @@ Graph2d.prototype.repaint = function () {
 // TODO: move this function to Range
 Graph2d.prototype._toTime = function(x) {
   var conversion = this.range.conversion(this.props.center.width);
+  return new Date(x / conversion.scale + conversion.offset);
+};
+
+/**
+ * Convert a datetime (Date object) into a position on the root
+ * This is used to get the pixel density estimate for the screen, not the center panel
+ * @param {Date}   time A date
+ * @return {int}   x    The position on root in pixels which corresponds
+ *                      with the given date.
+ * @private
+ */
+// TODO: move this function to Range
+Graph2d.prototype._toGlobalTime = function(x) {
+  var conversion = this.range.conversion(this.props.root.width);
   return new Date(x / conversion.scale + conversion.offset);
 };
 
