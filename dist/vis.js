@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 2.0.1-SNAPSHOT
- * @date    2014-06-26
+ * @date    2014-06-27
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -430,7 +430,6 @@ util.selectiveExtend = function (props, a, b) {
       }
     }
   }
-
   return a;
 };
 
@@ -1325,19 +1324,53 @@ util.isValidHex = function(hex) {
   return isOk;
 };
 
-util.copyObject = function(objectFrom, objectTo) {
-  for (var i in objectFrom) {
-    if (objectFrom.hasOwnProperty(i)) {
-      if (typeof objectFrom[i] == "object") {
-        objectTo[i] = {};
-        util.copyObject(objectFrom[i], objectTo[i]);
-      }
-      else {
-        objectTo[i] = objectFrom[i];
+
+/**
+ * This recursively redirects the prototype of JSON objects to the referenceObject
+ * This is used for default options.
+ *
+ * @param referenceObject
+ * @returns {*}
+ */
+util.selectiveBridgeObject = function(fields, referenceObject) {
+  if (typeof referenceObject == "object") {
+    var objectTo = Object.create(referenceObject);
+    for (var i = 0; i < fields.length; i++) {
+      if (referenceObject.hasOwnProperty(fields[i])) {
+        if (typeof referenceObject[fields[i]] == "object") {
+          objectTo[fields[i]] = util.bridgeObject(referenceObject[fields[i]]);
+        }
       }
     }
+    return objectTo;
   }
-  return objectTo;
+  else {
+    return null;
+  }
+};
+
+/**
+ * This recursively redirects the prototype of JSON objects to the referenceObject
+ * This is used for default options.
+ *
+ * @param referenceObject
+ * @returns {*}
+ */
+util.bridgeObject = function(referenceObject) {
+  if (typeof referenceObject == "object") {
+    var objectTo = Object.create(referenceObject);
+    for (var i in referenceObject) {
+      if (referenceObject.hasOwnProperty(i)) {
+        if (typeof referenceObject[i] == "object") {
+          objectTo[i] = util.bridgeObject(referenceObject[i]);
+        }
+      }
+    }
+    return objectTo;
+  }
+  else {
+    return null;
+  }
 };
 
 
@@ -1350,7 +1383,7 @@ util.copyObject = function(objectFrom, objectTo) {
  * @param [String] option      | this is the option key in the options argument
  * @private
  */
-util._mergeOptions = function (mergeTarget, options, option) {
+util.mergeOptions = function (mergeTarget, options, option) {
   if (options[option] !== undefined) {
     if (typeof options[option] == 'boolean') {
       mergeTarget[option].enabled = options[option];
@@ -1365,6 +1398,34 @@ util._mergeOptions = function (mergeTarget, options, option) {
     }
   }
 }
+
+
+/**
+ * this is used to set the options of subobjects in the options object. A requirement of these subobjects
+ * is that they have an 'enabled' element which is optional for the user but mandatory for the program.
+ *
+ * @param [object] mergeTarget | this is either this.options or the options used for the groups.
+ * @param [object] options     | options
+ * @param [String] option      | this is the option key in the options argument
+ * @private
+ */
+util.mergeOptions = function (mergeTarget, options, option) {
+  if (options[option] !== undefined) {
+    if (typeof options[option] == 'boolean') {
+      mergeTarget[option].enabled = options[option];
+    }
+    else {
+      mergeTarget[option].enabled = true;
+      for (prop in options[option]) {
+        if (options[option].hasOwnProperty(prop)) {
+          mergeTarget[option][prop] = options[option][prop];
+        }
+      }
+    }
+  }
+}
+
+
 
 
 /**
@@ -1659,7 +1720,7 @@ DOMutil.drawPoint = function(x, y, group, JSONcontainer, svgContainer) {
 };
 
 /**
- * draw a bar SVG element
+ * draw a bar SVG element centered on the X coordinate
  *
  * @param x
  * @param y
@@ -1667,8 +1728,8 @@ DOMutil.drawPoint = function(x, y, group, JSONcontainer, svgContainer) {
  */
 DOMutil.drawBar = function (x, y, width, height, className, JSONcontainer, svgContainer) {
   rect = DOMutil.getSVGElement('rect',JSONcontainer, svgContainer);
-  rect.setAttributeNS(null, "x", Math.round(x - 0.5 * width));
-  rect.setAttributeNS(null, "y", Math.round(y));
+  rect.setAttributeNS(null, "x", x - 0.5 * width);
+  rect.setAttributeNS(null, "y", y);
   rect.setAttributeNS(null, "width", width);
   rect.setAttributeNS(null, "height", height);
   rect.setAttributeNS(null, "class", className);
@@ -2893,7 +2954,7 @@ DataView.prototype.unsubscribe = DataView.prototype.off;
 function GraphGroup (group, groupId, options, groupsUsingDefaultStyles) {
   this.id = groupId;
   var fields = ['sampling','style','sort','yAxisOrientation','barChart','drawPoints','shaded','catmullRom']
-  this.options = util.selectiveDeepExtend(fields,{},options);
+  this.options = util.selectiveBridgeObject(fields,options);
   this.usingDefaultStyle = group.className === undefined;
   this.groupsUsingDefaultStyles = groupsUsingDefaultStyles;
   this.zeroPosition = 0;
@@ -2922,12 +2983,12 @@ GraphGroup.prototype.setZeroPosition = function(pos) {
 
 GraphGroup.prototype.setOptions = function(options) {
   if (options !== undefined) {
-    var fields = ['yAxisOrientation','style','barChart','sort'];
+    var fields = ['sampling','style','sort','yAxisOrientation','barChart'];
     util.selectiveDeepExtend(fields, this.options, options);
 
-    util._mergeOptions(this.options, options,'catmullRom');
-    util._mergeOptions(this.options, options,'drawPoints');
-    util._mergeOptions(this.options, options,'shaded');
+    util.mergeOptions(this.options, options,'catmullRom');
+    util.mergeOptions(this.options, options,'drawPoints');
+    util.mergeOptions(this.options, options,'shaded');
 
     if (options.catmullRom) {
       if (typeof options.catmullRom == 'object') {
@@ -3219,7 +3280,8 @@ function DataAxis (body, options, svg) {
   this.conversionFactor = 1;
 
   this.setOptions(options);
-  this.width = Number(this.options.width.replace("px",""));
+  this.width = Number(('' + this.options.width).replace("px",""));
+  this.minWidth = this.width;
   this.height = this.linegraphSVG.offsetHeight;
 
   this.stepPixels = 25;
@@ -3278,6 +3340,9 @@ DataAxis.prototype.setOptions = function (options) {
       'width',
       'visible'];
     util.selectiveExtend(fields, this.options, options);
+
+    this.minWidth = Number(('' + this.options.width).replace("px",""));
+
     if (redraw == true && this.dom.frame) {
       this.hide();
       this.show();
@@ -3391,7 +3456,7 @@ DataAxis.prototype.redraw = function () {
     // svg offsetheight did not work in firefox and explorer...
 
     this.dom.lineContainer.style.height = this.height + 'px';
-    this.width = this.options.visible ? Number(this.options.width.replace("px","")) : 0;
+    this.width = this.options.visible == true ? Number(('' + this.options.width).replace("px","")) : 0;
 
     var props = this.props;
     var frame = this.dom.frame;
@@ -3517,8 +3582,8 @@ DataAxis.prototype._redrawLabels = function () {
     return true;
   }
   // this will resize the yAxis if it is too big for the labels.
-  else if (this.maxLabelSize < (this.width - offset) && this.options.visible == true) {
-    this.width = this.maxLabelSize + offset;
+  else if (this.maxLabelSize < (this.width - offset) && this.options.visible == true && this.width > this.minWidth) {
+    this.width = Math.max(this.minWidth,this.maxLabelSize + offset);
     this.options.width = this.width + "px";
     DOMutil.cleanupElements(this.DOMelements);
     this.redraw();
@@ -3668,7 +3733,8 @@ function Linegraph(body, options) {
     },
     style: 'line', // line, bar
     barChart: {
-      width: 50
+      width: 50,
+      align: 'center' // left, center, right
     },
     catmullRom: {
       enabled: true,
@@ -3809,10 +3875,10 @@ Linegraph.prototype.setOptions = function(options) {
   if (options) {
     var fields = ['sampling','defaultGroup','graphHeight','yAxisOrientation','style','barChart','dataAxis','sort'];
     util.selectiveDeepExtend(fields, this.options, options);
-    util._mergeOptions(this.options, options,'catmullRom');
-    util._mergeOptions(this.options, options,'drawPoints');
-    util._mergeOptions(this.options, options,'shaded');
-    util._mergeOptions(this.options, options,'legend');
+    util.mergeOptions(this.options, options,'catmullRom');
+    util.mergeOptions(this.options, options,'drawPoints');
+    util.mergeOptions(this.options, options,'shaded');
+    util.mergeOptions(this.options, options,'legend');
 
     if (options.catmullRom) {
       if (typeof options.catmullRom == 'object') {
@@ -3977,7 +4043,7 @@ Linegraph.prototype._onUpdate = function(ids) {
   this.redraw();
 };
 Linegraph.prototype._onAdd          = function (ids) {this._onUpdate(ids);};
-Linegraph.prototype._onRemove       = Linegraph.prototype._onUpdate;
+Linegraph.prototype._onRemove       = function (ids) {this._onUpdate(ids);};
 Linegraph.prototype._onUpdateGroups  = function (groupIds) {
   for (var i = 0; i < groupIds.length; i++) {
     var group = this.groupsData.get(groupIds[i]);
@@ -3987,7 +4053,7 @@ Linegraph.prototype._onUpdateGroups  = function (groupIds) {
   this._updateGraph();
   this.redraw();
 };
-Linegraph.prototype._onAddGroups = Linegraph.prototype._onUpdateGroups;
+Linegraph.prototype._onAddGroups = function (groupIds) {this._onUpdateGroups(groupIds);};
 
 Linegraph.prototype._onRemoveGroups = function (groupIds) {
   for (var i = 0; i < groupIds.length; i++) {
@@ -4128,10 +4194,17 @@ Linegraph.prototype._updateUngrouped = function() {
       this.legendLeft.removeGroup(UNGROUPED);
       this.legendRight.removeGroup(UNGROUPED);
       this.yAxisLeft.removeGroup(UNGROUPED);
-      this.yAxisLeft.removeGroup(UNGROUPED);
+      this.yAxisRight.removeGroup(UNGROUPED);
     }
 //    console.log("getting amount ungrouped",new Date() - t1);
 //    console.log("putting in ungrouped",new Date() - t0);
+  }
+  else {
+    delete this.groups[UNGROUPED];
+    this.legendLeft.removeGroup(UNGROUPED);
+    this.legendRight.removeGroup(UNGROUPED);
+    this.yAxisLeft.removeGroup(UNGROUPED);
+    this.yAxisRight.removeGroup(UNGROUPED);
   }
 
   this.legendLeft.redraw();
@@ -4390,22 +4463,26 @@ Linegraph.prototype._toggleAxisVisiblity = function (axisUsed, axis) {
 Linegraph.prototype._drawBarGraph = function (dataset, group) {
   if (dataset != null) {
     if (dataset.length > 0) {
-      var width, coreDistance;
+      var coreDistance;
       var minWidth = 0.1 * group.options.barChart.width;
+      var offset = 0;
+      var width = group.options.barChart.width;
+
+      if (group.options.barChart.align == 'left')       {offset -= 0.5*width;}
+      else if (group.options.barChart.align == 'right') {offset += 0.5*width;}
 
       for (var i = 0; i < dataset.length; i++) {
-        width = group.options.barChart.width;
         // dynammically downscale the width so there is no overlap up to 1/10th the original width
         if (i+1 < dataset.length) {coreDistance = Math.abs(dataset[i+1].x - dataset[i].x);}
         if (i > 0)                {coreDistance = Math.min(coreDistance,Math.abs(dataset[i-1].x - dataset[i].x));}
         if (coreDistance < width) {width = coreDistance < minWidth ? minWidth : coreDistance;}
 
-        DOMutil.drawBar(dataset[i].x, dataset[i].y, width, group.zeroPosition - dataset[i].y, group.className + ' bar', this.svgElements, this.svg);
+        DOMutil.drawBar(dataset[i].x + offset, dataset[i].y, width, group.zeroPosition - dataset[i].y, group.className + ' bar', this.svgElements, this.svg);
       }
 
       // draw points
       if (group.options.drawPoints.enabled == true) {
-        this._drawPoints(dataset, group, this.svgElements, this.svg);
+        this._drawPoints(dataset, group, this.svgElements, this.svg, offset);
       }
     }
   }
@@ -4466,9 +4543,10 @@ Linegraph.prototype._drawLineGraph = function (dataset, group) {
  * @param svg
  * @param group
  */
-Linegraph.prototype._drawPoints = function (dataset, group, JSONcontainer, svg) {
+Linegraph.prototype._drawPoints = function (dataset, group, JSONcontainer, svg, offset) {
+  if (offset === undefined) {offset = 0;}
   for (var i = 0; i < dataset.length; i++) {
-    DOMutil.drawPoint(dataset[i].x, dataset[i].y, group, JSONcontainer, svg);
+    DOMutil.drawPoint(dataset[i].x + offset, dataset[i].y, group, JSONcontainer, svg);
   }
 };
 
@@ -4497,12 +4575,11 @@ Linegraph.prototype._preprocessData = function (datapoints, group) {
     var xDistance = this.body.util.toGlobalScreen(datapoints[datapoints.length-1].x) - this.body.util.toGlobalScreen(datapoints[0].x);
     var amountOfPoints = datapoints.length;
     var pointsPerPixel = amountOfPoints/xDistance;
-    increment = Math.max(1,Math.round(pointsPerPixel));
+    increment = Math.min(Math.ceil(0.2 * amountOfPoints), Math.max(1,Math.round(pointsPerPixel)));
   }
   else {
     increment = 1;
   }
-
 
   for (var i = 0; i < amountOfPoints; i += increment) {
     xValue = toScreen(datapoints[i].x) + this.width - 1;

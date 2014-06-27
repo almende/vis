@@ -39,7 +39,8 @@ function DataAxis (body, options, svg) {
   this.conversionFactor = 1;
 
   this.setOptions(options);
-  this.width = Number(this.options.width.replace("px",""));
+  this.width = Number(('' + this.options.width).replace("px",""));
+  this.minWidth = this.width;
   this.height = this.linegraphSVG.offsetHeight;
 
   this.stepPixels = 25;
@@ -98,6 +99,9 @@ DataAxis.prototype.setOptions = function (options) {
       'width',
       'visible'];
     util.selectiveExtend(fields, this.options, options);
+
+    this.minWidth = Number(('' + this.options.width).replace("px",""));
+
     if (redraw == true && this.dom.frame) {
       this.hide();
       this.show();
@@ -211,7 +215,7 @@ DataAxis.prototype.redraw = function () {
     // svg offsetheight did not work in firefox and explorer...
 
     this.dom.lineContainer.style.height = this.height + 'px';
-    this.width = this.options.visible ? Number(this.options.width.replace("px","")) : 0;
+    this.width = this.options.visible == true ? Number(('' + this.options.width).replace("px","")) : 0;
 
     var props = this.props;
     var frame = this.dom.frame;
@@ -337,8 +341,8 @@ DataAxis.prototype._redrawLabels = function () {
     return true;
   }
   // this will resize the yAxis if it is too big for the labels.
-  else if (this.maxLabelSize < (this.width - offset) && this.options.visible == true) {
-    this.width = this.maxLabelSize + offset;
+  else if (this.maxLabelSize < (this.width - offset) && this.options.visible == true && this.width > this.minWidth) {
+    this.width = Math.max(this.minWidth,this.maxLabelSize + offset);
     this.options.width = this.width + "px";
     DOMutil.cleanupElements(this.DOMelements);
     this.redraw();

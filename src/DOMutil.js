@@ -146,7 +146,7 @@ DOMutil.drawPoint = function(x, y, group, JSONcontainer, svgContainer) {
 };
 
 /**
- * draw a bar SVG element
+ * draw a bar SVG element centered on the X coordinate
  *
  * @param x
  * @param y
@@ -154,8 +154,8 @@ DOMutil.drawPoint = function(x, y, group, JSONcontainer, svgContainer) {
  */
 DOMutil.drawBar = function (x, y, width, height, className, JSONcontainer, svgContainer) {
   rect = DOMutil.getSVGElement('rect',JSONcontainer, svgContainer);
-  rect.setAttributeNS(null, "x", Math.round(x - 0.5 * width));
-  rect.setAttributeNS(null, "y", Math.round(y));
+  rect.setAttributeNS(null, "x", x - 0.5 * width);
+  rect.setAttributeNS(null, "y", y);
   rect.setAttributeNS(null, "width", width);
   rect.setAttributeNS(null, "height", height);
   rect.setAttributeNS(null, "class", className);

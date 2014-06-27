@@ -120,7 +120,6 @@ util.selectiveExtend = function (props, a, b) {
       }
     }
   }
-
   return a;
 };
 
@@ -1015,19 +1014,53 @@ util.isValidHex = function(hex) {
   return isOk;
 };
 
-util.copyObject = function(objectFrom, objectTo) {
-  for (var i in objectFrom) {
-    if (objectFrom.hasOwnProperty(i)) {
-      if (typeof objectFrom[i] == "object") {
-        objectTo[i] = {};
-        util.copyObject(objectFrom[i], objectTo[i]);
-      }
-      else {
-        objectTo[i] = objectFrom[i];
+
+/**
+ * This recursively redirects the prototype of JSON objects to the referenceObject
+ * This is used for default options.
+ *
+ * @param referenceObject
+ * @returns {*}
+ */
+util.selectiveBridgeObject = function(fields, referenceObject) {
+  if (typeof referenceObject == "object") {
+    var objectTo = Object.create(referenceObject);
+    for (var i = 0; i < fields.length; i++) {
+      if (referenceObject.hasOwnProperty(fields[i])) {
+        if (typeof referenceObject[fields[i]] == "object") {
+          objectTo[fields[i]] = util.bridgeObject(referenceObject[fields[i]]);
+        }
       }
     }
+    return objectTo;
   }
-  return objectTo;
+  else {
+    return null;
+  }
+};
+
+/**
+ * This recursively redirects the prototype of JSON objects to the referenceObject
+ * This is used for default options.
+ *
+ * @param referenceObject
+ * @returns {*}
+ */
+util.bridgeObject = function(referenceObject) {
+  if (typeof referenceObject == "object") {
+    var objectTo = Object.create(referenceObject);
+    for (var i in referenceObject) {
+      if (referenceObject.hasOwnProperty(i)) {
+        if (typeof referenceObject[i] == "object") {
+          objectTo[i] = util.bridgeObject(referenceObject[i]);
+        }
+      }
+    }
+    return objectTo;
+  }
+  else {
+    return null;
+  }
 };
 
 
@@ -1040,7 +1073,7 @@ util.copyObject = function(objectFrom, objectTo) {
  * @param [String] option      | this is the option key in the options argument
  * @private
  */
-util._mergeOptions = function (mergeTarget, options, option) {
+util.mergeOptions = function (mergeTarget, options, option) {
   if (options[option] !== undefined) {
     if (typeof options[option] == 'boolean') {
       mergeTarget[option].enabled = options[option];
@@ -1055,6 +1088,34 @@ util._mergeOptions = function (mergeTarget, options, option) {
     }
   }
 }
+
+
+/**
+ * this is used to set the options of subobjects in the options object. A requirement of these subobjects
+ * is that they have an 'enabled' element which is optional for the user but mandatory for the program.
+ *
+ * @param [object] mergeTarget | this is either this.options or the options used for the groups.
+ * @param [object] options     | options
+ * @param [String] option      | this is the option key in the options argument
+ * @private
+ */
+util.mergeOptions = function (mergeTarget, options, option) {
+  if (options[option] !== undefined) {
+    if (typeof options[option] == 'boolean') {
+      mergeTarget[option].enabled = options[option];
+    }
+    else {
+      mergeTarget[option].enabled = true;
+      for (prop in options[option]) {
+        if (options[option].hasOwnProperty(prop)) {
+          mergeTarget[option][prop] = options[option][prop];
+        }
+      }
+    }
+  }
+}
+
+
 
 
 /**

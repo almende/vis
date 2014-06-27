@@ -66,7 +66,7 @@
         }
         pointsField.value = points;
 
-        graph2D.setOptions(pointsOptions);
+        graph2d.setOptions(pointsOptions);
     }
 
     function toggleInterpolation() {
@@ -89,7 +89,7 @@
             interpolationOptions = {catmullRom: false};
         }
         interpolationField.value = interpolation;
-        graph2D.setOptions(interpolationOptions);
+        graph2d.setOptions(interpolationOptions);
     }
 
 
@@ -144,7 +144,7 @@
         end: endPoint
     };
 
-    var graph2D = new vis.Graph2d(container, dataset, options);
+    var graph2d = new vis.Graph2d(container, dataset, options);
 </script>
 </body>
 </html>

@@ -7,7 +7,7 @@
 function GraphGroup (group, groupId, options, groupsUsingDefaultStyles) {
   this.id = groupId;
   var fields = ['sampling','style','sort','yAxisOrientation','barChart','drawPoints','shaded','catmullRom']
-  this.options = util.selectiveDeepExtend(fields,{},options);
+  this.options = util.selectiveBridgeObject(fields,options);
   this.usingDefaultStyle = group.className === undefined;
   this.groupsUsingDefaultStyles = groupsUsingDefaultStyles;
   this.zeroPosition = 0;
@@ -36,12 +36,12 @@ GraphGroup.prototype.setZeroPosition = function(pos) {
 
 GraphGroup.prototype.setOptions = function(options) {
   if (options !== undefined) {
-    var fields = ['yAxisOrientation','style','barChart','sort'];
+    var fields = ['sampling','style','sort','yAxisOrientation','barChart'];
     util.selectiveDeepExtend(fields, this.options, options);
 
-    util._mergeOptions(this.options, options,'catmullRom');
-    util._mergeOptions(this.options, options,'drawPoints');
-    util._mergeOptions(this.options, options,'shaded');
+    util.mergeOptions(this.options, options,'catmullRom');
+    util.mergeOptions(this.options, options,'drawPoints');
+    util.mergeOptions(this.options, options,'shaded');
 
     if (options.catmullRom) {
       if (typeof options.catmullRom == 'object') {

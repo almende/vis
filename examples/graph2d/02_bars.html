@@ -18,6 +18,9 @@
     This example shows the most the same data as the first example, except we plot the data as bars! The
     dataAxis (y-axis) icons have been enabled as well. These icons are generated automatically from the CSS
     styling of the graphs. Finally, we've used the option from Timeline where we draw the x-axis (time-axis) on top.
+    <br /><br />
+    The <code>align</code> option can be used to align the bar at the center of the datapoint or on the left or right side of it.
+    This example uses the default center alignment.
 </div>
 <br />
 
@@ -38,6 +41,7 @@
     var dataset = new vis.DataSet(items);
     var options = {
         style:'bar',
+        barChart: {width:50, align:'center'}, // align: left, center, right
         drawPoints: false,
         dataAxis: {
             icons:true

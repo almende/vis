@@ -23,7 +23,8 @@ function Linegraph(body, options) {
     },
     style: 'line', // line, bar
     barChart: {
-      width: 50
+      width: 50,
+      align: 'center' // left, center, right
     },
     catmullRom: {
       enabled: true,
@@ -164,10 +165,10 @@ Linegraph.prototype.setOptions = function(options) {
   if (options) {
     var fields = ['sampling','defaultGroup','graphHeight','yAxisOrientation','style','barChart','dataAxis','sort'];
     util.selectiveDeepExtend(fields, this.options, options);
-    util._mergeOptions(this.options, options,'catmullRom');
-    util._mergeOptions(this.options, options,'drawPoints');
-    util._mergeOptions(this.options, options,'shaded');
-    util._mergeOptions(this.options, options,'legend');
+    util.mergeOptions(this.options, options,'catmullRom');
+    util.mergeOptions(this.options, options,'drawPoints');
+    util.mergeOptions(this.options, options,'shaded');
+    util.mergeOptions(this.options, options,'legend');
 
     if (options.catmullRom) {
       if (typeof options.catmullRom == 'object') {
@@ -332,7 +333,7 @@ Linegraph.prototype._onUpdate = function(ids) {
   this.redraw();
 };
 Linegraph.prototype._onAdd          = function (ids) {this._onUpdate(ids);};
-Linegraph.prototype._onRemove       = Linegraph.prototype._onUpdate;
+Linegraph.prototype._onRemove       = function (ids) {this._onUpdate(ids);};
 Linegraph.prototype._onUpdateGroups  = function (groupIds) {
   for (var i = 0; i < groupIds.length; i++) {
     var group = this.groupsData.get(groupIds[i]);
@@ -342,7 +343,7 @@ Linegraph.prototype._onUpdateGroups  = function (groupIds) {
   this._updateGraph();
   this.redraw();
 };
-Linegraph.prototype._onAddGroups = Linegraph.prototype._onUpdateGroups;
+Linegraph.prototype._onAddGroups = function (groupIds) {this._onUpdateGroups(groupIds);};
 
 Linegraph.prototype._onRemoveGroups = function (groupIds) {
   for (var i = 0; i < groupIds.length; i++) {
@@ -483,10 +484,17 @@ Linegraph.prototype._updateUngrouped = function() {
       this.legendLeft.removeGroup(UNGROUPED);
       this.legendRight.removeGroup(UNGROUPED);
       this.yAxisLeft.removeGroup(UNGROUPED);
-      this.yAxisLeft.removeGroup(UNGROUPED);
+      this.yAxisRight.removeGroup(UNGROUPED);
     }
 //    console.log("getting amount ungrouped",new Date() - t1);
 //    console.log("putting in ungrouped",new Date() - t0);
+  }
+  else {
+    delete this.groups[UNGROUPED];
+    this.legendLeft.removeGroup(UNGROUPED);
+    this.legendRight.removeGroup(UNGROUPED);
+    this.yAxisLeft.removeGroup(UNGROUPED);
+    this.yAxisRight.removeGroup(UNGROUPED);
   }
 
   this.legendLeft.redraw();
@@ -745,22 +753,26 @@ Linegraph.prototype._toggleAxisVisiblity = function (axisUsed, axis) {
 Linegraph.prototype._drawBarGraph = function (dataset, group) {
   if (dataset != null) {
     if (dataset.length > 0) {
-      var width, coreDistance;
+      var coreDistance;
       var minWidth = 0.1 * group.options.barChart.width;
+      var offset = 0;
+      var width = group.options.barChart.width;
+
+      if (group.options.barChart.align == 'left')       {offset -= 0.5*width;}
+      else if (group.options.barChart.align == 'right') {offset += 0.5*width;}
 
       for (var i = 0; i < dataset.length; i++) {
-        width = group.options.barChart.width;
         // dynammically downscale the width so there is no overlap up to 1/10th the original width
         if (i+1 < dataset.length) {coreDistance = Math.abs(dataset[i+1].x - dataset[i].x);}
         if (i > 0)                {coreDistance = Math.min(coreDistance,Math.abs(dataset[i-1].x - dataset[i].x));}
         if (coreDistance < width) {width = coreDistance < minWidth ? minWidth : coreDistance;}
 
-        DOMutil.drawBar(dataset[i].x, dataset[i].y, width, group.zeroPosition - dataset[i].y, group.className + ' bar', this.svgElements, this.svg);
+        DOMutil.drawBar(dataset[i].x + offset, dataset[i].y, width, group.zeroPosition - dataset[i].y, group.className + ' bar', this.svgElements, this.svg);
       }
 
       // draw points
       if (group.options.drawPoints.enabled == true) {
-        this._drawPoints(dataset, group, this.svgElements, this.svg);
+        this._drawPoints(dataset, group, this.svgElements, this.svg, offset);
       }
     }
   }
@@ -821,9 +833,10 @@ Linegraph.prototype._drawLineGraph = function (dataset, group) {
  * @param svg
  * @param group
  */
-Linegraph.prototype._drawPoints = function (dataset, group, JSONcontainer, svg) {
+Linegraph.prototype._drawPoints = function (dataset, group, JSONcontainer, svg, offset) {
+  if (offset === undefined) {offset = 0;}
   for (var i = 0; i < dataset.length; i++) {
-    DOMutil.drawPoint(dataset[i].x, dataset[i].y, group, JSONcontainer, svg);
+    DOMutil.drawPoint(dataset[i].x + offset, dataset[i].y, group, JSONcontainer, svg);
   }
 };
 
@@ -852,12 +865,11 @@ Linegraph.prototype._preprocessData = function (datapoints, group) {
     var xDistance = this.body.util.toGlobalScreen(datapoints[datapoints.length-1].x) - this.body.util.toGlobalScreen(datapoints[0].x);
     var amountOfPoints = datapoints.length;
     var pointsPerPixel = amountOfPoints/xDistance;
-    increment = Math.max(1,Math.round(pointsPerPixel));
+    increment = Math.min(Math.ceil(0.2 * amountOfPoints), Math.max(1,Math.round(pointsPerPixel)));
   }
   else {
     increment = 1;
   }
-
 
   for (var i = 0; i < amountOfPoints; i += increment) {
     xValue = toScreen(datapoints[i].x) + this.width - 1;
