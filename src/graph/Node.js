@@ -855,7 +855,7 @@ Node.prototype._label = function (ctx, text, x, y, align, baseline) {
     var lines = text.split('\n'),
         lineCount = lines.length,
         fontSize = (this.fontSize + 4),
-        yLine = y + (1 - lineCount) / 2 * fontSize;
+        yLine = y + (1 - lineCount) / (2 * fontSize);
 
     for (var i = 0; i < lineCount; i++) {
       ctx.fillText(lines[i], x, yLine);

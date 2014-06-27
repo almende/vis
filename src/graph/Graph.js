@@ -72,6 +72,7 @@ function Graph (container, data, options) {
       widthMin: 1,
       widthMax: 15,
       width: 1,
+      widthSelectionMultiplier: 2,
       hoverWidth: 1.5,
       style: 'line',
       color: {
@@ -2245,7 +2246,7 @@ Graph.prototype.storePosition = function() {
       var node = this.nodes[nodeId];
       var allowedToMoveX = !this.nodes.xFixed;
       var allowedToMoveY = !this.nodes.yFixed;
-      if (this.nodesData.data[nodeId].x != Math.round(node.x) || this.nodesData.data[nodeId].y != Math.round(node.y)) {
+      if (this.nodesData._data[nodeId].x != Math.round(node.x) || this.nodesData._data[nodeId].y != Math.round(node.y)) {
         dataArray.push({id:nodeId,x:Math.round(node.x),y:Math.round(node.y),allowedToMoveX:allowedToMoveX,allowedToMoveY:allowedToMoveY});
       }
     }

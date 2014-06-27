@@ -527,45 +527,45 @@ When using a DataSet, the graph is automatically updating to changes in the Data
     <th>Required</th>
     <th>Description</th>
   </tr>
-    <tr>
-        <td>arrowScaleFactor</td>
-        <td>Number</td>
-        <td>no</td>
-        <td>If you are using arrows, this will scale the arrow. Values < 1 give smaller arrows, > 1 larger arrows. Default: 1.</td>
-    </tr>
-    <tr>
-        <td>color</td>
-        <td>String | Object</td>
-        <td>no</td>
-        <td>Color for the edge.</td>
-    </tr>
+  <tr>
+    <td>arrowScaleFactor</td>
+    <td>Number</td>
+    <td>no</td>
+    <td>If you are using arrows, this will scale the arrow. Values < 1 give smaller arrows, > 1 larger arrows. Default: 1.</td>
+  </tr>
+  <tr>
+    <td>color</td>
+    <td>String | Object</td>
+    <td>no</td>
+    <td>Color for the edge.</td>
+  </tr>
 
-    <tr>
-        <td>color.color</td>
-        <td>String</td>
-        <td>no</td>
-        <td>Color of the edge when not selected.</td>
-    </tr>
+  <tr>
+    <td>color.color</td>
+    <td>String</td>
+    <td>no</td>
+    <td>Color of the edge when not selected.</td>
+  </tr>
 
-    <tr>
-        <td>color.highlight</td>
-        <td>String</td>
-        <td>no</td>
-        <td>Color of the edge when selected.</td>
-    </tr>
+  <tr>
+    <td>color.highlight</td>
+    <td>String</td>
+    <td>no</td>
+    <td>Color of the edge when selected.</td>
+  </tr>
 
-    <tr>
-        <td>color.hover</td>
-        <td>String</td>
-        <td>no</td>
-        <td>Color of the edge when the edge is hovered over and the hover option is enabled.</td>
-    </tr>
-    <tr>
-        <td>hoverWidth</td>
-        <td>Number</td>
-        <td>1.5</td>
-        <td>This determines the thickness of the edge if it is hovered over. This will only manifest when the hover option is enabled.</td>
-    </tr>
+  <tr>
+    <td>color.hover</td>
+    <td>String</td>
+    <td>no</td>
+    <td>Color of the edge when the edge is hovered over and the hover option is enabled.</td>
+  </tr>
+  <tr>
+    <td>hoverWidth</td>
+    <td>Number</td>
+    <td>1.5</td>
+    <td>This determines the thickness of the edge if it is hovered over. This will only manifest when the hover option is enabled.</td>
+  </tr>
 
   <tr>
     <td>dash</td>
@@ -1149,32 +1149,32 @@ var options = {
     <th>Default</th>
     <th>Description</th>
   </tr>
-    <tr>
-        <td>arrowScaleFactor</td>
-        <td>Number</td>
-        <td>1</td>
-        <td>If you are using arrows, this will scale the arrow. Values < 1 give smaller arrows, > 1 larger arrows. Default: 1.</td>
-    </tr>
-    <tr>
-        <td>color</td>
-        <td>String | Object</td>
-        <td>Object</td>
-        <td>Colors of the edge. This object contains both colors for the selected and unselected state.</td>
-    </tr>
+  <tr>
+    <td>arrowScaleFactor</td>
+    <td>Number</td>
+    <td>1</td>
+    <td>If you are using arrows, this will scale the arrow. Values < 1 give smaller arrows, > 1 larger arrows. Default: 1.</td>
+  </tr>
+  <tr>
+    <td>color</td>
+    <td>String | Object</td>
+    <td>Object</td>
+    <td>Colors of the edge. This object contains both colors for the selected and unselected state.</td>
+  </tr>
 
-    <tr>
-        <td>color.color</td>
-        <td>String</td>
-        <td>"#848484"</td>
-        <td>Color of the edge when not selected.</td>
-    </tr>
+  <tr>
+    <td>color.color</td>
+    <td>String</td>
+    <td>"#848484"</td>
+    <td>Color of the edge when not selected.</td>
+  </tr>
 
-    <tr>
-        <td>color.highlight</td>
-        <td>String</td>
-        <td>"#848484"</td>
-        <td>Color of the edge when selected.</td>
-    </tr>
+  <tr>
+    <td>color.highlight</td>
+    <td>String</td>
+    <td>"#848484"</td>
+    <td>Color of the edge when selected.</td>
+  </tr>
 
   <tr>
     <td>dash</td>
@@ -1214,12 +1214,12 @@ var options = {
     <td>Default length of a gap in pixels on a dashed line.
       Only applicable when the line style is <code>dash-line</code>.</td>
   </tr>
-    <tr>
-        <td>length</td>
-        <td>number</td>
-        <td>physics.[method].springLength</td>
-        <td>The resting length of the edge when modeled as a spring. By default the springLength determined by the physics is used. By using this setting you can make certain edges have different resting lengths.</td>
-    </tr>
+  <tr>
+    <td>length</td>
+    <td>number</td>
+    <td>physics.[method].springLength</td>
+    <td>The resting length of the edge when modeled as a spring. By default the springLength determined by the physics is used. By using this setting you can make certain edges have different resting lengths.</td>
+  </tr>
 
   <tr>
     <td>style</td>
@@ -1234,6 +1234,12 @@ var options = {
     <td>Number</td>
     <td>1</td>
     <td>The default width of a edge.</td>
+  </tr>
+  <tr>
+    <td>widthSelectionMultiplier</td>
+    <td>Number</td>
+    <td>2</td>
+    <td>Determines the thickness scaling of an selected edge. This is applied when an edge, or a node connected to it, is selected.</td>
   </tr>
 </table>
 
