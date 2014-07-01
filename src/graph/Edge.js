@@ -128,6 +128,7 @@ Edge.prototype.setProperties = function(properties, constants) {
     else {
       if (properties.color.color !== undefined)     {this.color.color = properties.color.color;}
       if (properties.color.highlight !== undefined) {this.color.highlight = properties.color.highlight;}
+      if (properties.color.hover !== undefined)     {this.color.hover = properties.color.hover;}
     }
   }
 
