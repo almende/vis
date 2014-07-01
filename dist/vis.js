@@ -14558,13 +14558,7 @@ var physicsMixin = {
     // the forces are reset to zero in this loop by using _setForce instead
     // of _addForce
 
-    if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
-      this._calculateHierarchicalGravitationalForces();
-    }
-    else {
-      this._calculateGravitationalForces();
-    }
-
+    this._calculateGravitationalForces();
     this._calculateNodeForces();
 
     if (this.constants.smoothCurves == true) {
@@ -15302,56 +15296,6 @@ var hierarchalRepulsionMixin = {
               edge.from.fx += factor*fx;
               edge.from.fy += factor*fy;
             }
-          }
-        }
-      }
-    }
-  },
-
-  /**
-   * this function applies the central gravity effect to keep groups from floating off
-   *
-   * @private
-   */
-  _calculateHierarchicalGravitationalForces: function () {
-    var dx, dy, distance, node, i, j, edges;
-    var nodes = this.calculationNodes;
-    var gravity = this.constants.physics.centralGravity;
-    var gravityForce = 0;
-
-
-    for (i = 0; i < this.calculationNodeIndices.length; i++) {
-      node = nodes[this.calculationNodeIndices[i]];
-      node.damping = this.constants.physics.damping; // possibly add function to alter damping properties of clusters.
-      node.fx = 0;
-      node.fy = 0;
-    }
-
-    for (i = 0; i < this.calculationNodeIndices.length; i++) {
-      node = nodes[this.calculationNodeIndices[i]];
-      edges = node.edges;
-      for (j = 0; j < edges.length; j++) {
-        if (edges[j].from.id != node.id) {
-          if (edges[j].to.level > edges[j].from.level) {
-            dx = edges[j].to.x-edges[j].from.x;
-            dy = edges[j].to.y-edges[j].from.y;
-            distance = Math.sqrt(dx * dx + dy * dy);
-
-            gravityForce = (distance == 0) ? 0 : (gravity / distance);
-            edges[j].to.fx -= dx * gravityForce;
-            edges[j].to.fy -= dy * gravityForce;
-          }
-        }
-        else {
-          if (edges[j].from.level > edges[j].to.level) {
-            dx = edges[j].to.x-edges[j].from.x;
-            dy = edges[j].to.y-edges[j].from.y;
-            distance = Math.sqrt(dx * dx + dy * dy);
-
-            gravityForce = (distance == 0) ? 0 : (gravity / distance);
-
-            edges[j].to.fx -= dx * gravityForce;
-            edges[j].to.fy -= dy * gravityForce;
           }
         }
       }
@@ -19631,7 +19575,7 @@ function Graph (container, data, options) {
         nodeDistance: 100,
         damping: 0.09
       },
-      hierarchicalRepulsion: { 
+      hierarchicalRepulsion: {
         enabled: false,
         centralGravity: 0.5,
         springLength: 150,
