@@ -101,7 +101,12 @@ var physicsMixin = {
       this._calculateSpringForcesWithSupport();
     }
     else {
-      this._calculateSpringForces();
+      if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
+        this._calculateHierarchicalSpringForces();
+      }
+      else {
+        this._calculateSpringForces();
+      }
     }
   },
 
@@ -181,6 +186,8 @@ var physicsMixin = {
   },
 
 
+
+
   /**
    * this function calculates the effects of the springs in the case of unsmooth curves.
    *
@@ -225,6 +232,8 @@ var physicsMixin = {
       }
     }
   },
+
+
 
 
   /**

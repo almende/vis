@@ -33,7 +33,7 @@ function DataAxis (body, options, svg) {
 
   this.dom = {};
 
-  this.yRange = {start:0, end:0};
+  this.range = {start:0, end:0};
 
   this.options = util.extend({}, this.defaultOptions);
   this.conversionFactor = 1;
@@ -196,8 +196,8 @@ DataAxis.prototype.hide = function() {
  * @param end
  */
 DataAxis.prototype.setRange = function (start, end) {
-  this.yRange.start = start;
-  this.yRange.end = end;
+  this.range.start = start;
+  this.range.end = end;
 };
 
 /**
@@ -273,7 +273,7 @@ DataAxis.prototype._redrawLabels = function () {
 
   // calculate range and step (step such that we have space for 7 characters per label)
   var minimumStep = this.master ? this.props.majorCharHeight || 10 : this.stepPixelsForced;
-  var step = new DataStep(this.yRange.start, this.yRange.end, minimumStep, this.dom.frame.offsetHeight);
+  var step = new DataStep(this.range.start, this.range.end, minimumStep, this.dom.frame.offsetHeight);
   this.step = step;
   step.first();
 

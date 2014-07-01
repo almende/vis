@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 2.0.1-SNAPSHOT
- * @date    2014-06-27
+ * @date    2014-07-01
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -3274,7 +3274,7 @@ function DataAxis (body, options, svg) {
 
   this.dom = {};
 
-  this.yRange = {start:0, end:0};
+  this.range = {start:0, end:0};
 
   this.options = util.extend({}, this.defaultOptions);
   this.conversionFactor = 1;
@@ -3437,8 +3437,8 @@ DataAxis.prototype.hide = function() {
  * @param end
  */
 DataAxis.prototype.setRange = function (start, end) {
-  this.yRange.start = start;
-  this.yRange.end = end;
+  this.range.start = start;
+  this.range.end = end;
 };
 
 /**
@@ -3514,7 +3514,7 @@ DataAxis.prototype._redrawLabels = function () {
 
   // calculate range and step (step such that we have space for 7 characters per label)
   var minimumStep = this.master ? this.props.majorCharHeight || 10 : this.stepPixelsForced;
-  var step = new DataStep(this.yRange.start, this.yRange.end, minimumStep, this.dom.frame.offsetHeight);
+  var step = new DataStep(this.range.start, this.range.end, minimumStep, this.dom.frame.offsetHeight);
   this.step = step;
   step.first();
 
@@ -13132,7 +13132,7 @@ Node.prototype._label = function (ctx, text, x, y, align, baseline) {
     var lines = text.split('\n'),
         lineCount = lines.length,
         fontSize = (this.fontSize + 4),
-        yLine = y + (1 - lineCount) / 2 * fontSize;
+        yLine = y + (1 - lineCount) / (2 * fontSize);
 
     for (var i = 0; i < lineCount; i++) {
       ctx.fillText(lines[i], x, yLine);
@@ -13274,6 +13274,8 @@ function Edge (properties, graph, constants) {
   this.style  = constants.edges.style;
   this.title  = undefined;
   this.width  = constants.edges.width;
+  this.widthSelectionMultiplier = constants.edges.widthSelectionMultiplier;
+  this.widthSelected = this.width * this.widthSelectionMultiplier;
   this.hoverWidth = constants.edges.hoverWidth;
   this.value  = undefined;
   this.length = constants.physics.springLength;
@@ -13343,6 +13345,8 @@ Edge.prototype.setProperties = function(properties, constants) {
 
   if (properties.title !== undefined)        {this.title = properties.title;}
   if (properties.width !== undefined)        {this.width = properties.width;}
+  if (properties.widthSelectionMultiplier !== undefined)
+                                             {this.widthSelectionMultiplier = properties.widthSelectionMultiplier;}
   if (properties.hoverWidth !== undefined)   {this.hoverWidth = properties.hoverWidth;}
   if (properties.value !== undefined)        {this.value = properties.value;}
   if (properties.length !== undefined)       {this.length = properties.length;
@@ -13376,6 +13380,8 @@ Edge.prototype.setProperties = function(properties, constants) {
 
   this.widthFixed = this.widthFixed || (properties.width !== undefined);
   this.lengthFixed = this.lengthFixed || (properties.length !== undefined);
+
+  this.widthSelected = this.width * this.widthSelectionMultiplier;
 
   // set draw method based on style
   switch (this.style) {
@@ -13554,7 +13560,7 @@ Edge.prototype._drawLine = function(ctx) {
  */
 Edge.prototype._getLineWidth = function() {
   if (this.selected == true) {
-    return Math.min(this.width * 2, this.widthMax)*this.graphScaleInv;
+    return Math.min(this.widthSelected, this.widthMax)*this.graphScaleInv;
   }
   else {
     if (this.hover == true) {
@@ -14199,6 +14205,7 @@ Edge.prototype.getControlNodePositions = function(ctx) {
 
   return {from:{x:xFrom,y:yFrom},to:{x:xTo,y:yTo}};
 }
+
 /**
  * Popup is a class to create a popup window with some text
  * @param {Element}  container     The container object.
@@ -14551,14 +14558,25 @@ var physicsMixin = {
     // the forces are reset to zero in this loop by using _setForce instead
     // of _addForce
 
-    this._calculateGravitationalForces();
+    if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
+      this._calculateHierarchicalGravitationalForces();
+    }
+    else {
+      this._calculateGravitationalForces();
+    }
+
     this._calculateNodeForces();
 
     if (this.constants.smoothCurves == true) {
       this._calculateSpringForcesWithSupport();
     }
     else {
-      this._calculateSpringForces();
+      if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
+        this._calculateHierarchicalSpringForces();
+      }
+      else {
+        this._calculateSpringForces();
+      }
     }
   },
 
@@ -14638,6 +14656,8 @@ var physicsMixin = {
   },
 
 
+
+
   /**
    * this function calculates the effects of the springs in the case of unsmooth curves.
    *
@@ -14682,6 +14702,8 @@ var physicsMixin = {
       }
     }
   },
+
+
 
 
   /**
@@ -15181,6 +15203,7 @@ var hierarchalRepulsionMixin = {
     // repulsing forces between nodes
     var nodeDistance = this.constants.physics.hierarchicalRepulsion.nodeDistance;
     var minimumDistance = nodeDistance;
+    var a = a_base / minimumDistance;
 
     // we loop from i over all but the last entree in the array
     // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
@@ -15189,29 +15212,147 @@ var hierarchalRepulsionMixin = {
       node1 = nodes[nodeIndices[i]];
       for (j = i + 1; j < nodeIndices.length; j++) {
         node2 = nodes[nodeIndices[j]];
+        if (node1.level == node2.level) {
 
-        dx = node2.x - node1.x;
-        dy = node2.y - node1.y;
-        distance = Math.sqrt(dx * dx + dy * dy);
+          dx = node2.x - node1.x;
+          dy = node2.y - node1.y;
+          distance = Math.sqrt(dx * dx + dy * dy);
 
-        var a = a_base / minimumDistance;
-        if (distance < 2 * minimumDistance) {
-          repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness))
 
-          // normalize force with
-          if (distance == 0) {
-            distance = 0.01;
+          if (distance < 2 * minimumDistance) {
+            repulsingForce = a * distance + b;
+            var c = 0.05;
+            var d = 2 * minimumDistance * 2 * c;
+            repulsingForce = c * Math.pow(distance,2) - d * distance + d*d/(4*c);
+
+            // normalize force with
+            if (distance == 0) {
+              distance = 0.01;
+            }
+            else {
+              repulsingForce = repulsingForce / distance;
+            }
+            fx = dx * repulsingForce;
+            fy = dy * repulsingForce;
+
+            node1.fx -= fx;
+            node1.fy -= fy;
+            node2.fx += fx;
+            node2.fy += fy;
           }
-          else {
-            repulsingForce = repulsingForce / distance;
-          }
-          fx = dx * repulsingForce;
-          fy = dy * repulsingForce;
+        }
+      }
+    }
+  },
 
-          node1.fx -= fx;
-          node1.fy -= fy;
-          node2.fx += fx;
-          node2.fy += fy;
+
+  /**
+   * this function calculates the effects of the springs in the case of unsmooth curves.
+   *
+   * @private
+   */
+  _calculateHierarchicalSpringForces: function () {
+    var edgeLength, edge, edgeId;
+    var dx, dy, fx, fy, springForce, distance;
+    var edges = this.edges;
+
+    // forces caused by the edges, modelled as springs
+    for (edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        edge = edges[edgeId];
+        if (edge.connected) {
+          // only calculate forces if nodes are in the same sector
+          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+            edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
+            // this implies that the edges between big clusters are longer
+            edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
+
+            dx = (edge.from.x - edge.to.x);
+            dy = (edge.from.y - edge.to.y);
+            distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance == 0) {
+              distance = 0.01;
+            }
+
+            distance = Math.max(0.8*edgeLength,Math.min(1.2*edgeLength, distance));
+
+            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
+
+            fx = dx * springForce;
+            fy = dy * springForce;
+
+            edge.to.fx -= fx;
+            edge.to.fy -= fy;
+            edge.from.fx += fx;
+            edge.from.fy += fy;
+
+
+            var factor = 5;
+            if (distance > edgeLength) {
+              factor = 25;
+            }
+
+            if (edge.from.level > edge.to.level) {
+              edge.to.fx -= factor*fx;
+              edge.to.fy -= factor*fy;
+            }
+            else if (edge.from.level < edge.to.level) {
+              edge.from.fx += factor*fx;
+              edge.from.fy += factor*fy;
+            }
+          }
+        }
+      }
+    }
+  },
+
+  /**
+   * this function applies the central gravity effect to keep groups from floating off
+   *
+   * @private
+   */
+  _calculateHierarchicalGravitationalForces: function () {
+    var dx, dy, distance, node, i, j, edges;
+    var nodes = this.calculationNodes;
+    var gravity = this.constants.physics.centralGravity;
+    var gravityForce = 0;
+
+
+    for (i = 0; i < this.calculationNodeIndices.length; i++) {
+      node = nodes[this.calculationNodeIndices[i]];
+      node.damping = this.constants.physics.damping; // possibly add function to alter damping properties of clusters.
+      node.fx = 0;
+      node.fy = 0;
+    }
+
+    for (i = 0; i < this.calculationNodeIndices.length; i++) {
+      node = nodes[this.calculationNodeIndices[i]];
+      edges = node.edges;
+      for (j = 0; j < edges.length; j++) {
+        if (edges[j].from.id != node.id) {
+          if (edges[j].to.level > edges[j].from.level) {
+            dx = edges[j].to.x-edges[j].from.x;
+            dy = edges[j].to.y-edges[j].from.y;
+            distance = Math.sqrt(dx * dx + dy * dy);
+
+            gravityForce = (distance == 0) ? 0 : (gravity / distance);
+            edges[j].to.fx -= dx * gravityForce;
+            edges[j].to.fy -= dy * gravityForce;
+          }
+        }
+        else {
+          if (edges[j].from.level > edges[j].to.level) {
+            dx = edges[j].to.x-edges[j].from.x;
+            dy = edges[j].to.y-edges[j].from.y;
+            distance = Math.sqrt(dx * dx + dy * dy);
+
+            gravityForce = (distance == 0) ? 0 : (gravity / distance);
+
+            edges[j].to.fx -= dx * gravityForce;
+            edges[j].to.fy -= dy * gravityForce;
+          }
         }
       }
     }
@@ -19453,6 +19594,7 @@ function Graph (container, data, options) {
       widthMin: 1,
       widthMax: 15,
       width: 1,
+      widthSelectionMultiplier: 2,
       hoverWidth: 1.5,
       style: 'line',
       color: {
@@ -19489,10 +19631,10 @@ function Graph (container, data, options) {
         nodeDistance: 100,
         damping: 0.09
       },
-      hierarchicalRepulsion: {
+      hierarchicalRepulsion: { 
         enabled: false,
-        centralGravity: 0.0,
-        springLength: 100,
+        centralGravity: 0.5,
+        springLength: 150,
         springConstant: 0.01,
         nodeDistance: 60,
         damping: 0.09
@@ -21626,7 +21768,7 @@ Graph.prototype.storePosition = function() {
       var node = this.nodes[nodeId];
       var allowedToMoveX = !this.nodes.xFixed;
       var allowedToMoveY = !this.nodes.yFixed;
-      if (this.nodesData.data[nodeId].x != Math.round(node.x) || this.nodesData.data[nodeId].y != Math.round(node.y)) {
+      if (this.nodesData._data[nodeId].x != Math.round(node.x) || this.nodesData._data[nodeId].y != Math.round(node.y)) {
         dataArray.push({id:nodeId,x:Math.round(node.x),y:Math.round(node.y),allowedToMoveX:allowedToMoveX,allowedToMoveY:allowedToMoveY});
       }
     }

@@ -111,8 +111,8 @@ function Graph (container, data, options) {
       },
       hierarchicalRepulsion: {
         enabled: false,
-        centralGravity: 0.0,
-        springLength: 100,
+        centralGravity: 0.5,
+        springLength: 150,
         springConstant: 0.01,
         nodeDistance: 60,
         damping: 0.09

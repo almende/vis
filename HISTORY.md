@@ -22,6 +22,11 @@ http://visjs.org
 - Fixed graph.storePositions()
 - Extended Selection API with selectNodes and selectEdges, deprecating setSelection.
 - Fixed multiline labels.
+- Changed hierarchical physics solver and updated docs.
+
+### Graph2D
+
+- Added first iteration of the Graph2D.
 
 ### Graph3d
 
