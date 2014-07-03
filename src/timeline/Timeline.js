@@ -724,7 +724,7 @@ Timeline.prototype._toScreen = function(time) {
  * @private
  */
 // TODO: move this function to Range
-Graph2d.prototype._toGlobalScreen = function(time) {
+Timeline.prototype._toGlobalScreen = function(time) {
   var conversion = this.range.conversion(this.props.root.width);
   return (time.valueOf() - conversion.offset) * conversion.scale;
 };
