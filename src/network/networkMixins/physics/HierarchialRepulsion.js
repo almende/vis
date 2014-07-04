@@ -98,7 +98,7 @@ var hierarchalRepulsionMixin = {
               distance = 0.01;
             }
 
-            distance = Math.max(0.8*edgeLength,Math.min(1.2*edgeLength, distance));
+            distance = Math.max(0.8*edgeLength,Math.min(5*edgeLength, distance));
 
             // the 1/distance is so the fx and fy can be calculated without sine or cosine.
             springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;

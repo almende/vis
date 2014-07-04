@@ -853,8 +853,11 @@ Linegraph.prototype._drawPoints = function (dataset, group, JSONcontainer, svg, 
  */
 Linegraph.prototype._preprocessData = function (datapoints, group) {
   var extractedData = [];
-  var xValue, yValue, increment;
+  var xValue, yValue;
   var toScreen = this.body.util.toScreen;
+
+  var increment = 1;
+  var amountOfPoints = datapoints.length;
 
   var yMin = datapoints[0].y;
   var yMax = datapoints[0].y;
@@ -863,19 +866,14 @@ Linegraph.prototype._preprocessData = function (datapoints, group) {
   // of width changing of the yAxis.
   if (group.options.sampling == true) {
     var xDistance = this.body.util.toGlobalScreen(datapoints[datapoints.length-1].x) - this.body.util.toGlobalScreen(datapoints[0].x);
-    var amountOfPoints = datapoints.length;
     var pointsPerPixel = amountOfPoints/xDistance;
     increment = Math.min(Math.ceil(0.2 * amountOfPoints), Math.max(1,Math.round(pointsPerPixel)));
-  }
-  else {
-    increment = 1;
   }
 
   for (var i = 0; i < amountOfPoints; i += increment) {
     xValue = toScreen(datapoints[i].x) + this.width - 1;
     yValue = datapoints[i].y;
     extractedData.push({x: xValue, y: yValue});
-
     yMin = yMin > yValue ? yValue : yMin;
     yMax = yMax < yValue ? yValue : yMax;
   }
