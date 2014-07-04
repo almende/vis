@@ -14,6 +14,7 @@ http://visjs.org
         .vis.timeline .item.range .content {
           overflow: visible;
         }
+- Fixed the height of background and foreground panels of groups.
 
 ### Graph
 
