@@ -8,16 +8,16 @@
  *                                to (number), label (string, color (string),
  *                                width (number), style (string),
  *                                length (number), title (string)
- * @param {Network} graph A graph object, used to find and edge to
+ * @param {Network} network       A Network object, used to find and edge to
  *                                nodes.
  * @param {Object} constants      An object with default values for
  *                                example for the color
  */
-function Edge (properties, graph, constants) {
-  if (!graph) {
-    throw "No graph provided";
+function Edge (properties, network, constants) {
+  if (!network) {
+    throw "No network provided";
   }
-  this.graph = graph;
+  this.network = network;
 
   // initialize constants
   this.widthMin = constants.edges.widthMin;
@@ -156,8 +156,8 @@ Edge.prototype.setProperties = function(properties, constants) {
 Edge.prototype.connect = function () {
   this.disconnect();
 
-  this.from = this.graph.nodes[this.fromId] || null;
-  this.to = this.graph.nodes[this.toId] || null;
+  this.from = this.network.nodes[this.fromId] || null;
+  this.to = this.network.nodes[this.toId] || null;
   this.connected = (this.from && this.to);
 
   if (this.connected) {
@@ -317,14 +317,14 @@ Edge.prototype._drawLine = function(ctx) {
  */
 Edge.prototype._getLineWidth = function() {
   if (this.selected == true) {
-    return Math.min(this.widthSelected, this.widthMax)*this.graphScaleInv;
+    return Math.min(this.widthSelected, this.widthMax)*this.networkScaleInv;
   }
   else {
     if (this.hover == true) {
-      return Math.min(this.hoverWidth, this.widthMax)*this.graphScaleInv;
+      return Math.min(this.hoverWidth, this.widthMax)*this.networkScaleInv;
     }
     else {
-      return this.width*this.graphScaleInv;
+      return this.width*this.networkScaleInv;
     }
   }
 };
@@ -797,12 +797,12 @@ Edge.prototype._getDistanceToEdge = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is
 
 
 /**
- * This allows the zoom level of the graph to influence the rendering
+ * This allows the zoom level of the network to influence the rendering
  *
  * @param scale
  */
 Edge.prototype.setScale = function(scale) {
-  this.graphScaleInv = 1.0/scale;
+  this.networkScaleInv = 1.0/scale;
 };
 
 

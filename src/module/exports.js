@@ -24,7 +24,7 @@ var vis = {
     TimeAxis: TimeAxis
   },
 
-  graph: {
+  network: {
     Node: Node,
     Edge: Edge,
     Popup: Popup,
@@ -34,6 +34,10 @@ var vis = {
 
   Timeline: Timeline,
   Network: Network,
+  // Deprecated since v3.0.0
+  Graph: function () {
+    throw new Error('Graph is renamed to Network. Please create a graph as new vis.Network(...)');
+  },
   Graph3d: Graph3d,
   Graph2d: Graph2d
 };

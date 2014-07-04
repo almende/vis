@@ -3,10 +3,10 @@
  */
 
 
-var graphMixinLoaders = {
+var networkMixinLoaders = {
 
   /**
-   * Load a mixin into the graph object
+   * Load a mixin into the network object
    *
    * @param {Object} sourceVariable | this object has to contain functions.
    * @private
@@ -21,7 +21,7 @@ var graphMixinLoaders = {
 
 
   /**
-   * removes a mixin from the graph object.
+   * removes a mixin from the network object.
    *
    * @param {Object} sourceVariable | this object has to contain functions.
    * @private

@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version @@version
- * @date    @@date
+ * @version 2.0.1-SNAPSHOT
+ * @date    2014-07-04
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -12050,7 +12050,7 @@ Graph2d.prototype._getScrollTop = function () {
 })(typeof util !== 'undefined' ? util : exports);
 
 /**
- * Canvas shapes used by the Graph
+ * Canvas shapes used by Network
  */
 if (typeof CanvasRenderingContext2D !== 'undefined') {
 
@@ -12360,9 +12360,9 @@ function Node(properties, imagelist, grouplist, constants) {
   this.maxNodeSizeIncrements = constants.clustering.maxNodeSizeIncrements;
   this.growthIndicator = 0;
 
-  // variables to tell the node about the graph.
-  this.graphScaleInv = 1;
-  this.graphScale = 1;
+  // variables to tell the node about the network.
+  this.networkScaleInv = 1;
+  this.networkScale = 1;
   this.canvasTopLeft = {"x": -300, "y": -300};
   this.canvasBottomRight = {"x":  300, "y":  300};
   this.parentEdgeId = null;
@@ -12802,7 +12802,7 @@ Node.prototype._drawImage = function (ctx) {
     // draw the shade
     if (this.clusterSize > 1) {
       var lineWidth = ((this.clusterSize > 1) ? 10 : 0.0);
-      lineWidth *= this.graphScaleInv;
+      lineWidth *= this.networkScaleInv;
       lineWidth = Math.min(0.2 * this.width,lineWidth);
 
       ctx.globalAlpha = 0.5;
@@ -12852,14 +12852,14 @@ Node.prototype._drawBox = function (ctx) {
   // draw the outer border
   if (this.clusterSize > 1) {
     ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
     ctx.roundRect(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth, this.radius);
     ctx.stroke();
   }
   ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth *= this.networkScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
@@ -12901,14 +12901,14 @@ Node.prototype._drawDatabase = function (ctx) {
   // draw the outer border
   if (this.clusterSize > 1) {
     ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
     ctx.database(this.x - this.width/2 - 2*ctx.lineWidth, this.y - this.height*0.5 - 2*ctx.lineWidth, this.width + 4*ctx.lineWidth, this.height + 4*ctx.lineWidth);
     ctx.stroke();
   }
   ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth *= this.networkScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
@@ -12951,14 +12951,14 @@ Node.prototype._drawCircle = function (ctx) {
   // draw the outer border
   if (this.clusterSize > 1) {
     ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
     ctx.circle(this.x, this.y, this.radius+2*ctx.lineWidth);
     ctx.stroke();
   }
   ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth *= this.networkScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
@@ -13001,14 +13001,14 @@ Node.prototype._drawEllipse = function (ctx) {
   // draw the outer border
   if (this.clusterSize > 1) {
     ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
     ctx.ellipse(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth);
     ctx.stroke();
   }
   ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth *= this.networkScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
@@ -13078,14 +13078,14 @@ Node.prototype._drawShape = function (ctx, shape) {
   // draw the outer border
   if (this.clusterSize > 1) {
     ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
     ctx[shape](this.x, this.y, this.radius + radiusMultiplier * ctx.lineWidth);
     ctx.stroke();
   }
   ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth *= this.networkScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
@@ -13123,7 +13123,7 @@ Node.prototype._drawText = function (ctx) {
 
 
 Node.prototype._label = function (ctx, text, x, y, align, baseline) {
-  if (text && this.fontSize * this.graphScale > this.fontDrawThreshold) {
+  if (text && this.fontSize * this.networkScale > this.fontDrawThreshold) {
     ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
     ctx.fillStyle = this.fontColor || "black";
     ctx.textAlign = align || "center";
@@ -13169,10 +13169,10 @@ Node.prototype.getTextSize = function(ctx) {
  */
 Node.prototype.inArea = function() {
   if (this.width !== undefined) {
-  return (this.x + this.width *this.graphScaleInv  >= this.canvasTopLeft.x     &&
-          this.x - this.width *this.graphScaleInv  <  this.canvasBottomRight.x &&
-          this.y + this.height*this.graphScaleInv  >= this.canvasTopLeft.y     &&
-          this.y - this.height*this.graphScaleInv  <  this.canvasBottomRight.y);
+  return (this.x + this.width *this.networkScaleInv  >= this.canvasTopLeft.x     &&
+          this.x - this.width *this.networkScaleInv  <  this.canvasBottomRight.x &&
+          this.y + this.height*this.networkScaleInv  >= this.canvasTopLeft.y     &&
+          this.y - this.height*this.networkScaleInv  <  this.canvasBottomRight.y);
   }
   else {
     return true;
@@ -13191,7 +13191,7 @@ Node.prototype.inView = function() {
 };
 
 /**
- * This allows the zoom level of the graph to influence the rendering
+ * This allows the zoom level of the network to influence the rendering
  * We store the inverted scale and the coordinates of the top left, and bottom right points of the canvas
  *
  * @param scale
@@ -13199,21 +13199,21 @@ Node.prototype.inView = function() {
  * @param canvasBottomRight
  */
 Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) {
-  this.graphScaleInv = 1.0/scale;
-  this.graphScale = scale;
+  this.networkScaleInv = 1.0/scale;
+  this.networkScale = scale;
   this.canvasTopLeft = canvasTopLeft;
   this.canvasBottomRight = canvasBottomRight;
 };
 
 
 /**
- * This allows the zoom level of the graph to influence the rendering
+ * This allows the zoom level of the network to influence the rendering
  *
  * @param scale
  */
 Node.prototype.setScale = function(scale) {
-  this.graphScaleInv = 1.0/scale;
-  this.graphScale = scale;
+  this.networkScaleInv = 1.0/scale;
+  this.networkScale = scale;
 };
 
 
@@ -13252,16 +13252,16 @@ Node.prototype.updateVelocity = function(massBeforeClustering) {
  *                                to (number), label (string, color (string),
  *                                width (number), style (string),
  *                                length (number), title (string)
- * @param {Network} graph A graph object, used to find and edge to
+ * @param {Network} network       A Network object, used to find and edge to
  *                                nodes.
  * @param {Object} constants      An object with default values for
  *                                example for the color
  */
-function Edge (properties, graph, constants) {
-  if (!graph) {
-    throw "No graph provided";
+function Edge (properties, network, constants) {
+  if (!network) {
+    throw "No network provided";
   }
-  this.graph = graph;
+  this.network = network;
 
   // initialize constants
   this.widthMin = constants.edges.widthMin;
@@ -13400,8 +13400,8 @@ Edge.prototype.setProperties = function(properties, constants) {
 Edge.prototype.connect = function () {
   this.disconnect();
 
-  this.from = this.graph.nodes[this.fromId] || null;
-  this.to = this.graph.nodes[this.toId] || null;
+  this.from = this.network.nodes[this.fromId] || null;
+  this.to = this.network.nodes[this.toId] || null;
   this.connected = (this.from && this.to);
 
   if (this.connected) {
@@ -13561,14 +13561,14 @@ Edge.prototype._drawLine = function(ctx) {
  */
 Edge.prototype._getLineWidth = function() {
   if (this.selected == true) {
-    return Math.min(this.widthSelected, this.widthMax)*this.graphScaleInv;
+    return Math.min(this.widthSelected, this.widthMax)*this.networkScaleInv;
   }
   else {
     if (this.hover == true) {
-      return Math.min(this.hoverWidth, this.widthMax)*this.graphScaleInv;
+      return Math.min(this.hoverWidth, this.widthMax)*this.networkScaleInv;
     }
     else {
-      return this.width*this.graphScaleInv;
+      return this.width*this.networkScaleInv;
     }
   }
 };
@@ -14041,12 +14041,12 @@ Edge.prototype._getDistanceToEdge = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is
 
 
 /**
- * This allows the zoom level of the graph to influence the rendering
+ * This allows the zoom level of the network to influence the rendering
  *
  * @param scale
  */
 Edge.prototype.setScale = function(scale) {
-  this.graphScaleInv = 1.0/scale;
+  this.networkScaleInv = 1.0/scale;
 };
 
 
@@ -16657,8 +16657,8 @@ var manipulationMixin = {
 /**
  * Creation of the SectorMixin var.
  *
- * This contains all the functions the Graph object can use to employ the sector system.
- * The sector system is always used by Graph, though the benefits only apply to the use of clustering.
+ * This contains all the functions the Network object can use to employ the sector system.
+ * The sector system is always used by Network, though the benefits only apply to the use of clustering.
  * If clustering is not used, there is no overhead except for a duplicate object with references to nodes and edges.
  *
  * Alex de Mulder
@@ -17209,7 +17209,7 @@ var SectorMixin = {
 /**
  * Creation of the ClusterMixin var.
  *
- * This contains all the functions the Graph object can use to employ clustering
+ * This contains all the functions the Network object can use to employ clustering
  *
  * Alex de Mulder
  * 21-01-2013
@@ -19270,10 +19270,10 @@ var NavigationMixin = {
  */
 
 
-var graphMixinLoaders = {
+var networkMixinLoaders = {
 
   /**
-   * Load a mixin into the graph object
+   * Load a mixin into the network object
    *
    * @param {Object} sourceVariable | this object has to contain functions.
    * @private
@@ -19288,7 +19288,7 @@ var graphMixinLoaders = {
 
 
   /**
-   * removes a mixin from the graph object.
+   * removes a mixin from the network object.
    *
    * @param {Object} sourceVariable | this object has to contain functions.
    * @private
@@ -19467,7 +19467,7 @@ var graphMixinLoaders = {
 
 /**
  * @constructor Network
- * Create a graph visualization, displaying nodes and edges.
+ * Create a network visualization, displaying nodes and edges.
  *
  * @param {Element} container   The DOM element in which the Network will
  *                                  be created. Normally a div element.
@@ -19495,7 +19495,7 @@ function Network (container, data, options) {
   this.maxPhysicsTicksPerRender = 3;                   // max amount of physics ticks per render step.
   this.physicsDiscreteStepsize = 0.50;                 // discrete stepsize of the simulation
 
-  this.stabilize = true;  // stabilize before displaying the graph
+  this.stabilize = true;  // stabilize before displaying the network
   this.selectable = true;
   this.initializing = true;
 
@@ -19669,11 +19669,11 @@ function Network (container, data, options) {
 
 
   // Node variables
-  var graph = this;
+  var network = this;
   this.groups = new Groups(); // object with groups
   this.images = new Images(); // object with images
   this.images.setOnloadCallback(function () {
-    graph._redraw();
+    network._redraw();
   });
 
   // keyboard navigation variables
@@ -19726,30 +19726,30 @@ function Network (container, data, options) {
   // create event listeners used to subscribe on the DataSets of the nodes and edges
   this.nodesListeners = {
     'add': function (event, params) {
-      graph._addNodes(params.items);
-      graph.start();
+      network._addNodes(params.items);
+      network.start();
     },
     'update': function (event, params) {
-      graph._updateNodes(params.items);
-      graph.start();
+      network._updateNodes(params.items);
+      network.start();
     },
     'remove': function (event, params) {
-      graph._removeNodes(params.items);
-      graph.start();
+      network._removeNodes(params.items);
+      network.start();
     }
   };
   this.edgesListeners = {
     'add': function (event, params) {
-      graph._addEdges(params.items);
-      graph.start();
+      network._addEdges(params.items);
+      network.start();
     },
     'update': function (event, params) {
-      graph._updateEdges(params.items);
-      graph.start();
+      network._updateEdges(params.items);
+      network.start();
     },
     'remove': function (event, params) {
-      graph._removeEdges(params.items);
-      graph.start();
+      network._removeEdges(params.items);
+      network.start();
     }
   };
 
@@ -19806,7 +19806,7 @@ Network.prototype._getScriptPath = function() {
 
 
 /**
- * Find the center position of the graph
+ * Find the center position of the network
  * @private
  */
 Network.prototype._getRange = function() {
@@ -19839,11 +19839,11 @@ Network.prototype._findCenter = function(range) {
 
 
 /**
- * center the graph
+ * center the network
  *
  * @param {object} range = {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
  */
-Network.prototype._centerGraph = function(range) {
+Network.prototype._centerNetwork = function(range) {
   var center = this._findCenter(range);
 
   center.x *= this.scale;
@@ -19913,7 +19913,7 @@ Network.prototype.zoomExtent = function(initialZoom, disableStart) {
 
 
   this._setScale(zoomLevel);
-  this._centerGraph(range);
+  this._centerNetwork(range);
   if (disableStart == false) {
     this.moving = true;
     this.start();
@@ -20251,7 +20251,7 @@ Network.prototype._create = function () {
   this.frame.style.position = 'relative';
   this.frame.style.overflow = 'hidden';
 
-  // create the graph canvas (HTML canvas element)
+  // create the network canvas (HTML canvas element)
   this.frame.canvas = document.createElement( 'canvas' );
   this.frame.canvas.style.position = 'relative';
   this.frame.appendChild(this.frame.canvas);
@@ -20462,7 +20462,7 @@ Network.prototype._handleOnDrag = function(event) {
   }
   else {
     if (this.constants.dragGraph == true) {
-      // move the graph
+      // move the network
       var diffX = pointer.x - this.drag.pointer.x;
       var diffY = pointer.y - this.drag.pointer.y;
 
@@ -20553,7 +20553,7 @@ Network.prototype._onPinch = function (event) {
 };
 
 /**
- * Zoom the graph in or out
+ * Zoom the network in or out
  * @param {Number} scale a number around 1, and between 0.01 and 10
  * @param {{x: Number, y: Number}} pointer    Position on screen
  * @return {Number} appliedScale    scale is limited within the boundaries
@@ -20702,7 +20702,7 @@ Network.prototype._onMouseMoveTitle = function (event) {
 };
 
 /**
- * Check if there is an element on the given position in the graph
+ * Check if there is an element on the given position in the network
  * (a node or edge). If so, and if this element has a title,
  * show a popup window with its title.
  *
@@ -20790,7 +20790,7 @@ Network.prototype._checkHidePopup = function (pointer) {
 
 
 /**
- * Set a new size for the graph
+ * Set a new size for the network
  * @param {string} width   Width in pixels or percentage (for example '800px'
  *                         or '50%')
  * @param {string} height  Height in pixels or percentage  (for example '400px'
@@ -20820,7 +20820,7 @@ Network.prototype.setSize = function(width, height) {
 };
 
 /**
- * Set a data set with nodes for the graph
+ * Set a data set with nodes for the network
  * @param {Array | DataSet | DataView} nodes         The data containing the nodes.
  * @private
  */
@@ -21152,7 +21152,7 @@ Network.prototype._updateValueRange = function(obj) {
 };
 
 /**
- * Redraw the graph with the current data
+ * Redraw the network with the current data
  * chart will be resized too.
  */
 Network.prototype.redraw = function() {
@@ -21161,7 +21161,7 @@ Network.prototype.redraw = function() {
 };
 
 /**
- * Redraw the graph with the current data
+ * Redraw the network with the current data
  * @private
  */
 Network.prototype._redraw = function() {
@@ -21198,7 +21198,7 @@ Network.prototype._redraw = function() {
 };
 
 /**
- * Set the translation of the graph
+ * Set the translation of the network
  * @param {Number} offsetX    Horizontal offset
  * @param {Number} offsetY    Vertical offset
  * @private
@@ -21222,7 +21222,7 @@ Network.prototype._setTranslation = function(offsetX, offsetY) {
 };
 
 /**
- * Get the translation of the graph
+ * Get the translation of the network
  * @return {Object} translation    An object with parameters x and y, both a number
  * @private
  */
@@ -21234,7 +21234,7 @@ Network.prototype._getTranslation = function() {
 };
 
 /**
- * Scale the graph
+ * Scale the network
  * @param {Number} scale   Scaling factor 1.0 is unscaled
  * @private
  */
@@ -21243,7 +21243,7 @@ Network.prototype._setScale = function(scale) {
 };
 
 /**
- * Get the current scale of  the graph
+ * Get the current scale of  the network
  * @return {Number} scale   Scaling factor 1.0 is unscaled
  * @private
  */
@@ -21593,7 +21593,7 @@ Network.prototype.start = function() {
 
 
 /**
- * Move the graph according to the keyboard presses.
+ * Move the network according to the keyboard presses.
  *
  * @private
  */
@@ -21694,9 +21694,9 @@ Network.prototype._createBezierNodes = function() {
  * @private
  */
 Network.prototype._initializeMixinLoaders = function () {
-  for (var mixinFunction in graphMixinLoaders) {
-    if (graphMixinLoaders.hasOwnProperty(mixinFunction)) {
-      Network.prototype[mixinFunction] = graphMixinLoaders[mixinFunction];
+  for (var mixinFunction in networkMixinLoaders) {
+    if (networkMixinLoaders.hasOwnProperty(mixinFunction)) {
+      Network.prototype[mixinFunction] = networkMixinLoaders[mixinFunction];
     }
   }
 };
@@ -25097,7 +25097,7 @@ var vis = {
     TimeAxis: TimeAxis
   },
 
-  graph: {
+  network: {
     Node: Node,
     Edge: Edge,
     Popup: Popup,
@@ -25107,6 +25107,10 @@ var vis = {
 
   Timeline: Timeline,
   Network: Network,
+  // Deprecated since v3.0.0
+  Graph: function () {
+    throw new Error('Graph is renamed to Network. Please create a graph as new vis.Network(...)');
+  },
   Graph3d: Graph3d,
   Graph2d: Graph2d
 };
@@ -26729,7 +26733,7 @@ else {
 })(this);
 },{}],4:[function(require,module,exports){
 var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};//! moment.js
-//! version : 2.7.0
+//! version : 2.6.0
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
@@ -26741,7 +26745,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     ************************************/
 
     var moment,
-        VERSION = "2.7.0",
+        VERSION = "2.6.0",
         // the global-scope this is NOT the global object in Node.js
         globalScope = typeof global !== 'undefined' ? global : this,
         oldGlobalMoment,
@@ -26766,7 +26770,6 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             _f : null,
             _l : null,
             _strict : null,
-            _tzm : null,
             _isUTC : null,
             _offset : null,  // optional. Combine with _isUTC
             _pf : null,
@@ -26874,16 +26877,6 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
         // format function strings
         formatFunctions = {},
-
-        // default relative time thresholds
-        relativeTimeThresholds = {
-          s: 45,   //seconds to minutes
-          m: 45,   //minutes to hours
-          h: 22,   //hours to days
-          dd: 25,  //days to month (month == 1)
-          dm: 45,  //days to months (months > 1)
-          dy: 345  //days to year
-        },
 
         // tokens to ordinalize and pad
         ordinalizeTokens = 'DDD w W M D d'.split(' '),
@@ -27023,16 +27016,6 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
         },
 
         lists = ['months', 'monthsShort', 'weekdays', 'weekdaysShort', 'weekdaysMin'];
-
-    // Pick the first defined of two or three arguments. dfl comes from
-    // default.
-    function dfl(a, b, c) {
-        switch (arguments.length) {
-            case 2: return a != null ? a : b;
-            case 3: return a != null ? a : b != null ? b : c;
-            default: throw new Error("Implement me");
-        }
-    }
 
     function defaultParsingFlags() {
         // We need to deep clone this object, and es5 standard is not very
@@ -27902,86 +27885,30 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             config._useUTC = true;
             config._tzm = timezoneMinutesFromString(input);
             break;
-        // WEEKDAY - human
-        case 'dd':
-        case 'ddd':
-        case 'dddd':
-            a = getLangDefinition(config._l).weekdaysParse(input);
-            // if we didn't get a weekday name, mark the date as invalid
-            if (a != null) {
-                config._w = config._w || {};
-                config._w['d'] = a;
-            } else {
-                config._pf.invalidWeekday = input;
-            }
-            break;
-        // WEEK, WEEK DAY - numeric
         case 'w':
         case 'ww':
         case 'W':
         case 'WW':
         case 'd':
+        case 'dd':
+        case 'ddd':
+        case 'dddd':
         case 'e':
         case 'E':
             token = token.substr(0, 1);
             /* falls through */
+        case 'gg':
         case 'gggg':
+        case 'GG':
         case 'GGGG':
         case 'GGGGG':
             token = token.substr(0, 2);
             if (input) {
                 config._w = config._w || {};
-                config._w[token] = toInt(input);
+                config._w[token] = input;
             }
             break;
-        case 'gg':
-        case 'GG':
-            config._w = config._w || {};
-            config._w[token] = moment.parseTwoDigitYear(input);
         }
-    }
-
-    function dayOfYearFromWeekInfo(config) {
-        var w, weekYear, week, weekday, dow, doy, temp, lang;
-
-        w = config._w;
-        if (w.GG != null || w.W != null || w.E != null) {
-            dow = 1;
-            doy = 4;
-
-            // TODO: We need to take the current isoWeekYear, but that depends on
-            // how we interpret now (local, utc, fixed offset). So create
-            // a now version of current config (take local/utc/offset flags, and
-            // create now).
-            weekYear = dfl(w.GG, config._a[YEAR], weekOfYear(moment(), 1, 4).year);
-            week = dfl(w.W, 1);
-            weekday = dfl(w.E, 1);
-        } else {
-            lang = getLangDefinition(config._l);
-            dow = lang._week.dow;
-            doy = lang._week.doy;
-
-            weekYear = dfl(w.gg, config._a[YEAR], weekOfYear(moment(), dow, doy).year);
-            week = dfl(w.w, 1);
-
-            if (w.d != null) {
-                // weekday -- low day numbers are considered next week
-                weekday = w.d;
-                if (weekday < dow) {
-                    ++week;
-                }
-            } else if (w.e != null) {
-                // local weekday -- counting starts from begining of week
-                weekday = w.e + dow;
-            } else {
-                // default to begining of week
-                weekday = dow;
-            }
-        }
-        temp = dayOfYearFromWeeks(weekYear, week, weekday, doy, dow);
-
-        config._a[YEAR] = temp.year;
-        config._dayOfYear = temp.dayOfYear;
     }
 
     // convert an array to a date.
@@ -27989,7 +27916,8 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     // note: all values past the year are optional and will default to the lowest possible value.
     // [year, month, day , hour, minute, second, millisecond]
     function dateFromConfig(config) {
-        var i, date, input = [], currentDate, yearToUse;
+        var i, date, input = [], currentDate,
+            yearToUse, fixYear, w, temp, lang, weekday, week;
 
         if (config._d) {
             return;
@@ -27999,12 +27927,39 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
         //compute day of the year from weeks and weekdays
         if (config._w && config._a[DATE] == null && config._a[MONTH] == null) {
-            dayOfYearFromWeekInfo(config);
+            fixYear = function (val) {
+                var intVal = parseInt(val, 10);
+                return val ?
+                  (val.length < 3 ? (intVal > 68 ? 1900 + intVal : 2000 + intVal) : intVal) :
+                  (config._a[YEAR] == null ? moment().weekYear() : config._a[YEAR]);
+            };
+
+            w = config._w;
+            if (w.GG != null || w.W != null || w.E != null) {
+                temp = dayOfYearFromWeeks(fixYear(w.GG), w.W || 1, w.E, 4, 1);
+            }
+            else {
+                lang = getLangDefinition(config._l);
+                weekday = w.d != null ?  parseWeekday(w.d, lang) :
+                  (w.e != null ?  parseInt(w.e, 10) + lang._week.dow : 0);
+
+                week = parseInt(w.w, 10) || 1;
+
+                //if we're parsing 'd', then the low day numbers may be next week
+                if (w.d != null && weekday < lang._week.dow) {
+                    week++;
+                }
+
+                temp = dayOfYearFromWeeks(fixYear(w.gg), week, weekday, lang._week.doy, lang._week.dow);
+            }
+
+            config._a[YEAR] = temp.year;
+            config._dayOfYear = temp.dayOfYear;
         }
 
         //if the day of the year is set, figure out what it is
         if (config._dayOfYear) {
-            yearToUse = dfl(config._a[YEAR], currentDate[YEAR]);
+            yearToUse = config._a[YEAR] == null ? currentDate[YEAR] : config._a[YEAR];
 
             if (config._dayOfYear > daysInYear(yearToUse)) {
                 config._pf._overflowDayOfYear = true;
@@ -28029,12 +27984,11 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             config._a[i] = input[i] = (config._a[i] == null) ? (i === 2 ? 1 : 0) : config._a[i];
         }
 
+        // add the offsets to the time to be parsed so that we can have a clean array for checking isValid
+        input[HOUR] += toInt((config._tzm || 0) / 60);
+        input[MINUTE] += toInt((config._tzm || 0) % 60);
+
         config._d = (config._useUTC ? makeUTCDate : makeDate).apply(null, input);
-        // Apply timezone offset from input. The actual zone can be changed
-        // with parseZone.
-        if (config._tzm != null) {
-            config._d.setUTCMinutes(config._d.getUTCMinutes() + config._tzm);
-        }
     }
 
     function dateFromObject(config) {
@@ -28073,11 +28027,6 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
     // date from string and format string
     function makeDateFromStringAndFormat(config) {
-
-        if (config._f === moment.ISO_8601) {
-            parseISO(config);
-            return;
-        }
 
         config._a = [];
         config._pf.empty = true;
@@ -28191,7 +28140,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     }
 
     // date from iso format
-    function parseISO(config) {
+    function makeDateFromString(config) {
         var i, l,
             string = config._i,
             match = isoRegex.exec(string);
@@ -28215,16 +28164,8 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
                 config._f += "Z";
             }
             makeDateFromStringAndFormat(config);
-        } else {
-            config._isValid = false;
         }
-    }
-
-    // date from iso format or fallback
-    function makeDateFromString(config) {
-        parseISO(config);
-        if (config._isValid === false) {
-            delete config._isValid;
+        else {
             moment.createFromInputFallback(config);
         }
     }
@@ -28305,15 +28246,15 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             hours = round(minutes / 60),
             days = round(hours / 24),
             years = round(days / 365),
-            args = seconds < relativeTimeThresholds.s  && ['s', seconds] ||
+            args = seconds < 45 && ['s', seconds] ||
                 minutes === 1 && ['m'] ||
-                minutes < relativeTimeThresholds.m && ['mm', minutes] ||
+                minutes < 45 && ['mm', minutes] ||
                 hours === 1 && ['h'] ||
-                hours < relativeTimeThresholds.h && ['hh', hours] ||
+                hours < 22 && ['hh', hours] ||
                 days === 1 && ['d'] ||
-                days <= relativeTimeThresholds.dd && ['dd', days] ||
-                days <= relativeTimeThresholds.dm && ['M'] ||
-                days < relativeTimeThresholds.dy && ['MM', round(days / 30)] ||
+                days <= 25 && ['dd', days] ||
+                days <= 45 && ['M'] ||
+                days < 345 && ['MM', round(days / 30)] ||
                 years === 1 && ['y'] || ['yy', years];
         args[2] = withoutSuffix;
         args[3] = milliseconds > 0;
@@ -28359,7 +28300,6 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     function dayOfYearFromWeeks(year, week, weekday, firstDayOfWeekOfYear, firstDayOfWeek) {
         var d = makeUTCDate(year, 0, 1).getUTCDay(), daysToAdd, dayOfYear;
 
-        d = d === 0 ? 7 : d;
         weekday = weekday != null ? weekday : firstDayOfWeek;
         daysToAdd = firstDayOfWeek - d + (d > firstDayOfWeekOfYear ? 7 : 0) - (d < firstDayOfWeek ? 7 : 0);
         dayOfYear = 7 * (week - 1) + (weekday - firstDayOfWeek) + daysToAdd + 1;
@@ -28434,40 +28374,6 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             function (config) {
         config._d = new Date(config._i);
     });
-
-    // Pick a moment m from moments so that m[fn](other) is true for all
-    // other. This relies on the function fn to be transitive.
-    //
-    // moments should either be an array of moment objects or an array, whose
-    // first element is an array of moment objects.
-    function pickBy(fn, moments) {
-        var res, i;
-        if (moments.length === 1 && isArray(moments[0])) {
-            moments = moments[0];
-        }
-        if (!moments.length) {
-            return moment();
-        }
-        res = moments[0];
-        for (i = 1; i < moments.length; ++i) {
-            if (moments[i][fn](res)) {
-                res = moments[i];
-            }
-        }
-        return res;
-    }
-
-    moment.min = function () {
-        var args = [].slice.call(arguments, 0);
-
-        return pickBy('isBefore', args);
-    };
-
-    moment.max = function () {
-        var args = [].slice.call(arguments, 0);
-
-        return pickBy('isAfter', args);
-    };
 
     // creating with utc
     moment.utc = function (input, format, lang, strict) {
@@ -28565,9 +28471,6 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     // default format
     moment.defaultFormat = isoFormat;
 
-    // constant that refers to the ISO standard
-    moment.ISO_8601 = function () {};
-
     // Plugins that add properties should also add the key here (null value),
     // so we can properly clone ourselves.
     moment.momentProperties = momentProperties;
@@ -28575,15 +28478,6 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     // This function will be called whenever a moment is mutated.
     // It is intended to keep the offset in sync with the timezone.
     moment.updateOffset = function () {};
-
-    // This function allows you to set a threshold for relative time strings
-    moment.relativeTimeThreshold = function(threshold, limit) {
-      if (relativeTimeThresholds[threshold] === undefined) {
-        return false;
-      }
-      relativeTimeThresholds[threshold] = limit;
-      return true;
-    };
 
     // This function will load languages and then set the global language.  If
     // no arguments are passed in, it will simply return the current global
@@ -28740,9 +28634,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
         add : function (input, val) {
             var dur;
             // switch args to support add('s', 1) and add(1, 's')
-            if (typeof input === 'string' && typeof val === 'string') {
-                dur = moment.duration(isNaN(+val) ? +input : +val, isNaN(+val) ? val : input);
-            } else if (typeof input === 'string') {
+            if (typeof input === 'string') {
                 dur = moment.duration(+val, input);
             } else {
                 dur = moment.duration(input, val);
@@ -28754,9 +28646,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
         subtract : function (input, val) {
             var dur;
             // switch args to support subtract('s', 1) and subtract(1, 's')
-            if (typeof input === 'string' && typeof val === 'string') {
-                dur = moment.duration(isNaN(+val) ? +input : +val, isNaN(+val) ? val : input);
-            } else if (typeof input === 'string') {
+            if (typeof input === 'string') {
                 dur = moment.duration(+val, input);
             } else {
                 dur = moment.duration(input, val);
@@ -28807,11 +28697,10 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             return this.from(moment(), withoutSuffix);
         },
 
-        calendar : function (time) {
+        calendar : function () {
             // We want to compare the start of today, vs this.
             // Getting start-of-today depends on whether we're zone'd or not.
-            var now = time || moment(),
-                sod = makeAs(now, this).startOf('day'),
+            var sod = makeAs(moment(), this).startOf('day'),
                 diff = this.diff(sod, 'days', true),
                 format = diff < -6 ? 'sameElse' :
                     diff < -1 ? 'lastWeek' :
@@ -28906,21 +28795,15 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             return +this.clone().startOf(units) === +makeAs(input, this).startOf(units);
         },
 
-        min: deprecate(
-                 "moment().min is deprecated, use moment.min instead. https://github.com/moment/moment/issues/1548",
-                 function (other) {
-                     other = moment.apply(null, arguments);
-                     return other < this ? this : other;
-                 }
-         ),
+        min: function (other) {
+            other = moment.apply(null, arguments);
+            return other < this ? this : other;
+        },
 
-        max: deprecate(
-                "moment().max is deprecated, use moment.max instead. https://github.com/moment/moment/issues/1548",
-                function (other) {
-                    other = moment.apply(null, arguments);
-                    return other > this ? this : other;
-                }
-        ),
+        max: function (other) {
+            other = moment.apply(null, arguments);
+            return other > this ? this : other;
+        },
 
         // keepTime = true means only change the timezone, without affecting
         // the local hour. So 5:31:26 +0300 --[zone(2, true)]--> 5:31:26 +0200

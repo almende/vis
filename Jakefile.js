@@ -75,7 +75,7 @@ task('build', {async: true}, function () {
       './src/timeline/component/Linegraph.js',
       './src/timeline/DataStep.js',
 
-      './src/timeline/stack.js',
+      './src/timeline/Stack.js',
       './src/timeline/TimeStep.js',
       './src/timeline/Range.js',
       './src/timeline/component/Component.js',

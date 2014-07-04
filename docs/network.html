@@ -13,18 +13,18 @@
 <body onload="prettyPrint();">
 <div id="container">
 
-<h1>Graph documentation</h1>
+<h1>Network documentation</h1>
 
 <h2 id="Overview">Overview</h2>
 <p>
-  Graph is a visualization to display networks and networks consisting of nodes
+  Network is a visualization to display networks and networks consisting of nodes
   and edges. The visualization is easy to use and supports custom shapes,
   styles, colors, sizes, images, and more.
 </p>
 
 <p>
   The network visualization works smooth on any modern browser for up to a
-  few thousand nodes and edges. To handle a larger amount of nodes, Graph
+  few thousand nodes and edges. To handle a larger amount of nodes, Network
   has <a href="#Clustering">clustering</a> support.
 </p>
 
@@ -35,7 +35,7 @@
 </p>
 
 <p>
-  To get started with Graph, install or download the
+  To get started with Network, install or download the
   <a href="http://visjs.org" target="_blank">vis.js</a> library.
 </p>
 
@@ -78,7 +78,7 @@
 <h2 id="Example">Example</h2>
 <p>
   Here a basic network example. Note that unlike the
-  <a href="timeline.html">Timeline</a>, the Graph does not need the vis.css
+  <a href="timeline.html">Timeline</a>, the Network does not need the vis.css
   file.
 </p>
 
@@ -90,7 +90,7 @@
 <pre class="prettyprint lang-html">&lt;!doctype html&gt;
 &lt;html&gt;
 &lt;head&gt;
-  &lt;title&gt;Graph | Basic usage&lt;/title&gt;
+  &lt;title&gt;Network | Basic usage&lt;/title&gt;
 
   &lt;script type="text/javascript" src="../../dist/vis.js"&gt;&lt;/script&gt;
 &lt;/head&gt;
@@ -127,7 +127,7 @@
     width: '400px',
     height: '400px'
   };
-  var network = new vis.Graph(container, data, options);
+  var network = new vis.Network(container, data, options);
 &lt;/script&gt;
 
 &lt;/body&gt;
@@ -146,8 +146,8 @@
 </pre>
 
 
-The constructor of the Graph is <code>vis.Graph</code>.
-<pre class="prettyprint lang-js">var network = new vis.Graph(container, data, options);</pre>
+The constructor of the Network is <code>vis.Network</code>.
+<pre class="prettyprint lang-js">var network = new vis.Network(container, data, options);</pre>
 
 The constructor accepts three parameters:
 <ul>
@@ -173,7 +173,7 @@ The constructor accepts three parameters:
 
 <h2 id="Data_format">Data format</h2>
 <p>
-  The <code>data</code> parameter of the Graph constructor is an object
+  The <code>data</code> parameter of the Network constructor is an object
   which can contain different types of data.
   The following properties are supported in the <code>data</code> object:
 </p>
@@ -714,7 +714,7 @@ When using a DataSet, the network is automatically updating to changes in the Da
 <h3 id="DOT_language">DOT language</h3>
 
 <p>
-  Graph supports data in the
+  Network supports data in the
   <a href="http://en.wikipedia.org/wiki/DOT_language" target="_blank">DOT language</a>.
   To provide data in the DOT language, the <code>data</code> object must contain
   a property <code>dot</code> with a String containing the data.
@@ -731,7 +731,7 @@ var data = {
 };
 
 // create a network
-var network = new vis.Graph(container, data);
+var network = new vis.Network(container, data);
 </pre>
 
 
@@ -853,7 +853,7 @@ var options = {
     <td>Object</td>
     <td>none</td>
     <td>
-      Configuration options for shortcuts keys. Sortcut keys are turned off by default. See section <a href="#Keyboard_navigation">Keyboard navigation</a> for an overview of the available options.
+      Configuration options for shortcuts keys. Shortcut keys are turned off by default. See section <a href="#Keyboard_navigation">Keyboard navigation</a> for an overview of the available options.
     </td>
   </tr>
     <tr>
@@ -943,7 +943,7 @@ var options = {
 
 <h3 id="Nodes_configuration">Nodes configuration</h3>
 <p>
-  Nodes can be configured with different styles and shapes. To configure nodes, provide an object named <code>nodes</code> in the <code>options</code> for the Graph.
+  Nodes can be configured with different styles and shapes. To configure nodes, provide an object named <code>nodes</code> in the <code>options</code> for the Network.
 </p>
 
 <p>
@@ -1121,7 +1121,7 @@ var options = {
 <h3 id="Edges_configuration">Edges configuration</h3>
 
 <p>
-  Edges can be configured with different length and styling. To configure edges, provide an object named <code>edges</code> in the <code>options</code> for the Graph.
+  Edges can be configured with different length and styling. To configure edges, provide an object named <code>edges</code> in the <code>options</code> for the Network.
 </p>
 
 <p>
@@ -1697,7 +1697,7 @@ network.on("resize", function(params) {console.log(params.width,params.height)})
   to calculate the required forces. The contained nodes are removed from the global nodes index, greatly speeding up the system.
   <br />
   <br />
-  The clustering has the following user-configurable settings. The default values have been tested with the Graph examples and work well.
+  The clustering has the following user-configurable settings. The default values have been tested with the Network examples and work well.
   The default state for clustering is <b>off</b>.
 </p>
 
@@ -1860,7 +1860,7 @@ var options: {
     <td>clusterLevelDifference</td>
     <td>Number</td>
     <td>2</td>
-    <td>At every clustering session, Graph will check if the difference between cluster levels is
+    <td>At every clustering session, Network will check if the difference between cluster levels is
         acceptable. When a cluster is formed when zooming out, that is one cluster level.
         If you zoom out further and it encompasses more nodes, that is another level. For example:
         If the highest level of your network at any given time is 3, nodes that have not clustered or
@@ -1870,7 +1870,7 @@ var options: {
 
 <h3 id="Navigation_controls">Navigation controls</h3>
 <p>
-  Graph has a menu with navigation controls, which is disabled by default.
+  Network has a menu with navigation controls, which is disabled by default.
   It can be configured with the following settings. To correctly display the navigation icons, the <b>vis.css</b> file must be included.
     The user is free to alter or overload the CSS classes but without them the navigation icons are not visible.
 </p>
@@ -2126,7 +2126,7 @@ var options: {
 
 <h2 id="Methods">Methods</h2>
 <p>
-  Graph supports the following methods.
+  Network supports the following methods.
 </p>
 
 <table>
@@ -2256,7 +2256,7 @@ var options: {
 
 <h2 id="Events">Events</h2>
 <p>
-  Graph fires events after one or multiple nodes are selected or deselected.
+  Network fires events after one or multiple nodes are selected or deselected.
   The event can be catched by creating a listener.
 </p>
 

@@ -1,5 +1,5 @@
 /**
- * Canvas shapes used by the Graph
+ * Canvas shapes used by Network
  */
 if (typeof CanvasRenderingContext2D !== 'undefined') {
 

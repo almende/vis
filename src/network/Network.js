@@ -1,6 +1,6 @@
 /**
  * @constructor Network
- * Create a graph visualization, displaying nodes and edges.
+ * Create a network visualization, displaying nodes and edges.
  *
  * @param {Element} container   The DOM element in which the Network will
  *                                  be created. Normally a div element.
@@ -28,7 +28,7 @@ function Network (container, data, options) {
   this.maxPhysicsTicksPerRender = 3;                   // max amount of physics ticks per render step.
   this.physicsDiscreteStepsize = 0.50;                 // discrete stepsize of the simulation
 
-  this.stabilize = true;  // stabilize before displaying the graph
+  this.stabilize = true;  // stabilize before displaying the network
   this.selectable = true;
   this.initializing = true;
 
@@ -202,11 +202,11 @@ function Network (container, data, options) {
 
 
   // Node variables
-  var graph = this;
+  var network = this;
   this.groups = new Groups(); // object with groups
   this.images = new Images(); // object with images
   this.images.setOnloadCallback(function () {
-    graph._redraw();
+    network._redraw();
   });
 
   // keyboard navigation variables
@@ -259,30 +259,30 @@ function Network (container, data, options) {
   // create event listeners used to subscribe on the DataSets of the nodes and edges
   this.nodesListeners = {
     'add': function (event, params) {
-      graph._addNodes(params.items);
-      graph.start();
+      network._addNodes(params.items);
+      network.start();
     },
     'update': function (event, params) {
-      graph._updateNodes(params.items);
-      graph.start();
+      network._updateNodes(params.items);
+      network.start();
     },
     'remove': function (event, params) {
-      graph._removeNodes(params.items);
-      graph.start();
+      network._removeNodes(params.items);
+      network.start();
     }
   };
   this.edgesListeners = {
     'add': function (event, params) {
-      graph._addEdges(params.items);
-      graph.start();
+      network._addEdges(params.items);
+      network.start();
     },
     'update': function (event, params) {
-      graph._updateEdges(params.items);
-      graph.start();
+      network._updateEdges(params.items);
+      network.start();
     },
     'remove': function (event, params) {
-      graph._removeEdges(params.items);
-      graph.start();
+      network._removeEdges(params.items);
+      network.start();
     }
   };
 
@@ -339,7 +339,7 @@ Network.prototype._getScriptPath = function() {
 
 
 /**
- * Find the center position of the graph
+ * Find the center position of the network
  * @private
  */
 Network.prototype._getRange = function() {
@@ -372,11 +372,11 @@ Network.prototype._findCenter = function(range) {
 
 
 /**
- * center the graph
+ * center the network
  *
  * @param {object} range = {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
  */
-Network.prototype._centerGraph = function(range) {
+Network.prototype._centerNetwork = function(range) {
   var center = this._findCenter(range);
 
   center.x *= this.scale;
@@ -446,7 +446,7 @@ Network.prototype.zoomExtent = function(initialZoom, disableStart) {
 
 
   this._setScale(zoomLevel);
-  this._centerGraph(range);
+  this._centerNetwork(range);
   if (disableStart == false) {
     this.moving = true;
     this.start();
@@ -784,7 +784,7 @@ Network.prototype._create = function () {
   this.frame.style.position = 'relative';
   this.frame.style.overflow = 'hidden';
 
-  // create the graph canvas (HTML canvas element)
+  // create the network canvas (HTML canvas element)
   this.frame.canvas = document.createElement( 'canvas' );
   this.frame.canvas.style.position = 'relative';
   this.frame.appendChild(this.frame.canvas);
@@ -995,7 +995,7 @@ Network.prototype._handleOnDrag = function(event) {
   }
   else {
     if (this.constants.dragGraph == true) {
-      // move the graph
+      // move the network
       var diffX = pointer.x - this.drag.pointer.x;
       var diffY = pointer.y - this.drag.pointer.y;
 
@@ -1086,7 +1086,7 @@ Network.prototype._onPinch = function (event) {
 };
 
 /**
- * Zoom the graph in or out
+ * Zoom the network in or out
  * @param {Number} scale a number around 1, and between 0.01 and 10
  * @param {{x: Number, y: Number}} pointer    Position on screen
  * @return {Number} appliedScale    scale is limited within the boundaries
@@ -1235,7 +1235,7 @@ Network.prototype._onMouseMoveTitle = function (event) {
 };
 
 /**
- * Check if there is an element on the given position in the graph
+ * Check if there is an element on the given position in the network
  * (a node or edge). If so, and if this element has a title,
  * show a popup window with its title.
  *
@@ -1323,7 +1323,7 @@ Network.prototype._checkHidePopup = function (pointer) {
 
 
 /**
- * Set a new size for the graph
+ * Set a new size for the network
  * @param {string} width   Width in pixels or percentage (for example '800px'
  *                         or '50%')
  * @param {string} height  Height in pixels or percentage  (for example '400px'
@@ -1353,7 +1353,7 @@ Network.prototype.setSize = function(width, height) {
 };
 
 /**
- * Set a data set with nodes for the graph
+ * Set a data set with nodes for the network
  * @param {Array | DataSet | DataView} nodes         The data containing the nodes.
  * @private
  */
@@ -1685,7 +1685,7 @@ Network.prototype._updateValueRange = function(obj) {
 };
 
 /**
- * Redraw the graph with the current data
+ * Redraw the network with the current data
  * chart will be resized too.
  */
 Network.prototype.redraw = function() {
@@ -1694,7 +1694,7 @@ Network.prototype.redraw = function() {
 };
 
 /**
- * Redraw the graph with the current data
+ * Redraw the network with the current data
  * @private
  */
 Network.prototype._redraw = function() {
@@ -1731,7 +1731,7 @@ Network.prototype._redraw = function() {
 };
 
 /**
- * Set the translation of the graph
+ * Set the translation of the network
  * @param {Number} offsetX    Horizontal offset
  * @param {Number} offsetY    Vertical offset
  * @private
@@ -1755,7 +1755,7 @@ Network.prototype._setTranslation = function(offsetX, offsetY) {
 };
 
 /**
- * Get the translation of the graph
+ * Get the translation of the network
  * @return {Object} translation    An object with parameters x and y, both a number
  * @private
  */
@@ -1767,7 +1767,7 @@ Network.prototype._getTranslation = function() {
 };
 
 /**
- * Scale the graph
+ * Scale the network
  * @param {Number} scale   Scaling factor 1.0 is unscaled
  * @private
  */
@@ -1776,7 +1776,7 @@ Network.prototype._setScale = function(scale) {
 };
 
 /**
- * Get the current scale of  the graph
+ * Get the current scale of  the network
  * @return {Number} scale   Scaling factor 1.0 is unscaled
  * @private
  */
@@ -2126,7 +2126,7 @@ Network.prototype.start = function() {
 
 
 /**
- * Move the graph according to the keyboard presses.
+ * Move the network according to the keyboard presses.
  *
  * @private
  */
@@ -2227,9 +2227,9 @@ Network.prototype._createBezierNodes = function() {
  * @private
  */
 Network.prototype._initializeMixinLoaders = function () {
-  for (var mixinFunction in graphMixinLoaders) {
-    if (graphMixinLoaders.hasOwnProperty(mixinFunction)) {
-      Network.prototype[mixinFunction] = graphMixinLoaders[mixinFunction];
+  for (var mixinFunction in networkMixinLoaders) {
+    if (networkMixinLoaders.hasOwnProperty(mixinFunction)) {
+      Network.prototype[mixinFunction] = networkMixinLoaders[mixinFunction];
     }
   }
 };

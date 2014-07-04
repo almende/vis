@@ -16,18 +16,22 @@ http://visjs.org
         }
 - Fixed the height of background and foreground panels of groups.
 
-### Graph
+### Network
 
+- Renamed `Graph` to `Network` to prevent confusion with the visualizations 
+  `Graph2d` and `Graph3d`.
 - Now throws an error when constructing without new keyword.
-- Added pull request from Vukk, user can now define the edge width multiplier when selected.
-- Fixed graph.storePositions()
-- Extended Selection API with selectNodes and selectEdges, deprecating setSelection.
+- Added pull request from Vukk, user can now define the edge width multiplier 
+  when selected.
+- Fixed `graph.storePositions()`.
+- Extended Selection API with `selectNodes` and `selectEdges`, deprecating 
+  `setSelection`.
 - Fixed multiline labels.
 - Changed hierarchical physics solver and updated docs.
 
-### Graph2D
+### Graph2d
 
-- Added first iteration of the Graph2D.
+- Added first iteration of the Graph2d.
 
 ### Graph3d
 

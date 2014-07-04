@@ -1,8 +1,8 @@
 /**
  * Creation of the SectorMixin var.
  *
- * This contains all the functions the Graph object can use to employ the sector system.
- * The sector system is always used by Graph, though the benefits only apply to the use of clustering.
+ * This contains all the functions the Network object can use to employ the sector system.
+ * The sector system is always used by Network, though the benefits only apply to the use of clustering.
  * If clustering is not used, there is no overhead except for a duplicate object with references to nodes and edges.
  *
  * Alex de Mulder

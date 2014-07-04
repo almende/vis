@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>Graph | Graphviz Gallery</title>
+  <title>Network | Graphviz Gallery</title>
 
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
   <script type="text/javascript" src="../../../dist/vis.js"></script>
@@ -65,17 +65,17 @@
 <script type="text/javascript">
   var container = document.getElementById('mygraph');
   var url = document.getElementById('url');
-  var graph = new vis.Network(container,{},{physics:{barnesHut:{springLength:75,springConstant:0.015}}});
+  var network = new vis.Network(container,{},{physics:{barnesHut:{springLength:75,springConstant:0.015}}});
 
   function loadData () {
     $.ajax({
       type: "GET",
       url: url.value
     }).done(function(data) {
-          graph.setOptions({
+      network.setOptions({
             stabilize: false
           });
-          graph.setData( {
+      network.setData( {
             dot: data
           });
         });

@@ -83,9 +83,9 @@ function Node(properties, imagelist, grouplist, constants) {
   this.maxNodeSizeIncrements = constants.clustering.maxNodeSizeIncrements;
   this.growthIndicator = 0;
 
-  // variables to tell the node about the graph.
-  this.graphScaleInv = 1;
-  this.graphScale = 1;
+  // variables to tell the node about the network.
+  this.networkScaleInv = 1;
+  this.networkScale = 1;
   this.canvasTopLeft = {"x": -300, "y": -300};
   this.canvasBottomRight = {"x":  300, "y":  300};
   this.parentEdgeId = null;
@@ -525,7 +525,7 @@ Node.prototype._drawImage = function (ctx) {
     // draw the shade
     if (this.clusterSize > 1) {
       var lineWidth = ((this.clusterSize > 1) ? 10 : 0.0);
-      lineWidth *= this.graphScaleInv;
+      lineWidth *= this.networkScaleInv;
       lineWidth = Math.min(0.2 * this.width,lineWidth);
 
       ctx.globalAlpha = 0.5;
@@ -575,14 +575,14 @@ Node.prototype._drawBox = function (ctx) {
   // draw the outer border
   if (this.clusterSize > 1) {
     ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
     ctx.roundRect(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth, this.radius);
     ctx.stroke();
   }
   ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth *= this.networkScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
@@ -624,14 +624,14 @@ Node.prototype._drawDatabase = function (ctx) {
   // draw the outer border
   if (this.clusterSize > 1) {
     ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
     ctx.database(this.x - this.width/2 - 2*ctx.lineWidth, this.y - this.height*0.5 - 2*ctx.lineWidth, this.width + 4*ctx.lineWidth, this.height + 4*ctx.lineWidth);
     ctx.stroke();
   }
   ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth *= this.networkScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
@@ -674,14 +674,14 @@ Node.prototype._drawCircle = function (ctx) {
   // draw the outer border
   if (this.clusterSize > 1) {
     ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
     ctx.circle(this.x, this.y, this.radius+2*ctx.lineWidth);
     ctx.stroke();
   }
   ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth *= this.networkScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
@@ -724,14 +724,14 @@ Node.prototype._drawEllipse = function (ctx) {
   // draw the outer border
   if (this.clusterSize > 1) {
     ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
     ctx.ellipse(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth);
     ctx.stroke();
   }
   ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth *= this.networkScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
@@ -801,14 +801,14 @@ Node.prototype._drawShape = function (ctx, shape) {
   // draw the outer border
   if (this.clusterSize > 1) {
     ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
     ctx[shape](this.x, this.y, this.radius + radiusMultiplier * ctx.lineWidth);
     ctx.stroke();
   }
   ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth *= this.networkScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
@@ -846,7 +846,7 @@ Node.prototype._drawText = function (ctx) {
 
 
 Node.prototype._label = function (ctx, text, x, y, align, baseline) {
-  if (text && this.fontSize * this.graphScale > this.fontDrawThreshold) {
+  if (text && this.fontSize * this.networkScale > this.fontDrawThreshold) {
     ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
     ctx.fillStyle = this.fontColor || "black";
     ctx.textAlign = align || "center";
@@ -892,10 +892,10 @@ Node.prototype.getTextSize = function(ctx) {
  */
 Node.prototype.inArea = function() {
   if (this.width !== undefined) {
-  return (this.x + this.width *this.graphScaleInv  >= this.canvasTopLeft.x     &&
-          this.x - this.width *this.graphScaleInv  <  this.canvasBottomRight.x &&
-          this.y + this.height*this.graphScaleInv  >= this.canvasTopLeft.y     &&
-          this.y - this.height*this.graphScaleInv  <  this.canvasBottomRight.y);
+  return (this.x + this.width *this.networkScaleInv  >= this.canvasTopLeft.x     &&
+          this.x - this.width *this.networkScaleInv  <  this.canvasBottomRight.x &&
+          this.y + this.height*this.networkScaleInv  >= this.canvasTopLeft.y     &&
+          this.y - this.height*this.networkScaleInv  <  this.canvasBottomRight.y);
   }
   else {
     return true;
@@ -914,7 +914,7 @@ Node.prototype.inView = function() {
 };
 
 /**
- * This allows the zoom level of the graph to influence the rendering
+ * This allows the zoom level of the network to influence the rendering
  * We store the inverted scale and the coordinates of the top left, and bottom right points of the canvas
  *
  * @param scale
@@ -922,21 +922,21 @@ Node.prototype.inView = function() {
  * @param canvasBottomRight
  */
 Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) {
-  this.graphScaleInv = 1.0/scale;
-  this.graphScale = scale;
+  this.networkScaleInv = 1.0/scale;
+  this.networkScale = scale;
   this.canvasTopLeft = canvasTopLeft;
   this.canvasBottomRight = canvasBottomRight;
 };
 
 
 /**
- * This allows the zoom level of the graph to influence the rendering
+ * This allows the zoom level of the network to influence the rendering
  *
  * @param scale
  */
 Node.prototype.setScale = function(scale) {
-  this.graphScaleInv = 1.0/scale;
-  this.graphScale = scale;
+  this.networkScaleInv = 1.0/scale;
+  this.networkScale = scale;
 };
 
 

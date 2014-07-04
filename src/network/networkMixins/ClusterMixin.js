@@ -1,7 +1,7 @@
 /**
  * Creation of the ClusterMixin var.
  *
- * This contains all the functions the Graph object can use to employ clustering
+ * This contains all the functions the Network object can use to employ clustering
  *
  * Alex de Mulder
  * 21-01-2013
