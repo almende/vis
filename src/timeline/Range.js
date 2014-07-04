@@ -293,21 +293,16 @@ Range.prototype._onDragStart = function(event) {
 Range.prototype._onDrag = function (event) {
   // only allow dragging when configured as movable
   if (!this.options.moveable) return;
-
   var direction = this.options.direction;
   validateDirection(direction);
-
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
   if (!this.props.touch.allowDragging) return;
-
   var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
       interval = (this.props.touch.end - this.props.touch.start),
       width = (direction == 'horizontal') ? this.body.domProps.center.width : this.body.domProps.center.height,
       diffRange = -delta / width * interval;
-
   this._applyRange(this.props.touch.start + diffRange, this.props.touch.end + diffRange);
-
   this.body.emitter.emit('rangechange', {
     start: new Date(this.start),
     end:   new Date(this.end)

@@ -101,7 +101,12 @@ var physicsMixin = {
       this._calculateSpringForcesWithSupport();
     }
     else {
-      this._calculateSpringForces();
+      if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
+        this._calculateHierarchicalSpringForces();
+      }
+      else {
+        this._calculateSpringForces();
+      }
     }
   },
 
@@ -181,6 +186,8 @@ var physicsMixin = {
   },
 
 
+
+
   /**
    * this function calculates the effects of the springs in the case of unsmooth curves.
    *
@@ -225,6 +232,8 @@ var physicsMixin = {
       }
     }
   },
+
+
 
 
   /**
@@ -303,7 +312,7 @@ var physicsMixin = {
   _loadPhysicsConfiguration: function () {
     if (this.physicsConfiguration === undefined) {
       this.backupConstants = {};
-      util.copyObject(this.constants, this.backupConstants);
+      util.deepExtend(this.backupConstants,this.constants);
 
       var hierarchicalLayoutDirections = ["LR", "RL", "UD", "DU"];
       this.physicsConfiguration = document.createElement('div');

@@ -2,14 +2,10 @@
  * Create a timeline visualization
  * @param {HTMLElement} container
  * @param {vis.DataSet | Array | google.visualization.DataTable} [items]
- * @param {Object} [options]  See Timeline.setOptions for the available options.
+ * @param {Object} [options]  See Graph2d.setOptions for the available options.
  * @constructor
  */
-function Timeline (container, items, options) {
-  if (!(this instanceof Timeline)) {
-    throw new SyntaxError('Constructor must be called with the new operator');
-  }
-
+function Graph2d (container, items, options, groups) {
   var me = this;
   this.defaultOptions = {
     start: null,
@@ -68,8 +64,8 @@ function Timeline (container, items, options) {
   this.components.push(this.customTime);
 
   // item set
-  this.itemSet = new ItemSet(this.body);
-  this.components.push(this.itemSet);
+  this.linegraph = new Linegraph(this.body);
+  this.components.push(this.linegraph);
 
   this.itemsData = null;      // DataSet
   this.groupsData = null;     // DataSet
@@ -77,6 +73,11 @@ function Timeline (container, items, options) {
   // apply options
   if (options) {
     this.setOptions(options);
+  }
+
+  // IMPORTANT: THIS HAPPENS BEFORE SET ITEMS!
+  if (groups) {
+    this.setGroups(groups);
   }
 
   // create itemset
@@ -88,26 +89,27 @@ function Timeline (container, items, options) {
   }
 }
 
-// turn Timeline into an event emitter
-Emitter(Timeline.prototype);
+// turn Graph2d into an event emitter
+Emitter(Graph2d.prototype);
 
 /**
- * Create the main DOM for the Timeline: a root panel containing left, right,
+ * Create the main DOM for the Graph2d: a root panel containing left, right,
  * top, bottom, content, and background panel.
- * @param {Element} container  The container element where the Timeline will
+ * @param {Element} container  The container element where the Graph2d will
  *                             be attached.
  * @private
  */
-Timeline.prototype._create = function (container) {
+Graph2d.prototype._create = function (container) {
   this.dom = {};
 
   this.dom.root                 = document.createElement('div');
   this.dom.background           = document.createElement('div');
   this.dom.backgroundVertical   = document.createElement('div');
-  this.dom.backgroundHorizontal = document.createElement('div');
+  this.dom.backgroundHorizontalContainer = document.createElement('div');
   this.dom.centerContainer      = document.createElement('div');
   this.dom.leftContainer        = document.createElement('div');
   this.dom.rightContainer       = document.createElement('div');
+  this.dom.backgroundHorizontal = document.createElement('div');
   this.dom.center               = document.createElement('div');
   this.dom.left                 = document.createElement('div');
   this.dom.right                = document.createElement('div');
@@ -122,6 +124,7 @@ Timeline.prototype._create = function (container) {
 
   this.dom.background.className           = 'vispanel background';
   this.dom.backgroundVertical.className   = 'vispanel background vertical';
+  this.dom.backgroundHorizontalContainer.className = 'vispanel background horizontal';
   this.dom.backgroundHorizontal.className = 'vispanel background horizontal';
   this.dom.centerContainer.className      = 'vispanel center';
   this.dom.leftContainer.className        = 'vispanel left';
@@ -140,13 +143,14 @@ Timeline.prototype._create = function (container) {
 
   this.dom.root.appendChild(this.dom.background);
   this.dom.root.appendChild(this.dom.backgroundVertical);
-  this.dom.root.appendChild(this.dom.backgroundHorizontal);
+  this.dom.root.appendChild(this.dom.backgroundHorizontalContainer);
   this.dom.root.appendChild(this.dom.centerContainer);
   this.dom.root.appendChild(this.dom.leftContainer);
   this.dom.root.appendChild(this.dom.rightContainer);
   this.dom.root.appendChild(this.dom.top);
   this.dom.root.appendChild(this.dom.bottom);
 
+  this.dom.backgroundHorizontalContainer.appendChild(this.dom.backgroundHorizontal);
   this.dom.centerContainer.appendChild(this.dom.center);
   this.dom.leftContainer.appendChild(this.dom.left);
   this.dom.rightContainer.appendChild(this.dom.right);
@@ -212,9 +216,9 @@ Timeline.prototype._create = function (container) {
 };
 
 /**
- * Destroy the Timeline, clean up all DOM elements and event listeners.
+ * Destroy the Graph2d, clean up all DOM elements and event listeners.
  */
-Timeline.prototype.destroy = function () {
+Graph2d.prototype.destroy = function () {
   // unbind datasets
   this.clear();
 
@@ -248,31 +252,31 @@ Timeline.prototype.destroy = function () {
 };
 
 /**
- * Set options. Options will be passed to all components loaded in the Timeline.
+ * Set options. Options will be passed to all components loaded in the Graph2d.
  * @param {Object} [options]
  *                           {String} orientation
- *                              Vertical orientation for the Timeline,
+ *                              Vertical orientation for the Graph2d,
  *                              can be 'bottom' (default) or 'top'.
  *                           {String | Number} width
  *                              Width for the timeline, a number in pixels or
  *                              a css string like '1000px' or '75%'. '100%' by default.
  *                           {String | Number} height
- *                              Fixed height for the Timeline, a number in pixels or
+ *                              Fixed height for the Graph2d, a number in pixels or
  *                              a css string like '400px' or '75%'. If undefined,
- *                              The Timeline will automatically size such that
+ *                              The Graph2d will automatically size such that
  *                              its contents fit.
  *                           {String | Number} minHeight
- *                              Minimum height for the Timeline, a number in pixels or
+ *                              Minimum height for the Graph2d, a number in pixels or
  *                              a css string like '400px' or '75%'.
  *                           {String | Number} maxHeight
- *                              Maximum height for the Timeline, a number in pixels or
+ *                              Maximum height for the Graph2d, a number in pixels or
  *                              a css string like '400px' or '75%'.
  *                           {Number | Date | String} start
  *                              Start date for the visible window
  *                           {Number | Date | String} end
  *                              End date for the visible window
  */
-Timeline.prototype.setOptions = function (options) {
+Graph2d.prototype.setOptions = function (options) {
   if (options) {
     // copy the known options
     var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation'];
@@ -300,7 +304,7 @@ Timeline.prototype.setOptions = function (options) {
  * Set a custom time bar
  * @param {Date} time
  */
-Timeline.prototype.setCustomTime = function (time) {
+Graph2d.prototype.setCustomTime = function (time) {
   if (!this.customTime) {
     throw new Error('Cannot get custom time: Custom time bar is not enabled');
   }
@@ -312,7 +316,7 @@ Timeline.prototype.setCustomTime = function (time) {
  * Retrieve the current custom time.
  * @return {Date} customTime
  */
-Timeline.prototype.getCustomTime = function() {
+Graph2d.prototype.getCustomTime = function() {
   if (!this.customTime) {
     throw new Error('Cannot get custom time: Custom time bar is not enabled');
   }
@@ -324,7 +328,7 @@ Timeline.prototype.getCustomTime = function() {
  * Set items
  * @param {vis.DataSet | Array | google.visualization.DataTable | null} items
  */
-Timeline.prototype.setItems = function(items) {
+Graph2d.prototype.setItems = function(items) {
   var initialLoad = (this.itemsData == null);
 
   // convert to type DataSet when needed
@@ -347,7 +351,7 @@ Timeline.prototype.setItems = function(items) {
 
   // set items
   this.itemsData = newDataSet;
-  this.itemSet && this.itemSet.setItems(newDataSet);
+  this.linegraph && this.linegraph.setItems(newDataSet);
 
   if (initialLoad && ('start' in this.options || 'end' in this.options)) {
     this.fit();
@@ -363,7 +367,7 @@ Timeline.prototype.setItems = function(items) {
  * Set groups
  * @param {vis.DataSet | Array | google.visualization.DataTable} groups
  */
-Timeline.prototype.setGroups = function(groups) {
+Graph2d.prototype.setGroups = function(groups) {
   // convert to type DataSet when needed
   var newDataSet;
   if (!groups) {
@@ -378,11 +382,11 @@ Timeline.prototype.setGroups = function(groups) {
   }
 
   this.groupsData = newDataSet;
-  this.itemSet.setGroups(newDataSet);
+  this.linegraph.setGroups(newDataSet);
 };
 
 /**
- * Clear the Timeline. By Default, items, groups and options are cleared.
+ * Clear the Graph2d. By Default, items, groups and options are cleared.
  * Example usage:
  *
  *     timeline.clear();                // clear items, groups, and options
@@ -391,7 +395,7 @@ Timeline.prototype.setGroups = function(groups) {
  * @param {Object} [what]      Optionally specify what to clear. By default:
  *                             {items: true, groups: true, options: true}
  */
-Timeline.prototype.clear = function(what) {
+Graph2d.prototype.clear = function(what) {
   // clear items
   if (!what || what.items) {
     this.setItems(null);
@@ -413,9 +417,9 @@ Timeline.prototype.clear = function(what) {
 };
 
 /**
- * Set Timeline window such that it fits all items
+ * Set Graph2d window such that it fits all items
  */
-Timeline.prototype.fit = function() {
+Graph2d.prototype.fit = function() {
   // apply the data range as range
   var dataRange = this.getItemRange();
 
@@ -446,11 +450,11 @@ Timeline.prototype.fit = function() {
  *                                          When no minimum is found, min==null
  *                                          When no maximum is found, max==null
  */
-Timeline.prototype.getItemRange = function() {
+Graph2d.prototype.getItemRange = function() {
   // calculate min from start filed
   var itemsData = this.itemsData,
-      min = null,
-      max = null;
+    min = null,
+    max = null;
 
   if (itemsData) {
     // calculate the minimum value of the field 'start'
@@ -488,16 +492,16 @@ Timeline.prototype.getItemRange = function() {
  *                      selected. If ids is an empty array, all items will be
  *                      unselected.
  */
-Timeline.prototype.setSelection = function(ids) {
-  this.itemSet && this.itemSet.setSelection(ids);
+Graph2d.prototype.setSelection = function(ids) {
+  this.linegraph && this.linegraph.setSelection(ids);
 };
 
 /**
  * Get the selected items by their id
  * @return {Array} ids  The ids of the selected items
  */
-Timeline.prototype.getSelection = function() {
-  return this.itemSet && this.itemSet.getSelection() || [];
+Graph2d.prototype.getSelection = function() {
+  return this.linegraph && this.linegraph.getSelection() || [];
 };
 
 /**
@@ -513,7 +517,7 @@ Timeline.prototype.getSelection = function() {
  * @param {Date | Number | String | Object} [start] Start date of visible window
  * @param {Date | Number | String} [end]   End date of visible window
  */
-Timeline.prototype.setWindow = function(start, end) {
+Graph2d.prototype.setWindow = function(start, end) {
   if (arguments.length == 1) {
     var range = arguments[0];
     this.range.setRange(range.start, range.end);
@@ -527,7 +531,7 @@ Timeline.prototype.setWindow = function(start, end) {
  * Get the visible window
  * @return {{start: Date, end: Date}}   Visible range
  */
-Timeline.prototype.getWindow = function() {
+Graph2d.prototype.getWindow = function() {
   var range = this.range.getRange();
   return {
     start: new Date(range.start),
@@ -536,14 +540,14 @@ Timeline.prototype.getWindow = function() {
 };
 
 /**
- * Force a redraw of the Timeline. Can be useful to manually redraw when
+ * Force a redraw of the Graph2d. Can be useful to manually redraw when
  * option autoResize=false
  */
-Timeline.prototype.redraw = function() {
+Graph2d.prototype.redraw = function() {
   var resized = false,
-      options = this.options,
-      props = this.props,
-      dom = this.dom;
+    options = this.options,
+    props = this.props,
+    dom = this.dom;
 
   if (!dom) return; // when destroyed
 
@@ -577,14 +581,14 @@ Timeline.prototype.redraw = function() {
   // TODO: only calculate autoHeight when needed (else we cause an extra reflow/repaint of the DOM)
   var contentHeight = Math.max(props.left.height, props.center.height, props.right.height);
   var autoHeight = props.top.height + contentHeight + props.bottom.height +
-      borderRootHeight + props.border.top + props.border.bottom;
+    borderRootHeight + props.border.top + props.border.bottom;
   dom.root.style.height = util.option.asSize(options.height, autoHeight + 'px');
 
   // calculate heights of the content panels
   props.root.height = dom.root.offsetHeight;
   props.background.height = props.root.height - borderRootHeight;
   var containerHeight = props.root.height - props.top.height - props.bottom.height -
-      borderRootHeight;
+    borderRootHeight;
   props.centerContainer.height  = containerHeight;
   props.leftContainer.height    = containerHeight;
   props.rightContainer.height   = props.leftContainer.height;
@@ -605,13 +609,14 @@ Timeline.prototype.redraw = function() {
   // resize the panels
   dom.background.style.height           = props.background.height + 'px';
   dom.backgroundVertical.style.height   = props.background.height + 'px';
-  dom.backgroundHorizontal.style.height = props.centerContainer.height + 'px';
+  dom.backgroundHorizontalContainer.style.height = props.centerContainer.height + 'px';
   dom.centerContainer.style.height      = props.centerContainer.height + 'px';
   dom.leftContainer.style.height        = props.leftContainer.height + 'px';
   dom.rightContainer.style.height       = props.rightContainer.height + 'px';
 
   dom.background.style.width            = props.background.width + 'px';
   dom.backgroundVertical.style.width    = props.centerContainer.width + 'px';
+  dom.backgroundHorizontalContainer.style.width  = props.background.width + 'px';
   dom.backgroundHorizontal.style.width  = props.background.width + 'px';
   dom.centerContainer.style.width       = props.center.width + 'px';
   dom.top.style.width                   = props.top.width + 'px';
@@ -622,8 +627,8 @@ Timeline.prototype.redraw = function() {
   dom.background.style.top            = '0';
   dom.backgroundVertical.style.left   = props.left.width + 'px';
   dom.backgroundVertical.style.top    = '0';
-  dom.backgroundHorizontal.style.left = '0';
-  dom.backgroundHorizontal.style.top  = props.top.height + 'px';
+  dom.backgroundHorizontalContainer.style.left = '0';
+  dom.backgroundHorizontalContainer.style.top  = props.top.height + 'px';
   dom.centerContainer.style.left      = props.left.width + 'px';
   dom.centerContainer.style.top       = props.top.height + 'px';
   dom.leftContainer.style.left        = '0';
@@ -636,16 +641,18 @@ Timeline.prototype.redraw = function() {
   dom.bottom.style.top                = (props.top.height + props.centerContainer.height) + 'px';
 
   // update the scrollTop, feasible range for the offset can be changed
-  // when the height of the Timeline or of the contents of the center changed
+  // when the height of the Graph2d or of the contents of the center changed
   this._updateScrollTop();
 
   // reposition the scrollable contents
   var offset = this.props.scrollTop;
 //  if (options.orientation == 'bottom') {
-//    offset += Math.max(this.props.centerContainer.height - this.props.center.height, 0);
+//     offset += Math.max(this.props.centerContainer.height - this.props.center.height, 0);
 //  }
   dom.center.style.left = '0';
   dom.center.style.top  = offset + 'px';
+  dom.backgroundHorizontal.style.left = '0';
+  dom.backgroundHorizontal.style.top  = offset + 'px';
   dom.left.style.left   = '0';
   dom.left.style.top    = offset + 'px';
   dom.right.style.left  = '0';
@@ -666,14 +673,14 @@ Timeline.prototype.redraw = function() {
     resized = component.redraw() || resized;
   });
   if (resized) {
-    // keep repainting until all sizes are settled
+    // keep redrawing until all sizes are settled
     this.redraw();
   }
 };
 
 // TODO: deprecated since version 1.1.0, remove some day
-Timeline.prototype.repaint = function () {
-    throw new Error('Function repaint is deprecated. Use redraw instead.');
+Graph2d.prototype.repaint = function () {
+  throw new Error('Function repaint is deprecated. Use redraw instead.');
 };
 
 /**
@@ -683,20 +690,21 @@ Timeline.prototype.repaint = function () {
  * @private
  */
 // TODO: move this function to Range
-Timeline.prototype._toTime = function(x) {
+Graph2d.prototype._toTime = function(x) {
   var conversion = this.range.conversion(this.props.center.width);
   return new Date(x / conversion.scale + conversion.offset);
 };
 
-
 /**
- * Convert a position on the global screen (pixels) to a datetime
- * @param {int}     x    Position on the screen in pixels
- * @return {Date}   time The datetime the corresponds with given position x
+ * Convert a datetime (Date object) into a position on the root
+ * This is used to get the pixel density estimate for the screen, not the center panel
+ * @param {Date}   time A date
+ * @return {int}   x    The position on root in pixels which corresponds
+ *                      with the given date.
  * @private
  */
 // TODO: move this function to Range
-Timeline.prototype._toGlobalTime = function(x) {
+Graph2d.prototype._toGlobalTime = function(x) {
   var conversion = this.range.conversion(this.props.root.width);
   return new Date(x / conversion.scale + conversion.offset);
 };
@@ -709,7 +717,7 @@ Timeline.prototype._toGlobalTime = function(x) {
  * @private
  */
 // TODO: move this function to Range
-Timeline.prototype._toScreen = function(time) {
+Graph2d.prototype._toScreen = function(time) {
   var conversion = this.range.conversion(this.props.center.width);
   return (time.valueOf() - conversion.offset) * conversion.scale;
 };
@@ -729,12 +737,11 @@ Graph2d.prototype._toGlobalScreen = function(time) {
   return (time.valueOf() - conversion.offset) * conversion.scale;
 };
 
-
 /**
  * Initialize watching when option autoResize is true
  * @private
  */
-Timeline.prototype._initAutoResize = function () {
+Graph2d.prototype._initAutoResize = function () {
   if (this.options.autoResize == true) {
     this._startAutoResize();
   }
@@ -748,7 +755,7 @@ Timeline.prototype._initAutoResize = function () {
  * automatically redraw itself.
  * @private
  */
-Timeline.prototype._startAutoResize = function () {
+Graph2d.prototype._startAutoResize = function () {
   var me = this;
 
   this._stopAutoResize();
@@ -763,7 +770,7 @@ Timeline.prototype._startAutoResize = function () {
     if (me.dom.root) {
       // check whether the frame is resized
       if ((me.dom.root.clientWidth != me.props.lastWidth) ||
-          (me.dom.root.clientHeight != me.props.lastHeight)) {
+        (me.dom.root.clientHeight != me.props.lastHeight)) {
         me.props.lastWidth = me.dom.root.clientWidth;
         me.props.lastHeight = me.dom.root.clientHeight;
 
@@ -782,7 +789,7 @@ Timeline.prototype._startAutoResize = function () {
  * Stop watching for a resize of the frame.
  * @private
  */
-Timeline.prototype._stopAutoResize = function () {
+Graph2d.prototype._stopAutoResize = function () {
   if (this.watchTimer) {
     clearInterval(this.watchTimer);
     this.watchTimer = undefined;
@@ -798,7 +805,7 @@ Timeline.prototype._stopAutoResize = function () {
  * @param {Event} event
  * @private
  */
-Timeline.prototype._onTouch = function (event) {
+Graph2d.prototype._onTouch = function (event) {
   this.touch.allowDragging = true;
 };
 
@@ -807,7 +814,7 @@ Timeline.prototype._onTouch = function (event) {
  * @param {Event} event
  * @private
  */
-Timeline.prototype._onPinch = function (event) {
+Graph2d.prototype._onPinch = function (event) {
   this.touch.allowDragging = false;
 };
 
@@ -816,7 +823,7 @@ Timeline.prototype._onPinch = function (event) {
  * @param {Event} event
  * @private
  */
-Timeline.prototype._onDragStart = function (event) {
+Graph2d.prototype._onDragStart = function (event) {
   this.touch.initialScrollTop = this.props.scrollTop;
 };
 
@@ -825,7 +832,7 @@ Timeline.prototype._onDragStart = function (event) {
  * @param {Event} event
  * @private
  */
-Timeline.prototype._onDrag = function (event) {
+Graph2d.prototype._onDrag = function (event) {
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
   if (!this.touch.allowDragging) return;
@@ -846,7 +853,7 @@ Timeline.prototype._onDrag = function (event) {
  * @returns {Number} scrollTop  Returns the applied scrollTop
  * @private
  */
-Timeline.prototype._setScrollTop = function (scrollTop) {
+Graph2d.prototype._setScrollTop = function (scrollTop) {
   this.props.scrollTop = scrollTop;
   this._updateScrollTop();
   return this.props.scrollTop;
@@ -857,7 +864,7 @@ Timeline.prototype._setScrollTop = function (scrollTop) {
  * @returns {Number} scrollTop  Returns the applied scrollTop
  * @private
  */
-Timeline.prototype._updateScrollTop = function () {
+Graph2d.prototype._updateScrollTop = function () {
   // recalculate the scrollTopMin
   var scrollTopMin = Math.min(this.props.centerContainer.height - this.props.center.height, 0); // is negative or zero
   if (scrollTopMin != this.props.scrollTopMin) {
@@ -881,6 +888,6 @@ Timeline.prototype._updateScrollTop = function () {
  * @returns {number} scrollTop
  * @private
  */
-Timeline.prototype._getScrollTop = function () {
+Graph2d.prototype._getScrollTop = function () {
   return this.props.scrollTop;
 };

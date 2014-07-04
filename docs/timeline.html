@@ -330,132 +330,132 @@ var options = {
 
 <table>
 <tr>
-  <th>Name</th>
-  <th>Type</th>
-  <th>Default</th>
-  <th>Description</th>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
 </tr>
 
 <tr>
-  <td>align</td>
-  <td>String</td>
-  <td>"center"</td>
-  <td>Alignment of items with type 'box'. Available values are
-    'center' (default), 'left', or 'right').</td>
+    <td>align</td>
+    <td>String</td>
+    <td>"center"</td>
+    <td>Alignment of items with type 'box'. Available values are
+        'center' (default), 'left', or 'right').</td>
 </tr>
 
 <tr>
-  <td>autoResize</td>
-  <td>boolean</td>
-  <td>true</td>
-  <td>If true, the Timeline will automatically detect when its container is resized, and redraw itself accordingly. If false, the Timeline can be forced to repaint after its container has been resized using the function <code>repaint()</code>.</td>
+    <td>autoResize</td>
+    <td>boolean</td>
+    <td>true</td>
+    <td>If true, the Timeline will automatically detect when its container is resized, and redraw itself accordingly. If false, the Timeline can be forced to repaint after its container has been resized using the function <code>repaint()</code>.</td>
 </tr>
 
 <tr>
-  <td>editable</td>
-  <td>Boolean | Object</td>
-  <td>false</td>
-  <td>If true, the items in the timeline can be manipulated. Only applicable when option <code>selectable</code> is <code>true</code>. See also the callbacks <code>onAdd</code>, <code>onUpdate</code>, <code>onMove</code>, and <code>onRemove</code>. When <code>editable</code> is an object, one can enable or disable individual manipulation actions.
-    See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.
-  </td>
+    <td>editable</td>
+    <td>Boolean | Object</td>
+    <td>false</td>
+    <td>If true, the items in the timeline can be manipulated. Only applicable when option <code>selectable</code> is <code>true</code>. See also the callbacks <code>onAdd</code>, <code>onUpdate</code>, <code>onMove</code>, and <code>onRemove</code>. When <code>editable</code> is an object, one can enable or disable individual manipulation actions.
+        See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.
+    </td>
 </tr>
 
 <tr>
-  <td>editable.add</td>
-  <td>Boolean</td>
-  <td>false</td>
-  <td>If true, new items can be created by double tapping an empty space in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
+    <td>editable.add</td>
+    <td>Boolean</td>
+    <td>false</td>
+    <td>If true, new items can be created by double tapping an empty space in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
 </tr>
 
 <tr>
-  <td>editable.remove</td>
-  <td>Boolean</td>
-  <td>false</td>
-  <td>If true, items can be deleted by first selecting them, and then clicking the delete button on the top right of the item. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
+    <td>editable.remove</td>
+    <td>Boolean</td>
+    <td>false</td>
+    <td>If true, items can be deleted by first selecting them, and then clicking the delete button on the top right of the item. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
 </tr>
 
 <tr>
-  <td>editable.updateGroup</td>
-  <td>Boolean</td>
-  <td>false</td>
-  <td>If true, items can be dragged from one group to another. Only applicable when the Timeline has groups. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
+    <td>editable.updateGroup</td>
+    <td>Boolean</td>
+    <td>false</td>
+    <td>If true, items can be dragged from one group to another. Only applicable when the Timeline has groups. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
 </tr>
 
 <tr>
-  <td>editable.updateTime</td>
-  <td>Boolean</td>
-  <td>false</td>
-  <td>If true, items can be dragged to another moment in time. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
+    <td>editable.updateTime</td>
+    <td>Boolean</td>
+    <td>false</td>
+    <td>If true, items can be dragged to another moment in time. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
 </tr>
 
 <tr>
-  <td>end</td>
-  <td>Date | Number | String</td>
-  <td>none</td>
-  <td>The initial end date for the axis of the timeline.
-    If not provided, the latest date present in the items set is taken as
-    end date.</td>
+    <td>end</td>
+    <td>Date | Number | String</td>
+    <td>none</td>
+    <td>The initial end date for the axis of the timeline.
+        If not provided, the latest date present in the items set is taken as
+        end date.</td>
 </tr>
 
 <tr>
-  <td>groupOrder</td>
-  <td>String | Function</td>
-  <td>none</td>
-  <td>Order the groups by a field name or custom sort function.
-    By default, groups are not ordered.
-  </td>
+    <td>groupOrder</td>
+    <td>String | Function</td>
+    <td>none</td>
+    <td>Order the groups by a field name or custom sort function.
+        By default, groups are not ordered.
+    </td>
 </tr>
 
 <tr>
-  <td>height</td>
-  <td>Number | String</td>
-  <td>none</td>
-  <td>The height of the timeline in pixels or as a percentage.
-    When height is undefined or null, the height of the timeline is automatically
-    adjusted to fit the contents.
-    It is possible to set a maximum height using option <code>maxHeight</code>
-    to prevent the timeline from getting too high in case of automatically
-    calculated height.
-  </td>
+    <td>height</td>
+    <td>Number | String</td>
+    <td>none</td>
+    <td>The height of the timeline in pixels or as a percentage.
+        When height is undefined or null, the height of the timeline is automatically
+        adjusted to fit the contents.
+        It is possible to set a maximum height using option <code>maxHeight</code>
+        to prevent the timeline from getting too high in case of automatically
+        calculated height.
+    </td>
 </tr>
 
 <tr>
-  <td>margin.axis</td>
-  <td>Number</td>
-  <td>20</td>
-  <td>The minimal margin in pixels between items and the time axis.</td>
+    <td>margin.axis</td>
+    <td>Number</td>
+    <td>20</td>
+    <td>The minimal margin in pixels between items and the time axis.</td>
 </tr>
 
 <tr>
-  <td>margin.item</td>
-  <td>Number</td>
-  <td>10</td>
-  <td>The minimal margin in pixels between items.</td>
+    <td>margin.item</td>
+    <td>Number</td>
+    <td>10</td>
+    <td>The minimal margin in pixels between items.</td>
 </tr>
 
 <tr>
-  <td>max</td>
-  <td>Date | Number | String</td>
-  <td>none</td>
-  <td>Set a maximum Date for the visible range.
-    It will not be possible to move beyond this maximum.
-  </td>
+    <td>max</td>
+    <td>Date | Number | String</td>
+    <td>none</td>
+    <td>Set a maximum Date for the visible range.
+        It will not be possible to move beyond this maximum.
+    </td>
 </tr>
 
 <tr>
-  <td>maxHeight</td>
-  <td>Number | String</td>
-  <td>none</td>
-  <td>Specifies the maximum height for the Timeline. Can be a number in pixels or a string like "300px".</td>
+    <td>maxHeight</td>
+    <td>Number | String</td>
+    <td>none</td>
+    <td>Specifies the maximum height for the Timeline. Can be a number in pixels or a string like "300px".</td>
 </tr>
 
 <tr>
-  <td>min</td>
-  <td>Date | Number | String</td>
-  <td>none</td>
-  <td>Set a minimum Date for the visible range.
-    It will not be possible to move beyond this minimum.
-  </td>
+    <td>min</td>
+    <td>Date | Number | String</td>
+    <td>none</td>
+    <td>Set a minimum Date for the visible range.
+        It will not be possible to move beyond this minimum.
+    </td>
 </tr>
 
 <tr>
@@ -470,41 +470,41 @@ var options = {
     <td>Boolean</td>
     <td>true</td>
     <td>
-      Specifies whether the Timeline can be moved and zoomed by dragging the window.
-      See also option <code>zoomable</code>.
+        Specifies whether the Timeline can be moved and zoomed by dragging the window.
+        See also option <code>zoomable</code>.
     </td>
 </tr>
 
 <tr>
-  <td>onAdd</td>
-  <td>Function</td>
-  <td>none</td>
-  <td>Callback function triggered when an item is about to be added: when the user double taps an empty space in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.add</code> are set <code>true</code>.
-  </td>
+    <td>onAdd</td>
+    <td>Function</td>
+    <td>none</td>
+    <td>Callback function triggered when an item is about to be added: when the user double taps an empty space in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.add</code> are set <code>true</code>.
+    </td>
 </tr>
 
 <tr>
-  <td>onUpdate</td>
-  <td>Function</td>
-  <td>none</td>
-  <td>Callback function triggered when an item is about to be updated, when the user double taps an item in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.updateTime</code> or <code>editable.updateGroup</code> are set <code>true</code>.
-  </td>
+    <td>onUpdate</td>
+    <td>Function</td>
+    <td>none</td>
+    <td>Callback function triggered when an item is about to be updated, when the user double taps an item in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.updateTime</code> or <code>editable.updateGroup</code> are set <code>true</code>.
+    </td>
 </tr>
 
 <tr>
-  <td>onMove</td>
-  <td>Function</td>
-  <td>none</td>
-  <td>Callback function triggered when an item has been moved: after the user has dragged the item to an other position. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.updateTime</code> or <code>editable.updateGroup</code> are set <code>true</code>.
-  </td>
+    <td>onMove</td>
+    <td>Function</td>
+    <td>none</td>
+    <td>Callback function triggered when an item has been moved: after the user has dragged the item to an other position. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.updateTime</code> or <code>editable.updateGroup</code> are set <code>true</code>.
+    </td>
 </tr>
 
 <tr>
-  <td>onRemove</td>
-  <td>Function</td>
-  <td>none</td>
-  <td>Callback function triggered when an item is about to be removed: when the user tapped the delete button on the top right of a selected item. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.remove</code> are set <code>true</code>.
-  </td>
+    <td>onRemove</td>
+    <td>Function</td>
+    <td>none</td>
+    <td>Callback function triggered when an item is about to be removed: when the user tapped the delete button on the top right of a selected item. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.remove</code> are set <code>true</code>.
+    </td>
 </tr>
 
 <!-- TODO: cleanup option order
@@ -521,128 +521,128 @@ var options = {
 -->
 
 <tr>
-  <td>orientation</td>
-  <td>String</td>
-  <td>'bottom'</td>
-  <td>Orientation of the timeline: 'top' or 'bottom' (default). If orientation is 'bottom', the time axis is drawn at the bottom, and if 'top', the axis is drawn on top.</td>
+    <td>orientation</td>
+    <td>String</td>
+    <td>'bottom'</td>
+    <td>Orientation of the timeline: 'top' or 'bottom' (default). If orientation is 'bottom', the time axis is drawn at the bottom, and if 'top', the axis is drawn on top.</td>
 </tr>
 
 <tr>
-  <td>padding</td>
-  <td>Number</td>
-  <td>5</td>
-  <td>The padding of items, needed to correctly calculate the size
-    of item ranges. Must correspond with the css of items, for example when setting <code>options.padding=10</code>, corresponding css is:
+    <td>padding</td>
+    <td>Number</td>
+    <td>5</td>
+    <td>The padding of items, needed to correctly calculate the size
+        of item ranges. Must correspond with the css of items, for example when setting <code>options.padding=10</code>, corresponding css is:
   <pre class="prettyprint lang-css">
 .vis.timeline .item {
   padding: 10px;
 }</pre>
-  </td>
+    </td>
 </tr>
 
 <tr>
-  <td>selectable</td>
-  <td>Boolean</td>
-  <td>true</td>
-  <td>If true, the items on the timeline can be selected. Multiple items can be selected by long pressing them, or by using ctrl+click or shift+click. The event <code>select</code> is fired each time the selection has changed (see section <a href="#Events">Events</a>).</td>
+    <td>selectable</td>
+    <td>Boolean</td>
+    <td>true</td>
+    <td>If true, the items on the timeline can be selected. Multiple items can be selected by long pressing them, or by using ctrl+click or shift+click. The event <code>select</code> is fired each time the selection has changed (see section <a href="#Events">Events</a>).</td>
 </tr>
 
 <tr>
-  <td>showCurrentTime</td>
-  <td>boolean</td>
-  <td>true</td>
-  <td>Show a vertical bar at the current time.</td>
+    <td>showCurrentTime</td>
+    <td>boolean</td>
+    <td>true</td>
+    <td>Show a vertical bar at the current time.</td>
 </tr>
 
 <tr>
-  <td>showCustomTime</td>
-  <td>boolean</td>
-  <td>false</td>
-  <td>Show a vertical bar displaying a custom time. This line can be dragged by the user. The custom time can be utilized to show a state in the past or in the future. When the custom time bar is dragged by the user, the event <code>timechange</code> is fired repeatedly. After the bar is dragged, the event <code>timechanged</code> is fired once.</td>
+    <td>showCustomTime</td>
+    <td>boolean</td>
+    <td>false</td>
+    <td>Show a vertical bar displaying a custom time. This line can be dragged by the user. The custom time can be utilized to show a state in the past or in the future. When the custom time bar is dragged by the user, the event <code>timechange</code> is fired repeatedly. After the bar is dragged, the event <code>timechanged</code> is fired once.</td>
 </tr>
 
 <tr>
 <tr>
-  <td>showMajorLabels</td>
-  <td>boolean</td>
-  <td>true</td>
-  <td>By default, the timeline shows both minor and major date labels on the
-    time axis.
-    For example the minor labels show minutes and the major labels show hours.
-    When <code>showMajorLabels</code> is <code>false</code>, no major labels
-    are shown.</td>
+    <td>showMajorLabels</td>
+    <td>boolean</td>
+    <td>true</td>
+    <td>By default, the timeline shows both minor and major date labels on the
+        time axis.
+        For example the minor labels show minutes and the major labels show hours.
+        When <code>showMajorLabels</code> is <code>false</code>, no major labels
+        are shown.</td>
 </tr>
 
 <tr>
-  <td>showMinorLabels</td>
-  <td>boolean</td>
-  <td>true</td>
-  <td>By default, the timeline shows both minor and major date labels on the
-    time axis.
-    For example the minor labels show minutes and the major labels show hours.
-    When <code>showMinorLabels</code> is <code>false</code>, no minor labels
-    are shown. When both <code>showMajorLabels</code> and
-    <code>showMinorLabels</code> are false, no horizontal axis will be
-    visible.</td>
+    <td>showMinorLabels</td>
+    <td>boolean</td>
+    <td>true</td>
+    <td>By default, the timeline shows both minor and major date labels on the
+        time axis.
+        For example the minor labels show minutes and the major labels show hours.
+        When <code>showMinorLabels</code> is <code>false</code>, no minor labels
+        are shown. When both <code>showMajorLabels</code> and
+        <code>showMinorLabels</code> are false, no horizontal axis will be
+        visible.</td>
 </tr>
 
 <tr>
-  <td>stack</td>
-  <td>Boolean</td>
-  <td>true</td>
-  <td>If true (default), items will be stacked on top of each other such that they do not overlap.</td>
+    <td>stack</td>
+    <td>Boolean</td>
+    <td>true</td>
+    <td>If true (default), items will be stacked on top of each other such that they do not overlap.</td>
 </tr>
 
 <tr>
-  <td>start</td>
-  <td>Date | Number | String</td>
-  <td>none</td>
-  <td>The initial start date for the axis of the timeline.
-    If not provided, the earliest date present in the events is taken as start date.</td>
+    <td>start</td>
+    <td>Date | Number | String</td>
+    <td>none</td>
+    <td>The initial start date for the axis of the timeline.
+        If not provided, the earliest date present in the events is taken as start date.</td>
 </tr>
 
 <tr>
-  <td>type</td>
-  <td>String</td>
-  <td>none</td>
-  <td>Specifies the default type for the timeline items. Choose from 'box', 'point', and 'range'. Note that individual items can override this default type. If undefined, the Timeline will auto detect the type from the items data: if a start and end date is available, a 'range' will be created, and else, a 'box' is created.
-  </td>
+    <td>type</td>
+    <td>String</td>
+    <td>none</td>
+    <td>Specifies the default type for the timeline items. Choose from 'box', 'point', and 'range'. Note that individual items can override this default type. If undefined, the Timeline will auto detect the type from the items data: if a start and end date is available, a 'range' will be created, and else, a 'box' is created.
+    </td>
 </tr>
 
 <tr>
-  <td>width</td>
-  <td>String</td>
-  <td>'100%'</td>
-  <td>The width of the timeline in pixels or as a percentage.</td>
+    <td>width</td>
+    <td>String</td>
+    <td>'100%'</td>
+    <td>The width of the timeline in pixels or as a percentage.</td>
 </tr>
 
 <tr>
-  <td>zoomable</td>
-  <td>Boolean</td>
-  <td>true</td>
-  <td>
-    Specifies whether the Timeline can be zoomed by pinching or scrolling in the window.
-    Only applicable when option <code>moveable</code> is set <code>true</code>.
-  </td>
+    <td>zoomable</td>
+    <td>Boolean</td>
+    <td>true</td>
+    <td>
+        Specifies whether the Timeline can be zoomed by pinching or scrolling in the window.
+        Only applicable when option <code>moveable</code> is set <code>true</code>.
+    </td>
 </tr>
 
 <tr>
-  <td>zoomMax</td>
-  <td>Number</td>
-  <td>315360000000000</td>
-  <td>Set a maximum zoom interval for the visible range in milliseconds.
-    It will not be possible to zoom out further than this maximum.
-    Default value equals about 10000 years.
-  </td>
+    <td>zoomMax</td>
+    <td>Number</td>
+    <td>315360000000000</td>
+    <td>Set a maximum zoom interval for the visible range in milliseconds.
+        It will not be possible to zoom out further than this maximum.
+        Default value equals about 10000 years.
+    </td>
 </tr>
 
 <tr>
-  <td>zoomMin</td>
-  <td>Number</td>
-  <td>10</td>
-  <td>Set a minimum zoom interval for the visible range in milliseconds.
-    It will not be possible to zoom in further than this minimum.
-  </td>
+    <td>zoomMin</td>
+    <td>Number</td>
+    <td>10</td>
+    <td>Set a minimum zoom interval for the visible range in milliseconds.
+        It will not be possible to zoom in further than this minimum.
+    </td>
 </tr>
 
 

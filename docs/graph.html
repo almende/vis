@@ -1384,7 +1384,8 @@ var nodes = [
     The original simulation method was based on particel physics with a repulsion field (potential) around each node,
     and the edges were modelled as springs. The new system employed the <a href="http://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation">Barnes-Hut</a> gravitational simulation model. The edges are still modelled as springs.
     To unify the physics system, the damping, repulsion distance and edge length have been combined in an physics option. To retain good behaviour, both the old repulsion model and the Barnes-Hut model have their own parameters.
-    If no options for the physics system are supplied, the Barnes-Hut method will be used with the default parameters. If you want to customize the physics system easily, you can use the configurePhysics option.
+    If no options for the physics system are supplied, the Barnes-Hut method will be used with the default parameters. If you want to customize the physics system easily, you can use the configurePhysics option. <br/>
+    When using the hierarchical display option, hierarchicalRepulsion is automatically used as the physics solver. Similarly, if you use the hierarchicalRepulsion physics option, hierarchical display is automatically turned on with default settings.
 
 <p class="important_note">Note: if the behaviour of your graph is not the way you want it, use configurePhysics as described <u><a href="#PhysicsConfiguration">below</a></u> or by <u><a href="../examples/graph/25_physics_configuration.html">example 25</a></u>.</p>
 </p>
@@ -1408,6 +1409,13 @@ var options = {
             nodeDistance: 100,
             damping: 0.09
         },
+        hierarchicalRepulsion: {
+            centralGravity: 0.5,
+            springLength: 150,
+            springConstant: 0.01,
+            nodeDistance: 60,
+            damping: 0.09
+        }
     }
 </pre>
 <h5>barnesHut:</h5>
@@ -1472,23 +1480,67 @@ var options = {
         <td>The central gravity is a force that pulls all nodes to the center. This ensures independent groups do not float apart.</td>
     </tr>
     <tr>
+        <td>nodeDistance</td>
+        <td>Number</td>
+        <td>100</td>
+        <td>This parameter is used to define the distance of influence of the repulsion field of the nodes. Below half this distance, the repulsion is maximal and beyond twice this distance the repulsion is zero.</td>
+    </tr>
+    <tr>
         <td>springLength</td>
         <td>Number</td>
         <td>50</td>
         <td>In the previous versions this was a property of the edges, called length. This is the length of the springs when they are at rest. During the simulation they will be streched by the gravitational fields.
             To greatly reduce the edge length, the gravitationalConstant has to be reduced as well.</td>
     </tr>
-    <tr>
-        <td>nodeDistance</td>
-        <td>Number</td>
-        <td>100</td>
-        <td>This parameter is used to define the distance of influence of the repulsion field of the nodes. Below half this distance, the repulsion is maximal and beyond twice this distance the repulsion is zero.</td>
-    </tr>
+
 
     <tr>
         <td>springConstant</td>
         <td>Number</td>
         <td>0.05</td>
+        <td>This is the spring constant used to calculate the spring forces based on Hooke&prime;s Law. More information is available <a href="http://en.wikipedia.org/wiki/Hooke's_law" target="_blank">here</a>.</td>
+    </tr>
+    <tr>
+        <td>damping</td>
+        <td>Number</td>
+        <td>0.09</td>
+        <td>This is the damping constant. It is used to dissipate energy from the system to have it settle in an equilibrium. More information is available <a href="http://en.wikipedia.org/wiki/Damping" target="_blank">here</a>.</td>
+    </tr>
+</table>
+<h5>hierarchicalRepulsion:</h5>
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td>centralGravity</td>
+        <td>Number</td>
+        <td>0.5</td>
+        <td>The central gravity is a force that pulls all nodes to the center. This ensures independent groups do not float apart.</td>
+    </tr>
+    <tr>
+        <td>nodeDistance</td>
+        <td>Number</td>
+        <td>60</td>
+        <td>This parameter is used to define the distance of influence of the repulsion field of the nodes. Below half this distance, the repulsion is maximal and beyond twice this distance the repulsion is zero.</td>
+    </tr>
+    <tr>
+        <td>springLength</td>
+        <td>Number</td>
+        <td>100</td>
+        <td>In the previous versions this was a property of the edges, called length. This is the length of the springs when they are at rest. During the simulation they will be streched by the gravitational fields.
+            To greatly reduce the edge length, the gravitationalConstant has to be reduced as well.</td>
+    </tr>
+
+
+    <tr>
+        <td>springConstant</td>
+        <td>Number</td>
+        <td>0.01</td>
         <td>This is the spring constant used to calculate the spring forces based on Hooke&prime;s Law. More information is available <a href="http://en.wikipedia.org/wiki/Hooke's_law" target="_blank">here</a>.</td>
     </tr>
     <tr>
