@@ -157,7 +157,15 @@ Group.prototype.redraw = function(range, margin, restack) {
       min = Math.min(min, item.top);
       max = Math.max(max, (item.top + item.height));
     });
-    height = (max - min) + margin.axis + margin.item;
+    if (min > margin.axis) {
+      // there is an empty gap between the lowest item and the axis
+      var offset = min - margin.axis;
+      max -= offset;
+      util.forEach(visibleItems, function (item) {
+        item.top -= offset;
+      });
+    }
+    height = max + margin.item / 2;
   }
   else {
     height = margin.axis + margin.item;

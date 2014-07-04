@@ -15,6 +15,7 @@ http://visjs.org
           overflow: visible;
         }
 - Fixed the height of background and foreground panels of groups.
+- Fixed ranges in the Timeline sometimes overlapping when dragging the Timeline.
 
 ### Network
 
