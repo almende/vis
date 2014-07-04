@@ -37,9 +37,9 @@ var manipulationMixin = {
    */
   _toggleEditMode : function() {
     this.editMode = !this.editMode;
-    var toolbar = document.getElementById("graph-manipulationDiv");
-    var closeDiv = document.getElementById("graph-manipulation-closeDiv");
-    var editModeDiv = document.getElementById("graph-manipulation-editMode");
+    var toolbar = document.getElementById("network-manipulationDiv");
+    var closeDiv = document.getElementById("network-manipulation-closeDiv");
+    var editModeDiv = document.getElementById("network-manipulation-editMode");
     if (this.editMode == true) {
       toolbar.style.display="block";
       closeDiv.style.display="block";
@@ -87,49 +87,49 @@ var manipulationMixin = {
       }
       // add the icons to the manipulator div
       this.manipulationDiv.innerHTML = "" +
-        "<span class='graph-manipulationUI add' id='graph-manipulate-addNode'>" +
-          "<span class='graph-manipulationLabel'>"+this.constants.labels['add'] +"</span></span>" +
-        "<div class='graph-seperatorLine'></div>" +
-        "<span class='graph-manipulationUI connect' id='graph-manipulate-connectNode'>" +
-          "<span class='graph-manipulationLabel'>"+this.constants.labels['link'] +"</span></span>";
+        "<span class='network-manipulationUI add' id='network-manipulate-addNode'>" +
+          "<span class='network-manipulationLabel'>"+this.constants.labels['add'] +"</span></span>" +
+        "<div class='network-seperatorLine'></div>" +
+        "<span class='network-manipulationUI connect' id='network-manipulate-connectNode'>" +
+          "<span class='network-manipulationLabel'>"+this.constants.labels['link'] +"</span></span>";
       if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
         this.manipulationDiv.innerHTML += "" +
-          "<div class='graph-seperatorLine'></div>" +
-          "<span class='graph-manipulationUI edit' id='graph-manipulate-editNode'>" +
-            "<span class='graph-manipulationLabel'>"+this.constants.labels['editNode'] +"</span></span>";
+          "<div class='network-seperatorLine'></div>" +
+          "<span class='network-manipulationUI edit' id='network-manipulate-editNode'>" +
+            "<span class='network-manipulationLabel'>"+this.constants.labels['editNode'] +"</span></span>";
       }
       else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
         this.manipulationDiv.innerHTML += "" +
-          "<div class='graph-seperatorLine'></div>" +
-          "<span class='graph-manipulationUI edit' id='graph-manipulate-editEdge'>" +
-          "<span class='graph-manipulationLabel'>"+this.constants.labels['editEdge'] +"</span></span>";
+          "<div class='network-seperatorLine'></div>" +
+          "<span class='network-manipulationUI edit' id='network-manipulate-editEdge'>" +
+          "<span class='network-manipulationLabel'>"+this.constants.labels['editEdge'] +"</span></span>";
       }
       if (this._selectionIsEmpty() == false) {
         this.manipulationDiv.innerHTML += "" +
-          "<div class='graph-seperatorLine'></div>" +
-          "<span class='graph-manipulationUI delete' id='graph-manipulate-delete'>" +
-            "<span class='graph-manipulationLabel'>"+this.constants.labels['del'] +"</span></span>";
+          "<div class='network-seperatorLine'></div>" +
+          "<span class='network-manipulationUI delete' id='network-manipulate-delete'>" +
+            "<span class='network-manipulationLabel'>"+this.constants.labels['del'] +"</span></span>";
       }
 
 
       // bind the icons
-      var addNodeButton = document.getElementById("graph-manipulate-addNode");
+      var addNodeButton = document.getElementById("network-manipulate-addNode");
       addNodeButton.onclick = this._createAddNodeToolbar.bind(this);
-      var addEdgeButton = document.getElementById("graph-manipulate-connectNode");
+      var addEdgeButton = document.getElementById("network-manipulate-connectNode");
       addEdgeButton.onclick = this._createAddEdgeToolbar.bind(this);
       if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
-        var editButton = document.getElementById("graph-manipulate-editNode");
+        var editButton = document.getElementById("network-manipulate-editNode");
         editButton.onclick = this._editNode.bind(this);
       }
       else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
-        var editButton = document.getElementById("graph-manipulate-editEdge");
+        var editButton = document.getElementById("network-manipulate-editEdge");
         editButton.onclick = this._createEditEdgeToolbar.bind(this);
       }
       if (this._selectionIsEmpty() == false) {
-        var deleteButton = document.getElementById("graph-manipulate-delete");
+        var deleteButton = document.getElementById("network-manipulate-delete");
         deleteButton.onclick = this._deleteSelected.bind(this);
       }
-      var closeDiv = document.getElementById("graph-manipulation-closeDiv");
+      var closeDiv = document.getElementById("network-manipulation-closeDiv");
       closeDiv.onclick = this._toggleEditMode.bind(this);
 
       this.boundFunction = this._createManipulatorBar.bind(this);
@@ -137,9 +137,9 @@ var manipulationMixin = {
     }
     else {
       this.editModeDiv.innerHTML = "" +
-        "<span class='graph-manipulationUI edit editmode' id='graph-manipulate-editModeButton'>" +
-        "<span class='graph-manipulationLabel'>" + this.constants.labels['edit'] + "</span></span>";
-      var editModeButton = document.getElementById("graph-manipulate-editModeButton");
+        "<span class='network-manipulationUI edit editmode' id='network-manipulate-editModeButton'>" +
+        "<span class='network-manipulationLabel'>" + this.constants.labels['edit'] + "</span></span>";
+      var editModeButton = document.getElementById("network-manipulate-editModeButton");
       editModeButton.onclick = this._toggleEditMode.bind(this);
     }
   },
@@ -160,14 +160,14 @@ var manipulationMixin = {
 
     // create the toolbar contents
     this.manipulationDiv.innerHTML = "" +
-      "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
-      "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
-      "<div class='graph-seperatorLine'></div>" +
-      "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
-      "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['addDescription'] + "</span></span>";
+      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
+      "<span class='network-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
+      "<div class='network-seperatorLine'></div>" +
+      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
+      "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + this.constants.labels['addDescription'] + "</span></span>";
 
     // bind the icon
-    var backButton = document.getElementById("graph-manipulate-back");
+    var backButton = document.getElementById("network-manipulate-back");
     backButton.onclick = this._createManipulatorBar.bind(this);
 
     // we use the boundFunction so we can reference it when we unbind it from the "select" event.
@@ -196,14 +196,14 @@ var manipulationMixin = {
     this.blockConnectingEdgeSelection = true;
 
     this.manipulationDiv.innerHTML = "" +
-      "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
-      "<div class='graph-seperatorLine'></div>" +
-      "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
-        "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['linkDescription'] + "</span></span>";
+      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
+        "<span class='network-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
+      "<div class='network-seperatorLine'></div>" +
+      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
+        "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + this.constants.labels['linkDescription'] + "</span></span>";
 
     // bind the icon
-    var backButton = document.getElementById("graph-manipulate-back");
+    var backButton = document.getElementById("network-manipulate-back");
     backButton.onclick = this._createManipulatorBar.bind(this);
 
     // we use the boundFunction so we can reference it when we unbind it from the "select" event.
@@ -237,14 +237,14 @@ var manipulationMixin = {
     this.edgeBeingEdited._enableControlNodes();
 
     this.manipulationDiv.innerHTML = "" +
-      "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
-      "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
-      "<div class='graph-seperatorLine'></div>" +
-      "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
-      "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['editEdgeDescription'] + "</span></span>";
+      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
+      "<span class='network-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
+      "<div class='network-seperatorLine'></div>" +
+      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
+      "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + this.constants.labels['editEdgeDescription'] + "</span></span>";
 
     // bind the icon
-    var backButton = document.getElementById("graph-manipulate-back");
+    var backButton = document.getElementById("network-manipulate-back");
     backButton.onclick = this._createManipulatorBar.bind(this);
 
     // temporarily overload functions

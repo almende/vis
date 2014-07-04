@@ -6,7 +6,7 @@ var NavigationMixin = {
 
   _cleanNavigation : function() {
     // clean up previosu navigation items
-    var wrapper = document.getElementById('graph-navigation_wrapper');
+    var wrapper = document.getElementById('network-navigation_wrapper');
     if (wrapper != null) {
       this.containerElement.removeChild(wrapper);
     }
@@ -29,7 +29,7 @@ var NavigationMixin = {
     var navigationDivActions = ['_moveUp','_moveDown','_moveLeft','_moveRight','_zoomIn','_zoomOut','zoomExtent'];
 
     this.navigationDivs['wrapper'] = document.createElement('div');
-    this.navigationDivs['wrapper'].id = "graph-navigation_wrapper";
+    this.navigationDivs['wrapper'].id = "network-navigation_wrapper";
     this.navigationDivs['wrapper'].style.position = "absolute";
     this.navigationDivs['wrapper'].style.width = this.frame.canvas.clientWidth + "px";
     this.navigationDivs['wrapper'].style.height = this.frame.canvas.clientHeight + "px";
@@ -37,8 +37,8 @@ var NavigationMixin = {
 
     for (var i = 0; i < navigationDivs.length; i++) {
       this.navigationDivs[navigationDivs[i]] = document.createElement('div');
-      this.navigationDivs[navigationDivs[i]].id = "graph-navigation_" + navigationDivs[i];
-      this.navigationDivs[navigationDivs[i]].className = "graph-navigation " + navigationDivs[i];
+      this.navigationDivs[navigationDivs[i]].id = "network-navigation_" + navigationDivs[i];
+      this.navigationDivs[navigationDivs[i]].className = "network-navigation " + navigationDivs[i];
       this.navigationDivs['wrapper'].appendChild(this.navigationDivs[navigationDivs[i]]);
       this.navigationDivs[navigationDivs[i]].onmousedown = this[navigationDivActions[i]].bind(this);
     }

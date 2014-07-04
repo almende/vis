@@ -1,10 +1,10 @@
 /**
  * @constructor Graph3d
- * The Graph is a visualization Graphs on a time line
+ * Graph3d displays data in 3d.
  *
- * Graph is developed in javascript as a Google Visualization Chart.
+ * Graph3d is developed in javascript as a Google Visualization Chart.
  *
- * @param {Element} container   The DOM element in which the Graph will
+ * @param {Element} container   The DOM element in which the Graph3d will
  *                              be created. Normally a div element.
  * @param {DataSet | DataView | Array} [data]
  * @param {Object} [options]
@@ -86,7 +86,7 @@ function Graph3d(container, data, options) {
   }
 }
 
-// Extend Graph with an Emitter mixin
+// Extend Graph3d with an Emitter mixin
 Emitter(Graph3d.prototype);
 
 /**
@@ -2555,7 +2555,7 @@ Point2d = function (x, y) {
  *
  * @param {DataSet} data The google data table
  * @param {Number}  column             The index of the column to be filtered
- * @param {Network} graph           The graph
+ * @param {Graph} graph           The graph
  */
 function Filter (data, column, graph) {
   this.data = data;

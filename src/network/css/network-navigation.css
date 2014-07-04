@@ -1,4 +1,4 @@
-div.graph-navigation {
+div.network-navigation {
     width:34px;
     height:34px;
     z-index:10;
@@ -17,49 +17,49 @@ div.graph-navigation {
     user-select: none;
 }
 
-div.graph-navigation:hover {
+div.network-navigation:hover {
     box-shadow: 0px 0px 3px 3px rgba(56, 207, 21, 0.30);
 }
 
-div.graph-navigation:active {
+div.network-navigation:active {
     box-shadow: 0px 0px 1px 3px rgba(56, 207, 21, 0.95);
 }
 
-div.graph-navigation.active {
+div.network-navigation.active {
     box-shadow: 0px 0px 1px 3px rgba(56, 207, 21, 0.95);
 }
 
-div.graph-navigation.up {
+div.network-navigation.up {
     background-image: url("img/network/upArrow.png");
     bottom:50px;
     left:55px;
 }
-div.graph-navigation.down {
+div.network-navigation.down {
     background-image: url("img/network/downArrow.png");
     bottom:10px;
     left:55px;
 }
-div.graph-navigation.left {
+div.network-navigation.left {
     background-image: url("img/network/leftArrow.png");
     bottom:10px;
     left:15px;
 }
-div.graph-navigation.right {
+div.network-navigation.right {
     background-image: url("img/network/rightArrow.png");
     bottom:10px;
     left:95px;
 }
-div.graph-navigation.zoomIn {
+div.network-navigation.zoomIn {
     background-image: url("img/network/plus.png");
     bottom:10px;
     right:15px;
 }
-div.graph-navigation.zoomOut {
+div.network-navigation.zoomOut {
     background-image: url("img/network/minus.png");
     bottom:10px;
     right:55px;
 }
-div.graph-navigation.zoomExtends {
+div.network-navigation.zoomExtends {
     background-image: url("img/network/zoomExtends.png");
     bottom:50px;
     right:15px;

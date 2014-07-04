@@ -114,8 +114,8 @@ var networkMixinLoaders = {
       // load the manipulator HTML elements. All styling done in css.
       if (this.manipulationDiv === undefined) {
         this.manipulationDiv = document.createElement('div');
-        this.manipulationDiv.className = 'graph-manipulationDiv';
-        this.manipulationDiv.id = 'graph-manipulationDiv';
+        this.manipulationDiv.className = 'network-manipulationDiv';
+        this.manipulationDiv.id = 'network-manipulationDiv';
         if (this.editMode == true) {
           this.manipulationDiv.style.display = "block";
         }
@@ -127,8 +127,8 @@ var networkMixinLoaders = {
 
       if (this.editModeDiv === undefined) {
         this.editModeDiv = document.createElement('div');
-        this.editModeDiv.className = 'graph-manipulation-editMode';
-        this.editModeDiv.id = 'graph-manipulation-editMode';
+        this.editModeDiv.className = 'network-manipulation-editMode';
+        this.editModeDiv.id = 'network-manipulation-editMode';
         if (this.editMode == true) {
           this.editModeDiv.style.display = "none";
         }
@@ -140,8 +140,8 @@ var networkMixinLoaders = {
 
       if (this.closeDiv === undefined) {
         this.closeDiv = document.createElement('div');
-        this.closeDiv.className = 'graph-manipulation-closeDiv';
-        this.closeDiv.id = 'graph-manipulation-closeDiv';
+        this.closeDiv.className = 'network-manipulation-closeDiv';
+        this.closeDiv.id = 'network-manipulation-closeDiv';
         this.closeDiv.style.display = this.manipulationDiv.style.display;
         this.containerElement.insertBefore(this.closeDiv, this.frame);
       }

@@ -9,7 +9,7 @@
 var ClusterMixin = {
 
  /**
-  * This is only called in the constructor of the graph object
+  * This is only called in the constructor of the network object
   *
   */
  startWithClustering : function() {
@@ -494,7 +494,7 @@ var ClusterMixin = {
   },
 
   /**
-   * This function forces the graph to cluster all nodes with only one connecting edge to their
+   * This function forces the network to cluster all nodes with only one connecting edge to their
    * connected node.
    *
    * @private

@@ -486,25 +486,6 @@ Graph2d.prototype.getItemRange = function() {
 };
 
 /**
- * Set selected items by their id. Replaces the current selection
- * Unknown id's are silently ignored.
- * @param {Array} [ids] An array with zero or more id's of the items to be
- *                      selected. If ids is an empty array, all items will be
- *                      unselected.
- */
-Graph2d.prototype.setSelection = function(ids) {
-  this.linegraph && this.linegraph.setSelection(ids);
-};
-
-/**
- * Get the selected items by their id
- * @return {Array} ids  The ids of the selected items
- */
-Graph2d.prototype.getSelection = function() {
-  return this.linegraph && this.linegraph.getSelection() || [];
-};
-
-/**
  * Set the visible window. Both parameters are optional, you can change only
  * start or only end. Syntax:
  *
@@ -676,11 +657,6 @@ Graph2d.prototype.redraw = function() {
     // keep redrawing until all sizes are settled
     this.redraw();
   }
-};
-
-// TODO: deprecated since version 1.1.0, remove some day
-Graph2d.prototype.repaint = function () {
-  throw new Error('Function repaint is deprecated. Use redraw instead.');
 };
 
 /**

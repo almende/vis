@@ -780,7 +780,7 @@ Network.prototype._create = function () {
   }
 
   this.frame = document.createElement('div');
-  this.frame.className = 'graph-frame';
+  this.frame.className = 'network-frame';
   this.frame.style.position = 'relative';
   this.frame.style.overflow = 'hidden';
 
