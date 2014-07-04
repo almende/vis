@@ -72,7 +72,7 @@ task('build', {async: true}, function () {
       './src/timeline/component/GraphGroup.js',
       './src/timeline/component/Legend.js',
       './src/timeline/component/DataAxis.js',
-      './src/timeline/component/Linegraph.js',
+      './src/timeline/component/LineGraph.js',
       './src/timeline/DataStep.js',
 
       './src/timeline/Stack.js',

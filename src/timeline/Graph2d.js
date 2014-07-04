@@ -64,7 +64,7 @@ function Graph2d (container, items, options, groups) {
   this.components.push(this.customTime);
 
   // item set
-  this.linegraph = new Linegraph(this.body);
+  this.linegraph = new LineGraph(this.body);
   this.components.push(this.linegraph);
 
   this.itemsData = null;      // DataSet

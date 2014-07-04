@@ -3711,13 +3711,13 @@ DataAxis.prototype.snap = function(date) {
 var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
 /**
- * This is the constructor of the linegraph. It requires a timeline body and options.
+ * This is the constructor of the LineGraph. It requires a Timeline body and options.
  *
  * @param body
  * @param options
  * @constructor
  */
-function Linegraph(body, options) {
+function LineGraph(body, options) {
   this.id = util.randomUUID();
   this.body = body;
 
@@ -3835,14 +3835,14 @@ function Linegraph(body, options) {
   this.body.emitter.emit("change");
 }
 
-Linegraph.prototype = new Component();
+LineGraph.prototype = new Component();
 
 /**
  * Create the HTML DOM for the ItemSet
  */
-Linegraph.prototype._create = function(){
+LineGraph.prototype._create = function(){
   var frame = document.createElement('div');
-  frame.className = 'linegraph';
+  frame.className = 'LineGraph';
   this.dom.frame = frame;
 
   // create svg element for graph drawing.
@@ -3868,10 +3868,10 @@ Linegraph.prototype._create = function(){
 };
 
 /**
- * set the options of the linegraph. the mergeOptions is used for subObjects that have an enabled element.
+ * set the options of the LineGraph. the mergeOptions is used for subObjects that have an enabled element.
  * @param options
  */
-Linegraph.prototype.setOptions = function(options) {
+LineGraph.prototype.setOptions = function(options) {
   if (options) {
     var fields = ['sampling','defaultGroup','graphHeight','yAxisOrientation','style','barChart','dataAxis','sort'];
     util.selectiveDeepExtend(fields, this.options, options);
@@ -3923,7 +3923,7 @@ Linegraph.prototype.setOptions = function(options) {
 /**
  * Hide the component from the DOM
  */
-Linegraph.prototype.hide = function() {
+LineGraph.prototype.hide = function() {
   // remove the frame containing the items
   if (this.dom.frame.parentNode) {
     this.dom.frame.parentNode.removeChild(this.dom.frame);
@@ -3934,7 +3934,7 @@ Linegraph.prototype.hide = function() {
  * Show the component in the DOM (when not already visible).
  * @return {Boolean} changed
  */
-Linegraph.prototype.show = function() {
+LineGraph.prototype.show = function() {
   // show frame containing the items
   if (!this.dom.frame.parentNode) {
     this.body.dom.center.appendChild(this.dom.frame);
@@ -3946,7 +3946,7 @@ Linegraph.prototype.show = function() {
  * Set items
  * @param {vis.DataSet | null} items
  */
-Linegraph.prototype.setItems = function(items) {
+LineGraph.prototype.setItems = function(items) {
   var me = this,
     ids,
     oldItemsData = this.itemsData;
@@ -3993,7 +3993,7 @@ Linegraph.prototype.setItems = function(items) {
  * Set groups
  * @param {vis.DataSet} groups
  */
-Linegraph.prototype.setGroups = function(groups) {
+LineGraph.prototype.setGroups = function(groups) {
   var me = this,
     ids;
 
@@ -4036,15 +4036,15 @@ Linegraph.prototype.setGroups = function(groups) {
 
 
 
-Linegraph.prototype._onUpdate = function(ids) {
+LineGraph.prototype._onUpdate = function(ids) {
   this._updateUngrouped();
   this._updateAllGroupData();
   this._updateGraph();
   this.redraw();
 };
-Linegraph.prototype._onAdd          = function (ids) {this._onUpdate(ids);};
-Linegraph.prototype._onRemove       = function (ids) {this._onUpdate(ids);};
-Linegraph.prototype._onUpdateGroups  = function (groupIds) {
+LineGraph.prototype._onAdd          = function (ids) {this._onUpdate(ids);};
+LineGraph.prototype._onRemove       = function (ids) {this._onUpdate(ids);};
+LineGraph.prototype._onUpdateGroups  = function (groupIds) {
   for (var i = 0; i < groupIds.length; i++) {
     var group = this.groupsData.get(groupIds[i]);
     this._updateGroup(group, groupIds[i]);
@@ -4053,9 +4053,9 @@ Linegraph.prototype._onUpdateGroups  = function (groupIds) {
   this._updateGraph();
   this.redraw();
 };
-Linegraph.prototype._onAddGroups = function (groupIds) {this._onUpdateGroups(groupIds);};
+LineGraph.prototype._onAddGroups = function (groupIds) {this._onUpdateGroups(groupIds);};
 
-Linegraph.prototype._onRemoveGroups = function (groupIds) {
+LineGraph.prototype._onRemoveGroups = function (groupIds) {
   for (var i = 0; i < groupIds.length; i++) {
     if (!this.groups.hasOwnProperty(groupIds[i])) {
       if (this.groups[groupIds[i]].options.yAxisOrientation == 'right') {
@@ -4083,7 +4083,7 @@ Linegraph.prototype._onRemoveGroups = function (groupIds) {
  * @param groupId
  * @private
  */
-Linegraph.prototype._updateGroup = function (group, groupId) {
+LineGraph.prototype._updateGroup = function (group, groupId) {
   if (!this.groups.hasOwnProperty(groupId)) {
     this.groups[groupId] = new GraphGroup(group, groupId, this.options, this.groupsUsingDefaultStyles);
     if (this.groups[groupId].options.yAxisOrientation == 'right') {
@@ -4110,7 +4110,7 @@ Linegraph.prototype._updateGroup = function (group, groupId) {
   this.legendRight.redraw();
 };
 
-Linegraph.prototype._updateAllGroupData = function () {
+LineGraph.prototype._updateAllGroupData = function () {
   if (this.itemsData != null) {
     // ~450 ms @ 500k
 
@@ -4150,7 +4150,7 @@ Linegraph.prototype._updateAllGroupData = function () {
  * there are no groups specified. This anonymous group is called 'graph'.
  * @protected
  */
-Linegraph.prototype._updateUngrouped = function() {
+LineGraph.prototype._updateUngrouped = function() {
   if (this.itemsData != null) {
 //    var t0 = new Date();
     var group = {id: UNGROUPED, content: this.options.defaultGroup};
@@ -4216,7 +4216,7 @@ Linegraph.prototype._updateUngrouped = function() {
  * Redraw the component, mandatory function
  * @return {boolean} Returns true if the component is resized
  */
-Linegraph.prototype.redraw = function() {
+LineGraph.prototype.redraw = function() {
   var resized = false;
 
   this.svg.style.height = ('' + this.options.graphHeight).replace('px','') + 'px';
@@ -4254,7 +4254,7 @@ Linegraph.prototype.redraw = function() {
  * Update and redraw the graph.
  *
  */
-Linegraph.prototype._updateGraph = function () {
+LineGraph.prototype._updateGraph = function () {
   // reset the svg elements
   DOMutil.prepareElements(this.svgElements);
 //        // very slow...
@@ -4363,7 +4363,7 @@ Linegraph.prototype._updateGraph = function () {
  * @param {array} groupIds
  * @private
  */
-Linegraph.prototype._updateYAxis = function (groupIds, groupRanges) {
+LineGraph.prototype._updateYAxis = function (groupIds, groupRanges) {
   var changeCalled = false;
   var yAxisLeftUsed = false;
   var yAxisRightUsed = false;
@@ -4437,7 +4437,7 @@ Linegraph.prototype._updateYAxis = function (groupIds, groupRanges) {
  * @private
  * @param axis
  */
-Linegraph.prototype._toggleAxisVisiblity = function (axisUsed, axis) {
+LineGraph.prototype._toggleAxisVisiblity = function (axisUsed, axis) {
   var changed = false;
   if (axisUsed == false) {
     if (axis.dom.frame.parentNode) {
@@ -4460,7 +4460,7 @@ Linegraph.prototype._toggleAxisVisiblity = function (axisUsed, axis) {
  * @param datapoints
  * @param group
  */
-Linegraph.prototype._drawBarGraph = function (dataset, group) {
+LineGraph.prototype._drawBarGraph = function (dataset, group) {
   if (dataset != null) {
     if (dataset.length > 0) {
       var coreDistance;
@@ -4495,7 +4495,7 @@ Linegraph.prototype._drawBarGraph = function (dataset, group) {
  * @param datapoints
  * @param group
  */
-Linegraph.prototype._drawLineGraph = function (dataset, group) {
+LineGraph.prototype._drawLineGraph = function (dataset, group) {
   if (dataset != null) {
     if (dataset.length > 0) {
       var path, d;
@@ -4543,7 +4543,7 @@ Linegraph.prototype._drawLineGraph = function (dataset, group) {
  * @param svg
  * @param group
  */
-Linegraph.prototype._drawPoints = function (dataset, group, JSONcontainer, svg, offset) {
+LineGraph.prototype._drawPoints = function (dataset, group, JSONcontainer, svg, offset) {
   if (offset === undefined) {offset = 0;}
   for (var i = 0; i < dataset.length; i++) {
     DOMutil.drawPoint(dataset[i].x + offset, dataset[i].y, group, JSONcontainer, svg);
@@ -4561,10 +4561,13 @@ Linegraph.prototype._drawPoints = function (dataset, group, JSONcontainer, svg, 
  * @returns {Array}
  * @private
  */
-Linegraph.prototype._preprocessData = function (datapoints, group) {
+LineGraph.prototype._preprocessData = function (datapoints, group) {
   var extractedData = [];
-  var xValue, yValue, increment;
+  var xValue, yValue;
   var toScreen = this.body.util.toScreen;
+
+  var increment = 1;
+  var amountOfPoints = datapoints.length;
 
   var yMin = datapoints[0].y;
   var yMax = datapoints[0].y;
@@ -4573,19 +4576,14 @@ Linegraph.prototype._preprocessData = function (datapoints, group) {
   // of width changing of the yAxis.
   if (group.options.sampling == true) {
     var xDistance = this.body.util.toGlobalScreen(datapoints[datapoints.length-1].x) - this.body.util.toGlobalScreen(datapoints[0].x);
-    var amountOfPoints = datapoints.length;
     var pointsPerPixel = amountOfPoints/xDistance;
     increment = Math.min(Math.ceil(0.2 * amountOfPoints), Math.max(1,Math.round(pointsPerPixel)));
-  }
-  else {
-    increment = 1;
   }
 
   for (var i = 0; i < amountOfPoints; i += increment) {
     xValue = toScreen(datapoints[i].x) + this.width - 1;
     yValue = datapoints[i].y;
     extractedData.push({x: xValue, y: yValue});
-
     yMin = yMin > yValue ? yValue : yMin;
     yMax = yMax < yValue ? yValue : yMax;
   }
@@ -4603,7 +4601,7 @@ Linegraph.prototype._preprocessData = function (datapoints, group) {
  * @returns {Array}
  * @private
  */
-Linegraph.prototype._convertYvalues = function (datapoints, group) {
+LineGraph.prototype._convertYvalues = function (datapoints, group) {
   var extractedData = [];
   var xValue, yValue;
   var axis = this.yAxisLeft;
@@ -4633,7 +4631,7 @@ Linegraph.prototype._convertYvalues = function (datapoints, group) {
  * @returns {string}
  * @private
  */
-Linegraph.prototype._catmullRomUniform = function(data) {
+LineGraph.prototype._catmullRomUniform = function(data) {
   // catmull rom
   var p0, p1, p2, p3, bp1, bp2;
   var d = Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
@@ -4680,7 +4678,7 @@ Linegraph.prototype._catmullRomUniform = function(data) {
  * @returns {string}
  * @private
  */
-Linegraph.prototype._catmullRom = function(data, group) {
+LineGraph.prototype._catmullRom = function(data, group) {
   var alpha = group.options.catmullRom.alpha;
   if (alpha == 0 || alpha === undefined) {
     return this._catmullRomUniform(data);
@@ -4757,7 +4755,7 @@ Linegraph.prototype._catmullRom = function(data, group) {
  * @returns {string}
  * @private
  */
-Linegraph.prototype._linear = function(data) {
+LineGraph.prototype._linear = function(data) {
   // linear
   var d = "";
   for (var i = 0; i < data.length; i++) {
@@ -10164,7 +10162,7 @@ Timeline.prototype._toScreen = function(time) {
  * @private
  */
 // TODO: move this function to Range
-Graph2d.prototype._toGlobalScreen = function(time) {
+Timeline.prototype._toGlobalScreen = function(time) {
   var conversion = this.range.conversion(this.props.root.width);
   return (time.valueOf() - conversion.offset) * conversion.scale;
 };
@@ -10391,7 +10389,7 @@ function Graph2d (container, items, options, groups) {
   this.components.push(this.customTime);
 
   // item set
-  this.linegraph = new Linegraph(this.body);
+  this.linegraph = new LineGraph(this.body);
   this.components.push(this.linegraph);
 
   this.itemsData = null;      // DataSet
@@ -15246,7 +15244,7 @@ var hierarchalRepulsionMixin = {
               distance = 0.01;
             }
 
-            distance = Math.max(0.8*edgeLength,Math.min(1.2*edgeLength, distance));
+            distance = Math.max(0.8*edgeLength,Math.min(5*edgeLength, distance));
 
             // the 1/distance is so the fx and fy can be calculated without sine or cosine.
             springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
