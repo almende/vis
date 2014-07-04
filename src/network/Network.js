@@ -193,7 +193,7 @@ function Network (container, data, options) {
         background: '#FFFFC6'
       }
     },
-    dragGraph: true,
+    dragNetwork: true,
     dragNodes: true,
     zoomable: true,
     hover: false
@@ -536,10 +536,15 @@ Network.prototype.setOptions = function (options) {
     if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
-    if (options.dragGraph !== undefined)       {this.constants.dragGraph = options.dragGraph;}
+    if (options.dragNetwork !== undefined)     {this.constants.dragNetwork = options.dragNetwork;}
     if (options.dragNodes !== undefined)       {this.constants.dragNodes = options.dragNodes;}
     if (options.zoomable !== undefined)        {this.constants.zoomable = options.zoomable;}
     if (options.hover !== undefined)           {this.constants.hover = options.hover;}
+
+    // TODO: deprecated since version 3.0.0. Cleanup some day
+    if (options.dragGraph !== undefined) {
+      throw new Error('Option dragGraph is renamed to dragNetwork');
+    }
 
     if (options.labels !== undefined)  {
       for (prop in options.labels) {
@@ -994,7 +999,7 @@ Network.prototype._handleOnDrag = function(event) {
     }
   }
   else {
-    if (this.constants.dragGraph == true) {
+    if (this.constants.dragNetwork == true) {
       // move the network
       var diffX = pointer.x - this.drag.pointer.x;
       var diffY = pointer.y - this.drag.pointer.y;

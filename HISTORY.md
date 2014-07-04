@@ -20,6 +20,7 @@ http://visjs.org
 
 - Renamed `Graph` to `Network` to prevent confusion with the visualizations 
   `Graph2d` and `Graph3d`.
+  - Renamed option `dragGraph` to `dragNetwork`.
 - Now throws an error when constructing without new keyword.
 - Added pull request from Vukk, user can now define the edge width multiplier 
   when selected.
