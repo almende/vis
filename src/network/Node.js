@@ -817,7 +817,7 @@ Node.prototype._drawShape = function (ctx, shape) {
   ctx.stroke();
 
   if (this.label) {
-    this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, 'top');
+    this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, 'top',true);
   }
 };
 
@@ -845,17 +845,20 @@ Node.prototype._drawText = function (ctx) {
 };
 
 
-Node.prototype._label = function (ctx, text, x, y, align, baseline) {
+Node.prototype._label = function (ctx, text, x, y, align, baseline, labelUnderNode) {
   if (text && this.fontSize * this.networkScale > this.fontDrawThreshold) {
     ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
     ctx.fillStyle = this.fontColor || "black";
     ctx.textAlign = align || "center";
     ctx.textBaseline = baseline || "middle";
 
-    var lines = text.split('\n'),
-        lineCount = lines.length,
-        fontSize = (this.fontSize + 4),
-        yLine = y + (1 - lineCount) / (2 * fontSize);
+    var lines = text.split('\n');
+    var lineCount = lines.length;
+    var fontSize = (this.fontSize + 4);
+    var yLine = y + (1 - lineCount) / 2 * fontSize;
+    if (labelUnderNode == true) {
+      yLine = y + (1 - lineCount) / (2 * fontSize);
+    }
 
     for (var i = 0; i < lineCount; i++) {
       ctx.fillText(lines[i], x, yLine);
