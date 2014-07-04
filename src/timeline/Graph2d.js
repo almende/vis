@@ -627,9 +627,10 @@ Graph2d.prototype.redraw = function() {
 
   // reposition the scrollable contents
   var offset = this.props.scrollTop;
-//  if (options.orientation == 'bottom') {
-//     offset += Math.max(this.props.centerContainer.height - this.props.center.height, 0);
-//  }
+  if (options.orientation == 'bottom') {
+    offset += Math.max(this.props.centerContainer.height - this.props.center.height -
+        this.props.border.top - this.props.border.bottom, 0);
+  }
   dom.center.style.left = '0';
   dom.center.style.top  = offset + 'px';
   dom.backgroundHorizontal.style.left = '0';
