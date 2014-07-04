@@ -2555,7 +2555,7 @@ Point2d = function (x, y) {
  *
  * @param {DataSet} data The google data table
  * @param {Number}  column             The index of the column to be filtered
- * @param {Graph} graph           The graph
+ * @param {Network} graph           The graph
  */
 function Filter (data, column, graph) {
   this.data = data;

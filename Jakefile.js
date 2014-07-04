@@ -49,8 +49,8 @@ task('build', {async: true}, function () {
       './src/timeline/component/css/dataaxis.css',
       './src/timeline/component/css/pathStyles.css',
 
-      './src/graph/css/graph-manipulation.css',
-      './src/graph/css/graph-navigation.css'
+      './src/network/css/network-manipulation.css',
+      './src/network/css/network-navigation.css'
     ],
     dest: VIS_CSS,
     separator: '\n'
@@ -88,25 +88,25 @@ task('build', {async: true}, function () {
       './src/timeline/Timeline.js',
       './src/timeline/Graph2d.js',
 
-      './src/graph/dotparser.js',
-      './src/graph/shapes.js',
-      './src/graph/Node.js',
-      './src/graph/Edge.js',
-      './src/graph/Popup.js',
-      './src/graph/Groups.js',
-      './src/graph/Images.js',
-      './src/graph/graphMixins/physics/PhysicsMixin.js',
-      './src/graph/graphMixins/physics/HierarchialRepulsion.js',
-      './src/graph/graphMixins/physics/BarnesHut.js',
-      './src/graph/graphMixins/physics/Repulsion.js',
-      './src/graph/graphMixins/HierarchicalLayoutMixin.js',
-      './src/graph/graphMixins/ManipulationMixin.js',
-      './src/graph/graphMixins/SectorsMixin.js',
-      './src/graph/graphMixins/ClusterMixin.js',
-      './src/graph/graphMixins/SelectionMixin.js',
-      './src/graph/graphMixins/NavigationMixin.js',
-      './src/graph/graphMixins/MixinLoader.js',
-      './src/graph/Graph.js',
+      './src/network/dotparser.js',
+      './src/network/shapes.js',
+      './src/network/Node.js',
+      './src/network/Edge.js',
+      './src/network/Popup.js',
+      './src/network/Groups.js',
+      './src/network/Images.js',
+      './src/network/networkMixins/physics/PhysicsMixin.js',
+      './src/network/networkMixins/physics/HierarchialRepulsion.js',
+      './src/network/networkMixins/physics/BarnesHut.js',
+      './src/network/networkMixins/physics/Repulsion.js',
+      './src/network/networkMixins/HierarchicalLayoutMixin.js',
+      './src/network/networkMixins/ManipulationMixin.js',
+      './src/network/networkMixins/SectorsMixin.js',
+      './src/network/networkMixins/ClusterMixin.js',
+      './src/network/networkMixins/SelectionMixin.js',
+      './src/network/networkMixins/NavigationMixin.js',
+      './src/network/networkMixins/MixinLoader.js',
+      './src/network/Network.js',
 
       './src/graph3d/Graph3d.js',
 
@@ -117,7 +117,7 @@ task('build', {async: true}, function () {
   });
 
   // copy images
-  wrench.copyDirSyncRecursive('./src/graph/img', DIST + '/img/graph', {
+  wrench.copyDirSyncRecursive('./src/network/img', DIST + '/img/network', {
     forceDelete: true
   });
   wrench.copyDirSyncRecursive('./src/timeline/img', DIST + '/img/timeline', {
