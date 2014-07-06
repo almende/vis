@@ -1193,7 +1193,7 @@ ItemSet.prototype._onAddItem = function (event) {
     var itemData = me.itemsData.get(item.id); // get a clone of the data from the dataset
     this.options.onUpdate(itemData, function (itemData) {
       if (itemData) {
-        me.itemsData.update(itemData);
+        me._myDataSet().update(itemData);
       }
     });
   }
@@ -1223,7 +1223,7 @@ ItemSet.prototype._onAddItem = function (event) {
     // execute async handler to customize (or cancel) adding an item
     this.options.onAdd(newItem, function (item) {
       if (item) {
-        me.itemsData.add(newItem);
+        me._myDataSet().add(newItem);
         // TODO: need to trigger a redraw?
       }
     });
@@ -1326,7 +1326,7 @@ ItemSet.prototype._myDataSet = function() {
   // find the root DataSet
   var dataset = this.itemsData;
   while (dataset instanceof DataView) {
-    dataset = dataset.data;
+    dataset = dataset._data;
   }
   return dataset;
 };

@@ -442,7 +442,7 @@ Timeline.prototype.fit = function() {
  */
 Timeline.prototype.getItemRange = function() {
   // calculate min from start filed
-  var itemsData = this.itemsData,
+  var itemsData = this.itemSet._myDataSet(),
       min = null,
       max = null;
 
