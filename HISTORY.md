@@ -2,6 +2,9 @@
 http://visjs.org
 
 
+## not yet released, version 3.0.1-SNAPSHOT
+
+
 ## 2014-07-07, version 3.0.0
 
 ### Timeline
