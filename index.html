@@ -48,7 +48,7 @@
   Vis.js is a dynamic, browser based visualization library.
   The library is designed to be easy to use, to handle large amounts
   of dynamic data, and to enable manipulation of and interaction with the data.
-  The library consists of the components DataSet, Timeline, Graph, and Graph3d.
+  The library consists of the components DataSet, Timeline, Network, Graph2d, and Graph3d.
 </p>
 <p>
   The vis.js library is developed by <a href="http://almende.com" target="_blank">Almende B.V</a>,
@@ -74,7 +74,7 @@ bower install vis
 <h3>download</h3>
 
 <a href="download/vis.zip">Click here to download vis.js</a>
-(version <span class="version">2.0.0</span>)
+(version <span class="version">3.0.0</span>)
 
 
 <h2 id="example">Example</h2>
@@ -232,170 +232,228 @@ The source code of the examples can be found in the
   </div>
 </div>
 
-<h3 id="graph">Graph</h3>
+<h3 id="network">Network</h3>
 <p>
-  The graph from vis.js visualizes graphs and networks with
+  The Network visualization visualizes graphs and networks with
   customizable styles.
 </p>
 
 <div class="gallery">
   <div class="thumb">
-    <a href="examples/graph/01_basic_usage.html">
-      <img src="img/gallery/graph/01_basic_usage.png">
+    <a href="examples/network/01_basic_usage.html">
+      <img src="img/gallery/network/01_basic_usage.png">
       <div>basic usage</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/02_random_nodes.html">
-      <img src="img/gallery/graph/02_random_nodes.png">
+    <a href="examples/network/02_random_nodes.html">
+      <img src="img/gallery/network/02_random_nodes.png">
       <div>random nodes</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/03_images.html">
-      <img src="img/gallery/graph/03_images.png">
+    <a href="examples/network/03_images.html">
+      <img src="img/gallery/network/03_images.png">
       <div>images</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/04_shapes.html">
-      <img src="img/gallery/graph/04_shapes.png">
+    <a href="examples/network/04_shapes.html">
+      <img src="img/gallery/network/04_shapes.png">
       <div>shapes</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/05_social_network.html">
-      <img src="img/gallery/graph/05_social_network.png">
+    <a href="examples/network/05_social_network.html">
+      <img src="img/gallery/network/05_social_network.png">
       <div>social network</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/06_groups.html">
-      <img src="img/gallery/graph/06_groups.png">
+    <a href="examples/network/06_groups.html">
+      <img src="img/gallery/network/06_groups.png">
       <div>groups</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/07_selections.html">
-      <img src="img/gallery/graph/07_selections.png">
+    <a href="examples/network/07_selections.html">
+      <img src="img/gallery/network/07_selections.png">
       <div>selections</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/08_mobile_friendly.html">
-      <img src="img/gallery/graph/08_mobile_friendly.png">
+    <a href="examples/network/08_mobile_friendly.html">
+      <img src="img/gallery/network/08_mobile_friendly.png">
       <div>mobile friendly</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/09_sizing.html">
-      <img src="img/gallery/graph/09_sizing.png">
+    <a href="examples/network/09_sizing.html">
+      <img src="img/gallery/network/09_sizing.png">
       <div>sizing</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/10_multiline_text.html">
-      <img src="img/gallery/graph/10_multiline_text.png">
+    <a href="examples/network/10_multiline_text.html">
+      <img src="img/gallery/network/10_multiline_text.png">
       <div>multiline text</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/11_custom_style.html">
-      <img src="img/gallery/graph/11_custom_style.png">
+    <a href="examples/network/11_custom_style.html">
+      <img src="img/gallery/network/11_custom_style.png">
       <div>custom style</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/12_scalable_images.html">
-      <img src="img/gallery/graph/12_scalable_images.png">
+    <a href="examples/network/12_scalable_images.html">
+      <img src="img/gallery/network/12_scalable_images.png">
       <div>scalable images</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/13_dashed_lines.html">
-      <img src="img/gallery/graph/13_dashed_lines.png">
+    <a href="examples/network/13_dashed_lines.html">
+      <img src="img/gallery/network/13_dashed_lines.png">
       <div>dashed lines</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/14_dot_language.html">
-      <img src="img/gallery/graph/14_dot_language.png">
+    <a href="examples/network/14_dot_language.html">
+      <img src="img/gallery/network/14_dot_language.png">
       <div>dot language</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/15_dot_language_playground.html">
-      <img src="img/gallery/graph/15_dot_language_playground.png">
+    <a href="examples/network/15_dot_language_playground.html">
+      <img src="img/gallery/network/15_dot_language_playground.png">
       <div>playground</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/16_dynamic_data.html">
-      <img src="img/gallery/graph/16_dynamic_data.png">
+    <a href="examples/network/16_dynamic_data.html">
+      <img src="img/gallery/network/16_dynamic_data.png">
       <div>dynamic data</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/17_network_info.html">
-      <img src="img/gallery/graph/17_network_info.png">
+    <a href="examples/network/17_network_info.html">
+      <img src="img/gallery/network/17_network_info.png">
       <div>network info</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/18_fully_random_nodes_clustering.html">
-      <img src="img/gallery/graph/18_fully_random_nodes_clustering.png">
+    <a href="examples/network/18_fully_random_nodes_clustering.html">
+      <img src="img/gallery/network/18_fully_random_nodes_clustering.png">
       <div>fully random nodes clustering</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/19_scale_free_graph_clustering.html">
-      <img src="img/gallery/graph/19_scale_free_graph_clustering.png">
+    <a href="examples/network/19_scale_free_graph_clustering.html">
+      <img src="img/gallery/network/19_scale_free_graph_clustering.png">
       <div>scale free graph clustering</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/20_navigation.html">
-      <img src="img/gallery/graph/20_navigation.png">
+    <a href="examples/network/20_navigation.html">
+      <img src="img/gallery/network/20_navigation.png">
       <div>navigation</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/21_data_manipulation.html">
-      <img src="img/gallery/graph/21_data_manipulation.png">
+    <a href="examples/network/21_data_manipulation.html">
+      <img src="img/gallery/network/21_data_manipulation.png">
       <div>data manipulation</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/22_les_miserables.html">
-      <img src="img/gallery/graph/22_les_miserables.png">
+    <a href="examples/network/22_les_miserables.html">
+      <img src="img/gallery/network/22_les_miserables.png">
       <div>les miserables</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/23_hierarchical_layout.html">
-      <img src="img/gallery/graph/23_hierarchical_layout.png">
+    <a href="examples/network/23_hierarchical_layout.html">
+      <img src="img/gallery/network/23_hierarchical_layout.png">
       <div>hierarchical layout</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/24_hierarchical_layout_userdefined.html">
-      <img src="img/gallery/graph/24_hierarchical_layout_predefined.png">
+    <a href="examples/network/24_hierarchical_layout_userdefined.html">
+      <img src="img/gallery/network/24_hierarchical_layout_predefined.png">
       <div>hierarchical layout predefined</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/25_physics_configuration.html">
-      <img src="img/gallery/graph/25_physics_configuration.png">
+    <a href="examples/network/25_physics_configuration.html">
+      <img src="img/gallery/network/25_physics_configuration.png">
       <div>physics configuration</div>
     </a>
   </div>
   <div class="thumb">
-    <a href="examples/graph/graphviz/graphviz_gallery.html">
-      <img src="img/gallery/graph/graphviz_gallery.png">
+    <a href="examples/network/graphviz/graphviz_gallery.html">
+      <img src="img/gallery/network/graphviz_gallery.png">
       <div>graphviz gallery</div>
     </a>
   </div>
 </div>
+
+
+<h3 id="graph2d">Graph2d</h3>
+<p>
+  The Graph2d visualizes bars and lines in time.
+</p>
+
+<div class="gallery">
+  <div class="thumb">
+    <a href="examples/graph2d/01_basic.html">
+      <img src="img/gallery/graph2d/01_basic.png">
+      <div>basic</div>
+    </a>
+  </div>
+  <div class="thumb">
+    <a href="examples/graph2d/02_bars.html">
+      <img src="img/gallery/graph2d/02_bars.png">
+      <div>bars</div>
+    </a>
+  </div>
+  <div class="thumb">
+    <a href="examples/graph2d/03_groups.html">
+      <img src="img/gallery/graph2d/03_groups.png">
+      <div>groups</div>
+    </a>
+  </div>
+  <div class="thumb">
+    <a href="examples/graph2d/04_rightAxis.html">
+      <img src="img/gallery/graph2d/04_rightAxis.png">
+      <div>right axis</div>
+    </a>
+  </div>
+  <div class="thumb">
+    <a href="examples/graph2d/05_bothAxis.html">
+      <img src="img/gallery/graph2d/05_bothAxis.png">
+      <div>both axis</div>
+    </a>
+  </div>
+  <div class="thumb">
+    <a href="examples/graph2d/06_interpolation.html">
+      <img src="img/gallery/graph2d/06_interpolation.png">
+      <div>interpolation</div>
+    </a>
+  </div>
+  <div class="thumb">
+    <a href="examples/graph2d/07_scrollingAndSorting.html">
+      <img src="img/gallery/graph2d/07_scrollingAndSorting.png">
+      <div>scrolling and sorting</div>
+    </a>
+  </div>
+  <div class="thumb">
+    <a href="examples/graph2d/08_performance.html">
+      <img src="img/gallery/graph2d/08_performance.png">
+      <div>performance</div>
+    </a>
+  </div>
+</div>
+
 
 <h3 id="graph3d">Graph3d</h3>
 <p>
