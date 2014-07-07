@@ -448,23 +448,23 @@ Timeline.prototype.fit = function() {
  */
 Timeline.prototype.getItemRange = function() {
   // calculate min from start filed
-  var itemsData = this.itemsData,
+  var dataset = this.itemsData.getDataSet(),
       min = null,
       max = null;
 
-  if (itemsData) {
+  if (dataset) {
     // calculate the minimum value of the field 'start'
-    var minItem = itemsData.min('start');
+    var minItem = dataset.min('start');
     min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
     // Note: we convert first to Date and then to number because else
     // a conversion from ISODate to Number will fail
 
     // calculate maximum value of fields 'start' and 'end'
-    var maxStartItem = itemsData.max('start');
+    var maxStartItem = dataset.max('start');
     if (maxStartItem) {
       max = util.convert(maxStartItem.start, 'Date').valueOf();
     }
-    var maxEndItem = itemsData.max('end');
+    var maxEndItem = dataset.max('end');
     if (maxEndItem) {
       if (max == null) {
         max = util.convert(maxEndItem.end, 'Date').valueOf();

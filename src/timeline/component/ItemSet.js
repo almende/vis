@@ -647,7 +647,7 @@ ItemSet.prototype.getGroups = function() {
  */
 ItemSet.prototype.removeItem = function(id) {
   var item = this.itemsData.get(id),
-      dataset = this._myDataSet();
+      dataset = this.itemsData.getDataSet();
 
   if (item) {
     // confirm deletion
@@ -1088,7 +1088,7 @@ ItemSet.prototype._onDragEnd = function (event) {
     // prepare a change set for the changed items
     var changes = [],
         me = this,
-        dataset = this._myDataSet();
+        dataset = this.itemsData.getDataSet();
 
     this.touchParams.itemProps.forEach(function (props) {
       var id = props.item.id,
@@ -1316,18 +1316,4 @@ ItemSet.itemSetFromTarget = function(event) {
   }
 
   return null;
-};
-
-/**
- * Find the DataSet to which this ItemSet is connected
- * @returns {null | DataSet} dataset
- * @private
- */
-ItemSet.prototype._myDataSet = function() {
-  // find the root DataSet
-  var dataset = this.itemsData;
-  while (dataset instanceof DataView) {
-    dataset = dataset.data;
-  }
-  return dataset;
 };
