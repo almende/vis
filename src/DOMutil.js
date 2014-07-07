@@ -2,7 +2,8 @@
  * Created by Alex on 6/20/14.
  */
 
-var DOMutil = {}
+var DOMutil = {};
+
 /**
  * this prepares the JSON container for allocating SVG elements
  * @param JSONcontainer
@@ -153,7 +154,7 @@ DOMutil.drawPoint = function(x, y, group, JSONcontainer, svgContainer) {
  * @param className
  */
 DOMutil.drawBar = function (x, y, width, height, className, JSONcontainer, svgContainer) {
-  rect = DOMutil.getSVGElement('rect',JSONcontainer, svgContainer);
+  var rect = DOMutil.getSVGElement('rect',JSONcontainer, svgContainer);
   rect.setAttributeNS(null, "x", x - 0.5 * width);
   rect.setAttributeNS(null, "y", y);
   rect.setAttributeNS(null, "width", width);
