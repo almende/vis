@@ -13,7 +13,7 @@ function ItemSet(body, options) {
   this.body = body;
 
   this.defaultOptions = {
-    type: 'box',
+    type: null,  // 'box', 'point', 'range'
     orientation: 'bottom',  // 'top' or 'bottom'
     align: 'center', // alignment of box items
     stack: true,
@@ -114,7 +114,6 @@ ItemSet.prototype = new Component();
 ItemSet.types = {
   box: ItemBox,
   range: ItemRange,
-  rangeoverflow: ItemRangeOverflow,
   point: ItemPoint
 };
 
@@ -648,7 +647,7 @@ ItemSet.prototype.getGroups = function() {
  */
 ItemSet.prototype.removeItem = function(id) {
   var item = this.itemsData.get(id),
-      dataset = this._myDataSet();
+      dataset = this.itemsData.getDataSet();
 
   if (item) {
     // confirm deletion
@@ -673,10 +672,7 @@ ItemSet.prototype._onUpdate = function(ids) {
   ids.forEach(function (id) {
     var itemData = me.itemsData.get(id, me.itemOptions),
         item = me.items[id],
-        type = itemData.type ||
-            (itemData.start && itemData.end && 'range') ||
-            me.options.type ||
-            'box';
+        type = itemData.type || me.options.type || (itemData.end ? 'range' : 'box');
 
     var constructor = ItemSet.types[type];
 
@@ -698,6 +694,11 @@ ItemSet.prototype._onUpdate = function(ids) {
         item = new constructor(itemData, me.conversion, me.options);
         item.id = id; // TODO: not so nice setting id afterwards
         me._addItem(item);
+      }
+      else if (type == 'rangeoverflow') {
+        // TODO: deprecated since version 2.1.0 (or 3.0.0?). cleanup some day
+        throw new TypeError('Item type "rangeoverflow" is deprecated. Use css styling instead: ' +
+            '.vis.timeline .item.range .content {overflow: visible;}');
       }
       else {
         throw new TypeError('Unknown item type "' + type + '"');
@@ -1087,7 +1088,7 @@ ItemSet.prototype._onDragEnd = function (event) {
     // prepare a change set for the changed items
     var changes = [],
         me = this,
-        dataset = this._myDataSet();
+        dataset = this.itemsData.getDataSet();
 
     this.touchParams.itemProps.forEach(function (props) {
       var id = props.item.id,
@@ -1208,7 +1209,7 @@ ItemSet.prototype._onAddItem = function (event) {
     };
 
     // when default type is a range, add a default end date to the new item
-    if (this.options.type === 'range' || this.options.type == 'rangeoverflow') {
+    if (this.options.type === 'range') {
       var end = this.body.util.toTime(x + this.props.width / 5);
       newItem.end = snap ? snap(end) : end;
     }
@@ -1317,16 +1318,3 @@ ItemSet.itemSetFromTarget = function(event) {
   return null;
 };
 
-/**
- * Find the DataSet to which this ItemSet is connected
- * @returns {null | DataSet} dataset
- * @private
- */
-ItemSet.prototype._myDataSet = function() {
-  // find the root DataSet
-  var dataset = this.itemsData;
-  while (dataset instanceof DataView) {
-    dataset = dataset.data;
-  }
-  return dataset;
-};

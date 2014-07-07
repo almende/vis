@@ -110,17 +110,56 @@ util.selectiveExtend = function (props, a, b) {
     throw new Error('Array with property names expected as first argument');
   }
 
-  for (var i = 1, len = arguments.length; i < len; i++) {
+  for (var i = 2; i < arguments.length; i++) {
     var other = arguments[i];
 
-    for (var p = 0, pp = props.length; p < pp; p++) {
+    for (var p = 0; p < props.length; p++) {
       var prop = props[p];
       if (other.hasOwnProperty(prop)) {
         a[prop] = other[prop];
       }
     }
   }
+  return a;
+};
 
+/**
+ * Extend object a with selected properties of object b or a series of objects
+ * Only properties with defined values are copied
+ * @param {Array.<String>} props
+ * @param {Object} a
+ * @param {... Object} b
+ * @return {Object} a
+ */
+util.selectiveDeepExtend = function (props, a, b) {
+  // TODO: add support for Arrays to deepExtend
+  if (Array.isArray(b)) {
+    throw new TypeError('Arrays are not supported by deepExtend');
+  }
+  for (var i = 2; i < arguments.length; i++) {
+    var other = arguments[i];
+    for (var p = 0; p < props.length; p++) {
+      var prop = props[p];
+      if (other.hasOwnProperty(prop)) {
+        if (b[prop] && b[prop].constructor === Object) {
+          if (a[prop] === undefined) {
+            a[prop] = {};
+          }
+          if (a[prop].constructor === Object) {
+            util.deepExtend(a[prop], b[prop]);
+          }
+          else {
+            a[prop] = b[prop];
+          }
+        } else if (Array.isArray(b[prop])) {
+          throw new TypeError('Arrays are not supported by deepExtend');
+        } else {
+          a[prop] = b[prop];
+        }
+
+      }
+    }
+  }
   return a;
 };
 
@@ -975,16 +1014,251 @@ util.isValidHex = function(hex) {
   return isOk;
 };
 
-util.copyObject = function(objectFrom, objectTo) {
-  for (var i in objectFrom) {
-    if (objectFrom.hasOwnProperty(i)) {
-      if (typeof objectFrom[i] == "object") {
-        objectTo[i] = {};
-        util.copyObject(objectFrom[i], objectTo[i]);
+
+/**
+ * This recursively redirects the prototype of JSON objects to the referenceObject
+ * This is used for default options.
+ *
+ * @param referenceObject
+ * @returns {*}
+ */
+util.selectiveBridgeObject = function(fields, referenceObject) {
+  if (typeof referenceObject == "object") {
+    var objectTo = Object.create(referenceObject);
+    for (var i = 0; i < fields.length; i++) {
+      if (referenceObject.hasOwnProperty(fields[i])) {
+        if (typeof referenceObject[fields[i]] == "object") {
+          objectTo[fields[i]] = util.bridgeObject(referenceObject[fields[i]]);
+        }
       }
-      else {
-        objectTo[i] = objectFrom[i];
+    }
+    return objectTo;
+  }
+  else {
+    return null;
+  }
+};
+
+/**
+ * This recursively redirects the prototype of JSON objects to the referenceObject
+ * This is used for default options.
+ *
+ * @param referenceObject
+ * @returns {*}
+ */
+util.bridgeObject = function(referenceObject) {
+  if (typeof referenceObject == "object") {
+    var objectTo = Object.create(referenceObject);
+    for (var i in referenceObject) {
+      if (referenceObject.hasOwnProperty(i)) {
+        if (typeof referenceObject[i] == "object") {
+          objectTo[i] = util.bridgeObject(referenceObject[i]);
+        }
+      }
+    }
+    return objectTo;
+  }
+  else {
+    return null;
+  }
+};
+
+
+/**
+ * this is used to set the options of subobjects in the options object. A requirement of these subobjects
+ * is that they have an 'enabled' element which is optional for the user but mandatory for the program.
+ *
+ * @param [object] mergeTarget | this is either this.options or the options used for the groups.
+ * @param [object] options     | options
+ * @param [String] option      | this is the option key in the options argument
+ * @private
+ */
+util.mergeOptions = function (mergeTarget, options, option) {
+  if (options[option] !== undefined) {
+    if (typeof options[option] == 'boolean') {
+      mergeTarget[option].enabled = options[option];
+    }
+    else {
+      mergeTarget[option].enabled = true;
+      for (prop in options[option]) {
+        if (options[option].hasOwnProperty(prop)) {
+          mergeTarget[option][prop] = options[option][prop];
+        }
       }
     }
   }
+}
+
+
+/**
+ * this is used to set the options of subobjects in the options object. A requirement of these subobjects
+ * is that they have an 'enabled' element which is optional for the user but mandatory for the program.
+ *
+ * @param [object] mergeTarget | this is either this.options or the options used for the groups.
+ * @param [object] options     | options
+ * @param [String] option      | this is the option key in the options argument
+ * @private
+ */
+util.mergeOptions = function (mergeTarget, options, option) {
+  if (options[option] !== undefined) {
+    if (typeof options[option] == 'boolean') {
+      mergeTarget[option].enabled = options[option];
+    }
+    else {
+      mergeTarget[option].enabled = true;
+      for (prop in options[option]) {
+        if (options[option].hasOwnProperty(prop)) {
+          mergeTarget[option][prop] = options[option][prop];
+        }
+      }
+    }
+  }
+}
+
+
+
+
+/**
+ * This function does a binary search for a visible item. The user can select either the this.orderedItems.byStart or .byEnd
+ * arrays. This is done by giving a boolean value true if you want to use the byEnd.
+ * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
+ * if the time we selected (start or end) is within the current range).
+ *
+ * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the ItemRange that is
+ * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
+ * either the start OR end time has to be in the range.
+ *
+ * @param {{byStart: Item[], byEnd: Item[]}} orderedItems
+ * @param {{start: number, end: number}} range
+ * @param {Boolean} byEnd
+ * @returns {number}
+ * @private
+ */
+util.binarySearch = function(orderedItems, range, field, field2) {
+  var array = orderedItems;
+  var interval = range.end - range.start;
+
+  var found = false;
+  var low = 0;
+  var high = array.length;
+  var guess = Math.floor(0.5*(high+low));
+  var newGuess;
+  var value;
+
+  if (high == 0) {guess = -1;}
+  else if (high == 1) {
+    value = field2 === undefined ? array[guess][field] : array[guess][field][field2];
+    if ((value > range.start - interval) && (value < range.end)) {
+      guess =  0;
+    }
+    else {
+      guess = -1;
+    }
+  }
+  else {
+    high -= 1;
+    while (found == false) {
+      value = field2 === undefined ? array[guess][field] : array[guess][field][field2];
+      if ((value > range.start - interval) && (value < range.end)) {
+        found = true;
+      }
+      else {
+        if (value < range.start - interval) { // it is too small --> increase low
+          low = Math.floor(0.5*(high+low));
+        }
+        else {  // it is too big --> decrease high
+          high = Math.floor(0.5*(high+low));
+        }
+        newGuess = Math.floor(0.5*(high+low));
+        // not in list;
+        if (guess == newGuess) {
+          guess = -1;
+          found = true;
+        }
+        else {
+          guess = newGuess;
+        }
+      }
+    }
+  }
+  return guess;
+};
+
+/**
+ * This function does a binary search for a visible item. The user can select either the this.orderedItems.byStart or .byEnd
+ * arrays. This is done by giving a boolean value true if you want to use the byEnd.
+ * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
+ * if the time we selected (start or end) is within the current range).
+ *
+ * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the ItemRange that is
+ * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
+ * either the start OR end time has to be in the range.
+ *
+ * @param {Array} orderedItems
+ * @param {{start: number, end: number}} target
+ * @param {Boolean} byEnd
+ * @returns {number}
+ * @private
+ */
+util.binarySearchGeneric = function(orderedItems, target, field, sidePreference) {
+  var array = orderedItems;
+  var found = false;
+  var low = 0;
+  var high = array.length;
+  var guess = Math.floor(0.5*(high+low));
+  var newGuess;
+  var prevValue, value, nextValue;
+
+  if (high == 0) {guess = -1;}
+  else if (high == 1) {
+    value = array[guess][field];
+    if (value == target) {
+      guess =  0;
+    }
+    else {
+      guess = -1;
+    }
+  }
+  else {
+    high -= 1;
+    while (found == false) {
+      prevValue = array[Math.max(0,guess - 1)][field];
+      value = array[guess][field];
+      nextValue = array[Math.min(array.length-1,guess + 1)][field];
+
+      if (value == target || prevValue < target && value > target || value < target && nextValue > target) {
+        found = true;
+        if (value != target) {
+          if (sidePreference == 'before') {
+            if (prevValue < target && value > target) {
+              guess = Math.max(0,guess - 1);
+            }
+          }
+          else {
+            if (value < target && nextValue > target) {
+              guess = Math.min(array.length-1,guess + 1);
+            }
+          }
+        }
+      }
+      else {
+        if (value < target) { // it is too small --> increase low
+          low = Math.floor(0.5*(high+low));
+        }
+        else {  // it is too big --> decrease high
+          high = Math.floor(0.5*(high+low));
+        }
+        newGuess = Math.floor(0.5*(high+low));
+        // not in list;
+        if (guess == newGuess) {
+          guess = -2;
+          found = true;
+        }
+        else {
+          guess = newGuess;
+        }
+      }
+    }
+  }
+  return guess;
 };

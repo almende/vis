@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 2.0.0
- * @date    2014-06-19
+ * @version 3.0.0
+ * @date    2014-07-07
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -420,17 +420,56 @@ util.selectiveExtend = function (props, a, b) {
     throw new Error('Array with property names expected as first argument');
   }
 
-  for (var i = 1, len = arguments.length; i < len; i++) {
+  for (var i = 2; i < arguments.length; i++) {
     var other = arguments[i];
 
-    for (var p = 0, pp = props.length; p < pp; p++) {
+    for (var p = 0; p < props.length; p++) {
       var prop = props[p];
       if (other.hasOwnProperty(prop)) {
         a[prop] = other[prop];
       }
     }
   }
+  return a;
+};
 
+/**
+ * Extend object a with selected properties of object b or a series of objects
+ * Only properties with defined values are copied
+ * @param {Array.<String>} props
+ * @param {Object} a
+ * @param {... Object} b
+ * @return {Object} a
+ */
+util.selectiveDeepExtend = function (props, a, b) {
+  // TODO: add support for Arrays to deepExtend
+  if (Array.isArray(b)) {
+    throw new TypeError('Arrays are not supported by deepExtend');
+  }
+  for (var i = 2; i < arguments.length; i++) {
+    var other = arguments[i];
+    for (var p = 0; p < props.length; p++) {
+      var prop = props[p];
+      if (other.hasOwnProperty(prop)) {
+        if (b[prop] && b[prop].constructor === Object) {
+          if (a[prop] === undefined) {
+            a[prop] = {};
+          }
+          if (a[prop].constructor === Object) {
+            util.deepExtend(a[prop], b[prop]);
+          }
+          else {
+            a[prop] = b[prop];
+          }
+        } else if (Array.isArray(b[prop])) {
+          throw new TypeError('Arrays are not supported by deepExtend');
+        } else {
+          a[prop] = b[prop];
+        }
+
+      }
+    }
+  }
   return a;
 };
 
@@ -1285,20 +1324,417 @@ util.isValidHex = function(hex) {
   return isOk;
 };
 
-util.copyObject = function(objectFrom, objectTo) {
-  for (var i in objectFrom) {
-    if (objectFrom.hasOwnProperty(i)) {
-      if (typeof objectFrom[i] == "object") {
-        objectTo[i] = {};
-        util.copyObject(objectFrom[i], objectTo[i]);
+
+/**
+ * This recursively redirects the prototype of JSON objects to the referenceObject
+ * This is used for default options.
+ *
+ * @param referenceObject
+ * @returns {*}
+ */
+util.selectiveBridgeObject = function(fields, referenceObject) {
+  if (typeof referenceObject == "object") {
+    var objectTo = Object.create(referenceObject);
+    for (var i = 0; i < fields.length; i++) {
+      if (referenceObject.hasOwnProperty(fields[i])) {
+        if (typeof referenceObject[fields[i]] == "object") {
+          objectTo[fields[i]] = util.bridgeObject(referenceObject[fields[i]]);
+        }
+      }
+    }
+    return objectTo;
+  }
+  else {
+    return null;
+  }
+};
+
+/**
+ * This recursively redirects the prototype of JSON objects to the referenceObject
+ * This is used for default options.
+ *
+ * @param referenceObject
+ * @returns {*}
+ */
+util.bridgeObject = function(referenceObject) {
+  if (typeof referenceObject == "object") {
+    var objectTo = Object.create(referenceObject);
+    for (var i in referenceObject) {
+      if (referenceObject.hasOwnProperty(i)) {
+        if (typeof referenceObject[i] == "object") {
+          objectTo[i] = util.bridgeObject(referenceObject[i]);
+        }
+      }
+    }
+    return objectTo;
+  }
+  else {
+    return null;
+  }
+};
+
+
+/**
+ * this is used to set the options of subobjects in the options object. A requirement of these subobjects
+ * is that they have an 'enabled' element which is optional for the user but mandatory for the program.
+ *
+ * @param [object] mergeTarget | this is either this.options or the options used for the groups.
+ * @param [object] options     | options
+ * @param [String] option      | this is the option key in the options argument
+ * @private
+ */
+util.mergeOptions = function (mergeTarget, options, option) {
+  if (options[option] !== undefined) {
+    if (typeof options[option] == 'boolean') {
+      mergeTarget[option].enabled = options[option];
+    }
+    else {
+      mergeTarget[option].enabled = true;
+      for (prop in options[option]) {
+        if (options[option].hasOwnProperty(prop)) {
+          mergeTarget[option][prop] = options[option][prop];
+        }
+      }
+    }
+  }
+}
+
+
+/**
+ * this is used to set the options of subobjects in the options object. A requirement of these subobjects
+ * is that they have an 'enabled' element which is optional for the user but mandatory for the program.
+ *
+ * @param [object] mergeTarget | this is either this.options or the options used for the groups.
+ * @param [object] options     | options
+ * @param [String] option      | this is the option key in the options argument
+ * @private
+ */
+util.mergeOptions = function (mergeTarget, options, option) {
+  if (options[option] !== undefined) {
+    if (typeof options[option] == 'boolean') {
+      mergeTarget[option].enabled = options[option];
+    }
+    else {
+      mergeTarget[option].enabled = true;
+      for (prop in options[option]) {
+        if (options[option].hasOwnProperty(prop)) {
+          mergeTarget[option][prop] = options[option][prop];
+        }
+      }
+    }
+  }
+}
+
+
+
+
+/**
+ * This function does a binary search for a visible item. The user can select either the this.orderedItems.byStart or .byEnd
+ * arrays. This is done by giving a boolean value true if you want to use the byEnd.
+ * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
+ * if the time we selected (start or end) is within the current range).
+ *
+ * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the ItemRange that is
+ * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
+ * either the start OR end time has to be in the range.
+ *
+ * @param {{byStart: Item[], byEnd: Item[]}} orderedItems
+ * @param {{start: number, end: number}} range
+ * @param {Boolean} byEnd
+ * @returns {number}
+ * @private
+ */
+util.binarySearch = function(orderedItems, range, field, field2) {
+  var array = orderedItems;
+  var interval = range.end - range.start;
+
+  var found = false;
+  var low = 0;
+  var high = array.length;
+  var guess = Math.floor(0.5*(high+low));
+  var newGuess;
+  var value;
+
+  if (high == 0) {guess = -1;}
+  else if (high == 1) {
+    value = field2 === undefined ? array[guess][field] : array[guess][field][field2];
+    if ((value > range.start - interval) && (value < range.end)) {
+      guess =  0;
+    }
+    else {
+      guess = -1;
+    }
+  }
+  else {
+    high -= 1;
+    while (found == false) {
+      value = field2 === undefined ? array[guess][field] : array[guess][field][field2];
+      if ((value > range.start - interval) && (value < range.end)) {
+        found = true;
       }
       else {
-        objectTo[i] = objectFrom[i];
+        if (value < range.start - interval) { // it is too small --> increase low
+          low = Math.floor(0.5*(high+low));
+        }
+        else {  // it is too big --> decrease high
+          high = Math.floor(0.5*(high+low));
+        }
+        newGuess = Math.floor(0.5*(high+low));
+        // not in list;
+        if (guess == newGuess) {
+          guess = -1;
+          found = true;
+        }
+        else {
+          guess = newGuess;
+        }
+      }
+    }
+  }
+  return guess;
+};
+
+/**
+ * This function does a binary search for a visible item. The user can select either the this.orderedItems.byStart or .byEnd
+ * arrays. This is done by giving a boolean value true if you want to use the byEnd.
+ * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
+ * if the time we selected (start or end) is within the current range).
+ *
+ * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the ItemRange that is
+ * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
+ * either the start OR end time has to be in the range.
+ *
+ * @param {Array} orderedItems
+ * @param {{start: number, end: number}} target
+ * @param {Boolean} byEnd
+ * @returns {number}
+ * @private
+ */
+util.binarySearchGeneric = function(orderedItems, target, field, sidePreference) {
+  var array = orderedItems;
+  var found = false;
+  var low = 0;
+  var high = array.length;
+  var guess = Math.floor(0.5*(high+low));
+  var newGuess;
+  var prevValue, value, nextValue;
+
+  if (high == 0) {guess = -1;}
+  else if (high == 1) {
+    value = array[guess][field];
+    if (value == target) {
+      guess =  0;
+    }
+    else {
+      guess = -1;
+    }
+  }
+  else {
+    high -= 1;
+    while (found == false) {
+      prevValue = array[Math.max(0,guess - 1)][field];
+      value = array[guess][field];
+      nextValue = array[Math.min(array.length-1,guess + 1)][field];
+
+      if (value == target || prevValue < target && value > target || value < target && nextValue > target) {
+        found = true;
+        if (value != target) {
+          if (sidePreference == 'before') {
+            if (prevValue < target && value > target) {
+              guess = Math.max(0,guess - 1);
+            }
+          }
+          else {
+            if (value < target && nextValue > target) {
+              guess = Math.min(array.length-1,guess + 1);
+            }
+          }
+        }
+      }
+      else {
+        if (value < target) { // it is too small --> increase low
+          low = Math.floor(0.5*(high+low));
+        }
+        else {  // it is too big --> decrease high
+          high = Math.floor(0.5*(high+low));
+        }
+        newGuess = Math.floor(0.5*(high+low));
+        // not in list;
+        if (guess == newGuess) {
+          guess = -2;
+          found = true;
+        }
+        else {
+          guess = newGuess;
+        }
+      }
+    }
+  }
+  return guess;
+};
+/**
+ * Created by Alex on 6/20/14.
+ */
+
+var DOMutil = {};
+
+/**
+ * this prepares the JSON container for allocating SVG elements
+ * @param JSONcontainer
+ * @private
+ */
+DOMutil.prepareElements = function(JSONcontainer) {
+  // cleanup the redundant svgElements;
+  for (var elementType in JSONcontainer) {
+    if (JSONcontainer.hasOwnProperty(elementType)) {
+      JSONcontainer[elementType].redundant = JSONcontainer[elementType].used;
+      JSONcontainer[elementType].used = [];
+    }
+  }
+};
+
+/**
+ * this cleans up all the unused SVG elements. By asking for the parentNode, we only need to supply the JSON container from
+ * which to remove the redundant elements.
+ *
+ * @param JSONcontainer
+ * @private
+ */
+DOMutil.cleanupElements = function(JSONcontainer) {
+  // cleanup the redundant svgElements;
+  for (var elementType in JSONcontainer) {
+    if (JSONcontainer.hasOwnProperty(elementType)) {
+      if (JSONcontainer[elementType].redundant) {
+        for (var i = 0; i < JSONcontainer[elementType].redundant.length; i++) {
+          JSONcontainer[elementType].redundant[i].parentNode.removeChild(JSONcontainer[elementType].redundant[i]);
+        }
+        JSONcontainer[elementType].redundant = [];
       }
     }
   }
 };
 
+/**
+ * Allocate or generate an SVG element if needed. Store a reference to it in the JSON container and draw it in the svgContainer
+ * the JSON container and the SVG container have to be supplied so other svg containers (like the legend) can use this.
+ *
+ * @param elementType
+ * @param JSONcontainer
+ * @param svgContainer
+ * @returns {*}
+ * @private
+ */
+DOMutil.getSVGElement = function (elementType, JSONcontainer, svgContainer) {
+  var element;
+  // allocate SVG element, if it doesnt yet exist, create one.
+  if (JSONcontainer.hasOwnProperty(elementType)) { // this element has been created before
+    // check if there is an redundant element
+    if (JSONcontainer[elementType].redundant.length > 0) {
+      element = JSONcontainer[elementType].redundant[0];
+      JSONcontainer[elementType].redundant.shift();
+    }
+    else {
+      // create a new element and add it to the SVG
+      element = document.createElementNS('http://www.w3.org/2000/svg', elementType);
+      svgContainer.appendChild(element);
+    }
+  }
+  else {
+    // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
+    element = document.createElementNS('http://www.w3.org/2000/svg', elementType);
+    JSONcontainer[elementType] = {used: [], redundant: []};
+    svgContainer.appendChild(element);
+  }
+  JSONcontainer[elementType].used.push(element);
+  return element;
+};
+
+
+/**
+ * Allocate or generate an SVG element if needed. Store a reference to it in the JSON container and draw it in the svgContainer
+ * the JSON container and the SVG container have to be supplied so other svg containers (like the legend) can use this.
+ *
+ * @param elementType
+ * @param JSONcontainer
+ * @param DOMContainer
+ * @returns {*}
+ * @private
+ */
+DOMutil.getDOMElement = function (elementType, JSONcontainer, DOMContainer) {
+  var element;
+  // allocate SVG element, if it doesnt yet exist, create one.
+  if (JSONcontainer.hasOwnProperty(elementType)) { // this element has been created before
+    // check if there is an redundant element
+    if (JSONcontainer[elementType].redundant.length > 0) {
+      element = JSONcontainer[elementType].redundant[0];
+      JSONcontainer[elementType].redundant.shift();
+    }
+    else {
+      // create a new element and add it to the SVG
+      element = document.createElement(elementType);
+      DOMContainer.appendChild(element);
+    }
+  }
+  else {
+    // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
+    element = document.createElement(elementType);
+    JSONcontainer[elementType] = {used: [], redundant: []};
+    DOMContainer.appendChild(element);
+  }
+  JSONcontainer[elementType].used.push(element);
+  return element;
+};
+
+
+
+
+/**
+ * draw a point object. this is a seperate function because it can also be called by the legend.
+ * The reason the JSONcontainer and the target SVG svgContainer have to be supplied is so the legend can use these functions
+ * as well.
+ *
+ * @param x
+ * @param y
+ * @param group
+ * @param JSONcontainer
+ * @param svgContainer
+ * @returns {*}
+ */
+DOMutil.drawPoint = function(x, y, group, JSONcontainer, svgContainer) {
+  var point;
+  if (group.options.drawPoints.style == 'circle') {
+    point = DOMutil.getSVGElement('circle',JSONcontainer,svgContainer);
+    point.setAttributeNS(null, "cx", x);
+    point.setAttributeNS(null, "cy", y);
+    point.setAttributeNS(null, "r", 0.5 * group.options.drawPoints.size);
+    point.setAttributeNS(null, "class", group.className + " point");
+  }
+  else {
+    point = DOMutil.getSVGElement('rect',JSONcontainer,svgContainer);
+    point.setAttributeNS(null, "x", x - 0.5*group.options.drawPoints.size);
+    point.setAttributeNS(null, "y", y - 0.5*group.options.drawPoints.size);
+    point.setAttributeNS(null, "width", group.options.drawPoints.size);
+    point.setAttributeNS(null, "height", group.options.drawPoints.size);
+    point.setAttributeNS(null, "class", group.className + " point");
+  }
+  return point;
+};
+
+/**
+ * draw a bar SVG element centered on the X coordinate
+ *
+ * @param x
+ * @param y
+ * @param className
+ */
+DOMutil.drawBar = function (x, y, width, height, className, JSONcontainer, svgContainer) {
+  var rect = DOMutil.getSVGElement('rect',JSONcontainer, svgContainer);
+  rect.setAttributeNS(null, "x", x - 0.5 * width);
+  rect.setAttributeNS(null, "y", y);
+  rect.setAttributeNS(null, "width", width);
+  rect.setAttributeNS(null, "height", height);
+  rect.setAttributeNS(null, "class", className);
+};
 /**
  * DataSet
  *
@@ -1810,6 +2246,14 @@ DataSet.prototype.getIds = function (options) {
   }
 
   return ids;
+};
+
+/**
+ * Returns the DataSet itself. Is overwritten for example by the DataView,
+ * which returns the DataSet it is connected to instead.
+ */
+DataSet.prototype.getDataSet = function () {
+  return this;
 };
 
 /**
@@ -2416,6 +2860,19 @@ DataView.prototype.getIds = function (options) {
 };
 
 /**
+ * Get the DataSet to which this DataView is connected. In case there is a chain
+ * of multiple DataViews, the root DataSet of this chain is returned.
+ * @return {DataSet} dataSet
+ */
+DataView.prototype.getDataSet = function () {
+  var dataSet = this;
+  while (dataSet instanceof DataView) {
+    dataSet = dataSet._data;
+  }
+  return dataSet || null;
+};
+
+/**
  * Event listener. Will propagate all events from the connected data set to
  * the subscribers of the DataView, but will filter the items and only trigger
  * when there are changes in the filtered data set.
@@ -2509,6 +2966,2051 @@ DataView.prototype._trigger = DataSet.prototype._trigger;
 // TODO: make these functions deprecated (replaced with `on` and `off` since version 0.5)
 DataView.prototype.subscribe = DataView.prototype.on;
 DataView.prototype.unsubscribe = DataView.prototype.off;
+
+/**
+ * @constructor Group
+ * @param {Number | String} groupId
+ * @param {Object} data
+ * @param {ItemSet} itemSet
+ */
+function GraphGroup (group, groupId, options, groupsUsingDefaultStyles) {
+  this.id = groupId;
+  var fields = ['sampling','style','sort','yAxisOrientation','barChart','drawPoints','shaded','catmullRom']
+  this.options = util.selectiveBridgeObject(fields,options);
+  this.usingDefaultStyle = group.className === undefined;
+  this.groupsUsingDefaultStyles = groupsUsingDefaultStyles;
+  this.zeroPosition = 0;
+  this.update(group);
+  if (this.usingDefaultStyle == true) {
+    this.groupsUsingDefaultStyles[0] += 1;
+  }
+  this.itemsData = [];
+}
+
+GraphGroup.prototype.setItems = function(items) {
+  if (items != null) {
+    this.itemsData = items;
+    if (this.options.sort == true) {
+      this.itemsData.sort(function (a,b) {return a.x - b.x;})
+    }
+  }
+  else {
+    this.itemsData = [];
+  }
+}
+
+GraphGroup.prototype.setZeroPosition = function(pos) {
+  this.zeroPosition = pos;
+}
+
+GraphGroup.prototype.setOptions = function(options) {
+  if (options !== undefined) {
+    var fields = ['sampling','style','sort','yAxisOrientation','barChart'];
+    util.selectiveDeepExtend(fields, this.options, options);
+
+    util.mergeOptions(this.options, options,'catmullRom');
+    util.mergeOptions(this.options, options,'drawPoints');
+    util.mergeOptions(this.options, options,'shaded');
+
+    if (options.catmullRom) {
+      if (typeof options.catmullRom == 'object') {
+        if (options.catmullRom.parametrization) {
+          if (options.catmullRom.parametrization == 'uniform') {
+            this.options.catmullRom.alpha = 0;
+          }
+          else if (options.catmullRom.parametrization == 'chordal') {
+            this.options.catmullRom.alpha = 1.0;
+          }
+          else {
+            this.options.catmullRom.parametrization = 'centripetal';
+            this.options.catmullRom.alpha = 0.5;
+          }
+        }
+      }
+    }
+  }
+};
+
+GraphGroup.prototype.update = function(group) {
+  this.group = group;
+  this.content = group.content || 'graph';
+  this.className = group.className || this.className || "graphGroup" + this.groupsUsingDefaultStyles[0] % 10;
+  this.setOptions(group.options);
+};
+
+GraphGroup.prototype.drawIcon = function(x, y, JSONcontainer, SVGcontainer, iconWidth, iconHeight) {
+  var fillHeight = iconHeight * 0.5;
+  var path, fillPath;
+
+  var outline = DOMutil.getSVGElement("rect", JSONcontainer, SVGcontainer);
+  outline.setAttributeNS(null, "x", x);
+  outline.setAttributeNS(null, "y", y - fillHeight);
+  outline.setAttributeNS(null, "width", iconWidth);
+  outline.setAttributeNS(null, "height", 2*fillHeight);
+  outline.setAttributeNS(null, "class", "outline");
+
+  if (this.options.style == 'line') {
+    path = DOMutil.getSVGElement("path", JSONcontainer, SVGcontainer);
+    path.setAttributeNS(null, "class", this.className);
+    path.setAttributeNS(null, "d", "M" + x + ","+y+" L" + (x + iconWidth) + ","+y+"");
+    if (this.options.shaded.enabled == true) {
+      fillPath = DOMutil.getSVGElement("path", JSONcontainer, SVGcontainer);
+      if (this.options.shaded.orientation == 'top') {
+        fillPath.setAttributeNS(null, "d", "M"+x+", " + (y - fillHeight) +
+          "L"+x+","+y+" L"+ (x + iconWidth) + ","+y+" L"+ (x + iconWidth) + "," + (y - fillHeight));
+      }
+      else {
+        fillPath.setAttributeNS(null, "d", "M"+x+","+y+" " +
+          "L"+x+"," + (y + fillHeight) + " " +
+          "L"+ (x + iconWidth) + "," + (y + fillHeight) +
+          "L"+ (x + iconWidth) + ","+y);
+      }
+      fillPath.setAttributeNS(null, "class", this.className + " iconFill");
+    }
+
+    if (this.options.drawPoints.enabled == true) {
+      DOMutil.drawPoint(x + 0.5 * iconWidth,y, this, JSONcontainer, SVGcontainer);
+    }
+  }
+  else {
+    var barWidth = Math.round(0.3 * iconWidth);
+    var bar1Height = Math.round(0.4 * iconHeight);
+    var bar2Height = Math.round(0.75 * iconHeight);
+
+    var offset = Math.round((iconWidth - (2 * barWidth))/3);
+
+    DOMutil.drawBar(x + 0.5*barWidth + offset    , y + fillHeight - bar1Height - 1, barWidth, bar1Height, this.className + ' bar', JSONcontainer, SVGcontainer);
+    DOMutil.drawBar(x + 1.5*barWidth + offset + 2, y + fillHeight - bar2Height - 1, barWidth, bar2Height, this.className + ' bar', JSONcontainer, SVGcontainer);
+  }
+}
+
+/**
+ * Created by Alex on 6/17/14.
+ */
+function Legend(body, options, side) {
+  this.body = body;
+  this.defaultOptions = {
+    enabled: true,
+    icons: true,
+    iconSize: 20,
+    iconSpacing: 6,
+    left: {
+      visible: true,
+      position: 'top-left' // top/bottom - left,center,right
+    },
+    right: {
+      visible: true,
+      position: 'top-left' // top/bottom - left,center,right
+    }
+  }
+  this.side = side;
+  this.options = util.extend({},this.defaultOptions);
+
+  this.svgElements = {};
+  this.dom = {};
+  this.groups = {};
+  this.amountOfGroups = 0;
+  this._create();
+
+  this.setOptions(options);
+};
+
+Legend.prototype = new Component();
+
+
+Legend.prototype.addGroup = function(label, graphOptions) {
+  if (!this.groups.hasOwnProperty(label)) {
+    this.groups[label] = graphOptions;
+  }
+  this.amountOfGroups += 1;
+};
+
+Legend.prototype.updateGroup = function(label, graphOptions) {
+  this.groups[label] = graphOptions;
+};
+
+Legend.prototype.removeGroup = function(label) {
+  if (this.groups.hasOwnProperty(label)) {
+    delete this.groups[label];
+    this.amountOfGroups -= 1;
+  }
+};
+
+Legend.prototype._create = function() {
+  this.dom.frame = document.createElement('div');
+  this.dom.frame.className = 'legend';
+  this.dom.frame.style.position = "absolute";
+  this.dom.frame.style.top = "10px";
+  this.dom.frame.style.display = "block";
+
+  this.dom.textArea = document.createElement('div');
+  this.dom.textArea.className = 'legendText';
+  this.dom.textArea.style.position = "relative";
+  this.dom.textArea.style.top = "0px";
+
+  this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
+  this.svg.style.position = 'absolute';
+  this.svg.style.top = 0 +'px';
+  this.svg.style.width = this.options.iconSize + 5 + 'px';
+
+  this.dom.frame.appendChild(this.svg);
+  this.dom.frame.appendChild(this.dom.textArea);
+}
+
+/**
+ * Hide the component from the DOM
+ */
+Legend.prototype.hide = function() {
+  // remove the frame containing the items
+  if (this.dom.frame.parentNode) {
+    this.dom.frame.parentNode.removeChild(this.dom.frame);
+  }
+};
+
+/**
+ * Show the component in the DOM (when not already visible).
+ * @return {Boolean} changed
+ */
+Legend.prototype.show = function() {
+  // show frame containing the items
+  if (!this.dom.frame.parentNode) {
+    this.body.dom.center.appendChild(this.dom.frame);
+  }
+};
+
+Legend.prototype.setOptions = function(options) {
+  var fields = ['enabled','orientation','icons','left','right'];
+  util.selectiveDeepExtend(fields, this.options, options);
+}
+
+Legend.prototype.redraw = function() {
+  if (this.options[this.side].visible == false || this.amountOfGroups == 0 || this.options.enabled == false) {
+    this.hide();
+  }
+  else {
+    this.show();
+    if (this.options[this.side].position == 'top-left' || this.options[this.side].position == 'bottom-left') {
+      this.dom.frame.style.left = '4px';
+      this.dom.frame.style.textAlign = "left";
+      this.dom.textArea.style.textAlign = "left";
+      this.dom.textArea.style.left = (this.options.iconSize + 15) + 'px';
+      this.dom.textArea.style.right = '';
+      this.svg.style.left = 0 +'px';
+      this.svg.style.right = '';
+    }
+    else {
+      this.dom.frame.style.right = '4px';
+      this.dom.frame.style.textAlign = "right";
+      this.dom.textArea.style.textAlign = "right";
+      this.dom.textArea.style.right = (this.options.iconSize + 15) + 'px';
+      this.dom.textArea.style.left = '';
+      this.svg.style.right = 0 +'px';
+      this.svg.style.left = '';
+    }
+
+    if (this.options[this.side].position == 'top-left' || this.options[this.side].position == 'top-right') {
+      this.dom.frame.style.top = 4 - Number(this.body.dom.center.style.top.replace("px","")) + 'px';
+      this.dom.frame.style.bottom = '';
+    }
+    else {
+      this.dom.frame.style.bottom = 4 - Number(this.body.dom.center.style.top.replace("px","")) + 'px';
+      this.dom.frame.style.top = '';
+    }
+
+    if (this.options.icons == false) {
+      this.dom.frame.style.width = this.dom.textArea.offsetWidth + 10 + 'px';
+      this.dom.textArea.style.right = '';
+      this.dom.textArea.style.left = '';
+      this.svg.style.width = '0px';
+    }
+    else {
+      this.dom.frame.style.width = this.options.iconSize + 15 + this.dom.textArea.offsetWidth + 10 + 'px'
+      this.drawLegendIcons();
+    }
+
+    var content = "";
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        content += this.groups[groupId].content + '<br />';
+      }
+    }
+    this.dom.textArea.innerHTML = content;
+    this.dom.textArea.style.lineHeight = ((0.75 * this.options.iconSize) + this.options.iconSpacing) + 'px';
+  }
+}
+
+Legend.prototype.drawLegendIcons = function() {
+  if (this.dom.frame.parentNode) {
+    DOMutil.prepareElements(this.svgElements);
+    var padding = window.getComputedStyle(this.dom.frame).paddingTop;
+    var iconOffset = Number(padding.replace("px",''));
+    var x = iconOffset;
+    var iconWidth = this.options.iconSize;
+    var iconHeight = 0.75 * this.options.iconSize;
+    var y = iconOffset + 0.5 * iconHeight + 3;
+
+    this.svg.style.width = iconWidth + 5 + iconOffset + 'px';
+
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        this.groups[groupId].drawIcon(x, y, this.svgElements, this.svg, iconWidth, iconHeight);
+        y += iconHeight + this.options.iconSpacing;
+      }
+    }
+
+    DOMutil.cleanupElements(this.svgElements);
+  }
+}
+/**
+ * A horizontal time axis
+ * @param {Object} [options]        See DataAxis.setOptions for the available
+ *                                  options.
+ * @constructor DataAxis
+ * @extends Component
+ * @param body
+ */
+function DataAxis (body, options, svg) {
+  this.id = util.randomUUID();
+  this.body = body;
+
+  this.defaultOptions = {
+    orientation: 'left',  // supported: 'left', 'right'
+    showMinorLabels: true,
+    showMajorLabels: true,
+    icons: true,
+    majorLinesOffset: 7,
+    minorLinesOffset: 4,
+    labelOffsetX: 10,
+    labelOffsetY: 2,
+    iconWidth: 20,
+    width: '40px',
+    visible: true
+  };
+
+  this.linegraphSVG = svg;
+  this.props = {};
+  this.DOMelements = { // dynamic elements
+    lines: {},
+    labels: {}
+  };
+
+  this.dom = {};
+
+  this.range = {start:0, end:0};
+
+  this.options = util.extend({}, this.defaultOptions);
+  this.conversionFactor = 1;
+
+  this.setOptions(options);
+  this.width = Number(('' + this.options.width).replace("px",""));
+  this.minWidth = this.width;
+  this.height = this.linegraphSVG.offsetHeight;
+
+  this.stepPixels = 25;
+  this.stepPixelsForced = 25;
+  this.lineOffset = 0;
+  this.master = true;
+  this.svgElements = {};
+
+
+  this.groups = {};
+  this.amountOfGroups = 0;
+
+  // create the HTML DOM
+  this._create();
+}
+
+DataAxis.prototype = new Component();
+
+
+
+DataAxis.prototype.addGroup = function(label, graphOptions) {
+  if (!this.groups.hasOwnProperty(label)) {
+    this.groups[label] = graphOptions;
+  }
+  this.amountOfGroups += 1;
+};
+
+DataAxis.prototype.updateGroup = function(label, graphOptions) {
+  this.groups[label] = graphOptions;
+};
+
+DataAxis.prototype.removeGroup = function(label) {
+  if (this.groups.hasOwnProperty(label)) {
+    delete this.groups[label];
+    this.amountOfGroups -= 1;
+  }
+};
+
+
+DataAxis.prototype.setOptions = function (options) {
+  if (options) {
+    var redraw = false;
+    if (this.options.orientation != options.orientation && options.orientation !== undefined) {
+      redraw = true;
+    }
+    var fields = [
+      'orientation',
+      'showMinorLabels',
+      'showMajorLabels',
+      'icons',
+      'majorLinesOffset',
+      'minorLinesOffset',
+      'labelOffsetX',
+      'labelOffsetY',
+      'iconWidth',
+      'width',
+      'visible'];
+    util.selectiveExtend(fields, this.options, options);
+
+    this.minWidth = Number(('' + this.options.width).replace("px",""));
+
+    if (redraw == true && this.dom.frame) {
+      this.hide();
+      this.show();
+    }
+  }
+};
+
+
+/**
+ * Create the HTML DOM for the DataAxis
+ */
+DataAxis.prototype._create = function() {
+  this.dom.frame = document.createElement('div');
+  this.dom.frame.style.width = this.options.width;
+  this.dom.frame.style.height = this.height;
+
+  this.dom.lineContainer = document.createElement('div');
+  this.dom.lineContainer.style.width = '100%';
+  this.dom.lineContainer.style.height = this.height;
+
+  // create svg element for graph drawing.
+  this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
+  this.svg.style.position = "absolute";
+  this.svg.style.top = '0px';
+  this.svg.style.height = '100%';
+  this.svg.style.width = '100%';
+  this.svg.style.display = "block";
+  this.dom.frame.appendChild(this.svg);
+};
+
+DataAxis.prototype._redrawGroupIcons = function () {
+  DOMutil.prepareElements(this.svgElements);
+
+  var x;
+  var iconWidth = this.options.iconWidth;
+  var iconHeight = 15;
+  var iconOffset = 4;
+  var y = iconOffset + 0.5 * iconHeight;
+
+  if (this.options.orientation == 'left') {
+    x = iconOffset;
+  }
+  else {
+    x = this.width - iconWidth - iconOffset;
+  }
+
+  for (var groupId in this.groups) {
+    if (this.groups.hasOwnProperty(groupId)) {
+      this.groups[groupId].drawIcon(x, y, this.svgElements, this.svg, iconWidth, iconHeight);
+      y += iconHeight + iconOffset;
+    }
+  }
+
+  DOMutil.cleanupElements(this.svgElements);
+};
+
+/**
+ * Create the HTML DOM for the DataAxis
+ */
+DataAxis.prototype.show = function() {
+  if (!this.dom.frame.parentNode) {
+    if (this.options.orientation == 'left') {
+      this.body.dom.left.appendChild(this.dom.frame);
+    }
+    else {
+      this.body.dom.right.appendChild(this.dom.frame);
+    }
+  }
+
+  if (!this.dom.lineContainer.parentNode) {
+    this.body.dom.backgroundHorizontal.appendChild(this.dom.lineContainer);
+  }
+};
+
+/**
+ * Create the HTML DOM for the DataAxis
+ */
+DataAxis.prototype.hide = function() {
+  if (this.dom.frame.parentNode) {
+    this.dom.frame.parentNode.removeChild(this.dom.frame);
+  }
+
+  if (this.dom.lineContainer.parentNode) {
+    this.dom.lineContainer.parentNode.removeChild(this.dom.lineContainer);
+  }
+};
+
+/**
+ * Set a range (start and end)
+ * @param end
+ * @param start
+ * @param end
+ */
+DataAxis.prototype.setRange = function (start, end) {
+  this.range.start = start;
+  this.range.end = end;
+};
+
+/**
+ * Repaint the component
+ * @return {boolean} Returns true if the component is resized
+ */
+DataAxis.prototype.redraw = function () {
+  var changeCalled = false;
+  if (this.amountOfGroups == 0) {
+    this.hide();
+  }
+  else {
+    this.show();
+    this.height = Number(this.linegraphSVG.style.height.replace("px",""));
+    // svg offsetheight did not work in firefox and explorer...
+
+    this.dom.lineContainer.style.height = this.height + 'px';
+    this.width = this.options.visible == true ? Number(('' + this.options.width).replace("px","")) : 0;
+
+    var props = this.props;
+    var frame = this.dom.frame;
+
+    // update classname
+    frame.className = 'dataaxis';
+
+    // calculate character width and height
+    this._calculateCharSize();
+
+    var orientation = this.options.orientation;
+    var showMinorLabels = this.options.showMinorLabels;
+    var showMajorLabels = this.options.showMajorLabels;
+
+    // determine the width and height of the elemens for the axis
+    props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
+    props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
+
+    props.minorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.minorLinesOffset;
+    props.minorLineHeight = 1;
+    props.majorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.majorLinesOffset;
+    props.majorLineHeight = 1;
+
+    //  take frame offline while updating (is almost twice as fast)
+    if (orientation == 'left') {
+      frame.style.top = '0';
+      frame.style.left = '0';
+      frame.style.bottom = '';
+      frame.style.width = this.width + 'px';
+      frame.style.height = this.height + "px";
+    }
+    else { // right
+      frame.style.top = '';
+      frame.style.bottom = '0';
+      frame.style.left = '0';
+      frame.style.width = this.width + 'px';
+      frame.style.height = this.height + "px";
+    }
+    changeCalled = this._redrawLabels();
+    if (this.options.icons == true) {
+      this._redrawGroupIcons();
+    }
+  }
+  return changeCalled;
+};
+
+/**
+ * Repaint major and minor text labels and vertical grid lines
+ * @private
+ */
+DataAxis.prototype._redrawLabels = function () {
+  DOMutil.prepareElements(this.DOMelements);
+
+  var orientation = this.options['orientation'];
+
+  // calculate range and step (step such that we have space for 7 characters per label)
+  var minimumStep = this.master ? this.props.majorCharHeight || 10 : this.stepPixelsForced;
+  var step = new DataStep(this.range.start, this.range.end, minimumStep, this.dom.frame.offsetHeight);
+  this.step = step;
+  step.first();
+
+  // get the distance in pixels for a step
+  var stepPixels = this.dom.frame.offsetHeight / ((step.marginRange / step.step) + 1);
+  this.stepPixels = stepPixels;
+
+  var amountOfSteps = this.height / stepPixels;
+  var stepDifference = 0;
+
+  if (this.master == false) {
+    stepPixels = this.stepPixelsForced;
+    stepDifference = Math.round((this.height / stepPixels) - amountOfSteps);
+    for (var i = 0; i < 0.5 * stepDifference; i++) {
+      step.previous();
+    }
+    amountOfSteps = this.height / stepPixels;
+  }
+
+
+  this.valueAtZero = step.marginEnd;
+  var marginStartPos = 0;
+
+  // do not draw the first label
+  var max = 1;
+  step.next();
+
+  this.maxLabelSize = 0;
+  var y = 0;
+  while (max < Math.round(amountOfSteps)) {
+
+    y = Math.round(max * stepPixels);
+    marginStartPos = max * stepPixels;
+    var isMajor = step.isMajor();
+
+    if (this.options['showMinorLabels'] && isMajor == false || this.master == false && this.options['showMinorLabels'] == true) {
+      this._redrawLabel(y - 2, step.getCurrent(), orientation, 'yAxis minor', this.props.minorCharHeight);
+    }
+
+    if (isMajor && this.options['showMajorLabels'] && this.master == true ||
+        this.options['showMinorLabels'] == false && this.master == false && isMajor == true) {
+
+      if (y >= 0) {
+        this._redrawLabel(y - 2, step.getCurrent(), orientation, 'yAxis major', this.props.majorCharHeight);
+      }
+      this._redrawLine(y, orientation, 'grid horizontal major', this.options.majorLinesOffset, this.props.majorLineWidth);
+    }
+    else {
+      this._redrawLine(y, orientation, 'grid horizontal minor', this.options.minorLinesOffset, this.props.minorLineWidth);
+    }
+
+    step.next();
+    max++;
+  }
+
+  this.conversionFactor = marginStartPos/((amountOfSteps-1) * step.step);
+
+  var offset = this.options.icons == true ? this.options.iconWidth + this.options.labelOffsetX + 15 : this.options.labelOffsetX + 15;
+  // this will resize the yAxis to accomodate the labels.
+  if (this.maxLabelSize > (this.width - offset) && this.options.visible == true) {
+    this.width = this.maxLabelSize + offset;
+    this.options.width = this.width + "px";
+    DOMutil.cleanupElements(this.DOMelements);
+    this.redraw();
+    return true;
+  }
+  // this will resize the yAxis if it is too big for the labels.
+  else if (this.maxLabelSize < (this.width - offset) && this.options.visible == true && this.width > this.minWidth) {
+    this.width = Math.max(this.minWidth,this.maxLabelSize + offset);
+    this.options.width = this.width + "px";
+    DOMutil.cleanupElements(this.DOMelements);
+    this.redraw();
+    return true;
+  }
+  else {
+    DOMutil.cleanupElements(this.DOMelements);
+    return false;
+  }
+};
+
+/**
+ * Create a label for the axis at position x
+ * @private
+ * @param y
+ * @param text
+ * @param orientation
+ * @param className
+ * @param characterHeight
+ */
+DataAxis.prototype._redrawLabel = function (y, text, orientation, className, characterHeight) {
+  // reuse redundant label
+  var label = DOMutil.getDOMElement('div',this.DOMelements, this.dom.frame); //this.dom.redundant.labels.shift();
+  label.className = className;
+  label.innerHTML = text;
+
+  if (orientation == 'left') {
+    label.style.left = '-' + this.options.labelOffsetX + 'px';
+    label.style.textAlign = "right";
+  }
+  else {
+    label.style.right = '-' + this.options.labelOffsetX + 'px';
+    label.style.textAlign = "left";
+  }
+
+  label.style.top = y - 0.5 * characterHeight + this.options.labelOffsetY + 'px';
+
+  text += '';
+
+  var largestWidth = Math.max(this.props.majorCharWidth,this.props.minorCharWidth);
+  if (this.maxLabelSize < text.length * largestWidth) {
+    this.maxLabelSize = text.length * largestWidth;
+  }
+};
+
+/**
+ * Create a minor line for the axis at position y
+ * @param y
+ * @param orientation
+ * @param className
+ * @param offset
+ * @param width
+ */
+DataAxis.prototype._redrawLine = function (y, orientation, className, offset, width) {
+  if (this.master == true) {
+    var line = DOMutil.getDOMElement('div',this.DOMelements, this.dom.lineContainer);//this.dom.redundant.lines.shift();
+    line.className = className;
+    line.innerHTML = '';
+
+    if (orientation == 'left') {
+      line.style.left = (this.width - offset) + 'px';
+    }
+    else {
+      line.style.right = (this.width - offset) + 'px';
+    }
+
+    line.style.width = width + 'px';
+    line.style.top = y + 'px';
+  }
+};
+
+
+DataAxis.prototype.convertValue = function (value) {
+  var invertedValue = this.valueAtZero - value;
+  var convertedValue = invertedValue * this.conversionFactor;
+  return convertedValue; // the -2 is to compensate for the borders
+};
+
+
+/**
+ * Determine the size of text on the axis (both major and minor axis).
+ * The size is calculated only once and then cached in this.props.
+ * @private
+ */
+DataAxis.prototype._calculateCharSize = function () {
+  // determine the char width and height on the minor axis
+  if (!('minorCharHeight' in this.props)) {
+
+    var textMinor = document.createTextNode('0');
+    var measureCharMinor = document.createElement('DIV');
+    measureCharMinor.className = 'yAxis minor measure';
+    measureCharMinor.appendChild(textMinor);
+    this.dom.frame.appendChild(measureCharMinor);
+
+    this.props.minorCharHeight = measureCharMinor.clientHeight;
+    this.props.minorCharWidth = measureCharMinor.clientWidth;
+
+    this.dom.frame.removeChild(measureCharMinor);
+  }
+
+  if (!('majorCharHeight' in this.props)) {
+    var textMajor = document.createTextNode('0');
+    var measureCharMajor = document.createElement('DIV');
+    measureCharMajor.className = 'yAxis major measure';
+    measureCharMajor.appendChild(textMajor);
+    this.dom.frame.appendChild(measureCharMajor);
+
+    this.props.majorCharHeight = measureCharMajor.clientHeight;
+    this.props.majorCharWidth = measureCharMajor.clientWidth;
+
+    this.dom.frame.removeChild(measureCharMajor);
+  }
+};
+
+/**
+ * Snap a date to a rounded value.
+ * The snap intervals are dependent on the current scale and step.
+ * @param {Date} date   the date to be snapped.
+ * @return {Date} snappedDate
+ */
+DataAxis.prototype.snap = function(date) {
+  return this.step.snap(date);
+};
+
+var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
+
+/**
+ * This is the constructor of the LineGraph. It requires a Timeline body and options.
+ *
+ * @param body
+ * @param options
+ * @constructor
+ */
+function LineGraph(body, options) {
+  this.id = util.randomUUID();
+  this.body = body;
+
+  this.defaultOptions = {
+    yAxisOrientation: 'left',
+    defaultGroup: 'default',
+    sort: true,
+    sampling: true,
+    graphHeight: '400px',
+    shaded: {
+      enabled: false,
+      orientation: 'bottom' // top, bottom
+    },
+    style: 'line', // line, bar
+    barChart: {
+      width: 50,
+      align: 'center' // left, center, right
+    },
+    catmullRom: {
+      enabled: true,
+      parametrization: 'centripetal', // uniform (alpha = 0.0), chordal (alpha = 1.0), centripetal (alpha = 0.5)
+      alpha: 0.5
+    },
+    drawPoints: {
+      enabled: true,
+      size: 6,
+      style: 'square' // square, circle
+    },
+    dataAxis: {
+      showMinorLabels: true,
+      showMajorLabels: true,
+      icons: false,
+      width: '40px',
+      visible: true
+    },
+    legend: {
+      enabled: false,
+      icons: true,
+      left: {
+        visible: true,
+        position: 'top-left' // top/bottom - left,right
+      },
+      right: {
+        visible: true,
+        position: 'top-right' // top/bottom - left,right
+      }
+    }
+  };
+
+  // options is shared by this ItemSet and all its items
+  this.options = util.extend({}, this.defaultOptions);
+  this.dom = {};
+  this.props = {};
+  this.hammer = null;
+  this.groups = {};
+
+  var me = this;
+  this.itemsData = null;    // DataSet
+  this.groupsData = null;   // DataSet
+
+  // listeners for the DataSet of the items
+  this.itemListeners = {
+    'add': function (event, params, senderId) {
+      me._onAdd(params.items);
+    },
+    'update': function (event, params, senderId) {
+      me._onUpdate(params.items);
+    },
+    'remove': function (event, params, senderId) {
+      me._onRemove(params.items);
+    }
+  };
+
+  // listeners for the DataSet of the groups
+  this.groupListeners = {
+    'add': function (event, params, senderId) {
+      me._onAddGroups(params.items);
+    },
+    'update': function (event, params, senderId) {
+      me._onUpdateGroups(params.items);
+    },
+    'remove': function (event, params, senderId) {
+      me._onRemoveGroups(params.items);
+    }
+  };
+
+  this.items = {};      // object with an Item for every data item
+  this.selection = [];  // list with the ids of all selected nodes
+  this.lastStart = this.body.range.start;
+  this.touchParams = {}; // stores properties while dragging
+
+  this.svgElements = {};
+  this.setOptions(options);
+  this.groupsUsingDefaultStyles = [0];
+
+  this.body.emitter.on("rangechange",function() {
+      if (me.lastStart != 0) {
+        var offset = me.body.range.start - me.lastStart;
+        var range = me.body.range.end - me.body.range.start;
+        if (me.width != 0) {
+          var rangePerPixelInv = me.width/range;
+          var xOffset = offset * rangePerPixelInv;
+          me.svg.style.left = (-me.width - xOffset) + "px";
+        }
+      }
+    });
+  this.body.emitter.on("rangechanged", function() {
+    me.lastStart = me.body.range.start;
+    me.svg.style.left = util.option.asSize(-me.width);
+    me._updateGraph.apply(me);
+  });
+
+  // create the HTML DOM
+  this._create();
+  this.body.emitter.emit("change");
+}
+
+LineGraph.prototype = new Component();
+
+/**
+ * Create the HTML DOM for the ItemSet
+ */
+LineGraph.prototype._create = function(){
+  var frame = document.createElement('div');
+  frame.className = 'LineGraph';
+  this.dom.frame = frame;
+
+  // create svg element for graph drawing.
+  this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
+  this.svg.style.position = "relative";
+  this.svg.style.height = ('' + this.options.graphHeight).replace("px",'') + 'px';
+  this.svg.style.display = "block";
+  frame.appendChild(this.svg);
+
+  // data axis
+  this.options.dataAxis.orientation = 'left';
+  this.yAxisLeft = new DataAxis(this.body, this.options.dataAxis, this.svg);
+
+  this.options.dataAxis.orientation = 'right';
+  this.yAxisRight = new DataAxis(this.body, this.options.dataAxis, this.svg);
+  delete this.options.dataAxis.orientation;
+
+  // legends
+  this.legendLeft = new Legend(this.body, this.options.legend, 'left');
+  this.legendRight = new Legend(this.body, this.options.legend, 'right');
+
+  this.show();
+};
+
+/**
+ * set the options of the LineGraph. the mergeOptions is used for subObjects that have an enabled element.
+ * @param options
+ */
+LineGraph.prototype.setOptions = function(options) {
+  if (options) {
+    var fields = ['sampling','defaultGroup','graphHeight','yAxisOrientation','style','barChart','dataAxis','sort'];
+    util.selectiveDeepExtend(fields, this.options, options);
+    util.mergeOptions(this.options, options,'catmullRom');
+    util.mergeOptions(this.options, options,'drawPoints');
+    util.mergeOptions(this.options, options,'shaded');
+    util.mergeOptions(this.options, options,'legend');
+
+    if (options.catmullRom) {
+      if (typeof options.catmullRom == 'object') {
+        if (options.catmullRom.parametrization) {
+          if (options.catmullRom.parametrization == 'uniform') {
+            this.options.catmullRom.alpha = 0;
+          }
+          else if (options.catmullRom.parametrization == 'chordal') {
+            this.options.catmullRom.alpha = 1.0;
+          }
+          else {
+            this.options.catmullRom.parametrization = 'centripetal';
+            this.options.catmullRom.alpha = 0.5;
+          }
+        }
+      }
+    }
+
+    if (this.yAxisLeft) {
+      if (options.dataAxis !== undefined) {
+        this.yAxisLeft.setOptions(this.options.dataAxis);
+        this.yAxisRight.setOptions(this.options.dataAxis);
+      }
+    }
+
+    if (this.legendLeft) {
+      if (options.legend !== undefined) {
+        this.legendLeft.setOptions(this.options.legend);
+        this.legendRight.setOptions(this.options.legend);
+      }
+    }
+
+    if (this.groups.hasOwnProperty(UNGROUPED)) {
+      this.groups[UNGROUPED].setOptions(options);
+    }
+  }
+  if (this.dom.frame) {
+    this._updateGraph();
+  }
+};
+
+/**
+ * Hide the component from the DOM
+ */
+LineGraph.prototype.hide = function() {
+  // remove the frame containing the items
+  if (this.dom.frame.parentNode) {
+    this.dom.frame.parentNode.removeChild(this.dom.frame);
+  }
+};
+
+/**
+ * Show the component in the DOM (when not already visible).
+ * @return {Boolean} changed
+ */
+LineGraph.prototype.show = function() {
+  // show frame containing the items
+  if (!this.dom.frame.parentNode) {
+    this.body.dom.center.appendChild(this.dom.frame);
+  }
+};
+
+
+/**
+ * Set items
+ * @param {vis.DataSet | null} items
+ */
+LineGraph.prototype.setItems = function(items) {
+  var me = this,
+    ids,
+    oldItemsData = this.itemsData;
+
+  // replace the dataset
+  if (!items) {
+    this.itemsData = null;
+  }
+  else if (items instanceof DataSet || items instanceof DataView) {
+    this.itemsData = items;
+  }
+  else {
+    throw new TypeError('Data must be an instance of DataSet or DataView');
+  }
+
+  if (oldItemsData) {
+    // unsubscribe from old dataset
+    util.forEach(this.itemListeners, function (callback, event) {
+      oldItemsData.off(event, callback);
+    });
+
+    // remove all drawn items
+    ids = oldItemsData.getIds();
+    this._onRemove(ids);
+  }
+
+  if (this.itemsData) {
+    // subscribe to new dataset
+    var id = this.id;
+    util.forEach(this.itemListeners, function (callback, event) {
+      me.itemsData.on(event, callback, id);
+    });
+
+    // add all new items
+    ids = this.itemsData.getIds();
+    this._onAdd(ids);
+  }
+  this._updateUngrouped();
+  this._updateGraph();
+  this.redraw();
+};
+
+/**
+ * Set groups
+ * @param {vis.DataSet} groups
+ */
+LineGraph.prototype.setGroups = function(groups) {
+  var me = this,
+    ids;
+
+  // unsubscribe from current dataset
+  if (this.groupsData) {
+    util.forEach(this.groupListeners, function (callback, event) {
+      me.groupsData.unsubscribe(event, callback);
+    });
+
+    // remove all drawn groups
+    ids = this.groupsData.getIds();
+    this.groupsData = null;
+    this._onRemoveGroups(ids); // note: this will cause a redraw
+  }
+
+  // replace the dataset
+  if (!groups) {
+    this.groupsData = null;
+  }
+  else if (groups instanceof DataSet || groups instanceof DataView) {
+    this.groupsData = groups;
+  }
+  else {
+    throw new TypeError('Data must be an instance of DataSet or DataView');
+  }
+
+  if (this.groupsData) {
+    // subscribe to new dataset
+    var id = this.id;
+    util.forEach(this.groupListeners, function (callback, event) {
+      me.groupsData.on(event, callback, id);
+    });
+
+    // draw all ms
+    ids = this.groupsData.getIds();
+    this._onAddGroups(ids);
+  }
+  this._onUpdate();
+};
+
+
+
+LineGraph.prototype._onUpdate = function(ids) {
+  this._updateUngrouped();
+  this._updateAllGroupData();
+  this._updateGraph();
+  this.redraw();
+};
+LineGraph.prototype._onAdd          = function (ids) {this._onUpdate(ids);};
+LineGraph.prototype._onRemove       = function (ids) {this._onUpdate(ids);};
+LineGraph.prototype._onUpdateGroups  = function (groupIds) {
+  for (var i = 0; i < groupIds.length; i++) {
+    var group = this.groupsData.get(groupIds[i]);
+    this._updateGroup(group, groupIds[i]);
+  }
+
+  this._updateGraph();
+  this.redraw();
+};
+LineGraph.prototype._onAddGroups = function (groupIds) {this._onUpdateGroups(groupIds);};
+
+LineGraph.prototype._onRemoveGroups = function (groupIds) {
+  for (var i = 0; i < groupIds.length; i++) {
+    if (!this.groups.hasOwnProperty(groupIds[i])) {
+      if (this.groups[groupIds[i]].options.yAxisOrientation == 'right') {
+        this.yAxisRight.removeGroup(groupIds[i]);
+        this.legendRight.removeGroup(groupIds[i]);
+        this.legendRight.redraw();
+      }
+      else {
+        this.yAxisLeft.removeGroup(groupIds[i]);
+        this.legendLeft.removeGroup(groupIds[i]);
+        this.legendLeft.redraw();
+      }
+      delete this.groups[groupIds[i]];
+    }
+  }
+  this._updateUngrouped();
+  this._updateGraph();
+  this.redraw();
+};
+
+/**
+ * update a group object
+ *
+ * @param group
+ * @param groupId
+ * @private
+ */
+LineGraph.prototype._updateGroup = function (group, groupId) {
+  if (!this.groups.hasOwnProperty(groupId)) {
+    this.groups[groupId] = new GraphGroup(group, groupId, this.options, this.groupsUsingDefaultStyles);
+    if (this.groups[groupId].options.yAxisOrientation == 'right') {
+      this.yAxisRight.addGroup(groupId, this.groups[groupId]);
+      this.legendRight.addGroup(groupId, this.groups[groupId]);
+    }
+    else {
+      this.yAxisLeft.addGroup(groupId, this.groups[groupId]);
+      this.legendLeft.addGroup(groupId, this.groups[groupId]);
+    }
+  }
+  else {
+    this.groups[groupId].update(group);
+    if (this.groups[groupId].options.yAxisOrientation == 'right') {
+      this.yAxisRight.updateGroup(groupId, this.groups[groupId]);
+      this.legendRight.updateGroup(groupId, this.groups[groupId]);
+    }
+    else {
+      this.yAxisLeft.updateGroup(groupId, this.groups[groupId]);
+      this.legendLeft.updateGroup(groupId, this.groups[groupId]);
+    }
+  }
+  this.legendLeft.redraw();
+  this.legendRight.redraw();
+};
+
+LineGraph.prototype._updateAllGroupData = function () {
+  if (this.itemsData != null) {
+    // ~450 ms @ 500k
+
+    var groupsContent = {};
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        groupsContent[groupId] = [];
+      }
+    }
+    for (var itemId in this.itemsData._data) {
+      if (this.itemsData._data.hasOwnProperty(itemId)) {
+        var item = this.itemsData._data[itemId];
+        item.x = util.convert(item.x,"Date");
+        groupsContent[item.group].push(item);
+      }
+    }
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        this.groups[groupId].setItems(groupsContent[groupId]);
+      }
+    }
+//    // ~4500ms @ 500k
+//    for (var groupId in this.groups) {
+//      if (this.groups.hasOwnProperty(groupId)) {
+//        this.groups[groupId].setItems(this.itemsData.get({filter:
+//            function (item) {
+//              return (item.group == groupId);
+//            }, type:{x:"Date"}}
+//        ));
+//      }
+//    }
+  }
+};
+
+/**
+ * Create or delete the group holding all ungrouped items. This group is used when
+ * there are no groups specified. This anonymous group is called 'graph'.
+ * @protected
+ */
+LineGraph.prototype._updateUngrouped = function() {
+  if (this.itemsData != null) {
+//    var t0 = new Date();
+    var group = {id: UNGROUPED, content: this.options.defaultGroup};
+    this._updateGroup(group, UNGROUPED);
+    var ungroupedCounter = 0;
+    if (this.itemsData) {
+      for (var itemId in this.itemsData._data) {
+        if (this.itemsData._data.hasOwnProperty(itemId)) {
+          var item = this.itemsData._data[itemId];
+          if (item != undefined) {
+            if (item.hasOwnProperty('group')) {
+              if (item.group === undefined) {
+                item.group = UNGROUPED;
+              }
+            }
+            else {
+              item.group = UNGROUPED;
+            }
+            ungroupedCounter = item.group == UNGROUPED ? ungroupedCounter + 1 : ungroupedCounter;
+          }
+        }
+      }
+    }
+
+    // much much slower
+//    var datapoints = this.itemsData.get({
+//      filter: function (item) {return item.group === undefined;},
+//      showInternalIds:true
+//    });
+//    if (datapoints.length > 0) {
+//      var updateQuery = [];
+//      for (var i = 0; i < datapoints.length; i++) {
+//        updateQuery.push({id:datapoints[i].id, group: UNGROUPED});
+//      }
+//      this.itemsData.update(updateQuery, true);
+//    }
+//    var t1 = new Date();
+//    var pointInUNGROUPED = this.itemsData.get({filter: function (item) {return item.group == UNGROUPED;}});
+    if (ungroupedCounter == 0) {
+      delete this.groups[UNGROUPED];
+      this.legendLeft.removeGroup(UNGROUPED);
+      this.legendRight.removeGroup(UNGROUPED);
+      this.yAxisLeft.removeGroup(UNGROUPED);
+      this.yAxisRight.removeGroup(UNGROUPED);
+    }
+//    console.log("getting amount ungrouped",new Date() - t1);
+//    console.log("putting in ungrouped",new Date() - t0);
+  }
+  else {
+    delete this.groups[UNGROUPED];
+    this.legendLeft.removeGroup(UNGROUPED);
+    this.legendRight.removeGroup(UNGROUPED);
+    this.yAxisLeft.removeGroup(UNGROUPED);
+    this.yAxisRight.removeGroup(UNGROUPED);
+  }
+
+  this.legendLeft.redraw();
+  this.legendRight.redraw();
+};
+
+
+/**
+ * Redraw the component, mandatory function
+ * @return {boolean} Returns true if the component is resized
+ */
+LineGraph.prototype.redraw = function() {
+  var resized = false;
+
+  this.svg.style.height = ('' + this.options.graphHeight).replace('px','') + 'px';
+  if (this.lastWidth === undefined && this.width || this.lastWidth != this.width) {
+    resized = true;
+  }
+  // check if this component is resized
+  resized = this._isResized() || resized;
+  // check whether zoomed (in that case we need to re-stack everything)
+  var visibleInterval = this.body.range.end - this.body.range.start;
+  var zoomed = (visibleInterval != this.lastVisibleInterval) || (this.width != this.lastWidth);
+  this.lastVisibleInterval = visibleInterval;
+  this.lastWidth = this.width;
+
+  // calculate actual size and position
+  this.width = this.dom.frame.offsetWidth;
+
+  // the svg element is three times as big as the width, this allows for fully dragging left and right
+  // without reloading the graph. the controls for this are bound to events in the constructor
+  if (resized == true) {
+    this.svg.style.width = util.option.asSize(3*this.width);
+    this.svg.style.left = util.option.asSize(-this.width);
+  }
+  if (zoomed == true) {
+    this._updateGraph();
+  }
+
+  this.legendLeft.redraw();
+  this.legendRight.redraw();
+
+  return resized;
+};
+
+/**
+ * Update and redraw the graph.
+ *
+ */
+LineGraph.prototype._updateGraph = function () {
+  // reset the svg elements
+  DOMutil.prepareElements(this.svgElements);
+//        // very slow...
+//        groupData = group.itemsData.get({filter:
+//          function (item) {
+//            return (item.x > minDate && item.x < maxDate);
+//          }}
+//        );
+
+
+  if (this.width != 0 && this.itemsData != null) {
+    var group, groupData, preprocessedGroup, i;
+    var preprocessedGroupData = [];
+    var processedGroupData = [];
+    var groupRanges = [];
+    var changeCalled = false;
+
+    // getting group Ids
+    var groupIds = [];
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        groupIds.push(groupId);
+      }
+    }
+
+    // this is the range of the SVG canvas
+    var minDate = this.body.util.toGlobalTime(- this.body.domProps.root.width);
+    var maxDate = this.body.util.toGlobalTime(2 * this.body.domProps.root.width);
+
+    // first select and preprocess the data from the datasets.
+    // the groups have their preselection of data, we now loop over this data to see
+    // what data we need to draw. Sorted data is much faster.
+    // more optimization is possible by doing the sampling before and using the binary search
+    // to find the end date to determine the increment.
+    if (groupIds.length > 0) {
+      for (i = 0; i < groupIds.length; i++) {
+        group = this.groups[groupIds[i]];
+        groupData = [];
+        // optimization for sorted data
+        if (group.options.sort == true) {
+          var guess = Math.max(0,util.binarySearchGeneric(group.itemsData, minDate, 'x', 'before'));
+
+          for (var j = guess; j < group.itemsData.length; j++) {
+            var item = group.itemsData[j];
+            if (item !== undefined) {
+              if (item.x > maxDate) {
+               groupData.push(item);
+               break;
+              }
+              else {
+                groupData.push(item);
+              }
+            }
+          }
+        }
+        else {
+          for (var j = 0; j < group.itemsData.length; j++) {
+            var item = group.itemsData[j];
+            if (item !== undefined) {
+              if (item.x > minDate && item.x < maxDate) {
+                groupData.push(item);
+              }
+            }
+          }
+        }
+        // preprocess, split into ranges and data
+        preprocessedGroup = this._preprocessData(groupData, group);
+        groupRanges.push({min: preprocessedGroup.min, max: preprocessedGroup.max});
+        preprocessedGroupData.push(preprocessedGroup.data);
+      }
+
+      // update the Y axis first, we use this data to draw at the correct Y points
+      // changeCalled is required to clean the SVG on a change emit.
+      changeCalled = this._updateYAxis(groupIds, groupRanges);
+      if (changeCalled == true) {
+        DOMutil.cleanupElements(this.svgElements);
+        this.body.emitter.emit("change");
+        return;
+      }
+
+      // with the yAxis scaled correctly, use this to get the Y values of the points.
+      for (i = 0; i < groupIds.length; i++) {
+        group = this.groups[groupIds[i]];
+        processedGroupData.push(this._convertYvalues(preprocessedGroupData[i],group))
+      }
+
+      // draw the groups
+      for (i = 0; i < groupIds.length; i++) {
+        group = this.groups[groupIds[i]];
+        if (group.options.style == 'line') {
+          this._drawLineGraph(processedGroupData[i], group);
+        }
+        else {
+          this._drawBarGraph (processedGroupData[i], group);
+        }
+      }
+    }
+  }
+
+  // cleanup unused svg elements
+  DOMutil.cleanupElements(this.svgElements);
+};
+
+/**
+ * this sets the Y ranges for the Y axis. It also determines which of the axis should be shown or hidden.
+ * @param {array} groupIds
+ * @private
+ */
+LineGraph.prototype._updateYAxis = function (groupIds, groupRanges) {
+  var changeCalled = false;
+  var yAxisLeftUsed = false;
+  var yAxisRightUsed = false;
+  var minLeft = 1e9, minRight = 1e9, maxLeft = -1e9, maxRight = -1e9, minVal, maxVal;
+  var orientation = 'left';
+
+  // if groups are present
+  if (groupIds.length > 0) {
+    for (var i = 0; i < groupIds.length; i++) {
+      orientation = 'left';
+      var group = this.groups[groupIds[i]];
+      if (group.options.yAxisOrientation == 'right') {
+        orientation = 'right';
+      }
+
+      minVal = groupRanges[i].min;
+      maxVal = groupRanges[i].max;
+
+      if (orientation == 'left') {
+        yAxisLeftUsed = true;
+        minLeft = minLeft > minVal ? minVal : minLeft;
+        maxLeft = maxLeft < maxVal ? maxVal : maxLeft;
+      }
+      else {
+        yAxisRightUsed = true;
+        minRight = minRight > minVal ? minVal : minRight;
+        maxRight = maxRight < maxVal ? maxVal : maxRight;
+      }
+    }
+    if (yAxisLeftUsed == true) {
+      this.yAxisLeft.setRange(minLeft, maxLeft);
+    }
+    if (yAxisRightUsed == true) {
+      this.yAxisRight.setRange(minRight, maxRight);
+    }
+  }
+
+  changeCalled = this._toggleAxisVisiblity(yAxisLeftUsed , this.yAxisLeft)  || changeCalled;
+  changeCalled = this._toggleAxisVisiblity(yAxisRightUsed, this.yAxisRight) || changeCalled;
+
+  if (yAxisRightUsed == true && yAxisLeftUsed == true) {
+    this.yAxisLeft.drawIcons = true;
+    this.yAxisRight.drawIcons = true;
+  }
+  else {
+    this.yAxisLeft.drawIcons = false;
+    this.yAxisRight.drawIcons = false;
+  }
+
+  this.yAxisRight.master = !yAxisLeftUsed;
+
+  if (this.yAxisRight.master == false) {
+    if (yAxisRightUsed == true) {
+      this.yAxisLeft.lineOffset = this.yAxisRight.width;
+    }
+    changeCalled = this.yAxisLeft.redraw() || changeCalled;
+    this.yAxisRight.stepPixelsForced = this.yAxisLeft.stepPixels;
+    changeCalled = this.yAxisRight.redraw() || changeCalled;
+  }
+  else {
+    changeCalled = this.yAxisRight.redraw() || changeCalled;
+  }
+  return changeCalled;
+};
+
+/**
+ * This shows or hides the Y axis if needed. If there is a change, the changed event is emitted by the updateYAxis function
+ *
+ * @param {boolean} axisUsed
+ * @returns {boolean}
+ * @private
+ * @param axis
+ */
+LineGraph.prototype._toggleAxisVisiblity = function (axisUsed, axis) {
+  var changed = false;
+  if (axisUsed == false) {
+    if (axis.dom.frame.parentNode) {
+      axis.hide();
+      changed = true;
+    }
+  }
+  else {
+    if (!axis.dom.frame.parentNode) {
+      axis.show();
+      changed = true;
+    }
+  }
+  return changed;
+};
+
+
+/**
+ * draw a bar graph
+ * @param datapoints
+ * @param group
+ */
+LineGraph.prototype._drawBarGraph = function (dataset, group) {
+  if (dataset != null) {
+    if (dataset.length > 0) {
+      var coreDistance;
+      var minWidth = 0.1 * group.options.barChart.width;
+      var offset = 0;
+      var width = group.options.barChart.width;
+
+      if (group.options.barChart.align == 'left')       {offset -= 0.5*width;}
+      else if (group.options.barChart.align == 'right') {offset += 0.5*width;}
+
+      for (var i = 0; i < dataset.length; i++) {
+        // dynammically downscale the width so there is no overlap up to 1/10th the original width
+        if (i+1 < dataset.length) {coreDistance = Math.abs(dataset[i+1].x - dataset[i].x);}
+        if (i > 0)                {coreDistance = Math.min(coreDistance,Math.abs(dataset[i-1].x - dataset[i].x));}
+        if (coreDistance < width) {width = coreDistance < minWidth ? minWidth : coreDistance;}
+
+        DOMutil.drawBar(dataset[i].x + offset, dataset[i].y, width, group.zeroPosition - dataset[i].y, group.className + ' bar', this.svgElements, this.svg);
+      }
+
+      // draw points
+      if (group.options.drawPoints.enabled == true) {
+        this._drawPoints(dataset, group, this.svgElements, this.svg, offset);
+      }
+    }
+  }
+};
+
+
+/**
+ * draw a line graph
+ *
+ * @param datapoints
+ * @param group
+ */
+LineGraph.prototype._drawLineGraph = function (dataset, group) {
+  if (dataset != null) {
+    if (dataset.length > 0) {
+      var path, d;
+      var svgHeight = Number(this.svg.style.height.replace("px",""));
+      path = DOMutil.getSVGElement('path', this.svgElements, this.svg);
+      path.setAttributeNS(null, "class", group.className);
+
+      // construct path from dataset
+      if (group.options.catmullRom.enabled == true) {
+        d = this._catmullRom(dataset, group);
+      }
+      else {
+        d = this._linear(dataset);
+      }
+
+      // append with points for fill and finalize the path
+      if (group.options.shaded.enabled == true) {
+        var fillPath = DOMutil.getSVGElement('path',this.svgElements, this.svg);
+        var dFill;
+        if (group.options.shaded.orientation == 'top') {
+          dFill = "M" + dataset[0].x + "," + 0 + " " + d + "L" + dataset[dataset.length - 1].x + "," + 0;
+        }
+        else {
+          dFill = "M" + dataset[0].x + "," + svgHeight + " " + d + "L" + dataset[dataset.length - 1].x + "," + svgHeight;
+        }
+        fillPath.setAttributeNS(null, "class", group.className + " fill");
+        fillPath.setAttributeNS(null, "d", dFill);
+      }
+      // copy properties to path for drawing.
+      path.setAttributeNS(null, "d", "M" + d);
+
+      // draw points
+      if (group.options.drawPoints.enabled == true) {
+        this._drawPoints(dataset, group, this.svgElements, this.svg);
+      }
+    }
+  }
+};
+
+/**
+ * draw the data points
+ *
+ * @param dataset
+ * @param JSONcontainer
+ * @param svg
+ * @param group
+ */
+LineGraph.prototype._drawPoints = function (dataset, group, JSONcontainer, svg, offset) {
+  if (offset === undefined) {offset = 0;}
+  for (var i = 0; i < dataset.length; i++) {
+    DOMutil.drawPoint(dataset[i].x + offset, dataset[i].y, group, JSONcontainer, svg);
+  }
+};
+
+
+
+/**
+ * This uses the DataAxis object to generate the correct X coordinate on the SVG window. It uses the
+ * util function toScreen to get the x coordinate from the timestamp. It also pre-filters the data and get the minMax ranges for
+ * the yAxis.
+ *
+ * @param datapoints
+ * @returns {Array}
+ * @private
+ */
+LineGraph.prototype._preprocessData = function (datapoints, group) {
+  var extractedData = [];
+  var xValue, yValue;
+  var toScreen = this.body.util.toScreen;
+
+  var increment = 1;
+  var amountOfPoints = datapoints.length;
+
+  var yMin = datapoints[0].y;
+  var yMax = datapoints[0].y;
+
+  // the global screen is used because changing the width of the yAxis may affect the increment, resulting in an endless loop
+  // of width changing of the yAxis.
+  if (group.options.sampling == true) {
+    var xDistance = this.body.util.toGlobalScreen(datapoints[datapoints.length-1].x) - this.body.util.toGlobalScreen(datapoints[0].x);
+    var pointsPerPixel = amountOfPoints/xDistance;
+    increment = Math.min(Math.ceil(0.2 * amountOfPoints), Math.max(1,Math.round(pointsPerPixel)));
+  }
+
+  for (var i = 0; i < amountOfPoints; i += increment) {
+    xValue = toScreen(datapoints[i].x) + this.width - 1;
+    yValue = datapoints[i].y;
+    extractedData.push({x: xValue, y: yValue});
+    yMin = yMin > yValue ? yValue : yMin;
+    yMax = yMax < yValue ? yValue : yMax;
+  }
+
+  // extractedData.sort(function (a,b) {return a.x - b.x;});
+  return {min: yMin, max: yMax, data: extractedData};
+};
+
+/**
+ * This uses the DataAxis object to generate the correct Y coordinate on the SVG window. It uses the
+ * util function toScreen to get the x coordinate from the timestamp.
+ *
+ * @param datapoints
+ * @param options
+ * @returns {Array}
+ * @private
+ */
+LineGraph.prototype._convertYvalues = function (datapoints, group) {
+  var extractedData = [];
+  var xValue, yValue;
+  var axis = this.yAxisLeft;
+  var svgHeight = Number(this.svg.style.height.replace("px",""));
+
+  if (group.options.yAxisOrientation == 'right') {
+    axis = this.yAxisRight;
+  }
+
+  for (var i = 0; i < datapoints.length; i++) {
+    xValue = datapoints[i].x;
+    yValue = Math.round(axis.convertValue(datapoints[i].y));
+    extractedData.push({x: xValue, y: yValue});
+  }
+
+  group.setZeroPosition(Math.min(svgHeight, axis.convertValue(0)));
+
+  // extractedData.sort(function (a,b) {return a.x - b.x;});
+  return extractedData;
+};
+
+
+/**
+ * This uses an uniform parametrization of the CatmullRom algorithm:
+ * "On the Parameterization of Catmull-Rom Curves" by Cem Yuksel et al.
+ * @param data
+ * @returns {string}
+ * @private
+ */
+LineGraph.prototype._catmullRomUniform = function(data) {
+  // catmull rom
+  var p0, p1, p2, p3, bp1, bp2;
+  var d = Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
+  var normalization = 1/6;
+  var length = data.length;
+  for (var i = 0; i < length - 1; i++) {
+
+    p0 = (i == 0) ? data[0] : data[i-1];
+    p1 = data[i];
+    p2 = data[i+1];
+    p3 = (i + 2 < length) ? data[i+2] : p2;
+
+
+    // Catmull-Rom to Cubic Bezier conversion matrix
+    //    0       1       0       0
+    //  -1/6      1      1/6      0
+    //    0      1/6      1     -1/6
+    //    0       0       1       0
+
+    //    bp0 = { x: p1.x,                               y: p1.y };
+    bp1 = { x: ((-p0.x + 6*p1.x + p2.x) *normalization), y: ((-p0.y + 6*p1.y + p2.y) *normalization)};
+    bp2 = { x: (( p1.x + 6*p2.x - p3.x) *normalization), y: (( p1.y + 6*p2.y - p3.y) *normalization)};
+    //    bp0 = { x: p2.x,                               y: p2.y };
+
+    d += "C" +
+      bp1.x + "," +
+      bp1.y + " " +
+      bp2.x + "," +
+      bp2.y + " " +
+      p2.x + "," +
+      p2.y + " ";
+  }
+
+  return d;
+};
+
+/**
+ * This uses either the chordal or centripetal parameterization of the catmull-rom algorithm.
+ * By default, the centripetal parameterization is used because this gives the nicest results.
+ * These parameterizations are relatively heavy because the distance between 4 points have to be calculated.
+ *
+ * One optimization can be used to reuse distances since this is a sliding window approach.
+ * @param data
+ * @returns {string}
+ * @private
+ */
+LineGraph.prototype._catmullRom = function(data, group) {
+  var alpha = group.options.catmullRom.alpha;
+  if (alpha == 0 || alpha === undefined) {
+    return this._catmullRomUniform(data);
+  }
+  else {
+    var p0, p1, p2, p3, bp1, bp2, d1,d2,d3, A, B, N, M;
+    var d3powA, d2powA, d3pow2A, d2pow2A, d1pow2A, d1powA;
+    var d = Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
+    var length = data.length;
+    for (var i = 0; i < length - 1; i++) {
+
+      p0 = (i == 0) ? data[0] : data[i-1];
+      p1 = data[i];
+      p2 = data[i+1];
+      p3 = (i + 2 < length) ? data[i+2] : p2;
+
+      d1 = Math.sqrt(Math.pow(p0.x - p1.x,2) + Math.pow(p0.y - p1.y,2));
+      d2 = Math.sqrt(Math.pow(p1.x - p2.x,2) + Math.pow(p1.y - p2.y,2));
+      d3 = Math.sqrt(Math.pow(p2.x - p3.x,2) + Math.pow(p2.y - p3.y,2));
+
+      // Catmull-Rom to Cubic Bezier conversion matrix
+      //
+      // A = 2d1^2a + 3d1^a * d2^a + d3^2a
+      // B = 2d3^2a + 3d3^a * d2^a + d2^2a
+      //
+      // [   0             1            0          0          ]
+      // [   -d2^2a/N      A/N          d1^2a/N    0          ]
+      // [   0             d3^2a/M      B/M        -d2^2a/M   ]
+      // [   0             0            1          0          ]
+
+      // [   0             1            0          0          ]
+      // [   -d2pow2a/N    A/N          d1pow2a/N  0          ]
+      // [   0             d3pow2a/M    B/M        -d2pow2a/M ]
+      // [   0             0            1          0          ]
+
+      d3powA  = Math.pow(d3,  alpha);
+      d3pow2A = Math.pow(d3,2*alpha);
+      d2powA  = Math.pow(d2,  alpha);
+      d2pow2A = Math.pow(d2,2*alpha);
+      d1powA  = Math.pow(d1,  alpha);
+      d1pow2A = Math.pow(d1,2*alpha);
+
+      A = 2*d1pow2A + 3*d1powA * d2powA + d2pow2A;
+      B = 2*d3pow2A + 3*d3powA * d2powA + d2pow2A;
+      N = 3*d1powA * (d1powA + d2powA);
+      if (N > 0) {N = 1 / N;}
+      M = 3*d3powA * (d3powA + d2powA);
+      if (M > 0) {M = 1 / M;}
+
+      bp1 = { x: ((-d2pow2A * p0.x + A*p1.x + d1pow2A * p2.x) * N),
+        y: ((-d2pow2A * p0.y + A*p1.y + d1pow2A * p2.y) * N)};
+
+      bp2 = { x: (( d3pow2A * p1.x + B*p2.x - d2pow2A * p3.x) * M),
+        y: (( d3pow2A * p1.y + B*p2.y - d2pow2A * p3.y) * M)};
+
+      if (bp1.x == 0 && bp1.y == 0) {bp1 = p1;}
+      if (bp2.x == 0 && bp2.y == 0) {bp2 = p2;}
+      d += "C" +
+        bp1.x + "," +
+        bp1.y + " " +
+        bp2.x + "," +
+        bp2.y + " " +
+        p2.x + "," +
+        p2.y + " ";
+    }
+
+    return d;
+  }
+};
+
+/**
+ * this generates the SVG path for a linear drawing between datapoints.
+ * @param data
+ * @returns {string}
+ * @private
+ */
+LineGraph.prototype._linear = function(data) {
+  // linear
+  var d = "";
+  for (var i = 0; i < data.length; i++) {
+    if (i == 0) {
+      d += data[i].x + "," + data[i].y;
+    }
+    else {
+      d += " " + data[i].x + "," + data[i].y;
+    }
+  }
+  return d;
+};
+
+
+
+
+
+
+/**
+ * @constructor  DataStep
+ * The class DataStep is an iterator for data for the lineGraph. You provide a start data point and an
+ * end data point. The class itself determines the best scale (step size) based on the
+ * provided start Date, end Date, and minimumStep.
+ *
+ * If minimumStep is provided, the step size is chosen as close as possible
+ * to the minimumStep but larger than minimumStep. If minimumStep is not
+ * provided, the scale is set to 1 DAY.
+ * The minimumStep should correspond with the onscreen size of about 6 characters
+ *
+ * Alternatively, you can set a scale by hand.
+ * After creation, you can initialize the class by executing first(). Then you
+ * can iterate from the start date to the end date via next(). You can check if
+ * the end date is reached with the function hasNext(). After each step, you can
+ * retrieve the current date via getCurrent().
+ * The DataStep has scales ranging from milliseconds, seconds, minutes, hours,
+ * days, to years.
+ *
+ * Version: 1.2
+ *
+ * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
+ *                               or new Date(2010, 9, 21, 23, 45, 00)
+ * @param {Date} [end]           The end date
+ * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+ */
+function DataStep(start, end, minimumStep, containerHeight, forcedStepSize) {
+  // variables
+  this.current = 0;
+
+  this.autoScale = true;
+  this.stepIndex = 0;
+  this.step = 1;
+  this.scale = 1;
+
+  this.marginStart;
+  this.marginEnd;
+
+  this.majorSteps = [1,     2,    5,  10];
+  this.minorSteps = [0.25,  0.5,  1,  2];
+
+  this.setRange(start, end, minimumStep, containerHeight, forcedStepSize);
+}
+
+
+
+/**
+ * Set a new range
+ * If minimumStep is provided, the step size is chosen as close as possible
+ * to the minimumStep but larger than minimumStep. If minimumStep is not
+ * provided, the scale is set to 1 DAY.
+ * The minimumStep should correspond with the onscreen size of about 6 characters
+ * @param {Number} [start]      The start date and time.
+ * @param {Number} [end]        The end date and time.
+ * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+ */
+DataStep.prototype.setRange = function(start, end, minimumStep, containerHeight, forcedStepSize) {
+  this._start = start;
+  this._end = end;
+
+  if (this.autoScale) {
+    this.setMinimumStep(minimumStep, containerHeight, forcedStepSize);
+  }
+  this.setFirst();
+};
+
+/**
+ * Automatically determine the scale that bests fits the provided minimum step
+ * @param {Number} [minimumStep]  The minimum step size in milliseconds
+ */
+DataStep.prototype.setMinimumStep = function(minimumStep, containerHeight) {
+  // round to floor
+  var size = this._end - this._start;
+  var safeSize = size * 1.1;
+  var minimumStepValue = minimumStep * (safeSize / containerHeight);
+  var orderOfMagnitude = Math.round(Math.log(safeSize)/Math.LN10);
+
+  var minorStepIdx = -1;
+  var magnitudefactor = Math.pow(10,orderOfMagnitude);
+
+  var start = 0;
+  if (orderOfMagnitude < 0) {
+    start = orderOfMagnitude;
+  }
+
+  var solutionFound = false;
+  for (var i = start; Math.abs(i) <= Math.abs(orderOfMagnitude); i++) {
+    magnitudefactor = Math.pow(10,i);
+    for (var j = 0; j < this.minorSteps.length; j++) {
+      var stepSize = magnitudefactor * this.minorSteps[j];
+      if (stepSize >= minimumStepValue) {
+        solutionFound = true;
+        minorStepIdx = j;
+        break;
+      }
+    }
+    if (solutionFound == true) {
+      break;
+    }
+  }
+  this.stepIndex = minorStepIdx;
+  this.scale = magnitudefactor;
+  this.step = magnitudefactor * this.minorSteps[minorStepIdx];
+};
+
+
+/**
+ * Set the range iterator to the start date.
+ */
+DataStep.prototype.first = function() {
+  this.setFirst();
+};
+
+/**
+ * Round the current date to the first minor date value
+ * This must be executed once when the current date is set to start Date
+ */
+DataStep.prototype.setFirst = function() {
+  var niceStart = this._start - (this.scale * this.minorSteps[this.stepIndex]);
+  var niceEnd = this._end + (this.scale * this.minorSteps[this.stepIndex]);
+
+  this.marginEnd = this.roundToMinor(niceEnd);
+  this.marginStart = this.roundToMinor(niceStart);
+  this.marginRange = this.marginEnd - this.marginStart;
+
+  this.current = this.marginEnd;
+
+};
+
+DataStep.prototype.roundToMinor = function(value) {
+  var rounded = value - (value % (this.scale * this.minorSteps[this.stepIndex]));
+  if (value % (this.scale * this.minorSteps[this.stepIndex]) > 0.5 * (this.scale * this.minorSteps[this.stepIndex])) {
+    return rounded + (this.scale * this.minorSteps[this.stepIndex]);
+  }
+  else {
+    return rounded;
+  }
+}
+
+
+/**
+ * Check if the there is a next step
+ * @return {boolean}  true if the current date has not passed the end date
+ */
+DataStep.prototype.hasNext = function () {
+  return (this.current >= this.marginStart);
+};
+
+/**
+ * Do the next step
+ */
+DataStep.prototype.next = function() {
+  var prev = this.current;
+  this.current -= this.step;
+
+  // safety mechanism: if current time is still unchanged, move to the end
+  if (this.current == prev) {
+    this.current = this._end;
+  }
+};
+
+/**
+ * Do the next step
+ */
+DataStep.prototype.previous = function() {
+  this.current += this.step;
+  this.marginEnd += this.step;
+  this.marginRange = this.marginEnd - this.marginStart;
+};
+
+
+
+/**
+ * Get the current datetime
+ * @return {Number}  current The current date
+ */
+DataStep.prototype.getCurrent = function() {
+  var toPrecision = '' + Number(this.current).toPrecision(5);
+  for (var i = toPrecision.length-1; i > 0; i--) {
+    if (toPrecision[i] == "0") {
+      toPrecision = toPrecision.slice(0,i);
+    }
+    else if (toPrecision[i] == "." || toPrecision[i] == ",") {
+      toPrecision = toPrecision.slice(0,i);
+      break;
+    }
+    else{
+      break;
+    }
+  }
+
+
+  return toPrecision;
+};
+
+
+
+/**
+ * Snap a date to a rounded value.
+ * The snap intervals are dependent on the current scale and step.
+ * @param {Date} date   the date to be snapped.
+ * @return {Date} snappedDate
+ */
+DataStep.prototype.snap = function(date) {
+
+};
+
+/**
+ * Check if the current value is a major value (for example when the step
+ * is DAY, a major value is each first day of the MONTH)
+ * @return {boolean} true if current date is major, else false.
+ */
+DataStep.prototype.isMajor = function() {
+  return (this.current % (this.scale * this.majorSteps[this.stepIndex]) == 0);
+};
 
 /**
  * Utility functions for ordering and stacking of items
@@ -3385,21 +5887,16 @@ Range.prototype._onDragStart = function(event) {
 Range.prototype._onDrag = function (event) {
   // only allow dragging when configured as movable
   if (!this.options.moveable) return;
-
   var direction = this.options.direction;
   validateDirection(direction);
-
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
   if (!this.props.touch.allowDragging) return;
-
   var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
       interval = (this.props.touch.end - this.props.touch.start),
       width = (direction == 'horizontal') ? this.body.domProps.center.width : this.body.domProps.center.height,
       diffRange = -delta / width * interval;
-
   this._applyRange(this.props.touch.start + diffRange, this.props.touch.end + diffRange);
-
   this.body.emitter.emit('rangechange', {
     start: new Date(this.start),
     end:   new Date(this.end)
@@ -4393,7 +6890,7 @@ function ItemSet(body, options) {
   this.body = body;
 
   this.defaultOptions = {
-    type: 'box',
+    type: null,  // 'box', 'point', 'range'
     orientation: 'bottom',  // 'top' or 'bottom'
     align: 'center', // alignment of box items
     stack: true,
@@ -4494,7 +6991,6 @@ ItemSet.prototype = new Component();
 ItemSet.types = {
   box: ItemBox,
   range: ItemRange,
-  rangeoverflow: ItemRangeOverflow,
   point: ItemPoint
 };
 
@@ -5028,7 +7524,7 @@ ItemSet.prototype.getGroups = function() {
  */
 ItemSet.prototype.removeItem = function(id) {
   var item = this.itemsData.get(id),
-      dataset = this._myDataSet();
+      dataset = this.itemsData.getDataSet();
 
   if (item) {
     // confirm deletion
@@ -5053,10 +7549,7 @@ ItemSet.prototype._onUpdate = function(ids) {
   ids.forEach(function (id) {
     var itemData = me.itemsData.get(id, me.itemOptions),
         item = me.items[id],
-        type = itemData.type ||
-            (itemData.start && itemData.end && 'range') ||
-            me.options.type ||
-            'box';
+        type = itemData.type || me.options.type || (itemData.end ? 'range' : 'box');
 
     var constructor = ItemSet.types[type];
 
@@ -5078,6 +7571,11 @@ ItemSet.prototype._onUpdate = function(ids) {
         item = new constructor(itemData, me.conversion, me.options);
         item.id = id; // TODO: not so nice setting id afterwards
         me._addItem(item);
+      }
+      else if (type == 'rangeoverflow') {
+        // TODO: deprecated since version 2.1.0 (or 3.0.0?). cleanup some day
+        throw new TypeError('Item type "rangeoverflow" is deprecated. Use css styling instead: ' +
+            '.vis.timeline .item.range .content {overflow: visible;}');
       }
       else {
         throw new TypeError('Unknown item type "' + type + '"');
@@ -5467,7 +7965,7 @@ ItemSet.prototype._onDragEnd = function (event) {
     // prepare a change set for the changed items
     var changes = [],
         me = this,
-        dataset = this._myDataSet();
+        dataset = this.itemsData.getDataSet();
 
     this.touchParams.itemProps.forEach(function (props) {
       var id = props.item.id,
@@ -5588,7 +8086,7 @@ ItemSet.prototype._onAddItem = function (event) {
     };
 
     // when default type is a range, add a default end date to the new item
-    if (this.options.type === 'range' || this.options.type == 'rangeoverflow') {
+    if (this.options.type === 'range') {
       var end = this.body.util.toTime(x + this.props.width / 5);
       newItem.end = snap ? snap(end) : end;
     }
@@ -5697,19 +8195,7 @@ ItemSet.itemSetFromTarget = function(event) {
   return null;
 };
 
-/**
- * Find the DataSet to which this ItemSet is connected
- * @returns {null | DataSet} dataset
- * @private
- */
-ItemSet.prototype._myDataSet = function() {
-  // find the root DataSet
-  var dataset = this.itemsData;
-  while (dataset instanceof DataView) {
-    dataset = dataset.data;
-  }
-  return dataset;
-};
+
 /**
  * @constructor Item
  * @param {Object} data             Object containing (optional) parameters type,
@@ -5964,6 +8450,12 @@ ItemBox.prototype.redraw = function() {
     this.dirty = true;
   }
 
+  // update title
+  if (this.data.title != this.title) {
+    dom.box.title = this.data.title;
+    this.title = this.data.title;
+  }
+
   // update class
   var className = (this.data.className? ' ' + this.data.className : '') +
       (this.selected ? ' selected' : '');
@@ -6185,6 +8677,12 @@ ItemPoint.prototype.redraw = function() {
     this.dirty = true;
   }
 
+  // update title
+  if (this.data.title != this.title) {
+    dom.point.title = this.data.title;
+    this.title = this.data.title;
+  }
+
   // update class
   var className = (this.data.className? ' ' + this.data.className : '') +
       (this.selected ? ' selected' : '');
@@ -6288,6 +8786,7 @@ function ItemRange (data, conversion, options) {
       width: 0
     }
   };
+  this.overflow = false; // if contents can overflow (css styling), this flag is set to true
 
   // validate data
   if (data) {
@@ -6369,6 +8868,12 @@ ItemRange.prototype.redraw = function() {
     this.dirty = true;
   }
 
+  // update title
+  if (this.data.title != this.title) {
+    dom.box.title = this.data.title;
+    this.title = this.data.title;
+  }
+
   // update class
   var className = (this.data.className ? (' ' + this.data.className) : '') +
       (this.selected ? ' selected' : '');
@@ -6381,6 +8886,9 @@ ItemRange.prototype.redraw = function() {
 
   // recalculate size
   if (this.dirty) {
+    // determine from css whether this box has overflow
+    this.overflow = window.getComputedStyle(dom.content).overflow !== 'hidden';
+
     this.props.content.width = this.dom.content.offsetWidth;
     this.height = this.dom.box.offsetHeight;
 
@@ -6425,6 +8933,7 @@ ItemRange.prototype.hide = function() {
  * Reposition the item horizontally
  * @Override
  */
+// TODO: delete the old function
 ItemRange.prototype.repositionX = function() {
   var props = this.props,
       parentWidth = this.parent.width,
@@ -6440,22 +8949,35 @@ ItemRange.prototype.repositionX = function() {
   if (end > 2 * parentWidth) {
     end = 2 * parentWidth;
   }
+  var boxWidth = Math.max(end - start, 1);
 
-  // when range exceeds left of the window, position the contents at the left of the visible area
-  if (start < 0) {
-    contentLeft = Math.min(-start,
-        (end - start - props.content.width - 2 * padding));
-    // TODO: remove the need for options.padding. it's terrible.
-  }
-  else {
-    contentLeft = 0;
-  }
+  if (this.overflow) {
+    // when range exceeds left of the window, position the contents at the left of the visible area
+    contentLeft = Math.max(-start, 0);
 
-  this.left = start;
-  this.width = Math.max(end - start, 1);
+    this.left = start;
+    this.width = boxWidth + this.props.content.width;
+    // Note: The calculation of width is an optimistic calculation, giving
+    //       a width which will not change when moving the Timeline
+    //       So no restacking needed, which is nicer for the eye;
+  }
+  else { // no overflow
+    // when range exceeds left of the window, position the contents at the left of the visible area
+    if (start < 0) {
+      contentLeft = Math.min(-start,
+          (end - start - props.content.width - 2 * padding));
+      // TODO: remove the need for options.padding. it's terrible.
+    }
+    else {
+      contentLeft = 0;
+    }
+
+    this.left = start;
+    this.width = boxWidth;
+  }
 
   this.dom.box.style.left = this.left + 'px';
-  this.dom.box.style.width = this.width + 'px';
+  this.dom.box.style.width = boxWidth + 'px';
   this.dom.content.style.left = contentLeft + 'px';
 };
 
@@ -6533,64 +9055,6 @@ ItemRange.prototype._repaintDragRight = function () {
     }
     this.dom.dragRight = null;
   }
-};
-
-/**
- * @constructor ItemRangeOverflow
- * @extends ItemRange
- * @param {Object} data             Object containing parameters start, end
- *                                  content, className.
- * @param {{toScreen: function, toTime: function}} conversion
- *                                  Conversion functions from time to screen and vice versa
- * @param {Object} [options]        Configuration options
- *                                  // TODO: describe options
- */
-function ItemRangeOverflow (data, conversion, options) {
-  this.props = {
-    content: {
-      left: 0,
-      width: 0
-    }
-  };
-
-  ItemRange.call(this, data, conversion, options);
-}
-
-ItemRangeOverflow.prototype = new ItemRange (null, null, null);
-
-ItemRangeOverflow.prototype.baseClassName = 'item rangeoverflow';
-
-/**
- * Reposition the item horizontally
- * @Override
- */
-ItemRangeOverflow.prototype.repositionX = function() {
-  var parentWidth = this.parent.width,
-      start = this.conversion.toScreen(this.data.start),
-      end = this.conversion.toScreen(this.data.end),
-      contentLeft;
-
-  // limit the width of the this, as browsers cannot draw very wide divs
-  if (start < -parentWidth) {
-    start = -parentWidth;
-  }
-  if (end > 2 * parentWidth) {
-    end = 2 * parentWidth;
-  }
-
-  // when range exceeds left of the window, position the contents at the left of the visible area
-  contentLeft = Math.max(-start, 0);
-
-  this.left = start;
-  var boxWidth = Math.max(end - start, 1);
-  this.width = boxWidth + this.props.content.width;
-  // Note: The calculation of width is an optimistic calculation, giving
-  //       a width which will not change when moving the Timeline
-  //       So no restacking needed, which is nicer for the eye
-
-  this.dom.box.style.left = this.left + 'px';
-  this.dom.box.style.width = boxWidth + 'px';
-  this.dom.content.style.left = contentLeft + 'px';
 };
 
 /**
@@ -6676,6 +9140,9 @@ Group.prototype.setData = function(data) {
     this.dom.inner.innerHTML = this.groupId;
   }
 
+  // update title
+  this.dom.label.title = data && data.title || '';
+
   if (!this.dom.inner.firstChild) {
     util.addClassName(this.dom.inner, 'hidden');
   }
@@ -6752,7 +9219,15 @@ Group.prototype.redraw = function(range, margin, restack) {
       min = Math.min(min, item.top);
       max = Math.max(max, (item.top + item.height));
     });
-    height = (max - min) + margin.axis + margin.item;
+    if (min > margin.axis) {
+      // there is an empty gap between the lowest item and the axis
+      var offset = min - margin.axis;
+      max -= offset;
+      util.forEach(visibleItems, function (item) {
+        item.top -= offset;
+      });
+    }
+    height = max + margin.item / 2;
   }
   else {
     height = margin.axis + margin.item;
@@ -6771,7 +9246,8 @@ Group.prototype.redraw = function(range, margin, restack) {
   resized = util.updateProperty(this.props.label, 'height', this.dom.inner.clientHeight) || resized;
 
   // apply new height
-  foreground.style.height  = height + 'px';
+  this.dom.background.style.height  = height + 'px';
+  this.dom.foreground.style.height  = height + 'px';
   this.dom.label.style.height = height + 'px';
 
   // update vertical position of items after they are re-stacked and the height of the group is calculated
@@ -6918,14 +9394,14 @@ Group.prototype._updateVisibleItems = function(orderedItems, visibleItems, range
 
   // If there were no visible items previously, use binarySearch to find a visible ItemPoint or ItemRange (based on startTime)
   if (newVisibleItems.length == 0) {
-    initialPosByStart = this._binarySearch(orderedItems, range, false);
+    initialPosByStart = util.binarySearch(orderedItems.byStart, range, 'data','start');
   }
   else {
     initialPosByStart = orderedItems.byStart.indexOf(newVisibleItems[0]);
   }
 
   // use visible search to find a visible ItemRange (only based on endTime)
-  var initialPosByEnd = this._binarySearch(orderedItems, range, true);
+  var initialPosByEnd = util.binarySearch(orderedItems.byEnd, range, 'data','end');
 
   // if we found a initial ID to use, trace it up and down until we meet an invisible item.
   if (initialPosByStart != -1) {
@@ -6950,72 +9426,7 @@ Group.prototype._updateVisibleItems = function(orderedItems, visibleItems, range
   return newVisibleItems;
 };
 
-/**
- * This function does a binary search for a visible item. The user can select either the this.orderedItems.byStart or .byEnd
- * arrays. This is done by giving a boolean value true if you want to use the byEnd.
- * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
- * if the time we selected (start or end) is within the current range).
- *
- * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the ItemRange that is
- * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
- * either the start OR end time has to be in the range.
- *
- * @param {{byStart: Item[], byEnd: Item[]}} orderedItems
- * @param {{start: number, end: number}} range
- * @param {Boolean} byEnd
- * @returns {number}
- * @private
- */
-Group.prototype._binarySearch = function(orderedItems, range, byEnd) {
-  var array = [];
-  var byTime = byEnd ? 'end' : 'start';
-  if (byEnd == true) {array = orderedItems.byEnd;  }
-  else               {array = orderedItems.byStart;}
 
-  var interval = range.end - range.start;
-
-  var found = false;
-  var low = 0;
-  var high = array.length;
-  var guess = Math.floor(0.5*(high+low));
-  var newGuess;
-
-  if (high == 0) {guess = -1;}
-  else if (high == 1) {
-    if ((array[guess].data[byTime] > range.start - interval) && (array[guess].data[byTime] < range.end)) {
-      guess =  0;
-    }
-    else {
-      guess = -1;
-    }
-  }
-  else {
-    high -= 1;
-    while (found == false) {
-      if ((array[guess].data[byTime] > range.start - interval) && (array[guess].data[byTime] < range.end)) {
-        found = true;
-      }
-      else {
-        if (array[guess].data[byTime] < range.start - interval) { // it is too small --> increase low
-          low = Math.floor(0.5*(high+low));
-        }
-        else {  // it is too big --> decrease high
-          high = Math.floor(0.5*(high+low));
-        }
-        newGuess = Math.floor(0.5*(high+low));
-        // not in list;
-        if (guess == newGuess) {
-          guess = -1;
-          found = true;
-        }
-        else {
-          guess = newGuess;
-        }
-      }
-    }
-  }
-  return guess;
-};
 
 /**
  * this function checks if an item is invisible. If it is NOT we make it visible
@@ -7072,6 +9483,10 @@ Group.prototype._checkIfVisible = function(item, visibleItems, range) {
  * @constructor
  */
 function Timeline (container, items, options) {
+  if (!(this instanceof Timeline)) {
+    throw new SyntaxError('Constructor must be called with the new operator');
+  }
+
   var me = this;
   this.defaultOptions = {
     start: null,
@@ -7104,7 +9519,9 @@ function Timeline (container, items, options) {
     util: {
       snap: null, // will be specified after TimeAxis is created
       toScreen: me._toScreen.bind(me),
-      toTime: me._toTime.bind(me)
+      toGlobalScreen: me._toGlobalScreen.bind(me), // this refers to the root.width
+      toTime: me._toTime.bind(me),
+      toGlobalTime : me._toGlobalTime.bind(me)
     }
   };
 
@@ -7508,23 +9925,23 @@ Timeline.prototype.fit = function() {
  */
 Timeline.prototype.getItemRange = function() {
   // calculate min from start filed
-  var itemsData = this.itemsData,
+  var dataset = this.itemsData.getDataSet(),
       min = null,
       max = null;
 
-  if (itemsData) {
+  if (dataset) {
     // calculate the minimum value of the field 'start'
-    var minItem = itemsData.min('start');
+    var minItem = dataset.min('start');
     min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
     // Note: we convert first to Date and then to number because else
     // a conversion from ISODate to Number will fail
 
     // calculate maximum value of fields 'start' and 'end'
-    var maxStartItem = itemsData.max('start');
+    var maxStartItem = dataset.max('start');
     if (maxStartItem) {
       max = util.convert(maxStartItem.start, 'Date').valueOf();
     }
-    var maxEndItem = itemsData.max('end');
+    var maxEndItem = dataset.max('end');
     if (maxEndItem) {
       if (max == null) {
         max = util.convert(maxEndItem.end, 'Date').valueOf();
@@ -7702,7 +10119,8 @@ Timeline.prototype.redraw = function() {
   // reposition the scrollable contents
   var offset = this.props.scrollTop;
   if (options.orientation == 'bottom') {
-    offset += Math.max(this.props.centerContainer.height - this.props.center.height, 0);
+    offset += Math.max(this.props.centerContainer.height - this.props.center.height -
+        this.props.border.top - this.props.border.bottom, 0);
   }
   dom.center.style.left = '0';
   dom.center.style.top  = offset + 'px';
@@ -7748,6 +10166,19 @@ Timeline.prototype._toTime = function(x) {
   return new Date(x / conversion.scale + conversion.offset);
 };
 
+
+/**
+ * Convert a position on the global screen (pixels) to a datetime
+ * @param {int}     x    Position on the screen in pixels
+ * @return {Date}   time The datetime the corresponds with given position x
+ * @private
+ */
+// TODO: move this function to Range
+Timeline.prototype._toGlobalTime = function(x) {
+  var conversion = this.range.conversion(this.props.root.width);
+  return new Date(x / conversion.scale + conversion.offset);
+};
+
 /**
  * Convert a datetime (Date object) into a position on the screen
  * @param {Date}   time A date
@@ -7760,6 +10191,22 @@ Timeline.prototype._toScreen = function(time) {
   var conversion = this.range.conversion(this.props.center.width);
   return (time.valueOf() - conversion.offset) * conversion.scale;
 };
+
+
+/**
+ * Convert a datetime (Date object) into a position on the root
+ * This is used to get the pixel density estimate for the screen, not the center panel
+ * @param {Date}   time A date
+ * @return {int}   x    The position on root in pixels which corresponds
+ *                      with the given date.
+ * @private
+ */
+// TODO: move this function to Range
+Timeline.prototype._toGlobalScreen = function(time) {
+  var conversion = this.range.conversion(this.props.root.width);
+  return (time.valueOf() - conversion.offset) * conversion.scale;
+};
+
 
 /**
  * Initialize watching when option autoResize is true
@@ -7913,6 +10360,877 @@ Timeline.prototype._updateScrollTop = function () {
  * @private
  */
 Timeline.prototype._getScrollTop = function () {
+  return this.props.scrollTop;
+};
+
+/**
+ * Create a timeline visualization
+ * @param {HTMLElement} container
+ * @param {vis.DataSet | Array | google.visualization.DataTable} [items]
+ * @param {Object} [options]  See Graph2d.setOptions for the available options.
+ * @constructor
+ */
+function Graph2d (container, items, options, groups) {
+  var me = this;
+  this.defaultOptions = {
+    start: null,
+    end:   null,
+
+    autoResize: true,
+
+    orientation: 'bottom',
+    width: null,
+    height: null,
+    maxHeight: null,
+    minHeight: null
+  };
+  this.options = util.deepExtend({}, this.defaultOptions);
+
+  // Create the DOM, props, and emitter
+  this._create(container);
+
+  // all components listed here will be repainted automatically
+  this.components = [];
+
+  this.body = {
+    dom: this.dom,
+    domProps: this.props,
+    emitter: {
+      on: this.on.bind(this),
+      off: this.off.bind(this),
+      emit: this.emit.bind(this)
+    },
+    util: {
+      snap: null, // will be specified after TimeAxis is created
+      toScreen: me._toScreen.bind(me),
+      toGlobalScreen: me._toGlobalScreen.bind(me), // this refers to the root.width
+      toTime: me._toTime.bind(me),
+      toGlobalTime : me._toGlobalTime.bind(me)
+    }
+  };
+
+  // range
+  this.range = new Range(this.body);
+  this.components.push(this.range);
+  this.body.range = this.range;
+
+  // time axis
+  this.timeAxis = new TimeAxis(this.body);
+  this.components.push(this.timeAxis);
+  this.body.util.snap = this.timeAxis.snap.bind(this.timeAxis);
+
+  // current time bar
+  this.currentTime = new CurrentTime(this.body);
+  this.components.push(this.currentTime);
+
+  // custom time bar
+  // Note: time bar will be attached in this.setOptions when selected
+  this.customTime = new CustomTime(this.body);
+  this.components.push(this.customTime);
+
+  // item set
+  this.linegraph = new LineGraph(this.body);
+  this.components.push(this.linegraph);
+
+  this.itemsData = null;      // DataSet
+  this.groupsData = null;     // DataSet
+
+  // apply options
+  if (options) {
+    this.setOptions(options);
+  }
+
+  // IMPORTANT: THIS HAPPENS BEFORE SET ITEMS!
+  if (groups) {
+    this.setGroups(groups);
+  }
+
+  // create itemset
+  if (items) {
+    this.setItems(items);
+  }
+  else {
+    this.redraw();
+  }
+}
+
+// turn Graph2d into an event emitter
+Emitter(Graph2d.prototype);
+
+/**
+ * Create the main DOM for the Graph2d: a root panel containing left, right,
+ * top, bottom, content, and background panel.
+ * @param {Element} container  The container element where the Graph2d will
+ *                             be attached.
+ * @private
+ */
+Graph2d.prototype._create = function (container) {
+  this.dom = {};
+
+  this.dom.root                 = document.createElement('div');
+  this.dom.background           = document.createElement('div');
+  this.dom.backgroundVertical   = document.createElement('div');
+  this.dom.backgroundHorizontalContainer = document.createElement('div');
+  this.dom.centerContainer      = document.createElement('div');
+  this.dom.leftContainer        = document.createElement('div');
+  this.dom.rightContainer       = document.createElement('div');
+  this.dom.backgroundHorizontal = document.createElement('div');
+  this.dom.center               = document.createElement('div');
+  this.dom.left                 = document.createElement('div');
+  this.dom.right                = document.createElement('div');
+  this.dom.top                  = document.createElement('div');
+  this.dom.bottom               = document.createElement('div');
+  this.dom.shadowTop            = document.createElement('div');
+  this.dom.shadowBottom         = document.createElement('div');
+  this.dom.shadowTopLeft        = document.createElement('div');
+  this.dom.shadowBottomLeft     = document.createElement('div');
+  this.dom.shadowTopRight       = document.createElement('div');
+  this.dom.shadowBottomRight    = document.createElement('div');
+
+  this.dom.background.className           = 'vispanel background';
+  this.dom.backgroundVertical.className   = 'vispanel background vertical';
+  this.dom.backgroundHorizontalContainer.className = 'vispanel background horizontal';
+  this.dom.backgroundHorizontal.className = 'vispanel background horizontal';
+  this.dom.centerContainer.className      = 'vispanel center';
+  this.dom.leftContainer.className        = 'vispanel left';
+  this.dom.rightContainer.className       = 'vispanel right';
+  this.dom.top.className                  = 'vispanel top';
+  this.dom.bottom.className               = 'vispanel bottom';
+  this.dom.left.className                 = 'content';
+  this.dom.center.className               = 'content';
+  this.dom.right.className                = 'content';
+  this.dom.shadowTop.className            = 'shadow top';
+  this.dom.shadowBottom.className         = 'shadow bottom';
+  this.dom.shadowTopLeft.className        = 'shadow top';
+  this.dom.shadowBottomLeft.className     = 'shadow bottom';
+  this.dom.shadowTopRight.className       = 'shadow top';
+  this.dom.shadowBottomRight.className    = 'shadow bottom';
+
+  this.dom.root.appendChild(this.dom.background);
+  this.dom.root.appendChild(this.dom.backgroundVertical);
+  this.dom.root.appendChild(this.dom.backgroundHorizontalContainer);
+  this.dom.root.appendChild(this.dom.centerContainer);
+  this.dom.root.appendChild(this.dom.leftContainer);
+  this.dom.root.appendChild(this.dom.rightContainer);
+  this.dom.root.appendChild(this.dom.top);
+  this.dom.root.appendChild(this.dom.bottom);
+
+  this.dom.backgroundHorizontalContainer.appendChild(this.dom.backgroundHorizontal);
+  this.dom.centerContainer.appendChild(this.dom.center);
+  this.dom.leftContainer.appendChild(this.dom.left);
+  this.dom.rightContainer.appendChild(this.dom.right);
+
+  this.dom.centerContainer.appendChild(this.dom.shadowTop);
+  this.dom.centerContainer.appendChild(this.dom.shadowBottom);
+  this.dom.leftContainer.appendChild(this.dom.shadowTopLeft);
+  this.dom.leftContainer.appendChild(this.dom.shadowBottomLeft);
+  this.dom.rightContainer.appendChild(this.dom.shadowTopRight);
+  this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
+
+  this.on('rangechange', this.redraw.bind(this));
+  this.on('change', this.redraw.bind(this));
+  this.on('touch', this._onTouch.bind(this));
+  this.on('pinch', this._onPinch.bind(this));
+  this.on('dragstart', this._onDragStart.bind(this));
+  this.on('drag', this._onDrag.bind(this));
+
+  // create event listeners for all interesting events, these events will be
+  // emitted via emitter
+  this.hammer = Hammer(this.dom.root, {
+    prevent_default: true
+  });
+  this.listeners = {};
+
+  var me = this;
+  var events = [
+    'touch', 'pinch',
+    'tap', 'doubletap', 'hold',
+    'dragstart', 'drag', 'dragend',
+    'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
+  ];
+  events.forEach(function (event) {
+    var listener = function () {
+      var args = [event].concat(Array.prototype.slice.call(arguments, 0));
+      me.emit.apply(me, args);
+    };
+    me.hammer.on(event, listener);
+    me.listeners[event] = listener;
+  });
+
+  // size properties of each of the panels
+  this.props = {
+    root: {},
+    background: {},
+    centerContainer: {},
+    leftContainer: {},
+    rightContainer: {},
+    center: {},
+    left: {},
+    right: {},
+    top: {},
+    bottom: {},
+    border: {},
+    scrollTop: 0,
+    scrollTopMin: 0
+  };
+  this.touch = {}; // store state information needed for touch events
+
+  // attach the root panel to the provided container
+  if (!container) throw new Error('No container provided');
+  container.appendChild(this.dom.root);
+};
+
+/**
+ * Destroy the Graph2d, clean up all DOM elements and event listeners.
+ */
+Graph2d.prototype.destroy = function () {
+  // unbind datasets
+  this.clear();
+
+  // remove all event listeners
+  this.off();
+
+  // stop checking for changed size
+  this._stopAutoResize();
+
+  // remove from DOM
+  if (this.dom.root.parentNode) {
+    this.dom.root.parentNode.removeChild(this.dom.root);
+  }
+  this.dom = null;
+
+  // cleanup hammer touch events
+  for (var event in this.listeners) {
+    if (this.listeners.hasOwnProperty(event)) {
+      delete this.listeners[event];
+    }
+  }
+  this.listeners = null;
+  this.hammer = null;
+
+  // give all components the opportunity to cleanup
+  this.components.forEach(function (component) {
+    component.destroy();
+  });
+
+  this.body = null;
+};
+
+/**
+ * Set options. Options will be passed to all components loaded in the Graph2d.
+ * @param {Object} [options]
+ *                           {String} orientation
+ *                              Vertical orientation for the Graph2d,
+ *                              can be 'bottom' (default) or 'top'.
+ *                           {String | Number} width
+ *                              Width for the timeline, a number in pixels or
+ *                              a css string like '1000px' or '75%'. '100%' by default.
+ *                           {String | Number} height
+ *                              Fixed height for the Graph2d, a number in pixels or
+ *                              a css string like '400px' or '75%'. If undefined,
+ *                              The Graph2d will automatically size such that
+ *                              its contents fit.
+ *                           {String | Number} minHeight
+ *                              Minimum height for the Graph2d, a number in pixels or
+ *                              a css string like '400px' or '75%'.
+ *                           {String | Number} maxHeight
+ *                              Maximum height for the Graph2d, a number in pixels or
+ *                              a css string like '400px' or '75%'.
+ *                           {Number | Date | String} start
+ *                              Start date for the visible window
+ *                           {Number | Date | String} end
+ *                              End date for the visible window
+ */
+Graph2d.prototype.setOptions = function (options) {
+  if (options) {
+    // copy the known options
+    var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation'];
+    util.selectiveExtend(fields, this.options, options);
+
+    // enable/disable autoResize
+    this._initAutoResize();
+  }
+
+  // propagate options to all components
+  this.components.forEach(function (component) {
+    component.setOptions(options);
+  });
+
+  // TODO: remove deprecation error one day (deprecated since version 0.8.0)
+  if (options && options.order) {
+    throw new Error('Option order is deprecated. There is no replacement for this feature.');
+  }
+
+  // redraw everything
+  this.redraw();
+};
+
+/**
+ * Set a custom time bar
+ * @param {Date} time
+ */
+Graph2d.prototype.setCustomTime = function (time) {
+  if (!this.customTime) {
+    throw new Error('Cannot get custom time: Custom time bar is not enabled');
+  }
+
+  this.customTime.setCustomTime(time);
+};
+
+/**
+ * Retrieve the current custom time.
+ * @return {Date} customTime
+ */
+Graph2d.prototype.getCustomTime = function() {
+  if (!this.customTime) {
+    throw new Error('Cannot get custom time: Custom time bar is not enabled');
+  }
+
+  return this.customTime.getCustomTime();
+};
+
+/**
+ * Set items
+ * @param {vis.DataSet | Array | google.visualization.DataTable | null} items
+ */
+Graph2d.prototype.setItems = function(items) {
+  var initialLoad = (this.itemsData == null);
+
+  // convert to type DataSet when needed
+  var newDataSet;
+  if (!items) {
+    newDataSet = null;
+  }
+  else if (items instanceof DataSet || items instanceof DataView) {
+    newDataSet = items;
+  }
+  else {
+    // turn an array into a dataset
+    newDataSet = new DataSet(items, {
+      type: {
+        start: 'Date',
+        end: 'Date'
+      }
+    });
+  }
+
+  // set items
+  this.itemsData = newDataSet;
+  this.linegraph && this.linegraph.setItems(newDataSet);
+
+  if (initialLoad && ('start' in this.options || 'end' in this.options)) {
+    this.fit();
+
+    var start = ('start' in this.options) ? util.convert(this.options.start, 'Date') : null;
+    var end   = ('end' in this.options)   ? util.convert(this.options.end, 'Date') : null;
+
+    this.setWindow(start, end);
+  }
+};
+
+/**
+ * Set groups
+ * @param {vis.DataSet | Array | google.visualization.DataTable} groups
+ */
+Graph2d.prototype.setGroups = function(groups) {
+  // convert to type DataSet when needed
+  var newDataSet;
+  if (!groups) {
+    newDataSet = null;
+  }
+  else if (groups instanceof DataSet || groups instanceof DataView) {
+    newDataSet = groups;
+  }
+  else {
+    // turn an array into a dataset
+    newDataSet = new DataSet(groups);
+  }
+
+  this.groupsData = newDataSet;
+  this.linegraph.setGroups(newDataSet);
+};
+
+/**
+ * Clear the Graph2d. By Default, items, groups and options are cleared.
+ * Example usage:
+ *
+ *     timeline.clear();                // clear items, groups, and options
+ *     timeline.clear({options: true}); // clear options only
+ *
+ * @param {Object} [what]      Optionally specify what to clear. By default:
+ *                             {items: true, groups: true, options: true}
+ */
+Graph2d.prototype.clear = function(what) {
+  // clear items
+  if (!what || what.items) {
+    this.setItems(null);
+  }
+
+  // clear groups
+  if (!what || what.groups) {
+    this.setGroups(null);
+  }
+
+  // clear options of timeline and of each of the components
+  if (!what || what.options) {
+    this.components.forEach(function (component) {
+      component.setOptions(component.defaultOptions);
+    });
+
+    this.setOptions(this.defaultOptions); // this will also do a redraw
+  }
+};
+
+/**
+ * Set Graph2d window such that it fits all items
+ */
+Graph2d.prototype.fit = function() {
+  // apply the data range as range
+  var dataRange = this.getItemRange();
+
+  // add 5% space on both sides
+  var start = dataRange.min;
+  var end = dataRange.max;
+  if (start != null && end != null) {
+    var interval = (end.valueOf() - start.valueOf());
+    if (interval <= 0) {
+      // prevent an empty interval
+      interval = 24 * 60 * 60 * 1000; // 1 day
+    }
+    start = new Date(start.valueOf() - interval * 0.05);
+    end = new Date(end.valueOf() + interval * 0.05);
+  }
+
+  // skip range set if there is no start and end date
+  if (start === null && end === null) {
+    return;
+  }
+
+  this.range.setRange(start, end);
+};
+
+/**
+ * Get the data range of the item set.
+ * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
+ *                                          When no minimum is found, min==null
+ *                                          When no maximum is found, max==null
+ */
+Graph2d.prototype.getItemRange = function() {
+  // calculate min from start filed
+  var itemsData = this.itemsData,
+    min = null,
+    max = null;
+
+  if (itemsData) {
+    // calculate the minimum value of the field 'start'
+    var minItem = itemsData.min('start');
+    min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
+    // Note: we convert first to Date and then to number because else
+    // a conversion from ISODate to Number will fail
+
+    // calculate maximum value of fields 'start' and 'end'
+    var maxStartItem = itemsData.max('start');
+    if (maxStartItem) {
+      max = util.convert(maxStartItem.start, 'Date').valueOf();
+    }
+    var maxEndItem = itemsData.max('end');
+    if (maxEndItem) {
+      if (max == null) {
+        max = util.convert(maxEndItem.end, 'Date').valueOf();
+      }
+      else {
+        max = Math.max(max, util.convert(maxEndItem.end, 'Date').valueOf());
+      }
+    }
+  }
+
+  return {
+    min: (min != null) ? new Date(min) : null,
+    max: (max != null) ? new Date(max) : null
+  };
+};
+
+/**
+ * Set the visible window. Both parameters are optional, you can change only
+ * start or only end. Syntax:
+ *
+ *     TimeLine.setWindow(start, end)
+ *     TimeLine.setWindow(range)
+ *
+ * Where start and end can be a Date, number, or string, and range is an
+ * object with properties start and end.
+ *
+ * @param {Date | Number | String | Object} [start] Start date of visible window
+ * @param {Date | Number | String} [end]   End date of visible window
+ */
+Graph2d.prototype.setWindow = function(start, end) {
+  if (arguments.length == 1) {
+    var range = arguments[0];
+    this.range.setRange(range.start, range.end);
+  }
+  else {
+    this.range.setRange(start, end);
+  }
+};
+
+/**
+ * Get the visible window
+ * @return {{start: Date, end: Date}}   Visible range
+ */
+Graph2d.prototype.getWindow = function() {
+  var range = this.range.getRange();
+  return {
+    start: new Date(range.start),
+    end: new Date(range.end)
+  };
+};
+
+/**
+ * Force a redraw of the Graph2d. Can be useful to manually redraw when
+ * option autoResize=false
+ */
+Graph2d.prototype.redraw = function() {
+  var resized = false,
+    options = this.options,
+    props = this.props,
+    dom = this.dom;
+
+  if (!dom) return; // when destroyed
+
+  // update class names
+  dom.root.className = 'vis timeline root ' + options.orientation;
+
+  // update root width and height options
+  dom.root.style.maxHeight = util.option.asSize(options.maxHeight, '');
+  dom.root.style.minHeight = util.option.asSize(options.minHeight, '');
+  dom.root.style.width = util.option.asSize(options.width, '');
+
+  // calculate border widths
+  props.border.left   = (dom.centerContainer.offsetWidth - dom.centerContainer.clientWidth) / 2;
+  props.border.right  = props.border.left;
+  props.border.top    = (dom.centerContainer.offsetHeight - dom.centerContainer.clientHeight) / 2;
+  props.border.bottom = props.border.top;
+  var borderRootHeight= dom.root.offsetHeight - dom.root.clientHeight;
+  var borderRootWidth = dom.root.offsetWidth - dom.root.clientWidth;
+
+  // calculate the heights. If any of the side panels is empty, we set the height to
+  // minus the border width, such that the border will be invisible
+  props.center.height = dom.center.offsetHeight;
+  props.left.height   = dom.left.offsetHeight;
+  props.right.height  = dom.right.offsetHeight;
+  props.top.height    = dom.top.clientHeight    || -props.border.top;
+  props.bottom.height = dom.bottom.clientHeight || -props.border.bottom;
+
+  // TODO: compensate borders when any of the panels is empty.
+
+  // apply auto height
+  // TODO: only calculate autoHeight when needed (else we cause an extra reflow/repaint of the DOM)
+  var contentHeight = Math.max(props.left.height, props.center.height, props.right.height);
+  var autoHeight = props.top.height + contentHeight + props.bottom.height +
+    borderRootHeight + props.border.top + props.border.bottom;
+  dom.root.style.height = util.option.asSize(options.height, autoHeight + 'px');
+
+  // calculate heights of the content panels
+  props.root.height = dom.root.offsetHeight;
+  props.background.height = props.root.height - borderRootHeight;
+  var containerHeight = props.root.height - props.top.height - props.bottom.height -
+    borderRootHeight;
+  props.centerContainer.height  = containerHeight;
+  props.leftContainer.height    = containerHeight;
+  props.rightContainer.height   = props.leftContainer.height;
+
+  // calculate the widths of the panels
+  props.root.width = dom.root.offsetWidth;
+  props.background.width = props.root.width - borderRootWidth;
+  props.left.width = dom.leftContainer.clientWidth   || -props.border.left;
+  props.leftContainer.width = props.left.width;
+  props.right.width = dom.rightContainer.clientWidth || -props.border.right;
+  props.rightContainer.width = props.right.width;
+  var centerWidth = props.root.width - props.left.width - props.right.width - borderRootWidth;
+  props.center.width          = centerWidth;
+  props.centerContainer.width = centerWidth;
+  props.top.width             = centerWidth;
+  props.bottom.width          = centerWidth;
+
+  // resize the panels
+  dom.background.style.height           = props.background.height + 'px';
+  dom.backgroundVertical.style.height   = props.background.height + 'px';
+  dom.backgroundHorizontalContainer.style.height = props.centerContainer.height + 'px';
+  dom.centerContainer.style.height      = props.centerContainer.height + 'px';
+  dom.leftContainer.style.height        = props.leftContainer.height + 'px';
+  dom.rightContainer.style.height       = props.rightContainer.height + 'px';
+
+  dom.background.style.width            = props.background.width + 'px';
+  dom.backgroundVertical.style.width    = props.centerContainer.width + 'px';
+  dom.backgroundHorizontalContainer.style.width  = props.background.width + 'px';
+  dom.backgroundHorizontal.style.width  = props.background.width + 'px';
+  dom.centerContainer.style.width       = props.center.width + 'px';
+  dom.top.style.width                   = props.top.width + 'px';
+  dom.bottom.style.width                = props.bottom.width + 'px';
+
+  // reposition the panels
+  dom.background.style.left           = '0';
+  dom.background.style.top            = '0';
+  dom.backgroundVertical.style.left   = props.left.width + 'px';
+  dom.backgroundVertical.style.top    = '0';
+  dom.backgroundHorizontalContainer.style.left = '0';
+  dom.backgroundHorizontalContainer.style.top  = props.top.height + 'px';
+  dom.centerContainer.style.left      = props.left.width + 'px';
+  dom.centerContainer.style.top       = props.top.height + 'px';
+  dom.leftContainer.style.left        = '0';
+  dom.leftContainer.style.top         = props.top.height + 'px';
+  dom.rightContainer.style.left       = (props.left.width + props.center.width) + 'px';
+  dom.rightContainer.style.top        = props.top.height + 'px';
+  dom.top.style.left                  = props.left.width + 'px';
+  dom.top.style.top                   = '0';
+  dom.bottom.style.left               = props.left.width + 'px';
+  dom.bottom.style.top                = (props.top.height + props.centerContainer.height) + 'px';
+
+  // update the scrollTop, feasible range for the offset can be changed
+  // when the height of the Graph2d or of the contents of the center changed
+  this._updateScrollTop();
+
+  // reposition the scrollable contents
+  var offset = this.props.scrollTop;
+  if (options.orientation == 'bottom') {
+    offset += Math.max(this.props.centerContainer.height - this.props.center.height -
+        this.props.border.top - this.props.border.bottom, 0);
+  }
+  dom.center.style.left = '0';
+  dom.center.style.top  = offset + 'px';
+  dom.backgroundHorizontal.style.left = '0';
+  dom.backgroundHorizontal.style.top  = offset + 'px';
+  dom.left.style.left   = '0';
+  dom.left.style.top    = offset + 'px';
+  dom.right.style.left  = '0';
+  dom.right.style.top   = offset + 'px';
+
+  // show shadows when vertical scrolling is available
+  var visibilityTop = this.props.scrollTop == 0 ? 'hidden' : '';
+  var visibilityBottom = this.props.scrollTop == this.props.scrollTopMin ? 'hidden' : '';
+  dom.shadowTop.style.visibility          = visibilityTop;
+  dom.shadowBottom.style.visibility       = visibilityBottom;
+  dom.shadowTopLeft.style.visibility      = visibilityTop;
+  dom.shadowBottomLeft.style.visibility   = visibilityBottom;
+  dom.shadowTopRight.style.visibility     = visibilityTop;
+  dom.shadowBottomRight.style.visibility  = visibilityBottom;
+
+  // redraw all components
+  this.components.forEach(function (component) {
+    resized = component.redraw() || resized;
+  });
+  if (resized) {
+    // keep redrawing until all sizes are settled
+    this.redraw();
+  }
+};
+
+/**
+ * Convert a position on screen (pixels) to a datetime
+ * @param {int}     x    Position on the screen in pixels
+ * @return {Date}   time The datetime the corresponds with given position x
+ * @private
+ */
+// TODO: move this function to Range
+Graph2d.prototype._toTime = function(x) {
+  var conversion = this.range.conversion(this.props.center.width);
+  return new Date(x / conversion.scale + conversion.offset);
+};
+
+/**
+ * Convert a datetime (Date object) into a position on the root
+ * This is used to get the pixel density estimate for the screen, not the center panel
+ * @param {Date}   time A date
+ * @return {int}   x    The position on root in pixels which corresponds
+ *                      with the given date.
+ * @private
+ */
+// TODO: move this function to Range
+Graph2d.prototype._toGlobalTime = function(x) {
+  var conversion = this.range.conversion(this.props.root.width);
+  return new Date(x / conversion.scale + conversion.offset);
+};
+
+/**
+ * Convert a datetime (Date object) into a position on the screen
+ * @param {Date}   time A date
+ * @return {int}   x    The position on the screen in pixels which corresponds
+ *                      with the given date.
+ * @private
+ */
+// TODO: move this function to Range
+Graph2d.prototype._toScreen = function(time) {
+  var conversion = this.range.conversion(this.props.center.width);
+  return (time.valueOf() - conversion.offset) * conversion.scale;
+};
+
+
+/**
+ * Convert a datetime (Date object) into a position on the root
+ * This is used to get the pixel density estimate for the screen, not the center panel
+ * @param {Date}   time A date
+ * @return {int}   x    The position on root in pixels which corresponds
+ *                      with the given date.
+ * @private
+ */
+// TODO: move this function to Range
+Graph2d.prototype._toGlobalScreen = function(time) {
+  var conversion = this.range.conversion(this.props.root.width);
+  return (time.valueOf() - conversion.offset) * conversion.scale;
+};
+
+/**
+ * Initialize watching when option autoResize is true
+ * @private
+ */
+Graph2d.prototype._initAutoResize = function () {
+  if (this.options.autoResize == true) {
+    this._startAutoResize();
+  }
+  else {
+    this._stopAutoResize();
+  }
+};
+
+/**
+ * Watch for changes in the size of the container. On resize, the Panel will
+ * automatically redraw itself.
+ * @private
+ */
+Graph2d.prototype._startAutoResize = function () {
+  var me = this;
+
+  this._stopAutoResize();
+
+  this._onResize = function() {
+    if (me.options.autoResize != true) {
+      // stop watching when the option autoResize is changed to false
+      me._stopAutoResize();
+      return;
+    }
+
+    if (me.dom.root) {
+      // check whether the frame is resized
+      if ((me.dom.root.clientWidth != me.props.lastWidth) ||
+        (me.dom.root.clientHeight != me.props.lastHeight)) {
+        me.props.lastWidth = me.dom.root.clientWidth;
+        me.props.lastHeight = me.dom.root.clientHeight;
+
+        me.emit('change');
+      }
+    }
+  };
+
+  // add event listener to window resize
+  util.addEventListener(window, 'resize', this._onResize);
+
+  this.watchTimer = setInterval(this._onResize, 1000);
+};
+
+/**
+ * Stop watching for a resize of the frame.
+ * @private
+ */
+Graph2d.prototype._stopAutoResize = function () {
+  if (this.watchTimer) {
+    clearInterval(this.watchTimer);
+    this.watchTimer = undefined;
+  }
+
+  // remove event listener on window.resize
+  util.removeEventListener(window, 'resize', this._onResize);
+  this._onResize = null;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Graph2d.prototype._onTouch = function (event) {
+  this.touch.allowDragging = true;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Graph2d.prototype._onPinch = function (event) {
+  this.touch.allowDragging = false;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Graph2d.prototype._onDragStart = function (event) {
+  this.touch.initialScrollTop = this.props.scrollTop;
+};
+
+/**
+ * Move the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Graph2d.prototype._onDrag = function (event) {
+  // refuse to drag when we where pinching to prevent the timeline make a jump
+  // when releasing the fingers in opposite order from the touch screen
+  if (!this.touch.allowDragging) return;
+
+  var delta = event.gesture.deltaY;
+
+  var oldScrollTop = this._getScrollTop();
+  var newScrollTop = this._setScrollTop(this.touch.initialScrollTop + delta);
+
+  if (newScrollTop != oldScrollTop) {
+    this.redraw(); // TODO: this causes two redraws when dragging, the other is triggered by rangechange already
+  }
+};
+
+/**
+ * Apply a scrollTop
+ * @param {Number} scrollTop
+ * @returns {Number} scrollTop  Returns the applied scrollTop
+ * @private
+ */
+Graph2d.prototype._setScrollTop = function (scrollTop) {
+  this.props.scrollTop = scrollTop;
+  this._updateScrollTop();
+  return this.props.scrollTop;
+};
+
+/**
+ * Update the current scrollTop when the height of  the containers has been changed
+ * @returns {Number} scrollTop  Returns the applied scrollTop
+ * @private
+ */
+Graph2d.prototype._updateScrollTop = function () {
+  // recalculate the scrollTopMin
+  var scrollTopMin = Math.min(this.props.centerContainer.height - this.props.center.height, 0); // is negative or zero
+  if (scrollTopMin != this.props.scrollTopMin) {
+    // in case of bottom orientation, change the scrollTop such that the contents
+    // do not move relative to the time axis at the bottom
+    if (this.options.orientation == 'bottom') {
+      this.props.scrollTop += (scrollTopMin - this.props.scrollTopMin);
+    }
+    this.props.scrollTopMin = scrollTopMin;
+  }
+
+  // limit the scrollTop to the feasible scroll range
+  if (this.props.scrollTop > 0) this.props.scrollTop = 0;
+  if (this.props.scrollTop < scrollTopMin) this.props.scrollTop = scrollTopMin;
+
+  return this.props.scrollTop;
+};
+
+/**
+ * Get the current scrollTop
+ * @returns {number} scrollTop
+ * @private
+ */
+Graph2d.prototype._getScrollTop = function () {
   return this.props.scrollTop;
 };
 
@@ -8747,7 +12065,7 @@ Timeline.prototype._getScrollTop = function () {
 })(typeof util !== 'undefined' ? util : exports);
 
 /**
- * Canvas shapes used by the Graph
+ * Canvas shapes used by Network
  */
 if (typeof CanvasRenderingContext2D !== 'undefined') {
 
@@ -8989,9 +12307,9 @@ if (typeof CanvasRenderingContext2D !== 'undefined') {
  *                              {string} image  An image url
  *                              {string} title  An title text, can be HTML
  *                              {anytype} group A group name or number
- * @param {Graph.Images} imagelist    A list with images. Only needed
+ * @param {Network.Images} imagelist    A list with images. Only needed
  *                                            when the node has an image
- * @param {Graph.Groups} grouplist    A list with groups. Needed for
+ * @param {Network.Groups} grouplist    A list with groups. Needed for
  *                                            retrieving group properties
  * @param {Object}               constants    An object with default values for
  *                                            example for the color
@@ -9057,9 +12375,9 @@ function Node(properties, imagelist, grouplist, constants) {
   this.maxNodeSizeIncrements = constants.clustering.maxNodeSizeIncrements;
   this.growthIndicator = 0;
 
-  // variables to tell the node about the graph.
-  this.graphScaleInv = 1;
-  this.graphScale = 1;
+  // variables to tell the node about the network.
+  this.networkScaleInv = 1;
+  this.networkScale = 1;
   this.canvasTopLeft = {"x": -300, "y": -300};
   this.canvasBottomRight = {"x":  300, "y":  300};
   this.parentEdgeId = null;
@@ -9499,7 +12817,7 @@ Node.prototype._drawImage = function (ctx) {
     // draw the shade
     if (this.clusterSize > 1) {
       var lineWidth = ((this.clusterSize > 1) ? 10 : 0.0);
-      lineWidth *= this.graphScaleInv;
+      lineWidth *= this.networkScaleInv;
       lineWidth = Math.min(0.2 * this.width,lineWidth);
 
       ctx.globalAlpha = 0.5;
@@ -9549,14 +12867,14 @@ Node.prototype._drawBox = function (ctx) {
   // draw the outer border
   if (this.clusterSize > 1) {
     ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
     ctx.roundRect(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth, this.radius);
     ctx.stroke();
   }
   ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth *= this.networkScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
@@ -9598,14 +12916,14 @@ Node.prototype._drawDatabase = function (ctx) {
   // draw the outer border
   if (this.clusterSize > 1) {
     ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
     ctx.database(this.x - this.width/2 - 2*ctx.lineWidth, this.y - this.height*0.5 - 2*ctx.lineWidth, this.width + 4*ctx.lineWidth, this.height + 4*ctx.lineWidth);
     ctx.stroke();
   }
   ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth *= this.networkScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
@@ -9648,14 +12966,14 @@ Node.prototype._drawCircle = function (ctx) {
   // draw the outer border
   if (this.clusterSize > 1) {
     ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
     ctx.circle(this.x, this.y, this.radius+2*ctx.lineWidth);
     ctx.stroke();
   }
   ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth *= this.networkScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
@@ -9698,14 +13016,14 @@ Node.prototype._drawEllipse = function (ctx) {
   // draw the outer border
   if (this.clusterSize > 1) {
     ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
     ctx.ellipse(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth);
     ctx.stroke();
   }
   ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth *= this.networkScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
@@ -9775,14 +13093,14 @@ Node.prototype._drawShape = function (ctx, shape) {
   // draw the outer border
   if (this.clusterSize > 1) {
     ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
     ctx[shape](this.x, this.y, this.radius + radiusMultiplier * ctx.lineWidth);
     ctx.stroke();
   }
   ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth *= this.networkScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
@@ -9791,7 +13109,7 @@ Node.prototype._drawShape = function (ctx, shape) {
   ctx.stroke();
 
   if (this.label) {
-    this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, 'top');
+    this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, 'top',true);
   }
 };
 
@@ -9819,17 +13137,20 @@ Node.prototype._drawText = function (ctx) {
 };
 
 
-Node.prototype._label = function (ctx, text, x, y, align, baseline) {
-  if (text && this.fontSize * this.graphScale > this.fontDrawThreshold) {
+Node.prototype._label = function (ctx, text, x, y, align, baseline, labelUnderNode) {
+  if (text && this.fontSize * this.networkScale > this.fontDrawThreshold) {
     ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
     ctx.fillStyle = this.fontColor || "black";
     ctx.textAlign = align || "center";
     ctx.textBaseline = baseline || "middle";
 
-    var lines = text.split('\n'),
-        lineCount = lines.length,
-        fontSize = (this.fontSize + 4),
-        yLine = y + (1 - lineCount) / 2 * fontSize;
+    var lines = text.split('\n');
+    var lineCount = lines.length;
+    var fontSize = (this.fontSize + 4);
+    var yLine = y + (1 - lineCount) / 2 * fontSize;
+    if (labelUnderNode == true) {
+      yLine = y + (1 - lineCount) / (2 * fontSize);
+    }
 
     for (var i = 0; i < lineCount; i++) {
       ctx.fillText(lines[i], x, yLine);
@@ -9866,10 +13187,10 @@ Node.prototype.getTextSize = function(ctx) {
  */
 Node.prototype.inArea = function() {
   if (this.width !== undefined) {
-  return (this.x + this.width *this.graphScaleInv  >= this.canvasTopLeft.x     &&
-          this.x - this.width *this.graphScaleInv  <  this.canvasBottomRight.x &&
-          this.y + this.height*this.graphScaleInv  >= this.canvasTopLeft.y     &&
-          this.y - this.height*this.graphScaleInv  <  this.canvasBottomRight.y);
+  return (this.x + this.width *this.networkScaleInv  >= this.canvasTopLeft.x     &&
+          this.x - this.width *this.networkScaleInv  <  this.canvasBottomRight.x &&
+          this.y + this.height*this.networkScaleInv  >= this.canvasTopLeft.y     &&
+          this.y - this.height*this.networkScaleInv  <  this.canvasBottomRight.y);
   }
   else {
     return true;
@@ -9888,7 +13209,7 @@ Node.prototype.inView = function() {
 };
 
 /**
- * This allows the zoom level of the graph to influence the rendering
+ * This allows the zoom level of the network to influence the rendering
  * We store the inverted scale and the coordinates of the top left, and bottom right points of the canvas
  *
  * @param scale
@@ -9896,21 +13217,21 @@ Node.prototype.inView = function() {
  * @param canvasBottomRight
  */
 Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) {
-  this.graphScaleInv = 1.0/scale;
-  this.graphScale = scale;
+  this.networkScaleInv = 1.0/scale;
+  this.networkScale = scale;
   this.canvasTopLeft = canvasTopLeft;
   this.canvasBottomRight = canvasBottomRight;
 };
 
 
 /**
- * This allows the zoom level of the graph to influence the rendering
+ * This allows the zoom level of the network to influence the rendering
  *
  * @param scale
  */
 Node.prototype.setScale = function(scale) {
-  this.graphScaleInv = 1.0/scale;
-  this.graphScale = scale;
+  this.networkScaleInv = 1.0/scale;
+  this.networkScale = scale;
 };
 
 
@@ -9949,16 +13270,16 @@ Node.prototype.updateVelocity = function(massBeforeClustering) {
  *                                to (number), label (string, color (string),
  *                                width (number), style (string),
  *                                length (number), title (string)
- * @param {Graph} graph A graph object, used to find and edge to
+ * @param {Network} network       A Network object, used to find and edge to
  *                                nodes.
  * @param {Object} constants      An object with default values for
  *                                example for the color
  */
-function Edge (properties, graph, constants) {
-  if (!graph) {
-    throw "No graph provided";
+function Edge (properties, network, constants) {
+  if (!network) {
+    throw "No network provided";
   }
-  this.graph = graph;
+  this.network = network;
 
   // initialize constants
   this.widthMin = constants.edges.widthMin;
@@ -9971,6 +13292,8 @@ function Edge (properties, graph, constants) {
   this.style  = constants.edges.style;
   this.title  = undefined;
   this.width  = constants.edges.width;
+  this.widthSelectionMultiplier = constants.edges.widthSelectionMultiplier;
+  this.widthSelected = this.width * this.widthSelectionMultiplier;
   this.hoverWidth = constants.edges.hoverWidth;
   this.value  = undefined;
   this.length = constants.physics.springLength;
@@ -10040,6 +13363,8 @@ Edge.prototype.setProperties = function(properties, constants) {
 
   if (properties.title !== undefined)        {this.title = properties.title;}
   if (properties.width !== undefined)        {this.width = properties.width;}
+  if (properties.widthSelectionMultiplier !== undefined)
+                                             {this.widthSelectionMultiplier = properties.widthSelectionMultiplier;}
   if (properties.hoverWidth !== undefined)   {this.hoverWidth = properties.hoverWidth;}
   if (properties.value !== undefined)        {this.value = properties.value;}
   if (properties.length !== undefined)       {this.length = properties.length;
@@ -10065,6 +13390,7 @@ Edge.prototype.setProperties = function(properties, constants) {
     else {
       if (properties.color.color !== undefined)     {this.color.color = properties.color.color;}
       if (properties.color.highlight !== undefined) {this.color.highlight = properties.color.highlight;}
+      if (properties.color.hover !== undefined)     {this.color.hover = properties.color.hover;}
     }
   }
 
@@ -10073,6 +13399,8 @@ Edge.prototype.setProperties = function(properties, constants) {
 
   this.widthFixed = this.widthFixed || (properties.width !== undefined);
   this.lengthFixed = this.lengthFixed || (properties.length !== undefined);
+
+  this.widthSelected = this.width * this.widthSelectionMultiplier;
 
   // set draw method based on style
   switch (this.style) {
@@ -10090,8 +13418,8 @@ Edge.prototype.setProperties = function(properties, constants) {
 Edge.prototype.connect = function () {
   this.disconnect();
 
-  this.from = this.graph.nodes[this.fromId] || null;
-  this.to = this.graph.nodes[this.toId] || null;
+  this.from = this.network.nodes[this.fromId] || null;
+  this.to = this.network.nodes[this.toId] || null;
   this.connected = (this.from && this.to);
 
   if (this.connected) {
@@ -10251,14 +13579,14 @@ Edge.prototype._drawLine = function(ctx) {
  */
 Edge.prototype._getLineWidth = function() {
   if (this.selected == true) {
-    return Math.min(this.width * 2, this.widthMax)*this.graphScaleInv;
+    return Math.min(this.widthSelected, this.widthMax)*this.networkScaleInv;
   }
   else {
     if (this.hover == true) {
-      return Math.min(this.hoverWidth, this.widthMax)*this.graphScaleInv;
+      return Math.min(this.hoverWidth, this.widthMax)*this.networkScaleInv;
     }
     else {
-      return this.width*this.graphScaleInv;
+      return this.width*this.networkScaleInv;
     }
   }
 };
@@ -10731,12 +14059,12 @@ Edge.prototype._getDistanceToEdge = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is
 
 
 /**
- * This allows the zoom level of the graph to influence the rendering
+ * This allows the zoom level of the network to influence the rendering
  *
  * @param scale
  */
 Edge.prototype.setScale = function(scale) {
-  this.graphScaleInv = 1.0/scale;
+  this.networkScaleInv = 1.0/scale;
 };
 
 
@@ -10896,6 +14224,7 @@ Edge.prototype.getControlNodePositions = function(ctx) {
 
   return {from:{x:xFrom,y:yFrom},to:{x:xTo,y:yTo}};
 }
+
 /**
  * Popup is a class to create a popup window with some text
  * @param {Element}  container     The container object.
@@ -10922,7 +14251,7 @@ function Popup(container, x, y, text, style) {
       style = text;
       text = undefined;
     } else {
-      // for backwards compatibility, in case clients other than Graph are creating Popup directly
+      // for backwards compatibility, in case clients other than Network are creating Popup directly
       style = {
         fontColor: 'black',
         fontSize: 14, // px
@@ -11255,7 +14584,12 @@ var physicsMixin = {
       this._calculateSpringForcesWithSupport();
     }
     else {
-      this._calculateSpringForces();
+      if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
+        this._calculateHierarchicalSpringForces();
+      }
+      else {
+        this._calculateSpringForces();
+      }
     }
   },
 
@@ -11335,6 +14669,8 @@ var physicsMixin = {
   },
 
 
+
+
   /**
    * this function calculates the effects of the springs in the case of unsmooth curves.
    *
@@ -11379,6 +14715,8 @@ var physicsMixin = {
       }
     }
   },
+
+
 
 
   /**
@@ -11457,7 +14795,7 @@ var physicsMixin = {
   _loadPhysicsConfiguration: function () {
     if (this.physicsConfiguration === undefined) {
       this.backupConstants = {};
-      util.copyObject(this.constants, this.backupConstants);
+      util.deepExtend(this.backupConstants,this.constants);
 
       var hierarchicalLayoutDirections = ["LR", "RL", "UD", "DU"];
       this.physicsConfiguration = document.createElement('div');
@@ -11878,6 +15216,7 @@ var hierarchalRepulsionMixin = {
     // repulsing forces between nodes
     var nodeDistance = this.constants.physics.hierarchicalRepulsion.nodeDistance;
     var minimumDistance = nodeDistance;
+    var a = a_base / minimumDistance;
 
     // we loop from i over all but the last entree in the array
     // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
@@ -11886,29 +15225,97 @@ var hierarchalRepulsionMixin = {
       node1 = nodes[nodeIndices[i]];
       for (j = i + 1; j < nodeIndices.length; j++) {
         node2 = nodes[nodeIndices[j]];
+        if (node1.level == node2.level) {
 
-        dx = node2.x - node1.x;
-        dy = node2.y - node1.y;
-        distance = Math.sqrt(dx * dx + dy * dy);
+          dx = node2.x - node1.x;
+          dy = node2.y - node1.y;
+          distance = Math.sqrt(dx * dx + dy * dy);
 
-        var a = a_base / minimumDistance;
-        if (distance < 2 * minimumDistance) {
-          repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness))
 
-          // normalize force with
-          if (distance == 0) {
-            distance = 0.01;
+          if (distance < 2 * minimumDistance) {
+            repulsingForce = a * distance + b;
+            var c = 0.05;
+            var d = 2 * minimumDistance * 2 * c;
+            repulsingForce = c * Math.pow(distance,2) - d * distance + d*d/(4*c);
+
+            // normalize force with
+            if (distance == 0) {
+              distance = 0.01;
+            }
+            else {
+              repulsingForce = repulsingForce / distance;
+            }
+            fx = dx * repulsingForce;
+            fy = dy * repulsingForce;
+
+            node1.fx -= fx;
+            node1.fy -= fy;
+            node2.fx += fx;
+            node2.fy += fy;
           }
-          else {
-            repulsingForce = repulsingForce / distance;
-          }
-          fx = dx * repulsingForce;
-          fy = dy * repulsingForce;
+        }
+      }
+    }
+  },
 
-          node1.fx -= fx;
-          node1.fy -= fy;
-          node2.fx += fx;
-          node2.fy += fy;
+
+  /**
+   * this function calculates the effects of the springs in the case of unsmooth curves.
+   *
+   * @private
+   */
+  _calculateHierarchicalSpringForces: function () {
+    var edgeLength, edge, edgeId;
+    var dx, dy, fx, fy, springForce, distance;
+    var edges = this.edges;
+
+    // forces caused by the edges, modelled as springs
+    for (edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        edge = edges[edgeId];
+        if (edge.connected) {
+          // only calculate forces if nodes are in the same sector
+          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+            edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
+            // this implies that the edges between big clusters are longer
+            edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
+
+            dx = (edge.from.x - edge.to.x);
+            dy = (edge.from.y - edge.to.y);
+            distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance == 0) {
+              distance = 0.01;
+            }
+
+            distance = Math.max(0.8*edgeLength,Math.min(5*edgeLength, distance));
+
+            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
+
+            fx = dx * springForce;
+            fy = dy * springForce;
+
+            edge.to.fx -= fx;
+            edge.to.fy -= fy;
+            edge.from.fx += fx;
+            edge.from.fy += fy;
+
+
+            var factor = 5;
+            if (distance > edgeLength) {
+              factor = 25;
+            }
+
+            if (edge.from.level > edge.to.level) {
+              edge.to.fx -= factor*fx;
+              edge.to.fy -= factor*fy;
+            }
+            else if (edge.from.level < edge.to.level) {
+              edge.from.fx += factor*fx;
+              edge.from.fy += factor*fy;
+            }
+          }
         }
       }
     }
@@ -12172,7 +15579,7 @@ var barnesHutMixin = {
    * @private
    */
   _splitBranch : function(parentBranch) {
-    // if the branch is filled with a node, replace the node in the new subset.
+    // if the branch is shaded with a node, replace the node in the new subset.
     var containedNode = null;
     if (parentBranch.childrenCount == 1) {
       containedNode = parentBranch.children.data;
@@ -12728,9 +16135,9 @@ var manipulationMixin = {
    */
   _toggleEditMode : function() {
     this.editMode = !this.editMode;
-    var toolbar = document.getElementById("graph-manipulationDiv");
-    var closeDiv = document.getElementById("graph-manipulation-closeDiv");
-    var editModeDiv = document.getElementById("graph-manipulation-editMode");
+    var toolbar = document.getElementById("network-manipulationDiv");
+    var closeDiv = document.getElementById("network-manipulation-closeDiv");
+    var editModeDiv = document.getElementById("network-manipulation-editMode");
     if (this.editMode == true) {
       toolbar.style.display="block";
       closeDiv.style.display="block";
@@ -12778,49 +16185,49 @@ var manipulationMixin = {
       }
       // add the icons to the manipulator div
       this.manipulationDiv.innerHTML = "" +
-        "<span class='graph-manipulationUI add' id='graph-manipulate-addNode'>" +
-          "<span class='graph-manipulationLabel'>"+this.constants.labels['add'] +"</span></span>" +
-        "<div class='graph-seperatorLine'></div>" +
-        "<span class='graph-manipulationUI connect' id='graph-manipulate-connectNode'>" +
-          "<span class='graph-manipulationLabel'>"+this.constants.labels['link'] +"</span></span>";
+        "<span class='network-manipulationUI add' id='network-manipulate-addNode'>" +
+          "<span class='network-manipulationLabel'>"+this.constants.labels['add'] +"</span></span>" +
+        "<div class='network-seperatorLine'></div>" +
+        "<span class='network-manipulationUI connect' id='network-manipulate-connectNode'>" +
+          "<span class='network-manipulationLabel'>"+this.constants.labels['link'] +"</span></span>";
       if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
         this.manipulationDiv.innerHTML += "" +
-          "<div class='graph-seperatorLine'></div>" +
-          "<span class='graph-manipulationUI edit' id='graph-manipulate-editNode'>" +
-            "<span class='graph-manipulationLabel'>"+this.constants.labels['editNode'] +"</span></span>";
+          "<div class='network-seperatorLine'></div>" +
+          "<span class='network-manipulationUI edit' id='network-manipulate-editNode'>" +
+            "<span class='network-manipulationLabel'>"+this.constants.labels['editNode'] +"</span></span>";
       }
       else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
         this.manipulationDiv.innerHTML += "" +
-          "<div class='graph-seperatorLine'></div>" +
-          "<span class='graph-manipulationUI edit' id='graph-manipulate-editEdge'>" +
-          "<span class='graph-manipulationLabel'>"+this.constants.labels['editEdge'] +"</span></span>";
+          "<div class='network-seperatorLine'></div>" +
+          "<span class='network-manipulationUI edit' id='network-manipulate-editEdge'>" +
+          "<span class='network-manipulationLabel'>"+this.constants.labels['editEdge'] +"</span></span>";
       }
       if (this._selectionIsEmpty() == false) {
         this.manipulationDiv.innerHTML += "" +
-          "<div class='graph-seperatorLine'></div>" +
-          "<span class='graph-manipulationUI delete' id='graph-manipulate-delete'>" +
-            "<span class='graph-manipulationLabel'>"+this.constants.labels['del'] +"</span></span>";
+          "<div class='network-seperatorLine'></div>" +
+          "<span class='network-manipulationUI delete' id='network-manipulate-delete'>" +
+            "<span class='network-manipulationLabel'>"+this.constants.labels['del'] +"</span></span>";
       }
 
 
       // bind the icons
-      var addNodeButton = document.getElementById("graph-manipulate-addNode");
+      var addNodeButton = document.getElementById("network-manipulate-addNode");
       addNodeButton.onclick = this._createAddNodeToolbar.bind(this);
-      var addEdgeButton = document.getElementById("graph-manipulate-connectNode");
+      var addEdgeButton = document.getElementById("network-manipulate-connectNode");
       addEdgeButton.onclick = this._createAddEdgeToolbar.bind(this);
       if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
-        var editButton = document.getElementById("graph-manipulate-editNode");
+        var editButton = document.getElementById("network-manipulate-editNode");
         editButton.onclick = this._editNode.bind(this);
       }
       else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
-        var editButton = document.getElementById("graph-manipulate-editEdge");
+        var editButton = document.getElementById("network-manipulate-editEdge");
         editButton.onclick = this._createEditEdgeToolbar.bind(this);
       }
       if (this._selectionIsEmpty() == false) {
-        var deleteButton = document.getElementById("graph-manipulate-delete");
+        var deleteButton = document.getElementById("network-manipulate-delete");
         deleteButton.onclick = this._deleteSelected.bind(this);
       }
-      var closeDiv = document.getElementById("graph-manipulation-closeDiv");
+      var closeDiv = document.getElementById("network-manipulation-closeDiv");
       closeDiv.onclick = this._toggleEditMode.bind(this);
 
       this.boundFunction = this._createManipulatorBar.bind(this);
@@ -12828,9 +16235,9 @@ var manipulationMixin = {
     }
     else {
       this.editModeDiv.innerHTML = "" +
-        "<span class='graph-manipulationUI edit editmode' id='graph-manipulate-editModeButton'>" +
-        "<span class='graph-manipulationLabel'>" + this.constants.labels['edit'] + "</span></span>";
-      var editModeButton = document.getElementById("graph-manipulate-editModeButton");
+        "<span class='network-manipulationUI edit editmode' id='network-manipulate-editModeButton'>" +
+        "<span class='network-manipulationLabel'>" + this.constants.labels['edit'] + "</span></span>";
+      var editModeButton = document.getElementById("network-manipulate-editModeButton");
       editModeButton.onclick = this._toggleEditMode.bind(this);
     }
   },
@@ -12851,14 +16258,14 @@ var manipulationMixin = {
 
     // create the toolbar contents
     this.manipulationDiv.innerHTML = "" +
-      "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
-      "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
-      "<div class='graph-seperatorLine'></div>" +
-      "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
-      "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['addDescription'] + "</span></span>";
+      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
+      "<span class='network-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
+      "<div class='network-seperatorLine'></div>" +
+      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
+      "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + this.constants.labels['addDescription'] + "</span></span>";
 
     // bind the icon
-    var backButton = document.getElementById("graph-manipulate-back");
+    var backButton = document.getElementById("network-manipulate-back");
     backButton.onclick = this._createManipulatorBar.bind(this);
 
     // we use the boundFunction so we can reference it when we unbind it from the "select" event.
@@ -12887,14 +16294,14 @@ var manipulationMixin = {
     this.blockConnectingEdgeSelection = true;
 
     this.manipulationDiv.innerHTML = "" +
-      "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
-      "<div class='graph-seperatorLine'></div>" +
-      "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
-        "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['linkDescription'] + "</span></span>";
+      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
+        "<span class='network-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
+      "<div class='network-seperatorLine'></div>" +
+      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
+        "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + this.constants.labels['linkDescription'] + "</span></span>";
 
     // bind the icon
-    var backButton = document.getElementById("graph-manipulate-back");
+    var backButton = document.getElementById("network-manipulate-back");
     backButton.onclick = this._createManipulatorBar.bind(this);
 
     // we use the boundFunction so we can reference it when we unbind it from the "select" event.
@@ -12928,14 +16335,14 @@ var manipulationMixin = {
     this.edgeBeingEdited._enableControlNodes();
 
     this.manipulationDiv.innerHTML = "" +
-      "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
-      "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
-      "<div class='graph-seperatorLine'></div>" +
-      "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
-      "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['editEdgeDescription'] + "</span></span>";
+      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
+      "<span class='network-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
+      "<div class='network-seperatorLine'></div>" +
+      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
+      "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + this.constants.labels['editEdgeDescription'] + "</span></span>";
 
     // bind the icon
-    var backButton = document.getElementById("graph-manipulate-back");
+    var backButton = document.getElementById("network-manipulate-back");
     backButton.onclick = this._createManipulatorBar.bind(this);
 
     // temporarily overload functions
@@ -13268,8 +16675,8 @@ var manipulationMixin = {
 /**
  * Creation of the SectorMixin var.
  *
- * This contains all the functions the Graph object can use to employ the sector system.
- * The sector system is always used by Graph, though the benefits only apply to the use of clustering.
+ * This contains all the functions the Network object can use to employ the sector system.
+ * The sector system is always used by Network, though the benefits only apply to the use of clustering.
  * If clustering is not used, there is no overhead except for a duplicate object with references to nodes and edges.
  *
  * Alex de Mulder
@@ -13278,7 +16685,7 @@ var manipulationMixin = {
 var SectorMixin = {
 
   /**
-   * This function is only called by the setData function of the Graph object.
+   * This function is only called by the setData function of the Network object.
    * This loads the global references into the active sector. This initializes the sector.
    *
    * @private
@@ -13630,7 +17037,7 @@ var SectorMixin = {
    *
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
    *                              |   we dont pass the function itself because then the "this" is the window object
-   *                              |   instead of the Graph object
+   *                              |   instead of the Network object
    * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
    * @private
    */
@@ -13669,7 +17076,7 @@ var SectorMixin = {
    *
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
    *                              |   we dont pass the function itself because then the "this" is the window object
-   *                              |   instead of the Graph object
+   *                              |   instead of the Network object
    * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
    * @private
    */
@@ -13698,7 +17105,7 @@ var SectorMixin = {
    *
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
    *                              |   we don't pass the function itself because then the "this" is the window object
-   *                              |   instead of the Graph object
+   *                              |   instead of the Network object
    * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
    * @private
    */
@@ -13736,7 +17143,7 @@ var SectorMixin = {
    *
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
    *                              |   we don't pass the function itself because then the "this" is the window object
-   *                              |   instead of the Graph object
+   *                              |   instead of the Network object
    * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
    * @private
    */
@@ -13821,7 +17228,7 @@ var SectorMixin = {
 /**
  * Creation of the ClusterMixin var.
  *
- * This contains all the functions the Graph object can use to employ clustering
+ * This contains all the functions the Network object can use to employ clustering
  *
  * Alex de Mulder
  * 21-01-2013
@@ -13829,7 +17236,7 @@ var SectorMixin = {
 var ClusterMixin = {
 
  /**
-  * This is only called in the constructor of the graph object
+  * This is only called in the constructor of the network object
   *
   */
  startWithClustering : function() {
@@ -14314,7 +17721,7 @@ var ClusterMixin = {
   },
 
   /**
-   * This function forces the graph to cluster all nodes with only one connecting edge to their
+   * This function forces the network to cluster all nodes with only one connecting edge to their
    * connected node.
    *
    * @private
@@ -15366,9 +18773,12 @@ var SelectionMixin = {
    * @param {Boolean} [doNotTrigger] | ignore trigger
    * @private
    */
-  _selectObject : function(object, append, doNotTrigger) {
+  _selectObject : function(object, append, doNotTrigger, highlightEdges) {
     if (doNotTrigger === undefined) {
       doNotTrigger = false;
+    }
+    if (highlightEdges === undefined) {
+      highlightEdges = true;
     }
 
     if (this._selectionIsEmpty() == false && append == false && this.forceAppendSelection == false) {
@@ -15378,7 +18788,7 @@ var SelectionMixin = {
     if (object.selected == false) {
       object.select();
       this._addToSelection(object);
-      if (object instanceof Node && this.blockConnectingEdgeSelection == false) {
+      if (object instanceof Node && this.blockConnectingEdgeSelection == false && highlightEdges == true) {
         this._selectConnectedEdges(object);
       }
     }
@@ -15583,9 +18993,66 @@ var SelectionMixin = {
       }
       this._selectObject(node,true,true);
     }
+
+    console.log("setSelection is deprecated. Please use selectNodes instead.")
+
     this.redraw();
   },
 
+
+  /**
+   * select zero or more nodes with the option to highlight edges
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   * @param {boolean} [highlightEdges]
+   */
+  selectNodes : function(selection, highlightEdges) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    this._unselectAll(true);
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var node = this.nodes[id];
+      if (!node) {
+        throw new RangeError('Node with id "' + id + '" not found');
+      }
+      this._selectObject(node,true,true,highlightEdges);
+    }
+    this.redraw();
+  },
+
+
+  /**
+   * select zero or more edges
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   */
+  selectEdges : function(selection) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    this._unselectAll(true);
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var edge = this.edges[id];
+      if (!edge) {
+        throw new RangeError('Edge with id "' + id + '" not found');
+      }
+      this._selectObject(edge,true,true,highlightEdges);
+    }
+    this.redraw();
+  },
 
   /**
    * Validate the selection: remove ids of nodes which no longer exist
@@ -15619,7 +19086,7 @@ var NavigationMixin = {
 
   _cleanNavigation : function() {
     // clean up previosu navigation items
-    var wrapper = document.getElementById('graph-navigation_wrapper');
+    var wrapper = document.getElementById('network-navigation_wrapper');
     if (wrapper != null) {
       this.containerElement.removeChild(wrapper);
     }
@@ -15642,7 +19109,7 @@ var NavigationMixin = {
     var navigationDivActions = ['_moveUp','_moveDown','_moveLeft','_moveRight','_zoomIn','_zoomOut','zoomExtent'];
 
     this.navigationDivs['wrapper'] = document.createElement('div');
-    this.navigationDivs['wrapper'].id = "graph-navigation_wrapper";
+    this.navigationDivs['wrapper'].id = "network-navigation_wrapper";
     this.navigationDivs['wrapper'].style.position = "absolute";
     this.navigationDivs['wrapper'].style.width = this.frame.canvas.clientWidth + "px";
     this.navigationDivs['wrapper'].style.height = this.frame.canvas.clientHeight + "px";
@@ -15650,8 +19117,8 @@ var NavigationMixin = {
 
     for (var i = 0; i < navigationDivs.length; i++) {
       this.navigationDivs[navigationDivs[i]] = document.createElement('div');
-      this.navigationDivs[navigationDivs[i]].id = "graph-navigation_" + navigationDivs[i];
-      this.navigationDivs[navigationDivs[i]].className = "graph-navigation " + navigationDivs[i];
+      this.navigationDivs[navigationDivs[i]].id = "network-navigation_" + navigationDivs[i];
+      this.navigationDivs[navigationDivs[i]].className = "network-navigation " + navigationDivs[i];
       this.navigationDivs['wrapper'].appendChild(this.navigationDivs[navigationDivs[i]]);
       this.navigationDivs[navigationDivs[i]].onmousedown = this[navigationDivActions[i]].bind(this);
     }
@@ -15822,10 +19289,10 @@ var NavigationMixin = {
  */
 
 
-var graphMixinLoaders = {
+var networkMixinLoaders = {
 
   /**
-   * Load a mixin into the graph object
+   * Load a mixin into the network object
    *
    * @param {Object} sourceVariable | this object has to contain functions.
    * @private
@@ -15833,14 +19300,14 @@ var graphMixinLoaders = {
   _loadMixin: function (sourceVariable) {
     for (var mixinFunction in sourceVariable) {
       if (sourceVariable.hasOwnProperty(mixinFunction)) {
-        Graph.prototype[mixinFunction] = sourceVariable[mixinFunction];
+        Network.prototype[mixinFunction] = sourceVariable[mixinFunction];
       }
     }
   },
 
 
   /**
-   * removes a mixin from the graph object.
+   * removes a mixin from the network object.
    *
    * @param {Object} sourceVariable | this object has to contain functions.
    * @private
@@ -15848,7 +19315,7 @@ var graphMixinLoaders = {
   _clearMixin: function (sourceVariable) {
     for (var mixinFunction in sourceVariable) {
       if (sourceVariable.hasOwnProperty(mixinFunction)) {
-        Graph.prototype[mixinFunction] = undefined;
+        Network.prototype[mixinFunction] = undefined;
       }
     }
   },
@@ -15933,8 +19400,8 @@ var graphMixinLoaders = {
       // load the manipulator HTML elements. All styling done in css.
       if (this.manipulationDiv === undefined) {
         this.manipulationDiv = document.createElement('div');
-        this.manipulationDiv.className = 'graph-manipulationDiv';
-        this.manipulationDiv.id = 'graph-manipulationDiv';
+        this.manipulationDiv.className = 'network-manipulationDiv';
+        this.manipulationDiv.id = 'network-manipulationDiv';
         if (this.editMode == true) {
           this.manipulationDiv.style.display = "block";
         }
@@ -15946,8 +19413,8 @@ var graphMixinLoaders = {
 
       if (this.editModeDiv === undefined) {
         this.editModeDiv = document.createElement('div');
-        this.editModeDiv.className = 'graph-manipulation-editMode';
-        this.editModeDiv.id = 'graph-manipulation-editMode';
+        this.editModeDiv.className = 'network-manipulation-editMode';
+        this.editModeDiv.id = 'network-manipulation-editMode';
         if (this.editMode == true) {
           this.editModeDiv.style.display = "none";
         }
@@ -15959,8 +19426,8 @@ var graphMixinLoaders = {
 
       if (this.closeDiv === undefined) {
         this.closeDiv = document.createElement('div');
-        this.closeDiv.className = 'graph-manipulation-closeDiv';
-        this.closeDiv.id = 'graph-manipulation-closeDiv';
+        this.closeDiv.className = 'network-manipulation-closeDiv';
+        this.closeDiv.id = 'network-manipulation-closeDiv';
         this.closeDiv.style.display = this.manipulationDiv.style.display;
         this.containerElement.insertBefore(this.closeDiv, this.frame);
       }
@@ -16018,17 +19485,20 @@ var graphMixinLoaders = {
 };
 
 /**
- * @constructor Graph
- * Create a graph visualization, displaying nodes and edges.
+ * @constructor Network
+ * Create a network visualization, displaying nodes and edges.
  *
- * @param {Element} container   The DOM element in which the Graph will
+ * @param {Element} container   The DOM element in which the Network will
  *                                  be created. Normally a div element.
  * @param {Object} data         An object containing parameters
  *                              {Array} nodes
  *                              {Array} edges
  * @param {Object} options      Options
  */
-function Graph (container, data, options) {
+function Network (container, data, options) {
+  if (!(this instanceof Network)) {
+    throw new SyntaxError('Constructor must be called with the new operator');
+  }
 
   this._initializeMixinLoaders();
 
@@ -16044,12 +19514,13 @@ function Graph (container, data, options) {
   this.maxPhysicsTicksPerRender = 3;                   // max amount of physics ticks per render step.
   this.physicsDiscreteStepsize = 0.50;                 // discrete stepsize of the simulation
 
-  this.stabilize = true;  // stabilize before displaying the graph
+  this.stabilize = true;  // stabilize before displaying the network
   this.selectable = true;
   this.initializing = true;
 
   // these functions are triggered when the dataset is edited
   this.triggerFunctions = {add:null,edit:null,editEdge:null,connect:null,del:null};
+
 
   // set constant values
   this.constants = {
@@ -16087,6 +19558,7 @@ function Graph (container, data, options) {
       widthMin: 1,
       widthMax: 15,
       width: 1,
+      widthSelectionMultiplier: 2,
       hoverWidth: 1.5,
       style: 'line',
       color: {
@@ -16125,8 +19597,8 @@ function Graph (container, data, options) {
       },
       hierarchicalRepulsion: {
         enabled: false,
-        centralGravity: 0.0,
-        springLength: 100,
+        centralGravity: 0.5,
+        springLength: 150,
         springConstant: 0.01,
         nodeDistance: 60,
         damping: 0.09
@@ -16207,7 +19679,7 @@ function Graph (container, data, options) {
         background: '#FFFFC6'
       }
     },
-    dragGraph: true,
+    dragNetwork: true,
     dragNodes: true,
     zoomable: true,
     hover: false
@@ -16216,11 +19688,11 @@ function Graph (container, data, options) {
 
 
   // Node variables
-  var graph = this;
+  var network = this;
   this.groups = new Groups(); // object with groups
   this.images = new Images(); // object with images
   this.images.setOnloadCallback(function () {
-    graph._redraw();
+    network._redraw();
   });
 
   // keyboard navigation variables
@@ -16233,13 +19705,13 @@ function Graph (container, data, options) {
   this._loadPhysicsSystem();
   // create a frame and canvas
   this._create();
-  // load the sector system.    (mandatory, fully integrated with Graph)
+  // load the sector system.    (mandatory, fully integrated with Network)
   this._loadSectorSystem();
   // load the cluster system.   (mandatory, even when not using the cluster system, there are function calls to it)
   this._loadClusterSystem();
-  // load the selection system. (mandatory, required by Graph)
+  // load the selection system. (mandatory, required by Network)
   this._loadSelectionSystem();
-  // load the selection system. (mandatory, required by Graph)
+  // load the selection system. (mandatory, required by Network)
   this._loadHierarchySystem();
 
   // apply options
@@ -16273,30 +19745,30 @@ function Graph (container, data, options) {
   // create event listeners used to subscribe on the DataSets of the nodes and edges
   this.nodesListeners = {
     'add': function (event, params) {
-      graph._addNodes(params.items);
-      graph.start();
+      network._addNodes(params.items);
+      network.start();
     },
     'update': function (event, params) {
-      graph._updateNodes(params.items);
-      graph.start();
+      network._updateNodes(params.items);
+      network.start();
     },
     'remove': function (event, params) {
-      graph._removeNodes(params.items);
-      graph.start();
+      network._removeNodes(params.items);
+      network.start();
     }
   };
   this.edgesListeners = {
     'add': function (event, params) {
-      graph._addEdges(params.items);
-      graph.start();
+      network._addEdges(params.items);
+      network.start();
     },
     'update': function (event, params) {
-      graph._updateEdges(params.items);
-      graph.start();
+      network._updateEdges(params.items);
+      network.start();
     },
     'remove': function (event, params) {
-      graph._removeEdges(params.items);
-      graph.start();
+      network._removeEdges(params.items);
+      network.start();
     }
   };
 
@@ -16325,8 +19797,8 @@ function Graph (container, data, options) {
   }
 }
 
-// Extend Graph with an Emitter mixin
-Emitter(Graph.prototype);
+// Extend Network with an Emitter mixin
+Emitter(Network.prototype);
 
 /**
  * Get the script path where the vis.js library is located
@@ -16335,7 +19807,7 @@ Emitter(Graph.prototype);
  *                                 end with a slash.
  * @private
  */
-Graph.prototype._getScriptPath = function() {
+Network.prototype._getScriptPath = function() {
   var scripts = document.getElementsByTagName( 'script' );
 
   // find script named vis.js or vis.min.js
@@ -16353,10 +19825,10 @@ Graph.prototype._getScriptPath = function() {
 
 
 /**
- * Find the center position of the graph
+ * Find the center position of the network
  * @private
  */
-Graph.prototype._getRange = function() {
+Network.prototype._getRange = function() {
   var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
   for (var nodeId in this.nodes) {
     if (this.nodes.hasOwnProperty(nodeId)) {
@@ -16379,18 +19851,18 @@ Graph.prototype._getRange = function() {
  * @returns {{x: number, y: number}}
  * @private
  */
-Graph.prototype._findCenter = function(range) {
+Network.prototype._findCenter = function(range) {
   return {x: (0.5 * (range.maxX + range.minX)),
           y: (0.5 * (range.maxY + range.minY))};
 };
 
 
 /**
- * center the graph
+ * center the network
  *
  * @param {object} range = {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
  */
-Graph.prototype._centerGraph = function(range) {
+Network.prototype._centerNetwork = function(range) {
   var center = this._findCenter(range);
 
   center.x *= this.scale;
@@ -16408,7 +19880,7 @@ Graph.prototype._centerGraph = function(range) {
  * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
  * @param {Boolean} [disableStart] | If true, start is not called.
  */
-Graph.prototype.zoomExtent = function(initialZoom, disableStart) {
+Network.prototype.zoomExtent = function(initialZoom, disableStart) {
   if (initialZoom === undefined) {
     initialZoom = false;
   }
@@ -16460,7 +19932,7 @@ Graph.prototype.zoomExtent = function(initialZoom, disableStart) {
 
 
   this._setScale(zoomLevel);
-  this._centerGraph(range);
+  this._centerNetwork(range);
   if (disableStart == false) {
     this.moving = true;
     this.start();
@@ -16472,7 +19944,7 @@ Graph.prototype.zoomExtent = function(initialZoom, disableStart) {
  * Update the this.nodeIndices with the most recent node index list
  * @private
  */
-Graph.prototype._updateNodeIndexList = function() {
+Network.prototype._updateNodeIndexList = function() {
   this._clearNodeIndexList();
   for (var idx in this.nodes) {
     if (this.nodes.hasOwnProperty(idx)) {
@@ -16492,7 +19964,7 @@ Graph.prototype._updateNodeIndexList = function() {
  *                                   {Options} [options] Object with options
  * @param {Boolean} [disableStart]   | optional: disable the calling of the start function.
  */
-Graph.prototype.setData = function(data, disableStart) {
+Network.prototype.setData = function(data, disableStart) {
   if (disableStart === undefined) {
     disableStart = false;
   }
@@ -16538,7 +20010,7 @@ Graph.prototype.setData = function(data, disableStart) {
  * @param {Object} options
  * @param {Boolean} [initializeView] | set zoom and translation to default.
  */
-Graph.prototype.setOptions = function (options) {
+Network.prototype.setOptions = function (options) {
   if (options) {
     var prop;
     // retrieve parameter values
@@ -16550,10 +20022,15 @@ Graph.prototype.setOptions = function (options) {
     if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
-    if (options.dragGraph !== undefined)       {this.constants.dragGraph = options.dragGraph;}
+    if (options.dragNetwork !== undefined)     {this.constants.dragNetwork = options.dragNetwork;}
     if (options.dragNodes !== undefined)       {this.constants.dragNodes = options.dragNodes;}
     if (options.zoomable !== undefined)        {this.constants.zoomable = options.zoomable;}
     if (options.hover !== undefined)           {this.constants.hover = options.hover;}
+
+    // TODO: deprecated since version 3.0.0. Cleanup some day
+    if (options.dragGraph !== undefined) {
+      throw new Error('Option dragGraph is renamed to dragNetwork');
+    }
 
     if (options.labels !== undefined)  {
       for (prop in options.labels) {
@@ -16781,24 +20258,24 @@ Graph.prototype.setOptions = function (options) {
 };
 
 /**
- * Create the main frame for the Graph.
- * This function is executed once when a Graph object is created. The frame
+ * Create the main frame for the Network.
+ * This function is executed once when a Network object is created. The frame
  * contains a canvas, and this canvas contains all objects like the axis and
  * nodes.
  * @private
  */
-Graph.prototype._create = function () {
+Network.prototype._create = function () {
   // remove all elements from the container element.
   while (this.containerElement.hasChildNodes()) {
     this.containerElement.removeChild(this.containerElement.firstChild);
   }
 
   this.frame = document.createElement('div');
-  this.frame.className = 'graph-frame';
+  this.frame.className = 'network-frame';
   this.frame.style.position = 'relative';
   this.frame.style.overflow = 'hidden';
 
-  // create the graph canvas (HTML canvas element)
+  // create the network canvas (HTML canvas element)
   this.frame.canvas = document.createElement( 'canvas' );
   this.frame.canvas.style.position = 'relative';
   this.frame.appendChild(this.frame.canvas);
@@ -16840,7 +20317,7 @@ Graph.prototype._create = function () {
  * Binding the keys for keyboard navigation. These functions are defined in the NavigationMixin
  * @private
  */
-Graph.prototype._createKeyBinds = function() {
+Network.prototype._createKeyBinds = function() {
   var me = this;
   this.mousetrap = mousetrap;
 
@@ -16881,7 +20358,7 @@ Graph.prototype._createKeyBinds = function() {
  * @return {{x: Number, y: Number}} pointer
  * @private
  */
-Graph.prototype._getPointer = function (touch) {
+Network.prototype._getPointer = function (touch) {
   return {
     x: touch.pageX - vis.util.getAbsoluteLeft(this.frame.canvas),
     y: touch.pageY - vis.util.getAbsoluteTop(this.frame.canvas)
@@ -16893,7 +20370,7 @@ Graph.prototype._getPointer = function (touch) {
  * @param event
  * @private
  */
-Graph.prototype._onTouch = function (event) {
+Network.prototype._onTouch = function (event) {
   this.drag.pointer = this._getPointer(event.gesture.center);
   this.drag.pinched = false;
   this.pinch.scale = this._getScale();
@@ -16905,7 +20382,7 @@ Graph.prototype._onTouch = function (event) {
  * handle drag start event
  * @private
  */
-Graph.prototype._onDragStart = function () {
+Network.prototype._onDragStart = function () {
   this._handleDragStart();
 };
 
@@ -16916,7 +20393,7 @@ Graph.prototype._onDragStart = function () {
  *
  * @private
  */
-Graph.prototype._handleDragStart = function() {
+Network.prototype._handleDragStart = function() {
   var drag = this.drag;
   var node = this._getNodeAt(drag.pointer);
   // note: drag.pointer is set in _onTouch to get the initial touch location
@@ -16962,7 +20439,7 @@ Graph.prototype._handleDragStart = function() {
  * handle drag event
  * @private
  */
-Graph.prototype._onDrag = function (event) {
+Network.prototype._onDrag = function (event) {
   this._handleOnDrag(event)
 };
 
@@ -16973,7 +20450,7 @@ Graph.prototype._onDrag = function (event) {
  *
  * @private
  */
-Graph.prototype._handleOnDrag = function(event) {
+Network.prototype._handleOnDrag = function(event) {
   if (this.drag.pinched) {
     return;
   }
@@ -17008,8 +20485,8 @@ Graph.prototype._handleOnDrag = function(event) {
     }
   }
   else {
-    if (this.constants.dragGraph == true) {
-      // move the graph
+    if (this.constants.dragNetwork == true) {
+      // move the network
       var diffX = pointer.x - this.drag.pointer.x;
       var diffY = pointer.y - this.drag.pointer.y;
 
@@ -17027,7 +20504,7 @@ Graph.prototype._handleOnDrag = function(event) {
  * handle drag start event
  * @private
  */
-Graph.prototype._onDragEnd = function () {
+Network.prototype._onDragEnd = function () {
   this.drag.dragging = false;
   var selection = this.drag.selection;
   if (selection) {
@@ -17043,7 +20520,7 @@ Graph.prototype._onDragEnd = function () {
  * handle tap/click event: select/unselect a node
  * @private
  */
-Graph.prototype._onTap = function (event) {
+Network.prototype._onTap = function (event) {
   var pointer = this._getPointer(event.gesture.center);
   this.pointerPosition = pointer;
   this._handleTap(pointer);
@@ -17055,7 +20532,7 @@ Graph.prototype._onTap = function (event) {
  * handle doubletap event
  * @private
  */
-Graph.prototype._onDoubleTap = function (event) {
+Network.prototype._onDoubleTap = function (event) {
   var pointer = this._getPointer(event.gesture.center);
   this._handleDoubleTap(pointer);
 };
@@ -17065,7 +20542,7 @@ Graph.prototype._onDoubleTap = function (event) {
  * handle long tap event: multi select nodes
  * @private
  */
-Graph.prototype._onHold = function (event) {
+Network.prototype._onHold = function (event) {
   var pointer = this._getPointer(event.gesture.center);
   this.pointerPosition = pointer;
   this._handleOnHold(pointer);
@@ -17076,7 +20553,7 @@ Graph.prototype._onHold = function (event) {
  *
  * @private
  */
-Graph.prototype._onRelease = function (event) {
+Network.prototype._onRelease = function (event) {
   var pointer = this._getPointer(event.gesture.center);
   this._handleOnRelease(pointer);
 };
@@ -17086,7 +20563,7 @@ Graph.prototype._onRelease = function (event) {
  * @param event
  * @private
  */
-Graph.prototype._onPinch = function (event) {
+Network.prototype._onPinch = function (event) {
   var pointer = this._getPointer(event.gesture.center);
 
   this.drag.pinched = true;
@@ -17100,13 +20577,13 @@ Graph.prototype._onPinch = function (event) {
 };
 
 /**
- * Zoom the graph in or out
+ * Zoom the network in or out
  * @param {Number} scale a number around 1, and between 0.01 and 10
  * @param {{x: Number, y: Number}} pointer    Position on screen
  * @return {Number} appliedScale    scale is limited within the boundaries
  * @private
  */
-Graph.prototype._zoom = function(scale, pointer) {
+Network.prototype._zoom = function(scale, pointer) {
   if (this.constants.zoomable == true) {
     var scaleOld = this._getScale();
     if (scale < 0.00001) {
@@ -17149,7 +20626,7 @@ Graph.prototype._zoom = function(scale, pointer) {
  * @param {MouseEvent}  event
  * @private
  */
-Graph.prototype._onMouseWheel = function(event) {
+Network.prototype._onMouseWheel = function(event) {
   // retrieve delta
   var delta = 0;
   if (event.wheelDelta) { /* IE/Opera. */
@@ -17191,7 +20668,7 @@ Graph.prototype._onMouseWheel = function(event) {
  * @param  {Event} event
  * @private
  */
-Graph.prototype._onMouseMoveTitle = function (event) {
+Network.prototype._onMouseMoveTitle = function (event) {
   var gesture = util.fakeGesture(this, event);
   var pointer = this._getPointer(gesture.center);
 
@@ -17249,14 +20726,14 @@ Graph.prototype._onMouseMoveTitle = function (event) {
 };
 
 /**
- * Check if there is an element on the given position in the graph
+ * Check if there is an element on the given position in the network
  * (a node or edge). If so, and if this element has a title,
  * show a popup window with its title.
  *
  * @param {{x:Number, y:Number}} pointer
  * @private
  */
-Graph.prototype._checkShowPopup = function (pointer) {
+Network.prototype._checkShowPopup = function (pointer) {
   var obj = {
     left:   this._XconvertDOMtoCanvas(pointer.x),
     top:    this._YconvertDOMtoCanvas(pointer.y),
@@ -17326,7 +20803,7 @@ Graph.prototype._checkShowPopup = function (pointer) {
  * @param {{x:Number, y:Number}} pointer
  * @private
  */
-Graph.prototype._checkHidePopup = function (pointer) {
+Network.prototype._checkHidePopup = function (pointer) {
   if (!this.popupObj || !this._getNodeAt(pointer) ) {
     this.popupObj = undefined;
     if (this.popup) {
@@ -17337,13 +20814,13 @@ Graph.prototype._checkHidePopup = function (pointer) {
 
 
 /**
- * Set a new size for the graph
+ * Set a new size for the network
  * @param {string} width   Width in pixels or percentage (for example '800px'
  *                         or '50%')
  * @param {string} height  Height in pixels or percentage  (for example '400px'
  *                         or '30%')
  */
-Graph.prototype.setSize = function(width, height) {
+Network.prototype.setSize = function(width, height) {
   this.frame.style.width = width;
   this.frame.style.height = height;
 
@@ -17367,11 +20844,11 @@ Graph.prototype.setSize = function(width, height) {
 };
 
 /**
- * Set a data set with nodes for the graph
+ * Set a data set with nodes for the network
  * @param {Array | DataSet | DataView} nodes         The data containing the nodes.
  * @private
  */
-Graph.prototype._setNodes = function(nodes) {
+Network.prototype._setNodes = function(nodes) {
   var oldNodesData = this.nodesData;
 
   if (nodes instanceof DataSet || nodes instanceof DataView) {
@@ -17417,7 +20894,7 @@ Graph.prototype._setNodes = function(nodes) {
  * @param {Number[] | String[]} ids
  * @private
  */
-Graph.prototype._addNodes = function(ids) {
+Network.prototype._addNodes = function(ids) {
   var id;
   for (var i = 0, len = ids.length; i < len; i++) {
     id = ids[i];
@@ -17449,7 +20926,7 @@ Graph.prototype._addNodes = function(ids) {
  * @param {Number[] | String[]} ids
  * @private
  */
-Graph.prototype._updateNodes = function(ids) {
+Network.prototype._updateNodes = function(ids) {
   var nodes = this.nodes,
       nodesData = this.nodesData;
   for (var i = 0, len = ids.length; i < len; i++) {
@@ -17481,7 +20958,7 @@ Graph.prototype._updateNodes = function(ids) {
  * @param {Number[] | String[]} ids
  * @private
  */
-Graph.prototype._removeNodes = function(ids) {
+Network.prototype._removeNodes = function(ids) {
   var nodes = this.nodes;
   for (var i = 0, len = ids.length; i < len; i++) {
     var id = ids[i];
@@ -17504,7 +20981,7 @@ Graph.prototype._removeNodes = function(ids) {
  * @private
  * @private
  */
-Graph.prototype._setEdges = function(edges) {
+Network.prototype._setEdges = function(edges) {
   var oldEdgesData = this.edgesData;
 
   if (edges instanceof DataSet || edges instanceof DataView) {
@@ -17551,7 +21028,7 @@ Graph.prototype._setEdges = function(edges) {
  * @param {Number[] | String[]} ids
  * @private
  */
-Graph.prototype._addEdges = function (ids) {
+Network.prototype._addEdges = function (ids) {
   var edges = this.edges,
       edgesData = this.edgesData;
 
@@ -17582,7 +21059,7 @@ Graph.prototype._addEdges = function (ids) {
  * @param {Number[] | String[]} ids
  * @private
  */
-Graph.prototype._updateEdges = function (ids) {
+Network.prototype._updateEdges = function (ids) {
   var edges = this.edges,
       edgesData = this.edgesData;
   for (var i = 0, len = ids.length; i < len; i++) {
@@ -17617,7 +21094,7 @@ Graph.prototype._updateEdges = function (ids) {
  * @param {Number[] | String[]} ids
  * @private
  */
-Graph.prototype._removeEdges = function (ids) {
+Network.prototype._removeEdges = function (ids) {
   var edges = this.edges;
   for (var i = 0, len = ids.length; i < len; i++) {
     var id = ids[i];
@@ -17644,7 +21121,7 @@ Graph.prototype._removeEdges = function (ids) {
  * Reconnect all edges
  * @private
  */
-Graph.prototype._reconnectEdges = function() {
+Network.prototype._reconnectEdges = function() {
   var id,
       nodes = this.nodes,
       edges = this.edges;
@@ -17672,7 +21149,7 @@ Graph.prototype._reconnectEdges = function() {
  *                        setValueRange(min, max).
  * @private
  */
-Graph.prototype._updateValueRange = function(obj) {
+Network.prototype._updateValueRange = function(obj) {
   var id;
 
   // determine the range of the objects
@@ -17699,19 +21176,19 @@ Graph.prototype._updateValueRange = function(obj) {
 };
 
 /**
- * Redraw the graph with the current data
+ * Redraw the network with the current data
  * chart will be resized too.
  */
-Graph.prototype.redraw = function() {
+Network.prototype.redraw = function() {
   this.setSize(this.width, this.height);
   this._redraw();
 };
 
 /**
- * Redraw the graph with the current data
+ * Redraw the network with the current data
  * @private
  */
-Graph.prototype._redraw = function() {
+Network.prototype._redraw = function() {
   var ctx = this.frame.canvas.getContext('2d');
   // clear the canvas
   var w = this.frame.canvas.width;
@@ -17745,12 +21222,12 @@ Graph.prototype._redraw = function() {
 };
 
 /**
- * Set the translation of the graph
+ * Set the translation of the network
  * @param {Number} offsetX    Horizontal offset
  * @param {Number} offsetY    Vertical offset
  * @private
  */
-Graph.prototype._setTranslation = function(offsetX, offsetY) {
+Network.prototype._setTranslation = function(offsetX, offsetY) {
   if (this.translation === undefined) {
     this.translation = {
       x: 0,
@@ -17769,11 +21246,11 @@ Graph.prototype._setTranslation = function(offsetX, offsetY) {
 };
 
 /**
- * Get the translation of the graph
+ * Get the translation of the network
  * @return {Object} translation    An object with parameters x and y, both a number
  * @private
  */
-Graph.prototype._getTranslation = function() {
+Network.prototype._getTranslation = function() {
   return {
     x: this.translation.x,
     y: this.translation.y
@@ -17781,20 +21258,20 @@ Graph.prototype._getTranslation = function() {
 };
 
 /**
- * Scale the graph
+ * Scale the network
  * @param {Number} scale   Scaling factor 1.0 is unscaled
  * @private
  */
-Graph.prototype._setScale = function(scale) {
+Network.prototype._setScale = function(scale) {
   this.scale = scale;
 };
 
 /**
- * Get the current scale of  the graph
+ * Get the current scale of  the network
  * @return {Number} scale   Scaling factor 1.0 is unscaled
  * @private
  */
-Graph.prototype._getScale = function() {
+Network.prototype._getScale = function() {
   return this.scale;
 };
 
@@ -17805,7 +21282,7 @@ Graph.prototype._getScale = function() {
  * @returns {number}
  * @private
  */
-Graph.prototype._XconvertDOMtoCanvas = function(x) {
+Network.prototype._XconvertDOMtoCanvas = function(x) {
   return (x - this.translation.x) / this.scale;
 };
 
@@ -17816,7 +21293,7 @@ Graph.prototype._XconvertDOMtoCanvas = function(x) {
  * @returns {number}
  * @private
  */
-Graph.prototype._XconvertCanvasToDOM = function(x) {
+Network.prototype._XconvertCanvasToDOM = function(x) {
   return x * this.scale + this.translation.x;
 };
 
@@ -17827,7 +21304,7 @@ Graph.prototype._XconvertCanvasToDOM = function(x) {
  * @returns {number}
  * @private
  */
-Graph.prototype._YconvertDOMtoCanvas = function(y) {
+Network.prototype._YconvertDOMtoCanvas = function(y) {
   return (y - this.translation.y) / this.scale;
 };
 
@@ -17838,7 +21315,7 @@ Graph.prototype._YconvertDOMtoCanvas = function(y) {
  * @returns {number}
  * @private
  */
-Graph.prototype._YconvertCanvasToDOM = function(y) {
+Network.prototype._YconvertCanvasToDOM = function(y) {
   return y * this.scale + this.translation.y ;
 };
 
@@ -17849,7 +21326,7 @@ Graph.prototype._YconvertCanvasToDOM = function(y) {
  * @returns {{x: number, y: number}}
  * @constructor
  */
-Graph.prototype.canvasToDOM = function(pos) {
+Network.prototype.canvasToDOM = function(pos) {
   return {x:this._XconvertCanvasToDOM(pos.x),y:this._YconvertCanvasToDOM(pos.y)};
 }
 
@@ -17859,7 +21336,7 @@ Graph.prototype.canvasToDOM = function(pos) {
  * @returns {{x: number, y: number}}
  * @constructor
  */
-Graph.prototype.DOMtoCanvas = function(pos) {
+Network.prototype.DOMtoCanvas = function(pos) {
   return {x:this._XconvertDOMtoCanvas(pos.x),y:this._YconvertDOMtoCanvas(pos.y)};
 }
 
@@ -17870,7 +21347,7 @@ Graph.prototype.DOMtoCanvas = function(pos) {
  * @param {Boolean} [alwaysShow]
  * @private
  */
-Graph.prototype._drawNodes = function(ctx,alwaysShow) {
+Network.prototype._drawNodes = function(ctx,alwaysShow) {
   if (alwaysShow === undefined) {
     alwaysShow = false;
   }
@@ -17907,7 +21384,7 @@ Graph.prototype._drawNodes = function(ctx,alwaysShow) {
  * @param {CanvasRenderingContext2D}   ctx
  * @private
  */
-Graph.prototype._drawEdges = function(ctx) {
+Network.prototype._drawEdges = function(ctx) {
   var edges = this.edges;
   for (var id in edges) {
     if (edges.hasOwnProperty(id)) {
@@ -17926,7 +21403,7 @@ Graph.prototype._drawEdges = function(ctx) {
  * @param {CanvasRenderingContext2D}   ctx
  * @private
  */
-Graph.prototype._drawControlNodes = function(ctx) {
+Network.prototype._drawControlNodes = function(ctx) {
   var edges = this.edges;
   for (var id in edges) {
     if (edges.hasOwnProperty(id)) {
@@ -17939,7 +21416,7 @@ Graph.prototype._drawControlNodes = function(ctx) {
  * Find a stable position for all nodes
  * @private
  */
-Graph.prototype._stabilize = function() {
+Network.prototype._stabilize = function() {
   if (this.constants.freezeForStabilization == true) {
     this._freezeDefinedNodes();
   }
@@ -17963,7 +21440,7 @@ Graph.prototype._stabilize = function() {
  *
  * @private
  */
-Graph.prototype._freezeDefinedNodes = function() {
+Network.prototype._freezeDefinedNodes = function() {
   var nodes = this.nodes;
   for (var id in nodes) {
     if (nodes.hasOwnProperty(id)) {
@@ -17982,7 +21459,7 @@ Graph.prototype._freezeDefinedNodes = function() {
  *
  * @private
  */
-Graph.prototype._restoreFrozenNodes = function() {
+Network.prototype._restoreFrozenNodes = function() {
   var nodes = this.nodes;
   for (var id in nodes) {
     if (nodes.hasOwnProperty(id)) {
@@ -18001,7 +21478,7 @@ Graph.prototype._restoreFrozenNodes = function() {
  * @return {boolean}      true if moving, false if non of the nodes is moving
  * @private
  */
-Graph.prototype._isMoving = function(vmin) {
+Network.prototype._isMoving = function(vmin) {
   var nodes = this.nodes;
   for (var id in nodes) {
     if (nodes.hasOwnProperty(id) && nodes[id].isMoving(vmin)) {
@@ -18018,7 +21495,7 @@ Graph.prototype._isMoving = function(vmin) {
  *
  * @private
  */
-Graph.prototype._discreteStepNodes = function() {
+Network.prototype._discreteStepNodes = function() {
   var interval = this.physicsDiscreteStepsize;
   var nodes = this.nodes;
   var nodeId;
@@ -18057,7 +21534,7 @@ Graph.prototype._discreteStepNodes = function() {
  *
  * @private
  */
-Graph.prototype._physicsTick = function() {
+Network.prototype._physicsTick = function() {
   if (!this.freezeSimulation) {
     if (this.moving) {
       this._doInAllActiveSectors("_initializeForceCalculation");
@@ -18077,7 +21554,7 @@ Graph.prototype._physicsTick = function() {
  *
  * @private
  */
-Graph.prototype._animationStep = function() {
+Network.prototype._animationStep = function() {
   // reset the timer so a new scheduled animation step can be set
   this.timer = undefined;
   // handle the keyboad movement
@@ -18091,13 +21568,11 @@ Graph.prototype._animationStep = function() {
   var maxSteps = 1;
   this._physicsTick();
   var timeRequired = Date.now() - calculationTime;
-  while (timeRequired < (this.renderTimestep - this.renderTime) && maxSteps < this.maxPhysicsTicksPerRender) {
+  while (timeRequired < 0.9*(this.renderTimestep - this.renderTime) && maxSteps < this.maxPhysicsTicksPerRender) {
     this._physicsTick();
     timeRequired = Date.now() - calculationTime;
     maxSteps++;
-
   }
-
   // start the rendering process
   var renderTime = Date.now();
   this._redraw();
@@ -18112,7 +21587,7 @@ if (typeof window !== 'undefined') {
 /**
  * Schedule a animation step with the refreshrate interval.
  */
-Graph.prototype.start = function() {
+Network.prototype.start = function() {
   if (this.moving || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0) {
     if (!this.timer) {
       var ua = navigator.userAgent.toLowerCase();
@@ -18142,11 +21617,11 @@ Graph.prototype.start = function() {
 
 
 /**
- * Move the graph according to the keyboard presses.
+ * Move the network according to the keyboard presses.
  *
  * @private
  */
-Graph.prototype._handleNavigation = function() {
+Network.prototype._handleNavigation = function() {
   if (this.xIncrement != 0 || this.yIncrement != 0) {
     var translation = this._getTranslation();
     this._setTranslation(translation.x+this.xIncrement, translation.y+this.yIncrement);
@@ -18164,7 +21639,7 @@ Graph.prototype._handleNavigation = function() {
 /**
  *  Freeze the _animationStep
  */
-Graph.prototype.toggleFreeze = function() {
+Network.prototype.toggleFreeze = function() {
   if (this.freezeSimulation == false) {
     this.freezeSimulation = true;
   }
@@ -18181,7 +21656,7 @@ Graph.prototype.toggleFreeze = function() {
  * @param {boolean} [disableStart]
  * @private
  */
-Graph.prototype._configureSmoothCurves = function(disableStart) {
+Network.prototype._configureSmoothCurves = function(disableStart) {
   if (disableStart === undefined) {
     disableStart = true;
   }
@@ -18213,7 +21688,7 @@ Graph.prototype._configureSmoothCurves = function(disableStart) {
  *
  * @private
  */
-Graph.prototype._createBezierNodes = function() {
+Network.prototype._createBezierNodes = function() {
   if (this.constants.smoothCurves == true) {
     for (var edgeId in this.edges) {
       if (this.edges.hasOwnProperty(edgeId)) {
@@ -18242,10 +21717,10 @@ Graph.prototype._createBezierNodes = function() {
  *
  * @private
  */
-Graph.prototype._initializeMixinLoaders = function () {
-  for (var mixinFunction in graphMixinLoaders) {
-    if (graphMixinLoaders.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = graphMixinLoaders[mixinFunction];
+Network.prototype._initializeMixinLoaders = function () {
+  for (var mixinFunction in networkMixinLoaders) {
+    if (networkMixinLoaders.hasOwnProperty(mixinFunction)) {
+      Network.prototype[mixinFunction] = networkMixinLoaders[mixinFunction];
     }
   }
 };
@@ -18253,14 +21728,14 @@ Graph.prototype._initializeMixinLoaders = function () {
 /**
  * Load the XY positions of the nodes into the dataset.
  */
-Graph.prototype.storePosition = function() {
+Network.prototype.storePosition = function() {
   var dataArray = [];
   for (var nodeId in this.nodes) {
     if (this.nodes.hasOwnProperty(nodeId)) {
       var node = this.nodes[nodeId];
       var allowedToMoveX = !this.nodes.xFixed;
       var allowedToMoveY = !this.nodes.yFixed;
-      if (this.nodesData.data[nodeId].x != Math.round(node.x) || this.nodesData.data[nodeId].y != Math.round(node.y)) {
+      if (this.nodesData._data[nodeId].x != Math.round(node.x) || this.nodesData._data[nodeId].y != Math.round(node.y)) {
         dataArray.push({id:nodeId,x:Math.round(node.x),y:Math.round(node.y),allowedToMoveX:allowedToMoveX,allowedToMoveY:allowedToMoveY});
       }
     }
@@ -18275,7 +21750,7 @@ Graph.prototype.storePosition = function() {
  * @param {Number} nodeId
  * @param {Number} [zoomLevel]
  */
-Graph.prototype.focusOnNode = function (nodeId, zoomLevel) {
+Network.prototype.focusOnNode = function (nodeId, zoomLevel) {
   if (this.nodes.hasOwnProperty(nodeId)) {
     if (zoomLevel === undefined) {
       zoomLevel = this._getScale();
@@ -18311,16 +21786,20 @@ Graph.prototype.focusOnNode = function (nodeId, zoomLevel) {
 
 /**
  * @constructor Graph3d
- * The Graph is a visualization Graphs on a time line
+ * Graph3d displays data in 3d.
  *
- * Graph is developed in javascript as a Google Visualization Chart.
+ * Graph3d is developed in javascript as a Google Visualization Chart.
  *
- * @param {Element} container   The DOM element in which the Graph will
+ * @param {Element} container   The DOM element in which the Graph3d will
  *                              be created. Normally a div element.
  * @param {DataSet | DataView | Array} [data]
  * @param {Object} [options]
  */
 function Graph3d(container, data, options) {
+  if (!(this instanceof Graph3d)) {
+    throw new SyntaxError('Constructor must be called with the new operator');
+  }
+
   // create variables and set default values
   this.containerElement = container;
   this.width = '400px';
@@ -18393,7 +21872,7 @@ function Graph3d(container, data, options) {
   }
 }
 
-// Extend Graph with an Emitter mixin
+// Extend Graph3d with an Emitter mixin
 Emitter(Graph3d.prototype);
 
 /**
@@ -21620,38 +25099,57 @@ getMouseY = function(event) {
  * vis.js module exports
  */
 var vis = {
-  util: util,
   moment: moment,
+
+  util: util,
+  DOMutil: DOMutil,
 
   DataSet: DataSet,
   DataView: DataView,
-  Range: Range,
-  stack: stack,
-  TimeStep: TimeStep,
-
-  components: {
-    items: {
-      Item: Item,
-      ItemBox: ItemBox,
-      ItemPoint: ItemPoint,
-      ItemRange: ItemRange
-    },
-
-    Component: Component,
-    ItemSet: ItemSet,
-    TimeAxis: TimeAxis
-  },
-
-  graph: {
-    Node: Node,
-    Edge: Edge,
-    Popup: Popup,
-    Groups: Groups,
-    Images: Images
-  },
 
   Timeline: Timeline,
-  Graph: Graph,
+  Graph2d: Graph2d,
+  timeline: {
+    DataStep: DataStep,
+    Range: Range,
+    stack: stack,
+    TimeStep: TimeStep,
+
+    components: {
+      items: {
+        Item: Item,
+        ItemBox: ItemBox,
+        ItemPoint: ItemPoint,
+        ItemRange: ItemRange
+      },
+
+      Component: Component,
+      CurrentTime: CurrentTime,
+      CustomTime: CustomTime,
+      DataAxis: DataAxis,
+      GraphGroup: GraphGroup,
+      Group: Group,
+      ItemSet: ItemSet,
+      Legend: Legend,
+      LineGraph: LineGraph,
+      TimeAxis: TimeAxis
+    }
+  },
+
+  Network: Network,
+  network: {
+    Edge: Edge,
+    Groups: Groups,
+    Images: Images,
+    Node: Node,
+    Popup: Popup
+  },
+
+  // Deprecated since v3.0.0
+  Graph: function () {
+    throw new Error('Graph is renamed to Network. Please create a graph as new vis.Network(...)');
+  },
+
   Graph3d: Graph3d
 };
 

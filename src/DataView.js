@@ -188,6 +188,19 @@ DataView.prototype.getIds = function (options) {
 };
 
 /**
+ * Get the DataSet to which this DataView is connected. In case there is a chain
+ * of multiple DataViews, the root DataSet of this chain is returned.
+ * @return {DataSet} dataSet
+ */
+DataView.prototype.getDataSet = function () {
+  var dataSet = this;
+  while (dataSet instanceof DataView) {
+    dataSet = dataSet._data;
+  }
+  return dataSet || null;
+};
+
+/**
  * Event listener. Will propagate all events from the connected data set to
  * the subscribers of the DataView, but will filter the items and only trigger
  * when there are changes in the filtered data set.

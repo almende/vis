@@ -6,6 +6,10 @@
  * @constructor
  */
 function Timeline (container, items, options) {
+  if (!(this instanceof Timeline)) {
+    throw new SyntaxError('Constructor must be called with the new operator');
+  }
+
   var me = this;
   this.defaultOptions = {
     start: null,
@@ -38,7 +42,9 @@ function Timeline (container, items, options) {
     util: {
       snap: null, // will be specified after TimeAxis is created
       toScreen: me._toScreen.bind(me),
-      toTime: me._toTime.bind(me)
+      toGlobalScreen: me._toGlobalScreen.bind(me), // this refers to the root.width
+      toTime: me._toTime.bind(me),
+      toGlobalTime : me._toGlobalTime.bind(me)
     }
   };
 
@@ -442,23 +448,23 @@ Timeline.prototype.fit = function() {
  */
 Timeline.prototype.getItemRange = function() {
   // calculate min from start filed
-  var itemsData = this.itemsData,
+  var dataset = this.itemsData.getDataSet(),
       min = null,
       max = null;
 
-  if (itemsData) {
+  if (dataset) {
     // calculate the minimum value of the field 'start'
-    var minItem = itemsData.min('start');
+    var minItem = dataset.min('start');
     min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
     // Note: we convert first to Date and then to number because else
     // a conversion from ISODate to Number will fail
 
     // calculate maximum value of fields 'start' and 'end'
-    var maxStartItem = itemsData.max('start');
+    var maxStartItem = dataset.max('start');
     if (maxStartItem) {
       max = util.convert(maxStartItem.start, 'Date').valueOf();
     }
-    var maxEndItem = itemsData.max('end');
+    var maxEndItem = dataset.max('end');
     if (maxEndItem) {
       if (max == null) {
         max = util.convert(maxEndItem.end, 'Date').valueOf();
@@ -636,7 +642,8 @@ Timeline.prototype.redraw = function() {
   // reposition the scrollable contents
   var offset = this.props.scrollTop;
   if (options.orientation == 'bottom') {
-    offset += Math.max(this.props.centerContainer.height - this.props.center.height, 0);
+    offset += Math.max(this.props.centerContainer.height - this.props.center.height -
+        this.props.border.top - this.props.border.bottom, 0);
   }
   dom.center.style.left = '0';
   dom.center.style.top  = offset + 'px';
@@ -682,6 +689,19 @@ Timeline.prototype._toTime = function(x) {
   return new Date(x / conversion.scale + conversion.offset);
 };
 
+
+/**
+ * Convert a position on the global screen (pixels) to a datetime
+ * @param {int}     x    Position on the screen in pixels
+ * @return {Date}   time The datetime the corresponds with given position x
+ * @private
+ */
+// TODO: move this function to Range
+Timeline.prototype._toGlobalTime = function(x) {
+  var conversion = this.range.conversion(this.props.root.width);
+  return new Date(x / conversion.scale + conversion.offset);
+};
+
 /**
  * Convert a datetime (Date object) into a position on the screen
  * @param {Date}   time A date
@@ -694,6 +714,22 @@ Timeline.prototype._toScreen = function(time) {
   var conversion = this.range.conversion(this.props.center.width);
   return (time.valueOf() - conversion.offset) * conversion.scale;
 };
+
+
+/**
+ * Convert a datetime (Date object) into a position on the root
+ * This is used to get the pixel density estimate for the screen, not the center panel
+ * @param {Date}   time A date
+ * @return {int}   x    The position on root in pixels which corresponds
+ *                      with the given date.
+ * @private
+ */
+// TODO: move this function to Range
+Timeline.prototype._toGlobalScreen = function(time) {
+  var conversion = this.range.conversion(this.props.root.width);
+  return (time.valueOf() - conversion.offset) * conversion.scale;
+};
+
 
 /**
  * Initialize watching when option autoResize is true

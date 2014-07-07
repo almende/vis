@@ -81,6 +81,9 @@ Group.prototype.setData = function(data) {
     this.dom.inner.innerHTML = this.groupId;
   }
 
+  // update title
+  this.dom.label.title = data && data.title || '';
+
   if (!this.dom.inner.firstChild) {
     util.addClassName(this.dom.inner, 'hidden');
   }
@@ -157,7 +160,15 @@ Group.prototype.redraw = function(range, margin, restack) {
       min = Math.min(min, item.top);
       max = Math.max(max, (item.top + item.height));
     });
-    height = (max - min) + margin.axis + margin.item;
+    if (min > margin.axis) {
+      // there is an empty gap between the lowest item and the axis
+      var offset = min - margin.axis;
+      max -= offset;
+      util.forEach(visibleItems, function (item) {
+        item.top -= offset;
+      });
+    }
+    height = max + margin.item / 2;
   }
   else {
     height = margin.axis + margin.item;
@@ -176,7 +187,8 @@ Group.prototype.redraw = function(range, margin, restack) {
   resized = util.updateProperty(this.props.label, 'height', this.dom.inner.clientHeight) || resized;
 
   // apply new height
-  foreground.style.height  = height + 'px';
+  this.dom.background.style.height  = height + 'px';
+  this.dom.foreground.style.height  = height + 'px';
   this.dom.label.style.height = height + 'px';
 
   // update vertical position of items after they are re-stacked and the height of the group is calculated
@@ -323,14 +335,14 @@ Group.prototype._updateVisibleItems = function(orderedItems, visibleItems, range
 
   // If there were no visible items previously, use binarySearch to find a visible ItemPoint or ItemRange (based on startTime)
   if (newVisibleItems.length == 0) {
-    initialPosByStart = this._binarySearch(orderedItems, range, false);
+    initialPosByStart = util.binarySearch(orderedItems.byStart, range, 'data','start');
   }
   else {
     initialPosByStart = orderedItems.byStart.indexOf(newVisibleItems[0]);
   }
 
   // use visible search to find a visible ItemRange (only based on endTime)
-  var initialPosByEnd = this._binarySearch(orderedItems, range, true);
+  var initialPosByEnd = util.binarySearch(orderedItems.byEnd, range, 'data','end');
 
   // if we found a initial ID to use, trace it up and down until we meet an invisible item.
   if (initialPosByStart != -1) {
@@ -355,72 +367,7 @@ Group.prototype._updateVisibleItems = function(orderedItems, visibleItems, range
   return newVisibleItems;
 };
 
-/**
- * This function does a binary search for a visible item. The user can select either the this.orderedItems.byStart or .byEnd
- * arrays. This is done by giving a boolean value true if you want to use the byEnd.
- * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
- * if the time we selected (start or end) is within the current range).
- *
- * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the ItemRange that is
- * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
- * either the start OR end time has to be in the range.
- *
- * @param {{byStart: Item[], byEnd: Item[]}} orderedItems
- * @param {{start: number, end: number}} range
- * @param {Boolean} byEnd
- * @returns {number}
- * @private
- */
-Group.prototype._binarySearch = function(orderedItems, range, byEnd) {
-  var array = [];
-  var byTime = byEnd ? 'end' : 'start';
-  if (byEnd == true) {array = orderedItems.byEnd;  }
-  else               {array = orderedItems.byStart;}
 
-  var interval = range.end - range.start;
-
-  var found = false;
-  var low = 0;
-  var high = array.length;
-  var guess = Math.floor(0.5*(high+low));
-  var newGuess;
-
-  if (high == 0) {guess = -1;}
-  else if (high == 1) {
-    if ((array[guess].data[byTime] > range.start - interval) && (array[guess].data[byTime] < range.end)) {
-      guess =  0;
-    }
-    else {
-      guess = -1;
-    }
-  }
-  else {
-    high -= 1;
-    while (found == false) {
-      if ((array[guess].data[byTime] > range.start - interval) && (array[guess].data[byTime] < range.end)) {
-        found = true;
-      }
-      else {
-        if (array[guess].data[byTime] < range.start - interval) { // it is too small --> increase low
-          low = Math.floor(0.5*(high+low));
-        }
-        else {  // it is too big --> decrease high
-          high = Math.floor(0.5*(high+low));
-        }
-        newGuess = Math.floor(0.5*(high+low));
-        // not in list;
-        if (guess == newGuess) {
-          guess = -1;
-          found = true;
-        }
-        else {
-          guess = newGuess;
-        }
-      }
-    }
-  }
-  return guess;
-};
 
 /**
  * this function checks if an item is invisible. If it is NOT we make it visible

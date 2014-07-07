@@ -512,6 +512,14 @@ DataSet.prototype.getIds = function (options) {
 };
 
 /**
+ * Returns the DataSet itself. Is overwritten for example by the DataView,
+ * which returns the DataSet it is connected to instead.
+ */
+DataSet.prototype.getDataSet = function () {
+  return this;
+};
+
+/**
  * Execute a callback function for every item in the dataset.
  * @param {function} callback
  * @param {Object} [options]    Available options:
