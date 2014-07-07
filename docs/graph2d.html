@@ -1,7 +1,7 @@
 <html>
 
 <head>
-  <title>vis.js | Graph2D documentation</title>
+  <title>vis.js | Graph2d documentation</title>
   <style>
       td.greenField {
           background-color: #c9ffc7;
@@ -16,11 +16,11 @@
 <body onload="prettyPrint();">
 <div id="container">
 
-<h1>Graph2D documentation</h1>
+<h1>Graph2d documentation</h1>
 
 <h2 id="Overview">Overview</h2>
 <p>
-  Graph2D is an interactive visualization chart to draw data in a 2D graph.
+  Graph2d is an interactive visualization chart to draw data in a 2D graph.
   You can freely move and zoom in the graph by dragging and scrolling in the
   window.
 </p>
@@ -41,7 +41,7 @@
   </li>
   <li><a href="#Configuration_Options">Configuration Options</a>
       <ul>
-          <li><a href="#graph2dOptions">Graph2D options</a></li>
+          <li><a href="#graph2dOptions">Graph2d options</a></li>
           <li><a href="#timelineOptions">Timeline options</a></li>
       </ul>
   </li>
@@ -52,7 +52,7 @@
 
 <h2 id="Example">Example</h2>
 <p>
-  The following code shows how to create a Graph2D and provide it with data.
+  The following code shows how to create a Graph2d and provide it with data.
   More examples can be found in the <a href="../examples">examples</a> directory.
 </p>
 
@@ -60,7 +60,7 @@
 &lt;!DOCTYPE HTML&gt;
 &lt;html&gt;
 &lt;head&gt;
-  &lt;title&gt;Graph2D | Basic Example&lt;/title&gt;
+  &lt;title&gt;Graph2d | Basic Example&lt;/title&gt;
 
   &lt;style type="text/css"&gt;
     body, html {
@@ -90,7 +90,7 @@
       start: '2014-06-10',
       end: '2014-06-18'
   };
-  var graph2d = new vis.Graph2D(container, dataset, options);
+  var graph2d = new vis.Graph2d(container, dataset, options);
 &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
@@ -101,8 +101,8 @@
 <h2 id="Loading">Loading</h2>
 
 <p>
-  The class name of the Graph2D is <code>vis.Graph2D</code>.
-  When constructing a Graph2D, an HTML DOM container must be provided to attach
+  The class name of the Graph2d is <code>vis.Graph2d</code>.
+  When constructing a Graph2d, an HTML DOM container must be provided to attach
   the graph to. Optionally, data an options can be provided.
   Data is a vis <code>DataSet</code> or an <code>Array</code>, described in
   section <a href="#Data_Format">Data Format</a>.
@@ -111,21 +111,21 @@
   Groups is a vis <code>DataSet</code> containing groups. The available options and the method of construction
   are described in section <a href="#Group_Options">Data Format</a>.
 </p>
-<pre class="prettyprint lang-js">var graph = new vis.Graph2D(container [, data] [, options] [,groups]);</pre>
+<pre class="prettyprint lang-js">var graph = new vis.Graph2d(container [, data] [, options] [,groups]);</pre>
 
 <p>
   Data, options and groups can be set or changed later on using the functions
-  <code>Graph2D.setData(data)</code>, <code>Graph2D.setOptions(options)</code> and <code>Graph2D.setGroups(groups)</code>.
+  <code>Graph2d.setData(data)</code>, <code>Graph2d.setOptions(options)</code> and <code>Graph2d.setGroups(groups)</code>.
 </p>
 
 <h2 id="Data_Format">Data Format</h2>
 <p>
-  Graph2D can load data from an <code>Array</code>, a <code>DataSet</code> or a <code>DataView</code>.
+  Graph2d can load data from an <code>Array</code>, a <code>DataSet</code> or a <code>DataView</code>.
   JSON objects are added to this DataSet by using the <code>add()</code> function.
   Data points must have properties <code>x</code>, <code>y</code>, and <code>z</code>,
   and can optionally have a property <code>style</code> and <code>filter</code>.
 <p>
-    Graph2D can be provided with two types of data:
+    Graph2d can be provided with two types of data:
 </p>
 <ul>
     <li><a href="#items">Items</a> containing a set of points to be displayed.</li>
@@ -245,9 +245,9 @@ groups.add({
 
 <h2 id="Configuration_Options">Configuration Options</h2>
 
-<h3 id="graph2dOptions">Graph2D Options</h3>
+<h3 id="graph2dOptions">Graph2d Options</h3>
 
-Options can be used to customize the Graph2D to your purposes. These options can be passed to the Graph2D object either in
+Options can be used to customize the Graph2d to your purposes. These options can be passed to the Graph2d object either in
 the constructor, or by the <code>setOptions</code> function.
 
 <pre class="prettyprint lang-js">
@@ -458,7 +458,7 @@ The options colored in green can also be used as options for the groups. All opt
 <h3 id="timelineOptions">Timeline Options</h3>
 
 <p>
-  Graph2D is built upon the framework of the timeline. These options from the timeline can be used with graph2D.
+  Graph2d is built upon the framework of the timeline. These options from the timeline can be used with graph2D.
   All options are optional.
 </p>
 
@@ -630,7 +630,7 @@ The options colored in green can also be used as options for the groups. All opt
 
 <h2 id="Methods">Methods</h2>
 <p>
-    The Graph2D supports the following methods.
+    The Graph2d supports the following methods.
 </p>
 
 <table>
@@ -644,11 +644,11 @@ The options colored in green can also be used as options for the groups. All opt
         <td>clear([what])</td>
         <td>none</td>
         <td>
-            Clear the Graph2D. An object can be passed specifying which sections to clear: items, groups,
+            Clear the Graph2d. An object can be passed specifying which sections to clear: items, groups,
             and/or options. By Default, items, groups and options are cleared, i.e. <code>what = {items: true, groups: true, options: true}</code>. Example usage:
 
-<pre class="prettyprint lang-js">Graph2D.clear();                // clear items, groups, and options
-Graph2D.clear({options: true}); // clear options only
+<pre class="prettyprint lang-js">Graph2d.clear();                // clear items, groups, and options
+Graph2d.clear({options: true}); // clear options only
 </pre>
         </td>
     </tr>
@@ -656,7 +656,7 @@ Graph2D.clear({options: true}); // clear options only
     <tr>
         <td>destroy()</td>
         <td>none</td>
-        <td>Destroy the Graph2D. The Graph2D is removed from memory. all DOM elements and event listeners are cleaned up.
+        <td>Destroy the Graph2d. The Graph2d is removed from memory. all DOM elements and event listeners are cleaned up.
         </td>
     </tr>
 
@@ -695,17 +695,17 @@ Graph2D.clear({options: true}); // clear options only
     <tr>
         <td>redraw()</td>
         <td>none</td>
-        <td>Force a redraw of the Graph2D. Can be useful to manually redraw when option autoResize=false.
+        <td>Force a redraw of the Graph2d. Can be useful to manually redraw when option autoResize=false.
         </td>
     </tr>
 
     <tr>
         <td>setGroups(groups)</td>
         <td>none</td>
-        <td>Set a data set with groups for the Graph2D.
+        <td>Set a data set with groups for the Graph2d.
             <code>groups</code> can be an Array with Objects,
             a DataSet, or a DataView. For each of the groups, the items of the
-            Graph2D are filtered on the property <code>group</code>, which
+            Graph2d are filtered on the property <code>group</code>, which
             must correspond with the id of the group.
         </td>
     </tr>
@@ -713,7 +713,7 @@ Graph2D.clear({options: true}); // clear options only
     <tr>
         <td>setItems(items)</td>
         <td>none</td>
-        <td>Set a data set with items for the Graph2D.
+        <td>Set a data set with items for the Graph2d.
             <code>items</code> can be an Array with Objects,
             a DataSet, or a DataView.
         </td>
@@ -722,7 +722,7 @@ Graph2D.clear({options: true}); // clear options only
     <tr>
         <td>setOptions(options)</td>
         <td>none</td>
-        <td>Set or update options. It is possible to change any option of the Graph2D at any time. You can for example switch orientation on the fly.
+        <td>Set or update options. It is possible to change any option of the Graph2d at any time. You can for example switch orientation on the fly.
         </td>
     </tr>
 
@@ -737,7 +737,7 @@ Graph2D.clear({options: true}); // clear options only
 
 <h2 id="Events">Events</h2>
 <p>
-    Graph2D fires events when changing the visible window by dragging, when
+    Graph2d fires events when changing the visible window by dragging, when
     selecting items, and when dragging the custom time bar.
 </p>
 
@@ -746,7 +746,7 @@ Graph2D.clear({options: true}); // clear options only
 </p>
 
 <pre class="prettyprint lang-js">
-Graph2D.on('select', function (properties) {
+Graph2d.on('select', function (properties) {
   alert('selected items: ' + properties.nodes);
 });
 </pre>
@@ -761,12 +761,12 @@ function onChange (properties) {
 }
 
 // add event listener
-Graph2D.on('rangechanged', onChange);
+Graph2d.on('rangechanged', onChange);
 
 // do stuff...
 
 // remove event listener
-Graph2D.off('rangechanged', onChange);
+Graph2d.off('rangechanged', onChange);
 </pre>
 
 
@@ -789,7 +789,7 @@ Graph2D.off('rangechanged', onChange);
 
     <tr>
         <td>rangechange</td>
-        <td>Fired repeatedly when the user is dragging the Graph2D window.
+        <td>Fired repeatedly when the user is dragging the Graph2d window.
         </td>
         <td>
             <ul>
@@ -801,7 +801,7 @@ Graph2D.off('rangechanged', onChange);
 
     <tr>
         <td>rangechanged</td>
-        <td>Fired once after the user has dragged the Graph2D window.
+        <td>Fired once after the user has dragged the Graph2d window.
         </td>
         <td>
             <ul>
@@ -838,12 +838,12 @@ Graph2D.off('rangechanged', onChange);
 
 <h2 id="Styles">Styles</h2>
 <p>
-    All parts of the Graph2D have a class name and a default css style just like the Timeline.
+    All parts of the Graph2d have a class name and a default css style just like the Timeline.
     The styles can be overwritten, which enables full customization of the layout
-    of the Graph2D.
+    of the Graph2d.
 </p>
 <p>
-    Additionally, Graph2D has 10 preset styles for graphs, which are cycled through when loading groups. These styles can be overwritten
+    Additionally, Graph2d has 10 preset styles for graphs, which are cycled through when loading groups. These styles can be overwritten
     as well, along with defining your own classes to style the graphs! <a href="../examples/graph2d/04_rightAxis.html">Example 4</a> and
     <a href="../examples/graph2d/05_bothAxis.html">example 5</a> show the usage of custom styles.
 </p>

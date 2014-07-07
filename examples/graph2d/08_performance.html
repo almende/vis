@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Graph2D | Performance</title>
+    <title>Graph2d | Performance</title>
 
     <style>
         body, html {
@@ -21,13 +21,13 @@
     <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
-<h2>Graph2D | Performance</h2>
+<h2>Graph2d | Performance</h2>
 <div style="width:700px; font-size:14px; text-align: justify;">
-    This example is a test of the performance of the Graph2D. Select the amount of datapoints you want to plot and press draw.
+    This example is a test of the performance of the Graph2d. Select the amount of datapoints you want to plot and press draw.
     You can choose between the style of the points as well as the interpolation method. This can only be toggled with the buttons.
     The interpolation options may not look different for this dataset but you can see their effects clearly in example 7.
     <br /><br />
-    Linear interpolation and no points are the settings that will render quickest. By default, graph2D will downsample when there are more
+    Linear interpolation and no points are the settings that will render quickest. By default, Graph2d will downsample when there are more
     than 1 point per pixel. This can be manually disabled at the cost of performance by using the <code>sampling</code> option.
 </div>
 <br />
@@ -119,7 +119,7 @@
             var yval = Math.sin(i/100) * Math.cos(i/50) * 50 + Math.sin(i/1000) * 50;
             newData.push({id: i, x: start + 3600000 * i, y: yval});
         }
-        span.innerHTML = 'Loading data into Graph2D...';
+        span.innerHTML = 'Loading data into Graph2d...';
         setTimeout(function() {loadDataIntoVis(newData);},10);
 
     }
