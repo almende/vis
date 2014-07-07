@@ -74,6 +74,21 @@ TimeAxis.prototype._create = function() {
 };
 
 /**
+ * Destroy the TimeAxis
+ */
+TimeAxis.prototype.destroy = function() {
+  // remove from DOM
+  if (this.dom.foreground.parentNode) {
+    this.dom.foreground.parentNode.removeChild(this.dom.foreground);
+  }
+  if (this.dom.background.parentNode) {
+    this.dom.background.parentNode.removeChild(this.dom.background);
+  }
+
+  this.body = null;
+};
+
+/**
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */

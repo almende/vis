@@ -14,10 +14,6 @@
   height: 100%;
 }
 
-.vis.timeline .itemset.foreground {
-  overflow: hidden;
-}
-
 .vis.timeline .axis {
   position: absolute;
   width: 100%;
@@ -26,12 +22,12 @@
   z-index: 1;
 }
 
-.vis.timeline  .group {
+.vis.timeline  .foreground .group {
   position: relative;
   box-sizing: border-box;
   border-bottom: 1px solid #bfbfbf;
 }
 
-.vis.timeline  .group:last-child {
+.vis.timeline  .foreground .group:last-child {
   border-bottom: none;
 }

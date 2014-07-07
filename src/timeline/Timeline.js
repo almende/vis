@@ -6,6 +6,10 @@
  * @constructor
  */
 function Timeline (container, items, options) {
+  if (!(this instanceof Timeline)) {
+    throw new SyntaxError('Constructor must be called with the new operator');
+  }
+
   var me = this;
   this.defaultOptions = {
     start: null,
@@ -38,7 +42,9 @@ function Timeline (container, items, options) {
     util: {
       snap: null, // will be specified after TimeAxis is created
       toScreen: me._toScreen.bind(me),
-      toTime: me._toTime.bind(me)
+      toGlobalScreen: me._toGlobalScreen.bind(me), // this refers to the root.width
+      toTime: me._toTime.bind(me),
+      toGlobalTime : me._toGlobalTime.bind(me)
     }
   };
 
@@ -206,6 +212,42 @@ Timeline.prototype._create = function (container) {
 };
 
 /**
+ * Destroy the Timeline, clean up all DOM elements and event listeners.
+ */
+Timeline.prototype.destroy = function () {
+  // unbind datasets
+  this.clear();
+
+  // remove all event listeners
+  this.off();
+
+  // stop checking for changed size
+  this._stopAutoResize();
+
+  // remove from DOM
+  if (this.dom.root.parentNode) {
+    this.dom.root.parentNode.removeChild(this.dom.root);
+  }
+  this.dom = null;
+
+  // cleanup hammer touch events
+  for (var event in this.listeners) {
+    if (this.listeners.hasOwnProperty(event)) {
+      delete this.listeners[event];
+    }
+  }
+  this.listeners = null;
+  this.hammer = null;
+
+  // give all components the opportunity to cleanup
+  this.components.forEach(function (component) {
+    component.destroy();
+  });
+
+  this.body = null;
+};
+
+/**
  * Set options. Options will be passed to all components loaded in the Timeline.
  * @param {Object} [options]
  *                           {String} orientation
@@ -296,7 +338,7 @@ Timeline.prototype.setItems = function(items) {
   else {
     // turn an array into a dataset
     newDataSet = new DataSet(items, {
-      convert: {
+      type: {
         start: 'Date',
         end: 'Date'
       }
@@ -406,27 +448,29 @@ Timeline.prototype.fit = function() {
  */
 Timeline.prototype.getItemRange = function() {
   // calculate min from start filed
-  var itemsData = this.itemsData,
+  var dataset = this.itemsData.getDataSet(),
       min = null,
       max = null;
 
-  if (itemsData) {
+  if (dataset) {
     // calculate the minimum value of the field 'start'
-    var minItem = itemsData.min('start');
-    min = minItem ? minItem.start.valueOf() : null;
+    var minItem = dataset.min('start');
+    min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
+    // Note: we convert first to Date and then to number because else
+    // a conversion from ISODate to Number will fail
 
     // calculate maximum value of fields 'start' and 'end'
-    var maxStartItem = itemsData.max('start');
+    var maxStartItem = dataset.max('start');
     if (maxStartItem) {
-      max = maxStartItem.start.valueOf();
+      max = util.convert(maxStartItem.start, 'Date').valueOf();
     }
-    var maxEndItem = itemsData.max('end');
+    var maxEndItem = dataset.max('end');
     if (maxEndItem) {
       if (max == null) {
-        max = maxEndItem.end.valueOf();
+        max = util.convert(maxEndItem.end, 'Date').valueOf();
       }
       else {
-        max = Math.max(max, maxEndItem.end.valueOf());
+        max = Math.max(max, util.convert(maxEndItem.end, 'Date').valueOf());
       }
     }
   }
@@ -497,10 +541,11 @@ Timeline.prototype.getWindow = function() {
  */
 Timeline.prototype.redraw = function() {
   var resized = false,
-      updateProperty = util.updateProperty,
       options = this.options,
       props = this.props,
       dom = this.dom;
+
+  if (!dom) return; // when destroyed
 
   // update class names
   dom.root.className = 'vis timeline root ' + options.orientation;
@@ -520,14 +565,11 @@ Timeline.prototype.redraw = function() {
 
   // calculate the heights. If any of the side panels is empty, we set the height to
   // minus the border width, such that the border will be invisible
-  //props.center.height = dom.center.offsetHeight;
-  resized = updateProperty(props.center, 'height', this.itemSet.props.height || 0) || resized; // TODO: this is a really ugly hack
+  props.center.height = dom.center.offsetHeight;
   props.left.height   = dom.left.offsetHeight;
   props.right.height  = dom.right.offsetHeight;
   props.top.height    = dom.top.clientHeight    || -props.border.top;
   props.bottom.height = dom.bottom.clientHeight || -props.border.bottom;
-
-  console.log('props.center.height', props.center.height);
 
   // TODO: compensate borders when any of the panels is empty.
 
@@ -536,7 +578,7 @@ Timeline.prototype.redraw = function() {
   var contentHeight = Math.max(props.left.height, props.center.height, props.right.height);
   var autoHeight = props.top.height + contentHeight + props.bottom.height +
       borderRootHeight + props.border.top + props.border.bottom;
-  resized = updateProperty(dom.root.style, 'height', util.option.asSize(options.height, autoHeight + 'px')) || resized;
+  dom.root.style.height = util.option.asSize(options.height, autoHeight + 'px');
 
   // calculate heights of the content panels
   props.root.height = dom.root.offsetHeight;
@@ -600,7 +642,8 @@ Timeline.prototype.redraw = function() {
   // reposition the scrollable contents
   var offset = this.props.scrollTop;
   if (options.orientation == 'bottom') {
-    offset += Math.max(this.props.centerContainer.height - this.props.center.height, 0);
+    offset += Math.max(this.props.centerContainer.height - this.props.center.height -
+        this.props.border.top - this.props.border.bottom, 0);
   }
   dom.center.style.left = '0';
   dom.center.style.top  = offset + 'px';
@@ -646,6 +689,19 @@ Timeline.prototype._toTime = function(x) {
   return new Date(x / conversion.scale + conversion.offset);
 };
 
+
+/**
+ * Convert a position on the global screen (pixels) to a datetime
+ * @param {int}     x    Position on the screen in pixels
+ * @return {Date}   time The datetime the corresponds with given position x
+ * @private
+ */
+// TODO: move this function to Range
+Timeline.prototype._toGlobalTime = function(x) {
+  var conversion = this.range.conversion(this.props.root.width);
+  return new Date(x / conversion.scale + conversion.offset);
+};
+
 /**
  * Convert a datetime (Date object) into a position on the screen
  * @param {Date}   time A date
@@ -658,6 +714,22 @@ Timeline.prototype._toScreen = function(time) {
   var conversion = this.range.conversion(this.props.center.width);
   return (time.valueOf() - conversion.offset) * conversion.scale;
 };
+
+
+/**
+ * Convert a datetime (Date object) into a position on the root
+ * This is used to get the pixel density estimate for the screen, not the center panel
+ * @param {Date}   time A date
+ * @return {int}   x    The position on root in pixels which corresponds
+ *                      with the given date.
+ * @private
+ */
+// TODO: move this function to Range
+Timeline.prototype._toGlobalScreen = function(time) {
+  var conversion = this.range.conversion(this.props.root.width);
+  return (time.valueOf() - conversion.offset) * conversion.scale;
+};
+
 
 /**
  * Initialize watching when option autoResize is true
@@ -682,11 +754,9 @@ Timeline.prototype._startAutoResize = function () {
 
   this._stopAutoResize();
 
-  function checkSize() {
-    if (me.options.autoResize != true || !me.dom.root.parentNode) {
-    //if (me.options.autoResize != true) {
-      // stop watching when the option autoResize is changed to false,
-      // or when the Timeline is no longer attached to the DOM.
+  this._onResize = function() {
+    if (me.options.autoResize != true) {
+      // stop watching when the option autoResize is changed to false
       me._stopAutoResize();
       return;
     }
@@ -701,11 +771,12 @@ Timeline.prototype._startAutoResize = function () {
         me.emit('change');
       }
     }
-  }
+  };
 
-  util.addEventListener(window, 'resize', checkSize);
+  // add event listener to window resize
+  util.addEventListener(window, 'resize', this._onResize);
 
-  this.watchTimer = setInterval(checkSize, 1000);
+  this.watchTimer = setInterval(this._onResize, 1000);
 };
 
 /**
@@ -718,7 +789,9 @@ Timeline.prototype._stopAutoResize = function () {
     this.watchTimer = undefined;
   }
 
-  // TODO: remove event listener on window.resize
+  // remove event listener on window.resize
+  util.removeEventListener(window, 'resize', this._onResize);
+  this._onResize = null;
 };
 
 /**

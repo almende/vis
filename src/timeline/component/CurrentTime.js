@@ -38,6 +38,16 @@ CurrentTime.prototype._create = function() {
 };
 
 /**
+ * Destroy the CurrentTime bar
+ */
+CurrentTime.prototype.destroy = function () {
+  this.options.showCurrentTime = false;
+  this.redraw(); // will remove the bar from the DOM and stop refreshing
+
+  this.body = null;
+};
+
+/**
  * Set options for the component. Options will be merged in current options.
  * @param {Object} options  Available parameters:
  *                          {boolean} [showCurrentTime]
@@ -76,8 +86,8 @@ CurrentTime.prototype.redraw = function() {
     // remove the line from the DOM
     if (this.bar.parentNode) {
       this.bar.parentNode.removeChild(this.bar);
-      this.stop();
     }
+    this.stop();
   }
 
   return false;

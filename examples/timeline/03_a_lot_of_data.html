@@ -31,18 +31,16 @@
   // create a dataset with items
   var now = moment().minutes(0).seconds(0).milliseconds(0);
   var items = new vis.DataSet({
-    convert: {
-      start: 'Date',
-      end: 'Date'
-    }
+    type: {start: 'ISODate', end: 'ISODate' }
   });
 
   // create data
   function createData() {
     var count = parseInt(document.getElementById('count').value) || 100;
     var newData = [];
+      var start = now;
     for (var i = 0; i < count; i++) {
-      newData.push({id: i, content: 'item ' + i, start: now.clone().add('days', i)});
+      newData.push({id: i, content: 'item ' + i, start: start + 24*3600*1000 * i}); // much much faster than now.clone add days
     }
     items.clear();
     items.add(newData);

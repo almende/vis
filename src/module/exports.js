@@ -2,38 +2,57 @@
  * vis.js module exports
  */
 var vis = {
-  util: util,
   moment: moment,
+
+  util: util,
+  DOMutil: DOMutil,
 
   DataSet: DataSet,
   DataView: DataView,
-  Range: Range,
-  stack: stack,
-  TimeStep: TimeStep,
-
-  components: {
-    items: {
-      Item: Item,
-      ItemBox: ItemBox,
-      ItemPoint: ItemPoint,
-      ItemRange: ItemRange
-    },
-
-    Component: Component,
-    ItemSet: ItemSet,
-    TimeAxis: TimeAxis
-  },
-
-  graph: {
-    Node: Node,
-    Edge: Edge,
-    Popup: Popup,
-    Groups: Groups,
-    Images: Images
-  },
 
   Timeline: Timeline,
-  Graph: Graph,
+  Graph2d: Graph2d,
+  timeline: {
+    DataStep: DataStep,
+    Range: Range,
+    stack: stack,
+    TimeStep: TimeStep,
+
+    components: {
+      items: {
+        Item: Item,
+        ItemBox: ItemBox,
+        ItemPoint: ItemPoint,
+        ItemRange: ItemRange
+      },
+
+      Component: Component,
+      CurrentTime: CurrentTime,
+      CustomTime: CustomTime,
+      DataAxis: DataAxis,
+      GraphGroup: GraphGroup,
+      Group: Group,
+      ItemSet: ItemSet,
+      Legend: Legend,
+      LineGraph: LineGraph,
+      TimeAxis: TimeAxis
+    }
+  },
+
+  Network: Network,
+  network: {
+    Edge: Edge,
+    Groups: Groups,
+    Images: Images,
+    Node: Node,
+    Popup: Popup
+  },
+
+  // Deprecated since v3.0.0
+  Graph: function () {
+    throw new Error('Graph is renamed to Network. Please create a graph as new vis.Network(...)');
+  },
+
   Graph3d: Graph3d
 };
 

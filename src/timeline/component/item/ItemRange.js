@@ -14,6 +14,7 @@ function ItemRange (data, conversion, options) {
       width: 0
     }
   };
+  this.overflow = false; // if contents can overflow (css styling), this flag is set to true
 
   // validate data
   if (data) {
@@ -95,6 +96,12 @@ ItemRange.prototype.redraw = function() {
     this.dirty = true;
   }
 
+  // update title
+  if (this.data.title != this.title) {
+    dom.box.title = this.data.title;
+    this.title = this.data.title;
+  }
+
   // update class
   var className = (this.data.className ? (' ' + this.data.className) : '') +
       (this.selected ? ' selected' : '');
@@ -107,6 +114,9 @@ ItemRange.prototype.redraw = function() {
 
   // recalculate size
   if (this.dirty) {
+    // determine from css whether this box has overflow
+    this.overflow = window.getComputedStyle(dom.content).overflow !== 'hidden';
+
     this.props.content.width = this.dom.content.offsetWidth;
     this.height = this.dom.box.offsetHeight;
 
@@ -151,6 +161,7 @@ ItemRange.prototype.hide = function() {
  * Reposition the item horizontally
  * @Override
  */
+// TODO: delete the old function
 ItemRange.prototype.repositionX = function() {
   var props = this.props,
       parentWidth = this.parent.width,
@@ -166,22 +177,35 @@ ItemRange.prototype.repositionX = function() {
   if (end > 2 * parentWidth) {
     end = 2 * parentWidth;
   }
+  var boxWidth = Math.max(end - start, 1);
 
-  // when range exceeds left of the window, position the contents at the left of the visible area
-  if (start < 0) {
-    contentLeft = Math.min(-start,
-        (end - start - props.content.width - 2 * padding));
-    // TODO: remove the need for options.padding. it's terrible.
-  }
-  else {
-    contentLeft = 0;
-  }
+  if (this.overflow) {
+    // when range exceeds left of the window, position the contents at the left of the visible area
+    contentLeft = Math.max(-start, 0);
 
-  this.left = start;
-  this.width = Math.max(end - start, 1);
+    this.left = start;
+    this.width = boxWidth + this.props.content.width;
+    // Note: The calculation of width is an optimistic calculation, giving
+    //       a width which will not change when moving the Timeline
+    //       So no restacking needed, which is nicer for the eye;
+  }
+  else { // no overflow
+    // when range exceeds left of the window, position the contents at the left of the visible area
+    if (start < 0) {
+      contentLeft = Math.min(-start,
+          (end - start - props.content.width - 2 * padding));
+      // TODO: remove the need for options.padding. it's terrible.
+    }
+    else {
+      contentLeft = 0;
+    }
+
+    this.left = start;
+    this.width = boxWidth;
+  }
 
   this.dom.box.style.left = this.left + 'px';
-  this.dom.box.style.width = this.width + 'px';
+  this.dom.box.style.width = boxWidth + 'px';
   this.dom.content.style.left = contentLeft + 'px';
 };
 

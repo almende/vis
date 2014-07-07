@@ -6,13 +6,14 @@ The library is designed to be easy to use, handle large amounts
 of dynamic data, and enable manipulation of the data.
 The library consists of the following components:
 
-- DataSet and DataView. A flexible key/value based data set.
-  Add, update, and remove items. Subscribe on changes in the data set.
-  Filter and order items and convert fields of items.
+- DataSet and DataView. A flexible key/value based data set. Add, update, and 
+  remove items. Subscribe on changes in the data set. A DataSet can filter and 
+  order items, and convert fields of items.
+- DataView. A filtered and/or formatted view on a DataSet.
+- Graph2d. Plot data on a timeline with lines or barcharts.
+- Graph3d. Display data in a three dimensional graph.
+- Network. Display a network (force directed graph) with nodes and edges.
 - Timeline. Display different types of data on a timeline.
-  The timeline and the items on the timeline can be interactively moved,
-  zoomed, and manipulated.
-- Graph. Display an interactive graph or network with nodes and edges.
 
 The vis.js library is developed by [Almende B.V](http://almende.com).
 

@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 1.1.0
- * @date    2014-06-10
+ * @version 3.0.1-SNAPSHOT
+ * @date    2014-07-07
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -318,7 +318,7 @@ var util = {};
  * @param {*} object
  * @return {Boolean} isNumber
  */
-util.isNumber = function isNumber(object) {
+util.isNumber = function(object) {
   return (object instanceof Number || typeof object == 'number');
 };
 
@@ -327,7 +327,7 @@ util.isNumber = function isNumber(object) {
  * @param {*} object
  * @return {Boolean} isString
  */
-util.isString = function isString(object) {
+util.isString = function(object) {
   return (object instanceof String || typeof object == 'string');
 };
 
@@ -336,7 +336,7 @@ util.isString = function isString(object) {
  * @param {Date | String} object
  * @return {Boolean} isDate
  */
-util.isDate = function isDate(object) {
+util.isDate = function(object) {
   if (object instanceof Date) {
     return true;
   }
@@ -359,7 +359,7 @@ util.isDate = function isDate(object) {
  * @param {*} object
  * @return {Boolean} isDataTable
  */
-util.isDataTable = function isDataTable(object) {
+util.isDataTable = function(object) {
   return (typeof (google) !== 'undefined') &&
       (google.visualization) &&
       (google.visualization.DataTable) &&
@@ -371,7 +371,7 @@ util.isDataTable = function isDataTable(object) {
  * source: http://stackoverflow.com/a/105074/1262753
  * @return {String} uuid
  */
-util.randomUUID = function randomUUID () {
+util.randomUUID = function() {
   var S4 = function () {
     return Math.floor(
         Math.random() * 0x10000 /* 65536 */
@@ -398,7 +398,7 @@ util.extend = function (a, b) {
   for (var i = 1, len = arguments.length; i < len; i++) {
     var other = arguments[i];
     for (var prop in other) {
-      if (other.hasOwnProperty(prop) && other[prop] !== undefined) {
+      if (other.hasOwnProperty(prop)) {
         a[prop] = other[prop];
       }
     }
@@ -408,12 +408,78 @@ util.extend = function (a, b) {
 };
 
 /**
+ * Extend object a with selected properties of object b or a series of objects
+ * Only properties with defined values are copied
+ * @param {Array.<String>} props
+ * @param {Object} a
+ * @param {... Object} b
+ * @return {Object} a
+ */
+util.selectiveExtend = function (props, a, b) {
+  if (!Array.isArray(props)) {
+    throw new Error('Array with property names expected as first argument');
+  }
+
+  for (var i = 2; i < arguments.length; i++) {
+    var other = arguments[i];
+
+    for (var p = 0; p < props.length; p++) {
+      var prop = props[p];
+      if (other.hasOwnProperty(prop)) {
+        a[prop] = other[prop];
+      }
+    }
+  }
+  return a;
+};
+
+/**
+ * Extend object a with selected properties of object b or a series of objects
+ * Only properties with defined values are copied
+ * @param {Array.<String>} props
+ * @param {Object} a
+ * @param {... Object} b
+ * @return {Object} a
+ */
+util.selectiveDeepExtend = function (props, a, b) {
+  // TODO: add support for Arrays to deepExtend
+  if (Array.isArray(b)) {
+    throw new TypeError('Arrays are not supported by deepExtend');
+  }
+  for (var i = 2; i < arguments.length; i++) {
+    var other = arguments[i];
+    for (var p = 0; p < props.length; p++) {
+      var prop = props[p];
+      if (other.hasOwnProperty(prop)) {
+        if (b[prop] && b[prop].constructor === Object) {
+          if (a[prop] === undefined) {
+            a[prop] = {};
+          }
+          if (a[prop].constructor === Object) {
+            util.deepExtend(a[prop], b[prop]);
+          }
+          else {
+            a[prop] = b[prop];
+          }
+        } else if (Array.isArray(b[prop])) {
+          throw new TypeError('Arrays are not supported by deepExtend');
+        } else {
+          a[prop] = b[prop];
+        }
+
+      }
+    }
+  }
+  return a;
+};
+
+/**
  * Deep extend an object a with the properties of object b
  * @param {Object} a
  * @param {Object} b
  * @returns {Object}
  */
-util.deepExtend = function deepExtend (a, b) {
+util.deepExtend = function(a, b) {
   // TODO: add support for Arrays to deepExtend
   if (Array.isArray(b)) {
     throw new TypeError('Arrays are not supported by deepExtend');
@@ -426,7 +492,7 @@ util.deepExtend = function deepExtend (a, b) {
           a[prop] = {};
         }
         if (a[prop].constructor === Object) {
-          deepExtend(a[prop], b[prop]);
+          util.deepExtend(a[prop], b[prop]);
         }
         else {
           a[prop] = b[prop];
@@ -467,7 +533,7 @@ util.equalArray = function (a, b) {
  * @return {*} object
  * @throws Error
  */
-util.convert = function convert(object, type) {
+util.convert = function(object, type) {
   var match;
 
   if (object === undefined) {
@@ -602,8 +668,7 @@ util.convert = function convert(object, type) {
       }
 
     default:
-      throw new Error('Cannot convert object of type ' + util.getType(object) +
-          ' to type "' + type + '"');
+      throw new Error('Unknown type "' + type + '"');
   }
 };
 
@@ -617,7 +682,7 @@ var ASPDateRegex = /^\/?Date\((\-?\d+)/i;
  * @param {*} object
  * @return {String} type
  */
-util.getType = function getType(object) {
+util.getType = function(object) {
   var type = typeof object;
 
   if (type == 'object') {
@@ -660,7 +725,7 @@ util.getType = function getType(object) {
  * @return {number} left        The absolute left position of this element
  *                              in the browser page.
  */
-util.getAbsoluteLeft = function getAbsoluteLeft (elem) {
+util.getAbsoluteLeft = function(elem) {
   var doc = document.documentElement;
   var body = document.body;
 
@@ -680,7 +745,7 @@ util.getAbsoluteLeft = function getAbsoluteLeft (elem) {
  * @return {number} top        The absolute top position of this element
  *                              in the browser page.
  */
-util.getAbsoluteTop = function getAbsoluteTop (elem) {
+util.getAbsoluteTop = function(elem) {
   var doc = document.documentElement;
   var body = document.body;
 
@@ -699,7 +764,7 @@ util.getAbsoluteTop = function getAbsoluteTop (elem) {
  * @param {Event} event
  * @return {Number} pageY
  */
-util.getPageY = function getPageY (event) {
+util.getPageY = function(event) {
   if ('pageY' in event) {
     return event.pageY;
   }
@@ -725,7 +790,7 @@ util.getPageY = function getPageY (event) {
  * @param {Event} event
  * @return {Number} pageX
  */
-util.getPageX = function getPageX (event) {
+util.getPageX = function(event) {
   if ('pageY' in event) {
     return event.pageX;
   }
@@ -751,7 +816,7 @@ util.getPageX = function getPageX (event) {
  * @param {Element} elem
  * @param {String} className
  */
-util.addClassName = function addClassName(elem, className) {
+util.addClassName = function(elem, className) {
   var classes = elem.className.split(' ');
   if (classes.indexOf(className) == -1) {
     classes.push(className); // add the class to the array
@@ -764,7 +829,7 @@ util.addClassName = function addClassName(elem, className) {
  * @param {Element} elem
  * @param {String} className
  */
-util.removeClassName = function removeClassname(elem, className) {
+util.removeClassName = function(elem, className) {
   var classes = elem.className.split(' ');
   var index = classes.indexOf(className);
   if (index != -1) {
@@ -782,7 +847,7 @@ util.removeClassName = function removeClassname(elem, className) {
  *                                  the object or array with three parameters:
  *                                  callback(value, index, object)
  */
-util.forEach = function forEach (object, callback) {
+util.forEach = function(object, callback) {
   var i,
       len;
   if (object instanceof Array) {
@@ -807,7 +872,7 @@ util.forEach = function forEach (object, callback) {
  * @param {Object} object
  * @param {Array} array
  */
-util.toArray = function toArray(object) {
+util.toArray = function(object) {
   var array = [];
 
   for (var prop in object) {
@@ -824,7 +889,7 @@ util.toArray = function toArray(object) {
  * @param {*} value
  * @return {Boolean} changed
  */
-util.updateProperty = function updateProperty (object, key, value) {
+util.updateProperty = function(object, key, value) {
   if (object[key] !== value) {
     object[key] = value;
     return true;
@@ -842,7 +907,7 @@ util.updateProperty = function updateProperty (object, key, value) {
  * @param {function}    listener   The callback function to be executed
  * @param {boolean}     [useCapture]
  */
-util.addEventListener = function addEventListener(element, action, listener, useCapture) {
+util.addEventListener = function(element, action, listener, useCapture) {
   if (element.addEventListener) {
     if (useCapture === undefined)
       useCapture = false;
@@ -864,7 +929,7 @@ util.addEventListener = function addEventListener(element, action, listener, use
  * @param {function}    listener        The listener function
  * @param {boolean}     [useCapture]
  */
-util.removeEventListener = function removeEventListener(element, action, listener, useCapture) {
+util.removeEventListener = function(element, action, listener, useCapture) {
   if (element.removeEventListener) {
     // non-IE browsers
     if (useCapture === undefined)
@@ -887,7 +952,7 @@ util.removeEventListener = function removeEventListener(element, action, listene
  * @param {Event} event
  * @return {Element} target element
  */
-util.getTarget = function getTarget(event) {
+util.getTarget = function(event) {
   // code from http://www.quirksmode.org/js/events_properties.html
   if (!event) {
     event = window.event;
@@ -915,7 +980,7 @@ util.getTarget = function getTarget(event) {
  * @param {Element} element
  * @param {Event} event
  */
-util.fakeGesture = function fakeGesture (element, event) {
+util.fakeGesture = function(element, event) {
   var eventType = null;
 
   // for hammer.js 1.0.5
@@ -1031,7 +1096,7 @@ util.option.asElement = function (value, defaultValue) {
 
 
 
-util.GiveDec = function GiveDec(Hex) {
+util.GiveDec = function(Hex) {
   var Value;
 
   if (Hex == "A")
@@ -1052,7 +1117,7 @@ util.GiveDec = function GiveDec(Hex) {
   return Value;
 };
 
-util.GiveHex = function GiveHex(Dec) {
+util.GiveHex = function(Dec) {
   var Value;
 
   if(Dec == 10)
@@ -1156,7 +1221,7 @@ util.parseColor = function(color) {
  * @param {String} hex
  * @returns {{r: *, g: *, b: *}}
  */
-util.hexToRGB = function hexToRGB(hex) {
+util.hexToRGB = function(hex) {
   hex = hex.replace("#","").toUpperCase();
 
   var a = util.GiveDec(hex.substring(0, 1));
@@ -1173,7 +1238,7 @@ util.hexToRGB = function hexToRGB(hex) {
   return {r:r,g:g,b:b};
 };
 
-util.RGBToHex = function RGBToHex(red,green,blue) {
+util.RGBToHex = function(red,green,blue) {
   var a = util.GiveHex(Math.floor(red / 16));
   var b = util.GiveHex(red % 16);
   var c = util.GiveHex(Math.floor(green / 16));
@@ -1195,7 +1260,7 @@ util.RGBToHex = function RGBToHex(red,green,blue) {
  * @returns {*}
  * @constructor
  */
-util.RGBToHSV = function  RGBToHSV (red,green,blue) {
+util.RGBToHSV = function(red,green,blue) {
   red=red/255; green=green/255; blue=blue/255;
   var minRGB = Math.min(red,Math.min(green,blue));
   var maxRGB = Math.max(red,Math.max(green,blue));
@@ -1223,7 +1288,7 @@ util.RGBToHSV = function  RGBToHSV (red,green,blue) {
  * @returns {{r: number, g: number, b: number}}
  * @constructor
  */
-util.HSVToRGB = function HSVToRGB(h, s, v) {
+util.HSVToRGB = function(h, s, v) {
   var r, g, b;
 
   var i = Math.floor(h * 6);
@@ -1244,42 +1309,439 @@ util.HSVToRGB = function HSVToRGB(h, s, v) {
   return {r:Math.floor(r * 255), g:Math.floor(g * 255), b:Math.floor(b * 255) };
 };
 
-util.HSVToHex = function HSVToHex(h, s, v) {
+util.HSVToHex = function(h, s, v) {
   var rgb = util.HSVToRGB(h, s, v);
   return util.RGBToHex(rgb.r, rgb.g, rgb.b);
 };
 
-util.hexToHSV = function hexToHSV(hex) {
+util.hexToHSV = function(hex) {
   var rgb = util.hexToRGB(hex);
   return util.RGBToHSV(rgb.r, rgb.g, rgb.b);
 };
 
-util.isValidHex = function isValidHex(hex) {
+util.isValidHex = function(hex) {
   var isOk = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
   return isOk;
 };
 
-util.copyObject = function copyObject(objectFrom, objectTo) {
-  for (var i in objectFrom) {
-    if (objectFrom.hasOwnProperty(i)) {
-      if (typeof objectFrom[i] == "object") {
-        objectTo[i] = {};
-        util.copyObject(objectFrom[i], objectTo[i]);
+
+/**
+ * This recursively redirects the prototype of JSON objects to the referenceObject
+ * This is used for default options.
+ *
+ * @param referenceObject
+ * @returns {*}
+ */
+util.selectiveBridgeObject = function(fields, referenceObject) {
+  if (typeof referenceObject == "object") {
+    var objectTo = Object.create(referenceObject);
+    for (var i = 0; i < fields.length; i++) {
+      if (referenceObject.hasOwnProperty(fields[i])) {
+        if (typeof referenceObject[fields[i]] == "object") {
+          objectTo[fields[i]] = util.bridgeObject(referenceObject[fields[i]]);
+        }
+      }
+    }
+    return objectTo;
+  }
+  else {
+    return null;
+  }
+};
+
+/**
+ * This recursively redirects the prototype of JSON objects to the referenceObject
+ * This is used for default options.
+ *
+ * @param referenceObject
+ * @returns {*}
+ */
+util.bridgeObject = function(referenceObject) {
+  if (typeof referenceObject == "object") {
+    var objectTo = Object.create(referenceObject);
+    for (var i in referenceObject) {
+      if (referenceObject.hasOwnProperty(i)) {
+        if (typeof referenceObject[i] == "object") {
+          objectTo[i] = util.bridgeObject(referenceObject[i]);
+        }
+      }
+    }
+    return objectTo;
+  }
+  else {
+    return null;
+  }
+};
+
+
+/**
+ * this is used to set the options of subobjects in the options object. A requirement of these subobjects
+ * is that they have an 'enabled' element which is optional for the user but mandatory for the program.
+ *
+ * @param [object] mergeTarget | this is either this.options or the options used for the groups.
+ * @param [object] options     | options
+ * @param [String] option      | this is the option key in the options argument
+ * @private
+ */
+util.mergeOptions = function (mergeTarget, options, option) {
+  if (options[option] !== undefined) {
+    if (typeof options[option] == 'boolean') {
+      mergeTarget[option].enabled = options[option];
+    }
+    else {
+      mergeTarget[option].enabled = true;
+      for (prop in options[option]) {
+        if (options[option].hasOwnProperty(prop)) {
+          mergeTarget[option][prop] = options[option][prop];
+        }
+      }
+    }
+  }
+}
+
+
+/**
+ * this is used to set the options of subobjects in the options object. A requirement of these subobjects
+ * is that they have an 'enabled' element which is optional for the user but mandatory for the program.
+ *
+ * @param [object] mergeTarget | this is either this.options or the options used for the groups.
+ * @param [object] options     | options
+ * @param [String] option      | this is the option key in the options argument
+ * @private
+ */
+util.mergeOptions = function (mergeTarget, options, option) {
+  if (options[option] !== undefined) {
+    if (typeof options[option] == 'boolean') {
+      mergeTarget[option].enabled = options[option];
+    }
+    else {
+      mergeTarget[option].enabled = true;
+      for (prop in options[option]) {
+        if (options[option].hasOwnProperty(prop)) {
+          mergeTarget[option][prop] = options[option][prop];
+        }
+      }
+    }
+  }
+}
+
+
+
+
+/**
+ * This function does a binary search for a visible item. The user can select either the this.orderedItems.byStart or .byEnd
+ * arrays. This is done by giving a boolean value true if you want to use the byEnd.
+ * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
+ * if the time we selected (start or end) is within the current range).
+ *
+ * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the ItemRange that is
+ * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
+ * either the start OR end time has to be in the range.
+ *
+ * @param {{byStart: Item[], byEnd: Item[]}} orderedItems
+ * @param {{start: number, end: number}} range
+ * @param {Boolean} byEnd
+ * @returns {number}
+ * @private
+ */
+util.binarySearch = function(orderedItems, range, field, field2) {
+  var array = orderedItems;
+  var interval = range.end - range.start;
+
+  var found = false;
+  var low = 0;
+  var high = array.length;
+  var guess = Math.floor(0.5*(high+low));
+  var newGuess;
+  var value;
+
+  if (high == 0) {guess = -1;}
+  else if (high == 1) {
+    value = field2 === undefined ? array[guess][field] : array[guess][field][field2];
+    if ((value > range.start - interval) && (value < range.end)) {
+      guess =  0;
+    }
+    else {
+      guess = -1;
+    }
+  }
+  else {
+    high -= 1;
+    while (found == false) {
+      value = field2 === undefined ? array[guess][field] : array[guess][field][field2];
+      if ((value > range.start - interval) && (value < range.end)) {
+        found = true;
       }
       else {
-        objectTo[i] = objectFrom[i];
+        if (value < range.start - interval) { // it is too small --> increase low
+          low = Math.floor(0.5*(high+low));
+        }
+        else {  // it is too big --> decrease high
+          high = Math.floor(0.5*(high+low));
+        }
+        newGuess = Math.floor(0.5*(high+low));
+        // not in list;
+        if (guess == newGuess) {
+          guess = -1;
+          found = true;
+        }
+        else {
+          guess = newGuess;
+        }
+      }
+    }
+  }
+  return guess;
+};
+
+/**
+ * This function does a binary search for a visible item. The user can select either the this.orderedItems.byStart or .byEnd
+ * arrays. This is done by giving a boolean value true if you want to use the byEnd.
+ * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
+ * if the time we selected (start or end) is within the current range).
+ *
+ * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the ItemRange that is
+ * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
+ * either the start OR end time has to be in the range.
+ *
+ * @param {Array} orderedItems
+ * @param {{start: number, end: number}} target
+ * @param {Boolean} byEnd
+ * @returns {number}
+ * @private
+ */
+util.binarySearchGeneric = function(orderedItems, target, field, sidePreference) {
+  var array = orderedItems;
+  var found = false;
+  var low = 0;
+  var high = array.length;
+  var guess = Math.floor(0.5*(high+low));
+  var newGuess;
+  var prevValue, value, nextValue;
+
+  if (high == 0) {guess = -1;}
+  else if (high == 1) {
+    value = array[guess][field];
+    if (value == target) {
+      guess =  0;
+    }
+    else {
+      guess = -1;
+    }
+  }
+  else {
+    high -= 1;
+    while (found == false) {
+      prevValue = array[Math.max(0,guess - 1)][field];
+      value = array[guess][field];
+      nextValue = array[Math.min(array.length-1,guess + 1)][field];
+
+      if (value == target || prevValue < target && value > target || value < target && nextValue > target) {
+        found = true;
+        if (value != target) {
+          if (sidePreference == 'before') {
+            if (prevValue < target && value > target) {
+              guess = Math.max(0,guess - 1);
+            }
+          }
+          else {
+            if (value < target && nextValue > target) {
+              guess = Math.min(array.length-1,guess + 1);
+            }
+          }
+        }
+      }
+      else {
+        if (value < target) { // it is too small --> increase low
+          low = Math.floor(0.5*(high+low));
+        }
+        else {  // it is too big --> decrease high
+          high = Math.floor(0.5*(high+low));
+        }
+        newGuess = Math.floor(0.5*(high+low));
+        // not in list;
+        if (guess == newGuess) {
+          guess = -2;
+          found = true;
+        }
+        else {
+          guess = newGuess;
+        }
+      }
+    }
+  }
+  return guess;
+};
+/**
+ * Created by Alex on 6/20/14.
+ */
+
+var DOMutil = {};
+
+/**
+ * this prepares the JSON container for allocating SVG elements
+ * @param JSONcontainer
+ * @private
+ */
+DOMutil.prepareElements = function(JSONcontainer) {
+  // cleanup the redundant svgElements;
+  for (var elementType in JSONcontainer) {
+    if (JSONcontainer.hasOwnProperty(elementType)) {
+      JSONcontainer[elementType].redundant = JSONcontainer[elementType].used;
+      JSONcontainer[elementType].used = [];
+    }
+  }
+};
+
+/**
+ * this cleans up all the unused SVG elements. By asking for the parentNode, we only need to supply the JSON container from
+ * which to remove the redundant elements.
+ *
+ * @param JSONcontainer
+ * @private
+ */
+DOMutil.cleanupElements = function(JSONcontainer) {
+  // cleanup the redundant svgElements;
+  for (var elementType in JSONcontainer) {
+    if (JSONcontainer.hasOwnProperty(elementType)) {
+      if (JSONcontainer[elementType].redundant) {
+        for (var i = 0; i < JSONcontainer[elementType].redundant.length; i++) {
+          JSONcontainer[elementType].redundant[i].parentNode.removeChild(JSONcontainer[elementType].redundant[i]);
+        }
+        JSONcontainer[elementType].redundant = [];
       }
     }
   }
 };
 
 /**
+ * Allocate or generate an SVG element if needed. Store a reference to it in the JSON container and draw it in the svgContainer
+ * the JSON container and the SVG container have to be supplied so other svg containers (like the legend) can use this.
+ *
+ * @param elementType
+ * @param JSONcontainer
+ * @param svgContainer
+ * @returns {*}
+ * @private
+ */
+DOMutil.getSVGElement = function (elementType, JSONcontainer, svgContainer) {
+  var element;
+  // allocate SVG element, if it doesnt yet exist, create one.
+  if (JSONcontainer.hasOwnProperty(elementType)) { // this element has been created before
+    // check if there is an redundant element
+    if (JSONcontainer[elementType].redundant.length > 0) {
+      element = JSONcontainer[elementType].redundant[0];
+      JSONcontainer[elementType].redundant.shift();
+    }
+    else {
+      // create a new element and add it to the SVG
+      element = document.createElementNS('http://www.w3.org/2000/svg', elementType);
+      svgContainer.appendChild(element);
+    }
+  }
+  else {
+    // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
+    element = document.createElementNS('http://www.w3.org/2000/svg', elementType);
+    JSONcontainer[elementType] = {used: [], redundant: []};
+    svgContainer.appendChild(element);
+  }
+  JSONcontainer[elementType].used.push(element);
+  return element;
+};
+
+
+/**
+ * Allocate or generate an SVG element if needed. Store a reference to it in the JSON container and draw it in the svgContainer
+ * the JSON container and the SVG container have to be supplied so other svg containers (like the legend) can use this.
+ *
+ * @param elementType
+ * @param JSONcontainer
+ * @param DOMContainer
+ * @returns {*}
+ * @private
+ */
+DOMutil.getDOMElement = function (elementType, JSONcontainer, DOMContainer) {
+  var element;
+  // allocate SVG element, if it doesnt yet exist, create one.
+  if (JSONcontainer.hasOwnProperty(elementType)) { // this element has been created before
+    // check if there is an redundant element
+    if (JSONcontainer[elementType].redundant.length > 0) {
+      element = JSONcontainer[elementType].redundant[0];
+      JSONcontainer[elementType].redundant.shift();
+    }
+    else {
+      // create a new element and add it to the SVG
+      element = document.createElement(elementType);
+      DOMContainer.appendChild(element);
+    }
+  }
+  else {
+    // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
+    element = document.createElement(elementType);
+    JSONcontainer[elementType] = {used: [], redundant: []};
+    DOMContainer.appendChild(element);
+  }
+  JSONcontainer[elementType].used.push(element);
+  return element;
+};
+
+
+
+
+/**
+ * draw a point object. this is a seperate function because it can also be called by the legend.
+ * The reason the JSONcontainer and the target SVG svgContainer have to be supplied is so the legend can use these functions
+ * as well.
+ *
+ * @param x
+ * @param y
+ * @param group
+ * @param JSONcontainer
+ * @param svgContainer
+ * @returns {*}
+ */
+DOMutil.drawPoint = function(x, y, group, JSONcontainer, svgContainer) {
+  var point;
+  if (group.options.drawPoints.style == 'circle') {
+    point = DOMutil.getSVGElement('circle',JSONcontainer,svgContainer);
+    point.setAttributeNS(null, "cx", x);
+    point.setAttributeNS(null, "cy", y);
+    point.setAttributeNS(null, "r", 0.5 * group.options.drawPoints.size);
+    point.setAttributeNS(null, "class", group.className + " point");
+  }
+  else {
+    point = DOMutil.getSVGElement('rect',JSONcontainer,svgContainer);
+    point.setAttributeNS(null, "x", x - 0.5*group.options.drawPoints.size);
+    point.setAttributeNS(null, "y", y - 0.5*group.options.drawPoints.size);
+    point.setAttributeNS(null, "width", group.options.drawPoints.size);
+    point.setAttributeNS(null, "height", group.options.drawPoints.size);
+    point.setAttributeNS(null, "class", group.className + " point");
+  }
+  return point;
+};
+
+/**
+ * draw a bar SVG element centered on the X coordinate
+ *
+ * @param x
+ * @param y
+ * @param className
+ */
+DOMutil.drawBar = function (x, y, width, height, className, JSONcontainer, svgContainer) {
+  var rect = DOMutil.getSVGElement('rect',JSONcontainer, svgContainer);
+  rect.setAttributeNS(null, "x", x - 0.5 * width);
+  rect.setAttributeNS(null, "y", y);
+  rect.setAttributeNS(null, "width", width);
+  rect.setAttributeNS(null, "height", height);
+  rect.setAttributeNS(null, "class", className);
+};
+/**
  * DataSet
  *
  * Usage:
  *     var dataSet = new DataSet({
  *         fieldId: '_id',
- *         convert: {
+ *         type: {
  *             // ...
  *         }
  *     });
@@ -1305,43 +1767,46 @@ util.copyObject = function copyObject(objectFrom, objectTo) {
  * @param {Object} [options]   Available options:
  *                             {String} fieldId Field name of the id in the
  *                                              items, 'id' by default.
- *                             {Object.<String, String} convert
+ *                             {Object.<String, String} type
  *                                              A map with field names as key,
  *                                              and the field type as value.
  * @constructor DataSet
  */
 // TODO: add a DataSet constructor DataSet(data, options)
 function DataSet (data, options) {
-  this.id = util.randomUUID();
-
   // correctly read optional arguments
   if (data && !Array.isArray(data) && !util.isDataTable(data)) {
     options = data;
     data = null;
   }
 
-  this.options = options || {};
-  this.data = {};                                 // map with data indexed by id
-  this.fieldId = this.options.fieldId || 'id';    // name of the field containing id
-  this.convert = {};                              // field types by field name
-  this.showInternalIds = this.options.showInternalIds || false; // show internal ids with the get function
+  this._options = options || {};
+  this._data = {};                                 // map with data indexed by id
+  this._fieldId = this._options.fieldId || 'id';   // name of the field containing id
+  this._type = {};                                 // internal field types (NOTE: this can differ from this._options.type)
 
-  if (this.options.convert) {
-    for (var field in this.options.convert) {
-      if (this.options.convert.hasOwnProperty(field)) {
-        var value = this.options.convert[field];
+  // all variants of a Date are internally stored as Date, so we can convert
+  // from everything to everything (also from ISODate to Number for example)
+  if (this._options.type) {
+    for (var field in this._options.type) {
+      if (this._options.type.hasOwnProperty(field)) {
+        var value = this._options.type[field];
         if (value == 'Date' || value == 'ISODate' || value == 'ASPDate') {
-          this.convert[field] = 'Date';
+          this._type[field] = 'Date';
         }
         else {
-          this.convert[field] = value;
+          this._type[field] = value;
         }
       }
     }
   }
 
-  this.subscribers = {};  // event subscribers
-  this.internalIds = {};  // internally generated id's
+  // TODO: deprecated since version 1.1.1 (or 2.0.0?)
+  if (this._options.convert) {
+    throw new Error('Option "convert" is deprecated. Use "type" instead.');
+  }
+
+  this._subscribers = {};  // event subscribers
 
   // add initial data when provided
   if (data) {
@@ -1358,11 +1823,11 @@ function DataSet (data, options) {
  *                                  {Object | null} params
  *                                  {String | Number} senderId
  */
-DataSet.prototype.on = function on (event, callback) {
-  var subscribers = this.subscribers[event];
+DataSet.prototype.on = function(event, callback) {
+  var subscribers = this._subscribers[event];
   if (!subscribers) {
     subscribers = [];
-    this.subscribers[event] = subscribers;
+    this._subscribers[event] = subscribers;
   }
 
   subscribers.push({
@@ -1378,10 +1843,10 @@ DataSet.prototype.subscribe = DataSet.prototype.on;
  * @param {String} event
  * @param {function} callback
  */
-DataSet.prototype.off = function off(event, callback) {
-  var subscribers = this.subscribers[event];
+DataSet.prototype.off = function(event, callback) {
+  var subscribers = this._subscribers[event];
   if (subscribers) {
-    this.subscribers[event] = subscribers.filter(function (listener) {
+    this._subscribers[event] = subscribers.filter(function (listener) {
       return (listener.callback != callback);
     });
   }
@@ -1403,11 +1868,11 @@ DataSet.prototype._trigger = function (event, params, senderId) {
   }
 
   var subscribers = [];
-  if (event in this.subscribers) {
-    subscribers = subscribers.concat(this.subscribers[event]);
+  if (event in this._subscribers) {
+    subscribers = subscribers.concat(this._subscribers[event]);
   }
-  if ('*' in this.subscribers) {
-    subscribers = subscribers.concat(this.subscribers['*']);
+  if ('*' in this._subscribers) {
+    subscribers = subscribers.concat(this._subscribers['*']);
   }
 
   for (var i = 0; i < subscribers.length; i++) {
@@ -1430,7 +1895,7 @@ DataSet.prototype.add = function (data, senderId) {
       id,
       me = this;
 
-  if (data instanceof Array) {
+  if (Array.isArray(data)) {
     // Array
     for (var i = 0, len = data.length; i < len; i++) {
       id = me._addItem(data[i]);
@@ -1477,11 +1942,11 @@ DataSet.prototype.update = function (data, senderId) {
   var addedIds = [],
       updatedIds = [],
       me = this,
-      fieldId = me.fieldId;
+      fieldId = me._fieldId;
 
   var addOrUpdate = function (item) {
     var id = item[fieldId];
-    if (me.data[id]) {
+    if (me._data[id]) {
       // update item
       id = me._updateItem(item);
       updatedIds.push(id);
@@ -1493,7 +1958,7 @@ DataSet.prototype.update = function (data, senderId) {
     }
   };
 
-  if (data instanceof Array) {
+  if (Array.isArray(data)) {
     // Array
     for (var i = 0, len = data.length; i < len; i++) {
       addOrUpdate(data[i]);
@@ -1552,9 +2017,9 @@ DataSet.prototype.update = function (data, senderId) {
  * {Number | String} id         The id of an item
  * {Number[] | String{}} ids    An array with ids of items
  * {Object} options             An Object with options. Available options:
- *                              {String} [type] Type of data to be returned. Can
- *                                              be 'DataTable' or 'Array' (default)
- *                              {Object.<String, String>} [convert]
+ *                              {String} [returnType] Type of data to be
+ *                                  returned. Can be 'DataTable' or 'Array' (default)
+ *                              {Object.<String, String>} [type]
  *                              {String[]} [fields] field names to be returned
  *                              {function} [filter] filter items
  *                              {String | function} [order] Order the items by
@@ -1567,7 +2032,6 @@ DataSet.prototype.update = function (data, senderId) {
  */
 DataSet.prototype.get = function (args) {
   var me = this;
-  var globalShowInternalIds = this.showInternalIds;
 
   // parse the arguments
   var id, ids, options, data;
@@ -1591,42 +2055,35 @@ DataSet.prototype.get = function (args) {
   }
 
   // determine the return type
-  var type;
-  if (options && options.type) {
-    type = (options.type == 'DataTable') ? 'DataTable' : 'Array';
+  var returnType;
+  if (options && options.returnType) {
+    returnType = (options.returnType == 'DataTable') ? 'DataTable' : 'Array';
 
-    if (data && (type != util.getType(data))) {
+    if (data && (returnType != util.getType(data))) {
       throw new Error('Type of parameter "data" (' + util.getType(data) + ') ' +
           'does not correspond with specified options.type (' + options.type + ')');
     }
-    if (type == 'DataTable' && !util.isDataTable(data)) {
+    if (returnType == 'DataTable' && !util.isDataTable(data)) {
       throw new Error('Parameter "data" must be a DataTable ' +
           'when options.type is "DataTable"');
     }
   }
   else if (data) {
-    type = (util.getType(data) == 'DataTable') ? 'DataTable' : 'Array';
+    returnType = (util.getType(data) == 'DataTable') ? 'DataTable' : 'Array';
   }
   else {
-    type = 'Array';
-  }
-
-  // we allow the setting of this value for a single get request.
-  if (options != undefined) {
-    if (options.showInternalIds != undefined) {
-      this.showInternalIds = options.showInternalIds;
-    }
+    returnType = 'Array';
   }
 
   // build options
-  var convert = options && options.convert || this.options.convert;
+  var type = options && options.type || this._options.type;
   var filter = options && options.filter;
   var items = [], item, itemId, i, len;
 
   // convert items
   if (id != undefined) {
     // return a single item
-    item = me._getItem(id, convert);
+    item = me._getItem(id, type);
     if (filter && !filter(item)) {
       item = null;
     }
@@ -1634,7 +2091,7 @@ DataSet.prototype.get = function (args) {
   else if (ids != undefined) {
     // return a subset of items
     for (i = 0, len = ids.length; i < len; i++) {
-      item = me._getItem(ids[i], convert);
+      item = me._getItem(ids[i], type);
       if (!filter || filter(item)) {
         items.push(item);
       }
@@ -1642,18 +2099,15 @@ DataSet.prototype.get = function (args) {
   }
   else {
     // return all items
-    for (itemId in this.data) {
-      if (this.data.hasOwnProperty(itemId)) {
-        item = me._getItem(itemId, convert);
+    for (itemId in this._data) {
+      if (this._data.hasOwnProperty(itemId)) {
+        item = me._getItem(itemId, type);
         if (!filter || filter(item)) {
           items.push(item);
         }
       }
     }
   }
-
-  // restore the global value of showInternalIds
-  this.showInternalIds = globalShowInternalIds;
 
   // order the results
   if (options && options.order && id == undefined) {
@@ -1674,7 +2128,7 @@ DataSet.prototype.get = function (args) {
   }
 
   // return the results
-  if (type == 'DataTable') {
+  if (returnType == 'DataTable') {
     var columns = this._getColumnNames(data);
     if (id != undefined) {
       // append a single item to the data table
@@ -1720,10 +2174,10 @@ DataSet.prototype.get = function (args) {
  * @return {Array} ids
  */
 DataSet.prototype.getIds = function (options) {
-  var data = this.data,
+  var data = this._data,
       filter = options && options.filter,
       order = options && options.order,
-      convert = options && options.convert || this.options.convert,
+      type = options && options.type || this._options.type,
       i,
       len,
       id,
@@ -1738,7 +2192,7 @@ DataSet.prototype.getIds = function (options) {
       items = [];
       for (id in data) {
         if (data.hasOwnProperty(id)) {
-          item = this._getItem(id, convert);
+          item = this._getItem(id, type);
           if (filter(item)) {
             items.push(item);
           }
@@ -1748,16 +2202,16 @@ DataSet.prototype.getIds = function (options) {
       this._sort(items, order);
 
       for (i = 0, len = items.length; i < len; i++) {
-        ids[i] = items[i][this.fieldId];
+        ids[i] = items[i][this._fieldId];
       }
     }
     else {
       // create unordered list
       for (id in data) {
         if (data.hasOwnProperty(id)) {
-          item = this._getItem(id, convert);
+          item = this._getItem(id, type);
           if (filter(item)) {
-            ids.push(item[this.fieldId]);
+            ids.push(item[this._fieldId]);
           }
         }
       }
@@ -1777,7 +2231,7 @@ DataSet.prototype.getIds = function (options) {
       this._sort(items, order);
 
       for (i = 0, len = items.length; i < len; i++) {
-        ids[i] = items[i][this.fieldId];
+        ids[i] = items[i][this._fieldId];
       }
     }
     else {
@@ -1785,7 +2239,7 @@ DataSet.prototype.getIds = function (options) {
       for (id in data) {
         if (data.hasOwnProperty(id)) {
           item = data[id];
-          ids.push(item[this.fieldId]);
+          ids.push(item[this._fieldId]);
         }
       }
     }
@@ -1795,10 +2249,18 @@ DataSet.prototype.getIds = function (options) {
 };
 
 /**
+ * Returns the DataSet itself. Is overwritten for example by the DataView,
+ * which returns the DataSet it is connected to instead.
+ */
+DataSet.prototype.getDataSet = function () {
+  return this;
+};
+
+/**
  * Execute a callback function for every item in the dataset.
  * @param {function} callback
  * @param {Object} [options]    Available options:
- *                              {Object.<String, String>} [convert]
+ *                              {Object.<String, String>} [type]
  *                              {String[]} [fields] filter fields
  *                              {function} [filter] filter items
  *                              {String | function} [order] Order the items by
@@ -1806,8 +2268,8 @@ DataSet.prototype.getIds = function (options) {
  */
 DataSet.prototype.forEach = function (callback, options) {
   var filter = options && options.filter,
-      convert = options && options.convert || this.options.convert,
-      data = this.data,
+      type = options && options.type || this._options.type,
+      data = this._data,
       item,
       id;
 
@@ -1817,7 +2279,7 @@ DataSet.prototype.forEach = function (callback, options) {
 
     for (var i = 0, len = items.length; i < len; i++) {
       item = items[i];
-      id = item[this.fieldId];
+      id = item[this._fieldId];
       callback(item, id);
     }
   }
@@ -1825,7 +2287,7 @@ DataSet.prototype.forEach = function (callback, options) {
     // unordered
     for (id in data) {
       if (data.hasOwnProperty(id)) {
-        item = this._getItem(id, convert);
+        item = this._getItem(id, type);
         if (!filter || filter(item)) {
           callback(item, id);
         }
@@ -1838,7 +2300,7 @@ DataSet.prototype.forEach = function (callback, options) {
  * Map every item in the dataset.
  * @param {function} callback
  * @param {Object} [options]    Available options:
- *                              {Object.<String, String>} [convert]
+ *                              {Object.<String, String>} [type]
  *                              {String[]} [fields] filter fields
  *                              {function} [filter] filter items
  *                              {String | function} [order] Order the items by
@@ -1847,15 +2309,15 @@ DataSet.prototype.forEach = function (callback, options) {
  */
 DataSet.prototype.map = function (callback, options) {
   var filter = options && options.filter,
-      convert = options && options.convert || this.options.convert,
+      type = options && options.type || this._options.type,
       mappedItems = [],
-      data = this.data,
+      data = this._data,
       item;
 
   // convert and filter items
   for (var id in data) {
     if (data.hasOwnProperty(id)) {
-      item = this._getItem(id, convert);
+      item = this._getItem(id, type);
       if (!filter || filter(item)) {
         mappedItems.push(callback(item, id));
       }
@@ -1927,7 +2389,7 @@ DataSet.prototype.remove = function (id, senderId) {
   var removedIds = [],
       i, len, removedId;
 
-  if (id instanceof Array) {
+  if (Array.isArray(id)) {
     for (i = 0, len = id.length; i < len; i++) {
       removedId = this._remove(id[i]);
       if (removedId != null) {
@@ -1957,17 +2419,15 @@ DataSet.prototype.remove = function (id, senderId) {
  */
 DataSet.prototype._remove = function (id) {
   if (util.isNumber(id) || util.isString(id)) {
-    if (this.data[id]) {
-      delete this.data[id];
-      delete this.internalIds[id];
+    if (this._data[id]) {
+      delete this._data[id];
       return id;
     }
   }
   else if (id instanceof Object) {
-    var itemId = id[this.fieldId];
-    if (itemId && this.data[itemId]) {
-      delete this.data[itemId];
-      delete this.internalIds[itemId];
+    var itemId = id[this._fieldId];
+    if (itemId && this._data[itemId]) {
+      delete this._data[itemId];
       return itemId;
     }
   }
@@ -1980,10 +2440,9 @@ DataSet.prototype._remove = function (id) {
  * @return {Array} removedIds    The ids of all removed items
  */
 DataSet.prototype.clear = function (senderId) {
-  var ids = Object.keys(this.data);
+  var ids = Object.keys(this._data);
 
-  this.data = {};
-  this.internalIds = {};
+  this._data = {};
 
   this._trigger('remove', {items: ids}, senderId);
 
@@ -1996,7 +2455,7 @@ DataSet.prototype.clear = function (senderId) {
  * @return {Object | null} item  Item containing max value, or null if no items
  */
 DataSet.prototype.max = function (field) {
-  var data = this.data,
+  var data = this._data,
       max = null,
       maxField = null;
 
@@ -2020,7 +2479,7 @@ DataSet.prototype.max = function (field) {
  * @return {Object | null} item  Item containing max value, or null if no items
  */
 DataSet.prototype.min = function (field) {
-  var data = this.data,
+  var data = this._data,
       min = null,
       minField = null;
 
@@ -2046,17 +2505,18 @@ DataSet.prototype.min = function (field) {
  *                         The returned array is unordered.
  */
 DataSet.prototype.distinct = function (field) {
-  var data = this.data,
-      values = [],
-      fieldType = this.options.convert[field],
-      count = 0;
+  var data = this._data;
+  var values = [];
+  var fieldType = this._options.type && this._options.type[field] || null;
+  var count = 0;
+  var i;
 
   for (var prop in data) {
     if (data.hasOwnProperty(prop)) {
       var item = data[prop];
-      var value = util.convert(item[field], fieldType);
+      var value = item[field];
       var exists = false;
-      for (var i = 0; i < count; i++) {
+      for (i = 0; i < count; i++) {
         if (values[i] == value) {
           exists = true;
           break;
@@ -2066,6 +2526,12 @@ DataSet.prototype.distinct = function (field) {
         values[count] = value;
         count++;
       }
+    }
+  }
+
+  if (fieldType) {
+    for (i = 0; i < values.length; i++) {
+      values[i] = util.convert(values[i], fieldType);
     }
   }
 
@@ -2079,11 +2545,11 @@ DataSet.prototype.distinct = function (field) {
  * @private
  */
 DataSet.prototype._addItem = function (item) {
-  var id = item[this.fieldId];
+  var id = item[this._fieldId];
 
   if (id != undefined) {
     // check whether this id is already taken
-    if (this.data[id]) {
+    if (this._data[id]) {
       // item already exists
       throw new Error('Cannot add item: item with id ' + id + ' already exists');
     }
@@ -2091,18 +2557,17 @@ DataSet.prototype._addItem = function (item) {
   else {
     // generate an id
     id = util.randomUUID();
-    item[this.fieldId] = id;
-    this.internalIds[id] = item;
+    item[this._fieldId] = id;
   }
 
   var d = {};
   for (var field in item) {
     if (item.hasOwnProperty(field)) {
-      var fieldType = this.convert[field];  // type may be undefined
+      var fieldType = this._type[field];  // type may be undefined
       d[field] = util.convert(item[field], fieldType);
     }
   }
-  this.data[id] = d;
+  this._data[id] = d;
 
   return id;
 };
@@ -2110,31 +2575,26 @@ DataSet.prototype._addItem = function (item) {
 /**
  * Get an item. Fields can be converted to a specific type
  * @param {String} id
- * @param {Object.<String, String>} [convert]  field types to convert
+ * @param {Object.<String, String>} [types]  field types to convert
  * @return {Object | null} item
  * @private
  */
-DataSet.prototype._getItem = function (id, convert) {
+DataSet.prototype._getItem = function (id, types) {
   var field, value;
 
   // get the item from the dataset
-  var raw = this.data[id];
+  var raw = this._data[id];
   if (!raw) {
     return null;
   }
 
   // convert the items field types
-  var converted = {},
-      fieldId = this.fieldId,
-      internalIds = this.internalIds;
-  if (convert) {
+  var converted = {};
+  if (types) {
     for (field in raw) {
       if (raw.hasOwnProperty(field)) {
         value = raw[field];
-        // output all fields, except internal ids
-        if ((field != fieldId) || (!(value in internalIds) || this.showInternalIds)) {
-          converted[field] = util.convert(value, convert[field]);
-        }
+        converted[field] = util.convert(value, types[field]);
       }
     }
   }
@@ -2143,10 +2603,7 @@ DataSet.prototype._getItem = function (id, convert) {
     for (field in raw) {
       if (raw.hasOwnProperty(field)) {
         value = raw[field];
-        // output all fields, except internal ids
-        if ((field != fieldId) || (!(value in internalIds) || this.showInternalIds)) {
-          converted[field] = value;
-        }
+        converted[field] = value;
       }
     }
   }
@@ -2162,11 +2619,11 @@ DataSet.prototype._getItem = function (id, convert) {
  * @private
  */
 DataSet.prototype._updateItem = function (item) {
-  var id = item[this.fieldId];
+  var id = item[this._fieldId];
   if (id == undefined) {
     throw new Error('Cannot update item: item has no id (item: ' + JSON.stringify(item) + ')');
   }
-  var d = this.data[id];
+  var d = this._data[id];
   if (!d) {
     // item doesn't exist
     throw new Error('Cannot update item: no item with id ' + id + ' found');
@@ -2175,24 +2632,13 @@ DataSet.prototype._updateItem = function (item) {
   // merge with current item
   for (var field in item) {
     if (item.hasOwnProperty(field)) {
-      var fieldType = this.convert[field];  // type may be undefined
+      var fieldType = this._type[field];  // type may be undefined
       d[field] = util.convert(item[field], fieldType);
     }
   }
 
   return id;
 };
-
-/**
- * check if an id is an internal or external id
- * @param id
- * @returns {boolean}
- * @private
- */
-DataSet.prototype.isInternalId = function(id) {
-  return (id in this.internalIds);
-};
-
 
 /**
  * Get an array with the column names of a Google DataTable
@@ -2235,13 +2681,11 @@ DataSet.prototype._appendRow = function (dataTable, columns, item) {
  * @constructor DataView
  */
 function DataView (data, options) {
-  this.id = util.randomUUID();
-
-  this.data = null;
-  this.ids = {}; // ids of the items currently in memory (just contains a boolean true)
-  this.options = options || {};
-  this.fieldId = 'id'; // name of the field containing id
-  this.subscribers = {}; // event subscribers
+  this._data = null;
+  this._ids = {}; // ids of the items currently in memory (just contains a boolean true)
+  this._options = options || {};
+  this._fieldId = 'id'; // name of the field containing id
+  this._subscribers = {}; // event subscribers
 
   var me = this;
   this.listener = function () {
@@ -2259,44 +2703,44 @@ function DataView (data, options) {
  * @param {DataSet | DataView} data
  */
 DataView.prototype.setData = function (data) {
-  var ids, dataItems, i, len;
+  var ids, i, len;
 
-  if (this.data) {
+  if (this._data) {
     // unsubscribe from current dataset
-    if (this.data.unsubscribe) {
-      this.data.unsubscribe('*', this.listener);
+    if (this._data.unsubscribe) {
+      this._data.unsubscribe('*', this.listener);
     }
 
     // trigger a remove of all items in memory
     ids = [];
-    for (var id in this.ids) {
-      if (this.ids.hasOwnProperty(id)) {
+    for (var id in this._ids) {
+      if (this._ids.hasOwnProperty(id)) {
         ids.push(id);
       }
     }
-    this.ids = {};
+    this._ids = {};
     this._trigger('remove', {items: ids});
   }
 
-  this.data = data;
+  this._data = data;
 
-  if (this.data) {
+  if (this._data) {
     // update fieldId
-    this.fieldId = this.options.fieldId ||
-        (this.data && this.data.options && this.data.options.fieldId) ||
+    this._fieldId = this._options.fieldId ||
+        (this._data && this._data.options && this._data.options.fieldId) ||
         'id';
 
     // trigger an add of all added items
-    ids = this.data.getIds({filter: this.options && this.options.filter});
+    ids = this._data.getIds({filter: this._options && this._options.filter});
     for (i = 0, len = ids.length; i < len; i++) {
       id = ids[i];
-      this.ids[id] = true;
+      this._ids[id] = true;
     }
     this._trigger('add', {items: ids});
 
     // subscribe to new dataset
-    if (this.data.on) {
-      this.data.on('*', this.listener);
+    if (this._data.on) {
+      this._data.on('*', this.listener);
     }
   }
 };
@@ -2354,12 +2798,12 @@ DataView.prototype.get = function (args) {
   }
 
   // extend the options with the default options and provided options
-  var viewOptions = util.extend({}, this.options, options);
+  var viewOptions = util.extend({}, this._options, options);
 
   // create a combined filter method when needed
-  if (this.options.filter && options && options.filter) {
+  if (this._options.filter && options && options.filter) {
     viewOptions.filter = function (item) {
-      return me.options.filter(item) && options.filter(item);
+      return me._options.filter(item) && options.filter(item);
     }
   }
 
@@ -2371,7 +2815,7 @@ DataView.prototype.get = function (args) {
   getArguments.push(viewOptions);
   getArguments.push(data);
 
-  return this.data && this.data.get.apply(this.data, getArguments);
+  return this._data && this._data.get.apply(this._data, getArguments);
 };
 
 /**
@@ -2385,8 +2829,8 @@ DataView.prototype.get = function (args) {
 DataView.prototype.getIds = function (options) {
   var ids;
 
-  if (this.data) {
-    var defaultFilter = this.options.filter;
+  if (this._data) {
+    var defaultFilter = this._options.filter;
     var filter;
 
     if (options && options.filter) {
@@ -2403,7 +2847,7 @@ DataView.prototype.getIds = function (options) {
       filter = defaultFilter;
     }
 
-    ids = this.data.getIds({
+    ids = this._data.getIds({
       filter: filter,
       order: options && options.order
     });
@@ -2413,6 +2857,19 @@ DataView.prototype.getIds = function (options) {
   }
 
   return ids;
+};
+
+/**
+ * Get the DataSet to which this DataView is connected. In case there is a chain
+ * of multiple DataViews, the root DataSet of this chain is returned.
+ * @return {DataSet} dataSet
+ */
+DataView.prototype.getDataSet = function () {
+  var dataSet = this;
+  while (dataSet instanceof DataView) {
+    dataSet = dataSet._data;
+  }
+  return dataSet || null;
 };
 
 /**
@@ -2427,7 +2884,7 @@ DataView.prototype.getIds = function (options) {
 DataView.prototype._onEvent = function (event, params, senderId) {
   var i, len, id, item,
       ids = params && params.items,
-      data = this.data,
+      data = this._data,
       added = [],
       updated = [],
       removed = [];
@@ -2440,7 +2897,7 @@ DataView.prototype._onEvent = function (event, params, senderId) {
           id = ids[i];
           item = this.get(id);
           if (item) {
-            this.ids[id] = true;
+            this._ids[id] = true;
             added.push(id);
           }
         }
@@ -2455,17 +2912,17 @@ DataView.prototype._onEvent = function (event, params, senderId) {
           item = this.get(id);
 
           if (item) {
-            if (this.ids[id]) {
+            if (this._ids[id]) {
               updated.push(id);
             }
             else {
-              this.ids[id] = true;
+              this._ids[id] = true;
               added.push(id);
             }
           }
           else {
-            if (this.ids[id]) {
-              delete this.ids[id];
+            if (this._ids[id]) {
+              delete this._ids[id];
               removed.push(id);
             }
             else {
@@ -2480,8 +2937,8 @@ DataView.prototype._onEvent = function (event, params, senderId) {
         // filter the ids of the removed items
         for (i = 0, len = ids.length; i < len; i++) {
           id = ids[i];
-          if (this.ids[id]) {
-            delete this.ids[id];
+          if (this._ids[id]) {
+            delete this._ids[id];
             removed.push(id);
           }
         }
@@ -2511,6 +2968,2051 @@ DataView.prototype.subscribe = DataView.prototype.on;
 DataView.prototype.unsubscribe = DataView.prototype.off;
 
 /**
+ * @constructor Group
+ * @param {Number | String} groupId
+ * @param {Object} data
+ * @param {ItemSet} itemSet
+ */
+function GraphGroup (group, groupId, options, groupsUsingDefaultStyles) {
+  this.id = groupId;
+  var fields = ['sampling','style','sort','yAxisOrientation','barChart','drawPoints','shaded','catmullRom']
+  this.options = util.selectiveBridgeObject(fields,options);
+  this.usingDefaultStyle = group.className === undefined;
+  this.groupsUsingDefaultStyles = groupsUsingDefaultStyles;
+  this.zeroPosition = 0;
+  this.update(group);
+  if (this.usingDefaultStyle == true) {
+    this.groupsUsingDefaultStyles[0] += 1;
+  }
+  this.itemsData = [];
+}
+
+GraphGroup.prototype.setItems = function(items) {
+  if (items != null) {
+    this.itemsData = items;
+    if (this.options.sort == true) {
+      this.itemsData.sort(function (a,b) {return a.x - b.x;})
+    }
+  }
+  else {
+    this.itemsData = [];
+  }
+}
+
+GraphGroup.prototype.setZeroPosition = function(pos) {
+  this.zeroPosition = pos;
+}
+
+GraphGroup.prototype.setOptions = function(options) {
+  if (options !== undefined) {
+    var fields = ['sampling','style','sort','yAxisOrientation','barChart'];
+    util.selectiveDeepExtend(fields, this.options, options);
+
+    util.mergeOptions(this.options, options,'catmullRom');
+    util.mergeOptions(this.options, options,'drawPoints');
+    util.mergeOptions(this.options, options,'shaded');
+
+    if (options.catmullRom) {
+      if (typeof options.catmullRom == 'object') {
+        if (options.catmullRom.parametrization) {
+          if (options.catmullRom.parametrization == 'uniform') {
+            this.options.catmullRom.alpha = 0;
+          }
+          else if (options.catmullRom.parametrization == 'chordal') {
+            this.options.catmullRom.alpha = 1.0;
+          }
+          else {
+            this.options.catmullRom.parametrization = 'centripetal';
+            this.options.catmullRom.alpha = 0.5;
+          }
+        }
+      }
+    }
+  }
+};
+
+GraphGroup.prototype.update = function(group) {
+  this.group = group;
+  this.content = group.content || 'graph';
+  this.className = group.className || this.className || "graphGroup" + this.groupsUsingDefaultStyles[0] % 10;
+  this.setOptions(group.options);
+};
+
+GraphGroup.prototype.drawIcon = function(x, y, JSONcontainer, SVGcontainer, iconWidth, iconHeight) {
+  var fillHeight = iconHeight * 0.5;
+  var path, fillPath;
+
+  var outline = DOMutil.getSVGElement("rect", JSONcontainer, SVGcontainer);
+  outline.setAttributeNS(null, "x", x);
+  outline.setAttributeNS(null, "y", y - fillHeight);
+  outline.setAttributeNS(null, "width", iconWidth);
+  outline.setAttributeNS(null, "height", 2*fillHeight);
+  outline.setAttributeNS(null, "class", "outline");
+
+  if (this.options.style == 'line') {
+    path = DOMutil.getSVGElement("path", JSONcontainer, SVGcontainer);
+    path.setAttributeNS(null, "class", this.className);
+    path.setAttributeNS(null, "d", "M" + x + ","+y+" L" + (x + iconWidth) + ","+y+"");
+    if (this.options.shaded.enabled == true) {
+      fillPath = DOMutil.getSVGElement("path", JSONcontainer, SVGcontainer);
+      if (this.options.shaded.orientation == 'top') {
+        fillPath.setAttributeNS(null, "d", "M"+x+", " + (y - fillHeight) +
+          "L"+x+","+y+" L"+ (x + iconWidth) + ","+y+" L"+ (x + iconWidth) + "," + (y - fillHeight));
+      }
+      else {
+        fillPath.setAttributeNS(null, "d", "M"+x+","+y+" " +
+          "L"+x+"," + (y + fillHeight) + " " +
+          "L"+ (x + iconWidth) + "," + (y + fillHeight) +
+          "L"+ (x + iconWidth) + ","+y);
+      }
+      fillPath.setAttributeNS(null, "class", this.className + " iconFill");
+    }
+
+    if (this.options.drawPoints.enabled == true) {
+      DOMutil.drawPoint(x + 0.5 * iconWidth,y, this, JSONcontainer, SVGcontainer);
+    }
+  }
+  else {
+    var barWidth = Math.round(0.3 * iconWidth);
+    var bar1Height = Math.round(0.4 * iconHeight);
+    var bar2Height = Math.round(0.75 * iconHeight);
+
+    var offset = Math.round((iconWidth - (2 * barWidth))/3);
+
+    DOMutil.drawBar(x + 0.5*barWidth + offset    , y + fillHeight - bar1Height - 1, barWidth, bar1Height, this.className + ' bar', JSONcontainer, SVGcontainer);
+    DOMutil.drawBar(x + 1.5*barWidth + offset + 2, y + fillHeight - bar2Height - 1, barWidth, bar2Height, this.className + ' bar', JSONcontainer, SVGcontainer);
+  }
+}
+
+/**
+ * Created by Alex on 6/17/14.
+ */
+function Legend(body, options, side) {
+  this.body = body;
+  this.defaultOptions = {
+    enabled: true,
+    icons: true,
+    iconSize: 20,
+    iconSpacing: 6,
+    left: {
+      visible: true,
+      position: 'top-left' // top/bottom - left,center,right
+    },
+    right: {
+      visible: true,
+      position: 'top-left' // top/bottom - left,center,right
+    }
+  }
+  this.side = side;
+  this.options = util.extend({},this.defaultOptions);
+
+  this.svgElements = {};
+  this.dom = {};
+  this.groups = {};
+  this.amountOfGroups = 0;
+  this._create();
+
+  this.setOptions(options);
+};
+
+Legend.prototype = new Component();
+
+
+Legend.prototype.addGroup = function(label, graphOptions) {
+  if (!this.groups.hasOwnProperty(label)) {
+    this.groups[label] = graphOptions;
+  }
+  this.amountOfGroups += 1;
+};
+
+Legend.prototype.updateGroup = function(label, graphOptions) {
+  this.groups[label] = graphOptions;
+};
+
+Legend.prototype.removeGroup = function(label) {
+  if (this.groups.hasOwnProperty(label)) {
+    delete this.groups[label];
+    this.amountOfGroups -= 1;
+  }
+};
+
+Legend.prototype._create = function() {
+  this.dom.frame = document.createElement('div');
+  this.dom.frame.className = 'legend';
+  this.dom.frame.style.position = "absolute";
+  this.dom.frame.style.top = "10px";
+  this.dom.frame.style.display = "block";
+
+  this.dom.textArea = document.createElement('div');
+  this.dom.textArea.className = 'legendText';
+  this.dom.textArea.style.position = "relative";
+  this.dom.textArea.style.top = "0px";
+
+  this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
+  this.svg.style.position = 'absolute';
+  this.svg.style.top = 0 +'px';
+  this.svg.style.width = this.options.iconSize + 5 + 'px';
+
+  this.dom.frame.appendChild(this.svg);
+  this.dom.frame.appendChild(this.dom.textArea);
+}
+
+/**
+ * Hide the component from the DOM
+ */
+Legend.prototype.hide = function() {
+  // remove the frame containing the items
+  if (this.dom.frame.parentNode) {
+    this.dom.frame.parentNode.removeChild(this.dom.frame);
+  }
+};
+
+/**
+ * Show the component in the DOM (when not already visible).
+ * @return {Boolean} changed
+ */
+Legend.prototype.show = function() {
+  // show frame containing the items
+  if (!this.dom.frame.parentNode) {
+    this.body.dom.center.appendChild(this.dom.frame);
+  }
+};
+
+Legend.prototype.setOptions = function(options) {
+  var fields = ['enabled','orientation','icons','left','right'];
+  util.selectiveDeepExtend(fields, this.options, options);
+}
+
+Legend.prototype.redraw = function() {
+  if (this.options[this.side].visible == false || this.amountOfGroups == 0 || this.options.enabled == false) {
+    this.hide();
+  }
+  else {
+    this.show();
+    if (this.options[this.side].position == 'top-left' || this.options[this.side].position == 'bottom-left') {
+      this.dom.frame.style.left = '4px';
+      this.dom.frame.style.textAlign = "left";
+      this.dom.textArea.style.textAlign = "left";
+      this.dom.textArea.style.left = (this.options.iconSize + 15) + 'px';
+      this.dom.textArea.style.right = '';
+      this.svg.style.left = 0 +'px';
+      this.svg.style.right = '';
+    }
+    else {
+      this.dom.frame.style.right = '4px';
+      this.dom.frame.style.textAlign = "right";
+      this.dom.textArea.style.textAlign = "right";
+      this.dom.textArea.style.right = (this.options.iconSize + 15) + 'px';
+      this.dom.textArea.style.left = '';
+      this.svg.style.right = 0 +'px';
+      this.svg.style.left = '';
+    }
+
+    if (this.options[this.side].position == 'top-left' || this.options[this.side].position == 'top-right') {
+      this.dom.frame.style.top = 4 - Number(this.body.dom.center.style.top.replace("px","")) + 'px';
+      this.dom.frame.style.bottom = '';
+    }
+    else {
+      this.dom.frame.style.bottom = 4 - Number(this.body.dom.center.style.top.replace("px","")) + 'px';
+      this.dom.frame.style.top = '';
+    }
+
+    if (this.options.icons == false) {
+      this.dom.frame.style.width = this.dom.textArea.offsetWidth + 10 + 'px';
+      this.dom.textArea.style.right = '';
+      this.dom.textArea.style.left = '';
+      this.svg.style.width = '0px';
+    }
+    else {
+      this.dom.frame.style.width = this.options.iconSize + 15 + this.dom.textArea.offsetWidth + 10 + 'px'
+      this.drawLegendIcons();
+    }
+
+    var content = "";
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        content += this.groups[groupId].content + '<br />';
+      }
+    }
+    this.dom.textArea.innerHTML = content;
+    this.dom.textArea.style.lineHeight = ((0.75 * this.options.iconSize) + this.options.iconSpacing) + 'px';
+  }
+}
+
+Legend.prototype.drawLegendIcons = function() {
+  if (this.dom.frame.parentNode) {
+    DOMutil.prepareElements(this.svgElements);
+    var padding = window.getComputedStyle(this.dom.frame).paddingTop;
+    var iconOffset = Number(padding.replace("px",''));
+    var x = iconOffset;
+    var iconWidth = this.options.iconSize;
+    var iconHeight = 0.75 * this.options.iconSize;
+    var y = iconOffset + 0.5 * iconHeight + 3;
+
+    this.svg.style.width = iconWidth + 5 + iconOffset + 'px';
+
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        this.groups[groupId].drawIcon(x, y, this.svgElements, this.svg, iconWidth, iconHeight);
+        y += iconHeight + this.options.iconSpacing;
+      }
+    }
+
+    DOMutil.cleanupElements(this.svgElements);
+  }
+}
+/**
+ * A horizontal time axis
+ * @param {Object} [options]        See DataAxis.setOptions for the available
+ *                                  options.
+ * @constructor DataAxis
+ * @extends Component
+ * @param body
+ */
+function DataAxis (body, options, svg) {
+  this.id = util.randomUUID();
+  this.body = body;
+
+  this.defaultOptions = {
+    orientation: 'left',  // supported: 'left', 'right'
+    showMinorLabels: true,
+    showMajorLabels: true,
+    icons: true,
+    majorLinesOffset: 7,
+    minorLinesOffset: 4,
+    labelOffsetX: 10,
+    labelOffsetY: 2,
+    iconWidth: 20,
+    width: '40px',
+    visible: true
+  };
+
+  this.linegraphSVG = svg;
+  this.props = {};
+  this.DOMelements = { // dynamic elements
+    lines: {},
+    labels: {}
+  };
+
+  this.dom = {};
+
+  this.range = {start:0, end:0};
+
+  this.options = util.extend({}, this.defaultOptions);
+  this.conversionFactor = 1;
+
+  this.setOptions(options);
+  this.width = Number(('' + this.options.width).replace("px",""));
+  this.minWidth = this.width;
+  this.height = this.linegraphSVG.offsetHeight;
+
+  this.stepPixels = 25;
+  this.stepPixelsForced = 25;
+  this.lineOffset = 0;
+  this.master = true;
+  this.svgElements = {};
+
+
+  this.groups = {};
+  this.amountOfGroups = 0;
+
+  // create the HTML DOM
+  this._create();
+}
+
+DataAxis.prototype = new Component();
+
+
+
+DataAxis.prototype.addGroup = function(label, graphOptions) {
+  if (!this.groups.hasOwnProperty(label)) {
+    this.groups[label] = graphOptions;
+  }
+  this.amountOfGroups += 1;
+};
+
+DataAxis.prototype.updateGroup = function(label, graphOptions) {
+  this.groups[label] = graphOptions;
+};
+
+DataAxis.prototype.removeGroup = function(label) {
+  if (this.groups.hasOwnProperty(label)) {
+    delete this.groups[label];
+    this.amountOfGroups -= 1;
+  }
+};
+
+
+DataAxis.prototype.setOptions = function (options) {
+  if (options) {
+    var redraw = false;
+    if (this.options.orientation != options.orientation && options.orientation !== undefined) {
+      redraw = true;
+    }
+    var fields = [
+      'orientation',
+      'showMinorLabels',
+      'showMajorLabels',
+      'icons',
+      'majorLinesOffset',
+      'minorLinesOffset',
+      'labelOffsetX',
+      'labelOffsetY',
+      'iconWidth',
+      'width',
+      'visible'];
+    util.selectiveExtend(fields, this.options, options);
+
+    this.minWidth = Number(('' + this.options.width).replace("px",""));
+
+    if (redraw == true && this.dom.frame) {
+      this.hide();
+      this.show();
+    }
+  }
+};
+
+
+/**
+ * Create the HTML DOM for the DataAxis
+ */
+DataAxis.prototype._create = function() {
+  this.dom.frame = document.createElement('div');
+  this.dom.frame.style.width = this.options.width;
+  this.dom.frame.style.height = this.height;
+
+  this.dom.lineContainer = document.createElement('div');
+  this.dom.lineContainer.style.width = '100%';
+  this.dom.lineContainer.style.height = this.height;
+
+  // create svg element for graph drawing.
+  this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
+  this.svg.style.position = "absolute";
+  this.svg.style.top = '0px';
+  this.svg.style.height = '100%';
+  this.svg.style.width = '100%';
+  this.svg.style.display = "block";
+  this.dom.frame.appendChild(this.svg);
+};
+
+DataAxis.prototype._redrawGroupIcons = function () {
+  DOMutil.prepareElements(this.svgElements);
+
+  var x;
+  var iconWidth = this.options.iconWidth;
+  var iconHeight = 15;
+  var iconOffset = 4;
+  var y = iconOffset + 0.5 * iconHeight;
+
+  if (this.options.orientation == 'left') {
+    x = iconOffset;
+  }
+  else {
+    x = this.width - iconWidth - iconOffset;
+  }
+
+  for (var groupId in this.groups) {
+    if (this.groups.hasOwnProperty(groupId)) {
+      this.groups[groupId].drawIcon(x, y, this.svgElements, this.svg, iconWidth, iconHeight);
+      y += iconHeight + iconOffset;
+    }
+  }
+
+  DOMutil.cleanupElements(this.svgElements);
+};
+
+/**
+ * Create the HTML DOM for the DataAxis
+ */
+DataAxis.prototype.show = function() {
+  if (!this.dom.frame.parentNode) {
+    if (this.options.orientation == 'left') {
+      this.body.dom.left.appendChild(this.dom.frame);
+    }
+    else {
+      this.body.dom.right.appendChild(this.dom.frame);
+    }
+  }
+
+  if (!this.dom.lineContainer.parentNode) {
+    this.body.dom.backgroundHorizontal.appendChild(this.dom.lineContainer);
+  }
+};
+
+/**
+ * Create the HTML DOM for the DataAxis
+ */
+DataAxis.prototype.hide = function() {
+  if (this.dom.frame.parentNode) {
+    this.dom.frame.parentNode.removeChild(this.dom.frame);
+  }
+
+  if (this.dom.lineContainer.parentNode) {
+    this.dom.lineContainer.parentNode.removeChild(this.dom.lineContainer);
+  }
+};
+
+/**
+ * Set a range (start and end)
+ * @param end
+ * @param start
+ * @param end
+ */
+DataAxis.prototype.setRange = function (start, end) {
+  this.range.start = start;
+  this.range.end = end;
+};
+
+/**
+ * Repaint the component
+ * @return {boolean} Returns true if the component is resized
+ */
+DataAxis.prototype.redraw = function () {
+  var changeCalled = false;
+  if (this.amountOfGroups == 0) {
+    this.hide();
+  }
+  else {
+    this.show();
+    this.height = Number(this.linegraphSVG.style.height.replace("px",""));
+    // svg offsetheight did not work in firefox and explorer...
+
+    this.dom.lineContainer.style.height = this.height + 'px';
+    this.width = this.options.visible == true ? Number(('' + this.options.width).replace("px","")) : 0;
+
+    var props = this.props;
+    var frame = this.dom.frame;
+
+    // update classname
+    frame.className = 'dataaxis';
+
+    // calculate character width and height
+    this._calculateCharSize();
+
+    var orientation = this.options.orientation;
+    var showMinorLabels = this.options.showMinorLabels;
+    var showMajorLabels = this.options.showMajorLabels;
+
+    // determine the width and height of the elemens for the axis
+    props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
+    props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
+
+    props.minorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.minorLinesOffset;
+    props.minorLineHeight = 1;
+    props.majorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.majorLinesOffset;
+    props.majorLineHeight = 1;
+
+    //  take frame offline while updating (is almost twice as fast)
+    if (orientation == 'left') {
+      frame.style.top = '0';
+      frame.style.left = '0';
+      frame.style.bottom = '';
+      frame.style.width = this.width + 'px';
+      frame.style.height = this.height + "px";
+    }
+    else { // right
+      frame.style.top = '';
+      frame.style.bottom = '0';
+      frame.style.left = '0';
+      frame.style.width = this.width + 'px';
+      frame.style.height = this.height + "px";
+    }
+    changeCalled = this._redrawLabels();
+    if (this.options.icons == true) {
+      this._redrawGroupIcons();
+    }
+  }
+  return changeCalled;
+};
+
+/**
+ * Repaint major and minor text labels and vertical grid lines
+ * @private
+ */
+DataAxis.prototype._redrawLabels = function () {
+  DOMutil.prepareElements(this.DOMelements);
+
+  var orientation = this.options['orientation'];
+
+  // calculate range and step (step such that we have space for 7 characters per label)
+  var minimumStep = this.master ? this.props.majorCharHeight || 10 : this.stepPixelsForced;
+  var step = new DataStep(this.range.start, this.range.end, minimumStep, this.dom.frame.offsetHeight);
+  this.step = step;
+  step.first();
+
+  // get the distance in pixels for a step
+  var stepPixels = this.dom.frame.offsetHeight / ((step.marginRange / step.step) + 1);
+  this.stepPixels = stepPixels;
+
+  var amountOfSteps = this.height / stepPixels;
+  var stepDifference = 0;
+
+  if (this.master == false) {
+    stepPixels = this.stepPixelsForced;
+    stepDifference = Math.round((this.height / stepPixels) - amountOfSteps);
+    for (var i = 0; i < 0.5 * stepDifference; i++) {
+      step.previous();
+    }
+    amountOfSteps = this.height / stepPixels;
+  }
+
+
+  this.valueAtZero = step.marginEnd;
+  var marginStartPos = 0;
+
+  // do not draw the first label
+  var max = 1;
+  step.next();
+
+  this.maxLabelSize = 0;
+  var y = 0;
+  while (max < Math.round(amountOfSteps)) {
+
+    y = Math.round(max * stepPixels);
+    marginStartPos = max * stepPixels;
+    var isMajor = step.isMajor();
+
+    if (this.options['showMinorLabels'] && isMajor == false || this.master == false && this.options['showMinorLabels'] == true) {
+      this._redrawLabel(y - 2, step.getCurrent(), orientation, 'yAxis minor', this.props.minorCharHeight);
+    }
+
+    if (isMajor && this.options['showMajorLabels'] && this.master == true ||
+        this.options['showMinorLabels'] == false && this.master == false && isMajor == true) {
+
+      if (y >= 0) {
+        this._redrawLabel(y - 2, step.getCurrent(), orientation, 'yAxis major', this.props.majorCharHeight);
+      }
+      this._redrawLine(y, orientation, 'grid horizontal major', this.options.majorLinesOffset, this.props.majorLineWidth);
+    }
+    else {
+      this._redrawLine(y, orientation, 'grid horizontal minor', this.options.minorLinesOffset, this.props.minorLineWidth);
+    }
+
+    step.next();
+    max++;
+  }
+
+  this.conversionFactor = marginStartPos/((amountOfSteps-1) * step.step);
+
+  var offset = this.options.icons == true ? this.options.iconWidth + this.options.labelOffsetX + 15 : this.options.labelOffsetX + 15;
+  // this will resize the yAxis to accomodate the labels.
+  if (this.maxLabelSize > (this.width - offset) && this.options.visible == true) {
+    this.width = this.maxLabelSize + offset;
+    this.options.width = this.width + "px";
+    DOMutil.cleanupElements(this.DOMelements);
+    this.redraw();
+    return true;
+  }
+  // this will resize the yAxis if it is too big for the labels.
+  else if (this.maxLabelSize < (this.width - offset) && this.options.visible == true && this.width > this.minWidth) {
+    this.width = Math.max(this.minWidth,this.maxLabelSize + offset);
+    this.options.width = this.width + "px";
+    DOMutil.cleanupElements(this.DOMelements);
+    this.redraw();
+    return true;
+  }
+  else {
+    DOMutil.cleanupElements(this.DOMelements);
+    return false;
+  }
+};
+
+/**
+ * Create a label for the axis at position x
+ * @private
+ * @param y
+ * @param text
+ * @param orientation
+ * @param className
+ * @param characterHeight
+ */
+DataAxis.prototype._redrawLabel = function (y, text, orientation, className, characterHeight) {
+  // reuse redundant label
+  var label = DOMutil.getDOMElement('div',this.DOMelements, this.dom.frame); //this.dom.redundant.labels.shift();
+  label.className = className;
+  label.innerHTML = text;
+
+  if (orientation == 'left') {
+    label.style.left = '-' + this.options.labelOffsetX + 'px';
+    label.style.textAlign = "right";
+  }
+  else {
+    label.style.right = '-' + this.options.labelOffsetX + 'px';
+    label.style.textAlign = "left";
+  }
+
+  label.style.top = y - 0.5 * characterHeight + this.options.labelOffsetY + 'px';
+
+  text += '';
+
+  var largestWidth = Math.max(this.props.majorCharWidth,this.props.minorCharWidth);
+  if (this.maxLabelSize < text.length * largestWidth) {
+    this.maxLabelSize = text.length * largestWidth;
+  }
+};
+
+/**
+ * Create a minor line for the axis at position y
+ * @param y
+ * @param orientation
+ * @param className
+ * @param offset
+ * @param width
+ */
+DataAxis.prototype._redrawLine = function (y, orientation, className, offset, width) {
+  if (this.master == true) {
+    var line = DOMutil.getDOMElement('div',this.DOMelements, this.dom.lineContainer);//this.dom.redundant.lines.shift();
+    line.className = className;
+    line.innerHTML = '';
+
+    if (orientation == 'left') {
+      line.style.left = (this.width - offset) + 'px';
+    }
+    else {
+      line.style.right = (this.width - offset) + 'px';
+    }
+
+    line.style.width = width + 'px';
+    line.style.top = y + 'px';
+  }
+};
+
+
+DataAxis.prototype.convertValue = function (value) {
+  var invertedValue = this.valueAtZero - value;
+  var convertedValue = invertedValue * this.conversionFactor;
+  return convertedValue; // the -2 is to compensate for the borders
+};
+
+
+/**
+ * Determine the size of text on the axis (both major and minor axis).
+ * The size is calculated only once and then cached in this.props.
+ * @private
+ */
+DataAxis.prototype._calculateCharSize = function () {
+  // determine the char width and height on the minor axis
+  if (!('minorCharHeight' in this.props)) {
+
+    var textMinor = document.createTextNode('0');
+    var measureCharMinor = document.createElement('DIV');
+    measureCharMinor.className = 'yAxis minor measure';
+    measureCharMinor.appendChild(textMinor);
+    this.dom.frame.appendChild(measureCharMinor);
+
+    this.props.minorCharHeight = measureCharMinor.clientHeight;
+    this.props.minorCharWidth = measureCharMinor.clientWidth;
+
+    this.dom.frame.removeChild(measureCharMinor);
+  }
+
+  if (!('majorCharHeight' in this.props)) {
+    var textMajor = document.createTextNode('0');
+    var measureCharMajor = document.createElement('DIV');
+    measureCharMajor.className = 'yAxis major measure';
+    measureCharMajor.appendChild(textMajor);
+    this.dom.frame.appendChild(measureCharMajor);
+
+    this.props.majorCharHeight = measureCharMajor.clientHeight;
+    this.props.majorCharWidth = measureCharMajor.clientWidth;
+
+    this.dom.frame.removeChild(measureCharMajor);
+  }
+};
+
+/**
+ * Snap a date to a rounded value.
+ * The snap intervals are dependent on the current scale and step.
+ * @param {Date} date   the date to be snapped.
+ * @return {Date} snappedDate
+ */
+DataAxis.prototype.snap = function(date) {
+  return this.step.snap(date);
+};
+
+var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
+
+/**
+ * This is the constructor of the LineGraph. It requires a Timeline body and options.
+ *
+ * @param body
+ * @param options
+ * @constructor
+ */
+function LineGraph(body, options) {
+  this.id = util.randomUUID();
+  this.body = body;
+
+  this.defaultOptions = {
+    yAxisOrientation: 'left',
+    defaultGroup: 'default',
+    sort: true,
+    sampling: true,
+    graphHeight: '400px',
+    shaded: {
+      enabled: false,
+      orientation: 'bottom' // top, bottom
+    },
+    style: 'line', // line, bar
+    barChart: {
+      width: 50,
+      align: 'center' // left, center, right
+    },
+    catmullRom: {
+      enabled: true,
+      parametrization: 'centripetal', // uniform (alpha = 0.0), chordal (alpha = 1.0), centripetal (alpha = 0.5)
+      alpha: 0.5
+    },
+    drawPoints: {
+      enabled: true,
+      size: 6,
+      style: 'square' // square, circle
+    },
+    dataAxis: {
+      showMinorLabels: true,
+      showMajorLabels: true,
+      icons: false,
+      width: '40px',
+      visible: true
+    },
+    legend: {
+      enabled: false,
+      icons: true,
+      left: {
+        visible: true,
+        position: 'top-left' // top/bottom - left,right
+      },
+      right: {
+        visible: true,
+        position: 'top-right' // top/bottom - left,right
+      }
+    }
+  };
+
+  // options is shared by this ItemSet and all its items
+  this.options = util.extend({}, this.defaultOptions);
+  this.dom = {};
+  this.props = {};
+  this.hammer = null;
+  this.groups = {};
+
+  var me = this;
+  this.itemsData = null;    // DataSet
+  this.groupsData = null;   // DataSet
+
+  // listeners for the DataSet of the items
+  this.itemListeners = {
+    'add': function (event, params, senderId) {
+      me._onAdd(params.items);
+    },
+    'update': function (event, params, senderId) {
+      me._onUpdate(params.items);
+    },
+    'remove': function (event, params, senderId) {
+      me._onRemove(params.items);
+    }
+  };
+
+  // listeners for the DataSet of the groups
+  this.groupListeners = {
+    'add': function (event, params, senderId) {
+      me._onAddGroups(params.items);
+    },
+    'update': function (event, params, senderId) {
+      me._onUpdateGroups(params.items);
+    },
+    'remove': function (event, params, senderId) {
+      me._onRemoveGroups(params.items);
+    }
+  };
+
+  this.items = {};      // object with an Item for every data item
+  this.selection = [];  // list with the ids of all selected nodes
+  this.lastStart = this.body.range.start;
+  this.touchParams = {}; // stores properties while dragging
+
+  this.svgElements = {};
+  this.setOptions(options);
+  this.groupsUsingDefaultStyles = [0];
+
+  this.body.emitter.on("rangechange",function() {
+      if (me.lastStart != 0) {
+        var offset = me.body.range.start - me.lastStart;
+        var range = me.body.range.end - me.body.range.start;
+        if (me.width != 0) {
+          var rangePerPixelInv = me.width/range;
+          var xOffset = offset * rangePerPixelInv;
+          me.svg.style.left = (-me.width - xOffset) + "px";
+        }
+      }
+    });
+  this.body.emitter.on("rangechanged", function() {
+    me.lastStart = me.body.range.start;
+    me.svg.style.left = util.option.asSize(-me.width);
+    me._updateGraph.apply(me);
+  });
+
+  // create the HTML DOM
+  this._create();
+  this.body.emitter.emit("change");
+}
+
+LineGraph.prototype = new Component();
+
+/**
+ * Create the HTML DOM for the ItemSet
+ */
+LineGraph.prototype._create = function(){
+  var frame = document.createElement('div');
+  frame.className = 'LineGraph';
+  this.dom.frame = frame;
+
+  // create svg element for graph drawing.
+  this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
+  this.svg.style.position = "relative";
+  this.svg.style.height = ('' + this.options.graphHeight).replace("px",'') + 'px';
+  this.svg.style.display = "block";
+  frame.appendChild(this.svg);
+
+  // data axis
+  this.options.dataAxis.orientation = 'left';
+  this.yAxisLeft = new DataAxis(this.body, this.options.dataAxis, this.svg);
+
+  this.options.dataAxis.orientation = 'right';
+  this.yAxisRight = new DataAxis(this.body, this.options.dataAxis, this.svg);
+  delete this.options.dataAxis.orientation;
+
+  // legends
+  this.legendLeft = new Legend(this.body, this.options.legend, 'left');
+  this.legendRight = new Legend(this.body, this.options.legend, 'right');
+
+  this.show();
+};
+
+/**
+ * set the options of the LineGraph. the mergeOptions is used for subObjects that have an enabled element.
+ * @param options
+ */
+LineGraph.prototype.setOptions = function(options) {
+  if (options) {
+    var fields = ['sampling','defaultGroup','graphHeight','yAxisOrientation','style','barChart','dataAxis','sort'];
+    util.selectiveDeepExtend(fields, this.options, options);
+    util.mergeOptions(this.options, options,'catmullRom');
+    util.mergeOptions(this.options, options,'drawPoints');
+    util.mergeOptions(this.options, options,'shaded');
+    util.mergeOptions(this.options, options,'legend');
+
+    if (options.catmullRom) {
+      if (typeof options.catmullRom == 'object') {
+        if (options.catmullRom.parametrization) {
+          if (options.catmullRom.parametrization == 'uniform') {
+            this.options.catmullRom.alpha = 0;
+          }
+          else if (options.catmullRom.parametrization == 'chordal') {
+            this.options.catmullRom.alpha = 1.0;
+          }
+          else {
+            this.options.catmullRom.parametrization = 'centripetal';
+            this.options.catmullRom.alpha = 0.5;
+          }
+        }
+      }
+    }
+
+    if (this.yAxisLeft) {
+      if (options.dataAxis !== undefined) {
+        this.yAxisLeft.setOptions(this.options.dataAxis);
+        this.yAxisRight.setOptions(this.options.dataAxis);
+      }
+    }
+
+    if (this.legendLeft) {
+      if (options.legend !== undefined) {
+        this.legendLeft.setOptions(this.options.legend);
+        this.legendRight.setOptions(this.options.legend);
+      }
+    }
+
+    if (this.groups.hasOwnProperty(UNGROUPED)) {
+      this.groups[UNGROUPED].setOptions(options);
+    }
+  }
+  if (this.dom.frame) {
+    this._updateGraph();
+  }
+};
+
+/**
+ * Hide the component from the DOM
+ */
+LineGraph.prototype.hide = function() {
+  // remove the frame containing the items
+  if (this.dom.frame.parentNode) {
+    this.dom.frame.parentNode.removeChild(this.dom.frame);
+  }
+};
+
+/**
+ * Show the component in the DOM (when not already visible).
+ * @return {Boolean} changed
+ */
+LineGraph.prototype.show = function() {
+  // show frame containing the items
+  if (!this.dom.frame.parentNode) {
+    this.body.dom.center.appendChild(this.dom.frame);
+  }
+};
+
+
+/**
+ * Set items
+ * @param {vis.DataSet | null} items
+ */
+LineGraph.prototype.setItems = function(items) {
+  var me = this,
+    ids,
+    oldItemsData = this.itemsData;
+
+  // replace the dataset
+  if (!items) {
+    this.itemsData = null;
+  }
+  else if (items instanceof DataSet || items instanceof DataView) {
+    this.itemsData = items;
+  }
+  else {
+    throw new TypeError('Data must be an instance of DataSet or DataView');
+  }
+
+  if (oldItemsData) {
+    // unsubscribe from old dataset
+    util.forEach(this.itemListeners, function (callback, event) {
+      oldItemsData.off(event, callback);
+    });
+
+    // remove all drawn items
+    ids = oldItemsData.getIds();
+    this._onRemove(ids);
+  }
+
+  if (this.itemsData) {
+    // subscribe to new dataset
+    var id = this.id;
+    util.forEach(this.itemListeners, function (callback, event) {
+      me.itemsData.on(event, callback, id);
+    });
+
+    // add all new items
+    ids = this.itemsData.getIds();
+    this._onAdd(ids);
+  }
+  this._updateUngrouped();
+  this._updateGraph();
+  this.redraw();
+};
+
+/**
+ * Set groups
+ * @param {vis.DataSet} groups
+ */
+LineGraph.prototype.setGroups = function(groups) {
+  var me = this,
+    ids;
+
+  // unsubscribe from current dataset
+  if (this.groupsData) {
+    util.forEach(this.groupListeners, function (callback, event) {
+      me.groupsData.unsubscribe(event, callback);
+    });
+
+    // remove all drawn groups
+    ids = this.groupsData.getIds();
+    this.groupsData = null;
+    this._onRemoveGroups(ids); // note: this will cause a redraw
+  }
+
+  // replace the dataset
+  if (!groups) {
+    this.groupsData = null;
+  }
+  else if (groups instanceof DataSet || groups instanceof DataView) {
+    this.groupsData = groups;
+  }
+  else {
+    throw new TypeError('Data must be an instance of DataSet or DataView');
+  }
+
+  if (this.groupsData) {
+    // subscribe to new dataset
+    var id = this.id;
+    util.forEach(this.groupListeners, function (callback, event) {
+      me.groupsData.on(event, callback, id);
+    });
+
+    // draw all ms
+    ids = this.groupsData.getIds();
+    this._onAddGroups(ids);
+  }
+  this._onUpdate();
+};
+
+
+
+LineGraph.prototype._onUpdate = function(ids) {
+  this._updateUngrouped();
+  this._updateAllGroupData();
+  this._updateGraph();
+  this.redraw();
+};
+LineGraph.prototype._onAdd          = function (ids) {this._onUpdate(ids);};
+LineGraph.prototype._onRemove       = function (ids) {this._onUpdate(ids);};
+LineGraph.prototype._onUpdateGroups  = function (groupIds) {
+  for (var i = 0; i < groupIds.length; i++) {
+    var group = this.groupsData.get(groupIds[i]);
+    this._updateGroup(group, groupIds[i]);
+  }
+
+  this._updateGraph();
+  this.redraw();
+};
+LineGraph.prototype._onAddGroups = function (groupIds) {this._onUpdateGroups(groupIds);};
+
+LineGraph.prototype._onRemoveGroups = function (groupIds) {
+  for (var i = 0; i < groupIds.length; i++) {
+    if (!this.groups.hasOwnProperty(groupIds[i])) {
+      if (this.groups[groupIds[i]].options.yAxisOrientation == 'right') {
+        this.yAxisRight.removeGroup(groupIds[i]);
+        this.legendRight.removeGroup(groupIds[i]);
+        this.legendRight.redraw();
+      }
+      else {
+        this.yAxisLeft.removeGroup(groupIds[i]);
+        this.legendLeft.removeGroup(groupIds[i]);
+        this.legendLeft.redraw();
+      }
+      delete this.groups[groupIds[i]];
+    }
+  }
+  this._updateUngrouped();
+  this._updateGraph();
+  this.redraw();
+};
+
+/**
+ * update a group object
+ *
+ * @param group
+ * @param groupId
+ * @private
+ */
+LineGraph.prototype._updateGroup = function (group, groupId) {
+  if (!this.groups.hasOwnProperty(groupId)) {
+    this.groups[groupId] = new GraphGroup(group, groupId, this.options, this.groupsUsingDefaultStyles);
+    if (this.groups[groupId].options.yAxisOrientation == 'right') {
+      this.yAxisRight.addGroup(groupId, this.groups[groupId]);
+      this.legendRight.addGroup(groupId, this.groups[groupId]);
+    }
+    else {
+      this.yAxisLeft.addGroup(groupId, this.groups[groupId]);
+      this.legendLeft.addGroup(groupId, this.groups[groupId]);
+    }
+  }
+  else {
+    this.groups[groupId].update(group);
+    if (this.groups[groupId].options.yAxisOrientation == 'right') {
+      this.yAxisRight.updateGroup(groupId, this.groups[groupId]);
+      this.legendRight.updateGroup(groupId, this.groups[groupId]);
+    }
+    else {
+      this.yAxisLeft.updateGroup(groupId, this.groups[groupId]);
+      this.legendLeft.updateGroup(groupId, this.groups[groupId]);
+    }
+  }
+  this.legendLeft.redraw();
+  this.legendRight.redraw();
+};
+
+LineGraph.prototype._updateAllGroupData = function () {
+  if (this.itemsData != null) {
+    // ~450 ms @ 500k
+
+    var groupsContent = {};
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        groupsContent[groupId] = [];
+      }
+    }
+    for (var itemId in this.itemsData._data) {
+      if (this.itemsData._data.hasOwnProperty(itemId)) {
+        var item = this.itemsData._data[itemId];
+        item.x = util.convert(item.x,"Date");
+        groupsContent[item.group].push(item);
+      }
+    }
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        this.groups[groupId].setItems(groupsContent[groupId]);
+      }
+    }
+//    // ~4500ms @ 500k
+//    for (var groupId in this.groups) {
+//      if (this.groups.hasOwnProperty(groupId)) {
+//        this.groups[groupId].setItems(this.itemsData.get({filter:
+//            function (item) {
+//              return (item.group == groupId);
+//            }, type:{x:"Date"}}
+//        ));
+//      }
+//    }
+  }
+};
+
+/**
+ * Create or delete the group holding all ungrouped items. This group is used when
+ * there are no groups specified. This anonymous group is called 'graph'.
+ * @protected
+ */
+LineGraph.prototype._updateUngrouped = function() {
+  if (this.itemsData != null) {
+//    var t0 = new Date();
+    var group = {id: UNGROUPED, content: this.options.defaultGroup};
+    this._updateGroup(group, UNGROUPED);
+    var ungroupedCounter = 0;
+    if (this.itemsData) {
+      for (var itemId in this.itemsData._data) {
+        if (this.itemsData._data.hasOwnProperty(itemId)) {
+          var item = this.itemsData._data[itemId];
+          if (item != undefined) {
+            if (item.hasOwnProperty('group')) {
+              if (item.group === undefined) {
+                item.group = UNGROUPED;
+              }
+            }
+            else {
+              item.group = UNGROUPED;
+            }
+            ungroupedCounter = item.group == UNGROUPED ? ungroupedCounter + 1 : ungroupedCounter;
+          }
+        }
+      }
+    }
+
+    // much much slower
+//    var datapoints = this.itemsData.get({
+//      filter: function (item) {return item.group === undefined;},
+//      showInternalIds:true
+//    });
+//    if (datapoints.length > 0) {
+//      var updateQuery = [];
+//      for (var i = 0; i < datapoints.length; i++) {
+//        updateQuery.push({id:datapoints[i].id, group: UNGROUPED});
+//      }
+//      this.itemsData.update(updateQuery, true);
+//    }
+//    var t1 = new Date();
+//    var pointInUNGROUPED = this.itemsData.get({filter: function (item) {return item.group == UNGROUPED;}});
+    if (ungroupedCounter == 0) {
+      delete this.groups[UNGROUPED];
+      this.legendLeft.removeGroup(UNGROUPED);
+      this.legendRight.removeGroup(UNGROUPED);
+      this.yAxisLeft.removeGroup(UNGROUPED);
+      this.yAxisRight.removeGroup(UNGROUPED);
+    }
+//    console.log("getting amount ungrouped",new Date() - t1);
+//    console.log("putting in ungrouped",new Date() - t0);
+  }
+  else {
+    delete this.groups[UNGROUPED];
+    this.legendLeft.removeGroup(UNGROUPED);
+    this.legendRight.removeGroup(UNGROUPED);
+    this.yAxisLeft.removeGroup(UNGROUPED);
+    this.yAxisRight.removeGroup(UNGROUPED);
+  }
+
+  this.legendLeft.redraw();
+  this.legendRight.redraw();
+};
+
+
+/**
+ * Redraw the component, mandatory function
+ * @return {boolean} Returns true if the component is resized
+ */
+LineGraph.prototype.redraw = function() {
+  var resized = false;
+
+  this.svg.style.height = ('' + this.options.graphHeight).replace('px','') + 'px';
+  if (this.lastWidth === undefined && this.width || this.lastWidth != this.width) {
+    resized = true;
+  }
+  // check if this component is resized
+  resized = this._isResized() || resized;
+  // check whether zoomed (in that case we need to re-stack everything)
+  var visibleInterval = this.body.range.end - this.body.range.start;
+  var zoomed = (visibleInterval != this.lastVisibleInterval) || (this.width != this.lastWidth);
+  this.lastVisibleInterval = visibleInterval;
+  this.lastWidth = this.width;
+
+  // calculate actual size and position
+  this.width = this.dom.frame.offsetWidth;
+
+  // the svg element is three times as big as the width, this allows for fully dragging left and right
+  // without reloading the graph. the controls for this are bound to events in the constructor
+  if (resized == true) {
+    this.svg.style.width = util.option.asSize(3*this.width);
+    this.svg.style.left = util.option.asSize(-this.width);
+  }
+  if (zoomed == true) {
+    this._updateGraph();
+  }
+
+  this.legendLeft.redraw();
+  this.legendRight.redraw();
+
+  return resized;
+};
+
+/**
+ * Update and redraw the graph.
+ *
+ */
+LineGraph.prototype._updateGraph = function () {
+  // reset the svg elements
+  DOMutil.prepareElements(this.svgElements);
+//        // very slow...
+//        groupData = group.itemsData.get({filter:
+//          function (item) {
+//            return (item.x > minDate && item.x < maxDate);
+//          }}
+//        );
+
+
+  if (this.width != 0 && this.itemsData != null) {
+    var group, groupData, preprocessedGroup, i;
+    var preprocessedGroupData = [];
+    var processedGroupData = [];
+    var groupRanges = [];
+    var changeCalled = false;
+
+    // getting group Ids
+    var groupIds = [];
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        groupIds.push(groupId);
+      }
+    }
+
+    // this is the range of the SVG canvas
+    var minDate = this.body.util.toGlobalTime(- this.body.domProps.root.width);
+    var maxDate = this.body.util.toGlobalTime(2 * this.body.domProps.root.width);
+
+    // first select and preprocess the data from the datasets.
+    // the groups have their preselection of data, we now loop over this data to see
+    // what data we need to draw. Sorted data is much faster.
+    // more optimization is possible by doing the sampling before and using the binary search
+    // to find the end date to determine the increment.
+    if (groupIds.length > 0) {
+      for (i = 0; i < groupIds.length; i++) {
+        group = this.groups[groupIds[i]];
+        groupData = [];
+        // optimization for sorted data
+        if (group.options.sort == true) {
+          var guess = Math.max(0,util.binarySearchGeneric(group.itemsData, minDate, 'x', 'before'));
+
+          for (var j = guess; j < group.itemsData.length; j++) {
+            var item = group.itemsData[j];
+            if (item !== undefined) {
+              if (item.x > maxDate) {
+               groupData.push(item);
+               break;
+              }
+              else {
+                groupData.push(item);
+              }
+            }
+          }
+        }
+        else {
+          for (var j = 0; j < group.itemsData.length; j++) {
+            var item = group.itemsData[j];
+            if (item !== undefined) {
+              if (item.x > minDate && item.x < maxDate) {
+                groupData.push(item);
+              }
+            }
+          }
+        }
+        // preprocess, split into ranges and data
+        preprocessedGroup = this._preprocessData(groupData, group);
+        groupRanges.push({min: preprocessedGroup.min, max: preprocessedGroup.max});
+        preprocessedGroupData.push(preprocessedGroup.data);
+      }
+
+      // update the Y axis first, we use this data to draw at the correct Y points
+      // changeCalled is required to clean the SVG on a change emit.
+      changeCalled = this._updateYAxis(groupIds, groupRanges);
+      if (changeCalled == true) {
+        DOMutil.cleanupElements(this.svgElements);
+        this.body.emitter.emit("change");
+        return;
+      }
+
+      // with the yAxis scaled correctly, use this to get the Y values of the points.
+      for (i = 0; i < groupIds.length; i++) {
+        group = this.groups[groupIds[i]];
+        processedGroupData.push(this._convertYvalues(preprocessedGroupData[i],group))
+      }
+
+      // draw the groups
+      for (i = 0; i < groupIds.length; i++) {
+        group = this.groups[groupIds[i]];
+        if (group.options.style == 'line') {
+          this._drawLineGraph(processedGroupData[i], group);
+        }
+        else {
+          this._drawBarGraph (processedGroupData[i], group);
+        }
+      }
+    }
+  }
+
+  // cleanup unused svg elements
+  DOMutil.cleanupElements(this.svgElements);
+};
+
+/**
+ * this sets the Y ranges for the Y axis. It also determines which of the axis should be shown or hidden.
+ * @param {array} groupIds
+ * @private
+ */
+LineGraph.prototype._updateYAxis = function (groupIds, groupRanges) {
+  var changeCalled = false;
+  var yAxisLeftUsed = false;
+  var yAxisRightUsed = false;
+  var minLeft = 1e9, minRight = 1e9, maxLeft = -1e9, maxRight = -1e9, minVal, maxVal;
+  var orientation = 'left';
+
+  // if groups are present
+  if (groupIds.length > 0) {
+    for (var i = 0; i < groupIds.length; i++) {
+      orientation = 'left';
+      var group = this.groups[groupIds[i]];
+      if (group.options.yAxisOrientation == 'right') {
+        orientation = 'right';
+      }
+
+      minVal = groupRanges[i].min;
+      maxVal = groupRanges[i].max;
+
+      if (orientation == 'left') {
+        yAxisLeftUsed = true;
+        minLeft = minLeft > minVal ? minVal : minLeft;
+        maxLeft = maxLeft < maxVal ? maxVal : maxLeft;
+      }
+      else {
+        yAxisRightUsed = true;
+        minRight = minRight > minVal ? minVal : minRight;
+        maxRight = maxRight < maxVal ? maxVal : maxRight;
+      }
+    }
+    if (yAxisLeftUsed == true) {
+      this.yAxisLeft.setRange(minLeft, maxLeft);
+    }
+    if (yAxisRightUsed == true) {
+      this.yAxisRight.setRange(minRight, maxRight);
+    }
+  }
+
+  changeCalled = this._toggleAxisVisiblity(yAxisLeftUsed , this.yAxisLeft)  || changeCalled;
+  changeCalled = this._toggleAxisVisiblity(yAxisRightUsed, this.yAxisRight) || changeCalled;
+
+  if (yAxisRightUsed == true && yAxisLeftUsed == true) {
+    this.yAxisLeft.drawIcons = true;
+    this.yAxisRight.drawIcons = true;
+  }
+  else {
+    this.yAxisLeft.drawIcons = false;
+    this.yAxisRight.drawIcons = false;
+  }
+
+  this.yAxisRight.master = !yAxisLeftUsed;
+
+  if (this.yAxisRight.master == false) {
+    if (yAxisRightUsed == true) {
+      this.yAxisLeft.lineOffset = this.yAxisRight.width;
+    }
+    changeCalled = this.yAxisLeft.redraw() || changeCalled;
+    this.yAxisRight.stepPixelsForced = this.yAxisLeft.stepPixels;
+    changeCalled = this.yAxisRight.redraw() || changeCalled;
+  }
+  else {
+    changeCalled = this.yAxisRight.redraw() || changeCalled;
+  }
+  return changeCalled;
+};
+
+/**
+ * This shows or hides the Y axis if needed. If there is a change, the changed event is emitted by the updateYAxis function
+ *
+ * @param {boolean} axisUsed
+ * @returns {boolean}
+ * @private
+ * @param axis
+ */
+LineGraph.prototype._toggleAxisVisiblity = function (axisUsed, axis) {
+  var changed = false;
+  if (axisUsed == false) {
+    if (axis.dom.frame.parentNode) {
+      axis.hide();
+      changed = true;
+    }
+  }
+  else {
+    if (!axis.dom.frame.parentNode) {
+      axis.show();
+      changed = true;
+    }
+  }
+  return changed;
+};
+
+
+/**
+ * draw a bar graph
+ * @param datapoints
+ * @param group
+ */
+LineGraph.prototype._drawBarGraph = function (dataset, group) {
+  if (dataset != null) {
+    if (dataset.length > 0) {
+      var coreDistance;
+      var minWidth = 0.1 * group.options.barChart.width;
+      var offset = 0;
+      var width = group.options.barChart.width;
+
+      if (group.options.barChart.align == 'left')       {offset -= 0.5*width;}
+      else if (group.options.barChart.align == 'right') {offset += 0.5*width;}
+
+      for (var i = 0; i < dataset.length; i++) {
+        // dynammically downscale the width so there is no overlap up to 1/10th the original width
+        if (i+1 < dataset.length) {coreDistance = Math.abs(dataset[i+1].x - dataset[i].x);}
+        if (i > 0)                {coreDistance = Math.min(coreDistance,Math.abs(dataset[i-1].x - dataset[i].x));}
+        if (coreDistance < width) {width = coreDistance < minWidth ? minWidth : coreDistance;}
+
+        DOMutil.drawBar(dataset[i].x + offset, dataset[i].y, width, group.zeroPosition - dataset[i].y, group.className + ' bar', this.svgElements, this.svg);
+      }
+
+      // draw points
+      if (group.options.drawPoints.enabled == true) {
+        this._drawPoints(dataset, group, this.svgElements, this.svg, offset);
+      }
+    }
+  }
+};
+
+
+/**
+ * draw a line graph
+ *
+ * @param datapoints
+ * @param group
+ */
+LineGraph.prototype._drawLineGraph = function (dataset, group) {
+  if (dataset != null) {
+    if (dataset.length > 0) {
+      var path, d;
+      var svgHeight = Number(this.svg.style.height.replace("px",""));
+      path = DOMutil.getSVGElement('path', this.svgElements, this.svg);
+      path.setAttributeNS(null, "class", group.className);
+
+      // construct path from dataset
+      if (group.options.catmullRom.enabled == true) {
+        d = this._catmullRom(dataset, group);
+      }
+      else {
+        d = this._linear(dataset);
+      }
+
+      // append with points for fill and finalize the path
+      if (group.options.shaded.enabled == true) {
+        var fillPath = DOMutil.getSVGElement('path',this.svgElements, this.svg);
+        var dFill;
+        if (group.options.shaded.orientation == 'top') {
+          dFill = "M" + dataset[0].x + "," + 0 + " " + d + "L" + dataset[dataset.length - 1].x + "," + 0;
+        }
+        else {
+          dFill = "M" + dataset[0].x + "," + svgHeight + " " + d + "L" + dataset[dataset.length - 1].x + "," + svgHeight;
+        }
+        fillPath.setAttributeNS(null, "class", group.className + " fill");
+        fillPath.setAttributeNS(null, "d", dFill);
+      }
+      // copy properties to path for drawing.
+      path.setAttributeNS(null, "d", "M" + d);
+
+      // draw points
+      if (group.options.drawPoints.enabled == true) {
+        this._drawPoints(dataset, group, this.svgElements, this.svg);
+      }
+    }
+  }
+};
+
+/**
+ * draw the data points
+ *
+ * @param dataset
+ * @param JSONcontainer
+ * @param svg
+ * @param group
+ */
+LineGraph.prototype._drawPoints = function (dataset, group, JSONcontainer, svg, offset) {
+  if (offset === undefined) {offset = 0;}
+  for (var i = 0; i < dataset.length; i++) {
+    DOMutil.drawPoint(dataset[i].x + offset, dataset[i].y, group, JSONcontainer, svg);
+  }
+};
+
+
+
+/**
+ * This uses the DataAxis object to generate the correct X coordinate on the SVG window. It uses the
+ * util function toScreen to get the x coordinate from the timestamp. It also pre-filters the data and get the minMax ranges for
+ * the yAxis.
+ *
+ * @param datapoints
+ * @returns {Array}
+ * @private
+ */
+LineGraph.prototype._preprocessData = function (datapoints, group) {
+  var extractedData = [];
+  var xValue, yValue;
+  var toScreen = this.body.util.toScreen;
+
+  var increment = 1;
+  var amountOfPoints = datapoints.length;
+
+  var yMin = datapoints[0].y;
+  var yMax = datapoints[0].y;
+
+  // the global screen is used because changing the width of the yAxis may affect the increment, resulting in an endless loop
+  // of width changing of the yAxis.
+  if (group.options.sampling == true) {
+    var xDistance = this.body.util.toGlobalScreen(datapoints[datapoints.length-1].x) - this.body.util.toGlobalScreen(datapoints[0].x);
+    var pointsPerPixel = amountOfPoints/xDistance;
+    increment = Math.min(Math.ceil(0.2 * amountOfPoints), Math.max(1,Math.round(pointsPerPixel)));
+  }
+
+  for (var i = 0; i < amountOfPoints; i += increment) {
+    xValue = toScreen(datapoints[i].x) + this.width - 1;
+    yValue = datapoints[i].y;
+    extractedData.push({x: xValue, y: yValue});
+    yMin = yMin > yValue ? yValue : yMin;
+    yMax = yMax < yValue ? yValue : yMax;
+  }
+
+  // extractedData.sort(function (a,b) {return a.x - b.x;});
+  return {min: yMin, max: yMax, data: extractedData};
+};
+
+/**
+ * This uses the DataAxis object to generate the correct Y coordinate on the SVG window. It uses the
+ * util function toScreen to get the x coordinate from the timestamp.
+ *
+ * @param datapoints
+ * @param options
+ * @returns {Array}
+ * @private
+ */
+LineGraph.prototype._convertYvalues = function (datapoints, group) {
+  var extractedData = [];
+  var xValue, yValue;
+  var axis = this.yAxisLeft;
+  var svgHeight = Number(this.svg.style.height.replace("px",""));
+
+  if (group.options.yAxisOrientation == 'right') {
+    axis = this.yAxisRight;
+  }
+
+  for (var i = 0; i < datapoints.length; i++) {
+    xValue = datapoints[i].x;
+    yValue = Math.round(axis.convertValue(datapoints[i].y));
+    extractedData.push({x: xValue, y: yValue});
+  }
+
+  group.setZeroPosition(Math.min(svgHeight, axis.convertValue(0)));
+
+  // extractedData.sort(function (a,b) {return a.x - b.x;});
+  return extractedData;
+};
+
+
+/**
+ * This uses an uniform parametrization of the CatmullRom algorithm:
+ * "On the Parameterization of Catmull-Rom Curves" by Cem Yuksel et al.
+ * @param data
+ * @returns {string}
+ * @private
+ */
+LineGraph.prototype._catmullRomUniform = function(data) {
+  // catmull rom
+  var p0, p1, p2, p3, bp1, bp2;
+  var d = Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
+  var normalization = 1/6;
+  var length = data.length;
+  for (var i = 0; i < length - 1; i++) {
+
+    p0 = (i == 0) ? data[0] : data[i-1];
+    p1 = data[i];
+    p2 = data[i+1];
+    p3 = (i + 2 < length) ? data[i+2] : p2;
+
+
+    // Catmull-Rom to Cubic Bezier conversion matrix
+    //    0       1       0       0
+    //  -1/6      1      1/6      0
+    //    0      1/6      1     -1/6
+    //    0       0       1       0
+
+    //    bp0 = { x: p1.x,                               y: p1.y };
+    bp1 = { x: ((-p0.x + 6*p1.x + p2.x) *normalization), y: ((-p0.y + 6*p1.y + p2.y) *normalization)};
+    bp2 = { x: (( p1.x + 6*p2.x - p3.x) *normalization), y: (( p1.y + 6*p2.y - p3.y) *normalization)};
+    //    bp0 = { x: p2.x,                               y: p2.y };
+
+    d += "C" +
+      bp1.x + "," +
+      bp1.y + " " +
+      bp2.x + "," +
+      bp2.y + " " +
+      p2.x + "," +
+      p2.y + " ";
+  }
+
+  return d;
+};
+
+/**
+ * This uses either the chordal or centripetal parameterization of the catmull-rom algorithm.
+ * By default, the centripetal parameterization is used because this gives the nicest results.
+ * These parameterizations are relatively heavy because the distance between 4 points have to be calculated.
+ *
+ * One optimization can be used to reuse distances since this is a sliding window approach.
+ * @param data
+ * @returns {string}
+ * @private
+ */
+LineGraph.prototype._catmullRom = function(data, group) {
+  var alpha = group.options.catmullRom.alpha;
+  if (alpha == 0 || alpha === undefined) {
+    return this._catmullRomUniform(data);
+  }
+  else {
+    var p0, p1, p2, p3, bp1, bp2, d1,d2,d3, A, B, N, M;
+    var d3powA, d2powA, d3pow2A, d2pow2A, d1pow2A, d1powA;
+    var d = Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
+    var length = data.length;
+    for (var i = 0; i < length - 1; i++) {
+
+      p0 = (i == 0) ? data[0] : data[i-1];
+      p1 = data[i];
+      p2 = data[i+1];
+      p3 = (i + 2 < length) ? data[i+2] : p2;
+
+      d1 = Math.sqrt(Math.pow(p0.x - p1.x,2) + Math.pow(p0.y - p1.y,2));
+      d2 = Math.sqrt(Math.pow(p1.x - p2.x,2) + Math.pow(p1.y - p2.y,2));
+      d3 = Math.sqrt(Math.pow(p2.x - p3.x,2) + Math.pow(p2.y - p3.y,2));
+
+      // Catmull-Rom to Cubic Bezier conversion matrix
+      //
+      // A = 2d1^2a + 3d1^a * d2^a + d3^2a
+      // B = 2d3^2a + 3d3^a * d2^a + d2^2a
+      //
+      // [   0             1            0          0          ]
+      // [   -d2^2a/N      A/N          d1^2a/N    0          ]
+      // [   0             d3^2a/M      B/M        -d2^2a/M   ]
+      // [   0             0            1          0          ]
+
+      // [   0             1            0          0          ]
+      // [   -d2pow2a/N    A/N          d1pow2a/N  0          ]
+      // [   0             d3pow2a/M    B/M        -d2pow2a/M ]
+      // [   0             0            1          0          ]
+
+      d3powA  = Math.pow(d3,  alpha);
+      d3pow2A = Math.pow(d3,2*alpha);
+      d2powA  = Math.pow(d2,  alpha);
+      d2pow2A = Math.pow(d2,2*alpha);
+      d1powA  = Math.pow(d1,  alpha);
+      d1pow2A = Math.pow(d1,2*alpha);
+
+      A = 2*d1pow2A + 3*d1powA * d2powA + d2pow2A;
+      B = 2*d3pow2A + 3*d3powA * d2powA + d2pow2A;
+      N = 3*d1powA * (d1powA + d2powA);
+      if (N > 0) {N = 1 / N;}
+      M = 3*d3powA * (d3powA + d2powA);
+      if (M > 0) {M = 1 / M;}
+
+      bp1 = { x: ((-d2pow2A * p0.x + A*p1.x + d1pow2A * p2.x) * N),
+        y: ((-d2pow2A * p0.y + A*p1.y + d1pow2A * p2.y) * N)};
+
+      bp2 = { x: (( d3pow2A * p1.x + B*p2.x - d2pow2A * p3.x) * M),
+        y: (( d3pow2A * p1.y + B*p2.y - d2pow2A * p3.y) * M)};
+
+      if (bp1.x == 0 && bp1.y == 0) {bp1 = p1;}
+      if (bp2.x == 0 && bp2.y == 0) {bp2 = p2;}
+      d += "C" +
+        bp1.x + "," +
+        bp1.y + " " +
+        bp2.x + "," +
+        bp2.y + " " +
+        p2.x + "," +
+        p2.y + " ";
+    }
+
+    return d;
+  }
+};
+
+/**
+ * this generates the SVG path for a linear drawing between datapoints.
+ * @param data
+ * @returns {string}
+ * @private
+ */
+LineGraph.prototype._linear = function(data) {
+  // linear
+  var d = "";
+  for (var i = 0; i < data.length; i++) {
+    if (i == 0) {
+      d += data[i].x + "," + data[i].y;
+    }
+    else {
+      d += " " + data[i].x + "," + data[i].y;
+    }
+  }
+  return d;
+};
+
+
+
+
+
+
+/**
+ * @constructor  DataStep
+ * The class DataStep is an iterator for data for the lineGraph. You provide a start data point and an
+ * end data point. The class itself determines the best scale (step size) based on the
+ * provided start Date, end Date, and minimumStep.
+ *
+ * If minimumStep is provided, the step size is chosen as close as possible
+ * to the minimumStep but larger than minimumStep. If minimumStep is not
+ * provided, the scale is set to 1 DAY.
+ * The minimumStep should correspond with the onscreen size of about 6 characters
+ *
+ * Alternatively, you can set a scale by hand.
+ * After creation, you can initialize the class by executing first(). Then you
+ * can iterate from the start date to the end date via next(). You can check if
+ * the end date is reached with the function hasNext(). After each step, you can
+ * retrieve the current date via getCurrent().
+ * The DataStep has scales ranging from milliseconds, seconds, minutes, hours,
+ * days, to years.
+ *
+ * Version: 1.2
+ *
+ * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
+ *                               or new Date(2010, 9, 21, 23, 45, 00)
+ * @param {Date} [end]           The end date
+ * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+ */
+function DataStep(start, end, minimumStep, containerHeight, forcedStepSize) {
+  // variables
+  this.current = 0;
+
+  this.autoScale = true;
+  this.stepIndex = 0;
+  this.step = 1;
+  this.scale = 1;
+
+  this.marginStart;
+  this.marginEnd;
+
+  this.majorSteps = [1,     2,    5,  10];
+  this.minorSteps = [0.25,  0.5,  1,  2];
+
+  this.setRange(start, end, minimumStep, containerHeight, forcedStepSize);
+}
+
+
+
+/**
+ * Set a new range
+ * If minimumStep is provided, the step size is chosen as close as possible
+ * to the minimumStep but larger than minimumStep. If minimumStep is not
+ * provided, the scale is set to 1 DAY.
+ * The minimumStep should correspond with the onscreen size of about 6 characters
+ * @param {Number} [start]      The start date and time.
+ * @param {Number} [end]        The end date and time.
+ * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+ */
+DataStep.prototype.setRange = function(start, end, minimumStep, containerHeight, forcedStepSize) {
+  this._start = start;
+  this._end = end;
+
+  if (this.autoScale) {
+    this.setMinimumStep(minimumStep, containerHeight, forcedStepSize);
+  }
+  this.setFirst();
+};
+
+/**
+ * Automatically determine the scale that bests fits the provided minimum step
+ * @param {Number} [minimumStep]  The minimum step size in milliseconds
+ */
+DataStep.prototype.setMinimumStep = function(minimumStep, containerHeight) {
+  // round to floor
+  var size = this._end - this._start;
+  var safeSize = size * 1.1;
+  var minimumStepValue = minimumStep * (safeSize / containerHeight);
+  var orderOfMagnitude = Math.round(Math.log(safeSize)/Math.LN10);
+
+  var minorStepIdx = -1;
+  var magnitudefactor = Math.pow(10,orderOfMagnitude);
+
+  var start = 0;
+  if (orderOfMagnitude < 0) {
+    start = orderOfMagnitude;
+  }
+
+  var solutionFound = false;
+  for (var i = start; Math.abs(i) <= Math.abs(orderOfMagnitude); i++) {
+    magnitudefactor = Math.pow(10,i);
+    for (var j = 0; j < this.minorSteps.length; j++) {
+      var stepSize = magnitudefactor * this.minorSteps[j];
+      if (stepSize >= minimumStepValue) {
+        solutionFound = true;
+        minorStepIdx = j;
+        break;
+      }
+    }
+    if (solutionFound == true) {
+      break;
+    }
+  }
+  this.stepIndex = minorStepIdx;
+  this.scale = magnitudefactor;
+  this.step = magnitudefactor * this.minorSteps[minorStepIdx];
+};
+
+
+/**
+ * Set the range iterator to the start date.
+ */
+DataStep.prototype.first = function() {
+  this.setFirst();
+};
+
+/**
+ * Round the current date to the first minor date value
+ * This must be executed once when the current date is set to start Date
+ */
+DataStep.prototype.setFirst = function() {
+  var niceStart = this._start - (this.scale * this.minorSteps[this.stepIndex]);
+  var niceEnd = this._end + (this.scale * this.minorSteps[this.stepIndex]);
+
+  this.marginEnd = this.roundToMinor(niceEnd);
+  this.marginStart = this.roundToMinor(niceStart);
+  this.marginRange = this.marginEnd - this.marginStart;
+
+  this.current = this.marginEnd;
+
+};
+
+DataStep.prototype.roundToMinor = function(value) {
+  var rounded = value - (value % (this.scale * this.minorSteps[this.stepIndex]));
+  if (value % (this.scale * this.minorSteps[this.stepIndex]) > 0.5 * (this.scale * this.minorSteps[this.stepIndex])) {
+    return rounded + (this.scale * this.minorSteps[this.stepIndex]);
+  }
+  else {
+    return rounded;
+  }
+}
+
+
+/**
+ * Check if the there is a next step
+ * @return {boolean}  true if the current date has not passed the end date
+ */
+DataStep.prototype.hasNext = function () {
+  return (this.current >= this.marginStart);
+};
+
+/**
+ * Do the next step
+ */
+DataStep.prototype.next = function() {
+  var prev = this.current;
+  this.current -= this.step;
+
+  // safety mechanism: if current time is still unchanged, move to the end
+  if (this.current == prev) {
+    this.current = this._end;
+  }
+};
+
+/**
+ * Do the next step
+ */
+DataStep.prototype.previous = function() {
+  this.current += this.step;
+  this.marginEnd += this.step;
+  this.marginRange = this.marginEnd - this.marginStart;
+};
+
+
+
+/**
+ * Get the current datetime
+ * @return {Number}  current The current date
+ */
+DataStep.prototype.getCurrent = function() {
+  var toPrecision = '' + Number(this.current).toPrecision(5);
+  for (var i = toPrecision.length-1; i > 0; i--) {
+    if (toPrecision[i] == "0") {
+      toPrecision = toPrecision.slice(0,i);
+    }
+    else if (toPrecision[i] == "." || toPrecision[i] == ",") {
+      toPrecision = toPrecision.slice(0,i);
+      break;
+    }
+    else{
+      break;
+    }
+  }
+
+
+  return toPrecision;
+};
+
+
+
+/**
+ * Snap a date to a rounded value.
+ * The snap intervals are dependent on the current scale and step.
+ * @param {Date} date   the date to be snapped.
+ * @return {Date} snappedDate
+ */
+DataStep.prototype.snap = function(date) {
+
+};
+
+/**
+ * Check if the current value is a major value (for example when the step
+ * is DAY, a major value is each first day of the MONTH)
+ * @return {boolean} true if current date is major, else false.
+ */
+DataStep.prototype.isMajor = function() {
+  return (this.current % (this.scale * this.majorSteps[this.stepIndex]) == 0);
+};
+
+/**
  * Utility functions for ordering and stacking of items
  */
 var stack = {};
@@ -2519,7 +5021,7 @@ var stack = {};
  * Order items by their start data
  * @param {Item[]} items
  */
-stack.orderByStart = function orderByStart(items) {
+stack.orderByStart = function(items) {
   items.sort(function (a, b) {
     return a.data.start - b.data.start;
   });
@@ -2530,7 +5032,7 @@ stack.orderByStart = function orderByStart(items) {
  * is used.
  * @param {Item[]} items
  */
-stack.orderByEnd = function orderByEnd(items) {
+stack.orderByEnd = function(items) {
   items.sort(function (a, b) {
     var aTime = ('end' in a.data) ? a.data.end : a.data.start,
         bTime = ('end' in b.data) ? b.data.end : b.data.start;
@@ -2550,7 +5052,7 @@ stack.orderByEnd = function orderByEnd(items) {
  *            If true, all items will be repositioned. If false (default), only
  *            items having a top===null will be re-stacked
  */
-stack.stack = function _stack (items, margin, force) {
+stack.stack = function(items, margin, force) {
   var i, iMax;
 
   if (force) {
@@ -2595,7 +5097,7 @@ stack.stack = function _stack (items, margin, force) {
  * @param {{item: number, axis: number}} margin
  *            Margins between items and between items and the axis.
  */
-stack.nostack = function nostack (items, margin) {
+stack.nostack = function(items, margin) {
   var i, iMax;
 
   // reset top position of all items
@@ -2616,7 +5118,7 @@ stack.nostack = function nostack (items, margin) {
  *                          the requested margin.
  * @return {boolean}        true if a and b collide, else false
  */
-stack.collision = function collision (a, b, margin) {
+stack.collision = function(a, b, margin) {
   return ((a.left - margin) < (b.left + b.width) &&
       (a.left + a.width + margin) > b.left &&
       (a.top - margin) < (b.top + b.height) &&
@@ -3095,57 +5597,81 @@ TimeStep.prototype.getLabelMajor = function(date) {
  * A Range controls a numeric range with a start and end value.
  * The Range adjusts the range based on mouse events or programmatic changes,
  * and triggers events when the range is changing or has been changed.
- * @param {RootPanel} root      Root panel, used to subscribe to events
- * @param {Panel} parent        Parent panel, used to attach to the DOM
+ * @param {{dom: Object, domProps: Object, emitter: Emitter}} body
  * @param {Object} [options]    See description at Range.setOptions
  */
-function Range(root, parent, options) {
-  this.id = util.randomUUID();
-  this.start = null; // Number
-  this.end = null;   // Number
+function Range(body, options) {
+  var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
+  this.start = now.clone().add('days', -3).valueOf(); // Number
+  this.end = now.clone().add('days', 4).valueOf();   // Number
 
-  this.root = root;
-  this.parent = parent;
-  this.options = options || {};
+  this.body = body;
+
+  // default options
+  this.defaultOptions = {
+    start: null,
+    end: null,
+    direction: 'horizontal', // 'horizontal' or 'vertical'
+    moveable: true,
+    zoomable: true,
+    min: null,
+    max: null,
+    zoomMin: 10,                                // milliseconds
+    zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000  // milliseconds
+  };
+  this.options = util.extend({}, this.defaultOptions);
+
+  this.props = {
+    touch: {}
+  };
 
   // drag listeners for dragging
-  this.root.on('dragstart', this._onDragStart.bind(this));
-  this.root.on('drag',      this._onDrag.bind(this));
-  this.root.on('dragend',   this._onDragEnd.bind(this));
+  this.body.emitter.on('dragstart', this._onDragStart.bind(this));
+  this.body.emitter.on('drag',      this._onDrag.bind(this));
+  this.body.emitter.on('dragend',   this._onDragEnd.bind(this));
 
   // ignore dragging when holding
-  this.root.on('hold', this._onHold.bind(this));
+  this.body.emitter.on('hold', this._onHold.bind(this));
 
   // mouse wheel for zooming
-  this.root.on('mousewheel',      this._onMouseWheel.bind(this));
-  this.root.on('DOMMouseScroll',  this._onMouseWheel.bind(this)); // For FF
+  this.body.emitter.on('mousewheel',      this._onMouseWheel.bind(this));
+  this.body.emitter.on('DOMMouseScroll',  this._onMouseWheel.bind(this)); // For FF
 
   // pinch to zoom
-  this.root.on('touch', this._onTouch.bind(this));
-  this.root.on('pinch', this._onPinch.bind(this));
+  this.body.emitter.on('touch', this._onTouch.bind(this));
+  this.body.emitter.on('pinch', this._onPinch.bind(this));
 
   this.setOptions(options);
 }
 
-// turn Range into an event emitter
-Emitter(Range.prototype);
+Range.prototype = new Component();
 
 /**
  * Set options for the range controller
  * @param {Object} options      Available options:
+ *                              {Number | Date | String} start  Start date for the range
+ *                              {Number | Date | String} end    End date for the range
  *                              {Number} min    Minimum value for start
  *                              {Number} max    Maximum value for end
  *                              {Number} zoomMin    Set a minimum value for
  *                                                  (end - start).
  *                              {Number} zoomMax    Set a maximum value for
  *                                                  (end - start).
+ *                              {Boolean} moveable Enable moving of the range
+ *                                                 by dragging. True by default
+ *                              {Boolean} zoomable Enable zooming of the range
+ *                                                 by pinching/scrolling. True by default
  */
 Range.prototype.setOptions = function (options) {
-  util.extend(this.options, options);
+  if (options) {
+    // copy the options that we know
+    var fields = ['direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable'];
+    util.selectiveExtend(fields, this.options, options);
 
-  // re-apply range with new limitations
-  if (this.start !== null && this.end !== null) {
-    this.setRange(this.start, this.end);
+    if ('start' in options || 'end' in options) {
+      // apply a new range. both start and end are optional
+      this.setRange(options.start, options.end);
+    }
   }
 };
 
@@ -3172,8 +5698,8 @@ Range.prototype.setRange = function(start, end) {
       start: new Date(this.start),
       end: new Date(this.end)
     };
-    this.emit('rangechange', params);
-    this.emit('rangechanged', params);
+    this.body.emitter.emit('rangechange', params);
+    this.body.emitter.emit('rangechanged', params);
   }
 };
 
@@ -3332,77 +5858,70 @@ Range.conversion = function (start, end, width) {
   }
 };
 
-// global (private) object to store drag params
-var touchParams = {};
-
 /**
  * Start dragging horizontally or vertically
  * @param {Event} event
  * @private
  */
 Range.prototype._onDragStart = function(event) {
+  // only allow dragging when configured as movable
+  if (!this.options.moveable) return;
+
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
-  if (touchParams.ignore) return;
+  if (!this.props.touch.allowDragging) return;
 
-  // TODO: reckon with option movable
+  this.props.touch.start = this.start;
+  this.props.touch.end = this.end;
 
-  touchParams.start = this.start;
-  touchParams.end = this.end;
-
-  var frame = this.parent.frame;
-  if (frame) {
-    frame.style.cursor = 'move';
+  if (this.body.dom.root) {
+    this.body.dom.root.style.cursor = 'move';
   }
 };
 
 /**
- * Perform dragging operating.
+ * Perform dragging operation
  * @param {Event} event
  * @private
  */
 Range.prototype._onDrag = function (event) {
+  // only allow dragging when configured as movable
+  if (!this.options.moveable) return;
   var direction = this.options.direction;
   validateDirection(direction);
-
-  // TODO: reckon with option movable
-
-
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
-  if (touchParams.ignore) return;
-
+  if (!this.props.touch.allowDragging) return;
   var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
-      interval = (touchParams.end - touchParams.start),
-      width = (direction == 'horizontal') ? this.parent.width : this.parent.height,
+      interval = (this.props.touch.end - this.props.touch.start),
+      width = (direction == 'horizontal') ? this.body.domProps.center.width : this.body.domProps.center.height,
       diffRange = -delta / width * interval;
-
-  this._applyRange(touchParams.start + diffRange, touchParams.end + diffRange);
-
-  this.emit('rangechange', {
+  this._applyRange(this.props.touch.start + diffRange, this.props.touch.end + diffRange);
+  this.body.emitter.emit('rangechange', {
     start: new Date(this.start),
     end:   new Date(this.end)
   });
 };
 
 /**
- * Stop dragging operating.
+ * Stop dragging operation
  * @param {event} event
  * @private
  */
 Range.prototype._onDragEnd = function (event) {
+  // only allow dragging when configured as movable
+  if (!this.options.moveable) return;
+
   // refuse to drag when we where pinching to prevent the timeline make a jump
   // when releasing the fingers in opposite order from the touch screen
-  if (touchParams.ignore) return;
+  if (!this.props.touch.allowDragging) return;
 
-  // TODO: reckon with option movable
-
-  if (this.parent.frame) {
-    this.parent.frame.style.cursor = 'auto';
+  if (this.body.dom.root) {
+    this.body.dom.root.style.cursor = 'auto';
   }
 
   // fire a rangechanged event
-  this.emit('rangechanged', {
+  this.body.emitter.emit('rangechanged', {
     start: new Date(this.start),
     end:   new Date(this.end)
   });
@@ -3415,7 +5934,8 @@ Range.prototype._onDragEnd = function (event) {
  * @private
  */
 Range.prototype._onMouseWheel = function(event) {
-  // TODO: reckon with option zoomable
+  // only allow zooming when configured as zoomable and moveable
+  if (!(this.options.zoomable && this.options.moveable)) return;
 
   // retrieve delta
   var delta = 0;
@@ -3445,7 +5965,7 @@ Range.prototype._onMouseWheel = function(event) {
 
     // calculate center, the date to zoom around
     var gesture = util.fakeGesture(this, event),
-        pointer = getPointer(gesture.center, this.parent.frame),
+        pointer = getPointer(gesture.center, this.body.dom.center),
         pointerDate = this._pointerToDate(pointer);
 
     this.zoom(scale, pointerDate);
@@ -3461,17 +5981,10 @@ Range.prototype._onMouseWheel = function(event) {
  * @private
  */
 Range.prototype._onTouch = function (event) {
-  touchParams.start = this.start;
-  touchParams.end = this.end;
-  touchParams.ignore = false;
-  touchParams.center = null;
-
-  // don't move the range when dragging a selected event
-  // TODO: it's not so neat to have to know about the state of the ItemSet
-  var item = ItemSet.itemFromTarget(event);
-  if (item && item.selected && this.options.editable) {
-    touchParams.ignore = true;
-  }
+  this.props.touch.start = this.start;
+  this.props.touch.end = this.end;
+  this.props.touch.allowDragging = true;
+  this.props.touch.center = null;
 };
 
 /**
@@ -3479,7 +5992,7 @@ Range.prototype._onTouch = function (event) {
  * @private
  */
 Range.prototype._onHold = function () {
-  touchParams.ignore = true;
+  this.props.touch.allowDragging = false;
 };
 
 /**
@@ -3488,25 +6001,22 @@ Range.prototype._onHold = function () {
  * @private
  */
 Range.prototype._onPinch = function (event) {
-  var direction = this.options.direction;
-  touchParams.ignore = true;
+  // only allow zooming when configured as zoomable and moveable
+  if (!(this.options.zoomable && this.options.moveable)) return;
 
-  // TODO: reckon with option zoomable
+  this.props.touch.allowDragging = false;
 
   if (event.gesture.touches.length > 1) {
-    if (!touchParams.center) {
-      touchParams.center = getPointer(event.gesture.center, this.parent.frame);
+    if (!this.props.touch.center) {
+      this.props.touch.center = getPointer(event.gesture.center, this.body.dom.center);
     }
 
     var scale = 1 / event.gesture.scale,
-        initDate = this._pointerToDate(touchParams.center),
-        center = getPointer(event.gesture.center, this.parent.frame),
-        date = this._pointerToDate(this.parent, center),
-        delta = date - initDate; // TODO: utilize delta
+        initDate = this._pointerToDate(this.props.touch.center);
 
     // calculate new start and end
-    var newStart = parseInt(initDate + (touchParams.start - initDate) * scale);
-    var newEnd = parseInt(initDate + (touchParams.end - initDate) * scale);
+    var newStart = parseInt(initDate + (this.props.touch.start - initDate) * scale);
+    var newEnd = parseInt(initDate + (this.props.touch.end - initDate) * scale);
 
     // apply new range
     this.setRange(newStart, newEnd);
@@ -3526,12 +6036,12 @@ Range.prototype._pointerToDate = function (pointer) {
   validateDirection(direction);
 
   if (direction == 'horizontal') {
-    var width = this.parent.width;
+    var width = this.body.domProps.center.width;
     conversion = this.conversion(width);
     return pointer.x / conversion.scale + conversion.offset;
   }
   else {
-    var height = this.parent.height;
+    var height = this.body.domProps.center.height;
     conversion = this.conversion(height);
     return pointer.y / conversion.scale + conversion.offset;
   }
@@ -3612,74 +6122,39 @@ Range.prototype.moveTo = function(moveTo) {
 
 /**
  * Prototype for visual components
+ * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} [body]
+ * @param {Object} [options]
  */
-function Component () {
-  this.id = null;
-  this.parent = null;
-  this.childs = null;
+function Component (body, options) {
   this.options = null;
-
-  this.top = 0;
-  this.left = 0;
-  this.width = 0;
-  this.height = 0;
+  this.props = null;
 }
 
-// Turn the Component into an event emitter
-Emitter(Component.prototype);
-
 /**
- * Set parameters for the frame. Parameters will be merged in current parameter
- * set.
- * @param {Object} options  Available parameters:
- *                          {String | function} [className]
- *                          {String | Number | function} [left]
- *                          {String | Number | function} [top]
- *                          {String | Number | function} [width]
- *                          {String | Number | function} [height]
+ * Set options for the component. The new options will be merged into the
+ * current options.
+ * @param {Object} options
  */
-Component.prototype.setOptions = function setOptions(options) {
+Component.prototype.setOptions = function(options) {
   if (options) {
     util.extend(this.options, options);
-
-    this.repaint();
   }
-};
-
-/**
- * Get an option value by name
- * The function will first check this.options object, and else will check
- * this.defaultOptions.
- * @param {String} name
- * @return {*} value
- */
-Component.prototype.getOption = function getOption(name) {
-  var value;
-  if (this.options) {
-    value = this.options[name];
-  }
-  if (value === undefined && this.defaultOptions) {
-    value = this.defaultOptions[name];
-  }
-  return value;
-};
-
-/**
- * Get the frame element of the component, the outer HTML DOM element.
- * @returns {HTMLElement | null} frame
- */
-Component.prototype.getFrame = function getFrame() {
-  // should be implemented by the component
-  return null;
 };
 
 /**
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
-Component.prototype.repaint = function repaint() {
+Component.prototype.redraw = function() {
   // should be implemented by the component
   return false;
+};
+
+/**
+ * Destroy the component. Cleanup DOM and event listeners
+ */
+Component.prototype.destroy = function() {
+  // should be implemented by the component
 };
 
 /**
@@ -3688,374 +6163,27 @@ Component.prototype.repaint = function repaint() {
  * @return {Boolean} Returns true if the component is resized
  * @protected
  */
-Component.prototype._isResized = function _isResized() {
-  var resized = (this._previousWidth !== this.width || this._previousHeight !== this.height);
+Component.prototype._isResized = function() {
+  var resized = (this.props._previousWidth !== this.props.width ||
+      this.props._previousHeight !== this.props.height);
 
-  this._previousWidth = this.width;
-  this._previousHeight = this.height;
+  this.props._previousWidth = this.props.width;
+  this.props._previousHeight = this.props.height;
 
   return resized;
-};
-
-/**
- * A panel can contain components
- * @param {Object} [options]    Available parameters:
- *                              {String | Number | function} [left]
- *                              {String | Number | function} [top]
- *                              {String | Number | function} [width]
- *                              {String | Number | function} [height]
- *                              {String | function} [className]
- * @constructor Panel
- * @extends Component
- */
-function Panel(options) {
-  this.id = util.randomUUID();
-  this.parent = null;
-  this.childs = [];
-
-  this.options = options || {};
-
-  // create frame
-  this.frame = (typeof document !== 'undefined') ? document.createElement('div') : null;
-}
-
-Panel.prototype = new Component();
-
-/**
- * Set options. Will extend the current options.
- * @param {Object} [options]    Available parameters:
- *                              {String | function} [className]
- *                              {String | Number | function} [left]
- *                              {String | Number | function} [top]
- *                              {String | Number | function} [width]
- *                              {String | Number | function} [height]
- */
-Panel.prototype.setOptions = Component.prototype.setOptions;
-
-/**
- * Get the outer frame of the panel
- * @returns {HTMLElement} frame
- */
-Panel.prototype.getFrame = function () {
-  return this.frame;
-};
-
-/**
- * Append a child to the panel
- * @param {Component} child
- */
-Panel.prototype.appendChild = function (child) {
-  this.childs.push(child);
-  child.parent = this;
-
-  // attach to the DOM
-  var frame = child.getFrame();
-  if (frame) {
-    if (frame.parentNode) {
-      frame.parentNode.removeChild(frame);
-    }
-    this.frame.appendChild(frame);
-  }
-};
-
-/**
- * Insert a child to the panel
- * @param {Component} child
- * @param {Component} beforeChild
- */
-Panel.prototype.insertBefore = function (child, beforeChild) {
-  var index = this.childs.indexOf(beforeChild);
-  if (index != -1) {
-    this.childs.splice(index, 0, child);
-    child.parent = this;
-
-    // attach to the DOM
-    var frame = child.getFrame();
-    if (frame) {
-      if (frame.parentNode) {
-        frame.parentNode.removeChild(frame);
-      }
-
-      var beforeFrame = beforeChild.getFrame();
-      if (beforeFrame) {
-        this.frame.insertBefore(frame, beforeFrame);
-      }
-      else {
-        this.frame.appendChild(frame);
-      }
-    }
-  }
-};
-
-/**
- * Remove a child from the panel
- * @param {Component} child
- */
-Panel.prototype.removeChild = function (child) {
-  var index = this.childs.indexOf(child);
-  if (index != -1) {
-    this.childs.splice(index, 1);
-    child.parent = null;
-
-    // remove from the DOM
-    var frame = child.getFrame();
-    if (frame && frame.parentNode) {
-      this.frame.removeChild(frame);
-    }
-  }
-};
-
-/**
- * Test whether the panel contains given child
- * @param {Component} child
- */
-Panel.prototype.hasChild = function (child) {
-  var index = this.childs.indexOf(child);
-  return (index != -1);
-};
-
-/**
- * Repaint the component
- * @return {boolean} Returns true if the component was resized since previous repaint
- */
-Panel.prototype.repaint = function () {
-  var asString = util.option.asString,
-      options = this.options,
-      frame = this.getFrame();
-
-  // update className
-  frame.className = 'vpanel' + (options.className ? (' ' + asString(options.className)) : '');
-
-  // repaint the child components
-  var childsResized = this._repaintChilds();
-
-  // update frame size
-  this._updateSize();
-
-  return this._isResized() || childsResized;
-};
-
-/**
- * Repaint all childs of the panel
- * @return {boolean} Returns true if the component is resized
- * @private
- */
-Panel.prototype._repaintChilds = function () {
-  var resized = false;
-  for (var i = 0, ii = this.childs.length; i < ii; i++) {
-    resized = this.childs[i].repaint() || resized;
-  }
-  return resized;
-};
-
-/**
- * Apply the size from options to the panel, and recalculate it's actual size.
- * @private
- */
-Panel.prototype._updateSize = function () {
-  // apply size
-  this.frame.style.top    = util.option.asSize(this.options.top);
-  this.frame.style.bottom = util.option.asSize(this.options.bottom);
-  this.frame.style.left   = util.option.asSize(this.options.left);
-  this.frame.style.right  = util.option.asSize(this.options.right);
-  this.frame.style.width  = util.option.asSize(this.options.width, '100%');
-  this.frame.style.height = util.option.asSize(this.options.height, '');
-
-  // get actual size
-  this.top    = this.frame.offsetTop;
-  this.left   = this.frame.offsetLeft;
-  this.width  = this.frame.offsetWidth;
-  this.height = this.frame.offsetHeight;
-};
-
-/**
- * A root panel can hold components. The root panel must be initialized with
- * a DOM element as container.
- * @param {HTMLElement} container
- * @param {Object} [options]    Available parameters: see RootPanel.setOptions.
- * @constructor RootPanel
- * @extends Panel
- */
-function RootPanel(container, options) {
-  this.id = util.randomUUID();
-  this.container = container;
-
-  this.options = options || {};
-  this.defaultOptions = {
-    autoResize: true
-  };
-
-  // create the HTML DOM
-  this._create();
-
-  // attach the root panel to the provided container
-  if (!this.container) throw new Error('Cannot repaint root panel: no container attached');
-  this.container.appendChild(this.getFrame());
-
-
-  this._initWatch();
-}
-
-RootPanel.prototype = new Panel();
-
-/**
- * Create the HTML DOM for the root panel
- */
-RootPanel.prototype._create = function _create() {
-  // create frame
-  this.frame = document.createElement('div');
-
-  // create event listeners for all interesting events, these events will be
-  // emitted via emitter
-  this.hammer = Hammer(this.frame, {
-    prevent_default: true
-  });
-  this.listeners = {};
-
-  var me = this;
-  var events = [
-    'touch', 'pinch', 'tap', 'doubletap', 'hold',
-    'dragstart', 'drag', 'dragend',
-    'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is for Firefox
-  ];
-  events.forEach(function (event) {
-    var listener = function () {
-      var args = [event].concat(Array.prototype.slice.call(arguments, 0));
-      me.emit.apply(me, args);
-    };
-    me.hammer.on(event, listener);
-    me.listeners[event] = listener;
-  });
-};
-
-/**
- * Set options. Will extend the current options.
- * @param {Object} [options]    Available parameters:
- *                              {String | function} [className]
- *                              {String | Number | function} [left]
- *                              {String | Number | function} [top]
- *                              {String | Number | function} [width]
- *                              {String | Number | function} [height]
- *                              {Boolean | function} [autoResize]
- */
-RootPanel.prototype.setOptions = function setOptions(options) {
-  if (options) {
-    util.extend(this.options, options);
-
-    this.repaint();
-
-    this._initWatch();
-  }
-};
-
-/**
- * Get the frame of the root panel
- */
-RootPanel.prototype.getFrame = function getFrame() {
-  return this.frame;
-};
-
-/**
- * Repaint the root panel
- */
-RootPanel.prototype.repaint = function repaint() {
-  // update class name
-  var options = this.options;
-  var editable = options.editable.updateTime || options.editable.updateGroup;
-  var className = 'vis timeline rootpanel ' + options.orientation + (editable ? ' editable' : '');
-  if (options.className) className += ' ' + util.option.asString(className);
-  this.frame.className = className;
-
-  // repaint the child components
-  var childsResized = this._repaintChilds();
-
-  // update frame size
-  this.frame.style.maxHeight = util.option.asSize(this.options.maxHeight, '');
-  this.frame.style.minHeight = util.option.asSize(this.options.minHeight, '');
-  this._updateSize();
-
-  // if the root panel or any of its childs is resized, repaint again,
-  // as other components may need to be resized accordingly
-  var resized = this._isResized() || childsResized;
-  if (resized) {
-    setTimeout(this.repaint.bind(this), 0);
-  }
-};
-
-/**
- * Initialize watching when option autoResize is true
- * @private
- */
-RootPanel.prototype._initWatch = function _initWatch() {
-  var autoResize = this.getOption('autoResize');
-  if (autoResize) {
-    this._watch();
-  }
-  else {
-    this._unwatch();
-  }
-};
-
-/**
- * Watch for changes in the size of the frame. On resize, the Panel will
- * automatically redraw itself.
- * @private
- */
-RootPanel.prototype._watch = function _watch() {
-  var me = this;
-
-  this._unwatch();
-
-  var checkSize = function checkSize() {
-    var autoResize = me.getOption('autoResize');
-    if (!autoResize) {
-      // stop watching when the option autoResize is changed to false
-      me._unwatch();
-      return;
-    }
-
-    if (me.frame) {
-      // check whether the frame is resized
-      if ((me.frame.clientWidth != me.lastWidth) ||
-          (me.frame.clientHeight != me.lastHeight)) {
-        me.lastWidth = me.frame.clientWidth;
-        me.lastHeight = me.frame.clientHeight;
-        me.repaint();
-        // TODO: emit a resize event instead?
-      }
-    }
-  };
-
-  // TODO: automatically cleanup the event listener when the frame is deleted
-  util.addEventListener(window, 'resize', checkSize);
-
-  this.watchTimer = setInterval(checkSize, 1000);
-};
-
-/**
- * Stop watching for a resize of the frame.
- * @private
- */
-RootPanel.prototype._unwatch = function _unwatch() {
-  if (this.watchTimer) {
-    clearInterval(this.watchTimer);
-    this.watchTimer = undefined;
-  }
-
-  // TODO: remove event listener on window.resize
 };
 
 /**
  * A horizontal time axis
+ * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} body
  * @param {Object} [options]        See TimeAxis.setOptions for the available
  *                                  options.
  * @constructor TimeAxis
  * @extends Component
  */
-function TimeAxis (options) {
-  this.id = util.randomUUID();
-
+function TimeAxis (body, options) {
   this.dom = {
+    foreground: null,
     majorLines: [],
     majorTexts: [],
     minorLines: [],
@@ -4076,121 +6204,124 @@ function TimeAxis (options) {
     lineTop: 0
   };
 
-  this.options = options || {};
   this.defaultOptions = {
     orientation: 'bottom',  // supported: 'top', 'bottom'
     // TODO: implement timeaxis orientations 'left' and 'right'
     showMinorLabels: true,
     showMajorLabels: true
   };
+  this.options = util.extend({}, this.defaultOptions);
 
-  this.range = null;
+  this.body = body;
 
   // create the HTML DOM
   this._create();
+
+  this.setOptions(options);
 }
 
 TimeAxis.prototype = new Component();
 
-// TODO: comment options
-TimeAxis.prototype.setOptions = Component.prototype.setOptions;
+/**
+ * Set options for the TimeAxis.
+ * Parameters will be merged in current options.
+ * @param {Object} options  Available options:
+ *                          {string} [orientation]
+ *                          {boolean} [showMinorLabels]
+ *                          {boolean} [showMajorLabels]
+ */
+TimeAxis.prototype.setOptions = function(options) {
+  if (options) {
+    // copy all options that we know
+    util.selectiveExtend(['orientation', 'showMinorLabels', 'showMajorLabels'], this.options, options);
+  }
+};
 
 /**
  * Create the HTML DOM for the TimeAxis
  */
-TimeAxis.prototype._create = function _create() {
-  this.frame = document.createElement('div');
+TimeAxis.prototype._create = function() {
+  this.dom.foreground = document.createElement('div');
+  this.dom.background = document.createElement('div');
+
+  this.dom.foreground.className = 'timeaxis foreground';
+  this.dom.background.className = 'timeaxis background';
 };
 
 /**
- * Set a range (start and end)
- * @param {Range | Object} range  A Range or an object containing start and end.
+ * Destroy the TimeAxis
  */
-TimeAxis.prototype.setRange = function (range) {
-  if (!(range instanceof Range) && (!range || !range.start || !range.end)) {
-    throw new TypeError('Range must be an instance of Range, ' +
-        'or an object containing start and end.');
+TimeAxis.prototype.destroy = function() {
+  // remove from DOM
+  if (this.dom.foreground.parentNode) {
+    this.dom.foreground.parentNode.removeChild(this.dom.foreground);
   }
-  this.range = range;
-};
+  if (this.dom.background.parentNode) {
+    this.dom.background.parentNode.removeChild(this.dom.background);
+  }
 
-/**
- * Get the outer frame of the time axis
- * @return {HTMLElement} frame
- */
-TimeAxis.prototype.getFrame = function getFrame() {
-  return this.frame;
+  this.body = null;
 };
 
 /**
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
-TimeAxis.prototype.repaint = function () {
-  var asSize = util.option.asSize,
-      options = this.options,
+TimeAxis.prototype.redraw = function () {
+  var options = this.options,
       props = this.props,
-      frame = this.frame;
+      foreground = this.dom.foreground,
+      background = this.dom.background;
 
-  // update classname
-  frame.className = 'timeaxis'; // TODO: add className from options if defined
+  // determine the correct parent DOM element (depending on option orientation)
+  var parent = (options.orientation == 'top') ? this.body.dom.top : this.body.dom.bottom;
+  var parentChanged = (foreground.parentNode !== parent);
 
-  var parent = frame.parentNode;
-  if (parent) {
-    // calculate character width and height
-    this._calculateCharSize();
+  // calculate character width and height
+  this._calculateCharSize();
 
-    // TODO: recalculate sizes only needed when parent is resized or options is changed
-    var orientation = this.getOption('orientation'),
-        showMinorLabels = this.getOption('showMinorLabels'),
-        showMajorLabels = this.getOption('showMajorLabels');
+  // TODO: recalculate sizes only needed when parent is resized or options is changed
+  var orientation = this.options.orientation,
+      showMinorLabels = this.options.showMinorLabels,
+      showMajorLabels = this.options.showMajorLabels;
 
-    // determine the width and height of the elemens for the axis
-    var parentHeight = this.parent.height;
-    props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
-    props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
-    this.height = props.minorLabelHeight + props.majorLabelHeight;
-    this.width = frame.offsetWidth; // TODO: only update the width when the frame is resized?
+  // determine the width and height of the elemens for the axis
+  props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
+  props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
+  props.height = props.minorLabelHeight + props.majorLabelHeight;
+  props.width = foreground.offsetWidth;
 
-    props.minorLineHeight = parentHeight + props.minorLabelHeight;
-    props.minorLineWidth = 1; // TODO: really calculate width
-    props.majorLineHeight = parentHeight + this.height;
-    props.majorLineWidth = 1; // TODO: really calculate width
+  props.minorLineHeight = this.body.domProps.root.height - props.majorLabelHeight -
+      (options.orientation == 'top' ? this.body.domProps.bottom.height : this.body.domProps.top.height);
+  props.minorLineWidth = 1; // TODO: really calculate width
+  props.majorLineHeight = props.minorLineHeight + props.majorLabelHeight;
+  props.majorLineWidth = 1; // TODO: really calculate width
 
-    //  take frame offline while updating (is almost twice as fast)
-    var beforeChild = frame.nextSibling;
-    parent.removeChild(frame);
+  //  take foreground and background offline while updating (is almost twice as fast)
+  var foregroundNextSibling = foreground.nextSibling;
+  var backgroundNextSibling = background.nextSibling;
+  foreground.parentNode && foreground.parentNode.removeChild(foreground);
+  background.parentNode && background.parentNode.removeChild(background);
 
-    // TODO: top/bottom positioning should be determined by options set in the Timeline, not here
-    if (orientation == 'top') {
-      frame.style.top = '0';
-      frame.style.left = '0';
-      frame.style.bottom = '';
-      frame.style.width = asSize(options.width, '100%');
-      frame.style.height = this.height + 'px';
-    }
-    else { // bottom
-      frame.style.top = '';
-      frame.style.bottom = '0';
-      frame.style.left = '0';
-      frame.style.width = asSize(options.width, '100%');
-      frame.style.height = this.height + 'px';
-    }
+  foreground.style.height = this.props.height + 'px';
 
-    this._repaintLabels();
+  this._repaintLabels();
 
-    this._repaintLine();
-
-    // put frame online again
-    if (beforeChild) {
-      parent.insertBefore(frame, beforeChild);
-    }
-    else {
-      parent.appendChild(frame)
-    }
+  // put DOM online again (at the same place)
+  if (foregroundNextSibling) {
+    parent.insertBefore(foreground, foregroundNextSibling);
+  }
+  else {
+    parent.appendChild(foreground)
+  }
+  if (backgroundNextSibling) {
+    this.body.dom.backgroundVertical.insertBefore(background, backgroundNextSibling);
+  }
+  else {
+    this.body.dom.backgroundVertical.appendChild(background)
   }
 
-  return this._isResized();
+  return this._isResized() || parentChanged;
 };
 
 /**
@@ -4198,13 +6329,13 @@ TimeAxis.prototype.repaint = function () {
  * @private
  */
 TimeAxis.prototype._repaintLabels = function () {
-  var orientation = this.getOption('orientation');
+  var orientation = this.options.orientation;
 
   // calculate range and step (step such that we have space for 7 characters per label)
-  var start = util.convert(this.range.start, 'Number'),
-      end = util.convert(this.range.end, 'Number'),
-      minimumStep = this.options.toTime((this.props.minorCharWidth || 10) * 7).valueOf()
-          -this.options.toTime(0).valueOf();
+  var start = util.convert(this.body.range.start, 'Number'),
+      end = util.convert(this.body.range.end, 'Number'),
+      minimumStep = this.body.util.toTime((this.props.minorCharWidth || 10) * 7).valueOf()
+          -this.body.util.toTime(0).valueOf();
   var step = new TimeStep(new Date(start), new Date(end), minimumStep);
   this.step = step;
 
@@ -4227,16 +6358,16 @@ TimeAxis.prototype._repaintLabels = function () {
   while (step.hasNext() && max < 1000) {
     max++;
     var cur = step.getCurrent(),
-        x = this.options.toScreen(cur),
+        x = this.body.util.toScreen(cur),
         isMajor = step.isMajor();
 
     // TODO: lines must have a width, such that we can create css backgrounds
 
-    if (this.getOption('showMinorLabels')) {
+    if (this.options.showMinorLabels) {
       this._repaintMinorText(x, step.getLabelMinor(), orientation);
     }
 
-    if (isMajor && this.getOption('showMajorLabels')) {
+    if (isMajor && this.options.showMajorLabels) {
       if (x > 0) {
         if (xFirstMajorLabel == undefined) {
           xFirstMajorLabel = x;
@@ -4253,8 +6384,8 @@ TimeAxis.prototype._repaintLabels = function () {
   }
 
   // create a major label on the left when needed
-  if (this.getOption('showMajorLabels')) {
-    var leftTime = this.options.toTime(0),
+  if (this.options.showMajorLabels) {
+    var leftTime = this.body.util.toTime(0),
         leftText = step.getLabelMajor(leftTime),
         widthText = leftText.length * (this.props.majorCharWidth || 10) + 10; // upper bound estimation
 
@@ -4291,20 +6422,13 @@ TimeAxis.prototype._repaintMinorText = function (x, text, orientation) {
     label = document.createElement('div');
     label.appendChild(content);
     label.className = 'text minor';
-    this.frame.appendChild(label);
+    this.dom.foreground.appendChild(label);
   }
   this.dom.minorTexts.push(label);
 
   label.childNodes[0].nodeValue = text;
 
-  if (orientation == 'top') {
-    label.style.top = this.props.majorLabelHeight + 'px';
-    label.style.bottom = '';
-  }
-  else {
-    label.style.top = '';
-    label.style.bottom = this.props.majorLabelHeight + 'px';
-  }
+  label.style.top = (orientation == 'top') ? (this.props.majorLabelHeight + 'px') : '0';
   label.style.left = x + 'px';
   //label.title = title;  // TODO: this is a heavy operation
 };
@@ -4326,21 +6450,14 @@ TimeAxis.prototype._repaintMajorText = function (x, text, orientation) {
     label = document.createElement('div');
     label.className = 'text major';
     label.appendChild(content);
-    this.frame.appendChild(label);
+    this.dom.foreground.appendChild(label);
   }
   this.dom.majorTexts.push(label);
 
   label.childNodes[0].nodeValue = text;
   //label.title = title; // TODO: this is a heavy operation
 
-  if (orientation == 'top') {
-    label.style.top = '0px';
-    label.style.bottom = '';
-  }
-  else {
-    label.style.top = '';
-    label.style.bottom = '0px';
-  }
+  label.style.top = (orientation == 'top') ? '0' : (this.props.minorLabelHeight  + 'px');
   label.style.left = x + 'px';
 };
 
@@ -4358,18 +6475,16 @@ TimeAxis.prototype._repaintMinorLine = function (x, orientation) {
     // create vertical line
     line = document.createElement('div');
     line.className = 'grid vertical minor';
-    this.frame.appendChild(line);
+    this.dom.background.appendChild(line);
   }
   this.dom.minorLines.push(line);
 
   var props = this.props;
   if (orientation == 'top') {
-    line.style.top = this.props.majorLabelHeight + 'px';
-    line.style.bottom = '';
+    line.style.top = props.majorLabelHeight + 'px';
   }
   else {
-    line.style.top = '';
-    line.style.bottom = this.props.majorLabelHeight + 'px';
+    line.style.top = this.body.domProps.top.height + 'px';
   }
   line.style.height = props.minorLineHeight + 'px';
   line.style.left = (x - props.minorLineWidth / 2) + 'px';
@@ -4389,63 +6504,19 @@ TimeAxis.prototype._repaintMajorLine = function (x, orientation) {
     // create vertical line
     line = document.createElement('DIV');
     line.className = 'grid vertical major';
-    this.frame.appendChild(line);
+    this.dom.background.appendChild(line);
   }
   this.dom.majorLines.push(line);
 
   var props = this.props;
   if (orientation == 'top') {
-    line.style.top = '0px';
-    line.style.bottom = '';
+    line.style.top = '0';
   }
   else {
-    line.style.top = '';
-    line.style.bottom = '0px';
+    line.style.top = this.body.domProps.top.height + 'px';
   }
   line.style.left = (x - props.majorLineWidth / 2) + 'px';
   line.style.height = props.majorLineHeight + 'px';
-};
-
-
-/**
- * Repaint the horizontal line for the axis
- * @private
- */
-TimeAxis.prototype._repaintLine = function() {
-  var line = this.dom.line,
-      frame = this.frame,
-      orientation = this.getOption('orientation');
-
-  // line before all axis elements
-  if (this.getOption('showMinorLabels') || this.getOption('showMajorLabels')) {
-    if (line) {
-      // put this line at the end of all childs
-      frame.removeChild(line);
-      frame.appendChild(line);
-    }
-    else {
-      // create the axis line
-      line = document.createElement('div');
-      line.className = 'grid horizontal major';
-      frame.appendChild(line);
-      this.dom.line = line;
-    }
-
-    if (orientation == 'top') {
-      line.style.top = this.height + 'px';
-      line.style.bottom = '';
-    }
-    else {
-      line.style.top = '';
-      line.style.bottom = this.height + 'px';
-    }
-  }
-  else {
-    if (line && line.parentNode) {
-      line.parentNode.removeChild(line);
-      delete this.dom.line;
-    }
-  }
 };
 
 /**
@@ -4454,7 +6525,7 @@ TimeAxis.prototype._repaintLine = function() {
  * @private
  */
 TimeAxis.prototype._calculateCharSize = function () {
-  // Note: We calculate char size with every repaint. Size may change, for
+  // Note: We calculate char size with every redraw. Size may change, for
   // example when any of the timelines parents had display:none for example.
 
   // determine the char width and height on the minor axis
@@ -4464,7 +6535,7 @@ TimeAxis.prototype._calculateCharSize = function () {
     this.dom.measureCharMinor.style.position = 'absolute';
 
     this.dom.measureCharMinor.appendChild(document.createTextNode('0'));
-    this.frame.appendChild(this.dom.measureCharMinor);
+    this.dom.foreground.appendChild(this.dom.measureCharMinor);
   }
   this.props.minorCharHeight = this.dom.measureCharMinor.clientHeight;
   this.props.minorCharWidth = this.dom.measureCharMinor.clientWidth;
@@ -4476,7 +6547,7 @@ TimeAxis.prototype._calculateCharSize = function () {
     this.dom.measureCharMajor.style.position = 'absolute';
 
     this.dom.measureCharMajor.appendChild(document.createTextNode('0'));
-    this.frame.appendChild(this.dom.measureCharMajor);
+    this.dom.foreground.appendChild(this.dom.measureCharMajor);
   }
   this.props.majorCharHeight = this.dom.measureCharMajor.clientHeight;
   this.props.majorCharWidth = this.dom.measureCharMajor.clientWidth;
@@ -4488,40 +6559,40 @@ TimeAxis.prototype._calculateCharSize = function () {
  * @param {Date} date   the date to be snapped.
  * @return {Date} snappedDate
  */
-TimeAxis.prototype.snap = function snap (date) {
+TimeAxis.prototype.snap = function(date) {
   return this.step.snap(date);
 };
 
 /**
  * A current time bar
- * @param {Range} range
+ * @param {{range: Range, dom: Object, domProps: Object}} body
  * @param {Object} [options]        Available parameters:
  *                                  {Boolean} [showCurrentTime]
  * @constructor CurrentTime
  * @extends Component
  */
 
-function CurrentTime (range, options) {
-  this.id = util.randomUUID();
+function CurrentTime (body, options) {
+  this.body = body;
 
-  this.range = range;
-  this.options = options || {};
+  // default options
   this.defaultOptions = {
-    showCurrentTime: false
+    showCurrentTime: true
   };
+  this.options = util.extend({}, this.defaultOptions);
 
   this._create();
+
+  this.setOptions(options);
 }
 
 CurrentTime.prototype = new Component();
-
-CurrentTime.prototype.setOptions = Component.prototype.setOptions;
 
 /**
  * Create the HTML DOM for the current time bar
  * @private
  */
-CurrentTime.prototype._create = function _create () {
+CurrentTime.prototype._create = function() {
   var bar = document.createElement('div');
   bar.className = 'currenttime';
   bar.style.position = 'absolute';
@@ -4532,25 +6603,57 @@ CurrentTime.prototype._create = function _create () {
 };
 
 /**
- * Get the frame element of the current time bar
- * @returns {HTMLElement} frame
+ * Destroy the CurrentTime bar
  */
-CurrentTime.prototype.getFrame = function getFrame() {
-  return this.bar;
+CurrentTime.prototype.destroy = function () {
+  this.options.showCurrentTime = false;
+  this.redraw(); // will remove the bar from the DOM and stop refreshing
+
+  this.body = null;
+};
+
+/**
+ * Set options for the component. Options will be merged in current options.
+ * @param {Object} options  Available parameters:
+ *                          {boolean} [showCurrentTime]
+ */
+CurrentTime.prototype.setOptions = function(options) {
+  if (options) {
+    // copy all options that we know
+    util.selectiveExtend(['showCurrentTime'], this.options, options);
+  }
 };
 
 /**
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
-CurrentTime.prototype.repaint = function repaint() {
-  var parent = this.parent;
+CurrentTime.prototype.redraw = function() {
+  if (this.options.showCurrentTime) {
+    var parent = this.body.dom.backgroundVertical;
+    if (this.bar.parentNode != parent) {
+      // attach to the dom
+      if (this.bar.parentNode) {
+        this.bar.parentNode.removeChild(this.bar);
+      }
+      parent.appendChild(this.bar);
 
-  var now = new Date();
-  var x = this.options.toScreen(now);
+      this.start();
+    }
 
-  this.bar.style.left = x + 'px';
-  this.bar.title = 'Current time: ' + now;
+    var now = new Date();
+    var x = this.body.util.toScreen(now);
+
+    this.bar.style.left = x + 'px';
+    this.bar.title = 'Current time: ' + now;
+  }
+  else {
+    // remove the line from the DOM
+    if (this.bar.parentNode) {
+      this.bar.parentNode.removeChild(this.bar);
+    }
+    this.stop();
+  }
 
   return false;
 };
@@ -4558,19 +6661,19 @@ CurrentTime.prototype.repaint = function repaint() {
 /**
  * Start auto refreshing the current time bar
  */
-CurrentTime.prototype.start = function start() {
+CurrentTime.prototype.start = function() {
   var me = this;
 
   function update () {
     me.stop();
 
     // determine interval to refresh
-    var scale = me.range.conversion(me.parent.width).scale;
+    var scale = me.body.range.conversion(me.body.domProps.center.width).scale;
     var interval = 1 / scale / 10;
     if (interval < 30)   interval = 30;
     if (interval > 1000) interval = 1000;
 
-    me.repaint();
+    me.redraw();
 
     // start a timer to adjust for the new time
     me.currentTimeTimer = setTimeout(update, interval);
@@ -4582,7 +6685,7 @@ CurrentTime.prototype.start = function start() {
 /**
  * Stop auto refreshing the current time bar
  */
-CurrentTime.prototype.stop = function stop() {
+CurrentTime.prototype.stop = function() {
   if (this.currentTimeTimer !== undefined) {
     clearTimeout(this.currentTimeTimer);
     delete this.currentTimeTimer;
@@ -4591,36 +6694,50 @@ CurrentTime.prototype.stop = function stop() {
 
 /**
  * A custom time bar
+ * @param {{range: Range, dom: Object}} body
  * @param {Object} [options]        Available parameters:
  *                                  {Boolean} [showCustomTime]
  * @constructor CustomTime
  * @extends Component
  */
 
-function CustomTime (options) {
-  this.id = util.randomUUID();
+function CustomTime (body, options) {
+  this.body = body;
 
-  this.options = options || {};
+  // default options
   this.defaultOptions = {
     showCustomTime: false
   };
+  this.options = util.extend({}, this.defaultOptions);
 
   this.customTime = new Date();
   this.eventParams = {}; // stores state parameters while dragging the bar
 
   // create the DOM
   this._create();
+
+  this.setOptions(options);
 }
 
 CustomTime.prototype = new Component();
 
-CustomTime.prototype.setOptions = Component.prototype.setOptions;
+/**
+ * Set options for the component. Options will be merged in current options.
+ * @param {Object} options  Available parameters:
+ *                          {boolean} [showCustomTime]
+ */
+CustomTime.prototype.setOptions = function(options) {
+  if (options) {
+    // copy all options that we know
+    util.selectiveExtend(['showCustomTime'], this.options, options);
+  }
+};
 
 /**
  * Create the DOM for the custom time
  * @private
  */
-CustomTime.prototype._create = function _create () {
+CustomTime.prototype._create = function() {
   var bar = document.createElement('div');
   bar.className = 'customtime';
   bar.style.position = 'absolute';
@@ -4646,22 +6763,44 @@ CustomTime.prototype._create = function _create () {
 };
 
 /**
- * Get the frame element of the custom time bar
- * @returns {HTMLElement} frame
+ * Destroy the CustomTime bar
  */
-CustomTime.prototype.getFrame = function getFrame() {
-  return this.bar;
+CustomTime.prototype.destroy = function () {
+  this.options.showCustomTime = false;
+  this.redraw(); // will remove the bar from the DOM
+
+  this.hammer.enable(false);
+  this.hammer = null;
+
+  this.body = null;
 };
 
 /**
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
-CustomTime.prototype.repaint = function () {
-  var x = this.options.toScreen(this.customTime);
+CustomTime.prototype.redraw = function () {
+  if (this.options.showCustomTime) {
+    var parent = this.body.dom.backgroundVertical;
+    if (this.bar.parentNode != parent) {
+      // attach to the dom
+      if (this.bar.parentNode) {
+        this.bar.parentNode.removeChild(this.bar);
+      }
+      parent.appendChild(this.bar);
+    }
 
-  this.bar.style.left = x + 'px';
-  this.bar.title = 'Time: ' + this.customTime;
+    var x = this.body.util.toScreen(this.customTime);
+
+    this.bar.style.left = x + 'px';
+    this.bar.title = 'Time: ' + this.customTime;
+  }
+  else {
+    // remove the line from the DOM
+    if (this.bar.parentNode) {
+      this.bar.parentNode.removeChild(this.bar);
+    }
+  }
 
   return false;
 };
@@ -4672,7 +6811,7 @@ CustomTime.prototype.repaint = function () {
  */
 CustomTime.prototype.setCustomTime = function(time) {
   this.customTime = new Date(time.valueOf());
-  this.repaint();
+  this.redraw();
 };
 
 /**
@@ -4705,13 +6844,13 @@ CustomTime.prototype._onDrag = function (event) {
   if (!this.eventParams.dragging) return;
 
   var deltaX = event.gesture.deltaX,
-      x = this.options.toScreen(this.eventParams.customTime) + deltaX,
-      time = this.options.toTime(x);
+      x = this.body.util.toScreen(this.eventParams.customTime) + deltaX,
+      time = this.body.util.toTime(x);
 
   this.setCustomTime(time);
 
   // fire a timechange event
-  this.emit('timechange', {
+  this.body.emitter.emit('timechange', {
     time: new Date(this.customTime.valueOf())
   });
 
@@ -4728,7 +6867,7 @@ CustomTime.prototype._onDragEnd = function (event) {
   if (!this.eventParams.dragging) return;
 
   // fire a timechanged event
-  this.emit('timechanged', {
+  this.body.emitter.emit('timechanged', {
     time: new Date(this.customTime.valueOf())
   });
 
@@ -4742,55 +6881,92 @@ var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
  * An ItemSet holds a set of items and ranges which can be displayed in a
  * range. The width is determined by the parent of the ItemSet, and the height
  * is determined by the size of the items.
- * @param {Panel} backgroundPanel Panel which can be used to display the
- *                                vertical lines of box items.
- * @param {Panel} axisPanel       Panel on the axis where the dots of box-items
- *                                can be displayed.
- * @param {Panel} sidePanel      Left side panel holding labels
+ * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} body
  * @param {Object} [options]      See ItemSet.setOptions for the available options.
  * @constructor ItemSet
- * @extends Panel
+ * @extends Component
  */
-function ItemSet(backgroundPanel, axisPanel, sidePanel, options) {
-  this.id = util.randomUUID();
+function ItemSet(body, options) {
+  this.body = body;
 
-  // one options object is shared by this itemset and all its items
-  this.options = options || {};
-  this.backgroundPanel = backgroundPanel;
-  this.axisPanel = axisPanel;
-  this.sidePanel = sidePanel;
-  this.itemOptions = Object.create(this.options);
+  this.defaultOptions = {
+    type: null,  // 'box', 'point', 'range'
+    orientation: 'bottom',  // 'top' or 'bottom'
+    align: 'center', // alignment of box items
+    stack: true,
+    groupOrder: null,
+
+    selectable: true,
+    editable: {
+      updateTime: false,
+      updateGroup: false,
+      add: false,
+      remove: false
+    },
+
+    onAdd: function (item, callback) {
+      callback(item);
+    },
+    onUpdate: function (item, callback) {
+      callback(item);
+    },
+    onMove: function (item, callback) {
+      callback(item);
+    },
+    onRemove: function (item, callback) {
+      callback(item);
+    },
+
+    margin: {
+      item: 10,
+      axis: 20
+    },
+    padding: 5
+  };
+
+  // options is shared by this ItemSet and all its items
+  this.options = util.extend({}, this.defaultOptions);
+
+  // options for getting items from the DataSet with the correct type
+  this.itemOptions = {
+    type: {start: 'Date', end: 'Date'}
+  };
+
+  this.conversion = {
+    toScreen: body.util.toScreen,
+    toTime: body.util.toTime
+  };
   this.dom = {};
+  this.props = {};
   this.hammer = null;
 
   var me = this;
   this.itemsData = null;    // DataSet
   this.groupsData = null;   // DataSet
-  this.range = null;        // Range or Object {start: number, end: number}
 
   // listeners for the DataSet of the items
   this.itemListeners = {
     'add': function (event, params, senderId) {
-      if (senderId != me.id) me._onAdd(params.items);
+      me._onAdd(params.items);
     },
     'update': function (event, params, senderId) {
-      if (senderId != me.id) me._onUpdate(params.items);
+      me._onUpdate(params.items);
     },
     'remove': function (event, params, senderId) {
-      if (senderId != me.id) me._onRemove(params.items);
+      me._onRemove(params.items);
     }
   };
 
   // listeners for the DataSet of the groups
   this.groupListeners = {
     'add': function (event, params, senderId) {
-      if (senderId != me.id) me._onAddGroups(params.items);
+      me._onAddGroups(params.items);
     },
     'update': function (event, params, senderId) {
-      if (senderId != me.id) me._onUpdateGroups(params.items);
+      me._onUpdateGroups(params.items);
     },
     'remove': function (event, params, senderId) {
-      if (senderId != me.id) me._onRemoveGroups(params.items);
+      me._onRemoveGroups(params.items);
     }
   };
 
@@ -4799,36 +6975,38 @@ function ItemSet(backgroundPanel, axisPanel, sidePanel, options) {
   this.groupIds = [];
 
   this.selection = [];  // list with the ids of all selected nodes
-  this.stackDirty = true; // if true, all items will be restacked on next repaint
+  this.stackDirty = true; // if true, all items will be restacked on next redraw
 
   this.touchParams = {}; // stores properties while dragging
   // create the HTML DOM
 
   this._create();
+
+  this.setOptions(options);
 }
 
-ItemSet.prototype = new Panel();
+ItemSet.prototype = new Component();
 
 // available item types will be registered here
 ItemSet.types = {
   box: ItemBox,
   range: ItemRange,
-  rangeoverflow: ItemRangeOverflow,
   point: ItemPoint
 };
 
 /**
  * Create the HTML DOM for the ItemSet
  */
-ItemSet.prototype._create = function _create(){
+ItemSet.prototype._create = function(){
   var frame = document.createElement('div');
+  frame.className = 'itemset';
   frame['timeline-itemset'] = this;
-  this.frame = frame;
+  this.dom.frame = frame;
 
   // create background panel
   var background = document.createElement('div');
   background.className = 'background';
-  this.backgroundPanel.frame.appendChild(background);
+  frame.appendChild(background);
   this.dom.background = background;
 
   // create foreground panel
@@ -4841,33 +7019,46 @@ ItemSet.prototype._create = function _create(){
   var axis = document.createElement('div');
   axis.className = 'axis';
   this.dom.axis = axis;
-  this.axisPanel.frame.appendChild(axis);
 
   // create labelset
   var labelSet = document.createElement('div');
   labelSet.className = 'labelset';
   this.dom.labelSet = labelSet;
-  this.sidePanel.frame.appendChild(labelSet);
 
   // create ungrouped Group
   this._updateUngrouped();
 
   // attach event listeners
-  // TODO: use event listeners from the rootpanel to improve performance?
-  this.hammer = Hammer(frame, {
+  // Note: we bind to the centerContainer for the case where the height
+  //       of the center container is larger than of the ItemSet, so we
+  //       can click in the empty area to create a new item or deselect an item.
+  this.hammer = Hammer(this.body.dom.centerContainer, {
     prevent_default: true
   });
+
+  // drag items when selected
+  this.hammer.on('touch',     this._onTouch.bind(this));
   this.hammer.on('dragstart', this._onDragStart.bind(this));
   this.hammer.on('drag',      this._onDrag.bind(this));
   this.hammer.on('dragend',   this._onDragEnd.bind(this));
+
+  // single select (or unselect) when tapping an item
+  this.hammer.on('tap',  this._onSelectItem.bind(this));
+
+  // multi select when holding mouse/touch, or on ctrl+click
+  this.hammer.on('hold', this._onMultiSelectItem.bind(this));
+
+  // add item on doubletap
+  this.hammer.on('doubletap', this._onAddItem.bind(this));
+
+  // attach to the DOM
+  this.show();
 };
 
 /**
  * Set options for the ItemSet. Existing options will be extended/overwritten.
  * @param {Object} [options] The following options are available:
- *                           {String | function} [className]
- *                              class name for the itemset
- *                           {String} [type]
+ *                           {String} type
  *                              Default type for the items. Choose from 'box'
  *                              (default), 'point', or 'range'. The default
  *                              Style can be overwritten by individual items.
@@ -4878,42 +7069,127 @@ ItemSet.prototype._create = function _create(){
  *                           {String} orientation
  *                              Orientation of the item set. Choose 'top' or
  *                              'bottom' (default).
+ *                           {Function} groupOrder
+ *                              A sorting function for ordering groups
+ *                           {Boolean} stack
+ *                              If true (deafult), items will be stacked on
+ *                              top of each other.
  *                           {Number} margin.axis
  *                              Margin between the axis and the items in pixels.
  *                              Default is 20.
  *                           {Number} margin.item
  *                              Margin between items in pixels. Default is 10.
+ *                           {Number} margin
+ *                              Set margin for both axis and items in pixels.
  *                           {Number} padding
  *                              Padding of the contents of an item in pixels.
  *                              Must correspond with the items css. Default is 5.
- *                           {Function} snap
- *                              Function to let items snap to nice dates when
- *                              dragging items.
+ *                           {Boolean} selectable
+ *                              If true (default), items can be selected.
+ *                           {Boolean} editable
+ *                              Set all editable options to true or false
+ *                           {Boolean} editable.updateTime
+ *                              Allow dragging an item to an other moment in time
+ *                           {Boolean} editable.updateGroup
+ *                              Allow dragging an item to an other group
+ *                           {Boolean} editable.add
+ *                              Allow creating new items on double tap
+ *                           {Boolean} editable.remove
+ *                              Allow removing items by clicking the delete button
+ *                              top right of a selected item.
+ *                           {Function(item: Item, callback: Function)} onAdd
+ *                              Callback function triggered when an item is about to be added:
+ *                              when the user double taps an empty space in the Timeline.
+ *                           {Function(item: Item, callback: Function)} onUpdate
+ *                              Callback function fired when an item is about to be updated.
+ *                              This function typically has to show a dialog where the user
+ *                              change the item. If not implemented, nothing happens.
+ *                           {Function(item: Item, callback: Function)} onMove
+ *                              Fired when an item has been moved. If not implemented,
+ *                              the move action will be accepted.
+ *                           {Function(item: Item, callback: Function)} onRemove
+ *                              Fired when an item is about to be deleted.
+ *                              If not implemented, the item will be always removed.
  */
-ItemSet.prototype.setOptions = function setOptions(options) {
-  Component.prototype.setOptions.call(this, options);
+ItemSet.prototype.setOptions = function(options) {
+  if (options) {
+    // copy all options that we know
+    var fields = ['type', 'align', 'orientation', 'padding', 'stack', 'selectable', 'groupOrder'];
+    util.selectiveExtend(fields, this.options, options);
+
+    if ('margin' in options) {
+      if (typeof options.margin === 'number') {
+        this.options.margin.axis = options.margin;
+        this.options.margin.item = options.margin;
+      }
+      else if (typeof options.margin === 'object'){
+        util.selectiveExtend(['axis', 'item'], this.options.margin, options.margin);
+      }
+    }
+
+    if ('editable' in options) {
+      if (typeof options.editable === 'boolean') {
+        this.options.editable.updateTime  = options.editable;
+        this.options.editable.updateGroup = options.editable;
+        this.options.editable.add         = options.editable;
+        this.options.editable.remove      = options.editable;
+      }
+      else if (typeof options.editable === 'object') {
+        util.selectiveExtend(['updateTime', 'updateGroup', 'add', 'remove'], this.options.editable, options.editable);
+      }
+    }
+
+    // callback functions
+    var addCallback = (function (name) {
+      if (name in options) {
+        var fn = options[name];
+        if (!(fn instanceof Function) || fn.length != 2) {
+          throw new Error('option ' + name + ' must be a function ' + name + '(item, callback)');
+        }
+        this.options[name] = fn;
+      }
+    }).bind(this);
+    ['onAdd', 'onUpdate', 'onRemove', 'onMove'].forEach(addCallback);
+
+    // force the itemSet to refresh: options like orientation and margins may be changed
+    this.markDirty();
+  }
 };
 
 /**
- * Mark the ItemSet dirty so it will refresh everything with next repaint
+ * Mark the ItemSet dirty so it will refresh everything with next redraw
  */
-ItemSet.prototype.markDirty = function markDirty() {
+ItemSet.prototype.markDirty = function() {
   this.groupIds = [];
   this.stackDirty = true;
 };
 
 /**
+ * Destroy the ItemSet
+ */
+ItemSet.prototype.destroy = function() {
+  this.hide();
+  this.setItems(null);
+  this.setGroups(null);
+
+  this.hammer = null;
+
+  this.body = null;
+  this.conversion = null;
+};
+
+/**
  * Hide the component from the DOM
  */
-ItemSet.prototype.hide = function hide() {
+ItemSet.prototype.hide = function() {
+  // remove the frame containing the items
+  if (this.dom.frame.parentNode) {
+    this.dom.frame.parentNode.removeChild(this.dom.frame);
+  }
+
   // remove the axis with dots
   if (this.dom.axis.parentNode) {
     this.dom.axis.parentNode.removeChild(this.dom.axis);
-  }
-
-  // remove the background with vertical lines
-  if (this.dom.background.parentNode) {
-    this.dom.background.parentNode.removeChild(this.dom.background);
   }
 
   // remove the labelset containing all group labels
@@ -4926,33 +7202,21 @@ ItemSet.prototype.hide = function hide() {
  * Show the component in the DOM (when not already visible).
  * @return {Boolean} changed
  */
-ItemSet.prototype.show = function show() {
-  // show axis with dots
-  if (!this.dom.axis.parentNode) {
-    this.axisPanel.frame.appendChild(this.dom.axis);
+ItemSet.prototype.show = function() {
+  // show frame containing the items
+  if (!this.dom.frame.parentNode) {
+    this.body.dom.center.appendChild(this.dom.frame);
   }
 
-  // show background with vertical lines
-  if (!this.dom.background.parentNode) {
-    this.backgroundPanel.frame.appendChild(this.dom.background);
+  // show axis with dots
+  if (!this.dom.axis.parentNode) {
+    this.body.dom.backgroundVertical.appendChild(this.dom.axis);
   }
 
   // show labelset containing labels
   if (!this.dom.labelSet.parentNode) {
-    this.sidePanel.frame.appendChild(this.dom.labelSet);
+    this.body.dom.left.appendChild(this.dom.labelSet);
   }
-};
-
-/**
- * Set range (start and end).
- * @param {Range | Object} range  A Range or an object containing start and end.
- */
-ItemSet.prototype.setRange = function setRange(range) {
-  if (!(range instanceof Range) && (!range || !range.start || !range.end)) {
-    throw new TypeError('Range must be an instance of Range, ' +
-        'or an object containing start and end.');
-  }
-  this.range = range;
 };
 
 /**
@@ -4962,7 +7226,7 @@ ItemSet.prototype.setRange = function setRange(range) {
  *                      selected. If ids is an empty array, all items will be
  *                      unselected.
  */
-ItemSet.prototype.setSelection = function setSelection(ids) {
+ItemSet.prototype.setSelection = function(ids) {
   var i, ii, id, item;
 
   if (ids) {
@@ -4994,7 +7258,7 @@ ItemSet.prototype.setSelection = function setSelection(ids) {
  * Get the selected items by their id
  * @return {Array} ids  The ids of the selected items
  */
-ItemSet.prototype.getSelection = function getSelection() {
+ItemSet.prototype.getSelection = function() {
   return this.selection.concat([]);
 };
 
@@ -5003,7 +7267,7 @@ ItemSet.prototype.getSelection = function getSelection() {
  * @param {String | Number} id
  * @private
  */
-ItemSet.prototype._deselect = function _deselect(id) {
+ItemSet.prototype._deselect = function(id) {
   var selection = this.selection;
   for (var i = 0, ii = selection.length; i < ii; i++) {
     if (selection[i] == id) { // non-strict comparison!
@@ -5014,50 +7278,34 @@ ItemSet.prototype._deselect = function _deselect(id) {
 };
 
 /**
- * Return the item sets frame
- * @returns {HTMLElement} frame
- */
-ItemSet.prototype.getFrame = function getFrame() {
-  return this.frame;
-};
-
-/**
  * Repaint the component
  * @return {boolean} Returns true if the component is resized
  */
-ItemSet.prototype.repaint = function repaint() {
+ItemSet.prototype.redraw = function() {
   var margin = this.options.margin,
-      range = this.range,
+      range = this.body.range,
       asSize = util.option.asSize,
-      asString = util.option.asString,
       options = this.options,
-      orientation = this.getOption('orientation'),
+      orientation = options.orientation,
       resized = false,
-      frame = this.frame;
+      frame = this.dom.frame,
+      editable = options.editable.updateTime || options.editable.updateGroup;
 
-  // TODO: document this feature to specify one margin for both item and axis distance
-  if (typeof margin === 'number') {
-    margin = {
-      item: margin,
-      axis: margin
-    };
-  }
-
-  // update className
-  frame.className = 'itemset' + (options.className ? (' ' + asString(options.className)) : '');
+  // update class name
+  frame.className = 'itemset' + (editable ? ' editable' : '');
 
   // reorder the groups (if needed)
   resized = this._orderGroups() || resized;
 
   // check whether zoomed (in that case we need to re-stack everything)
   // TODO: would be nicer to get this as a trigger from Range
-  var visibleInterval = this.range.end - this.range.start;
-  var zoomed = (visibleInterval != this.lastVisibleInterval) || (this.width != this.lastWidth);
+  var visibleInterval = range.end - range.start;
+  var zoomed = (visibleInterval != this.lastVisibleInterval) || (this.props.width != this.props.lastWidth);
   if (zoomed) this.stackDirty = true;
   this.lastVisibleInterval = visibleInterval;
-  this.lastWidth = this.width;
+  this.props.lastWidth = this.props.width;
 
-  // repaint all groups
+  // redraw all groups
   var restack = this.stackDirty,
       firstGroup = this._firstGroup(),
       firstMargin = {
@@ -5072,34 +7320,27 @@ ItemSet.prototype.repaint = function repaint() {
       minHeight = margin.axis + margin.item;
   util.forEach(this.groups, function (group) {
     var groupMargin = (group == firstGroup) ? firstMargin : nonFirstMargin;
-    resized = group.repaint(range, groupMargin, restack) || resized;
+    var groupResized = group.redraw(range, groupMargin, restack);
+    resized = groupResized || resized;
     height += group.height;
   });
   height = Math.max(height, minHeight);
   this.stackDirty = false;
 
-  // reposition frame
-  frame.style.left    = asSize(options.left, '');
-  frame.style.right   = asSize(options.right, '');
-  frame.style.top     = asSize((orientation == 'top') ? '0' : '');
-  frame.style.bottom  = asSize((orientation == 'top') ? '' : '0');
-  frame.style.width   = asSize(options.width, '100%');
+  // update frame height
   frame.style.height  = asSize(height);
-  //frame.style.height  = asSize('height' in options ? options.height : height); // TODO: reckon with height
 
   // calculate actual size and position
-  this.top = frame.offsetTop;
-  this.left = frame.offsetLeft;
-  this.width = frame.offsetWidth;
-  this.height = height;
+  this.props.top = frame.offsetTop;
+  this.props.left = frame.offsetLeft;
+  this.props.width = frame.offsetWidth;
+  this.props.height = height;
 
   // reposition axis
-  this.dom.axis.style.left   = asSize(options.left, '0');
-  this.dom.axis.style.right  = asSize(options.right, '');
-  this.dom.axis.style.width  = asSize(options.width, '100%');
-  this.dom.axis.style.height = asSize(0);
-  this.dom.axis.style.top    = asSize((orientation == 'top') ? '0' : '');
-  this.dom.axis.style.bottom = asSize((orientation == 'top') ? '' : '0');
+  this.dom.axis.style.top = asSize((orientation == 'top') ?
+      (this.body.domProps.top.height + this.body.domProps.border.top) :
+      (this.body.domProps.top.height + this.body.domProps.centerContainer.height));
+  this.dom.axis.style.left = this.body.domProps.border.left + 'px';
 
   // check if this component is resized
   resized = this._isResized() || resized;
@@ -5112,7 +7353,7 @@ ItemSet.prototype.repaint = function repaint() {
  * @return {Group | null} firstGroup
  * @private
  */
-ItemSet.prototype._firstGroup = function _firstGroup() {
+ItemSet.prototype._firstGroup = function() {
   var firstGroupIndex = (this.options.orientation == 'top') ? 0 : (this.groupIds.length - 1);
   var firstGroupId = this.groupIds[firstGroupIndex];
   var firstGroup = this.groups[firstGroupId] || this.groups[UNGROUPED];
@@ -5125,7 +7366,7 @@ ItemSet.prototype._firstGroup = function _firstGroup() {
  * there are no groups specified.
  * @protected
  */
-ItemSet.prototype._updateUngrouped = function _updateUngrouped() {
+ItemSet.prototype._updateUngrouped = function() {
   var ungrouped = this.groups[UNGROUPED];
 
   if (this.groupsData) {
@@ -5155,34 +7396,10 @@ ItemSet.prototype._updateUngrouped = function _updateUngrouped() {
 };
 
 /**
- * Get the foreground container element
- * @return {HTMLElement} foreground
- */
-ItemSet.prototype.getForeground = function getForeground() {
-  return this.dom.foreground;
-};
-
-/**
- * Get the background container element
- * @return {HTMLElement} background
- */
-ItemSet.prototype.getBackground = function getBackground() {
-  return this.dom.background;
-};
-
-/**
- * Get the axis container element
- * @return {HTMLElement} axis
- */
-ItemSet.prototype.getAxis = function getAxis() {
-  return this.dom.axis;
-};
-
-/**
  * Get the element for the labelset
  * @return {HTMLElement} labelSet
  */
-ItemSet.prototype.getLabelSet = function getLabelSet() {
+ItemSet.prototype.getLabelSet = function() {
   return this.dom.labelSet;
 };
 
@@ -5190,7 +7407,7 @@ ItemSet.prototype.getLabelSet = function getLabelSet() {
  * Set items
  * @param {vis.DataSet | null} items
  */
-ItemSet.prototype.setItems = function setItems(items) {
+ItemSet.prototype.setItems = function(items) {
   var me = this,
       ids,
       oldItemsData = this.itemsData;
@@ -5209,7 +7426,7 @@ ItemSet.prototype.setItems = function setItems(items) {
   if (oldItemsData) {
     // unsubscribe from old dataset
     util.forEach(this.itemListeners, function (callback, event) {
-      oldItemsData.unsubscribe(event, callback);
+      oldItemsData.off(event, callback);
     });
 
     // remove all drawn items
@@ -5237,7 +7454,7 @@ ItemSet.prototype.setItems = function setItems(items) {
  * Get the current items
  * @returns {vis.DataSet | null}
  */
-ItemSet.prototype.getItems = function getItems() {
+ItemSet.prototype.getItems = function() {
   return this.itemsData;
 };
 
@@ -5245,7 +7462,7 @@ ItemSet.prototype.getItems = function getItems() {
  * Set groups
  * @param {vis.DataSet} groups
  */
-ItemSet.prototype.setGroups = function setGroups(groups) {
+ItemSet.prototype.setGroups = function(groups) {
   var me = this,
       ids;
 
@@ -5258,7 +7475,7 @@ ItemSet.prototype.setGroups = function setGroups(groups) {
     // remove all drawn groups
     ids = this.groupsData.getIds();
     this.groupsData = null;
-    this._onRemoveGroups(ids); // note: this will cause a repaint
+    this._onRemoveGroups(ids); // note: this will cause a redraw
   }
 
   // replace the dataset
@@ -5290,14 +7507,14 @@ ItemSet.prototype.setGroups = function setGroups(groups) {
   // update the order of all items in each group
   this._order();
 
-  this.emit('change');
+  this.body.emitter.emit('change');
 };
 
 /**
  * Get the current groups
  * @returns {vis.DataSet | null} groups
  */
-ItemSet.prototype.getGroups = function getGroups() {
+ItemSet.prototype.getGroups = function() {
   return this.groupsData;
 };
 
@@ -5305,9 +7522,9 @@ ItemSet.prototype.getGroups = function getGroups() {
  * Remove an item by its id
  * @param {String | Number} id
  */
-ItemSet.prototype.removeItem = function removeItem (id) {
+ItemSet.prototype.removeItem = function(id) {
   var item = this.itemsData.get(id),
-      dataset = this._myDataSet();
+      dataset = this.itemsData.getDataSet();
 
   if (item) {
     // confirm deletion
@@ -5326,18 +7543,13 @@ ItemSet.prototype.removeItem = function removeItem (id) {
  * @param {Number[]} ids
  * @protected
  */
-ItemSet.prototype._onUpdate = function _onUpdate(ids) {
-  var me = this,
-      items = this.items,
-      itemOptions = this.itemOptions;
+ItemSet.prototype._onUpdate = function(ids) {
+  var me = this;
 
   ids.forEach(function (id) {
-    var itemData = me.itemsData.get(id),
-        item = items[id],
-        type = itemData.type ||
-            (itemData.start && itemData.end && 'range') ||
-            me.options.type ||
-            'box';
+    var itemData = me.itemsData.get(id, me.itemOptions),
+        item = me.items[id],
+        type = itemData.type || me.options.type || (itemData.end ? 'range' : 'box');
 
     var constructor = ItemSet.types[type];
 
@@ -5356,9 +7568,14 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
     if (!item) {
       // create item
       if (constructor) {
-        item = new constructor(itemData, me.options, itemOptions);
+        item = new constructor(itemData, me.conversion, me.options);
         item.id = id; // TODO: not so nice setting id afterwards
         me._addItem(item);
+      }
+      else if (type == 'rangeoverflow') {
+        // TODO: deprecated since version 2.1.0 (or 3.0.0?). cleanup some day
+        throw new TypeError('Item type "rangeoverflow" is deprecated. Use css styling instead: ' +
+            '.vis.timeline .item.range .content {overflow: visible;}');
       }
       else {
         throw new TypeError('Unknown item type "' + type + '"');
@@ -5367,8 +7584,8 @@ ItemSet.prototype._onUpdate = function _onUpdate(ids) {
   });
 
   this._order();
-  this.stackDirty = true; // force re-stacking of all items next repaint
-  this.emit('change');
+  this.stackDirty = true; // force re-stacking of all items next redraw
+  this.body.emitter.emit('change');
 };
 
 /**
@@ -5383,7 +7600,7 @@ ItemSet.prototype._onAdd = ItemSet.prototype._onUpdate;
  * @param {Number[]} ids
  * @protected
  */
-ItemSet.prototype._onRemove = function _onRemove(ids) {
+ItemSet.prototype._onRemove = function(ids) {
   var count = 0;
   var me = this;
   ids.forEach(function (id) {
@@ -5397,8 +7614,8 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
   if (count) {
     // update order
     this._order();
-    this.stackDirty = true; // force re-stacking of all items next repaint
-    this.emit('change');
+    this.stackDirty = true; // force re-stacking of all items next redraw
+    this.body.emitter.emit('change');
   }
 };
 
@@ -5406,7 +7623,7 @@ ItemSet.prototype._onRemove = function _onRemove(ids) {
  * Update the order of item in all groups
  * @private
  */
-ItemSet.prototype._order = function _order() {
+ItemSet.prototype._order = function() {
   // reorder the items in all groups
   // TODO: optimization: only reorder groups affected by the changed items
   util.forEach(this.groups, function (group) {
@@ -5419,7 +7636,7 @@ ItemSet.prototype._order = function _order() {
  * @param {Number[]} ids
  * @private
  */
-ItemSet.prototype._onUpdateGroups = function _onUpdateGroups(ids) {
+ItemSet.prototype._onUpdateGroups = function(ids) {
   this._onAddGroups(ids);
 };
 
@@ -5428,7 +7645,7 @@ ItemSet.prototype._onUpdateGroups = function _onUpdateGroups(ids) {
  * @param {Number[]} ids
  * @private
  */
-ItemSet.prototype._onAddGroups = function _onAddGroups(ids) {
+ItemSet.prototype._onAddGroups = function(ids) {
   var me = this;
 
   ids.forEach(function (id) {
@@ -5468,7 +7685,7 @@ ItemSet.prototype._onAddGroups = function _onAddGroups(ids) {
     }
   });
 
-  this.emit('change');
+  this.body.emitter.emit('change');
 };
 
 /**
@@ -5476,7 +7693,7 @@ ItemSet.prototype._onAddGroups = function _onAddGroups(ids) {
  * @param {Number[]} ids
  * @private
  */
-ItemSet.prototype._onRemoveGroups = function _onRemoveGroups(ids) {
+ItemSet.prototype._onRemoveGroups = function(ids) {
   var groups = this.groups;
   ids.forEach(function (id) {
     var group = groups[id];
@@ -5489,7 +7706,7 @@ ItemSet.prototype._onRemoveGroups = function _onRemoveGroups(ids) {
 
   this.markDirty();
 
-  this.emit('change');
+  this.body.emitter.emit('change');
 };
 
 /**
@@ -5532,7 +7749,7 @@ ItemSet.prototype._orderGroups = function () {
  * @param {Item} item
  * @private
  */
-ItemSet.prototype._addItem = function _addItem(item) {
+ItemSet.prototype._addItem = function(item) {
   this.items[item.id] = item;
 
   // add to group
@@ -5547,12 +7764,12 @@ ItemSet.prototype._addItem = function _addItem(item) {
  * @param {Object} itemData
  * @private
  */
-ItemSet.prototype._updateItem = function _updateItem(item, itemData) {
+ItemSet.prototype._updateItem = function(item, itemData) {
   var oldGroupId = item.data.group;
 
   item.data = itemData;
   if (item.displayed) {
-    item.repaint();
+    item.redraw();
   }
 
   // update group
@@ -5572,7 +7789,7 @@ ItemSet.prototype._updateItem = function _updateItem(item, itemData) {
  * @param {Item} item
  * @private
  */
-ItemSet.prototype._removeItem = function _removeItem(item) {
+ItemSet.prototype._removeItem = function(item) {
   // remove from DOM
   item.hide();
 
@@ -5595,7 +7812,7 @@ ItemSet.prototype._removeItem = function _removeItem(item) {
  * @returns {Array}
  * @private
  */
-ItemSet.prototype._constructByEndArray = function _constructByEndArray(array) {
+ItemSet.prototype._constructByEndArray = function(array) {
   var endArray = [];
 
   for (var i = 0; i < array.length; i++) {
@@ -5607,25 +7824,17 @@ ItemSet.prototype._constructByEndArray = function _constructByEndArray(array) {
 };
 
 /**
- * Get the width of the group labels
- * @return {Number} width
+ * Register the clicked item on touch, before dragStart is initiated.
+ *
+ * dragStart is initiated from a mousemove event, which can have left the item
+ * already resulting in an item == null
+ *
+ * @param {Event} event
+ * @private
  */
-ItemSet.prototype.getLabelsWidth = function getLabelsWidth() {
-  var width = 0;
-
-  util.forEach(this.groups, function (group) {
-    width = Math.max(width, group.getLabelWidth());
-  });
-
-  return width;
-};
-
-/**
- * Get the height of the itemsets background
- * @return {Number} height
- */
-ItemSet.prototype.getBackgroundHeight = function getBackgroundHeight() {
-  return this.height;
+ItemSet.prototype._onTouch = function (event) {
+  // store the touched item, used in _onDragStart
+  this.touchParams.item = ItemSet.itemFromTarget(event);
 };
 
 /**
@@ -5638,7 +7847,7 @@ ItemSet.prototype._onDragStart = function (event) {
     return;
   }
 
-  var item = ItemSet.itemFromTarget(event),
+  var item = this.touchParams.item || null,
       me = this,
       props;
 
@@ -5704,9 +7913,10 @@ ItemSet.prototype._onDragStart = function (event) {
  */
 ItemSet.prototype._onDrag = function (event) {
   if (this.touchParams.itemProps) {
-    var snap = this.options.snap || null,
+    var range = this.body.range,
+        snap = this.body.util.snap || null,
         deltaX = event.gesture.deltaX,
-        scale = (this.width / (this.range.end - this.range.start)),
+        scale = (this.props.width / (range.end - range.start)),
         offset = deltaX / scale;
 
     // move
@@ -5738,8 +7948,8 @@ ItemSet.prototype._onDrag = function (event) {
 
     // TODO: implement onMoving handler
 
-    this.stackDirty = true; // force re-stacking of all items next repaint
-    this.emit('change');
+    this.stackDirty = true; // force re-stacking of all items next redraw
+    this.body.emitter.emit('change');
 
     event.stopPropagation();
   }
@@ -5755,20 +7965,22 @@ ItemSet.prototype._onDragEnd = function (event) {
     // prepare a change set for the changed items
     var changes = [],
         me = this,
-        dataset = this._myDataSet();
+        dataset = this.itemsData.getDataSet();
 
     this.touchParams.itemProps.forEach(function (props) {
       var id = props.item.id,
-          itemData = me.itemsData.get(id);
+          itemData = me.itemsData.get(id, me.itemOptions);
 
       var changed = false;
       if ('start' in props.item.data) {
         changed = (props.start != props.item.data.start.valueOf());
-        itemData.start = util.convert(props.item.data.start, dataset.convert['start']);
+        itemData.start = util.convert(props.item.data.start,
+                dataset._options.type && dataset._options.type.start || 'Date');
       }
       if ('end' in props.item.data) {
         changed = changed  || (props.end != props.item.data.end.valueOf());
-        itemData.end = util.convert(props.item.data.end, dataset.convert['end']);
+        itemData.end = util.convert(props.item.data.end,
+                dataset._options.type && dataset._options.type.end || 'Date');
       }
       if ('group' in props.item.data) {
         changed = changed  || (props.group != props.item.data.group);
@@ -5780,7 +7992,7 @@ ItemSet.prototype._onDragEnd = function (event) {
         me.options.onMove(itemData, function (itemData) {
           if (itemData) {
             // apply changes
-            itemData[dataset.fieldId] = id; // ensure the item contains its id (can be undefined)
+            itemData[dataset._fieldId] = id; // ensure the item contains its id (can be undefined)
             changes.push(itemData);
           }
           else {
@@ -5788,8 +8000,8 @@ ItemSet.prototype._onDragEnd = function (event) {
             if ('start' in props) props.item.data.start = props.start;
             if ('end' in props)   props.item.data.end   = props.end;
 
-            me.stackDirty = true; // force re-stacking of all items next repaint
-            me.emit('change');
+            me.stackDirty = true; // force re-stacking of all items next redraw
+            me.body.emitter.emit('change');
           }
         });
       }
@@ -5806,12 +8018,136 @@ ItemSet.prototype._onDragEnd = function (event) {
 };
 
 /**
+ * Handle selecting/deselecting an item when tapping it
+ * @param {Event} event
+ * @private
+ */
+ItemSet.prototype._onSelectItem = function (event) {
+  if (!this.options.selectable) return;
+
+  var ctrlKey  = event.gesture.srcEvent && event.gesture.srcEvent.ctrlKey;
+  var shiftKey = event.gesture.srcEvent && event.gesture.srcEvent.shiftKey;
+  if (ctrlKey || shiftKey) {
+    this._onMultiSelectItem(event);
+    return;
+  }
+
+  var oldSelection = this.getSelection();
+
+  var item = ItemSet.itemFromTarget(event);
+  var selection = item ? [item.id] : [];
+  this.setSelection(selection);
+
+  var newSelection = this.getSelection();
+
+  // emit a select event,
+  // except when old selection is empty and new selection is still empty
+  if (newSelection.length > 0 || oldSelection.length > 0) {
+    this.body.emitter.emit('select', {
+      items: this.getSelection()
+    });
+  }
+
+  event.stopPropagation();
+};
+
+/**
+ * Handle creation and updates of an item on double tap
+ * @param event
+ * @private
+ */
+ItemSet.prototype._onAddItem = function (event) {
+  if (!this.options.selectable) return;
+  if (!this.options.editable.add) return;
+
+  var me = this,
+      snap = this.body.util.snap || null,
+      item = ItemSet.itemFromTarget(event);
+
+  if (item) {
+    // update item
+
+    // execute async handler to update the item (or cancel it)
+    var itemData = me.itemsData.get(item.id); // get a clone of the data from the dataset
+    this.options.onUpdate(itemData, function (itemData) {
+      if (itemData) {
+        me.itemsData.update(itemData);
+      }
+    });
+  }
+  else {
+    // add item
+    var xAbs = vis.util.getAbsoluteLeft(this.dom.frame);
+    var x = event.gesture.center.pageX - xAbs;
+    var start = this.body.util.toTime(x);
+    var newItem = {
+      start: snap ? snap(start) : start,
+      content: 'new item'
+    };
+
+    // when default type is a range, add a default end date to the new item
+    if (this.options.type === 'range') {
+      var end = this.body.util.toTime(x + this.props.width / 5);
+      newItem.end = snap ? snap(end) : end;
+    }
+
+    newItem[this.itemsData.fieldId] = util.randomUUID();
+
+    var group = ItemSet.groupFromTarget(event);
+    if (group) {
+      newItem.group = group.groupId;
+    }
+
+    // execute async handler to customize (or cancel) adding an item
+    this.options.onAdd(newItem, function (item) {
+      if (item) {
+        me.itemsData.add(newItem);
+        // TODO: need to trigger a redraw?
+      }
+    });
+  }
+};
+
+/**
+ * Handle selecting/deselecting multiple items when holding an item
+ * @param {Event} event
+ * @private
+ */
+ItemSet.prototype._onMultiSelectItem = function (event) {
+  if (!this.options.selectable) return;
+
+  var selection,
+      item = ItemSet.itemFromTarget(event);
+
+  if (item) {
+    // multi select items
+    selection = this.getSelection(); // current selection
+    var index = selection.indexOf(item.id);
+    if (index == -1) {
+      // item is not yet selected -> select it
+      selection.push(item.id);
+    }
+    else {
+      // item is already selected -> deselect it
+      selection.splice(index, 1);
+    }
+    this.setSelection(selection);
+
+    this.body.emitter.emit('select', {
+      items: this.getSelection()
+    });
+
+    event.stopPropagation();
+  }
+};
+
+/**
  * Find an item from an event target:
  * searches for the attribute 'timeline-item' in the event target's element tree
  * @param {Event} event
  * @return {Item | null} item
  */
-ItemSet.itemFromTarget = function itemFromTarget (event) {
+ItemSet.itemFromTarget = function(event) {
   var target = event.target;
   while (target) {
     if (target.hasOwnProperty('timeline-item')) {
@@ -5829,7 +8165,7 @@ ItemSet.itemFromTarget = function itemFromTarget (event) {
  * @param {Event} event
  * @return {Group | null} group
  */
-ItemSet.groupFromTarget = function groupFromTarget (event) {
+ItemSet.groupFromTarget = function(event) {
   var target = event.target;
   while (target) {
     if (target.hasOwnProperty('timeline-group')) {
@@ -5847,7 +8183,7 @@ ItemSet.groupFromTarget = function groupFromTarget (event) {
  * @param {Event} event
  * @return {ItemSet | null} item
  */
-ItemSet.itemSetFromTarget = function itemSetFromTarget (event) {
+ItemSet.itemSetFromTarget = function(event) {
   var target = event.target;
   while (target) {
     if (target.hasOwnProperty('timeline-itemset')) {
@@ -5859,34 +8195,23 @@ ItemSet.itemSetFromTarget = function itemSetFromTarget (event) {
   return null;
 };
 
-/**
- * Find the DataSet to which this ItemSet is connected
- * @returns {null | DataSet} dataset
- * @private
- */
-ItemSet.prototype._myDataSet = function _myDataSet() {
-  // find the root DataSet
-  var dataset = this.itemsData;
-  while (dataset instanceof DataView) {
-    dataset = dataset.data;
-  }
-  return dataset;
-};
+
 /**
  * @constructor Item
  * @param {Object} data             Object containing (optional) parameters type,
  *                                  start, end, content, group, className.
- * @param {Object} [options]        Options to set initial property values
- * @param {Object} [defaultOptions] default options
+ * @param {{toScreen: function, toTime: function}} conversion
+ *                                  Conversion functions from time to screen and vice versa
+ * @param {Object} options          Configuration options
  *                                  // TODO: describe available options
  */
-function Item (data, options, defaultOptions) {
+function Item (data, conversion, options) {
   this.id = null;
   this.parent = null;
   this.data = data;
   this.dom = null;
+  this.conversion = conversion || {};
   this.options = options || {};
-  this.defaultOptions = defaultOptions || {};
 
   this.selected = false;
   this.displayed = false;
@@ -5901,24 +8226,24 @@ function Item (data, options, defaultOptions) {
 /**
  * Select current item
  */
-Item.prototype.select = function select() {
+Item.prototype.select = function() {
   this.selected = true;
-  if (this.displayed) this.repaint();
+  if (this.displayed) this.redraw();
 };
 
 /**
  * Unselect current item
  */
-Item.prototype.unselect = function unselect() {
+Item.prototype.unselect = function() {
   this.selected = false;
-  if (this.displayed) this.repaint();
+  if (this.displayed) this.redraw();
 };
 
 /**
  * Set a parent for the item
  * @param {ItemSet | Group} parent
  */
-Item.prototype.setParent = function setParent(parent) {
+Item.prototype.setParent = function(parent) {
   if (this.displayed) {
     this.hide();
     this.parent = parent;
@@ -5936,7 +8261,7 @@ Item.prototype.setParent = function setParent(parent) {
  * @returns {{start: Number, end: Number}} range with a timestamp for start and end
  * @returns {boolean} True if visible
  */
-Item.prototype.isVisible = function isVisible (range) {
+Item.prototype.isVisible = function(range) {
   // Should be implemented by Item implementations
   return false;
 };
@@ -5945,7 +8270,7 @@ Item.prototype.isVisible = function isVisible (range) {
  * Show the Item in the DOM (when not already visible)
  * @return {Boolean} changed
  */
-Item.prototype.show = function show() {
+Item.prototype.show = function() {
   return false;
 };
 
@@ -5953,28 +8278,28 @@ Item.prototype.show = function show() {
  * Hide the Item from the DOM (when visible)
  * @return {Boolean} changed
  */
-Item.prototype.hide = function hide() {
+Item.prototype.hide = function() {
   return false;
 };
 
 /**
  * Repaint the item
  */
-Item.prototype.repaint = function repaint() {
+Item.prototype.redraw = function() {
   // should be implemented by the item
 };
 
 /**
  * Reposition the Item horizontally
  */
-Item.prototype.repositionX = function repositionX() {
+Item.prototype.repositionX = function() {
   // should be implemented by the item
 };
 
 /**
  * Reposition the Item vertically
  */
-Item.prototype.repositionY = function repositionY() {
+Item.prototype.repositionY = function() {
   // should be implemented by the item
 };
 
@@ -6016,11 +8341,12 @@ Item.prototype._repaintDeleteButton = function (anchor) {
  * @extends Item
  * @param {Object} data             Object containing parameters start
  *                                  content, className.
- * @param {Object} [options]        Options to set initial property values
- * @param {Object} [defaultOptions] default options
+ * @param {{toScreen: function, toTime: function}} conversion
+ *                                  Conversion functions from time to screen and vice versa
+ * @param {Object} [options]        Configuration options
  *                                  // TODO: describe available options
  */
-function ItemBox (data, options, defaultOptions) {
+function ItemBox (data, conversion, options) {
   this.props = {
     dot: {
       width: 0,
@@ -6039,17 +8365,17 @@ function ItemBox (data, options, defaultOptions) {
     }
   }
 
-  Item.call(this, data, options, defaultOptions);
+  Item.call(this, data, conversion, options);
 }
 
-ItemBox.prototype = new Item (null);
+ItemBox.prototype = new Item (null, null, null);
 
 /**
  * Check whether this item is visible inside given range
  * @returns {{start: Number, end: Number}} range with a timestamp for start and end
  * @returns {boolean} True if visible
  */
-ItemBox.prototype.isVisible = function isVisible (range) {
+ItemBox.prototype.isVisible = function(range) {
   // determine visibility
   // TODO: account for the real width of the item. Right now we just add 1/4 to the window
   var interval = (range.end - range.start) / 4;
@@ -6059,7 +8385,7 @@ ItemBox.prototype.isVisible = function isVisible (range) {
 /**
  * Repaint the item
  */
-ItemBox.prototype.repaint = function repaint() {
+ItemBox.prototype.redraw = function() {
   var dom = this.dom;
   if (!dom) {
     // create DOM
@@ -6088,21 +8414,21 @@ ItemBox.prototype.repaint = function repaint() {
 
   // append DOM to parent DOM
   if (!this.parent) {
-    throw new Error('Cannot repaint item: no parent attached');
+    throw new Error('Cannot redraw item: no parent attached');
   }
   if (!dom.box.parentNode) {
-    var foreground = this.parent.getForeground();
-    if (!foreground) throw new Error('Cannot repaint time axis: parent has no foreground container element');
+    var foreground = this.parent.dom.foreground;
+    if (!foreground) throw new Error('Cannot redraw time axis: parent has no foreground container element');
     foreground.appendChild(dom.box);
   }
   if (!dom.line.parentNode) {
-    var background = this.parent.getBackground();
-    if (!background) throw new Error('Cannot repaint time axis: parent has no background container element');
+    var background = this.parent.dom.background;
+    if (!background) throw new Error('Cannot redraw time axis: parent has no background container element');
     background.appendChild(dom.line);
   }
   if (!dom.dot.parentNode) {
-    var axis = this.parent.getAxis();
-    if (!background) throw new Error('Cannot repaint time axis: parent has no axis container element');
+    var axis = this.parent.dom.axis;
+    if (!background) throw new Error('Cannot redraw time axis: parent has no axis container element');
     axis.appendChild(dom.dot);
   }
   this.displayed = true;
@@ -6122,6 +8448,12 @@ ItemBox.prototype.repaint = function repaint() {
     }
 
     this.dirty = true;
+  }
+
+  // update title
+  if (this.data.title != this.title) {
+    dom.box.title = this.data.title;
+    this.title = this.data.title;
   }
 
   // update class
@@ -6154,16 +8486,16 @@ ItemBox.prototype.repaint = function repaint() {
  * Show the item in the DOM (when not already displayed). The items DOM will
  * be created when needed.
  */
-ItemBox.prototype.show = function show() {
+ItemBox.prototype.show = function() {
   if (!this.displayed) {
-    this.repaint();
+    this.redraw();
   }
 };
 
 /**
  * Hide the item from the DOM (when visible)
  */
-ItemBox.prototype.hide = function hide() {
+ItemBox.prototype.hide = function() {
   if (this.displayed) {
     var dom = this.dom;
 
@@ -6182,9 +8514,9 @@ ItemBox.prototype.hide = function hide() {
  * Reposition the item horizontally
  * @Override
  */
-ItemBox.prototype.repositionX = function repositionX() {
-  var start = this.defaultOptions.toScreen(this.data.start),
-      align = this.options.align || this.defaultOptions.align,
+ItemBox.prototype.repositionX = function() {
+  var start = this.conversion.toScreen(this.data.start),
+      align = this.options.align,
       left,
       box = this.dom.box,
       line = this.dom.line,
@@ -6216,27 +8548,26 @@ ItemBox.prototype.repositionX = function repositionX() {
  * Reposition the item vertically
  * @Override
  */
-ItemBox.prototype.repositionY = function repositionY () {
-  var orientation = this.options.orientation || this.defaultOptions.orientation,
+ItemBox.prototype.repositionY = function() {
+  var orientation = this.options.orientation,
       box = this.dom.box,
       line = this.dom.line,
       dot = this.dom.dot;
 
   if (orientation == 'top') {
-    box.style.top = (this.top || 0) + 'px';
-    box.style.bottom = '';
+    box.style.top     = (this.top || 0) + 'px';
 
-    line.style.top = '0';
-    line.style.bottom = '';
+    line.style.top    = '0';
     line.style.height = (this.parent.top + this.top + 1) + 'px';
+    line.style.bottom = '';
   }
   else { // orientation 'bottom'
-    box.style.top = '';
-    box.style.bottom = (this.top || 0) + 'px';
+    var itemSetHeight = this.parent.itemSet.props.height; // TODO: this is nasty
+    var lineHeight = itemSetHeight - this.parent.top - this.parent.height + this.top;
 
-    line.style.top = (this.parent.top + this.parent.height - this.top - 1) + 'px';
+    box.style.top     = (this.parent.height - this.top - this.height || 0) + 'px';
+    line.style.top    = (itemSetHeight - lineHeight) + 'px';
     line.style.bottom = '0';
-    line.style.height = '';
   }
 
   dot.style.top = (-this.props.dot.height / 2) + 'px';
@@ -6247,11 +8578,12 @@ ItemBox.prototype.repositionY = function repositionY () {
  * @extends Item
  * @param {Object} data             Object containing parameters start
  *                                  content, className.
- * @param {Object} [options]        Options to set initial property values
- * @param {Object} [defaultOptions] default options
+ * @param {{toScreen: function, toTime: function}} conversion
+ *                                  Conversion functions from time to screen and vice versa
+ * @param {Object} [options]        Configuration options
  *                                  // TODO: describe available options
  */
-function ItemPoint (data, options, defaultOptions) {
+function ItemPoint (data, conversion, options) {
   this.props = {
     dot: {
       top: 0,
@@ -6271,17 +8603,17 @@ function ItemPoint (data, options, defaultOptions) {
     }
   }
 
-  Item.call(this, data, options, defaultOptions);
+  Item.call(this, data, conversion, options);
 }
 
-ItemPoint.prototype = new Item (null);
+ItemPoint.prototype = new Item (null, null, null);
 
 /**
  * Check whether this item is visible inside given range
  * @returns {{start: Number, end: Number}} range with a timestamp for start and end
  * @returns {boolean} True if visible
  */
-ItemPoint.prototype.isVisible = function isVisible (range) {
+ItemPoint.prototype.isVisible = function(range) {
   // determine visibility
   // TODO: account for the real width of the item. Right now we just add 1/4 to the window
   var interval = (range.end - range.start) / 4;
@@ -6291,7 +8623,7 @@ ItemPoint.prototype.isVisible = function isVisible (range) {
 /**
  * Repaint the item
  */
-ItemPoint.prototype.repaint = function repaint() {
+ItemPoint.prototype.redraw = function() {
   var dom = this.dom;
   if (!dom) {
     // create DOM
@@ -6300,7 +8632,7 @@ ItemPoint.prototype.repaint = function repaint() {
 
     // background box
     dom.point = document.createElement('div');
-    // className is updated in repaint()
+    // className is updated in redraw()
 
     // contents box, right from the dot
     dom.content = document.createElement('div');
@@ -6317,12 +8649,12 @@ ItemPoint.prototype.repaint = function repaint() {
 
   // append DOM to parent DOM
   if (!this.parent) {
-    throw new Error('Cannot repaint item: no parent attached');
+    throw new Error('Cannot redraw item: no parent attached');
   }
   if (!dom.point.parentNode) {
-    var foreground = this.parent.getForeground();
+    var foreground = this.parent.dom.foreground;
     if (!foreground) {
-      throw new Error('Cannot repaint time axis: parent has no foreground container element');
+      throw new Error('Cannot redraw time axis: parent has no foreground container element');
     }
     foreground.appendChild(dom.point);
   }
@@ -6343,6 +8675,12 @@ ItemPoint.prototype.repaint = function repaint() {
     }
 
     this.dirty = true;
+  }
+
+  // update title
+  if (this.data.title != this.title) {
+    dom.point.title = this.data.title;
+    this.title = this.data.title;
   }
 
   // update class
@@ -6381,16 +8719,16 @@ ItemPoint.prototype.repaint = function repaint() {
  * Show the item in the DOM (when not already visible). The items DOM will
  * be created when needed.
  */
-ItemPoint.prototype.show = function show() {
+ItemPoint.prototype.show = function() {
   if (!this.displayed) {
-    this.repaint();
+    this.redraw();
   }
 };
 
 /**
  * Hide the item from the DOM (when visible)
  */
-ItemPoint.prototype.hide = function hide() {
+ItemPoint.prototype.hide = function() {
   if (this.displayed) {
     if (this.dom.point.parentNode) {
       this.dom.point.parentNode.removeChild(this.dom.point);
@@ -6407,8 +8745,8 @@ ItemPoint.prototype.hide = function hide() {
  * Reposition the item horizontally
  * @Override
  */
-ItemPoint.prototype.repositionX = function repositionX() {
-  var start = this.defaultOptions.toScreen(this.data.start);
+ItemPoint.prototype.repositionX = function() {
+  var start = this.conversion.toScreen(this.data.start);
 
   this.left = start - this.props.dot.width;
 
@@ -6420,17 +8758,15 @@ ItemPoint.prototype.repositionX = function repositionX() {
  * Reposition the item vertically
  * @Override
  */
-ItemPoint.prototype.repositionY = function repositionY () {
-  var orientation = this.options.orientation || this.defaultOptions.orientation,
+ItemPoint.prototype.repositionY = function() {
+  var orientation = this.options.orientation,
       point = this.dom.point;
 
   if (orientation == 'top') {
     point.style.top = this.top + 'px';
-    point.style.bottom = '';
   }
   else {
-    point.style.top = '';
-    point.style.bottom = this.top + 'px';
+    point.style.top = (this.parent.height - this.top - this.height) + 'px';
   }
 };
 
@@ -6439,16 +8775,18 @@ ItemPoint.prototype.repositionY = function repositionY () {
  * @extends Item
  * @param {Object} data             Object containing parameters start, end
  *                                  content, className.
- * @param {Object} [options]        Options to set initial property values
- * @param {Object} [defaultOptions] default options
- *                                  // TODO: describe available options
+ * @param {{toScreen: function, toTime: function}} conversion
+ *                                  Conversion functions from time to screen and vice versa
+ * @param {Object} [options]        Configuration options
+ *                                  // TODO: describe options
  */
-function ItemRange (data, options, defaultOptions) {
+function ItemRange (data, conversion, options) {
   this.props = {
     content: {
       width: 0
     }
   };
+  this.overflow = false; // if contents can overflow (css styling), this flag is set to true
 
   // validate data
   if (data) {
@@ -6460,10 +8798,10 @@ function ItemRange (data, options, defaultOptions) {
     }
   }
 
-  Item.call(this, data, options, defaultOptions);
+  Item.call(this, data, conversion, options);
 }
 
-ItemRange.prototype = new Item (null);
+ItemRange.prototype = new Item (null, null, null);
 
 ItemRange.prototype.baseClassName = 'item range';
 
@@ -6472,7 +8810,7 @@ ItemRange.prototype.baseClassName = 'item range';
  * @returns {{start: Number, end: Number}} range with a timestamp for start and end
  * @returns {boolean} True if visible
  */
-ItemRange.prototype.isVisible = function isVisible (range) {
+ItemRange.prototype.isVisible = function(range) {
   // determine visibility
   return (this.data.start < range.end) && (this.data.end > range.start);
 };
@@ -6480,7 +8818,7 @@ ItemRange.prototype.isVisible = function isVisible (range) {
 /**
  * Repaint the item
  */
-ItemRange.prototype.repaint = function repaint() {
+ItemRange.prototype.redraw = function() {
   var dom = this.dom;
   if (!dom) {
     // create DOM
@@ -6489,7 +8827,7 @@ ItemRange.prototype.repaint = function repaint() {
 
       // background box
     dom.box = document.createElement('div');
-    // className is updated in repaint()
+    // className is updated in redraw()
 
     // contents box
     dom.content = document.createElement('div');
@@ -6502,12 +8840,12 @@ ItemRange.prototype.repaint = function repaint() {
 
   // append DOM to parent DOM
   if (!this.parent) {
-    throw new Error('Cannot repaint item: no parent attached');
+    throw new Error('Cannot redraw item: no parent attached');
   }
   if (!dom.box.parentNode) {
-    var foreground = this.parent.getForeground();
+    var foreground = this.parent.dom.foreground;
     if (!foreground) {
-      throw new Error('Cannot repaint time axis: parent has no foreground container element');
+      throw new Error('Cannot redraw time axis: parent has no foreground container element');
     }
     foreground.appendChild(dom.box);
   }
@@ -6530,6 +8868,12 @@ ItemRange.prototype.repaint = function repaint() {
     this.dirty = true;
   }
 
+  // update title
+  if (this.data.title != this.title) {
+    dom.box.title = this.data.title;
+    this.title = this.data.title;
+  }
+
   // update class
   var className = (this.data.className ? (' ' + this.data.className) : '') +
       (this.selected ? ' selected' : '');
@@ -6542,6 +8886,9 @@ ItemRange.prototype.repaint = function repaint() {
 
   // recalculate size
   if (this.dirty) {
+    // determine from css whether this box has overflow
+    this.overflow = window.getComputedStyle(dom.content).overflow !== 'hidden';
+
     this.props.content.width = this.dom.content.offsetWidth;
     this.height = this.dom.box.offsetHeight;
 
@@ -6557,9 +8904,9 @@ ItemRange.prototype.repaint = function repaint() {
  * Show the item in the DOM (when not already visible). The items DOM will
  * be created when needed.
  */
-ItemRange.prototype.show = function show() {
+ItemRange.prototype.show = function() {
   if (!this.displayed) {
-    this.repaint();
+    this.redraw();
   }
 };
 
@@ -6567,7 +8914,7 @@ ItemRange.prototype.show = function show() {
  * Hide the item from the DOM (when visible)
  * @return {Boolean} changed
  */
-ItemRange.prototype.hide = function hide() {
+ItemRange.prototype.hide = function() {
   if (this.displayed) {
     var box = this.dom.box;
 
@@ -6586,12 +8933,13 @@ ItemRange.prototype.hide = function hide() {
  * Reposition the item horizontally
  * @Override
  */
-ItemRange.prototype.repositionX = function repositionX() {
+// TODO: delete the old function
+ItemRange.prototype.repositionX = function() {
   var props = this.props,
       parentWidth = this.parent.width,
-      start = this.defaultOptions.toScreen(this.data.start),
-      end = this.defaultOptions.toScreen(this.data.end),
-      padding = 'padding' in this.options ? this.options.padding : this.defaultOptions.padding,
+      start = this.conversion.toScreen(this.data.start),
+      end = this.conversion.toScreen(this.data.end),
+      padding = this.options.padding,
       contentLeft;
 
   // limit the width of the this, as browsers cannot draw very wide divs
@@ -6601,22 +8949,35 @@ ItemRange.prototype.repositionX = function repositionX() {
   if (end > 2 * parentWidth) {
     end = 2 * parentWidth;
   }
+  var boxWidth = Math.max(end - start, 1);
 
-  // when range exceeds left of the window, position the contents at the left of the visible area
-  if (start < 0) {
-    contentLeft = Math.min(-start,
-        (end - start - props.content.width - 2 * padding));
-    // TODO: remove the need for options.padding. it's terrible.
-  }
-  else {
-    contentLeft = 0;
-  }
+  if (this.overflow) {
+    // when range exceeds left of the window, position the contents at the left of the visible area
+    contentLeft = Math.max(-start, 0);
 
-  this.left = start;
-  this.width = Math.max(end - start, 1);
+    this.left = start;
+    this.width = boxWidth + this.props.content.width;
+    // Note: The calculation of width is an optimistic calculation, giving
+    //       a width which will not change when moving the Timeline
+    //       So no restacking needed, which is nicer for the eye;
+  }
+  else { // no overflow
+    // when range exceeds left of the window, position the contents at the left of the visible area
+    if (start < 0) {
+      contentLeft = Math.min(-start,
+          (end - start - props.content.width - 2 * padding));
+      // TODO: remove the need for options.padding. it's terrible.
+    }
+    else {
+      contentLeft = 0;
+    }
+
+    this.left = start;
+    this.width = boxWidth;
+  }
 
   this.dom.box.style.left = this.left + 'px';
-  this.dom.box.style.width = this.width + 'px';
+  this.dom.box.style.width = boxWidth + 'px';
   this.dom.content.style.left = contentLeft + 'px';
 };
 
@@ -6624,17 +8985,15 @@ ItemRange.prototype.repositionX = function repositionX() {
  * Reposition the item vertically
  * @Override
  */
-ItemRange.prototype.repositionY = function repositionY() {
-  var orientation = this.options.orientation || this.defaultOptions.orientation,
+ItemRange.prototype.repositionY = function() {
+  var orientation = this.options.orientation,
       box = this.dom.box;
 
   if (orientation == 'top') {
     box.style.top = this.top + 'px';
-    box.style.bottom = '';
   }
   else {
-    box.style.top = '';
-    box.style.bottom = this.top + 'px';
+    box.style.top = (this.parent.height - this.top - this.height) + 'px';
   }
 };
 
@@ -6699,64 +9058,6 @@ ItemRange.prototype._repaintDragRight = function () {
 };
 
 /**
- * @constructor ItemRangeOverflow
- * @extends ItemRange
- * @param {Object} data             Object containing parameters start, end
- *                                  content, className.
- * @param {Object} [options]        Options to set initial property values
- * @param {Object} [defaultOptions] default options
- *                                  // TODO: describe available options
- */
-function ItemRangeOverflow (data, options, defaultOptions) {
-  this.props = {
-    content: {
-      left: 0,
-      width: 0
-    }
-  };
-
-  ItemRange.call(this, data, options, defaultOptions);
-}
-
-ItemRangeOverflow.prototype = new ItemRange (null);
-
-ItemRangeOverflow.prototype.baseClassName = 'item rangeoverflow';
-
-/**
- * Reposition the item horizontally
- * @Override
- */
-ItemRangeOverflow.prototype.repositionX = function repositionX() {
-  var parentWidth = this.parent.width,
-      start = this.defaultOptions.toScreen(this.data.start),
-      end = this.defaultOptions.toScreen(this.data.end),
-      padding = 'padding' in this.options ? this.options.padding : this.defaultOptions.padding,
-      contentLeft;
-
-  // limit the width of the this, as browsers cannot draw very wide divs
-  if (start < -parentWidth) {
-    start = -parentWidth;
-  }
-  if (end > 2 * parentWidth) {
-    end = 2 * parentWidth;
-  }
-
-  // when range exceeds left of the window, position the contents at the left of the visible area
-  contentLeft = Math.max(-start, 0);
-
-  this.left = start;
-  var boxWidth = Math.max(end - start, 1);
-  this.width = boxWidth + this.props.content.width;
-  // Note: The calculation of width is an optimistic calculation, giving
-  //       a width which will not change when moving the Timeline
-  //       So no restacking needed, which is nicer for the eye
-
-  this.dom.box.style.left = this.left + 'px';
-  this.dom.box.style.width = boxWidth + 'px';
-  this.dom.content.style.left = contentLeft + 'px';
-};
-
-/**
  * @constructor Group
  * @param {Number | String} groupId
  * @param {Object} data
@@ -6774,6 +9075,7 @@ function Group (groupId, data, itemSet) {
       height: 0
     }
   };
+  this.className = null;
 
   this.items = {};        // items filtered by groupId of this group
   this.visibleItems = []; // items currently visible in window
@@ -6807,8 +9109,10 @@ Group.prototype._create = function() {
   this.dom.foreground = foreground;
 
   this.dom.background = document.createElement('div');
+  this.dom.background.className = 'group';
 
   this.dom.axis = document.createElement('div');
+  this.dom.axis.className = 'group';
 
   // create a hidden marker to detect when the Timelines container is attached
   // to the DOM, or the style of a parent of the Timeline is changed from
@@ -6823,7 +9127,7 @@ Group.prototype._create = function() {
  * Set the group data for this group
  * @param {Object} data   Group data, can contain properties content and className
  */
-Group.prototype.setData = function setData(data) {
+Group.prototype.setData = function(data) {
   // update contents
   var content = data && data.content;
   if (content instanceof Element) {
@@ -6836,42 +9140,37 @@ Group.prototype.setData = function setData(data) {
     this.dom.inner.innerHTML = this.groupId;
   }
 
-  // update className
-  var className = data && data.className;
-  if (className) {
-    util.addClassName(this.dom.label, className);
+  // update title
+  this.dom.label.title = data && data.title || '';
+
+  if (!this.dom.inner.firstChild) {
+    util.addClassName(this.dom.inner, 'hidden');
   }
-};
+  else {
+    util.removeClassName(this.dom.inner, 'hidden');
+  }
 
-/**
- * Get the foreground container element
- * @return {HTMLElement} foreground
- */
-Group.prototype.getForeground = function getForeground() {
-  return this.dom.foreground;
-};
-
-/**
- * Get the background container element
- * @return {HTMLElement} background
- */
-Group.prototype.getBackground = function getBackground() {
-  return this.dom.background;
-};
-
-/**
- * Get the axis container element
- * @return {HTMLElement} axis
- */
-Group.prototype.getAxis = function getAxis() {
-  return this.dom.axis;
+  // update className
+  var className = data && data.className || null;
+  if (className != this.className) {
+    if (this.className) {
+      util.removeClassName(this.dom.label, className);
+      util.removeClassName(this.dom.foreground, className);
+      util.removeClassName(this.dom.background, className);
+      util.removeClassName(this.dom.axis, className);
+    }
+    util.addClassName(this.dom.label, className);
+    util.addClassName(this.dom.foreground, className);
+    util.addClassName(this.dom.background, className);
+    util.addClassName(this.dom.axis, className);
+  }
 };
 
 /**
  * Get the width of the group label
  * @return {number} width
  */
-Group.prototype.getLabelWidth = function getLabelWidth() {
+Group.prototype.getLabelWidth = function() {
   return this.props.label.width;
 };
 
@@ -6883,7 +9182,7 @@ Group.prototype.getLabelWidth = function getLabelWidth() {
  * @param {boolean} [restack=false]  Force restacking of all items
  * @return {boolean} Returns true if the group is resized
  */
-Group.prototype.repaint = function repaint(range, margin, restack) {
+Group.prototype.redraw = function(range, margin, restack) {
   var resized = false;
 
   this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
@@ -6896,7 +9195,7 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
 
     util.forEach(this.items, function (item) {
       item.dirty = true;
-      if (item.displayed) item.repaint();
+      if (item.displayed) item.redraw();
     });
 
     restack = true;
@@ -6909,10 +9208,6 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
   else { // no stacking
     stack.nostack(this.visibleItems, margin);
   }
-  for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
-    var item = this.visibleItems[i];
-    item.repositionY();
-  }
 
   // recalculate the height of the group
   var height;
@@ -6924,7 +9219,15 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
       min = Math.min(min, item.top);
       max = Math.max(max, (item.top + item.height));
     });
-    height = (max - min) + margin.axis + margin.item;
+    if (min > margin.axis) {
+      // there is an empty gap between the lowest item and the axis
+      var offset = min - margin.axis;
+      max -= offset;
+      util.forEach(visibleItems, function (item) {
+        item.top -= offset;
+      });
+    }
+    height = max + margin.item / 2;
   }
   else {
     height = margin.axis + margin.item;
@@ -6943,8 +9246,15 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
   resized = util.updateProperty(this.props.label, 'height', this.dom.inner.clientHeight) || resized;
 
   // apply new height
-  foreground.style.height  = height + 'px';
+  this.dom.background.style.height  = height + 'px';
+  this.dom.foreground.style.height  = height + 'px';
   this.dom.label.style.height = height + 'px';
+
+  // update vertical position of items after they are re-stacked and the height of the group is calculated
+  for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
+    var item = this.visibleItems[i];
+    item.repositionY();
+  }
 
   return resized;
 };
@@ -6952,28 +9262,28 @@ Group.prototype.repaint = function repaint(range, margin, restack) {
 /**
  * Show this group: attach to the DOM
  */
-Group.prototype.show = function show() {
+Group.prototype.show = function() {
   if (!this.dom.label.parentNode) {
-    this.itemSet.getLabelSet().appendChild(this.dom.label);
+    this.itemSet.dom.labelSet.appendChild(this.dom.label);
   }
 
   if (!this.dom.foreground.parentNode) {
-    this.itemSet.getForeground().appendChild(this.dom.foreground);
+    this.itemSet.dom.foreground.appendChild(this.dom.foreground);
   }
 
   if (!this.dom.background.parentNode) {
-    this.itemSet.getBackground().appendChild(this.dom.background);
+    this.itemSet.dom.background.appendChild(this.dom.background);
   }
 
   if (!this.dom.axis.parentNode) {
-    this.itemSet.getAxis().appendChild(this.dom.axis);
+    this.itemSet.dom.axis.appendChild(this.dom.axis);
   }
 };
 
 /**
  * Hide this group: remove from the DOM
  */
-Group.prototype.hide = function hide() {
+Group.prototype.hide = function() {
   var label = this.dom.label;
   if (label.parentNode) {
     label.parentNode.removeChild(label);
@@ -6999,12 +9309,12 @@ Group.prototype.hide = function hide() {
  * Add an item to the group
  * @param {Item} item
  */
-Group.prototype.add = function add(item) {
+Group.prototype.add = function(item) {
   this.items[item.id] = item;
   item.setParent(this);
 
   if (item instanceof ItemRange && this.visibleItems.indexOf(item) == -1) {
-    var range = this.itemSet.range; // TODO: not nice accessing the range like this
+    var range = this.itemSet.body.range; // TODO: not nice accessing the range like this
     this._checkIfVisible(item, this.visibleItems, range);
   }
 };
@@ -7013,7 +9323,7 @@ Group.prototype.add = function add(item) {
  * Remove an item from the group
  * @param {Item} item
  */
-Group.prototype.remove = function remove(item) {
+Group.prototype.remove = function(item) {
   delete this.items[item.id];
   item.setParent(this.itemSet);
 
@@ -7028,14 +9338,14 @@ Group.prototype.remove = function remove(item) {
  * Remove an item from the corresponding DataSet
  * @param {Item} item
  */
-Group.prototype.removeFromDataSet = function removeFromDataSet(item) {
+Group.prototype.removeFromDataSet = function(item) {
   this.itemSet.removeItem(item.id);
 };
 
 /**
  * Reorder the items
  */
-Group.prototype.order = function order() {
+Group.prototype.order = function() {
   var array = util.toArray(this.items);
   this.orderedItems.byStart = array;
   this.orderedItems.byEnd = this._constructByEndArray(array);
@@ -7050,7 +9360,7 @@ Group.prototype.order = function order() {
  * @returns {ItemRange[]}
  * @private
  */
-Group.prototype._constructByEndArray = function _constructByEndArray(array) {
+Group.prototype._constructByEndArray = function(array) {
   var endArray = [];
 
   for (var i = 0; i < array.length; i++) {
@@ -7069,7 +9379,7 @@ Group.prototype._constructByEndArray = function _constructByEndArray(array) {
  * @return {Item[]} visibleItems                            The new visible items.
  * @private
  */
-Group.prototype._updateVisibleItems = function _updateVisibleItems(orderedItems, visibleItems, range) {
+Group.prototype._updateVisibleItems = function(orderedItems, visibleItems, range) {
   var initialPosByStart,
       newVisibleItems = [],
       i;
@@ -7084,14 +9394,14 @@ Group.prototype._updateVisibleItems = function _updateVisibleItems(orderedItems,
 
   // If there were no visible items previously, use binarySearch to find a visible ItemPoint or ItemRange (based on startTime)
   if (newVisibleItems.length == 0) {
-    initialPosByStart = this._binarySearch(orderedItems, range, false);
+    initialPosByStart = util.binarySearch(orderedItems.byStart, range, 'data','start');
   }
   else {
     initialPosByStart = orderedItems.byStart.indexOf(newVisibleItems[0]);
   }
 
   // use visible search to find a visible ItemRange (only based on endTime)
-  var initialPosByEnd = this._binarySearch(orderedItems, range, true);
+  var initialPosByEnd = util.binarySearch(orderedItems.byEnd, range, 'data','end');
 
   // if we found a initial ID to use, trace it up and down until we meet an invisible item.
   if (initialPosByStart != -1) {
@@ -7116,72 +9426,7 @@ Group.prototype._updateVisibleItems = function _updateVisibleItems(orderedItems,
   return newVisibleItems;
 };
 
-/**
- * This function does a binary search for a visible item. The user can select either the this.orderedItems.byStart or .byEnd
- * arrays. This is done by giving a boolean value true if you want to use the byEnd.
- * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
- * if the time we selected (start or end) is within the current range).
- *
- * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the ItemRange that is
- * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
- * either the start OR end time has to be in the range.
- *
- * @param {{byStart: Item[], byEnd: Item[]}} orderedItems
- * @param {{start: number, end: number}} range
- * @param {Boolean} byEnd
- * @returns {number}
- * @private
- */
-Group.prototype._binarySearch = function _binarySearch(orderedItems, range, byEnd) {
-  var array = [];
-  var byTime = byEnd ? 'end' : 'start';
-  if (byEnd == true) {array = orderedItems.byEnd;  }
-  else               {array = orderedItems.byStart;}
 
-  var interval = range.end - range.start;
-
-  var found = false;
-  var low = 0;
-  var high = array.length;
-  var guess = Math.floor(0.5*(high+low));
-  var newGuess;
-
-  if (high == 0) {guess = -1;}
-  else if (high == 1) {
-    if ((array[guess].data[byTime] > range.start - interval) && (array[guess].data[byTime] < range.end)) {
-      guess =  0;
-    }
-    else {
-      guess = -1;
-    }
-  }
-  else {
-    high -= 1;
-    while (found == false) {
-      if ((array[guess].data[byTime] > range.start - interval) && (array[guess].data[byTime] < range.end)) {
-        found = true;
-      }
-      else {
-        if (array[guess].data[byTime] < range.start - interval) { // it is too small --> increase low
-          low = Math.floor(0.5*(high+low));
-        }
-        else {  // it is too big --> decrease high
-          high = Math.floor(0.5*(high+low));
-        }
-        newGuess = Math.floor(0.5*(high+low));
-        // not in list;
-        if (guess == newGuess) {
-          guess = -1;
-          found = true;
-        }
-        else {
-          guess = newGuess;
-        }
-      }
-    }
-  }
-  return guess;
-};
 
 /**
  * this function checks if an item is invisible. If it is NOT we make it visible
@@ -7193,7 +9438,7 @@ Group.prototype._binarySearch = function _binarySearch(orderedItems, range, byEn
  * @returns {boolean}
  * @private
  */
-Group.prototype._checkIfInvisible = function _checkIfInvisible(item, visibleItems, range) {
+Group.prototype._checkIfInvisible = function(item, visibleItems, range) {
   if (item.isVisible(range)) {
     if (!item.displayed) item.show();
     item.repositionX();
@@ -7218,7 +9463,7 @@ Group.prototype._checkIfInvisible = function _checkIfInvisible(item, visibleItem
  * @param {{start:number, end:number}} range
  * @private
  */
-Group.prototype._checkIfVisible = function _checkIfVisible(item, visibleItems, range) {
+Group.prototype._checkIfVisible = function(item, visibleItems, range) {
   if (item.isVisible(range)) {
     if (!item.displayed) item.show();
     // reposition item horizontally
@@ -7238,271 +9483,70 @@ Group.prototype._checkIfVisible = function _checkIfVisible(item, visibleItems, r
  * @constructor
  */
 function Timeline (container, items, options) {
-  // validate arguments
-  if (!container) throw new Error('No container element provided');
+  if (!(this instanceof Timeline)) {
+    throw new SyntaxError('Constructor must be called with the new operator');
+  }
 
   var me = this;
-  var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
   this.defaultOptions = {
-    orientation: 'bottom',
-    direction: 'horizontal', // 'horizontal' or 'vertical'
-    autoResize: true,
-    stack: true,
-
-    editable: {
-      updateTime: false,
-      updateGroup: false,
-      add: false,
-      remove: false
-    },
-
-    selectable: true,
-
     start: null,
-    end: null,
-    min: null,
-    max: null,
-    zoomMin: 10,                                // milliseconds
-    zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000, // milliseconds
-    // moveable: true, // TODO: option moveable
-    // zoomable: true, // TODO: option zoomable
+    end:   null,
 
-    showMinorLabels: true,
-    showMajorLabels: true,
-    showCurrentTime: false,
-    showCustomTime: false,
+    autoResize: true,
 
-    groupOrder: null,
-
+    orientation: 'bottom',
     width: null,
     height: null,
     maxHeight: null,
-    minHeight: null,
+    minHeight: null
+  };
+  this.options = util.deepExtend({}, this.defaultOptions);
 
-    type: 'box',
-    align: 'center',
-    margin: {
-      axis: 20,
-      item: 10
-    },
-    padding: 5,
+  // Create the DOM, props, and emitter
+  this._create(container);
 
-    onAdd: function (item, callback) {
-      callback(item);
+  // all components listed here will be repainted automatically
+  this.components = [];
+
+  this.body = {
+    dom: this.dom,
+    domProps: this.props,
+    emitter: {
+      on: this.on.bind(this),
+      off: this.off.bind(this),
+      emit: this.emit.bind(this)
     },
-    onUpdate: function (item, callback) {
-      callback(item);
-    },
-    onMove: function (item, callback) {
-      callback(item);
-    },
-    onRemove: function (item, callback) {
-      callback(item);
+    util: {
+      snap: null, // will be specified after TimeAxis is created
+      toScreen: me._toScreen.bind(me),
+      toGlobalScreen: me._toGlobalScreen.bind(me), // this refers to the root.width
+      toTime: me._toTime.bind(me),
+      toGlobalTime : me._toGlobalTime.bind(me)
     }
   };
 
-  this.options = {};
-  util.deepExtend(this.options, this.defaultOptions);
-  util.deepExtend(this.options, {
-    snap: null, // will be specified after timeaxis is created
-
-    toScreen: me._toScreen.bind(me),
-    toTime: me._toTime.bind(me)
-  });
-
-  // root panel
-  var rootOptions = util.extend(Object.create(this.options), {
-    height: function () {
-      if (me.options.height) {
-        // fixed height
-        return me.options.height;
-      }
-      else {
-        // auto height
-        // TODO: implement a css based solution to automatically have the right hight
-        return (me.timeAxis.height + me.contentPanel.height) + 'px';
-      }
-    }
-  });
-  this.rootPanel = new RootPanel(container, rootOptions);
-
-  // single select (or unselect) when tapping an item
-  this.rootPanel.on('tap',  this._onSelectItem.bind(this));
-
-  // multi select when holding mouse/touch, or on ctrl+click
-  this.rootPanel.on('hold', this._onMultiSelectItem.bind(this));
-
-  // add item on doubletap
-  this.rootPanel.on('doubletap', this._onAddItem.bind(this));
-
-  // side panel
-  var sideOptions = util.extend(Object.create(this.options), {
-    top: function () {
-      return (sideOptions.orientation == 'top') ? '0' : '';
-    },
-    bottom: function () {
-      return (sideOptions.orientation == 'top') ? '' : '0';
-    },
-    left: '0',
-    right: null,
-    height: '100%',
-    width: function () {
-      if (me.itemSet) {
-        return me.itemSet.getLabelsWidth();
-      }
-      else {
-        return 0;
-      }
-    },
-    className: function () {
-      return 'side' + (me.groupsData ? '' : ' hidden');
-    }
-  });
-  this.sidePanel = new Panel(sideOptions);
-  this.rootPanel.appendChild(this.sidePanel);
-
-  // main panel (contains time axis and itemsets)
-  var mainOptions = util.extend(Object.create(this.options), {
-    left: function () {
-      // we align left to enable a smooth resizing of the window
-      return me.sidePanel.width;
-    },
-    right: null,
-    height: '100%',
-    width: function () {
-      return me.rootPanel.width - me.sidePanel.width;
-    },
-    className: 'main'
-  });
-  this.mainPanel = new Panel(mainOptions);
-  this.rootPanel.appendChild(this.mainPanel);
-
   // range
-  // TODO: move range inside rootPanel?
-  var rangeOptions = Object.create(this.options);
-  this.range = new Range(this.rootPanel, this.mainPanel, rangeOptions);
-  this.range.setRange(
-      now.clone().add('days', -3).valueOf(),
-      now.clone().add('days', 4).valueOf()
-  );
-  this.range.on('rangechange', function (properties) {
-    me.rootPanel.repaint();
-    me.emit('rangechange', properties);
-  });
-  this.range.on('rangechanged', function (properties) {
-    me.rootPanel.repaint();
-    me.emit('rangechanged', properties);
-  });
+  this.range = new Range(this.body);
+  this.components.push(this.range);
+  this.body.range = this.range;
 
-  // panel with time axis
-  var timeAxisOptions = util.extend(Object.create(rootOptions), {
-    range: this.range,
-    left: null,
-    top: null,
-    width: null,
-    height: null
-  });
-  this.timeAxis = new TimeAxis(timeAxisOptions);
-  this.timeAxis.setRange(this.range);
-  this.options.snap = this.timeAxis.snap.bind(this.timeAxis);
-  this.mainPanel.appendChild(this.timeAxis);
-
-  // content panel (contains itemset(s))
-  var contentOptions = util.extend(Object.create(this.options), {
-    top: function () {
-      return (me.options.orientation == 'top') ? (me.timeAxis.height + 'px') : '';
-    },
-    bottom: function () {
-      return (me.options.orientation == 'top') ? '' : (me.timeAxis.height + 'px');
-    },
-    left: null,
-    right: null,
-    height: null,
-    width: null,
-    className: 'content'
-  });
-  this.contentPanel = new Panel(contentOptions);
-  this.mainPanel.appendChild(this.contentPanel);
-
-  // content panel (contains the vertical lines of box items)
-  var backgroundOptions = util.extend(Object.create(this.options), {
-    top: function () {
-      return (me.options.orientation == 'top') ? (me.timeAxis.height + 'px') : '';
-    },
-    bottom: function () {
-      return (me.options.orientation == 'top') ? '' : (me.timeAxis.height + 'px');
-    },
-    left: null,
-    right: null,
-    height: function () {
-      return me.contentPanel.height;
-    },
-    width: null,
-    className: 'background'
-  });
-  this.backgroundPanel = new Panel(backgroundOptions);
-  this.mainPanel.insertBefore(this.backgroundPanel, this.contentPanel);
-
-  // panel with axis holding the dots of item boxes
-  var axisPanelOptions = util.extend(Object.create(rootOptions), {
-    left: 0,
-    top: function () {
-      return (me.options.orientation == 'top') ? (me.timeAxis.height + 'px') : '';
-    },
-    bottom: function () {
-      return (me.options.orientation == 'top') ? '' : (me.timeAxis.height + 'px');
-    },
-    width: '100%',
-    height: 0,
-    className: 'axis'
-  });
-  this.axisPanel = new Panel(axisPanelOptions);
-  this.mainPanel.appendChild(this.axisPanel);
-
-  // content panel (contains itemset(s))
-  var sideContentOptions = util.extend(Object.create(this.options), {
-    top: function () {
-      return (me.options.orientation == 'top') ? (me.timeAxis.height + 'px') : '';
-    },
-    bottom: function () {
-      return (me.options.orientation == 'top') ? '' : (me.timeAxis.height + 'px');
-    },
-    left: null,
-    right: null,
-    height: null,
-    width: null,
-    className: 'side-content'
-  });
-  this.sideContentPanel = new Panel(sideContentOptions);
-  this.sidePanel.appendChild(this.sideContentPanel);
+  // time axis
+  this.timeAxis = new TimeAxis(this.body);
+  this.components.push(this.timeAxis);
+  this.body.util.snap = this.timeAxis.snap.bind(this.timeAxis);
 
   // current time bar
-  // Note: time bar will be attached in this.setOptions when selected
-  this.currentTime = new CurrentTime(this.range, rootOptions);
+  this.currentTime = new CurrentTime(this.body);
+  this.components.push(this.currentTime);
 
   // custom time bar
   // Note: time bar will be attached in this.setOptions when selected
-  this.customTime = new CustomTime(rootOptions);
-  this.customTime.on('timechange', function (time) {
-    me.emit('timechange', time);
-  });
-  this.customTime.on('timechanged', function (time) {
-    me.emit('timechanged', time);
-  });
+  this.customTime = new CustomTime(this.body);
+  this.components.push(this.customTime);
 
-  // itemset containing items and groups
-  var itemOptions = util.extend(Object.create(this.options), {
-    left: null,
-    right: null,
-    top: null,
-    bottom: null,
-    width: null,
-    height: null
-  });
-  this.itemSet = new ItemSet(this.backgroundPanel, this.axisPanel, this.sideContentPanel, itemOptions);
-  this.itemSet.setRange(this.range);
-  this.itemSet.on('change', me.rootPanel.repaint.bind(me.rootPanel));
-  this.contentPanel.appendChild(this.itemSet);
+  // item set
+  this.itemSet = new ItemSet(this.body);
+  this.components.push(this.itemSet);
 
   this.itemsData = null;      // DataSet
   this.groupsData = null;     // DataSet
@@ -7516,88 +9560,217 @@ function Timeline (container, items, options) {
   if (items) {
     this.setItems(items);
   }
+  else {
+    this.redraw();
+  }
 }
 
 // turn Timeline into an event emitter
 Emitter(Timeline.prototype);
 
 /**
- * Set options
- * @param {Object} options  TODO: describe the available options
+ * Create the main DOM for the Timeline: a root panel containing left, right,
+ * top, bottom, content, and background panel.
+ * @param {Element} container  The container element where the Timeline will
+ *                             be attached.
+ * @private
+ */
+Timeline.prototype._create = function (container) {
+  this.dom = {};
+
+  this.dom.root                 = document.createElement('div');
+  this.dom.background           = document.createElement('div');
+  this.dom.backgroundVertical   = document.createElement('div');
+  this.dom.backgroundHorizontal = document.createElement('div');
+  this.dom.centerContainer      = document.createElement('div');
+  this.dom.leftContainer        = document.createElement('div');
+  this.dom.rightContainer       = document.createElement('div');
+  this.dom.center               = document.createElement('div');
+  this.dom.left                 = document.createElement('div');
+  this.dom.right                = document.createElement('div');
+  this.dom.top                  = document.createElement('div');
+  this.dom.bottom               = document.createElement('div');
+  this.dom.shadowTop            = document.createElement('div');
+  this.dom.shadowBottom         = document.createElement('div');
+  this.dom.shadowTopLeft        = document.createElement('div');
+  this.dom.shadowBottomLeft     = document.createElement('div');
+  this.dom.shadowTopRight       = document.createElement('div');
+  this.dom.shadowBottomRight    = document.createElement('div');
+
+  this.dom.background.className           = 'vispanel background';
+  this.dom.backgroundVertical.className   = 'vispanel background vertical';
+  this.dom.backgroundHorizontal.className = 'vispanel background horizontal';
+  this.dom.centerContainer.className      = 'vispanel center';
+  this.dom.leftContainer.className        = 'vispanel left';
+  this.dom.rightContainer.className       = 'vispanel right';
+  this.dom.top.className                  = 'vispanel top';
+  this.dom.bottom.className               = 'vispanel bottom';
+  this.dom.left.className                 = 'content';
+  this.dom.center.className               = 'content';
+  this.dom.right.className                = 'content';
+  this.dom.shadowTop.className            = 'shadow top';
+  this.dom.shadowBottom.className         = 'shadow bottom';
+  this.dom.shadowTopLeft.className        = 'shadow top';
+  this.dom.shadowBottomLeft.className     = 'shadow bottom';
+  this.dom.shadowTopRight.className       = 'shadow top';
+  this.dom.shadowBottomRight.className    = 'shadow bottom';
+
+  this.dom.root.appendChild(this.dom.background);
+  this.dom.root.appendChild(this.dom.backgroundVertical);
+  this.dom.root.appendChild(this.dom.backgroundHorizontal);
+  this.dom.root.appendChild(this.dom.centerContainer);
+  this.dom.root.appendChild(this.dom.leftContainer);
+  this.dom.root.appendChild(this.dom.rightContainer);
+  this.dom.root.appendChild(this.dom.top);
+  this.dom.root.appendChild(this.dom.bottom);
+
+  this.dom.centerContainer.appendChild(this.dom.center);
+  this.dom.leftContainer.appendChild(this.dom.left);
+  this.dom.rightContainer.appendChild(this.dom.right);
+
+  this.dom.centerContainer.appendChild(this.dom.shadowTop);
+  this.dom.centerContainer.appendChild(this.dom.shadowBottom);
+  this.dom.leftContainer.appendChild(this.dom.shadowTopLeft);
+  this.dom.leftContainer.appendChild(this.dom.shadowBottomLeft);
+  this.dom.rightContainer.appendChild(this.dom.shadowTopRight);
+  this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
+
+  this.on('rangechange', this.redraw.bind(this));
+  this.on('change', this.redraw.bind(this));
+  this.on('touch', this._onTouch.bind(this));
+  this.on('pinch', this._onPinch.bind(this));
+  this.on('dragstart', this._onDragStart.bind(this));
+  this.on('drag', this._onDrag.bind(this));
+
+  // create event listeners for all interesting events, these events will be
+  // emitted via emitter
+  this.hammer = Hammer(this.dom.root, {
+    prevent_default: true
+  });
+  this.listeners = {};
+
+  var me = this;
+  var events = [
+    'touch', 'pinch',
+    'tap', 'doubletap', 'hold',
+    'dragstart', 'drag', 'dragend',
+    'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
+  ];
+  events.forEach(function (event) {
+    var listener = function () {
+      var args = [event].concat(Array.prototype.slice.call(arguments, 0));
+      me.emit.apply(me, args);
+    };
+    me.hammer.on(event, listener);
+    me.listeners[event] = listener;
+  });
+
+  // size properties of each of the panels
+  this.props = {
+    root: {},
+    background: {},
+    centerContainer: {},
+    leftContainer: {},
+    rightContainer: {},
+    center: {},
+    left: {},
+    right: {},
+    top: {},
+    bottom: {},
+    border: {},
+    scrollTop: 0,
+    scrollTopMin: 0
+  };
+  this.touch = {}; // store state information needed for touch events
+
+  // attach the root panel to the provided container
+  if (!container) throw new Error('No container provided');
+  container.appendChild(this.dom.root);
+};
+
+/**
+ * Destroy the Timeline, clean up all DOM elements and event listeners.
+ */
+Timeline.prototype.destroy = function () {
+  // unbind datasets
+  this.clear();
+
+  // remove all event listeners
+  this.off();
+
+  // stop checking for changed size
+  this._stopAutoResize();
+
+  // remove from DOM
+  if (this.dom.root.parentNode) {
+    this.dom.root.parentNode.removeChild(this.dom.root);
+  }
+  this.dom = null;
+
+  // cleanup hammer touch events
+  for (var event in this.listeners) {
+    if (this.listeners.hasOwnProperty(event)) {
+      delete this.listeners[event];
+    }
+  }
+  this.listeners = null;
+  this.hammer = null;
+
+  // give all components the opportunity to cleanup
+  this.components.forEach(function (component) {
+    component.destroy();
+  });
+
+  this.body = null;
+};
+
+/**
+ * Set options. Options will be passed to all components loaded in the Timeline.
+ * @param {Object} [options]
+ *                           {String} orientation
+ *                              Vertical orientation for the Timeline,
+ *                              can be 'bottom' (default) or 'top'.
+ *                           {String | Number} width
+ *                              Width for the timeline, a number in pixels or
+ *                              a css string like '1000px' or '75%'. '100%' by default.
+ *                           {String | Number} height
+ *                              Fixed height for the Timeline, a number in pixels or
+ *                              a css string like '400px' or '75%'. If undefined,
+ *                              The Timeline will automatically size such that
+ *                              its contents fit.
+ *                           {String | Number} minHeight
+ *                              Minimum height for the Timeline, a number in pixels or
+ *                              a css string like '400px' or '75%'.
+ *                           {String | Number} maxHeight
+ *                              Maximum height for the Timeline, a number in pixels or
+ *                              a css string like '400px' or '75%'.
+ *                           {Number | Date | String} start
+ *                              Start date for the visible window
+ *                           {Number | Date | String} end
+ *                              End date for the visible window
  */
 Timeline.prototype.setOptions = function (options) {
-  util.deepExtend(this.options, options);
+  if (options) {
+    // copy the known options
+    var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation'];
+    util.selectiveExtend(fields, this.options, options);
 
-  if ('editable' in options) {
-    var isBoolean = typeof options.editable === 'boolean';
-
-    this.options.editable = {
-      updateTime:  isBoolean ? options.editable : (options.editable.updateTime || false),
-      updateGroup: isBoolean ? options.editable : (options.editable.updateGroup || false),
-      add:         isBoolean ? options.editable : (options.editable.add || false),
-      remove:      isBoolean ? options.editable : (options.editable.remove || false)
-    };
+    // enable/disable autoResize
+    this._initAutoResize();
   }
 
-  // force update of range (apply new min/max etc.)
-  // both start and end are optional
-  this.range.setRange(options.start, options.end);
-
-  if ('editable' in options || 'selectable' in options) {
-    if (this.options.selectable) {
-      // force update of selection
-      this.setSelection(this.getSelection());
-    }
-    else {
-      // remove selection
-      this.setSelection([]);
-    }
-  }
-
-  // force the itemSet to refresh: options like orientation and margins may be changed
-  this.itemSet.markDirty();
-
-  // validate the callback functions
-  var validateCallback = (function (fn) {
-    if (!(this.options[fn] instanceof Function) || this.options[fn].length != 2) {
-      throw new Error('option ' + fn + ' must be a function ' + fn + '(item, callback)');
-    }
-  }).bind(this);
-  ['onAdd', 'onUpdate', 'onRemove', 'onMove'].forEach(validateCallback);
-
-  // add/remove the current time bar
-  if (this.options.showCurrentTime) {
-    if (!this.mainPanel.hasChild(this.currentTime)) {
-      this.mainPanel.appendChild(this.currentTime);
-      this.currentTime.start();
-    }
-  }
-  else {
-    if (this.mainPanel.hasChild(this.currentTime)) {
-      this.currentTime.stop();
-      this.mainPanel.removeChild(this.currentTime);
-    }
-  }
-
-  // add/remove the custom time bar
-  if (this.options.showCustomTime) {
-    if (!this.mainPanel.hasChild(this.customTime)) {
-      this.mainPanel.appendChild(this.customTime);
-    }
-  }
-  else {
-    if (this.mainPanel.hasChild(this.customTime)) {
-      this.mainPanel.removeChild(this.customTime);
-    }
-  }
+  // propagate options to all components
+  this.components.forEach(function (component) {
+    component.setOptions(options);
+  });
 
   // TODO: remove deprecation error one day (deprecated since version 0.8.0)
   if (options && options.order) {
     throw new Error('Option order is deprecated. There is no replacement for this feature.');
   }
 
-  // repaint everything
-  this.rootPanel.repaint();
+  // redraw everything
+  this.redraw();
 };
 
 /**
@@ -7642,7 +9815,7 @@ Timeline.prototype.setItems = function(items) {
   else {
     // turn an array into a dataset
     newDataSet = new DataSet(items, {
-      convert: {
+      type: {
         start: 'Date',
         end: 'Date'
       }
@@ -7651,13 +9824,13 @@ Timeline.prototype.setItems = function(items) {
 
   // set items
   this.itemsData = newDataSet;
-  this.itemSet.setItems(newDataSet);
+  this.itemSet && this.itemSet.setItems(newDataSet);
 
-  if (initialLoad && (this.options.start == undefined || this.options.end == undefined)) {
+  if (initialLoad && ('start' in this.options || 'end' in this.options)) {
     this.fit();
 
-    var start = (this.options.start != undefined) ? util.convert(this.options.start, 'Date') : null;
-    var end   = (this.options.end != undefined) ? util.convert(this.options.end, 'Date') : null;
+    var start = ('start' in this.options) ? util.convert(this.options.start, 'Date') : null;
+    var end   = ('end' in this.options)   ? util.convert(this.options.end, 'Date') : null;
 
     this.setWindow(start, end);
   }
@@ -7667,7 +9840,7 @@ Timeline.prototype.setItems = function(items) {
  * Set groups
  * @param {vis.DataSet | Array | google.visualization.DataTable} groups
  */
-Timeline.prototype.setGroups = function setGroups(groups) {
+Timeline.prototype.setGroups = function(groups) {
   // convert to type DataSet when needed
   var newDataSet;
   if (!groups) {
@@ -7695,7 +9868,7 @@ Timeline.prototype.setGroups = function setGroups(groups) {
  * @param {Object} [what]      Optionally specify what to clear. By default:
  *                             {items: true, groups: true, options: true}
  */
-Timeline.prototype.clear = function clear(what) {
+Timeline.prototype.clear = function(what) {
   // clear items
   if (!what || what.items) {
     this.setItems(null);
@@ -7706,16 +9879,20 @@ Timeline.prototype.clear = function clear(what) {
     this.setGroups(null);
   }
 
-  // clear options
+  // clear options of timeline and of each of the components
   if (!what || what.options) {
-    this.setOptions(this.defaultOptions);
+    this.components.forEach(function (component) {
+      component.setOptions(component.defaultOptions);
+    });
+
+    this.setOptions(this.defaultOptions); // this will also do a redraw
   }
 };
 
 /**
  * Set Timeline window such that it fits all items
  */
-Timeline.prototype.fit = function fit() {
+Timeline.prototype.fit = function() {
   // apply the data range as range
   var dataRange = this.getItemRange();
 
@@ -7746,29 +9923,31 @@ Timeline.prototype.fit = function fit() {
  *                                          When no minimum is found, min==null
  *                                          When no maximum is found, max==null
  */
-Timeline.prototype.getItemRange = function getItemRange() {
+Timeline.prototype.getItemRange = function() {
   // calculate min from start filed
-  var itemsData = this.itemsData,
+  var dataset = this.itemsData.getDataSet(),
       min = null,
       max = null;
 
-  if (itemsData) {
+  if (dataset) {
     // calculate the minimum value of the field 'start'
-    var minItem = itemsData.min('start');
-    min = minItem ? minItem.start.valueOf() : null;
+    var minItem = dataset.min('start');
+    min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
+    // Note: we convert first to Date and then to number because else
+    // a conversion from ISODate to Number will fail
 
     // calculate maximum value of fields 'start' and 'end'
-    var maxStartItem = itemsData.max('start');
+    var maxStartItem = dataset.max('start');
     if (maxStartItem) {
-      max = maxStartItem.start.valueOf();
+      max = util.convert(maxStartItem.start, 'Date').valueOf();
     }
-    var maxEndItem = itemsData.max('end');
+    var maxEndItem = dataset.max('end');
     if (maxEndItem) {
       if (max == null) {
-        max = maxEndItem.end.valueOf();
+        max = util.convert(maxEndItem.end, 'Date').valueOf();
       }
       else {
-        max = Math.max(max, maxEndItem.end.valueOf());
+        max = Math.max(max, util.convert(maxEndItem.end, 'Date').valueOf());
       }
     }
   }
@@ -7786,16 +9965,16 @@ Timeline.prototype.getItemRange = function getItemRange() {
  *                      selected. If ids is an empty array, all items will be
  *                      unselected.
  */
-Timeline.prototype.setSelection = function setSelection (ids) {
-  this.itemSet.setSelection(ids);
+Timeline.prototype.setSelection = function(ids) {
+  this.itemSet && this.itemSet.setSelection(ids);
 };
 
 /**
  * Get the selected items by their id
  * @return {Array} ids  The ids of the selected items
  */
-Timeline.prototype.getSelection = function getSelection() {
-  return this.itemSet.getSelection();
+Timeline.prototype.getSelection = function() {
+  return this.itemSet && this.itemSet.getSelection() || [];
 };
 
 /**
@@ -7811,7 +9990,7 @@ Timeline.prototype.getSelection = function getSelection() {
  * @param {Date | Number | String | Object} [start] Start date of visible window
  * @param {Date | Number | String} [end]   End date of visible window
  */
-Timeline.prototype.setWindow = function setWindow(start, end) {
+Timeline.prototype.setWindow = function(start, end) {
   if (arguments.length == 1) {
     var range = arguments[0];
     this.range.setRange(range.start, range.end);
@@ -7825,7 +10004,7 @@ Timeline.prototype.setWindow = function setWindow(start, end) {
  * Get the visible window
  * @return {{start: Date, end: Date}}   Visible range
  */
-Timeline.prototype.getWindow = function setWindow() {
+Timeline.prototype.getWindow = function() {
   var range = this.range.getRange();
   return {
     start: new Date(range.start),
@@ -7837,137 +10016,142 @@ Timeline.prototype.getWindow = function setWindow() {
  * Force a redraw of the Timeline. Can be useful to manually redraw when
  * option autoResize=false
  */
-Timeline.prototype.redraw = function redraw() {
-    this.rootPanel.repaint();
+Timeline.prototype.redraw = function() {
+  var resized = false,
+      options = this.options,
+      props = this.props,
+      dom = this.dom;
+
+  if (!dom) return; // when destroyed
+
+  // update class names
+  dom.root.className = 'vis timeline root ' + options.orientation;
+
+  // update root width and height options
+  dom.root.style.maxHeight = util.option.asSize(options.maxHeight, '');
+  dom.root.style.minHeight = util.option.asSize(options.minHeight, '');
+  dom.root.style.width = util.option.asSize(options.width, '');
+
+  // calculate border widths
+  props.border.left   = (dom.centerContainer.offsetWidth - dom.centerContainer.clientWidth) / 2;
+  props.border.right  = props.border.left;
+  props.border.top    = (dom.centerContainer.offsetHeight - dom.centerContainer.clientHeight) / 2;
+  props.border.bottom = props.border.top;
+  var borderRootHeight= dom.root.offsetHeight - dom.root.clientHeight;
+  var borderRootWidth = dom.root.offsetWidth - dom.root.clientWidth;
+
+  // calculate the heights. If any of the side panels is empty, we set the height to
+  // minus the border width, such that the border will be invisible
+  props.center.height = dom.center.offsetHeight;
+  props.left.height   = dom.left.offsetHeight;
+  props.right.height  = dom.right.offsetHeight;
+  props.top.height    = dom.top.clientHeight    || -props.border.top;
+  props.bottom.height = dom.bottom.clientHeight || -props.border.bottom;
+
+  // TODO: compensate borders when any of the panels is empty.
+
+  // apply auto height
+  // TODO: only calculate autoHeight when needed (else we cause an extra reflow/repaint of the DOM)
+  var contentHeight = Math.max(props.left.height, props.center.height, props.right.height);
+  var autoHeight = props.top.height + contentHeight + props.bottom.height +
+      borderRootHeight + props.border.top + props.border.bottom;
+  dom.root.style.height = util.option.asSize(options.height, autoHeight + 'px');
+
+  // calculate heights of the content panels
+  props.root.height = dom.root.offsetHeight;
+  props.background.height = props.root.height - borderRootHeight;
+  var containerHeight = props.root.height - props.top.height - props.bottom.height -
+      borderRootHeight;
+  props.centerContainer.height  = containerHeight;
+  props.leftContainer.height    = containerHeight;
+  props.rightContainer.height   = props.leftContainer.height;
+
+  // calculate the widths of the panels
+  props.root.width = dom.root.offsetWidth;
+  props.background.width = props.root.width - borderRootWidth;
+  props.left.width = dom.leftContainer.clientWidth   || -props.border.left;
+  props.leftContainer.width = props.left.width;
+  props.right.width = dom.rightContainer.clientWidth || -props.border.right;
+  props.rightContainer.width = props.right.width;
+  var centerWidth = props.root.width - props.left.width - props.right.width - borderRootWidth;
+  props.center.width          = centerWidth;
+  props.centerContainer.width = centerWidth;
+  props.top.width             = centerWidth;
+  props.bottom.width          = centerWidth;
+
+  // resize the panels
+  dom.background.style.height           = props.background.height + 'px';
+  dom.backgroundVertical.style.height   = props.background.height + 'px';
+  dom.backgroundHorizontal.style.height = props.centerContainer.height + 'px';
+  dom.centerContainer.style.height      = props.centerContainer.height + 'px';
+  dom.leftContainer.style.height        = props.leftContainer.height + 'px';
+  dom.rightContainer.style.height       = props.rightContainer.height + 'px';
+
+  dom.background.style.width            = props.background.width + 'px';
+  dom.backgroundVertical.style.width    = props.centerContainer.width + 'px';
+  dom.backgroundHorizontal.style.width  = props.background.width + 'px';
+  dom.centerContainer.style.width       = props.center.width + 'px';
+  dom.top.style.width                   = props.top.width + 'px';
+  dom.bottom.style.width                = props.bottom.width + 'px';
+
+  // reposition the panels
+  dom.background.style.left           = '0';
+  dom.background.style.top            = '0';
+  dom.backgroundVertical.style.left   = props.left.width + 'px';
+  dom.backgroundVertical.style.top    = '0';
+  dom.backgroundHorizontal.style.left = '0';
+  dom.backgroundHorizontal.style.top  = props.top.height + 'px';
+  dom.centerContainer.style.left      = props.left.width + 'px';
+  dom.centerContainer.style.top       = props.top.height + 'px';
+  dom.leftContainer.style.left        = '0';
+  dom.leftContainer.style.top         = props.top.height + 'px';
+  dom.rightContainer.style.left       = (props.left.width + props.center.width) + 'px';
+  dom.rightContainer.style.top        = props.top.height + 'px';
+  dom.top.style.left                  = props.left.width + 'px';
+  dom.top.style.top                   = '0';
+  dom.bottom.style.left               = props.left.width + 'px';
+  dom.bottom.style.top                = (props.top.height + props.centerContainer.height) + 'px';
+
+  // update the scrollTop, feasible range for the offset can be changed
+  // when the height of the Timeline or of the contents of the center changed
+  this._updateScrollTop();
+
+  // reposition the scrollable contents
+  var offset = this.props.scrollTop;
+  if (options.orientation == 'bottom') {
+    offset += Math.max(this.props.centerContainer.height - this.props.center.height -
+        this.props.border.top - this.props.border.bottom, 0);
+  }
+  dom.center.style.left = '0';
+  dom.center.style.top  = offset + 'px';
+  dom.left.style.left   = '0';
+  dom.left.style.top    = offset + 'px';
+  dom.right.style.left  = '0';
+  dom.right.style.top   = offset + 'px';
+
+  // show shadows when vertical scrolling is available
+  var visibilityTop = this.props.scrollTop == 0 ? 'hidden' : '';
+  var visibilityBottom = this.props.scrollTop == this.props.scrollTopMin ? 'hidden' : '';
+  dom.shadowTop.style.visibility          = visibilityTop;
+  dom.shadowBottom.style.visibility       = visibilityBottom;
+  dom.shadowTopLeft.style.visibility      = visibilityTop;
+  dom.shadowBottomLeft.style.visibility   = visibilityBottom;
+  dom.shadowTopRight.style.visibility     = visibilityTop;
+  dom.shadowBottomRight.style.visibility  = visibilityBottom;
+
+  // redraw all components
+  this.components.forEach(function (component) {
+    resized = component.redraw() || resized;
+  });
+  if (resized) {
+    // keep repainting until all sizes are settled
+    this.redraw();
+  }
 };
 
 // TODO: deprecated since version 1.1.0, remove some day
-Timeline.prototype.repaint = function repaint() {
+Timeline.prototype.repaint = function () {
     throw new Error('Function repaint is deprecated. Use redraw instead.');
-};
-
-/**
- * Handle selecting/deselecting an item when tapping it
- * @param {Event} event
- * @private
- */
-// TODO: move this function to ItemSet
-Timeline.prototype._onSelectItem = function (event) {
-  if (!this.options.selectable) return;
-
-  var ctrlKey  = event.gesture.srcEvent && event.gesture.srcEvent.ctrlKey;
-  var shiftKey = event.gesture.srcEvent && event.gesture.srcEvent.shiftKey;
-  if (ctrlKey || shiftKey) {
-    this._onMultiSelectItem(event);
-    return;
-  }
-
-  var oldSelection = this.getSelection();
-
-  var item = ItemSet.itemFromTarget(event);
-  var selection = item ? [item.id] : [];
-  this.setSelection(selection);
-
-  var newSelection = this.getSelection();
-
-  // emit a select event,
-  // except when old selection is empty and new selection is still empty
-  if (newSelection.length > 0 || oldSelection.length > 0) {
-    this.emit('select', {
-      items: this.getSelection()
-    });
-  }
-
-  event.stopPropagation();
-};
-
-/**
- * Handle creation and updates of an item on double tap
- * @param event
- * @private
- */
-Timeline.prototype._onAddItem = function (event) {
-  if (!this.options.selectable) return;
-  if (!this.options.editable.add) return;
-
-  var me = this,
-      item = ItemSet.itemFromTarget(event);
-
-  if (item) {
-    // update item
-
-    // execute async handler to update the item (or cancel it)
-    var itemData = me.itemsData.get(item.id); // get a clone of the data from the dataset
-    this.options.onUpdate(itemData, function (itemData) {
-      if (itemData) {
-        me.itemsData.update(itemData);
-      }
-    });
-  }
-  else {
-    // add item
-    var xAbs = vis.util.getAbsoluteLeft(this.contentPanel.frame);
-    var x = event.gesture.center.pageX - xAbs;
-    var newItem = {
-      start: this.timeAxis.snap(this._toTime(x)),
-      content: 'new item'
-    };
-
-    // when default type is a range, add a default end date to the new item
-    if (this.options.type === 'range' || this.options.type == 'rangeoverflow') {
-      newItem.end = this.timeAxis.snap(this._toTime(x + this.rootPanel.width / 5));
-    }
-
-    var id = util.randomUUID();
-    newItem[this.itemsData.fieldId] = id;
-
-    var group = ItemSet.groupFromTarget(event);
-    if (group) {
-      newItem.group = group.groupId;
-    }
-
-    // execute async handler to customize (or cancel) adding an item
-    this.options.onAdd(newItem, function (item) {
-      if (item) {
-        me.itemsData.add(newItem);
-        // TODO: need to trigger a redraw?
-      }
-    });
-  }
-};
-
-/**
- * Handle selecting/deselecting multiple items when holding an item
- * @param {Event} event
- * @private
- */
-// TODO: move this function to ItemSet
-Timeline.prototype._onMultiSelectItem = function (event) {
-  if (!this.options.selectable) return;
-
-  var selection,
-      item = ItemSet.itemFromTarget(event);
-
-  if (item) {
-    // multi select items
-    selection = this.getSelection(); // current selection
-    var index = selection.indexOf(item.id);
-    if (index == -1) {
-      // item is not yet selected -> select it
-      selection.push(item.id);
-    }
-    else {
-      // item is already selected -> deselect it
-      selection.splice(index, 1);
-    }
-    this.setSelection(selection);
-
-    this.emit('select', {
-      items: this.getSelection()
-    });
-
-    event.stopPropagation();
-  }
 };
 
 /**
@@ -7976,8 +10160,22 @@ Timeline.prototype._onMultiSelectItem = function (event) {
  * @return {Date}   time The datetime the corresponds with given position x
  * @private
  */
-Timeline.prototype._toTime = function _toTime(x) {
-  var conversion = this.range.conversion(this.mainPanel.width);
+// TODO: move this function to Range
+Timeline.prototype._toTime = function(x) {
+  var conversion = this.range.conversion(this.props.center.width);
+  return new Date(x / conversion.scale + conversion.offset);
+};
+
+
+/**
+ * Convert a position on the global screen (pixels) to a datetime
+ * @param {int}     x    Position on the screen in pixels
+ * @return {Date}   time The datetime the corresponds with given position x
+ * @private
+ */
+// TODO: move this function to Range
+Timeline.prototype._toGlobalTime = function(x) {
+  var conversion = this.range.conversion(this.props.root.width);
   return new Date(x / conversion.scale + conversion.offset);
 };
 
@@ -7988,9 +10186,1052 @@ Timeline.prototype._toTime = function _toTime(x) {
  *                      with the given date.
  * @private
  */
-Timeline.prototype._toScreen = function _toScreen(time) {
-  var conversion = this.range.conversion(this.mainPanel.width);
+// TODO: move this function to Range
+Timeline.prototype._toScreen = function(time) {
+  var conversion = this.range.conversion(this.props.center.width);
   return (time.valueOf() - conversion.offset) * conversion.scale;
+};
+
+
+/**
+ * Convert a datetime (Date object) into a position on the root
+ * This is used to get the pixel density estimate for the screen, not the center panel
+ * @param {Date}   time A date
+ * @return {int}   x    The position on root in pixels which corresponds
+ *                      with the given date.
+ * @private
+ */
+// TODO: move this function to Range
+Timeline.prototype._toGlobalScreen = function(time) {
+  var conversion = this.range.conversion(this.props.root.width);
+  return (time.valueOf() - conversion.offset) * conversion.scale;
+};
+
+
+/**
+ * Initialize watching when option autoResize is true
+ * @private
+ */
+Timeline.prototype._initAutoResize = function () {
+  if (this.options.autoResize == true) {
+    this._startAutoResize();
+  }
+  else {
+    this._stopAutoResize();
+  }
+};
+
+/**
+ * Watch for changes in the size of the container. On resize, the Panel will
+ * automatically redraw itself.
+ * @private
+ */
+Timeline.prototype._startAutoResize = function () {
+  var me = this;
+
+  this._stopAutoResize();
+
+  this._onResize = function() {
+    if (me.options.autoResize != true) {
+      // stop watching when the option autoResize is changed to false
+      me._stopAutoResize();
+      return;
+    }
+
+    if (me.dom.root) {
+      // check whether the frame is resized
+      if ((me.dom.root.clientWidth != me.props.lastWidth) ||
+          (me.dom.root.clientHeight != me.props.lastHeight)) {
+        me.props.lastWidth = me.dom.root.clientWidth;
+        me.props.lastHeight = me.dom.root.clientHeight;
+
+        me.emit('change');
+      }
+    }
+  };
+
+  // add event listener to window resize
+  util.addEventListener(window, 'resize', this._onResize);
+
+  this.watchTimer = setInterval(this._onResize, 1000);
+};
+
+/**
+ * Stop watching for a resize of the frame.
+ * @private
+ */
+Timeline.prototype._stopAutoResize = function () {
+  if (this.watchTimer) {
+    clearInterval(this.watchTimer);
+    this.watchTimer = undefined;
+  }
+
+  // remove event listener on window.resize
+  util.removeEventListener(window, 'resize', this._onResize);
+  this._onResize = null;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onTouch = function (event) {
+  this.touch.allowDragging = true;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onPinch = function (event) {
+  this.touch.allowDragging = false;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onDragStart = function (event) {
+  this.touch.initialScrollTop = this.props.scrollTop;
+};
+
+/**
+ * Move the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Timeline.prototype._onDrag = function (event) {
+  // refuse to drag when we where pinching to prevent the timeline make a jump
+  // when releasing the fingers in opposite order from the touch screen
+  if (!this.touch.allowDragging) return;
+
+  var delta = event.gesture.deltaY;
+
+  var oldScrollTop = this._getScrollTop();
+  var newScrollTop = this._setScrollTop(this.touch.initialScrollTop + delta);
+
+  if (newScrollTop != oldScrollTop) {
+    this.redraw(); // TODO: this causes two redraws when dragging, the other is triggered by rangechange already
+  }
+};
+
+/**
+ * Apply a scrollTop
+ * @param {Number} scrollTop
+ * @returns {Number} scrollTop  Returns the applied scrollTop
+ * @private
+ */
+Timeline.prototype._setScrollTop = function (scrollTop) {
+  this.props.scrollTop = scrollTop;
+  this._updateScrollTop();
+  return this.props.scrollTop;
+};
+
+/**
+ * Update the current scrollTop when the height of  the containers has been changed
+ * @returns {Number} scrollTop  Returns the applied scrollTop
+ * @private
+ */
+Timeline.prototype._updateScrollTop = function () {
+  // recalculate the scrollTopMin
+  var scrollTopMin = Math.min(this.props.centerContainer.height - this.props.center.height, 0); // is negative or zero
+  if (scrollTopMin != this.props.scrollTopMin) {
+    // in case of bottom orientation, change the scrollTop such that the contents
+    // do not move relative to the time axis at the bottom
+    if (this.options.orientation == 'bottom') {
+      this.props.scrollTop += (scrollTopMin - this.props.scrollTopMin);
+    }
+    this.props.scrollTopMin = scrollTopMin;
+  }
+
+  // limit the scrollTop to the feasible scroll range
+  if (this.props.scrollTop > 0) this.props.scrollTop = 0;
+  if (this.props.scrollTop < scrollTopMin) this.props.scrollTop = scrollTopMin;
+
+  return this.props.scrollTop;
+};
+
+/**
+ * Get the current scrollTop
+ * @returns {number} scrollTop
+ * @private
+ */
+Timeline.prototype._getScrollTop = function () {
+  return this.props.scrollTop;
+};
+
+/**
+ * Create a timeline visualization
+ * @param {HTMLElement} container
+ * @param {vis.DataSet | Array | google.visualization.DataTable} [items]
+ * @param {Object} [options]  See Graph2d.setOptions for the available options.
+ * @constructor
+ */
+function Graph2d (container, items, options, groups) {
+  var me = this;
+  this.defaultOptions = {
+    start: null,
+    end:   null,
+
+    autoResize: true,
+
+    orientation: 'bottom',
+    width: null,
+    height: null,
+    maxHeight: null,
+    minHeight: null
+  };
+  this.options = util.deepExtend({}, this.defaultOptions);
+
+  // Create the DOM, props, and emitter
+  this._create(container);
+
+  // all components listed here will be repainted automatically
+  this.components = [];
+
+  this.body = {
+    dom: this.dom,
+    domProps: this.props,
+    emitter: {
+      on: this.on.bind(this),
+      off: this.off.bind(this),
+      emit: this.emit.bind(this)
+    },
+    util: {
+      snap: null, // will be specified after TimeAxis is created
+      toScreen: me._toScreen.bind(me),
+      toGlobalScreen: me._toGlobalScreen.bind(me), // this refers to the root.width
+      toTime: me._toTime.bind(me),
+      toGlobalTime : me._toGlobalTime.bind(me)
+    }
+  };
+
+  // range
+  this.range = new Range(this.body);
+  this.components.push(this.range);
+  this.body.range = this.range;
+
+  // time axis
+  this.timeAxis = new TimeAxis(this.body);
+  this.components.push(this.timeAxis);
+  this.body.util.snap = this.timeAxis.snap.bind(this.timeAxis);
+
+  // current time bar
+  this.currentTime = new CurrentTime(this.body);
+  this.components.push(this.currentTime);
+
+  // custom time bar
+  // Note: time bar will be attached in this.setOptions when selected
+  this.customTime = new CustomTime(this.body);
+  this.components.push(this.customTime);
+
+  // item set
+  this.linegraph = new LineGraph(this.body);
+  this.components.push(this.linegraph);
+
+  this.itemsData = null;      // DataSet
+  this.groupsData = null;     // DataSet
+
+  // apply options
+  if (options) {
+    this.setOptions(options);
+  }
+
+  // IMPORTANT: THIS HAPPENS BEFORE SET ITEMS!
+  if (groups) {
+    this.setGroups(groups);
+  }
+
+  // create itemset
+  if (items) {
+    this.setItems(items);
+  }
+  else {
+    this.redraw();
+  }
+}
+
+// turn Graph2d into an event emitter
+Emitter(Graph2d.prototype);
+
+/**
+ * Create the main DOM for the Graph2d: a root panel containing left, right,
+ * top, bottom, content, and background panel.
+ * @param {Element} container  The container element where the Graph2d will
+ *                             be attached.
+ * @private
+ */
+Graph2d.prototype._create = function (container) {
+  this.dom = {};
+
+  this.dom.root                 = document.createElement('div');
+  this.dom.background           = document.createElement('div');
+  this.dom.backgroundVertical   = document.createElement('div');
+  this.dom.backgroundHorizontalContainer = document.createElement('div');
+  this.dom.centerContainer      = document.createElement('div');
+  this.dom.leftContainer        = document.createElement('div');
+  this.dom.rightContainer       = document.createElement('div');
+  this.dom.backgroundHorizontal = document.createElement('div');
+  this.dom.center               = document.createElement('div');
+  this.dom.left                 = document.createElement('div');
+  this.dom.right                = document.createElement('div');
+  this.dom.top                  = document.createElement('div');
+  this.dom.bottom               = document.createElement('div');
+  this.dom.shadowTop            = document.createElement('div');
+  this.dom.shadowBottom         = document.createElement('div');
+  this.dom.shadowTopLeft        = document.createElement('div');
+  this.dom.shadowBottomLeft     = document.createElement('div');
+  this.dom.shadowTopRight       = document.createElement('div');
+  this.dom.shadowBottomRight    = document.createElement('div');
+
+  this.dom.background.className           = 'vispanel background';
+  this.dom.backgroundVertical.className   = 'vispanel background vertical';
+  this.dom.backgroundHorizontalContainer.className = 'vispanel background horizontal';
+  this.dom.backgroundHorizontal.className = 'vispanel background horizontal';
+  this.dom.centerContainer.className      = 'vispanel center';
+  this.dom.leftContainer.className        = 'vispanel left';
+  this.dom.rightContainer.className       = 'vispanel right';
+  this.dom.top.className                  = 'vispanel top';
+  this.dom.bottom.className               = 'vispanel bottom';
+  this.dom.left.className                 = 'content';
+  this.dom.center.className               = 'content';
+  this.dom.right.className                = 'content';
+  this.dom.shadowTop.className            = 'shadow top';
+  this.dom.shadowBottom.className         = 'shadow bottom';
+  this.dom.shadowTopLeft.className        = 'shadow top';
+  this.dom.shadowBottomLeft.className     = 'shadow bottom';
+  this.dom.shadowTopRight.className       = 'shadow top';
+  this.dom.shadowBottomRight.className    = 'shadow bottom';
+
+  this.dom.root.appendChild(this.dom.background);
+  this.dom.root.appendChild(this.dom.backgroundVertical);
+  this.dom.root.appendChild(this.dom.backgroundHorizontalContainer);
+  this.dom.root.appendChild(this.dom.centerContainer);
+  this.dom.root.appendChild(this.dom.leftContainer);
+  this.dom.root.appendChild(this.dom.rightContainer);
+  this.dom.root.appendChild(this.dom.top);
+  this.dom.root.appendChild(this.dom.bottom);
+
+  this.dom.backgroundHorizontalContainer.appendChild(this.dom.backgroundHorizontal);
+  this.dom.centerContainer.appendChild(this.dom.center);
+  this.dom.leftContainer.appendChild(this.dom.left);
+  this.dom.rightContainer.appendChild(this.dom.right);
+
+  this.dom.centerContainer.appendChild(this.dom.shadowTop);
+  this.dom.centerContainer.appendChild(this.dom.shadowBottom);
+  this.dom.leftContainer.appendChild(this.dom.shadowTopLeft);
+  this.dom.leftContainer.appendChild(this.dom.shadowBottomLeft);
+  this.dom.rightContainer.appendChild(this.dom.shadowTopRight);
+  this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
+
+  this.on('rangechange', this.redraw.bind(this));
+  this.on('change', this.redraw.bind(this));
+  this.on('touch', this._onTouch.bind(this));
+  this.on('pinch', this._onPinch.bind(this));
+  this.on('dragstart', this._onDragStart.bind(this));
+  this.on('drag', this._onDrag.bind(this));
+
+  // create event listeners for all interesting events, these events will be
+  // emitted via emitter
+  this.hammer = Hammer(this.dom.root, {
+    prevent_default: true
+  });
+  this.listeners = {};
+
+  var me = this;
+  var events = [
+    'touch', 'pinch',
+    'tap', 'doubletap', 'hold',
+    'dragstart', 'drag', 'dragend',
+    'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
+  ];
+  events.forEach(function (event) {
+    var listener = function () {
+      var args = [event].concat(Array.prototype.slice.call(arguments, 0));
+      me.emit.apply(me, args);
+    };
+    me.hammer.on(event, listener);
+    me.listeners[event] = listener;
+  });
+
+  // size properties of each of the panels
+  this.props = {
+    root: {},
+    background: {},
+    centerContainer: {},
+    leftContainer: {},
+    rightContainer: {},
+    center: {},
+    left: {},
+    right: {},
+    top: {},
+    bottom: {},
+    border: {},
+    scrollTop: 0,
+    scrollTopMin: 0
+  };
+  this.touch = {}; // store state information needed for touch events
+
+  // attach the root panel to the provided container
+  if (!container) throw new Error('No container provided');
+  container.appendChild(this.dom.root);
+};
+
+/**
+ * Destroy the Graph2d, clean up all DOM elements and event listeners.
+ */
+Graph2d.prototype.destroy = function () {
+  // unbind datasets
+  this.clear();
+
+  // remove all event listeners
+  this.off();
+
+  // stop checking for changed size
+  this._stopAutoResize();
+
+  // remove from DOM
+  if (this.dom.root.parentNode) {
+    this.dom.root.parentNode.removeChild(this.dom.root);
+  }
+  this.dom = null;
+
+  // cleanup hammer touch events
+  for (var event in this.listeners) {
+    if (this.listeners.hasOwnProperty(event)) {
+      delete this.listeners[event];
+    }
+  }
+  this.listeners = null;
+  this.hammer = null;
+
+  // give all components the opportunity to cleanup
+  this.components.forEach(function (component) {
+    component.destroy();
+  });
+
+  this.body = null;
+};
+
+/**
+ * Set options. Options will be passed to all components loaded in the Graph2d.
+ * @param {Object} [options]
+ *                           {String} orientation
+ *                              Vertical orientation for the Graph2d,
+ *                              can be 'bottom' (default) or 'top'.
+ *                           {String | Number} width
+ *                              Width for the timeline, a number in pixels or
+ *                              a css string like '1000px' or '75%'. '100%' by default.
+ *                           {String | Number} height
+ *                              Fixed height for the Graph2d, a number in pixels or
+ *                              a css string like '400px' or '75%'. If undefined,
+ *                              The Graph2d will automatically size such that
+ *                              its contents fit.
+ *                           {String | Number} minHeight
+ *                              Minimum height for the Graph2d, a number in pixels or
+ *                              a css string like '400px' or '75%'.
+ *                           {String | Number} maxHeight
+ *                              Maximum height for the Graph2d, a number in pixels or
+ *                              a css string like '400px' or '75%'.
+ *                           {Number | Date | String} start
+ *                              Start date for the visible window
+ *                           {Number | Date | String} end
+ *                              End date for the visible window
+ */
+Graph2d.prototype.setOptions = function (options) {
+  if (options) {
+    // copy the known options
+    var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation'];
+    util.selectiveExtend(fields, this.options, options);
+
+    // enable/disable autoResize
+    this._initAutoResize();
+  }
+
+  // propagate options to all components
+  this.components.forEach(function (component) {
+    component.setOptions(options);
+  });
+
+  // TODO: remove deprecation error one day (deprecated since version 0.8.0)
+  if (options && options.order) {
+    throw new Error('Option order is deprecated. There is no replacement for this feature.');
+  }
+
+  // redraw everything
+  this.redraw();
+};
+
+/**
+ * Set a custom time bar
+ * @param {Date} time
+ */
+Graph2d.prototype.setCustomTime = function (time) {
+  if (!this.customTime) {
+    throw new Error('Cannot get custom time: Custom time bar is not enabled');
+  }
+
+  this.customTime.setCustomTime(time);
+};
+
+/**
+ * Retrieve the current custom time.
+ * @return {Date} customTime
+ */
+Graph2d.prototype.getCustomTime = function() {
+  if (!this.customTime) {
+    throw new Error('Cannot get custom time: Custom time bar is not enabled');
+  }
+
+  return this.customTime.getCustomTime();
+};
+
+/**
+ * Set items
+ * @param {vis.DataSet | Array | google.visualization.DataTable | null} items
+ */
+Graph2d.prototype.setItems = function(items) {
+  var initialLoad = (this.itemsData == null);
+
+  // convert to type DataSet when needed
+  var newDataSet;
+  if (!items) {
+    newDataSet = null;
+  }
+  else if (items instanceof DataSet || items instanceof DataView) {
+    newDataSet = items;
+  }
+  else {
+    // turn an array into a dataset
+    newDataSet = new DataSet(items, {
+      type: {
+        start: 'Date',
+        end: 'Date'
+      }
+    });
+  }
+
+  // set items
+  this.itemsData = newDataSet;
+  this.linegraph && this.linegraph.setItems(newDataSet);
+
+  if (initialLoad && ('start' in this.options || 'end' in this.options)) {
+    this.fit();
+
+    var start = ('start' in this.options) ? util.convert(this.options.start, 'Date') : null;
+    var end   = ('end' in this.options)   ? util.convert(this.options.end, 'Date') : null;
+
+    this.setWindow(start, end);
+  }
+};
+
+/**
+ * Set groups
+ * @param {vis.DataSet | Array | google.visualization.DataTable} groups
+ */
+Graph2d.prototype.setGroups = function(groups) {
+  // convert to type DataSet when needed
+  var newDataSet;
+  if (!groups) {
+    newDataSet = null;
+  }
+  else if (groups instanceof DataSet || groups instanceof DataView) {
+    newDataSet = groups;
+  }
+  else {
+    // turn an array into a dataset
+    newDataSet = new DataSet(groups);
+  }
+
+  this.groupsData = newDataSet;
+  this.linegraph.setGroups(newDataSet);
+};
+
+/**
+ * Clear the Graph2d. By Default, items, groups and options are cleared.
+ * Example usage:
+ *
+ *     timeline.clear();                // clear items, groups, and options
+ *     timeline.clear({options: true}); // clear options only
+ *
+ * @param {Object} [what]      Optionally specify what to clear. By default:
+ *                             {items: true, groups: true, options: true}
+ */
+Graph2d.prototype.clear = function(what) {
+  // clear items
+  if (!what || what.items) {
+    this.setItems(null);
+  }
+
+  // clear groups
+  if (!what || what.groups) {
+    this.setGroups(null);
+  }
+
+  // clear options of timeline and of each of the components
+  if (!what || what.options) {
+    this.components.forEach(function (component) {
+      component.setOptions(component.defaultOptions);
+    });
+
+    this.setOptions(this.defaultOptions); // this will also do a redraw
+  }
+};
+
+/**
+ * Set Graph2d window such that it fits all items
+ */
+Graph2d.prototype.fit = function() {
+  // apply the data range as range
+  var dataRange = this.getItemRange();
+
+  // add 5% space on both sides
+  var start = dataRange.min;
+  var end = dataRange.max;
+  if (start != null && end != null) {
+    var interval = (end.valueOf() - start.valueOf());
+    if (interval <= 0) {
+      // prevent an empty interval
+      interval = 24 * 60 * 60 * 1000; // 1 day
+    }
+    start = new Date(start.valueOf() - interval * 0.05);
+    end = new Date(end.valueOf() + interval * 0.05);
+  }
+
+  // skip range set if there is no start and end date
+  if (start === null && end === null) {
+    return;
+  }
+
+  this.range.setRange(start, end);
+};
+
+/**
+ * Get the data range of the item set.
+ * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
+ *                                          When no minimum is found, min==null
+ *                                          When no maximum is found, max==null
+ */
+Graph2d.prototype.getItemRange = function() {
+  // calculate min from start filed
+  var itemsData = this.itemsData,
+    min = null,
+    max = null;
+
+  if (itemsData) {
+    // calculate the minimum value of the field 'start'
+    var minItem = itemsData.min('start');
+    min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
+    // Note: we convert first to Date and then to number because else
+    // a conversion from ISODate to Number will fail
+
+    // calculate maximum value of fields 'start' and 'end'
+    var maxStartItem = itemsData.max('start');
+    if (maxStartItem) {
+      max = util.convert(maxStartItem.start, 'Date').valueOf();
+    }
+    var maxEndItem = itemsData.max('end');
+    if (maxEndItem) {
+      if (max == null) {
+        max = util.convert(maxEndItem.end, 'Date').valueOf();
+      }
+      else {
+        max = Math.max(max, util.convert(maxEndItem.end, 'Date').valueOf());
+      }
+    }
+  }
+
+  return {
+    min: (min != null) ? new Date(min) : null,
+    max: (max != null) ? new Date(max) : null
+  };
+};
+
+/**
+ * Set the visible window. Both parameters are optional, you can change only
+ * start or only end. Syntax:
+ *
+ *     TimeLine.setWindow(start, end)
+ *     TimeLine.setWindow(range)
+ *
+ * Where start and end can be a Date, number, or string, and range is an
+ * object with properties start and end.
+ *
+ * @param {Date | Number | String | Object} [start] Start date of visible window
+ * @param {Date | Number | String} [end]   End date of visible window
+ */
+Graph2d.prototype.setWindow = function(start, end) {
+  if (arguments.length == 1) {
+    var range = arguments[0];
+    this.range.setRange(range.start, range.end);
+  }
+  else {
+    this.range.setRange(start, end);
+  }
+};
+
+/**
+ * Get the visible window
+ * @return {{start: Date, end: Date}}   Visible range
+ */
+Graph2d.prototype.getWindow = function() {
+  var range = this.range.getRange();
+  return {
+    start: new Date(range.start),
+    end: new Date(range.end)
+  };
+};
+
+/**
+ * Force a redraw of the Graph2d. Can be useful to manually redraw when
+ * option autoResize=false
+ */
+Graph2d.prototype.redraw = function() {
+  var resized = false,
+    options = this.options,
+    props = this.props,
+    dom = this.dom;
+
+  if (!dom) return; // when destroyed
+
+  // update class names
+  dom.root.className = 'vis timeline root ' + options.orientation;
+
+  // update root width and height options
+  dom.root.style.maxHeight = util.option.asSize(options.maxHeight, '');
+  dom.root.style.minHeight = util.option.asSize(options.minHeight, '');
+  dom.root.style.width = util.option.asSize(options.width, '');
+
+  // calculate border widths
+  props.border.left   = (dom.centerContainer.offsetWidth - dom.centerContainer.clientWidth) / 2;
+  props.border.right  = props.border.left;
+  props.border.top    = (dom.centerContainer.offsetHeight - dom.centerContainer.clientHeight) / 2;
+  props.border.bottom = props.border.top;
+  var borderRootHeight= dom.root.offsetHeight - dom.root.clientHeight;
+  var borderRootWidth = dom.root.offsetWidth - dom.root.clientWidth;
+
+  // calculate the heights. If any of the side panels is empty, we set the height to
+  // minus the border width, such that the border will be invisible
+  props.center.height = dom.center.offsetHeight;
+  props.left.height   = dom.left.offsetHeight;
+  props.right.height  = dom.right.offsetHeight;
+  props.top.height    = dom.top.clientHeight    || -props.border.top;
+  props.bottom.height = dom.bottom.clientHeight || -props.border.bottom;
+
+  // TODO: compensate borders when any of the panels is empty.
+
+  // apply auto height
+  // TODO: only calculate autoHeight when needed (else we cause an extra reflow/repaint of the DOM)
+  var contentHeight = Math.max(props.left.height, props.center.height, props.right.height);
+  var autoHeight = props.top.height + contentHeight + props.bottom.height +
+    borderRootHeight + props.border.top + props.border.bottom;
+  dom.root.style.height = util.option.asSize(options.height, autoHeight + 'px');
+
+  // calculate heights of the content panels
+  props.root.height = dom.root.offsetHeight;
+  props.background.height = props.root.height - borderRootHeight;
+  var containerHeight = props.root.height - props.top.height - props.bottom.height -
+    borderRootHeight;
+  props.centerContainer.height  = containerHeight;
+  props.leftContainer.height    = containerHeight;
+  props.rightContainer.height   = props.leftContainer.height;
+
+  // calculate the widths of the panels
+  props.root.width = dom.root.offsetWidth;
+  props.background.width = props.root.width - borderRootWidth;
+  props.left.width = dom.leftContainer.clientWidth   || -props.border.left;
+  props.leftContainer.width = props.left.width;
+  props.right.width = dom.rightContainer.clientWidth || -props.border.right;
+  props.rightContainer.width = props.right.width;
+  var centerWidth = props.root.width - props.left.width - props.right.width - borderRootWidth;
+  props.center.width          = centerWidth;
+  props.centerContainer.width = centerWidth;
+  props.top.width             = centerWidth;
+  props.bottom.width          = centerWidth;
+
+  // resize the panels
+  dom.background.style.height           = props.background.height + 'px';
+  dom.backgroundVertical.style.height   = props.background.height + 'px';
+  dom.backgroundHorizontalContainer.style.height = props.centerContainer.height + 'px';
+  dom.centerContainer.style.height      = props.centerContainer.height + 'px';
+  dom.leftContainer.style.height        = props.leftContainer.height + 'px';
+  dom.rightContainer.style.height       = props.rightContainer.height + 'px';
+
+  dom.background.style.width            = props.background.width + 'px';
+  dom.backgroundVertical.style.width    = props.centerContainer.width + 'px';
+  dom.backgroundHorizontalContainer.style.width  = props.background.width + 'px';
+  dom.backgroundHorizontal.style.width  = props.background.width + 'px';
+  dom.centerContainer.style.width       = props.center.width + 'px';
+  dom.top.style.width                   = props.top.width + 'px';
+  dom.bottom.style.width                = props.bottom.width + 'px';
+
+  // reposition the panels
+  dom.background.style.left           = '0';
+  dom.background.style.top            = '0';
+  dom.backgroundVertical.style.left   = props.left.width + 'px';
+  dom.backgroundVertical.style.top    = '0';
+  dom.backgroundHorizontalContainer.style.left = '0';
+  dom.backgroundHorizontalContainer.style.top  = props.top.height + 'px';
+  dom.centerContainer.style.left      = props.left.width + 'px';
+  dom.centerContainer.style.top       = props.top.height + 'px';
+  dom.leftContainer.style.left        = '0';
+  dom.leftContainer.style.top         = props.top.height + 'px';
+  dom.rightContainer.style.left       = (props.left.width + props.center.width) + 'px';
+  dom.rightContainer.style.top        = props.top.height + 'px';
+  dom.top.style.left                  = props.left.width + 'px';
+  dom.top.style.top                   = '0';
+  dom.bottom.style.left               = props.left.width + 'px';
+  dom.bottom.style.top                = (props.top.height + props.centerContainer.height) + 'px';
+
+  // update the scrollTop, feasible range for the offset can be changed
+  // when the height of the Graph2d or of the contents of the center changed
+  this._updateScrollTop();
+
+  // reposition the scrollable contents
+  var offset = this.props.scrollTop;
+  if (options.orientation == 'bottom') {
+    offset += Math.max(this.props.centerContainer.height - this.props.center.height -
+        this.props.border.top - this.props.border.bottom, 0);
+  }
+  dom.center.style.left = '0';
+  dom.center.style.top  = offset + 'px';
+  dom.backgroundHorizontal.style.left = '0';
+  dom.backgroundHorizontal.style.top  = offset + 'px';
+  dom.left.style.left   = '0';
+  dom.left.style.top    = offset + 'px';
+  dom.right.style.left  = '0';
+  dom.right.style.top   = offset + 'px';
+
+  // show shadows when vertical scrolling is available
+  var visibilityTop = this.props.scrollTop == 0 ? 'hidden' : '';
+  var visibilityBottom = this.props.scrollTop == this.props.scrollTopMin ? 'hidden' : '';
+  dom.shadowTop.style.visibility          = visibilityTop;
+  dom.shadowBottom.style.visibility       = visibilityBottom;
+  dom.shadowTopLeft.style.visibility      = visibilityTop;
+  dom.shadowBottomLeft.style.visibility   = visibilityBottom;
+  dom.shadowTopRight.style.visibility     = visibilityTop;
+  dom.shadowBottomRight.style.visibility  = visibilityBottom;
+
+  // redraw all components
+  this.components.forEach(function (component) {
+    resized = component.redraw() || resized;
+  });
+  if (resized) {
+    // keep redrawing until all sizes are settled
+    this.redraw();
+  }
+};
+
+/**
+ * Convert a position on screen (pixels) to a datetime
+ * @param {int}     x    Position on the screen in pixels
+ * @return {Date}   time The datetime the corresponds with given position x
+ * @private
+ */
+// TODO: move this function to Range
+Graph2d.prototype._toTime = function(x) {
+  var conversion = this.range.conversion(this.props.center.width);
+  return new Date(x / conversion.scale + conversion.offset);
+};
+
+/**
+ * Convert a datetime (Date object) into a position on the root
+ * This is used to get the pixel density estimate for the screen, not the center panel
+ * @param {Date}   time A date
+ * @return {int}   x    The position on root in pixels which corresponds
+ *                      with the given date.
+ * @private
+ */
+// TODO: move this function to Range
+Graph2d.prototype._toGlobalTime = function(x) {
+  var conversion = this.range.conversion(this.props.root.width);
+  return new Date(x / conversion.scale + conversion.offset);
+};
+
+/**
+ * Convert a datetime (Date object) into a position on the screen
+ * @param {Date}   time A date
+ * @return {int}   x    The position on the screen in pixels which corresponds
+ *                      with the given date.
+ * @private
+ */
+// TODO: move this function to Range
+Graph2d.prototype._toScreen = function(time) {
+  var conversion = this.range.conversion(this.props.center.width);
+  return (time.valueOf() - conversion.offset) * conversion.scale;
+};
+
+
+/**
+ * Convert a datetime (Date object) into a position on the root
+ * This is used to get the pixel density estimate for the screen, not the center panel
+ * @param {Date}   time A date
+ * @return {int}   x    The position on root in pixels which corresponds
+ *                      with the given date.
+ * @private
+ */
+// TODO: move this function to Range
+Graph2d.prototype._toGlobalScreen = function(time) {
+  var conversion = this.range.conversion(this.props.root.width);
+  return (time.valueOf() - conversion.offset) * conversion.scale;
+};
+
+/**
+ * Initialize watching when option autoResize is true
+ * @private
+ */
+Graph2d.prototype._initAutoResize = function () {
+  if (this.options.autoResize == true) {
+    this._startAutoResize();
+  }
+  else {
+    this._stopAutoResize();
+  }
+};
+
+/**
+ * Watch for changes in the size of the container. On resize, the Panel will
+ * automatically redraw itself.
+ * @private
+ */
+Graph2d.prototype._startAutoResize = function () {
+  var me = this;
+
+  this._stopAutoResize();
+
+  this._onResize = function() {
+    if (me.options.autoResize != true) {
+      // stop watching when the option autoResize is changed to false
+      me._stopAutoResize();
+      return;
+    }
+
+    if (me.dom.root) {
+      // check whether the frame is resized
+      if ((me.dom.root.clientWidth != me.props.lastWidth) ||
+        (me.dom.root.clientHeight != me.props.lastHeight)) {
+        me.props.lastWidth = me.dom.root.clientWidth;
+        me.props.lastHeight = me.dom.root.clientHeight;
+
+        me.emit('change');
+      }
+    }
+  };
+
+  // add event listener to window resize
+  util.addEventListener(window, 'resize', this._onResize);
+
+  this.watchTimer = setInterval(this._onResize, 1000);
+};
+
+/**
+ * Stop watching for a resize of the frame.
+ * @private
+ */
+Graph2d.prototype._stopAutoResize = function () {
+  if (this.watchTimer) {
+    clearInterval(this.watchTimer);
+    this.watchTimer = undefined;
+  }
+
+  // remove event listener on window.resize
+  util.removeEventListener(window, 'resize', this._onResize);
+  this._onResize = null;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Graph2d.prototype._onTouch = function (event) {
+  this.touch.allowDragging = true;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Graph2d.prototype._onPinch = function (event) {
+  this.touch.allowDragging = false;
+};
+
+/**
+ * Start moving the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Graph2d.prototype._onDragStart = function (event) {
+  this.touch.initialScrollTop = this.props.scrollTop;
+};
+
+/**
+ * Move the timeline vertically
+ * @param {Event} event
+ * @private
+ */
+Graph2d.prototype._onDrag = function (event) {
+  // refuse to drag when we where pinching to prevent the timeline make a jump
+  // when releasing the fingers in opposite order from the touch screen
+  if (!this.touch.allowDragging) return;
+
+  var delta = event.gesture.deltaY;
+
+  var oldScrollTop = this._getScrollTop();
+  var newScrollTop = this._setScrollTop(this.touch.initialScrollTop + delta);
+
+  if (newScrollTop != oldScrollTop) {
+    this.redraw(); // TODO: this causes two redraws when dragging, the other is triggered by rangechange already
+  }
+};
+
+/**
+ * Apply a scrollTop
+ * @param {Number} scrollTop
+ * @returns {Number} scrollTop  Returns the applied scrollTop
+ * @private
+ */
+Graph2d.prototype._setScrollTop = function (scrollTop) {
+  this.props.scrollTop = scrollTop;
+  this._updateScrollTop();
+  return this.props.scrollTop;
+};
+
+/**
+ * Update the current scrollTop when the height of  the containers has been changed
+ * @returns {Number} scrollTop  Returns the applied scrollTop
+ * @private
+ */
+Graph2d.prototype._updateScrollTop = function () {
+  // recalculate the scrollTopMin
+  var scrollTopMin = Math.min(this.props.centerContainer.height - this.props.center.height, 0); // is negative or zero
+  if (scrollTopMin != this.props.scrollTopMin) {
+    // in case of bottom orientation, change the scrollTop such that the contents
+    // do not move relative to the time axis at the bottom
+    if (this.options.orientation == 'bottom') {
+      this.props.scrollTop += (scrollTopMin - this.props.scrollTopMin);
+    }
+    this.props.scrollTopMin = scrollTopMin;
+  }
+
+  // limit the scrollTop to the feasible scroll range
+  if (this.props.scrollTop > 0) this.props.scrollTop = 0;
+  if (this.props.scrollTop < scrollTopMin) this.props.scrollTop = scrollTopMin;
+
+  return this.props.scrollTop;
+};
+
+/**
+ * Get the current scrollTop
+ * @returns {number} scrollTop
+ * @private
+ */
+Graph2d.prototype._getScrollTop = function () {
+  return this.props.scrollTop;
 };
 
 (function(exports) {
@@ -8824,7 +12065,7 @@ Timeline.prototype._toScreen = function _toScreen(time) {
 })(typeof util !== 'undefined' ? util : exports);
 
 /**
- * Canvas shapes used by the Graph
+ * Canvas shapes used by Network
  */
 if (typeof CanvasRenderingContext2D !== 'undefined') {
 
@@ -9066,9 +12307,9 @@ if (typeof CanvasRenderingContext2D !== 'undefined') {
  *                              {string} image  An image url
  *                              {string} title  An title text, can be HTML
  *                              {anytype} group A group name or number
- * @param {Graph.Images} imagelist    A list with images. Only needed
+ * @param {Network.Images} imagelist    A list with images. Only needed
  *                                            when the node has an image
- * @param {Graph.Groups} grouplist    A list with groups. Needed for
+ * @param {Network.Groups} grouplist    A list with groups. Needed for
  *                                            retrieving group properties
  * @param {Object}               constants    An object with default values for
  *                                            example for the color
@@ -9081,8 +12322,8 @@ function Node(properties, imagelist, grouplist, constants) {
   this.edges = []; // all edges connected to this node
   this.dynamicEdges = [];
   this.reroutedEdges = {};
-  this.group = constants.nodes.group;
 
+  this.group = constants.nodes.group;
   this.fontSize = Number(constants.nodes.fontSize);
   this.fontFace = constants.nodes.fontFace;
   this.fontColor = constants.nodes.fontColor;
@@ -9134,9 +12375,9 @@ function Node(properties, imagelist, grouplist, constants) {
   this.maxNodeSizeIncrements = constants.clustering.maxNodeSizeIncrements;
   this.growthIndicator = 0;
 
-  // variables to tell the node about the graph.
-  this.graphScaleInv = 1;
-  this.graphScale = 1;
+  // variables to tell the node about the network.
+  this.networkScaleInv = 1;
+  this.networkScale = 1;
   this.canvasTopLeft = {"x": -300, "y": -300};
   this.canvasBottomRight = {"x":  300, "y":  300};
   this.parentEdgeId = null;
@@ -9576,7 +12817,7 @@ Node.prototype._drawImage = function (ctx) {
     // draw the shade
     if (this.clusterSize > 1) {
       var lineWidth = ((this.clusterSize > 1) ? 10 : 0.0);
-      lineWidth *= this.graphScaleInv;
+      lineWidth *= this.networkScaleInv;
       lineWidth = Math.min(0.2 * this.width,lineWidth);
 
       ctx.globalAlpha = 0.5;
@@ -9626,14 +12867,14 @@ Node.prototype._drawBox = function (ctx) {
   // draw the outer border
   if (this.clusterSize > 1) {
     ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
     ctx.roundRect(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth, this.radius);
     ctx.stroke();
   }
   ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth *= this.networkScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
@@ -9675,14 +12916,14 @@ Node.prototype._drawDatabase = function (ctx) {
   // draw the outer border
   if (this.clusterSize > 1) {
     ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
     ctx.database(this.x - this.width/2 - 2*ctx.lineWidth, this.y - this.height*0.5 - 2*ctx.lineWidth, this.width + 4*ctx.lineWidth, this.height + 4*ctx.lineWidth);
     ctx.stroke();
   }
   ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth *= this.networkScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
@@ -9725,14 +12966,14 @@ Node.prototype._drawCircle = function (ctx) {
   // draw the outer border
   if (this.clusterSize > 1) {
     ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
     ctx.circle(this.x, this.y, this.radius+2*ctx.lineWidth);
     ctx.stroke();
   }
   ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth *= this.networkScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
@@ -9775,14 +13016,14 @@ Node.prototype._drawEllipse = function (ctx) {
   // draw the outer border
   if (this.clusterSize > 1) {
     ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
     ctx.ellipse(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth);
     ctx.stroke();
   }
   ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth *= this.networkScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
@@ -9852,24 +13093,23 @@ Node.prototype._drawShape = function (ctx, shape) {
   // draw the outer border
   if (this.clusterSize > 1) {
     ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.graphScaleInv;
+    ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
     ctx[shape](this.x, this.y, this.radius + radiusMultiplier * ctx.lineWidth);
     ctx.stroke();
   }
   ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-  ctx.lineWidth *= this.graphScaleInv;
+  ctx.lineWidth *= this.networkScaleInv;
   ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
 
   ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
-
   ctx[shape](this.x, this.y, this.radius);
   ctx.fill();
   ctx.stroke();
 
   if (this.label) {
-    this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, 'top');
+    this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, 'top',true);
   }
 };
 
@@ -9897,17 +13137,20 @@ Node.prototype._drawText = function (ctx) {
 };
 
 
-Node.prototype._label = function (ctx, text, x, y, align, baseline) {
-  if (text && this.fontSize * this.graphScale > this.fontDrawThreshold) {
+Node.prototype._label = function (ctx, text, x, y, align, baseline, labelUnderNode) {
+  if (text && this.fontSize * this.networkScale > this.fontDrawThreshold) {
     ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
     ctx.fillStyle = this.fontColor || "black";
     ctx.textAlign = align || "center";
     ctx.textBaseline = baseline || "middle";
 
-    var lines = text.split('\n'),
-        lineCount = lines.length,
-        fontSize = (this.fontSize + 4),
-        yLine = y + (1 - lineCount) / 2 * fontSize;
+    var lines = text.split('\n');
+    var lineCount = lines.length;
+    var fontSize = (this.fontSize + 4);
+    var yLine = y + (1 - lineCount) / 2 * fontSize;
+    if (labelUnderNode == true) {
+      yLine = y + (1 - lineCount) / (2 * fontSize);
+    }
 
     for (var i = 0; i < lineCount; i++) {
       ctx.fillText(lines[i], x, yLine);
@@ -9944,10 +13187,10 @@ Node.prototype.getTextSize = function(ctx) {
  */
 Node.prototype.inArea = function() {
   if (this.width !== undefined) {
-  return (this.x + this.width *this.graphScaleInv  >= this.canvasTopLeft.x     &&
-          this.x - this.width *this.graphScaleInv  <  this.canvasBottomRight.x &&
-          this.y + this.height*this.graphScaleInv  >= this.canvasTopLeft.y     &&
-          this.y - this.height*this.graphScaleInv  <  this.canvasBottomRight.y);
+  return (this.x + this.width *this.networkScaleInv  >= this.canvasTopLeft.x     &&
+          this.x - this.width *this.networkScaleInv  <  this.canvasBottomRight.x &&
+          this.y + this.height*this.networkScaleInv  >= this.canvasTopLeft.y     &&
+          this.y - this.height*this.networkScaleInv  <  this.canvasBottomRight.y);
   }
   else {
     return true;
@@ -9966,7 +13209,7 @@ Node.prototype.inView = function() {
 };
 
 /**
- * This allows the zoom level of the graph to influence the rendering
+ * This allows the zoom level of the network to influence the rendering
  * We store the inverted scale and the coordinates of the top left, and bottom right points of the canvas
  *
  * @param scale
@@ -9974,21 +13217,21 @@ Node.prototype.inView = function() {
  * @param canvasBottomRight
  */
 Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) {
-  this.graphScaleInv = 1.0/scale;
-  this.graphScale = scale;
+  this.networkScaleInv = 1.0/scale;
+  this.networkScale = scale;
   this.canvasTopLeft = canvasTopLeft;
   this.canvasBottomRight = canvasBottomRight;
 };
 
 
 /**
- * This allows the zoom level of the graph to influence the rendering
+ * This allows the zoom level of the network to influence the rendering
  *
  * @param scale
  */
 Node.prototype.setScale = function(scale) {
-  this.graphScaleInv = 1.0/scale;
-  this.graphScale = scale;
+  this.networkScaleInv = 1.0/scale;
+  this.networkScale = scale;
 };
 
 
@@ -10027,16 +13270,16 @@ Node.prototype.updateVelocity = function(massBeforeClustering) {
  *                                to (number), label (string, color (string),
  *                                width (number), style (string),
  *                                length (number), title (string)
- * @param {Graph} graph A graph object, used to find and edge to
+ * @param {Network} network       A Network object, used to find and edge to
  *                                nodes.
  * @param {Object} constants      An object with default values for
  *                                example for the color
  */
-function Edge (properties, graph, constants) {
-  if (!graph) {
-    throw "No graph provided";
+function Edge (properties, network, constants) {
+  if (!network) {
+    throw "No network provided";
   }
-  this.graph = graph;
+  this.network = network;
 
   // initialize constants
   this.widthMin = constants.edges.widthMin;
@@ -10049,6 +13292,8 @@ function Edge (properties, graph, constants) {
   this.style  = constants.edges.style;
   this.title  = undefined;
   this.width  = constants.edges.width;
+  this.widthSelectionMultiplier = constants.edges.widthSelectionMultiplier;
+  this.widthSelected = this.width * this.widthSelectionMultiplier;
   this.hoverWidth = constants.edges.hoverWidth;
   this.value  = undefined;
   this.length = constants.physics.springLength;
@@ -10081,6 +13326,10 @@ function Edge (properties, graph, constants) {
   this.lengthFixed = false;
 
   this.setProperties(properties, constants);
+
+  this.controlNodesEnabled = false;
+  this.controlNodes = {from:null, to:null, positions:{}};
+  this.connectedNode = null;
 }
 
 /**
@@ -10114,6 +13363,8 @@ Edge.prototype.setProperties = function(properties, constants) {
 
   if (properties.title !== undefined)        {this.title = properties.title;}
   if (properties.width !== undefined)        {this.width = properties.width;}
+  if (properties.widthSelectionMultiplier !== undefined)
+                                             {this.widthSelectionMultiplier = properties.widthSelectionMultiplier;}
   if (properties.hoverWidth !== undefined)   {this.hoverWidth = properties.hoverWidth;}
   if (properties.value !== undefined)        {this.value = properties.value;}
   if (properties.length !== undefined)       {this.length = properties.length;
@@ -10139,6 +13390,7 @@ Edge.prototype.setProperties = function(properties, constants) {
     else {
       if (properties.color.color !== undefined)     {this.color.color = properties.color.color;}
       if (properties.color.highlight !== undefined) {this.color.highlight = properties.color.highlight;}
+      if (properties.color.hover !== undefined)     {this.color.hover = properties.color.hover;}
     }
   }
 
@@ -10147,6 +13399,8 @@ Edge.prototype.setProperties = function(properties, constants) {
 
   this.widthFixed = this.widthFixed || (properties.width !== undefined);
   this.lengthFixed = this.lengthFixed || (properties.length !== undefined);
+
+  this.widthSelected = this.width * this.widthSelectionMultiplier;
 
   // set draw method based on style
   switch (this.style) {
@@ -10164,8 +13418,8 @@ Edge.prototype.setProperties = function(properties, constants) {
 Edge.prototype.connect = function () {
   this.disconnect();
 
-  this.from = this.graph.nodes[this.fromId] || null;
-  this.to = this.graph.nodes[this.toId] || null;
+  this.from = this.network.nodes[this.fromId] || null;
+  this.to = this.network.nodes[this.toId] || null;
   this.connected = (this.from && this.to);
 
   if (this.connected) {
@@ -10325,14 +13579,14 @@ Edge.prototype._drawLine = function(ctx) {
  */
 Edge.prototype._getLineWidth = function() {
   if (this.selected == true) {
-    return Math.min(this.width * 2, this.widthMax)*this.graphScaleInv;
+    return Math.min(this.widthSelected, this.widthMax)*this.networkScaleInv;
   }
   else {
     if (this.hover == true) {
-      return Math.min(this.hoverWidth, this.widthMax)*this.graphScaleInv;
+      return Math.min(this.hoverWidth, this.widthMax)*this.networkScaleInv;
     }
     else {
-      return this.width*this.graphScaleInv;
+      return this.width*this.networkScaleInv;
     }
   }
 };
@@ -10740,56 +13994,77 @@ Edge.prototype._drawArrow = function(ctx) {
  * @private
  */
 Edge.prototype._getDistanceToEdge = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
-  if (this.smooth == true) {
-    var minDistance = 1e9;
-    var i,t,x,y,dx,dy;
-    for (i = 0; i < 10; i++) {
-      t = 0.1*i;
-      x = Math.pow(1-t,2)*x1 + (2*t*(1 - t))*this.via.x + Math.pow(t,2)*x2;
-      y = Math.pow(1-t,2)*y1 + (2*t*(1 - t))*this.via.y + Math.pow(t,2)*y2;
-      dx = Math.abs(x3-x);
-      dy = Math.abs(y3-y);
-      minDistance = Math.min(minDistance,Math.sqrt(dx*dx + dy*dy));
+  if (this.from != this.to) {
+    if (this.smooth == true) {
+      var minDistance = 1e9;
+      var i,t,x,y,dx,dy;
+      for (i = 0; i < 10; i++) {
+        t = 0.1*i;
+        x = Math.pow(1-t,2)*x1 + (2*t*(1 - t))*this.via.x + Math.pow(t,2)*x2;
+        y = Math.pow(1-t,2)*y1 + (2*t*(1 - t))*this.via.y + Math.pow(t,2)*y2;
+        dx = Math.abs(x3-x);
+        dy = Math.abs(y3-y);
+        minDistance = Math.min(minDistance,Math.sqrt(dx*dx + dy*dy));
+      }
+      return minDistance
     }
-    return minDistance
+    else {
+      var px = x2-x1,
+          py = y2-y1,
+          something = px*px + py*py,
+          u =  ((x3 - x1) * px + (y3 - y1) * py) / something;
+
+      if (u > 1) {
+        u = 1;
+      }
+      else if (u < 0) {
+        u = 0;
+      }
+
+      var x = x1 + u * px,
+          y = y1 + u * py,
+          dx = x - x3,
+          dy = y - y3;
+
+      //# Note: If the actual distance does not matter,
+      //# if you only want to compare what this function
+      //# returns to other results of this function, you
+      //# can just return the squared distance instead
+      //# (i.e. remove the sqrt) to gain a little performance
+
+      return Math.sqrt(dx*dx + dy*dy);
+    }
   }
   else {
-    var px = x2-x1,
-        py = y2-y1,
-        something = px*px + py*py,
-        u =  ((x3 - x1) * px + (y3 - y1) * py) / something;
-
-    if (u > 1) {
-      u = 1;
+    var x, y, dx, dy;
+    var radius = this.length / 4;
+    var node = this.from;
+    if (!node.width) {
+      node.resize(ctx);
     }
-    else if (u < 0) {
-      u = 0;
+    if (node.width > node.height) {
+      x = node.x + node.width / 2;
+      y = node.y - radius;
     }
-
-    var x = x1 + u * px,
-        y = y1 + u * py,
-        dx = x - x3,
-        dy = y - y3;
-
-    //# Note: If the actual distance does not matter,
-    //# if you only want to compare what this function
-    //# returns to other results of this function, you
-    //# can just return the squared distance instead
-    //# (i.e. remove the sqrt) to gain a little performance
-
-    return Math.sqrt(dx*dx + dy*dy);
+    else {
+      x = node.x + radius;
+      y = node.y - node.height / 2;
+    }
+    dx = x - x3;
+    dy = y - y3;
+    return Math.abs(Math.sqrt(dx*dx + dy*dy) - radius);
   }
 };
 
 
 
 /**
- * This allows the zoom level of the graph to influence the rendering
+ * This allows the zoom level of the network to influence the rendering
  *
  * @param scale
  */
 Edge.prototype.setScale = function(scale) {
-  this.graphScaleInv = 1.0/scale;
+  this.networkScaleInv = 1.0/scale;
 };
 
 
@@ -10807,6 +14082,149 @@ Edge.prototype.positionBezierNode = function() {
     this.via.y = 0.5 * (this.from.y + this.to.y);
   }
 };
+
+/**
+ * This function draws the control nodes for the manipulator. In order to enable this, only set the this.controlNodesEnabled to true.
+ * @param ctx
+ */
+Edge.prototype._drawControlNodes = function(ctx) {
+  if (this.controlNodesEnabled == true) {
+    if (this.controlNodes.from === null && this.controlNodes.to === null) {
+      var nodeIdFrom = "edgeIdFrom:".concat(this.id);
+      var nodeIdTo = "edgeIdTo:".concat(this.id);
+      var constants = {
+                      nodes:{group:'', radius:8},
+                      physics:{damping:0},
+                      clustering: {maxNodeSizeIncrements: 0 ,nodeScaling: {width:0, height: 0, radius:0}}
+                      };
+      this.controlNodes.from = new Node(
+        {id:nodeIdFrom,
+          shape:'dot',
+            color:{background:'#ff4e00', border:'#3c3c3c', highlight: {background:'#07f968'}}
+        },{},{},constants);
+      this.controlNodes.to = new Node(
+        {id:nodeIdTo,
+          shape:'dot',
+          color:{background:'#ff4e00', border:'#3c3c3c', highlight: {background:'#07f968'}}
+        },{},{},constants);
+    }
+
+    if (this.controlNodes.from.selected == false && this.controlNodes.to.selected == false) {
+      this.controlNodes.positions = this.getControlNodePositions(ctx);
+      this.controlNodes.from.x = this.controlNodes.positions.from.x;
+      this.controlNodes.from.y = this.controlNodes.positions.from.y;
+      this.controlNodes.to.x = this.controlNodes.positions.to.x;
+      this.controlNodes.to.y = this.controlNodes.positions.to.y;
+    }
+
+    this.controlNodes.from.draw(ctx);
+    this.controlNodes.to.draw(ctx);
+  }
+  else {
+    this.controlNodes = {from:null, to:null, positions:{}};
+  }
+}
+
+/**
+ * Enable control nodes.
+ * @private
+ */
+Edge.prototype._enableControlNodes = function() {
+  this.controlNodesEnabled = true;
+}
+
+/**
+ * disable control nodes
+ * @private
+ */
+Edge.prototype._disableControlNodes = function() {
+  this.controlNodesEnabled = false;
+}
+
+/**
+ * This checks if one of the control nodes is selected and if so, returns the control node object. Else it returns null.
+ * @param x
+ * @param y
+ * @returns {null}
+ * @private
+ */
+Edge.prototype._getSelectedControlNode = function(x,y) {
+  var positions = this.controlNodes.positions;
+  var fromDistance = Math.sqrt(Math.pow(x - positions.from.x,2) + Math.pow(y - positions.from.y,2));
+  var toDistance =   Math.sqrt(Math.pow(x - positions.to.x  ,2) + Math.pow(y - positions.to.y  ,2));
+
+  if (fromDistance < 15) {
+    this.connectedNode = this.from;
+    this.from = this.controlNodes.from;
+    return this.controlNodes.from;
+  }
+  else if (toDistance < 15) {
+    this.connectedNode = this.to;
+    this.to = this.controlNodes.to;
+    return this.controlNodes.to;
+  }
+  else {
+    return null;
+  }
+}
+
+
+/**
+ * this resets the control nodes to their original position.
+ * @private
+ */
+Edge.prototype._restoreControlNodes = function() {
+  if (this.controlNodes.from.selected == true) {
+    this.from = this.connectedNode;
+    this.connectedNode = null;
+    this.controlNodes.from.unselect();
+  }
+  if (this.controlNodes.to.selected == true) {
+    this.to = this.connectedNode;
+    this.connectedNode = null;
+    this.controlNodes.to.unselect();
+  }
+}
+
+/**
+ * this calculates the position of the control nodes on the edges of the parent nodes.
+ *
+ * @param ctx
+ * @returns {{from: {x: number, y: number}, to: {x: *, y: *}}}
+ */
+Edge.prototype.getControlNodePositions = function(ctx) {
+  var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
+  var dx = (this.to.x - this.from.x);
+  var dy = (this.to.y - this.from.y);
+  var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
+  var fromBorderDist = this.from.distanceToBorder(ctx, angle + Math.PI);
+  var fromBorderPoint = (edgeSegmentLength - fromBorderDist) / edgeSegmentLength;
+  var xFrom = (fromBorderPoint) * this.from.x + (1 - fromBorderPoint) * this.to.x;
+  var yFrom = (fromBorderPoint) * this.from.y + (1 - fromBorderPoint) * this.to.y;
+
+
+  if (this.smooth == true) {
+    angle = Math.atan2((this.to.y - this.via.y), (this.to.x - this.via.x));
+    dx = (this.to.x - this.via.x);
+    dy = (this.to.y - this.via.y);
+    edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
+  }
+  var toBorderDist = this.to.distanceToBorder(ctx, angle);
+  var toBorderPoint = (edgeSegmentLength - toBorderDist) / edgeSegmentLength;
+
+  var xTo,yTo;
+  if (this.smooth == true) {
+    xTo = (1 - toBorderPoint) * this.via.x + toBorderPoint * this.to.x;
+    yTo = (1 - toBorderPoint) * this.via.y + toBorderPoint * this.to.y;
+  }
+  else {
+    xTo = (1 - toBorderPoint) * this.from.x + toBorderPoint * this.to.x;
+    yTo = (1 - toBorderPoint) * this.from.y + toBorderPoint * this.to.y;
+  }
+
+  return {from:{x:xFrom,y:yFrom},to:{x:xTo,y:yTo}};
+}
+
 /**
  * Popup is a class to create a popup window with some text
  * @param {Element}  container     The container object.
@@ -10833,7 +14251,7 @@ function Popup(container, x, y, text, style) {
       style = text;
       text = undefined;
     } else {
-      // for backwards compatibility, in case clients other than Graph are creating Popup directly
+      // for backwards compatibility, in case clients other than Network are creating Popup directly
       style = {
         fontColor: 'black',
         fontSize: 14, // px
@@ -11166,7 +14584,12 @@ var physicsMixin = {
       this._calculateSpringForcesWithSupport();
     }
     else {
-      this._calculateSpringForces();
+      if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
+        this._calculateHierarchicalSpringForces();
+      }
+      else {
+        this._calculateSpringForces();
+      }
     }
   },
 
@@ -11246,6 +14669,8 @@ var physicsMixin = {
   },
 
 
+
+
   /**
    * this function calculates the effects of the springs in the case of unsmooth curves.
    *
@@ -11290,6 +14715,8 @@ var physicsMixin = {
       }
     }
   },
+
+
 
 
   /**
@@ -11368,7 +14795,7 @@ var physicsMixin = {
   _loadPhysicsConfiguration: function () {
     if (this.physicsConfiguration === undefined) {
       this.backupConstants = {};
-      util.copyObject(this.constants, this.backupConstants);
+      util.deepExtend(this.backupConstants,this.constants);
 
       var hierarchicalLayoutDirections = ["LR", "RL", "UD", "DU"];
       this.physicsConfiguration = document.createElement('div');
@@ -11789,6 +15216,7 @@ var hierarchalRepulsionMixin = {
     // repulsing forces between nodes
     var nodeDistance = this.constants.physics.hierarchicalRepulsion.nodeDistance;
     var minimumDistance = nodeDistance;
+    var a = a_base / minimumDistance;
 
     // we loop from i over all but the last entree in the array
     // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
@@ -11797,29 +15225,97 @@ var hierarchalRepulsionMixin = {
       node1 = nodes[nodeIndices[i]];
       for (j = i + 1; j < nodeIndices.length; j++) {
         node2 = nodes[nodeIndices[j]];
+        if (node1.level == node2.level) {
 
-        dx = node2.x - node1.x;
-        dy = node2.y - node1.y;
-        distance = Math.sqrt(dx * dx + dy * dy);
+          dx = node2.x - node1.x;
+          dy = node2.y - node1.y;
+          distance = Math.sqrt(dx * dx + dy * dy);
 
-        var a = a_base / minimumDistance;
-        if (distance < 2 * minimumDistance) {
-          repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness))
 
-          // normalize force with
-          if (distance == 0) {
-            distance = 0.01;
+          if (distance < 2 * minimumDistance) {
+            repulsingForce = a * distance + b;
+            var c = 0.05;
+            var d = 2 * minimumDistance * 2 * c;
+            repulsingForce = c * Math.pow(distance,2) - d * distance + d*d/(4*c);
+
+            // normalize force with
+            if (distance == 0) {
+              distance = 0.01;
+            }
+            else {
+              repulsingForce = repulsingForce / distance;
+            }
+            fx = dx * repulsingForce;
+            fy = dy * repulsingForce;
+
+            node1.fx -= fx;
+            node1.fy -= fy;
+            node2.fx += fx;
+            node2.fy += fy;
           }
-          else {
-            repulsingForce = repulsingForce / distance;
-          }
-          fx = dx * repulsingForce;
-          fy = dy * repulsingForce;
+        }
+      }
+    }
+  },
 
-          node1.fx -= fx;
-          node1.fy -= fy;
-          node2.fx += fx;
-          node2.fy += fy;
+
+  /**
+   * this function calculates the effects of the springs in the case of unsmooth curves.
+   *
+   * @private
+   */
+  _calculateHierarchicalSpringForces: function () {
+    var edgeLength, edge, edgeId;
+    var dx, dy, fx, fy, springForce, distance;
+    var edges = this.edges;
+
+    // forces caused by the edges, modelled as springs
+    for (edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        edge = edges[edgeId];
+        if (edge.connected) {
+          // only calculate forces if nodes are in the same sector
+          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+            edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
+            // this implies that the edges between big clusters are longer
+            edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
+
+            dx = (edge.from.x - edge.to.x);
+            dy = (edge.from.y - edge.to.y);
+            distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance == 0) {
+              distance = 0.01;
+            }
+
+            distance = Math.max(0.8*edgeLength,Math.min(5*edgeLength, distance));
+
+            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
+
+            fx = dx * springForce;
+            fy = dy * springForce;
+
+            edge.to.fx -= fx;
+            edge.to.fy -= fy;
+            edge.from.fx += fx;
+            edge.from.fy += fy;
+
+
+            var factor = 5;
+            if (distance > edgeLength) {
+              factor = 25;
+            }
+
+            if (edge.from.level > edge.to.level) {
+              edge.to.fx -= factor*fx;
+              edge.to.fy -= factor*fy;
+            }
+            else if (edge.from.level < edge.to.level) {
+              edge.from.fx += factor*fx;
+              edge.from.fy += factor*fy;
+            }
+          }
         }
       }
     }
@@ -12083,7 +15579,7 @@ var barnesHutMixin = {
    * @private
    */
   _splitBranch : function(parentBranch) {
-    // if the branch is filled with a node, replace the node in the new subset.
+    // if the branch is shaded with a node, replace the node in the new subset.
     var containedNode = null;
     if (parentBranch.childrenCount == 1) {
       containedNode = parentBranch.children.data;
@@ -12639,9 +16135,9 @@ var manipulationMixin = {
    */
   _toggleEditMode : function() {
     this.editMode = !this.editMode;
-    var toolbar = document.getElementById("graph-manipulationDiv");
-    var closeDiv = document.getElementById("graph-manipulation-closeDiv");
-    var editModeDiv = document.getElementById("graph-manipulation-editMode");
+    var toolbar = document.getElementById("network-manipulationDiv");
+    var closeDiv = document.getElementById("network-manipulation-closeDiv");
+    var editModeDiv = document.getElementById("network-manipulation-editMode");
     if (this.editMode == true) {
       toolbar.style.display="block";
       closeDiv.style.display="block";
@@ -12667,6 +16163,11 @@ var manipulationMixin = {
     if (this.boundFunction) {
       this.off('select', this.boundFunction);
     }
+    if (this.edgeBeingEdited !== undefined) {
+      this.edgeBeingEdited._disableControlNodes();
+      this.edgeBeingEdited = undefined;
+      this.selectedControlNode = null;
+    }
 
     // restore overloaded functions
     this._restoreOverloadedFunctions();
@@ -12684,39 +16185,49 @@ var manipulationMixin = {
       }
       // add the icons to the manipulator div
       this.manipulationDiv.innerHTML = "" +
-        "<span class='graph-manipulationUI add' id='graph-manipulate-addNode'>" +
-          "<span class='graph-manipulationLabel'>"+this.constants.labels['add'] +"</span></span>" +
-        "<div class='graph-seperatorLine'></div>" +
-        "<span class='graph-manipulationUI connect' id='graph-manipulate-connectNode'>" +
-          "<span class='graph-manipulationLabel'>"+this.constants.labels['link'] +"</span></span>";
+        "<span class='network-manipulationUI add' id='network-manipulate-addNode'>" +
+          "<span class='network-manipulationLabel'>"+this.constants.labels['add'] +"</span></span>" +
+        "<div class='network-seperatorLine'></div>" +
+        "<span class='network-manipulationUI connect' id='network-manipulate-connectNode'>" +
+          "<span class='network-manipulationLabel'>"+this.constants.labels['link'] +"</span></span>";
       if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
         this.manipulationDiv.innerHTML += "" +
-          "<div class='graph-seperatorLine'></div>" +
-          "<span class='graph-manipulationUI edit' id='graph-manipulate-editNode'>" +
-            "<span class='graph-manipulationLabel'>"+this.constants.labels['editNode'] +"</span></span>";
+          "<div class='network-seperatorLine'></div>" +
+          "<span class='network-manipulationUI edit' id='network-manipulate-editNode'>" +
+            "<span class='network-manipulationLabel'>"+this.constants.labels['editNode'] +"</span></span>";
+      }
+      else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
+        this.manipulationDiv.innerHTML += "" +
+          "<div class='network-seperatorLine'></div>" +
+          "<span class='network-manipulationUI edit' id='network-manipulate-editEdge'>" +
+          "<span class='network-manipulationLabel'>"+this.constants.labels['editEdge'] +"</span></span>";
       }
       if (this._selectionIsEmpty() == false) {
         this.manipulationDiv.innerHTML += "" +
-          "<div class='graph-seperatorLine'></div>" +
-          "<span class='graph-manipulationUI delete' id='graph-manipulate-delete'>" +
-            "<span class='graph-manipulationLabel'>"+this.constants.labels['del'] +"</span></span>";
+          "<div class='network-seperatorLine'></div>" +
+          "<span class='network-manipulationUI delete' id='network-manipulate-delete'>" +
+            "<span class='network-manipulationLabel'>"+this.constants.labels['del'] +"</span></span>";
       }
 
 
       // bind the icons
-      var addNodeButton = document.getElementById("graph-manipulate-addNode");
+      var addNodeButton = document.getElementById("network-manipulate-addNode");
       addNodeButton.onclick = this._createAddNodeToolbar.bind(this);
-      var addEdgeButton = document.getElementById("graph-manipulate-connectNode");
+      var addEdgeButton = document.getElementById("network-manipulate-connectNode");
       addEdgeButton.onclick = this._createAddEdgeToolbar.bind(this);
       if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
-        var editButton = document.getElementById("graph-manipulate-editNode");
+        var editButton = document.getElementById("network-manipulate-editNode");
         editButton.onclick = this._editNode.bind(this);
       }
+      else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
+        var editButton = document.getElementById("network-manipulate-editEdge");
+        editButton.onclick = this._createEditEdgeToolbar.bind(this);
+      }
       if (this._selectionIsEmpty() == false) {
-        var deleteButton = document.getElementById("graph-manipulate-delete");
+        var deleteButton = document.getElementById("network-manipulate-delete");
         deleteButton.onclick = this._deleteSelected.bind(this);
       }
-      var closeDiv = document.getElementById("graph-manipulation-closeDiv");
+      var closeDiv = document.getElementById("network-manipulation-closeDiv");
       closeDiv.onclick = this._toggleEditMode.bind(this);
 
       this.boundFunction = this._createManipulatorBar.bind(this);
@@ -12724,9 +16235,9 @@ var manipulationMixin = {
     }
     else {
       this.editModeDiv.innerHTML = "" +
-        "<span class='graph-manipulationUI edit editmode' id='graph-manipulate-editModeButton'>" +
-        "<span class='graph-manipulationLabel'>" + this.constants.labels['edit'] + "</span></span>";
-      var editModeButton = document.getElementById("graph-manipulate-editModeButton");
+        "<span class='network-manipulationUI edit editmode' id='network-manipulate-editModeButton'>" +
+        "<span class='network-manipulationLabel'>" + this.constants.labels['edit'] + "</span></span>";
+      var editModeButton = document.getElementById("network-manipulate-editModeButton");
       editModeButton.onclick = this._toggleEditMode.bind(this);
     }
   },
@@ -12747,14 +16258,14 @@ var manipulationMixin = {
 
     // create the toolbar contents
     this.manipulationDiv.innerHTML = "" +
-      "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
-      "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
-      "<div class='graph-seperatorLine'></div>" +
-      "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
-      "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['addDescription'] + "</span></span>";
+      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
+      "<span class='network-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
+      "<div class='network-seperatorLine'></div>" +
+      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
+      "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + this.constants.labels['addDescription'] + "</span></span>";
 
     // bind the icon
-    var backButton = document.getElementById("graph-manipulate-back");
+    var backButton = document.getElementById("network-manipulate-back");
     backButton.onclick = this._createManipulatorBar.bind(this);
 
     // we use the boundFunction so we can reference it when we unbind it from the "select" event.
@@ -12783,14 +16294,14 @@ var manipulationMixin = {
     this.blockConnectingEdgeSelection = true;
 
     this.manipulationDiv.innerHTML = "" +
-      "<span class='graph-manipulationUI back' id='graph-manipulate-back'>" +
-        "<span class='graph-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
-      "<div class='graph-seperatorLine'></div>" +
-      "<span class='graph-manipulationUI none' id='graph-manipulate-back'>" +
-        "<span id='graph-manipulatorLabel' class='graph-manipulationLabel'>" + this.constants.labels['linkDescription'] + "</span></span>";
+      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
+        "<span class='network-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
+      "<div class='network-seperatorLine'></div>" +
+      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
+        "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + this.constants.labels['linkDescription'] + "</span></span>";
 
     // bind the icon
-    var backButton = document.getElementById("graph-manipulate-back");
+    var backButton = document.getElementById("network-manipulate-back");
     backButton.onclick = this._createManipulatorBar.bind(this);
 
     // we use the boundFunction so we can reference it when we unbind it from the "select" event.
@@ -12805,9 +16316,105 @@ var manipulationMixin = {
 
     // redraw to show the unselect
     this._redraw();
-
   },
 
+  /**
+   * create the toolbar to edit edges
+   *
+   * @private
+   */
+  _createEditEdgeToolbar : function() {
+    // clear the toolbar
+    this._clearManipulatorBar();
+
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
+
+    this.edgeBeingEdited = this._getSelectedEdge();
+    this.edgeBeingEdited._enableControlNodes();
+
+    this.manipulationDiv.innerHTML = "" +
+      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
+      "<span class='network-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
+      "<div class='network-seperatorLine'></div>" +
+      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
+      "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + this.constants.labels['editEdgeDescription'] + "</span></span>";
+
+    // bind the icon
+    var backButton = document.getElementById("network-manipulate-back");
+    backButton.onclick = this._createManipulatorBar.bind(this);
+
+    // temporarily overload functions
+    this.cachedFunctions["_handleTouch"]      = this._handleTouch;
+    this.cachedFunctions["_handleOnRelease"]  = this._handleOnRelease;
+    this.cachedFunctions["_handleTap"]        = this._handleTap;
+    this.cachedFunctions["_handleDragStart"]  = this._handleDragStart;
+    this.cachedFunctions["_handleOnDrag"]     = this._handleOnDrag;
+    this._handleTouch     = this._selectControlNode;
+    this._handleTap       = function () {};
+    this._handleOnDrag    = this._controlNodeDrag;
+    this._handleDragStart = function () {}
+    this._handleOnRelease = this._releaseControlNode;
+
+    // redraw to show the unselect
+    this._redraw();
+  },
+
+
+
+
+
+  /**
+   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+   * to walk the user through the process.
+   *
+   * @private
+   */
+  _selectControlNode : function(pointer) {
+    this.edgeBeingEdited.controlNodes.from.unselect();
+    this.edgeBeingEdited.controlNodes.to.unselect();
+    this.selectedControlNode = this.edgeBeingEdited._getSelectedControlNode(this._XconvertDOMtoCanvas(pointer.x),this._YconvertDOMtoCanvas(pointer.y));
+    if (this.selectedControlNode !== null) {
+      this.selectedControlNode.select();
+      this.freezeSimulation = true;
+    }
+    this._redraw();
+  },
+
+  /**
+   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+   * to walk the user through the process.
+   *
+   * @private
+   */
+  _controlNodeDrag : function(event) {
+    var pointer = this._getPointer(event.gesture.center);
+    if (this.selectedControlNode !== null && this.selectedControlNode !== undefined) {
+      this.selectedControlNode.x = this._XconvertDOMtoCanvas(pointer.x);
+      this.selectedControlNode.y = this._YconvertDOMtoCanvas(pointer.y);
+    }
+    this._redraw();
+  },
+
+  _releaseControlNode : function(pointer) {
+    var newNode = this._getNodeAt(pointer);
+    if (newNode != null) {
+      if (this.edgeBeingEdited.controlNodes.from.selected == true) {
+        this._editEdge(newNode.id, this.edgeBeingEdited.to.id);
+        this.edgeBeingEdited.controlNodes.from.unselect();
+      }
+      if (this.edgeBeingEdited.controlNodes.to.selected == true) {
+        this._editEdge(this.edgeBeingEdited.from.id, newNode.id);
+        this.edgeBeingEdited.controlNodes.to.unselect();
+      }
+    }
+    else {
+      this.edgeBeingEdited._restoreControlNodes();
+    }
+    this.freezeSimulation = false;
+    this._redraw();
+  },
 
   /**
    * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
@@ -12953,6 +16560,36 @@ var manipulationMixin = {
     }
   },
 
+  /**
+   * connect two nodes with a new edge.
+   *
+   * @private
+   */
+  _editEdge : function(sourceNodeId,targetNodeId) {
+    if (this.editMode == true) {
+      var defaultData = {id: this.edgeBeingEdited.id, from:sourceNodeId, to:targetNodeId};
+      if (this.triggerFunctions.editEdge) {
+        if (this.triggerFunctions.editEdge.length == 2) {
+          var me = this;
+          this.triggerFunctions.editEdge(defaultData, function(finalizedData) {
+            me.edgesData.update(finalizedData);
+            me.moving = true;
+            me.start();
+          });
+        }
+        else {
+          alert(this.constants.labels["linkError"]);
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        this.edgesData.update(defaultData);
+        this.moving = true;
+        this.start();
+      }
+    }
+  },
 
   /**
    * Create the toolbar to edit the selected node. The label and the color can be changed. Other colors are derived from the chosen color.
@@ -12991,6 +16628,8 @@ var manipulationMixin = {
       alert(this.constants.labels["editBoundError"]);
     }
   },
+
+
 
 
   /**
@@ -13036,8 +16675,8 @@ var manipulationMixin = {
 /**
  * Creation of the SectorMixin var.
  *
- * This contains all the functions the Graph object can use to employ the sector system.
- * The sector system is always used by Graph, though the benefits only apply to the use of clustering.
+ * This contains all the functions the Network object can use to employ the sector system.
+ * The sector system is always used by Network, though the benefits only apply to the use of clustering.
  * If clustering is not used, there is no overhead except for a duplicate object with references to nodes and edges.
  *
  * Alex de Mulder
@@ -13046,7 +16685,7 @@ var manipulationMixin = {
 var SectorMixin = {
 
   /**
-   * This function is only called by the setData function of the Graph object.
+   * This function is only called by the setData function of the Network object.
    * This loads the global references into the active sector. This initializes the sector.
    *
    * @private
@@ -13398,7 +17037,7 @@ var SectorMixin = {
    *
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
    *                              |   we dont pass the function itself because then the "this" is the window object
-   *                              |   instead of the Graph object
+   *                              |   instead of the Network object
    * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
    * @private
    */
@@ -13437,7 +17076,7 @@ var SectorMixin = {
    *
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
    *                              |   we dont pass the function itself because then the "this" is the window object
-   *                              |   instead of the Graph object
+   *                              |   instead of the Network object
    * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
    * @private
    */
@@ -13466,7 +17105,7 @@ var SectorMixin = {
    *
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
    *                              |   we don't pass the function itself because then the "this" is the window object
-   *                              |   instead of the Graph object
+   *                              |   instead of the Network object
    * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
    * @private
    */
@@ -13504,7 +17143,7 @@ var SectorMixin = {
    *
    * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
    *                              |   we don't pass the function itself because then the "this" is the window object
-   *                              |   instead of the Graph object
+   *                              |   instead of the Network object
    * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
    * @private
    */
@@ -13588,7 +17227,7 @@ var SectorMixin = {
 /**
  * Creation of the ClusterMixin var.
  *
- * This contains all the functions the Graph object can use to employ clustering
+ * This contains all the functions the Network object can use to employ clustering
  *
  * Alex de Mulder
  * 21-01-2013
@@ -13596,7 +17235,7 @@ var SectorMixin = {
 var ClusterMixin = {
 
  /**
-  * This is only called in the constructor of the graph object
+  * This is only called in the constructor of the network object
   *
   */
  startWithClustering : function() {
@@ -14081,7 +17720,7 @@ var ClusterMixin = {
   },
 
   /**
-   * This function forces the graph to cluster all nodes with only one connecting edge to their
+   * This function forces the network to cluster all nodes with only one connecting edge to their
    * connected node.
    *
    * @private
@@ -14972,7 +18611,7 @@ var SelectionMixin = {
   },
 
   /**
-   * return the number of selected nodes
+   * return the selected node
    *
    * @returns {number}
    * @private
@@ -14981,6 +18620,21 @@ var SelectionMixin = {
     for (var nodeId in this.selectionObj.nodes) {
       if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
         return this.selectionObj.nodes[nodeId];
+      }
+    }
+    return null;
+  },
+
+  /**
+   * return the selected edge
+   *
+   * @returns {number}
+   * @private
+   */
+  _getSelectedEdge : function() {
+    for (var edgeId in this.selectionObj.edges) {
+      if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        return this.selectionObj.edges[edgeId];
       }
     }
     return null;
@@ -15118,9 +18772,12 @@ var SelectionMixin = {
    * @param {Boolean} [doNotTrigger] | ignore trigger
    * @private
    */
-  _selectObject : function(object, append, doNotTrigger) {
+  _selectObject : function(object, append, doNotTrigger, highlightEdges) {
     if (doNotTrigger === undefined) {
       doNotTrigger = false;
+    }
+    if (highlightEdges === undefined) {
+      highlightEdges = true;
     }
 
     if (this._selectionIsEmpty() == false && append == false && this.forceAppendSelection == false) {
@@ -15130,7 +18787,7 @@ var SelectionMixin = {
     if (object.selected == false) {
       object.select();
       this._addToSelection(object);
-      if (object instanceof Node && this.blockConnectingEdgeSelection == false) {
+      if (object instanceof Node && this.blockConnectingEdgeSelection == false && highlightEdges == true) {
         this._selectConnectedEdges(object);
       }
     }
@@ -15189,7 +18846,6 @@ var SelectionMixin = {
    * @private
    */
   _handleTouch : function(pointer) {
-
   },
 
 
@@ -15336,9 +18992,66 @@ var SelectionMixin = {
       }
       this._selectObject(node,true,true);
     }
+
+    console.log("setSelection is deprecated. Please use selectNodes instead.")
+
     this.redraw();
   },
 
+
+  /**
+   * select zero or more nodes with the option to highlight edges
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   * @param {boolean} [highlightEdges]
+   */
+  selectNodes : function(selection, highlightEdges) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    this._unselectAll(true);
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var node = this.nodes[id];
+      if (!node) {
+        throw new RangeError('Node with id "' + id + '" not found');
+      }
+      this._selectObject(node,true,true,highlightEdges);
+    }
+    this.redraw();
+  },
+
+
+  /**
+   * select zero or more edges
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   */
+  selectEdges : function(selection) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    this._unselectAll(true);
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var edge = this.edges[id];
+      if (!edge) {
+        throw new RangeError('Edge with id "' + id + '" not found');
+      }
+      this._selectObject(edge,true,true,highlightEdges);
+    }
+    this.redraw();
+  },
 
   /**
    * Validate the selection: remove ids of nodes which no longer exist
@@ -15372,7 +19085,7 @@ var NavigationMixin = {
 
   _cleanNavigation : function() {
     // clean up previosu navigation items
-    var wrapper = document.getElementById('graph-navigation_wrapper');
+    var wrapper = document.getElementById('network-navigation_wrapper');
     if (wrapper != null) {
       this.containerElement.removeChild(wrapper);
     }
@@ -15395,7 +19108,7 @@ var NavigationMixin = {
     var navigationDivActions = ['_moveUp','_moveDown','_moveLeft','_moveRight','_zoomIn','_zoomOut','zoomExtent'];
 
     this.navigationDivs['wrapper'] = document.createElement('div');
-    this.navigationDivs['wrapper'].id = "graph-navigation_wrapper";
+    this.navigationDivs['wrapper'].id = "network-navigation_wrapper";
     this.navigationDivs['wrapper'].style.position = "absolute";
     this.navigationDivs['wrapper'].style.width = this.frame.canvas.clientWidth + "px";
     this.navigationDivs['wrapper'].style.height = this.frame.canvas.clientHeight + "px";
@@ -15403,8 +19116,8 @@ var NavigationMixin = {
 
     for (var i = 0; i < navigationDivs.length; i++) {
       this.navigationDivs[navigationDivs[i]] = document.createElement('div');
-      this.navigationDivs[navigationDivs[i]].id = "graph-navigation_" + navigationDivs[i];
-      this.navigationDivs[navigationDivs[i]].className = "graph-navigation " + navigationDivs[i];
+      this.navigationDivs[navigationDivs[i]].id = "network-navigation_" + navigationDivs[i];
+      this.navigationDivs[navigationDivs[i]].className = "network-navigation " + navigationDivs[i];
       this.navigationDivs['wrapper'].appendChild(this.navigationDivs[navigationDivs[i]]);
       this.navigationDivs[navigationDivs[i]].onmousedown = this[navigationDivActions[i]].bind(this);
     }
@@ -15575,10 +19288,10 @@ var NavigationMixin = {
  */
 
 
-var graphMixinLoaders = {
+var networkMixinLoaders = {
 
   /**
-   * Load a mixin into the graph object
+   * Load a mixin into the network object
    *
    * @param {Object} sourceVariable | this object has to contain functions.
    * @private
@@ -15586,14 +19299,14 @@ var graphMixinLoaders = {
   _loadMixin: function (sourceVariable) {
     for (var mixinFunction in sourceVariable) {
       if (sourceVariable.hasOwnProperty(mixinFunction)) {
-        Graph.prototype[mixinFunction] = sourceVariable[mixinFunction];
+        Network.prototype[mixinFunction] = sourceVariable[mixinFunction];
       }
     }
   },
 
 
   /**
-   * removes a mixin from the graph object.
+   * removes a mixin from the network object.
    *
    * @param {Object} sourceVariable | this object has to contain functions.
    * @private
@@ -15601,7 +19314,7 @@ var graphMixinLoaders = {
   _clearMixin: function (sourceVariable) {
     for (var mixinFunction in sourceVariable) {
       if (sourceVariable.hasOwnProperty(mixinFunction)) {
-        Graph.prototype[mixinFunction] = undefined;
+        Network.prototype[mixinFunction] = undefined;
       }
     }
   },
@@ -15686,8 +19399,8 @@ var graphMixinLoaders = {
       // load the manipulator HTML elements. All styling done in css.
       if (this.manipulationDiv === undefined) {
         this.manipulationDiv = document.createElement('div');
-        this.manipulationDiv.className = 'graph-manipulationDiv';
-        this.manipulationDiv.id = 'graph-manipulationDiv';
+        this.manipulationDiv.className = 'network-manipulationDiv';
+        this.manipulationDiv.id = 'network-manipulationDiv';
         if (this.editMode == true) {
           this.manipulationDiv.style.display = "block";
         }
@@ -15699,8 +19412,8 @@ var graphMixinLoaders = {
 
       if (this.editModeDiv === undefined) {
         this.editModeDiv = document.createElement('div');
-        this.editModeDiv.className = 'graph-manipulation-editMode';
-        this.editModeDiv.id = 'graph-manipulation-editMode';
+        this.editModeDiv.className = 'network-manipulation-editMode';
+        this.editModeDiv.id = 'network-manipulation-editMode';
         if (this.editMode == true) {
           this.editModeDiv.style.display = "none";
         }
@@ -15712,8 +19425,8 @@ var graphMixinLoaders = {
 
       if (this.closeDiv === undefined) {
         this.closeDiv = document.createElement('div');
-        this.closeDiv.className = 'graph-manipulation-closeDiv';
-        this.closeDiv.id = 'graph-manipulation-closeDiv';
+        this.closeDiv.className = 'network-manipulation-closeDiv';
+        this.closeDiv.id = 'network-manipulation-closeDiv';
         this.closeDiv.style.display = this.manipulationDiv.style.display;
         this.containerElement.insertBefore(this.closeDiv, this.frame);
       }
@@ -15771,17 +19484,20 @@ var graphMixinLoaders = {
 };
 
 /**
- * @constructor Graph
- * Create a graph visualization, displaying nodes and edges.
+ * @constructor Network
+ * Create a network visualization, displaying nodes and edges.
  *
- * @param {Element} container   The DOM element in which the Graph will
+ * @param {Element} container   The DOM element in which the Network will
  *                                  be created. Normally a div element.
  * @param {Object} data         An object containing parameters
  *                              {Array} nodes
  *                              {Array} edges
  * @param {Object} options      Options
  */
-function Graph (container, data, options) {
+function Network (container, data, options) {
+  if (!(this instanceof Network)) {
+    throw new SyntaxError('Constructor must be called with the new operator');
+  }
 
   this._initializeMixinLoaders();
 
@@ -15797,12 +19513,13 @@ function Graph (container, data, options) {
   this.maxPhysicsTicksPerRender = 3;                   // max amount of physics ticks per render step.
   this.physicsDiscreteStepsize = 0.50;                 // discrete stepsize of the simulation
 
-  this.stabilize = true;  // stabilize before displaying the graph
+  this.stabilize = true;  // stabilize before displaying the network
   this.selectable = true;
   this.initializing = true;
 
   // these functions are triggered when the dataset is edited
-  this.triggerFunctions = {add:null,edit:null,connect:null,del:null};
+  this.triggerFunctions = {add:null,edit:null,editEdge:null,connect:null,del:null};
+
 
   // set constant values
   this.constants = {
@@ -15840,6 +19557,7 @@ function Graph (container, data, options) {
       widthMin: 1,
       widthMax: 15,
       width: 1,
+      widthSelectionMultiplier: 2,
       hoverWidth: 1.5,
       style: 'line',
       color: {
@@ -15878,8 +19596,8 @@ function Graph (container, data, options) {
       },
       hierarchicalRepulsion: {
         enabled: false,
-        centralGravity: 0.0,
-        springLength: 100,
+        centralGravity: 0.5,
+        springLength: 150,
         springConstant: 0.01,
         nodeDistance: 60,
         damping: 0.09
@@ -15938,9 +19656,11 @@ function Graph (container, data, options) {
       link:"Add Link",
       del:"Delete selected",
       editNode:"Edit Node",
+      editEdge:"Edit Edge",
       back:"Back",
       addDescription:"Click in an empty space to place a new node.",
       linkDescription:"Click on a node and drag the edge to another node to connect them.",
+      editEdgeDescription:"Click on the control points and drag them to a node to connect to it.",
       addError:"The function for add does not support two arguments (data,callback).",
       linkError:"The function for connect does not support two arguments (data,callback).",
       editError:"The function for edit does not support two arguments (data, callback).",
@@ -15958,7 +19678,7 @@ function Graph (container, data, options) {
         background: '#FFFFC6'
       }
     },
-    dragGraph: true,
+    dragNetwork: true,
     dragNodes: true,
     zoomable: true,
     hover: false
@@ -15967,11 +19687,11 @@ function Graph (container, data, options) {
 
 
   // Node variables
-  var graph = this;
+  var network = this;
   this.groups = new Groups(); // object with groups
   this.images = new Images(); // object with images
   this.images.setOnloadCallback(function () {
-    graph._redraw();
+    network._redraw();
   });
 
   // keyboard navigation variables
@@ -15984,13 +19704,13 @@ function Graph (container, data, options) {
   this._loadPhysicsSystem();
   // create a frame and canvas
   this._create();
-  // load the sector system.    (mandatory, fully integrated with Graph)
+  // load the sector system.    (mandatory, fully integrated with Network)
   this._loadSectorSystem();
   // load the cluster system.   (mandatory, even when not using the cluster system, there are function calls to it)
   this._loadClusterSystem();
-  // load the selection system. (mandatory, required by Graph)
+  // load the selection system. (mandatory, required by Network)
   this._loadSelectionSystem();
-  // load the selection system. (mandatory, required by Graph)
+  // load the selection system. (mandatory, required by Network)
   this._loadHierarchySystem();
 
   // apply options
@@ -16024,30 +19744,30 @@ function Graph (container, data, options) {
   // create event listeners used to subscribe on the DataSets of the nodes and edges
   this.nodesListeners = {
     'add': function (event, params) {
-      graph._addNodes(params.items);
-      graph.start();
+      network._addNodes(params.items);
+      network.start();
     },
     'update': function (event, params) {
-      graph._updateNodes(params.items);
-      graph.start();
+      network._updateNodes(params.items);
+      network.start();
     },
     'remove': function (event, params) {
-      graph._removeNodes(params.items);
-      graph.start();
+      network._removeNodes(params.items);
+      network.start();
     }
   };
   this.edgesListeners = {
     'add': function (event, params) {
-      graph._addEdges(params.items);
-      graph.start();
+      network._addEdges(params.items);
+      network.start();
     },
     'update': function (event, params) {
-      graph._updateEdges(params.items);
-      graph.start();
+      network._updateEdges(params.items);
+      network.start();
     },
     'remove': function (event, params) {
-      graph._removeEdges(params.items);
-      graph.start();
+      network._removeEdges(params.items);
+      network.start();
     }
   };
 
@@ -16076,8 +19796,8 @@ function Graph (container, data, options) {
   }
 }
 
-// Extend Graph with an Emitter mixin
-Emitter(Graph.prototype);
+// Extend Network with an Emitter mixin
+Emitter(Network.prototype);
 
 /**
  * Get the script path where the vis.js library is located
@@ -16086,7 +19806,7 @@ Emitter(Graph.prototype);
  *                                 end with a slash.
  * @private
  */
-Graph.prototype._getScriptPath = function() {
+Network.prototype._getScriptPath = function() {
   var scripts = document.getElementsByTagName( 'script' );
 
   // find script named vis.js or vis.min.js
@@ -16104,10 +19824,10 @@ Graph.prototype._getScriptPath = function() {
 
 
 /**
- * Find the center position of the graph
+ * Find the center position of the network
  * @private
  */
-Graph.prototype._getRange = function() {
+Network.prototype._getRange = function() {
   var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
   for (var nodeId in this.nodes) {
     if (this.nodes.hasOwnProperty(nodeId)) {
@@ -16130,18 +19850,18 @@ Graph.prototype._getRange = function() {
  * @returns {{x: number, y: number}}
  * @private
  */
-Graph.prototype._findCenter = function(range) {
+Network.prototype._findCenter = function(range) {
   return {x: (0.5 * (range.maxX + range.minX)),
           y: (0.5 * (range.maxY + range.minY))};
 };
 
 
 /**
- * center the graph
+ * center the network
  *
  * @param {object} range = {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
  */
-Graph.prototype._centerGraph = function(range) {
+Network.prototype._centerNetwork = function(range) {
   var center = this._findCenter(range);
 
   center.x *= this.scale;
@@ -16159,7 +19879,7 @@ Graph.prototype._centerGraph = function(range) {
  * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
  * @param {Boolean} [disableStart] | If true, start is not called.
  */
-Graph.prototype.zoomExtent = function(initialZoom, disableStart) {
+Network.prototype.zoomExtent = function(initialZoom, disableStart) {
   if (initialZoom === undefined) {
     initialZoom = false;
   }
@@ -16211,7 +19931,7 @@ Graph.prototype.zoomExtent = function(initialZoom, disableStart) {
 
 
   this._setScale(zoomLevel);
-  this._centerGraph(range);
+  this._centerNetwork(range);
   if (disableStart == false) {
     this.moving = true;
     this.start();
@@ -16223,7 +19943,7 @@ Graph.prototype.zoomExtent = function(initialZoom, disableStart) {
  * Update the this.nodeIndices with the most recent node index list
  * @private
  */
-Graph.prototype._updateNodeIndexList = function() {
+Network.prototype._updateNodeIndexList = function() {
   this._clearNodeIndexList();
   for (var idx in this.nodes) {
     if (this.nodes.hasOwnProperty(idx)) {
@@ -16243,7 +19963,7 @@ Graph.prototype._updateNodeIndexList = function() {
  *                                   {Options} [options] Object with options
  * @param {Boolean} [disableStart]   | optional: disable the calling of the start function.
  */
-Graph.prototype.setData = function(data, disableStart) {
+Network.prototype.setData = function(data, disableStart) {
   if (disableStart === undefined) {
     disableStart = false;
   }
@@ -16289,7 +20009,7 @@ Graph.prototype.setData = function(data, disableStart) {
  * @param {Object} options
  * @param {Boolean} [initializeView] | set zoom and translation to default.
  */
-Graph.prototype.setOptions = function (options) {
+Network.prototype.setOptions = function (options) {
   if (options) {
     var prop;
     // retrieve parameter values
@@ -16301,10 +20021,15 @@ Graph.prototype.setOptions = function (options) {
     if (options.freezeForStabilization !== undefined)    {this.constants.freezeForStabilization = options.freezeForStabilization;}
     if (options.configurePhysics !== undefined){this.constants.configurePhysics = options.configurePhysics;}
     if (options.stabilizationIterations !== undefined)   {this.constants.stabilizationIterations = options.stabilizationIterations;}
-    if (options.dragGraph !== undefined)       {this.constants.dragGraph = options.dragGraph;}
+    if (options.dragNetwork !== undefined)     {this.constants.dragNetwork = options.dragNetwork;}
     if (options.dragNodes !== undefined)       {this.constants.dragNodes = options.dragNodes;}
     if (options.zoomable !== undefined)        {this.constants.zoomable = options.zoomable;}
     if (options.hover !== undefined)           {this.constants.hover = options.hover;}
+
+    // TODO: deprecated since version 3.0.0. Cleanup some day
+    if (options.dragGraph !== undefined) {
+      throw new Error('Option dragGraph is renamed to dragNetwork');
+    }
 
     if (options.labels !== undefined)  {
       for (prop in options.labels) {
@@ -16320,6 +20045,10 @@ Graph.prototype.setOptions = function (options) {
 
     if (options.onEdit) {
       this.triggerFunctions.edit = options.onEdit;
+    }
+
+    if (options.onEditEdge) {
+      this.triggerFunctions.editEdge = options.onEditEdge;
     }
 
     if (options.onConnect) {
@@ -16528,24 +20257,24 @@ Graph.prototype.setOptions = function (options) {
 };
 
 /**
- * Create the main frame for the Graph.
- * This function is executed once when a Graph object is created. The frame
+ * Create the main frame for the Network.
+ * This function is executed once when a Network object is created. The frame
  * contains a canvas, and this canvas contains all objects like the axis and
  * nodes.
  * @private
  */
-Graph.prototype._create = function () {
+Network.prototype._create = function () {
   // remove all elements from the container element.
   while (this.containerElement.hasChildNodes()) {
     this.containerElement.removeChild(this.containerElement.firstChild);
   }
 
   this.frame = document.createElement('div');
-  this.frame.className = 'graph-frame';
+  this.frame.className = 'network-frame';
   this.frame.style.position = 'relative';
   this.frame.style.overflow = 'hidden';
 
-  // create the graph canvas (HTML canvas element)
+  // create the network canvas (HTML canvas element)
   this.frame.canvas = document.createElement( 'canvas' );
   this.frame.canvas.style.position = 'relative';
   this.frame.appendChild(this.frame.canvas);
@@ -16587,7 +20316,7 @@ Graph.prototype._create = function () {
  * Binding the keys for keyboard navigation. These functions are defined in the NavigationMixin
  * @private
  */
-Graph.prototype._createKeyBinds = function() {
+Network.prototype._createKeyBinds = function() {
   var me = this;
   this.mousetrap = mousetrap;
 
@@ -16628,7 +20357,7 @@ Graph.prototype._createKeyBinds = function() {
  * @return {{x: Number, y: Number}} pointer
  * @private
  */
-Graph.prototype._getPointer = function (touch) {
+Network.prototype._getPointer = function (touch) {
   return {
     x: touch.pageX - vis.util.getAbsoluteLeft(this.frame.canvas),
     y: touch.pageY - vis.util.getAbsoluteTop(this.frame.canvas)
@@ -16640,7 +20369,7 @@ Graph.prototype._getPointer = function (touch) {
  * @param event
  * @private
  */
-Graph.prototype._onTouch = function (event) {
+Network.prototype._onTouch = function (event) {
   this.drag.pointer = this._getPointer(event.gesture.center);
   this.drag.pinched = false;
   this.pinch.scale = this._getScale();
@@ -16652,7 +20381,7 @@ Graph.prototype._onTouch = function (event) {
  * handle drag start event
  * @private
  */
-Graph.prototype._onDragStart = function () {
+Network.prototype._onDragStart = function () {
   this._handleDragStart();
 };
 
@@ -16663,7 +20392,7 @@ Graph.prototype._onDragStart = function () {
  *
  * @private
  */
-Graph.prototype._handleDragStart = function() {
+Network.prototype._handleDragStart = function() {
   var drag = this.drag;
   var node = this._getNodeAt(drag.pointer);
   // note: drag.pointer is set in _onTouch to get the initial touch location
@@ -16709,7 +20438,7 @@ Graph.prototype._handleDragStart = function() {
  * handle drag event
  * @private
  */
-Graph.prototype._onDrag = function (event) {
+Network.prototype._onDrag = function (event) {
   this._handleOnDrag(event)
 };
 
@@ -16720,7 +20449,7 @@ Graph.prototype._onDrag = function (event) {
  *
  * @private
  */
-Graph.prototype._handleOnDrag = function(event) {
+Network.prototype._handleOnDrag = function(event) {
   if (this.drag.pinched) {
     return;
   }
@@ -16755,8 +20484,8 @@ Graph.prototype._handleOnDrag = function(event) {
     }
   }
   else {
-    if (this.constants.dragGraph == true) {
-      // move the graph
+    if (this.constants.dragNetwork == true) {
+      // move the network
       var diffX = pointer.x - this.drag.pointer.x;
       var diffY = pointer.y - this.drag.pointer.y;
 
@@ -16774,7 +20503,7 @@ Graph.prototype._handleOnDrag = function(event) {
  * handle drag start event
  * @private
  */
-Graph.prototype._onDragEnd = function () {
+Network.prototype._onDragEnd = function () {
   this.drag.dragging = false;
   var selection = this.drag.selection;
   if (selection) {
@@ -16790,7 +20519,7 @@ Graph.prototype._onDragEnd = function () {
  * handle tap/click event: select/unselect a node
  * @private
  */
-Graph.prototype._onTap = function (event) {
+Network.prototype._onTap = function (event) {
   var pointer = this._getPointer(event.gesture.center);
   this.pointerPosition = pointer;
   this._handleTap(pointer);
@@ -16802,7 +20531,7 @@ Graph.prototype._onTap = function (event) {
  * handle doubletap event
  * @private
  */
-Graph.prototype._onDoubleTap = function (event) {
+Network.prototype._onDoubleTap = function (event) {
   var pointer = this._getPointer(event.gesture.center);
   this._handleDoubleTap(pointer);
 };
@@ -16812,7 +20541,7 @@ Graph.prototype._onDoubleTap = function (event) {
  * handle long tap event: multi select nodes
  * @private
  */
-Graph.prototype._onHold = function (event) {
+Network.prototype._onHold = function (event) {
   var pointer = this._getPointer(event.gesture.center);
   this.pointerPosition = pointer;
   this._handleOnHold(pointer);
@@ -16823,7 +20552,7 @@ Graph.prototype._onHold = function (event) {
  *
  * @private
  */
-Graph.prototype._onRelease = function (event) {
+Network.prototype._onRelease = function (event) {
   var pointer = this._getPointer(event.gesture.center);
   this._handleOnRelease(pointer);
 };
@@ -16833,7 +20562,7 @@ Graph.prototype._onRelease = function (event) {
  * @param event
  * @private
  */
-Graph.prototype._onPinch = function (event) {
+Network.prototype._onPinch = function (event) {
   var pointer = this._getPointer(event.gesture.center);
 
   this.drag.pinched = true;
@@ -16847,13 +20576,13 @@ Graph.prototype._onPinch = function (event) {
 };
 
 /**
- * Zoom the graph in or out
+ * Zoom the network in or out
  * @param {Number} scale a number around 1, and between 0.01 and 10
  * @param {{x: Number, y: Number}} pointer    Position on screen
  * @return {Number} appliedScale    scale is limited within the boundaries
  * @private
  */
-Graph.prototype._zoom = function(scale, pointer) {
+Network.prototype._zoom = function(scale, pointer) {
   if (this.constants.zoomable == true) {
     var scaleOld = this._getScale();
     if (scale < 0.00001) {
@@ -16896,7 +20625,7 @@ Graph.prototype._zoom = function(scale, pointer) {
  * @param {MouseEvent}  event
  * @private
  */
-Graph.prototype._onMouseWheel = function(event) {
+Network.prototype._onMouseWheel = function(event) {
   // retrieve delta
   var delta = 0;
   if (event.wheelDelta) { /* IE/Opera. */
@@ -16938,7 +20667,7 @@ Graph.prototype._onMouseWheel = function(event) {
  * @param  {Event} event
  * @private
  */
-Graph.prototype._onMouseMoveTitle = function (event) {
+Network.prototype._onMouseMoveTitle = function (event) {
   var gesture = util.fakeGesture(this, event);
   var pointer = this._getPointer(gesture.center);
 
@@ -16996,14 +20725,14 @@ Graph.prototype._onMouseMoveTitle = function (event) {
 };
 
 /**
- * Check if there is an element on the given position in the graph
+ * Check if there is an element on the given position in the network
  * (a node or edge). If so, and if this element has a title,
  * show a popup window with its title.
  *
  * @param {{x:Number, y:Number}} pointer
  * @private
  */
-Graph.prototype._checkShowPopup = function (pointer) {
+Network.prototype._checkShowPopup = function (pointer) {
   var obj = {
     left:   this._XconvertDOMtoCanvas(pointer.x),
     top:    this._YconvertDOMtoCanvas(pointer.y),
@@ -17073,7 +20802,7 @@ Graph.prototype._checkShowPopup = function (pointer) {
  * @param {{x:Number, y:Number}} pointer
  * @private
  */
-Graph.prototype._checkHidePopup = function (pointer) {
+Network.prototype._checkHidePopup = function (pointer) {
   if (!this.popupObj || !this._getNodeAt(pointer) ) {
     this.popupObj = undefined;
     if (this.popup) {
@@ -17084,13 +20813,13 @@ Graph.prototype._checkHidePopup = function (pointer) {
 
 
 /**
- * Set a new size for the graph
+ * Set a new size for the network
  * @param {string} width   Width in pixels or percentage (for example '800px'
  *                         or '50%')
  * @param {string} height  Height in pixels or percentage  (for example '400px'
  *                         or '30%')
  */
-Graph.prototype.setSize = function(width, height) {
+Network.prototype.setSize = function(width, height) {
   this.frame.style.width = width;
   this.frame.style.height = height;
 
@@ -17114,11 +20843,11 @@ Graph.prototype.setSize = function(width, height) {
 };
 
 /**
- * Set a data set with nodes for the graph
+ * Set a data set with nodes for the network
  * @param {Array | DataSet | DataView} nodes         The data containing the nodes.
  * @private
  */
-Graph.prototype._setNodes = function(nodes) {
+Network.prototype._setNodes = function(nodes) {
   var oldNodesData = this.nodesData;
 
   if (nodes instanceof DataSet || nodes instanceof DataView) {
@@ -17164,7 +20893,7 @@ Graph.prototype._setNodes = function(nodes) {
  * @param {Number[] | String[]} ids
  * @private
  */
-Graph.prototype._addNodes = function(ids) {
+Network.prototype._addNodes = function(ids) {
   var id;
   for (var i = 0, len = ids.length; i < len; i++) {
     id = ids[i];
@@ -17196,7 +20925,7 @@ Graph.prototype._addNodes = function(ids) {
  * @param {Number[] | String[]} ids
  * @private
  */
-Graph.prototype._updateNodes = function(ids) {
+Network.prototype._updateNodes = function(ids) {
   var nodes = this.nodes,
       nodesData = this.nodesData;
   for (var i = 0, len = ids.length; i < len; i++) {
@@ -17228,7 +20957,7 @@ Graph.prototype._updateNodes = function(ids) {
  * @param {Number[] | String[]} ids
  * @private
  */
-Graph.prototype._removeNodes = function(ids) {
+Network.prototype._removeNodes = function(ids) {
   var nodes = this.nodes;
   for (var i = 0, len = ids.length; i < len; i++) {
     var id = ids[i];
@@ -17251,7 +20980,7 @@ Graph.prototype._removeNodes = function(ids) {
  * @private
  * @private
  */
-Graph.prototype._setEdges = function(edges) {
+Network.prototype._setEdges = function(edges) {
   var oldEdgesData = this.edgesData;
 
   if (edges instanceof DataSet || edges instanceof DataView) {
@@ -17298,7 +21027,7 @@ Graph.prototype._setEdges = function(edges) {
  * @param {Number[] | String[]} ids
  * @private
  */
-Graph.prototype._addEdges = function (ids) {
+Network.prototype._addEdges = function (ids) {
   var edges = this.edges,
       edgesData = this.edgesData;
 
@@ -17329,7 +21058,7 @@ Graph.prototype._addEdges = function (ids) {
  * @param {Number[] | String[]} ids
  * @private
  */
-Graph.prototype._updateEdges = function (ids) {
+Network.prototype._updateEdges = function (ids) {
   var edges = this.edges,
       edgesData = this.edgesData;
   for (var i = 0, len = ids.length; i < len; i++) {
@@ -17364,7 +21093,7 @@ Graph.prototype._updateEdges = function (ids) {
  * @param {Number[] | String[]} ids
  * @private
  */
-Graph.prototype._removeEdges = function (ids) {
+Network.prototype._removeEdges = function (ids) {
   var edges = this.edges;
   for (var i = 0, len = ids.length; i < len; i++) {
     var id = ids[i];
@@ -17391,7 +21120,7 @@ Graph.prototype._removeEdges = function (ids) {
  * Reconnect all edges
  * @private
  */
-Graph.prototype._reconnectEdges = function() {
+Network.prototype._reconnectEdges = function() {
   var id,
       nodes = this.nodes,
       edges = this.edges;
@@ -17419,7 +21148,7 @@ Graph.prototype._reconnectEdges = function() {
  *                        setValueRange(min, max).
  * @private
  */
-Graph.prototype._updateValueRange = function(obj) {
+Network.prototype._updateValueRange = function(obj) {
   var id;
 
   // determine the range of the objects
@@ -17446,20 +21175,19 @@ Graph.prototype._updateValueRange = function(obj) {
 };
 
 /**
- * Redraw the graph with the current data
+ * Redraw the network with the current data
  * chart will be resized too.
  */
-Graph.prototype.redraw = function() {
+Network.prototype.redraw = function() {
   this.setSize(this.width, this.height);
-
   this._redraw();
 };
 
 /**
- * Redraw the graph with the current data
+ * Redraw the network with the current data
  * @private
  */
-Graph.prototype._redraw = function() {
+Network.prototype._redraw = function() {
   var ctx = this.frame.canvas.getContext('2d');
   // clear the canvas
   var w = this.frame.canvas.width;
@@ -17483,6 +21211,7 @@ Graph.prototype._redraw = function() {
   this._doInAllSectors("_drawAllSectorNodes",ctx);
   this._doInAllSectors("_drawEdges",ctx);
   this._doInAllSectors("_drawNodes",ctx,false);
+  this._doInAllSectors("_drawControlNodes",ctx);
 
 //  this._doInSupportSector("_drawNodes",ctx,true);
 //  this._drawTree(ctx,"#F00F0F");
@@ -17492,12 +21221,12 @@ Graph.prototype._redraw = function() {
 };
 
 /**
- * Set the translation of the graph
+ * Set the translation of the network
  * @param {Number} offsetX    Horizontal offset
  * @param {Number} offsetY    Vertical offset
  * @private
  */
-Graph.prototype._setTranslation = function(offsetX, offsetY) {
+Network.prototype._setTranslation = function(offsetX, offsetY) {
   if (this.translation === undefined) {
     this.translation = {
       x: 0,
@@ -17516,11 +21245,11 @@ Graph.prototype._setTranslation = function(offsetX, offsetY) {
 };
 
 /**
- * Get the translation of the graph
+ * Get the translation of the network
  * @return {Object} translation    An object with parameters x and y, both a number
  * @private
  */
-Graph.prototype._getTranslation = function() {
+Network.prototype._getTranslation = function() {
   return {
     x: this.translation.x,
     y: this.translation.y
@@ -17528,20 +21257,20 @@ Graph.prototype._getTranslation = function() {
 };
 
 /**
- * Scale the graph
+ * Scale the network
  * @param {Number} scale   Scaling factor 1.0 is unscaled
  * @private
  */
-Graph.prototype._setScale = function(scale) {
+Network.prototype._setScale = function(scale) {
   this.scale = scale;
 };
 
 /**
- * Get the current scale of  the graph
+ * Get the current scale of  the network
  * @return {Number} scale   Scaling factor 1.0 is unscaled
  * @private
  */
-Graph.prototype._getScale = function() {
+Network.prototype._getScale = function() {
   return this.scale;
 };
 
@@ -17552,7 +21281,7 @@ Graph.prototype._getScale = function() {
  * @returns {number}
  * @private
  */
-Graph.prototype._XconvertDOMtoCanvas = function(x) {
+Network.prototype._XconvertDOMtoCanvas = function(x) {
   return (x - this.translation.x) / this.scale;
 };
 
@@ -17563,7 +21292,7 @@ Graph.prototype._XconvertDOMtoCanvas = function(x) {
  * @returns {number}
  * @private
  */
-Graph.prototype._XconvertCanvasToDOM = function(x) {
+Network.prototype._XconvertCanvasToDOM = function(x) {
   return x * this.scale + this.translation.x;
 };
 
@@ -17574,7 +21303,7 @@ Graph.prototype._XconvertCanvasToDOM = function(x) {
  * @returns {number}
  * @private
  */
-Graph.prototype._YconvertDOMtoCanvas = function(y) {
+Network.prototype._YconvertDOMtoCanvas = function(y) {
   return (y - this.translation.y) / this.scale;
 };
 
@@ -17585,7 +21314,7 @@ Graph.prototype._YconvertDOMtoCanvas = function(y) {
  * @returns {number}
  * @private
  */
-Graph.prototype._YconvertCanvasToDOM = function(y) {
+Network.prototype._YconvertCanvasToDOM = function(y) {
   return y * this.scale + this.translation.y ;
 };
 
@@ -17596,7 +21325,7 @@ Graph.prototype._YconvertCanvasToDOM = function(y) {
  * @returns {{x: number, y: number}}
  * @constructor
  */
-Graph.prototype.canvasToDOM = function(pos) {
+Network.prototype.canvasToDOM = function(pos) {
   return {x:this._XconvertCanvasToDOM(pos.x),y:this._YconvertCanvasToDOM(pos.y)};
 }
 
@@ -17606,7 +21335,7 @@ Graph.prototype.canvasToDOM = function(pos) {
  * @returns {{x: number, y: number}}
  * @constructor
  */
-Graph.prototype.DOMtoCanvas = function(pos) {
+Network.prototype.DOMtoCanvas = function(pos) {
   return {x:this._XconvertDOMtoCanvas(pos.x),y:this._YconvertDOMtoCanvas(pos.y)};
 }
 
@@ -17617,7 +21346,7 @@ Graph.prototype.DOMtoCanvas = function(pos) {
  * @param {Boolean} [alwaysShow]
  * @private
  */
-Graph.prototype._drawNodes = function(ctx,alwaysShow) {
+Network.prototype._drawNodes = function(ctx,alwaysShow) {
   if (alwaysShow === undefined) {
     alwaysShow = false;
   }
@@ -17654,7 +21383,7 @@ Graph.prototype._drawNodes = function(ctx,alwaysShow) {
  * @param {CanvasRenderingContext2D}   ctx
  * @private
  */
-Graph.prototype._drawEdges = function(ctx) {
+Network.prototype._drawEdges = function(ctx) {
   var edges = this.edges;
   for (var id in edges) {
     if (edges.hasOwnProperty(id)) {
@@ -17668,10 +21397,25 @@ Graph.prototype._drawEdges = function(ctx) {
 };
 
 /**
+ * Redraw all edges
+ * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
+ * @param {CanvasRenderingContext2D}   ctx
+ * @private
+ */
+Network.prototype._drawControlNodes = function(ctx) {
+  var edges = this.edges;
+  for (var id in edges) {
+    if (edges.hasOwnProperty(id)) {
+      edges[id]._drawControlNodes(ctx);
+    }
+  }
+};
+
+/**
  * Find a stable position for all nodes
  * @private
  */
-Graph.prototype._stabilize = function() {
+Network.prototype._stabilize = function() {
   if (this.constants.freezeForStabilization == true) {
     this._freezeDefinedNodes();
   }
@@ -17695,7 +21439,7 @@ Graph.prototype._stabilize = function() {
  *
  * @private
  */
-Graph.prototype._freezeDefinedNodes = function() {
+Network.prototype._freezeDefinedNodes = function() {
   var nodes = this.nodes;
   for (var id in nodes) {
     if (nodes.hasOwnProperty(id)) {
@@ -17714,7 +21458,7 @@ Graph.prototype._freezeDefinedNodes = function() {
  *
  * @private
  */
-Graph.prototype._restoreFrozenNodes = function() {
+Network.prototype._restoreFrozenNodes = function() {
   var nodes = this.nodes;
   for (var id in nodes) {
     if (nodes.hasOwnProperty(id)) {
@@ -17733,7 +21477,7 @@ Graph.prototype._restoreFrozenNodes = function() {
  * @return {boolean}      true if moving, false if non of the nodes is moving
  * @private
  */
-Graph.prototype._isMoving = function(vmin) {
+Network.prototype._isMoving = function(vmin) {
   var nodes = this.nodes;
   for (var id in nodes) {
     if (nodes.hasOwnProperty(id) && nodes[id].isMoving(vmin)) {
@@ -17750,7 +21494,7 @@ Graph.prototype._isMoving = function(vmin) {
  *
  * @private
  */
-Graph.prototype._discreteStepNodes = function() {
+Network.prototype._discreteStepNodes = function() {
   var interval = this.physicsDiscreteStepsize;
   var nodes = this.nodes;
   var nodeId;
@@ -17789,7 +21533,7 @@ Graph.prototype._discreteStepNodes = function() {
  *
  * @private
  */
-Graph.prototype._physicsTick = function() {
+Network.prototype._physicsTick = function() {
   if (!this.freezeSimulation) {
     if (this.moving) {
       this._doInAllActiveSectors("_initializeForceCalculation");
@@ -17809,7 +21553,7 @@ Graph.prototype._physicsTick = function() {
  *
  * @private
  */
-Graph.prototype._animationStep = function() {
+Network.prototype._animationStep = function() {
   // reset the timer so a new scheduled animation step can be set
   this.timer = undefined;
   // handle the keyboad movement
@@ -17823,13 +21567,11 @@ Graph.prototype._animationStep = function() {
   var maxSteps = 1;
   this._physicsTick();
   var timeRequired = Date.now() - calculationTime;
-  while (timeRequired < (this.renderTimestep - this.renderTime) && maxSteps < this.maxPhysicsTicksPerRender) {
+  while (timeRequired < 0.9*(this.renderTimestep - this.renderTime) && maxSteps < this.maxPhysicsTicksPerRender) {
     this._physicsTick();
     timeRequired = Date.now() - calculationTime;
     maxSteps++;
-
   }
-
   // start the rendering process
   var renderTime = Date.now();
   this._redraw();
@@ -17844,7 +21586,7 @@ if (typeof window !== 'undefined') {
 /**
  * Schedule a animation step with the refreshrate interval.
  */
-Graph.prototype.start = function() {
+Network.prototype.start = function() {
   if (this.moving || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0) {
     if (!this.timer) {
       var ua = navigator.userAgent.toLowerCase();
@@ -17874,11 +21616,11 @@ Graph.prototype.start = function() {
 
 
 /**
- * Move the graph according to the keyboard presses.
+ * Move the network according to the keyboard presses.
  *
  * @private
  */
-Graph.prototype._handleNavigation = function() {
+Network.prototype._handleNavigation = function() {
   if (this.xIncrement != 0 || this.yIncrement != 0) {
     var translation = this._getTranslation();
     this._setTranslation(translation.x+this.xIncrement, translation.y+this.yIncrement);
@@ -17896,7 +21638,7 @@ Graph.prototype._handleNavigation = function() {
 /**
  *  Freeze the _animationStep
  */
-Graph.prototype.toggleFreeze = function() {
+Network.prototype.toggleFreeze = function() {
   if (this.freezeSimulation == false) {
     this.freezeSimulation = true;
   }
@@ -17913,7 +21655,7 @@ Graph.prototype.toggleFreeze = function() {
  * @param {boolean} [disableStart]
  * @private
  */
-Graph.prototype._configureSmoothCurves = function(disableStart) {
+Network.prototype._configureSmoothCurves = function(disableStart) {
   if (disableStart === undefined) {
     disableStart = true;
   }
@@ -17945,7 +21687,7 @@ Graph.prototype._configureSmoothCurves = function(disableStart) {
  *
  * @private
  */
-Graph.prototype._createBezierNodes = function() {
+Network.prototype._createBezierNodes = function() {
   if (this.constants.smoothCurves == true) {
     for (var edgeId in this.edges) {
       if (this.edges.hasOwnProperty(edgeId)) {
@@ -17974,10 +21716,10 @@ Graph.prototype._createBezierNodes = function() {
  *
  * @private
  */
-Graph.prototype._initializeMixinLoaders = function () {
-  for (var mixinFunction in graphMixinLoaders) {
-    if (graphMixinLoaders.hasOwnProperty(mixinFunction)) {
-      Graph.prototype[mixinFunction] = graphMixinLoaders[mixinFunction];
+Network.prototype._initializeMixinLoaders = function () {
+  for (var mixinFunction in networkMixinLoaders) {
+    if (networkMixinLoaders.hasOwnProperty(mixinFunction)) {
+      Network.prototype[mixinFunction] = networkMixinLoaders[mixinFunction];
     }
   }
 };
@@ -17985,14 +21727,14 @@ Graph.prototype._initializeMixinLoaders = function () {
 /**
  * Load the XY positions of the nodes into the dataset.
  */
-Graph.prototype.storePosition = function() {
+Network.prototype.storePosition = function() {
   var dataArray = [];
   for (var nodeId in this.nodes) {
     if (this.nodes.hasOwnProperty(nodeId)) {
       var node = this.nodes[nodeId];
       var allowedToMoveX = !this.nodes.xFixed;
       var allowedToMoveY = !this.nodes.yFixed;
-      if (this.nodesData.data[nodeId].x != Math.round(node.x) || this.nodesData.data[nodeId].y != Math.round(node.y)) {
+      if (this.nodesData._data[nodeId].x != Math.round(node.x) || this.nodesData._data[nodeId].y != Math.round(node.y)) {
         dataArray.push({id:nodeId,x:Math.round(node.x),y:Math.round(node.y),allowedToMoveX:allowedToMoveX,allowedToMoveY:allowedToMoveY});
       }
     }
@@ -18007,7 +21749,7 @@ Graph.prototype.storePosition = function() {
  * @param {Number} nodeId
  * @param {Number} [zoomLevel]
  */
-Graph.prototype.focusOnNode = function (nodeId, zoomLevel) {
+Network.prototype.focusOnNode = function (nodeId, zoomLevel) {
   if (this.nodes.hasOwnProperty(nodeId)) {
     if (zoomLevel === undefined) {
       zoomLevel = this._getScale();
@@ -18043,16 +21785,20 @@ Graph.prototype.focusOnNode = function (nodeId, zoomLevel) {
 
 /**
  * @constructor Graph3d
- * The Graph is a visualization Graphs on a time line
+ * Graph3d displays data in 3d.
  *
- * Graph is developed in javascript as a Google Visualization Chart.
+ * Graph3d is developed in javascript as a Google Visualization Chart.
  *
- * @param {Element} container   The DOM element in which the Graph will
+ * @param {Element} container   The DOM element in which the Graph3d will
  *                              be created. Normally a div element.
  * @param {DataSet | DataView | Array} [data]
  * @param {Object} [options]
  */
 function Graph3d(container, data, options) {
+  if (!(this instanceof Graph3d)) {
+    throw new SyntaxError('Constructor must be called with the new operator');
+  }
+
   // create variables and set default values
   this.containerElement = container;
   this.width = '400px';
@@ -18125,7 +21871,7 @@ function Graph3d(container, data, options) {
   }
 }
 
-// Extend Graph with an Emitter mixin
+// Extend Graph3d with an Emitter mixin
 Emitter(Graph3d.prototype);
 
 /**
@@ -21352,40 +25098,57 @@ getMouseY = function(event) {
  * vis.js module exports
  */
 var vis = {
-  util: util,
   moment: moment,
+
+  util: util,
+  DOMutil: DOMutil,
 
   DataSet: DataSet,
   DataView: DataView,
-  Range: Range,
-  stack: stack,
-  TimeStep: TimeStep,
-
-  components: {
-    items: {
-      Item: Item,
-      ItemBox: ItemBox,
-      ItemPoint: ItemPoint,
-      ItemRange: ItemRange
-    },
-
-    Component: Component,
-    Panel: Panel,
-    RootPanel: RootPanel,
-    ItemSet: ItemSet,
-    TimeAxis: TimeAxis
-  },
-
-  graph: {
-    Node: Node,
-    Edge: Edge,
-    Popup: Popup,
-    Groups: Groups,
-    Images: Images
-  },
 
   Timeline: Timeline,
-  Graph: Graph,
+  Graph2d: Graph2d,
+  timeline: {
+    DataStep: DataStep,
+    Range: Range,
+    stack: stack,
+    TimeStep: TimeStep,
+
+    components: {
+      items: {
+        Item: Item,
+        ItemBox: ItemBox,
+        ItemPoint: ItemPoint,
+        ItemRange: ItemRange
+      },
+
+      Component: Component,
+      CurrentTime: CurrentTime,
+      CustomTime: CustomTime,
+      DataAxis: DataAxis,
+      GraphGroup: GraphGroup,
+      Group: Group,
+      ItemSet: ItemSet,
+      Legend: Legend,
+      LineGraph: LineGraph,
+      TimeAxis: TimeAxis
+    }
+  },
+
+  Network: Network,
+  network: {
+    Edge: Edge,
+    Groups: Groups,
+    Images: Images,
+    Node: Node,
+    Popup: Popup
+  },
+
+  // Deprecated since v3.0.0
+  Graph: function () {
+    throw new Error('Graph is renamed to Network. Please create a graph as new vis.Network(...)');
+  },
+
   Graph3d: Graph3d
 };
 
@@ -23007,7 +26770,7 @@ else {
 })(this);
 },{}],4:[function(require,module,exports){
 var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};//! moment.js
-//! version : 2.6.0
+//! version : 2.7.0
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
@@ -23019,7 +26782,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     ************************************/
 
     var moment,
-        VERSION = "2.6.0",
+        VERSION = "2.7.0",
         // the global-scope this is NOT the global object in Node.js
         globalScope = typeof global !== 'undefined' ? global : this,
         oldGlobalMoment,
@@ -23044,6 +26807,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             _f : null,
             _l : null,
             _strict : null,
+            _tzm : null,
             _isUTC : null,
             _offset : null,  // optional. Combine with _isUTC
             _pf : null,
@@ -23151,6 +26915,16 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
         // format function strings
         formatFunctions = {},
+
+        // default relative time thresholds
+        relativeTimeThresholds = {
+          s: 45,   //seconds to minutes
+          m: 45,   //minutes to hours
+          h: 22,   //hours to days
+          dd: 25,  //days to month (month == 1)
+          dm: 45,  //days to months (months > 1)
+          dy: 345  //days to year
+        },
 
         // tokens to ordinalize and pad
         ordinalizeTokens = 'DDD w W M D d'.split(' '),
@@ -23290,6 +27064,16 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
         },
 
         lists = ['months', 'monthsShort', 'weekdays', 'weekdaysShort', 'weekdaysMin'];
+
+    // Pick the first defined of two or three arguments. dfl comes from
+    // default.
+    function dfl(a, b, c) {
+        switch (arguments.length) {
+            case 2: return a != null ? a : b;
+            case 3: return a != null ? a : b != null ? b : c;
+            default: throw new Error("Implement me");
+        }
+    }
 
     function defaultParsingFlags() {
         // We need to deep clone this object, and es5 standard is not very
@@ -24159,30 +27943,86 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             config._useUTC = true;
             config._tzm = timezoneMinutesFromString(input);
             break;
+        // WEEKDAY - human
+        case 'dd':
+        case 'ddd':
+        case 'dddd':
+            a = getLangDefinition(config._l).weekdaysParse(input);
+            // if we didn't get a weekday name, mark the date as invalid
+            if (a != null) {
+                config._w = config._w || {};
+                config._w['d'] = a;
+            } else {
+                config._pf.invalidWeekday = input;
+            }
+            break;
+        // WEEK, WEEK DAY - numeric
         case 'w':
         case 'ww':
         case 'W':
         case 'WW':
         case 'd':
-        case 'dd':
-        case 'ddd':
-        case 'dddd':
         case 'e':
         case 'E':
             token = token.substr(0, 1);
             /* falls through */
-        case 'gg':
         case 'gggg':
-        case 'GG':
         case 'GGGG':
         case 'GGGGG':
             token = token.substr(0, 2);
             if (input) {
                 config._w = config._w || {};
-                config._w[token] = input;
+                config._w[token] = toInt(input);
             }
             break;
+        case 'gg':
+        case 'GG':
+            config._w = config._w || {};
+            config._w[token] = moment.parseTwoDigitYear(input);
         }
+    }
+
+    function dayOfYearFromWeekInfo(config) {
+        var w, weekYear, week, weekday, dow, doy, temp, lang;
+
+        w = config._w;
+        if (w.GG != null || w.W != null || w.E != null) {
+            dow = 1;
+            doy = 4;
+
+            // TODO: We need to take the current isoWeekYear, but that depends on
+            // how we interpret now (local, utc, fixed offset). So create
+            // a now version of current config (take local/utc/offset flags, and
+            // create now).
+            weekYear = dfl(w.GG, config._a[YEAR], weekOfYear(moment(), 1, 4).year);
+            week = dfl(w.W, 1);
+            weekday = dfl(w.E, 1);
+        } else {
+            lang = getLangDefinition(config._l);
+            dow = lang._week.dow;
+            doy = lang._week.doy;
+
+            weekYear = dfl(w.gg, config._a[YEAR], weekOfYear(moment(), dow, doy).year);
+            week = dfl(w.w, 1);
+
+            if (w.d != null) {
+                // weekday -- low day numbers are considered next week
+                weekday = w.d;
+                if (weekday < dow) {
+                    ++week;
+                }
+            } else if (w.e != null) {
+                // local weekday -- counting starts from begining of week
+                weekday = w.e + dow;
+            } else {
+                // default to begining of week
+                weekday = dow;
+            }
+        }
+        temp = dayOfYearFromWeeks(weekYear, week, weekday, doy, dow);
+
+        config._a[YEAR] = temp.year;
+        config._dayOfYear = temp.dayOfYear;
     }
 
     // convert an array to a date.
@@ -24190,8 +28030,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     // note: all values past the year are optional and will default to the lowest possible value.
     // [year, month, day , hour, minute, second, millisecond]
     function dateFromConfig(config) {
-        var i, date, input = [], currentDate,
-            yearToUse, fixYear, w, temp, lang, weekday, week;
+        var i, date, input = [], currentDate, yearToUse;
 
         if (config._d) {
             return;
@@ -24201,39 +28040,12 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
         //compute day of the year from weeks and weekdays
         if (config._w && config._a[DATE] == null && config._a[MONTH] == null) {
-            fixYear = function (val) {
-                var intVal = parseInt(val, 10);
-                return val ?
-                  (val.length < 3 ? (intVal > 68 ? 1900 + intVal : 2000 + intVal) : intVal) :
-                  (config._a[YEAR] == null ? moment().weekYear() : config._a[YEAR]);
-            };
-
-            w = config._w;
-            if (w.GG != null || w.W != null || w.E != null) {
-                temp = dayOfYearFromWeeks(fixYear(w.GG), w.W || 1, w.E, 4, 1);
-            }
-            else {
-                lang = getLangDefinition(config._l);
-                weekday = w.d != null ?  parseWeekday(w.d, lang) :
-                  (w.e != null ?  parseInt(w.e, 10) + lang._week.dow : 0);
-
-                week = parseInt(w.w, 10) || 1;
-
-                //if we're parsing 'd', then the low day numbers may be next week
-                if (w.d != null && weekday < lang._week.dow) {
-                    week++;
-                }
-
-                temp = dayOfYearFromWeeks(fixYear(w.gg), week, weekday, lang._week.doy, lang._week.dow);
-            }
-
-            config._a[YEAR] = temp.year;
-            config._dayOfYear = temp.dayOfYear;
+            dayOfYearFromWeekInfo(config);
         }
 
         //if the day of the year is set, figure out what it is
         if (config._dayOfYear) {
-            yearToUse = config._a[YEAR] == null ? currentDate[YEAR] : config._a[YEAR];
+            yearToUse = dfl(config._a[YEAR], currentDate[YEAR]);
 
             if (config._dayOfYear > daysInYear(yearToUse)) {
                 config._pf._overflowDayOfYear = true;
@@ -24258,11 +28070,12 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             config._a[i] = input[i] = (config._a[i] == null) ? (i === 2 ? 1 : 0) : config._a[i];
         }
 
-        // add the offsets to the time to be parsed so that we can have a clean array for checking isValid
-        input[HOUR] += toInt((config._tzm || 0) / 60);
-        input[MINUTE] += toInt((config._tzm || 0) % 60);
-
         config._d = (config._useUTC ? makeUTCDate : makeDate).apply(null, input);
+        // Apply timezone offset from input. The actual zone can be changed
+        // with parseZone.
+        if (config._tzm != null) {
+            config._d.setUTCMinutes(config._d.getUTCMinutes() + config._tzm);
+        }
     }
 
     function dateFromObject(config) {
@@ -24301,6 +28114,11 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
     // date from string and format string
     function makeDateFromStringAndFormat(config) {
+
+        if (config._f === moment.ISO_8601) {
+            parseISO(config);
+            return;
+        }
 
         config._a = [];
         config._pf.empty = true;
@@ -24414,7 +28232,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     }
 
     // date from iso format
-    function makeDateFromString(config) {
+    function parseISO(config) {
         var i, l,
             string = config._i,
             match = isoRegex.exec(string);
@@ -24438,8 +28256,16 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
                 config._f += "Z";
             }
             makeDateFromStringAndFormat(config);
+        } else {
+            config._isValid = false;
         }
-        else {
+    }
+
+    // date from iso format or fallback
+    function makeDateFromString(config) {
+        parseISO(config);
+        if (config._isValid === false) {
+            delete config._isValid;
             moment.createFromInputFallback(config);
         }
     }
@@ -24520,15 +28346,15 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             hours = round(minutes / 60),
             days = round(hours / 24),
             years = round(days / 365),
-            args = seconds < 45 && ['s', seconds] ||
+            args = seconds < relativeTimeThresholds.s  && ['s', seconds] ||
                 minutes === 1 && ['m'] ||
-                minutes < 45 && ['mm', minutes] ||
+                minutes < relativeTimeThresholds.m && ['mm', minutes] ||
                 hours === 1 && ['h'] ||
-                hours < 22 && ['hh', hours] ||
+                hours < relativeTimeThresholds.h && ['hh', hours] ||
                 days === 1 && ['d'] ||
-                days <= 25 && ['dd', days] ||
-                days <= 45 && ['M'] ||
-                days < 345 && ['MM', round(days / 30)] ||
+                days <= relativeTimeThresholds.dd && ['dd', days] ||
+                days <= relativeTimeThresholds.dm && ['M'] ||
+                days < relativeTimeThresholds.dy && ['MM', round(days / 30)] ||
                 years === 1 && ['y'] || ['yy', years];
         args[2] = withoutSuffix;
         args[3] = milliseconds > 0;
@@ -24574,6 +28400,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     function dayOfYearFromWeeks(year, week, weekday, firstDayOfWeekOfYear, firstDayOfWeek) {
         var d = makeUTCDate(year, 0, 1).getUTCDay(), daysToAdd, dayOfYear;
 
+        d = d === 0 ? 7 : d;
         weekday = weekday != null ? weekday : firstDayOfWeek;
         daysToAdd = firstDayOfWeek - d + (d > firstDayOfWeekOfYear ? 7 : 0) - (d < firstDayOfWeek ? 7 : 0);
         dayOfYear = 7 * (week - 1) + (weekday - firstDayOfWeek) + daysToAdd + 1;
@@ -24648,6 +28475,40 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             function (config) {
         config._d = new Date(config._i);
     });
+
+    // Pick a moment m from moments so that m[fn](other) is true for all
+    // other. This relies on the function fn to be transitive.
+    //
+    // moments should either be an array of moment objects or an array, whose
+    // first element is an array of moment objects.
+    function pickBy(fn, moments) {
+        var res, i;
+        if (moments.length === 1 && isArray(moments[0])) {
+            moments = moments[0];
+        }
+        if (!moments.length) {
+            return moment();
+        }
+        res = moments[0];
+        for (i = 1; i < moments.length; ++i) {
+            if (moments[i][fn](res)) {
+                res = moments[i];
+            }
+        }
+        return res;
+    }
+
+    moment.min = function () {
+        var args = [].slice.call(arguments, 0);
+
+        return pickBy('isBefore', args);
+    };
+
+    moment.max = function () {
+        var args = [].slice.call(arguments, 0);
+
+        return pickBy('isAfter', args);
+    };
 
     // creating with utc
     moment.utc = function (input, format, lang, strict) {
@@ -24745,6 +28606,9 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     // default format
     moment.defaultFormat = isoFormat;
 
+    // constant that refers to the ISO standard
+    moment.ISO_8601 = function () {};
+
     // Plugins that add properties should also add the key here (null value),
     // so we can properly clone ourselves.
     moment.momentProperties = momentProperties;
@@ -24752,6 +28616,15 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     // This function will be called whenever a moment is mutated.
     // It is intended to keep the offset in sync with the timezone.
     moment.updateOffset = function () {};
+
+    // This function allows you to set a threshold for relative time strings
+    moment.relativeTimeThreshold = function(threshold, limit) {
+      if (relativeTimeThresholds[threshold] === undefined) {
+        return false;
+      }
+      relativeTimeThresholds[threshold] = limit;
+      return true;
+    };
 
     // This function will load languages and then set the global language.  If
     // no arguments are passed in, it will simply return the current global
@@ -24908,7 +28781,9 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
         add : function (input, val) {
             var dur;
             // switch args to support add('s', 1) and add(1, 's')
-            if (typeof input === 'string') {
+            if (typeof input === 'string' && typeof val === 'string') {
+                dur = moment.duration(isNaN(+val) ? +input : +val, isNaN(+val) ? val : input);
+            } else if (typeof input === 'string') {
                 dur = moment.duration(+val, input);
             } else {
                 dur = moment.duration(input, val);
@@ -24920,7 +28795,9 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
         subtract : function (input, val) {
             var dur;
             // switch args to support subtract('s', 1) and subtract(1, 's')
-            if (typeof input === 'string') {
+            if (typeof input === 'string' && typeof val === 'string') {
+                dur = moment.duration(isNaN(+val) ? +input : +val, isNaN(+val) ? val : input);
+            } else if (typeof input === 'string') {
                 dur = moment.duration(+val, input);
             } else {
                 dur = moment.duration(input, val);
@@ -24971,10 +28848,11 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             return this.from(moment(), withoutSuffix);
         },
 
-        calendar : function () {
+        calendar : function (time) {
             // We want to compare the start of today, vs this.
             // Getting start-of-today depends on whether we're zone'd or not.
-            var sod = makeAs(moment(), this).startOf('day'),
+            var now = time || moment(),
+                sod = makeAs(now, this).startOf('day'),
                 diff = this.diff(sod, 'days', true),
                 format = diff < -6 ? 'sameElse' :
                     diff < -1 ? 'lastWeek' :
@@ -25069,15 +28947,21 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             return +this.clone().startOf(units) === +makeAs(input, this).startOf(units);
         },
 
-        min: function (other) {
-            other = moment.apply(null, arguments);
-            return other < this ? this : other;
-        },
+        min: deprecate(
+                 "moment().min is deprecated, use moment.min instead. https://github.com/moment/moment/issues/1548",
+                 function (other) {
+                     other = moment.apply(null, arguments);
+                     return other < this ? this : other;
+                 }
+         ),
 
-        max: function (other) {
-            other = moment.apply(null, arguments);
-            return other > this ? this : other;
-        },
+        max: deprecate(
+                "moment().max is deprecated, use moment.max instead. https://github.com/moment/moment/issues/1548",
+                function (other) {
+                    other = moment.apply(null, arguments);
+                    return other > this ? this : other;
+                }
+        ),
 
         // keepTime = true means only change the timezone, without affecting
         // the local hour. So 5:31:26 +0300 --[zone(2, true)]--> 5:31:26 +0200

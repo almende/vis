@@ -2,20 +2,71 @@
 http://visjs.org
 
 
-## 2014-06-06, version 1.1.1
+## not yet released, version 3.0.1-SNAPSHOT
+
+
+## 2014-07-07, version 3.0.0
 
 ### Timeline
 
+- Implemented support for displaying a `title` for both items and groups.
+- Fixed auto detected item type being preferred over the global item `type`.
+- Throws an error when constructing without new keyword.
+- Removed the 'rangeoverflow' item type. Instead, one can use a regular range
+  and change css styling of the item contents to:
+
+        .vis.timeline .item.range .content {
+          overflow: visible;
+        }
+- Fixed the height of background and foreground panels of groups.
+- Fixed ranges in the Timeline sometimes overlapping when dragging the Timeline.
+- Fixed `DataView` not working in Timeline.
+
+### Network (formerly named Graph)
+
+- Renamed `Graph` to `Network` to prevent confusion with the visualizations 
+  `Graph2d` and `Graph3d`.
+  - Renamed option `dragGraph` to `dragNetwork`.
+- Now throws an error when constructing without new keyword.
+- Added pull request from Vukk, user can now define the edge width multiplier 
+  when selected.
+- Fixed `graph.storePositions()`.
+- Extended Selection API with `selectNodes` and `selectEdges`, deprecating 
+  `setSelection`.
+- Fixed multiline labels.
+- Changed hierarchical physics solver and updated docs.
+
+### Graph2d
+
+- Added first iteration of the Graph2d.
+
+### Graph3d
+
+- Now throws an error when constructing without new keyword.
+
+
+## 2014-06-19, version 2.0.0
+
+### Timeline
+
+- Implemented function `destroy` to neatly cleanup a Timeline.
 - Implemented support for dragging the timeline contents vertically.
 - Implemented options `zoomable` and `moveable`.
 - Changed default value of option `showCurrentTime` to true.
 - Internal refactoring and simplification of the code.
+- Fixed property `className` of groups not being applied to related contents and 
+  background elements, and not being updated once applied.
 
 ### Graph
 
 - Reduced the timestep a little for smoother animations.
 - Fixed dataManipulation.initiallyVisible functionality (thanks theGrue).
 - Forced typecast of fontSize to Number.
+- Added editing of edges using the data manipulation toolkit.
+
+### DataSet
+
+- Renamed option `convert` to `type`.
 
 
 ## 2014-06-06, version 1.1.0
