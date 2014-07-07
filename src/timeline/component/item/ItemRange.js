@@ -96,6 +96,12 @@ ItemRange.prototype.redraw = function() {
     this.dirty = true;
   }
 
+  // update title
+  if (this.data.title != this.title) {
+    dom.box.title = this.data.title;
+    this.title = this.data.title;
+  }
+
   // update class
   var className = (this.data.className ? (' ' + this.data.className) : '') +
       (this.selected ? ' selected' : '');

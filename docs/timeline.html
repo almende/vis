@@ -174,53 +174,6 @@ var items = [
     <th>Description</th>
   </tr>
   <tr>
-    <td>id</td>
-    <td>String | Number</td>
-    <td>no</td>
-    <td>An id for the item. Using an id is not required but highly
-      recommended. An id is needed when dynamically adding, updating,
-      and removing items in a DataSet.</td>
-  </tr>
-  <tr>
-    <td>start</td>
-    <td>Date</td>
-    <td>yes</td>
-    <td>The start date of the item, for example <code>new Date(2010,09,23)</code>.</td>
-  </tr>
-  <tr>
-    <td>end</td>
-    <td>Date</td>
-    <td>no</td>
-    <td>The end date of the item. The end date is optional, and can be left <code>null</code>.
-      If end date is provided, the item is displayed as a range.
-      If not, the item is displayed as a box.</td>
-  </tr>
-  <tr>
-    <td>content</td>
-    <td>String</td>
-    <td>yes</td>
-    <td>The contents of the item. This can be plain text or html code.</td>
-  </tr>
-  <tr>
-    <td>type</td>
-    <td>String</td>
-    <td>'box'</td>
-    <td>The type of the item. Can be 'box' (default), 'point', or 'range'.
-      Types 'box' and 'point' need a start date, and type 'range' needs both a start and end date.
-    </td>
-  </tr>
-  <tr>
-    <td>group</td>
-    <td>any type</td>
-    <td>no</td>
-    <td>This field is optional. When the group column is provided,
-      all items with the same group are placed on one line.
-      A vertical axis is displayed showing the groups.
-      Grouping items can be useful for example when showing availability of multiple
-      people, rooms, or other resources next to each other.<br>
-    </td>
-  </tr>
-  <tr>
     <td>className</td>
     <td>String</td>
     <td>no</td>
@@ -235,6 +188,61 @@ var items = [
 }</pre>
       More details on how to style items can be found in the section
       <a href="#Styles">Styles</a>.
+    </td>
+  </tr>
+  <tr>
+    <td>content</td>
+    <td>String</td>
+    <td>yes</td>
+    <td>The contents of the item. This can be plain text or html code.</td>
+  </tr>
+  <tr>
+    <td>end</td>
+    <td>Date</td>
+    <td>no</td>
+    <td>The end date of the item. The end date is optional, and can be left <code>null</code>.
+      If end date is provided, the item is displayed as a range.
+      If not, the item is displayed as a box.</td>
+  </tr>
+  <tr>
+    <td>group</td>
+    <td>any type</td>
+    <td>no</td>
+    <td>This field is optional. When the group column is provided,
+      all items with the same group are placed on one line.
+      A vertical axis is displayed showing the groups.
+      Grouping items can be useful for example when showing availability of multiple
+      people, rooms, or other resources next to each other.<br>
+    </td>
+  </tr>
+  <tr>
+    <td>id</td>
+    <td>String | Number</td>
+    <td>no</td>
+    <td>An id for the item. Using an id is not required but highly
+      recommended. An id is needed when dynamically adding, updating,
+      and removing items in a DataSet.</td>
+  </tr>
+  <tr>
+    <td>start</td>
+    <td>Date</td>
+    <td>yes</td>
+    <td>The start date of the item, for example <code>new Date(2010,9,23)</code>.</td>
+  </tr>
+  <tr>
+    <td>title</td>
+    <td>String</td>
+    <td>none</td>
+    <td>Add a title for the item, displayed when holding the mouse on the item.
+      The title can only contain plain text.
+    </td>
+  </tr>
+  <tr>
+    <td>type</td>
+    <td>String</td>
+    <td>'box'</td>
+    <td>The type of the item. Can be 'box' (default), 'point', or 'range'.
+      Types 'box' and 'point' need a start date, and type 'range' needs both a start and end date.
     </td>
   </tr>
 </table>
@@ -277,20 +285,6 @@ var groups = [
     <th>Description</th>
   </tr>
   <tr>
-    <td>id</td>
-    <td>String | Number</td>
-    <td>yes</td>
-    <td>An id for the group. The group will display all items having a
-      property <code>group</code> which matches the <code>id</code>
-      of the group.</td>
-  </tr>
-  <tr>
-    <td>content</td>
-    <td>String</td>
-    <td>yes</td>
-    <td>The contents of the group. This can be plain text or html code.</td>
-  </tr>
-  <tr>
     <td>className</td>
     <td>String</td>
     <td>no</td>
@@ -304,6 +298,28 @@ var groups = [
       </code>.
       More details on how to style groups can be found in the section
       <a href="#Styles">Styles</a>.
+    </td>
+  </tr>
+  <tr>
+    <td>content</td>
+    <td>String</td>
+    <td>yes</td>
+    <td>The contents of the group. This can be plain text or html code.</td>
+  </tr>
+  <tr>
+    <td>id</td>
+    <td>String | Number</td>
+    <td>yes</td>
+    <td>An id for the group. The group will display all items having a
+      property <code>group</code> which matches the <code>id</code>
+      of the group.</td>
+  </tr>
+  <tr>
+    <td>title</td>
+    <td>String</td>
+    <td>none</td>
+    <td>A title for the group, displayed when holding the mouse the groups label.
+      The title can only contain plain text.
     </td>
   </tr>
 </table>

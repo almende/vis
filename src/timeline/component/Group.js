@@ -81,6 +81,9 @@ Group.prototype.setData = function(data) {
     this.dom.inner.innerHTML = this.groupId;
   }
 
+  // update title
+  this.dom.label.title = data && data.title || '';
+
   if (!this.dom.inner.firstChild) {
     util.addClassName(this.dom.inner, 'hidden');
   }
