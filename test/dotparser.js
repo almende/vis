@@ -1,6 +1,6 @@
 var assert = require('assert'),
     fs = require('fs'),
-    dot = require('../src/network/dotparser.js');
+    dot = require('../lib/network/dotparser.js');
 
 fs.readFile('test/dot.txt', function (err, data) {
   data = String(data);

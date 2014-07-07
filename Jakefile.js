@@ -36,21 +36,21 @@ task('build', {async: true}, function () {
   // concatenate and stringify the css files
   concat({
     src: [
-      './src/timeline/component/css/timeline.css',
-      './src/timeline/component/css/panel.css',
-      './src/timeline/component/css/labelset.css',
-      './src/timeline/component/css/itemset.css',
-      './src/timeline/component/css/item.css',
-      './src/timeline/component/css/timeaxis.css',
-      './src/timeline/component/css/currenttime.css',
-      './src/timeline/component/css/customtime.css',
-      './src/timeline/component/css/animation.css',
+      './lib/timeline/component/css/timeline.css',
+      './lib/timeline/component/css/panel.css',
+      './lib/timeline/component/css/labelset.css',
+      './lib/timeline/component/css/itemset.css',
+      './lib/timeline/component/css/item.css',
+      './lib/timeline/component/css/timeaxis.css',
+      './lib/timeline/component/css/currenttime.css',
+      './lib/timeline/component/css/customtime.css',
+      './lib/timeline/component/css/animation.css',
 
-      './src/timeline/component/css/dataaxis.css',
-      './src/timeline/component/css/pathStyles.css',
+      './lib/timeline/component/css/dataaxis.css',
+      './lib/timeline/component/css/pathStyles.css',
 
-      './src/network/css/network-manipulation.css',
-      './src/network/css/network-navigation.css'
+      './lib/network/css/network-manipulation.css',
+      './lib/network/css/network-navigation.css'
     ],
     dest: VIS_CSS,
     separator: '\n'
@@ -61,66 +61,66 @@ task('build', {async: true}, function () {
   concat({
     dest: VIS_TMP,
     src: [
-      './src/module/imports.js',
+      './lib/module/imports.js',
 
-      './src/shim.js',
-      './src/util.js',
-      './src/DOMutil.js',
-      './src/DataSet.js',
-      './src/DataView.js',
+      './lib/shim.js',
+      './lib/util.js',
+      './lib/DOMutil.js',
+      './lib/DataSet.js',
+      './lib/DataView.js',
 
-      './src/timeline/component/GraphGroup.js',
-      './src/timeline/component/Legend.js',
-      './src/timeline/component/DataAxis.js',
-      './src/timeline/component/LineGraph.js',
-      './src/timeline/DataStep.js',
+      './lib/timeline/component/GraphGroup.js',
+      './lib/timeline/component/Legend.js',
+      './lib/timeline/component/DataAxis.js',
+      './lib/timeline/component/LineGraph.js',
+      './lib/timeline/DataStep.js',
 
-      './src/timeline/Stack.js',
-      './src/timeline/TimeStep.js',
-      './src/timeline/Range.js',
-      './src/timeline/component/Component.js',
-      './src/timeline/component/TimeAxis.js',
-      './src/timeline/component/CurrentTime.js',
-      './src/timeline/component/CustomTime.js',
-      './src/timeline/component/ItemSet.js',
-      './src/timeline/component/item/*.js',
-      './src/timeline/component/Group.js',
-      './src/timeline/Timeline.js',
-      './src/timeline/Graph2d.js',
+      './lib/timeline/Stack.js',
+      './lib/timeline/TimeStep.js',
+      './lib/timeline/Range.js',
+      './lib/timeline/component/Component.js',
+      './lib/timeline/component/TimeAxis.js',
+      './lib/timeline/component/CurrentTime.js',
+      './lib/timeline/component/CustomTime.js',
+      './lib/timeline/component/ItemSet.js',
+      './lib/timeline/component/item/*.js',
+      './lib/timeline/component/Group.js',
+      './lib/timeline/Timeline.js',
+      './lib/timeline/Graph2d.js',
 
-      './src/network/dotparser.js',
-      './src/network/shapes.js',
-      './src/network/Node.js',
-      './src/network/Edge.js',
-      './src/network/Popup.js',
-      './src/network/Groups.js',
-      './src/network/Images.js',
-      './src/network/networkMixins/physics/PhysicsMixin.js',
-      './src/network/networkMixins/physics/HierarchialRepulsion.js',
-      './src/network/networkMixins/physics/BarnesHut.js',
-      './src/network/networkMixins/physics/Repulsion.js',
-      './src/network/networkMixins/HierarchicalLayoutMixin.js',
-      './src/network/networkMixins/ManipulationMixin.js',
-      './src/network/networkMixins/SectorsMixin.js',
-      './src/network/networkMixins/ClusterMixin.js',
-      './src/network/networkMixins/SelectionMixin.js',
-      './src/network/networkMixins/NavigationMixin.js',
-      './src/network/networkMixins/MixinLoader.js',
-      './src/network/Network.js',
+      './lib/network/dotparser.js',
+      './lib/network/shapes.js',
+      './lib/network/Node.js',
+      './lib/network/Edge.js',
+      './lib/network/Popup.js',
+      './lib/network/Groups.js',
+      './lib/network/Images.js',
+      './lib/network/networkMixins/physics/PhysicsMixin.js',
+      './lib/network/networkMixins/physics/HierarchialRepulsion.js',
+      './lib/network/networkMixins/physics/BarnesHut.js',
+      './lib/network/networkMixins/physics/Repulsion.js',
+      './lib/network/networkMixins/HierarchicalLayoutMixin.js',
+      './lib/network/networkMixins/ManipulationMixin.js',
+      './lib/network/networkMixins/SectorsMixin.js',
+      './lib/network/networkMixins/ClusterMixin.js',
+      './lib/network/networkMixins/SelectionMixin.js',
+      './lib/network/networkMixins/NavigationMixin.js',
+      './lib/network/networkMixins/MixinLoader.js',
+      './lib/network/Network.js',
 
-      './src/graph3d/Graph3d.js',
+      './lib/graph3d/Graph3d.js',
 
-      './src/module/exports.js'
+      './lib/module/exports.js'
     ],
 
     separator: '\n'
   });
 
   // copy images
-  wrench.copyDirSyncRecursive('./src/network/img', DIST + '/img/network', {
+  wrench.copyDirSyncRecursive('./lib/network/img', DIST + '/img/network', {
     forceDelete: true
   });
-  wrench.copyDirSyncRecursive('./src/timeline/img', DIST + '/img/timeline', {
+  wrench.copyDirSyncRecursive('./lib/timeline/img', DIST + '/img/timeline', {
     forceDelete: true
   });
 
@@ -136,7 +136,7 @@ task('build', {async: true}, function () {
     }
     console.log("browserify",Date.now() - timeStart); timeStart = Date.now();
     // add header and footer
-    var lib = read('./src/module/header.js') + code;
+    var lib = read('./lib/module/header.js') + code;
 
     // write bundled file
     write(VIS, lib);
@@ -161,7 +161,7 @@ task('minify', {async: true}, function () {
   minify({
     src: VIS,
     dest: VIS_MIN,
-    header: read('./src/module/header.js')
+    header: read('./lib/module/header.js')
   });
 
   // update version number and stuff in the javascript files
