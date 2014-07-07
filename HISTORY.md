@@ -2,10 +2,11 @@
 http://visjs.org
 
 
-## not yet released, version 2.1.0
+## 2014-07-07, version 3.0.0
 
 ### Timeline
 
+- Implemented support for displaying a `title` for both items and groups.
 - Fixed auto detected item type being preferred over the global item `type`.
 - Throws an error when constructing without new keyword.
 - Removed the 'rangeoverflow' item type. Instead, one can use a regular range
@@ -18,7 +19,7 @@ http://visjs.org
 - Fixed ranges in the Timeline sometimes overlapping when dragging the Timeline.
 - Fixed `DataView` not working in Timeline.
 
-### Network
+### Network (formerly named Graph)
 
 - Renamed `Graph` to `Network` to prevent confusion with the visualizations 
   `Graph2d` and `Graph3d`.

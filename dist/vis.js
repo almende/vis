@@ -4,7 +4,7 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 2.0.1-SNAPSHOT
+ * @version 3.0.0
  * @date    2014-07-07
  *
  * @license
@@ -8195,6 +8195,7 @@ ItemSet.itemSetFromTarget = function(event) {
   return null;
 };
 
+
 /**
  * @constructor Item
  * @param {Object} data             Object containing (optional) parameters type,
@@ -8449,6 +8450,12 @@ ItemBox.prototype.redraw = function() {
     this.dirty = true;
   }
 
+  // update title
+  if (this.data.title != this.title) {
+    dom.box.title = this.data.title;
+    this.title = this.data.title;
+  }
+
   // update class
   var className = (this.data.className? ' ' + this.data.className : '') +
       (this.selected ? ' selected' : '');
@@ -8670,6 +8677,12 @@ ItemPoint.prototype.redraw = function() {
     this.dirty = true;
   }
 
+  // update title
+  if (this.data.title != this.title) {
+    dom.point.title = this.data.title;
+    this.title = this.data.title;
+  }
+
   // update class
   var className = (this.data.className? ' ' + this.data.className : '') +
       (this.selected ? ' selected' : '');
@@ -8853,6 +8866,12 @@ ItemRange.prototype.redraw = function() {
     }
 
     this.dirty = true;
+  }
+
+  // update title
+  if (this.data.title != this.title) {
+    dom.box.title = this.data.title;
+    this.title = this.data.title;
   }
 
   // update class
@@ -9120,6 +9139,9 @@ Group.prototype.setData = function(data) {
   else {
     this.dom.inner.innerHTML = this.groupId;
   }
+
+  // update title
+  this.dom.label.title = data && data.title || '';
 
   if (!this.dom.inner.firstChild) {
     util.addClassName(this.dom.inner, 'hidden');
@@ -26748,7 +26770,7 @@ else {
 })(this);
 },{}],4:[function(require,module,exports){
 var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};//! moment.js
-//! version : 2.6.0
+//! version : 2.7.0
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
@@ -26760,7 +26782,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     ************************************/
 
     var moment,
-        VERSION = "2.6.0",
+        VERSION = "2.7.0",
         // the global-scope this is NOT the global object in Node.js
         globalScope = typeof global !== 'undefined' ? global : this,
         oldGlobalMoment,
@@ -26785,6 +26807,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             _f : null,
             _l : null,
             _strict : null,
+            _tzm : null,
             _isUTC : null,
             _offset : null,  // optional. Combine with _isUTC
             _pf : null,
@@ -26892,6 +26915,16 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
         // format function strings
         formatFunctions = {},
+
+        // default relative time thresholds
+        relativeTimeThresholds = {
+          s: 45,   //seconds to minutes
+          m: 45,   //minutes to hours
+          h: 22,   //hours to days
+          dd: 25,  //days to month (month == 1)
+          dm: 45,  //days to months (months > 1)
+          dy: 345  //days to year
+        },
 
         // tokens to ordinalize and pad
         ordinalizeTokens = 'DDD w W M D d'.split(' '),
@@ -27031,6 +27064,16 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
         },
 
         lists = ['months', 'monthsShort', 'weekdays', 'weekdaysShort', 'weekdaysMin'];
+
+    // Pick the first defined of two or three arguments. dfl comes from
+    // default.
+    function dfl(a, b, c) {
+        switch (arguments.length) {
+            case 2: return a != null ? a : b;
+            case 3: return a != null ? a : b != null ? b : c;
+            default: throw new Error("Implement me");
+        }
+    }
 
     function defaultParsingFlags() {
         // We need to deep clone this object, and es5 standard is not very
@@ -27900,30 +27943,86 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             config._useUTC = true;
             config._tzm = timezoneMinutesFromString(input);
             break;
+        // WEEKDAY - human
+        case 'dd':
+        case 'ddd':
+        case 'dddd':
+            a = getLangDefinition(config._l).weekdaysParse(input);
+            // if we didn't get a weekday name, mark the date as invalid
+            if (a != null) {
+                config._w = config._w || {};
+                config._w['d'] = a;
+            } else {
+                config._pf.invalidWeekday = input;
+            }
+            break;
+        // WEEK, WEEK DAY - numeric
         case 'w':
         case 'ww':
         case 'W':
         case 'WW':
         case 'd':
-        case 'dd':
-        case 'ddd':
-        case 'dddd':
         case 'e':
         case 'E':
             token = token.substr(0, 1);
             /* falls through */
-        case 'gg':
         case 'gggg':
-        case 'GG':
         case 'GGGG':
         case 'GGGGG':
             token = token.substr(0, 2);
             if (input) {
                 config._w = config._w || {};
-                config._w[token] = input;
+                config._w[token] = toInt(input);
             }
             break;
+        case 'gg':
+        case 'GG':
+            config._w = config._w || {};
+            config._w[token] = moment.parseTwoDigitYear(input);
         }
+    }
+
+    function dayOfYearFromWeekInfo(config) {
+        var w, weekYear, week, weekday, dow, doy, temp, lang;
+
+        w = config._w;
+        if (w.GG != null || w.W != null || w.E != null) {
+            dow = 1;
+            doy = 4;
+
+            // TODO: We need to take the current isoWeekYear, but that depends on
+            // how we interpret now (local, utc, fixed offset). So create
+            // a now version of current config (take local/utc/offset flags, and
+            // create now).
+            weekYear = dfl(w.GG, config._a[YEAR], weekOfYear(moment(), 1, 4).year);
+            week = dfl(w.W, 1);
+            weekday = dfl(w.E, 1);
+        } else {
+            lang = getLangDefinition(config._l);
+            dow = lang._week.dow;
+            doy = lang._week.doy;
+
+            weekYear = dfl(w.gg, config._a[YEAR], weekOfYear(moment(), dow, doy).year);
+            week = dfl(w.w, 1);
+
+            if (w.d != null) {
+                // weekday -- low day numbers are considered next week
+                weekday = w.d;
+                if (weekday < dow) {
+                    ++week;
+                }
+            } else if (w.e != null) {
+                // local weekday -- counting starts from begining of week
+                weekday = w.e + dow;
+            } else {
+                // default to begining of week
+                weekday = dow;
+            }
+        }
+        temp = dayOfYearFromWeeks(weekYear, week, weekday, doy, dow);
+
+        config._a[YEAR] = temp.year;
+        config._dayOfYear = temp.dayOfYear;
     }
 
     // convert an array to a date.
@@ -27931,8 +28030,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     // note: all values past the year are optional and will default to the lowest possible value.
     // [year, month, day , hour, minute, second, millisecond]
     function dateFromConfig(config) {
-        var i, date, input = [], currentDate,
-            yearToUse, fixYear, w, temp, lang, weekday, week;
+        var i, date, input = [], currentDate, yearToUse;
 
         if (config._d) {
             return;
@@ -27942,39 +28040,12 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
         //compute day of the year from weeks and weekdays
         if (config._w && config._a[DATE] == null && config._a[MONTH] == null) {
-            fixYear = function (val) {
-                var intVal = parseInt(val, 10);
-                return val ?
-                  (val.length < 3 ? (intVal > 68 ? 1900 + intVal : 2000 + intVal) : intVal) :
-                  (config._a[YEAR] == null ? moment().weekYear() : config._a[YEAR]);
-            };
-
-            w = config._w;
-            if (w.GG != null || w.W != null || w.E != null) {
-                temp = dayOfYearFromWeeks(fixYear(w.GG), w.W || 1, w.E, 4, 1);
-            }
-            else {
-                lang = getLangDefinition(config._l);
-                weekday = w.d != null ?  parseWeekday(w.d, lang) :
-                  (w.e != null ?  parseInt(w.e, 10) + lang._week.dow : 0);
-
-                week = parseInt(w.w, 10) || 1;
-
-                //if we're parsing 'd', then the low day numbers may be next week
-                if (w.d != null && weekday < lang._week.dow) {
-                    week++;
-                }
-
-                temp = dayOfYearFromWeeks(fixYear(w.gg), week, weekday, lang._week.doy, lang._week.dow);
-            }
-
-            config._a[YEAR] = temp.year;
-            config._dayOfYear = temp.dayOfYear;
+            dayOfYearFromWeekInfo(config);
         }
 
         //if the day of the year is set, figure out what it is
         if (config._dayOfYear) {
-            yearToUse = config._a[YEAR] == null ? currentDate[YEAR] : config._a[YEAR];
+            yearToUse = dfl(config._a[YEAR], currentDate[YEAR]);
 
             if (config._dayOfYear > daysInYear(yearToUse)) {
                 config._pf._overflowDayOfYear = true;
@@ -27999,11 +28070,12 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             config._a[i] = input[i] = (config._a[i] == null) ? (i === 2 ? 1 : 0) : config._a[i];
         }
 
-        // add the offsets to the time to be parsed so that we can have a clean array for checking isValid
-        input[HOUR] += toInt((config._tzm || 0) / 60);
-        input[MINUTE] += toInt((config._tzm || 0) % 60);
-
         config._d = (config._useUTC ? makeUTCDate : makeDate).apply(null, input);
+        // Apply timezone offset from input. The actual zone can be changed
+        // with parseZone.
+        if (config._tzm != null) {
+            config._d.setUTCMinutes(config._d.getUTCMinutes() + config._tzm);
+        }
     }
 
     function dateFromObject(config) {
@@ -28042,6 +28114,11 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
     // date from string and format string
     function makeDateFromStringAndFormat(config) {
+
+        if (config._f === moment.ISO_8601) {
+            parseISO(config);
+            return;
+        }
 
         config._a = [];
         config._pf.empty = true;
@@ -28155,7 +28232,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     }
 
     // date from iso format
-    function makeDateFromString(config) {
+    function parseISO(config) {
         var i, l,
             string = config._i,
             match = isoRegex.exec(string);
@@ -28179,8 +28256,16 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
                 config._f += "Z";
             }
             makeDateFromStringAndFormat(config);
+        } else {
+            config._isValid = false;
         }
-        else {
+    }
+
+    // date from iso format or fallback
+    function makeDateFromString(config) {
+        parseISO(config);
+        if (config._isValid === false) {
+            delete config._isValid;
             moment.createFromInputFallback(config);
         }
     }
@@ -28261,15 +28346,15 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             hours = round(minutes / 60),
             days = round(hours / 24),
             years = round(days / 365),
-            args = seconds < 45 && ['s', seconds] ||
+            args = seconds < relativeTimeThresholds.s  && ['s', seconds] ||
                 minutes === 1 && ['m'] ||
-                minutes < 45 && ['mm', minutes] ||
+                minutes < relativeTimeThresholds.m && ['mm', minutes] ||
                 hours === 1 && ['h'] ||
-                hours < 22 && ['hh', hours] ||
+                hours < relativeTimeThresholds.h && ['hh', hours] ||
                 days === 1 && ['d'] ||
-                days <= 25 && ['dd', days] ||
-                days <= 45 && ['M'] ||
-                days < 345 && ['MM', round(days / 30)] ||
+                days <= relativeTimeThresholds.dd && ['dd', days] ||
+                days <= relativeTimeThresholds.dm && ['M'] ||
+                days < relativeTimeThresholds.dy && ['MM', round(days / 30)] ||
                 years === 1 && ['y'] || ['yy', years];
         args[2] = withoutSuffix;
         args[3] = milliseconds > 0;
@@ -28315,6 +28400,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     function dayOfYearFromWeeks(year, week, weekday, firstDayOfWeekOfYear, firstDayOfWeek) {
         var d = makeUTCDate(year, 0, 1).getUTCDay(), daysToAdd, dayOfYear;
 
+        d = d === 0 ? 7 : d;
         weekday = weekday != null ? weekday : firstDayOfWeek;
         daysToAdd = firstDayOfWeek - d + (d > firstDayOfWeekOfYear ? 7 : 0) - (d < firstDayOfWeek ? 7 : 0);
         dayOfYear = 7 * (week - 1) + (weekday - firstDayOfWeek) + daysToAdd + 1;
@@ -28389,6 +28475,40 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             function (config) {
         config._d = new Date(config._i);
     });
+
+    // Pick a moment m from moments so that m[fn](other) is true for all
+    // other. This relies on the function fn to be transitive.
+    //
+    // moments should either be an array of moment objects or an array, whose
+    // first element is an array of moment objects.
+    function pickBy(fn, moments) {
+        var res, i;
+        if (moments.length === 1 && isArray(moments[0])) {
+            moments = moments[0];
+        }
+        if (!moments.length) {
+            return moment();
+        }
+        res = moments[0];
+        for (i = 1; i < moments.length; ++i) {
+            if (moments[i][fn](res)) {
+                res = moments[i];
+            }
+        }
+        return res;
+    }
+
+    moment.min = function () {
+        var args = [].slice.call(arguments, 0);
+
+        return pickBy('isBefore', args);
+    };
+
+    moment.max = function () {
+        var args = [].slice.call(arguments, 0);
+
+        return pickBy('isAfter', args);
+    };
 
     // creating with utc
     moment.utc = function (input, format, lang, strict) {
@@ -28486,6 +28606,9 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     // default format
     moment.defaultFormat = isoFormat;
 
+    // constant that refers to the ISO standard
+    moment.ISO_8601 = function () {};
+
     // Plugins that add properties should also add the key here (null value),
     // so we can properly clone ourselves.
     moment.momentProperties = momentProperties;
@@ -28493,6 +28616,15 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
     // This function will be called whenever a moment is mutated.
     // It is intended to keep the offset in sync with the timezone.
     moment.updateOffset = function () {};
+
+    // This function allows you to set a threshold for relative time strings
+    moment.relativeTimeThreshold = function(threshold, limit) {
+      if (relativeTimeThresholds[threshold] === undefined) {
+        return false;
+      }
+      relativeTimeThresholds[threshold] = limit;
+      return true;
+    };
 
     // This function will load languages and then set the global language.  If
     // no arguments are passed in, it will simply return the current global
@@ -28649,7 +28781,9 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
         add : function (input, val) {
             var dur;
             // switch args to support add('s', 1) and add(1, 's')
-            if (typeof input === 'string') {
+            if (typeof input === 'string' && typeof val === 'string') {
+                dur = moment.duration(isNaN(+val) ? +input : +val, isNaN(+val) ? val : input);
+            } else if (typeof input === 'string') {
                 dur = moment.duration(+val, input);
             } else {
                 dur = moment.duration(input, val);
@@ -28661,7 +28795,9 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
         subtract : function (input, val) {
             var dur;
             // switch args to support subtract('s', 1) and subtract(1, 's')
-            if (typeof input === 'string') {
+            if (typeof input === 'string' && typeof val === 'string') {
+                dur = moment.duration(isNaN(+val) ? +input : +val, isNaN(+val) ? val : input);
+            } else if (typeof input === 'string') {
                 dur = moment.duration(+val, input);
             } else {
                 dur = moment.duration(input, val);
@@ -28712,10 +28848,11 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             return this.from(moment(), withoutSuffix);
         },
 
-        calendar : function () {
+        calendar : function (time) {
             // We want to compare the start of today, vs this.
             // Getting start-of-today depends on whether we're zone'd or not.
-            var sod = makeAs(moment(), this).startOf('day'),
+            var now = time || moment(),
+                sod = makeAs(now, this).startOf('day'),
                 diff = this.diff(sod, 'days', true),
                 format = diff < -6 ? 'sameElse' :
                     diff < -1 ? 'lastWeek' :
@@ -28810,15 +28947,21 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
             return +this.clone().startOf(units) === +makeAs(input, this).startOf(units);
         },
 
-        min: function (other) {
-            other = moment.apply(null, arguments);
-            return other < this ? this : other;
-        },
+        min: deprecate(
+                 "moment().min is deprecated, use moment.min instead. https://github.com/moment/moment/issues/1548",
+                 function (other) {
+                     other = moment.apply(null, arguments);
+                     return other < this ? this : other;
+                 }
+         ),
 
-        max: function (other) {
-            other = moment.apply(null, arguments);
-            return other > this ? this : other;
-        },
+        max: deprecate(
+                "moment().max is deprecated, use moment.max instead. https://github.com/moment/moment/issues/1548",
+                function (other) {
+                    other = moment.apply(null, arguments);
+                    return other > this ? this : other;
+                }
+        ),
 
         // keepTime = true means only change the timezone, without affecting
         // the local hour. So 5:31:26 +0300 --[zone(2, true)]--> 5:31:26 +0200

@@ -21,7 +21,7 @@ This generates the vis.js library in the folder `./dist`.
 
         npm test
 
-- Open some of the example in your browser and visually check if it works as expected.
+- Open some of the examples in your browser and visually check if it works as expected.
 
 
 ## Commit
