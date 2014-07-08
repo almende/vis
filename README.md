@@ -135,6 +135,16 @@ Then, the project can be build running:
 
     npm run build
 
+To automatically rebuild on changes in the source files, once can use
+
+    npm run watch
+
+This will both build and minify the library on changes. Minifying is relatively
+slow, so when only the non-minified library is needed, one can use the 
+`watch-dev` script instead:
+
+    npm run watch-dev
+
 
 ## Test
 

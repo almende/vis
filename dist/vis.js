@@ -8171,8 +8171,8 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   function getPointer (touch, element) {
     return {
-      x: touch.pageX - vis.util.getAbsoluteLeft(element),
-      y: touch.pageY - vis.util.getAbsoluteTop(element)
+      x: touch.pageX - util.getAbsoluteLeft(element),
+      y: touch.pageY - util.getAbsoluteTop(element)
     };
   }
 
@@ -11475,7 +11475,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     else {
       // add item
-      var xAbs = vis.util.getAbsoluteLeft(this.dom.frame);
+      var xAbs = util.getAbsoluteLeft(this.dom.frame);
       var x = event.gesture.center.pageX - xAbs;
       var start = this.body.util.toTime(x);
       var newItem = {

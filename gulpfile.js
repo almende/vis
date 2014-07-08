@@ -34,6 +34,7 @@ var bannerPlugin = new webpack.BannerPlugin(createBanner(), {
   raw: true
 });
 
+// TODO: the moment.js language files should be excluded by default (they are quite big)
 var webpackConfig = {
   entry: ENTRY,
   output: {
@@ -125,13 +126,13 @@ gulp.task('bundle', ['bundle-js', 'bundle-css', 'copy-img']);
 
 // The watch task (to automatically rebuild when the source code changes)
 gulp.task('watch', ['bundle', 'minify'], function () {
-  gulp.watch(['index.js', 'lib/**/*.js'], ['bundle', 'minify']);
+  gulp.watch(['index.js', 'lib/**/*'], ['bundle', 'minify']);
 });
 
 // The watch task (to automatically rebuild when the source code changes)
 // this watch only rebuilds vis.js, not vis.min.js
 gulp.task('watch-dev', ['bundle'], function () {
-  gulp.watch(['index.js', 'lib/**/*.js'], ['bundle']);
+  gulp.watch(['index.js', 'lib/**/*'], ['bundle']);
 });
 
 // The default task (called when you run `gulp`)
