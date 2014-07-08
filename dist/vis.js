@@ -1275,7 +1275,8 @@ return /******/ (function(modules) { // webpackBootstrap
    *
    * @param {{byStart: Item[], byEnd: Item[]}} orderedItems
    * @param {{start: number, end: number}} range
-   * @param {Boolean} byEnd
+   * @param {String} field
+   * @param {String} field2
    * @returns {number}
    * @private
    */
@@ -1286,11 +1287,15 @@ return /******/ (function(modules) { // webpackBootstrap
     var found = false;
     var low = 0;
     var high = array.length;
+    var newLow = low;
+    var newHigh = high;
     var guess = Math.floor(0.5*(high+low));
     var newGuess;
     var value;
 
-    if (high == 0) {guess = -1;}
+    if (high == 0) {
+      guess = -1;
+    }
     else if (high == 1) {
       value = field2 === undefined ? array[guess][field] : array[guess][field][field2];
       if ((value > range.start - interval) && (value < range.end)) {
@@ -1302,26 +1307,28 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     else {
       high -= 1;
+
       while (found == false) {
         value = field2 === undefined ? array[guess][field] : array[guess][field][field2];
+
         if ((value > range.start - interval) && (value < range.end)) {
           found = true;
         }
         else {
           if (value < range.start - interval) { // it is too small --> increase low
-            low = Math.floor(0.5*(high+low));
+            newLow = Math.floor(0.5*(high+low));
           }
           else {  // it is too big --> decrease high
-            high = Math.floor(0.5*(high+low));
+            newHigh = Math.floor(0.5*(high+low));
           }
-          newGuess = Math.floor(0.5*(high+low));
           // not in list;
-          if (guess == newGuess) {
+          if (low == newLow && high == newHigh) {
             guess = -1;
             found = true;
           }
           else {
-            guess = newGuess;
+            high = newHigh; low = newLow;
+            guess = Math.floor(0.5*(high+low));
           }
         }
       }
@@ -1341,7 +1348,8 @@ return /******/ (function(modules) { // webpackBootstrap
    *
    * @param {Array} orderedItems
    * @param {{start: number, end: number}} target
-   * @param {Boolean} byEnd
+   * @param {String} field
+   * @param {String} sidePreference   'before' or 'after'
    * @returns {number}
    * @private
    */
@@ -1350,6 +1358,8 @@ return /******/ (function(modules) { // webpackBootstrap
     var found = false;
     var low = 0;
     var high = array.length;
+    var newLow = low;
+    var newHigh = high;
     var guess = Math.floor(0.5*(high+low));
     var newGuess;
     var prevValue, value, nextValue;
@@ -1395,12 +1405,13 @@ return /******/ (function(modules) { // webpackBootstrap
           }
           newGuess = Math.floor(0.5*(high+low));
           // not in list;
-          if (guess == newGuess) {
-            guess = -2;
+          if (low == newLow && high == newHigh) {
+            guess = -1;
             found = true;
           }
           else {
-            guess = newGuess;
+            high = newHigh; low = newLow;
+            guess = Math.floor(0.5*(high+low));
           }
         }
       }
@@ -10228,6 +10239,7 @@ return /******/ (function(modules) { // webpackBootstrap
       return false;
     }
     else {
+      if (item.displayed) item.hide();
       return true;
     }
   };

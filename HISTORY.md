@@ -4,6 +4,10 @@ http://visjs.org
 
 ## not yet released, version 3.0.1-SNAPSHOT
 
+### Timeline
+
+- Fixed items in groups sometimes being displayed but not positioned correctly.
+
 
 ## 2014-07-07, version 3.0.0
 
