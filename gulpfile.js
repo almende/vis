@@ -8,6 +8,7 @@ var webpack = require('webpack');
 var uglify = require('uglify-js');
 var rimraf = require('rimraf');
 var merge = require('merge-stream');
+var argv = require('yargs').argv;
 
 var ENTRY             = './index.js';
 var HEADER            = './lib/header.js';
@@ -58,9 +59,9 @@ var uglifyConfig = {
 // create a single instance of the compiler to allow caching
 var compiler = webpack(webpackConfig);
 
-// clean the dist directory
+// clean the dist/img directory
 gulp.task('clean', function (cb) {
-  rimraf(DIST, cb);
+  rimraf(DIST + '/img', cb);
 });
 
 gulp.task('bundle-js', ['clean'], function (cb) {
@@ -124,15 +125,24 @@ gulp.task('minify', ['bundle-js'], function (cb) {
 
 gulp.task('bundle', ['bundle-js', 'bundle-css', 'copy-img']);
 
-// The watch task (to automatically rebuild when the source code changes)
-gulp.task('watch', ['bundle', 'minify'], function () {
-  gulp.watch(['index.js', 'lib/**/*'], ['bundle', 'minify']);
-});
+// read command line arguments --bundle and --minify
+var bundle = 'bundle' in argv;
+var minify = 'minify' in argv;
+var watchTasks = [];
+if (bundle || minify) {
+  // do bundling and/or minifying only when specified on the command line
+  watchTasks = [];
+  if (bundle) watchTasks.push('bundle');
+  if (minify) watchTasks.push('minify');
+}
+else {
+  // by default, do both bundling and minifying
+  watchTasks = ['bundle', 'minify'];
+}
 
 // The watch task (to automatically rebuild when the source code changes)
-// this watch only rebuilds vis.js, not vis.min.js
-gulp.task('watch-dev', ['bundle'], function () {
-  gulp.watch(['index.js', 'lib/**/*'], ['bundle']);
+gulp.task('watch', watchTasks, function () {
+  gulp.watch(['index.js', 'lib/**/*'], watchTasks);
 });
 
 // The default task (called when you run `gulp`)
