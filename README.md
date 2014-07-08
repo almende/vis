@@ -124,15 +124,9 @@ To build the library from source, clone the project from github
 
     git clone git://github.com/almende/vis.git
 
-The project uses [jake](https://github.com/mde/jake) as build tool.
-The build script uses [Browserify](http://browserify.org/) to
-bundle the source code into a library,
-and uses [UglifyJS](http://lisperator.net/uglifyjs/) to minify the code.
 The source code uses the module style of node (require and module.exports) to
-organize dependencies.
-
-To install all dependencies and build the library, run `npm install` in the
-root of the project.
+organize dependencies. To install all dependencies and build the library, 
+run `npm install` in the root of the project.
 
     cd vis
     npm install

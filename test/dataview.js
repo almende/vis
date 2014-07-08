@@ -1,9 +1,7 @@
-var assert = require('assert'),
-    moment = require('moment'),
-    vis = require('../dist/vis.js'),
-    DataSet = vis.DataSet,
-    DataView = vis.DataView;
-
+var assert = require('assert');
+var moment = require('moment');
+var DataSet = require('../lib/DataSet');
+var DataView = require('../lib/DataView');
 
 var groups = new DataSet();
 
