@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.0.1-SNAPSHOT
- * @date    2014-07-08
+ * @date    2014-07-09
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -8254,6 +8254,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   // Utility functions for ordering and stacking of items
+  var EPSILON = 0.001; // used when checking collisions, to prevent round-off errors
 
   /**
    * Order items by their start data
@@ -8357,10 +8358,10 @@ return /******/ (function(modules) { // webpackBootstrap
    * @return {boolean}        true if a and b collide, else false
    */
   exports.collision = function(a, b, margin) {
-    return ((a.left - margin) < (b.left + b.width) &&
-        (a.left + a.width + margin) > b.left &&
-        (a.top - margin) < (b.top + b.height) &&
-        (a.top + a.height + margin) > b.top);
+    return ((a.left - margin + EPSILON)       < (b.left + b.width) &&
+        (a.left + a.width + margin - EPSILON) > b.left &&
+        (a.top - margin + EPSILON)            < (b.top + b.height) &&
+        (a.top + a.height + margin - EPSILON) > b.top);
   };
 
 
@@ -16493,6 +16494,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
+  var Node = __webpack_require__(30);
 
   /**
    * @class Edge
@@ -23876,6 +23878,8 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
+  var Node = __webpack_require__(30);
+  var Edge = __webpack_require__(27);
 
   /**
    * clears the toolbar div element of children

@@ -7,6 +7,8 @@ http://visjs.org
 ### Timeline
 
 - Fixed items in groups sometimes being displayed but not positioned correctly.
+- Fixed range where the `end` of the first is equal to the `start` of the second 
+  sometimes being stacked instead of put besides each other when `item.margin=0`.
 
 
 ## 2014-07-07, version 3.0.0
