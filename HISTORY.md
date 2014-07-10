@@ -6,6 +6,8 @@ http://visjs.org
 
 ### Timeline
 
+- Removed check for number of arguments in callbacks `onAdd`, `onUpdate`, 
+  `onRemove`, and `onMove`.
 - Fixed items in groups sometimes being displayed but not positioned correctly.
 - Fixed range where the `end` of the first is equal to the `start` of the second 
   sometimes being stacked instead of put besides each other when `item.margin=0`.

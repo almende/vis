@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.0.1-SNAPSHOT
- * @date    2014-07-09
+ * @date    2014-07-10
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -145,8 +145,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
-  var Hammer = __webpack_require__(38);
-  var moment = __webpack_require__(39);
+  var Hammer = __webpack_require__(39);
+  var moment = __webpack_require__(38);
 
   /**
    * Test whether given object is a number
@@ -7715,7 +7715,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var moment = __webpack_require__(39);
+  var moment = __webpack_require__(38);
   var Component = __webpack_require__(12);
 
   /**
@@ -8369,7 +8369,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var moment = __webpack_require__(39);
+  var moment = __webpack_require__(38);
 
   /**
    * @constructor  TimeStep
@@ -10554,7 +10554,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var addCallback = (function (name) {
         if (name in options) {
           var fn = options[name];
-          if (!(fn instanceof Function) || fn.length != 2) {
+          if (!(fn instanceof Function)) {
             throw new Error('option ' + name + ' must be a function ' + name + '(item, callback)');
           }
           this.options[name] = fn;
@@ -20265,25 +20265,26 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
-  // Only load hammer.js when in a browser environment
-  // (loading hammer.js in a node.js environment gives errors)
-  if (typeof window !== 'undefined') {
-    module.exports = __webpack_require__(49);
-  }
-  else {
-    module.exports = function () {
-      throw Error('hammer.js is only available in a browser, not in node.js.');
-    }
-  }
+  // first check if moment.js is already loaded in the browser window, if so,
+  // use this instance. Else, load via commonjs.
+  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(51);
 
 
 /***/ },
 /* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
-  // first check if moment.js is already loaded in the browser window, if so,
-  // use this instance. Else, load via commonjs.
-  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(51);
+  // Only load hammer.js when in a browser environment
+  // (loading hammer.js in a node.js environment gives errors)
+  if (typeof window !== 'undefined') {
+    module.exports = window['Hammer'] || __webpack_require__(49);
+    // TODO: throw an error when hammerjs is not available?
+  }
+  else {
+    module.exports = function () {
+      throw Error('hammer.js is only available in a browser, not in node.js.');
+    }
+  }
 
 
 /***/ },
