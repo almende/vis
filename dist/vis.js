@@ -145,8 +145,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
-  var Hammer = __webpack_require__(39);
-  var moment = __webpack_require__(38);
+  var Hammer = __webpack_require__(38);
+  var moment = __webpack_require__(39);
 
   /**
    * Test whether given object is a number
@@ -1273,7 +1273,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
    * either the start OR end time has to be in the range.
    *
-   * @param {{byStart: Item[], byEnd: Item[]}} orderedItems
+   * @param {Item[]} orderedItems  Items ordered by start
    * @param {{start: number, end: number}} range
    * @param {String} field
    * @param {String} field2
@@ -1290,15 +1290,13 @@ return /******/ (function(modules) { // webpackBootstrap
     var newLow = low;
     var newHigh = high;
     var guess = Math.floor(0.5*(high+low));
-    var newGuess;
     var value;
 
     if (high == 0) {
       guess = -1;
     }
     else if (high == 1) {
-      value = field2 === undefined ? array[guess][field] : array[guess][field][field2];
-      if ((value > range.start - interval) && (value < range.end)) {
+      if (array[guess].isVisible(range)) {
         guess =  0;
       }
       else {
@@ -1311,11 +1309,11 @@ return /******/ (function(modules) { // webpackBootstrap
       while (found == false) {
         value = field2 === undefined ? array[guess][field] : array[guess][field][field2];
 
-        if ((value > range.start - interval) && (value < range.end)) {
+        if (array[guess].isVisible(range)) {
           found = true;
         }
         else {
-          if (value < range.start - interval) { // it is too small --> increase low
+          if (value < range.start) { // it is too small --> increase low
             newLow = Math.floor(0.5*(high+low));
           }
           else {  // it is too big --> decrease high
@@ -7715,7 +7713,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var moment = __webpack_require__(38);
+  var moment = __webpack_require__(39);
   var Component = __webpack_require__(12);
 
   /**
@@ -8369,7 +8367,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var moment = __webpack_require__(38);
+  var moment = __webpack_require__(39);
 
   /**
    * @constructor  TimeStep
@@ -20265,15 +20263,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
-  // first check if moment.js is already loaded in the browser window, if so,
-  // use this instance. Else, load via commonjs.
-  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(51);
-
-
-/***/ },
-/* 39 */
-/***/ function(module, exports, __webpack_require__) {
-
   // Only load hammer.js when in a browser environment
   // (loading hammer.js in a node.js environment gives errors)
   if (typeof window !== 'undefined') {
@@ -20285,6 +20274,15 @@ return /******/ (function(modules) { // webpackBootstrap
       throw Error('hammer.js is only available in a browser, not in node.js.');
     }
   }
+
+
+/***/ },
+/* 39 */
+/***/ function(module, exports, __webpack_require__) {
+
+  // first check if moment.js is already loaded in the browser window, if so,
+  // use this instance. Else, load via commonjs.
+  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(51);
 
 
 /***/ },
