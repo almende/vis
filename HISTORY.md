@@ -12,6 +12,12 @@ http://visjs.org
 - Fixed range where the `end` of the first is equal to the `start` of the second 
   sometimes being stacked instead of put besides each other when `item.margin=0`.
 
+### Network (formerly named Graph)
+
+- Expanded smoothCurves options for improved support for large clusters.
+- Added multiple types of smoothCurve drawing for greatly improved performance.
+- Option for inherited edge colors from connected nodes.
+- Option to disable the drawing of nodes or edges on drag.
 
 ## 2014-07-07, version 3.0.0
 

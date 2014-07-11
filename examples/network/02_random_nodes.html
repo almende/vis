@@ -81,12 +81,12 @@
     },
     stabilize: false
     };
-      network = new vis.Network(container, data, options);
+    network = new vis.Network(container, data, options);
 
-      // add event listeners
-      network.on('select', function(params) {
-        document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
-      });
+    // add event listeners
+    network.on('select', function(params) {
+      document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
+    });
     }
   </script>
 </head>

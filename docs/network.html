@@ -672,6 +672,14 @@ When using a DataSet, the network is automatically updating to changes in the Da
         <td>physics.[method].springLength</td>
         <td>The resting length of the edge when modeled as a spring. By default the springLength determined by the physics is used. By using this setting you can make certain edges have different resting lengths.</td>
     </tr>
+
+    <tr>
+        <td>inheritColor</td>
+        <td>String | Boolean</td>
+        <td>false</td>
+        <td>Possible values: <code>"to","from", true, false</code>. If this value is set to false, the edge color information is used. If the value is set to true or "from",
+            the color data from the borders of the "from" node is used. If this value is "to", the color data from the borders of the "to" node is used.</td>
+    </tr>
   <tr>
     <td>title</td>
     <td>string | function</td>
@@ -874,7 +882,22 @@ var options = {
             Toggle if the nodes can be dragged. This will not affect the dragging of the network.
         </td>
     </tr>
-
+  <tr>
+      <td>hideNodesOnDrag</td>
+      <td>Boolean</td>
+      <td>false</td>
+      <td>
+          Toggle if the nodes are drawn during a drag. This can greatly improve performance if you have many nodes.
+      </td>
+  </tr>
+  <tr>
+      <td>hideEdgesOnDrag</td>
+      <td>Boolean</td>
+      <td>false</td>
+      <td>
+          Toggle if the edges are drawn during a drag. This can greatly improve performance if you have many edges.
+      </td>
+  </tr>
   <tr>
     <td><a href="#Navigation_controls">navigation</a></td>
     <td>Object</td>
@@ -895,11 +918,31 @@ var options = {
 
     <tr>
         <td>smoothCurves</td>
-        <td>Boolean</td>
-        <td>true</td>
-        <td>If true, edges are drawn as smooth curves. This is more computationally intensive since the edge now is a quadratic Bezier curve with control points on both nodes and an invisible node in the center of the edge. This support node is also handed by the physics simulation.</td>
+        <td>Boolean || object</td>
+        <td>object</td>
+        <td>If true, edges are drawn as smooth curves. This is more computationally intensive since the edge now is a quadratic Bezier curve. This can be further configured by the options below.</td>
     </tr>
 
+    <tr>
+        <td>smoothCurves.dynamic</td>
+        <td>Boolean</td>
+        <td>true</td>
+        <td>By default, the edges are dynamic. This means there are support nodes placed in the middle of the edge. This support node is also handed by the physics simulation. If false, the smoothness will be based on the
+        relative positions of the to and from nodes. This is computationally cheaper but there is no self organisation.</td>
+    </tr>
+    <tr>
+        <td>smoothCurves.type</td>
+        <td>String</td>
+        <td>"continuous"</td>
+        <td>This option only affects NONdynamic smooth curves. The supported types are: <code>continuous, discrete, diagonalCross, straightCross, horizontal, vertical</code>. The effects of these types
+        are shown in examples <a href="../examples/Network/26_staticSmoothCurves.html">26</a> and <a href="../examples/Network/27_world_cup_network.html">27</a></td>
+    </tr>
+    <tr>
+        <td>smoothCurves.roundness</td>
+        <td>Number</td>
+        <td>0.5</td>
+        <td>This only affects NONdynamic smooth curves. The roundness can be tweaked with the parameter. The value range is from 0 to 1 with a maximum roundness at 0.5.</td>
+    </tr>
   <tr>
     <td>selectable</td>
     <td>Boolean</td>
@@ -1222,6 +1265,14 @@ var options = {
     <td>physics.[method].springLength</td>
     <td>The resting length of the edge when modeled as a spring. By default the springLength determined by the physics is used. By using this setting you can make certain edges have different resting lengths.</td>
   </tr>
+
+    <tr>
+        <td>inheritColor</td>
+        <td>String | Boolean</td>
+        <td>false</td>
+        <td>Possible values: <code>"to","from", true, false</code>. If this value is set to false, the edge color information is used. If the value is set to true or "from",
+            the color data from the borders of the "from" node is used. If this value is "to", the color data from the borders of the "to" node is used.</td>
+    </tr>
 
   <tr>
     <td>style</td>
