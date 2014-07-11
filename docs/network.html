@@ -931,11 +931,11 @@ var options = {
         relative positions of the to and from nodes. This is computationally cheaper but there is no self organisation.</td>
     </tr>
     <tr>
-        <td>smoothCurves.adaptive</td>
-        <td>Boolean</td>
-        <td>true</td>
-        <td>This option only affects NONdynamic smooth curves. Adaptivity allows the smoothness to transition nicely if there is node movement. The downside is that the maximum roundness is less if adaptivity is enabled. Adaptivity can be disabled for static network.
-            Sudden switching between orientations can happen on an animated network.</td>
+        <td>smoothCurves.type</td>
+        <td>String</td>
+        <td>"continuous"</td>
+        <td>This option only affects NONdynamic smooth curves. The supported types are: <code>continuous, discrete, diagonalCross, straightCross, horizontal, vertical</code>. The effects of these types
+        are shown in examples <a href="../examples/Network/26_staticSmoothCurves.html">26</a> and <a href="../examples/Network/27_world_cup_network.html">27</a></td>
     </tr>
     <tr>
         <td>smoothCurves.roundness</td>
