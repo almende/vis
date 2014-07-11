@@ -10,11 +10,11 @@
   "ignore": [
     "misc",
     "node_modules",
-    "src",
+    "lib",
     "test",
     "tools",
     ".idea",
-    "Jakefile.js",
+    "gulpfile.js",
     "package.json",
     ".npmignore",
     ".gitignore"
