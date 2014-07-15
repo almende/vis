@@ -23368,7 +23368,6 @@ return /******/ (function(modules) { // webpackBootstrap
     this.fixedData = {x:null,y:null};
 
 
-    console.log(properties)
     this.setProperties(properties, constants);
 
     // creating the variables for clustering
