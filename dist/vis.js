@@ -6067,6 +6067,15 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
+   * Get the id's of the currently visible items.
+   * @returns {Array} The ids of the visible items
+   */
+  Timeline.prototype.getVisibleItems = function() {
+    return this.itemSet && this.itemSet.getVisibleItems() || [];
+  };
+
+
+  /**
    * Set groups
    * @param {vis.DataSet | Array | google.visualization.DataTable} groups
    */
@@ -10689,6 +10698,36 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
+   * Get the id's of the currently visible items.
+   * @returns {Array} The ids of the visible items
+   */
+  ItemSet.prototype.getVisibleItems = function() {
+    var range = this.body.range.getRange();
+    var left  = this.body.util.toScreen(range.start);
+    var right = this.body.util.toScreen(range.end);
+
+    var ids = [];
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        var group = this.groups[groupId];
+        var rawVisibleItems = group.visibleItems;
+
+        // filter the "raw" set with visibleItems into a set which is really
+        // visible by pixels
+        for (var i = 0; i < rawVisibleItems.length; i++) {
+          var item = rawVisibleItems[i];
+          // TODO: also check whether visible vertically
+          if ((item.left < right) && (item.left + item.width > left)) {
+            ids.push(item.id);
+          }
+        }
+      }
+    }
+
+    return ids;
+  };
+
+  /**
    * Deselect a selected item
    * @param {String | Number} id
    * @private
@@ -14302,7 +14341,7 @@ return /******/ (function(modules) { // webpackBootstrap
           gap: 5,
           altLength: undefined
         },
-        inheritColor: false // to, from, false, true (== from)
+        inheritColor: "from" // to, from, false, true (== from)
       },
       configurePhysics:false,
       physics: {
@@ -14381,7 +14420,7 @@ return /******/ (function(modules) { // webpackBootstrap
         roundness: 0.5
       },
       dynamicSmoothCurves: true,
-      maxVelocity:  10,
+      maxVelocity:  30,
       minVelocity:  0.1,   // px/s
       stabilizationIterations: 1000,  // maximum number of iteration to stabilize
       labels:{
@@ -14727,7 +14766,6 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     this._putDataInSector();
-
     if (!disableStart) {
       // find a stable position or start animating to a stable position
       if (this.stabilize) {
@@ -15974,7 +16012,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this._doInAllSectors("_drawControlNodes",ctx);
     }
 
-  //  this._doInSupportSector("_drawNodes",ctx,true);
+    this._doInSupportSector("_drawNodes",ctx,true);
   //  this._drawTree(ctx,"#F00F0F");
 
     // restore original scaling and translation
@@ -16424,6 +16462,14 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
       this._createBezierNodes();
+      // cleanup unused support nodes
+      for (var nodeId in this.sectors['support']['nodes']) {
+        if (this.sectors['support']['nodes'].hasOwnProperty(nodeId)) {
+          if (this.edges[this.sectors['support']['nodes'][nodeId]] === undefined) {
+            delete this.sectors['support']['nodes'][nodeId];
+          }
+        }
+      }
     }
     else {
       // delete the support nodes
@@ -16435,6 +16481,8 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
     }
+
+
     this._updateCalculationNodes();
     if (!disableStart) {
       this.moving = true;
@@ -17484,42 +17532,22 @@ return /******/ (function(modules) { // webpackBootstrap
           yVia = via.y;
         }
         var minDistance = 1e9;
-        var i,t,x,y,dx,dy;
+        var distance;
+        var i,t,x,y, lastX, lastY;
         for (i = 0; i < 10; i++) {
           t = 0.1*i;
           x = Math.pow(1-t,2)*x1 + (2*t*(1 - t))*xVia + Math.pow(t,2)*x2;
           y = Math.pow(1-t,2)*y1 + (2*t*(1 - t))*yVia + Math.pow(t,2)*y2;
-          dx = Math.abs(x3-x);
-          dy = Math.abs(y3-y);
-          minDistance = Math.min(minDistance,Math.sqrt(dx*dx + dy*dy));
+          if (i > 0) {
+            distance = this._getDistanceToLine(lastX,lastY,x,y, x3,y3);
+            minDistance = distance < minDistance ? distance : minDistance;
+          }
+          lastX = x; lastY = y;
         }
         return minDistance
       }
       else {
-        var px = x2-x1,
-            py = y2-y1,
-            something = px*px + py*py,
-            u =  ((x3 - x1) * px + (y3 - y1) * py) / something;
-
-        if (u > 1) {
-          u = 1;
-        }
-        else if (u < 0) {
-          u = 0;
-        }
-
-        var x = x1 + u * px,
-            y = y1 + u * py,
-            dx = x - x3,
-            dy = y - y3;
-
-        //# Note: If the actual distance does not matter,
-        //# if you only want to compare what this function
-        //# returns to other results of this function, you
-        //# can just return the squared distance instead
-        //# (i.e. remove the sqrt) to gain a little performance
-
-        return Math.sqrt(dx*dx + dy*dy);
+        return this._getDistanceToLine(x1,y1,x2,y2,x3,y3);
       }
     }
     else {
@@ -17543,7 +17571,32 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
+  Edge.prototype._getDistanceToLine = function(x1,y1,x2,y2,x3,y3) {
+    var px = x2-x1,
+      py = y2-y1,
+      something = px*px + py*py,
+      u =  ((x3 - x1) * px + (y3 - y1) * py) / something;
 
+    if (u > 1) {
+      u = 1;
+    }
+    else if (u < 0) {
+      u = 0;
+    }
+
+    var x = x1 + u * px,
+      y = y1 + u * py,
+      dx = x - x3,
+      dy = y - y3;
+
+    //# Note: If the actual distance does not matter,
+    //# if you only want to compare what this function
+    //# returns to other results of this function, you
+    //# can just return the squared distance instead
+    //# (i.e. remove the sqrt) to gain a little performance
+
+    return Math.sqrt(dx*dx + dy*dy);
+  }
 
   /**
    * This allows the zoom level of the network to influence the rendering
@@ -18045,7 +18098,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // individual shape properties
     if (properties.shape !== undefined)          {this.shape = properties.shape;}
     if (properties.image !== undefined)          {this.image = properties.image;}
-    if (properties.radius !== undefined)         {this.radius = properties.radius;}
+    if (properties.radius !== undefined)         {this.radius = properties.radius; this.baseRadiusValue = this.radius;}
     if (properties.color !== undefined)          {this.color = util.parseColor(properties.color);}
 
     if (properties.fontColor !== undefined)      {this.fontColor = properties.fontColor;}
@@ -26766,7 +26819,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this._calculateGravitationalForces();
     this._calculateNodeForces();
 
-    if (this.constants.springConstant > 0) {
+    if (this.constants.physics.springConstant > 0) {
       if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
         this._calculateSpringForcesWithSupport();
       }

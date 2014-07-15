@@ -6,6 +6,8 @@ http://visjs.org
 
 ### Timeline
 
+- Implemented function `getVisibleItems()`, which returns the items visible
+  in the current window.
 - Added options `margin.item.horizontal` and  `margin.item.vertical`, which
   allows to specify different margins horizontally/vertically.
 - Removed check for number of arguments in callbacks `onAdd`, `onUpdate`, 
