@@ -22,6 +22,13 @@ http://visjs.org
 - Added multiple types of smoothCurve drawing for greatly improved performance.
 - Option for inherited edge colors from connected nodes.
 - Option to disable the drawing of nodes or edges on drag.
+- Fixed support nodes not being cleaned up if edges are removed.
+- Improved edge selection detection for long smooth curves.
+- Fixed dot radius bug.
+- Updated max velocity of nodes to three times it's original value.
+- Made "stabilized" event fire every time the network stabilizes.
+- Fixed drift in dragging nodes while zooming.
+
 
 
 ## 2014-07-07, version 3.0.0

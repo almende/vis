@@ -2417,7 +2417,8 @@ network.off('select', onSelect);
     </tr>
     <tr>
         <td>stabilized</td>
-        <td>Fired when the network has been stabilized after initialization. This event can be used to trigger the .storePosition() function after stabilization.</td>
+        <td>Fired when the network has been stabilized. This event can be used to trigger the .storePosition() function after stabilization. When the network in initialized, the parameter
+        iterations will be the amount of iterations it took to stabilize. After initialization, this parameter is null.</td>
         <td>
             <ul>
                 <li><code>iterations</code>: number of iterations used to stabilize</li>
